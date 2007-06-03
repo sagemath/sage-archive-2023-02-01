@@ -186,22 +186,22 @@ cdef extern from "mpfi.h":
     int (*mpfi_cmp_q) (mpfi_srcptr,mpq_srcptr)
     int (*mpfi_cmp_fr) (mpfi_srcptr,mpfr_srcptr)
 
-    int (*mpfi_is_pos) (mpfi_srcptr)
-    int (*mpfi_is_nonneg) (mpfi_srcptr)
-    int (*mpfi_is_neg) (mpfi_srcptr)
-    int (*mpfi_is_nonpos) (mpfi_srcptr)
-    int (*mpfi_is_zero) (mpfi_srcptr)
-    int (*mpfi_is_strictly_pos) (mpfi_srcptr)
-    int (*mpfi_is_strictly_neg) (mpfi_srcptr)
+    bint (*mpfi_is_pos) (mpfi_srcptr)
+    bint (*mpfi_is_nonneg) (mpfi_srcptr)
+    bint (*mpfi_is_neg) (mpfi_srcptr)
+    bint (*mpfi_is_nonpos) (mpfi_srcptr)
+    bint (*mpfi_is_zero) (mpfi_srcptr)
+    bint (*mpfi_is_strictly_pos) (mpfi_srcptr)
+    bint (*mpfi_is_strictly_neg) (mpfi_srcptr)
 
     # default comparison functions
-    int mpfi_is_pos_default(mpfi_srcptr)
-    int mpfi_is_nonneg_default(mpfi_srcptr)
-    int mpfi_is_neg_default(mpfi_srcptr)
-    int mpfi_is_nonpos_default(mpfi_srcptr)
-    int mpfi_is_zero_default(mpfi_srcptr)
-    int mpfi_is_strictly_neg_default(mpfi_srcptr a)
-    int mpfi_is_strictly_pos_default(mpfi_srcptr a)
+    bint mpfi_is_pos_default(mpfi_srcptr)
+    bint mpfi_is_nonneg_default(mpfi_srcptr)
+    bint mpfi_is_neg_default(mpfi_srcptr)
+    bint mpfi_is_nonpos_default(mpfi_srcptr)
+    bint mpfi_is_zero_default(mpfi_srcptr)
+    bint mpfi_is_strictly_neg_default(mpfi_srcptr a)
+    bint mpfi_is_strictly_pos_default(mpfi_srcptr a)
 
     int mpfi_cmp_default(mpfi_srcptr,mpfi_srcptr)
     int mpfi_cmp_d_default(mpfi_srcptr,double)
@@ -214,9 +214,9 @@ cdef extern from "mpfi.h":
 
     int mpfi_has_zero(mpfi_srcptr)
 
-    int mpfi_nan_p(mpfi_srcptr)
-    int mpfi_inf_p(mpfi_srcptr)
-    int mpfi_bounded_p(mpfi_srcptr)
+    bint mpfi_nan_p(mpfi_srcptr)
+    bint mpfi_inf_p(mpfi_srcptr)
+    bint mpfi_bounded_p(mpfi_srcptr)
 
     # Interval manipulation
 
@@ -257,17 +257,17 @@ cdef extern from "mpfi.h":
     # Inclusion tests
     # tests if the first argument is inside the interval
     # defined by the second one
-    int mpfi_is_strictly_inside(mpfi_srcptr,mpfi_srcptr)
-    int mpfi_is_inside(mpfi_srcptr, mpfi_srcptr)
-    int mpfi_is_inside_d(double, mpfi_srcptr)
-    int mpfi_is_inside_ui(unsigned long, mpfi_srcptr)
-    int mpfi_is_inside_si(long, mpfi_srcptr)
-    int mpfi_is_inside_z(mpz_srcptr,mpfi_srcptr)
-    int mpfi_is_inside_q(mpq_srcptr,mpfi_srcptr)
-    int mpfi_is_inside_fr(mpfr_srcptr,mpfi_srcptr)
+    bint mpfi_is_strictly_inside(mpfi_srcptr,mpfi_srcptr)
+    bint mpfi_is_inside(mpfi_srcptr, mpfi_srcptr)
+    bint mpfi_is_inside_d(double, mpfi_srcptr)
+    bint mpfi_is_inside_ui(unsigned long, mpfi_srcptr)
+    bint mpfi_is_inside_si(long, mpfi_srcptr)
+    bint mpfi_is_inside_z(mpz_srcptr,mpfi_srcptr)
+    bint mpfi_is_inside_q(mpq_srcptr,mpfi_srcptr)
+    bint mpfi_is_inside_fr(mpfr_srcptr,mpfi_srcptr)
 
     # set operations
-    int mpfi_is_empty(mpfi_srcptr)
+    bint mpfi_is_empty(mpfi_srcptr)
     int mpfi_intersect(mpfi_ptr, mpfi_srcptr, mpfi_srcptr)
     int mpfi_union(mpfi_ptr, mpfi_srcptr, mpfi_srcptr)
 
@@ -309,10 +309,10 @@ cdef extern from "mpfi.h":
     # #define MPFI_RIGHT_IS_INEXACT(x) ( (int)(x)/2 )
     # #define MPFI_BOTH_ARE_INEXACT(x) ( (int)(x) == 3 )
 
-    int MPFI_BOTH_ARE_EXACT(mpfi_flags_enum)
-    int MPFI_LEFT_IS_INEXACT(mpfi_flags_enum)
-    int MPFI_RIGHT_IS_INEXACT(mpfi_flags_enum)
-    int MPFI_BOTH_ARE_INEXACT(mpfi_flags_enum)
+    bint MPFI_BOTH_ARE_EXACT(mpfi_flags_enum)
+    bint MPFI_LEFT_IS_INEXACT(mpfi_flags_enum)
+    bint MPFI_RIGHT_IS_INEXACT(mpfi_flags_enum)
+    bint MPFI_BOTH_ARE_INEXACT(mpfi_flags_enum)
 
     # #define MPFI_REVERT_INEXACT_FLAGS(x) \
     #   ( ((x)==1) ? 2 : ((x)==2) ? 1 : x )
@@ -323,9 +323,9 @@ cdef extern from "mpfi.h":
     # #define MPFI_INF_P(a) ( MPFR_IS_INF(&(a->left)) || MPFR_IS_INF (&(a->right)) )
     # #define MPFI_IS_ZERO(a)  (MPFI_NAN_P(a) ? 0 : ((MPFR_SIGN(&(a->right))==0) && (MPFR_SIGN(&(a->left))==0)))
 
-    int MPFI_NAN_P(mpfi_srcptr)
-    int MPFI_INF_P(mpfi_srcptr)
-    int MPFI_IS_ZERO(mpfi_srcptr)
+    bint MPFI_NAN_P(mpfi_srcptr)
+    bint MPFI_INF_P(mpfi_srcptr)
+    bint MPFI_IS_ZERO(mpfi_srcptr)
 
     # #define MPFI_CLEAR(m) {mpfr_clear(&(m->right)); mpfr_clear(&(m->left));}
 

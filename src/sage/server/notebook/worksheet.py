@@ -49,23 +49,35 @@ SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 
 
+# The default is for there to be one sage session for
+# each worksheet.  If this is False, then there is just
+# one global SAGE session, like with Mathematica.
+# This variable gets sets when the notebook function
+# in notebook.py is called.
+multisession = True
+def initialized_sage():
+    S = Sage(maxread = 1)
+    S._start(block_during_init=False)
+    E = S.expect()
+    E.sendline('\n')
+    E.expect('>>>')
+    cmd = 'from sage.all_notebook import *;'
+    cmd += 'import sage.server.support as _support_; '
+    E.sendline(cmd)
+    return S
+
+
+
 _a_sage = None
 def init_sage_prestart():
     global _a_sage
-    _a_sage = Sage(maxread = 1)
-    _a_sage._start(block_during_init=False)
-    E = _a_sage.expect()
-    E.sendline('\n')
-    E.expect('>>>')
-    cmd = 'from sage.all import *;'
-    cmd += 'from sage.all_notebook import *;'
-    cmd += 'import sage.server.support as _support_; '
-    E.sendline(cmd)
+    _a_sage = initialized_sage()
 
 def one_prestarted_sage():
     global _a_sage
     X = _a_sage
-    init_sage_prestart()
+    if multisession:
+        init_sage_prestart()
     return X
 
 class Worksheet:
@@ -85,9 +97,9 @@ class Worksheet:
         dir = ''.join(dir)
         self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
-        while os.path.exists(self.__dir):
-            self.__dir += "_"
-            self.__filename += '_'
+        #while os.path.exists(self.__dir):
+        #    self.__dir += "_"
+        #    self.__filename += '_'
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
@@ -360,28 +372,11 @@ class Worksheet:
             return False
         return True
 
-    def sage(self):
-        try:
-            S = self.__sage
-            if not S._expect is None:
-                return S
-        except AttributeError:
-            pass
-        S = one_prestarted_sage()
-        verbose("Initializing SAGE.")
-        os.environ['PAGER'] = 'cat'
-        self.__sage = S
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
-        self.__next_block_id = 0
+    def initialize_sage(self):
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.__notebook.object_directory())
-        #verbose(object_directory)
-        # We do exactly one eval below of one long line instead of
-        # a whole bunch of short ones.
+        S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
             cmd += '_support_.init("%s", globals()); '%object_directory
@@ -396,8 +391,25 @@ class Worksheet:
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
-
         return S
+
+    def sage(self):
+        try:
+            S = self.__sage
+            if not S._expect is None:
+                return S
+        except AttributeError:
+            pass
+        self.__sage = one_prestarted_sage()
+        verbose("Initializing SAGE.")
+        os.environ['PAGER'] = 'cat'
+        try:
+            del self.__variables
+        except AttributeError:
+            pass
+        self.__next_block_id = 0
+        self.initialize_sage()
+        return self.__sage
 
     def _enqueue_auto_cells(self):
         for c in self.__cells:
@@ -731,7 +743,8 @@ class Worksheet:
             i = s.rfind('>>>')
             if i >= 0:
                 return s[:i-1]
-        return s
+        # Remove any control codes that might have not got stripped out.
+        return s.replace(SAGE_BEGIN,'').replace(SAGE_END,'').replace(SC,'')
 
     def is_last_id_and_previous_is_nonempty(self, id):
         if self.__cells[-1].id() != id:
@@ -801,6 +814,10 @@ class Worksheet:
             del self.__variables
         except AttributeError:
             pass
+
+        # We do this to avoid getting a stale SAGE that uses old code.
+        self.__sage = initialized_sage()
+        self.initialize_sage()
 
         self._enqueue_auto_cells()
         self.start_next_comp()
@@ -1326,10 +1343,10 @@ def extract_first_compute_cell(text):
     i = text.find('{{{')
     if i == -1:
         raise EOFError
-    j = text.find('}}}')
+    j = text.find('\n}}}')
     if j <= i:
         j = len(text)
-    k = text.find('///')
+    k = text.find('\n///')
     if k == -1 or k > j:
         input = text[i+3:j]
         output = ''
@@ -1337,12 +1354,12 @@ def extract_first_compute_cell(text):
     else:
         input = text[i+3:k].strip()
         # Find the graphics block, if there is one.
-        l = text[k+3:].find('///')
-        if l != -1 and l+k+3 < j:
-            graphics = text[l+k+3+3:j]
+        l = text[k+4:].find('\n///')
+        if l != -1 and l+k+4 < j:
+            graphics = text[l+k+4+3:j]
         else:
             graphics = ''
             l = j
-        output = text[k+3:l].strip()
-    return input.strip(), output, graphics, j+3
+        output = text[k+4:l].strip()
+    return input.strip(), output, graphics, j+4
 

@@ -437,7 +437,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...
             ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
 
-        Note that there is only one lift with x-coordinate 10 in $E(\F_17)$.
+        Note that there is only one lift with x-coordinate 10 in $E(\F_{17})$.
             sage: E.lift_x(10, all=True)
             [(10 : 8 : 1)]
 

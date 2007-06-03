@@ -5,11 +5,11 @@ cdef extern from "Python.h":
     # Tuples
     ############################################################################
 
-    int PyTuple_Check(object  p)
+    bint PyTuple_Check(object  p)
     # Return true if p is a tuple object or an instance of a subtype
     # of the tuple type.
 
-    int PyTuple_CheckExact(object  p)
+    bint PyTuple_CheckExact(object  p)
     # Return true if p is a tuple object, but not an instance of a subtype of the tuple type.
 
     object PyTuple_New(Py_ssize_t len)

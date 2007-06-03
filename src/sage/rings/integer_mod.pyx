@@ -134,7 +134,7 @@ def is_IntegerMod(x):
         sage: is_IntegerMod(Mod(5,10))
         True
     """
-    return bool(isinstance(x, IntegerMod_abstract))
+    return isinstance(x, IntegerMod_abstract)
 
 def makeNativeIntStruct(sage.rings.integer.Integer z):
     return NativeIntStruct(z)
@@ -508,9 +508,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         AUTHOR:
             -- Robert Bradshaw
         """
-        return bool(self.is_square_c())
+        return self.is_square_c()
 
-    cdef int is_square_c(self) except -2:
+    cdef bint is_square_c(self) except -2:
         if self.is_zero() or self.is_one():
             return 1
         moduli = self.parent().factored_order()
@@ -973,7 +973,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: mod(0,5^23).is_one()
             False
         """
-        return bool(mpz_cmp_si(self.value, 1) == 0)
+        return mpz_cmp_si(self.value, 1) == 0
 
     def __nonzero__(IntegerMod_gmp self):
         """
@@ -985,10 +985,10 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: (mod(25,5^23)^23).is_zero()
             True
         """
-        return bool(mpz_cmp_si(self.value, 0) != 0)
+        return mpz_cmp_si(self.value, 0) != 0
 
     def is_unit(self):
-        return bool(self.lift().gcd(self.modulus()) == 1)
+        return self.lift().gcd(self.modulus()) == 1
 
     def __crt(IntegerMod_gmp self, IntegerMod_gmp other):
         cdef IntegerMod_gmp lift, x
@@ -1298,7 +1298,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(0,5).is_one()
             False
         """
-        return bool(self.ivalue == 1)
+        return self.ivalue == 1
 
     def __nonzero__(IntegerMod_int self):
         """
@@ -1310,10 +1310,10 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(25,5).is_zero()
             True
         """
-        return bool(self.ivalue != 0)
+        return self.ivalue != 0
 
     def is_unit(IntegerMod_int self):
-        return bool(gcd_int(self.ivalue, self.__modulus.int32) == 1)
+        return gcd_int(self.ivalue, self.__modulus.int32) == 1
 
     def __crt(IntegerMod_int self, IntegerMod_int other):
         """
@@ -1533,7 +1533,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return hash(self.ivalue)
 
-    cdef int is_square_c(self) except -2:
+    cdef bint is_square_c(self) except -2:
         if self.ivalue <= 1:
             return 1
         moduli = self._parent.factored_order()
@@ -1845,7 +1845,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0,5^10).is_one()
             False
         """
-        return bool(self.ivalue == 1)
+        return self.ivalue == 1
 
     def __nonzero__(IntegerMod_int64 self):
         """
@@ -1857,10 +1857,10 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(5^12,5^10).is_zero()
             True
         """
-        return bool(self.ivalue != 0)
+        return self.ivalue != 0
 
     def is_unit(IntegerMod_int64 self):
-        return bool(gcd_int64(self.ivalue, self.__modulus.int64) == 1)
+        return gcd_int64(self.ivalue, self.__modulus.int64) == 1
 
     def __crt(IntegerMod_int64 self, IntegerMod_int64 other):
         """

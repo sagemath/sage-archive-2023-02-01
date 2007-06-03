@@ -39,6 +39,7 @@ def ellsea(E, p, early_abort=False):
     global gp
     if gp is None:
         gp = Gp(script_subdirectory='SEA')
+        gp.eval('allocatemem();allocatemem();allocatemem();allocatemem();allocatemem();allocatemem()')
         gp.read("sea.gp")
 
     gp.eval('E = ellinit(%s*Mod(1,%s));'%(E,p))

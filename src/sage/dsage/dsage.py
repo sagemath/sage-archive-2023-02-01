@@ -7,28 +7,24 @@ AUTHORS:
 
 import os
 import subprocess
-import sys
+from getpass import getuser
 
 import sage.interfaces.cleaner
-from sage.misc.all import DOT_SAGE
 from sage.misc.all import SAGE_ROOT
+from sage.dsage.misc.constants import DSAGE_DIR
 
-def spawn(cmd, logfile=None, verbose=True):
+def spawn(cmd, verbose=True):
     """
     Spawns a process and registers it with the SAGE cleaner.
 
     """
 
-    if not logfile is None:
-        log = open(logfile, 'a')
-    else:
-        log = sys.stdout
-
-    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)],
-                               stdout=log, stderr=log)
-
-    print 'Spawned %s (pid = %s, logfile = %s)' % (cmd, process.pid, log.name)
+    null = open('/dev/null', 'a')
+    proc = '%s/%s' % (SAGE_ROOT + '/local/bin', cmd)
+    process = subprocess.Popen(proc, shell=True, stdout=null, stderr=null)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
+    if verbose:
+        print 'Spawned %s (pid = %s)\n' % (cmd, process.pid)
 
 class DistributedSage(object):
     r"""
@@ -106,14 +102,33 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self):
-        self.server(blocking=False)
-        self.worker(blocking=False)
-        from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
+    def start_all(self, port=8081, workers=2, log_level=0, verbose=True):
+        """
+        Start the server and worker and returns a connection to the server.
 
-        return DSage()
+        """
 
-    def server(self, blocking=True, clear_jobs=False, logfile=None):
+        from sage.dsage.interface.dsage_interface import BlockingDSage
+
+        self.server(port=port, log_level=log_level, blocking=False,
+                    verbose=verbose)
+        self.worker(port=port, workers=workers, log_level=log_level,
+                    blocking=False, verbose=verbose)
+
+        import time
+        time.sleep(1)  # Allow the server to start completely before trying
+                       # to connect
+        d = BlockingDSage(server='localhost', port=port)
+
+        return d
+
+    def server(self, blocking=True, port=8081, log_level=0, ssl=True,
+               db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
+               log_file=os.path.join(DSAGE_DIR, 'server.log'),
+               privkey=os.path.join(DSAGE_DIR, 'cacert.pem'),
+               cert=os.path.join(DSAGE_DIR, 'pubcert.pem'),
+               stats_file=os.path.join(DSAGE_DIR, 'dsage.xml'),
+               verbose=True):
         r"""
         Run the Distributed SAGE server.
 
@@ -130,15 +145,25 @@ class DistributedSage(object):
 
         """
 
-        cmd = 'dsage_server.py'
+        cmd = 'dsage_server.py -d %s -p %s -l %s -f %s ' + \
+                              '-c %s -k %s --statsfile=%s'
+        cmd = cmd % (db_file, port, log_level, log_file, cert, privkey,
+                     stats_file)
+        if ssl:
+            cmd += ' --ssl'
         if not blocking:
-            if logfile is None:
-                logfile = '%s/dsage/server.log' % (DOT_SAGE)
-            spawn(cmd, logfile)
+            cmd += ' --noblock'
+            spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 
-    def worker(self, server=None, port=None, blocking=True, logfile=None):
+    def worker(self, server='localhost', port=8081, workers=2, delay=5.0,
+               username=getuser(), blocking=True, ssl=True, log_level=0,
+               anonymous=False, priority=20,
+               privkey=os.path.join(DSAGE_DIR, 'dsage_key'),
+               pubkey=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
+               log_file=os.path.join(DSAGE_DIR, 'worker.log'),
+               verbose=True):
         r"""
         Run the Distributed SAGE worker.
 
@@ -157,20 +182,18 @@ class DistributedSage(object):
                        to log to $DOT_SAGE/dsage/worker.log
         """
 
-        cmd = 'dsage_worker.py'
-        if blocking:
-            cmd += ' %s' % server
-            cmd += ' %s' % port
-            os.system(cmd)
-        else:
-            if not server is None or not port is None:
-                args = [str(server), str(port)]
-            else:
-                args = []
-            if logfile is None:
-                logfile = '%s/dsage/worker.log'%DOT_SAGE
-            spawn(cmd + ' '.join(args), logfile)
+        cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
+                               '--privkey=%s --pubkey=%s --priority=%s '
+        cmd = cmd % (server, port, username, workers, delay, log_level,
+                     log_file, privkey, pubkey, priority)
 
+        if ssl:
+            cmd += ' --ssl'
+        if not blocking:
+            cmd += ' --noblock'
+            spawn(cmd, verbose=verbose)
+        else:
+            os.system(cmd)
 
     def setup(self):
         r"""

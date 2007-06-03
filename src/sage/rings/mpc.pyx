@@ -93,10 +93,10 @@ cdef extern from "mpc.h":
 
 
     # Status functions
-    int mpc_nan_p (mpc_t op)
-    int mpc_inf_p (mpc_t op)
-    int mpc_number_p (mpc_t op)
-    int mpc_zero_p (mpc_t op)
+    bint mpc_nan_p (mpc_t op)
+    bint mpc_inf_p (mpc_t op)
+    bint mpc_number_p (mpc_t op)
+    bint mpc_zero_p (mpc_t op)
 
     # Operators
     int mpc_cmp (mpc_t op1, mpc_t op2)
@@ -133,7 +133,8 @@ def mpc_prec_max():
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
 cdef class ComplexField(ring.Field):
-    cdef int prec, sci_not
+    cdef int prec
+    cdef bint sci_not
     cdef mp_rnd_t rnd
 
     def __init__(self, int prec=53, rnd="RNDN"):
@@ -285,7 +286,7 @@ cdef class ComplexField(ring.Field):
             status -- optional flag
         """
         if status is None:
-            return bool(self.sci_not)
+            return self.sci_not
         else:
             self.sci_not = status
 
@@ -531,17 +532,17 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         else:
             n = self.cmp(x)
         if op == 0:
-            return bool(n < 0)
+            return (n < 0)
         elif op == 1:
-            return bool(n <= 0)
+            return (n <= 0)
         elif op == 2:
-            return bool(n == 0)
+            return (n == 0)
         elif op == 3:
-            return bool(n != 0)
+            return (n != 0)
         elif op == 4:
-            return bool(n > 0)
+            return (n > 0)
         elif op == 5:
-            return bool(n >= 0)
+            return (n >= 0)
 
 
     ############################

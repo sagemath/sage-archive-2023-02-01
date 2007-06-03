@@ -44,6 +44,8 @@ import sage.libs.pari.all
 cimport integer
 import integer
 
+from integer_ring import ZZ
+
 from sage.structure.element cimport RingElement, ModuleElement
 from sage.structure.element import bin_op
 
@@ -516,7 +518,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.is_square()
             False
         """
-        return bool(mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value)))
+        return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
 
     def sqrt_approx(self, prec=None, all=False):
         """
@@ -985,7 +987,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __nonzero__(self):
         # A rational number is zero iff its numerator is zero.
-        return bool(mpz_cmp_si(mpq_numref(self.value), 0) != 0)
+        return mpq_sgn(self.value) != 0
+
     def __abs__(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -1324,7 +1327,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         import sage.rings.infinity
         if self.is_one():
             return integer.Integer(1)
-        elif bool(mpz_cmpabs(mpq_numref(self.value),mpq_denref(self.value))==0):
+        elif mpz_cmpabs(mpq_numref(self.value),mpq_denref(self.value))==0:
 	    # if the numerator and the denominator are equal in absolute value,
 	    # then the rational number is -1
             return integer.Integer(2)
@@ -1342,7 +1345,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         # A rational number is equal to 1 iff its numerator and denominator are equal
-        return bool(mpz_cmp(mpq_numref(self.value),mpq_denref(self.value))==0)
+        return mpz_cmp(mpq_numref(self.value),mpq_denref(self.value))==0
         r"""Test if a rational number is zero
 
         EXAMPLES:
@@ -1352,7 +1355,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(0/4).is_zero()
         True
         """
-        # A rational number is zero iff its numerator is zero.
+
+    def is_integral(self):
+        r"""
+        Determine if a rational number is integral (i.e is in $\Z$).
+
+        EXAMPLES:
+            sage: QQ(1/2).is_integral()
+            False
+            sage: QQ(4/4).is_integral()
+            True
+        """
+        return bool(self in ZZ)
 
     cdef _lshift(self, long int exp):
         r"""

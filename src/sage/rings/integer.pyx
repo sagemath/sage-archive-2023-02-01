@@ -142,7 +142,7 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 def is_Integer(x):
-    return bool(PY_TYPE_CHECK(x, Integer))
+    return PY_TYPE_CHECK(x, Integer)
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -781,14 +781,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if (mpz_sgn(self.value) < 0) and not (n & 1):
             raise ValueError, "cannot take even root of negative number"
         cdef Integer x
-        cdef int is_exact
+        cdef bint is_exact
         x = PY_NEW(Integer)
         _sig_on
         is_exact = mpz_root(x.value, self.value, n)
         _sig_off
 
         if report_exact:
-            return x, bool(is_exact)
+            return x, is_exact
         else:
             return x
 
@@ -1150,15 +1150,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(10).divides(Z(5))
             False
         """
-        cdef int t
+        cdef bint t
         cdef Integer _n
         _n = Integer(n)
-        if mpz_cmp_si(self.value, 0) == 0:
-            return bool(mpz_cmp_si(_n.value, 0) == 0)
+        if mpz_sgn(self.value) == 0:
+            return mpz_sgn(_n.value) == 0
         _sig_on
         t = mpz_divisible_p(_n.value, self.value)
         _sig_off
-        return bool(t)
+        return t
 
     cdef RingElement _valuation(Integer self, Integer p):
         r"""
@@ -1431,7 +1431,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(0).is_one()
             False
         """
-        return bool(mpz_cmp_si(self.value, 1) == 0)
+        return mpz_cmp_si(self.value, 1) == 0
 
     def __nonzero__(self):
         r"""
@@ -1443,7 +1443,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(0).is_zero()
             True
         """
-        return bool(mpz_cmp_si(self.value, 0) != 0)
+        return mpz_sgn(self.value) != 0
 
     def is_unit(self):
         r"""
@@ -1458,7 +1458,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         1 True
         2 False
         """
-        return bool(mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0)
+        return mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0
 
     def is_square(self):
         r"""
@@ -1470,7 +1470,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer(41).is_square()
         False
         """
-        return bool(mpz_perfect_square_p(self.value))
+        return mpz_perfect_square_p(self.value)
 
     def is_power(self):
         r"""
@@ -1483,9 +1483,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer(12).is_power()
         False
         """
-        return bool(mpz_perfect_power_p(self.value))
+        return mpz_perfect_power_p(self.value)
 
-    cdef int _is_power_of(Integer self, Integer n):
+    cdef bint _is_power_of(Integer self, Integer n):
         r"""
         Returns a non-zero int if there is an integer b with $self = n^b$.
 
@@ -1666,7 +1666,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if not PY_TYPE_CHECK(n, Integer):
             n = Integer(n)
-        return bool(self._is_power_of(n))
+        return self._is_power_of(n)
 
     def is_prime_power(self, flag=0):
         r"""
@@ -1748,7 +1748,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_perfect_power()
             False
         """
-        return bool(mpz_perfect_power_p(self.value))
+        return mpz_perfect_power_p(self.value)
 
     def jacobi(self, b):
         r"""

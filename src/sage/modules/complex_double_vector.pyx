@@ -73,10 +73,10 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         y.v = v
         return y
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 1
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 0
 
     cdef gsl_vector_complex* gsl_vector_complex_copy(self) except NULL:

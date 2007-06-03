@@ -35,6 +35,7 @@ from   sage.structure.element    cimport ModuleElement, Element, RingElement, Ve
 from   sage.structure.mutability cimport Mutability
 
 from sage.rings.ring cimport CommutativeRing
+from sage.rings.ring import is_Ring
 
 import sage.modules.free_module
 
@@ -419,7 +420,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_immutable()
             True
         """
-        return bool(self._mutability._is_immutable)
+        return self._mutability._is_immutable
 
     def is_mutable(self):
         """
@@ -436,7 +437,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_mutable()
             False
         """
-        return bool(self._mutability.is_mutable())
+        return self._mutability.is_mutable()
 
     ###########################################################
     # Entry access
@@ -660,6 +661,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             TypeError: matrix has denominators so can't change to ZZ.
         """
+        if not is_Ring(ring):
+            raise TypeError, "ring must be a ring"
+
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self
@@ -1283,7 +1287,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,2,range(4),sparse=True).is_dense()
             False
         """
-        return bool(self.is_dense_c())
+        return self.is_dense_c()
 
     def is_sparse(self):
         """
@@ -1298,7 +1302,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,2,range(4),sparse=True).is_sparse()
             True
         """
-        return bool(self.is_sparse_c())
+        return self.is_sparse_c()
 
     def is_square(self):
         """
@@ -1311,7 +1315,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,3,range(6)).is_square()
             False
         """
-        return bool(self._nrows == self._ncols)
+        return self._nrows == self._ncols
 
     def is_invertible(self):
         r"""
@@ -2018,7 +2022,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             return self._multiply_classical(right)
 
-    cdef int _will_use_strassen(self, Matrix right) except -2:
+    cdef bint _will_use_strassen(self, Matrix right) except -2:
         """
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
@@ -2035,7 +2039,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             return 1
         return 0
 
-    cdef int _will_use_strassen_echelon(self) except -2:
+    cdef bint _will_use_strassen_echelon(self) except -2:
         """
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
@@ -2147,6 +2151,9 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Comparison
     ###################################################
+    def __hash__(self):
+        return self._hash()
+
     cdef long _hash(self) except -1:
         raise NotImplementedError
 

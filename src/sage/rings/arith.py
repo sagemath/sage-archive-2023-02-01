@@ -23,6 +23,7 @@ import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
+from sage.misc.misc import prod
 
 import integer_ring
 import integer
@@ -981,14 +982,23 @@ def sigma(n, k=1):
         176
         sage: RR(sigma(factorial(133),20))
         2.80414775675747e4523
+        sage: sigma(factorial(100),0)
+        39001250856960000
+        sage: sigma(factorial(41),1)
+        229199532273029988767733858700732906511758707916800
     """
     ZZ = integer_ring.ZZ
     n = ZZ(n)
     k = ZZ(k)
     one = ZZ(1)
 
-    return sage.misc.misc.prod([ (p**((expt+one)*k) - one) // (p**k - one)
-                                 for p,expt in factor(n) ])
+    if (k == ZZ(0)):
+        return prod([ expt+one for p, expt in factor(n) ])
+    elif (k == one):
+        return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
+    else:
+        return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+
 
 def gcd(a, b=0, integer=False):
     """

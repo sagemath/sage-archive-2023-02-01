@@ -4,12 +4,6 @@ Sparse matrices over $\Z/n\Z$ for $n$ small.
 This is a compiled implementation of sparse matrices over $\Z/n\Z$
 for $n$ small.
 
-AUTHOR:
-   -- William Stein (2004): first version
-   -- William Stein (2006-02-12): added set_row_to_multiple_of_row
-   -- William Stein (2006-03-04): added multimodular echelon, __reduce__, etc.
-   -- William Wtein (2006-08-09): Pyrexification
-
 TODO:
    -- move vectors into a pyrex vector class
    -- add _add_ and _mul_ methods.
@@ -247,6 +241,23 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 d[(int(i),int(self.rows[i].positions[j]))] = self.rows[i].entries[j]
         self.cache('dict', d)
         return d
+
+    def _pickle(self):
+        """
+        TESTS:
+            sage: M = Matrix( GF(2), [[1,1,1,1,0,0,0,0,0,0]], sparse=True )
+            sage: loads(dumps(M))
+            [1 1 1 1 0 0 0 0 0 0]
+            sage: loads(dumps(M)) == M
+            True
+        """
+        return self._dict(), 1
+
+    def _unpickle(self, data, version):
+        if version == 1:
+            self.__init__(self.parent(), data, copy=False, coerce=False)
+        else:
+            raise ValueError, "unknown matrix format"
 
 
     ########################################################################

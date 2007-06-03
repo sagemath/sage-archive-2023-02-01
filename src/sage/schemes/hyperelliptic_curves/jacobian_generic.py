@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Jacobian of a General Hyperelliptic Curve
 """
 

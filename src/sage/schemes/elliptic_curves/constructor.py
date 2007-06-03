@@ -93,10 +93,6 @@ def EllipticCurve(x, y=None):
     #
     import ell_generic, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
-    if isinstance(x,(list,tuple)):
-        x = Sequence(x)
-        x, y = x[0].parent(), x
-
     if rings.is_Ring(x):
         if rings.is_RationalField(x):
             return ell_rational_field.EllipticCurve_rational_field(x, y)
@@ -125,9 +121,18 @@ def EllipticCurve(x, y=None):
         raise TypeError, "invalid input to EllipticCurve constructor"
 
     x = Sequence(x)
+    if not (len(x) in [2,5]):
+        raise ValueError, "sequence of coefficients must have length at 2 or 5"
+    R = x.universe()
 
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):
         return ell_rational_field.EllipticCurve_rational_field(x, y)
+
+    elif rings.is_NumberField(R):
+        return ell_number_field.EllipticCurve_number_field(x, y)
+
+    elif rings.is_pAdicField(R):
+        return ell_padic_field.EllipticCurve_padic_field(x, y)
 
     elif isinstance(x[0], rings.FiniteFieldElement) or rings.is_IntegerMod(x[0]):
         return ell_finite_field.EllipticCurve_finite_field(x, y)

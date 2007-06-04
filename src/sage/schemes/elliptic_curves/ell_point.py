@@ -577,16 +577,21 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             # 2. Choos an integer m with m > q^{1/4}. Compute and store the
             # points jP for j = 0,1,2,...,m
 
-            m = rings.Integer(q.sqrt().sqrt().floor() + 1) #
+            m = rings.Integer(q.sqrt_approx().sqrt_approx().floor() + 1) #
 
-            l = dict([(j*P,j) for j in range(m+1)])
+            l = dict()
+            X = E(0)
+            for j in range(0,m+1):
+                l[X] = j
+                X = P + X
 
             # 3. Compute the points Q + k(2mP) for k = -m, -(m+1), ..., m
             # until there is a match Q + k(2mP) = +- jP with a point or its
             # negative on the list
 
+            twomP = (2*m*P)
             for k in range(-m,m+1):
-                W =  Q + (k*2*m)*P
+                W =  Q + k*twomP
                 if W in l:
                     # 4a. Conclude that (q + 1 + 2mk +- j)P = oo. Let M = q + 1 + 2mk - j
                     M = q + 1 + 2*m*k - l[W]

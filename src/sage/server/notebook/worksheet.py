@@ -1117,7 +1117,7 @@ class Worksheet:
             else:
                 input = self._get_last_identifier(before_prompt)
                 C._word_being_completed = input
-                input = 'print "\\n".join(_support_.completions("%s", globals()))'%input
+                input = 'print "\\n".join(_support_.completions("%s", globals(),system="%s"))'%(input, self.system())
 
         else:
             switched, input = self.check_for_system_switching(input, C)

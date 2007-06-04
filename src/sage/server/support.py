@@ -63,7 +63,7 @@ def get_rightmost_identifier(s):
         i -= 1
     return s[i+1:]
 
-def completions(s, globs, format=False, width=90):
+def completions(s, globs, format=False, width=90, system="None"):
     """
     Return a list of completions in the context of globs.
     """
@@ -102,6 +102,9 @@ def completions(s, globs, format=False, width=90):
     except Exception, msg:
         print msg
         v = []
+    if system != "None":
+        n = len(system)+1
+        v = [x[n:] for x in v]
     if format:
         if len(v) == 0:
             return "no completions of %s"%s

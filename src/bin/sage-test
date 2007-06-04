@@ -29,8 +29,12 @@ def strip_automount_prefix(filename):
     AUTHOR:
         -- Kate Minola
     """
-    str = filename.split("/",2)
-    new = "/" + str[2]
+    sep = os.path.sep
+    str = filename.split(sep,2)
+    if len(str) < 2:
+        new = sep
+    else:
+        new = sep + str[2]
     if os.path.exists(new):
         inode1 = os.stat(filename)[1]
         inode2 = os.stat(new)[1]

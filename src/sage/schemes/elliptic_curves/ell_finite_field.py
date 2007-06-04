@@ -179,7 +179,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             x = k.random_element()
             d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
             try:
-                m = d.square_root()
+                m = d.sqrt()
                 y = (-(a1*x + a3) + m) / k(2)
                 return self([x,y])
             except ValueError:

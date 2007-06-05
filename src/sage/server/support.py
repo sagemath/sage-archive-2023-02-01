@@ -102,9 +102,6 @@ def completions(s, globs, format=False, width=90, system="None"):
     except Exception, msg:
         print msg
         v = []
-    if system != "None":
-        n = len(system)+1
-        v = [x[n:] for x in v]
     if format:
         if len(v) == 0:
             return "no completions of %s"%s

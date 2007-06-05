@@ -2274,11 +2274,9 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
     r"""
     Returns the continued fraction of x as a list.
 
-    \begin{note}
-    This may be slow since it's implemented in pure
+    \begin{note} This may be slow since it's implemented in pure
     Python for real input.  For rational number input the PARI C
-    library is used.
-    \end{note}
+    library is used.  \end{note}
 
     EXAMPLES:
         sage: continued_fraction_list(45/17)

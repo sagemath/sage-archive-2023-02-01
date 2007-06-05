@@ -24,7 +24,7 @@ AUTHORS:
 
 from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.padics.factory import Qp
+from sage.rings.padics.factory import Qp, Zp
 from sage.rings.infinity import infinity
 from sage.rings.all import PowerSeriesRing, PolynomialRing, Integers
 
@@ -33,7 +33,7 @@ from sage.rings.arith import valuation, binomial
 
 from sage.structure.sage_object import SageObject
 
-from sage.misc.all import verbose, denominator
+from sage.misc.all import verbose, denominator, get_verbose
 from sage.databases.cremona import parse_cremona_label
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 import sage.rings.arith as arith
@@ -167,11 +167,18 @@ class pAdicLseries(SageObject):
             sage: L.measure(1,2, prec=9)
             1 + 4*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 4*5^8 + O(5^9)
         """
-        p = self._p
-        alpha = self.alpha(prec=prec)
-        z = 1/(alpha**n)
-        w = p**(n-1)
-        f = self._modular_symbol
+        try:
+            p, alpha, z, w, f = self.__measure_data[(n,prec)]
+        except (KeyError, AttributeError):
+            if not hasattr(self, '__measure_data'):
+                self.__measure_data = {}
+            p = self._p
+            alpha = self.alpha(prec=prec)
+            z = 1/(alpha**n)
+            w = p**(n-1)
+            f = self._modular_symbol
+            self.__measure_data[(n,prec)] = (p,alpha,z,w,f)
+
         if self._E.conductor() % p == 0:
             return z * f(a/(p*w))
         return z * f(a/(p*w)) - (z/alpha) * f(a/w)
@@ -418,10 +425,14 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
         bounds = self._prec_bounds(n)
         padic_prec = max(bounds[1:]) + 5
+        verbose("using p-adic precision of %s"%padic_prec)
+
         res_series_prec = min(p**(n-1), prec)
+        verbose("using series precision of %s"%res_series_prec)
 
         ans = self._get_series_from_cache(n, res_series_prec)
         if not ans is None:
+            verbose("found series in cache")
             return ans
 
         K = QQ
@@ -430,10 +441,16 @@ class pAdicLseriesOrdinary(pAdicLseries):
         T = R(R.gen(),res_series_prec )
         L = R(0)
         one_plus_T_factor = R(1)
-        gamma_power = 1
+        gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
-        for j in range(p**(n-1)):
+        p_power = p**(n-1)
+
+        verbose("Now iterating over %s summands"%p_power)
+        verbose_level = get_verbose()
+        for j in range(p_power):
             s = K(0)
+            if verbose_level >= 2:
+                verbose("%.2f percent done"%(float(j)/p_power*100))
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec).lift()

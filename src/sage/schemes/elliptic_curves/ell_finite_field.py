@@ -63,6 +63,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
 
+    def _magma_init_(self):
+        k = self.base_ring()
+        kmn = k._magma_().name()
+        return 'EllipticCurve([%s|%s])'%(kmn,','.join([x._magma_init_() for x in self.ainvs()]))
+
     def _gp(self):
         """
         Return an elliptic curve in a GP/PARI interpreter with all Cremona's code

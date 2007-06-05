@@ -299,6 +299,16 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     def _pari_init_(self):
         return str(self.__value)
 
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+
+        """
+        km = self.parent()._magma_()
+        vn = km.gen(1).name()
+        return ("%s"%(self.__value.lift().lift())).replace('a',vn)
+
     def _gap_init_(self):
         """
         Supports returning corresponding GAP object.  This can be slow

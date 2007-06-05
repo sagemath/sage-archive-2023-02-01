@@ -577,7 +577,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             # 2. Choos an integer m with m > q^{1/4}. Compute and store the
             # points jP for j = 0,1,2,...,m
 
-            m = rings.Integer(q.sqrt_approx().sqrt_approx().floor() + 1) #
+            m = rings.Integer((q**rings.RR(0.25)).floor() + 1) #
 
             l = dict()
             X = E(0)
@@ -617,6 +617,14 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                     self.__order = rings.Integer(M)
                     return self.__order
 
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+        """
+        E = self.curve()._magma_().name()
+        x,y = map(lambda x: x._magma_().name(), self.xy())
+        return "%s![%s,%s]"%(E,x,y)
 
 def make_point(X, v):
     # TODO: Unpickled parents with base sometimes have thier base set to None.

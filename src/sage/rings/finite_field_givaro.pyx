@@ -1012,7 +1012,7 @@ cdef class FiniteField_givaro(FiniteField):
         """
         return str(int(e))
 
-    def _element_poly_repr(FiniteField_givaro self, FiniteField_givaroElement e):
+    def _element_poly_repr(FiniteField_givaro self, FiniteField_givaroElement e, varname = None):
         """
         Return a polynomial expression in base.gen() of self.
 
@@ -1022,7 +1022,10 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k._element_poly_repr(a^20)
             '2*a^3 + 2*a^2 + 2'
         """
-        variable = self.variable_name()
+        if varname is None:
+            variable = self.variable_name()
+        else:
+            variable = varname
 
         quo = self.log_to_int(e.element)
         b   = int(self.characteristic())
@@ -1775,6 +1778,16 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 ##             quo = quo/b
 ##             i = i+1
 ##         return ret
+
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+
+        """
+        km = self.parent()._magma_()
+        vn = km.gen(1).name()
+        return self.parent()._element_poly_repr(self,vn)
 
     def multiplicative_order(FiniteField_givaroElement self):
         """

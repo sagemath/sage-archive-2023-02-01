@@ -497,9 +497,9 @@ cdef class PowerSeries(AlgebraElement):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
-                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.variable_name())
+                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.gen())
             else:
-                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.variable_name()),self._prec)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.gen()),self._prec)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh

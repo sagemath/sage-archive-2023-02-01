@@ -2377,7 +2377,10 @@ class SymbolicConstant(Symbolic_object):
     #            self._atomic = True
     #        return self._atomic
     def _is_atomic(self):
-        return self._obj._is_atomic()
+        try:
+            return self._atomic
+        except AttributeError:
+            return self._obj._is_atomic()
 
     def _recursive_sub(self, kwds):
         """
@@ -2705,7 +2708,7 @@ class SymbolicArithmetic(SymbolicOperation):
         try:
             r_operator = rop._operator
         except AttributeError:
-            if lop._is_atomic():
+            if rop._is_atomic():
                 rparens = False
         else:
             if op is r_operator:

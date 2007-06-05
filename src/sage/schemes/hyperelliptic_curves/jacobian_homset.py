@@ -82,7 +82,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             elif len(P) == 2:
 	        P1 = P[0]; P2 = P[1]
 		if is_Polynomial(P1) and is_Polynomial(P2):
-                    return JacobianMorphism_divisor_class_field(self, P)
+                    return JacobianMorphism_divisor_class_field(self, tuple(P))
                 if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
                     return self(P1) - self(P2)
             raise TypeError, "Argument P (= %s) must have length 2."%P

@@ -329,6 +329,15 @@ cdef class Rational(sage.structure.element.FieldElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
 
+    def _is_atomic(self):
+        try:
+            from sage.rings.integer import Integer
+            foo = Integer(self)
+        except TypeError:
+            return False
+        else:
+            return True
+
     def lcm(self, Rational other):
         r"""
         Return the least common multiple of self and other.

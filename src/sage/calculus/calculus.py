@@ -2367,15 +2367,17 @@ class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
         Symbolic_object.__init__(self, x)
 
+    #def _is_atomic(self):
+    #    try:
+    #        return self._atomic
+    #    except AttributeError:
+    #        if isinstance(self, Rational):
+    #            self._atomic = False
+    #        else:
+    #            self._atomic = True
+    #        return self._atomic
     def _is_atomic(self):
-        try:
-            return self._atomic
-        except AttributeError:
-            if isinstance(self, Rational):
-                self._atomic = False
-            else:
-                self._atomic = True
-            return self._atomic
+        return self._obj._is_atomic()
 
     def _recursive_sub(self, kwds):
         """
@@ -2538,6 +2540,27 @@ class SymbolicArithmetic(SymbolicOperation):
     def __init__(self, operands, op):
         SymbolicOperation.__init__(self, operands)
         self._operator = op
+        # set up associativity and precedence rules
+        if op is operator.pow:
+            self._precedence = 3000
+            self._l_assoc = False
+            self._r_assoc = True
+        elif op is operator.mul:
+            self._precedence = 2000
+            self._l_assoc = True
+            self._r_assoc = True
+        elif op is operator.div:
+            self._precedence = 2000
+            self._l_assoc = True
+            self._r_assoc = False
+        elif op is operator.sub:
+            self._precedence = 1000
+            self._l_assoc = True
+            self._r_assoc = False
+        elif op is operator.add:
+            self._precedence = 1000
+            self._l_assoc = True
+            self._r_assoc = True
 
     def _recursive_sub(self, kwds):
         """
@@ -2650,53 +2673,105 @@ class SymbolicArithmetic(SymbolicOperation):
 
         ops = self._operands
         op = self._operator
-
-        s = [o._repr_(simplify=False) for o in ops]
-
-        # for the left operand, we need to surround it in parens when the
-        # operator is mul/div/pow, and when the left operand contains an
-        # operation of lower precedence
-        if op in [operator.mul, operator.div]:
-            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
-                if not ops[0]._is_atomic():
-                    s[0] = '(%s)' % s[0]
-            else:
-                try:
-                    if isinstance(ops[0]._obj, Rational):
-                        s[0] = '(%s)' % s[0]
-                except AttributeError:
-                    pass
-                try:
-                    if isinstance(ops[1]._obj, Rational):
-                        s[1] = '(%s)' % s[1]
-                except AttributeError:
-                    pass
-
-        # for the right operand, we need to surround it in parens when
-        # the operation is mul/div/sub, and when the right operand
-        # contains a + or -.
-        if op in [operator.mul, operator.sub]:
-                # avoid drawing parens if s1 an atomic operation
-                if not ops[1]._is_atomic():
-                    s[1] = '(%s)' % s[1]
-
-        elif op is operator.div:
-            if not ops[1]._is_atomic() or ops[1]._has_op(operator.mul):
-                s[1] = '(%s)' % s[1]
-
-        elif op is operator.pow:
-            if not ops[0]._is_atomic():
-                s[0] = '(%s)'% s[0]
-            if not ops[1]._is_atomic() or ('/' in s[1] or '*' in s[1]):
-                s[1] = '(%s)'% s[1]
-
+        s = [x._repr_(simplify=simplify) for x in ops]
         if op is operator.neg:
-            if ops[0]._is_atomic():
-                return '-%s' % s[0]
-            else:
-                return '-(%s)'%s[0]
+            return '-%s' % s[0]
+        lop = ops[0]
+        rop = ops[1]
+
+        lparens = True
+        rparens = True
+
+        try:
+            l_operator = lop._operator
+        except AttributeError:
+            # if it's not arithmetic, we don't need parens
+            if lop._is_atomic():
+                lparens = False
         else:
-            return '%s%s%s' % (s[0], symbols[op], s[1])
+            # if the left op is the same is this operator
+            if op is l_operator:
+                # if it's left associative, get rid of the left parens
+                if self._l_assoc:
+                    lparens = False
+            # different operators, same precedence, get rid of the left parens
+            elif self._precedence == lop._precedence:
+                if self._l_assoc:
+                    lparens = False
+            # if we have a lower precedence than the left, get rid of the parens
+            elif self._precedence < lop._precedence:
+                lparens = False
+
+        try:
+            r_operator = rop._operator
+        except AttributeError:
+            if lop._is_atomic():
+                rparens = False
+        else:
+            if op is r_operator:
+                if self._r_assoc:
+                    rparens = False
+            elif self._precedence == rop._precedence:
+                if self._r_assoc:
+                    rparens = False
+            # if the RHS has higher precedence, it comes first and parens are
+            # redundant
+            elif self._precedence < rop._precedence:
+                rparens = False
+
+        if lparens:
+            s[0] = '(%s)'% s[0]
+        if rparens:
+            s[1] = '(%s)'% s[1]
+
+        return '%s%s%s' % (s[0], symbols[op], s[1])
+
+        ######################################################################
+
+        ## for the left operand, we need to surround it in parens when the
+        ## operator is mul/div/pow, and when the left operand contains an
+        ## operation of lower precedence
+        #if op in [operator.mul, operator.div]:
+        #    if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+        #        if not ops[0]._is_atomic():
+        #            s[0] = '(%s)' % s[0]
+        #    else:
+        #        try:
+        #            if isinstance(ops[0]._obj, Rational):
+        #                s[0] = '(%s)' % s[0]
+        #        except AttributeError:
+        #            pass
+        #        try:
+        #            if isinstance(ops[1]._obj, Rational):
+        #                s[1] = '(%s)' % s[1]
+        #        except AttributeError:
+        #            pass
+
+        ## for the right operand, we need to surround it in parens when
+        ## the operation is mul/div/sub, and when the right operand
+        ## contains a + or -.
+        #if op in [operator.mul, operator.sub]:
+        #        # avoid drawing parens if s1 an atomic operation
+        #        if not ops[1]._is_atomic():
+        #            s[1] = '(%s)' % s[1]
+
+        #elif op is operator.div:
+        #    if not ops[1]._is_atomic() or ops[1]._has_op(operator.mul):
+        #        s[1] = '(%s)' % s[1]
+
+        #elif op is operator.pow:
+        #    if not ops[0]._is_atomic():
+        #        s[0] = '(%s)'% s[0]
+        #    if not ops[1]._is_atomic() or ('/' in s[1] or '*' in s[1]):
+        #        s[1] = '(%s)'% s[1]
+
+        #if op is operator.neg:
+        #    if ops[0]._is_atomic():
+        #        return '-%s' % s[0]
+        #    else:
+        #        return '-(%s)'%s[0]
+        #else:
+        #    return '%s%s%s' % (s[0], symbols[op], s[1])
 
     def _latex_(self):
         # if we are not simplified, return the latex of a simplified version

@@ -93,9 +93,7 @@ class DistributedSage(object):
 
     Customization:
 
-        To customize how the worker, server, or client behaves, you
-        can look for their respective conf files in DOT_SAGE/dsage.
-        The configuration file should be self explanatory.
+        See the $DOT_SAGE/dsage directory.
 
     """
 

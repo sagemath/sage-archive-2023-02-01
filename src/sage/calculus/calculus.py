@@ -46,7 +46,7 @@ EXAMPLES:
 
         sage: f = sin(x)/cos(2*y)
         sage: f.derivative(y)
-        2*sin(x)*sin(2*y)/(cos(2*y)^2)
+        2*sin(x)*sin(2*y)/cos(2*y)^2
         sage: g = f.integral(x); g
         -cos(x)/(cos(2*y))
 
@@ -1144,7 +1144,7 @@ class SymbolicExpression(RingElement):
             sin(x)*sin(y) - cos(x)*cos(y)
             sage: f = ((x^2+1)/(x^2-1))^(1/4)
             sage: g = diff(f, x); g # this is a complex expression
-            x/(2*(x^2 - 1)^(1/4)*(x^2 + 1)^(3/4)) - (x*(x^2 + 1)^(1/4)/(2*(x^2 - 1)^(5/4)))
+            x/(2*(x^2 - 1)^(1/4)*(x^2 + 1)^(3/4)) - x*(x^2 + 1)^(1/4)/(2*(x^2 - 1)^(5/4))
             sage: g.simplify_rational()
             -x/((x^2 - 1)^(5/4)*(x^2 + 1)^(3/4))
 
@@ -1162,7 +1162,7 @@ class SymbolicExpression(RingElement):
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
             sage: diff(g, x)
-            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - (x/((x^2 - 1)^(3/2)*abs(x + 5)^3))
+            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - x/((x^2 - 1)^(3/2)*abs(x + 5)^3)
         """
         # check each time
         s = ""
@@ -1227,19 +1227,19 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
             sage: taylor(a*log(z), z, 2, 3)
-            log(2)*a + a*(z - 2)/2 - (a*(z - 2)^2/8) + a*(z - 2)^3/24
+            log(2)*a + a*(z - 2)/2 - a*(z - 2)^2/8 + a*(z - 2)^3/24
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
-            1 + (a + 1)*x/2 - ((a^2 + 2*a + 1)*x^2/8) + (3*a^3 + 9*a^2 + 9*a - 1)*x^3/48
+            1 + (a + 1)*x/2 - (a^2 + 2*a + 1)*x^2/8 + (3*a^3 + 9*a^2 + 9*a - 1)*x^3/48
             sage: taylor (sqrt (x + 1), x, 0, 5)
-            1 + x/2 - (x^2/8) + x^3/16 - (5*x^4/128) + 7*x^5/256
+            1 + x/2 - x^2/8 + x^3/16 - (5*x^4/128) + 7*x^5/256
             sage: taylor (1/log (x + 1), x, 0, 3)
-            1/x + 1/2 - (x/12) + x^2/24 - (19*x^3/720)
+            1/x + 1/2 - x/12 + x^2/24 - (19*x^3/720)
             sage: taylor (cos(x) - sec(x), x, 0, 5)
-            -x^2 - (x^4/6)
+            -x^2 - x^4/6
             sage: taylor ((cos(x) - sec(x))^3, x, 0, 9)
             -x^6 - (x^8/2)
             sage: taylor (1/(cos(x) - sec(x))^3, x, 0, 5)
-            -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - (6767*x^2/604800) - (15377*x^4/7983360)
+            -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - 6767*x^2/604800 - 15377*x^4/7983360
         """
         v = var(v)
         l = self._maxima_().taylor(v, SR(a), Integer(n))
@@ -1395,7 +1395,7 @@ class SymbolicExpression(RingElement):
             sage: de1.laplace(t, s)
             16*laplace(y(t), t, s) + s*laplace(x(t), t, s) - x(0)
             sage: de2.laplace(t, s)
-            s*laplace(y(t), t, s) + laplace(x(t), t, s) - (1/s) - y(0)
+            s*laplace(y(t), t, s) + laplace(x(t), t, s) - 1/s - y(0)
 
         Next we form the augmented matrix of the above system:
             sage: A = matrix([[s, 16, 270],[1, s, 90+1/s]])
@@ -1546,7 +1546,7 @@ class SymbolicExpression(RingElement):
         We next integrate a function with no closed form integral.  Notice that
         the answer comes back as an expression that contains an integral itself.
             sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
-            log(x - 4)/73 - (integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)/73)
+            log(x - 4)/73 - integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)/73
             sage: print A
                                      /  2
                                      [ x  + 4 x + 18
@@ -2232,7 +2232,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f = x^2/(x+1)^3
             sage: f.partial_fraction()
-            1/(x + 1) - (2/(x + 1)^2) + 1/(x + 1)^3
+            1/(x + 1) - 2/(x + 1)^2 + 1/(x + 1)^3
             sage: print f.partial_fraction()
                                         1        2          1
                                       ----- - -------- + --------
@@ -2242,7 +2242,7 @@ class SymbolicExpression(RingElement):
         Notice that the first variable in the expression is used by default:
             sage: f = y^2/(y+1)^3
             sage: f.partial_fraction()
-            1/(y + 1) - (2/(y + 1)^2) + 1/(y + 1)^3
+            1/(y + 1) - 2/(y + 1)^2 + 1/(y + 1)^3
 
             sage: f = y^2/(y+1)^3 + x/(x-1)^3
             sage: f.partial_fraction()
@@ -2250,7 +2250,7 @@ class SymbolicExpression(RingElement):
 
         You can explicitly specify which variable is used.
             sage: f.partial_fraction(y)
-            1/(y + 1) - (2/(y + 1)^2) + 1/(y + 1)^3 + x/(x^3 - 3*x^2 + 3*x - 1)
+            1/(y + 1) - 2/(y + 1)^2 + 1/(y + 1)^3 + x/(x^3 - 3*x^2 + 3*x - 1)
         """
         if var is None:
             var = self._first_variable()
@@ -2661,14 +2661,14 @@ class SymbolicArithmetic(SymbolicOperation):
         """
         TESTS:
             sage: a = (1-1/r)^(-1); a
-            1/(1 - (1/r))
+            1/(1 - 1/r)
             sage: a.derivative(r)
-            -1/((1 - (1/r))^2*r^2)
+            -1/((1 - 1/r)^2*r^2)
 
             sage: reset('a,b')
             sage: s = 0*(1/a) + -b*(1/a)*(1 + -1*0*(1/a))*(1/(a*b + -1*b*(1/a)))
             sage: s
-            -b/(a*(a*b - (b/a)))
+            -b/(a*(a*b - b/a))
             sage: s(a=2,b=3)
             -1/3
             sage: -3/(2*(2*3-(3/2)))

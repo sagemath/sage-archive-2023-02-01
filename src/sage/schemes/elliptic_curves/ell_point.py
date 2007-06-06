@@ -564,7 +564,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             k = E.base_ring()
             q = k.order()
 
-            if q < 65536: # TODO: check this heuristc
+            if q < 256: # TODO: check this heuristc
                 n = 1
                 while not P.is_zero():
                     n += 1
@@ -594,11 +594,11 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             for k in range(-m,m+1):
                 W =  Q + k*twomP
                 if W in l:
-                    # 4a. Conclude that (q + 1 + 2mk +- j)P = oo. Let M = q + 1 + 2mk - j
+                    # 4a. Conclude that (q + 1 + 2mk - j)P = oo. Let M = q + 1 + 2mk - j
                     M = q + 1 + 2*m*k - l[W]
                     break
                 elif -W in l:
-                    # 4b. Conclude that (q + 1 + 2mk +- j)P = oo. Let M = q + 1 + 2mk + j
+                    # 4b. Conclude that (q + 1 + 2mk + j)P = oo. Let M = q + 1 + 2mk + j
                     M = q + 1 + 2*m*k + l[-W]
                     break
 

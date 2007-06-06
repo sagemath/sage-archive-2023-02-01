@@ -2365,6 +2365,12 @@ def sys_init(x, system):
 
 class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
+        from sage.rings.rational import Rational
+        if isinstance(x, Rational):
+            if x.is_integral():
+                self._precedence = 10**6
+            else:
+                self._precedence = 2000
         Symbolic_object.__init__(self, x)
 
     #def _is_atomic(self):
@@ -2688,9 +2694,17 @@ class SymbolicArithmetic(SymbolicOperation):
         try:
             l_operator = lop._operator
         except AttributeError:
-            # if it's not arithmetic, we don't need parens
-            if lop._is_atomic():
-                lparens = False
+            # if it's not arithmetic on the left, see if it's atomic
+            try:
+                prec = lop._precedence
+            except AttributeError:
+                if lop._is_atomic():
+                # if it has no conecption of precedence, leave the parens
+                    lparens = False
+            else:
+                # if it has a precedence, compare with self
+                if self._precedence < lop._precedence:
+                    lparens = False
         else:
             # if the left op is the same is this operator
             if op is l_operator:
@@ -2708,8 +2722,14 @@ class SymbolicArithmetic(SymbolicOperation):
         try:
             r_operator = rop._operator
         except AttributeError:
-            if rop._is_atomic():
-                rparens = False
+            try:
+                prec = rop._precedence
+            except AttributeError:
+                if rop._is_atomic():
+                    rparens = False
+            else:
+                if self._precedence < rop._precedence:
+                    rparens = False
         else:
             if op is r_operator:
                 if self._r_assoc:

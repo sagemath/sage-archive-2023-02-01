@@ -557,6 +557,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if K.is_prime():
             e = E._gp()
             self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
+            return self.__order
         else:
             P = self
             E = P.curve()

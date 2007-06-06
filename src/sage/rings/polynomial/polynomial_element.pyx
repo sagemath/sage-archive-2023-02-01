@@ -1758,23 +1758,64 @@ cdef class Polynomial(CommutativeAlgebraElement):
     ######################################################################
 
 
-    def resultant(self, other, flag=0):
-        raise NotImplementedError
+    def resultant(self, other):
+        r"""
+        Returns the resultant of self and other.
 
-        ## This should be switched to use NTL, which can apparently compute
-        ## resultants!
-        ##        void XGCD(ZZ& r, ZZX& s, ZZX& t, const ZZX& a, const ZZX& b,
-        ##          long deterministic=0);
-        ##// r = resultant of a and b; if r != 0, then computes s and t such
-        ##// that: a*s + b*t = r; otherwise s and t not affected.  if
-        ##// !deterministic, then resultant computation may use a randomized
-        ##// strategy that errs with probability no more than 2^{-80}.
-        #m = magma.Magma()
-        #cmd = "R<%s> := PolynomialRing(RationalField()); "%self.parent().variable_name() + \
-        #      "Resultant(%s, %s);"%(self,other)
-        #s = m.cmd(cmd)
-        #i = s.find("\r")
-        #return eval(s[:i])
+        INPUT:
+            other -- a polynomial
+
+        OUTPUT:
+            an element of the base ring of the polynomial ring
+
+        NOTES:
+            Implemented using PARI's \code{polresultant} function.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + x + 1;  g = x^3 - x - 1
+            sage: r = f.resultant(g); r
+            -8
+            sage: r.parent() is QQ
+            True
+
+        We can compute also compute resultants over univariate and
+        multivariate polynomial rings, providing that PARI's variable ordering
+        requirements are respected.  Usually, your resultants will work if you
+        always ask for them in the variable \code{x}:
+
+            sage: R.<a> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a; g = x^3 + a
+            sage: r = f.resultant(g); r
+            a^3 + a^2
+            sage: r.parent() is R
+            True
+
+            sage: R.<a, b> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a; g = x^3 + b
+            sage: r = f.resultant(g); r
+            a^3 + b^2
+            sage: r.parent() is R
+            True
+
+        Unfortunately SAGE does not handle PARI's variable ordering requirements
+        gracefully, so the following fails:
+
+            sage: R.<x, y> = QQ[]
+            sage: S.<a> = R[]
+            sage: f = x^2 + a; g = y^3 + a
+            sage: f.resultant(g)
+            Traceback (most recent call last):
+            ...
+            PariError: (8)
+        """
+        other = self.parent()._coerce_(other)
+        variable = self.parent().gen()._pari_()
+        # The 0 flag tells PARI to use exact arithmetic
+        res = self._pari_().polresultant(other._pari_(), variable, 0)
+        return self.parent().base_ring()(res)
 
     def reverse(self):
         v = list(self.list())

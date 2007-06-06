@@ -122,7 +122,7 @@ from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
 import sage.rings.integer_ring
-
+import sage.rings.polynomial.toy_buchberger as toy_buchberger
 
 def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
@@ -909,10 +909,77 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                          * 'singular:stdhilb' - Singular's stdhib command
                          * 'singular:stdfglm' - Singular's stdfglm command
                          * 'singular:slimgb' - Singular's slimgb command
+                         * 'toy:buchberger' - SAGE's toy/educational buchberger without strategy
+                         * 'toy:buchberger2' - SAGE's toy/educational buchberger with strategy
                          * 'macaulay2:gb' (if available) - Macaulay2's gb command
                          * 'magma:GroebnerBasis' (if available) - MAGMA's Groebnerbasis command
 
-        ALGORITHM: Uses Singular, MAGMA, or Macaulay2 (if available)
+        EXAMPLES:
+            Consider Katsura-3 over QQ with term ordering 'degrevlex'
+
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis()
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('singular:groebner')
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('singular:std')
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('singular:stdhilb')
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 5*b^2 - b - 3*c^2 + c, a + 2*b + 2*c - 1]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('singular:stdfglm')
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('singular:slimgb')
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('toy:buchberger')
+            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, a + 2*b + 2*c - 1,
+             7/125*b + 42/25*c^3 - 79/125*c^2 + 3/125*c, a^2 - a + 2*b^2 + 2*c^2,
+             -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('toy:buchberger2')
+            [30*c^4 - 100/7*c^3 + 5/14*c^2 + 5/14*c, a + 2*b + 2*c - 1,
+             7/125*b + 42/25*c^3 - 79/125*c^2 + 3/125*c, a^2 - a + 2*b^2 + 2*c^2]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('macaulay2:gb') # optional requires Macaulay2
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: I.groebner_basis('magma:GroebnerBasis') # optional requires MAGMA
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+
+            If Macaulay2 is installed, Groebner bases over ZZ can be computed.
+
+            sage: P.<a,b,c> = PolynomialRing(ZZ,3)
+            sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
+            sage: I.groebner_basis() #optional requires Macaulay2
+            [a + 2*b + 2*c - 1, 10*b*c + 12*c^2 - b - 4*c, 2*b^2 - 4*b*c - 6*c^2 + 2*c,
+             42*c^3 + b^2 + 2*b*c - 14*c^2 + b, 2*b*c^2 - 6*c^3 + b^2 + 5*b*c + 8*c^2 - b - 2*c,
+             b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2]
+
+            SAGE also supports local orderings (via SINGULAR):
+
+            sage: P.<x,y,z> = PolynomialRing(QQ,3,order='negdegrevlex')
+            sage: I = P * (  x*y*z + z^5, 2*x^2 + y^3 + z^7, 3*z^5 +y ^5 )
+            sage: I.groebner_basis()
+            [2*x^2 + y^3, x*y*z + z^5, y^5 + 3*z^5, y^4*z - 2*x*z^5, z^6]
+
+        ALGORITHM: Uses Singular, MAGMA (if available), Macaulay2 (if
+        available), or toy implementation.
 
         """
         if algorithm is None:
@@ -926,6 +993,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':
             return self._magma_groebner_basis()
+        elif algorithm == 'toy:buchberger':
+            return toy_buchberger.buchberger(self)
+        elif algorithm == 'toy:buchberger2':
+            return toy_buchberger.buchberger_improved(self)
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 

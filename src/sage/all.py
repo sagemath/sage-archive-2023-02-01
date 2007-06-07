@@ -42,9 +42,6 @@ if sys.version_info[:2] < (2, 5):
 from random              import *
 from time                import sleep
 
-from sage.interfaces.get_sigs import get_sigs
-get_sigs()
-
 from sage.rings.memory import pmem_malloc
 pmem_malloc()
 
@@ -135,9 +132,6 @@ false = False
 
 oo = infinity
 #x = PolynomialRing(QQ,'x').gen()
-
-# grab signal handling back from PARI or other C libraries
-get_sigs()
 
 from sage.misc.copying import license
 copying = license
@@ -287,7 +281,10 @@ InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-from catalogue.all import new
+#from catalogue.all import new
+
 
 import sage.ext.sig
 sage.ext.sig.get_bad_sigs()
+from sage.interfaces.get_sigs import get_sigs
+get_sigs()

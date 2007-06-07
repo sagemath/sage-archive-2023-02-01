@@ -41,6 +41,8 @@ from defaults import set_default_variable_name
 
 from preparser import preparse
 
+from interpreter import preparser
+
 from sage_eval import sage_eval, sageobj
 
 from sagex import sagex_lambda

@@ -6,6 +6,7 @@ try:
 
     from sage.all import *
     from sage.calculus.predefined import *
+    preparser(on=True)
 
 except ValueError, msg:
     import traceback

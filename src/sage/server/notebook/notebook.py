@@ -372,7 +372,7 @@ class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
                  show_debug = False, log_server=False,
-                 kill_idle=False, splashpage=False):
+                 splashpage=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -392,24 +392,8 @@ class Notebook(SageObject):
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.__show_debug = show_debug
-        self.__kill_idle = kill_idle
         self.__splashpage = splashpage if splashpage is not None else False
         self.save()
-
-    def kill_idle(self):
-        """
-        Returns the idle timeout.  0 means don't kill
-        idle processes.
-        """
-        try:
-            return self.__kill_idle
-        except AttributeError:
-            self.__kill_idle = 0
-            return 0
-
-    def kill_idle_every_so_often(self):
-        raise NotImplementedError
-
 
     def system(self):
         try:
@@ -1467,6 +1451,40 @@ Output
 import sage.interfaces.sage0
 import time
 
+def load_notebook(dir, username=None, password=None, color=None, system=None,
+                  splashpage=None):
+    if os.path.exists(dir):
+        try:
+            nb = load('%s/nb.sobj'%dir, compress=False)
+        except:
+            print "****************************************************************"
+            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
+            print "WARNING -- failed to load notebook data. Trying the backup file."
+            print "****************************************************************"
+            try:
+                nb = load('%s/nb-backup.sobj'%dir, compress=False)
+            except:
+                print "Recovering from last op save failed."
+                print "Trying save from last startup."
+                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
+
+        nb.delete_doc_browser_worksheets()
+        nb.set_directory(dir)
+        if not (username is None):
+            nb.set_auth(username=username, password=password)
+        if not (color is None):
+            nb.set_color(color)
+        if not system is None:
+            nb.set_system(system)
+        if not splashpage is None:
+            nb.set_splashpage(splashpage)
+        nb.set_not_computing()
+    else:
+        nb = Notebook(dir,username=username,password=password, color=color,
+                      system=system, splashpage=splashpage)
+
+    return nb
+
 ## IMPORTANT!!! If you add any new input variable to notebook,
 ## you *must* similarly modify the restart_on_crash block
 ## at the beginning of the definition of notebook!!
@@ -1485,7 +1503,6 @@ def notebook(dir         ='sage_notebook',
              warn        = True,
              ignore_lock = False,
              log_server = False,
-             kill_idle   = 0,
              restart_on_crash = False,
              auto_restart = 1800,
              multisession = True):
@@ -1515,9 +1532,6 @@ def notebook(dir         ='sage_notebook',
                   'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
         jsmath -- whether not to enable javascript typset output for math.
         debug -- whether or not to show a javascript debugging window
-        kill_idle -- if positive, kill any idle compute processes after
-                     this many auto saves.  (NOT IMPLEMENTED)
-
         splashpage -- whether or not to show a splash page when no worksheet is specified.
                       you can place a file named index.html into the notebook directory that
                       will be shown in place of the default.
@@ -1601,10 +1615,10 @@ def notebook(dir         ='sage_notebook',
             S = sage.interfaces.sage0.Sage()
             time.sleep(1)
             S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False, multisession=%s)"%(
+            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, restart_on_crash=False, multisession=%s)"%(
                 f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
                 f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
-                f(warn), f(ignore_lock), f(log_server), f(kill_idle), f(multisession)
+                f(warn), f(ignore_lock), f(log_server), f(multisession)
                 )
             print cmd
             S._send(cmd)
@@ -1631,6 +1645,7 @@ def notebook(dir         ='sage_notebook',
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
         pidfile = '%s/pid'%dir
+
         if os.path.exists(pidfile) and not ignore_lock:
             f = file(pidfile)
             try:
@@ -1651,34 +1666,9 @@ def notebook(dir         ='sage_notebook',
                 return
             except OSError:
                 pass
-        try:
-            nb = load('%s/nb.sobj'%dir, compress=False)
-        except:
-            print "****************************************************************"
-            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
-            print "WARNING -- failed to load notebook data. Trying the backup file."
-            print "****************************************************************"
-            try:
-                nb = load('%s/nb-backup.sobj'%dir, compress=False)
-            except:
-                print "Recovering from last op save failed."
-                print "Trying save from last startup."
-                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
 
-        nb.delete_doc_browser_worksheets()
-        nb.set_directory(dir)
-        if not (username is None):
-            nb.set_auth(username=username, password=password)
-        if not (color is None):
-            nb.set_color(color)
-        if not system is None:
-            nb.set_system(system)
-        if not splashpage is None:
-            nb.set_splashpage(splashpage)
-        nb.set_not_computing()
-    else:
-        nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system, kill_idle=kill_idle,splashpage=splashpage)
+    nb = load_notebook(dir, username, password, color,system, splashpage)
+
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)

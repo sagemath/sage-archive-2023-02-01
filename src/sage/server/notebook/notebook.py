@@ -826,8 +826,8 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script  type="text/javascript" src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css">\n'
+        head += '\n<script  type="text/javascript" src="/javascript/main.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css" id="main_css">\n'
 
         if css_href:
             head += '\n<link rel=stylesheet type="text/css" href=%s>\n'%(css_href)
@@ -915,17 +915,17 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script type="text/javascript" src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css">\n'
+        head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
 
         if JSMATH:
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+            head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+            head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
-        head +=' <script type="text/javascript" src="/highlight/prettify.js"></script>\n'
-        head += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css">\n'
+        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
+        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
         return head
 
@@ -1454,9 +1454,10 @@ import time
 
 def load_notebook(dir, username=None, password=None, color=None, system=None,
                   splashpage=None):
-    if os.path.exists(dir):
+    sobj = '%s/nb.sobj'%dir
+    if os.path.exists(sobj):
         try:
-            nb = load('%s/nb.sobj'%dir, compress=False)
+            nb = load(sobj, compress=False)
         except:
             print "****************************************************************"
             print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "

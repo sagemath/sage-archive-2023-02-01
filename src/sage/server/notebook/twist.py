@@ -1,24 +1,48 @@
 """
 SAGE Notebook (Twisted Version)
 """
-
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 
-import css
+import css, js
 
-class MainCSS(resource.Resource):
+from sage.misc.misc import SAGE_EXTCODE
+javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
+css_path = SAGE_EXTCODE + "/notebook/css/"
+
+class Main_css(resource.Resource):
     def render(self, ctx):
         s = css.css()
         return http.Response(stream=s)
 
-class Toplevel(resource.Resource):
-    addSlash = True
+class CSS(resource.Resource):
+    def childFactory(self, request, name):
+        return static.File(css_path + "/" + name)
+
+setattr(CSS, 'child_main.css', Main_css())
+
+
+class Main_js(resource.Resource):
     def render(self, ctx):
-        s = notebook.html(authorized=True)
+        s = js.javascript()
         return http.Response(stream=s)
 
-setattr(Toplevel, 'child___main__.css', MainCSS())
+class Javascript(resource.Resource):
+    def childFactory(self, request, name):
+        return static.File(javascript_path + "/" + name)
+
+setattr(Javascript, 'child_main.js', Main_js())
+
+class Toplevel(resource.Resource):
+    addSlash = True
+
+    child_javascript = Javascript()
+    child_css = CSS()
+
+    def render(self, ctx):
+        s = notebook.html(authorized=True, worksheet_authorized=True)
+        return http.Response(stream=s)
+
 
 
 site = server.Site(Toplevel())
@@ -39,6 +63,8 @@ def notebook_twisted(directory='sage_notebook',
     r"""
     Experimental twisted version of the SAGE Notebook.
     """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     port = int(port)
     conf = '%s/twistedconf.py'%directory
 

@@ -62,6 +62,13 @@ Matrix vector multiply:
     sage: v = V([1,2,3])
     sage: v * A
     (2, 1, 3)
+
+TESTS:
+    sage: D = 46341
+    sage: u = 7
+    sage: R = Integers(D)
+    sage: p = matrix(R,[[84, 97, 55, 58, 51]])
+    sage: 2*p.row(0)
 """
 
 import operator

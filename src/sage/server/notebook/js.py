@@ -639,7 +639,6 @@ function add_worksheet_callback(status,response_text) {
             alert("Unable to add worksheet.");
         } else {
             set_worksheet_list(X[0]);
-            switch_to_worksheet(X[1]);
         }
     } else {
         alert("Possible failure adding worksheet.");
@@ -661,8 +660,6 @@ function delete_worksheet_callback(status, response_text) {
             alert("Possible failure deleting worksheet.  " + response_text);
         } else {
             set_worksheet_list(X[0]);
-            if (X[1] != -1)
-               switch_to_worksheet(X[1]);
         }
     } else {
         alert("Possible failure deleting worksheet.");
@@ -756,16 +753,6 @@ function process_delete_worksheet_menu_submit() {
 }
 
 
-// We decided not to implement the following, since normal user's
-// tabbed browsing (or multiple windows, depending on user taste!)
-// does the same thing much better and in a more flexible manner.
-function switch_to_worksheet(id) {
-    /* 1. check to see if worksheet is already loaded into the DOM
-       2. If not, load it into the dom.
-       3. Move it to the front and everything else to the back by changing the css.
-    */
-  /* alert('switch to worksheet ' + id); */
-}
 
 function unlock_worksheet() {
     lock = get_element("worksheet_lock");
@@ -2072,23 +2059,19 @@ function insert_cells_from_wiki_callback(status, response_text) {
 ///////////////////////////////////////////////////////////////////
 
 function history_window() {
-    history = window.open ("__history__.html",
+    history = window.open ("/history.html",
       "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1,resizable=1");
 }
 
-function worksheet_text_window(worksheet) {
-    log = window.open (worksheet+"__plain__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1, resizable=1");
-}
 
 function doctest_window(worksheet) {
-    log = window.open (worksheet+"__doc__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
+    log = window.open ("/w/" + worksheet+"/plain","",
+    "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
 }
 
 
 function print_window(worksheet) {
-    log = window.open (worksheet+"__print__.html","",
+    log = window.open ("/w/" + worksheet+"/print","",
       "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 
@@ -2097,7 +2080,7 @@ function print_window(worksheet) {
 /////////////////////////////////
 
 function show_help_window(worksheet) {
-    help = window.open ("__help__.html","",
+    help = window.open ("/help.html","",
     "menubar=1,scrollbars=1,width=800,height=600,resizable=1, toolbar=1");
 }
 

@@ -58,6 +58,7 @@ usage_advanced() {
     echo "  -q            -- quiet; start with no banner"
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
+    echo "  -twistd <..>  -- run Twisted server"
     echo "  -t [-optional] [-verbose] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
     echo "                           -long     -- include lines with the phrase 'long time'"
@@ -208,6 +209,13 @@ if [ $1 = '-singular'  -o $1 = '--singular' ]; then
     cd "$CUR"
     shift
     singular "$@"
+    exit $?
+fi
+
+if [ $1 = '-twistd'  -o $1 = '--twistd' ]; then
+    cd "$CUR"
+    shift
+    twistd "$@"
     exit $?
 fi
 

@@ -48,7 +48,7 @@ EXAMPLES:
         sage: f.derivative(y)
         2*sin(x)*sin(2*y)/cos(2*y)^2
         sage: g = f.integral(x); g
-        -cos(x)/(cos(2*y))
+        -cos(x)/cos(2*y)
 
     Note that these methods require an explicit variable name. If none
     is given, \sage will try to find one for you.
@@ -1231,13 +1231,13 @@ class SymbolicExpression(RingElement):
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
             1 + (a + 1)*x/2 - (a^2 + 2*a + 1)*x^2/8 + (3*a^3 + 9*a^2 + 9*a - 1)*x^3/48
             sage: taylor (sqrt (x + 1), x, 0, 5)
-            1 + x/2 - x^2/8 + x^3/16 - (5*x^4/128) + 7*x^5/256
+            1 + x/2 - x^2/8 + x^3/16 - 5*x^4/128 + 7*x^5/256
             sage: taylor (1/log (x + 1), x, 0, 3)
-            1/x + 1/2 - x/12 + x^2/24 - (19*x^3/720)
+            1/x + 1/2 - x/12 + x^2/24 - 19*x^3/720
             sage: taylor (cos(x) - sec(x), x, 0, 5)
             -x^2 - x^4/6
             sage: taylor ((cos(x) - sec(x))^3, x, 0, 9)
-            -x^6 - (x^8/2)
+            -x^6 - x^8/2
             sage: taylor (1/(cos(x) - sec(x))^3, x, 0, 5)
             -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - 6767*x^2/604800 - 15377*x^4/7983360
         """
@@ -1986,7 +1986,7 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
             sage: (x^3-y^3).factor()
-            (-(y - x))*(y^2 + x*y + x^2)
+            -(y - x)*(y^2 + x*y + x^2)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
             (2*y + x)*(z - 2)*(z + 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2538,7 +2538,7 @@ def var_cmp(x,y):
     return cmp(repr(x), repr(y))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
-            operator.div:'/', operator.pow:'^'}
+        operator.div:'/', operator.pow:'^', operator.neg:'-'}
 
 
 class SymbolicArithmetic(SymbolicOperation):
@@ -2549,7 +2549,16 @@ class SymbolicArithmetic(SymbolicOperation):
     def __init__(self, operands, op):
         SymbolicOperation.__init__(self, operands)
         self._operator = op
+        # assume a really low precedence by default
+        self._precedence = -1
         # set up associativity and precedence rules
+        if op is operator.neg:
+            self._binary = False
+            self._unary = True
+            self._precedence = 2000
+        else:
+            self._binary = True
+            self._unary = False
         if op is operator.pow:
             self._precedence = 3000
             self._l_assoc = False
@@ -2683,41 +2692,45 @@ class SymbolicArithmetic(SymbolicOperation):
         ops = self._operands
         op = self._operator
         s = [x._repr_(simplify=simplify) for x in ops]
-        if op is operator.neg:
-            return '-%s' % s[0]
-        lop = ops[0]
-        rop = ops[1]
+
+        rop = ops[0]
+        if self._binary:
+            lop = rop
+            rop = ops[1]
 
         lparens = True
         rparens = True
 
-        try:
-            l_operator = lop._operator
-        except AttributeError:
-            # if it's not arithmetic on the left, see if it's atomic
+        if self._binary:
             try:
-                prec = lop._precedence
+                l_operator = lop._operator
             except AttributeError:
-                if lop._is_atomic():
-                # if it has no conecption of precedence, leave the parens
-                    lparens = False
+                # if it's not arithmetic on the left, see if it's atomic
+                try:
+                    prec = lop._precedence
+                except AttributeError:
+                    if lop._is_atomic():
+                    # if it has no conecption of precedence, leave the parens
+                        lparens = False
+                else:
+                    # if it has a precedence, compare with self
+                    if self._precedence < lop._precedence:
+                        lparens = False
             else:
-                # if it has a precedence, compare with self
-                if self._precedence < lop._precedence:
+                # first we make sure that it's a binary operator
+                #if lop._binary:
+                # if the left op is the same is this operator
+                if op is l_operator:
+                    # if it's left associative, get rid of the left parens
+                    if self._l_assoc:
+                        lparens = False
+                # different operators, same precedence, get rid of the left parens
+                elif self._precedence == lop._precedence:
+                    if self._l_assoc:
+                        lparens = False
+                # if we have a lower precedence than the left, get rid of the parens
+                elif self._precedence < lop._precedence:
                     lparens = False
-        else:
-            # if the left op is the same is this operator
-            if op is l_operator:
-                # if it's left associative, get rid of the left parens
-                if self._l_assoc:
-                    lparens = False
-            # different operators, same precedence, get rid of the left parens
-            elif self._precedence == lop._precedence:
-                if self._l_assoc:
-                    lparens = False
-            # if we have a lower precedence than the left, get rid of the parens
-            elif self._precedence < lop._precedence:
-                lparens = False
 
         try:
             r_operator = rop._operator
@@ -2731,23 +2744,29 @@ class SymbolicArithmetic(SymbolicOperation):
                 if self._precedence < rop._precedence:
                     rparens = False
         else:
-            if op is r_operator:
-                if self._r_assoc:
+            if rop._binary:
+                if op is r_operator:
+                    if self._r_assoc:
+                        rparens = False
+                elif self._precedence == rop._precedence:
+                    if self._r_assoc:
+                        rparens = False
+                # if the RHS has higher precedence, it comes first and parens are
+                # redundant
+                elif self._precedence < rop._precedence:
                     rparens = False
-            elif self._precedence == rop._precedence:
-                if self._r_assoc:
-                    rparens = False
-            # if the RHS has higher precedence, it comes first and parens are
-            # redundant
-            elif self._precedence < rop._precedence:
-                rparens = False
+        if self._binary:
+            if lparens:
+                s[0] = '(%s)'% s[0]
+            if rparens:
+                s[1] = '(%s)'% s[1]
 
-        if lparens:
-            s[0] = '(%s)'% s[0]
-        if rparens:
-            s[1] = '(%s)'% s[1]
+            return '%s%s%s' % (s[0], symbols[op], s[1])
 
-        return '%s%s%s' % (s[0], symbols[op], s[1])
+        elif self._unary:
+            if rparens:
+                s[0] = '(%s)'%s[0]
+            return '%s%s' % (symbols[op], s[0])
 
         ######################################################################
 
@@ -4261,7 +4280,7 @@ def polylog(n, z):
         sage: float(polylog(4,0.5))
         0.51747906167389934
         sage: polylog(2,z).taylor(z, 1/2, 3)
-        (-(6*log(2)^2 - pi^2))/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
+        -(6*log(2)^2 - pi^2)/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
     """
     return Function_polylog(n)(z)
 

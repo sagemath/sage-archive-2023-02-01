@@ -722,6 +722,25 @@ def next_prime_power(n):
         n += 1
     return n
 
+def next_probable_prime(n):
+    """
+    Returns the next probable prime after self, as determined by PARI.
+
+    INPUT:
+        n -- an integer
+
+    EXAMPLES:
+        sage: next_probable_prime(-100)
+        2
+        sage: next_probable_prime(19)
+        23
+        sage: next_probable_prime(int(999999999))
+        1000000007
+        sage: next_probable_prime(2^768)
+        1552518092300708935148979488462502555256886017116696611139052038026050952686376886330878408828646477950487730697131073206171580044114814391444287275041181139204454976020849905550265285631598444825262999193716468750892846853816058039
+    """
+    return integer_ring.ZZ(n).next_probable_prime()
+
 def next_prime(n, proof=True):
     """
     The next prime greater than the integer n.  If n is prime, then
@@ -753,20 +772,7 @@ def next_prime(n, proof=True):
         2011
     """
     n = integer_ring.ZZ(n)
-    if n < 2:   # negatives are not prime.
-        return integer_ring.ZZ(2)
-    if n == 2:
-        return integer_ring.ZZ(3)
-    if not proof:  # pari nextprime is probabilistic (according to their docs)
-        return integer_ring.ZZ((eval(str(pari(n+1).nextprime()))))
-
-    if n % 2 == 0:
-        n += 1
-    else:
-        n += 2
-    while not is_prime(n):  # pari isprime is provably correct
-        n += 2
-    return integer_ring.ZZ(n)
+    return n.next_prime(proof=proof)
 
 def previous_prime(n):
     """

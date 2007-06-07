@@ -1354,7 +1354,8 @@ Output
         </html>
         """%(head, body)
 
-    def html(self, worksheet_id=None, authorized=False, show_debug=False, worksheet_authorized=False):
+    def html(self, worksheet_id=None, authorized=False,
+                   show_debug=False, worksheet_authorized=False):
         if worksheet_id is None or worksheet_id == '':
             if not self.splashpage():
                 W = self.default_worksheet()

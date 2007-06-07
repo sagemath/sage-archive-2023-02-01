@@ -2,60 +2,27 @@
 SAGE Notebook (Twisted Version)
 """
 
-import notebook
-
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 
-class Foo(resource.Resource):
+import css
+
+class MainCSS(resource.Resource):
     def render(self, ctx):
-        print ctx
-        return http.Response(stream="Child/Foo")
-
-class Sage(resource.Resource):
-    def render(self, ctx):
-        print ctx.args
-        try:
-          print 1
-          #from sage.misc.all import sage_eval
-          ans = str(eval(ctx.args['expr'][0]))
-          print 2
-        except Exception, msg:
-          ans = msg
-        return http.Response(stream=ans)
-
-class Bar(resource.Resource):
-    def render(self, ctx):
-        print ctx
-        return http.Response(stream="Bar")
-
-class Child(resource.Resource):
-    child_foo = Foo()
-
-    def locateChild(self, request, segments):
-        return self, ()
-
-    def render(self, ctx):
-        Toplevel.child_bar = Bar()
-        return http.Response(stream="Child" + str(ctx.prepath))
-
+        s = css.css()
+        return http.Response(stream=s)
 
 class Toplevel(resource.Resource):
     addSlash = True
-    child_child = Child()
-    child_dir = static.File('/home/was/')
-    child_sage = Sage()
-    nb = None
     def render(self, ctx):
-        print ctx
-        print ctx.method
-        print ctx.headers
-        print ctx.args
-        return http.Response(stream="Toplevel")
+        s = notebook.html(authorized=True)
+        return http.Response(stream=s)
+
+setattr(Toplevel, 'child___main__.css', MainCSS())
 
 
 site = server.Site(Toplevel())
-
+notebook = None  # this gets set on startup.
 
 
 ##########################################################
@@ -75,19 +42,20 @@ def notebook_twisted(directory='sage_notebook',
     port = int(port)
     conf = '%s/twistedconf.py'%directory
 
-    Toplevel.nb = notebook.load_notebook(directory)
-
     def run(port):
         ## Create the config file
         config = open(conf, 'w')
         config.write("""
-from sage.server.notebook.twist import site
+import sage.server.notebook.notebook as notebook
+import sage.server.notebook.twist as twist
+twist.notebook = notebook.load_notebook('%s')
+
 from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
-s = strports.service('tcp:%s', channel.HTTPFactory(site))
+s = strports.service('tcp:%s', channel.HTTPFactory(twist.site))
 s.setServiceParent(application)
-"""%(port))
+"""%(directory, port))
         config.close()
 
         ## Start up twisted

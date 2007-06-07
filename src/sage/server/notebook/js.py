@@ -1275,6 +1275,10 @@ function text_cursor_split(input) {
     return new Array(b,a);
 }
 
+function worksheet_command(cmd) {
+    return ('/w/' + worksheet_name + '/' + cmd);
+}
+
 function evaluate_cell(id, action) {
     if(worksheet_locked) {
         alert("This worksheet is locked.  Click on the word [locked] next to the worksheet name to unlock it.")
@@ -1297,9 +1301,8 @@ function evaluate_cell(id, action) {
     var cell_input = get_cell(id);
     var I = cell_input.value;
     var input = escape0(I);
-
-    async_request('/eval' + action, evaluate_cell_callback,
-            'id=' + id + '&input='+input);
+    async_request(worksheet_command('eval'), evaluate_cell_callback,
+            'newcell=' + action + '&id=' + id + '&input='+input);
 }
 
 function evaluate_cell_introspection(id, before, after) {
@@ -1428,9 +1431,9 @@ function check_for_cell_update() {
     }
     var cell_id = active_cell_list[0];
     update_time = time_now();
-    async_request('/cell_update',
+    async_request(worksheet_command('cell_update'),
                     check_for_cell_update_callback,
-                    'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
+                    'id=' + cell_id);
     try{
         title_spinner_i = (title_spinner_i+1)%title_spinner.length;
         document.title = title_spinner[title_spinner_i] + original_title;
@@ -1587,10 +1590,7 @@ function check_for_cell_update_callback(status, response_text) {
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];
-    var variable_list = D[5];
-    var object_list = D[6];
-    var attached_files_list = D[7];
-    var introspect_html = D[8];
+    var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
 
     set_output_text(id, output_text, output_text_wrapped,

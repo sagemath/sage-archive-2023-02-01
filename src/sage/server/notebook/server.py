@@ -216,7 +216,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = C['id']
         input_text = C['input']
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
-        #input_text = input_text.replace("%2B",'+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -237,6 +236,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                              new_cell.html(div_wrap=False) + SEP + str(id))
         else:
             self.wfile.write(str(cell.next_id()) + SEP + 'no_new_cell' + SEP + str(id))
+
 
     def introspect(self):
         C = self.get_postvars()

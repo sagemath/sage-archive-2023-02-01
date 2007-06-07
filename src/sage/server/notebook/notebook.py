@@ -1083,11 +1083,11 @@ class Notebook(SageObject):
         if worksheet is None:
             return body + endpanespan
 
-        body += '<div class="fivepix"></div>\n'
-        body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
-        body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
-        body += '     Saved Objects</div>\n'
-        body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
+        #body += '<div class="fivepix"></div>\n'
+        #body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
+        #body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
+        #body += '     Saved Objects</div>\n'
+        #body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
 
         #body += '<div class="fivepix"></div>\n'
         #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
@@ -1096,13 +1096,13 @@ class Notebook(SageObject):
         #body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
         #        worksheet.variables_html()
 
-        body += '<div class="fivepix"></div>\n'
-        body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
-        body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
-        body += '     Attached Files</div>\n'
-        body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
-                worksheet.attached_html()
-        body += endpanespan
+        #body += '<div class="fivepix"></div>\n'
+        #body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
+        #body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
+        #body += '     Attached Files</div>\n'
+        #body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
+        #        worksheet.attached_html()
+        #body += endpanespan
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script type="text/javascript">jsmath_init();</script>\n'
 

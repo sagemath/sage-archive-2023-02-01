@@ -638,7 +638,7 @@ class Worksheet:
             return 'd', C
 
         try:
-            done, out, new = S._so_far(wait=0.1, alternate_prompt=SAGE_END+str(self.synchro()))
+            done, out, new = S._so_far(wait=0.2, alternate_prompt=SAGE_END+str(self.synchro()))
         except RuntimeError, msg:
             verbose("Computation was interrupted or failed. Restarting.\n%s"%msg)
             self.__comp_is_running = False

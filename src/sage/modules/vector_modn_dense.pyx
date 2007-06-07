@@ -78,7 +78,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
 
-MAX_MODULUS = MOD_INT_OVERFLOW
+from sage.ext.multi_modular import MAX_MODULUS
 
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):

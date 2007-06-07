@@ -2386,7 +2386,11 @@ class SymbolicConstant(Symbolic_object):
         try:
             return self._atomic
         except AttributeError:
-            return self._obj._is_atomic()
+            try:
+                return self._obj._is_atomic()
+            except AttributeError:
+                if isinstance(self._obj, int):
+                    return True
 
     def _recursive_sub(self, kwds):
         """
@@ -2693,6 +2697,23 @@ class SymbolicArithmetic(SymbolicOperation):
         op = self._operator
         s = [x._repr_(simplify=simplify) for x in ops]
 
+        # if an operand is a rational number, trick SAGE into thinking it's an
+        # operation
+        li = []
+        for o in ops:
+            if isinstance(o, Rational):
+                temp = SymbolicConstant(o._obj)
+                if not temp._obj.is_integral():
+                    temp._operator = operator.div
+                    temp._l_assoc = True
+                    temp._r_assoc = False
+                    temp._precedence = 2000
+                li.append(tmp)
+            else:
+                li.append(o)
+
+        ops = li
+
         rop = ops[0]
         if self._binary:
             lop = rop
@@ -2717,8 +2738,6 @@ class SymbolicArithmetic(SymbolicOperation):
                     if self._precedence < lop._precedence:
                         lparens = False
             else:
-                # first we make sure that it's a binary operator
-                #if lop._binary:
                 # if the left op is the same is this operator
                 if op is l_operator:
                     # if it's left associative, get rid of the left parens
@@ -2746,11 +2765,17 @@ class SymbolicArithmetic(SymbolicOperation):
         else:
             if rop._binary:
                 if op is r_operator:
-                    if self._r_assoc:
-                        rparens = False
+                    try:
+                        if self._r_assoc:
+                            rparens = False
+                    except AttributeError:
+                        pass
                 elif self._precedence == rop._precedence:
-                    if self._r_assoc:
-                        rparens = False
+                    try:
+                        if self._r_assoc:
+                            rparens = False
+                    except AttributeError:
+                        pass
                 # if the RHS has higher precedence, it comes first and parens are
                 # redundant
                 elif self._precedence < rop._precedence:

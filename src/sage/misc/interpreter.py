@@ -410,19 +410,35 @@ def sage_prefilter(self, block, continuation):
     return InteractiveShell._prefilter(self, block2, continuation)
 
 
+ipython_prefilter = InteractiveShell.prefilter
+def preparser(on=True):
+    """
+    Turn on or off the SAGE preparser.
 
-# Rebind this to be the new IPython prefilter:
-InteractiveShell.prefilter = sage_prefilter
+    INPUT:
+        on -- bool (default: True) if True turn on preparsing; if False, turn it off.
 
-# Clean up the namespace.
-#del InteractiveShell, sage_prefilter
+    EXAMPLES:
+        sage: 2/3
+        2/3
+        sage: preparser(False)
+        sage: 2/3
+        0
+        sage: preparser(True)
+        sage: 2^3
+        8
+    """
+    if on:
+        InteractiveShell.prefilter = sage_prefilter
+    else:
+        InteractiveShell.prefilter = ipython_prefilter
+
+
 import sagedoc
-
 import IPython.OInspect
 IPython.OInspect.getdoc = sagedoc.my_getdoc
 IPython.OInspect.getsource = sagedoc.my_getsource
 
-import log
 
 import __builtin__
 _prompt = 'sage'

@@ -1,0 +1,316 @@
+"""
+SAGE Notebook (Twisted Version)
+"""
+from twisted.web2 import server, http, resource, channel
+from twisted.web2 import static, http_headers, responsecode
+
+import css, js
+
+from sage.misc.misc import SAGE_EXTCODE, cputime
+javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
+css_path = SAGE_EXTCODE + "/notebook/css/"
+
+_cols = None
+def word_wrap_cols():
+    global _cols
+    if _cols is None:
+        _cols = notebook.defaults()['word_wrap_cols']
+    return _cols
+
+############################
+SEP = '___S_A_G_E___'
+
+def encode_list(v):
+    return SEP.join([str(x) for x in v])
+
+
+############################
+# Notebook autosave.
+save_interval = 20  # save if make a change to notebook and at least some seconds have elapsed since last save.
+last_time = cputime()
+
+def notebook_save_check():
+    global last_time
+    t = cputime()
+    if t > last_time + save_interval:
+        notebook.save()
+    last_time = t
+
+############################
+class UpdateWorksheetCell(resource.PostableResource):
+    def __init__(self, name):
+        self._name = name
+
+    def render(self, ctx):
+        id = int(ctx.args['id'][0])
+
+        worksheet = notebook.get_worksheet_with_name(self._name)
+
+        # update the computation one "step".
+        worksheet.check_comp()
+
+        # now get latest status on our cell
+        status, cell = worksheet.check_cell(id)
+
+        #print status, cell   # debug
+        if status == 'd':
+            #objects = notebook.object_list_html()
+            #attached_files = worksheet.attached_html()
+            # TODO -- change architecture so these are only ever
+            # computed/sent when they actually change.  Until then,
+            # don't even have this.
+            objects = '...'
+            attached_files = '...'
+        else:
+            objects = "..." # not used
+            attached_files = '...' # not used
+
+        if status == 'd':
+            new_input = cell.changed_input_text()
+            out_html = cell.output_html()
+        else:
+            new_input = ''
+            out_html = ''
+        if cell.interrupted():
+            inter = 'true'
+        else:
+            inter = 'false'
+
+        raw = cell.output_text(raw=True).split("\n")
+        if len(raw) == 13 and raw[4][:17] == "Unhandled SIGSEGV":
+            inter = 'restart'
+            print "segfault!"
+
+        msg = '%s%s %s'%(status, cell.id(),
+                       encode_list([cell.output_text(html=True),
+                                    cell.output_text(word_wrap_cols(), html=True),
+                                    out_html,
+                                    new_input,
+                                    inter,
+                                    cell.introspect_html()]))
+
+
+        # There may be more computations left to do, so start one if there is one.
+        worksheet.start_next_comp()
+        return http.Response(stream=msg)
+
+
+class EvalWorksheetCell(resource.PostableResource):
+    """
+    Evaluate a worksheet cell.
+
+    If the request is not authorized, (the requester did not enter the
+    correct password for the given worksheet), then the request to
+    evaluate or introspect the cell is ignored.
+
+    If the cell contains either 1 or 2 question marks at the end (not
+    on a comment line), then this is interpreted as a request for
+    either introspection to the documentation of the function, or the
+    documentation of the function and the source code of the function
+    respectively.
+    """
+    def __init__(self, name):
+        self._name = name
+
+    def render(self, ctx):
+        if not ctx.args.has_key('input'):
+            return http.Response(stream='')
+        newcell = ctx.args['newcell'][0]  # whether to insert a new cell or not
+        id = int(ctx.args['id'][0])
+        input_text = ctx.args['input'][0]
+        input_text = input_text.replace('\r\n', '\n') # DOS
+
+        W = notebook.get_worksheet_with_name(self._name)
+        #if not self.auth_worksheet(W):     # todo -- how will we implement twisted auth?
+        #    return
+        cell = W.get_cell_with_id(id)
+        cell.set_input_text(input_text)
+        cell.evaluate()
+
+        if cell.is_last():
+            new_cell = W.append_new_cell()
+            s = encode_list([new_cell.id(), 'append_new_cell', new_cell.html(div_wrap=False)])
+        elif newcell:
+            new_cell = W.new_cell_after(id)
+            s = encode_list([new_cell.id(), 'insert_cell', new_cell.html(div_wrap=False), str(id)])
+        else:
+            s = encode_list([cell.next_id(), 'no_new_cell', str(id)])
+
+        notebook_save_check()
+        return http.Response(stream=s)
+
+
+class PlainTextWorksheet(resource.Resource):
+    def __init__(self, name):
+        self._name = name
+
+    def render(self, ctx):
+        s = notebook.plain_text_worksheet_html(self._name)
+        return http.Response(stream=s)
+
+class PrintWorksheet(resource.Resource):
+    def __init__(self, name):
+        self._name = name
+
+    def render(self, ctx):
+        s = notebook.worksheet_html(self._name)
+        return http.Response(stream=s)
+
+class Worksheet(resource.Resource):
+    def __init__(self, name):
+        self._name = name
+
+    def render(self, ctx):
+        s = notebook.html(worksheet_id = self._name)
+        return http.Response(stream=s)
+
+    def childFactory(self, request, op):
+        #print "operation: ", op
+        if op == 'eval':
+            return EvalWorksheetCell(self._name)
+        elif op == 'cell_update':
+            return UpdateWorksheetCell(self._name)
+        elif op == 'plain':
+            return PlainTextWorksheet(self._name)
+        elif op == 'print':
+            return PrintWorksheet(self._name)
+        else:
+            return None, ()
+
+class Worksheets(resource.Resource):
+    def childFactory(self, request, name):
+        return Worksheet(name)
+
+
+############################
+
+class Help(resource.Resource):
+    def render(self, ctx):
+        try:
+            s = self._cache
+        except AttributeError:
+            s = notebook.help_window()
+            self._cache = s
+        return http.Response(stream=s)
+
+
+############################
+
+############################
+
+class History(resource.Resource):
+    def render(self, ctx):
+        s = notebook.history_html()
+        return http.Response(stream=s)
+
+
+############################
+
+class Main_css(resource.Resource):
+    def render(self, ctx):
+        s = css.css()
+        return http.Response(stream=s)
+
+class CSS(resource.Resource):
+    def childFactory(self, request, name):
+        return static.File(css_path + "/" + name)
+
+setattr(CSS, 'child_main.css', Main_css())
+
+############################
+
+
+############################
+
+class Main_js(resource.Resource):
+    def render(self, ctx):
+        s = js.javascript()
+        return http.Response(stream=s)
+
+class Javascript(resource.Resource):
+    def childFactory(self, request, name):
+        return static.File(javascript_path + "/" + name)
+
+setattr(Javascript, 'child_main.js', Main_js())
+
+############################
+
+
+class Toplevel(resource.Resource):
+    addSlash = True
+
+    child_javascript = Javascript()
+    child_css = CSS()
+    child_w = Worksheets()
+
+    def render(self, ctx):
+        s = notebook.html()
+        return http.Response(stream=s)
+
+setattr(Toplevel, 'child_help.html', Help())
+setattr(Toplevel, 'child_history.html', History())
+
+site = server.Site(Toplevel())
+notebook = None  # this gets set on startup.
+
+
+
+
+
+
+##########################################################
+# This actually serves up the notebook.
+  ##########################################################
+
+from   sage.server.misc import print_open_msg
+import os, socket
+
+def notebook_twisted(directory='sage_notebook',
+             port=8000,
+             address='localhost',
+             port_tries=1,
+             multisession=True):
+    r"""
+    Experimental twisted version of the SAGE Notebook.
+    """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    port = int(port)
+    conf = '%s/twistedconf.py'%directory
+
+    def run(port):
+        ## Create the config file
+        config = open(conf, 'w')
+        config.write("""
+import sage.server.notebook.notebook as notebook
+import sage.server.notebook.twist as twist
+twist.notebook = notebook.load_notebook('%s')
+
+import sage.server.notebook.worksheet as worksheet
+worksheet.init_sage_prestart()
+worksheet.multisession = %s
+
+from twisted.web2 import channel
+from twisted.application import service, strports
+application = service.Application("SAGE Notebook")
+s = strports.service('tcp:%s', channel.HTTPFactory(twist.site))
+s.setServiceParent(application)
+"""%(os.path.abspath(directory), multisession, port))
+        config.close()
+
+        ## Start up twisted
+        print_open_msg(address, port)
+        e = os.system('cd "%s" && sage -twistd -ny twistedconf.py'%directory)
+        if e == 256:
+            raise socket.error
+
+
+    for i in range(port_tries):
+        try:
+            run(port + i)
+        except socket.error:
+            print "Port %s is already in use.  Trying next port..."%port
+        else:
+            break
+
+    return True

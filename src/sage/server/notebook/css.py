@@ -593,11 +593,12 @@ button.delete_worksheet_menu {
 }
 
 span.pane div.worksheet_list {
-   font-size:12px;
-   top:0ex;
-   height:45ex;
-   border:2px solid <color2>;
+   position:fixed;
    overflow:auto;
+   font-size:12px;
+   top:55px;
+   bottom:0ex;
+   border:2px solid <color2>;
    width: 180px;
 }
 

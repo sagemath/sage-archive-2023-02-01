@@ -1401,7 +1401,9 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
             raise ValueError, "p and prec must be specified if Q is not defined over a p-adic ring"
     if M is None:
         M = adjusted_prec(p, prec)
-    extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
+    extra_prec_ring = Integers(p**M)
+#    extra_prec_ring = pAdicField(p, M) # SLOW!
+
     real_prec_ring = pAdicField(p, prec) # pAdicField(p, prec) # To capped absolute?
     S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, True)
     MW = S.monsky_washnitzer()
@@ -1419,6 +1421,8 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 #    S._p = p
 #    rational_S(F[0]).reduce_fast()
 #    prof("reduce others")
+
+#    rational_S = S.change_ring(pAdicField(p, M))
     F = [rational_S(F_i) for F_i in F]
 
     prof("reduce")
@@ -1436,7 +1440,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     for i in range(M.ncols()):
         for j in range(M.nrows()):
             M[i,j] = M[i,j].add_bigoh(prec)
-#    print prof
+    print prof
     return M.transpose(), [f for f, a in reduced]
 
 
@@ -1650,10 +1654,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0):
         CommutativeAlgebraElement.__init__(self, parent)
+        if isinstance(val, SpecialHyperellipticQuotientElement):
+            R = parent.base_ring()
+            self._f = parent._poly_ring([a.change_ring(R) for a in val._f])
+            return
         if isinstance(val, tuple):
             val, offset = val
-        if isinstance(val, SpecialHyperellipticQuotientElement):
-            val, offset = val.coeffs()
         if isinstance(val, list) and len(val) > 0 and is_FreeModuleElement(val[0]):
             val = transpose_list(val)
         self._f = parent._poly_ring(val)
@@ -1661,7 +1667,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             self._f = self._f.parent()([a << offset for a in self._f])
 
     def change_ring(self, R):
-        return self.parent().change_ring(R)(self.coeffs())
+        return self.parent().change_ring(R)(self)
 
     def __call__(self, *x):
         return self._f(*x)

@@ -1081,8 +1081,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.polynomial([n*coeffs[n] for n from 1 <= n <= degree])
 
     def integral(self):
+        cdef Py_ssize_t n, degree = self.degree()
+        if degree <= 0:
+            return self.parent()(0)
         try:
-            return self.polynomial([0] + [self[n]/(n+1) for n in xrange(0,self.degree()+1)])
+            coeffs = self.list()
+            return self.polynomial([0, coeffs[0]] + [coeffs[n]/(n+1) for n from 1 <= n <= degree])
         except TypeError:
             raise ArithmeticError, "coefficients of integral cannot be coerced into the base ring"
 
@@ -2334,7 +2338,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a new copy of the list of the underlying
         elements of self.
@@ -2346,7 +2350,10 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.list()
             [1, 9, 12, 8]
         """
-        return list(self.__coeffs)
+        if copy:
+            return list(self.__coeffs)
+        else:
+            return self.__coeffs
 
     def degree(self):
         """

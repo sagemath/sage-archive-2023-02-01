@@ -625,8 +625,8 @@ function click_on_object(name) {
 //
 ///////////////////////////////////////////////////////////////////
 
-function add_worksheet(name,pass) {
-    async_request('/add_worksheet', add_worksheet_callback, 'name='+name+'&passcode='+pass)
+function add_worksheet(name) {
+    async_request('/add_worksheet', add_worksheet_callback, 'name='+name)
 }
 
 function add_worksheet_callback(status,response_text) {
@@ -737,11 +737,8 @@ function process_new_worksheet_menu_submit() {
     hide_add_new_worksheet_menu();
     var add_worksheet_box = get_element('new_worksheet_box');
     name = add_worksheet_box.value;
-    var add_worksheet_pass = get_element('new_worksheet_pass');
-    pass = add_worksheet_pass.value;
     add_worksheet_box.value = '';
-    add_worksheet_pass.value = '';
-    add_worksheet(name,pass);
+    add_worksheet(name);
 }
 
 function process_delete_worksheet_menu_submit() {

@@ -130,6 +130,9 @@ class Cell(Cell_generic):
     def worksheet(self):
         return self.__worksheet
 
+    def worksheet_name(self):
+        return self.__worksheet.name()
+
     def notebook(self):
         return self.__worksheet.notebook()
 
@@ -527,12 +530,13 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            if F[-4:] in ['.png', '.bmp']:
-                images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
-            elif F[-4:] == '.svg':
-                images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
+            url = "/w/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
+            if F.endswith('.png') or F.endswith('.bmp'):
+                images.append('<img src="%s?%d">'%(url, self.version()))
+            elif F.endswith('.svg'):
+                images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:
-                files.append('<a target="_new" href="%s/%s" class="file_link">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s" class="file_link">%s</a>'%(url, F))
         if len(images) == 0:
             images = ''
         else:

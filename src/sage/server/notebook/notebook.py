@@ -371,8 +371,7 @@ def open_page(address, port):
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
-                 show_debug = False, log_server=False,
-                 splashpage=False):
+                 show_debug = False, log_server=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -783,7 +782,7 @@ class Notebook(SageObject):
         if not os.path.exists(D):
             os.makedirs(D)
         SageObject.save(self, F, compress=False)
-        print "Press control-C twice to stop notebook server."
+        print "Press control-C to stop the notebook server."
         print "-"*70
 
     def start(self, port=8000, address='localhost',
@@ -999,9 +998,6 @@ class Notebook(SageObject):
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
              Name: <input id="new_worksheet_box" class="add_new_worksheet_menu"
                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-             Password: <input id="new_worksheet_pass" class="add_new_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input>
-
              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">add</button>
              <span class="X" onClick="hide_add_new_worksheet_menu()">X</span>
              </div>
@@ -1405,19 +1401,14 @@ Output
     def html(self, worksheet_id=None, authorized=True,
                    show_debug=False, worksheet_authorized=True):
         if worksheet_id is None or worksheet_id == '':
-            if not self.splashpage():
-                W = self.default_worksheet()
-                worksheet_id = W.id()
-            else:
-                worksheet_id = None
-                W = None
+            worksheet_id = None
+            W = None
         else:
             try:
                 W = self.get_worksheet_with_id(worksheet_id)
             except KeyError, msg:
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
-
 
         if authorized:
             body = self._html_body(worksheet_id, show_debug=show_debug,

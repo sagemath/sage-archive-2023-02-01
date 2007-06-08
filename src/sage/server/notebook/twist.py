@@ -6,7 +6,7 @@ from twisted.web2 import static, http_headers, responsecode
 
 import css, js
 
-from sage.misc.misc import SAGE_EXTCODE, cputime
+from sage.misc.misc import SAGE_EXTCODE, walltime
 javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
 css_path = SAGE_EXTCODE + "/notebook/css/"
 
@@ -18,33 +18,72 @@ def word_wrap_cols():
     return _cols
 
 ############################
+# Encoding data to go between the server and client
+############################
 SEP = '___S_A_G_E___'
 
 def encode_list(v):
     return SEP.join([str(x) for x in v])
 
 
+
 ############################
 # Notebook autosave.
-save_interval = 20  # save if make a change to notebook and at least some seconds have elapsed since last save.
-last_time = cputime()
+############################
+# save if make a change to notebook and at least some seconds have elapsed since last save.
+save_interval = 10
+last_time = walltime()
 
 def notebook_save_check():
     global last_time
-    t = cputime()
+    t = walltime()
     if t > last_time + save_interval:
         notebook.save()
-    last_time = t
+        last_time = t
+
+
+######################################################################################
+# RESOURCES
+######################################################################################
 
 ############################
-class UpdateWorksheetCell(resource.PostableResource):
-    def __init__(self, name):
-        self._name = name
+# A resource attached to a given worksheet
+############################
+class WorksheetResource:
+    def __init__(self, worksheet_name):
+        self.worksheet = notebook.get_worksheet_with_name(worksheet_name)
 
+###############################################
+# Worksheet data -- a file that
+# is associated with a cell in some worksheet.
+# The file is stored on the filesystem.
+#      /w/worksheet_name/data/cell_number/filename
+##############################################
+class CellData(resource.Resource):
+    def __init__(self, worksheet, number):
+        self.worksheet = worksheet
+        self.number = number
+
+    def childFactory(self, request, name):
+        print "child"
+        dir = self.worksheet.directory()
+        path = '%s/cells/%s/%s'%(dir, self.number, name)
+        print path
+        return static.File(path)
+
+class WorksheetData(WorksheetResource, resource.Resource):
+    def childFactory(self, request, number):
+        return CellData(self.worksheet, number)
+
+############################
+# Get the latest update on output appearing
+# in a given output cell.
+############################
+class UpdateWorksheetCell(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         id = int(ctx.args['id'][0])
 
-        worksheet = notebook.get_worksheet_with_name(self._name)
+        worksheet = self.worksheet
 
         # update the computation one "step".
         worksheet.check_comp()
@@ -52,34 +91,22 @@ class UpdateWorksheetCell(resource.PostableResource):
         # now get latest status on our cell
         status, cell = worksheet.check_cell(id)
 
-        #print status, cell   # debug
-        if status == 'd':
-            #objects = notebook.object_list_html()
-            #attached_files = worksheet.attached_html()
-            # TODO -- change architecture so these are only ever
-            # computed/sent when they actually change.  Until then,
-            # don't even have this.
-            objects = '...'
-            attached_files = '...'
-        else:
-            objects = "..." # not used
-            attached_files = '...' # not used
-
         if status == 'd':
             new_input = cell.changed_input_text()
             out_html = cell.output_html()
         else:
             new_input = ''
             out_html = ''
+
         if cell.interrupted():
             inter = 'true'
         else:
             inter = 'false'
 
         raw = cell.output_text(raw=True).split("\n")
-        if len(raw) == 13 and raw[4][:17] == "Unhandled SIGSEGV":
+        if "Unhandled SIGSEGV" in raw:
             inter = 'restart'
-            print "segfault!"
+            print "Segmentation fault detected in output!"
 
         msg = '%s%s %s'%(status, cell.id(),
                        encode_list([cell.output_text(html=True),
@@ -95,7 +122,7 @@ class UpdateWorksheetCell(resource.PostableResource):
         return http.Response(stream=msg)
 
 
-class EvalWorksheetCell(resource.PostableResource):
+class EvalWorksheetCell(WorksheetResource, resource.PostableResource):
     """
     Evaluate a worksheet cell.
 
@@ -109,9 +136,6 @@ class EvalWorksheetCell(resource.PostableResource):
     documentation of the function and the source code of the function
     respectively.
     """
-    def __init__(self, name):
-        self._name = name
-
     def render(self, ctx):
         if not ctx.args.has_key('input'):
             return http.Response(stream='')
@@ -120,7 +144,7 @@ class EvalWorksheetCell(resource.PostableResource):
         input_text = ctx.args['input'][0]
         input_text = input_text.replace('\r\n', '\n') # DOS
 
-        W = notebook.get_worksheet_with_name(self._name)
+        W = self.worksheet
         #if not self.auth_worksheet(W):     # todo -- how will we implement twisted auth?
         #    return
         cell = W.get_cell_with_id(id)
@@ -157,6 +181,8 @@ class PrintWorksheet(resource.Resource):
         return http.Response(stream=s)
 
 class Worksheet(resource.Resource):
+    addSlash = True
+
     def __init__(self, name):
         self._name = name
 
@@ -165,9 +191,10 @@ class Worksheet(resource.Resource):
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
-        #print "operation: ", op
         if op == 'eval':
             return EvalWorksheetCell(self._name)
+        elif op == 'data':
+            return WorksheetData(self._name)
         elif op == 'cell_update':
             return UpdateWorksheetCell(self._name)
         elif op == 'plain':

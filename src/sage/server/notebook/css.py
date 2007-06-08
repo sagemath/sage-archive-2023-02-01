@@ -614,7 +614,7 @@ span.pane div.worksheet_list {
    position:fixed;
    overflow:scroll;
    font-size:12px;
-   top:22ex;
+   top:25ex;
    bottom:2ex;
    left:1ex;
    border:2px solid <color2>;

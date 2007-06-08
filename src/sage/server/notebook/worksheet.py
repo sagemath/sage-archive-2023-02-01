@@ -1240,7 +1240,7 @@ class Worksheet:
             menu  = '  <span class="worksheet_control_commands">'
             menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
             menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-            menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
+            menu += '    <a class="plain_text" href="edit">Edit</a>' + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar

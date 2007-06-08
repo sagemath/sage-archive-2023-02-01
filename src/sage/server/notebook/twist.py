@@ -53,7 +53,7 @@ def notebook_save_check():
 ############################
 class WorksheetResource:
     def __init__(self, worksheet_name):
-        self._name = worksheet_name
+        self.name = worksheet_name
         self.worksheet = notebook.get_worksheet_with_name(worksheet_name)
 
     def id(self, ctx):
@@ -78,6 +78,29 @@ class CellData(resource.Resource):
 class Worksheet_data(WorksheetResource, resource.Resource):
     def childFactory(self, request, number):
         return CellData(self.worksheet, number)
+
+########################################################
+# Edit the entire worksheet
+########################################################
+class Worksheet_edit(WorksheetResource, resource.Resource):
+    """
+    Return a window that allows the user to edit the text of the
+    worksheet with the given filename.
+    """
+    def render(self, ctx):
+        return http.Response(stream = notebook.edit_window(self.worksheet))
+
+
+class Worksheet_save(WorksheetResource, resource.PostableResource):
+    """
+    Return a window that allows the user to edit the text of the
+    worksheet with the given filename.
+    """
+    def render(self, ctx):
+        if ctx.args.has_key('button_save'):
+            self.worksheet.edit_save(ctx.args['textfield'][0])
+        s = notebook.html(worksheet_id = self.name)
+        return http.Response(stream=s)
 
 ########################################################
 # Set output type of a cell
@@ -237,30 +260,28 @@ class Worksheet_interrupt(WorksheetResource, resource.Resource):
 
 class Worksheet_plain(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        s = notebook.plain_text_worksheet_html(self._name)
+        s = notebook.plain_text_worksheet_html(self.name)
         return http.Response(stream=s)
 
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        s = notebook.worksheet_html(self._name)
+        s = notebook.worksheet_html(self.name)
         return http.Response(stream=s)
 
 
-class Worksheet(resource.Resource):
+class Worksheet(WorksheetResource, resource.Resource):
     addSlash = True
 
-    def __init__(self, name):
-        self._name = name
-
     def render(self, ctx):
-        s = notebook.html(worksheet_id = self._name)
-        notebook.get_worksheet_with_id(self._name).sage()
+        s = notebook.html(worksheet_id = self.name)
+        self.worksheet.sage()
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
+        notebook_save_check()
         try:
             R = globals()['Worksheet_%s'%op]
-            return R(self._name)
+            return R(self.name)
         except NameError:
             return None, ()
 
@@ -413,15 +434,23 @@ def notebook_twisted(directory='sage_notebook',
         ## Create the config file
         config = open(conf, 'w')
         config.write("""
+
 import sage.server.notebook.notebook
 sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook('%s')
-
 import sage.server.notebook.worksheet as worksheet
 worksheet.init_sage_prestart()
 worksheet.multisession = %s
+
+import signal, sys
+def my_sigint(x, n):
+    twist.notebook.save()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    print "(Notebook cleanly saved. Press control-C again to exit.)"
+
+signal.signal(signal.SIGINT, my_sigint)
 
 from twisted.web2 import channel
 from twisted.application import service, strports

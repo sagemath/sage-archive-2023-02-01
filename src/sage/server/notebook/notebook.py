@@ -1086,7 +1086,7 @@ class Notebook(SageObject):
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
         body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.<br><br>"""
-        body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
+        body_html += '<form method="post" action="save" enctype="multipart/form-data">\n'
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'

@@ -388,10 +388,9 @@ class Notebook(SageObject):
         self.__history_count = 0
         self.__log_server = log_server #log all POST's and GET's
         self.__server_log = [] #server log list
-        W = self.create_new_worksheet('_scratch_')
+        W = self.create_new_worksheet('Worksheet 1')
         self.__default_worksheet = W
         self.__show_debug = show_debug
-        self.__splashpage = splashpage if splashpage is not None else False
         self.save()
 
     def system(self):
@@ -406,16 +405,6 @@ class Notebook(SageObject):
             self.__system = None
         elif system:  # don't change if it is None
             self.__system = system
-
-    def splashpage(self):
-        try:
-            return self.__splashpage
-        except AttributeError:
-            self.__splashpage = True
-            return self.__splashpage
-
-    def set_splashpage(self, splashpage):
-        self.__splashpage = splashpage
 
     def color(self):
         try:
@@ -856,9 +845,8 @@ class Notebook(SageObject):
                 cls += '_computing' # actively computing
             name = W.name()
             name += ' (%s)'%len(W)
-            name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/w/%s">%s</a>'%(
+            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/ws/%s">%s</a>'%(
                 cls,W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
@@ -996,12 +984,12 @@ class Notebook(SageObject):
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-             Name: <input id="new_worksheet_box" class="add_new_worksheet_menu"
+             <input id="new_worksheet_box" class="add_new_worksheet_menu"
                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">add</button>
-             <span class="X" onClick="hide_add_new_worksheet_menu()">X</span>
+             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
              </div>
         """
+                    #<button class="add_new_worksheet_menu" onClick="hide_add_new_worksheet_menu()">Cancel</button>
 
         delete_worksheet_menu = """
              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
@@ -1069,36 +1057,13 @@ class Notebook(SageObject):
         endpanespan = '</td></tr></table></span>\n'
 
         body += '  <div class="worksheets_topbar">'
-        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">New</a> '
-        body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
-        body += '  &nbsp;Worksheets</div>\n'
+        body += '     <b>Worksheets</b><br></div>'
         body +=    add_new_worksheet_menu
-        body +=    delete_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
 
         if worksheet is None:
             return body + endpanespan
 
-        #body += '<div class="fivepix"></div>\n'
-        #body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
-        #body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
-        #body += '     Saved Objects</div>\n'
-        #body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
-
-        #body += '<div class="fivepix"></div>\n'
-        #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
-        #body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
-        #body += '     Variables</div>\n'
-        #body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
-        #        worksheet.variables_html()
-
-        #body += '<div class="fivepix"></div>\n'
-        #body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
-        #body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
-        #body += '     Attached Files</div>\n'
-        #body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
-        #        worksheet.attached_html()
-        #body += endpanespan
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
@@ -1522,7 +1487,7 @@ def load_notebook(dir, username=None, password=None, color=None, system=None,
         nb.set_not_computing()
     else:
         nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system, splashpage=splashpage)
+                      system=system)
 
     return nb
 

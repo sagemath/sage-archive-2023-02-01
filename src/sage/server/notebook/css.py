@@ -510,7 +510,7 @@ div.attached_filename:hover {
 
 span.pane div.worksheets_topbar {
    color:black;
-   height: 2ex;
+   height: 3ex;
    top: 0ex;
    background: url('/images/corner.png') no-repeat top left;
    background-color: <color2>;
@@ -518,6 +518,7 @@ span.pane div.worksheets_topbar {
    font-size:12px;
    font-family:arial;
    padding-left: 10px;
+   padding-top:10px;
    width: 174px;
 }
 
@@ -529,19 +530,21 @@ span.X {
 }
 
 span.pane div.add_new_worksheet_menu {
+   position:relative;
    color:black;
-   top: 0ex;
-   background-color: <color2>;
+   padding-top: 0.5ex;
+   padding-bottom: 0.5ex;
+   left: 0ex;
+   background-color: white;
    text-decoration: none;
    font-size:11px;
    font-family:arial;
-   padding-left: 10px;
+   padding-left: 0px;
    width: 174px;
-   display:none;
 }
 
 input.add_new_worksheet_menu {
-   width:60%
+   width:100%
 }
 
 button.add_new_worksheet_menu {
@@ -593,19 +596,19 @@ button.delete_worksheet_menu {
 }
 
 span.pane div.worksheet_list {
-   position:fixed;
-   overflow:auto;
+   /*position:fixed;  */
+   overflow:scroll;
    font-size:12px;
-   top:100px;
-   bottom:10ex;
+   top:20ex;
+   bottom:2ex;
+   left:1ex;
    border:2px solid <color2>;
    width: 180px;
 }
 
 a.new_worksheet {
    font-family: arial, monospace;
-   font-size:8pt;
-   text-decoration:underline;
+   font-size:12pt;
    text-align:right;
    color: #0000aa
 }
@@ -674,7 +677,6 @@ a.upload_worksheet:hover {
 span.pane a.worksheet_current {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color2>;
    background-color:<color2>;
    text-decoration:none;
    color:black;
@@ -683,7 +685,6 @@ span.pane a.worksheet_current {
 span.pane a.worksheet_current_computing {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color1>;
    background-color:#ffd1d1;
    text-decoration:none;
    color:black;
@@ -692,7 +693,6 @@ span.pane a.worksheet_current_computing {
 span.pane a.worksheet_other {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color2>;
    background-color:white;
    text-decoration:none;
    color:black;
@@ -705,9 +705,8 @@ span.pane a.worksheet_other:hover {
 }
 
 span.pane a.worksheet_other_computing {
-   font-size:12px;
+   font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color1>;
    background-color:#ffd1d1;
    text-decoration:none;
    color:black;

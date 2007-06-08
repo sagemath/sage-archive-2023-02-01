@@ -626,7 +626,10 @@ function click_on_object(name) {
 ///////////////////////////////////////////////////////////////////
 
 function add_worksheet(name) {
-    async_request('/add_worksheet', add_worksheet_callback, 'name='+name)
+    open("/ws/" + name)
+    /* to have this actually open in this window (not a new one), just do
+        open("/ws" + name, "_self")
+       instead */
 }
 
 function add_worksheet_callback(status,response_text) {
@@ -734,9 +737,13 @@ function hide_delete_worksheet_menu() {
 }
 
 function process_new_worksheet_menu_submit() {
-    hide_add_new_worksheet_menu();
+   /* hide_add_new_worksheet_menu(); */
     var add_worksheet_box = get_element('new_worksheet_box');
     name = add_worksheet_box.value;
+    if (name == '') {
+       alert("Enter a worksheet name in the box and click new to create a new worksheet.");
+       return;
+    }
     add_worksheet_box.value = '';
     add_worksheet(name);
 }
@@ -1258,7 +1265,7 @@ function text_cursor_split(input) {
 }
 
 function worksheet_command(cmd) {
-    return ('/w/' + worksheet_name + '/' + cmd);
+    return ('/ws/' + worksheet_name + '/' + cmd);
 }
 
 function evaluate_cell(id, action) {
@@ -2031,13 +2038,13 @@ function history_window() {
 
 
 function doctest_window(worksheet) {
-    log = window.open ("/w/" + worksheet+"/plain","",
+    log = window.open ("/ws/" + worksheet+"/plain","",
     "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
 }
 
 
 function print_window(worksheet) {
-    log = window.open ("/w/" + worksheet+"/print","",
+    log = window.open ("/ws/" + worksheet+"/print","",
       "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 

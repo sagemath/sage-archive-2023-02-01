@@ -62,7 +62,7 @@ class WorksheetResource:
 # Worksheet data -- a file that
 # is associated with a cell in some worksheet.
 # The file is stored on the filesystem.
-#      /w/worksheet_name/data/cell_number/filename
+#      /ws/worksheet_name/data/cell_number/filename
 ##############################################
 class CellData(resource.Resource):
     def __init__(self, worksheet, number):
@@ -79,7 +79,7 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         return CellData(self.worksheet, number)
 
 ########################################################
-# The new cell command: /w/worksheet/new_cell?id=number
+# The new cell command: /ws/worksheet/new_cell?id=number
 ########################################################
 class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
     """
@@ -93,7 +93,7 @@ class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
 
 
 ########################################################
-# The delete cell command: /w/worksheet/delete_cell?id=number
+# The delete cell command: /ws/worksheet/delete_cell?id=number
 ########################################################
 class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
     """
@@ -243,6 +243,21 @@ class Worksheets(resource.Resource):
 
 
 ############################
+# Adding a new worksheet
+############################
+
+class AddWorksheet(resource.Resource):
+    def render(self, ctx):
+        name = ctx.args['name'][0]
+        W = notebook.create_new_worksheet(name)
+        v = notebook.worksheet_list_html(W.name())
+        return http.Response(stream = encode_list([v, W.name()]))
+
+class Notebook(resource.Resource):
+    child_add_worksheet = AddWorksheet()
+
+
+############################
 
 class Help(resource.Resource):
     def render(self, ctx):
@@ -325,7 +340,8 @@ class Toplevel(resource.Resource):
     child_images = Images()
     child_javascript = Javascript()
     child_css = CSS()
-    child_w = Worksheets()
+    child_ws = Worksheets()
+    child_notebook = Notebook()
 
     def render(self, ctx):
         s = notebook.html()

@@ -875,10 +875,6 @@ class Notebook(SageObject):
 
     def _doc_html_body(self, worksheet_id):
         worksheet = self.get_worksheet_with_id(worksheet_id)
-        if worksheet.computing():
-            interrupt_class = "interrupt"
-        else:
-            interrupt_class = "interrupt_grey"
         main_body = worksheet.html(authorized = True, confirm_before_leave=False)
 
         vbar = '<span class="vbar"></span>'
@@ -888,9 +884,7 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
+        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         # body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
@@ -1007,14 +1001,10 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Left Panel</a>' + vbar
-        #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
+        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
-        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
+        body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -1022,7 +1012,7 @@ class Notebook(SageObject):
         body += '    <div class="slideshow_control">\n'
         body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
         body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
+        body += '      <a class="cell_mode" onClick="cell_mode()">Show Full Worksheet</a>\n'
         body += '    </div>\n'
         body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
         body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
@@ -1057,7 +1047,9 @@ class Notebook(SageObject):
         endpanespan = '</td></tr></table></span>\n'
 
         body += '  <div class="worksheets_topbar">'
-        body += '     <b>Worksheets</b><br></div>'
+        body += '     <b>Worksheets</b> '
+        body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
+        body += '<br></div>'
         body +=    add_new_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
 

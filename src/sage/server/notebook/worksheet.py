@@ -1221,6 +1221,10 @@ class Worksheet:
         n = len(self.__cells)
         s = ''
         if include_title:
+            if self.computing():
+                interrupt_class = "interrupt"
+            else:
+                interrupt_class = "interrupt_grey"
             S = self.system()
             if not (S is None):
                 system = ' (%s mode)'%S
@@ -1234,19 +1238,18 @@ class Worksheet:
             vbar = '<span class="vbar"></span>'
 
             menu  = '  <span class="worksheet_control_commands">'
+            menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+            menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
             menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
-            menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
-            menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
-            #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
-            menu += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>' + vbar
+            menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
+            menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
+            menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
             menu += '    <a class="download_sws" href="%s.sws">Download</a>'%self.filename()
             menu += '  </span>'
 
-            s += '<div class="worksheet_title">' # onClick="toggle_left_pane();">'
-#            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
+            s += '<div class="worksheet_title">'
             s += ' Worksheet: %s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
 
         D = self.__notebook.defaults()

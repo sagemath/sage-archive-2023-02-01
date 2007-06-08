@@ -80,6 +80,23 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         return CellData(self.worksheet, number)
 
 ########################################################
+# Set output type of a cell
+########################################################
+class Worksheet_set_cell_output_type(WorksheetResource, resource.PostableResource):
+    """
+    Set the output type of the cell.
+
+    This enables the type of output cell, such as to allowing wrapping
+    for output that is very long.
+    """
+    def render(self, ctx):
+        id = self.id(ctx)
+        typ = ctx.args['type'][0]
+        W = self.worksheet
+        W.get_cell_with_id(id).set_cell_output_type(typ)
+        return http.Response(stream = '')
+
+########################################################
 # The new cell command: /ws/worksheet/new_cell?id=number
 ########################################################
 class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
@@ -158,9 +175,9 @@ class Worksheet_cell_update(WorksheetResource, resource.PostableResource):
                                     inter,
                                     cell.introspect_html()]))
 
-
         # There may be more computations left to do, so start one if there is one.
         worksheet.start_next_comp()
+
         return http.Response(stream=msg)
 
 
@@ -357,6 +374,9 @@ class Toplevel(resource.Resource):
         s = notebook.html()
         return http.Response(stream=s)
 
+    def childFactory(self, request, name):
+        print request, name
+
 setattr(Toplevel, 'child_help.html', Help())
 setattr(Toplevel, 'child_history.html', History())
 
@@ -415,7 +435,7 @@ s.setServiceParent(application)
             raise socket.error
 
 
-    for i in range(port_tries):
+    for i in range(int(port_tries)):
         try:
             run(port + i)
         except socket.error:

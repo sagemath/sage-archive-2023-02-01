@@ -515,11 +515,26 @@ span.pane div.worksheets_topbar {
    background: url('/images/corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
-   font-size:12px;
+   font-size:15px;
    font-family:arial;
    padding-left: 10px;
    padding-top:10px;
    width: 174px;
+}
+
+a.left_panel_hide {
+   position: relative;
+   top:0px;
+   right:-1px;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
+   font-family:arial;
+   font-size:12px;
+}
+
+a.left_panel_hide:hover {
+   cursor:pointer;
 }
 
 span.X {
@@ -599,7 +614,7 @@ span.pane div.worksheet_list {
    position:fixed;
    overflow:scroll;
    font-size:12px;
-   top:20ex;
+   top:22ex;
    bottom:2ex;
    left:1ex;
    border:2px solid <color2>;

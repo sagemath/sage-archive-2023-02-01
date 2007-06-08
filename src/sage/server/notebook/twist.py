@@ -178,12 +178,13 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
     respectively.
     """
     def render(self, ctx):
-        if not ctx.args.has_key('input'):
-            return http.Response(stream='')
         newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
         id = self.id(ctx)
-        input_text = ctx.args['input'][0]
-        input_text = input_text.replace('\r\n', '\n')   # DOS
+        if not ctx.args.has_key('input'):
+            input_text = ''
+        else:
+            input_text = ctx.args['input'][0]
+            input_text = input_text.replace('\r\n', '\n')   # DOS
 
         W = self.worksheet
         cell = W.get_cell_with_id(id)

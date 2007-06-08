@@ -1009,24 +1009,9 @@ function cell_delete_callback(status, response_text) {
     cell_id_list = delete_from_array(cell_id_list, X[1]);
 }
 
-function cell_delete_all_callback(status, response_text){
-    if (status == "success") {
-        var worksheet = get_element('worksheet_cell_list');
-        for (var i = 1; i < cell_id_list.length; i++){
-            var cell = get_element('cell_outer_' + cell_id_list[i]);
-            worksheet.removeChild(cell);
-        }
-        get_cell(cell_id_list[0]).value = "";
-        cell_id_list = [cell_id_list[0]];
-    }
-}
 
 function cell_delete(id) {
    async_request(worksheet_command('delete_cell'), cell_delete_callback, 'id='+id)
-}
-
-function cell_delete_all() {
-   async_request('/delete_cell_all', cell_delete_all_callback, 'worksheet_id='+worksheet_id)
 }
 
 
@@ -1803,22 +1788,6 @@ function insert_new_cell_before(id) {
     async_request(worksheet_command('new_cell'), insert_new_cell_before_callback, 'id='+id);
 }
 
-function insert_new_cell_after_callback(status, response_text) {
-    if (status == "failure") {
-        alert("Problem inserting new cell after current cell.");
-        return ;
-    }
-    var X = response_text.split(SEP);
-    var new_id = eval(X[0]);
-    var new_html = X[1];
-    var id = eval(X[2]);
-    do_insert_new_cell_after(id, new_id, new_html);
-    jump_to_cell(new_id,0);
-}
-
-function insert_new_cell_after(id) {
-    async_request('/new_cell_after', insert_new_cell_after_callback, 'id='+id);
-}
 
 function append_new_cell(id, html) {
     var new_cell = make_new_cell(id, html);

@@ -55,6 +55,9 @@ class WorksheetResource:
     def __init__(self, worksheet_name):
         self.worksheet = notebook.get_worksheet_with_name(worksheet_name)
 
+    def id(self, ctx):
+        return int(ctx.args['id'][0])
+
 ###############################################
 # Worksheet data -- a file that
 # is associated with a cell in some worksheet.
@@ -71,22 +74,45 @@ class CellData(resource.Resource):
         path = '%s/cells/%s/%s'%(dir, self.number, name)
         return static.File(path)
 
-class WorksheetData(WorksheetResource, resource.Resource):
+class Worksheet_data(WorksheetResource, resource.Resource):
     def childFactory(self, request, number):
         return CellData(self.worksheet, number)
 
-############################
-# Get the latest update on output appearing
-# in a given output cell.
-############################
-class InsertNewCell(WorksheetResource, resource.PostableResource):
+########################################################
+# The new cell command: /w/worksheet/new_cell?id=number
+########################################################
+class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
     """
     Adds a new cell before a given cell.
     """
     def render(self, ctx):
-        id = int(ctx.args['id'][0])
+        id = self.id(ctx)
         cell = self.worksheet.new_cell_before(id)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
+        return http.Response(stream = s)
+
+
+########################################################
+# The delete cell command: /w/worksheet/delete_cell?id=number
+########################################################
+class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
+    """
+    Deletes a notebook cell.
+
+    If there is only one cell left in a given worksheet, the request
+    to delete that cell is ignored because there must be a least one
+    cell at all times in a worksheet.  (This requirement exists so
+    other functions that evaluate relative to existing cells will
+    still work, and so one can add new cells.)
+    """
+    def render(self, ctx):
+        id = self.id(ctx)
+        W = self.worksheet
+        if len(W) <= 1:
+            s = 'ignore'
+        else:
+            prev_id = W.delete_cell_with_id(id)
+            s = encode_list(['delete', id, prev_id, W.cell_id_list()])
         return http.Response(stream = s)
 
 
@@ -94,9 +120,9 @@ class InsertNewCell(WorksheetResource, resource.PostableResource):
 # Get the latest update on output appearing
 # in a given output cell.
 ############################
-class UpdateWorksheetCell(WorksheetResource, resource.PostableResource):
+class Worksheet_cell_update(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        id = int(ctx.args['id'][0])
+        id = self.id(ctx)
 
         worksheet = self.worksheet
 
@@ -137,7 +163,7 @@ class UpdateWorksheetCell(WorksheetResource, resource.PostableResource):
         return http.Response(stream=msg)
 
 
-class EvalWorksheetCell(WorksheetResource, resource.PostableResource):
+class Worksheet_eval(WorksheetResource, resource.PostableResource):
     """
     Evaluate a worksheet cell.
 
@@ -155,13 +181,11 @@ class EvalWorksheetCell(WorksheetResource, resource.PostableResource):
         if not ctx.args.has_key('input'):
             return http.Response(stream='')
         newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
-        id = int(ctx.args['id'][0])
+        id = self.id(ctx)
         input_text = ctx.args['input'][0]
-        input_text = input_text.replace('\r\n', '\n') # DOS
+        input_text = input_text.replace('\r\n', '\n')   # DOS
 
         W = self.worksheet
-        #if not self.auth_worksheet(W):     # todo -- how will we implement twisted auth?
-        #    return
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         cell.evaluate()
@@ -179,7 +203,7 @@ class EvalWorksheetCell(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
-class PlainTextWorksheet(resource.Resource):
+class Worksheet_plain(resource.Resource):
     def __init__(self, name):
         self._name = name
 
@@ -187,7 +211,7 @@ class PlainTextWorksheet(resource.Resource):
         s = notebook.plain_text_worksheet_html(self._name)
         return http.Response(stream=s)
 
-class PrintWorksheet(resource.Resource):
+class Worksheet_print(resource.Resource):
     def __init__(self, name):
         self._name = name
 
@@ -206,19 +230,10 @@ class Worksheet(resource.Resource):
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
-        if op == 'eval':
-            return EvalWorksheetCell(self._name)
-        elif op == 'new_cell':
-            return InsertNewCell(self._name)
-        elif op == 'data':
-            return WorksheetData(self._name)
-        elif op == 'cell_update':
-            return UpdateWorksheetCell(self._name)
-        elif op == 'plain':
-            return PlainTextWorksheet(self._name)
-        elif op == 'print':
-            return PrintWorksheet(self._name)
-        else:
+        try:
+            R = globals()['Worksheet_%s'%op]
+            return R(self._name)
+        except NameError:
             return None, ()
 
 class Worksheets(resource.Resource):

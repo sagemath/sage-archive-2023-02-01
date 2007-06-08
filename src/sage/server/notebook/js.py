@@ -1022,7 +1022,7 @@ function cell_delete_all_callback(status, response_text){
 }
 
 function cell_delete(id) {
-   async_request('/delete_cell', cell_delete_callback, 'id='+id)
+   async_request(worksheet_command('delete_cell'), cell_delete_callback, 'id='+id)
 }
 
 function cell_delete_all() {

@@ -52,9 +52,13 @@ def notebook_save_check():
 # A resource attached to a given worksheet
 ############################
 class WorksheetResource:
-    def __init__(self, worksheet_name):
-        self.name = worksheet_name
-        self.worksheet = notebook.get_worksheet_with_name(worksheet_name)
+    def __init__(self, name):
+        self.name = name
+        try:
+            self.worksheet = notebook.get_worksheet_with_id(name)
+        except KeyError:
+            # TODO: This should ask if you are sure, require authentication, etc.
+            self.worksheet = notebook.create_new_worksheet(name)
 
     def id(self, ctx):
         return int(ctx.args['id'][0])

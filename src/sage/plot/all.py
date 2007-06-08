@@ -1,4 +1,4 @@
-from plot import (Graphics, line, polygon, plot, point,
+from plot import (Graphics, line, polygon, plot, point, points,
                   text, circle, disk, hue, graphics_array,
                   list_plot, networkx_plot, parametric_plot,
                   polar_plot, contour_plot, arrow,

@@ -1229,7 +1229,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                     if W[k][j] in Omega[l]:
                         llll.append(W[k][j])
                 W[k] = llll
-#                W[k] = [v for v in W[k] if v in Omega[l]]
             state = 13
         elif state == 13:
             if verbosity > 0: print 'state: 13'
@@ -1294,7 +1293,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 t = cputime(t)
                 print 'time:', t
             if e[k] == 0:
-                li = W[k] # changed l to li
+                li = W[k]
                 for i from 1 <= i <= l:
                     boo = True
                     for j from 1 <= j < k:
@@ -1302,8 +1301,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                             boo = False
                             break
                     if boo:
-                        li = [v for v in li if v in Omega[i]] # changed l to li twice
-                    W[k] = l
+                        li = [v for v in li if v in Omega[i]]
+                    W[k] = li
             e[k] = 1
             VVV = []
             for j from 0 <= j < len(W[k]):

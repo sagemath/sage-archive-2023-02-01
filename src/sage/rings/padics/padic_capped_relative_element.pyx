@@ -811,6 +811,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 return True
         return self.ordp >= mpz_get_si((<Integer>absprec).value)
 
+    def __nonzero__(self):
+        return mpz_sgn(self.unit) > 0
+
     def is_equal_to(self, right, absprec=None):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{absprec}}$.

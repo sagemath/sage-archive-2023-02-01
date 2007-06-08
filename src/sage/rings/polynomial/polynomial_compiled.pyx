@@ -149,13 +149,13 @@ cdef class CompiledPolynomialFunction:
         d-= 1
         while d > 0:
             gap_width += 1
-            if self._coeffs[d] != 0:
+            if self._coeffs[d]:
                 s = abc_pd(s, self._get_gap(gaps, gap_width), d)
                 gap_width = 0
             d-=1
 
         gap_width += 1
-        if self._coeffs[0] != 0:
+        if self._coeffs[0]:
             s = abc_pd(s, self._get_gap(gaps, gap_width), 0)
         else:
             s = mul_pd(s, self._get_gap(gaps, gap_width))

@@ -78,6 +78,9 @@ class SymbolicEquation(SageObject):
     def __call__(self, *args, **argv):
         return self._op(self._left(*args, **argv), self._right(*args,**argv))
 
+    def __getitem__(self, i):
+        return [self._left, self._op, self._right][i]
+
     # The maxima one is special:
     def _maxima_(self, session=None):
         if session is None:

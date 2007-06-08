@@ -45,9 +45,17 @@ from time                import sleep
 from sage.rings.memory import pmem_malloc
 pmem_malloc()
 
+import sage.ext.sig
+sage.ext.sig.get_bad_sigs()
+from sage.interfaces.get_sigs import get_sigs
+get_sigs()
+
 from sage.misc.all       import *         # takes a while
 
 from sage.libs.all       import *
+
+get_sigs()
+
 from sage.rings.all      import *
 from sage.matrix.all     import *
 
@@ -284,7 +292,3 @@ from sage.ext.interactive_constructors_c import inject_on, inject_off
 #from catalogue.all import new
 
 
-import sage.ext.sig
-sage.ext.sig.get_bad_sigs()
-from sage.interfaces.get_sigs import get_sigs
-get_sigs()

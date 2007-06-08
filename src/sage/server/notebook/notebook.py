@@ -361,8 +361,7 @@ MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existi
 MAX_HISTORY_LENGTH = 500
 WRAP_NCOLS = 80
 
-# Temporarily disabled while we try fix the firefox windows hang bug.
-JSMATH=False
+JSMATH = True
 
 def open_page(address, port):
     cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
@@ -774,51 +773,52 @@ class Notebook(SageObject):
         print "Press control-C to stop the notebook server."
         print "-"*70
 
-    def start(self, port=8000, address='localhost',
-                    max_tries=128, open_viewer=False,
-                    jsmath=False):
-        global JSMATH
-        JSMATH = jsmath
-        tries = 0
-        port = int(port)
-        max_tries = int(max_tries)
-        while True:
-            try:
-                notebook_server = server.NotebookServer(self,
-                         port, address)
-            except socket.error, msg:
-                print msg
-                port += 1
-                tries += 1
-                if tries > max_tries:
-                    print "Not trying any more ports.  Probably your network is down."
-                    break
-                print "Trying next port (=%s)"%port
-            else:
-                break
+    # TODO -- Delete this function
+##     def start(self, port=8000, address='localhost',
+##                     max_tries=128, open_viewer=False,
+##                     jsmath=False):
+##         global JSMATH
+##         JSMATH = jsmath
+##         tries = 0
+##         port = int(port)
+##         max_tries = int(max_tries)
+##         while True:
+##             try:
+##                 notebook_server = server.NotebookServer(self,
+##                          port, address)
+##             except socket.error, msg:
+##                 print msg
+##                 port += 1
+##                 tries += 1
+##                 if tries > max_tries:
+##                     print "Not trying any more ports.  Probably your network is down."
+##                     break
+##                 print "Trying next port (=%s)"%port
+##             else:
+##                 break
 
-        print_open_msg(address, port)
-        print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
+##         print_open_msg(address, port)
+##         print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
 
-        f = file('%s/pid'%self.directory(), 'w')
-        f.writelines(["%d\n"%os.getpid(), str(port)])
-        f.close()
+##         f = file('%s/pid'%self.directory(), 'w')
+##         f.writelines(["%d\n"%os.getpid(), str(port)])
+##         f.close()
 
-        if open_viewer:
-            open_page(address, port)
-        while True:
-            try:
-                notebook_server.serve()
-            except KeyboardInterrupt, msg:
-                break
-            except Exception, msg:
-                print msg
-                print "Automatically restarting server."
-            else:
-                break
-        self.save()
-        self.quit()
-        self.save()
+##         if open_viewer:
+##             open_page(address, port)
+##         while True:
+##             try:
+##                 notebook_server.serve()
+##             except KeyboardInterrupt, msg:
+##                 break
+##             except Exception, msg:
+##                 print msg
+##                 print "Automatically restarting server."
+##             else:
+##                 break
+##         self.save()
+##         self.quit()
+##         self.save()
 
     def quit(self):
         for W in self.__worksheets.itervalues():

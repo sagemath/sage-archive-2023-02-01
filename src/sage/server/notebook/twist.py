@@ -399,7 +399,8 @@ def notebook_twisted(directory='sage_notebook',
              port=8000,
              address='localhost',
              port_tries=1,
-             multisession=True):
+             multisession=True,
+             jsmath      =True):
     r"""
     Experimental twisted version of the SAGE Notebook.
     """
@@ -412,6 +413,8 @@ def notebook_twisted(directory='sage_notebook',
         ## Create the config file
         config = open(conf, 'w')
         config.write("""
+import sage.server.notebook.notebook
+sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook('%s')
@@ -425,7 +428,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('tcp:%s', channel.HTTPFactory(twist.site))
 s.setServiceParent(application)
-"""%(os.path.abspath(directory), multisession, port))
+"""%(jsmath, os.path.abspath(directory), multisession, port))
         config.close()
 
         ## Start up twisted

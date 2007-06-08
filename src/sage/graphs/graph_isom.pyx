@@ -29,9 +29,9 @@ it will know which leaf corresponds to the canonical label. In the process,
 generators for the automorphism group are also produced.
 
 AUTHORS:
-    * Robert L. Miller -- (2007-03-20) initial version
-    * Tom Boothby -- (2007-03-20) help with indicator function
-    * Robert L. Miller -- (2007-04-07--17) optimizations
+    Robert L. Miller -- (2007-03-20) initial version
+    Tom Boothby -- (2007-03-20) help with indicator function
+    Robert L. Miller -- (2007-04-07--30) optimizations
 
 REFERENCE:
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
@@ -48,7 +48,14 @@ NOTE:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include '../ext/python_mem.pxi'
 from sage.graphs.graph import Graph, DiGraph
+from sage.misc.misc import prod, cputime
+from copy import copy
+from sage.rings.infinity import Infinity
+from sage.graphs.graph import enum
+from sage.sets.set import Set
+from sage.rings.integer import Integer
 
 def finer(Pi1, Pi2):
     """
@@ -56,8 +63,8 @@ def finer(Pi1, Pi2):
     partition Pi1 is contained in some cell of Pi2.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import finer
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import finer
         sage: finer( [[0,1,2],[3,4,5]] , [[0,1],[2,3],[4,5]] )
         False
         sage: finer( [[0,1],[2,3],[4,5],[6,7]] , [[0,1,2,3],[4,5,6,7]] )
@@ -79,13 +86,50 @@ def finer(Pi1, Pi2):
                 return False
     return True
 
+cdef class Cell:
+    cdef int length
+    cdef int* data
+
+    def __new__(self, int length):
+        self.length = length
+        self.data = <int*> PyMem_Malloc(length * sizeof(int))
+
+    def __dealloc__(self):
+        PyMem_Free(self.data)
+
+    def set_data_from_list(self, list):
+        cdef int j
+        for j from 0 <= j < self.length:
+            self.data[j] = list[j]
+
+    cdef set_data(self, int* data):
+        cdef int j
+        for j from 0 <= j < self.length:
+            self.data[j] = data[j]
+
+    def print_data(self):
+        cdef int i
+        for i from 0 <= i < self.length:
+            print self.data[i]
+
+    def print_len(self):
+        print type(self.length)
+
+cdef class OrderedPartition:
+    cdef int length
+    cdef int** data
+    cdef int* sizes
+
+    def __new__(self, int length):
+        print length
+
 def vee(alpha, beta):
     """
     Return the finest partition coarser than alpha and beta.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import vee
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import vee
         sage: vee([[0]],[[0]])
         [[0]]
         sage: vee([[0,1]], [[0,1]])
@@ -95,7 +139,6 @@ def vee(alpha, beta):
         sage: vee([[0,1,2],[3,4],[5,6,7,8],[9]], [[0],[1],[2,3],[4,5],[6],[7],[8,9]])
         [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
     """
-    from copy import copy
     p = []
     n = 3
     alpha = copy(alpha)
@@ -126,8 +169,8 @@ def min_cell_reps(Pi):
     from each cell, minimal in each cell.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import min_cell_reps
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import min_cell_reps
         sage: min_cell_reps( [[0,1],[2,3],[4,5],[6,7]] )
         [0, 2, 4, 6]
         sage: min_cell_reps( [[0,1,2,3],[4,5,6],[7]] )
@@ -145,8 +188,8 @@ def fix(Pi):
     fix(Pi) is the subset consisting of elements fixed by the action.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import fix
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import fix
         sage: fix( [[0],[1,2,3,4],[5,6],[7],[8]] )
         [0, 7, 8]
     """
@@ -166,11 +209,11 @@ def orbit_partition(gamma, list_perm=False):
 
     INPUT:
         list_perm -- if True, assumes gamma is a list representing the map
-                     i \mapsto gamma[i].
+    i \mapsto gamma[i].
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import orbit_partition
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import orbit_partition
         sage: G = graphs.PetersenGraph()
         sage: S = SymmetricGroup(10)
         sage: gamma = S('(10,1,2,3,4)(5,6,7)(8,9)')
@@ -223,50 +266,15 @@ def sat225(Pi, n):
     elif n == len(Pi) + m + 1: return True
     else: return False
 
-def degree(G, v, W, bool_matrix_format=False):
+cdef degree(int** G, v, W):
     """
     Returns the number of edges from v to vertices in W, i.e. the degree of v
     with respect to W. W is usually a cell in a partition, but needs only be
     a subset of the vertex set.
-
-    EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import degree
-        sage: P = graphs.PetersenGraph()
-        sage: M = P.adjacency_matrix()
-        sage: Pi1 = [[0,2,3,4],[5,7,8,1],[6,9]]
-        sage: degree(P, 6, Pi1[1])
-        2
-        sage: degree(M, 6, Pi1[1], bool_matrix_format=True)
-        2
-
-    To see what is going on:
-        sage.: P.show(partition=Pi1)
-
-    NOTE:
-    Regarding the bool_matrix_format option, see the following timings:
-        sage.: import sage.graphs.graph_isom
-        sage.: from sage.graphs.graph_isom import degree
-        sage.: P = graphs.PetersenGraph()
-        sage.: M = P.adjacency_matrix()
-        sage.: str(M).replace('\n',',').replace(' ',',').replace('1','True').replace('0','False')
-        '[False,True,False,False,True,True,False,False,False,False],[True,False,True,False,False,False,True,False,False,False],[False,True,False,True,False,False,False,True,False,False],[False,False,True,False,True,False,False,False,True,False],[True,False,False,True,False,False,False,False,False,True],[True,False,False,False,False,False,False,True,True,False],[False,True,False,False,False,False,False,False,True,True],[False,False,True,False,False,True,False,False,False,True],[False,False,False,True,False,True,True,False,False,False],[False,False,False,False,True,False,True,True,False,False]'
-        sage.: M = [[False,True,False,False,True,True,False,False,False,False],[True,False,True,False,False,False,True,False,False,False],[False,True,False,True,False,False,False,True,False,False],[False,False,True,False,True,False,False,False,True,False],[True,False,False,True,False,False,False,False,False,True],[True,False,False,False,False,False,False,True,True,False],[False,True,False,False,False,False,False,False,True,True],[False,False,True,False,False,True,False,False,False,True],[False,False,False,True,False,True,True,False,False,False],[False,False,False,False,True,False,True,True,False,False]]
-        sage.: Pi1 = [[0,2,3,4],[5,7,8,1],[6,9]]
-        sage.: timeit degree(P, 6, Pi1[1])
-        10000 loops, best of 3: 24.9 [micro]s per loop
-        sage.: timeit degree(M, 6, Pi1[1], bool_matrix_format=True)
-        100000 loops, best of 3: 8.27 [micro]s per loop
     """
-    if bool_matrix_format:
-        i = 0
-        for u in W:
-            if G[u][v]:
-                i += 1
-        return i
-    i = 0
+    cdef int i = 0
     for u in W:
-        if G._nxg.adj[u].has_key(v):
+        if G[u][v]:
             i += 1
     return i
 
@@ -275,56 +283,59 @@ def is_discrete(Pi):
     Returns true iff every cell in the partition Pi is of size 1.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import is_discrete
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import is_discrete
         sage: is_discrete( [ [0,1,2,3], [4], [5], [6] ] )
         False
         sage: is_discrete( [ [0], [1], [2], [3], [4], [5], [6] ] )
         True
     """
-    from sage.misc.misc import prod
-    return prod([len(i) for i in Pi]) == 1
-
-def is_equitable(G, Pi):
-    """
-    A partition Pi of the vertex set of G is said to be equitable if for any
-    two cells V1 and V2 of Pi, and for any two vertices v1 and v2 in V1, we
-    have degree(v_1, V_2) == degree(v_2, V_2).
-
-    Educational only: not used in the main algorithm. If the partition is
-    equitable, returns True. If not, then returns False, along with the
-    counterexample: False, v1, v2, V1, V2.
-
-    EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import is_equitable
-        sage: D  = graphs.DodecahedralGraph()
-        sage: Pi1 = [[0],[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]]
-        sage: Pi2 = [[0],[1,10,19],[11,9,18,8,3,2],[12,13,7,17,4,6],[5,14,16],[15]]
-        sage: is_equitable(D, Pi1)
-        (False, 2, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], [0])
-        sage: is_equitable(D, Pi2)
-        True
-
-    To see what is going on:
-        sage.: D.show(partition=Pi1)
-        sage.: D.show(partition=Pi2)
-    """
-    for i in range(len(Pi)):
-        for j in range(i):
-            for v_1 in range(len(Pi[i])):
-                for v_2 in range(v_1):
-                    if degree(G, Pi[i][v_1], Pi[j]) != degree(G, Pi[i][v_2], Pi[j]):
-                        return False, Pi[i][v_1], Pi[i][v_2], Pi[i], Pi[j]
+    cdef int i
+    for i from 0 <= i < len(Pi):
+        if len(Pi[i]) != 1:
+            return False
     return True
+
+#def is_equitable(G, Pi):
+#    """
+#    A partition Pi of the vertex set of G is said to be equitable if for any
+#    two cells V1 and V2 of Pi, and for any two vertices v1 and v2 in V1, we
+#    have degree(v_1, V_2) == degree(v_2, V_2).
+#
+#    Educational only: not used in the main algorithm. If the partition is
+#    equitable, returns True. If not, then returns False, along with the
+#    counterexample: False, v1, v2, V1, V2.
+#
+#    EXAMPLES:
+#        sage: import sage.graphs.graph_isom_fast
+#        sage: from sage.graphs.graph_isom_fast import is_equitable
+#        sage: D  = graphs.DodecahedralGraph()
+#        sage: Pi1 = [[0],[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]]
+#        sage: Pi2 = [[0],[1,10,19],[11,9,18,8,3,2],[12,13,7,17,4,6],[5,14,16],[15]]
+#        sage: is_equitable(D, Pi1)
+#        (False, 2, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], [0])
+#        sage: is_equitable(D, Pi2)
+#        True
+#
+#    To see what is going on:
+#        sage.: D.show(partition=Pi1)
+#        sage.: D.show(partition=Pi2)
+#    """
+#    for i in range(len(Pi)):
+#        for j in range(i):
+#            for v_1 in range(len(Pi[i])):
+#                for v_2 in range(v_1):
+#                    if degree(G, Pi[i][v_1], Pi[j]) != degree(G, Pi[i][v_2], Pi[j]):
+#                        return False, Pi[i][v_1], Pi[i][v_2], Pi[i], Pi[j]
+#    return True
 
 def replace_in(Pi, k, L):
     """
     Replaces cell k of the partition Pi with the partition of that cell, L.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import replace_in
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import replace_in
         sage: replace_in([[0,1],[2,3],[4,5,6,7]], 2, [[4],[5],[6,7]] )
         [[0, 1], [2, 3], [4], [5], [6, 7]]
     """
@@ -334,32 +345,22 @@ def replace_in(Pi, k, L):
     for j in Pi[k+1:]: PiNew.append(j)
     return PiNew
 
-def sort_by_degree(G, A, B, bool_matrix_format=False):
+cdef sort_by_degree(int** G, A, B):
     """
     Assuming A and B are subsets of the vertex set of G, returns an ordered
     partition of A such that degree(x,B) < degree(y,B) iff x occurs in an
     earlier cell than y.
-
-    EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import sort_by_degree
-        sage: D = graphs.DodecahedralGraph()
-        sage: sort_by_degree(D, [0,1,2,3], [17,18,19])
-        [[1, 2], [0, 3]]
-
-    To see what is going on:
-        sage.: D.show(talk=True)
     """
     ddict = {}
     for a in A:
-        dd = degree(G, a, B, bool_matrix_format=bool_matrix_format)
+        dd = degree(G, a, B)
         if ddict.has_key(dd):
             ddict[dd].append(a)
         else:
             ddict[dd] = [a]
     return ddict.values()
 
-def refine(G, Pi, alpha, bool_matrix_format=False):
+cdef refine(int** G, Pi, alpha):
     """
     The key refinement procedure. Given a graph G, a partition Pi of the
     vertex set, and a collection alpha of disjoint subsets of the vertex set,
@@ -375,34 +376,8 @@ def refine(G, Pi, alpha, bool_matrix_format=False):
     chosen from cells of Pi such that for any W in Pi_prime, X is a subset of
     W for at most one X in Pi - alpha, then refine(G, Pi, Pi) is always the
     unique coarsest equitable partition that is finer than Pi.
-
-    EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import refine, is_equitable
-
-        sage: D = graphs.DodecahedralGraph()
-        sage: Pi = [[0],[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]]
-        sage.: D.show(partition=Pi)
-        sage: EP = refine(D, Pi, Pi)
-        sage.: D.show(partition=EP)
-        sage: is_equitable(D, EP)
-        True
-
-        sage: cycleP = [[0,1,2,3,19],[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]]
-        sage.: D.show(partition=cycleP)
-        sage: EPP = refine(D, cycleP, cycleP)
-        sage.: D.show(partition=EPP)
-        sage: is_equitable(D, EPP)
-        True
-
-        sage: P = graphs.PetersenGraph()
-        sage: PiPP = [[0,1,2,3],[4,5,6,7,8,9]]
-        sage.: P.show(partition=PiPP)
-        sage: EPP = refine(P, PiPP, PiPP)
-        sage.: P.show(partition=EPP)
     """
-    from copy import copy
-    from sage.sets.set import Set
+    cdef int i, j, q
     alpha = copy(alpha) # we don't want to change the user's alpha
     M = len(alpha)
     PiT = copy(Pi)
@@ -413,19 +388,19 @@ def refine(G, Pi, alpha, bool_matrix_format=False):
         k = 0
         r = len(PiT)
         while k < r:
-            X = sort_by_degree(G, PiT[k], W, bool_matrix_format=bool_matrix_format)
+            X = sort_by_degree(G, PiT[k], W)
             s = len(X)
             if s != 1:
                 t = 0
-                L = [ len(X[q]) for q in range(s) ]
+                L = [ len(X[q]) for q from 0 <= q < s ]
                 t = L.index( max( L ) ) # relies on "index" returning smallest index
-                for j in range(m, M):
+                for j from m <= j < M:
                     if Set(PiT[k]) == Set(alpha[j]):
                         alpha[j] = X[t]
                         break # you've found the one, so stop constructing Sets
-                for i in range(t):
+                for i from 0 <= i < t:
                     alpha.append(X[i])
-                for i in range(t+1,s):
+                for i from t+1 <= i < s:
                     alpha.append(X[i])
                 M += s - 1
                 PiT = replace_in(PiT, k, X)
@@ -455,14 +430,14 @@ def comp(Pi, v):
                 L.append(vv)
         return replace_in(Pi, i, [[v], L])
 
-def perp(G, Pi, v, bool_matrix_format=False):
+cdef perp(int** G, Pi, v):
     """
     Refines the partition Pi by cutting out a vertex, then using refine,
     comparing against only that vertex.
     """
-    return refine(G, comp(Pi, v), [[v]], bool_matrix_format=bool_matrix_format)
+    return refine(G, comp(Pi, v), [[v]])
 
-def partition_nest(G, Pi, V, bool_matrix_format=False):
+cdef partition_nest(int** G, Pi, V):
     """
     Given a sequence of vertices V = (v_1,...,v_{m-1}) of a graph G, and a
     partition Pi, the partition nest derived from G, Pi, and V is defined to
@@ -475,9 +450,9 @@ def partition_nest(G, Pi, V, bool_matrix_format=False):
 
     C.f. 2.9 in [1].
     """
-    L = [refine(G, Pi, Pi, bool_matrix_format=bool_matrix_format)]
+    L = [refine(G, Pi, Pi)]
     for i in range(len(V)):
-        L.append(perp(G, L[i], V[i], bool_matrix_format=bool_matrix_format))
+        L.append(perp(G, L[i], V[i]))
     return L
 
 def first_smallest_non_trivial(Pi):
@@ -494,60 +469,22 @@ def first_smallest_non_trivial(Pi):
         if len(Pi[i]) == m:
             return Pi[i]
 
-def indicator(G, Pi, V, k=None, bool_matrix_format=False):
+cdef indicator(int** G, Pi, V, k, n):
     """
     Takes a labelled graph, an ordered partition, and a partition nest, and
     outputs an integer, which is the same under any fixed permutation.
 
-    EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import indicator, partition_nest
-
-        sage: G = Graph({0:[1,2,3], 1:[3,4], 2:[4,5], 3:[5], 6:[]})
-        sage: VG = [0, 4, 5]
-
-        sage: H = Graph({1:[0,2,3], 0:[3,4], 2:[4,5], 3:[5], 6:[]}) # 0 <-> 1
-        sage: VH = [1, 4, 5]
-
-        sage: K = Graph({0:[5,2,3], 5:[3,4], 2:[4,1], 3:[1], 6:[]}) # 1 <-> 5
-        sage: VK = [0, 4, 1]
-
-        sage: L = Graph({0:[6,2,3], 6:[3,4], 2:[4,1], 3:[1], 5:[]}) # 1 -> 6 -> 5 -> 1
-        sage: VL = [0, 4, 1]
-
-        sage: gg = indicator(G, [range(7)], partition_nest(G, [range(7)], VG))
-        sage: hh = indicator(H, [range(7)], partition_nest(H, [range(7)], VH))
-        sage: kk = indicator(K, [range(7)], partition_nest(K, [range(7)], VK))
-        sage: ll = indicator(L, [range(7)], partition_nest(L, [range(7)], VL))
-        sage: gg == hh == kk == ll
-        True
-
-        sage: G = graphs.RandomGNP(93, .1)
-        sage: H = G.copy()
-        sage: S = SymmetricGroup(93)
-        sage: g = S.random_element()
-        sage: V = [83,53,46,32,12,6]
-        sage: H.relabel(g)
-        sage: indicator(G, [range(93)], partition_nest(G, [range(93)], V)) == indicator(H, [range(93)], partition_nest(H, [range(93)], [g.list()[v-1] for v in V]))
-        True
-
     AUTHORS:
-        * Tom Boothby -- sum then product method
-        * Robert Miller -- vertex degree check
+        Tom Boothby -- sum then product method
+        Robert Miller -- vertex degree check
     """
-    if k is not None:
-        V = V[:k]
-    if bool_matrix_format:
-        n = len(G)
-    else:
-        n = G.order()
-    from sage.misc.misc import prod
+    V = V[:k]
     LL = []
     for partition in V:
         a = len(partition)
         for k in range(a):
             LL.append( len(partition[k])*(1 + \
-                sum(  [  degree(G, partition[k][0], partition[i], bool_matrix_format=bool_matrix_format) for i in range(a)  ]  ) ) )
+                sum(  [  degree(G, partition[k][0], partition[i]) for i in range(a)  ]  ) ) )
     return prod(LL)
 
 def get_permutation(eta, nu, list_perm=False):
@@ -561,8 +498,8 @@ def get_permutation(eta, nu, list_perm=False):
     L[i].
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import get_permutation
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import get_permutation
 
     The following is an example from searching the nest tree of the dodecahedron with unit partition
         sage: eta = [ [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]], [[0], [5, 14, 16], [15], [4, 6, 7, 12, 13, 17], [2, 3, 8, 9, 11, 18], [1, 10, 19]], [[0], [5], [14, 16], [15], [12, 13], [7, 17], [4, 6], [9, 11], [8, 18], [2, 3], [10], [1, 19]], [[0], [5], [14], [16], [15], [12], [13], [17], [7], [4], [6], [11], [9], [18], [8], [3], [2], [10], [19], [1]] ]
@@ -646,14 +583,18 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     {1,2,...,n}, under the assumption n = 0.
 
     INPUT:
-        lab -- if True, return the canonical label in addition to the auto-
+        lab--       if True, return the canonical label in addition to the auto-
     morphism group.
-        dig -- if True, does not use Lemma 2.25 in [1], and the algorithm is
+        dig--       if True, does not use Lemma 2.25 in [1], and the algorithm is
     valid for digraphs and graphs with loops.
-        dict -- if True, explain which vertices are which elements of the set
+        dict--      if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
-        proof -- if True, return the automorphism between G and its canonical
+        proof--     if True, return the automorphism between G and its canonical
     label. Forces lab=True.
+        verbosity-- 0 - print nothing
+                    1 - display state trace
+                    2 - with timings
+                    3 -
 
     STATE DIAGRAM:
         sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
@@ -674,8 +615,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
 
     EXAMPLES:
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, perm_group_elt
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import search_tree, perm_group_elt
         sage: from sage.graphs.graph import enum
 
         sage: G = graphs.DodecahedralGraph()
@@ -784,7 +725,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         sage: search_tree(G, Pi, lab=False)
         []
 
-        sage: from sage.graphs.graph_isom import all_labeled_graphs, all_ordered_partitions
+        sage: from sage.graphs.graph_isom_fast import all_labeled_graphs, all_ordered_partitions
 
         sage: graph2 = all_labeled_graphs(2)
         sage: part2 = all_ordered_partitions(range(2))
@@ -1031,12 +972,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()                    # long time
         46080
     """
-    from copy import copy
-    from sage.rings.infinity import Infinity
-    from sage.graphs.graph import enum
     n = G.order()
-    Pi = copy(Pi)
-
     if n == 0:
         if lab:
             H = copy(G)
@@ -1057,9 +993,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         else:
             return [[]]
 
-
+    Pi = copy(Pi)
     if proof:
         lab=True
+    cdef int k, j, i, size, h, hh, index, l, qzb, hb, hzf
+    cdef int hzb = -389
 
     #create to and from mappings to relabel vertices
     listto = G.vertices()
@@ -1067,7 +1005,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     for v in listto:
         ffrom[v] = listto.index(v)
     to = {}
-    for i in range(len(listto)):
+    for i from 0 <= i < len(listto):
         to[i] = listto[i]
     G.relabel(ffrom)
     Pi2 = []
@@ -1078,17 +1016,26 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         Pi2.append(newcell)
     Pi = Pi2
 
-    # create the boolean matrix
-    M = []
-    for _ in range(n):
-        M.append( [False]*n )
+    # create the dense boolean matrix
+    cdef int** M = <int**> PyMem_Malloc(n * sizeof(int*))
+    if not M:
+        raise MemoryError, "error allocating Boolean matrix"
+    for k from 0 <= k < n:
+        M[k] = <int*> PyMem_Malloc(n * sizeof(int))
+        if not M[k]:
+            for j from 0 <= j < k:
+                PyMem_Free(M[j])
+                PyMem_Free(M)
+            raise MemoryError, "error allocating Boolean matrix"
+        for j from 0 <= j < n:
+            M[k][j] = 0
     if isinstance(G, Graph):
-        for i, j, l in G.edge_iterator():
-            M[i][j] = True
-            M[j][i] = True
+        for ii, j, la in G.edge_iterator():
+            M[ii][j] = 1
+            M[j][ii] = 1
     elif isinstance(G, DiGraph):
-        for i, j, l in G.arc_iterator():
-            M[i][j] = True
+        for ii, j, la in G.arc_iterator():
+            M[ii][j] = 1
 
     #begin BDM's algorithm:
     L = 100
@@ -1097,27 +1044,25 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     v = {}
     Lambda = {}
     nu = {}
-    eta = None
-    rho = None
     Phi = {}
     Omega = {}
     e = {}
     zf = {}
     zb = {}
     output = []
-    k = None
-    h = None
-    hh = None
-    hb = None
-    hzb = None
-    hzf = None
-    qzb = None
+    if verbosity > 1:
+        t = cputime()
+    if verbosity > 2:
+        rho = None
+    if verbosity > 4:
+        eta = None
+
     while not state is None:
-        if verbosity > 1:
+        if verbosity > 2:
             print 'k: ' + str(k)
             print 'nu: ' + str(nu)
             print 'rho: ' + str(rho)
-        if verbosity > 3:
+        if verbosity > 4:
             print 'e: ' + str(e)
             print 'hh: ' + str(hh)
             print 'hb: ' + str(hb)
@@ -1129,14 +1074,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print 'qzb: ' + str(qzb)
         if state == 1:
             if verbosity > 0: print 'state: 1'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             size = 1
             k = 1
             h = 0
             hzb = 0
             index = 0
             l = 0
-            Theta = [[i] for i in range(n)]
-            nu[1] = refine(M, Pi, Pi, bool_matrix_format=True)
+            Theta = [[i] for i from 0 <= i < n]
+            nu[1] = refine(M, Pi, Pi)
             hh = 2
             if not dig:
                 if sat225(nu[1], n): hh = 1
@@ -1149,9 +1097,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 state = 2
         elif state == 2:
             if verbosity > 0: print 'state: 2'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             k += 1
-            nu[k] = perp(M, nu[k-1], v[k-1], bool_matrix_format=True)
-            Lambda[k] = indicator(M, Pi, nu.values(), k, bool_matrix_format=True)
+            nu[k] = perp(M, nu[k-1], v[k-1])
+            Lambda[k] = indicator(M, Pi, nu.values(), k, n)
             if h == 0: state = 5
             else:
                 if hzf == k-1 and Lambda[k] == zf[k]:
@@ -1165,10 +1116,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                     state = 3
         elif state == 3:
             if verbosity > 0: print 'state: 3'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if hzf <= k or (lab and qzb >= 0): state = 4 ##changed hzb to hzf, == to <=
             else: state = 6
         elif state == 4:
             if verbosity > 0: print 'state: 4'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if is_discrete(nu[k]): state = 7
             else:
                 W[k] = first_smallest_non_trivial(nu[k])
@@ -1178,11 +1135,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 state = 2
         elif state == 5:
             if verbosity > 0: print 'state: 5'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             zf[k] = Lambda[k]
             zb[k] = Lambda[k]
             state = 4
         elif state == 6:
             if verbosity > 0: print 'state: 6'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             kprime = k
             k = min([ hh-1, max(ht-1,hzb) ])
             if k == 0: k = 1 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
@@ -1194,27 +1157,36 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 state = 12
         elif state == 7:
             if verbosity > 0: print 'state: 7'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if h == 0: state = 18
             elif k < hzf: state = 8 ## BDM had !=, broke at G = Graph({0:[],1:[],2:[]}), Pi = [[0,1,2]]
             else:
                 gamma = get_permutation(eta.values(), nu.values(), list_perm=True)
-                if verbosity > 2: print gamma
+                if verbosity > 3: print gamma
                 if enum(G, quick=True) == G.relabel(gamma, inplace=False, quick=True): # if G^gamma == G:
                     state = 10
                 else:
                     state = 8
         elif state == 8:
             if verbosity > 0: print 'state: 8'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if (not lab) or (qzb < 0): state = 6
             elif (qzb > 0) or (k < len(rho)): state = 9
             elif (term_pnest_graph(G, nu.values(), enumer=True) > term_pnest_graph(G, rho.values(), enumer=True)): state = 9
             elif (term_pnest_graph(G, nu.values(), enumer=True) < term_pnest_graph(G, rho.values(), enumer=True)): state = 6
             else:
                 gamma = get_permutation(nu.values(), rho.values(), list_perm=True)
-                if verbosity > 2: print gamma
+                if verbosity > 3: print gamma
                 state = 10
         elif state == 9:
             if verbosity > 0: print 'state: 9'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             rho = copy(nu)
             qzb = 0
             hb = k
@@ -1223,6 +1195,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             state = 6
         elif state == 10:
             if verbosity > 0: print 'state: 10'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             l = min([l+1,L])
             Omega[l] = min_cell_reps(orbit_partition(gamma, list_perm=True))
             Phi[l] = fix(orbit_partition(gamma, list_perm=True))
@@ -1238,15 +1213,29 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                     state = 13
         elif state == 11:
             if verbosity > 0: print 'state: 11'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             k = hb
             state = 12
         elif state == 12:
             if verbosity > 0: print 'state: 12'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if e[k] == 1:
-                W[k] = [v for v in W[k] if v in Omega[l]]
+                llll = []
+                for j from 0 <= j < len(W[k]):
+                    if W[k][j] in Omega[l]:
+                        llll.append(W[k][j])
+                W[k] = llll
+#                W[k] = [v for v in W[k] if v in Omega[l]]
             state = 13
         elif state == 13:
             if verbosity > 0: print 'state: 13'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if k == 0: state = None
             else:
                 if k > h: state = 17
@@ -1258,12 +1247,18 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 state = 14
         elif state == 14:
             if verbosity > 0: print 'state: 14'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             for cell in Theta:
                 if v[k] in cell:
                     if tvh in cell:
                         index += 1
                     else: break
-            VVV = [vv for vv in W[k] if vv > v[k]]
+                VVV = []
+                for j from 0 <= j < len(W[k]):
+                    if W[k][j] > v[k]:
+                        VVV.append(W[k][j])
             if len(VVV) != 0:
                 v[k] = min(VVV)
             else:
@@ -1273,6 +1268,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             else: state = 15
         elif state == 15:
             if verbosity > 0: print 'state: 15'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             hh = min(hh,k+1)
             hzf = min(hzf,k)
             if not lab or hb < k: state = 2 # changed hzb to hb
@@ -1282,6 +1280,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 state = 2
         elif state == 16:
             if verbosity > 0: print 'state: 16'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if len(W[k]) == index and ht == k+1: ht = k
             size = size*index
             index = 0
@@ -1289,19 +1290,25 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             state = 13
         elif state == 17:
             if verbosity > 0: print 'state: 17'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             if e[k] == 0:
-                li = W[k]
-                for i in range(1,l+1):
+                li = W[k] # changed l to li
+                for i from 1 <= i <= l:
                     boo = True
-                    for j in range(1,k):
+                    for j from 1 <= j < k:
                         if v[j] not in Phi[i]:
                             boo = False
                             break
                     if boo:
-                        li = [v for v in li if v in Omega[i]]
+                        li = [v for v in li if v in Omega[i]] # changed l to li twice
                     W[k] = l
             e[k] = 1
-            VVV = [v for v in W[k] if v > v[k]]
+            VVV = []
+            for j from 0 <= j < len(W[k]):
+                if W[k][j] > v[k]:
+                    VVV.append(W[k][j])
             if len(VVV) != 0:
                 v[k] = min(VVV)
             else:
@@ -1311,6 +1318,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             state = 13
         elif state == 18:
             if verbosity > 0: print 'state: 18'
+            if verbosity > 1:
+                t = cputime(t)
+                print 'time:', t
             h = k
             ht = k
             hzf = k
@@ -1325,6 +1335,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 zb[k+2] = Infinity
                 qzb = 0
                 state = 13
+
+    for k from 0 <= k < n:
+        PyMem_Free(M[k])
+    PyMem_Free(M)
+
     if lab:
         H = term_pnest_graph(G, rho.values())
     G.relabel(to)
@@ -1338,8 +1353,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     if proof:
         proofpart = rho.values()[-1]
         dd = {}
-        for i in proofpart:
-            dd[i[0]] = proofpart.index(i)
+        for cell in proofpart:
+            dd[cell[0]] = proofpart.index(cell)
         if dict:
             return output, ddd, H, dd
         else:
@@ -1384,8 +1399,8 @@ def all_labeled_graphs(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_graphs
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import search_tree, all_labeled_graphs
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
@@ -1408,8 +1423,6 @@ def all_labeled_graphs(n):
         4 11
         sage.: graphs_list.show_graphs(Giso[4])
     """
-    from sage.rings.integer import Integer
-    from sage.graphs.graph import Graph
     TE = []
     for i in range(n):
         for j in range(i):
@@ -1467,8 +1480,8 @@ def all_labeled_digraphs_with_loops(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs_with_loops
+        sage: import sage.graphs.graph_isom_fast
+        sage: from sage.graphs.graph_isom_fast import search_tree, all_labeled_digraphs_with_loops
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
@@ -1489,8 +1502,6 @@ def all_labeled_digraphs_with_loops(n):
         2 10
         3 127
     """
-    from sage.rings.integer import Integer
-    from sage.graphs.graph import DiGraph
     TE = []
     for i in range(n):
         for j in range(n):

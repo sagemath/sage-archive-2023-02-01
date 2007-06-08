@@ -1800,7 +1800,7 @@ function insert_new_cell_before_callback(status, response_text) {
 }
 
 function insert_new_cell_before(id) {
-    async_request('/new_cell', insert_new_cell_before_callback, 'id='+id);
+    async_request(worksheet_command('new_cell'), insert_new_cell_before_callback, 'id='+id);
 }
 
 function insert_new_cell_after_callback(status, response_text) {

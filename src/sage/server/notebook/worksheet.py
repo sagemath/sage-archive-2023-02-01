@@ -208,6 +208,7 @@ class Worksheet:
             try:
                 input, output, graphics, i = extract_first_compute_cell(text)
             except EOFError:
+                cells.append(self._new_cell())  # make sure last cell is a compute cell
                 break
             text = text[i:]
             C = self._new_cell()

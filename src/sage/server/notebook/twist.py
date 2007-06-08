@@ -79,6 +79,21 @@ class WorksheetData(WorksheetResource, resource.Resource):
 # Get the latest update on output appearing
 # in a given output cell.
 ############################
+class InsertNewCell(WorksheetResource, resource.PostableResource):
+    """
+    Adds a new cell before a given cell.
+    """
+    def render(self, ctx):
+        id = int(ctx.args['id'][0])
+        cell = self.worksheet.new_cell_before(id)
+        s = encode_list([cell.id(), cell.html(div_wrap=False), id])
+        return http.Response(stream = s)
+
+
+############################
+# Get the latest update on output appearing
+# in a given output cell.
+############################
 class UpdateWorksheetCell(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         id = int(ctx.args['id'][0])
@@ -139,7 +154,7 @@ class EvalWorksheetCell(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if not ctx.args.has_key('input'):
             return http.Response(stream='')
-        newcell = ctx.args['newcell'][0]  # whether to insert a new cell or not
+        newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
         id = int(ctx.args['id'][0])
         input_text = ctx.args['input'][0]
         input_text = input_text.replace('\r\n', '\n') # DOS
@@ -193,6 +208,8 @@ class Worksheet(resource.Resource):
     def childFactory(self, request, op):
         if op == 'eval':
             return EvalWorksheetCell(self._name)
+        elif op == 'new_cell':
+            return InsertNewCell(self._name)
         elif op == 'data':
             return WorksheetData(self._name)
         elif op == 'cell_update':

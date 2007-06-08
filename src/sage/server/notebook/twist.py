@@ -4,11 +4,13 @@ SAGE Notebook (Twisted Version)
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 
-import css, js
+import css, js, keyboards
 
 from sage.misc.misc import SAGE_EXTCODE, walltime
+
+css_path        = SAGE_EXTCODE + "/notebook/css/"
+image_path      = SAGE_EXTCODE + "/notebook/images/"
 javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
-css_path = SAGE_EXTCODE + "/notebook/css/"
 
 _cols = None
 def word_wrap_cols():
@@ -65,10 +67,8 @@ class CellData(resource.Resource):
         self.number = number
 
     def childFactory(self, request, name):
-        print "child"
         dir = self.worksheet.directory()
         path = '%s/cells/%s/%s'%(dir, self.number, name)
-        print path
         return static.File(path)
 
 class WorksheetData(WorksheetResource, resource.Resource):
@@ -248,24 +248,48 @@ setattr(CSS, 'child_main.css', Main_css())
 
 
 ############################
+# Javascript resources
+############################
 
 class Main_js(resource.Resource):
     def render(self, ctx):
         s = js.javascript()
         return http.Response(stream=s)
 
+class Keyboard_js_specific(resource.Resource):
+    def __init__(self, browser_os):
+        self.s = keyboards.get_keyboard(browser_os)
+
+    def render(self, ctx):
+        return http.Response(stream = self.s)
+
+
+class Keyboard_js(resource.Resource):
+    def childFactory(self, request, browser_os):
+        return Keyboard_js_specific(browser_os)
+
 class Javascript(resource.Resource):
+    child_keyboard = Keyboard_js()
+
     def childFactory(self, request, name):
         return static.File(javascript_path + "/" + name)
 
 setattr(Javascript, 'child_main.js', Main_js())
 
 ############################
+# Image resource
+############################
 
+class Images(resource.Resource):
+    def childFactory(self, request, name):
+        return static.File(image_path + "/" + name)
+
+############################
 
 class Toplevel(resource.Resource):
     addSlash = True
 
+    child_images = Images()
     child_javascript = Javascript()
     child_css = CSS()
     child_w = Worksheets()

@@ -898,7 +898,7 @@ class Notebook(SageObject):
         body = ''
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
-        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
+        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
@@ -1017,7 +1017,7 @@ class Notebook(SageObject):
         body = ''
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
-        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
+        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
@@ -1342,7 +1342,7 @@ Output
         <br>
         AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
         especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
+        LICENSE: All code included with the standard SAGE is <a href="/license.html">licensed
         either under the GPL or a GPL-compatible license</a>.
         <br>
         """

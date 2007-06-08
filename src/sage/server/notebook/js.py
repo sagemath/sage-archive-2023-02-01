@@ -318,7 +318,7 @@ function get_keyboard() {
     alert("Your browser / OS combination is not supported.  \nPlease use Firefox or Opera under linux, windows, or mac OSX, or Safari.")
   }
 
-  async_request('__keyboard_'+b+o+'__.js', get_keyboard_callback, null);
+  async_request('/javascript/keyboard/'+b+o, get_keyboard_callback, null);
 }
 
 function get_keyboard_callback(status, response_text) {
@@ -1230,7 +1230,7 @@ function make_cell_input_inactive(id) {
 */
 
 function jump_to_cell(id, delta, bottom) {
-    if(delta != 0)
+     if(delta != 0)
         id = id_of_cell_delta(id, delta)
     if(in_slide_mode) {
         jump_to_slide(id);

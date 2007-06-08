@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 15
+INTERRUPT_TRIES = 3
 
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
@@ -381,14 +381,13 @@ class Worksheet:
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
             cmd += '_support_.init("%s", globals()); '%object_directory
-            #S.eval(cmd)
-            S._send(cmd)   # so web server doesn't lock.
+            S._send(cmd)   # non blocking
         except Exception, msg:
             print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
             raise RuntimeError
-
+        print "Done starting"
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
@@ -775,23 +774,25 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3)
+            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3, quit_on_fail=False)
 
+        if success:
+            self.clear_queue()
+
+        return success
+
+    def clear_queue(self):
         # empty the queue
         for C in self.__queue:
             C.interrupt()
-
         self.__queue = []
         self.__comp_is_running = False
-
-        return success
 
     def restart_sage(self):
         """
         Restart SAGE kernel.
         """
-        # stop the current computation in the running SAGE
-        self.interrupt()
+        print "restarting"
 
         try:
             S = self.__sage
@@ -799,9 +800,10 @@ class Worksheet:
             # no sage running anyways!
             return
 
-        alarm(3)
         try:
-            S.quit()
+            pid = S._expect.pid
+            os.killpg(pid, 9)
+            os.kill(pid, 9)
             S._expect = None
             del self.__sage
         except AttributeError, msg:
@@ -809,7 +811,6 @@ class Worksheet:
         except Exception, msg:
             print msg
             print "WARNING: Error deleting SAGE object!"
-        cancel_alarm()
 
         try:
             del self.__variables
@@ -817,9 +818,9 @@ class Worksheet:
             pass
 
         # We do this to avoid getting a stale SAGE that uses old code.
+        self.clear_queue()
         self.__sage = initialized_sage()
         self.initialize_sage()
-
         self._enqueue_auto_cells()
         self.start_next_comp()
 

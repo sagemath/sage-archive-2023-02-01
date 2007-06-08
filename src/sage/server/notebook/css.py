@@ -596,7 +596,7 @@ button.delete_worksheet_menu {
 }
 
 span.pane div.worksheet_list {
-   /*position:fixed;  */
+   position:fixed;
    overflow:scroll;
    font-size:12px;
    top:20ex;

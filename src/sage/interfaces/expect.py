@@ -354,7 +354,7 @@ class Expect(ParentWithBase):
         """
         raise NotImplementedError
 
-    def quit(self, verbose=False):
+    def quit(self, verbose=False, timeout=0.25):
         """
         EXAMPLES:
             sage: a = maxima('y')
@@ -376,7 +376,7 @@ class Expect(ParentWithBase):
             print "Exiting spawned %s process."%self
         try:
             E.sendline(self._quit_string())
-            self._so_far(wait=0.25)
+            self._so_far(wait=timeout)
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
         except (RuntimeError, OSError), msg:
@@ -468,7 +468,7 @@ class Expect(ParentWithBase):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def interrupt(self, tries=20, timeout=0.3):
+    def interrupt(self, tries=20, timeout=0.3, quit_on_fail=True):
         E = self._expect
         if E is None:
             return True
@@ -488,7 +488,7 @@ class Expect(ParentWithBase):
             pass
         if success:
             pass
-        else:
+        elif quit_on_fail:
             self.quit()
         return success
 

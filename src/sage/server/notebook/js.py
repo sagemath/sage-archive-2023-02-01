@@ -1817,9 +1817,8 @@ function append_new_cell(id, html) {
 ///////////////////////////////////////////////////////////////////
 
 function interrupt_callback(status, response_text) {
-    if (response_text == "restart") {
-        alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
-        restart_sage_callback('success', response_text);
+    if (response_text == "failed") {
+
     } else if(status == "success") {
         halt_active_cells()
     }
@@ -1835,7 +1834,7 @@ function interrupt() {
     }
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt"
-    async_request('/interrupt', interrupt_callback, 'worksheet_id='+worksheet_id);
+    async_request(worksheet_command('interrupt'), interrupt_callback);
 }
 
 
@@ -1901,7 +1900,7 @@ function restart_sage() {
     var link = get_element("restart_sage");
     link.className = "restart_sage_in_progress";
     link.innerHTML = "Restart";
-    async_request('/restart_sage', restart_sage_callback, 'worksheet_id='+worksheet_id);
+    async_request(worksheet_command('restart_sage'), restart_sage_callback);
 }
 
 function login(username,password) {

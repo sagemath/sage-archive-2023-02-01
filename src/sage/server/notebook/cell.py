@@ -530,7 +530,7 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/w/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
+            url = "/ws/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
             if F.endswith('.png') or F.endswith('.bmp'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):

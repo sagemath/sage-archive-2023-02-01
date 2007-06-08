@@ -53,6 +53,7 @@ def notebook_save_check():
 ############################
 class WorksheetResource:
     def __init__(self, worksheet_name):
+        self._name = worksheet_name
         self.worksheet = notebook.get_worksheet_with_name(worksheet_name)
 
     def id(self, ctx):
@@ -204,21 +205,29 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
-class Worksheet_plain(resource.Resource):
-    def __init__(self, name):
-        self._name = name
+class Worksheet_restart_sage(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        # TODO -- this must not block long (!)
+        self.worksheet.restart_sage()
+        return http.Response(stream='done')
 
+class Worksheet_interrupt(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        # TODO -- this must not block long (!)
+        s = self.worksheet.interrupt()
+        return http.Response(stream='ok' if s else 'failed')
+
+
+class Worksheet_plain(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.plain_text_worksheet_html(self._name)
         return http.Response(stream=s)
 
-class Worksheet_print(resource.Resource):
-    def __init__(self, name):
-        self._name = name
-
+class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.worksheet_html(self._name)
         return http.Response(stream=s)
+
 
 class Worksheet(resource.Resource):
     addSlash = True
@@ -228,6 +237,7 @@ class Worksheet(resource.Resource):
 
     def render(self, ctx):
         s = notebook.html(worksheet_id = self._name)
+        notebook.get_worksheet_with_id(self._name).sage()
         return http.Response(stream=s)
 
     def childFactory(self, request, op):

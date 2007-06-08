@@ -257,6 +257,8 @@ class Cell(Cell_generic):
     def set_input_text(self, input):
         self.__version = 1+self.version()
         self.__in = input
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
 
     def input_text(self):
         return self.__in
@@ -277,6 +279,8 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
             if not self.computing():
@@ -452,7 +456,16 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        key = (wrap,div_wrap,do_print)
+        try:
+            return self._html_cache[key]
+        except KeyError:
+            pass
+        except AttributeError:
+            self._html_cache = {}
+
         if self.__in.lstrip()[:8] == '%hideall':
+            self._html_cache[key] = ''
             return ''
 
         if wrap is None:
@@ -472,6 +485,7 @@ class Cell(Cell_generic):
         s = html_in  + introspect + html_out
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+        self._html_cache[key] = s
         return s
 
     def html_in(self, do_print=False):

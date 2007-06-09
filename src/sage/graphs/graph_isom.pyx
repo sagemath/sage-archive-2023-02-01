@@ -86,42 +86,42 @@ def finer(Pi1, Pi2):
                 return False
     return True
 
-cdef class Cell:
-    cdef int length
-    cdef int* data
-
-    def __new__(self, int length):
-        self.length = length
-        self.data = <int*> PyMem_Malloc(length * sizeof(int))
-
-    def __dealloc__(self):
-        PyMem_Free(self.data)
-
-    def set_data_from_list(self, list):
-        cdef int j
-        for j from 0 <= j < self.length:
-            self.data[j] = list[j]
-
-    cdef set_data(self, int* data):
-        cdef int j
-        for j from 0 <= j < self.length:
-            self.data[j] = data[j]
-
-    def print_data(self):
-        cdef int i
-        for i from 0 <= i < self.length:
-            print self.data[i]
-
-    def print_len(self):
-        print type(self.length)
-
-cdef class OrderedPartition:
-    cdef int length
-    cdef int** data
-    cdef int* sizes
-
-    def __new__(self, int length):
-        print length
+#cdef class Cell:
+#    cdef int length
+#    cdef int* data
+#
+#    def __new__(self, int length):
+#        self.length = length
+#        self.data = <int*> PyMem_Malloc(length * sizeof(int))
+#
+#    def __dealloc__(self):
+#        PyMem_Free(self.data)
+#
+#    def set_data_from_list(self, list):
+#        cdef int j
+#        for j from 0 <= j < self.length:
+#            self.data[j] = list[j]
+#
+#    cdef set_data(self, int* data):
+#        cdef int j
+#        for j from 0 <= j < self.length:
+#            self.data[j] = data[j]
+#
+#    def print_data(self):
+#        cdef int i
+#        for i from 0 <= i < self.length:
+#            print self.data[i]
+#
+#    def print_len(self):
+#        print type(self.length)
+#
+#cdef class OrderedPartition:
+#    cdef int length
+#    cdef int** data
+#    cdef int* sizes
+#
+#    def __new__(self, int length):
+#        print length
 
 def vee(alpha, beta):
     """

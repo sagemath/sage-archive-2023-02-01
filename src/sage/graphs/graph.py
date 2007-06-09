@@ -57,7 +57,7 @@ TUTORIAL:
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
                 Graph on 10 vertices
-                sage: G.save('sage.png')
+                sage: G.plot().save('sage.png')    # or G.show()
 
                     b. A NetworkX graph:
 
@@ -71,7 +71,7 @@ TUTORIAL:
                 sage: s = ':I`AKGsaOs`cI]Gb~'
                 sage: G = Graph(s); G
                 Looped multi-graph on 10 vertices
-                sage: G.save('sage.png')
+                sage: G.plot().save('sage.png')    # or G.show()
 
                 iii. adjacency matrix: In an adjacency matrix, each column and each row represent
                 a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
@@ -90,7 +90,7 @@ TUTORIAL:
                 [0 0 0 0 1 0 1 1 0 0]
                 sage: G = Graph(M); G
                 Graph on 10 vertices
-                sage: G.save('sage.png')
+                sage: G.plot().save('sage.png')    # or G.show()
 
                 iv. incidence matrix: In an incidence matrix, each row represents a vertex
                 and each column reprensents an edge.
@@ -109,7 +109,7 @@ TUTORIAL:
                 [ 0  0  0  0  0  0  1 -1  0  0  0  0  0  0  1]
                 sage: G = Graph(M); G
                 Graph on 10 vertices
-                sage: G.save('sage.png')
+                sage: G.plot().save('sage.png')    # or G.show()
 
         2. Generators
 

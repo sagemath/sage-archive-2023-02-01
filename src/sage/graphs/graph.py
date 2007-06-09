@@ -202,6 +202,7 @@ TUTORIAL:
 
 NOTE: Many functions are passed directly on to NetworkX, and in this
 case the documentation is based on the NetworkX docs.
+
 """
 
 #*****************************************************************************
@@ -222,6 +223,7 @@ from sage.rings.integer_ring import ZZ
 class GenericGraph(SageObject):
     """
     Base class for graphs and digraphs.
+
     """
 
     def __cmp__(self, other):
@@ -253,6 +255,7 @@ class GenericGraph(SageObject):
             sage: H = graphs.RandomGNP(9,.3).to_directed()
             sage: G == H # random output (most often false)
             False
+
         """
         if type(self) != type(other):
             return 1
@@ -294,24 +297,28 @@ class GenericGraph(SageObject):
             True
             sage: 10 in g
             False
+
         """
         return vertex in self._nxg
 
     def __getitem__(self,vertex):
         """
         G[vertex] returns the neighbors (in & out if digraph) of vertex.
+
         """
         return self.neighbors(vertex)
 
     def __iter__(self):
         """
         Return an iterator over the vertices. Allows 'for v in G'.
+
         """
         return self.vertex_iterator()
 
     def __len__(self):
         """
         len(G) returns the number of vertices in G.
+
         """
         return len(self._nxg.adj)
 
@@ -319,6 +326,7 @@ class GenericGraph(SageObject):
         """
         str(G) returns the name of the graph, unless it doesn't have one, in
         which case it returns the default refresentation.
+
         """
         name = self._nxg.name
         if name != "No Name" and (not name is None):
@@ -329,6 +337,7 @@ class GenericGraph(SageObject):
     def _latex_(self):
         """
         TODO: Apply Craig's algo.
+
         """
         return repr(self)
 
@@ -346,6 +355,7 @@ class GenericGraph(SageObject):
             [1 1 0 0 0]
             sage: factor(m.charpoly())
             (x^2 - 6) * x^3
+
         """
         if R is None:
             return self.am()
@@ -361,12 +371,14 @@ class GenericGraph(SageObject):
             sage: N = G.networkx_graph()
             sage: type(N)
             <class 'networkx.xgraph.XGraph'>
+
         """
         return self._nxg.copy()
 
     def networkx_info(self, vertex=None):
         """
         Returns NetworkX information about the graph or the given node.
+
         """
         self._nxg.info(vertex)
 
@@ -395,6 +407,7 @@ class GenericGraph(SageObject):
             Petersen Graph: Graph on 10 vertices
             sage: G.name(set_to_none=True); G
             Graph on 10 vertices
+
         """
         if not new is None:
             if not isinstance(new, str):
@@ -423,6 +436,7 @@ class GenericGraph(SageObject):
             sage: D.loops(True); D
             True
             Looped digraph on 0 vertices
+
         """
         if not new is None:
             if new:
@@ -440,6 +454,7 @@ class GenericGraph(SageObject):
             sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
             sage: G = Graph(d); G.density()
             1/3
+
         """
         from sage.rings.rational import Rational
         n = self.order()
@@ -449,12 +464,14 @@ class GenericGraph(SageObject):
     def order(self):
         """
         Returns the number of vertices.
+
         """
         return self._nxg.order()
 
     def size(self):
         """
         Returns the number of edges.
+
         """
         return self._nxg.size()
 
@@ -467,6 +484,7 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: graphs.PetersenGraph().has_vertex(99)
             False
+
         """
         return self._nxg.has_node(vertex)
 
@@ -485,6 +503,7 @@ class GenericGraph(SageObject):
 
             sage: D = DiGraph(); D.add_vertex(); D
             Digraph on 1 vertex
+
         """
         if name is None: # then find an integer to use as a key
             i = 0
@@ -507,6 +526,7 @@ class GenericGraph(SageObject):
             sage: G.add_vertices(graphs.CycleGraph(25).vertices())
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+
         """
         self._nxg.add_nodes_from(vertices)
 
@@ -521,6 +541,7 @@ class GenericGraph(SageObject):
             sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
             sage: D.delete_vertex(0); D
             Digraph on 5 vertices
+
         """
         self._nxg.delete_node(vertex)
 
@@ -533,6 +554,7 @@ class GenericGraph(SageObject):
             sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
             sage: D.delete_vertices([1,2,3,4,5]); D
             Digraph on 1 vertex
+
         """
         self._nxg.delete_nodes_from(vertices)
 
@@ -553,6 +575,7 @@ class GenericGraph(SageObject):
             sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
             sage: G.vertex_boundary(['0000', '1111'], l)
             ['0111', '1011', '1101', '0010', '0100', '0001']
+
         """
         return self._nxg.node_boundary(vertices1, vertices2)
 
@@ -573,6 +596,7 @@ class GenericGraph(SageObject):
             sage: T.associate(d)
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
+
         """
         try:
             for v in vertex_dict:
@@ -599,6 +623,7 @@ class GenericGraph(SageObject):
             sage: T.associate(d)
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
+
         """
         try:
             return self._assoc[vertex]
@@ -613,24 +638,28 @@ class GenericGraph(SageObject):
             sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
             sage: G.loop_vertices()
             [0, 1]
+
         """
         return self._nxg.nodes_with_selfloops()
 
     def clear(self):
         """
         Empties the graph of vertices and edges, removes name.
+
         """
         self._nxg.clear()
 
     def neighbors(self, vertex):
         """
         Return a list of neighbors (in and out if directed) of vertex.
+
         """
         return list(self.neighbor_iterator(vertex))
 
     def random_subgraph(self, p, inplace=False, create_using=None):
         """
         Return a random subgraph that contains each vertex with prob. p.
+
         """
         vertices = []
         p = float(p)
@@ -644,12 +673,14 @@ class GenericGraph(SageObject):
         Returns an iterator over the given vertices. Returns False if not given
         a vertex, sequence, iterator or None. None is equivalent to a list of
         every vertex.
+
         """
         return self._nxg.prepare_nbunch(vertices)
 
     def vertices(self):
         """
         Return a list of the vertex keys.
+
         """
         return self._nxg.nodes()
 
@@ -699,6 +730,7 @@ class GenericGraph(SageObject):
             [0 0 1]
             [0 0 1]
             [1 1 0]
+
         """
         if type(perm) == list:
             if quick:
@@ -819,11 +851,226 @@ class GenericGraph(SageObject):
                     D._nxg.pred = newpred
                     return D
 
+    ### Distance
+
+    def single_source_shortest_path_length(self, source, cutoff=None):
+        """
+        Returns a dictionary of shortest path lengths keyed by target.
+
+        INPUT:
+            source -- the originating vertex.
+            cutoff -- optional integer depth to stop the search.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(4)
+            sage: G.single_source_shortest_path_length('0000')
+            {'0110': 2, '0111': 3, '0000': 0, '0001': 1, '0011': 2, '0010': 1, '0101': 2, '0100': 1, '1111': 4, '1110': 3, '1100': 2, '1101': 3, '1010': 2, '1011': 3, '1001': 2, '1000': 1}
+
+        """
+        import networkx
+        return networkx.distance.single_source_shortest_path_length(self._nxg, source, cutoff)
+
+    def distance(self, u, v):
+        """
+        Returns the (directed) distance from u to v in the (di)graph, i.e. the
+        length of the shortest path from u to v.
+
+        EXAMPLES:
+            sage: G = graphs.CycleGraph(9)
+            sage: G.distance(0,1)
+            1
+            sage: G.distance(0,4)
+            4
+            sage: G.distance(0,5)
+            4
+            sage: G = Graph( {0:[], 1:[]} )
+            sage: G.distance(0,1)
+            +Infinity
+
+        """
+        try:
+            return self.single_source_shortest_path_length(u)[v]
+        except:
+            from sage.rings.infinity import Infinity
+            return Infinity
+
+    def eccentricity(self, v=None, dist_dict=None, with_labels=False):
+        """
+        Return the eccentricity of vertex (or vertices) v.
+
+        The eccentricity of a vertex is the maximum distance to any other
+        vertex.
+
+        INPUT:
+            v -- either a single vertex or a list of vertices. If it is not
+        specified, then it is taken to be all vertices.
+            dist_dict -- optional, a dict of dicts of distance.
+            with_labels -- Whether to return a list or a dict.
+
+        EXAMPLES:
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: G.eccentricity()
+            [4, 4, 4, 4, 4, 3, 3, 2, 3, 4]
+            sage: G.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: G.eccentricity(7)
+            2
+            sage: G.eccentricity([7,8,9])
+            [3, 4, 2]
+            sage: G.eccentricity([7,8,9], with_labels=True) == {8: 3, 9: 4, 7: 2}
+            True
+            sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
+            sage: G.eccentricity()
+            [+Infinity, +Infinity, +Infinity]
+            sage: G = Graph({0:[]})
+            sage: G.eccentricity(with_labels=True)
+            {0: 0}
+            sage: G = Graph({0:[], 1:[]})
+            sage: G.eccentricity(with_labels=True)
+            {0: +Infinity, 1: +Infinity}
+
+        """
+        import networkx
+        try:
+            return networkx.distance.eccentricity(self._nxg, v, dist_dict, with_labels)
+        except:
+            from sage.rings.infinity import Infinity
+            e = {}
+            if v is None:
+                v = self.vertices()
+            elif not isinstance(v, list):
+                v = [v]
+            for u in v:
+                e[u] = Infinity
+            if with_labels:
+                return e
+            else:
+                if len(e)==1: return e.values()[0] # return single value
+                return e.values()
+
+    def radius(self):
+        """
+        Returns the radius of the (di)graph.
+
+        The radius is defined to be the minimum eccentricity of any vertex,
+        where the eccentricity is the maximum distance to any other vertex.
+
+        EXAMPLES:
+        The more symmetric a graph is, the smaller (diameter - radius) is.
+            sage: G = graphs.BarbellGraph(9, 3)
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            6
+
+            sage: G = graphs.OctahedralGraph()
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+
+        """
+        return min(self.eccentricity())
+
+    def center(self):
+        """
+        Returns the set of vertices in the center, i.e. whose eccentricity is
+        equal to the radius of the (di)graph.
+
+        In other words, the center is the set of vertices achieving the
+        minimum eccentricity.
+
+        EXAMPLES:
+            sage: G = graphs.DiamondGraph()
+            sage: G.center()
+            [1, 2]
+            sage: P = graphs.PetersenGraph()
+            sage: P.subgraph(P.center()) == P
+            True
+            sage: S = graphs.StarGraph(19)
+            sage: S.center()
+            [0]
+            sage: G = Graph()
+            sage: G.center()
+            []
+            sage: G.add_vertex()
+            sage: G.center()
+            [0]
+
+        """
+        e = self.eccentricity(with_labels=True)
+        try:
+            r = min(e.values())
+        except:
+            return []
+        return [v for v in e if e[v]==r]
+
+    def diameter(self):
+        """
+        Returns the largest distance between any two vertices. Returns
+        Infinity if the (di)graph is not connected.
+
+        EXAMPLES:
+            sage: G = graphs.PetersenGraph()
+            sage: G.diameter()
+            2
+            sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
+            sage: G.diameter()
+            +Infinity
+
+        Although max( {} ) is usually defined as -Infinity, since the diameter
+        will never be negative, we define it to be zero:
+            sage: G = graphs.EmptyGraph()
+            sage: G.diameter()
+            0
+
+        """
+        e = self.eccentricity()
+        if not isinstance(e, list):
+            e = [e]
+        if len(e) == 0:
+            return 0
+        return max(e)
+
+    def periphery(self):
+        """
+        Returns the set of vertices in the periphery, i.e. whose eccentricity
+        is equal to the diameter of the (di)graph.
+
+        In other words, the periphery is the set of vertices achieving the
+        maximum eccentricity.
+
+        EXAMPLES:
+            sage: G = graphs.DiamondGraph()
+            sage: G.periphery()
+            [0, 3]
+            sage: P = graphs.PetersenGraph()
+            sage: P.subgraph(P.periphery()) == P
+            True
+            sage: S = graphs.StarGraph(19)
+            sage: S.periphery()
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: G = Graph()
+            sage: G.periphery()
+            []
+            sage: G.add_vertex()
+            sage: G.periphery()
+            [0]
+
+        """
+        e = self.eccentricity(with_labels=True)
+        try:
+            r = max(e.values())
+        except:
+            return []
+        return [v for v in e if e[v]==r]
+
     ### Constructors
 
     def am(self):
         """
         Shorter call for adjacency matrix makes life easier.
+
         """
         return self.adjacency_matrix()
 
@@ -899,6 +1146,7 @@ class GenericGraph(SageObject):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+
         """
         from sage.plot.plot import networkx_plot, rainbow
         import networkx
@@ -1011,6 +1259,7 @@ class GenericGraph(SageObject):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+
         """
         if talk:
             node_size = 500
@@ -1137,6 +1386,7 @@ class Graph(GenericGraph):
         [ 0  0  0  0  0]
         sage: Graph(M)
         Graph on 6 vertices
+
     """
     def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
         import networkx
@@ -1323,6 +1573,7 @@ class Graph(GenericGraph):
     def copy(self):
         """
         Creates a copy of the graph.
+
         """
         G = Graph(self._nxg, name=self._nxg.name, pos=self._pos, loops=self.loops(), boundary=self._boundary)
         return G
@@ -1335,6 +1586,7 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: graphs.PetersenGraph().to_directed()
             Digraph on 10 vertices
+
         """
         return DiGraph(self._nxg.to_directed(), pos=self._pos)
 
@@ -1345,6 +1597,7 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
+
         """
         return self.copy()
 
@@ -1353,6 +1606,7 @@ class Graph(GenericGraph):
     def is_directed(self):
         """
         Since graph is undirected, returns False.
+
         """
         return False
 
@@ -1369,6 +1623,7 @@ class Graph(GenericGraph):
             sage: G.multiple_edges(False); G
             False
             Graph on 0 vertices
+
         """
         if not new is None:
             if new:
@@ -1390,6 +1645,7 @@ class Graph(GenericGraph):
             011
             000
             110
+
         """
         return self._nxg.neighbors_iter(vertex)
 
@@ -1426,6 +1682,7 @@ class Graph(GenericGraph):
         sage: G.add_edge(1,2,'label')
         sage: G.networkx_graph().adj           # random output order
         {1: {2: 'label'}, 2: {1: 'label'}}
+
         """
         self._nxg.add_edge(u, v, label)
 
@@ -1438,6 +1695,7 @@ class Graph(GenericGraph):
             sage: H = Graph()
             sage: H.add_edges( G.edge_iterator() ); H
             Graph on 20 vertices
+
         """
         self._nxg.add_edges_from( edges )
 
@@ -1473,6 +1731,7 @@ class Graph(GenericGraph):
 
             Note that even though the edge (11, 12) has no label, it still gets
             deleted: NetworkX does not pay attention to labels here.
+
         """
         self._nxg.delete_edge(u, v, label)
 
@@ -1488,6 +1747,7 @@ class Graph(GenericGraph):
             sage: K12.delete_edges(K4.edge_iterator())
             sage: K12.size()
             60
+
         """
         self._nxg.delete_edges_from(edges)
 
@@ -1503,6 +1763,7 @@ class Graph(GenericGraph):
             sage: G.delete_multiedge( 0, 1 )
             sage: G.edges()
             [(1, 2, None), (2, 3, None)]
+
         """
         self._nxg.delete_multiedge(u, v)
 
@@ -1520,6 +1781,7 @@ class Graph(GenericGraph):
 
             sage: graphs.DodecahedralGraph().edges(labels=False)
             [(0, 1), (0, 10), (0, 19), (1, 8), (1, 2), (2, 3), (2, 6), (3, 19), (3, 4), (4, 17), (4, 5), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 16), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
+
         """
         L = self._nxg.edges()
         if labels:
@@ -1544,6 +1806,7 @@ class Graph(GenericGraph):
             27
             sage: K.size()
             27
+
         """
         L = self._nxg.edge_boundary(vertices1, vertices2)
         if labels:
@@ -1568,6 +1831,7 @@ class Graph(GenericGraph):
             (0, 1, None)
             (0, 4, None)
             (0, 5, None)
+
         """
         return self._nxg.edges_iter(vertices)
 
@@ -1582,6 +1846,7 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: graphs.PetersenGraph().edges_incident([0,9], labels=False)
             [(0, 1), (0, 4), (0, 5), (9, 4), (9, 6), (9, 7)]
+
         """
         L = self._nxg.edges(vertices)
         if labels:
@@ -1606,6 +1871,7 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: graphs.EmptyGraph().has_edge(9,2)
             False
+
         """
         return self._nxg.has_edge(u, v)
 
@@ -1622,6 +1888,7 @@ class Graph(GenericGraph):
             sage: for u,v,l in G.edges():
             ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.plot(edge_labels=True).save('sage.png')
+
         """
         if self.has_edge(u, v):
             self._nxg.adj[u][v] = l
@@ -1637,6 +1904,7 @@ class Graph(GenericGraph):
             [(0, 1)]
             sage: G.edge_label( 0, 1 )
             'edgelabel'
+
         """
         return self._nxg.get_edge(u,v)
 
@@ -1648,6 +1916,7 @@ class Graph(GenericGraph):
             sage: G = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
+
         """
         labels = []
         for u,v,l in self.edges():
@@ -1667,6 +1936,7 @@ class Graph(GenericGraph):
             sage: G.remove_multiple_edges()
             sage: G.edges(labels=False)
             [(0, 1), (1, 2)]
+
         """
         self._nxg.remove_all_multiedges()
 
@@ -1684,6 +1954,7 @@ class Graph(GenericGraph):
             [(2, 3)]
             sage: G.loops()
             True
+
         """
         if vertices is None:
             self._nxg.remove_all_selfloops()
@@ -1700,6 +1971,7 @@ class Graph(GenericGraph):
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+
         """
         return self._nxg.selfloop_edges()
 
@@ -1714,6 +1986,7 @@ class Graph(GenericGraph):
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: G.number_of_loops()
             4
+
         """
         return self._nxg.number_of_selfloops()
 
@@ -1742,6 +2015,7 @@ class Graph(GenericGraph):
             sage: K = graphs.CompleteGraph(9)
             sage: K.degree()
             [8, 8, 8, 8, 8, 8, 8, 8, 8]
+
         """
         return self._nxg.degree(vertices, with_labels=labels)
 
@@ -1753,6 +2027,7 @@ class Graph(GenericGraph):
             sage: G = graphs.Grid2dGraph(9,12)
             sage: G.degree_histogram()
             [0, 0, 4, 34, 70]
+
         """
         import networkx
         return networkx.degree_histogram(self._nxg)
@@ -1796,6 +2071,7 @@ class Graph(GenericGraph):
             ((1, 0), 3)
             ((0, 3), 2)
             ((1, 1), 4)
+
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
 
@@ -1867,6 +2143,7 @@ class Graph(GenericGraph):
             [ 0  0  1  0  0  0  0  0  0  1 -1  0]
             [ 0  0  0  0  0  0  0  1  0  0  1 -1]
             [ 0  0  0  0  0  1  0  0  1  0  0  1]
+
         """
         from sage.matrix.constructor import matrix
         from copy import copy
@@ -1913,6 +2190,7 @@ class Graph(GenericGraph):
             sage: G = graphs.KrackhardtKiteGraph()
             sage: G.graph6_string()
             'IvUqwK@?G'
+
         """
         n = self.order()
         if n > 262143:
@@ -1932,6 +2210,7 @@ class Graph(GenericGraph):
             sage: G = graphs.BullGraph()
             sage: G.sparse6_string()
             ':Da@en'
+
         """
         n = self.order()
         if n > 262143:
@@ -2012,6 +2291,7 @@ class Graph(GenericGraph):
         sage.: show(G)
         sage: G.add_cycle(range(10))
         sage.: show(G)
+
         """
         self._nxg.add_cycle(vertices)
 
@@ -2032,6 +2312,7 @@ class Graph(GenericGraph):
         sage.: show(G)
         sage: G.add_path(range(10))
         sage.: show(G)
+
         """
         self._nxg.add_path(vertices)
 
@@ -2060,6 +2341,7 @@ class Graph(GenericGraph):
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G is K
             True
+
         """
         if inplace:
             self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
@@ -2097,6 +2379,7 @@ class Graph(GenericGraph):
 
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
@@ -2126,6 +2409,7 @@ class Graph(GenericGraph):
 
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
 
@@ -2143,6 +2427,7 @@ class Graph(GenericGraph):
             sage: G.add_edge(0,3)
             sage: G.is_connected()
             True
+
         """
         import networkx
         return networkx.component.is_connected(self._nxg)
@@ -2157,6 +2442,7 @@ class Graph(GenericGraph):
             sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: G.connected_components()
             [[0, 1, 2, 3], [4, 5, 6]]
+
         """
         import networkx
         return networkx.component.connected_components(self._nxg)
@@ -2169,6 +2455,7 @@ class Graph(GenericGraph):
             sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: G.connected_components_number()
             2
+
         """
         import networkx
         return networkx.component.number_connected_components(self._nxg)
@@ -2181,6 +2468,7 @@ class Graph(GenericGraph):
             sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: L = G.connected_components_subgraphs()
             sage.: graphs_list.show_graphs(L)
+
         """
         cc = self.connected_components()
         list = []
@@ -2196,6 +2484,7 @@ class Graph(GenericGraph):
             sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: G.connected_component_containing_vertex(0)
             [0, 1, 2, 3]
+
         """
         import networkx
         return networkx.component.node_connected_component(self._nxg, vertex)
@@ -2248,6 +2537,7 @@ class Graph(GenericGraph):
             sage: H = A5.direct_product(Z2)[0] #see documentation for direct_product to explain the [0]
             sage: G.is_isomorphic(H)
             True
+
         """
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -2299,6 +2589,7 @@ class Graph(GenericGraph):
             sage: for vert in position_D:
             ...    position_E[b[vert]] = position_D[vert]
             sage.: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show()
+
         """
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -2336,6 +2627,7 @@ class Graph(GenericGraph):
             (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
             sage: D.is_isomorphic(E)
             True
+
         """
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -2434,6 +2726,7 @@ class DiGraph(GenericGraph):
         [ 0  0  0  0  0]
         sage: DiGraph(M)
         Digraph on 6 vertices
+
     """
 
     def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
@@ -2530,6 +2823,7 @@ class DiGraph(GenericGraph):
     def copy(self):
         """
         Creates a copy of the graph.
+
         """
         G = DiGraph(self._nxg, name=self._nxg.name, pos=self._pos, loops=self.loops(), boundary=self._boundary)
         return G
@@ -2541,6 +2835,7 @@ class DiGraph(GenericGraph):
         EXAMPLE:
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
+
         """
         return self.copy()
 
@@ -2555,6 +2850,7 @@ class DiGraph(GenericGraph):
             [(0, 1), (0, 2), (1, 0)]
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
+
         """
         return Graph(self._nxg.to_undirected(), pos=self._pos)
 
@@ -2563,6 +2859,7 @@ class DiGraph(GenericGraph):
     def is_directed(self):
         """
         Since digraph is directed, returns True.
+
         """
         return True
 
@@ -2579,6 +2876,7 @@ class DiGraph(GenericGraph):
             sage: D.multiple_arcs(False); D
             False
             Digraph on 0 vertices
+
         """
         if not new is None:
             if new:
@@ -2600,6 +2898,7 @@ class DiGraph(GenericGraph):
             011
             000
             110
+
         """
         A = list(self._nxg.pred[vertex].iterkeys())
         B = list(self._nxg.succ[vertex].iterkeys())
@@ -2646,6 +2945,7 @@ class DiGraph(GenericGraph):
         sage: G.add_arc(1,2,'label')
         sage: G.networkx_graph().adj           # random output order
         {1: {2: 'label'}, 2: {}}
+
         """
         self._nxg.add_edge(u, v, label)
 
@@ -2658,6 +2958,7 @@ class DiGraph(GenericGraph):
             sage: H = DiGraph()
             sage: H.add_arcs( G.arc_iterator() ); H
             Digraph on 20 vertices
+
         """
         self._nxg.add_edges_from( arcs )
 
@@ -2693,6 +2994,7 @@ class DiGraph(GenericGraph):
 
             Note that even though the edge (11, 12) has no label, it still gets
             deleted: NetworkX does not pay attention to labels here.
+
         """
         self._nxg.delete_edge(u, v, label)
 
@@ -2708,6 +3010,7 @@ class DiGraph(GenericGraph):
             sage: K12.delete_arcs(K4.arc_iterator())
             sage: K12.size()
             120
+
         """
         self._nxg.delete_edges_from(arcs)
 
@@ -2723,6 +3026,7 @@ class DiGraph(GenericGraph):
             sage: D.delete_multiarc( 0, 1 )
             sage: D.arcs()
             [(1, 0, None), (1, 2, None), (2, 3, None)]
+
         """
         self._nxg.delete_multiedge(u, v)
 
@@ -2740,6 +3044,7 @@ class DiGraph(GenericGraph):
             [(0, 1, None), (0, 10, None), (0, 19, None), (1, 0, None), (1, 8, None), (1, 2, None), (2, 1, None), (2, 3, None), (2, 6, None), (3, 2, None), (3, 19, None), (3, 4, None), (4, 17, None), (4, 3, None), (4, 5, None), (5, 4, None), (5, 6, None), (5, 15, None), (6, 2, None), (6, 5, None), (6, 7, None), (7, 8, None), (7, 6, None), (7, 14, None), (8, 1, None), (8, 7, None), (8, 9, None), (9, 8, None), (9, 10, None), (9, 13, None), (10, 0, None), (10, 9, None), (10, 11, None), (11, 10, None), (11, 12, None), (11, 18, None), (12, 16, None), (12, 11, None), (12, 13, None), (13, 9, None), (13, 12, None), (13, 14, None), (14, 7, None), (14, 13, None), (14, 15, None), (15, 16, None), (15, 5, None), (15, 14, None), (16, 17, None), (16, 12, None), (16, 15, None), (17, 16, None), (17, 18, None), (17, 4, None), (18, 11, None), (18, 17, None), (18, 19, None), (19, 0, None), (19, 18, None), (19, 3, None)]
             sage: D.arcs(labels = False)
             [(0, 1), (0, 10), (0, 19), (1, 0), (1, 8), (1, 2), (2, 1), (2, 3), (2, 6), (3, 2), (3, 19), (3, 4), (4, 17), (4, 3), (4, 5), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 8), (7, 6), (7, 14), (8, 1), (8, 7), (8, 9), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 16), (12, 11), (12, 13), (13, 9), (13, 12), (13, 14), (14, 7), (14, 13), (14, 15), (15, 16), (15, 5), (15, 14), (16, 17), (16, 12), (16, 15), (17, 16), (17, 18), (17, 4), (18, 11), (18, 17), (18, 19), (19, 0), (19, 18), (19, 3)]
+
         """
         L = self._nxg.edges()
         if labels:
@@ -2767,6 +3072,7 @@ class DiGraph(GenericGraph):
 
             Note that the arc boundary preserves direction: compare this example to
             the one in edge_boundary in the Graph class.
+
         """
         L = self._nxg.edge_boundary(vertices1, vertices2)
         if labels:
@@ -2789,6 +3095,7 @@ class DiGraph(GenericGraph):
             ...    print i
             (0, 1, None)
             (0, 2, None)
+
         """
         return self._nxg.edges_iter(vertices)
 
@@ -2803,6 +3110,7 @@ class DiGraph(GenericGraph):
             ...    print a
             (1, 0, None)
             (4, 0, None)
+
         """
         return self._nxg.in_edges_iter(vertices)
 
@@ -2817,6 +3125,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.incoming_arcs([0])
             [(1, 0, None), (4, 0, None)]
+
         """
         L = self._nxg.in_edges(vertices)
         if labels:
@@ -2839,6 +3148,7 @@ class DiGraph(GenericGraph):
             (0, 1, None)
             (0, 2, None)
             (0, 3, None)
+
         """
         return self._nxg.out_edges_iter(vertices)
 
@@ -2853,6 +3163,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.outgoing_arcs([0])
             [(0, 1, None), (0, 2, None), (0, 3, None)]
+
         """
         L = self._nxg.out_edges(vertices)
         if labels:
@@ -2877,6 +3188,7 @@ class DiGraph(GenericGraph):
         EXAMPLE:
             sage: DiGraph().has_arc(9,2)
             False
+
         """
         return self._nxg.has_edge(u,v)
 
@@ -2904,6 +3216,7 @@ class DiGraph(GenericGraph):
             sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
             sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
             sage: SD.plot(pos=posn, node_size=400, color_dict={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
+
         """
         if self.has_arc(u, v):
             self._nxg.adj[u][v] = l
@@ -2918,6 +3231,7 @@ class DiGraph(GenericGraph):
             [(0, 1)]
             sage: D.arc_label( 0, 1 )
             'edgelabel'
+
         """
         return self._nxg.get_edge(u,v)
 
@@ -2929,6 +3243,7 @@ class DiGraph(GenericGraph):
             sage: G = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
             sage: G.arc_labels()
             ['x', 'z', 'a', 'out']
+
         """
         labels = []
         for u,v,l in self.arcs():
@@ -2945,6 +3260,7 @@ class DiGraph(GenericGraph):
             ...    print a
             1
             4
+
         """
         return self._nxg.predecessors_iter(vertex)
 
@@ -2956,6 +3272,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.predecessors(0)
             [1, 4]
+
         """
         return list(self.predecessor_iterator(vertex))
 
@@ -2970,6 +3287,7 @@ class DiGraph(GenericGraph):
             1
             2
             3
+
         """
         return self._nxg.successors_iter(vertex)
 
@@ -2981,6 +3299,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.successors(0)
             [1, 2, 3]
+
         """
         return list(self.successor_iterator(vertex))
 
@@ -2996,6 +3315,7 @@ class DiGraph(GenericGraph):
             sage: D.remove_multiple_arcs()
             sage: D.arcs(labels=False)
             [(0, 1), (1, 2)]
+
         """
         self._nxg.remove_all_multiedges()
 
@@ -3013,6 +3333,7 @@ class DiGraph(GenericGraph):
             [(2, 3)]
             sage: D.loops()
             True
+
         """
         if vertices is None:
             self._nxg.remove_all_selfloops()
@@ -3029,6 +3350,7 @@ class DiGraph(GenericGraph):
             sage: D.add_arcs( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: D.loop_arcs()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+
         """
         return self._nxg.selfloop_edges()
 
@@ -3043,6 +3365,7 @@ class DiGraph(GenericGraph):
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: D.number_of_loops()
             4
+
         """
         return self._nxg.number_of_selfloops()
 
@@ -3069,6 +3392,7 @@ class DiGraph(GenericGraph):
             {0: 5, 1: 4, 2: 3}
             sage: D.degree()
             [5, 4, 3, 3, 3, 2]
+
         """
         return self._nxg.degree(vertices, with_labels=labels)
 
@@ -3103,6 +3427,7 @@ class DiGraph(GenericGraph):
             ((1, 3), 4)
             ((1, 0), 4)
             ((1, 1), 6)
+
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
 
@@ -3116,6 +3441,7 @@ class DiGraph(GenericGraph):
             {0: 2, 1: 2, 2: 2}
             sage: D.in_degree()
             [2, 2, 2, 2, 1, 1]
+
         """
         return self._nxg.in_degree(vertices, with_labels=labels)
 
@@ -3145,6 +3471,7 @@ class DiGraph(GenericGraph):
             ((1, 3), 2)
             ((1, 0), 2)
             ((1, 1), 3)
+
         """
         return self._nxg.in_degree_iter(vertices, with_labels=labels)
 
@@ -3158,6 +3485,7 @@ class DiGraph(GenericGraph):
             {0: 3, 1: 2, 2: 1}
             sage: D.out_degree()
             [3, 2, 1, 1, 2, 1]
+
         """
         return self._nxg.out_degree(vertices, with_labels=labels)
 
@@ -3187,6 +3515,7 @@ class DiGraph(GenericGraph):
             ((1, 3), 2)
             ((1, 0), 2)
             ((1, 1), 3)
+
         """
         return self._nxg.out_degree_iter(vertices, with_labels=labels)
 
@@ -3207,6 +3536,7 @@ class DiGraph(GenericGraph):
             [0 0 0 0 1 0]
             [1 0 0 0 0 1]
             [0 1 0 0 0 0]
+
         """
         n = len(self._nxg.adj)
         verts = self.vertices()
@@ -3234,6 +3564,7 @@ class DiGraph(GenericGraph):
             [ 0  0  1  0  0  1 -1  0  0  0]
             [ 0  0  0  0  0  0  1 -1 -1  0]
             [ 0  0  0  0  0  0  0  0  1 -1]
+
         """
         from sage.matrix.constructor import matrix
         from copy import copy
@@ -3265,6 +3596,7 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: too many values to unpack
+
         """
         NXG = self._nxg.reverse()
         G = DiGraph(NXG)
@@ -3295,6 +3627,7 @@ class DiGraph(GenericGraph):
             Subgraph of (None): Digraph on 3 vertices
             sage: D is K
             True
+
         """
         if inplace:
             self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
@@ -3328,6 +3661,7 @@ class DiGraph(GenericGraph):
         A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
             sage: D.plot3d().save('sage.png') # long time
+
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
@@ -3355,6 +3689,7 @@ class DiGraph(GenericGraph):
         A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
             sage: D.plot3d().save('sage.png') # long time
+
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
@@ -3373,6 +3708,7 @@ class DiGraph(GenericGraph):
             sage: D.add_arc(0,3)
             sage: D.is_connected()
             True
+
         """
         import networkx
         return networkx.component.is_connected(self._nxg.to_undirected())
@@ -3387,6 +3723,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.connected_components()
             [[0, 1, 2, 3], [4, 5, 6]]
+
         """
         import networkx
         return networkx.component.connected_components(self._nxg.to_undirected())
@@ -3399,6 +3736,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.connected_components_number()
             2
+
         """
         import networkx
         return networkx.component.number_connected_components(self._nxg.to_undirected())
@@ -3411,6 +3749,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: L = D.connected_components_subgraphs()
             sage.: graphs_list.show_graphs(L)
+
         """
         cc = self.connected_components()
         list = []
@@ -3426,6 +3765,7 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.connected_component_containing_vertex(0)
             [0, 1, 2, 3]
+
         """
         import networkx
         return networkx.component.node_connected_component(self._nxg.to_undirected(), vertex)
@@ -3447,6 +3787,7 @@ class DiGraph(GenericGraph):
 
         EXAMPLES:
             TODO
+
         """
         if self.multiple_arcs():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -3478,6 +3819,7 @@ class DiGraph(GenericGraph):
 
         EXAMPLES:
             TODO
+
         """
         if self.multiple_arcs():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -3509,6 +3851,7 @@ class DiGraph(GenericGraph):
 
         EXAMPLE:
             TODO
+
         """
         if self.multiple_arcs():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
@@ -3588,6 +3931,7 @@ def enum(graph, quick=False):
         56178607138625465573345383656463935701397275938329921399526324254684498525419117323217491887221387354861371989089284563861938014744765036177184164647909535771592043875566488828479926184925998575521710064024379281086266290501476331004707336065735087197243607743454550839234461575558930808225081956823877550090
         sage: enum(graphs.CubeGraph(6))
         17009933328531023098235951265708015080189260525466600242007791872273951170067729430659625711869482140011822425402311004663919203785115296476561677814427201708237805402966561863692388687547518491537427897858240566495945005294876576523289206747123399572439707189803821880345487300688962557172856432472391025950779306221469432919735886988596366979797317084123956762362685536557279604675024249987913439836592296340787741671304722135394212035449285260308821361913500205796919484488876249630521666898413890977354122918711285458724686283296097840711521153201188450783978019001984591992381570913097193343212274205747843852376395748070926193308573472616983062165141386183945049871456376379041631456999916186868438148001405477879591035696239287238767746380404501285533026300096772164676955425088646172718295360584249310479706751274583871684827338312536787740914529353458829503642591918761588296961192261166874864565050490306157300749101788751129640698534818737753110920871293122429238702542726347017441416450649382146313791818349648006634724962025571237208317435310419071153813687071275479812184286929976456778629116002591936357623320676067640749567446551071011889378108453641887998273235139859889734259803684619153716302058849155208478850
+
     """
     enumeration = 0
     n = graph.order()

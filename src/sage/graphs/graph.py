@@ -4037,8 +4037,10 @@ class DiGraph(GenericGraph):
         entries == elements of {1,2,...,n} (since permutation groups can
         currently only act on positive integers).
 
-        EXAMPLES:
-            TODO
+        EXAMPLE:
+            sage: D = DiGraph( { 0:[1], 1:[2], 2:[3], 3:[4], 4:[0] } )
+            sage: D.automorphism_group()
+            Permutation Group with generators [(1,2,3,4,5)]
 
         """
         if self.multiple_arcs():
@@ -4069,8 +4071,11 @@ class DiGraph(GenericGraph):
             proof -- if True, then output is (a,b), where a is a boolean and b is either a map or
         None.
 
-        EXAMPLES:
-            TODO
+        EXAMPLE:
+            sage: A = DiGraph( { 0 : [1,2] } )
+            sage: B = DiGraph( { 1 : [0,2] } )
+            sage: A.is_isomorphic(B, proof=True)
+            (True, {0: 1, 1: 0, 2: 2})
 
         """
         if self.multiple_arcs():
@@ -4102,7 +4107,20 @@ class DiGraph(GenericGraph):
         partition is given, uses the unit partition.
 
         EXAMPLE:
-            TODO
+            sage: P = graphs.PetersenGraph()
+            sage: DP = P.to_directed()
+            sage: DP.canonical_label().adjacency_matrix()
+            [0 0 0 0 0 0 0 1 1 1]
+            [0 0 0 0 1 0 1 0 1 0]
+            [0 0 0 1 0 0 1 0 0 1]
+            [0 0 1 0 0 1 0 0 1 0]
+            [0 1 0 0 0 1 0 0 0 1]
+            [0 0 0 1 1 0 0 1 0 0]
+            [0 1 1 0 0 0 0 1 0 0]
+            [1 0 0 0 0 1 1 0 0 0]
+            [1 1 0 1 0 0 0 0 0 0]
+            [1 0 1 0 1 0 0 0 0 0]
+
 
         """
         if self.multiple_arcs():

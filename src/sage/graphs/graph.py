@@ -561,10 +561,10 @@ class GenericGraph(SageObject):
         self._nxg.delete_nodes_from(vertices)
 
     def get_boundary(self):
-        return self.__boundary
+        return self._boundary
 
     def set_boundary(self, boundary):
-        self.__boundary = boundary
+        self._boundary = boundary
 
     def vertex_boundary(self, vertices1, vertices2=None):
         """
@@ -1327,6 +1327,208 @@ class GenericGraph(SageObject):
 
         """
         return self.adjacency_matrix()
+
+    def complement(self):
+        """
+        Returns the complement of the (di)graph.
+
+        The complement of a graph has the same vertices, but exactly those
+        edges that are not in the original graph. This is not well defined for
+        graphs with loops or multiple edges.
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: P.plot().save('sage.png')
+            sage: PC = P.complement()
+            sage: PC.plot().save('sage.png')
+
+        """
+        if self.loops():
+            raise TypeError('(Di)Graph complement not well defined for (di)graphs with loops.')
+        if self.is_directed():
+            if self.multiple_arcs():
+                raise TypeError('Digraph complement not well defined for graphs with multiple arcs.')
+            import networkx
+            D = DiGraph(networkx.complement(self._nxg))
+            D._pos = self._pos
+            return D
+        else:
+            if self.multiple_edges():
+                raise TypeError('Graph complement not well defined for graphs with multiple edges.')
+            import networkx
+            G = Graph(networkx.complement(self._nxg))
+            G._pos = self._pos
+            return G
+
+    def disjoint_union(self, other):
+        """
+        Returns the disjoint union of self and other.
+
+        If there are common vertices to both, they will be renamed.
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: D.disjoint_union(P)
+            Graph on 30 vertices
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        repeat = False
+        for u in self.vertices():
+            for v in other.vertices():
+                if u == v:
+                    repeat = True
+                    break
+            if repeat: break
+        if repeat:
+            rename = ('0,','1,')
+        else:
+            rename = False
+        import networkx
+        if self.is_directed():
+            return DiGraph(networkx.union(self._nxg, other._nxg, rename=rename))
+        else:
+            return Graph(networkx.union(self._nxg, other._nxg, rename=rename))
+
+    def union(self, other):
+        """
+        Returns the union of self and other.
+
+        If there are common vertices to both, they will be renamed.
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: D.union(P)
+            Graph on 20 vertices
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            D.add_vertices(self.vertices())
+            D.add_vertices(other.vertices())
+            D.add_arcs(self.arcs())
+            D.add_arcs(other.arcs())
+            return D
+        else:
+            G = Graph()
+            G.add_vertices(self.vertices())
+            G.add_vertices(other.vertices())
+            G.add_edges(self.edges())
+            G.add_edges(other.edges())
+            return G
+
+    def cartesian_product(self, other):
+        """
+        Returns the Cartesian product of self and other.
+
+        The Cartesian product of G and H is the graph L with vertex set
+        V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge (arc) iff either
+            - (u, w) is an edge (arc) of self and v = x, or
+            - (v, x) is an edge (arc) of other and u = w.
+
+        EXAMPLES:
+            sage: Z = graphs.CompleteGraph(2)
+            sage: C = graphs.CycleGraph(5)
+            sage: L = C.cartesian_product(Z); L
+            Graph on 10 vertices
+            sage: L.plot().save('sage.png')
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: C = D.cartesian_product(P); C
+            Graph on 200 vertices
+            sage: C.plot().save('sage.png')
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    D.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if (self.has_arc(u, w) and v == x) or (other.has_arc(v, x) and u == w):
+                        D.add_arc((u,v), (w,x))
+            return D
+        else:
+            G = Graph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    G.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if (self.has_edge(u, w) and v == x) or (other.has_edge(v, x) and u == w):
+                        G.add_edge((u,v), (w,x))
+            return G
+
+    def lexicographic_product(self, other):
+        """
+        Returns the lexicographic product of self and other.
+
+        The lexicographic product of G and H is the graph L with vertex set
+        V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge (arc) iff either
+            - (u, w) is an edge (arc) of self, or
+            - (v, x) is an edge (arc) of other.
+
+        EXAMPLES:
+            sage: Z = graphs.CompleteGraph(2)
+            sage: L = Z.lexicographic_product(Z); L
+            Graph on 4 vertices
+            sage: L.plot().save('sage.png')
+
+            sage: C = graphs.CycleGraph(5)
+            sage: L = C.lexicographic_product(Z); L
+            Graph on 10 vertices
+            sage: L.plot().save('sage.png')
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    D.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_arc(u, w) or other.has_arc(v, x):
+                        D.add_arc((u,v), (w,x))
+            return D
+        else:
+            G = Graph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    G.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_edge(u, w) or other.has_edge(v, x):
+                        G.add_edge((u,v), (w,x))
+            return G
 
     ### Visualization
 

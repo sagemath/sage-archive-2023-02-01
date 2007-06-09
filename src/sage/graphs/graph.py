@@ -1943,8 +1943,8 @@ class Graph(GenericGraph):
             vertices = self.vertices()
             n = len(vertices)
             edges = self.edges(labels=False)
-            for e in edges: # replace edge labels with natural numbers (by index in vertices)
-                e = (vertices.index(e[0]),vertices.index(e[1]))
+            for i in range(len(edges)): # replace edge labels with natural numbers (by index in vertices)
+                edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
             # order edges
             def cmp(x, y):
                 if x[1] < y[1]:

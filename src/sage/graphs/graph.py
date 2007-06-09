@@ -18,6 +18,8 @@ AUTHOR:
         edge and arc label display (in 2d), edge coloring
                         (2007-03-21): Automorphism group, isomorphism check,
         canonical label
+                        (2007-06-07--09): NetworkX function wrapping
+    -- Michael W. Hansen (2007-06-09): Topological sort generation
 
 TUTORIAL:
 
@@ -4134,6 +4136,119 @@ class DiGraph(GenericGraph):
         else:
             a,b = search_tree(self, partition, dig=True)
             return b
+
+    ### Directed Acyclic Graphs (DAGs)
+
+    def is_directed_acyclic(self):
+        """
+        Returns whether the digraph is acyclic or not.
+
+        A directed graph is acyclic if for any vertex v, there is no directed
+        path that starts and ends at v. Every directed acyclic graph (dag)
+        corresponds to a partial ordering of its vertices, however multiple
+        dags may lead to the same partial ordering.
+
+        EXAMPLES:
+            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            sage: D.plot(layout='circular').save('dag.png')
+            sage: D.is_directed_acyclic()
+            True
+
+            sage: D.add_arc(9,7)
+            sage: D.is_directed_acyclic()
+            True
+
+            sage: D.add_arc(7,4)
+            sage: D.is_directed_acyclic()
+            False
+
+        """
+        import networkx
+        return networkx.is_directed_acyclic_graph(self._nxg)
+
+    def topological_sort(self):
+        """
+        Returns a topological sort of the digraph if it is acyclic, and
+        raises a TypeError if the digraph contains a directed cycle.
+
+        A topological sort is an ordering of the vertices of the digraph such
+        that each vertex comes before all of its successors. That is, if u
+        comes before v in the sort, then there may be a directed path from u
+        to v, but there will be no directed path from v to u.
+
+        EXAMPLES:
+            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            sage: D.plot(layout='circular').save('dag.png')
+            sage: D.topological_sort()
+            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
+
+            sage: D.add_arc(9,7)
+            sage: D.topological_sort()
+            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
+
+            sage: D.add_arc(7,4)
+            sage: D.topological_sort()
+            Traceback (most recent call last):
+            ...
+            TypeError: Digraph is not acyclic-- there is no topological sort.
+
+        NOTE:
+        There is a recursive version of this in NetworkX, but it has
+        problems:
+            sage: import networkx
+            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            sage: N = D.networkx_graph()
+            sage: networkx.topological_sort(N)
+            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
+            sage: networkx.topological_sort_recursive(N) is None
+            True
+
+        """
+        import networkx
+        S = networkx.topological_sort(self._nxg)
+        if S is None:
+            raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+        else:
+            return S
+
+    def topological_sort_generator(self):
+        """
+        Returns a list of all topological sorts of the digraph if it is
+        acyclic, and raises a TypeError if the digraph contains a directed
+        cycle.
+
+        A topological sort is an ordering of the vertices of the digraph such
+        that each vertex comes before all of its successors. That is, if u
+        comes before v in the sort, then there may be a directed path from u
+        to v, but there will be no directed path from v to u. See also
+        Graph.topological_sort().
+
+        AUTHORS:
+            Michael W. Hansen -- original implementation
+            Robert L. Miller -- wrapping, documentation
+
+        REFERENCE:
+            [1] Pruesse, Gara and Ruskey, Frank. Generating Linear Extensions
+                Fast. SIAM J. Comput., Vol. 23 (1994), no. 2, pp. 373-386.
+
+        EXAMPLES:
+            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D.plot(layout='circular').save('dag.png')
+            sage: D.topological_sort_generator()
+            [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
+
+            sage: for sort in D.topological_sort_generator():
+            ...       for arc in D.arc_iterator():
+            ...           u,v,l = arc
+            ...           if sort.index(u) > sort.index(v):
+            ...               print "This should never happen."
+
+        """
+        from sage.graphs.linearextensions import linearExtensions
+        try:
+            return linearExtensions(self._nxg)
+        except:
+            raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_color=(1,0,0),

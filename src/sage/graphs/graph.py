@@ -3324,23 +3324,9 @@ class DiGraph(GenericGraph):
             pos3d -- a position dictionary for the vertices
             **kwds -- passed on to the Tachyon command
 
-        NOTE:
-            The weaknesses of the NetworkX spring layout are illustrated even further in the
-            case of digraphs: my guess is that digraphs weren't even considered in the authoring
-            of this algorithm. The following example illustrates this.
-
         EXAMPLE:
-        This is a running example
-
         A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
-
-        If I use an undirected version of my graph, the output is as expected
-            sage: import networkx
-            sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
-            sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
-
-        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
@@ -3365,28 +3351,84 @@ class DiGraph(GenericGraph):
             edge_color -- edge color
             (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
 
-        NOTE:
-            The weaknesses of the NetworkX spring layout are illustrated even further in the
-            case of digraphs: my guess is that digraphs weren't even considered in the authoring
-            of this algorithm. The following example illustrates this.
-
         EXAMPLE:
-        This is a running example
-
         A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
-
-        If I use an undirected version of my graph, the output is as expected
-            sage: import networkx
-            sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
-            sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
-
-        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
-    ### TODO: Connected components?
+    ### Connected components
+
+    def is_connected(self):
+        """
+        Indicates whether the digraph is connected. Note that in a digraph,
+        the direction of the arcs does not effect whether it is connected or
+        not.
+
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 2], 1 : [2], 3 : [4, 5], 4 : [5] } )
+            sage: D.is_connected()
+            False
+            sage: D.add_arc(0,3)
+            sage: D.is_connected()
+            True
+        """
+        import networkx
+        return networkx.component.is_connected(self._nxg.to_undirected())
+
+    def connected_components(self):
+        """
+        Returns a list of lists of vertices, each list representing a
+        connected component. The list is ordered from largest to smallest
+        component.
+
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: D.connected_components()
+            [[0, 1, 2, 3], [4, 5, 6]]
+        """
+        import networkx
+        return networkx.component.connected_components(self._nxg.to_undirected())
+
+    def connected_components_number(self):
+        """
+        Returns the number of connected components.
+
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: D.connected_components_number()
+            2
+        """
+        import networkx
+        return networkx.component.number_connected_components(self._nxg.to_undirected())
+
+    def connected_components_subgraphs(self):
+        """
+        Returns a list of connected components as graph objects.
+
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: L = D.connected_components_subgraphs()
+            sage.: graphs_list.show_graphs(L)
+        """
+        cc = self.connected_components()
+        list = []
+        for c in cc:
+            list.append(self.subgraph(c, inplace=False))
+        return list
+
+    def connected_component_containing_vertex(self, vertex):
+        """
+        Returns a list of the vertices connected to vertex.
+
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: D.connected_component_containing_vertex(0)
+            [0, 1, 2, 3]
+        """
+        import networkx
+        return networkx.component.node_connected_component(self._nxg.to_undirected(), vertex)
 
     ### Automorphism and isomorphism
 

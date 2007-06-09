@@ -1193,10 +1193,7 @@ class Graph(GenericGraph):
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
             k = int(ceil(log(n,2)))
-            l = [graph_fast.binary(ord(i)-63) for i in s]
-            for i in range(len(l)):
-                l[i] = '0'* (6-len(l[i])) + l[i]
-            bits = ''.join(l)
+            bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
             b = []
             x = []
             for i in range(int(floor(len(bits)/(k+1)))):
@@ -3214,8 +3211,7 @@ class DiGraph(GenericGraph):
         n = len(self._nxg.adj)
         verts = self.vertices()
         D = {}
-        for e in self.arc_iterator():
-            i,j,l = e
+        for i,j,l in self.arc_iterator():
             i = verts.index(i)
             j = verts.index(j)
             D[(i,j)] = 1

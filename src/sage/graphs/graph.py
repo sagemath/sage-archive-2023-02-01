@@ -1435,9 +1435,9 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
             sage: C = graphs.CycleGraph(5)
-            sage: L = C.cartesian_product(Z); L
+            sage: P = C.cartesian_product(Z); P
             Graph on 10 vertices
-            sage: L.plot().save('sage.png')
+            sage: P.plot().save('sage.png')
 
             sage: D = graphs.DodecahedralGraph()
             sage: P = graphs.PetersenGraph()
@@ -1477,11 +1477,183 @@ class GenericGraph(SageObject):
                         G.add_edge((u,v), (w,x))
             return G
 
+    def tensor_product(self, other):
+        """
+        Returns the tensor product of self and other.
+
+        The tensor product of G and H is the graph L with vertex set
+        V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge (arc) iff
+            - (u, w) is an edge (arc) of self, and
+            - (v, x) is an edge (arc) of other.
+
+        EXAMPLES:
+            sage: Z = graphs.CompleteGraph(2)
+            sage: C = graphs.CycleGraph(5)
+            sage: T = C.tensor_product(Z); T
+            Graph on 10 vertices
+            sage: T.plot().save('sage.png')
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: T = D.tensor_product(P); T
+            Graph on 200 vertices
+            sage: T.plot().save('sage.png')
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    D.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_arc(u, w) and other.has_arc(v, x):
+                        D.add_arc((u,v), (w,x))
+            return D
+        else:
+            G = Graph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    G.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_edge(u, w) and other.has_edge(v, x):
+                        G.add_edge((u,v), (w,x))
+            return G
+
     def lexicographic_product(self, other):
         """
         Returns the lexicographic product of self and other.
 
         The lexicographic product of G and H is the graph L with vertex set
+        V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge (arc) iff
+            - (u, w) is an edge (arc) of self, or
+            - u = w and (v, x) is an edge (arc) of other.
+
+        EXAMPLES:
+            sage: Z = graphs.CompleteGraph(2)
+            sage: C = graphs.CycleGraph(5)
+            sage: L = C.lexicographic_product(Z); L
+            Graph on 10 vertices
+            sage: L.plot().save('sage.png')
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: L = D.lexicographic_product(P); L
+            Graph on 200 vertices
+            sage: L.plot().save('sage.png')
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    D.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_arc(u, w) or (u == w and other.has_arc(v, x)):
+                        D.add_arc((u,v), (w,x))
+            return D
+        else:
+            G = Graph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    G.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if self.has_edge(u, w) or (u == w and other.has_edge(v, x)):
+                        G.add_edge((u,v), (w,x))
+            return G
+
+    def strong_product(self, other):
+        """
+        Returns the strong product of self and other.
+
+        The strong product of G and H is the graph L with vertex set
+        V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge (arc) iff either
+            - (u, w) is an edge (arc) of self and v = x, or
+            - (v, x) is an edge (arc) of other and u = w, or
+            - (u, w) is an edge (arc) of self and (v, x) is an edge (arc) of
+        other.
+
+
+        EXAMPLES:
+            sage: Z = graphs.CompleteGraph(2)
+            sage: C = graphs.CycleGraph(5)
+            sage: S = C.strong_product(Z); S
+            Graph on 10 vertices
+            sage: S.plot().save('sage.png')
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: P = graphs.PetersenGraph()
+            sage: S = D.strong_product(P); S
+            Graph on 200 vertices
+            sage: S.plot().save('sage.png')
+
+        """
+        if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
+            raise TypeError('Both arguments must be of the same class.')
+        if self.is_directed():
+            D = DiGraph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    D.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if (self.has_arc(u, w) and v == x) or\
+                       (other.has_arc(v, x) and u == w) or\
+                       (self.has_arc(u, w) and other.has_arc(v, x)):
+                        D.add_arc((u,v), (w,x))
+            return D
+        else:
+            G = Graph()
+            verts = []
+            for a in self.vertices():
+                for b in other.vertices():
+                    G.add_vertex((a,b))
+                    verts.append((a,b))
+            for i in range(len(verts)):
+                for j in range(i):
+                    u,v = verts[i]
+                    w,x = verts[j]
+                    if (self.has_edge(u, w) and v == x) or\
+                       (other.has_edge(v, x) and u == w) or\
+                       (self.has_edge(u, w) and other.has_edge(v, x)):
+                        G.add_edge((u,v), (w,x))
+            return G
+
+    def disjunctive_product(self, other):
+        """
+        Returns the disjunctive product of self and other.
+
+        The disjunctive product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
         ((u,v), (w,x)) is an edge (arc) iff either
             - (u, w) is an edge (arc) of self, or
@@ -1489,14 +1661,14 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
-            sage: L = Z.lexicographic_product(Z); L
+            sage: D = Z.disjunctive_product(Z); D
             Graph on 4 vertices
             sage: L.plot().save('sage.png')
 
             sage: C = graphs.CycleGraph(5)
-            sage: L = C.lexicographic_product(Z); L
+            sage: D = C.disjunctive_product(Z); D
             Graph on 10 vertices
-            sage: L.plot().save('sage.png')
+            sage: D.plot().save('sage.png')
 
         """
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):

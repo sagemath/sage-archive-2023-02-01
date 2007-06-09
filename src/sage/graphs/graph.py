@@ -853,23 +853,6 @@ class GenericGraph(SageObject):
 
     ### Distance
 
-    def single_source_shortest_path_length(self, source, cutoff=None):
-        """
-        Returns a dictionary of shortest path lengths keyed by target.
-
-        INPUT:
-            source -- the originating vertex.
-            cutoff -- optional integer depth to stop the search.
-
-        EXAMPLE:
-            sage: G = graphs.CubeGraph(4)
-            sage: G.single_source_shortest_path_length('0000')
-            {'0110': 2, '0111': 3, '0000': 0, '0001': 1, '0011': 2, '0010': 1, '0101': 2, '0100': 1, '1111': 4, '1110': 3, '1100': 2, '1101': 3, '1010': 2, '1011': 3, '1001': 2, '1000': 1}
-
-        """
-        import networkx
-        return networkx.distance.single_source_shortest_path_length(self._nxg, source, cutoff)
-
     def distance(self, u, v):
         """
         Returns the (directed) distance from u to v in the (di)graph, i.e. the
@@ -888,11 +871,7 @@ class GenericGraph(SageObject):
             +Infinity
 
         """
-        try:
-            return self.single_source_shortest_path_length(u)[v]
-        except:
-            from sage.rings.infinity import Infinity
-            return Infinity
+        return self.shortest_path_length(u, v)
 
     def eccentricity(self, v=None, dist_dict=None, with_labels=False):
         """
@@ -932,7 +911,7 @@ class GenericGraph(SageObject):
         """
         import networkx
         try:
-            return networkx.distance.eccentricity(self._nxg, v, dist_dict, with_labels)
+            return networkx.eccentricity(self._nxg, v, dist_dict, with_labels)
         except:
             from sage.rings.infinity import Infinity
             e = {}
@@ -1064,6 +1043,233 @@ class GenericGraph(SageObject):
         except:
             return []
         return [v for v in e if e[v]==r]
+
+    ### Paths
+
+    def shortest_path(self, u, v, by_weight=False, bidirectional=True):
+        """
+        Returns a list of vertices representing some shortest path from u to
+        v: if there is no path from u to v, the list is empty.
+
+        INPUT:
+            by_weight -- if False, uses a breadth first search. If True, takes
+        edge weightings into account, using Dijkstra's algorithm.
+            bidirectional -- if True, the algorithm will expand vertices from
+        u and v at the same time, making two spheres of half the usual radius.
+        This generally doubles the speed (consider the total volume in each
+        case).
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.shortest_path(4, 9)
+            [4, 17, 16, 12, 13, 9]
+            sage: D.shortest_path(5, 5)
+            [5]
+            sage: D.delete_vertices([9,12,14])
+            sage: D.shortest_path(13, 4)
+            []
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.plot(edge_labels=True).save('sage.png')
+            sage: G.shortest_path(0, 3)
+            [0, 4, 3]
+            sage: G.shortest_path(0, 3, by_weight=True)
+            [0, 1, 2, 3]
+
+        """ #         TODO- multiple edges??
+        if u == v: # to avoid a NetworkX bug
+            return [u]
+        import networkx
+        if by_weight:
+            if bidirectional:
+                try:
+                    L = networkx.bidirectional_dijkstra(self._nxg, u, v)[1]
+                except:
+                    L = False
+            else:
+                L = networkx.dijkstra_path(self._nxg, u, v)
+        else:
+            if bidirectional:
+                L = networkx.shortest_path(self._nxg, u, v)
+            else:
+                try:
+                    L = networkx.single_source_shortest_path(self._nxg, u)[v]
+                except:
+                    L = False
+        if L:
+            return L
+        else:
+            return []
+
+    def shortest_path_length(self, u, v, by_weight=False,
+                                         bidirectional=True,
+                                         weight_sum=None):
+        """
+        Returns the minimal length of paths from u to v: if there is no path
+        from u to v, returns Infinity.
+
+        INPUT:
+            by_weight -- if False, uses a breadth first search. If True, takes
+        edge weightings into account, using Dijkstra's algorithm.
+            bidirectional -- if True, the algorithm will expand vertices from
+        u and v at the same time, making two spheres of half the usual radius.
+        This generally doubles the speed (consider the total volume in each
+        case).
+            weight_sum -- if False, returns the number of edges in the path.
+        If True, returns the sum of the weights of these edges. Default
+        behavior is to have the same value as by_weight.
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.shortest_path_length(4, 9)
+            5
+            sage: D.shortest_path_length(5, 5)
+            0
+            sage: D.delete_vertices([9,12,14])
+            sage: D.shortest_path_length(13, 4)
+            +Infinity
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.plot(edge_labels=True).save('sage.png')
+            sage: G.shortest_path_length(0, 3)
+            2
+            sage: G.shortest_path_length(0, 3, by_weight=True)
+            3
+
+        """
+        if weight_sum is None:
+            weight_sum = by_weight
+        path = self.shortest_path(u, v, by_weight, bidirectional)
+        length = len(path) - 1
+        if length == -1:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        if weight_sum:
+            wt = 0
+            for j in range(length):
+                wt += self.edge_label(path[j], path[j+1])
+            return wt
+        else:
+            return length
+
+    def shortest_paths(self, u, by_weight=False, cutoff=None):
+        """
+        Returns a dictionary d of shortest paths d[v] from u to v, for each
+        vertex v connected by a path from u.
+
+        INPUT:
+            by_weight -- if False, uses a breadth first search. If True, uses
+        Dijkstra's algorithm to find the shortest paths by weight.
+            cutoff -- integer depth to stop search. Ignored if by_weight is
+        True.
+
+        EXAMPLES:
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.shortest_paths(0)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 4: [0, 19, 3, 4], 5: [0, 19, 3, 4, 5], 6: [0, 1, 2, 6], 7: [0, 1, 8, 7], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 12: [0, 10, 11, 12], 13: [0, 10, 9, 13], 14: [0, 1, 8, 7, 14], 15: [0, 10, 11, 12, 16, 15], 16: [0, 10, 11, 12, 16], 17: [0, 19, 18, 17], 18: [0, 19, 18], 19: [0, 19]}
+            sage: D.shortest_paths(0, cutoff=2)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.plot(edge_labels=True).save('sage.png')
+            sage: G.shortest_paths(0, by_weight=True)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
+
+        """
+        import networkx
+        if by_weight:
+            return networkx.single_source_dijkstra_path(self._nxg, u)
+        else:
+            return networkx.single_source_shortest_path(self._nxg, u, cutoff)
+
+    def shortest_path_lengths(self, u, by_weight=False, weight_sums=None):
+        """
+        Returns a dictionary of shortest path lengths keyed by targets that
+        are connected by a path from u.
+
+        INPUT:
+            by_weight -- if False, uses a breadth first search. If True, takes
+        edge weightings into account, using Dijkstra's algorithm.
+            weight_sums -- if False, returns the number of edges in each path.
+        If True, returns the sum of the weights of these edges. Default
+        behavior is to have the same value as by_weight.
+
+        EXAMPLES:
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.shortest_path_lengths(0)
+            {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.plot(edge_labels=True).save('sage.png')
+            sage: G.shortest_path_lengths(0, by_weight=True)
+            {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
+
+        """
+        if weight_sums is None:
+            weight_sums = by_weight
+        paths = self.shortest_paths(u, by_weight)
+        if weight_sums:
+            weights = {}
+            for v in paths:
+                wt = 0
+                path = paths[v]
+                for j in range(len(path) - 1):
+                    wt += self.edge_label(path[j], path[j+1])
+                weights[v] = wt
+            return weights
+        else:
+            lengths = {}
+            for v in paths:
+                lengths[v] = len(paths[v]) - 1
+            return lengths
+
+    def shortest_path_all_pairs(self):
+        """
+        Uses the Floyd-Warshall algorithm to find a shortest path for each
+        pair of vertices.
+
+        OUTPUT:
+            A tuple (dist, pred). They are both dicts of dicts. The first
+        indicates the length dist[u][v] of the shortest weighted path from u
+        to v. The second is more complicated-- it indicates the predecessor
+        pred[u][v] of v in the shortest path from u to v.
+
+        EXAMPLE:
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.plot(edge_labels=True).save('sage.png')
+            sage: dist, pred = G.shortest_path_all_pairs()
+            sage: dist
+            {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}, 1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3}, 2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3}, 3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2}, 4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
+            sage: pred
+            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0}, 1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0}, 2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3}, 3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3}, 4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}}
+            sage: pred[0]
+            {0: None, 1: 0, 2: 1, 3: 2, 4: 0}
+
+        So for example the shortest weighted path from 0 to 3 is obtained as
+        follows. The predecessor of 3 is pred[0][3] == 2, the predecessor of 2
+        is pred[0][2] == 1, and the predecessor of 1 is pred[0][1] == 0.
+        """
+        from sage.rings.infinity import Infinity
+        dist = {}
+        pred = {}
+        adj = self._nxg.adj
+        verts = self.vertices()
+        for u in verts:
+            dist[u] = {}
+            pred[u] = {}
+            for v in verts:
+                if adj[u].has_key(v):
+                    dist[u][v] = adj[u][v]
+                    pred[u][v] = u
+                else:
+                    dist[u][v] = Infinity
+                    pred[u][v] = None
+            dist[u][u] = 0
+
+        for w in verts:
+            for u in verts:
+                for v in verts:
+                    if dist[u][v] > dist[u][w] + dist[w][v]:
+                        dist[u][v] = dist[u][w] + dist[w][v]
+                        pred[u][v] = pred[w][v]
+
+        return dist, pred
 
     ### Constructors
 

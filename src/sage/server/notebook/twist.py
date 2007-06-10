@@ -1,6 +1,8 @@
 """
 SAGE Notebook (Twisted Version)
 """
+import os
+
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 
@@ -47,6 +49,89 @@ def notebook_save_check():
 ######################################################################################
 # RESOURCES
 ######################################################################################
+
+############################
+# Create a SAGE worksheet from a latex2html'd file
+############################
+from docHTMLProcessor import DocHTMLProcessor
+
+def doc_worksheet():
+    wnames = notebook.worksheet_names()
+    name = 'doc_browser_0'
+    if name in wnames:
+        W = notebook.get_worksheet_with_name(name)
+        W.restart_sage()
+        W.clear()
+        return W
+    else:
+        return notebook.create_new_worksheet(name)
+
+
+class WorksheetFile(resource.Resource):
+
+    def __init__(self, path):
+        self.docpath = path
+
+    def render(self, ctx):
+        # Create a live SAGE worksheet out of self.path and render it.
+        print "now rendering a worksheet file: %s"%self.docpath
+        doc_page_html = open(self.docpath).read()
+        directory = os.path.split(self.docpath)[0]
+        doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
+                               directory, doc_page_html)
+        if css_href:
+            css_href = DOC + directory + css_href
+        W = doc_worksheet()
+        W.edit_save(doc_page)
+        s = notebook.html(worksheet_id = W.name())
+        return http.Response(stream=s)
+
+    def childFactory(self, request, name):
+        path = self.docpath + '/' + name
+        print path
+        if name.endswith('.html'):
+            print "serving worksheet:", path
+            return WorksheetFile(path)
+        else:
+            print "serving static file:", path
+            return static.File(path)
+
+############################
+# The documentation browsers
+############################
+
+DOC = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
+class DocStatic(resource.Resource):
+    addSlash = True
+    def render(self, ctx):
+        return static.File('%s/index.html'%DOC)
+
+    def childFactory(self, request, name):
+        return static.File('%s/%s'%(DOC,name))
+
+class DocLive(resource.Resource):
+    def render(self, ctx):
+        return static.File('%s/index.html'%DOC)
+
+    def childFactory(self, request, name):
+        return WorksheetFile('%s/%s'%(DOC,name))
+
+class Doc(resource.Resource):
+    addSlash = True
+    child_static = DocStatic()
+    child_live = DocLive()
+
+    def render(self, ctx):
+        s = """
+        <h1><font color="darkred">SAGE Documentation</font></h1>
+        <br><br><br>
+        <font size=+3>
+        <a href="static">Static Documentation</a><br><br>
+        <a href="live">Interactive Live Documentation</a><br>
+        </font>
+        """
+        return http.Response(stream=s)
+
 
 ############################
 # A resource attached to a given worksheet
@@ -394,6 +479,7 @@ class Toplevel(resource.Resource):
     child_css = CSS()
     child_ws = Worksheets()
     child_notebook = Notebook()
+    child_doc = Doc()
 
     def render(self, ctx):
         s = notebook.html()

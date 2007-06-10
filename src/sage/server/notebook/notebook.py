@@ -1003,7 +1003,7 @@ class Notebook(SageObject):
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
+        body += '    <a href="/doc">Documentation</a>' + vbar
         body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 

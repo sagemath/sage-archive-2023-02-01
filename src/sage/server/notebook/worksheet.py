@@ -93,13 +93,13 @@ class Worksheet:
         dir = list(name)
         for i in range(len(dir)):
             if not dir[i].isalnum() and dir[i] != '_':
-                dir[i]='_'
+                dir[i] = '_'
         dir = ''.join(dir)
         self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
-        #while os.path.exists(self.__dir):
-        #    self.__dir += "_"
-        #    self.__filename += '_'
+        self.clear()
+
+    def clear(self):
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
@@ -196,7 +196,7 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
-    def edit_save(self,text):
+    def edit_save(self, text):
         text.replace('\r\n','\n')
         # This is where we would save the last version in a history.
         cells = []
@@ -1251,7 +1251,7 @@ class Worksheet:
             menu += '  </span>'
 
             s += '<div class="worksheet_title">'
-            s += ' Worksheet: %s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
+            s += '%s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
 
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']

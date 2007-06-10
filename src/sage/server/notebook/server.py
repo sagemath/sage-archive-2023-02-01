@@ -547,7 +547,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         If no doc-browser has been opened/created, one is started.
         The doc-browser is an instance of a special worksheet; each
         page of documentation requested is formated into a worksheet
-        which replaces the doc-browsers previous worksheet.
+        which replaces the doc-browser's previous worksheet.
         """
         path_split = path.split('?')
         full_path = path_split[1]

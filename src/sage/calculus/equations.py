@@ -278,6 +278,16 @@ def assume(*args):
         sage: forget()
         sage: bool(sqrt(x^2) == x)
         False
+
+    An integer constraint (todo: this needs to be made possible with
+    just the assume command!):
+        sage: from sage.calculus.calculus import maxima as calcmaxima
+        sage: calcmaxima.eval('declare(n,integer)')
+        sage: var('r2')
+        sage: c = P*e^(r*n)
+        sage: d = P*(1+r2)^n
+        sage: solve(c==d,r2)
+        [r2 == (e^r - 1)]
     """
     for x in args:
         if isinstance(x, (tuple, list)):

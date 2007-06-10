@@ -459,12 +459,12 @@ sage: f - g*h
 O(x^8)
 
 sage: # (YES) Taylor expansion of Ln(x)^a*Exp(-b*x) at x=1.
-sage: taylor(log(x)^a * exp(-b*x), x, 1, 3)
-(x - 1)^a/e^b - (((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b)) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - (((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b))
+E = EllipticCurve([1,2,3/4,7,19]); E
+(x - 1)^a/e^b - ((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - ((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b)
 
 sage: # (YES) Taylor expansion of Ln(Sin(x)/x) at x=0.
 sage: taylor(log(sin(x)/x), x, 0, 10)
--x^2/6 - (x^4/180) - (x^6/2835) - (x^8/37800) - (x^10/467775)
+-x^2/6 - x^4/180 - x^6/2835 - x^8/37800 - x^10/467775
 
 sage: # (NO) Compute n-th term of the Taylor series of Ln(Sin(x)/x) at x=0.
 sage: # need formal functions

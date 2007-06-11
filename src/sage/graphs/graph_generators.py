@@ -45,24 +45,31 @@ ORGANIZATION:
             - ClawGraph
             - CycleGraph
             - DiamondGraph
-            - DodecahedralGraph
             - EmptyGraph
             - Grid2dGraph
+            - GridGraph
             - HouseGraph
             - HouseXGraph
             - KrackhardtKiteGraph
             - LadderGraph
             - LollipopGraph
-            - OctahedralGraph
             - PathGraph
             - StarGraph
-            - TetrahedralGraph
             - WheelGraph
+        Platonic Solids:
+            - TetrahedralGraph
+            - HexahedralGraph
+            - OctahedralGraph
+            - IcosahedralGraph
+            - DodecahedralGraph
         Named Graphs:
+            - ChvatalGraph
+            - DesarguesGraph
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
             - MoebiusKantorGraph
+            - Pappus Graph
             - PetersenGraph
             - ThomsenGraph
         Families of Graphs:
@@ -71,6 +78,10 @@ ORGANIZATION:
             - CubeGraph
             - RandomGNP
             - RandomGNPFast
+            - BalancedTree
+            - LCFGraph
+        Pseudofractal Graphs:
+            - DorogovtsevGoltsevMendesGraph
     \end{verbatim}
 
 AUTHORS:
@@ -94,7 +105,6 @@ AUTHORS:
 ################################################################################
 
 import graph
-
 from   math import sin, cos, pi
 
 class GraphGenerators():
@@ -115,30 +125,37 @@ class GraphGenerators():
     The constructors currently in this class include:
     \begin{verbatim}
         Basic Structures:
-             - BarbellGraph
-             - BullGraph
-             - CircularLadderGraph
-             - ClawGraph
-             - CycleGraph
-             - DiamondGraph
-             - DodecahedralGraph
-             - EmptyGraph
-             - Grid2dGraph
-             - HouseGraph
-             - HouseXGraph
-             - KrackhardtKiteGraph
-             - LadderGraph
-             - LollipopGraph
-             - OctahedralGraph
-             - PathGraph
-             - StarGraph
-             - TetrahedralGraph
-             - WheelGraph
+            - BarbellGraph
+            - BullGraph
+            - CircularLadderGraph
+            - ClawGraph
+            - CycleGraph
+            - DiamondGraph
+            - EmptyGraph
+            - Grid2dGraph
+            - GridGraph
+            - HouseGraph
+            - HouseXGraph
+            - KrackhardtKiteGraph
+            - LadderGraph
+            - LollipopGraph
+            - PathGraph
+            - StarGraph
+            - WheelGraph
+        Platonic Solids:
+            - TetrahedralGraph
+            - HexahedralGraph
+            - OctahedralGraph
+            - IcosahedralGraph
+            - DodecahedralGraph
         Named Graphs:
+            - ChvatalGraph
+            - DesarguesGraph
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
             - MoebiusKantorGraph
+            - Pappus Graph
             - PetersenGraph
             - ThomsenGraph
         Families of Graphs:
@@ -147,6 +164,10 @@ class GraphGenerators():
             - CubeGraph
             - RandomGNP
             - RandomGNPFast
+            - BalancedTree
+            - LCFGraph
+        Pseudofractal Graphs:
+            - DorogovtsevGoltsevMendesGraph
     \end{verbatim}
     """
 
@@ -428,47 +449,6 @@ class GraphGenerators():
         G = networkx.diamond_graph()
         return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
 
-    def DodecahedralGraph(self):
-        """
-        Returns a Dodecahedral graph (with 20 nodes)
-
-        The dodecahedral graph is cubic symmetric, so the spring-layout
-        algorithm will be very effective for display.
-
-        PLOTTING:
-        The Dodecahedral graph should be viewed in 3 dimensions.  We
-        chose to use the default spring-layout algorithm here, so that
-        multiple iterations might yield a different point of reference for
-        the user.  We hope to add rotatable, 3-dimensional viewing in
-        the future.  In such a case, a string argument will be added to select
-        the flat spring-layout over a future implementation.
-
-        EXAMPLES:
-        Construct and show a Dodecahdedral graph
-            sage: g = graphs.DodecahedralGraph()
-            sage.: g.show()
-
-        Create several dodecahedral graphs in a SAGE graphics array
-        They will be drawn differently due to the use of the spring-layout algorithm
-            sage: g = []
-            sage: j = []
-            sage: for i in range(9):
-            ...    k = graphs.DodecahedralGraph()
-            ...    g.append(k)
-            ...
-            sage: for i in range(3):
-            ...    n = []
-            ...    for m in range(3):
-            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
-            ...    j.append(n)
-            ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
-        """
-        import networkx
-        G = networkx.dodecahedral_graph()
-        return graph.Graph(G, name="Dodecahedron")
-
     def EmptyGraph(self):
         """
         Returns an empty graph (0 nodes and 0 edges).
@@ -533,6 +513,34 @@ class GraphGenerators():
         import networkx
         G = networkx.grid_2d_graph(n1,n2)
         return graph.Graph(G, pos=pos_dict, name="2D Grid Graph")
+
+    def GridGraph(self, dim_list):
+        """
+        Returns an n-dimensional grid graph.
+
+        INPUT:
+            dim_list -- a list of integers representing the number of nodes to
+        extend in each dimension.
+
+        PLOTTING:
+        When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
+
+        EXAMPLES:
+            sage: G = graphs.GridGraph([2,3,4])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+            sage: C = graphs.CubeGraph(4)
+            sage: G = graphs.GridGraph([2,2,2,2])
+            sage: C.plot().save('sage.png')  # or C.show()
+            sage: G.plot().save('sage.png')  # or G.show()
+
+
+        """
+        import networkx
+        dim = [int(a) for a in dim_list]
+        G = networkx.grid_graph(dim)
+        return graph.Graph(G, name="Grid Graph for %s"%dim)
 
     def HouseGraph(self):
         """
@@ -735,48 +743,6 @@ class GraphGenerators():
         G = networkx.lollipop_graph(n1,n2)
         return graph.Graph(G, pos=pos_dict, name="Lollipop Graph")
 
-    def OctahedralGraph(self):
-        """
-        Returns an Octahedral graph (with 6 nodes).
-
-        The Octahedral graph is the line graph of the Tetrahedral.  The
-        octahedral is symmetric, so the spring-layout algorithm will be
-        very effective for display.
-
-        PLOTTING:
-        The Octahedral graph should be viewed in 3 dimensions.  We
-        chose to use the default spring-layout algorithm here, so that
-        multiple iterations might yield a different point of reference for
-        the user.  We hope to add rotatable, 3-dimensional viewing in
-        the future.  In such a case, a string argument will be added to select
-        the flat spring-layout over a future implementation.
-
-        EXAMPLES:
-        Construct and show an Octahedral graph
-            sage: g = graphs.OctahedralGraph()
-            sage.: g.show()
-
-        Create several octahedral graphs in a SAGE graphics array
-        They will be drawn differently due to the use of the spring-layout algorithm
-            sage: g = []
-            sage: j = []
-            sage: for i in range(9):
-            ...    k = graphs.OctahedralGraph()
-            ...    g.append(k)
-            ...
-            sage: for i in range(3):
-            ...    n = []
-            ...    for m in range(3):
-            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
-            ...    j.append(n)
-            ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
-        """
-        import networkx
-        G = networkx.octahedral_graph()
-        return graph.Graph(G, name="Octahedral")
-
     def PathGraph(self, n, pos=None):
         """
         Returns a path graph with n nodes.
@@ -945,57 +911,6 @@ class GraphGenerators():
         G = networkx.star_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Star graph")
 
-    def TetrahedralGraph(self):
-        """
-        Returns a Tetrahedral graph (with 4 nodes).
-
-        A tetrahedron is a 4-sided triangular pyramid.  This graph is equivalent
-        to a Wheel graph with 4 nodes and also a Complete graph on four nodes.
-        (See examples below).
-
-        This constructor depends on NetworkX numeric labeling
-
-        PLOTTING:
-        Upon construction, the position dictionary is filled to override
-        the spring-layout algorithm.  By convention, the graph is drawn
-        with the first node at the vertical top (i.e.: positive z-axis), the
-        second node in the bottom left (i.e.: positive x-axis), the third node
-        in the center (i.e.: origin), and the fourth node on the right (i.e.:
-        positive y-axis).  The references to axes are by the right-handed
-        Cartesian coordinate system and are meant only to describe the
-        appearance.  The position dictionary is actually filled with only
-        (x,y) pairs.
-
-        EXAMPLES:
-        Construct and show a Tetrahedral graph
-            sage: g = graphs.TetrahedralGraph()
-            sage: g.save('sage.png')
-
-        The following example requires networkx:
-            sage: import networkx as NX
-
-        Compare this Tetrahedral, Wheel(4), Complete(4), and the
-        Tetrahedral plotted with the spring-layout algorithm below
-        in a SAGE graphics array:
-            sage: tetra_pos = graphs.TetrahedralGraph()
-            sage: tetra_spring = Graph(NX.tetrahedral_graph())
-            sage: wheel = graphs.WheelGraph(4)
-            sage: complete = graphs.CompleteGraph(4)
-            sage: g = [tetra_pos, tetra_spring, wheel, complete]
-            sage: j = []
-            sage: for i in range(2):
-            ...    n = []
-            ...    for m in range(2):
-            ...        n.append(g[i + m].plot(node_size=50, vertex_labels=False))
-            ...    j.append(n)
-            sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.save('sage.png')
-        """
-        pos_dict = {0:[0,1],1:[-.71,-.71],2:[0,0],3:[1.3,0]}
-        import networkx
-        G = networkx.tetrahedral_graph()
-        return graph.Graph(G, pos=pos_dict, name="Tetrahedral")
-
     def WheelGraph(self, n):
         """
         Returns a Wheel graph with n nodes.
@@ -1069,8 +984,285 @@ class GraphGenerators():
         return graph.Graph(G, pos=pos_dict, name="Wheel graph")
 
 ################################################################################
+#   Platonic Solids
+################################################################################
+
+    def TetrahedralGraph(self):
+        """
+        Returns a tetrahedral graph (with 4 nodes).
+
+        A tetrahedron is a 4-sided triangular pyramid. The tetrahedral graph
+        corresponds to the connectivity of the vertices of the tetrahedron.
+        This graph is equivalent to a wheel graph with 4 nodes and also a
+        complete graph on four nodes. (See examples below).
+
+        This constructor depends on NetworkX numeric labeling.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override
+        the spring-layout algorithm.  By convention, the graph is drawn
+        with the first node at the vertical top (i.e.: positive z-axis), the
+        second node in the bottom left (i.e.: positive x-axis), the third node
+        in the center (i.e.: origin), and the fourth node on the right (i.e.:
+        positive y-axis).  The references to axes are by the right-handed
+        Cartesian coordinate system and are meant only to describe the
+        appearance.  The position dictionary is actually filled with only
+        (x,y) pairs.
+
+        EXAMPLES:
+        Construct and show a Tetrahedral graph
+            sage: g = graphs.TetrahedralGraph()
+            sage: g.save('sage.png')
+
+        The following example requires networkx:
+            sage: import networkx as NX
+
+        Compare this Tetrahedral, Wheel(4), Complete(4), and the
+        Tetrahedral plotted with the spring-layout algorithm below
+        in a SAGE graphics array:
+            sage: tetra_pos = graphs.TetrahedralGraph()
+            sage: tetra_spring = Graph(NX.tetrahedral_graph())
+            sage: wheel = graphs.WheelGraph(4)
+            sage: complete = graphs.CompleteGraph(4)
+            sage: g = [tetra_pos, tetra_spring, wheel, complete]
+            sage: j = []
+            sage: for i in range(2):
+            ...    n = []
+            ...    for m in range(2):
+            ...        n.append(g[i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G.save('sage.png')
+        """
+        pos_dict = {0:[0,1],1:[-.71,-.71],2:[0,0],3:[1.3,0]}
+        import networkx
+        G = networkx.tetrahedral_graph()
+        return graph.Graph(G, pos=pos_dict, name="Tetrahedron")
+
+    def HexahedralGraph(self):
+        """
+        Returns a hexahedral graph (with 8 nodes).
+
+        A regular hexahedron is a 6-sided cube. The hexahedral graph
+        corresponds to the connectivity of the vertices of the hexahedron.
+        This graph is equivalent to a 3-cube.
+
+        PLOTTING:
+        The hexahedral graph should be viewed in 3 dimensions.  We
+        chose to use the default spring-layout algorithm here, so that
+        multiple iterations might yield a different point of reference for
+        the user.  We hope to add rotatable, 3-dimensional viewing in
+        the future.  In such a case, a string argument will be added to select
+        the flat spring-layout over a future implementation.
+
+        EXAMPLES:
+        Construct and show a Hexahedral graph
+            sage: g = graphs.HexahedralGraph()
+            sage: g.save('sage.png')
+
+        Create several hexahedral graphs in a SAGE graphics array. They will
+        be drawn differently due to the use of the spring-layout algorithm.
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.HexahedralGraph()
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+        """
+        return graph.Graph({0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7],\
+                            5:[6], 6:[7]}, name="Hexahedron")
+
+    def OctahedralGraph(self):
+        """
+        Returns an Octahedral graph (with 6 nodes).
+
+        The regular octahedron is an 8-sided polyhedron with triangular faces.
+        The octahedral graph corresponds to the connectivity of the vertices
+        of the octahedron. It is the line graph of the tetrahedral graph. The
+        octahedral is symmetric, so the spring-layout algorithm will be very
+        effective for display.
+
+        PLOTTING:
+        The Octahedral graph should be viewed in 3 dimensions.  We
+        chose to use the default spring-layout algorithm here, so that
+        multiple iterations might yield a different point of reference for
+        the user.  We hope to add rotatable, 3-dimensional viewing in
+        the future.  In such a case, a string argument will be added to select
+        the flat spring-layout over a future implementation.
+
+        EXAMPLES:
+        Construct and show an Octahedral graph
+            sage: g = graphs.OctahedralGraph()
+            sage.: g.show()
+
+        Create several octahedral graphs in a SAGE graphics array
+        They will be drawn differently due to the use of the spring-layout algorithm
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.OctahedralGraph()
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+        """
+        import networkx
+        G = networkx.octahedral_graph()
+        return graph.Graph(G, name="Octahedron")
+
+    def IcosahedralGraph(self):
+        """
+        Returns an Icosahedral graph (with 12 nodes).
+
+        The regular icosahedron is a 20-sided triangular polyhedron. The
+        icosahedral graph corresponds to the connectivity of the vertices of
+        the icosahedron. It is dual to the dodecahedral graph. The icosahedron
+        is symmetric, so the spring-layout algorithm will be very effective
+        for display.
+
+        PLOTTING:
+        The Icosahedral graph should be viewed in 3 dimensions.  We
+        chose to use the default spring-layout algorithm here, so that
+        multiple iterations might yield a different point of reference for
+        the user.  We hope to add rotatable, 3-dimensional viewing in
+        the future.  In such a case, a string argument will be added to select
+        the flat spring-layout over a future implementation.
+
+        EXAMPLES:
+        Construct and show an Octahedral graph
+            sage: g = graphs.IcosahedralGraph()
+            sage.: g.show()
+
+        Create several icosahedral graphs in a SAGE graphics array. They will
+        be drawn differently due to the use of the spring-layout algorithm.
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.IcosahedralGraph()
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+        """
+        import networkx
+        G = networkx.icosahedral_graph()
+        return graph.Graph(G, name="Icosahedron")
+
+    def DodecahedralGraph(self):
+        """
+        Returns a Dodecahedral graph (with 20 nodes)
+
+        The dodecahedral graph is cubic symmetric, so the spring-layout
+        algorithm will be very effective for display. It is dual to the
+        icosahedral graph.
+
+        PLOTTING:
+        The Dodecahedral graph should be viewed in 3 dimensions.  We
+        chose to use the default spring-layout algorithm here, so that
+        multiple iterations might yield a different point of reference for
+        the user.  We hope to add rotatable, 3-dimensional viewing in
+        the future.  In such a case, a string argument will be added to select
+        the flat spring-layout over a future implementation.
+
+        EXAMPLES:
+        Construct and show a Dodecahdedral graph
+            sage: g = graphs.DodecahedralGraph()
+            sage.: g.show()
+
+        Create several dodecahedral graphs in a SAGE graphics array
+        They will be drawn differently due to the use of the spring-layout algorithm
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.DodecahedralGraph()
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+        """
+        import networkx
+        G = networkx.dodecahedral_graph()
+        return graph.Graph(G, name="Dodecahedron")
+
+################################################################################
 #   Named Graphs
 ################################################################################
+
+    def ChvatalGraph(self):
+        u"""
+        Returns the Chvátal graph.
+
+        The Chvátal graph has 12 vertices. It is a 4-regular, 4-chromatic
+        graph. It is one of the few known graphs to satisfy Grünbaum's
+        conjecture that for every m > 1, n > 2, there is an m-regular,
+        m-chromatic graph of girth at least n.
+
+        EXAMPLE:
+            sage: G = graphs.ChvatalGraph()
+            sage: G.degree()
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+
+        """
+        import networkx
+        return graph.Graph(networkx.chvatal_graph(), name="Chvatal Graph")
+
+    def DesarguesGraph(self):
+        """
+        Returns the Desargues graph.
+
+        PLOTTING:
+            The layout chosen is the same as on the cover of [1].
+
+        EXAMPLE:
+            sage: D = graphs.DesarguesGraph()
+            sage: L = graphs.LCFGraph(20,[5,-5,9,-9],5)
+            sage: D.is_isomorphic(L)
+            True
+            sage: D.plot().save('sage.png')  # or D.show()
+
+        REFERENCE:
+            [1] Harary, F. Graph Theory. Reading, MA: Addison-Wesley, 1994.
+        """
+        pos_dict = {}
+        for i in range(10):
+            x = float(cos(pi/2 + ((2*pi)/10)*i))
+            y = float(sin(pi/2 + ((2*pi)/10)*i))
+            pos_dict[i] = [x,y]
+        for i in range(20)[10:]:
+            x = float(0.5*cos(pi/2 + ((2*pi)/10)*i))
+            y = float(0.5*sin(pi/2 + ((2*pi)/10)*i))
+            pos_dict[i] = [x,y]
+        G = graph.Graph({0:[1,9,10], 1:[2,11], 2:[3,12], 3:[4,13], 4:[5,14],\
+                   5:[6,15], 6:[7,16], 7:[8,17], 8:[9,18], 9:[19], 10:[13,17],\
+                   11:[14,18], 12:[15,19], 13:[16], 14:[17], 15:[18], 16:[19]},\
+                  pos = pos_dict, name="Desargues Graph")
+        return G
 
     def FlowerSnark(self):
         """
@@ -1233,6 +1425,34 @@ class GraphGenerators():
         return graph.Graph({0:[1,7,8],1:[2,9],2:[3,10],3:[4,11],4:[5,12], \
                             5:[6,13],6:[7,14],9:[12,14],11:[8,14],13:[8,10], \
                             15:[7,10,12]}, pos=pos_dict, name="Moebius-Kantor Graph")
+
+    def PappusGraph(self):
+        """
+        Returns the Pappus graph, a graph on 18 vertices.
+
+        The Pappus graph is cubic, symmetric, and distance-regular.
+
+        EXAMPLES:
+            sage: G = graphs.PappusGraph()
+            sage: G.plot().save('sage.png')  # or G.show()
+            sage: L = graphs.LCFGraph(18, [5,7,-7,7,-7,-5], 3)
+            sage: L.plot().save('sage.png')  # or L.show()
+            sage: G.is_isomorphic(L)
+            True
+
+        """
+        pos_dict = {}
+        for i in range(6):
+            pos_dict[i] = [float(cos(pi/2 + ((2*pi)/6)*i)),\
+                           float(sin(pi/2 + ((2*pi)/6)*i))]
+            pos_dict[6 + i] = [(2/3.0)*float(cos(pi/2 + ((2*pi)/6)*i)),\
+                               (2/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
+            pos_dict[12 + i] = [(1/3.0)*float(cos(pi/2 + ((2*pi)/6)*i)),\
+                                (1/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
+        return graph.Graph({0:[1,5,6],1:[2,7],2:[3,8],3:[4,9],4:[5,10],\
+                            5:[11],6:[13,17],7:[12,14],8:[13,15],9:[14,16],\
+                            10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
+                           pos=pos_dict, name="Pappus Graph")
 
     def PetersenGraph(self):
         """
@@ -1660,6 +1880,106 @@ class GraphGenerators():
         import networkx
         G = networkx.fast_gnp_random_graph(n, p, seed)
         return graph.Graph(G)
+
+    def BalancedTree(self, r, h):
+        r"""
+        Returns the perfectly balanced tree of height $h \geq 1$, whose root
+        has degree $r \geq 2$.
+
+        The number of vertices of this graph is $1 + r + r^2 + \cdots + r^h$,
+        that is, $\frac{r^{h+1} - 1}{r - 1}$. The number of edges is one less
+        than the number of vertices.
+
+        EXAMPLE:
+        Plot a balanced tree of height 4 with r = 3
+            sage: G = graphs.BalancedTree(3, 5)
+            sage: G.plot().save('sage.png')   # or G.show()
+
+        """
+        import networkx
+        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced Tree")
+
+    def LCFGraph(self, n, shift_list, repeats):
+        """
+        Returns the cubic graph specified in LCF notation.
+
+        LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
+        describing cubic Hamiltonian graphs. The way a graph is constructed is
+        as follows. Since there is a Hamiltonian cycle, we first create a
+        cycle on n nodes. The variable shift_list = [s_0, s_1, ..., s_{k-1}]
+        describes edges to be created by the following scheme: for each i,
+        connect vertex i to vertex (i + s_i). Then, repeats specifies the
+        number of times to repeat this process, where on the jth repeat we
+        connect vertex (i + j*len(shift_list)) to vertex
+        ( i + j*len(shift_list) + s_i).
+
+        INPUT:
+            n -- the number of nodes.
+            shift_list -- a list of integer shifts mod n.
+            repeats -- the number of times to repeat the process.
+
+        EXAMPLES:
+            sage: G = graphs.LCFGraph(4, [2,-2], 2)
+            sage: G.is_isomorphic(graphs.TetrahedralGraph())
+            True
+
+            sage: G = graphs.LCFGraph(20, [10,7,4,-4,-7,10,-4,7,-7,4], 2)
+            sage: G.is_isomorphic(graphs.DodecahedralGraph())
+            True
+
+            sage: G = graphs.LCFGraph(14, [5,-5], 7)
+            sage: G.is_isomorphic(graphs.HeawoodGraph())
+            True
+
+        The largest cubic nonplanar graph of diameter three:
+            sage: G = graphs.LCFGraph(20, [-10,-7,-5,4,7,-10,-7,-4,5,7,-10,-7,6,-5,7,-10,-7,5,-6,7], 1)
+            sage: G.degree()[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            sage: G.diameter()
+            3
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        PLOTTING:
+            LCF Graphs are plotted as an n-cycle with edges in the middle, as
+            described above.
+
+        REFERENCES:
+            [1] Frucht, R. "A Canonical Representation of Trivalent
+                Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
+            [2] Grünbaum, B. Convex Polytopes. New York: Wiley, pp. 362-364,
+                1967.
+            [3] Lederberg, J. "DENDRAL-64: A System for Computer Construction,
+                Enumeration and Notation of Organic Molecules as Tree
+                Structures and Cyclic Graphs. Part II. Topology of Cyclic
+                Graphs." Interim Report to the National Aeronautics and Space
+                Administration. Grant NsG 81-60. December 15, 1965.
+                http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
+
+        """
+        import networkx
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos(pi/2 + ((2*pi)/n)*i))
+            y = float(sin(pi/2 + ((2*pi)/n)*i))
+            pos_dict[i] = [x,y]
+        return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
+                           pos=pos_dict, name="LCF Graph")
+
+
+################################################################################
+#   Pseudofractal Graphs
+################################################################################
+
+    def DorogovtsevGoltsevMendesGraph(self, n):
+        """
+        Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes graph.
+
+        REFERENCE:
+            [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J. F. F.,
+                Pseudofractal scale-free web, Phys. Rev. E 066122 (2002).
+        """
+        import networkx
+        return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
+               name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
 
 # Easy access to the graph database from the command line:
 graphs = GraphGenerators()

@@ -95,6 +95,40 @@ cdef class Conversion:
         """
         return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value) )
 
+    cdef number *sa2si_GFqGivaro(self, int quo, ring *_ring):
+        """
+        """
+        #can be done much faster
+        cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+        cdef int b
+
+        rChangeCurrRing(_ring)
+        b   = - _ring.ch;
+
+        a = naPar(1)
+
+        apow1 = naInit(1)
+        n1 = naInit(0)
+
+        while quo!=0:
+            coeff = naInit(quo%b)
+
+            if not naIsZero(coeff):
+                n2 = naAdd( naMult(coeff, apow1),  n1)
+                naDelete(&n1, _ring);
+                n1= n2
+
+            apow2 = naMult(apow1, a)
+            naDelete(&apow1, _ring)
+            apow1 = apow2
+
+            quo = quo/b
+            naDelete(&coeff, _ring)
+
+        naDelete(&apow1, _ring)
+        naDelete(&a, _ring)
+        return n1
+
     cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):
         """
         """

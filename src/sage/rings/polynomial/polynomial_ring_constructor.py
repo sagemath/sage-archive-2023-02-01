@@ -352,8 +352,9 @@ def _multi_variate(base_ring, names, n, sparse, order):
         if base_ring is QQ:
             R = MPolynomialRing_libsingular(base_ring, n, names, order)
         elif is_FiniteField(base_ring) and base_ring.is_prime_field() and base_ring.characteristic() <= 2147483629:
-
             R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        #elif is_FiniteField(base_ring) and base_ring.order() < 2**16:
+        #    R = MPolynomialRing_libsingular(base_ring, n, names, order)
         else:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:

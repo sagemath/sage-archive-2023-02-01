@@ -6,13 +6,27 @@ AUTHORS:
 
 TODO:
    -- implement $GF(p^n)$
-   -- implement block orderings
    -- implement Real, Complex
-   -- test under CYGWIN (link error)
+
+TESTS:
+    sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+    sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+    sage: loads(dumps(P)) == P
+    True
+    sage: loads(dumps(x)) == x
+    True
+    sage: P.<x,y,z> = MPolynomialRing_libsingular(GF(2^8,'a'),3)
+    sage: loads(dumps(P)) == P
+    True
+    sage: loads(dumps(x)) == x
+    True
+    sage: P.<x,y,z> = MPolynomialRing_libsingular(GF(127),3)
+    sage: loads(dumps(P)) == P
+    True
+    sage: loads(dumps(x)) == x
+    True
 
 """
-# We do this as we get a link error for init_csage(). However, on
-# obscure plattforms (Windows) we might need to link to csage anyway.
 
 include "sage/ext/interrupt.pxi"
 
@@ -45,6 +59,13 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
+from sage.rings.finite_field import FiniteField_generic
+from sage.rings.finite_field_givaro import FiniteField_givaro
+from sage.rings.finite_field_givaro cimport FiniteField_givaro
+
+from sage.rings.number_field.number_field import NumberField_generic
+
+from sage.rings.finite_field_givaro cimport FiniteField_givaroElement
 
 from  sage.rings.rational cimport Rational
 
@@ -176,6 +197,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef int nblcks
         cdef int offset
         cdef int characteristic
+        cdef MPolynomialRing_libsingular k
+        cdef MPolynomial_libsingular minpoly
+        cdef lnumber *nmp
+
+        is_extension = False
 
         n = int(n)
         if n<1:
@@ -189,11 +215,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         self._has_singular = True
 
-        _names = <char**>sage_malloc(sizeof(char*)*len(self._names))
+        _names = <char**>omAlloc0(sizeof(char*)*(len(self._names)+1))
 
         for i from 0 <= i < n:
             _name = self._names[i]
-            _names[i] = strdup(_name)
+            _names[i] = omStrDup(_name)
 
         if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
             if base_ring.characteristic() <= 2147483629:
@@ -204,36 +230,48 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         elif PY_TYPE_CHECK(base_ring, RationalField):
             characteristic = 0
 
+        elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+            characteristic = -base_ring.characteristic() # note the negative characteristic
+            k = MPolynomialRing_libsingular(base_ring.prime_subfield(), 1, base_ring.variable_name(), 'lex')
+            minpoly = base_ring.polynomial()(k.gen())
+            is_extension = True
+
+        elif PY_TYPE_CHECK(base_ring, NumberField_generic):
+            characteristic = -1
+            k = MPolynomialRing_libsingular(RationalField(), 1, base_ring.variable_name(), 'lex')
+            minpoly = base_ring.polynomial()(k.gen())
+            is_extension = True
+
         else:
-            raise NotImplementedError, "Only GF(p) and QQ are supported right now, sorry"
+            raise NotImplementedError, "Only GF(q), QQ, and Number Fields are supported."
 
-        self._ring = rDefault(characteristic, n, _names)
-        if(self._ring != currRing): rChangeCurrRing(self._ring)
+        self._ring = <ring*>omAlloc0Bin(sip_sring_bin)
+        self._ring.ch = characteristic
+        self._ring.N = n
+        self._ring.names  = _names
 
-        rUnComplete(self._ring)
+        if is_extension:
+            rChangeCurrRing(k._ring)
+            self._ring.algring = rCopy0(k._ring)
+            rComplete(self._ring.algring,1)
+            self._ring.P = self._ring.algring.N
+            self._ring.parameter = self._ring.algring.names
 
-        omFree(self._ring.wvhdl)
-        omFree(self._ring.order)
-        omFree(self._ring.block0)
-        omFree(self._ring.block1)
+            nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
+            nmp.z= <napoly*>p_Copy(minpoly._poly, self._ring.algring) # fragile?
+            nmp.s=2
+
+            self._ring.minpoly=<number*>nmp
 
         nblcks = len(order.blocks)
         offset = 0
 
-##         if nblcks == 1:
-##             self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
-##             self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
-##             self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
-##             self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
-##             self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
-##             self._ring.order[1] = ringorder_C
-##             self._ring.block0[0] = 1
-##             self._ring.block1[0] = n
-##         else:
         self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
         self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
         self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
         self._ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+        self._ring.OrdSgn = 1
+
 
         for i from 0 <= i < nblcks:
             self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
@@ -250,10 +288,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         self._ring.ShortOut = 0
 
         self._zero = <MPolynomial_libsingular>new_MP(self,NULL)
-
-        for i from 0 <= i < n:
-            free(_names[i]) # strdup() --> free()
-        sage_free(_names)
 
     def __dealloc__(self):
         """
@@ -297,11 +331,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P._coerce_(int(1))
             1
 
+            sage: k.<a> = GF(2^8)
+            sage: P.<x,y> = MPolynomialRing_libsingular(k,2)
+            sage: P._coerce_(a)
+            (a)
+
         """
         cdef poly *_p
         cdef ring *_ring
         cdef number *_n
         cdef poly *mon
+        cdef int i
 
         _ring = self._ring
 
@@ -346,6 +386,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 # Accepting QQ
                 elif PY_TYPE_CHECK(self._base, RationalField):
                     _n = co.sa2si_QQ(element,_ring)
+                    _p = p_NSet(_n, _ring)
+
+                elif PY_TYPE_CHECK(self._base, FiniteField_givaro):
+                    _n = co.sa2si_GFqGivaro(
+                        (<FiniteField_givaro>self._base).objectptr.write(i, (<FiniteField_givaroElement>element).element ), _ring )
                     _p = p_NSet(_n, _ring)
                 else:
                     raise NotImplementedError
@@ -544,13 +589,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         """
         cdef poly *_p
-        cdef ring *_ring
+        cdef ring *_ring = self._ring
 
         if n < 0 or n >= self.__ngens:
             raise ValueError, "Generator not defined."
 
-        _ring = self._ring
+        rChangeCurrRing(_ring)
         _p = p_ISet(1,_ring)
+        #_p = p_Init(_ring)
+        #p_SetCoeff(_p, n_Init(1, _ring), _ring)
 
         # oddly enough, Singular starts counting a 1!!!
         p_SetExp(_p, n+1, 1, _ring)
@@ -1624,6 +1671,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         Raw SINGULAR printing.
         """
+        rChangeCurrRing((<MPolynomialRing_libsingular>self._parent)._ring)
         s = p_String(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring, (<MPolynomialRing_libsingular>self._parent)._ring)
         return s
 

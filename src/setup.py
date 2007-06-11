@@ -433,7 +433,7 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
               language="c++",
               ), \
 

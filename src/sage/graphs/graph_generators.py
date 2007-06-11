@@ -91,6 +91,11 @@ ORGANIZATION:
             - RandomTreePowerlaw
             - RandomRegular
             - RandomShell
+        Graphs with a given degree sequence:
+            - DegreeSequence
+            - DegreeSequenceConfigurationModel
+            - DegreeSequenceTree
+            - DegreeSequenceExpected
     \end{verbatim}
 
 AUTHORS:
@@ -103,6 +108,8 @@ AUTHORS:
     -- Robert Miller (2007-01-16): Cube generation and plotting
     -- Emily Kirkman (2007-01-16): more basic structures, docstrings
     -- Emily Kirkman (2007-02-14): added more named graphs
+    -- Robert Miller (2007-06-08--11): Platonic solids, random graphs, graphs
+       with a given degree sequence
 """
 
 ################################################################################
@@ -186,6 +193,11 @@ class GraphGenerators():
             - RandomTreePowerlaw
             - RandomRegular
             - RandomShell
+        Graphs with a given degree sequence:
+            - DegreeSequence
+            - DegreeSequenceConfigurationModel
+            - DegreeSequenceTree
+            - DegreeSequenceExpected
     \end{verbatim}
     """
 
@@ -2257,6 +2269,128 @@ class GraphGenerators():
         """
         import networkx
         return graph.Graph(networkx.random_shell_graph(constructor, seed))
+
+################################################################################
+#   Graphs with a given degree sequence
+################################################################################
+
+    def DegreeSequence(self, deg_sequence, seed=None):
+        """
+        Returns a random graph with expected given degree sequence. Raises a
+        NetworkX error if the proposed degree sequence cannot be that of a
+        graph.
+
+        Uses the Havel-Hakimi algorithm, which constructs a simple graph by
+        connecting vertices of highest to other vertices of highest degree,
+        resorting the remaining vertices by degree and repeating the process.
+        See Theorem 1.4 in [1].
+
+        INPUT:
+            deg_sequence -- a list of integers with each entry corresponding
+        to the degree of a different vertex.
+            seed -- for the random number generator.
+
+        EXAMPLE:
+            sage: G = graphs.DegreeSequence([3,3,3,3])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+            sage: G = graphs.DegreeSequence([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+            sage: G = graphs.DegreeSequence([4,4,4,4,4,4,4,4])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        REFERENCE:
+            [1] Chartrand, G. and Lesniak, L. Graphs and Digraphs. Chapman and
+                Hall/CRC, 1996.
+
+        """
+        import networkx
+        return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence], seed))
+
+    def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
+        """
+        Returns a random pseudograph with the given degree sequence. Raises a
+        NetworkX error if the proposed degree sequence cannot be that of a
+        graph with multiple edges and loops.
+
+        One requirement is that the sum of the degrees must be even, since
+        every edge must be incident with two vertices. (The notion of quantum
+        graphs allows for edges incident to only one vertex.)
+
+        INPUT:
+            deg_sequence -- a list of integers with each entry corresponding
+        to the expected degree of a different vertex.
+            seed -- for the random number generator.
+
+        EXAMPLES:
+        NetworkX appears to have twice as many edges as necessary:
+            sage: G = graphs.DegreeSequenceConfigurationModel([1,1])
+            sage: G.adjacency_matrix()
+            [0 2]
+            [2 0]
+
+        Note: as of this writing, plotting of loops and multiple edges is not
+        supported, and the output is allowed to contain both types of edges.
+            sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        REFERENCE:
+            [1] Newman, M.E.J. The Structure and function of complex networks,
+                SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
+        """
+        import networkx
+        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True)
+
+    def DegreeSequenceTree(self, deg_sequence):
+        """
+        Returns a random tree with the given degree sequence. Raises a
+        NetworkX error if the proposed degree sequence cannot be that of a
+        tree.
+
+        One requirement is that the sum of the degrees must be even, since
+        every edge must be incident with two vertices. (The notion of quantum
+        graphs allows for edges incident to only one vertex.)
+
+        INPUT:
+            deg_sequence -- a list of integers with each entry corresponding
+        to the expected degree of a different vertex.
+            seed -- for the random number generator.
+
+        EXAMPLE:
+            sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        """
+        import networkx
+        return graph.Graph(networkx.degree_sequence_tree([int(i) for i in deg_sequence]))
+
+    def DegreeSequenceExpected(self, deg_sequence, seed=None):
+        """
+        Returns a random graph with expected given degree sequence. Raises a
+        NetworkX error if the proposed degree sequence cannot be that of a
+        tree.
+
+        Since every tree has one more vertex than edge, the degree sequence
+        must satisfy len(deg_sequence) - sum(deg_sequence)/2 == 1.
+
+        INPUT:
+            deg_sequence -- a list of integers with each entry corresponding
+        to the expected degree of a different vertex.
+            seed -- for the random number generator.
+
+        EXAMPLE:
+            sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        REFERENCE:
+            [1] Chung, Fan and Lu, L. Connected components in random graphs
+                with given expected degree sequences. Ann. Combinatorics (6),
+                2002 pp. 125-145.
+
+        """
+        import networkx
+        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
 
 # Easy access to the graph database from the command line:
 graphs = GraphGenerators()

@@ -91,6 +91,10 @@ ORGANIZATION:
             - RandomTreePowerlaw
             - RandomRegular
             - RandomShell
+        Random Directed Graphs:
+            - RandomDirectedGN
+            - RandomDirectedGNC
+            - RandomDirectedGNR
         Graphs with a given degree sequence:
             - DegreeSequence
             - DegreeSequenceConfigurationModel
@@ -109,7 +113,7 @@ AUTHORS:
     -- Emily Kirkman (2007-01-16): more basic structures, docstrings
     -- Emily Kirkman (2007-02-14): added more named graphs
     -- Robert Miller (2007-06-08--11): Platonic solids, random graphs, graphs
-       with a given degree sequence
+       with a given degree sequence, random directed graphs
 """
 
 ################################################################################
@@ -193,6 +197,10 @@ class GraphGenerators():
             - RandomTreePowerlaw
             - RandomRegular
             - RandomShell
+        Random Directed Graphs:
+            - RandomDirectedGN
+            - RandomDirectedGNC
+            - RandomDirectedGNR
         Graphs with a given degree sequence:
             - DegreeSequence
             - DegreeSequenceConfigurationModel
@@ -2269,6 +2277,85 @@ class GraphGenerators():
         """
         import networkx
         return graph.Graph(networkx.random_shell_graph(constructor, seed))
+
+    def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
+        """
+        Returns a random GN (growing network) digraph with n vertices.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen with a
+        preferential attachment model, i.e. probability is proportional to
+        degree. The default attachment kernel is a linear function of degree.
+        The digraph is always a tree, so in particular it is a directed
+        acyclic graph.
+
+        INPUT:
+            n -- number of vertices.
+            kernel -- the attachment kernel
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: D = graphs.RandomDirectedGN(25)
+            sage: D.plot().save('sage.png')  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
+                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
+        """
+        import networkx
+        return graph.DiGraph(networkx.gn_graph(n, kernel, seed))
+
+    def RandomDirectedGNC(self, n, seed=None):
+        """
+        Returns a random GNC (growing network with copying) digraph with n
+        vertices.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen with a
+        preferential attachment model, i.e. probability is proportional to
+        degree. The new vertex is also linked to all of the previously added
+        vertex's successors.
+
+        INPUT:
+            n -- number of vertices.
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: D = graphs.RandomDirectedGNC(25)
+            sage: D.plot().save('sage.png')  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Network Growth by Copying,
+                Phys. Rev. E vol. 71 (2005), p. 036118.
+        """
+        import networkx
+        return graph.DiGraph(networkx.gnc_graph(n, seed))
+
+    def RandomDirectedGNR(self, n, p, seed=None):
+        """
+        Returns a random GNR (growing network with redirection) digraph with n
+        vertices and redirection probability p.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen uniformly.
+        With probability p, the arc is instead redirected to the successor
+        vertex. The digraph is always a tree.
+
+        INPUT:
+            n -- number of vertices.
+            p -- redirection probability
+            seed -- for the random number generator.
+
+        EXAMPLE:
+            sage: D = graphs.RandomDirectedGNR(25, .2)
+            sage: D.plot().save('sage.png')  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
+                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
+        """
+        import networkx
+        return graph.DiGraph(networkx.gnc_graph(n, seed))
 
 ################################################################################
 #   Graphs with a given degree sequence

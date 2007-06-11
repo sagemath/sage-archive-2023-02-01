@@ -68,13 +68,13 @@ def doc_worksheet():
 
 
 class WorksheetFile(resource.Resource):
+    addSlash = False
 
     def __init__(self, path):
         self.docpath = path
 
-    def render(self, ctx):
+    def render(self, ctx=None):
         # Create a live SAGE worksheet out of self.path and render it.
-        print "now rendering a worksheet file: %s"%self.docpath
         doc_page_html = open(self.docpath).read()
         directory = os.path.split(self.docpath)[0]
         doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
@@ -88,12 +88,9 @@ class WorksheetFile(resource.Resource):
 
     def childFactory(self, request, name):
         path = self.docpath + '/' + name
-        print path
         if name.endswith('.html'):
-            print "serving worksheet:", path
             return WorksheetFile(path)
         else:
-            print "serving static file:", path
             return static.File(path)
 
 ############################
@@ -110,6 +107,8 @@ class DocStatic(resource.Resource):
         return static.File('%s/%s'%(DOC,name))
 
 class DocLive(resource.Resource):
+    addSlash = True
+
     def render(self, ctx):
         return static.File('%s/index.html'%DOC)
 

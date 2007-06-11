@@ -76,12 +76,21 @@ ORGANIZATION:
             - CompleteGraph
             - CompleteBipartiteGraph
             - CubeGraph
-            - RandomGNP
-            - RandomGNPFast
             - BalancedTree
             - LCFGraph
         Pseudofractal Graphs:
             - DorogovtsevGoltsevMendesGraph
+        Random Graphs:
+            - RandomGNP
+            - RandomGNPFast
+            - RandomBarabasiAlbert
+            - RandomGNM
+            - RandomNewmanWattsStrogatz
+            - RandomHolmeKim
+            - RandomLobster
+            - RandomTreePowerlaw
+            - RandomRegular
+            - RandomShell
     \end{verbatim}
 
 AUTHORS:
@@ -162,12 +171,21 @@ class GraphGenerators():
             - CompleteGraph
             - CompleteBipartiteGraph
             - CubeGraph
-            - RandomGNP
-            - RandomGNPFast
             - BalancedTree
             - LCFGraph
         Pseudofractal Graphs:
             - DorogovtsevGoltsevMendesGraph
+        Random Graphs:
+            - RandomGNP
+            - RandomGNPFast
+            - RandomBarabasiAlbert
+            - RandomGNM
+            - RandomNewmanWattsStrogatz
+            - RandomHolmeKim
+            - RandomLobster
+            - RandomTreePowerlaw
+            - RandomRegular
+            - RandomShell
     \end{verbatim}
     """
 
@@ -613,7 +631,9 @@ class GraphGenerators():
         with the example.
 
         REFERENCES:
-            Kreps, V. (2002). "Social Network Analysis". [Online] Available: http://www.fsu.edu/~spap/water/network/intro.htm [2007, January 17]
+            [1] Kreps, V. (2002). "Social Network Analysis". [Online]
+                Available: http://www.fsu.edu/~spap/water/network/intro.htm
+                [2007, January 17]
 
         This constructor depends on NetworkX numeric labeling.
 
@@ -1215,11 +1235,11 @@ class GraphGenerators():
 ################################################################################
 
     def ChvatalGraph(self):
-        u"""
-        Returns the Chvátal graph.
+        """
+        Returns the Chvatal graph.
 
-        The Chvátal graph has 12 vertices. It is a 4-regular, 4-chromatic
-        graph. It is one of the few known graphs to satisfy Grünbaum's
+        The Chvatal graph has 12 vertices. It is a 4-regular, 4-chromatic
+        graph. It is one of the few known graphs to satisfy Grunbaum's
         conjecture that for every m > 1, n > 2, there is an m-regular,
         m-chromatic graph of girth at least n.
 
@@ -1279,7 +1299,9 @@ class GraphGenerators():
         the outer circle, and 15-19 in an inner pentagon.
 
         REFERENCES:
-            Weisstein, E. (1999). "Flower Snark -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/FlowerSnark.html [2007, February 17]
+            [1] Weisstein, E. (1999). "Flower Snark -- from Wolfram MathWorld".
+                [Online] Available: http://mathworld.wolfram.com/FlowerSnark.html
+                [2007, February 17]
 
         EXAMPLES:
         Inspect a flower snark:
@@ -1322,7 +1344,9 @@ class GraphGenerators():
         in the center.
 
         REFERENCES:
-            Weisstein, E. (1999). "Frucht Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/FruchtGraph.html [2007, February 17]
+            [1] Weisstein, E. (1999). "Frucht Graph -- from Wolfram MathWorld".
+                [Online] Available: http://mathworld.wolfram.com/FruchtGraph.html
+                [2007, February 17]
 
         EXAMPLES:
             sage: FRUCHT = graphs.FruchtGraph()
@@ -1364,7 +1388,9 @@ class GraphGenerators():
         continuing counterclockwise.
 
         REFERENCES:
-            Weisstein, E. (1999). "Heawood Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/HeawoodGraph.html [2007, February 17]
+            [1] Weisstein, E. (1999). "Heawood Graph -- from Wolfram MathWorld".
+                [Online] Available: http://mathworld.wolfram.com/HeawoodGraph.html
+                [2007, February 17]
 
         EXAMPLES:
             sage: H = graphs.HeawoodGraph()
@@ -1403,7 +1429,10 @@ class GraphGenerators():
         convention.
 
         REFERENCES:
-            Weisstein, E. (1999). "Moebius-Kantor Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007, February 17]
+            [1] Weisstein, E. (1999). "Moebius-Kantor Graph -- from Wolfram
+            MathWorld". [Online]
+            Available: http://mathworld.wolfram.com/Moebius-KantorGraph.html
+            [2007, February 17]
 
         EXAMPLES:
             sage: MK = graphs.MoebiusKantorGraph()
@@ -1789,6 +1818,110 @@ class GraphGenerators():
 
         return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
 
+    def BalancedTree(self, r, h):
+        r"""
+        Returns the perfectly balanced tree of height $h \geq 1$, whose root
+        has degree $r \geq 2$.
+
+        The number of vertices of this graph is $1 + r + r^2 + \cdots + r^h$,
+        that is, $\frac{r^{h+1} - 1}{r - 1}$. The number of edges is one less
+        than the number of vertices.
+
+        EXAMPLE:
+        Plot a balanced tree of height 4 with r = 3
+            sage: G = graphs.BalancedTree(3, 5)
+            sage: G.plot().save('sage.png')   # or G.show()
+
+        """
+        import networkx
+        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced Tree")
+
+    def LCFGraph(self, n, shift_list, repeats):
+        """
+        Returns the cubic graph specified in LCF notation.
+
+        LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
+        describing cubic Hamiltonian graphs. The way a graph is constructed is
+        as follows. Since there is a Hamiltonian cycle, we first create a
+        cycle on n nodes. The variable shift_list = [s_0, s_1, ..., s_{k-1}]
+        describes edges to be created by the following scheme: for each i,
+        connect vertex i to vertex (i + s_i). Then, repeats specifies the
+        number of times to repeat this process, where on the jth repeat we
+        connect vertex (i + j*len(shift_list)) to vertex
+        ( i + j*len(shift_list) + s_i).
+
+        INPUT:
+            n -- the number of nodes.
+            shift_list -- a list of integer shifts mod n.
+            repeats -- the number of times to repeat the process.
+
+        EXAMPLES:
+            sage: G = graphs.LCFGraph(4, [2,-2], 2)
+            sage: G.is_isomorphic(graphs.TetrahedralGraph())
+            True
+
+            sage: G = graphs.LCFGraph(20, [10,7,4,-4,-7,10,-4,7,-7,4], 2)
+            sage: G.is_isomorphic(graphs.DodecahedralGraph())
+            True
+
+            sage: G = graphs.LCFGraph(14, [5,-5], 7)
+            sage: G.is_isomorphic(graphs.HeawoodGraph())
+            True
+
+        The largest cubic nonplanar graph of diameter three:
+            sage: G = graphs.LCFGraph(20, [-10,-7,-5,4,7,-10,-7,-4,5,7,-10,-7,6,-5,7,-10,-7,5,-6,7], 1)
+            sage: G.degree()
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            sage: G.diameter()
+            3
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        PLOTTING:
+            LCF Graphs are plotted as an n-cycle with edges in the middle, as
+            described above.
+
+        REFERENCES:
+            [1] Frucht, R. "A Canonical Representation of Trivalent
+                Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
+            [2] Grunbaum, B. Convex Polytopes. New York: Wiley, pp. 362-364,
+                1967.
+            [3] Lederberg, J. "DENDRAL-64: A System for Computer Construction,
+                Enumeration and Notation of Organic Molecules as Tree
+                Structures and Cyclic Graphs. Part II. Topology of Cyclic
+                Graphs." Interim Report to the National Aeronautics and Space
+                Administration. Grant NsG 81-60. December 15, 1965.
+                http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
+
+        """
+        import networkx
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos(pi/2 + ((2*pi)/n)*i))
+            y = float(sin(pi/2 + ((2*pi)/n)*i))
+            pos_dict[i] = [x,y]
+        return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
+                           pos=pos_dict, name="LCF Graph")
+
+################################################################################
+#   Pseudofractal Graphs
+################################################################################
+
+    def DorogovtsevGoltsevMendesGraph(self, n):
+        """
+        Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes graph.
+
+        REFERENCE:
+            [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J. F. F.,
+                Pseudofractal scale-free web, Phys. Rev. E 066122 (2002).
+        """
+        import networkx
+        return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
+               name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
+
+################################################################################
+#   Random Graphs
+################################################################################
+
     def RandomGNP(self, n, p, seed=None):
         r"""
         Returns a Random graph on $n$ nodes.  Each edge is inserted
@@ -1798,8 +1931,8 @@ class GraphGenerators():
         This function calls the NetworkX function \code{gnp_random_graph}.
 
         REFERENCES:
-            P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
-            E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
+            [1] P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
+            [2] E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
 
         PLOTTING:
         When plotting, this graph will use the default spring-layout
@@ -1881,105 +2014,249 @@ class GraphGenerators():
         G = networkx.fast_gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 
-    def BalancedTree(self, r, h):
-        r"""
-        Returns the perfectly balanced tree of height $h \geq 1$, whose root
-        has degree $r \geq 2$.
+    def RandomBarabasiAlbert(self, n, m, seed=None):
+        u"""
+        Return a random graph created using the Barabasi-Albert preferential
+        attachment model.
 
-        The number of vertices of this graph is $1 + r + r^2 + \cdots + r^h$,
-        that is, $\frac{r^{h+1} - 1}{r - 1}$. The number of edges is one less
-        than the number of vertices.
-
-        EXAMPLE:
-        Plot a balanced tree of height 4 with r = 3
-            sage: G = graphs.BalancedTree(3, 5)
-            sage: G.plot().save('sage.png')   # or G.show()
-
-        """
-        import networkx
-        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced Tree")
-
-    def LCFGraph(self, n, shift_list, repeats):
-        """
-        Returns the cubic graph specified in LCF notation.
-
-        LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
-        describing cubic Hamiltonian graphs. The way a graph is constructed is
-        as follows. Since there is a Hamiltonian cycle, we first create a
-        cycle on n nodes. The variable shift_list = [s_0, s_1, ..., s_{k-1}]
-        describes edges to be created by the following scheme: for each i,
-        connect vertex i to vertex (i + s_i). Then, repeats specifies the
-        number of times to repeat this process, where on the jth repeat we
-        connect vertex (i + j*len(shift_list)) to vertex
-        ( i + j*len(shift_list) + s_i).
+        A graph with m vertices and no edges is initialized, and a graph of n
+        vertices is grown by attaching new veritces each with m edges that are
+        attached to existing vertices, preferentially with high degree.
 
         INPUT:
-            n -- the number of nodes.
-            shift_list -- a list of integer shifts mod n.
-            repeats -- the number of times to repeat the process.
+            n -- number of vertices in the graph
+            m -- number of edges to attach from each new node
+            seed -- for random number generator
 
         EXAMPLES:
-            sage: G = graphs.LCFGraph(4, [2,-2], 2)
-            sage: G.is_isomorphic(graphs.TetrahedralGraph())
-            True
+        We plot a random graph on 12 nodes with m = 3.
+            sage: ba = graphs.RandomBarabasiAlbert(12,3)
+            sage: ba.plot().save('sage.png')  # or ba.show()
 
-            sage: G = graphs.LCFGraph(20, [10,7,4,-4,-7,10,-4,7,-7,4], 2)
-            sage: G.is_isomorphic(graphs.DodecahedralGraph())
-            True
+        We view many random graphs using a graphics array:
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.RandomBarabasiAlbert(i+3, 3)
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G.save('sage.png')  # or G.show()
 
-            sage: G = graphs.LCFGraph(14, [5,-5], 7)
-            sage: G.is_isomorphic(graphs.HeawoodGraph())
-            True
+        """
+        import networkx
+        return graph.Graph(networkx.barabasi_albert_graph(n,m,seed))
 
-        The largest cubic nonplanar graph of diameter three:
-            sage: G = graphs.LCFGraph(20, [-10,-7,-5,4,7,-10,-7,-4,5,7,-10,-7,6,-5,7,-10,-7,5,-6,7], 1)
-            sage: G.degree()[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-            sage: G.diameter()
-            3
+    def RandomGNM(self, n, m, dense=False, seed=None):
+        """
+        Returns a graph randomly picked out of all graphs on n vertices with
+        m edges.
+
+        INPUT:
+            n -- number of vertices.
+            m -- number of edges.
+            dense -- whether to use NetworkX's dense_gnm_random_graph or
+        gnm_random_graph
+
+        EXAMPLES:
+        We plot a random graph on 12 nodes with m = 12.
+            sage: gnm = graphs.RandomGNM(12, 12)
+            sage: gnm.plot().save('sage.png')  # or gnm.show()
+
+        We view many random graphs using a graphics array:
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.RandomGNM(i+3, i^2-i)
+            ...    g.append(k)
+            ...
+            sage: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G.save('sage.png')  # or G.show()
+
+        """
+        import networkx
+        if dense:
+            return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed))
+        else:
+            return graph.Graph(networkx.gnm_random_graph(n, m, seed))
+
+    def RandomNewmanWattsStrogatz(self, n, k, p, seed=None):
+        """
+        Returns a Newman-Watts-Strogatz small world random graph on n vertices.
+
+        From the NetworkX documentation:
+        First create a ring over n nodes.  Then each node in the ring is
+        connected with its k nearest neighbors.  Then shortcuts are created by
+        adding new edges as follows: for each edge u-v in the underlying
+        "n-ring with k nearest neighbors"; with probability p add a new edge
+        u-w with randomly-chosen existing node w. In contrast with
+        watts_strogatz_graph(), no edges are removed.
+
+        INPUT:
+            n -- number of vertices.
+            k -- each vertex is connected to its k nearest neighbors
+            p -- the probability of adding a new edge for each edge
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: G = graphs.RandomNewmanWattsStrogatz(12, 2, .3)
             sage: G.plot().save('sage.png')  # or G.show()
 
-        PLOTTING:
-            LCF Graphs are plotted as an n-cycle with edges in the middle, as
-            described above.
-
-        REFERENCES:
-            [1] Frucht, R. "A Canonical Representation of Trivalent
-                Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
-            [2] Grünbaum, B. Convex Polytopes. New York: Wiley, pp. 362-364,
-                1967.
-            [3] Lederberg, J. "DENDRAL-64: A System for Computer Construction,
-                Enumeration and Notation of Organic Molecules as Tree
-                Structures and Cyclic Graphs. Part II. Topology of Cyclic
-                Graphs." Interim Report to the National Aeronautics and Space
-                Administration. Grant NsG 81-60. December 15, 1965.
-                http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
+        REFERENCE:
+            [1] Newman, M.E.J., Watts, D.J. and Strogatz, S.H. Random graph
+                models of social networks. Proc. Nat. Acad. Sci. USA 99, 2566-2572.
 
         """
         import networkx
-        pos_dict = {}
-        for i in range(n):
-            x = float(cos(pi/2 + ((2*pi)/n)*i))
-            y = float(sin(pi/2 + ((2*pi)/n)*i))
-            pos_dict[i] = [x,y]
-        return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
-                           pos=pos_dict, name="LCF Graph")
+        return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed))
 
-
-################################################################################
-#   Pseudofractal Graphs
-################################################################################
-
-    def DorogovtsevGoltsevMendesGraph(self, n):
+    def RandomHolmeKim(self, n, m, p, seed=None):
         """
-        Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes graph.
+        Returns a random graph generated by the Holme and Kim algorithm for
+        graphs with powerlaw degree distribution and approximate average
+        clustering.
+
+        INPUT:
+            n -- number of vertices.
+            m -- number of random edges to add for each new node.
+            p -- probability of adding a triangle after adding a random edge.
+            seed -- for the random number generator.
+
+        From the NetworkX documentation:
+        The average clustering has a hard time getting above a certain cutoff
+        that depends on m. This cutoff is often quite low. Note that the
+        transitivity (fraction of triangles to possible triangles) seems to go
+        down with network size. It is essentially the Barabasi-Albert growth
+        model with an extra step that each random edge is followed by a chance
+        of making an edge to one of its neighbors too (and thus a triangle).
+        This algorithm improves on B-A in the sense that it enables a higher
+        average clustering to be attained if desired. It seems possible to
+        have a disconnected graph with this algorithm since the initial m
+        nodes may not be all linked to a new node on the first iteration like
+        the BA model.
+
+        EXAMPLE:
+            sage: G = graphs.RandomHolmeKim(12, 3, .3)
+            sage: G.plot().save('sage.png')  # or G.show()
 
         REFERENCE:
-            [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J. F. F.,
-                Pseudofractal scale-free web, Phys. Rev. E 066122 (2002).
+            [1] Holme, P. and Kim, B.J. Growing scale-free networks with
+                tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
         """
         import networkx
-        return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
-               name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
+        return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed))
+
+    def RandomLobster(self, n, p, q, seed=None):
+        """
+        Returns a random lobster.
+
+        A lobster is a tree that reduces to a caterpillar when pruning all
+        leaf vertices. A caterpillar is a tree that reduces to a path when
+        pruning all leaf vertices (q=0).
+
+        INPUT:
+            n -- expected number of vertices in the backbone
+            p -- probability of adding an edge to the backbone
+            q -- probability of adding an edge (claw) to the arms
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: G = graphs.RandomLobster(9, .6, .3)
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        """
+        import networkx
+        return graph.Graph(networkx.random_lobster(n, p, q, seed))
+
+    def RandomTreePowerlaw(self, n, gamma=3, tries=100, seed=None):
+        """
+        Returns a tree with a powerlaw degree distribution. Returns False on
+        failure.
+
+        From the NetworkX documentation:
+        A trial powerlaw degree sequence is chosen and then elements are
+        swapped with new elements from a powerlaw distribution until the
+        sequence makes a tree (size = order - 1).
+
+        INPUT:
+            n -- number of vertices
+            gamma -- exponent of power law
+            tries -- number of attempts to adjust sequence to make a tree
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: G = graphs.RandomTreePowerlaw(15, 2)  # VERY random output
+            sage: if G:
+            ...    G.plot().save('sage.png')  # or G.show() (random output)
+
+        """
+        import networkx
+        try:
+            return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed, tries))
+        except:
+            return False
+
+    def RandomRegular(self, d, n, seed=None):
+        """
+        Returns a random d-regular graph on n vertices, or returns False on
+        failure.
+
+        Since every edge is incident to two vertices, n*d must be even.
+
+        INPUT:
+            n -- number of vertices
+            d -- degree
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: G = graphs.RandomRegular(3, 20)  # VERY random output
+            sage: if G:
+            ...    G.plot().save('sage.png')  # or G.show() (random output)
+
+        REFERENCES:
+            [1] Kim, Jeong Han and Vu, Van H. Generating random regular graphs.
+                Proc. 35th ACM Symp. on Thy. of Comp. 2003, pp 213-222. ACM
+                Press, San Diego, CA, USA.
+                http://doi.acm.org/10.1145/780542.780576
+            [2] Steger, A. and Wormald, N. Generating random regular graphs
+                quickly. Prob. and Comp. 8 (1999), pp 377-396.
+        """
+        import networkx
+        try:
+            return graph.Graph(networkx.random_regular_graph(d, n, seed))
+        except:
+            return False
+
+    def RandomShell(self, constructor, seed=None):
+        """
+        Returns a random shell graph for the constructor given.
+
+        INPUT:
+            constructor -- a list of 3-tuples (n,m,d), each representing a shell
+                n -- the number of vertices in the shell
+                m -- the number of edges in the shell
+                d -- the ratio of inter (next) shell edges to intra shell edges
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+        """
+        import networkx
+        return graph.Graph(networkx.random_shell_graph(constructor, seed))
 
 # Easy access to the graph database from the command line:
 graphs = GraphGenerators()

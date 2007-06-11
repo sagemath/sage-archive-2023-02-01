@@ -400,6 +400,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(a)
             x
 
+        If everything else fails, we try to coerce to the base ring:
+            sage: R.<x,y,z> = GF(3)[]
+            sage: R(1/2)
+            -1
+
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -469,7 +474,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             return self._coerce_c_impl(element)
         except TypeError:
             element = self.base_ring()(element)
-            _p = p_NSet(co.sa2si_QQ(element,_ring), _ring)
+            _p = p_NSet(co.sa2si(element,_ring), _ring)
             return new_MP(self,_p)
 
         raise TypeError, "cannot coerce element"

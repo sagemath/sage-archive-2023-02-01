@@ -179,7 +179,6 @@ def main(options):
     # Create the main DSage object
     dsage_server = DSageServer(jobdb, monitordb, clientdb,
                                log_level=LOG_LEVEL)
-    dsage_server.client_factory = client_factory
 
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
@@ -188,6 +187,7 @@ def main(options):
 
     # HACK: unsafeTracebacks should eventually be TURNED off
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
+    dsage_server.register_client_factory(client_factory)
 
     # Create the looping call that will output the XML file for Dashboard
     tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)

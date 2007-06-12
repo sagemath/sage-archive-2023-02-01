@@ -295,6 +295,9 @@ cdef extern from "libsingular.h":
 
     poly *kNF(ideal *F, ideal *Q, poly *p)
 
+
+    poly *pDiff(poly *, int)
+
     # this guy actually calculates with napoly not poly
     #poly *singclap_alglcm(poly *f, poly *g)
 
@@ -335,6 +338,12 @@ cdef extern from "libsingular.h":
     void naDelete(number **, ring*)
     int naIsZero(number *)
     char * naRead(char *s, number *)
+    int naIsOne(number *)
+    int naIsZero(number *)
+
+    number *napGetCoeff(napoly *z)
+    int napGetExp(napoly *, int)
+    napoly *napIter(napoly *)
 
 
     #

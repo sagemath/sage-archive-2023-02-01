@@ -282,7 +282,7 @@ def show_graphs(list):
     layout algorithm for many graphs.
 
     EXAMPLES:
-        # Create a list of graphs:
+    Create a list of graphs:
         sage: glist = []
         sage: glist.append(graphs.CompleteGraph(6))
         sage: glist.append(graphs.CompleteBipartiteGraph(4,5))
@@ -299,14 +299,14 @@ def show_graphs(list):
         sage: glist.append(graphs.StarGraph(17))
         sage: glist.append(graphs.WheelGraph(9))
 
-        # Check that length is <= 20:
+    Check that length is <= 20:
         sage: len(glist)
         14
 
-        # Show the graphs in a graphics array:
+    Show the graphs in a graphics array:
         sage.: graphs_list.show_graphs(glist)
 
-        # Here's an example where more than one graphics array is used:
+    Here's an example where more than one graphics array is used:
         sage: g = graphs_query.get_list(num_vertices=5)
         sage: len(g)
         34

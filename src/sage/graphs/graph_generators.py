@@ -1036,18 +1036,13 @@ class GraphGenerators():
         This graph is equivalent to a wheel graph with 4 nodes and also a
         complete graph on four nodes. (See examples below).
 
-        This constructor depends on NetworkX numeric labeling.
-
         PLOTTING:
-        Upon construction, the position dictionary is filled to override
-        the spring-layout algorithm.  By convention, the graph is drawn
-        with the first node at the vertical top (i.e.: positive z-axis), the
-        second node in the bottom left (i.e.: positive x-axis), the third node
-        in the center (i.e.: origin), and the fourth node on the right (i.e.:
-        positive y-axis).  The references to axes are by the right-handed
-        Cartesian coordinate system and are meant only to describe the
-        appearance.  The position dictionary is actually filled with only
-        (x,y) pairs.
+        The tetrahedral graph should be viewed in 3 dimensions.  We
+        chose to use the default spring-layout algorithm here, so that
+        multiple iterations might yield a different point of reference for
+        the user.  We hope to add rotatable, 3-dimensional viewing in
+        the future.  In such a case, a string argument will be added to select
+        the flat spring-layout over a future implementation.
 
         EXAMPLES:
         Construct and show a Tetrahedral graph
@@ -1074,10 +1069,9 @@ class GraphGenerators():
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.save('sage.png')
         """
-        pos_dict = {0:[0,1],1:[-.71,-.71],2:[0,0],3:[1.3,0]}
         import networkx
         G = networkx.tetrahedral_graph()
-        return graph.Graph(G, pos=pos_dict, name="Tetrahedron")
+        return graph.Graph(G, name="Tetrahedron")
 
     def HexahedralGraph(self):
         """
@@ -1270,7 +1264,19 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.chvatal_graph(), name="Chvatal Graph")
+        pos_dict = {}
+        for i in range(10)[5:]:
+            x = float(cos((pi/2) + ((2*pi)/5)*i))
+            y = float(sin((pi/2) + ((2*pi)/5)*i))
+            pos_dict[i] = [x,y]
+        for i in range(5):
+            x = float(2*(cos((pi/2) + ((2*pi)/5)*(i-5))))
+            y = float(2*(sin((pi/2) + ((2*pi)/5)*(i-5))))
+            pos_dict[i] = [x,y]
+        pos_dict[10] = [.5,0]
+        pos_dict[11] = [-.5,0]
+
+        return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal Graph")
 
     def DesarguesGraph(self):
         """

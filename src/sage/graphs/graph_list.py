@@ -265,10 +265,13 @@ def to_graphics_arrays(list):
 def show_graphs(list):
     """
     Shows a maximum of 20 graphs from list in a sage graphics array.
+    If more than 20 graphs are given in the list argument, then it
+    will display one graphics array after another with each containing
+    at most 20 graphs.
 
-    Note:  Raises ValueError if too many graphs are in the list.
-    If the user wants to display more than 20 graphs, use the function
-    to_graphics_arrays and show each graphics array individually.
+    Note that if to save the image output from the notebook, you must
+    save each graphics array individually.  (There will be a small space
+    between graphics arrays).
 
     INPUT:
         list -- a list of SAGE graphs
@@ -279,7 +282,7 @@ def show_graphs(list):
     layout algorithm for many graphs.
 
     EXAMPLES:
-    Create a list of graphs:
+        # Create a list of graphs:
         sage: glist = []
         sage: glist.append(graphs.CompleteGraph(6))
         sage: glist.append(graphs.CompleteBipartiteGraph(4,5))
@@ -296,49 +299,24 @@ def show_graphs(list):
         sage: glist.append(graphs.StarGraph(17))
         sage: glist.append(graphs.WheelGraph(9))
 
-    Check that length is <= 20:
+        # Check that length is <= 20:
         sage: len(glist)
         14
 
-    Show the graphs in a graphics array:
+        # Show the graphs in a graphics array:
         sage.: graphs_list.show_graphs(glist)
 
-    But more than 20 graphs will raise an exception:
-        sage: glist21 = []
-        sage: for i in range(21):
-        ...    glist21.append(graphs.RandomGNP(6,.45))
-        ...
-        sage: graphs_list.show_graphs(glist21)
-        Traceback (most recent call last):
-        ...
-        ValueError: List is too long to display in a graphics array.  Try using the to_graphics_arrays function.
-
-    In this case, use to_graphics_arrays instead:
-        sage: garrays = graphs_list.to_graphics_arrays(glist21)
-        sage.: garrays[0].show()
-        sage.: garrays[1].show()
+        # Here's an example where more than one graphics array is used:
+        sage: g = graphs_query.get_list(num_vertices=5)
+        sage: len(g)
+        34
+        sage.: graphs_list.show_graphs(g)
     """
-    if ( len(list) > 20 ):
-        raise ValueError, 'List is too long to display in a graphics array.  Try using the to_graphics_arrays function.'
+    ga_list = to_graphics_arrays(list)
 
-    from sage.plot.plot import graphics_array
-    from sage.graphs import graph
+    for i in range (len(ga_list)):
+        (ga_list[i]).show()
 
-    plist = []
-    for i in range (len(list)):
-        if ( isinstance( list[i], graph.GenericGraph ) ): ## GenericGraph instead of Graph allows for DiGraphs...
-            pos = list[i].__get_pos__()
-            if ( pos is None ):
-                plist.append(list[i].plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
-            else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
-        else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
-
-    rows = len(list)/4
-    if ( len(list)%4 > 0 ): rows += 1
-
-    ga = graphics_array(plist, rows, 4)
-    ga.__set_figsize__([8, 2*rows])
-
-    ga.show()
     return
+
 

@@ -85,9 +85,9 @@ class PBClientFactory(pb.PBClientFactory):
             d.addCallback(self._cbAnonymousLogin, mind)
             return d
 
-    def _cbSendUsername(self, root, username, alg_name, blob, sig_data,
+    def _cbSendUsername(self, root, username, algorithm, blob, sig_data,
                         signature, mind):
-        d = root.callRemote("login", username, alg_name, blob, sig_data,
+        d = root.callRemote("login", username, algorithm, blob, sig_data,
                                 signature, mind)
         return d
 
@@ -101,9 +101,9 @@ class _SSHKeyPortalRoot(pb._PortalRoot):
         return _SSHKeyPortalWrapper(self.portal, broker)
 
 class _SSHKeyPortalWrapper(pb._PortalWrapper):
-    def remote_login(self, username, alg_name, blob, data, signature, mind):
+    def remote_login(self, username, algorithm, blob, data, signature, mind):
         pubkey_cred = credentials.SSHPrivateKey(username,
-                                                alg_name,
+                                                algorithm,
                                                 blob,
                                                 data,
                                                 signature)

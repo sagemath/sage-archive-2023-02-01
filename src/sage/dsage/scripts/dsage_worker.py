@@ -66,18 +66,18 @@ class Worker(object):
 
     """
 
-    def __init__(self, remoteobj, id, log_level=0, poll_rate=5.0):
+    def __init__(self, remoteobj, id, log_level=0, poll=5.0):
         self.remoteobj = remoteobj
         self.id = id
         self.free = True
         self.job = None
         self.log_level = log_level
-        self.poll_rate = poll_rate
+        self.poll = poll
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
         self.got_output = False
         self.job_start_time = None
-        self.orig_poll_rate = poll_rate
+        self.orig_poll = poll
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -122,7 +122,7 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
         try:
-            self.poll_rate = self.orig_poll_rate
+            self.poll = self.orig_poll
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
@@ -173,13 +173,13 @@ class Worker(object):
         """
 
         if failure.check(NoJobException):
-            if self.poll_rate >= 15:
-                self.poll_rate = 15
+            if self.poll >= 15:
+                self.poll = 15
             if self.log_level > 1:
-                msg = 'Sleeping for %s seconds' % self.poll_rate
+                msg = 'Sleeping for %s seconds' % self.poll
                 log.msg(LOG_PREFIX % self.id + msg)
-            self.poll_rate = ceil(self.poll_rate * 1.5)
-            reactor.callLater(self.poll_rate, self.get_job)
+            self.poll = ceil(self.poll * 1.5)
+            reactor.callLater(self.poll, self.get_job)
         else:
             log.msg("Error: ", failure.getErrorMessage())
             log.msg("Traceback: ", failure.printTraceback())
@@ -406,7 +406,7 @@ except:
         if self.checker_task.running:
             self.checker_task.stop()
 
-        self.checker_timeout = self.checker_timeout * 2
+        self.checker_timeout = self.checker_timeout * 1.5
         if self.checker_timeout > 300.0:
             self.checker_timeout = 300.0
         self.checker_task = task.LoopingCall(self.check_work)
@@ -581,7 +581,7 @@ class Monitor(object):
                  workers=2,
                  anonymous=False,
                  priority=20,
-                 poll_rate=5.0,
+                 poll=5.0,
                  log_level=0,
                  log_file=os.path.join(DSAGE_DIR, 'worker.log'),
                  pubkey_file=None,
@@ -593,7 +593,7 @@ class Monitor(object):
         self.workers = workers
         self.anonymous = anonymous
         self.priority = priority
-        self.poll_rate = poll_rate
+        self.poll = poll
         self.log_level = log_level
         self.log_file = log_file
         self.pubkey_file = pubkey_file
@@ -638,12 +638,12 @@ class Monitor(object):
                 self.priv_key = keys.getPrivateKeyObject(self.privkey_file,
                                                          pphrase)
             self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-            self.alg_name = 'rsa'
+            self.algorithm = 'rsa'
             self.blob = keys.makePublicKeyBlob(self.pub_key)
             self.data = self.DATA
             self.signature = keys.signData(self.priv_key, self.data)
             self.creds = credentials.SSHPrivateKey(self.username,
-                                                   self.alg_name,
+                                                   self.algorithm,
                                                    self.blob,
                                                    self.data,
                                                    self.signature)
@@ -769,7 +769,7 @@ class Monitor(object):
         """
 
         log.msg('[Monitor] Starting %s workers...' % (self.workers))
-        self.worker_pool = [Worker(remoteobj, x, self.log_level, self.poll_rate)
+        self.worker_pool = [Worker(remoteobj, x, self.log_level, self.poll)
                             for x in range(self.workers)]
 
     def check_killed_jobs(self):
@@ -828,11 +828,11 @@ def usage():
                       type='int',
                       default=8081,
                       help='port to connect to. default=8081')
-    parser.add_option('--poll-rate',
-                      dest='poll_rate',
+    parser.add_option('--poll',
+                      dest='poll',
                       type='float',
                       default=5.0,
-                      help='poll_rate before checking for new job. default=5')
+                      help='poll rate before checking for new job. default=5')
     parser.add_option('-a', '--anonymous',
                       dest='anonymous',
                       default=False,
@@ -896,7 +896,7 @@ def main():
                       workers=options.workers,
                       anonymous=options.anonymous,
                       priority=options.priority,
-                      poll_rate=options.poll_rate,
+                      poll=options.poll,
                       log_file=options.logfile,
                       log_level=options.loglevel,
                       pubkey_file=options.pubkey_file,

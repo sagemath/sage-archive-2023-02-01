@@ -110,11 +110,11 @@ class DSage(object):
                             passphrase=passphrase)
 
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -206,6 +206,7 @@ class DSage(object):
             #                    self.port,
             #                    factory,
             #                    contextFactory)
+            from gnutls.interfaces.twisted import X509Credentials
             cred = X509Credentials()
             reactor.connectTLS(self.server, self.port, factory, cred)
         else:
@@ -402,16 +403,17 @@ class BlockingDSage(DSage):
                             passphrase=passphrase)
 
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
 
         self.dsage_thread = DSageThread()
+        self.dsage_thread.setDaemon(True)
         self.dsage_thread.start()
         self.connect()
 

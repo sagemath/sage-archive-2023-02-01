@@ -3119,7 +3119,8 @@ class Graph(GenericGraph):
 
     ### Automorphism and isomorphism
 
-    def automorphism_group(self, partition=None, translation=False):
+    def automorphism_group(self, partition=None, translation=False,
+                           verbosity=0):
         """
         Returns the largest subgroup of the automorphism group of the graph
         whose orbit partition is finer than the partition given. If no
@@ -3175,9 +3176,9 @@ class Graph(GenericGraph):
             if partition is None:
                 partition = [self.vertices()]
             if translation:
-                a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops())
+                a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops(), verbosity=verbosity)
             else:
-                a = search_tree(self, partition, dict=False, lab=False, dig=self.loops())
+                a = search_tree(self, partition, dict=False, lab=False, dig=self.loops(), verbosity=verbosity)
             if len(a) != 0:
                 a = PermutationGroup([perm_group_elt(aa) for aa in a])
             else:

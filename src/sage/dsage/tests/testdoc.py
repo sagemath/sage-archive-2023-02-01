@@ -6,7 +6,7 @@ WARNING: Currently these non-blocking startups leave processes
 hanging around!
    sage: port = randint(8000, 9000)
    sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
-   sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+   sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, poll_rate=1.0, log_level=3)
    sage: sleep(2.0)
    sage: d = DSage(port=port, ssl=False)
    sage: sleep(2.0)

@@ -77,7 +77,7 @@ class Worker(object):
         self.checker_timeout = 0.5
         self.got_output = False
         self.job_start_time = None
-        self.poll_rate = poll_rate
+        self.orig_poll_rate = poll_rate
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -122,6 +122,7 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
         try:
+            self.poll_rate = self.orig_poll_rate
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
@@ -827,10 +828,10 @@ def usage():
                       type='int',
                       default=8081,
                       help='port to connect to. default=8081')
-    parser.add_option('-d', '--poll_rate',
+    parser.add_option('--poll-rate',
                       dest='poll_rate',
                       type='float',
-                      default=5,
+                      default=5.0,
                       help='poll_rate before checking for new job. default=5')
     parser.add_option('-a', '--anonymous',
                       dest='anonymous',

@@ -183,7 +183,7 @@ class DistributedSage(object):
                        to log to $DOT_SAGE/dsage/worker.log
         """
 
-        cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
+        cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s --poll-rate %s -l %s -f %s ' + \
                                '--privkey=%s --pubkey=%s --priority=%s '
         cmd = cmd % (server, port, username, workers, poll_rate, log_level,
                      log_file, privkey, pubkey, priority)

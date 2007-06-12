@@ -157,16 +157,6 @@ def main(options):
 
     """
 
-    # config = get_conf('server')
-    # LOG_FILE = config['log_file']
-    # LOG_LEVEL = config['log_level']
-    # SSL = get_bool(config['ssl'])
-    # SSL_PRIVKEY = config['privkey_file']
-    # SSL_CERT = config['cert_file']
-    # CLIENT_PORT = int(config['client_port'])
-    # PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
-    # STATS_FILE = config['stats_file']
-
     LOG_FILE = options.logfile
     LOG_LEVEL = options.loglevel
     SSL = options.ssl
@@ -177,23 +167,20 @@ def main(options):
     DB_FILE = options.dbfile
     FAILURE_THRESHOLD = options.job_failure_threshold
 
-    # start logging
     startLogging(LOG_FILE)
 
-    # Job database
     jobdb = JobDatabaseSQLite(db_file=DB_FILE,
                               job_failure_threshold=FAILURE_THRESHOLD,
                               log_file=LOG_FILE, log_level=LOG_LEVEL)
-    # Worker database
     monitordb = MonitorDatabase(db_file=DB_FILE,
                                 log_file=LOG_FILE, log_level=LOG_LEVEL)
-
-    # Client database
     clientdb = ClientDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, monitordb,
-                               clientdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb, clientdb,
+                               log_level=LOG_LEVEL)
+   dsage_server.client_factory = client_factory
+
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Credentials checker
@@ -204,14 +191,7 @@ def main(options):
 
     # Create the looping call that will output the XML file for Dashboard
     tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
-    tsk1.start(5.0, now=False)
-
-    # Create the PBServerFactory for workers
-    # Use this for unauthorized workers
-    # dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
-    # worker_factory = WorkerPBServerFactory(dsage_worker)
-
-    dsage_server.client_factory = client_factory
+    tsk1.start(2.0, now=False)
 
     attempts = 0
     err_msg = "Could not find an open port after 50 attempts."
@@ -284,6 +264,8 @@ def main(options):
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
     # reactor.callWhenRunning(create_manhole)
+
+    # blocking or non-blocking
     if options.noblock:
         reactor.run(installSignalHandlers=0)
     else:

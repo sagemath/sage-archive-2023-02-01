@@ -179,7 +179,7 @@ def main(options):
     # Create the main DSage object
     dsage_server = DSageServer(jobdb, monitordb, clientdb,
                                log_level=LOG_LEVEL)
-   dsage_server.client_factory = client_factory
+    dsage_server.client_factory = client_factory
 
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 

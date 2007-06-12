@@ -1082,7 +1082,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def integral(self):
         cdef Py_ssize_t n, degree = self.degree()
-        if degree <= 0:
+        if degree < 0:
             return self.parent()(0)
         try:
             coeffs = self.list()
@@ -2017,13 +2017,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __rshift__(self, k):
         return self.shift(-k)
 
-
-    def truncate(self, n):
+    def truncate(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
-        return self.parent()(self[:int(n)], check=False)
+        return self._parent(self[:n], check=False)
 
     def radical(self):
         """
@@ -2397,6 +2396,13 @@ cdef class Polynomial_generic_dense(Polynomial):
                 return self.polynomial([])
             else:
                 return self.polynomial(self.__coeffs[-int(n):], check=False)
+
+    def truncate(self, long n):
+        r"""
+        Returns the polynomial of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        return self._parent(self.__coeffs[:n], check=False)
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)

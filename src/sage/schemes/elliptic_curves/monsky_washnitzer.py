@@ -53,6 +53,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.arith import binomial, integer_ceil as ceil, integer_floor as floor
 from math import floor
 from sage.misc.functional import log, sqrt
+from sage.misc.misc import newton_method_sizes
 
 from ell_generic import is_EllipticCurve
 from constructor import EllipticCurve
@@ -1440,7 +1441,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     for i in range(M.ncols()):
         for j in range(M.nrows()):
             M[i,j] = M[i,j].add_bigoh(prec)
-    print prof
+#    print prof
     return M.transpose(), [f for f, a in reduced]
 
 
@@ -1539,7 +1540,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
     def change_ring(self, R):
         return SpecialHyperellipticQuotientRing(self._Q, R, is_LaurentSeriesRing(self._series_ring))
 
-    def __call__(self, val, offset=0):
+    def __call__(self, val, offset=0, check=True):
         if isinstance(val, SpecialHyperellipticQuotientElement) and val.parent() is self:
             if offset == 0:
                 return val
@@ -1547,7 +1548,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
                 return val << offset
         elif isinstance(val, MonskyWashnitzerDifferential):
             return self._monsky_washnitzer(val)
-        return SpecialHyperellipticQuotientElement(self, val, offset)
+        return SpecialHyperellipticQuotientElement(self, val, offset, check)
 
     def gens(self):
         return self._x, self._y
@@ -1652,8 +1653,12 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
-    def __init__(self, parent, val=0, offset=0):
+    def __init__(self, parent, val=0, offset=0, check=True):
         CommutativeAlgebraElement.__init__(self, parent)
+        if not check:
+            R = parent.base_ring()
+            self._f = parent._poly_ring(val, check=False)
+            return
         if isinstance(val, SpecialHyperellipticQuotientElement):
             R = parent.base_ring()
             self._f = parent._poly_ring([a.change_ring(R) for a in val._f])
@@ -1682,8 +1687,8 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         else:
             raise ZeroDivisionError, "Element not invertible"
 
-    def is_zero(self):
-        return self._f.is_zero()
+    def __nonzero__(self):
+        return not not self._f
 
     def __eq__(self, other):
         if not isinstance(other, SpecialHyperellipticQuotientElement):
@@ -1699,8 +1704,11 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
     def _mul_(self, other):
         # over laurent series, addition and subtraction can be expensive,
         # and the degree of this poly is small enough that Karatsuba actually hurts
-        prod = self._f._mul_generic(other._f)
-#        prod = self._f * other._f
+        # significantly in some cases
+        if self._f[0].valuation() + other._f[0].valuation() > -200:
+            prod = self._f._mul_generic(other._f)
+        else:
+            prod = self._f * other._f
         v = prod.list()
         parent = self.parent()
         Q_coeffs = parent._Q_coeffs
@@ -1713,20 +1721,24 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         return SpecialHyperellipticQuotientElement(parent, v[0:n])
 
     def _rmul_(self, c):
-        coeffs = self._f.list()
-        return self.parent()([c*a for a in coeffs])
+        coeffs = self._f.list(copy=False)
+        return self.parent()([c*a for a in coeffs], check=False)
 
     def _lmul_(self, c):
-        coeffs = self._f.list()
-        return self.parent()([a*c for a in coeffs])
+        coeffs = self._f.list(copy=False)
+        return self.parent()([a*c for a in coeffs], check=False)
 
     def __lshift__(self, k):
-        coeffs = self._f.list()
-        return self.parent()([a << k for a in coeffs])
+        coeffs = self._f.list(copy=False)
+        return self.parent()([a << k for a in coeffs], check=False)
 
     def __rshift__(self, k):
-        coeffs = self._f.list()
-        return self.parent()([a >> k for a in coeffs])
+        coeffs = self._f.list(copy=False)
+        return self.parent()([a >> k for a in coeffs], check=False)
+
+    def truncate_neg(self, n):
+        coeffs = self._f.list(copy=False)
+        return self.parent()([a.truncate_neg(n) for a in coeffs], check=False)
 
     def _repr_(self):
         x = PolynomialRing(QQ, 'x').gen(0)
@@ -1864,16 +1876,19 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 #        one_half = Q.parent().base_ring()(Rational((1,2)))
         three_halves = self.base_ring()._series_ring(Rational((3,2)))
         one_half     = self.base_ring()._series_ring(Rational((1,2)))
+        half_a       = a._rmul_(one_half)
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}
-        # This converges because we know the root is in the same residue class as 1.
+        # Newton's method converges because we know the root is in the same residue class as 1.
 
-        t = self.base_ring()(1)
-#        t = self.base_ring()(three_halves) - a._rmul_(one_half)
+#        t = self.base_ring()(1)
+        t = self.base_ring()(three_halves) - half_a # first iteration trivial, start with prec 2
 
-        for _ in range(ceil(log(prec, 2))):
-            t = t._rmul_(three_halves) - (t*t*t * a)._rmul_(one_half)  # t = (3/2) t - (1/2) a t^3
-#            t = three_halves * t - one_half * t*t*t * a
+        for cur_prec in newton_method_sizes(prec)[2:]: # newton_method_sizes = [1, 2, ...]
+            y_prec = -(2*cur_prec-1)*p+1 # binomial expansion is  $\sum p^{k+1} y^{-(2k+1)p+1} f(x)$
+                                         # so if we are only correct mod p^prec, can ignore y powers less than y_prec
+            t_cube = (t*t*t).truncate_neg(y_prec)
+            t = t._rmul_(three_halves) - (half_a * t_cube).truncate_neg(y_prec)  # t = (3/2) t - (1/2) a t^3
 
 #        print "a =", a
 #        print "t =", t

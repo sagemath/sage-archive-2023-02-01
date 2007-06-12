@@ -112,7 +112,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         K = P[0].parent()
         x = K.teichmuller(P[0])
         pt = self.lift_x(x)
-        if pt[1] == P[1]:
+        p = K.prime()
+        if (pt[1] - P[1]).valuation() > 0:
             return pt
         else:
             return -pt
@@ -143,18 +144,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             M_frob, forms = self._frob_calc
         except AttributeError:
             M_frob, forms = self._frob_calc = monsky_washnitzer.matrix_of_frobenius_hyperelliptic(self)
+            prof("changing rings")
+            # another hack due to slow padics
+            forms = [f.change_ring(self.base_ring()) for f in forms]
+            self._frob_calc = (M_frob, forms)
 
         prof("eval f")
-        # another hack due to slow padics
-        R = forms[0].base_ring()
-        try:
-            prof("eval f %s"%R)
-            L = [f(R(TP[0]), R(TP[1])) - f(R(TQ[0]), R(TQ[1])) for f in forms]
-        except ValueError:
-            prof("changing rings")
-            forms = [f.change_ring(self.base_ring()) for f in forms]
-            prof("eval f %s"%self.base_ring())
-            L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
+        L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
         b = 2*V(L)
 #        print "b =", b
 

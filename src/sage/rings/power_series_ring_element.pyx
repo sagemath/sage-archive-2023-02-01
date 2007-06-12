@@ -1005,9 +1005,9 @@ cdef class PowerSeries(AlgebraElement):
             Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus x^2 + -2 - t
             sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
             sage: sqrt(1+2*t+t^2)
-            1 + t + O(t^50)
+            1 + t
             sage: sqrt(t^2 +2*t^4 + t^6)
-            t + t^3 + O(t^51)
+            t + t^3
             sage: sqrt(1 + t + t^2 + 7*t^3)^2
             1 + t + t^2 + 7*t^3 + O(t^50)
             sage: sqrt(K(0))
@@ -1083,10 +1083,13 @@ cdef class PowerSeries(AlgebraElement):
 
         pr = self.prec()
         if pr == infinity:
+            test_exact = True
             if prec is None:
                 pr = self._parent.default_prec()
             else:
                 pr = prec
+        else:
+            test_exact = False
         prec = pr
 
         R = s.parent()
@@ -1104,6 +1107,9 @@ cdef class PowerSeries(AlgebraElement):
         ans = s
         if val != 0:
             ans *= P.gen(0)**(val/2)
+        if test_exact and ans.degree() < prec/2:
+            if ans*ans == self:
+                (<PowerSeries>ans)._prec = infinity
 
         if all:
             return [ans, -ans]  # since over an integral domain
@@ -1126,7 +1132,7 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ValueError: Square root does not live in this ring.
             sage: (2+t.change_ring(RR)).square_root()
-            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
+            1.41421356237309 + 0.353553390593274*t - 0.0441941738241591*t^2 + 0.0110485434560399*t^3 - 0.00345266983001242*t^4 + O(t^5)
             sage: t.square_root()
             Traceback (most recent call last):
             ...
@@ -1684,8 +1690,31 @@ cdef class PowerSeries_poly(PowerSeries):
         cdef PowerSeries_poly self = _self
         return PowerSeries_poly(self._parent, self.__f >> n, self._prec - n)
 
+    def truncate(self, prec=infinity):
+        """
+        The polynomial obtained from power series by truncation.
+
+        EXAMPLES:
+            sage: R.<I> = GF(2)[[]]
+            sage: f = 1/(1+I+O(I^8)); f
+            1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
+            sage: f.truncate(5)
+            I^4 + I^3 + I^2 + I + 1
+        """
+        if prec is infinity:
+            return self.__f
+        else:
+            return self.__f.truncate(prec)
+
+    def truncate_powerseries(self, long prec):
+        r"""
+        Returns the power series of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        return PowerSeries_poly(self._parent, self.__f.truncate(prec), self._prec if self._prec < prec else infinity, check=False)
+
     def copy(self):
-        return PowerSeries_poly(self._parent, self.__f, self.prec(), check=False)
+        return PowerSeries_poly(self._parent, self.__f, self._prec, check=False)
 
     def list(self):
         return self.__f.list()

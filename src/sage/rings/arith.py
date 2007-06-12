@@ -23,6 +23,7 @@ import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
+from sage.misc.misc import prod
 
 import integer_ring
 import integer
@@ -967,14 +968,41 @@ def sigma(n, k=1):
         6
         sage: sigma(5,2)
         26
+
+    AUTHORS:
+        -- William Stein: original implementation
+        -- Craig Citro (2007-06-01): rewrote for huge speedup
+
+    TESTS:
+        sage: sigma(100,4)
+        106811523
+        sage: sigma(factorial(100),3).mod(144169)
+        3672
+        sage: sigma(factorial(150),12).mod(691)
+        176
+        sage: RR(sigma(factorial(133),20))
+        2.80414775675747e4523
+        sage: sigma(factorial(100),0)
+        39001250856960000
+        sage: sigma(factorial(41),1)
+        229199532273029988767733858700732906511758707916800
     """
-    n = integer_ring.ZZ(n)
-    k = integer_ring.ZZ(k)
-    return sum([d**k for d in divisors(n)])
+    ZZ = integer_ring.ZZ
+    n = ZZ(n)
+    k = ZZ(k)
+    one = ZZ(1)
+
+    if (k == ZZ(0)):
+        return prod([ expt+one for p, expt in factor(n) ])
+    elif (k == one):
+        return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
+    else:
+        return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+
 
 def gcd(a, b=0, integer=False):
     """
-    The greatest commond divisor of a and b.
+    The greatest common divisor of a and b.
 
     INPUT:
         a -- number
@@ -1141,7 +1169,11 @@ XGCD = xgcd
 
 def inverse_mod(a, m):
     """
-    The inverse of the integer a modulo the integer m.
+    The inverse of the ring element a modulo m.
+
+    If no special inverse_mod is defined for the elements, it tries
+    to coerce them into integers and perform the inversion there
+
     sage: inverse_mod(7,1)
     0
     sage: inverse_mod(5,14)
@@ -1149,11 +1181,10 @@ def inverse_mod(a, m):
     sage: inverse_mod(3,-5)
     2
     """
-    if m<0:
-        m *= -1
-    if m==1:
-        return 0
-    return integer_ring.ZZ((~(pari(a).Mod(m))).lift())
+    try:
+        return a.inverse_mod(m)
+    except AttributeError:
+        return integer.Integer(a).inverse_mod(m)
 
 # def sqrt_mod(a, m):
 #     """A square root of a modulo m."""
@@ -1449,7 +1480,7 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False, debug_level=0):
+def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
     if int_:
         Z = int
     else:
@@ -1460,7 +1491,12 @@ def __factor_using_pari(n, int_=False, debug_level=0):
     F = pari(n).factor()
     B = F[0]
     e = F[1]
+    if proof:
+        for i in xrange(len(B)):
+            if not B[i].isprime():
+                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+
     if debug_level > 0:
         pari.set_debug_level(prev)
     return v
@@ -1516,8 +1552,16 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-        sage: factor(2^197 + 1)       # takes a long time
+    SAGE calls PARI's factor, which has proof False by default.  SAGE
+    by default *does* check primality of each factor that is
+    returned. To turn this off, do proof False.
+
+        sage: factor(3^89-1, proof=False)
+        2 * 179 * 1611479891519807 * 5042939439565996049162197
+
+        sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
+
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
@@ -1540,7 +1584,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     #if n < 10000000000: return __factor_using_trial_division(n)
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
-                                   int_=int_, debug_level=verbose), unit)
+                                   int_=int_, debug_level=verbose, proof=proof), unit)
     elif algorithm == 'kash':
         from sage.interfaces.all import kash
         F = kash.eval('Factorization(%s)'%n)

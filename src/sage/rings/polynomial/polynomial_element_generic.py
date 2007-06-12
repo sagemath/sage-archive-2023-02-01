@@ -34,7 +34,7 @@ from sage.structure.element import (IntegralDomainElement, EuclideanDomainElemen
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
+from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, zero_ZZX, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 from sage.structure.factorization import Factorization
 
 from sage.rings.infinity import infinity
@@ -527,9 +527,10 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
 
         if fraction_field_element.is_FractionFieldElement(x):
-            if x.denominator().degree() >= 1:
-                raise TypeError, "denominator must be constant"
-                x = x.numerator() * (~x.denominator()[0])
+            if not x.denominator().is_unit():
+                raise TypeError, "denominator must be a unit"
+            elif x.denominator() != 1:
+                x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 x = x.numerator()
 
@@ -978,7 +979,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             self.__poly = ZZX(x)
             return
 
-        self.__poly = ZZX([])
+        self.__poly = zero_ZZX.copy()
 
         if x is None:
             return         # leave initialized to 0 polynomial.
@@ -1229,6 +1230,28 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         if variable is None:
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
+
+    def square_free_decomposition(self):
+        """
+        Return the square-free decomposition of self.  This is
+        a partial factorization of self into square-free, relatively
+        prime polynomials.
+
+        This is a wrapper for the NTL function SquareFreeDecomp.
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
+            sage: p.square_free_decomposition()
+            (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
+        """
+        p = self.__poly
+        c = p.content()
+        if c != 1:
+            p = p / ZZX([c])
+        decomp = p.square_free_decomposition()
+        pdecomp = [(self.parent()(f, construct=True), exp) for (f, exp) in decomp]
+        return Factorization(pdecomp, unit=c, sort=False)
 
     def factor_mod(self, p):
         """

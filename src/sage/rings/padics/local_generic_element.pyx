@@ -126,7 +126,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: b = R(7/5); b.is_integral()
             True
         """
-        return bool(self.valuation() >= 0)
+        return self.valuation() >= 0
 
     #def is_square(self):
     #    raise NotImplementedError
@@ -174,7 +174,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: K(1/9).is_unit()
             False
         """
-        return bool(self.valuation() == 0)
+        return self.valuation() == 0
 
     #def is_zero(self, prec):
     #    raise NotImplementedError

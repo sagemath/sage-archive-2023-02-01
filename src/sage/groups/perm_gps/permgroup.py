@@ -1081,13 +1081,14 @@ class AlternatingGroup(PermutationGroup_generic):
         self._deg = n
         if isinstance(n,ListType):
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
-        elif isinstance(n,Integer):
-            n = Integer(n)
-            if n < 1:
-                raise ValueError, "n (=%s) must be >= 1"%n
-            PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
         else:
-            raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
+            try:
+                n = Integer(n)
+                if n < 1:
+                    raise ValueError, "n (=%s) must be >= 1"%n
+                PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+            except TypeError, msg:
+                raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
     def _repr_(self):
         if isinstance(self._deg,ListType):

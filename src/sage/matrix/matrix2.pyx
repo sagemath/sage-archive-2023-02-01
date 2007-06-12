@@ -17,6 +17,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.element import is_Vector
 from   sage.misc.misc import verbose, get_verbose, graphics_filename
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
@@ -30,6 +31,106 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
+    def _backslash_(self, B):
+        return self.solve_right(B)
+
+    def solve_right(self, B):
+        r"""
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        INPUT:
+            B -- a matrix or vector
+
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
+            sage: b = vector(QQ,[1,2,3])
+            sage: x = A \ b; x
+            (-13/12, 23/12, -7/12)
+            sage: A * x
+            (1, 2, 3)
+
+        We illustrate left associativity, etc., of the backslash operator.
+            sage: A = matrix(QQ, 2, [1,2,3,4])
+            sage: A \ A
+            [1 0]
+            [0 1]
+            sage: A \ A \ A
+            [1 2]
+            [3 4]
+            sage: A.parent()(1) \ A
+            [1 2]
+            [3 4]
+            sage: A \ (A \ A)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: X = A \ (A - 2); X
+            [ 5 -2]
+            [-3  2]
+            sage: A * X
+            [-1  2]
+            [ 3  2]
+
+        Solving over a polynomial ring:
+            sage: x = polygen(QQ, 'x')
+            sage: A = matrix(2, [x,2*x,-5*x^2+1,3])
+            sage: v = vector([3,4*x - 2])
+            sage: X = A \ v
+            sage: X
+            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            sage: A * X == v
+            True
+
+        Solving a system over the p-adics:
+            sage: k = Qp(5,4)
+            sage: a = matrix(k, 3, [1,7,3,2,5,4,1,1,2]); a
+            [    1 + O(5^4) 2 + 5 + O(5^4)     3 + O(5^4)]
+            [    2 + O(5^4)     5 + O(5^5)     4 + O(5^4)]
+            [    1 + O(5^4)     1 + O(5^4)     2 + O(5^4)]
+            sage: v = vector(k, 3, [1,2,3])
+            sage: x = a \ v; x
+            (4 + 5 + 5^2 + 3*5^3 + O(5^4), 2 + 5 + 3*5^2 + 5^3 + O(5^4), 1 + 5 + O(5^4))
+            sage: a * x == v
+            True
+        """
+        if not self.is_square():
+            raise NotImplementedError, "input matrix must be square"
+
+        K = self.base_ring()
+        if not K.is_integral_domain():
+            raise TypeError, "base ring must be an integral domain"
+        if not K.is_field():
+            K = K.fraction_field()
+            self = self.change_ring(K)
+
+        if self.rank() != self.nrows():
+            raise ValueError, "input matrix must have full rank but it doesn't"
+
+        matrix = True
+        if is_Vector(B):
+            matrix = False
+            C = self.matrix_space(self.nrows(), 1)(B.list())
+        else:
+            C = B
+
+        D = self.augment(C).echelon_form()
+        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
+
+
+
     def prod_of_row_sums(self, cols):
         r"""
         Calculate the product of all row sums of a submatrix of $A$ for a
@@ -1399,7 +1500,7 @@ cdef class Matrix(matrix1.Matrix):
                 if m > 1 and not is_diagonalizable:
                     B = B**m
                 W = B.kernel()
-                E.append((W, bool(m==1)))
+                E.append((W, m==1))
                 continue
 
             # General case, i.e., deg(g) > 1:
@@ -1434,7 +1535,7 @@ cdef class Matrix(matrix1.Matrix):
                 if W.rank() == m * g.degree():
                     t = verbose('now computing row space', level=2, caller_name='generic spin decomp')
                     W.echelonize()
-                    E.append((W.row_space(), bool(m==1)))
+                    E.append((W.row_space(), m==1))
                     verbose('computed row space', level=2,t=t, caller_name='generic spin decomp')
                     break
                 else:
@@ -1470,9 +1571,9 @@ cdef class Matrix(matrix1.Matrix):
                               self.base_ring(), self.nrows(), sparse=self.is_sparse())
             m = F[0][1]
             if dual:
-                return decomp_seq([(V, bool(m==1))]), decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)]), decomp_seq([(V, m==1)])
             else:
-                return decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)])
         F.sort()
         for g, m in f.factor():
             t = verbose('decomposition -- Computing g(self) for an irreducible factor g of degree %s'%g.degree(),level=2)
@@ -1484,10 +1585,10 @@ cdef class Matrix(matrix1.Matrix):
                 B = B ** m
                 verbose('done powering',t2)
             t = verbose('decomposition -- done computing g(self)', level=2, t=t)
-            E.append((B.kernel(), bool(m==1)))
+            E.append((B.kernel(), m==1))
             t = verbose('decomposition -- time to compute kernel', level=2, t=t)
             if dual:
-                Edual.append((B.transpose().kernel(), bool(m==1)))
+                Edual.append((B.transpose().kernel(), m==1))
                 verbose('decomposition -- time to compute dual kernel', level=2, t=t)
         if dual:
             return E, Edual

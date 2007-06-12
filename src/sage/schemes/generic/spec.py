@@ -9,9 +9,8 @@ Spec of a ring
 #*******************************************************************************
 
 from sage.rings.all import is_CommutativeRing, ZZ
-
-import point
 import scheme
+import point
 
 def is_Spec(X):
     """

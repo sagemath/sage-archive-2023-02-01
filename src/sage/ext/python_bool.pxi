@@ -10,7 +10,7 @@ cdef extern from "Python.h":
     # such, the normal creation and deletion functions don't apply to
     # booleans. The following macros are available, however.
 
-    int PyBool_Check(object o)
+    bint PyBool_Check(object o)
     # Return true if o is of type PyBool_Type.
 
     #PyObject* Py_False
@@ -29,7 +29,7 @@ cdef extern from "Python.h":
     # Py_RETURN_TRUE
     # Return Py_True from a function, properly incrementing its reference count.
 
-    object PyBool_FromLong(	long v)
+    object PyBool_FromLong(long v)
     # Return value: New reference.
     # Return a new reference to Py_True or Py_False depending on the truth value of v.
 

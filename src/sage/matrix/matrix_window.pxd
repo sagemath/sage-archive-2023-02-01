@@ -14,7 +14,7 @@ cdef class MatrixWindow:
     cdef add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
     cdef subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
 
-    cdef int element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j)
+    cdef bint element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j)
     cdef set_to(MatrixWindow self, MatrixWindow A)
     cdef set_to_zero(MatrixWindow self)
 

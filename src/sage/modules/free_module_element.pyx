@@ -642,15 +642,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return A.linear_combination_of_rows(v).dot_product(w)
 
     def is_dense(self):
-        return bool(self.is_dense_c())
+        return self.is_dense_c()
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return self.parent().is_dense()
 
     def is_sparse(self):
-        return bool(self.is_sparse_c())
+        return self.is_sparse_c()
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return self.parent().is_sparse()
 
     def is_vector(self):
@@ -742,10 +742,10 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x._degree = self._degree
         return x
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 1
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 0
 
     def _hash(self):
@@ -959,10 +959,10 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         x._degree = self._degree
         return x
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 0
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 1
 
     def __copy__(self):

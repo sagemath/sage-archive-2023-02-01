@@ -40,13 +40,13 @@ We compute in a quotient of a polynomial ring over Z/17*Z:
     sage: R.<x,y> = PolynomialRing(ZZ, 2)
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))                 # optional -- requires Macaulay2
     sage: S                                                     # optional
-    Quotient of Polynomial Ring in x, y over Integer Ring by the ideal (17, y^2 + x^2)
+    Quotient of Polynomial Ring in x, y over Integer Ring by the ideal (x^2 + y^2, 17)
     sage: a^2 + b^2 == 0                                        # optional
     True
     sage: a^3 - b^2                                             # optional
-    -1*b^2 - a*b^2
+    -1*a*b^2 - b^2
     sage: (a+b)^17                                              # optional
-    b^17 + a*b^16
+    a*b^16 + b^17
     sage: S(17) == 0                                            # optional
     True
 
@@ -55,7 +55,7 @@ Working with a polynomial ring over ZZ:
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
     sage: j = i^2
     sage: j.groebner_basis()                                    # optional
-    [y^2 - 2*x*y + x^2, y*w^2 + y*z^2 - 2*y^3 - x*w^2 - x*z^2 + 2*x*y^2, w^4 + 2*z^2*w^2 + z^4 - 4*y^2*w^2 - 4*y^2*z^2 + 4*y^4]
+    [x^2 - 2*x*y + y^2, 2*x*y^2 - 2*y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, 4*y^4 - 4*y^2*z^2 + z^4 - 4*y^2*w^2 + 2*z^2*w^2 + w^4]
     sage: y^2 - 2*x*y + x^2 in j                                # optional
     True
     sage: 0 in j                                                # optional
@@ -75,6 +75,17 @@ We do a Groebner basis computation over a number field:
     -1
     sage: S.0^3 - zeta*S.1^3
     0
+
+Two examples from the Mathematica documentation (done in SAGE):
+    We compute a Groebner basis:
+        sage: R.<x,y> = PolynomialRing(QQ, order='lex')
+        sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis()
+        [2*y^4 - 9, 3*x - 2*y^3]
+
+    We show that three polynomials have no common root:
+        sage: R.<x,y> = QQ[]
+        sage: ideal(x+y, x^2 - 1, y^2 - 2*x).groebner_basis()
+        [1]
 
 TESTS:
     sage: x,y,z = QQ['x,y,z'].gens()
@@ -628,9 +639,10 @@ class MPolynomialIdeal_singular_repr:
         returns $(g_1, \dots, g_s)$ such that:
 
         * $(f_1,\dots,f_n) = (g_1,\dots,g_s)$
-        * $L(g_i)\neq L(g_j)$ for all $i\neq j$
-        * $L(g_i)$ does not divide m for all monomials m of
+        * $LT(g_i)\neq LT(g_j)$ for all $i\neq j$
+        * $LT(g_i)$ does not divide m for all monomials m of
           $\{g_1,\dots,g_{i-1},g_{i+1},\dots,g_s\}$
+        * $LC(g_i) == 1$ for all $i$.
 
         ALGORITHM: Uses Singular's interred command
 
@@ -641,9 +653,13 @@ class MPolynomialIdeal_singular_repr:
         s = self._singular_().parent()
         o = s.option("get")
         s.option("redSB")
+        s.option("redTail")
         R = self.ring()
-        ret = Sequence([ R(f) for f in self._singular_().interred() ], R,
-                       check=False, immutable=True)
+        ret = []
+        for f in self._singular_().interred():
+            f = R(f)
+            ret.append(f/f.lc()) # lead coeffs are not reduced by interred
+        ret = Sequence( ret, R, check=False, immutable=True)
         s.option("set",o)
         return ret
 
@@ -763,7 +779,7 @@ class MPolynomialIdeal_macaulay2_repr:
         sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4) # optional
         sage: I = ideal(x*y-z^2, y^2-w^2)       # optional
         sage: I                                 # optional
-        Ideal (-1*w^2 + y^2, -1*z^2 + x*y) of Polynomial Ring in x, y, z, w over Integer Ring
+        Ideal (x*y - z^2, y^2 - w^2) of Polynomial Ring in x, y, z, w over Integer Ring
     """
     #def __init__(self, ring, gens, coerce=True):
     #    MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
@@ -800,14 +816,14 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
             sage: I = ideal(x*y-z^2, y^2-w^2)
             sage: I.groebner_basis()                                     # optional -- requires macaulay2
-            [-1*w^2 + y^2, -1*z^2 + x*y, y*z^2 - x*w^2, z^4 - x^2*w^2]
+            [y^2 - w^2, x*y - z^2, y*z^2 - x*w^2, z^4 - x^2*w^2]
 
         Groebner basis can be used to compute in $\Z/n\Z[x,\ldots]$.
 
             sage: R.<x,y,z> = ZZ[]
             sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
             sage: I.groebner_basis()                                     # optional -- requires macaulay2
-            [361, y^2, 19*x*z + x^3]
+            [361, y^2, x^3 + 19*x*z]
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
             sage: I.groebner_basis()                                     # optional -- requires macaulay2
             [361, y^2, x^3]

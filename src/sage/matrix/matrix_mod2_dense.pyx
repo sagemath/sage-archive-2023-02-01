@@ -291,11 +291,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Matrix multiplication.
 
-        EXAMPLES:
-            sage: A = random_matrix(GF(2),200,200)
-            sage: A*A == A._multiply_linbox(A) # optional
-            True
-
         ALGORITHM: Uses the 'Method of the Four Russians
         Multiplication', see self._multiply_m4rm.
 
@@ -601,9 +596,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
             self -- a mutable matrix
             algorithm -- 'm4ri' -- uses M4RI (default)
-                      -- 'linbox' -- uses LinBox's Strassen algorithm
-                                     (needs more RAM, slower for many examples, but
-                                     asymtotically faster)
             k --  the parameter 'k' of the M4RI algorithm. It MUST be between
                   1 and 16 (inclusive). If it is not specified it will be calculated as
                   3/4 * log_2( min(nrows, ncols) ) as suggested in the M4RI paper.
@@ -612,7 +604,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A = random_matrix(GF(2), 10, 10)
              sage: B = A.copy(); B.echelonize() # fastest
              sage: C = A.copy(); C.echelonize(k=2) # force k
-             sage: D = A.copy(); D.echelonize(algorithm='linbox') # optional for LinBox
              sage: E = A.copy(); E.echelonize(algorithm='classical') # force Gaussian elimination
              sage: B == C == E
              True

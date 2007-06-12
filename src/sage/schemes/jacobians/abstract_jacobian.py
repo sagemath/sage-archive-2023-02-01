@@ -12,12 +12,18 @@ from sage.rings.all import is_Field
 from sage.schemes.generic.scheme import Scheme, is_Scheme
 
 def is_Jacobian(X):
-    return isinstance(X, Jacobian)
+    return isinstance(X, Jacobian_generic)
 
-class Jacobian(Scheme):
+def Jacobian(X):
+    try:
+        return X.jacobian()
+    except AttributeError:
+        return Jacobian_generic(X)
+
+class Jacobian_generic(Scheme):
     def __init__(self, C):
         if not is_Scheme(C):
-            raise TypeError, "C (=%s) must be a scheme."%C
+            raise TypeError, "Argument (=%s) must be a scheme."%C
         # This was broken for curves over number fields:
         # if C.dimension() != 1:
         #     raise ValueError, "C (=%s) must have dimension 1."%C
@@ -29,11 +35,11 @@ class Jacobian(Scheme):
     def _repr_(self):
         return "Jacobian of %s"%self.__curve
 
-    def _point_morphism_class(self):
+    def _point_class(self):
         raise NotImplementedError
 
     def curve(self):
         """
-        The curve that this is the Jacobian of.
+        The curve of which this is the Jacobian.
         """
         return self.__curve

@@ -357,6 +357,7 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
 
     TODO: This printing is all completely backwards -- a and x must be switched.
     We
+
         sage: k.<a> = Zq(4); k
         Unramified Extension of 2-adic Ring with capped absolute precision 20
         in a defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20))

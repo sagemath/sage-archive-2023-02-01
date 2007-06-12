@@ -144,7 +144,6 @@ def enum_affine_finite_field(X):
 from sage.categories.all import HomsetWithBase, Schemes
 from sage.rings.all      import (
     is_FiniteField, is_RationalField, is_RingHomomorphism, ZZ)
-
 import spec
 
 import morphism
@@ -161,8 +160,8 @@ def SchemeHomset(R, S, cat=None, check=True):
         return SchemeHomset_generic(R, S, cat=cat, check=check)
 
 class SchemeHomset_generic(HomsetWithBase):
-    def __init__(self, X, Y, cat=None, check=True, base=None):
-        HomsetWithBase.__init__(self, X, Y, cat=cat, check=check, base=None)
+    def __init__(self, X, Y, cat=None, check=True, base=ZZ):
+        HomsetWithBase.__init__(self, X, Y, cat=cat, check=check, base=base)
 
     def has_coerce_map_from_impl(self, S):
         if self == S:   # an obvious case
@@ -270,7 +269,10 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     def __call__(self, *v):
         if len(v) == 1:
             v = v[0]
-        return morphism.SchemeMorphism_projective_coordinates_field(self, v)
+        try:
+            return self.codomain()._point_class(self.codomain(), v)
+        except AttributeError:
+            return morphism.SchemeMorphism_projective_coordinates_field(self, v)
 
     def points(self, B=0):
         try:
@@ -320,7 +322,6 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
 
     def base_extend(self, R):
         if R != sage.rings.integer_ring.ZZ:
-            raise NotImplementedError, "elliptic curve point sets viewed as modules over rings other than ZZ not implemented"
-
+            raise NotImplementedError, "Abelian variety point sets not implemented as modules over rings other than ZZ."
         return self
 

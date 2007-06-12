@@ -15,13 +15,18 @@ import sage.misc.all as misc
 import sage.modular.dirichlet as dirichlet
 
 from sage.rings.all import (bernoulli, CyclotomicField,
-                            sigma, QQ, Integer, divisors,
+                            prime_range, QQ, Integer, divisors,
                             LCM, is_squarefree)
 
 def eisenstein_series_qexp(k, prec=10, K=QQ):
-    """
-    Return the q-expansion of the weight k Eisenstein series
-    to precision prec in the field K.
+    r"""
+    Return the $q$-expansion of the weight $k$ Eisenstein series
+    to precision prec in the field $K$.
+
+    Here's a rough description of how the algorithm works: we know
+    $E_k = const + \sum_n sigma(n,k-1) q^n$. Now, we basically just
+    compute all the $\sigma(n,k-1)$ simultaneously, as $\sigma$ is
+    multiplicative.
 
     INPUT:
         k -- even positive integer
@@ -33,16 +38,49 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
         -1/24 + q + 3*q^2 + 4*q^3 + 7*q^4 + O(q^5)
         sage: eisenstein_series_qexp(2,0)
         O(q^0)
+
+    AUTHORS:
+        -- William Stein: original implementation
+        -- Craig Citro (2007-06-01): rewrote for massive speedup
     """
     k = Integer(k)
     if k%2 or k < 2:
         raise ValueError, "k (=%s) must be an even positive integer"%k
-    prec = Integer(prec)
-    if prec < 0:
+    precision = Integer(prec)
+    if precision < 0:
         raise ValueError, "prec (=%s) must an even nonnegative integer"%prec
     R = K[['q']]
-    coeffs = [-bernoulli(k) / (2*k)] + [sigma(n,k-1) for n in range(1,prec)]
-    return R(coeffs, prec)
+
+    one = Integer(1)
+    val = [one] * (prec + 1)
+
+    pow = 0
+    ind = 0
+    term = 0
+
+    expt = k - one
+
+    for p in prime_range(1,prec+1):
+
+        int_p = int(p)
+
+        ppow = int_p
+        mult = p**expt
+        term = mult*mult
+        last = mult
+
+        while (ppow <= prec):
+            ind = ppow
+            while (ind <= prec):
+                val[ind] = val[ind] * (term - one) // (last - one)
+                ind += ppow
+            ppow *= int_p
+            last = term
+            term *= mult
+
+    val[0] = [-bernoulli(k) / (2*k)]
+
+    return R(val, precision)
 
 ######################################################################
 

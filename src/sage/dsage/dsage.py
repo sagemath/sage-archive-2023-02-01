@@ -102,7 +102,7 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, workers=2, log_level=0, poll=5.0,
+    def start_all(self, port=8081, workers=2, log_level=0, poll=1.0,
                   verbose=True):
         """
         Start the server and worker and returns a connection to the server.
@@ -158,7 +158,7 @@ class DistributedSage(object):
         else:
             os.system(cmd)
 
-    def worker(self, server='localhost', port=8081, workers=2, poll=5.0,
+    def worker(self, server='localhost', port=8081, workers=2, poll=1.0,
                username=getuser(), blocking=True, ssl=True, log_level=0,
                anonymous=False, priority=20,
                privkey=os.path.join(DSAGE_DIR, 'dsage_key'),

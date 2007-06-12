@@ -66,7 +66,7 @@ class Worker(object):
 
     """
 
-    def __init__(self, remoteobj, id, log_level=0, poll=5.0):
+    def __init__(self, remoteobj, id, log_level=0, poll=1.0):
         self.remoteobj = remoteobj
         self.id = id
         self.free = True
@@ -581,7 +581,7 @@ class Monitor(object):
                  workers=2,
                  anonymous=False,
                  priority=20,
-                 poll=5.0,
+                 poll=1.0,
                  log_level=0,
                  log_file=os.path.join(DSAGE_DIR, 'worker.log'),
                  pubkey_file=None,

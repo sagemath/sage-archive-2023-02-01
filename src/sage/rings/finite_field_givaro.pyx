@@ -264,6 +264,8 @@ cdef class FiniteField_givaro(FiniteField):
             else:
                 _sig_on
                 self.objectptr = gfq_factorypk(p,k)
+                self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
+                self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
                 _sig_off
                 if cache:
                     self._array = self.gen_array()
@@ -280,6 +282,9 @@ cdef class FiniteField_givaro(FiniteField):
             _sig_on
             self.objectptr = gfq_factorypkp(p, k,cPoly)
             _sig_off
+            self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
+            self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
+
             if cache:
                 self._array = self.gen_array()
             return
@@ -641,9 +646,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: o == 1
             True
             sage: o is k.one()
-            False
+            True
         """
-        return make_FiniteField_givaroElement(self,self.objectptr.one)
+        return self._one_element
 
     def zero(FiniteField_givaro self):
         """
@@ -658,9 +663,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: o == 0
             True
             sage: o is k.zero()
-            False
+            True
         """
-        return make_FiniteField_givaroElement(self,self.objectptr.zero)
+        return self._zero_element
 
 
     def gen(FiniteField_givaro self, ignored=None):
@@ -1121,7 +1126,7 @@ cdef class FiniteField_givaro(FiniteField):
             cache = 1
 
         return sage.rings.finite_field_givaro.unpickle_FiniteField_givaro, \
-               (self.order_c(),self.variable_name(),
+               (self.order_c(),(self.variable_name(),),
                 map(int,list(self.modulus())),int(self.repr),int(self._array is not None))
 
 def unpickle_FiniteField_givaro(order,variable_name,modulus,rep,cache):
@@ -1176,6 +1181,9 @@ cdef FiniteField_givaro_copy(FiniteField_givaro orig):
     copy = FiniteField_givaro(orig.characteristic()**orig.degree())
     delete(copy.objectptr)
     copy.objectptr = gfq_factorycopy(gfq_deref(orig.objectptr))
+    copy._zero_element = make_FiniteField_givaroElement(copy,copy.objectptr.zero)
+    copy._one_element = make_FiniteField_givaroElement(copy,copy.objectptr.one)
+
     return copy
 
 cdef class FiniteField_givaroElement(FiniteFieldElement):

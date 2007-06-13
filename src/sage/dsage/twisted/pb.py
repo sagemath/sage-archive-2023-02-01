@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 from twisted.spread import pb
@@ -23,13 +24,13 @@ banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 from zope.interface import implements
 from twisted.cred import portal, credentials
 from twisted.cred.credentials import ISSHPrivateKey
+from twisted.cred.credentials import IAnonymous
 from twisted.cred.credentials import Anonymous
 from twisted.spread.interfaces import IJellyable
 from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
 
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.worker_tracker as worker_tracker
 from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
@@ -52,14 +53,9 @@ class WorkerPBServerFactory(pb.PBServerFactory):
         """
 
         broker.notifyOnDisconnect(self.clientConnectionLost)
-        worker_tracker.add((broker,
-                            broker.transport.getPeer().host,
-                            broker.transport.getPeer().port))
 
     def clientConnectionLost(self):
-        for broker, host, port in worker_tracker.worker_list:
-            if broker.transport.disconnected:
-                worker_tracker.remove((broker, host, port))
+        pass
 
 class PBClientFactory(pb.PBClientFactory):
     """
@@ -80,10 +76,12 @@ class PBClientFactory(pb.PBClientFactory):
                           mind)
 
             return d
-        else:
+        elif IAnonymous.providedBy(creds):
             d = self.getRootObject()
             d.addCallback(self._cbAnonymousLogin, mind)
             return d
+        else:
+            raise TypeError('Invalid credentials.')
 
     def _cbSendUsername(self, root, username, algorithm, blob, sig_data,
                         signature, mind):

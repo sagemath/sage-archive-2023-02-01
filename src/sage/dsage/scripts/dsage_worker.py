@@ -754,8 +754,9 @@ class Monitor(object):
             d = self.factory.login(self.creds,
                                    (pb.Referenceable(), self.host_info))
         else:
+            from twisted.cred.credentials import Anonymous
             log.msg('Connecting as anonymous worker...\n')
-            d = self.factory.login('Anonymous',
+            d = self.factory.login(Anonymous(),
                                    (pb.Referenceable(), self.host_info))
         d.addCallback(self._connected)
         d.addErrback(self._catchConnectionFailure)

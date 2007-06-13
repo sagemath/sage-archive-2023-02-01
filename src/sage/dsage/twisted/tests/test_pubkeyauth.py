@@ -140,12 +140,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-
-        d = factory.login(None, None)
-        d.addErrback(lambda f: self.assertEquals(TypeError,
-                                                 f.check(TypeError)))
-
-        return d
+        self.assertRaises(TypeError, factory.login, None, None)
 
     def testBadLogin2(self):
         factory = PBClientFactory()

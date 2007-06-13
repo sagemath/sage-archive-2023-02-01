@@ -3270,6 +3270,54 @@ class Graph(GenericGraph):
             a,b = search_tree(self, partition, dig=self.loops())
             return b
 
+    def write_to_eps(self, filename):
+        """
+        Writes a plot of the graph to filename in eps format.
+
+        It is relatively simple to include this file in a latex document:
+
+        \usepackage{graphics} must appear before the beginning of the document,
+        and \includegraphics {filename.eps} will include it in your latex doc.
+        Note: you cannot use pdflatex to print the resulting document, use
+        TeX and Ghostscript or something similar instead.
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: P.write_to_eps('sage.eps')
+        """
+        from sage.graphs.print_graphs import print_graph_eps
+        if self._pos is None:
+            pos = graph_fast.spring_layout_fast(self)
+        else:
+            pos = self._pos
+            keys = pos.keys()
+            for v in self.vertices():
+                if v not in keys:
+                    pos = graph_fast.spring_layout_fast(self)
+                    break
+        xmin = 0.0
+        ymin = 0.0
+        xmax = -1.0
+        ymax = -1.0
+        for v in pos:
+            x,y = pos[v]
+            if (x > xmax):
+                xmax = x
+            if (x < xmin):
+                xmin = x
+            if (y > ymax):
+                ymax = y
+            if (y < ymin):
+                ymin = y
+        for v in pos:
+            pos[v][0] = 1.8*(pos[v][0] - xmin)/(xmax - xmin) - 0.9
+            pos[v][1] = 1.8*(pos[v][1] - ymin)/(ymax - ymin) - 0.9
+        if filename[-4:] != '.eps':
+            filename += '.eps'
+        f = open(filename, 'w')
+        f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
+        f.close()
+
 class DiGraph(GenericGraph):
     """
     Directed graph.

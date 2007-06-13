@@ -21,4 +21,9 @@ Set timeout to 30 seconds so it will not hang the doctests indefinitely.
    sage: _ = [x.wait(timeout=20) for x in v]
    sage: print v
    [10000, 10201, 10404]
+   sage: from twisted.internet import reactor
+   sage: reactor.stop()
+   sage: d.dsage_thread.join()
+   [DSage] Lost connection to localhost
+
 """

@@ -51,8 +51,12 @@ def get_config(type):
         config.add_section('db_log')
     return config
 
-def setup_client():
+def setup_client(testing=False):
     check_dsage_dir()
+    if testing:
+        cmd = ["ssh-keygen", "-q", "-trsa", "-P ''", "-f%s" % key_file]
+        return
+
     print DELIMITER
     print "Generating public/private key pair for authentication..."
     print "Your key will be stored in %s/dsage_key"%DSAGE_DIR

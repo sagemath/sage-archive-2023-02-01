@@ -2108,6 +2108,7 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
 
 # unique point instance
 point = PointFactory()
+points = point
 
 
 class PolygonFactory(GraphicPrimitiveFactory_from_point_list):

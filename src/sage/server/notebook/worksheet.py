@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 15
+INTERRUPT_TRIES = 3
 
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
@@ -93,13 +93,13 @@ class Worksheet:
         dir = list(name)
         for i in range(len(dir)):
             if not dir[i].isalnum() and dir[i] != '_':
-                dir[i]='_'
+                dir[i] = '_'
         dir = ''.join(dir)
         self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
-        #while os.path.exists(self.__dir):
-        #    self.__dir += "_"
-        #    self.__filename += '_'
+        self.clear()
+
+    def clear(self):
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
@@ -196,7 +196,7 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
-    def edit_save(self,text):
+    def edit_save(self, text):
         text.replace('\r\n','\n')
         # This is where we would save the last version in a history.
         cells = []
@@ -208,6 +208,7 @@ class Worksheet:
             try:
                 input, output, graphics, i = extract_first_compute_cell(text)
             except EOFError:
+                cells.append(self._new_cell())  # make sure last cell is a compute cell
                 break
             text = text[i:]
             C = self._new_cell()
@@ -380,14 +381,13 @@ class Worksheet:
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
             cmd += '_support_.init("%s", globals()); '%object_directory
-            #S.eval(cmd)
-            S._send(cmd)   # so web server doesn't lock.
+            S._send(cmd)   # non blocking
         except Exception, msg:
             print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
             raise RuntimeError
-
+        print "Done starting"
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
@@ -638,7 +638,7 @@ class Worksheet:
             return 'd', C
 
         try:
-            done, out, new = S._so_far(wait=0.1, alternate_prompt=SAGE_END+str(self.synchro()))
+            done, out, new = S._so_far(wait=0.2, alternate_prompt=SAGE_END+str(self.synchro()))
         except RuntimeError, msg:
             verbose("Computation was interrupted or failed. Restarting.\n%s"%msg)
             self.__comp_is_running = False
@@ -774,23 +774,25 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3)
+            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3, quit_on_fail=False)
 
+        if success:
+            self.clear_queue()
+
+        return success
+
+    def clear_queue(self):
         # empty the queue
         for C in self.__queue:
             C.interrupt()
-
         self.__queue = []
         self.__comp_is_running = False
-
-        return success
 
     def restart_sage(self):
         """
         Restart SAGE kernel.
         """
-        # stop the current computation in the running SAGE
-        self.interrupt()
+        print "restarting"
 
         try:
             S = self.__sage
@@ -798,9 +800,10 @@ class Worksheet:
             # no sage running anyways!
             return
 
-        alarm(3)
         try:
-            S.quit()
+            pid = S._expect.pid
+            os.killpg(pid, 9)
+            os.kill(pid, 9)
             S._expect = None
             del self.__sage
         except AttributeError, msg:
@@ -808,7 +811,6 @@ class Worksheet:
         except Exception, msg:
             print msg
             print "WARNING: Error deleting SAGE object!"
-        cancel_alarm()
 
         try:
             del self.__variables
@@ -816,9 +818,9 @@ class Worksheet:
             pass
 
         # We do this to avoid getting a stale SAGE that uses old code.
+        self.clear_queue()
         self.__sage = initialized_sage()
         self.initialize_sage()
-
         self._enqueue_auto_cells()
         self.start_next_comp()
 
@@ -1117,7 +1119,7 @@ class Worksheet:
             else:
                 input = self._get_last_identifier(before_prompt)
                 C._word_being_completed = input
-                input = 'print "\\n".join(_support_.completions("%s", globals()))'%input
+                input = 'print "\\n".join(_support_.completions("%s", globals()))'%(input)
 
         else:
             switched, input = self.check_for_system_switching(input, C)
@@ -1219,6 +1221,10 @@ class Worksheet:
         n = len(self.__cells)
         s = ''
         if include_title:
+            if self.computing():
+                interrupt_class = "interrupt"
+            else:
+                interrupt_class = "interrupt_grey"
             S = self.system()
             if not (S is None):
                 system = ' (%s mode)'%S
@@ -1232,20 +1238,20 @@ class Worksheet:
             vbar = '<span class="vbar"></span>'
 
             menu  = '  <span class="worksheet_control_commands">'
-            menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
+            menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+            menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
+            menu += '    <a class="plain_text" href="edit">Edit</a>' + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
-            menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
-            menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
-            #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
-            menu += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>' + vbar
-            menu += '    <a class="download_sws" href="%s.sws">Download</a>'%self.filename()
+            menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
+            menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
+            menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
+            menu += '    <a class="download_sws" href="download">Download</a>' + vbar
+            menu += '    <a class="delete" href="delete">Delete</a>'
             menu += '  </span>'
 
-            s += '<div class="worksheet_title">' # onClick="toggle_left_pane();">'
-#            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
-            s += ' Worksheet: %s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
+            s += '<div class="worksheet_title">'
+            s += '%s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
 
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']

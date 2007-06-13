@@ -62,6 +62,13 @@ Matrix vector multiply:
     sage: v = V([1,2,3])
     sage: v * A
     (2, 1, 3)
+
+TESTS:
+    sage: D = 46341
+    sage: u = 7
+    sage: R = Integers(D)
+    sage: p = matrix(R,[[84, 97, 55, 58, 51]])
+    sage: 2*p.row(0)
 """
 
 import operator
@@ -69,7 +76,7 @@ import operator
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 import sage.misc.misc as misc
-import sage.misc.latex as latex
+import sage.misc.latex
 
 cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
@@ -689,7 +696,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         s = '\\left('
         for a in self.list():
-            s = s + latex.latex(a) + ','
+            s = s + sage.misc.latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'

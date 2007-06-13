@@ -130,6 +130,9 @@ class Cell(Cell_generic):
     def worksheet(self):
         return self.__worksheet
 
+    def worksheet_name(self):
+        return self.__worksheet.name()
+
     def notebook(self):
         return self.__worksheet.notebook()
 
@@ -254,6 +257,8 @@ class Cell(Cell_generic):
     def set_input_text(self, input):
         self.__version = 1+self.version()
         self.__in = input
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
 
     def input_text(self):
         return self.__in
@@ -274,6 +279,8 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
             if not self.computing():
@@ -449,7 +456,16 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        key = (wrap,div_wrap,do_print)
+        try:
+            return self._html_cache[key]
+        except KeyError:
+            pass
+        except AttributeError:
+            self._html_cache = {}
+
         if self.__in.lstrip()[:8] == '%hideall':
+            self._html_cache[key] = ''
             return ''
 
         if wrap is None:
@@ -469,6 +485,7 @@ class Cell(Cell_generic):
         s = html_in  + introspect + html_out
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+        self._html_cache[key] = s
         return s
 
     def html_in(self, do_print=False):
@@ -527,12 +544,13 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            if F[-4:] in ['.png', '.bmp']:
-                images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
-            elif F[-4:] == '.svg':
-                images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
+            url = "/ws/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
+            if F.endswith('.png') or F.endswith('.bmp'):
+                images.append('<img src="%s?%d">'%(url, self.version()))
+            elif F.endswith('.svg'):
+                images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:
-                files.append('<a target="_new" href="%s/%s" class="file_link">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s" class="file_link">%s</a>'%(url, F))
         if len(images) == 0:
             images = ''
         else:

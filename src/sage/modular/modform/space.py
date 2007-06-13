@@ -56,6 +56,8 @@ import element
 import hecke_operator_on_qexp
 import submodule
 
+import sage.modular.dims as dims
+
 WARN=False
 
 class ModularFormsSpace(hecke.HeckeModule_generic):
@@ -578,14 +580,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.ambient_module()._q_expansion(element, prec)
 
     def __add__(self, right):
-        if self.ambient_space() != right.ambient_space():
+        if self.ambient_module() != right.ambient_module():
             raise ArithmeticError, ("Intersection of %s and %s not defined because they " + \
                                     "do not lie in a common ambient space.")%\
                                    (self, right)
         if self.is_ambient(): return self
         if right.is_ambient(): return right
-        V = self.vector_space() + right.vector_space()
-        return ModularFormsSubmodule(self.ambient_space(), V)
+        V = self.free_module() + right.free_module()
+        return ModularFormsSubmodule(self.ambient_module(), V)
 
 
     def __and__(self, right):
@@ -648,7 +650,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 return 0
             else:
                 return -1
-        if self.vector_space() != x.vector_space():
+        if self.free_module() != x.free_module():
             return -1
         return 0
 
@@ -661,8 +663,8 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         raise NotImplementedError
 
     def __create_newspace(self, basis, level, t, is_cuspidal):
-        V = self.vector_space().submodule(basis, check=False)
-        S = ModularForms(self.ambient_space(), V)
+        V = self.free_module().submodule(basis, check=False)
+        S = submodule.ModularFormsSubmodule(self.ambient_module(), V)
         S.__newspace_params = {'level':level, 't':t}
         S.__is_cuspidal = is_cuspidal
         S.__is_eisenstein = not is_cuspidal
@@ -672,16 +674,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if hasattr(self, "__newspace_bases_list"):
             return self.__newspace_bases_list
         assert self.is_ambient()
-        V = self.vector_space()
-        eps, k, N = self.__character, self.__weight, self.__level
+        V = self.free_module()
+        eps, k, N = self.__character, self.weight(), self.level()
         # First the cuspidal new spaces.
         m = eps.conductor()
-        levels = [M for M in arith.divisors(N) if M%m==0]
+        levels = [M for M in rings.divisors(N) if M%m==0]
         levels.reverse()
         B = []; i = 0
         for M in levels:
             n = dims.dimension_new_cusp_forms(eps.restrict(M), k)
-            for t in arith.divisors(N/M):
+            for t in rings.divisors(N/M):
                 basis = [V.gen(i+j) for j in range(n)]
                 if len(basis) > 0:
                     B.append((M, t, True, basis))
@@ -722,7 +724,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
 
     def __submodule_from_subset_of_basis(self, x):
-        V = self.vector_space()
+        V = self.free_module()
         return V.submodule([V.gen(i) for i in x], check=False)
 
     def _compute_hecke_matrix_prime(self, p, prec=None):
@@ -870,7 +872,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             S.__is_eisenstein = (n==0)
             self.__cuspidal_submodule = S
             return S
-        C = self.ambient_space().cuspidal_submodule()
+        C = self.ambient_module().cuspidal_submodule()
         S = self.intersect(C)
         if S.dimension() < self.dimension():
             self.__is_cuspidal = False
@@ -929,8 +931,8 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         V = self.embedded_submodule()
         return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
-                for M, t, is_cuspidal, B in self.ambient_space().__newspace_bases() \
-                if V.contains_each(B)]
+                for M, t, is_cuspidal, B in self.ambient_module().__newspace_bases() \
+                if contains_each(V, B)]
 
 
     def eisenstein_submodule(self):
@@ -952,7 +954,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             E.__is_cuspidal = (d==0)
             self.__eisenstein_submodule = E
             return E
-        A = self.ambient_space().eisenstein_submodule()
+        A = self.ambient_module().eisenstein_submodule()
         E = self.intersect(A)
         if E.dimension() < self.dimension():
             self.__is_eisenstein = False
@@ -963,16 +965,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         E.__is_cuspidal = (E.dimension()==0)
 
     def embedded_submodule(self):
-        if self.is_ambient():
-            return self.vector_space()
-        return self.__embedded_submodule
+        return self.free_module()
 
     def intersect(self, right):
-        if self.ambient_space() != right.ambient_space():
+        if self.ambient_module() != right.ambient_module():
             raise ArithmeticError, "Intersection of %s and %s not defined."%\
                                    (self, right)
         V = self.embedded_submodule().intersect(right.embedded_submodule())
-        return ModularForms(self.ambient_space(),V)
+        return ModularForms(self.ambient_module(),V)
 
     def key(self):
         if self.is_ambient():
@@ -985,3 +985,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def modular_symbols(self, sign=0):
         raise NotImplementedError
 
+
+def contains_each(V, B):
+    for b in B:
+        if not (b in V):
+            return False
+    return True

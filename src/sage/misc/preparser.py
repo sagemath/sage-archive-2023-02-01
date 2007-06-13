@@ -389,7 +389,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
             # make sure the '=' sign is on its own, reprsenting assignment
             eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
-            if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
+            if eq+1 < len(line) and (line[eq-1] in eq_chars or line[eq+1] in eq_chars):
                 i += 1
                 continue
 

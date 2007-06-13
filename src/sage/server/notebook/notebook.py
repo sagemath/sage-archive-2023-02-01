@@ -361,8 +361,7 @@ MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existi
 MAX_HISTORY_LENGTH = 500
 WRAP_NCOLS = 80
 
-# Temporarily disabled while we try fix the firefox windows hang bug.
-JSMATH=False
+JSMATH = True
 
 def open_page(address, port):
     cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
@@ -371,8 +370,7 @@ def open_page(address, port):
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
-                 show_debug = False, log_server=False,
-                 kill_idle=False, splashpage=False):
+                 show_debug = False, log_server=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -389,27 +387,10 @@ class Notebook(SageObject):
         self.__history_count = 0
         self.__log_server = log_server #log all POST's and GET's
         self.__server_log = [] #server log list
-        W = self.create_new_worksheet('_scratch_')
+        W = self.create_new_worksheet('Worksheet 1')
         self.__default_worksheet = W
         self.__show_debug = show_debug
-        self.__kill_idle = kill_idle
-        self.__splashpage = splashpage if splashpage is not None else False
         self.save()
-
-    def kill_idle(self):
-        """
-        Returns the idle timeout.  0 means don't kill
-        idle processes.
-        """
-        try:
-            return self.__kill_idle
-        except AttributeError:
-            self.__kill_idle = 0
-            return 0
-
-    def kill_idle_every_so_often(self):
-        raise NotImplementedError
-
 
     def system(self):
         try:
@@ -423,16 +404,6 @@ class Notebook(SageObject):
             self.__system = None
         elif system:  # don't change if it is None
             self.__system = system
-
-    def splashpage(self):
-        try:
-            return self.__splashpage
-        except AttributeError:
-            self.__splashpage = True
-            return self.__splashpage
-
-    def set_splashpage(self, splashpage):
-        self.__splashpage = splashpage
 
     def color(self):
         try:
@@ -486,6 +457,20 @@ class Notebook(SageObject):
     def history_text(self):
         return '\n\n'.join([H.strip() for H in self.history()])
 
+    def history_html(self):
+        t = self.history_text()
+        t = t.replace('<','&lt;')
+        s = '<head>\n'
+        s += '<title>SAGE Input History</title>\n'
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<pre>' + t + '</pre>\n'
+        s += '<a name="bottom"></a>\n'
+        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
+        s += '</body>\n'
+        return s
+
+
     def history_with_start(self, start):
         n = len(start)
         return [x for x in self.history() if x[:n] == start]
@@ -498,6 +483,18 @@ class Notebook(SageObject):
             filename, W.filename(), filename)
         print cmd
         os.system(cmd)
+
+    def plain_text_worksheet_html(self, name, prompts=True):
+        W = self.get_worksheet_with_filename(name)
+        t = W.plain_text(prompts = prompts)
+        t = t.replace('<','&lt;')
+        s = '<head>\n'
+        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<pre>' + t + '</pre>'
+        s += '</body>\n'
+        return s
 
     def tmpdir(self):
         d = '%s/tmp'%self.__dir
@@ -647,9 +644,12 @@ class Notebook(SageObject):
         self.__auth = '%s:%s'%(username, password)
 
     def __makedirs(self):
-        os.makedirs(self.__dir)
-        os.makedirs(self.__worksheet_dir)
-        os.makedirs(self.__object_dir)
+        if not os.path.exists(self.__dir):
+            os.makedirs(self.__dir)
+        if not os.path.exists(self.__worksheet_dir):
+            os.makedirs(self.__worksheet_dir)
+        if not os.path.exists(self.__object_dir):
+            os.makedirs(self.__object_dir)
 
     def worksheet_ids(self):
         return set([W.id() for W in self.__worksheets.itervalues()])
@@ -693,6 +693,22 @@ class Notebook(SageObject):
         W = self.__worksheets.keys()
         W.sort()
         return W
+
+    def worksheet_html(self, name, do_print=False):
+        W = self.get_worksheet_with_filename(name)
+        s = '<head>\n'
+        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        if do_print:
+            s += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
+        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
+        s += '<link rel=stylesheet href="/css/main.css">\n'
+        s += '</head>\n'
+        s += '<body>\n'
+        s += W.html(include_title=False, do_print=do_print)
+        if do_print:
+            s += '<script type="text/javascript">jsMath.Process();</script>\n'
+        s += '\n</body>\n'
+        return s
 
     def get_worksheet_with_name(self, name):
         return self.__worksheets[name]
@@ -754,54 +770,55 @@ class Notebook(SageObject):
         if not os.path.exists(D):
             os.makedirs(D)
         SageObject.save(self, F, compress=False)
-        print "Press control-C twice to stop notebook server."
+        print "Press control-C to stop the notebook server."
         print "-"*70
 
-    def start(self, port=8000, address='localhost',
-                    max_tries=128, open_viewer=False,
-                    jsmath=False):
-        global JSMATH
-        JSMATH = jsmath
-        tries = 0
-        port = int(port)
-        max_tries = int(max_tries)
-        while True:
-            try:
-                notebook_server = server.NotebookServer(self,
-                         port, address)
-            except socket.error, msg:
-                print msg
-                port += 1
-                tries += 1
-                if tries > max_tries:
-                    print "Not trying any more ports.  Probably your network is down."
-                    break
-                print "Trying next port (=%s)"%port
-            else:
-                break
+    # TODO -- Delete this function
+##     def start(self, port=8000, address='localhost',
+##                     max_tries=128, open_viewer=False,
+##                     jsmath=False):
+##         global JSMATH
+##         JSMATH = jsmath
+##         tries = 0
+##         port = int(port)
+##         max_tries = int(max_tries)
+##         while True:
+##             try:
+##                 notebook_server = server.NotebookServer(self,
+##                          port, address)
+##             except socket.error, msg:
+##                 print msg
+##                 port += 1
+##                 tries += 1
+##                 if tries > max_tries:
+##                     print "Not trying any more ports.  Probably your network is down."
+##                     break
+##                 print "Trying next port (=%s)"%port
+##             else:
+##                 break
 
-        print_open_msg(address, port)
-        print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
+##         print_open_msg(address, port)
+##         print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
 
-        f = file('%s/pid'%self.directory(), 'w')
-        f.writelines(["%d\n"%os.getpid(), str(port)])
-        f.close()
+##         f = file('%s/pid'%self.directory(), 'w')
+##         f.writelines(["%d\n"%os.getpid(), str(port)])
+##         f.close()
 
-        if open_viewer:
-            open_page(address, port)
-        while True:
-            try:
-                notebook_server.serve()
-            except KeyboardInterrupt, msg:
-                break
-            except Exception, msg:
-                print msg
-                print "Automatically restarting server."
-            else:
-                break
-        self.save()
-        self.quit()
-        self.save()
+##         if open_viewer:
+##             open_page(address, port)
+##         while True:
+##             try:
+##                 notebook_server.serve()
+##             except KeyboardInterrupt, msg:
+##                 break
+##             except Exception, msg:
+##                 print msg
+##                 print "Automatically restarting server."
+##             else:
+##                 break
+##         self.save()
+##         self.quit()
+##         self.save()
 
     def quit(self):
         for W in self.__worksheets.itervalues():
@@ -828,11 +845,9 @@ class Notebook(SageObject):
                 cls += '_computing' # actively computing
             name = W.name()
             name += ' (%s)'%len(W)
-            name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(\'%s\')" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
-                #cls,W.id(),W.id(),W.id(),name)
-                cls,W.id(),W.id(), W.filename(),name)
+            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/ws/%s">%s</a>'%(
+                cls,W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
 
@@ -842,8 +857,8 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script  type="text/javascript" src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css">\n'
+        head += '\n<script  type="text/javascript" src="/javascript/main.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css" id="main_css">\n'
 
         if css_href:
             head += '\n<link rel=stylesheet type="text/css" href=%s>\n'%(css_href)
@@ -860,10 +875,6 @@ class Notebook(SageObject):
 
     def _doc_html_body(self, worksheet_id):
         worksheet = self.get_worksheet_with_id(worksheet_id)
-        if worksheet.computing():
-            interrupt_class = "interrupt"
-        else:
-            interrupt_class = "interrupt_grey"
         main_body = worksheet.html(authorized = True, confirm_before_leave=False)
 
         vbar = '<span class="vbar"></span>'
@@ -871,11 +882,9 @@ class Notebook(SageObject):
         body = ''
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
-        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
+        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
+        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         # body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
@@ -931,17 +940,17 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script type="text/javascript" src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css">\n'
+        head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
 
         if JSMATH:
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+            head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+            head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
-        head +=' <script type="text/javascript" src="/highlight/prettify.js"></script>\n'
-        head += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css">\n'
+        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
+        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
         return head
 
@@ -969,15 +978,12 @@ class Notebook(SageObject):
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-             Name: <input id="new_worksheet_box" class="add_new_worksheet_menu"
+             <input id="new_worksheet_box" class="add_new_worksheet_menu"
                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-             Password: <input id="new_worksheet_pass" class="add_new_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input>
-
-             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">add</button>
-             <span class="X" onClick="hide_add_new_worksheet_menu()">X</span>
+             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
              </div>
         """
+                    #<button class="add_new_worksheet_menu" onClick="hide_add_new_worksheet_menu()">Cancel</button>
 
         delete_worksheet_menu = """
              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
@@ -993,16 +999,12 @@ class Notebook(SageObject):
         body = ''
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
-        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
+        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Left Panel</a>' + vbar
-        #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
+        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
-        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
+        body += '    <a href="/doc">Documentation</a>' + vbar
+        body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -1010,7 +1012,7 @@ class Notebook(SageObject):
         body += '    <div class="slideshow_control">\n'
         body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
         body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
+        body += '      <a class="cell_mode" onClick="cell_mode()">Show Full Worksheet</a>\n'
         body += '    </div>\n'
         body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
         body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
@@ -1045,36 +1047,15 @@ class Notebook(SageObject):
         endpanespan = '</td></tr></table></span>\n'
 
         body += '  <div class="worksheets_topbar">'
-        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">New</a> '
-        body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
-        body += '  &nbsp;Worksheets</div>\n'
+        body += '     <b>Worksheets</b> '
+        body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
+        body += '<br></div>'
         body +=    add_new_worksheet_menu
-        body +=    delete_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
 
         if worksheet is None:
             return body + endpanespan
 
-        body += '<div class="fivepix"></div>\n'
-        body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
-        body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
-        body += '     Saved Objects</div>\n'
-        body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
-
-        #body += '<div class="fivepix"></div>\n'
-        #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
-        #body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
-        #body += '     Variables</div>\n'
-        #body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
-        #        worksheet.variables_html()
-
-        body += '<div class="fivepix"></div>\n'
-        body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
-        body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
-        body += '     Attached Files</div>\n'
-        body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
-                worksheet.attached_html()
-        body += endpanespan
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
@@ -1105,7 +1086,7 @@ class Notebook(SageObject):
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
         body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.<br><br>"""
-        body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
+        body_html += '<form method="post" action="save" enctype="multipart/form-data">\n'
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
@@ -1207,8 +1188,11 @@ Output
 
         return s
 
-
     def help_window(self):
+        try:
+            return self._help_window
+        except AttributeError:
+            pass
         help = [
             ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
@@ -1308,17 +1292,18 @@ Output
         <table class="help_window">
         """
         for x, y in help:
-            s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>'%(x,y)
+            s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>\n'%(x,y)
         s += '</table></div>'
 
         s +="""
         <br>
         AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
         especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
+        LICENSE: All code included with the standard SAGE is <a href="/license.html">licensed
         either under the GPL or a GPL-compatible license</a>.
         <br>
         """
+        self._help_window = s
         return s
 
     def upload_window(self):
@@ -1370,21 +1355,17 @@ Output
         </html>
         """%(head, body)
 
-    def html(self, worksheet_id=None, authorized=False, show_debug=False, worksheet_authorized=False):
+    def html(self, worksheet_id=None, authorized=True,
+                   show_debug=False, worksheet_authorized=True):
         if worksheet_id is None or worksheet_id == '':
-            if not self.splashpage():
-                W = self.default_worksheet()
-                worksheet_id = W.id()
-            else:
-                worksheet_id = None
-                W = None
+            worksheet_id = None
+            W = None
         else:
             try:
                 W = self.get_worksheet_with_id(worksheet_id)
             except KeyError, msg:
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
-
 
         if authorized:
             body = self._html_body(worksheet_id, show_debug=show_debug,
@@ -1467,6 +1448,41 @@ Output
 import sage.interfaces.sage0
 import time
 
+def load_notebook(dir, username=None, password=None, color=None, system=None,
+                  splashpage=None):
+    sobj = '%s/nb.sobj'%dir
+    if os.path.exists(sobj):
+        try:
+            nb = load(sobj, compress=False)
+        except:
+            print "****************************************************************"
+            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
+            print "WARNING -- failed to load notebook data. Trying the backup file."
+            print "****************************************************************"
+            try:
+                nb = load('%s/nb-backup.sobj'%dir, compress=False)
+            except:
+                print "Recovering from last op save failed."
+                print "Trying save from last startup."
+                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
+
+        nb.delete_doc_browser_worksheets()
+        nb.set_directory(dir)
+        if not (username is None):
+            nb.set_auth(username=username, password=password)
+        if not (color is None):
+            nb.set_color(color)
+        if not system is None:
+            nb.set_system(system)
+        if not splashpage is None:
+            nb.set_splashpage(splashpage)
+        nb.set_not_computing()
+    else:
+        nb = Notebook(dir,username=username,password=password, color=color,
+                      system=system)
+
+    return nb
+
 ## IMPORTANT!!! If you add any new input variable to notebook,
 ## you *must* similarly modify the restart_on_crash block
 ## at the beginning of the definition of notebook!!
@@ -1485,7 +1501,6 @@ def notebook(dir         ='sage_notebook',
              warn        = True,
              ignore_lock = False,
              log_server = False,
-             kill_idle   = 0,
              restart_on_crash = False,
              auto_restart = 1800,
              multisession = True):
@@ -1515,9 +1530,6 @@ def notebook(dir         ='sage_notebook',
                   'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
         jsmath -- whether not to enable javascript typset output for math.
         debug -- whether or not to show a javascript debugging window
-        kill_idle -- if positive, kill any idle compute processes after
-                     this many auto saves.  (NOT IMPLEMENTED)
-
         splashpage -- whether or not to show a splash page when no worksheet is specified.
                       you can place a file named index.html into the notebook directory that
                       will be shown in place of the default.
@@ -1601,10 +1613,10 @@ def notebook(dir         ='sage_notebook',
             S = sage.interfaces.sage0.Sage()
             time.sleep(1)
             S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False, multisession=%s)"%(
+            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, restart_on_crash=False, multisession=%s)"%(
                 f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
                 f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
-                f(warn), f(ignore_lock), f(log_server), f(kill_idle), f(multisession)
+                f(warn), f(ignore_lock), f(log_server), f(multisession)
                 )
             print cmd
             S._send(cmd)
@@ -1631,6 +1643,7 @@ def notebook(dir         ='sage_notebook',
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
         pidfile = '%s/pid'%dir
+
         if os.path.exists(pidfile) and not ignore_lock:
             f = file(pidfile)
             try:
@@ -1651,34 +1664,9 @@ def notebook(dir         ='sage_notebook',
                 return
             except OSError:
                 pass
-        try:
-            nb = load('%s/nb.sobj'%dir, compress=False)
-        except:
-            print "****************************************************************"
-            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
-            print "WARNING -- failed to load notebook data. Trying the backup file."
-            print "****************************************************************"
-            try:
-                nb = load('%s/nb-backup.sobj'%dir, compress=False)
-            except:
-                print "Recovering from last op save failed."
-                print "Trying save from last startup."
-                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
 
-        nb.delete_doc_browser_worksheets()
-        nb.set_directory(dir)
-        if not (username is None):
-            nb.set_auth(username=username, password=password)
-        if not (color is None):
-            nb.set_color(color)
-        if not system is None:
-            nb.set_system(system)
-        if not splashpage is None:
-            nb.set_splashpage(splashpage)
-        nb.set_not_computing()
-    else:
-        nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system, kill_idle=kill_idle,splashpage=splashpage)
+    nb = load_notebook(dir, username, password, color,system, splashpage)
+
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)

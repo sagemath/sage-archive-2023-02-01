@@ -24,6 +24,11 @@ from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
 from sage.rings.arith import next_prime
 from sage.rings.infinity import unsigned_infinity as infinity
+from sage.rings.integer import Integer
+from sage.modular.cusps import Cusps
+
+oo = Cusps(infinity)
+zero = Integer(0)
 
 def modular_symbol_space(E, sign, base_ring, bound=None):
     """
@@ -124,9 +129,25 @@ class ModularSymbol(SageObject):
     def elliptic_curve(self):
         return self._E
 
+    def _call_with_caching(self, r):
+        try:
+            return self.__cache[r]
+        except AttributeError:
+            self.__cache = {}
+        except KeyError:
+            pass
+        w = self._ambient_modsym([oo,r]).element()
+        c = (self._e).dot_product(w)
+        self.__cache[r] = c
+        return c
+
     def __call__(self, r):
-        w = self._ambient_modsym([infinity,r]).element()
-        return (self._e).dot_product(w)
+        # this next line takes most of the time
+        w = self._ambient_modsym.modular_symbol([zero, oo, Cusps(r)], check=False)
+
+        return (self._e).dot_product(w.element())
+
+
 
     def _repr_(self):
         return "Modular symbol with sign %s over %s attached to %s"%(

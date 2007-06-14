@@ -230,8 +230,8 @@ def to_graphics_arrays(list):
         if ( isinstance( list[i], graph.Graph ) ):
             pos = list[i].__get_pos__()
             if ( pos is None ):
-                plist.append(list[i].plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
-            else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
+                plist.append(list[i].plot(layout='circular', vertex_size=50, vertex_labels=False, graph_border=True))
+            else: plist.append(list[i].plot(pos=pos, vertex_size=50, vertex_labels=False, graph_border=True))
         else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
 
     num_arrays = len(plist)/20

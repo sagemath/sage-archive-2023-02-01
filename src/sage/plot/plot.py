@@ -1317,7 +1317,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 3: [ 0.12743933,-1.125     ,],
                 4: [-1.125     ,-0.50118505,]   }
         vertex_labels -- determines whether labels for nodes are plotted
-        node_size -- node size
+        vertex_size -- node size
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
                         matplotlib, and each entry is a list of vertices.
         edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
@@ -1372,16 +1372,16 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         ...    for i in range(5):
         ...        if u[i] != v[i]:
         ...            edge_colors[R[i]].append((u,v,l))
-        sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, node_size=0, edge_colors=edge_colors)
+        sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, vertex_size=0, edge_colors=edge_colors)
         sage: G = Graphics()
         sage: G.append(NGP)
         sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
         sage: G.axes(False)
         sage: G.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None, edge_colors=None, scaling_term=0.05):
+    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, color_dict=None, edge_colors=None, scaling_term=0.05):
         self.__nxg = graph
-        self.__node_size = node_size
+        self.__vertex_size = vertex_size
         self.__vertex_labels = vertex_labels
         self.__color_dict = color_dict
         self.__edge_colors = edge_colors
@@ -1438,17 +1438,17 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
     def _render_on_subplot(self, subplot):
         if len(self.__nxg) != 0:
             import networkx as NX
-            node_size = float(self.__node_size)
+            vertex_size = float(self.__vertex_size)
             if self.__color_dict is None:
-                NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+                NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
                 for i in self.__color_dict:
-                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=node_size)
+                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=vertex_size)
             if self.__edge_colors is None:
-                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
                 for i in self.__edge_colors:
-                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i], edge_color=i, ax=subplot, node_size=node_size)
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i], edge_color=i, ax=subplot, node_size=vertex_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -2548,7 +2548,7 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
         P.show(**kwargs)
     return P
 
-def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict=None,
+def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, color_dict=None,
                   edge_colors=None, graph_border=False, scaling_term=0.05):
     """
     Creates a graphics object ready to display a NetworkX graph.
@@ -2563,7 +2563,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict
                 3: [ 0.12743933,-1.125     ,],
                 4: [-1.125     ,-0.50118505,]   }
         vertex_labels -- determines whether labels for nodes are plotted
-        node_size -- node size
+        vertex_size -- node size
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
                         matplotlib, and each entry is a list of vertices.
         edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
@@ -2606,11 +2606,11 @@ def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict
         ...    for i in range(5):
         ...        if u[i] != v[i]:
         ...            edge_colors[R[i]].append((u,v,l))
-        sage: P = networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, node_size=0)
+        sage: P = networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
         sage: P.save('sage.png')
     """
     g = Graphics()
-    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, scaling_term=scaling_term)
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, scaling_term=scaling_term)
     g.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax

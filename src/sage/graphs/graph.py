@@ -20,6 +20,7 @@ AUTHOR:
         canonical label
                         (2007-06-07--09): NetworkX function wrapping
     -- Michael W. Hansen (2007-06-09): Topological sort generation
+    -- Emily Kirkman, Robert L. Miller SAGE Days 4: Finished wrapping NetworkX
 
 TUTORIAL:
 
@@ -905,7 +906,7 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
             Graph on 24 vertices
-            sage.: ((graphs.ChvatalGraph()).cliques_get_max_clique_graph()).show(figsize=[2,2], node_size=20, vertex_labels=False)
+            sage.: ((graphs.ChvatalGraph()).cliques_get_max_clique_graph()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage.: D.show(figsize=[2,2])
             sage: D.cliques_get_max_clique_graph()
@@ -938,7 +939,7 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
             Graph on 36 vertices
-            sage.: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], node_size=20, vertex_labels=False)
+            sage.: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage.: D.show(figsize=[2,2])
             sage: D.cliques_get_clique_bipartite()
@@ -2153,7 +2154,7 @@ class GenericGraph(SageObject):
     ### Visualization
 
     def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
-             node_size=200, graph_border=False, color_dict=None, partition=None,
+             vertex_size=200, graph_border=False, color_dict=None, partition=None,
              edge_colors=None, scaling_term=0.05, xmin=None, xmax=None):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
@@ -2166,7 +2167,7 @@ class GenericGraph(SageObject):
             vertex_labels -- whether to print vertex labels
             edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
-            node_size -- size of vertices displayed
+            vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
@@ -2198,7 +2199,7 @@ class GenericGraph(SageObject):
             sage: pl.save('sage.png')
 
             sage: C = graphs.CubeGraph(8)
-            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.save('sage.png')
 
             sage: G = graphs.HeawoodGraph()
@@ -2221,7 +2222,7 @@ class GenericGraph(SageObject):
             ...    for i in range(5):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
-            sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+            sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).save('sage.png')
 
         """
         from sage.plot.plot import networkx_plot, rainbow
@@ -2252,7 +2253,7 @@ class GenericGraph(SageObject):
             for v in pos:
                 for a in range(len(pos[v])):
                     pos[v][a] = float(pos[v][a])
-        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
+        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
             K = Graphics()
@@ -2264,7 +2265,7 @@ class GenericGraph(SageObject):
             G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, node_size=200,
+    def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, vertex_size=200,
              graph_border=False, color_dict=None, edge_colors=None, partition=None,
              scaling_term=0.05, talk=False, **kwds):
         """
@@ -2278,7 +2279,7 @@ class GenericGraph(SageObject):
             vertex_labels -- whether to print vertex labels
             edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
-            node_size -- size of vertices displayed
+            vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
@@ -2311,7 +2312,7 @@ class GenericGraph(SageObject):
             sage: pl.save('sage.png')
 
             sage: C = graphs.CubeGraph(8)
-            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.save('sage.png')
 
             sage: G = graphs.HeawoodGraph()
@@ -2334,14 +2335,14 @@ class GenericGraph(SageObject):
             ...    for i in range(5):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
-            sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+            sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).save('sage.png')
 
         """
         if talk:
-            node_size = 500
+            vertex_size = 500
             if partition is None:
                 color_dict = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
 
 class Graph(GenericGraph):
     r"""
@@ -4450,7 +4451,7 @@ class DiGraph(GenericGraph):
             sage: SD.set_arc_label(17, 15, 'v_k finite')
             sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
             sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-            sage: SD.plot(pos=posn, node_size=400, color_dict={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
+            sage: SD.plot(pos=posn, vertex_size=400, color_dict={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
         """
         if self.has_arc(u, v):

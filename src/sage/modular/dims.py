@@ -772,6 +772,9 @@ def dimension_eis(X, k=2):
         200
         sage: dimension_eis(e,2)
         4
+
+        sage: dimension_modular_forms(Gamma1(4), 11)
+        6
     """
     if k <= 1:
         # TODO
@@ -789,7 +792,11 @@ def dimension_eis(X, k=2):
         if k==2: d -= 1
         return Z(d)
     elif isinstance(X, congroup.Gamma1):
-        d = c1(X.level())
+        N = X.level()
+        if N == 4 and k%2 == 1:
+            d = 2  # level Gamma1(4) and odd weight is a special case.
+        else:
+            d = c1(N)
         if k==2: d -= 1
         return Z(d)
     elif congroup.is_GammaH(X):

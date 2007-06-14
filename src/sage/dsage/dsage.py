@@ -101,7 +101,7 @@ class DistributedSage(object):
         pass
 
     def start_all(self, port=8081, workers=2, log_level=0, poll=1.0,
-                  verbose=True):
+                  anonymous_workers=False, verbose=True):
         """
         Start the server and worker and returns a connection to the server.
 
@@ -112,7 +112,8 @@ class DistributedSage(object):
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,
-                    blocking=False, poll=poll, verbose=verbose)
+                    blocking=False, poll=poll, anonymous=anonymous_workers,
+                    verbose=verbose)
 
         import time
         time.sleep(1)  # Allow the server to start completely before trying
@@ -127,6 +128,7 @@ class DistributedSage(object):
                privkey=os.path.join(DSAGE_DIR, 'cacert.pem'),
                cert=os.path.join(DSAGE_DIR, 'pubcert.pem'),
                stats_file=os.path.join(DSAGE_DIR, 'dsage.xml'),
+               anonymous_logins=False,
                verbose=True):
         r"""
         Run the Distributed SAGE server.
@@ -190,6 +192,8 @@ class DistributedSage(object):
 
         if ssl:
             cmd += ' --ssl'
+        if anonymous:
+            cmd += ' -a'
         if not blocking:
             cmd += ' --noblock'
             spawn(cmd, verbose=verbose)

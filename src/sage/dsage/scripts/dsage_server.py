@@ -57,11 +57,17 @@ def usage():
               'Bug reports to <yqiang@gmail.com>']
 
     parser = OptionParser(usage=''.join(usage))
+
     parser.add_option('-p', '--port',
                       dest='port',
                       type='int',
                       default=8081,
                       help='port to listen on')
+    parser.add_option('-a', '--anonymous',
+                      dest='anonymous',
+                      action='store_true',
+                      default=False,
+                      help='Allow anonymous logins to the server')
     parser.add_option('-f', '--logfile',
                       dest='logfile',
                       default=os.path.join(DSAGE_DIR, 'server.log'),
@@ -166,6 +172,7 @@ def main(options):
     STATS_FILE = options.statsfile
     DB_FILE = options.dbfile
     FAILURE_THRESHOLD = options.job_failure_threshold
+    ALLOW_ANONYMOUS = options.anonymous
 
     startLogging(LOG_FILE)
 

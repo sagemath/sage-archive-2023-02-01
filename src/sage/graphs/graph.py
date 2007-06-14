@@ -957,7 +957,7 @@ class GenericGraph(SageObject):
             import networkx.cliques
             return Graph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
 
-    # Also implement project_down and project_up after Bipartite class.
+    # TODO: Also implement project_down and project_up after Bipartite class.
 
     def clique_number(self, cliques=None):
         """
@@ -3569,14 +3569,20 @@ class Graph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge')
         return TT
 
-    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+    def show3d(self, bgcolor=(1,1,1),
+               vertex_color=(1,0,0), vertex_size=0.06,
+               edge_color=(0,0,0), edge_size=0.02,
+               pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
         INPUT:
-            bgcolor -- background color
-            vertex_color -- vertex color
-            edge_color -- edge color
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            edge_color -- rgb tuple (default: (0,0,0))
+            edge_size -- float (default: 0.02)
+            pos3d -- a position dictionary for the vertices
             (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
 
         EXAMPLES:
@@ -3591,7 +3597,7 @@ class Graph(GenericGraph):
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size).show(**kwds)
 
     ### Connected components
 

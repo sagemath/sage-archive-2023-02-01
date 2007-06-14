@@ -168,6 +168,32 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         return CellData(self.worksheet, number)
 
 ########################################################
+# Cell introspection
+########################################################
+class Worksheet_introspect(WorksheetResource, resource.PostableResource):
+    """
+    Cell introspection.  This is called when the user presses the tab
+    key in the browser in order to introspect.
+    """
+    def render(self, ctx):
+        print ctx.args
+        try:
+            id = int(ctx.args['id'][0])
+        except (KeyError,TypeError):
+            return http.Response(stream = 'Error in introspection -- invalid cell id.')
+        try:
+            before_cursor = ctx.args['before_cursor'][0]
+        except KeyError:
+            before_cursor = ''
+        try:
+            after_cursor = ctx.args['after_cursor'][0]
+        except KeyError:
+            after_cursor = ''
+        C = self.worksheet.get_cell_with_id(id)
+        C.evaluate(introspect=[before_cursor, after_cursor])
+        return http.Response(stream = encode_list([C.next_id(),'no_new_cell',id]))
+
+########################################################
 # Edit the entire worksheet
 ########################################################
 class Worksheet_edit(WorksheetResource, resource.Resource):
@@ -179,16 +205,19 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
         return http.Response(stream = notebook.edit_window(self.worksheet))
 
 
+########################################################
+# Save a worksheet
+########################################################
 class Worksheet_save(WorksheetResource, resource.PostableResource):
     """
-    Return a window that allows the user to edit the text of the
-    worksheet with the given filename.
+    Save the contents of a worksheet after editing it in plain-text edit mode.
     """
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
         s = notebook.html(worksheet_id = self.name)
         return http.Response(stream=s)
+
 
 ########################################################
 # Set output type of a cell

@@ -673,8 +673,8 @@ class Notebook(SageObject):
 
     def delete_worksheet(self, name):
         """
-        Delete the given worksheet and remove its
-        name from the worksheet list.
+        Delete the given worksheet and remove its name from the
+        worksheet list.
         """
         if not (name in self.__worksheets.keys()):
             raise KeyError, "Attempt to delete missing worksheet"

@@ -853,6 +853,454 @@ class GenericGraph(SageObject):
                     D._nxg.pred = newpred
                     return D
 
+    ### Cliques
+
+    def cliques(self):
+        """
+        Returns the list of maximal cliques of which each are members
+        of the clique.
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        Maximal cliques are the largest complete subgraphs containing a
+        given point.  This function is based on Networkx's implementation
+        of the Bron and Kerbosch Algorithm, [1].
+
+        REFERENCE:
+            [1] Coen Bron and Joep Kerbosch. (1973). Algorithm 457: Finding
+                All Cliques of an Undirected Graph. Commun. ACM. v 16. n 9.
+                pages 575-577. ACM Press. [Online] Available:
+                http://www.ram.org/computing/rambin/rambin.html
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).cliques()
+            [[0, 1], [0, 4], [0, 6], [0, 9], [2, 1], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [5, 1], [5, 4], [5, 10], [5, 11], [7, 1], [7, 8], [7, 11], [8, 4], [8, 10], [10, 6], [10, 9], [11, 6], [11, 9]]
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques()
+            [[0, 1, 2], [0, 1, 3]]
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return networkx.cliques.find_cliques(self._nxg)
+
+    def cliques_get_max_clique_graph(self, **kwds):
+        """
+        Returns a graph constructed with maximal cliques as nodes,
+        and edges between maximal cliques with common members in
+        the original graph.
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
+            Graph on 24 vertices
+            sage.: ((graphs.ChvatalGraph()).cliques_get_max_clique_graph()).show(figsize=[2,2], node_size=20, vertex_labels=False)
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_get_max_clique_graph()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_get_max_clique_graph()
+            Graph on 2 vertices
+            sage.: (D.cliques_get_max_clique_graph()).show(figsize=[2,2])
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return Graph(networkx.cliques.make_max_clique_graph(self._nxg, **kwds))
+
+    # Add fpos (below) when Bipartite class is wrapped.
+    def cliques_get_clique_bipartite(self, **kwds):
+        """
+        Returns a bipartite graph constructed such that cliques are the
+        top nodes and the bottom nodes are retained from the given graph.
+        Top and bottom nodes are connected if the bottom node belongs to
+        the clique represented by a top node.
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
+            Graph on 36 vertices
+            sage.: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], node_size=20, vertex_labels=False)
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_get_clique_bipartite()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_get_clique_bipartite()
+            Graph on 6 vertices
+            sage.: (D.cliques_get_clique_bipartite()).show(figsize=[2,2])
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return Graph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
+
+    # Also implement project_down and project_up after Bipartite class.
+
+    def clique_number(self, cliques=None):
+        """
+        Returns the size of the largest clique of the graph (clique number).
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        INPUT:
+            -- cliques - list of cliques (if already computed)
+
+        EXAMPLES:
+            sage: C = Graph('DJ{')
+            sage: C.clique_number()
+            4
+            sage: E = C.cliques()
+            sage: E
+            [[4, 1, 2, 3], [4, 0]]
+            sage: C.clique_number(cliques=E)
+            4
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.clique_number()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.clique_number()
+            3
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return networkx.cliques.graph_clique_number(self._nxg, cliques)
+
+    def cliques_node_clique_number(self, nodes=None, with_labels=False, cliques=None):
+        r"""
+        Returns a list of sizes of the largest maximal cliques containing
+        each node.  (Returns a single value if only one input node).
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        INPUT:
+            -- nodes - the nodes to inspect (default is entire graph)
+            -- with_labels - (boolean) default False returns list as above
+                             True returns a dictionary keyed by node labels
+            -- cliques - list of cliques (if already computed)
+
+        EXAMPLES:
+            sage: C = Graph('DJ{')
+            sage: C.cliques_node_clique_number()
+            [2, 4, 4, 4, 4]
+            sage: E = C.cliques()
+            sage: E
+            [[4, 1, 2, 3], [4, 0]]
+            sage: C.cliques_node_clique_number(cliques=E)
+            [2, 4, 4, 4, 4]
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: F.cliques_node_clique_number(with_labels=True)
+            {(0, 1): 2, (1, 2): 2, (0, 0): 2, (1, 1): 2, (1, 0): 2, (0, 2): 2}
+            sage: F.cliques_node_clique_number(nodes=[(0, 1), (1, 2)])
+            [2, 2]
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_node_clique_number()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_node_clique_number()
+            [3, 3, 3, 3]
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return networkx.cliques.node_clique_number(self._nxg, nodes, with_labels, cliques)
+
+    def cliques_number_of(self, nodes=None, cliques=None, with_labels=False):
+        """
+        Returns a list of the number of maximal cliques containing
+        each node.  (Returns a single value if only one input node).
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        INPUT:
+            -- nodes - the nodes to inspect (default is entire graph)
+            -- with_labels - (boolean) default False returns list as above
+                             True returns a dictionary keyed by node labels
+            -- cliques - list of cliques (if already computed)
+
+        EXAMPLES:
+            sage: C = Graph('DJ{')
+            sage: C.cliques_number_of()
+            [1, 1, 1, 1, 2]
+            sage: E = C.cliques()
+            sage: E
+            [[4, 1, 2, 3], [4, 0]]
+            sage: C.cliques_number_of(cliques=E)
+            [1, 1, 1, 1, 2]
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: F.cliques_number_of(with_labels=True)
+            {(0, 1): 3, (1, 2): 2, (0, 0): 2, (1, 1): 3, (1, 0): 2, (0, 2): 2}
+            sage: F.cliques_number_of(nodes=[(0, 1), (1, 2)])
+            [3, 2]
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_number_of()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_number_of()
+            [2, 2, 1, 1]
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return networkx.cliques.number_of_cliques(self._nxg, nodes, cliques, with_labels)
+
+    def cliques_containing_node(self, nodes=None, cliques=None, with_labels=False):
+        """
+        Returns the cliques containing each node, represented as a list of
+        lists.  (Returns a single list if only one input node).
+
+        Currently only implemented for undirected graphs.  Use to_undirected
+        to convert a digraph to an undirected graph.  (See examples below).
+
+        INPUT:
+            -- nodes - the nodes to inspect (default is entire graph)
+            -- with_labels - (boolean) default False returns list as above
+                             True returns a dictionary keyed by node labels
+            -- cliques - list of cliques (if already computed)
+
+        EXAMPLES:
+            sage: C = Graph('DJ{')
+            sage: C.cliques_containing_node()
+            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3], [4, 0]]]
+            sage: E = C.cliques()
+            sage: E
+            [[4, 1, 2, 3], [4, 0]]
+            sage: C.cliques_containing_node(cliques=E)
+            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3], [4, 0]]]
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: F.cliques_containing_node(with_labels=True)
+            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]], (0, 0): [[(0, 1), (0, 0)], [(1, 0), (0, 0)]], (1, 1): [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]], (1, 0): [[(1, 0), (0, 0)], [(1, 0), (1, 1)]], (0, 2): [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]}
+            sage: F.cliques_containing_node(nodes=[(0, 1), (1, 2)])
+            [[[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]]
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_containing_node()
+            Traceback (most recent call last):
+            ...
+            TypeError: Function defined for undirected graphs only.  See documentation.
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.cliques_containing_node()
+            [[[0, 1, 2], [0, 1, 3]], [[0, 1, 2], [0, 1, 3]], [[0, 1, 2]], [[0, 1, 3]]]
+        """
+        if (self.is_directed()):
+            raise TypeError('Function defined for undirected graphs only.  See documentation.')
+        else:
+            import networkx.cliques
+            return networkx.cliques.cliques_containing_node(self._nxg, nodes, cliques, with_labels)
+
+    ### Cluster
+
+    def cluster_triangles(self, nbunch=None, with_labels=False):
+        r"""
+        Returns the number of triangles for nbunch of nodes as an
+        ordered list.
+
+        The clustering coefficient of a graph is the fraction of
+        possible triangles that are triangles,
+        c_i = triangles_i / (k_i*(k_i-1)/2)
+        where k_i is the degree of node i, [1].  A coefficient for
+        the whole graph is the average of the c_i.  Transitivity is
+        the fraction of all possible triangles which are triangles,
+        T = 3*triangles/triads, [1].
+
+        INPUT:
+            -- nbunch - The nodes to inspect.  If nbunch=None, returns
+                data for all nodes in the graph
+            -- with_labels - (boolean) default False returns list as above
+                             True returns dict keyed by node labels.
+
+        REFERENCE:
+            [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+                documentation. [Online] Available:
+                https://networkx.lanl.gov/reference/networkx/
+
+        EXAMPLES:
+            sage: (graphs.FruchtGraph()).cluster_triangles()
+            [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0]
+            sage: (graphs.FruchtGraph()).cluster_triangles(with_labels=True)
+            {0: 1, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1, 10: 1, 11: 0}
+            sage: (graphs.FruchtGraph()).cluster_triangles(nbunch=[0,1,2])
+            [1, 1, 0]
+        """
+        import networkx
+        return networkx.triangles(self._nxg, nbunch, with_labels)
+
+    def clustering_average(self):
+        r"""
+        Returns the average clustering coefficient.
+
+        The clustering coefficient of a graph is the fraction of
+        possible triangles that are triangles,
+        c_i = triangles_i / (k_i*(k_i-1)/2)
+        where k_i is the degree of node i, [1].  A coefficient for
+        the whole graph is the average of the c_i.  Transitivity is
+        the fraction of all possible triangles which are triangles,
+        T = 3*triangles/triads, [1].
+
+        REFERENCE:
+            [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+                documentation. [Online] Available:
+                https://networkx.lanl.gov/reference/networkx/
+
+        EXAMPLES:
+            sage: (graphs.FruchtGraph()).clustering_average()
+            0.25
+        """
+        import networkx
+        return networkx.average_clustering(self._nxg)
+
+    def clustering_coeff(self, nbunch=None, with_labels=False, weights=False):
+        r"""
+        Returns the clustering coefficient for each node in nbunch
+        as an ordered list.
+
+        The clustering coefficient of a graph is the fraction of
+        possible triangles that are triangles,
+        c_i = triangles_i / (k_i*(k_i-1)/2)
+        where k_i is the degree of node i, [1].  A coefficient for
+        the whole graph is the average of the c_i.  Transitivity is
+        the fraction of all possible triangles which are triangles,
+        T = 3*triangles/triads, [1].
+
+        INPUT:
+            -- nbunch - the nodes to inspect (default None returns
+                        data on all nodes in graph)
+            -- with_labels - (boolean) default False returns list as above
+                             True returns dict keyed by node labels.
+            -- weights - default is False.  If both with_labels and weights
+                        are True, then returns a clustering coefficient dict
+                        and a dict of weights based on degree.  Weights are
+                        the fraction of connected triples in the graph that
+                        include the keyed node.
+
+        REFERENCE:
+            [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+                documentation. [Online] Available:
+                https://networkx.lanl.gov/reference/networkx/
+
+        EXAMPLES:
+            sage: (graphs.FruchtGraph()).clustering_coeff()
+            [0.33333333333333331, 0.33333333333333331, 0.0, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.0, 0.33333333333333331, 0.33333333333333331, 0.0]
+            sage: (graphs.FruchtGraph()).clustering_coeff(with_labels=True)
+            {0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0, 3: 0.33333333333333331, 4: 0.33333333333333331, 5: 0.33333333333333331, 6: 0.33333333333333331, 7: 0.33333333333333331, 8: 0.0, 9: 0.33333333333333331, 10: 0.33333333333333331, 11: 0.0}
+            sage: (graphs.FruchtGraph()).clustering_coeff(with_labels=True,weights=True)
+            ({0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0, 3: 0.33333333333333331, 4: 0.33333333333333331, 5: 0.33333333333333331, 6: 0.33333333333333331, 7: 0.33333333333333331, 8: 0.0, 9: 0.33333333333333331, 10: 0.33333333333333331, 11: 0.0}, {0: 0.083333333333333329, 1: 0.083333333333333329, 2: 0.083333333333333329, 3: 0.083333333333333329, 4: 0.083333333333333329, 5: 0.083333333333333329, 6: 0.083333333333333329, 7: 0.083333333333333329, 8: 0.083333333333333329, 9: 0.083333333333333329, 10: 0.083333333333333329, 11: 0.083333333333333329})
+            sage: (graphs.FruchtGraph()).clustering_coeff(nbunch=[0,1,2])
+            [0.33333333333333331, 0.33333333333333331, 0.0]
+            sage: (graphs.FruchtGraph()).clustering_coeff(nbunch=[0,1,2],with_labels=True,weights=True)
+            ({0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0}, {0: 0.083333333333333329, 1: 0.083333333333333329, 2: 0.083333333333333329})
+        """
+        import networkx
+        return networkx.clustering(self._nxg, nbunch, with_labels, weights)
+
+    def cluster_transitivity(self):
+        r"""
+        Returns the transitivity (fraction of transitive triangles)
+        of the graph.
+
+        The clustering coefficient of a graph is the fraction of
+        possible triangles that are triangles,
+        c_i = triangles_i / (k_i*(k_i-1)/2)
+        where k_i is the degree of node i, [1].  A coefficient for
+        the whole graph is the average of the c_i.  Transitivity is
+        the fraction of all possible triangles which are triangles,
+        T = 3*triangles/triads, [1].
+
+        REFERENCE:
+            [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+                documentation. [Online] Available:
+                https://networkx.lanl.gov/reference/networkx/
+
+        EXAMPLES:
+            sage: (graphs.FruchtGraph()).cluster_transitivity()
+            0.25
+        """
+        import networkx
+        return networkx.transitivity(self._nxg)
+
+    ### Cores
+
+    def cores(self, with_labels=False):
+        """
+        Returns the core number for each vertex in an ordered list.
+
+        'K-cores in graph theory were introduced by Seidman in 1983
+        and by Bollobas in 1984 as a method of (destructively) simplifying
+        graph topology to aid in analysis and visualization. They have been
+        more recently defined as the following by Batagelj et al: given a
+        graph G with vertices set V and edges set E, the k-core is computed
+        by pruning all the vertices (with their respective edges) with degree
+        less than k. That means that if a vertex u has degree d_u, and it has
+        n neighbors with degree less than k, then the degree of u becomes d_u - n,
+        and it will be also pruned if k > d_u - n.  This operation can be
+        useful to filter or to study some properties of the graphs. For
+        instance, when you compute the 2-core of graph G, you are cutting
+        all the vertices which are in a tree part of graph. (A tree is a
+        graph with no loops),' [1].
+
+        INPUT:
+            -- with_labels - default False returns list as described above.
+                             True returns dict keyed by node labels.
+
+        REFERENCE:
+            [1] K-core. Wikipedia. (2007). [Online] Available:
+                http://en.wikipedia.org/wiki/K-core
+            [2] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
+                Emergence of a Giant k-Core in a Random Graph. (1996).
+                J. Combinatorial Theory. Ser B 67. pages 111-151. [Online]
+                Available: http://cs.nyu.edu/cs/faculty/spencer/papers/k-core.pdf
+
+        EXAMPLES:
+            sage: (graphs.FruchtGraph()).cores()
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            sage: (graphs.FruchtGraph()).cores(with_labels=True)
+            {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
+        """
+        import networkx.cores
+        return networkx.cores.find_cores(self._nxg, with_labels)
+
     ### Distance
 
     def distance(self, u, v):
@@ -2702,6 +3150,110 @@ class Graph(GenericGraph):
 
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
+
+    ### Centrality
+
+    def centrality_betweenness(self, v=None, normalized=True):
+        r"""
+        Returns the betweenness centrality (fraction of number of shortest
+        paths that go through each node) as a dictionary keyed by vertices.
+        The betweenness is normalized by default to be in range (0,1).  This
+        wraps Networkx's implementation of the algorithm described in [1].
+
+        Measures of the centrality of a vertex within a graph determine the
+        relative importance of that node to its graph.  Vertices that occur
+        on more shortest paths between other nodes have higher betweenness
+        than nodes that occur on less.
+
+        INPUT:
+            v -- a vertex label (to find betweenness of only one node)
+            normalized -- boolean (default True) - if set to False, result
+                          is not normalized.
+
+        REFERENCE:
+            [1] Ulrik Brandes. (2003). Faster Evaluation of Shortest-Path
+                Based Centrality Indices. [Online] Available:
+                http://citeseer.nj.nec.com/brandes00faster.html
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).centrality_betweenness()
+            {0: 0.069696969696969688, 1: 0.069696969696969688, 2: 0.060606060606060601, 3: 0.060606060606060608, 4: 0.069696969696969688, 5: 0.069696969696969688, 6: 0.060606060606060601, 7: 0.060606060606060601, 8: 0.060606060606060601, 9: 0.060606060606060601, 10: 0.060606060606060601, 11: 0.060606060606060601}
+            sage: (graphs.ChvatalGraph()).centrality_betweenness(normalized=False)
+            {0: 7.6666666666666661, 1: 7.6666666666666661, 2: 6.6666666666666661, 3: 6.666666666666667, 4: 7.6666666666666661, 5: 7.6666666666666661, 6: 6.6666666666666661, 7: 6.6666666666666661, 8: 6.6666666666666661, 9: 6.6666666666666661, 10: 6.6666666666666661, 11: 6.6666666666666661}
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.centrality_betweenness()
+            {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
+            sage: D.centrality_betweenness(v=1)
+            0.16666666666666666
+        """
+        import networkx
+        return networkx.betweenness_centrality(self._nxg, v, None, normalized)
+
+    def centrality_degree(self, v=False):
+        r"""
+        Returns the degree centrality (fraction of nodes connected to) as
+        a dictionary of values keyed by node.  The degree centrality is
+        normalized to be in range (0,1).
+
+        Measures of the centrality of a vertex within a graph determine the
+        relative importance of that node to its graph.  Degree centrality
+        measures the number of links incident upon a node.
+
+        INPUT:
+            v -- a vertex label (to find degree centrality of only one node)
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).centrality_degree()
+            {0: 0.36363636363636365, 1: 0.36363636363636365, 2: 0.36363636363636365, 3: 0.36363636363636365, 4: 0.36363636363636365, 5: 0.36363636363636365, 6: 0.36363636363636365, 7: 0.36363636363636365, 8: 0.36363636363636365, 9: 0.36363636363636365, 10: 0.36363636363636365, 11: 0.36363636363636365}
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.centrality_degree()
+            {0: 1.0, 1: 1.0, 2: 0.66666666666666663, 3: 0.66666666666666663}
+            sage: D.centrality_degree(v=1)
+            1.0
+        """
+        import networkx
+        return networkx.degree_centrality(self._nxg, v)
+
+    def centrality_closeness(self, v=False):
+        r"""
+        Returns the closeness centrality (1/average distance to all nodes) as
+        a dictionary of values keyed by node.  The degree centrality is
+        normalized to be in range (0,1).
+
+        Measures of the centrality of a vertex within a graph determine the
+        relative importance of that node to its graph.  'Closeness centrality
+        may be defined as the total graph-theoretic distance of a given node
+        from all other nodes... Closeness is an inverse measure of centrality
+        in that a larger value indicates a less central actor while a smaller
+        value indicates a more central actor,' [1].
+
+        INPUT:
+            v -- a vertex label (to find degree centrality of only one node)
+
+        REFERENCE:
+            [1] Stephen P Borgatti. (1995). Centrality and AIDS. [Online]
+                Available: http://www.analytictech.com/networks/centaids.htm
+
+        EXAMPLES:
+            sage: (graphs.ChvatalGraph()).centrality_closeness()
+            {0: 0.61111111111111116, 1: 0.61111111111111116, 2: 0.61111111111111116, 3: 0.61111111111111116, 4: 0.61111111111111116, 5: 0.61111111111111116, 6: 0.61111111111111116, 7: 0.61111111111111116, 8: 0.61111111111111116, 9: 0.61111111111111116, 10: 0.61111111111111116, 11: 0.61111111111111116}
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage.: D.show(figsize=[2,2])
+            sage: D = D.to_undirected()
+            sage.: D.show(figsize=[2,2])
+            sage: D.centrality_closeness()
+            {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
+            sage: D.centrality_closeness(v=1)
+            1.0
+        """
+        import networkx
+        return networkx.closeness_centrality(self._nxg, v)
 
     ### Representations
 

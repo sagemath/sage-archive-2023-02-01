@@ -82,7 +82,6 @@ ORGANIZATION:
             - DorogovtsevGoltsevMendesGraph
         Random Graphs:
             - RandomGNP
-            - RandomGNPFast
             - RandomBarabasiAlbert
             - RandomGNM
             - RandomNewmanWattsStrogatz
@@ -188,7 +187,6 @@ class GraphGenerators():
             - DorogovtsevGoltsevMendesGraph
         Random Graphs:
             - RandomGNP
-            - RandomGNPFast
             - RandomBarabasiAlbert
             - RandomGNM
             - RandomNewmanWattsStrogatz
@@ -1948,13 +1946,14 @@ class GraphGenerators():
 #   Random Graphs
 ################################################################################
 
-    def RandomGNP(self, n, p, seed=None):
+    def RandomGNP(self, n, p, seed=None, fast=True):
         r"""
         Returns a Random graph on $n$ nodes.  Each edge is inserted
         independently with probability $p$.
 
         IMPLEMENTATION:
-        This function calls the NetworkX function \code{gnp_random_graph}.
+        This function calls the NetworkX function \code{fast_gnp_random_graph},
+        unless fast==False, then \code{gnp_random_graph}.
 
         REFERENCES:
             [1] P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
@@ -1986,58 +1985,23 @@ class GraphGenerators():
             sage: G.save('sage.png')
 
         TIMINGS:
-        The following timings compare the speed of RandomGNP and
-        RandomGNPFast for sparse and dense graphs:
+        The following timings compare the speed with fast==False and
+        fast==True for sparse and dense graphs:
 
             time regular_sparse = graphs.RandomGNP(1559,.22)
-            CPU time: 31.79 s,  Wall time: 38.78 s
-            time fast_sparse =  graphs.RandomGNPFast(1559,.22)
-            CPU time: 21.72 s,  Wall time: 26.44 s
+            CPU time: 18.18 s,  Wall time: 18.46 s
+            time fast_sparse =  graphs.RandomGNP(1559,.22,fast=True)
+            CPU time: 6.54 s,  Wall time: 6.61 s
             time regular_dense = graphs.RandomGNP(1559,.88)
-            CPU time: 38.75 s,  Wall time: 47.65 s
-            time fast_dense = graphs.RandomGNP(1559,.88)
-            CPU time: 39.15 s,  Wall time: 48.22 s
+            CPU time: 31.24 s,  Wall time: 31.92 s
+            time fast_dense = graphs.RandomGNP(1559,.88,fast=True)
+            CPU time: 25.83 s,  Wall time: 26.50 s
         """
         import networkx
-        G = networkx.gnp_random_graph(n, p, seed)
-        return graph.Graph(G)
-
-    def RandomGNPFast(self, n, p, seed=None):
-        """
-        Returns a Random graph on $n$ nodes, with each edge inserted
-        independently with probability $p$.
-
-        This function calls the NetworkX function \code{fast_gnp_random_graph}.
-
-        PLOTTING:
-        When plotting, this graph will use the default spring-layout
-        algorithm, unless a position dictionary is specified.
-
-        EXAMPLES:
-        Plot a random graph on 12 nodes with p = .71
-            sage: fast = graphs.RandomGNPFast(12,.71)
-            sage.: fast.show()
-
-        View many random graphs using a SAGE Graphics Array
-            sage: g = []
-            sage: j = []
-            sage: for i in range(9):
-            ...    k = graphs.RandomGNPFast(i+3,.43)
-            ...    g.append(k)
-            ...
-            sage.: for i in range(3):
-            ...    n = []
-            ...    for m in range(3):
-            ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-            ...    j.append(n)
-            ...
-            sage.: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
-
-        TIMINGS: See the documentation for RandomGNP.
-        """
-        import networkx
-        G = networkx.fast_gnp_random_graph(n, p, seed)
+        if fast:
+            G = networkx.fast_gnp_random_graph(n, p, seed)
+        else:
+            G = networkx.gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 
     def RandomBarabasiAlbert(self, n, m, seed=None):
@@ -2383,7 +2347,7 @@ class GraphGenerators():
         to the degree of a different vertex.
             seed -- for the random number generator.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: G = graphs.DegreeSequence([3,3,3,3])
             sage: G.plot().save('sage.png')  # or G.show()
 
@@ -2391,6 +2355,9 @@ class GraphGenerators():
             sage: G.plot().save('sage.png')  # or G.show()
 
             sage: G = graphs.DegreeSequence([4,4,4,4,4,4,4,4])
+            sage: G.plot().save('sage.png')  # or G.show()
+
+            sage: G = graphs.DegreeSequence([1,2,3,4,3,4,3,2,3,2,1])
             sage: G.plot().save('sage.png')  # or G.show()
 
         REFERENCE:

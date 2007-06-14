@@ -3342,6 +3342,39 @@ class Graph(GenericGraph):
             cols.append(col)
         return matrix(cols, sparse=sparse).transpose()
 
+    def kirchhoff_matrix(self):
+        """
+        Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
+
+        The Kirchhoff matrix is defined to be D - M, where D is the diagonal
+        degree matrix (each diagonal entry is the degree of the corresponding
+        vertex), and M is the adjacency matrix.
+
+        AUTHOR:
+            Tom Boothby
+
+        EXAMPLES:
+            sage: G = graphs.PetersenGraph()
+            sage: G.kirchhoff_matrix()
+            [ 3 -1  0  0 -1 -1  0  0  0  0]
+            [-1  3 -1  0  0  0 -1  0  0  0]
+            [ 0 -1  3 -1  0  0  0 -1  0  0]
+            [ 0  0 -1  3 -1  0  0  0 -1  0]
+            [-1  0  0 -1  3  0  0  0  0 -1]
+            [-1  0  0  0  0  3  0 -1 -1  0]
+            [ 0 -1  0  0  0  0  3  0 -1 -1]
+            [ 0  0 -1  0  0 -1  0  3  0 -1]
+            [ 0  0  0 -1  0 -1 -1  0  3  0]
+            [ 0  0  0  0 -1  0 -1 -1  0  3]
+
+        """
+        M = self.am()
+        A = list(-M)
+        S = [sum(M[i]) for i in range(M.nrows())]
+        for i in range(len(A)):
+            A[i][i] = S[i]
+        return M.parent()(A)
+
     def __bit_vector(self):
         vertices = self.vertices()
         n = len(vertices)

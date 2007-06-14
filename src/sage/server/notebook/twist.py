@@ -10,11 +10,11 @@ import css, js, keyboards
 
 from sage.misc.misc import SAGE_EXTCODE, DOT_SAGE, walltime
 
-css_path        = SAGE_EXTCODE + "/notebook/css/"
-image_path      = SAGE_EXTCODE + "/notebook/images/"
-javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
-
-conf_path = DOT_SAGE + '/notebook/'
+p = os.path.join
+css_path        = p(SAGE_EXTCODE, "notebook/css")
+image_path      = p(SAGE_EXTCODE, "notebook/images")
+javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
+conf_path       = p(DOT_SAGE, 'notebook')
 
 _cols = None
 def word_wrap_cols():
@@ -534,10 +534,24 @@ notebook = None  # this gets set on startup.
 ##########################################################
 
 from   sage.server.misc import print_open_msg
-import os, socket
+import os, shutil, socket
+
+private_pem = conf_path + '/private.pem'
+public_pem = conf_path + '/public.pem'
 
 def notebook_setup(self):
-
+    if not os.path.exists(conf_path):
+        os.makedirs(conf_path)
+    print "Using dsage certificates."
+    dsage = os.path.join(DOT_SAGE, 'dsage')
+    if not os.path.exists(dsage + '/cacert.pem'):
+        import sage.dsage.all
+        sage.dsage.all.dsage.setup()
+    if not os.path.exists(dsage + '/cacert.pem'):
+        print "Error configuring."
+        return
+    shutil.copyfile(dsage + '/cacert.pem', private_pem)
+    shutil.copyfile(dsage + '/pubcert.pem', public_pem)
 
 def notebook_twisted(self,
              directory='sage_notebook',
@@ -564,14 +578,12 @@ def notebook_twisted(self,
     def run(port):
         ## Create the config file
         if ssl:
-            server_pem = conf_path + '/server.pem'
-            cert_pem = conf_path + '/cert.pem'
-            if not os.path.exists(server_pem) or not os.path.exists(cert_pem):
+            if not os.path.exists(private_pem) or not os.path.exists(public_pem):
                 print "In order to use an SSL encrypted notebook, you must first run notebook.setup()."
                 return
-            key = ':privateKey=%s:certKey=%s'%(server_pem, cert_pem)
+            strport = 'ssl:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
         else:
-            key = ''
+            strport = 'tcp:%s'%port
 
         config = open(conf, 'w')
         config.write("""
@@ -595,9 +607,9 @@ signal.signal(signal.SIGINT, my_sigint)
 from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
-s = strports.service('tcp:%s%s', channel.HTTPFactory(twist.site))
+s = strports.service('%s', channel.HTTPFactory(twist.site))
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, port, key))
+"""%(jsmath, os.path.abspath(directory), multisession, strport))
 
 
         config.close()

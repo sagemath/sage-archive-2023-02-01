@@ -793,7 +793,9 @@ def dimension_eis(X, k=2):
         return Z(d)
     elif isinstance(X, congroup.Gamma1):
         N = X.level()
-        if N == 4 and k%2 == 1:
+        if N == 2 and k%2 == 1:
+            d = 0  # level Gamma1(2) and odd weight is a special case.
+        elif N == 4 and k%2 == 1:
             d = 2  # level Gamma1(4) and odd weight is a special case.
         else:
             d = c1(N)

@@ -8,11 +8,13 @@ from twisted.web2 import static, http_headers, responsecode
 
 import css, js, keyboards
 
-from sage.misc.misc import SAGE_EXTCODE, walltime
+from sage.misc.misc import SAGE_EXTCODE, DOT_SAGE, walltime
 
 css_path        = SAGE_EXTCODE + "/notebook/css/"
 image_path      = SAGE_EXTCODE + "/notebook/images/"
 javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
+
+conf_path = DOT_SAGE + '/notebook/'
 
 _cols = None
 def word_wrap_cols():
@@ -529,20 +531,31 @@ notebook = None  # this gets set on startup.
 
 ##########################################################
 # This actually serves up the notebook.
-  ##########################################################
+##########################################################
 
 from   sage.server.misc import print_open_msg
 import os, socket
 
-def notebook_twisted(directory='sage_notebook',
+def notebook_setup(self):
+
+
+def notebook_twisted(self,
+             directory='sage_notebook',
              port=8000,
              address='localhost',
              port_tries=1,
+             ssl         =None,
              multisession=True,
              jsmath      =True):
     r"""
     Experimental twisted version of the SAGE Notebook.
     """
+    if ssl is None:
+        if address != 'localhost':
+            ssl = True
+        else:
+            ssl = False
+
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
@@ -550,9 +563,18 @@ def notebook_twisted(directory='sage_notebook',
 
     def run(port):
         ## Create the config file
+        if ssl:
+            server_pem = conf_path + '/server.pem'
+            cert_pem = conf_path + '/cert.pem'
+            if not os.path.exists(server_pem) or not os.path.exists(cert_pem):
+                print "In order to use an SSL encrypted notebook, you must first run notebook.setup()."
+                return
+            key = ':privateKey=%s:certKey=%s'%(server_pem, cert_pem)
+        else:
+            key = ''
+
         config = open(conf, 'w')
         config.write("""
-
 import sage.server.notebook.notebook
 sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
@@ -573,9 +595,11 @@ signal.signal(signal.SIGINT, my_sigint)
 from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
-s = strports.service('tcp:%s', channel.HTTPFactory(twist.site))
+s = strports.service('tcp:%s%s', channel.HTTPFactory(twist.site))
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, port))
+"""%(jsmath, os.path.abspath(directory), multisession, port, key))
+
+
         config.close()
 
         ## Start up twisted

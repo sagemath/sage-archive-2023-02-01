@@ -1,5 +1,5 @@
-def print_open_msg(address, port):
-    s = "Open your web browser to http://%s:%s"%(address, port)
+def print_open_msg(address, port, ssl=False):
+    s = "Open your web browser to http%s://%s:%s"%('s' if ssl else '', address, port)
     t = len(s)
     if t%2:
         t += 1

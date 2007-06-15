@@ -310,12 +310,24 @@ buffer for a list of commands.)"
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
   (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 
+(defun sage-pcomplete-or-help ()
+  "If point is after ?, describe preceding symbol; otherwise, pcomplete."
+  (interactive)
+  (save-excursion
+    (if (not (looking-back "[^\\?]\\?"))
+	(pcomplete)
+      (progn
+	(backward-char)
+	(when (python-current-word)
+	  (ipython-describe-symbol (python-current-word)))))))
+
 (defun inferior-sage-bindings ()
   "Install inferior-sage-mode bindings locally."
   (interactive)
+  (pcomplete-sage-setup)
   ;;   (local-set-key [(tab)] (make-hippie-expand-function
   ;; 			  '(try-complete-sage-symbol-partially) t))
-  (pcomplete-sage-setup))
+  (local-set-key [(tab)] 'sage-pcomplete-or-help))
 
 (add-hook 'sage-mode-hook 'sage-bindings)
 (add-hook 'inferior-sage-mode-hook 'sage-bindings)
@@ -616,7 +628,8 @@ time, it does not handle multi-line input strings at all."
 (defun python-current-word ()
   "Return python symbol at point."
   (with-syntax-table python-dotty-syntax-table
-    (current-word)))
+    ;; the t makes current-word strict: returns nil if point is not in the word
+    (current-word t)))
 
 ;;;_* IPython and SAGE completing reads
 
@@ -681,11 +694,12 @@ See `try-completion' and `all-completions' for interface details."
       (setq completions
 	    (cdr ipython-completing-read-symbol-cache)))
     ;; Complete as necessary
-    (let ((cmps
-	   (cond ((eq action 'lambda) (test-completion string completions)) ; 'lambda
-		 (action (all-completions string completions predicate))    ; t
-		 (t (try-completion string completions predicate)))))	    ; nil
-      (uniq (sort cmps #'string<) #'string=))))
+    (cond ((eq action 'lambda) ; action is 'lambda
+	   (test-completion string completions))
+	  (action   ; action is t
+	   (uniq (sort (all-completions string completions predicate) #'string<) #'string=))
+	  (t	    ; action is nil
+	   (try-completion string completions predicate)))))
 
 (defun ipython-completing-read-symbol
   (&optional prompt def require-match predicate)
@@ -938,8 +952,7 @@ Interactively, try to find current method at point."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-sage-arguments)
   (set (make-local-variable 'pcomplete-default-completion-function)
-       'pcomplete-sage-default-completion)
-  (local-set-key [(tab)] 'pcomplete))
+       'pcomplete-sage-default-completion))
 
 (defun pcomplete-sage-default-completion ()
   (let ((stub (python-current-word)))
@@ -953,4 +966,4 @@ Interactively, try to find current method at point."
   (save-excursion
     (list
      (list "dummy" (buffer-substring-no-properties (he-sage-symbol-beg) (point)))
-	   (point-min) (he-sage-symbol-beg))))
+     (point-min) (he-sage-symbol-beg))))

@@ -1,4 +1,4 @@
-;;; sage-mode.el --- Major mode for editing SAGE code
+;;;_* sage-mode.el --- Major mode for editing SAGE code
 
 ;; Copyright (C) 2007  Nick Alexander
 
@@ -27,11 +27,19 @@
 (require 'python)
 (require 'comint)
 (require 'ansi-color)
+(require 'compile)
 
-;;; Use icicles for completing-read if possible
-(require 'icicles nil t)
+;;;_* Inferior SAGE major mode for interacting with a slave SAGE process
 
-;;; Inferior SAGE major mode
+(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "...") " ")))
+  "Regular expression matching the SAGE prompt."
+  :group 'sage
+  :type 'regexp)
+
+(defcustom inferior-sage-timeout 500000
+  "How long to wait for a SAGE prompt."
+  :group 'sage
+  :type 'integer)
 
 (define-derived-mode
   inferior-sage-mode
@@ -39,19 +47,47 @@
   "Inferior SAGE"
   "Major mode for interacting with an inferior SAGE process."
 
-  ; (setq sage-command (expand-file-name "~/bin/sage"))
-  (setq comint-prompt-regexp
-	(rx line-start (1+ (and (or "sage:" "....." ">>>" "...") " "))))
+  (setq comint-prompt-regexp inferior-sage-prompt)
   (setq comint-redirect-finished-regexp "sage:") ; comint-prompt-regexp)
 
   (setq comint-input-sender 'ipython-input-sender)
   ;; I type x? a lot
   (set 'comint-input-filter 'sage-input-filter)
-)
+
+  (make-local-variable 'compilation-error-regexp-alist)
+  (make-local-variable 'compilation-error-regexp-alist-alist)
+  (add-to-list 'compilation-error-regexp-alist-alist sage-test-compilation-regexp)
+  (add-to-list 'compilation-error-regexp-alist 'sage-test-compilation)
+  (add-to-list 'compilation-error-regexp-alist-alist sage-build-compilation-regexp)
+  (add-to-list 'compilation-error-regexp-alist 'sage-build-compilation)
+
+  (compilation-shell-minor-mode 1))
+
+(defun inferior-sage-wait-for-prompt ()
+  "Wait until the SAGE process is ready for input."
+  (with-current-buffer sage-buffer
+    (let* ((sprocess (get-buffer-process sage-buffer))
+	    (success nil)
+	    (timeout 0))
+      (while (progn
+	       (if (not (eq (process-status sprocess) 'run))
+		   (error "SAGE process has died unexpectedly.")
+		 (if (> (setq timeout (1+ timeout)) inferior-sage-timeout)
+		     (error "Timeout waiting for SAGE prompt. Check inferior-sage-timeout."))
+		 (accept-process-output nil 0 1)
+		 (sit-for 0)
+		 (goto-char (point-max))
+		 (forward-line 0)
+		 (setq success (looking-at inferior-sage-prompt))
+		 (not (or success (looking-at ".*\\?\\s *"))))))
+      (goto-char (point-max))
+      success)))
 
 (defun sage-input-filter (string)
   "A `comint-input-filter' that keeps all input in the history."
   t)
+
+;;;_* IPython magic commands
 
 (defcustom ipython-input-handle-magic-p t
   "Non-nil means handle IPython magic commands specially."
@@ -78,12 +114,12 @@ return non-nil if magic input was handled, nil if input should be
 sent normally.")
 
 (defun ipython-handle-magic-? (proc string &optional match)
-  "Handle IPYthon magic ?."
+  "Handle IPython magic ?."
   (when (string-match "\\(.*?\\)\\?" string)
     (ipython-describe-symbol (match-string 1 string))))
 
 (defun ipython-handle-magic-?? (proc string &optional match)
-  "Handle IPYthon magic ??."
+  "Handle IPython magic ??."
   (when (string-match "\\(.*?\\)\\?\\?" string)
     (sage-find-symbol-other-window (match-string 1 string))))
 
@@ -117,12 +153,19 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
 	       (ipython-input-string-is-magic-p string) ; ... be magic
 	       (ipython-input-handle-magic proc string)) ; and be handled
       ;; To have just an input history creating, clearing new line entered
-	(comint-simple-send proc "")
+      (comint-simple-send proc "")
     (comint-simple-send proc string)))	; otherwise, you're sent
+
+;;;_* SAGE process management
 
 (defcustom sage-command (expand-file-name "~/bin/sage")
   "Actual command used to run SAGE.
 Additional arguments are added when the command is used by `run-sage' et al."
+  :group 'sage
+  :type 'string)
+
+(defcustom sage-startup-command "import sage.misc.sage_emacs as emacs"
+  "Run this command each time SAGE slave is executed by `run-sage'."
   :group 'sage
   :type 'string)
 
@@ -199,10 +242,11 @@ buffer for a list of commands.)"
 	(setq-default python-buffer (current-buffer))
 	;; Set up sensible prompt defaults, etc
 	(inferior-sage-mode)
-	(accept-process-output (get-buffer-process sage-buffer) 5)
-	;; Ensure we're at a prompt before loading the functions we use
-	;; XXX error-checking
-	(python-send-receive-multiline "import emacs"))))
+	(when (inferior-sage-wait-for-prompt)
+	  ;; Ensure we're at a prompt before loading the functions we use
+	  ;; XXX: add more error-checking?
+	  (sage-send-command sage-startup-command t)
+	  (sage-find-current-branch)))))
 
   ;; If we're coming from a sage-mode buffer, update inferior buffer
   (when (derived-mode-p 'sage-mode)
@@ -216,10 +260,19 @@ buffer for a list of commands.)"
   ;;  (setq-default python-buffer sage-buffer))
   ;; Without this, help output goes into the inferior python buffer if
   ;; the process isn't already running.
-  (sit-for 1 t)        ;Should we use accept-process-output instead?  --Stef
+  ;; (sit-for 0)        ;Should we use accept-process-output instead?  --Stef
   (unless noshow (pop-to-buffer sage-buffer)))
 
-;;; SAGE major mode
+(defun sage-find-current-branch ()
+  (interactive)
+  "Change the current SAGE buffer name to include the current branch."
+  (save-excursion
+    (point-max)
+    (search-backward-regexp "Current Mercurial branch is: \\(.*\\)$")
+    (when (match-string 1)
+      (rename-uniquely (format "*SAGE-%s*" (match-string 1))))))
+
+;;;_* SAGE major mode for editing SAGE library code
 
 (provide 'sage)
 
@@ -230,20 +283,147 @@ buffer for a list of commands.)"
   "Major mode for editing SAGE files."
 )
 
+;;;_* Treat SAGE code as Python source code
+
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("sage" . sage-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sage\\'" . sage-mode))
+;;;###autoload
+(add-to-list 'python-source-modes 'sage-mode)
+
+;;;_* Integrate SAGE mode with Emacs
+
+;;;_ + SAGE mode key bindings
 
 ;;;###autoload
 (defun sage-bindings ()
   "Install SAGE bindings locally."
   (interactive)
+  (local-set-key [(control c) (control t)] 'sage-test-file)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
   (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 
 (add-hook 'sage-mode 'sage-bindings)
 (add-hook 'inferior-sage-mode 'sage-bindings)
+
+;;;_ + Set better grep defaults for SAGE and Pyrex code
+
+(add-to-list 'grep-files-aliases '("py" . "{*.py,*.pyx}"))
+(add-to-list 'grep-files-aliases '("pyx" . "{*.py,*.pyx}"))
+
+;;;_ + Make devel/sage files play nicely, and don't jump into site-packages if possible
+
+;;; It's annoying to get lost in sage/.../site-packages version of files when
+;;; `sage-find-symbol' and friends jump to files.  It's even more annoying when
+;;; the file is not correctly recognized as sage source!
+
+(add-to-list 'auto-mode-alist '("devel/sage.*?\\.py\\'" . sage-mode))
+(add-to-list 'auto-mode-alist '("devel/sage.*?\\.pyx\\'" . pyrex-mode))
+
+(defvar sage-site-packages-regexp "\\(local.*?site-packages.*?\\)/sage"
+  "Regexp to match sage site-packages files.
+
+Match group 1 will be replaced with devel/sage-branch")
+
+(add-hook 'find-file-hook 'sage-warn-if-site-packages-file)
+(defun sage-warn-if-site-packages-file()
+  "Warn if sage FILE is in site-packages and offer to find current branch version."
+  (let ((f (buffer-file-name (current-buffer))))
+    (and f (string-match sage-site-packages-regexp f)
+         (if (y-or-n-p "This is a sage site-packages file, open the real file? ")
+             (sage-jump-to-development-version)
+           (push '(:propertize "SAGE-SITE-PACKAGES-FILE:" face font-lock-warning-face)
+                 mode-line-buffer-identification)))))
+
+(defun sage-development-version (filename)
+  "If FILENAME is in site-packages, current branch version, else FILENAME."
+  (save-match-data
+    (let* ((match (string-match sage-site-packages-regexp filename)))
+      (if (and filename match)
+	  ;; handle current branch somewhat intelligiently
+	  (let* ((base (concat (substring filename 0 (match-beginning 1)) "devel/"))
+		 (branch (or (file-symlink-p (concat base "sage")) "sage")))
+	    (concat base branch (substring filename (match-end 1))))
+	filename))))
+
+(defun sage-jump-to-development-version ()
+  "Jump to current branch version of current FILE if we're in site-packages version."
+  (interactive)
+  (let ((filename (sage-development-version (buffer-file-name (current-buffer))))
+	(maybe-buf (find-buffer-visiting filename)))
+    (if maybe-buf (pop-to-buffer maybe-buf)
+      (find-alternate-file filename))))
+
+(defadvice compilation-find-file
+  (before sage-compilation-find-file (marker filename directory &rest formats))
+  "Always try to find compilation errors in FILENAME in the current branch version."
+  (ad-set-arg 1 (sage-development-version filename)))
+(ad-activate 'compilation-find-file)
+
+;;;_ + Integrate with eshell
+
+(defconst sage-test-compilation-regexp
+  (list 'sage-test-compilation
+	"^File \"\\(.*\\)\", line \\([0-9]+\\)"
+	1
+	2))
+
+(defconst sage-build-compilation-regexp
+  (list 'sage-build-compilation
+	"^\\(.*\\):\\([0-9]+\\):\\([0-9]+\\):"
+	1 2 3))
+
+;; To add support for SAGE build and test errors to *compilation* buffers by
+;; default, evaluate the following four lines.
+;;
+;; (add-to-list 'compilation-error-regexp-alist-alist sage-test-compilation-regexp)
+;; (add-to-list 'compilation-error-regexp-alist 'sage-test-compilation)
+;; (add-to-list 'compilation-error-regexp-alist-alist sage-build-compilation-regexp)
+;; (add-to-list 'compilation-error-regexp-alist 'sage-build-compilation)
+
+(defun eshell-sage-command-hook (command args)
+  "Handle some SAGE invocations specially.
+
+Without ARGS, run SAGE in an emacs `sage-mode' buffer.
+
+With first ARGS starting with \"-b\" or \"-t\", run SAGE in an
+emacs `compilation-mode' buffer.
+
+Otherwise (for example, with ARGS \"-hg\", run SAGE at the eshell
+prompt as normal.
+
+This is an `eshell-named-command-hook' because only some parameters modify the
+command; other times, it has to execute as a standard eshell command."
+  (when (equal command "sage")
+    (cond ((not args)
+	   ;; run sage inside emacs
+	   (run-sage sage-command nil t)
+	   t)
+	  ((member (substring (car args) 0 2) '("-t" "-b"))
+	   ;; echo sage build into compilation buffer
+	   (throw 'eshell-replace-command
+		  (eshell-parse-command
+		   "compile"
+		   (cons "sage" (eshell-flatten-list args))))))))
+(add-hook 'eshell-named-command-hook 'eshell-sage-command-hook)
+
+;; From http://www.emacswiki.org/cgi-bin/wiki?EshellFunctions
+(defun eshell/compile (&rest args)
+  "Use `compile' to do background makes."
+  (if (eshell-interactive-output-p)
+      (let ((compilation-process-setup-function
+	     (list 'lambda nil
+		   (list 'setq 'process-environment
+			 (list 'quote (eshell-copy-environment))))))
+	(compile (eshell-flatten-and-stringify args))
+	(pop-to-buffer compilation-last-buffer))
+    (throw 'eshell-replace-command
+	   (let ((l (eshell-stringify-list (eshell-flatten-list args))))
+	     (eshell-parse-command (car l) (cdr l))))))
+(put 'eshell/compile 'eshell-no-numeric-conversions t)
+
+;;;_* Load relative modules correctly
 
 (defun python-qualified-module-name (file)
   "Find the qualified module name for filename FILE.
@@ -267,10 +447,12 @@ Adapted from a patch posted to the python-mode trac."
 	     (file-name-sans-extension (file-name-nondirectory file)))))
 
 ;;; Replace original `python-load-file' to use xreload and packages.
-(ad-activate 'python-load-file)
 (defadvice python-load-file
-  (around nca-python-load-file first (file-name &optional xreload))
+  (around nca-python-load-file first (file-name &optional no-xreload))
   "Load a Python file FILE-NAME into the inferior Python process.
+
+Without prefix argument, use fancy new xreload. With prefix
+argument, use default Python reload.
 
 THIS REPLACES THE ORIGINAL `python-load-file'.
 
@@ -279,9 +461,11 @@ Treating it as a module keeps the global namespace clean, provides
 function location information for debugging, and supports users of
 module-qualified names."
   (interactive
-   (append (comint-get-source "Load Python file: " python-prev-dir/file
-					   python-source-modes
-					   t)
+   (append (comint-get-source
+	    (format "%s Python file: " (if current-prefix-arg "reload" "xreload"))
+	    python-prev-dir/file
+	    python-source-modes
+	    t)
 	   current-prefix-arg))	; because execfile needs exact name
   (comint-check-source file-name)     ; Check to see if buffer needs saving.
   (setq python-prev-dir/file (cons (file-name-directory file-name)
@@ -293,20 +477,109 @@ module-qualified names."
 	 (let* ((directory-module (python-qualified-module-name file-name))
 		(directory (car directory-module))
 		(module (cdr directory-module))
-		(xreload-flag (if xreload "True" "False")))
+		(xreload-flag (if no-xreload "False" "True")))
 	   (format "emacs.eimport(%S, %S, use_xreload=%s)"
 		   module directory xreload-flag))
        (format "execfile(%S)" file-name)))
     (message "%s loaded" file-name)))
+(ad-activate 'python-load-file)
 
-;;; Treat sage code as python source code
-(add-to-list 'python-source-modes 'sage-mode)
+;;;_* Convenient *programmatic* Python interaction
+
+(defvar python-default-tag-noerror "_XXX1XXX_NOERROR")
+(defvar python-default-tag-error "_XXX1XXX_ERROR")
+
+(defun python-protect-command (command &optional tag-noerror tag-error)
+  "Wrap Python COMMAND in a try-except block and signal error conditions.
+
+Print TAG-NOERROR on successful Python execution and TAG-ERROR on
+error conditions."
+  (let* ((tag-noerror (or tag-noerror python-default-tag-noerror))
+	 (tag-error   (or tag-error   python-default-tag-error))
+	 (lines (split-string command "\n"))
+	 (indented-lines
+	  (mapconcat (lambda (x) (concat "    " x)) lines "\n")))
+    (format "try:
+%s
+    print %S,
+except e:
+    print e
+    print %S,
+" indented-lines tag-noerror tag-error)))
+
+(defmacro with-python-output-to-buffer (buffer command &rest body)
+  "Send COMMAND to inferior Python, redirect output to BUFFER, and execute
+BODY in that buffer.
+
+The value returned is the value of the last form in body.
+
+Block while waiting for output."
+  (declare (indent 2) (debug t))
+  `(with-current-buffer ,buffer
+     ;; Grab what Python has to say
+     (comint-redirect-send-command-to-process
+      (python-protect-command ,command)
+      (current-buffer) (python-proc) nil t)
+     ;; Wait for the redirection to complete
+     (with-current-buffer (process-buffer (python-proc))
+       (while (null comint-redirect-completed)
+	 (accept-process-output nil 1)))
+     (message (buffer-name))
+     ;; Execute BODY
+     ,@body
+     ))
+
+(defmacro with-python-output-buffer (command &rest body)
+  "Send COMMAND to inferior Python and execute BODY in temp buffer with
+  output.
+
+The value returned is the value of the last form in body.
+
+Block while waiting for output."
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (with-python-output-to-buffer (current-buffer) ,command
+       ,@body)))
+
+;; (with-python-output-to-buffer "*scratch*" "x?\x?"
+;;   (message "%s" (buffer-name)))
+
+(defun sage-send-command (command &optional echo-input)
+  "Evaluate COMMAND in inferior Python process.
+
+If ECHO-INPUT is non-nil, echo input in process buffer."
+  (interactive "sCommand: ")
+  (if echo-input
+      (with-current-buffer (process-buffer (python-proc))
+	;; Insert and evaluate input string in place
+	(insert command)
+	(comint-send-input nil t))
+    (python-send-command command)))
+
+(defun python-send-receive-to-buffer (command buffer &optional echo-output)
+  "Send COMMAND to inferior Python (if any) and send output to BUFFER.
+
+If ECHO-OUTPUT is non-nil, echo output to process buffer.
+
+This is an alternate `python-send-receive' that uses temporary buffers and
+`comint-redirect-send-command-to-process'.  Block while waiting for output.
+This implementation handles multi-line output strings gracefully.  At this
+time, it does not handle multi-line input strings at all."
+  (interactive "sCommand: ")
+  (with-current-buffer buffer
+    ;; Grab what Python has to say
+    (comint-redirect-send-command-to-process
+     command (current-buffer) (python-proc) echo-output t)
+    ;; Wait for the redirection to complete
+    (with-current-buffer (process-buffer (python-proc))
+      (while (null comint-redirect-completed)
+	(accept-process-output nil 1)))))
 
 (defun python-send-receive-multiline (command)
   "Send COMMAND to inferior Python (if any) and return result as a string.
 
 This is an alternate `python-send-receive' that uses temporary buffers and
-`comint-redirect-send-command-to-process'.
+`comint-redirect-send-command-to-process'.  Block while waiting for output.
 This implementation handles multi-line output strings gracefully.  At this
 time, it does not handle multi-line input strings at all."
   (interactive "sCommand: ")
@@ -324,12 +597,16 @@ time, it does not handle multi-line input strings at all."
 	(message output))
       output)))
 
+;;;_* Generally useful tidbits
+
 (defun python-current-word ()
   "Return python symbol at point."
   (with-syntax-table python-dotty-syntax-table
     (current-word)))
 
-;;; `ipython-completing-read-symbol' is `completing-read' for python symbols
+;;;_* IPython and SAGE completing reads
+
+;;;_ + `ipython-completing-read-symbol' is `completing-read' for python symbols
 ;;; using IPython's *? mechanism
 
 (defvar ipython-completing-read-symbol-history ()
@@ -433,6 +710,7 @@ Interactively, prompt for SYMBOL."
 	  (or (ipython-describe-symbol-markup-function raw-contents)
 	      raw-contents))
 	 (temp-buffer-show-hook ipython-describe-symbol-temp-buffer-show-hook))
+    ;; XXX Handle exceptions; perhaps (with-python-output ...) or similar
     ;; Handle symbol not found gracefully
     (when (string-match ipython-describe-symbol-not-found-regexp raw-contents)
       (error "Symbol not found"))
@@ -448,7 +726,7 @@ Interactively, prompt for SYMBOL."
 	;; Finally, display help contents
 	(princ help-contents)))))
 
-;;; `sage-find-symbol' is `find-function' for SAGE.
+;;;_ + `sage-find-symbol' is `find-function' for SAGE.
 
 (defun sage-find-symbol-command (symbol)
   "Return SAGE command to fetch position of SYMBOL."
@@ -535,42 +813,51 @@ See `sage-find-symbol' for details."
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer-other-frame))
 
-;; It's annoying to get lost in sage/.../site-packages version of files when
-;; `sage-find-symbol' and friends jump to files.  It's even more annoying when
-;; the file is not correctly recognized as sage source!
+;;;_* Make it easy to sagetest files and methods
 
-(add-to-list 'auto-mode-alist '("devel/sage.*?\\.py\\'" . sage-mode))
+(defun sage-test-file-inline (file-name &optional method)
+  "Run sage-test on file FILE-NAME, with output to underlying the SAGE buffer.
 
-(defvar sage-site-packages-regexp "\\(local.*?site-packages.*?\\)/sage"
-  "Regexp to match sage site-packages files.
+We take pains to test the correct module.
 
-Match group 1 will be replaced with devel/sage-branch")
+If METHOD is non-nil, try to test only the single method named METHOD.
+Interactively, try to find current method at point."
+  (interactive
+   (append
+    (comint-get-source "Load SAGE file: "
+		       python-prev-dir/file python-source-modes t))
+   (list current-prefix-arg))
+  (comint-check-source file-name)     ; Check to see if buffer needs saving.
+  (setq python-prev-dir/file (cons (file-name-directory file-name)
+				   (file-name-nondirectory file-name)))
+  (let* ((directory-module (python-qualified-module-name file-name))
+	 (directory (car directory-module))
+	 (module (cdr directory-module))
+	 (command (format "sage.misc.sagetest.sagetest(%s)" module)))
+    (sage-send-command command nil)))
 
-(add-hook 'find-file-hook 'sage-warn-if-site-packages-file)
-(defun sage-warn-if-site-packages-file()
-  "Warn if sage FILE is in site-packages and offer to find current branch version."
-  (let ((f (buffer-file-name (current-buffer))))
-    (and f (string-match sage-site-packages-regexp f)
-         (if (y-or-n-p "This is a sage site-packages file, open the real file? ")
-             (sage-jump-to-development-version)
-           (push '(:propertize "SAGE-SITE-PACKAGES-FILE:" face font-lock-warning-face)
-                 mode-line-buffer-identification)))))
+(defun sage-test-file-to-buffer (file-name &optional method)
+  "Run sage-test on file FILE-NAME, with output to a new buffer.
 
-(defun sage-development-version (filename)
-  "If FILENAME is in site-packages, current branch version, else FILENAME."
-  (save-match-data
-    (let* ((match (string-match sage-site-packages-regexp filename)))
-      (if (and filename match)
-	  ;; handle current branch somewhat intelligiently
-	  (let* ((base (concat (substring filename 0 (match-beginning 1)) "devel/"))
-		 (branch (or (file-symlink-p (concat base "sage")) "sage")))
-	    (concat base branch (substring filename (match-end 1))))
-	filename))))
+We take pains to test the correct module.
 
-(defun sage-jump-to-development-version ()
-  "Jump to current branch version of current FILE if we're in site-packages version."
-  (interactive)
-  (let ((filename (sage-development-version (buffer-file-name (current-buffer))))
-	(maybe-buf (find-buffer-visiting filename)))
-    (if maybe-buf (pop-to-buffer maybe-buf)
-      (find-alternate-file filename))))
+If METHOD is non-nil, try to test only the single method named METHOD.
+Interactively, try to find current method at point."
+  (interactive
+   (append
+    (comint-get-source "Load SAGE file: "
+		       python-prev-dir/file python-source-modes t))
+   (list current-prefix-arg))
+  (comint-check-source file-name)     ; Check to see if buffer needs saving.
+  (setq python-prev-dir/file (cons (file-name-directory file-name)
+				   (file-name-nondirectory file-name)))
+  (let* ((directory-module (python-qualified-module-name file-name))
+	 (directory (car directory-module))
+	 (module (cdr directory-module))
+	 (command (format "sage.misc.sagetest.sagetest(%s)" module))
+	 (compilation-error-regexp-alist '(sage-test sage-build)))
+    (with-temp-buffer
+      (compile (eshell-flatten-and-stringify args))
+      (python-send-receive-to-buffer command (current-buffer)))))
+
+(defvar sage-test-file 'sage-test-file-to-buffer)

@@ -554,22 +554,16 @@ def notebook_setup(self):
     print "Successfully configured notebook."
 
 def notebook_twisted(self,
-             directory='sage_notebook',
-             port=8000,
-             address='localhost',
-             port_tries=1,
-             ssl         =None,
-             multisession=True,
-             jsmath      =True):
+             directory   = 'sage_notebook',
+             port        = 8000,
+             address     = 'localhost',
+             port_tries  = 1,
+             secure      = True,
+             multisession= True,
+             jsmath      = True):
     r"""
     Experimental twisted version of the SAGE Notebook.
     """
-    if ssl is None:
-        if address != 'localhost':
-            ssl = True
-        else:
-            ssl = False
-
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
@@ -577,11 +571,11 @@ def notebook_twisted(self,
 
     def run(port):
         ## Create the config file
-        if ssl:
+        if secure:
             if not os.path.exists(private_pem) or not os.path.exists(public_pem):
-                print "In order to use an SSL encrypted notebook, you must first run notebook.setup()."
+                print "In order to use an SECURE encrypted notebook, you must first run notebook.setup()."
                 return
-            strport = 'ssl:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
+            strport = 'tls:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
         else:
             strport = 'tcp:%s'%port
 
@@ -615,7 +609,7 @@ s.setServiceParent(application)
         config.close()
 
         ## Start up twisted
-        print_open_msg(address, port, ssl=ssl)
+        print_open_msg(address, port, secure=secure)
         e = os.system('cd "%s" && sage -twistd -ny twistedconf.py'%directory)
         if e == 256:
             raise socket.error

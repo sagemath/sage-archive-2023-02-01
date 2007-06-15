@@ -388,7 +388,13 @@ class Worksheet_print(WorksheetResource, resource.Resource):
 
 
 class Worksheet(WorksheetResource, resource.Resource):
-    addSlash = True
+    # VERY IMPORTANT: Do *not* change this to True without
+    # testing/thought.  If you do, the GNUTLS encryption breaks,
+    # because of a mysterious subtle issue with Twisted.  We do not
+    # understand this.
+    # -- William Stein and Yi Qiang, 2007-06-14
+
+    addSlash = False
 
     def render(self, ctx):
         s = notebook.html(worksheet_id = self.name)

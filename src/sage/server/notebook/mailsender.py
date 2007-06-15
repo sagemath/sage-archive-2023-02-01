@@ -34,13 +34,13 @@ class SMTPMessage:
 
         print self._rcpt_domain
 
-    def exchange_mail(self, _):
-        smtp_client = internet.TCPClient(self._exchange, 25, self._factory)
+    def exchange_mail(self, exchange):
+        smtp_client = internet.TCPClient(exchange, 25, self._factory)
         smtp_client.setServiceParent(self._app)
 
     def get_mx(self, host):
         def on_found_record(record):
-            self._exchange = str(record.name)
+            return str(record.name)
         return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
 
     def run_from(self, app):

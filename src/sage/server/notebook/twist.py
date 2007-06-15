@@ -387,6 +387,14 @@ class Worksheet_print(WorksheetResource, resource.Resource):
         return http.Response(stream=s)
 
 
+class NotImplementedWorksheetOp(resource.Resource):
+    def __init__(self, op):
+        self.op = op
+
+    def render(self, ctx):
+        return http.Response(stream = 'The worksheet operation "%s" is not implemented.'%self.op)
+
+
 class Worksheet(WorksheetResource, resource.Resource):
     # VERY IMPORTANT: Do *not* change this to True without
     # testing/thought.  If you do, the GNUTLS encryption breaks,
@@ -406,8 +414,8 @@ class Worksheet(WorksheetResource, resource.Resource):
         try:
             R = globals()['Worksheet_%s'%op]
             return R(self.name)
-        except NameError:
-            return None, ()
+        except KeyError:
+            return NotImplementedWorksheetOp(op)
 
 class Worksheets(resource.Resource):
     def childFactory(self, request, name):

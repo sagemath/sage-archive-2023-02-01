@@ -251,6 +251,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         cell = W.get_cell_with_id(id)
+
         #TB: this tends to obliterate long cells -- if the user doesn't submit between
         #introspecting and closing the browser; there's a lot of potential to lose a
         #large amount of work without warning.  I personally would not expect hitting

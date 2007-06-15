@@ -1,8 +1,8 @@
 from twisted.application import service
 from twisted.application import internet
 from twisted.internet import protocol
-from twisted.mail import smtp
-from CStringIO import StringIO
+from twisted.mail import smtp, relaymanager
+from StringIO import StringIO
 from email.Generator import Generator
 
 # Make an instance of this class if you need to send an email
@@ -26,18 +26,30 @@ class SMTPMessage:
         self._data = data
         self._secret = secret
         self._factory = SMTPClientFactory(self)
+        # the server that we will deliver the mail to
+        try:
+            self._rcpt_domain = [(r.split('@'))[1] for r in rcpt]
+        except ValueError:
+            raise ValueError, "mal-formed recipient email address"
 
-    _server = 'gmail-smtp-in.l.google.com'
+        print self._rcpt_domain
+
+
+    def exchange_mail(self, app, exchange):
+        smtp_client = internet.TCPClient(exchange, 25, self._factory)
+        smtp_client.setServiceParent(app)
 
     def run_from(self, app):
-        smtp_client = internet.TCPClient(self._server, 25, self._factory)
-        smtp_client.setServiceParent(app)
+        self._app = app
+        get_mx(self._rcpt_domain[0]).addCallback(self.exchange_mail)
 
 class MailClient(smtp.ESMTPClient):
     def __init__(self, mesg, **kwds):
         smtp.ESMTPClient.__init__(self,**kwds)
         self._mesg = mesg
 
+    # these are all overridden from the super class, and called by Twisted to do
+    # the real work
     getMailFrom = lambda self: self._mesg._mail_from
     getMailTo = lambda self: self._mesg._rcpt
 
@@ -45,7 +57,7 @@ class MailClient(smtp.ESMTPClient):
         return StringIO(self._mesg._data)
 
     def sentMail(self, code, resp, numOk, addresses, log):
-        print 'dest SMTP server -- %s: %s' % (code, resp)
+        print '<< dest SMTP server >> %s: %s' % (code, resp)
         print 'Sent %s messages.' % numOk
         from twisted.internet import reactor
         reactor.stop()
@@ -59,11 +71,15 @@ class SMTPClientFactory(protocol.ClientFactory):
         mesg = self._mesg
         return self._protocol(mesg, secret=mesg._secret, identity=mesg._id)
 
+def get_mx(host):
+    on_found_record = lambda record: str(record.exchange)
+    return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
+
 application = service.Application("SAGE SMTP Client")
 _from = "moretti@sage.math.washington.edu"
 _to =  ["bobmoretti@gmail.com"]
 _id = "sage.math.washington.edu"
 data = "BLAH 2"
 
-m = MailMessage(_from, _to, data, _id)
+m = SMTPMessage(_from, _to, data, _id)
 m.run_from(application)

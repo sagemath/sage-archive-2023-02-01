@@ -74,7 +74,6 @@ def setup_worker():
 
 def setup_server(template=None):
     check_dsage_dir()
-    template_file = 'cert.cfg'
     template_dict = {'organization': 'SAGE',
                 'unit': '389',
                 'locality': None,
@@ -109,7 +108,9 @@ def setup_server(template=None):
         else:
             w = '"%s"'%val
         s += '%s = %s \n'%(key, w)
-    f = open(os.path.join(DSAGE_DIR, template_file), 'w')
+
+    template_file = os.path.join(DSAGE_DIR, 'cert.cfg')
+    f = open(template_file, 'w')
     f.write(s)
     f.close()
     # Disable certificate generation -- not used right now anyways

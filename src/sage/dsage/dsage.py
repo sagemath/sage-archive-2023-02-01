@@ -213,7 +213,7 @@ class DistributedSage(object):
         """
 
         from sage.dsage.scripts.dsage_setup import setup
-        setup()
+        setup(template=template)
 
     def setup_server(self, *args):
         """

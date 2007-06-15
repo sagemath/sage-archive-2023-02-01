@@ -94,6 +94,7 @@ def setup_server(template=None):
                 'signing_key': True,
                 'encryption_key': True,
                 }
+
     if isinstance(template, dict):
         template_dict.update(template)
 

@@ -317,9 +317,9 @@ buffer for a list of commands.)"
   ;; 			  '(try-complete-sage-symbol-partially) t))
   (pcomplete-sage-setup))
 
-(add-hook 'sage-mode 'sage-bindings)
-(add-hook 'inferior-sage-mode 'sage-bindings)
-(add-hook 'inferior-sage-mode 'inferior-sage-bindings)
+(add-hook 'sage-mode-hook 'sage-bindings)
+(add-hook 'inferior-sage-mode-hook 'sage-bindings)
+(add-hook 'inferior-sage-mode-hook 'inferior-sage-bindings)
 
 ;;;_ + Set better grep defaults for SAGE and Pyrex code
 
@@ -944,7 +944,8 @@ Interactively, try to find current method at point."
 (defun pcomplete-sage-default-completion ()
   (let ((stub (python-current-word)))
     (when (and stub (not (string= stub "")))
-      (let* ((cmps (remove stub (ipython-completing-read-symbol-function (python-current-word) nil t))))
+      (ipython-completing-read-symbol-clear-cache)
+      (let* ((cmps (ipython-completing-read-symbol-function (python-current-word) nil t)))
 	(when cmps
 	  (pcomplete-here cmps))))))
 

@@ -53,6 +53,7 @@ def get_config(type):
 
 def setup_client(testing=False):
     check_dsage_dir()
+    key_file = os.path.join(DSAGE_DIR, 'dsage_key')
     if testing:
         cmd = ["ssh-keygen", "-q", "-trsa", "-P ''", "-f%s" % key_file]
         return
@@ -62,7 +63,6 @@ def setup_client(testing=False):
     print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
     print "Just hit enter when prompted for a passphrase"
     print DELIMITER
-    key_file = os.path.join(DSAGE_DIR, 'dsage_key')
     cmd = ["ssh-keygen", "-q", "-trsa", "-f%s" % key_file]
     p = subprocess.call(cmd)
     print "\n"
@@ -76,18 +76,21 @@ def setup_server():
     check_dsage_dir()
 
     # Disable certificate generation -- not used right now anyways
-    # privkey_file = os.path.join(DSAGE_DIR, 'cacert.pem')
-    # pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
-    # print DELIMITER
-    # print "Generating SSL certificate for server..."
+    privkey_file = os.path.join(DSAGE_DIR, 'cacert.pem')
+    pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
+    print DELIMITER
+    print "Generating SSL certificate for server..."
+    cmd = ['certtool --generate-privkey --outfile %s' % privkey_file]
     # cmd = ['openssl genrsa > %s' % privkey_file]
-    # subprocess.call(cmd, shell=True)
+    subprocess.call(cmd, shell=True)
     # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
     #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
     #                 privkey_file, pubkey_file)]
-    # subprocess.call(cmd, shell=True)
-    # print DELIMITER
-    # os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)
+    cmd = ['certtool --generate-self-signed --load-privkey %s \
+           --outfile %s' % (privkey_file, pubkey_file)]
+    subprocess.call(cmd, shell=True)
+    print DELIMITER
+    os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)
 
     # conf_file = os.path.join(DSAGE_DIR, 'server.conf')
     # config.write(open(conf_file, 'w'))

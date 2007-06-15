@@ -25,7 +25,7 @@ import os
 from optparse import OptionParser
 import socket
 
-from twisted.internet import reactor, error, ssl, task
+from twisted.internet import reactor, error, task
 from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal

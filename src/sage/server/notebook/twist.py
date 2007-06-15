@@ -677,6 +677,7 @@ import sage.server.notebook.notebook
 sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
+import sage.server.smtpclient as mail
 twist.notebook = notebook.load_notebook('%s')
 import sage.server.notebook.worksheet as worksheet
 worksheet.init_sage_prestart()

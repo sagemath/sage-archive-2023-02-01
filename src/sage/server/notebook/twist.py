@@ -146,11 +146,7 @@ class Doc(resource.Resource):
 class WorksheetResource:
     def __init__(self, name):
         self.name = name
-        try:
-            self.worksheet = notebook.get_worksheet_with_id(name)
-        except KeyError:
-            # TODO: This should ask if you are sure, require authentication, etc.
-            self.worksheet = notebook.create_new_worksheet(name)
+        self.worksheet = notebook.get_worksheet_with_id(name)
 
     def id(self, ctx):
         return int(ctx.args['id'][0])
@@ -176,6 +172,46 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         return CellData(self.worksheet, number)
 
 ########################################################
+# Use this to wrap a worksheet operation in a confirmation
+# request.  See WorksheetDelete and WorksheetAdd for
+# examples.
+########################################################
+class FastRedirect(resource.Resource):
+    def __init__(self, dest):
+        self.dest = dest
+    def render(self, ctx):
+        s = '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%self.dest
+        return http.Response(stream = s)
+
+class FastRedirectWithEffect(FastRedirect):
+    def __init__(self, dest, effect):
+        self.dest = dest
+        if not effect is None:
+            effect()
+
+class YesNo(resource.Resource):
+    addSlash = True
+
+    def __init__(self, mesg, yes_path, no_path, yes_effect=None, no_effect=None):
+        self.mesg = mesg
+        self.yes_path = yes_path
+        self.no_path  = no_path
+        self.yes_effect = yes_effect
+        self.no_effect = no_effect
+
+    def render(self, ctx):
+        s = '<html><body>%s<br>'%self.mesg
+        s += '<a href="yes">Yes</a> or <a href="no">No</a></body></html>'
+        return http.Response(stream = s)
+
+    def childFactory(self, request, op):
+        if op == 'yes':
+            return FastRedirectWithEffect(self.yes_path, self.yes_effect)
+        elif op == 'no':
+            return FastRedirectWithEffect(self.no_path, self.no_effect)
+
+
+########################################################
 # Completely delete the worksheet from the notebook
 # server.  It is assumed that the javascript has already
 # done all relevant confirmation, and of course in the
@@ -184,29 +220,30 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # future, really just put the result in a trash can.
 ########################################################
 
-class WorksheetDoDelete(WorksheetResource, resource.Resource):
-    def render(self, ctx):
-        try:
-            notebook.delete_worksheet(self.name)
-        except KeyError:
-            s = "Unknown worksheet '%s'"%self.name
-        else:
-            s = "The worksheet '%s' has been deleted."%self.name
-        return http.Response(stream = s)
+def Worksheet_delete(name):
+    def do_delete():
+        notebook.delete_worksheet(name)
+    return YesNo('Do you want to delete the worksheet "%s"?'%name,
+                 '/', '..', yes_effect=do_delete)
 
-#Worksheet_delete = WorksheetConfirm(WorksheetDoDelete)
+########################################################
+# Create a new worksheet.
+########################################################
 
-class Worksheet_delete(WorksheetResource, resource.Resource):
-    addSlash = True
+def Worksheet_create(name):
+    def do_create():
+        notebook.create_new_worksheet(name)
+    return YesNo('Do you want to create the worksheet "%s"?'%name,
+                 '.', '/', yes_effect=do_create)
 
-    def render(self, ctx):
-        s = '<html><body>Are you sure you want to delete the worksheet "%s"?'%self.name
-        s += '<a href="yes">Yes</a> or <a href="/">No</a></body></html>'
-        return http.Response(stream = s)
+#Toplevel(), Worksheet(name))
+## class WorksheetCreate(WorksheetResource, resource.Resource):
+##     def render(self, ctx):
+##         notebook.create_new_worksheet(name)
+##         s = "The worksheet '%s' has been created.  <a href='..'>Continue</a>"%self.name
+##         return http.Response(stream = s)
 
-    def childFactory(self, request, op):
-        return WorksheetDoDelete(self.name)
-
+## Worksheet_create = worksheet_confirm(WorksheetCreate, worksheet_create_msg)
 
 ########################################################
 # Cell introspection
@@ -455,8 +492,10 @@ class Worksheets(resource.Resource):
         return http.Response(stream = "Please request a specific worksheet")
 
     def childFactory(self, request, name):
-        return Worksheet(name)
-
+        try:
+            return Worksheet(name)
+        except KeyError:
+            return Worksheet_create(name)
 
 ############################
 # Adding a new worksheet

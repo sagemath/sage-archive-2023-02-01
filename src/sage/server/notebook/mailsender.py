@@ -34,14 +34,18 @@ class SMTPMessage:
 
         print self._rcpt_domain
 
+    def exchange_mail(self, _):
+        smtp_client = internet.TCPClient(self._exchange, 25, self._factory)
+        smtp_client.setServiceParent(self._app)
 
-    def exchange_mail(self, app, exchange):
-        smtp_client = internet.TCPClient(exchange, 25, self._factory)
-        smtp_client.setServiceParent(app)
+    def get_mx(self, host):
+        def on_found_record(record):
+            self._exchange = str(record.name)
+        return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
 
     def run_from(self, app):
         self._app = app
-        get_mx(self._rcpt_domain[0]).addCallback(self.exchange_mail)
+        self.get_mx(self._rcpt_domain[0]).addCallback(self.exchange_mail)
 
 class MailClient(smtp.ESMTPClient):
     def __init__(self, mesg, **kwds):
@@ -70,10 +74,6 @@ class SMTPClientFactory(protocol.ClientFactory):
     def buildProtocol(self, addr):
         mesg = self._mesg
         return self._protocol(mesg, secret=mesg._secret, identity=mesg._id)
-
-def get_mx(host):
-    on_found_record = lambda record: str(record.exchange)
-    return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
 
 application = service.Application("SAGE SMTP Client")
 _from = "moretti@sage.math.washington.edu"

@@ -3183,18 +3183,106 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__sha_an = Sha
             return Sha
 
-    def sha_an_padic(self, p):
+    def sha_an_padic(self, p, prec=0):
         """
-        Return the power of p that divides Sha(E)(p), according to the
+        Returns the conjectural order of Sha(E), according to the
         p-adic analogue of the BSD conjecture.
 
         INPUT:
             p -- a prime
+            prec (optional) -- the precision used in the computation of the
+            p-adic L-Series
 
         OUTPUT:
-            integer -- power of p that conjecturally equals #Sha(E)(p)
+            p-adic number -- that conjecturally equals #Sha(E)(p)
 
-        Note that in many cases this conjecture has been proved.
+        """
+        try:
+            return self.__sha_an_padic[p]
+        except AttributeError:
+            self.__sha_an_padic = {}
+        except KeyError:
+            pass
+
+        if self.is_ordinary(p) and (self.is_good(p) or self.ap(p) == -1):
+            S = self._sha_an_padic_good_ordinary(p, prec)
+        elif self.is_supersingular(p):
+            S = self._sha_an_padic_supersingular(p, prec)
+        elif self.ap(p) == 1:
+            S = self._sha_an_padic_exceptional(p, prec)
+        else:
+            raise RunTimeError, "The curve has to have semi-stable reduction at p."
+        self.__sha_an_padic[p] = S
+        return S
+
+    def _sha_an_padic_good_ordinary(self, p, prec):
+
+        tam = self.tamagawa_product()
+        tors = self.torsion_order()^2
+        reg = self.padic_regulator(p)
+        K = reg.parent()
+        lg = log(K(1+p))
+        r = self.rank()
+        lp = self.padic_lseries(p)
+        eps = (1-1/lp.alpha())^2
+
+        # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
+        bsdp = tam * reg * eps/tors/lg^r
+
+        v = bsdp.valuation()
+        verbose("the prime is irregular.")
+
+        # shortcut to introduce later ::
+        #if r == 0:
+        #    lstar = lp.modular_symbol(0)
+        #    sha = lstar/bsdp
+
+        # determine how much prec we need to prove at least the triviality of
+        # the p-primary part od Sha
+
+        if prec == 0:
+            n = v
+            bounds = lp._prec_bounds(n)
+            while bounds[r] < v:
+                n += 1
+                bounds = lp._prec_bounds(n)
+            verbose("set precision to %s"%n)
+        else:
+            n = prec
+
+        not_yet_enough_prec = True
+        while not_yet_enough_prec:
+            lps = lp.series(n)
+            lstar = lps[r]
+            if not lstar == 0:
+                not_yet_enough_prec = True
+            else:
+                prec += 1
+                verbose("increased precision to %s"%prec)
+
+        return lstar/bsdp
+
+
+
+
+    def _sha_an_padic_exceptional(self, p, prec):
+         raise NotImplementedError, "only the good ordinary case is implemented."
+
+    def _sha_an_padic_supersingular(self, p, prec):
+         raise NotImplementedError, "only the good ordinary case is implemented."
+
+    def sha_p_primary_bound(self, p, prec=0):
+        """
+        Returns an upper bound of #Sha(E)(p).
+
+        INPUT:
+            p -- a prime
+            prec (optional) -- the precision used in the computation of the
+            p-adic L-Series
+
+        OUTPUT:
+            integer -- power of p that bounds #Sha(E)(p) from above
+
         """
         try:
             return self.__sha_an_padic[p]
@@ -3209,18 +3297,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise NotImplementedError, "only the good ordinary case is implemented."
         self.__sha_an_padic[p] = S
         return S
-
-    def _sha_an_padic_good_ordinary(self, p):
-        """
-        Return the power of p that divides Sha(E)(p), according to the
-        p-adic analogue of the BSD conjecture.
-
-        INPUT:
-            p -- a prime of good ordinary reduction for E
-
-        OUTPUT:
-            integer -- power of p that conjecturally equals #Sha(E)(p)
-        """
 
 
 

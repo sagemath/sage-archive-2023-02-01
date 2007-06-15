@@ -544,7 +544,7 @@ import os, shutil, socket
 private_pem = conf_path + '/private.pem'
 public_pem = conf_path + '/public.pem'
 
-def notebook_setup(self):
+def notebook_setup(self=None):
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
     print "Using dsage certificates."
@@ -580,7 +580,10 @@ def notebook_twisted(self,
         if secure:
             if not os.path.exists(private_pem) or not os.path.exists(public_pem):
                 print "In order to use an SECURE encrypted notebook, you must first run notebook.setup()."
-                return
+                print "Now running notebook.setup()"
+                notebook_setup()
+            if not os.path.exists(private_pem) or not os.path.exists(public_pem):
+                print "Failed to setup notebook.  Please try notebook.setup() again manually."
             strport = 'tls:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
         else:
             strport = 'tcp:%s'%port

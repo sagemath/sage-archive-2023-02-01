@@ -200,7 +200,7 @@ class DistributedSage(object):
         else:
             os.system(cmd)
 
-    def setup(self):
+    def setup(self, template=None):
         r"""
         This is the setup utility which helps you configure dsage.
 

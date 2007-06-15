@@ -189,25 +189,23 @@ local value.")
 (make-variable-buffer-local 'sage-buffer)
 
 ;;;###autoload
-(defun run-sage (&optional cmd noshow new)
+(defun run-sage (&optional new cmd noshow)
   "Run an inferior SAGE process, input and output via buffer *SAGE*.
-CMD is the SAGE command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
+
+NEW non-nil means always create a new buffer and SAGE process.
+CMD is the SAGE command to run.
+NOSHOW non-nil means don't show the buffer automatically.
 
 Normally, if there is a process already running in `sage-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `sage-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `sage-buffer', or interactively the
-default `sage-command', or argument NEW is non-nil.  See also the
+switch to that buffer.  A new process is started if: one isn't
+running attached to `sage-buffer', or interactively the default
+`sage-command', or argument NEW is non-nil.  See also the
 documentation for `sage-buffer'.
 
 Runs the hook `inferior-sage-mode-hook' \(after the
 `comint-mode-hook' is run).  \(Type \\[describe-mode] in the process
 buffer for a list of commands.)"
-  (interactive (if current-prefix-arg
-		   (list (read-string "Run SAGE: " sage-command) nil t)
-		 (list sage-command)))
+  (interactive "P")
   (unless cmd (setq cmd sage-command))
   (setq sage-command cmd)
   ;; Fixme: Consider making `sage-buffer' buffer-local as a buffer
@@ -246,7 +244,7 @@ buffer for a list of commands.)"
 	  ;; Ensure we're at a prompt before loading the functions we use
 	  ;; XXX: add more error-checking?
 	  (sage-send-command sage-startup-command t)
-	  (sage-find-current-branch)))))
+	  (sage-set-buffer-name)))))
 
   ;; If we're coming from a sage-mode buffer, update inferior buffer
   (when (derived-mode-p 'sage-mode)
@@ -263,14 +261,21 @@ buffer for a list of commands.)"
   ;; (sit-for 0)        ;Should we use accept-process-output instead?  --Stef
   (unless noshow (pop-to-buffer sage-buffer)))
 
-(defun sage-find-current-branch ()
+(defun sage-set-buffer-name ()
   (interactive)
   "Change the current SAGE buffer name to include the current branch."
+  (when (sage-current-branch)
+    (rename-buffer
+     (generate-new-buffer-name (format "*SAGE-%s*" (sage-current-branch))))))
+
+(defun sage-current-branch ()
+  (interactive)
+  "Return the current SAGE branch name."
   (save-excursion
-    (point-max)
-    (search-backward-regexp "Current Mercurial branch is: \\(.*\\)$")
-    (when (match-string 1)
-      (rename-uniquely (format "*SAGE-%s*" (match-string 1))))))
+    (save-match-data
+      (point-max)
+      (when (search-backward-regexp "Current Mercurial branch is: \\(.*\\)$")
+	(match-string 1)))))
 
 ;;;_* SAGE major mode for editing SAGE library code
 

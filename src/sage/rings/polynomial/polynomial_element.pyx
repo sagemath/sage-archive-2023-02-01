@@ -459,7 +459,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: f * (x^2 + 1) % (x^5 + x + 1)
-            -5.55111512313e-17*x^3 - 5.55111512313e-17*x^2 - 5.55111512313e-17*x + 1.0
+            5.55111512313e-17*x^3 + 1.66533453694e-16*x^2 + 5.55111512313e-17*x + 1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.142857142857
             sage: f * (x^3 - x + 1) % (x - 2)
@@ -515,7 +515,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     M[i+j, j+n] = m[i]
             v = vector(R, [R(1)] + [R(0)]*(2*n-2)) # the constant polynomial 1
             if M.is_invertible():
-                x = ~M*v # there has to be a better way to solve
+                x = M.solve_right(v) # there has to be a better way to solve
                 return a.parent()(list(x)[0:n])
             else:
                 raise ValueError, "Impossible inverse modulo"

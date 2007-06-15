@@ -8,11 +8,13 @@ from twisted.web2 import static, http_headers, responsecode
 
 import css, js, keyboards
 
-from sage.misc.misc import SAGE_EXTCODE, walltime
+from sage.misc.misc import SAGE_EXTCODE, DOT_SAGE, walltime
 
-css_path        = SAGE_EXTCODE + "/notebook/css/"
-image_path      = SAGE_EXTCODE + "/notebook/images/"
-javascript_path = SAGE_EXTCODE + "/notebook/javascript/"
+p = os.path.join
+css_path        = p(SAGE_EXTCODE, "notebook/css")
+image_path      = p(SAGE_EXTCODE, "notebook/images")
+javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
+conf_path       = p(DOT_SAGE, 'notebook')
 
 _cols = None
 def word_wrap_cols():
@@ -68,13 +70,13 @@ def doc_worksheet():
 
 
 class WorksheetFile(resource.Resource):
+    addSlash = False
 
     def __init__(self, path):
         self.docpath = path
 
-    def render(self, ctx):
+    def render(self, ctx=None):
         # Create a live SAGE worksheet out of self.path and render it.
-        print "now rendering a worksheet file: %s"%self.docpath
         doc_page_html = open(self.docpath).read()
         directory = os.path.split(self.docpath)[0]
         doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
@@ -88,12 +90,9 @@ class WorksheetFile(resource.Resource):
 
     def childFactory(self, request, name):
         path = self.docpath + '/' + name
-        print path
         if name.endswith('.html'):
-            print "serving worksheet:", path
             return WorksheetFile(path)
         else:
-            print "serving static file:", path
             return static.File(path)
 
 ############################
@@ -110,6 +109,8 @@ class DocStatic(resource.Resource):
         return static.File('%s/%s'%(DOC,name))
 
 class DocLive(resource.Resource):
+    addSlash = True
+
     def render(self, ctx):
         return static.File('%s/index.html'%DOC)
 
@@ -169,6 +170,31 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         return CellData(self.worksheet, number)
 
 ########################################################
+# Cell introspection
+########################################################
+class Worksheet_introspect(WorksheetResource, resource.PostableResource):
+    """
+    Cell introspection.  This is called when the user presses the tab
+    key in the browser in order to introspect.
+    """
+    def render(self, ctx):
+        try:
+            id = int(ctx.args['id'][0])
+        except (KeyError,TypeError):
+            return http.Response(stream = 'Error in introspection -- invalid cell id.')
+        try:
+            before_cursor = ctx.args['before_cursor'][0]
+        except KeyError:
+            before_cursor = ''
+        try:
+            after_cursor = ctx.args['after_cursor'][0]
+        except KeyError:
+            after_cursor = ''
+        C = self.worksheet.get_cell_with_id(id)
+        C.evaluate(introspect=[before_cursor, after_cursor])
+        return http.Response(stream = encode_list([C.next_id(),'no_new_cell',id]))
+
+########################################################
 # Edit the entire worksheet
 ########################################################
 class Worksheet_edit(WorksheetResource, resource.Resource):
@@ -180,16 +206,19 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
         return http.Response(stream = notebook.edit_window(self.worksheet))
 
 
+########################################################
+# Save a worksheet
+########################################################
 class Worksheet_save(WorksheetResource, resource.PostableResource):
     """
-    Return a window that allows the user to edit the text of the
-    worksheet with the given filename.
+    Save the contents of a worksheet after editing it in plain-text edit mode.
     """
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
         s = notebook.html(worksheet_id = self.name)
         return http.Response(stream=s)
+
 
 ########################################################
 # Set output type of a cell
@@ -359,7 +388,13 @@ class Worksheet_print(WorksheetResource, resource.Resource):
 
 
 class Worksheet(WorksheetResource, resource.Resource):
-    addSlash = True
+    # VERY IMPORTANT: Do *not* change this to True without
+    # testing/thought.  If you do, the GNUTLS encryption breaks,
+    # because of a mysterious subtle issue with Twisted.  We do not
+    # understand this.
+    # -- William Stein and Yi Qiang, 2007-06-14
+
+    addSlash = False
 
     def render(self, ctx):
         s = notebook.html(worksheet_id = self.name)
@@ -501,17 +536,37 @@ notebook = None  # this gets set on startup.
 
 ##########################################################
 # This actually serves up the notebook.
-  ##########################################################
+##########################################################
 
 from   sage.server.misc import print_open_msg
-import os, socket
+import os, shutil, socket
 
-def notebook_twisted(directory='sage_notebook',
-             port=8000,
-             address='localhost',
-             port_tries=1,
-             multisession=True,
-             jsmath      =True):
+private_pem = conf_path + '/private.pem'
+public_pem = conf_path + '/public.pem'
+
+def notebook_setup(self):
+    if not os.path.exists(conf_path):
+        os.makedirs(conf_path)
+    print "Using dsage certificates."
+    dsage = os.path.join(DOT_SAGE, 'dsage')
+    if not os.path.exists(dsage + '/cacert.pem'):
+        import sage.dsage.all
+        sage.dsage.all.dsage.setup()
+    if not os.path.exists(dsage + '/cacert.pem'):
+        print "Error configuring."
+        return
+    shutil.copyfile(dsage + '/cacert.pem', private_pem)
+    shutil.copyfile(dsage + '/pubcert.pem', public_pem)
+    print "Successfully configured notebook."
+
+def notebook_twisted(self,
+             directory   = 'sage_notebook',
+             port        = 8000,
+             address     = 'localhost',
+             port_tries  = 1,
+             secure      = True,
+             multisession= True,
+             jsmath      = True):
     r"""
     Experimental twisted version of the SAGE Notebook.
     """
@@ -522,9 +577,16 @@ def notebook_twisted(directory='sage_notebook',
 
     def run(port):
         ## Create the config file
+        if secure:
+            if not os.path.exists(private_pem) or not os.path.exists(public_pem):
+                print "In order to use an SECURE encrypted notebook, you must first run notebook.setup()."
+                return
+            strport = 'tls:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
+        else:
+            strport = 'tcp:%s'%port
+
         config = open(conf, 'w')
         config.write("""
-
 import sage.server.notebook.notebook
 sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
@@ -545,13 +607,15 @@ signal.signal(signal.SIGINT, my_sigint)
 from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
-s = strports.service('tcp:%s', channel.HTTPFactory(twist.site))
+s = strports.service('%s', channel.HTTPFactory(twist.site))
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, port))
+"""%(jsmath, os.path.abspath(directory), multisession, strport))
+
+
         config.close()
 
         ## Start up twisted
-        print_open_msg(address, port)
+        print_open_msg(address, port, secure=secure)
         e = os.system('cd "%s" && sage -twistd -ny twistedconf.py'%directory)
         if e == 256:
             raise socket.error

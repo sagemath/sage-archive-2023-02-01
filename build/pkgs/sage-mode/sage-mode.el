@@ -891,6 +891,34 @@ otherwise."
 	  (he-substitute-string expansion)
 	  t))))
 
+;;;_ + `pcomplete' support
+
+(defun pcomplete-sage-setup ()
+  (interactive)
+  (set (make-local-variable 'pcomplete-autolist)
+       nil)
+  (set (make-local-variable 'pcomplete-cycle-completions)
+       nil)
+
+  (set (make-local-variable 'pcomplete-parse-arguments-function)
+       'pcomplete-parse-sage-arguments)
+  (set (make-local-variable 'pcomplete-default-completion-function)
+       'pcomplete-sage-default-completion))
+
+(defun pcomplete-sage-default-completion ()
+  (let ((stub (python-current-word)))
+    (when (and stub (not (string= stub "")))
+      (ipython-completing-read-symbol-clear-cache)
+      (let* ((cmps (ipython-completing-read-symbol-function (python-current-word) nil t)))
+	(when cmps
+	  (pcomplete-here cmps))))))
+
+(defun pcomplete-parse-sage-arguments ()
+  (save-excursion
+    (list
+     (list "sage" (buffer-substring-no-properties (he-sage-symbol-beg) (point)))
+     (point-min) (he-sage-symbol-beg))))
+
 ;;;_* Make it easy to sagetest files and methods
 
 (defun sage-test-file-inline (file-name &optional method)
@@ -939,31 +967,3 @@ Interactively, try to find current method at point."
       (python-send-receive-to-buffer command (current-buffer)))))
 
 (defvar sage-test-file 'sage-test-file-to-buffer)
-
-;;;_* `pcomplete' support
-
-(defun pcomplete-sage-setup ()
-  (interactive)
-  (set (make-local-variable 'pcomplete-autolist)
-       nil)
-  (set (make-local-variable 'pcomplete-cycle-completions)
-       nil)
-
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'pcomplete-parse-sage-arguments)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       'pcomplete-sage-default-completion))
-
-(defun pcomplete-sage-default-completion ()
-  (let ((stub (python-current-word)))
-    (when (and stub (not (string= stub "")))
-      (ipython-completing-read-symbol-clear-cache)
-      (let* ((cmps (ipython-completing-read-symbol-function (python-current-word) nil t)))
-	(when cmps
-	  (pcomplete-here cmps))))))
-
-(defun pcomplete-parse-sage-arguments ()
-  (save-excursion
-    (list
-     (list "dummy" (buffer-substring-no-properties (he-sage-symbol-beg) (point)))
-     (point-min) (he-sage-symbol-beg))))

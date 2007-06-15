@@ -72,10 +72,10 @@ def setup_worker():
     check_dsage_dir()
     print "Worker configuration finished.\n"
 
-def setup_server(template_dict=None):
+def setup_server(template=None):
     check_dsage_dir()
     template_file = 'cert.cfg'
-    template = {'organization': 'SAGE',
+    template_dict = {'organization': 'SAGE',
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
@@ -95,11 +95,11 @@ def setup_server(template_dict=None):
                 'signing_key': True,
                 'encryption_key': True,
                 }
-    if isinstance(template_dict, dict):
-        template.update(template_dict)
+    if isinstance(template, dict):
+        template_dict.update(template)
 
     s = ""
-    for key, val in template.iteritems():
+    for key, val in template_dict.iteritems():
         if val is None:
             continue
         if val == True:
@@ -158,10 +158,10 @@ def setup_server(template_dict=None):
 
     print "Server configuration finished.\n\n"
 
-def setup():
+def setup(template=None):
     setup_client()
     setup_worker()
-    setup_server()
+    setup_server(template=template)
     print "Configuration finished.."
 
 if __name__ == '__main__':

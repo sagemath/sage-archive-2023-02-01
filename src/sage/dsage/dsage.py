@@ -212,30 +212,34 @@ class DistributedSage(object):
 
         """
 
-        cmd = 'dsage_setup.py'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup
+        setup()
 
-    def setup_server(self):
+    def setup_server(self, *args):
         """
         This method runs the configuration utility for the server.
+
         """
 
-        cmd = 'dsage_setup.py server'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup_server
+        setup_server(*args)
 
     def setup_worker(self):
         """
         This method runs the configuration utility for the worker.
+
         """
-        cmd = 'dsage_setup.py worker'
-        os.system(cmd)
+
+        from sage.dsage.scripts.dsage_setup import setup_worker
+        setup_worker()
 
     def setup_client(self):
         """
         This method runs the configuration utility for the client.
+
         """
 
-        cmd = 'dsage_setup.py client'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup_client
+        setup_client()
 
 dsage = DistributedSage()

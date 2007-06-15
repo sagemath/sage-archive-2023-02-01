@@ -72,9 +72,46 @@ def setup_worker():
     check_dsage_dir()
     print "Worker configuration finished.\n"
 
-def setup_server():
+def setup_server(template_dict=None):
     check_dsage_dir()
+    template_file = 'cert.cfg'
+    template = {'organization': 'SAGE',
+                'unit': '389',
+                'locality': None,
+                'state': 'Washington',
+                'country': 'US',
+                'cn': 'SAGE User',
+                'uid': 'sage_user',
+                'dn_oid': None,
+                'serial': 007,
+                'dns_name': None,
+                'crl_dist_points': None,
+                'ip_address': None,
+                'expiration_days': 10000,
+                'email': 'sage@sagemath.org',
+                'ca': None,
+                'tls_www_client': None,
+                'tls_www_server': True,
+                'signing_key': True,
+                'encryption_key': True,
+                }
+    if isinstance(template_dict, dict):
+        template.update(template_dict)
 
+    s = ""
+    for key, val in template.iteritems():
+        if val is None:
+            continue
+        if val == True:
+            w = ''
+        elif isinstance(val, list):
+            w = ' '.join(['"%s"'%x for x in val])
+        else:
+            w = '"%s"'%val
+        s += '%s = %s \n'%(key, w)
+    f = open(os.path.join(DSAGE_DIR, template_file), 'w')
+    f.write(s)
+    f.close()
     # Disable certificate generation -- not used right now anyways
     privkey_file = os.path.join(DSAGE_DIR, 'cacert.pem')
     pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
@@ -86,8 +123,8 @@ def setup_server():
     # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
     #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
     #                 privkey_file, pubkey_file)]
-    cmd = ['certtool --generate-self-signed --load-privkey %s \
-           --outfile %s' % (privkey_file, pubkey_file)]
+    cmd = ['certtool --generate-self-signed --template %s --load-privkey %s \
+           --outfile %s' % (template_file, privkey_file, pubkey_file)]
     subprocess.call(cmd, shell=True)
     print DELIMITER
     os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)

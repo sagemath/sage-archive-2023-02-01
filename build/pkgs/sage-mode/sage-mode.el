@@ -303,14 +303,23 @@ buffer for a list of commands.)"
 
 ;;;###autoload
 (defun sage-bindings ()
-  "Install SAGE bindings locally."
+  "Install sage-mode bindings locally."
   (interactive)
+
   (local-set-key [(control c) (control t)] 'sage-test-file)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
   (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 
+(defun inferior-sage-bindings ()
+  "Install inferior-sage-mode bindings locally."
+  (interactive)
+  ;;   (local-set-key [(tab)] (make-hippie-expand-function
+  ;; 			  '(try-complete-sage-symbol-partially) t))
+  (pcomplete-sage-setup))
+
 (add-hook 'sage-mode 'sage-bindings)
 (add-hook 'inferior-sage-mode 'sage-bindings)
+(add-hook 'inferior-sage-mode 'inferior-sage-bindings)
 
 ;;;_ + Set better grep defaults for SAGE and Pyrex code
 
@@ -614,6 +623,21 @@ time, it does not handle multi-line input strings at all."
 ;;;_ + `ipython-completing-read-symbol' is `completing-read' for python symbols
 ;;; using IPython's *? mechanism
 
+(or (fboundp 'uniq)
+    (defun uniq (list predicate)
+      "Uniquify LIST, comparing adjacent elements using PREDICATE.
+Return the list with adjacent duplicate items removed by side effects.
+PREDICATE is called with two elements of LIST, and should return non-nil if the
+first element is \"equal to\" the second.
+This function will only work as expected if LIST is sorted, as with the Un*x
+command of the same name.  See also `sort'."
+      (let ((list list))
+	(while list
+	  (while (funcall predicate (car list) (nth 1 list))
+	    (setcdr list (nthcdr 2 list)))
+	  (setq list (cdr list))))
+      list))
+
 (defvar ipython-completing-read-symbol-history ()
   "List of Python symbols recently queried.")
 
@@ -657,10 +681,11 @@ See `try-completion' and `all-completions' for interface details."
       (setq completions
 	    (cdr ipython-completing-read-symbol-cache)))
     ;; Complete as necessary
-    (cond
-      ((eq action 'lambda) (test-completion string completions)) ; 'lambda
-      (action (all-completions string completions predicate))	 ; t
-      (t (try-completion string completions predicate)))))	 ; nil
+    (let ((cmps
+	   (cond ((eq action 'lambda) (test-completion string completions)) ; 'lambda
+		 (action (all-completions string completions predicate))    ; t
+		 (t (try-completion string completions predicate)))))	    ; nil
+      (uniq (sort cmps #'string<) #'string=))))
 
 (defun ipython-completing-read-symbol
   (&optional prompt def require-match predicate)
@@ -818,6 +843,40 @@ See `sage-find-symbol' for details."
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer-other-frame))
 
+;;;_ + `try-complete-sage-symbol-partially' is a `hippie-expand' function for SAGE
+
+(defun he-sage-symbol-beg ()
+  (save-excursion
+    (with-syntax-table python-dotty-syntax-table
+      (skip-syntax-backward "w_")
+      (point))))
+
+(defun try-complete-sage-symbol-partially (old)
+  "Try to complete as a SAGE symbol, as many characters as unique.
+
+The argument OLD is nil if this is the first call to this
+function, non-nil if this is a subsequent call.
+
+Returns t if a unique, possibly partial, completion is found; nil
+otherwise."
+  (let ((expansion nil))
+    (when (not old)
+      (he-init-string (he-sage-symbol-beg) (point))
+      (unless (string= he-search-string "")
+	(setq expansion (ipython-completing-read-symbol-function
+			 he-search-string nil nil)))
+      (when (or (eq expansion nil)
+		(string= expansion he-search-string)
+		(he-string-member expansion he-tried-table))
+	(setq expansion nil)))
+    (if (not expansion)
+	(progn
+	  (when old (he-reset-string))
+	  nil)
+        (progn
+	  (he-substitute-string expansion)
+	  t))))
+
 ;;;_* Make it easy to sagetest files and methods
 
 (defun sage-test-file-inline (file-name &optional method)
@@ -866,3 +925,31 @@ Interactively, try to find current method at point."
       (python-send-receive-to-buffer command (current-buffer)))))
 
 (defvar sage-test-file 'sage-test-file-to-buffer)
+
+;;;_* `pcomplete' support
+
+(defun pcomplete-sage-setup ()
+  (interactive)
+  (set (make-local-variable 'pcomplete-autolist)
+       nil)
+  (set (make-local-variable 'pcomplete-cycle-completions)
+       nil)
+
+  (set (make-local-variable 'pcomplete-parse-arguments-function)
+       'pcomplete-parse-sage-arguments)
+  (set (make-local-variable 'pcomplete-default-completion-function)
+       'pcomplete-sage-default-completion)
+  (local-set-key [(tab)] 'pcomplete))
+
+(defun pcomplete-sage-default-completion ()
+  (let ((stub (python-current-word)))
+    (when (and stub (not (string= stub "")))
+      (let* ((cmps (remove stub (ipython-completing-read-symbol-function (python-current-word) nil t))))
+	(when cmps
+	  (pcomplete-here cmps))))))
+
+(defun pcomplete-parse-sage-arguments ()
+  (save-excursion
+    (list
+     (list "dummy" (buffer-substring-no-properties (he-sage-symbol-beg) (point)))
+	   (point-min) (he-sage-symbol-beg))))

@@ -1241,14 +1241,14 @@ class Worksheet:
             menu  = '  <span class="worksheet_control_commands">'
             menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
             menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-            menu += '    <a class="plain_text" href="%s/edit">Edit</a>'%name + vbar
+            menu += '    <a class="plain_text" href="edit">Edit</a>' + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%name + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%name + vbar
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
             menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
-            menu += '    <a class="download_sws" href="%s/download">Download</a>'%name + vbar
-            menu += '    <a class="delete" href="%s/delete">Delete</a>'%name
+            menu += '    <a class="download_sws" href="download">Download</a>' + vbar
+            menu += '    <a class="delete" href="delete">Delete</a>'
             menu += '  </span>'
 
             s += '<div class="worksheet_title">'

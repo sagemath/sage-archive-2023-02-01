@@ -135,7 +135,13 @@ class Doc(resource.Resource):
 
 
 ############################
-# A resource attached to a given worksheet
+# A resource attached to a given worksheet.
+#
+# This has the name of the worksheet and the
+# worksheet object itself set as attributes.
+# It's much better to do it once-for-all here
+# instead of doing it in the derived classes
+# over and over again.
 ############################
 class WorksheetResource:
     def __init__(self, name):
@@ -168,6 +174,39 @@ class CellData(resource.Resource):
 class Worksheet_data(WorksheetResource, resource.Resource):
     def childFactory(self, request, number):
         return CellData(self.worksheet, number)
+
+########################################################
+# Completely delete the worksheet from the notebook
+# server.  It is assumed that the javascript has already
+# done all relevant confirmation, and of course in the
+# future we'll check that the users is authenticated to
+# touch the worksheet.  Delete should also, in the
+# future, really just put the result in a trash can.
+########################################################
+
+class WorksheetDoDelete(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        try:
+            notebook.delete_worksheet(self.name)
+        except KeyError:
+            s = "Unknown worksheet '%s'"%self.name
+        else:
+            s = "The worksheet '%s' has been deleted."%self.name
+        return http.Response(stream = s)
+
+#Worksheet_delete = WorksheetConfirm(WorksheetDoDelete)
+
+class Worksheet_delete(WorksheetResource, resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        s = '<html><body>Are you sure you want to delete the worksheet "%s"?'%self.name
+        s += '<a href="yes">Yes</a> or <a href="/">No</a></body></html>'
+        return http.Response(stream = s)
+
+    def childFactory(self, request, op):
+        return WorksheetDoDelete(self.name)
+
 
 ########################################################
 # Cell introspection
@@ -396,13 +435,7 @@ class NotImplementedWorksheetOp(resource.Resource):
 
 
 class Worksheet(WorksheetResource, resource.Resource):
-    # VERY IMPORTANT: Do *not* change this to True without
-    # testing/thought.  If you do, the GNUTLS encryption breaks,
-    # because of a mysterious subtle issue with Twisted.  We do not
-    # understand this.
-    # -- William Stein and Yi Qiang, 2007-06-14
-
-    addSlash = False
+    addSlash = True
 
     def render(self, ctx):
         s = notebook.html(worksheet_id = self.name)
@@ -418,6 +451,9 @@ class Worksheet(WorksheetResource, resource.Resource):
             return NotImplementedWorksheetOp(op)
 
 class Worksheets(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream = "Please request a specific worksheet")
+
     def childFactory(self, request, name):
         return Worksheet(name)
 

@@ -128,8 +128,3 @@ class LoginSystem(object):
         rsrc = resources.Root(self._avatarId, self.cookie, kernelConnection, self.dbConnection)
         return (iweb.IResource, rsrc, self.logout)
 
-
-
-
-
-

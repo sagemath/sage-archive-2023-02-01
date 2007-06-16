@@ -18,6 +18,8 @@
 ############################################################################
 
 import os
+import random
+import socket
 import ConfigParser
 import subprocess
 import sys
@@ -76,7 +78,7 @@ def setup_worker():
 
 def setup_server(template=None):
     check_dsage_dir()
-    template_dict = {'organization': 'SAGE',
+    template_dict = {'organization': 'SAGE (at %s)'%(socket.gethostname()),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
@@ -84,7 +86,7 @@ def setup_server(template=None):
                 'cn': 'SAGE User',
                 'uid': 'sage_user',
                 'dn_oid': None,
-                'serial': 007,
+                'serial': str(random.randint(1,2**31)),
                 'dns_name': None,
                 'crl_dist_points': None,
                 'ip_address': None,

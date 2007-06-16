@@ -1,6 +1,5 @@
-from twisted.protocols import smtp
+from twisted.mail import smtp, relaymanager
 from twisted.internet import reactor, defer
-from twisted.mail import relaymanager
 from email.MIMEBase import MIMEBase
 from email.MIMEMultipart import MIMEMultipart
 from email import Encoders

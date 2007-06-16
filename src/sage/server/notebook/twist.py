@@ -599,9 +599,18 @@ class Toplevel(resource.Resource):
     child_notebook = Notebook()
     child_doc = Doc()
 
+    def __init__(self, cookie):
+        self.cookie = cookie
+
     def render(self, ctx):
+        from twisted.web2 import responsecode, http_headers
         s = notebook.html()
-        return http.Response(stream=s)
+        return http.Response(responsecode.OK,
+                             {'content-type': http_headers.MimeType('text',
+                                                                    'html'),
+                             'set-cookie':[http_headers.Cookie("sid",
+                                                            self.cookie)]},
+                             stream=s)
 
     def childFactory(self, request, name):
         print request, name
@@ -609,7 +618,7 @@ class Toplevel(resource.Resource):
 setattr(Toplevel, 'child_help.html', Help())
 setattr(Toplevel, 'child_history.html', History())
 
-site = server.Site(Toplevel())
+# site = server.Site(Toplevel())
 notebook = None  # this gets set on startup.
 
 
@@ -690,10 +699,30 @@ def my_sigint(x, n):
 
 signal.signal(signal.SIGINT, my_sigint)
 
+## Use Knoboo's authentication framework
+from twisted.web2 import log, server, channel
+from twisted.cred import portal, checkers, credentials
+import sage.server.notebook.guard as guard
+import sage.server.notebook.avatars as avatars
+
+from twisted.cred import portal
+
+password_dict = {'alex':'alex', 'yqiang':'yqiang'}
+realm = avatars.LoginSystem(password_dict)
+p = portal.Portal(realm)
+# p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))
+p.registerChecker(avatars.PasswordDictChecker(password_dict))
+# p.registerChecker(checkers.AllowAnonymousAccess(), credentials.IAnonymous)
+p.registerChecker(checkers.AllowAnonymousAccess())
+rsrc = guard.MySessionWrapper(p)
+log.DefaultCommonAccessLoggingObserver().start()
+site = server.Site(rsrc)
+factory = channel.HTTPFactory(site)
+
 from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
-s = strports.service('%s', channel.HTTPFactory(twist.site))
+s = strports.service('%s', factory)
 s.setServiceParent(application)
 """%(jsmath, os.path.abspath(directory), multisession, strport))
 

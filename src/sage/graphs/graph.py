@@ -2155,7 +2155,8 @@ class GenericGraph(SageObject):
 
     def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
              vertex_size=200, graph_border=False, color_dict=None, partition=None,
-             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None):  # xmin and xmax are ignored
+             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None,
+             iterations=50):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 
@@ -2179,6 +2180,8 @@ class GenericGraph(SageObject):
             scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                 is too small, decrease. should be positive, but values much bigger than
                 1/8 won't be useful unless the nodes are huge
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2248,7 +2251,7 @@ class GenericGraph(SageObject):
         elif layout == 'spring':
             pos = None
         if pos is None:
-            pos = graph_fast.spring_layout_fast(self)
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations)
         else:
             for v in pos:
                 for a in range(len(pos[v])):
@@ -2267,7 +2270,7 @@ class GenericGraph(SageObject):
 
     def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, vertex_size=200,
              graph_border=False, color_dict=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, **kwds):
+             scaling_term=0.05, talk=False, iterations=50, **kwds):
         """
         Shows the (di)graph.
 
@@ -2292,6 +2295,8 @@ class GenericGraph(SageObject):
                 is too small, decrease. should be positive, but values much bigger than
                 1/8 won't be useful unless the nodes are huge
             talk -- if true, prints large nodes with white backgrounds so that labels are legible on slies
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2342,7 +2347,7 @@ class GenericGraph(SageObject):
             vertex_size = 500
             if partition is None:
                 color_dict = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term, iterations=iterations).show(**kwds)
 
 class Graph(GenericGraph):
     r"""
@@ -3580,11 +3585,16 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def write_to_eps(self, filename):
+    def write_to_eps(self, filename, iterations=50):
         """
         Writes a plot of the graph to filename in eps format.
 
         It is relatively simple to include this file in a latex document:
+
+        INPUT:
+            filename
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
 
         \usepackage{graphics} must appear before the beginning of the document,
         and \includegraphics {filename.eps} will include it in your latex doc.
@@ -3597,13 +3607,13 @@ class Graph(GenericGraph):
         """
         from sage.graphs.print_graphs import print_graph_eps
         if self._pos is None:
-            pos = graph_fast.spring_layout_fast(self)
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations)
         else:
             pos = self._pos
             keys = pos.keys()
             for v in self.vertices():
                 if v not in keys:
-                    pos = graph_fast.spring_layout_fast(self)
+                    pos = graph_fast.spring_layout_fast(self, iterations=iterations)
                     break
         xmin = 0.0
         ymin = 0.0
@@ -3631,7 +3641,7 @@ class Graph(GenericGraph):
     def plot3d(self, bgcolor=(1,1,1),
                vertex_color=(1,0,0), vertex_size=0.06,
                edge_color=(0,0,0), edge_size=0.02,
-               pos3d=None, **kwds):
+               pos3d=None, iterations=50, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
@@ -3643,6 +3653,8 @@ class Graph(GenericGraph):
             edge_color -- rgb tuple (default: (0,0,0))
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
             **kwds -- passed on to the Tachyon command
 
         EXAMPLES:
@@ -3658,7 +3670,7 @@ class Graph(GenericGraph):
 
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
-                                        vertex_size=vertex_size, pos3d=pos3d, **kwds)
+                                        vertex_size=vertex_size, pos3d=pos3d, iterations=iterations, **kwds)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
         for u,v,l in self.edges():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
@@ -3668,7 +3680,7 @@ class Graph(GenericGraph):
     def show3d(self, bgcolor=(1,1,1),
                vertex_color=(1,0,0), vertex_size=0.06,
                edge_color=(0,0,0), edge_size=0.02,
-               pos3d=None, **kwds):
+               pos3d=None, iterations=50, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -3680,6 +3692,8 @@ class Graph(GenericGraph):
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
             (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph()
@@ -3693,7 +3707,7 @@ class Graph(GenericGraph):
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
 
     ### Connected components
 
@@ -5294,7 +5308,8 @@ class DiGraph(GenericGraph):
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_color=(1,0,0),
                         vertex_size=0.06,
-                        pos3d=None, **kwds):
+                        pos3d=None,
+                        iterations=50, **kwds):
     import networkx
     from math import sqrt
     from sage.plot.tachyon import Tachyon
@@ -5303,7 +5318,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     verts = g.vertices()
     spring = False
     if pos3d is None:
-        pos3d = graph_fast.spring_layout_fast(g, dim=3)
+        pos3d = graph_fast.spring_layout_fast(g, dim=3, iterations=iterations)
     try:
         for v in verts:
             c[0] += pos3d[v][0]

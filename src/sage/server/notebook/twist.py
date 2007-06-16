@@ -127,8 +127,8 @@ class Doc(resource.Resource):
         <h1><font color="darkred">SAGE Documentation</font></h1>
         <br><br><br>
         <font size=+3>
-        <a href="static">Static Documentation</a><br><br>
-        <a href="live">Interactive Live Documentation</a><br>
+        <a href="static/">Static Documentation</a><br><br>
+        <a href="live/">Interactive Live Documentation</a><br>
         </font>
         """
         return http.Response(stream=s)

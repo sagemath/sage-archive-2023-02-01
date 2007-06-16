@@ -315,7 +315,7 @@ class pAdicLseries(SageObject):
     def _c_bounds(self, n):
         raise NotImplementedError
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         raise NotImplementedError
 
     def teichmuller(self, prec):
@@ -340,11 +340,12 @@ class pAdicLseries(SageObject):
         return [Integer(0)] + \
                [a.residue(prec).lift() for a in K.teichmuller_system()]
 
-    def _e_bounds(self, n):
+    def _e_bounds(self, n, prec):
         p = self._p
-        T = (ZZ['T']).gen()
+        R = PowerSeriesRing(ZZ,'T',prec)
+        T = R(R.gen(),prec )
         w = (1+T)**(p**n) - 1
-        return [infinity] + [valuation(w[j],p) for j in range(1,w.degree()+1)]
+        return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
     def _get_series_from_cache(self, n, prec):
         try:
@@ -425,7 +426,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
         p = self._p
 
-        bounds = self._prec_bounds(n)
+        bounds = self._prec_bounds(n,prec)
         padic_prec = max(bounds[1:]) + 5
         verbose("using p-adic precision of %s"%padic_prec)
 
@@ -519,9 +520,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
         self.__c_bound = ans
         return ans
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n, prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1, prec)
         c = self._c_bound()
         return [e[j] - c for j in range(len(e))]
 
@@ -562,12 +563,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
-
-        bounds = self._prec_bounds(n)
-        padic_prec = max(sum(bounds[1:],[])) + 5
         p = self._p
-
         prec = min(p**(n-1), prec)
+        bounds = self._prec_bounds(n,prec)
+        padic_prec = max(sum(bounds[1:],[])) + 5
         ans = self._get_series_from_cache(n, prec)
         if not ans is None:
             return ans
@@ -610,9 +609,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def is_supersingular(self):
         return True
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1,prec)
         c0 = ZZ(n+2)/2
         c1 = ZZ(n+3)/2
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]

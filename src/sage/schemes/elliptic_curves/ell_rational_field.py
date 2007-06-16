@@ -3251,10 +3251,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if prec == 0:
             n = max(v,2)
-            bounds = lp._prec_bounds(n)
+            bounds = lp._prec_bounds(n,r+1)
             while bounds[r] <= v:
                 n += 1
-                bounds = lp._prec_bounds(n)
+                bounds = lp._prec_bounds(n,r+1)
             verbose("set precision to %s"%n)
         else:
             n = max(2,prec)
@@ -3263,7 +3263,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         while not_yet_enough_prec:
             lps = lp.series(n,prec=r+1)
             lstar = lps[r]
-            if (not lstar == 0) or (not prec == 0):
+            if (lstar != 0) or (prec != 0):
                 not_yet_enough_prec = False
             else:
                 n += 1
@@ -3283,7 +3283,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         lg = log(K(1+p))
         r = self.rank()
         lp = self.padic_lseries(p)
-        eq = e.tate_curve(p)
+        eq = self.tate_curve(p)
         Li = eq.L_invariant()
 
         # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
@@ -3299,10 +3299,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if prec == 0:
             n = max(v,2)
-            bounds = lp._prec_bounds(n)
+            bounds = lp._prec_bounds(n,r+2)
             while bounds[r+1] <= v:
                 n += 1
-                bounds = lp._prec_bounds(n)
+                bounds = lp._prec_bounds(n,r+2)
             verbose("set precision to %s"%n)
         else:
             n = max(2,prec)
@@ -3311,7 +3311,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         while not_yet_enough_prec:
             lps = lp.series(n,prec=r+2)
             lstar = lps[r+1]
-            if (not lstar == 0) or (not prec == 0):
+            if (lstar != 0) or ( prec != 0):
                 not_yet_enough_prec = False
             else:
                 n += 1
@@ -3321,49 +3321,68 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def _sha_an_padic_supersingular(self, p, prec):
 
+        verbose("...computing the p-adic regulator")
+        reg = self.padic_regulator(p)
+        verbose("...computing arithmetic invariants (rank, tam,...)")
         tam = self.tamagawa_product()
         tors = self.torsion_order()**2
-        reg = self.Dp_valued_regulator(p)
         K = reg[0].parent()
         lg = log(K(1+p))
         r = self.rank()
+        verbose("...computing space of modular symbols")
         lp = self.padic_lseries(p)
 
         # according to the p-adic BSD this should be equal to the leading term of the D_p - valued
         # L-series :
-        bsdp = tam /tors/lg**r * vector(reg)
+        bsdp = tam /tors/lg**r * reg
+        # note this is an element in Q_p^2
+        verbose("the algebraic leading terms : %s"%bsdp)
 
-        v = vector(bsdp[0].valuation(),bsdp[1].valuation())
+        v = [bsdp[0].valuation(),bsdp[1].valuation()]
 
         #shortcut to introduce later ::
         #if r == 0:
         #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
-        #    sha = lstar/bsdp
+        #    sha = lstar/bsdp[0]
 
         # determine how much prec we need to prove at least the triviality of
         # the p-primary part od Sha
 
-        if prec == 0:
-            n = max(v,2)
-            bounds = lp._prec_bounds(n)
-            while bounds[r+1] <= v:
-                n += 1
-                bounds = lp._prec_bounds(n)
-            verbose("set precision to %s"%n)
-        else:
-            n = max(2,prec)
 
+        if prec == 0:
+            n = max(min(v)+2,3)
+        else:
+            n = max(3,prec)
+
+        verbose("...computing the p-adic L-series")
         not_yet_enough_prec = True
         while not_yet_enough_prec:
-            lps = lp.series(n,prec=r+2)
-            lstar = lps[r+1]
-            if (not lstar == 0) or (not prec == 0):
+            lps = lp.Dp_valued_series(n,prec=r+1)
+            lstar = [lps[0][r],lps[1][r]]
+            verbose("the leading terms : %s"%lstar)
+            if (lstar[0] != 0 and lstar[1] != 0) or ( prec != 0):
                 not_yet_enough_prec = False
             else:
                 n += 1
                 verbose("increased precision to %s"%n)
 
-        return lstar/bsdp
+        verbose("...putting things together")
+        shan0 = lstar[0]/bsdp[0]
+        shan1 = lstar[1]/bsdp[1]
+        verbose("the two values for Sha : %s"%[shan0,shan1])
+
+        # check consistency (the first two are only here to avoid a bud in the p-adic L-series
+        # (namely the coefficients of zero-relative precision are treated as zero)
+        if shan0 != 0 and shan1 != 0 and shan0 - shan1 != 0:
+            raise RunTimeError, "There must be a bug in the supersingular routines for the p-adic BSD."
+
+        #take the better
+        if shan1 == 0 or shan0.precision_relative() > shan1.precision_relative():
+            shan = shan0
+        else:
+            shan = shan1
+
+        return shan
 
     def sha_p_primary_bound(self, p):
         """

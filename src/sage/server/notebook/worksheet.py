@@ -1247,7 +1247,7 @@ class Worksheet:
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
             menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
-            menu += '    <a class="download_sws" href="download">Download</a>' + vbar
+            menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%self.filename() + vbar
             menu += '    <a class="delete" href="delete">Delete</a>'
             menu += '  </span>'
 

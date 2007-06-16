@@ -439,6 +439,17 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
+class Worksheet_download(WorksheetResource, resource.Resource):
+    def childFactory(self, request, name):
+        worksheet_name = self.name
+        try:
+            notebook.export_worksheet(worksheet_name, worksheet_name)
+        except KeyError:
+            return http.Response(stream='No such worksheet.')
+
+        binfile = '%s/%s.sws'%(notebook.directory(), worksheet_name)
+        return static.File(binfile)
+
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)

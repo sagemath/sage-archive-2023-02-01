@@ -35,6 +35,8 @@ class PariRing(ring.Ring, _uniq):
         sage: loads(R.dumps()) == R
         True
     """
+    def __init__(self):
+        ring.Ring.__init__(self, self)
     def __repr__(self):
         return 'Pseudoring of all PARI objects.'
 

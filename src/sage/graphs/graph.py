@@ -222,7 +222,6 @@ import sage.graphs.graph_fast as graph_fast
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-
 class GenericGraph(SageObject):
     """
     Base class for graphs and digraphs.
@@ -4939,6 +4938,8 @@ class DiGraph(GenericGraph):
             arc_size -- float (default: 0.02)
             arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
+            xres -- resolution
+            yres -- resolution
             **kwds -- passed on to the Tachyon command
 
         EXAMPLE:
@@ -4959,15 +4960,25 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc')
         return TT
 
-    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
+    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0),
+               vertex_size=0.06,
+               arc_size=0.02,
+               arc_size2=0.0325,
+               arc_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
         INPUT:
-            bgcolor -- background color
-            vertex_color -- vertex color
-            edge_color -- edge color
-            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            arc_color -- rgb tuple (default: (0,0,0))
+            arc_size -- float (default: 0.02)
+            arc_size2 -- float (default: 0.0325)
+            pos3d -- a position dictionary for the vertices
+            xres -- resolution
+            yres -- resolution
+            **kwds -- passed on to the Tachyon command
 
         EXAMPLE:
         A directed version of the dodecahedron
@@ -4975,7 +4986,7 @@ class DiGraph(GenericGraph):
             sage: D.plot3d().save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_color=arc_color, **kwds).show()
 
     ### Connected components
 

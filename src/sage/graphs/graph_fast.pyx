@@ -71,7 +71,7 @@ def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
     an object creation) every time we want to add a pair of doubles.
     """
 
-    G = G.networkx_graph()
+    G = G.to_undirected().networkx_graph()
     vlist = list(G) # this defines a consistant order
 
     cdef int i, j, x

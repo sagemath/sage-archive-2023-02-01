@@ -645,7 +645,7 @@ def notebook_setup(self=None):
     if not os.path.exists(dsage + '/cacert.pem'):
         import sage.dsage.all
         sage.dsage.all.dsage.setup()
-    if not os.path.exists(dsage + '/cacert.pem'):
+    if not os.path.exists(dsage + '/pubcert.pem'):
         print "Error configuring."
         return
     shutil.copyfile(dsage + '/cacert.pem', private_pem)

@@ -595,10 +595,23 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None :
-                s = """%s""" % request.args['email'][0]
+                email = """%s""" % request.args['email'][0]
+                from sage.server.notebook.smtpsend import send_mail
+                fromaddr = "test@test.com"
+                send_mail(self, fromaddr, email, "Foo", "Foo2")
+
+            # now say that the user has been registered.
+            s = """\
+<html><h1>Registration information received</h1>
+<p>Thank you for registering with the SAGE notebook. A message will be
+sent to the address that you supplied shortly.</p></html>
+"""
         else:
             s = """<html><h1>This is the registration page.</h1>
-            <form method="POST" action="https://localhost:8000/register">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
+            <form method="POST" action="https://localhost:8000/register">
+            Username: <input type="text" name="username" size="15" />  Password:
+                <input type="password" name="password" size="15" /><br /> Email
+                Address: <input type="text" name="email" size="15" /><br /> <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
             </html>"""
         return http.Response(stream=s)
 

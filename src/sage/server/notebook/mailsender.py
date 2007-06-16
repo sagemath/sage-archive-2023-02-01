@@ -3,10 +3,27 @@ from twisted.application import internet
 from twisted.internet import protocol
 from twisted.mail import smtp, relaymanager
 from StringIO import StringIO
-from email.Generator import Generator
+from email.MIMEBase import MIMEBase
+from email.MIMEMultipart import MIMEMultipart
+from email import Encoders
+import mimetypes
+
+
+class MailMessage(MIMEMultipart):
+    """
+    Represents an email's data.
+    """
+    def __init__(self, fromaddr, toaddr, subject, body):
+        MIMEMultipart.__init__(self)
+        self['From'] = fromaddr
+        self['To'] = toaddr
+        self['Subject'] = subject
+        text_part = MIMEBase('text', 'plain')
+        text_part.set_payload(body)
+        self.attach(text_part)
 
 # Make an instance of this class if you need to send an email
-class SMTPMessage:
+class SMTPInput:
     """
     A message to be sent off to an SMTP server.
 
@@ -39,8 +56,9 @@ class SMTPMessage:
         smtp_client.setServiceParent(self._app)
 
     def get_mx(self, host):
-        def on_found_record(record):
-            return str(record.name)
+        on_found_record = lambda rec: str(rec.name)
+        # return a deffered that will call on_found_record when it's done.
+        # on_found_record's return value gets passed to exchange_mail
         return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
 
     def run_from(self, app):
@@ -76,10 +94,19 @@ class SMTPClientFactory(protocol.ClientFactory):
         return self._protocol(mesg, secret=mesg._secret, identity=mesg._id)
 
 application = service.Application("SAGE SMTP Client")
-_from = "moretti@sage.math.washington.edu"
-_to =  ["bobmoretti@gmail.com"]
+_from = "moretti@u.math.washington.edu"
+_to =  ["wstein@gmail.com"]
 _id = "sage.math.washington.edu"
-data = "BLAH 2"
+subject = "Progress"
+body = \
+"""
+William,
 
-m = SMTPMessage(_from, _to, data, _id)
+I'm sending this to you from Twisted. I think I'm ready to try to plug this in
+from SAGE, as soon as Yi has the login stuff working (which he almost does.)
+
+~Bobby
+"""
+data = MailMessage(_from, _to[0], subject, body)
+m = SMTPInput(_from, _to, data.as_string(unixfrom=False), _id)
 m.run_from(application)

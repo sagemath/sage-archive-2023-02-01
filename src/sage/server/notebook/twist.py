@@ -589,7 +589,8 @@ class Images(resource.Resource):
 
 ############################
 
-class Toplevel(resource.Resource):
+# class Toplevel(resource.Resource):
+class Toplevel(resource.PostableResource):
     addSlash = True
 
     child_images = Images()
@@ -707,7 +708,7 @@ import sage.server.notebook.avatars as avatars
 
 from twisted.cred import portal
 
-password_dict = {'alex':'alex', 'yqiang':'yqiang'}
+password_dict = {'alex':'alex', 'yqiang@gmail.com':'yqiang'}
 realm = avatars.LoginSystem(password_dict)
 p = portal.Portal(realm)
 # p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))

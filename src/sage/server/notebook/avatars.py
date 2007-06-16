@@ -51,7 +51,7 @@ class PasswordDictChecker(object):
         username = credentials.username
         #log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
         if self.passwords.has_key(username):
-            #log.msg("password.has_key(%s)"%username)
+            log.msg("password.has_key(%s)"%username)
             if credentials.password == self.passwords[username]:
                 return defer.succeed(username)
             else:
@@ -81,13 +81,13 @@ class LoginSystem(object):
         on the avatarId, (i.e. different permissions / view depending on
         if the user is anonymous, regular, or an admin)
         """
+        from sage.server.notebook.twist import Toplevel
         log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             if avatarId is checkers.ANONYMOUS: #anonymous user
                 log.msg("returning AnonymousResources")
                 # rsrc = resources.AnonymousRoot(self.cookie, self.dbConnection)
-                from sage.server.notebook.twist import Toplevel
                 rsrc = Toplevel(self.cookie)
                 return (iweb.IResource, rsrc, self.logout)
             elif '@' in avatarId: #'@' in avatarId == some email address
@@ -95,18 +95,29 @@ class LoginSystem(object):
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 print mind[2]
+                if avatarId == 'yqiang@gmail.com':
+                    from twisted.web2 import resource
+                    from twisted.web2 import http
+                    class SageRocks(resource.PostableResource):
+                        def render(self, ctx):
+                            s = '<html><h1>SAGE For President 2008</h1></html>'
+                            return http.Response(stream=s)
+                    rsrc = SageRocks()
+
                 # if ('eval' or 'completer') in mind[2]:
-                if ('completer' in mind[2]) or ('eval' in mind[2]):
-                    self.nbid = mind[1]['nbid'][0]
-                    if self.nbid in self.kernels:
-                        kernelConnection = self.kernels[self.nbid]
-                        print kernelConnection
-                        rsrc = resources.Root(self._avatarId, self.cookie, kernelConnection, self.dbConnection)
-                        return (iweb.IResource, rsrc, self.logout)
-                    query = "SELECT kernel FROM notebooks WHERE notebookId = ?"
-                    d = self.dbConnection.runQuery(query, (self.nbid,))
-                    return d.addCallback(self.getUserResource)
-                rsrc = resources.Root(avatarId, self.cookie, None, self.dbConnection)
+                # if ('completer' in mind[2]) or ('eval' in mind[2]):
+                #     self.nbid = mind[1]['nbid'][0]
+                #     if self.nbid in self.kernels:
+                #         kernelConnection = self.kernels[self.nbid]
+                #         print kernelConnection
+                #         rsrc = resources.Root(self._avatarId, self.cookie, kernelConnection, self.dbConnection)
+                #         return (iweb.IResource, rsrc, self.logout)
+                #     query = "SELECT kernel FROM notebooks WHERE notebookId = ?"
+                #     d = self.dbConnection.runQuery(query, (self.nbid,))
+                #     return d.addCallback(self.getUserResource)
+                # rsrc = resources.Root(avatarId, self.cookie, None, self.dbConnection)
+                else:
+                    rsrc = Toplevel(self.cookie)
                 return (iweb.IResource, rsrc, self.logout)
         else:
             raise KeyError("None of the requested interfaces is supported")

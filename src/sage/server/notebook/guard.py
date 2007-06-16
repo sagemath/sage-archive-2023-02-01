@@ -143,6 +143,7 @@ class MySessionWrapper(object):
         authentication status of a given user.
         """
         log.msg("=== locateChild 'guard.py' ===")
+        log.msg("=== %s ==" % request.args)
         #log.msg("request.args: %s, segments: %s" % (str(request.args), segments))
         #see if the user already has a session going
         if segments and segments[0] == "login":
@@ -150,7 +151,7 @@ class MySessionWrapper(object):
             #the callback function needs no args because the parsing
             #of the POSTData just updates the request args.
             l = server.parsePOSTData(request)
-            l.addCallback(lambda _: self.requestPasswordAthentication(request, segments))
+            l.addCallback(lambda _: self.requestPasswordAuthentication(request, segments))
             return l
         session = self.getSession(request)
         if session is None:
@@ -199,14 +200,14 @@ class MySessionWrapper(object):
         else:
             return self.sessionManager.createSession(request, segments), ()
 
-    def requestPasswordAthentication(self, request, segments):
+    def requestPasswordAuthentication(self, request, segments):
         """
         Try to athenticate with a username and password from
         a web login form.  Depending on the given credentials,
         return a custom 'view' of protected resources.
 
         """
-        log.msg("=== requestPasswordAthentication ===")
+        log.msg("=== requestPasswordAuthentication ===")
         creds = self.getCredentials(request)
         session, newCookie = self.sessionManager.createSession()
         mind = [newCookie, request.args, segments]

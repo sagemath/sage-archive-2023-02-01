@@ -28,6 +28,8 @@ from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.config import check_dsage_dir
 from sage.dsage.__version__ import version
 
+from sage.misc.viewer import cmd_exists
+
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
 DSAGE_VERSION = version
@@ -119,9 +121,20 @@ def setup_server(template=None):
     pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
     print DELIMITER
     print "Generating SSL certificate for server..."
-    cmd = ['certtool --generate-privkey --outfile %s' % privkey_file]
-    # cmd = ['openssl genrsa > %s' % privkey_file]
-    subprocess.call(cmd, shell=True)
+    if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
+        # We use openssl by default if it exists, since it is *vastly*
+        # faster on Linux.
+        cmd = ['openssl genrsa > %s' % privkey_file]
+        print "Using openssl to generate key"
+        print cmd[0]
+        subprocess.call(cmd, shell=True)
+    else:
+        cmd = ['certtool --bits 128 --generate-privkey --outfile %s' % privkey_file]
+        print "Using certtool to generate key"
+        print cmd[0]
+        # cmd = ['openssl genrsa > %s' % privkey_file]
+        subprocess.call(cmd, shell=True)
+
     # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
     #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
     #                 privkey_file, pubkey_file)]

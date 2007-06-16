@@ -587,7 +587,20 @@ class Images(resource.Resource):
     def childFactory(self, request, name):
         return static.File(image_path + "/" + name)
 
+###########################
+# Registration page
 ############################
+
+class RegistrationPage(resource.PostableResource):
+    def render(self, request):
+        if request.args.has_key('email'):
+            if request.args['email'][0] is not None :
+                s = """%s""" % request.args['email'][0]
+        else:
+            s = """<html><h1>This is the registration page.</h1>
+            <form method="POST" action="https://localhost:8000/register">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
+            </html>"""
+        return http.Response(stream=s)
 
 # class Toplevel(resource.Resource):
 class Toplevel(resource.PostableResource):
@@ -599,12 +612,12 @@ class Toplevel(resource.PostableResource):
     child_ws = Worksheets()
     child_notebook = Notebook()
     child_doc = Doc()
+    child_register = RegistrationPage()
 
     def __init__(self, cookie):
         self.cookie = cookie
 
     def render(self, ctx):
-        from twisted.web2 import responsecode, http_headers
         s = notebook.html()
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
@@ -615,6 +628,22 @@ class Toplevel(resource.PostableResource):
 
     def childFactory(self, request, name):
         print request, name
+
+class ToplevelAdmin(Toplevel):
+    """
+    This should be the Toplevel for administrators.
+
+    """
+
+    pass
+
+class ToplevelUser(Toplevel):
+    """
+    This should be the Toplevel for regular users.
+
+    """
+
+    pass
 
 setattr(Toplevel, 'child_help.html', Help())
 setattr(Toplevel, 'child_history.html', History())
@@ -708,11 +737,11 @@ import sage.server.notebook.avatars as avatars
 
 from twisted.cred import portal
 
-password_dict = {'alex':'alex', 'yqiang@gmail.com':'yqiang'}
-realm = avatars.LoginSystem(password_dict)
+password_file = 'passwords.txt'
+realm = avatars.LoginSystem(password_file)
 p = portal.Portal(realm)
 # p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))
-p.registerChecker(avatars.PasswordDictChecker(password_dict))
+p.registerChecker(avatars.PasswordFileChecker(password_file))
 # p.registerChecker(checkers.AllowAnonymousAccess(), credentials.IAnonymous)
 p.registerChecker(checkers.AllowAnonymousAccess())
 rsrc = guard.MySessionWrapper(p)

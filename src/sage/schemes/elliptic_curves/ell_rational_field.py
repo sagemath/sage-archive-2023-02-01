@@ -35,6 +35,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
+from sage.misc.all import verbose
 import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
@@ -3196,9 +3197,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         OUTPUT:
             p-adic number -- that conjecturally equals #Sha(E)(p)
 
+        NOTE:
+            If prec is set to zero (default) then the precision is set so that
+            at least the first p-adic digit of conjectural #Sha(E)(p) is
+            determined.
         """
         try:
-            return self.__sha_an_padic[p]
+            return self.__sha_an_padic[(p,prec)]
         except AttributeError:
             self.__sha_an_padic = {}
         except KeyError:
@@ -3211,23 +3216,23 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         elif self.ap(p) == 1:
             S = self._sha_an_padic_exceptional(p, prec)
         else:
-            raise RunTimeError, "The curve has to have semi-stable reduction at p."
-        self.__sha_an_padic[p] = S
+            raise ValueError, "The curve has to have semi-stable reduction at p."
+        self.__sha_an_padic[(p,prec)] = S
         return S
 
     def _sha_an_padic_good_ordinary(self, p, prec):
 
         tam = self.tamagawa_product()
-        tors = self.torsion_order()^2
+        tors = self.torsion_order()**2
         reg = self.padic_regulator(p)
         K = reg.parent()
         lg = log(K(1+p))
         r = self.rank()
         lp = self.padic_lseries(p)
-        eps = (1-1/lp.alpha())^2
+        eps = (1-1/lp.alpha())**2
 
         # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
-        bsdp = tam * reg * eps/tors/lg^r
+        bsdp = tam * reg * eps/tors/lg**r
 
         v = bsdp.valuation()
         if v > 0:
@@ -3244,22 +3249,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec == 0:
             n = max(v,2)
             bounds = lp._prec_bounds(n)
-            while bounds[r] <= v:
+            while bounds[r] < v:
                 n += 1
                 bounds = lp._prec_bounds(n)
             verbose("set precision to %s"%n)
         else:
-            n = max(prec,2)
+            n = max(2,prec)
 
         not_yet_enough_prec = True
         while not_yet_enough_prec:
-            lps = lp.series(n)
+            lps = lp.series(n,prec=r+1)
             lstar = lps[r]
-            if (not lstar == 0) or (prec == 0):
+            if (not lstar == 0) or (not prec == 0):
                 not_yet_enough_prec = False
             else:
-                prec += 1
-                verbose("increased precision to %s"%prec)
+                n += 1
+                verbose("increased precision to %s"%n)
 
         return lstar/bsdp
 
@@ -3284,19 +3289,24 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         OUTPUT:
             integer -- power of p that bounds #Sha(E)(p) from above
 
+        NOTE:
+            The result is a proven upper bound on the order of #Sha(E)(p).
+            So in particular it proves it finiteness even if the rank of
+            the curve is larger than 1. Note also that this bound is sharp
+            if one assumes the main conjecture of Iwasawa theory of
+            elliptic curves (and this is known in certain cases).
         """
-        try:
-            return self.__sha_an_padic[p]
-        except AttributeError:
-            self.__sha_an_padic = {}
-        except KeyError:
-            pass
 
-        if self.is_ordinary(p) and self.is_good(p):
-            S = self._sha_an_padic_good_ordinary(p)
+        if self.is_ordinary(p) or self.is_good(p):
+            shan = self.sha_an_padic(p,prec = 0)
+            if shan == 0:
+                raise RunTimeError, "There is a bug in sha_an_padic."
+            S = shan.valuation()
+            if not self.is_surjective(p) and not self.is_reducible(p):
+		raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try sha_an_padic for a conjectural bound."
         else:
-            raise NotImplementedError, "only the good ordinary case is implemented."
-        self.__sha_an_padic[p] = S
+            raise ValueError, "The curve has to have semi-stable reduction at p."
+
         return S
 
 

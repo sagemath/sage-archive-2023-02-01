@@ -3230,7 +3230,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         bsdp = tam * reg * eps/tors/lg^r
 
         v = bsdp.valuation()
-        verbose("the prime is irregular.")
+        if v > 0:
+            verbose("the prime is irregular.")
 
         # shortcut to introduce later ::
         #if r == 0:
@@ -3241,21 +3242,21 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # the p-primary part od Sha
 
         if prec == 0:
-            n = v
+            n = max(v,2)
             bounds = lp._prec_bounds(n)
-            while bounds[r] < v:
+            while bounds[r] <= v:
                 n += 1
                 bounds = lp._prec_bounds(n)
             verbose("set precision to %s"%n)
         else:
-            n = prec
+            n = max(prec,2)
 
         not_yet_enough_prec = True
         while not_yet_enough_prec:
             lps = lp.series(n)
             lstar = lps[r]
-            if not lstar == 0:
-                not_yet_enough_prec = True
+            if (not lstar == 0) or (prec == 0):
+                not_yet_enough_prec = False
             else:
                 prec += 1
                 verbose("increased precision to %s"%prec)

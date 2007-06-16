@@ -133,6 +133,30 @@ class Doc(resource.Resource):
         """
         return http.Response(stream=s)
 
+############################
+# Uploading a saved worksheet file
+############################
+
+class Upload(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream = notebook.upload_window())
+
+class UploadWorksheet(resource.PostableResource):
+    def render(self, ctx):
+        tmp = '%s/tmp.sws'%notebook.directory()
+        f = file(tmp,'wb')
+        f.write(ctx.files['fileField'][0][2].read())
+        f.close()
+        try:
+            W = notebook.import_worksheet(tmp)
+        except ValueError, msg:
+            s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
+            return http.Response(stream = s)
+        os.unlink(tmp)
+        s = redirect('/ws/' + W.filename())
+        return http.Response(stream = s)
+
+
 
 ############################
 # A resource attached to a given worksheet.
@@ -176,12 +200,14 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
+def redirect(url):
+    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
+
 class FastRedirect(resource.Resource):
     def __init__(self, dest):
         self.dest = dest
     def render(self, ctx):
-        s = '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%self.dest
-        return http.Response(stream = s)
+        return http.Response(stream = redirect(self.dest))
 
 class FastRedirectWithEffect(FastRedirect):
     def __init__(self, dest, effect):
@@ -610,6 +636,8 @@ class Toplevel(resource.PostableResource):
     child_ws = Worksheets()
     child_notebook = Notebook()
     child_doc = Doc()
+    child_upload = Upload()
+    child_upload_worksheet = UploadWorksheet()
 
     def __init__(self, cookie):
         self.cookie = cookie

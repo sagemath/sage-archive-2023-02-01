@@ -86,16 +86,10 @@ class Worksheet:
         self.__id = id
         self.__system = system
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
-        self.__name = name
+        self.set_name(name)
         self.__notebook = notebook
         self.__passcode = crypt.crypt(passcode, self.salt())
         self.__passcrypt= True
-        dir = list(name)
-        for i in range(len(dir)):
-            if not dir[i].isalnum() and dir[i] != '_':
-                dir[i] = '_'
-        dir = ''.join(dir)
-        self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
         self.clear()
 
@@ -1165,6 +1159,12 @@ class Worksheet:
 
     def set_name(self, name):
         self.__name = name
+        dir = list(name)
+        for i in range(len(dir)):
+            if not dir[i].isalnum() and dir[i] != '_':
+                dir[i] = '_'
+        dir = ''.join(dir)
+        self.__filename = dir
 
     def append(self, L):
         self.__cells.append(L)

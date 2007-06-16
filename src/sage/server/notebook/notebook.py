@@ -505,6 +505,13 @@ class Notebook(SageObject):
         return d
 
     def import_worksheet(self, filename):
+        # TODO -- this is broken -- it does *not* work if you
+        # upload a worksheet with the same name as an existing worksheet,
+        # though somebody thinks they wrote it to do that.
+        # The problem is that changing the worksheet name is not
+        # enough -- one must also change the worksheet id.
+        # One should get rid of the id stuff, maybe.  For now,
+        # we raise an error if the worksheet name is already used.
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
         if filename[-4:] != '.sws':
@@ -520,6 +527,7 @@ class Notebook(SageObject):
         worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
         names = self.worksheet_names()
         if D in names:
+            raise ValueError, "Worksheet with given name already defined."
             m = re.match('.*?([0-9]+)$',D)
             if m is None:
                 n = 0
@@ -1015,7 +1023,7 @@ Password: <input type="password" name="password" size="15" />
         body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc">Documentation</a>' + vbar
-        body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
+        body += '     <a href="/upload" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right

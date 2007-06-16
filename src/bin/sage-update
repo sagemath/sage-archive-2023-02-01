@@ -56,26 +56,27 @@ def download_file(file):
           return False
      return True
 
-os.chdir(SPKG_ROOT)
-download_file("install")
-os.system('chmod +x install')
+if __name__ ==  '__main__':
+     os.chdir(SPKG_ROOT)
+     download_file("install")
+     os.system('chmod +x install')
 
-os.chdir("%s/standard/"%SPKG_ROOT)
-download_file("standard/list")
-download_file("standard/deps")
-download_file("standard/newest_version")
-os.system('chmod +x newest_version')
-download_file("standard/README")
+     os.chdir("%s/standard/"%SPKG_ROOT)
+     download_file("standard/list")
+     download_file("standard/deps")
+     download_file("standard/newest_version")
+     os.system('chmod +x newest_version')
+     download_file("standard/README")
 
-packages = open("list").read().split('\n')
-installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
+     packages = open("list").read().split('\n')
+     installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
 
-for P in packages:
-     file_to_download = "%s.spkg"%P
-     if not os.path.exists(file_to_download):
-          file = "standard/%s.spkg"%P
-          download_file(file)
+     for P in packages:
+          file_to_download = "%s.spkg"%P
           if not os.path.exists(file_to_download):
-               print "%s: Error downloading %s/%s"%(
-                    sys.argv[0], PKG_SERVER, file)
-               sys.exit(1)
+               file = "standard/%s.spkg"%P
+               download_file(file)
+               if not os.path.exists(file_to_download):
+                    print "%s: Error downloading %s/%s"%(
+                         sys.argv[0], PKG_SERVER, file)
+                    sys.exit(1)

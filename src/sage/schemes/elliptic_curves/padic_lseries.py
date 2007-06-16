@@ -93,7 +93,9 @@ class pAdicLseries(SageObject):
         crla = parse_cremona_label(E.label())
         cr0 = Integer(crla[0]).str() + crla[1] + '1'
         E0 = EllipticCurve(cr0)
-        self._quotient_of_periods = QQ(E0.period_lattice()[0]/E.period_lattice()[0])
+        q = E0.period_lattice()[0]/E.period_lattice()[0]*E0.real_components()/E.real_components()
+        self._quotient_of_periods = QQ(gp.bestappr(q,200))
+
         self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
 
     def elliptic_curve(self):
@@ -450,9 +452,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
         count_verb = 0
         for j in range(p_power):
             s = K(0)
-            if verbose_level >= 2 and j/p_power*100 > count_verb + 2:
+            if verbose_level >= 2 and j/p_power*100 > count_verb + 3:
                 verbose("%.2f percent done"%(float(j)/p_power*100))
-                count_verb =+ 1
+                count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec).lift()

@@ -3209,6 +3209,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         except KeyError:
             pass
 
+        if self.has_cm():
+            raise NotImplementedError, "I don't know about curves with complex multiplication."
         if self.is_ordinary(p) and (self.is_good(p) or self.ap(p) == -1):
             S = self._sha_an_padic_good_ordinary(p, prec)
         elif self.is_supersingular(p):
@@ -3239,8 +3241,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             verbose("the prime is irregular.")
 
         # shortcut to introduce later ::
+        # also we could avoid the computation of the modular symbols altogether
         #if r == 0:
-        #    lstar = lp.modular_symbol(0)
+        #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
         #    sha = lstar/bsdp
 
         # determine how much prec we need to prove at least the triviality of
@@ -3249,7 +3252,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec == 0:
             n = max(v,2)
             bounds = lp._prec_bounds(n)
-            while bounds[r] < v:
+            while bounds[r] <= v:
                 n += 1
                 bounds = lp._prec_bounds(n)
             verbose("set precision to %s"%n)
@@ -3272,19 +3275,102 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
     def _sha_an_padic_exceptional(self, p, prec):
-         raise NotImplementedError, "only the good ordinary case is implemented."
+
+        tam = self.tamagawa_product()
+        tors = self.torsion_order()**2
+        reg = self.padic_regulator(p)
+        K = reg.parent()
+        lg = log(K(1+p))
+        r = self.rank()
+        lp = self.padic_lseries(p)
+        eq = e.tate_curve(p)
+        Li = eq.L_invariant()
+
+        # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
+        # this should be equal to the leading term of the p-adic L-series:
+        bsdp = tam * reg * Li/tors/lg**(r+1)
+
+        v = bsdp.valuation()
+        if v > 0:
+            verbose("the prime is irregular.")
+
+        # determine how much prec we need to prove at least the triviality of
+        # the p-primary part od Sha
+
+        if prec == 0:
+            n = max(v,2)
+            bounds = lp._prec_bounds(n)
+            while bounds[r+1] <= v:
+                n += 1
+                bounds = lp._prec_bounds(n)
+            verbose("set precision to %s"%n)
+        else:
+            n = max(2,prec)
+
+        not_yet_enough_prec = True
+        while not_yet_enough_prec:
+            lps = lp.series(n,prec=r+2)
+            lstar = lps[r+1]
+            if (not lstar == 0) or (not prec == 0):
+                not_yet_enough_prec = False
+            else:
+                n += 1
+                verbose("increased precision to %s"%n)
+
+        return lstar/bsdp
 
     def _sha_an_padic_supersingular(self, p, prec):
-         raise NotImplementedError, "only the good ordinary case is implemented."
 
-    def sha_p_primary_bound(self, p, prec=0):
+        tam = self.tamagawa_product()
+        tors = self.torsion_order()**2
+        reg = self.Dp_valued_regulator(p)
+        K = reg[0].parent()
+        lg = log(K(1+p))
+        r = self.rank()
+        lp = self.padic_lseries(p)
+
+        # according to the p-adic BSD this should be equal to the leading term of the D_p - valued
+        # L-series :
+        bsdp = tam /tors/lg**r * vector(reg)
+
+        v = vector(bsdp[0].valuation(),bsdp[1].valuation())
+
+        #shortcut to introduce later ::
+        #if r == 0:
+        #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
+        #    sha = lstar/bsdp
+
+        # determine how much prec we need to prove at least the triviality of
+        # the p-primary part od Sha
+
+        if prec == 0:
+            n = max(v,2)
+            bounds = lp._prec_bounds(n)
+            while bounds[r+1] <= v:
+                n += 1
+                bounds = lp._prec_bounds(n)
+            verbose("set precision to %s"%n)
+        else:
+            n = max(2,prec)
+
+        not_yet_enough_prec = True
+        while not_yet_enough_prec:
+            lps = lp.series(n,prec=r+2)
+            lstar = lps[r+1]
+            if (not lstar == 0) or (not prec == 0):
+                not_yet_enough_prec = False
+            else:
+                n += 1
+                verbose("increased precision to %s"%n)
+
+        return lstar/bsdp
+
+    def sha_p_primary_bound(self, p):
         """
         Returns an upper bound of #Sha(E)(p).
 
         INPUT:
             p -- a prime
-            prec (optional) -- the precision used in the computation of the
-            p-adic L-Series
 
         OUTPUT:
             integer -- power of p that bounds #Sha(E)(p) from above
@@ -3303,7 +3389,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 raise RunTimeError, "There is a bug in sha_an_padic."
             S = shan.valuation()
             if not self.is_surjective(p) and not self.is_reducible(p):
-		raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try sha_an_padic for a conjectural bound."
+                raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try sha_an_padic for a conjectural bound."
         else:
             raise ValueError, "The curve has to have semi-stable reduction at p."
 

@@ -969,6 +969,16 @@ class Notebook(SageObject):
             interrupt_class = "interrupt_grey"
             worksheet = None
         else:
+            if not worksheet_authorized:
+                return """
+<form method="POST" action="https://localhost:8000/login">
+Username: <input type="text" name="email" size="15" />
+Password: <input type="password" name="password" size="15" />
+<br />
+<div align="center">
+<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+"""
+
             worksheet = self.get_worksheet_with_id(worksheet_id)
             if worksheet.computing():
                 interrupt_class = "interrupt"
@@ -1002,7 +1012,6 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += """<form method="POST" action="https://localhost:8000/login">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Login" /></p>  </div> </form><br /><br />"""
         body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc">Documentation</a>' + vbar

@@ -200,14 +200,12 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
-def redirect(url):
-    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
 
 class FastRedirect(resource.Resource):
     def __init__(self, dest):
         self.dest = dest
     def render(self, ctx):
-        return http.Response(stream = redirect(self.dest))
+        return http.RedirectResponse(self.dest)
 
 class FastRedirectWithEffect(FastRedirect):
     def __init__(self, dest, effect):

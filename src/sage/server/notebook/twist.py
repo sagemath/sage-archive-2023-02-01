@@ -649,12 +649,14 @@ class RegistrationPage(resource.PostableResource):
 sent to the address that you supplied shortly.</p></html>
 """
         else:
+            global notebook
+            url_prefix = "https" if secure else "http"
             s = """<html><h1>This is the registration page.</h1>
-            <form method="POST" action="https://localhost:8000/register">
+            <form method="POST" action="%s://%s:%s/register"
             Username: <input type="text" name="username" size="15" />  Password:
                 <input type="password" name="password" size="15" /><br /> Email
                 Address: <input type="text" name="email" size="15" /><br /> <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
-            </html>"""
+            </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 
 # class Toplevel(resource.Resource):

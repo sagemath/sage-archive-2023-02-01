@@ -140,6 +140,9 @@ class Doc(resource.Resource):
 # Uploading a saved worksheet file
 ############################
 
+def redirect(url):
+    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
+
 class Upload(resource.Resource):
     def render(self, ctx):
         return http.Response(stream = notebook.upload_window())

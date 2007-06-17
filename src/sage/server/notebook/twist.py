@@ -587,7 +587,15 @@ class Images(resource.Resource):
     def childFactory(self, request, name):
         return static.File(image_path + "/" + name)
 
-###########################
+############################
+# Confirmation
+############################
+#class RegConfirmation(resource):
+#    def render(self, request):
+#        s = "<html>Nothing to see here.</html>"
+
+
+############################
 # Registration page
 ############################
 
@@ -598,16 +606,18 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None :
+                global notebook
                 user = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
                 from sage.server.notebook.smtpsend import send_mail
                 from sage.server.notebook.register import make_key, build_msg
                 # TODO: make this come from the server settings
-                fromaddr = "no-reply@sage.math.washington.edu"
                 key = make_key()
-                body = build_msg(key, user, passwd)
-                print body
+                listenaddr = notebook.address
+                secure = notebook.secure
+                fromaddr = 'no-reply@%s' % listenaddr
+                body = build_msg(key, user, listenaddr, secure)
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
             # now say that the user has been registered.
             s = """\
@@ -635,6 +645,7 @@ class Toplevel(resource.PostableResource):
     child_notebook = Notebook()
     child_doc = Doc()
     child_register = RegistrationPage()
+#child_confrim = RegConfirmation()
 
     def __init__(self, cookie):
         self.cookie = cookie
@@ -674,12 +685,6 @@ setattr(Toplevel, 'child_history.html', History())
 notebook = None  # this gets set on startup.
 
 ##########################################################
-# This holds options about the notebook
-##########################################################
-
-
-
-##########################################################
 # This actually serves up the notebook.
 ##########################################################
 
@@ -703,7 +708,6 @@ def notebook_setup(self=None):
     shutil.copyfile(dsage + '/cacert.pem', private_pem)
     shutil.copyfile(dsage + '/pubcert.pem', public_pem)
     print "Successfully configured notebook."
-
 
 def notebook_twisted(self,
              directory   = 'sage_notebook',
@@ -734,13 +738,15 @@ def notebook_twisted(self,
         else:
             strport = 'tcp:%s'%port
 
+        notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
+                address, port, secure)
         config = open(conf, 'w')
         config.write("""
 import sage.server.notebook.notebook
 sage.server.notebook.notebook.JSMATH=%s
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
-twist.notebook = notebook.load_notebook('%s')
+twist.notebook = notebook.load_notebook(%s)
 import sage.server.notebook.worksheet as worksheet
 worksheet.init_sage_prestart()
 worksheet.multisession = %s
@@ -778,7 +784,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, strport))
+"""%(jsmath, notebook_opts, multisession, strport))
 
 
         config.close()

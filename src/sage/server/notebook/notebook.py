@@ -370,7 +370,8 @@ def open_page(address, port):
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
-                 show_debug = False, log_server=False):
+                 show_debug = False, log_server=False, address='localhost',
+                 port=8000, secure=True):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -1451,7 +1452,7 @@ import sage.interfaces.sage0
 import time
 
 def load_notebook(dir, username=None, password=None, color=None, system=None,
-                  splashpage=None):
+                  splashpage=None, address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1483,6 +1484,9 @@ def load_notebook(dir, username=None, password=None, color=None, system=None,
         nb = Notebook(dir,username=username,password=password, color=color,
                       system=system)
 
+    nb.address = address
+    nb.port = port
+    nb.secure = secure
     return nb
 
 ## IMPORTANT!!! If you add any new input variable to notebook,

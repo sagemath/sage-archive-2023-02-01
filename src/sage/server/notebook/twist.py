@@ -156,8 +156,7 @@ class UploadWorksheet(resource.PostableResource):
             s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
             return http.Response(stream = s)
         os.unlink(tmp)
-        s = redirect('/ws/' + W.filename())
-        return http.Response(stream = s)
+        return http.RedirectResponse('/ws/'+W.filename())
 
 
 
@@ -319,8 +318,9 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
-        s = notebook.html(worksheet_id = self.name)
-        return http.Response(stream=s)
+        return http.RedirectResponse('/ws/'+self.worksheet.filename())
+
+
 
 
 ########################################################
@@ -520,7 +520,11 @@ class Worksheet(WorksheetResource, resource.Resource):
     def childFactory(self, request, op):
         notebook_save_check()
         try:
+            #MAGIC!
+            #rather than a bunch of if-else statements, we can wrap
+            #any Worksheet_... class as a subresource of a worksheet.
             R = globals()['Worksheet_%s'%op]
+            #/MAGIC!
             return R(self.name)
         except KeyError:
             return NotImplementedWorksheetOp(op)

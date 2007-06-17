@@ -376,8 +376,7 @@ class Notebook(SageObject):
                  address='localhost',
                  port=8000,
                  secure=True,
-                 server_pool = [],
-                 admin = None):
+                 server_pool = []):
         self.__dir = dir
         self.__server_pool = server_pool
         self.set_system(system)
@@ -397,8 +396,6 @@ class Notebook(SageObject):
         self.__show_debug = show_debug
         self.save()
         self.__admins = []
-        if admin is not None:
-            self.__admins.append(admin)
 
     def user_is_admin(self, user):
         # todo -- make
@@ -408,6 +405,14 @@ class Notebook(SageObject):
         except AttributeError:
             self.__admins = []
             return False
+
+    def add_admin(self, user):
+        try:
+            if not self.__admins.contains(user):
+                self.__admins.append(user)
+        except AttributeError:
+            self.__admins = [user]
+
 
     def server_pool(self):
         try:
@@ -759,16 +764,22 @@ class Notebook(SageObject):
     def get_worksheets_with_collaborator(self, user):
         W = []
         for w in self.__worksheets.itervalues():
-            if w.has_collaborator(user):
+            if w.user_is_collaborator(user):
                 W.append(w)
         return W
+
+    def get_worksheet_names_with_collaborator(self, user):
+        return [W.name() for W in self.get_worksheets_with_collaborator(user)]
 
     def get_worksheets_with_viewer(self, user):
         W = []
         for w in self.__worksheets.itervalues():
-            if w.has_viewer(user):
+            if w.user_is_viewer(user):
                 W.append(w)
         return W
+
+    def get_worksheet_names_with_viewer(self, user):
+        return [W.name() for W in self.get_worksheets_with_viewer(user)]
 
     def get_worksheet_with_name(self, name):
         return self.__worksheets[name]

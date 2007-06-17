@@ -62,7 +62,7 @@ class ImmutableDatabase(SageObject):
             exe1 = cur.execute("pragma table_info(%s)"%table[0])
             for column in exe1.fetchall():
                 self.__skeleton__[table[0]][column[1]] = {'sql':column[2]}
-
+        self.__query__ = ''
 
 
 #        exe = cur.execute(""
@@ -79,8 +79,8 @@ class ImmutableDatabase(SageObject):
         D = Database(new_loc, copy(self.__skeleton__), copy(self.__auto_key__))
         return D
 
-    def save():
-        pass
+    def save(self, filename):
+        os.system('cp ' + self.__dblocation__ + ' ' + filename)
 
     def __repr__(self):
         s = ''
@@ -93,11 +93,42 @@ class ImmutableDatabase(SageObject):
                 s += '\n'
         return s
 
-    def show():
+    def show(self):
+        from sage.server.support import EMBEDDED_MODE
+        lis = self.do_query()
+        s = self.__query__[7:]
+        headers = s[:s.index(' from')].split(' ')
+        if len(headers) > 0:
+            if headers[0] == '*':
+                pass
+        if EMBEDDED_MODE:  # We are in the notebook, print html table
+
+
+            # split query string, ignore select and stop at join
+            print '<html><table><tr>'
+            print 'DATA'
+            print '</html>'
+        else:  # Command line, print ascii
+            print lis
+
+    def query_all(self):
+        s = "select "
         pass
 
-    def query():
-        pass
+    def do_query(self):
+        if self.__query__ == '':
+            self.query_all()
+        try:
+            cur = self.__connection__.cursor()
+            exe = cur.execute(self.__query__)
+            lis = exe.fetchall()
+            return lis
+        except:
+            raise RuntimeError('Failure to fetch query.')
 
-    def clear_query():
+    def query(self, query_string):
+        self.__query__ = query_string
+
+    def clear_query(self):
         pass
+        #self.__query__ = ""

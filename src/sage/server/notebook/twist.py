@@ -130,11 +130,35 @@ class Doc(resource.Resource):
         <h1><font color="darkred">SAGE Documentation</font></h1>
         <br><br><br>
         <font size=+3>
-        <a href="static">Static Documentation</a><br><br>
-        <a href="live">Interactive Live Documentation</a><br>
+        <a href="static/">Static Documentation</a><br><br>
+        <a href="live/">Interactive Live Documentation</a><br>
         </font>
         """
         return http.Response(stream=s)
+
+############################
+# Uploading a saved worksheet file
+############################
+
+class Upload(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream = notebook.upload_window())
+
+class UploadWorksheet(resource.PostableResource):
+    def render(self, ctx):
+        tmp = '%s/tmp.sws'%notebook.directory()
+        f = file(tmp,'wb')
+        f.write(ctx.files['fileField'][0][2].read())
+        f.close()
+        try:
+            W = notebook.import_worksheet(tmp)
+        except ValueError, msg:
+            s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
+            return http.Response(stream = s)
+        os.unlink(tmp)
+        s = redirect('/ws/' + W.filename())
+        return http.Response(stream = s)
+
 
 
 ############################
@@ -179,12 +203,14 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
+def redirect(url):
+    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
+
 class FastRedirect(resource.Resource):
     def __init__(self, dest):
         self.dest = dest
     def render(self, ctx):
-        s = '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%self.dest
-        return http.Response(stream = s)
+        return http.Response(stream = redirect(self.dest))
 
 class FastRedirectWithEffect(FastRedirect):
     def __init__(self, dest, effect):
@@ -442,6 +468,17 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
+class Worksheet_download(WorksheetResource, resource.Resource):
+    def childFactory(self, request, name):
+        worksheet_name = self.name
+        try:
+            notebook.export_worksheet(worksheet_name, worksheet_name)
+        except KeyError:
+            return http.Response(stream='No such worksheet.')
+
+        binfile = '%s/%s.sws'%(notebook.directory(), worksheet_name)
+        return static.File(binfile)
+
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)
@@ -669,6 +706,8 @@ class Toplevel(resource.PostableResource):
     child_ws = Worksheets()
     child_notebook = Notebook()
     child_doc = Doc()
+    child_upload = Upload()
+    child_upload_worksheet = UploadWorksheet()
     child_register = RegistrationPage()
     child_confirm = RegConfirmation()
 
@@ -727,7 +766,7 @@ def notebook_setup(self=None):
     if not os.path.exists(dsage + '/cacert.pem'):
         import sage.dsage.all
         sage.dsage.all.dsage.setup()
-    if not os.path.exists(dsage + '/cacert.pem'):
+    if not os.path.exists(dsage + '/pubcert.pem'):
         print "Error configuring."
         return
     shutil.copyfile(dsage + '/cacert.pem', private_pem)
@@ -738,17 +777,47 @@ def notebook_twisted(self,
              directory   = 'sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             port_tries  = 1,
+             port_tries  = 0,
              secure      = True,
-             multisession= True,
-             jsmath      = True):
+             server_pool = None):
     r"""
     Experimental twisted version of the SAGE Notebook.
+
+    INPUT:
+        directory  -- (default: 'sage_notebook') directory that contains
+                      the SAGE notebook files
+        port       -- (default: 8000), port to serve the notebook on
+        address    -- (default: 'localhost'), address to listen on
+        port_tries -- (default: 0), number of additional ports to try if the
+                      first one doesn't work (*not* implemented)
+        secure     -- (default: True) if True use https so all
+                      communication, e.g., logins and passwords,
+                      between web browsers and the SAGE notebook is
+                      encrypted (via GNU TLS).
+    ADVANCED OPTIONS:
+        server_pool -- (default: None), if given, should be a list like
+                      ['sage1@localhost', 'sage2@localhost'], where
+                      you have setup ssh keys so that typing
+                         ssh sage1@localhost
+                      logs in without requiring a password, e.g., by typing
+                      as the notebook server user
+                          cd; ssh-keygen -t rsa
+                      then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
     conf = '%s/twistedconf.py'%directory
+
+    # We load the notebook to make sure it is created with the
+    # given options, then delete it.  The notebook is later
+    # loaded by the *other* Twisted process below.
+    if not server_pool is None:
+        from sage.server.notebook.notebook import load_notebook
+        nb = load_notebook(directory, server_pool=server_pool)
+        nb.set_server_pool(server_pool)
+        nb.save()
+        del nb
 
     def run(port):
         ## Create the config file
@@ -768,13 +837,12 @@ def notebook_twisted(self,
         config = open(conf, 'w')
         config.write("""
 import sage.server.notebook.notebook
-sage.server.notebook.notebook.JSMATH=%s
+sage.server.notebook.notebook.JSMATH=True
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
 import sage.server.notebook.worksheet as worksheet
-worksheet.init_sage_prestart()
-worksheet.multisession = %s
+worksheet.init_sage_prestart(twist.notebook.get_server())
 
 import signal, sys
 def my_sigint(x, n):
@@ -809,7 +877,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(jsmath, notebook_opts, multisession, strport))
+"""%(os.path.abspath(directory), strport))
 
 
         config.close()
@@ -821,7 +889,7 @@ s.setServiceParent(application)
             raise socket.error
 
 
-    for i in range(int(port_tries)):
+    for i in range(int(port_tries)+1):
         try:
             run(port + i)
         except socket.error:

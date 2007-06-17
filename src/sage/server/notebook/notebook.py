@@ -368,20 +368,23 @@ def open_page(address, port):
     os.system(cmd)
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook', username=None,
-                 password=None, color='default', system=None,
-                 show_debug = False, log_server=False, address='localhost',
-                 port=8000, secure=True):
+    def __init__(self,
+                 dir='sage_notebook',
+                 system=None,
+                 show_debug = False,
+                 log_server=False,
+                 address='localhost',
+                 port=8000,
+                 secure=True,
+                 server_pool = []):
         self.__dir = dir
+        self.__server_pool = server_pool
         self.set_system(system)
-        self.__color = color
-        if not (username is None):
-            self.set_auth(username,password)
         self.__worksheets = {}
         self.__load_defaults()
-        self.__filename     = '%s/nb.sobj'%dir
+        self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
-        self.__object_dir   = '%s/objects'%dir
+        self.__object_dir    = '%s/objects'%dir
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
@@ -392,6 +395,27 @@ class Notebook(SageObject):
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.save()
+
+    def server_pool(self):
+        try:
+            return self.__server_pool
+        except AttributeError:
+            self.__server_pool = []
+            return []
+
+    def set_server_pool(self, servers):
+        self.__server_pool = servers
+
+    def get_server(self):
+        P = self.server_pool()
+        if len(P) == 0:
+            return None
+        try:
+            i = (self.__server_number + 1)%len(P)
+        except AttributeError:
+            self.__server_number = 0
+            i = 0
+        return P[i]
 
     def system(self):
         try:
@@ -506,6 +530,13 @@ class Notebook(SageObject):
         return d
 
     def import_worksheet(self, filename):
+        # TODO -- this is broken -- it does *not* work if you
+        # upload a worksheet with the same name as an existing worksheet,
+        # though somebody thinks they wrote it to do that.
+        # The problem is that changing the worksheet name is not
+        # enough -- one must also change the worksheet id.
+        # One should get rid of the id stuff, maybe.  For now,
+        # we raise an error if the worksheet name is already used.
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
         if filename[-4:] != '.sws':
@@ -521,6 +552,7 @@ class Notebook(SageObject):
         worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
         names = self.worksheet_names()
         if D in names:
+            raise ValueError, "Worksheet with given name already defined."
             m = re.match('.*?([0-9]+)$',D)
             if m is None:
                 n = 0
@@ -970,6 +1002,16 @@ class Notebook(SageObject):
             interrupt_class = "interrupt_grey"
             worksheet = None
         else:
+            if not worksheet_authorized:
+                return """
+<form method="POST" action="https://localhost:8000/login">
+Username: <input type="text" name="email" size="15" />
+Password: <input type="password" name="password" size="15" />
+<br />
+<div align="center">
+<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+"""
+
             worksheet = self.get_worksheet_with_id(worksheet_id)
             if worksheet.computing():
                 interrupt_class = "interrupt"
@@ -1003,11 +1045,10 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += """<form method="POST" action="https://localhost:8000/login">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Login" /></p>  </div> </form><br /><br />"""
         body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc">Documentation</a>' + vbar
-        body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
+        body += '     <a href="/upload" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -1451,8 +1492,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, username=None, password=None, color=None, system=None,
-                  splashpage=None, address=None, port=None, secure=None):
+def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1471,18 +1511,9 @@ def load_notebook(dir, username=None, password=None, color=None, system=None,
 
         nb.delete_doc_browser_worksheets()
         nb.set_directory(dir)
-        if not (username is None):
-            nb.set_auth(username=username, password=password)
-        if not (color is None):
-            nb.set_color(color)
-        if not system is None:
-            nb.set_system(system)
-        if not splashpage is None:
-            nb.set_splashpage(splashpage)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system)
+        nb = Notebook(dir,server_pool=server_pool)
 
     nb.address = address
     nb.port = port
@@ -1595,7 +1626,7 @@ def notebook(dir         ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
-
+    assert 0, "deprecated"
     import worksheet
     worksheet.init_sage_prestart()
     worksheet.multisession = multisession

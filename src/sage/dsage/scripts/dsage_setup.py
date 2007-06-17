@@ -18,6 +18,8 @@
 ############################################################################
 
 import os
+import random
+import socket
 import ConfigParser
 import subprocess
 import sys
@@ -27,6 +29,8 @@ from sage.dsage.misc.constants import DELIMITER as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.config import check_dsage_dir
 from sage.dsage.__version__ import version
+
+from sage.misc.viewer import cmd_exists
 
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
@@ -74,7 +78,7 @@ def setup_worker():
 
 def setup_server(template=None):
     check_dsage_dir()
-    template_dict = {'organization': 'SAGE',
+    template_dict = {'organization': 'SAGE (at %s)'%(socket.gethostname()),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
@@ -82,7 +86,7 @@ def setup_server(template=None):
                 'cn': 'SAGE User',
                 'uid': 'sage_user',
                 'dn_oid': None,
-                'serial': 007,
+                'serial': str(random.randint(1,2**31)),
                 'dns_name': None,
                 'crl_dist_points': None,
                 'ip_address': None,
@@ -119,9 +123,20 @@ def setup_server(template=None):
     pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
     print DELIMITER
     print "Generating SSL certificate for server..."
-    cmd = ['certtool --generate-privkey --outfile %s' % privkey_file]
-    # cmd = ['openssl genrsa > %s' % privkey_file]
-    subprocess.call(cmd, shell=True)
+    if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
+        # We use openssl by default if it exists, since it is *vastly*
+        # faster on Linux.
+        cmd = ['openssl genrsa > %s' % privkey_file]
+        print "Using openssl to generate key"
+        print cmd[0]
+        subprocess.call(cmd, shell=True)
+    else:
+        cmd = ['certtool --bits 128 --generate-privkey --outfile %s' % privkey_file]
+        print "Using certtool to generate key"
+        print cmd[0]
+        # cmd = ['openssl genrsa > %s' % privkey_file]
+        subprocess.call(cmd, shell=True)
+
     # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
     #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
     #                 privkey_file, pubkey_file)]

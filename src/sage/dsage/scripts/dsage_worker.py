@@ -525,9 +525,9 @@ except:
         if not hasattr(self, 'sage'):
             if self.log_level > 3:
                 logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
-                self.sage = Sage(maxread=1, logfile=logfile)
+                self.sage = Sage(maxread=1, logfile=logfile, python=True)
             else:
-                self.sage = Sage(maxread=1)
+                self.sage = Sage(maxread=1, python=True)
             try:
                 self.sage._start(block_during_init=True)
             except RuntimeError, msg: # Could not start SAGE

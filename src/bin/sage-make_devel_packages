@@ -40,7 +40,9 @@ if [ -d $SAGE_ROOT/devel/doc-main ]; then
    chmod +x scripts/spkg-dist
    scripts/spkg-dist $SAGE_VERSION
    if [ $? -ne 0 ]; then
+       echo "****************************************"
        echo "Error building the documentation package"
+       echo "****************************************"
        exit 1
    fi
    mv doc-$SAGE_VERSION.spkg $DESTINATION/

@@ -890,7 +890,7 @@ class Notebook(SageObject):
             if n.startswith('doc_browser'):
                 self.delete_worksheet(n)
 
-    def worksheet_list_html(self, current_worksheet=None):
+    def worksheet_list_html(self, current_worksheet, username):
         s = []
         names = self.worksheet_names()
         m = max([len(x) for x in names] + [30])
@@ -910,89 +910,6 @@ class Notebook(SageObject):
                 cls,W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
-
-    def _doc_html_head(self, worksheet_id, css_href):
-        if worksheet_id is not None:
-            worksheet = self.get_worksheet_with_id(worksheet_id)
-            head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
-        else:
-            head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script  type="text/javascript" src="/javascript/main.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css" id="main_css">\n'
-
-        if css_href:
-            head += '\n<link rel=stylesheet type="text/css" href=%s>\n'%(css_href)
-
-        if JSMATH:
-            head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-            #head += '<script type="text/javascript" src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
-            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
-            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-
-        #head += '<script type="text/javascript">' + js.javascript() + '</script>\n'
-        return head
-
-    def _doc_html_body(self, worksheet_id):
-        worksheet = self.get_worksheet_with_id(worksheet_id)
-        main_body = worksheet.html(authorized = True, confirm_before_leave=False)
-
-        vbar = '<span class="vbar"></span>'
-
-        body = ''
-        body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
-        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
-        body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
-        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        # body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
-        body += '  </span>\n'
-
-        #these divs appear in backwards order because they're float:right
-        body += '  <div class="hidden" id="slide_controls">\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
-        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
-        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>\n'
-        body += '    </div>\n'
-        body += '  </div>\n'
-
-        body += '</div>\n'
-        body += '\n<div class="slideshow" id="worksheet">\n'
-
-        body += main_body + '\n</div>\n'
-
-        # The blank space given by '<br>'*15  is needed so the input doesn't get
-        # stuck at the bottom of the screen. This could be replaced by a region
-        # such that clicking on it creates a new cell at the bottom of the worksheet.
-        body += '<br>'*15
-        body += '\n</div>\n'
-
-        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
-        body += '</td></tr></table></span>\n'
-
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script type="text/javascript">jsmath_init();</script>\n'
-        body += '<script type="text/javascript">worksheet_locked=false;</script>'
-
-        if worksheet.computing():
-            # Set the update checking back in motion.
-            # body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            # body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            # body += '    cell_set_running(active_cell_list[i]); \n'
-            # body += 'start_update_check(); </script>\n'
-            body += '<script type="text/javascript">sync_active_cell_list();</script>'
-        return body
 
     def _html_head(self, worksheet_id, username):
         if worksheet_id is not None:
@@ -1126,7 +1043,7 @@ Password: <input type="password" name="password" size="15" />
         body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
         body += '<br></div>'
         body +=    add_new_worksheet_menu
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
+        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet, username)
 
         if worksheet is None:
             return body + endpanespan
@@ -1410,25 +1327,6 @@ Output
             </body>
           </html>
          """%(css.css(self.color()),js.javascript())
-
-    def doc_html(self,worksheet_id, css_href):
-        try:
-            W = self.get_worksheet_with_id(worksheet_id)
-        except KeyError, msg:
-            W = self.create_new_worksheet(worksheet_id)
-            worksheet_id = W.id()
-        head = self._doc_html_head(worksheet_id, css_href)
-        body = self._doc_html_body(worksheet_id)
-        if worksheet_id is not None:
-           body += '<script type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
-
-        return """
-        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
 
     def html(self, worksheet_id=None, username=None, show_debug=False, admin=False):
         if worksheet_id is None or worksheet_id == '':

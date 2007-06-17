@@ -93,7 +93,7 @@ class DistributedSage(object):
 
     Customization:
 
-        See the $DOT_SAGE/dsage directory.
+        See the DOT\_SAGE/dsage directory.
 
     """
 

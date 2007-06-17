@@ -73,7 +73,7 @@ def doc_worksheet():
         W.clear()
         return W
     else:
-        return notebook.create_new_worksheet(name)
+        return notebook.create_new_worksheet(name, username)
 
 
 class WorksheetFile(resource.Resource):

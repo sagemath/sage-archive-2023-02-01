@@ -12,7 +12,6 @@ def user_type(avatarId):
         return 'admin'
     return 'user'
 
-
 import os
 
 from twisted.cred import portal, checkers, credentials, error as credError

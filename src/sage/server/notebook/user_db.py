@@ -1,4 +1,4 @@
-class UserDatabase(UserDict):
+class UserDatabase():
     def add_user(self, user, passwd, email):
         self[user] = UserRecord(user, passwd, email)
 

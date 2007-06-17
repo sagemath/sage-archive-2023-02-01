@@ -144,6 +144,9 @@ class Doc(resource.Resource):
 # Uploading a saved worksheet file
 ############################
 
+def redirect(url):
+    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
+
 class Upload(resource.Resource):
     def render(self, ctx):
         return http.Response(stream = notebook.upload_window())
@@ -160,8 +163,7 @@ class UploadWorksheet(resource.PostableResource):
             s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
             return http.Response(stream = s)
         os.unlink(tmp)
-        s = redirect('/ws/' + W.filename())
-        return http.Response(stream = s)
+        return http.RedirectResponse('/ws/'+W.filename())
 
 
 
@@ -207,14 +209,12 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
-def redirect(url):
-    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
 
 class FastRedirect(resource.Resource):
     def __init__(self, dest):
         self.dest = dest
     def render(self, ctx):
-        return http.Response(stream = redirect(self.dest))
+        return http.RedirectResponse(self.dest)
 
 class FastRedirectWithEffect(FastRedirect):
     def __init__(self, dest, effect):
@@ -325,8 +325,9 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
-        s = notebook.html(worksheet_id = self.name)
-        return http.Response(stream=s)
+        return http.RedirectResponse('/ws/'+self.worksheet.filename())
+
+
 
 
 ########################################################
@@ -526,7 +527,11 @@ class Worksheet(WorksheetResource, resource.Resource):
     def childFactory(self, request, op):
         notebook_save_check()
         try:
+            #MAGIC!
+            #rather than a bunch of if-else statements, we can wrap
+            #any Worksheet_... class as a subresource of a worksheet.
             R = globals()['Worksheet_%s'%op]
+            #/MAGIC!
             return R(self.name)
         except KeyError:
             return NotImplementedWorksheetOp(op)
@@ -704,8 +709,19 @@ sent to %s.</p></html>
             </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 
-# class Toplevel(resource.Resource):
 class Toplevel(resource.PostableResource):
+    def __init__(self, cookie):
+        self.cookie = cookie
+
+class AnonymousToplevel(Toplevel):
+    addSlash = True
+    child_register = RegistrationPage()
+    child_confirm = RegConfirmation()
+
+    def render(self, ctx):
+        return http.Response(stream = notebook.html_login())
+
+class UserToplevel(Toplevel):
     addSlash = True
 
     child_images = Images()
@@ -716,11 +732,6 @@ class Toplevel(resource.PostableResource):
     child_doc = Doc()
     child_upload = Upload()
     child_upload_worksheet = UploadWorksheet()
-    child_register = RegistrationPage()
-    child_confirm = RegConfirmation()
-
-    def __init__(self, cookie):
-        self.cookie = cookie
 
     def render(self, ctx):
         s = notebook.html()
@@ -734,24 +745,20 @@ class Toplevel(resource.PostableResource):
     def childFactory(self, request, name):
         print request, name
 
-class ToplevelAdmin(Toplevel):
-    """
-    This should be the Toplevel for administrators.
+class AdminToplevel(UserToplevel):
 
-    """
+    def render(self, ctx):
+        s = 'You are the admin.  Look at you!!'
+        return http.Response(responsecode.OK,
+                             {'content-type': http_headers.MimeType('text',
+                                                                    'html'),
+                             'set-cookie':[http_headers.Cookie("sid",
+                                                            self.cookie)]},
+                             stream=s)
 
-    pass
 
-class ToplevelUser(Toplevel):
-    """
-    This should be the Toplevel for regular users.
-
-    """
-
-    pass
-
-setattr(Toplevel, 'child_help.html', Help())
-setattr(Toplevel, 'child_history.html', History())
+setattr(UserToplevel, 'child_help.html', Help())
+setattr(UserToplevel, 'child_history.html', History())
 
 # site = server.Site(Toplevel())
 notebook = None  # this gets set on startup.

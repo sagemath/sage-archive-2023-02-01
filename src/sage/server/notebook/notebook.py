@@ -376,8 +376,7 @@ class Notebook(SageObject):
                  address='localhost',
                  port=8000,
                  secure=True,
-                 server_pool = [],
-                 admin = None):
+                 server_pool = []):
         self.__dir = dir
         self.__server_pool = server_pool
         self.set_system(system)
@@ -397,15 +396,21 @@ class Notebook(SageObject):
         self.__show_debug = show_debug
         self.save()
         self.__admins = []
-        if admin is not None:
-            self.__admins.append(admin)
 
-    def has_admin(self, user):
+    def user_is_admin(self, user):
         try:
             return self.__admins.contains(user)
         except AttributeError:
             self.__admins = []
             return False
+
+    def add_admin(self, user):
+        try:
+            if not self.__admins.contains(user):
+                self.__admins.append(user)
+        except AttributeError:
+            self.__admins = [user]
+
 
     def server_pool(self):
         try:
@@ -757,14 +762,14 @@ class Notebook(SageObject):
     def get_worksheets_with_collaborator(self, user):
         W = []
         for w in self.__worksheets.itervalues():
-            if w.has_collaborator(user):
+            if w.user_is_collaborator(user):
                 W.append(w)
         return W
 
     def get_worksheets_with_viewer(self, user):
         W = []
         for w in self.__worksheets.itervalues():
-            if w.has_viewer(user):
+            if w.user_is_viewer(user):
                 W.append(w)
         return W
 

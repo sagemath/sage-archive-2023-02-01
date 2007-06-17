@@ -92,24 +92,39 @@ class Worksheet:
         self.__passcrypt= True
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
         self.clear()
-        self._viewers = []
-        self._collaborators = []
+        self.__viewers = []
         if user is not None:
-            self._collaborators.append(user)
+            self.__collaborators = [user]
+        else:
+            self.__collaborators = []
 
-    def has_viewer(self, user):
+    def user_is_viewer(self, user):
         try:
             return self._viewers.contains(user) or self.has_collaborator(user)
         except AttributeError:
             self.__viewers = []
             return False
 
-    def has_collaborator(self, user):
+    def user_is_collaborator(self, user):
         try:
             return self._collaborators.contains(user)
         except AttributeError:
             self.__collaborators = []
             return False
+
+    def add_viewer(self, user):
+        try:
+            if not self.__viewers.contains(user):
+                self.__viewers.append(user)
+        except AttributeError:
+            self.__viewers = [user]
+
+    def add_collaborator(self, user):
+        try:
+            if not self.__collaborators.contains(user):
+                self.__collaborators.append(user)
+        except AttributeError:
+            self.__collaborators = [user]
 
     def clear(self):
         self.__comp_is_running = False

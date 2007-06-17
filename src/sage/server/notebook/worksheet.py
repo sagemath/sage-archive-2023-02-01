@@ -55,8 +55,8 @@ SAGE_ERROR=SC+'r'
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
-def initialized_sage():
-    S = Sage(maxread = 1, python=True)
+def initialized_sage(server):
+    S = Sage(server=server, maxread = 1, python=True)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
@@ -69,15 +69,15 @@ def initialized_sage():
 
 
 _a_sage = None
-def init_sage_prestart():
+def init_sage_prestart(server):
     global _a_sage
-    _a_sage = initialized_sage()
+    _a_sage = initialized_sage(server)
 
-def one_prestarted_sage():
+def one_prestarted_sage(server):
     global _a_sage
     X = _a_sage
     if multisession:
-        init_sage_prestart()
+        init_sage_prestart(server)
     return X
 
 class Worksheet:
@@ -394,7 +394,7 @@ class Worksheet:
                 return S
         except AttributeError:
             pass
-        self.__sage = one_prestarted_sage()
+        self.__sage = one_prestarted_sage(server=self.notebook().get_server())
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         try:
@@ -542,7 +542,12 @@ class Worksheet:
         if not os.path.exists('%s/code'%self.directory()):
             os.makedirs('%s/code'%self.directory())
         tmp = '%s/code/%s.py'%(self.directory(), id)
-        input = 'os.chdir("%s")\n'%os.path.abspath(D)
+
+        absD = os.path.abspath(D)
+        input = 'os.chdir("%s")\n'%absD
+
+        # TODOss
+        os.system('chmod -R a+rw "%s"'%absD)
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
@@ -813,7 +818,7 @@ class Worksheet:
 
         # We do this to avoid getting a stale SAGE that uses old code.
         self.clear_queue()
-        self.__sage = initialized_sage()
+        self.__sage = initialized_sage(server = self.notebook().get_server())
         self.initialize_sage()
         self._enqueue_auto_cells()
         self.start_next_comp()

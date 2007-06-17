@@ -368,19 +368,20 @@ def open_page(address, port):
     os.system(cmd)
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook', username=None,
-                 password=None, color='default', system=None,
-                 show_debug = False, log_server=False):
+    def __init__(self,
+                 dir='sage_notebook',
+                 system=None,
+                 show_debug = False,
+                 log_server=False,
+                 server_pool = []):
         self.__dir = dir
+        self.__server_pool = server_pool
         self.set_system(system)
-        self.__color = color
-        if not (username is None):
-            self.set_auth(username,password)
         self.__worksheets = {}
         self.__load_defaults()
-        self.__filename     = '%s/nb.sobj'%dir
+        self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
-        self.__object_dir   = '%s/objects'%dir
+        self.__object_dir    = '%s/objects'%dir
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
@@ -391,6 +392,27 @@ class Notebook(SageObject):
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.save()
+
+    def server_pool(self):
+        try:
+            return self.__server_pool
+        except AttributeError:
+            self.__server_pool = []
+            return []
+
+    def set_server_pool(self, servers):
+        self.__server_pool = servers
+
+    def get_server(self):
+        P = self.server_pool()
+        if len(P) == 0:
+            return None
+        try:
+            i = (self.__server_number + 1)%len(P)
+        except AttributeError:
+            self.__server_number = 0
+            i = 0
+        return P[i]
 
     def system(self):
         try:
@@ -1467,8 +1489,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, username=None, password=None, color=None, system=None,
-                  splashpage=None):
+def load_notebook(dir, server_pool=[]):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1487,18 +1508,9 @@ def load_notebook(dir, username=None, password=None, color=None, system=None,
 
         nb.delete_doc_browser_worksheets()
         nb.set_directory(dir)
-        if not (username is None):
-            nb.set_auth(username=username, password=password)
-        if not (color is None):
-            nb.set_color(color)
-        if not system is None:
-            nb.set_system(system)
-        if not splashpage is None:
-            nb.set_splashpage(splashpage)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system)
+        nb = Notebook(dir,server_pool=server_pool)
 
     return nb
 
@@ -1608,7 +1620,7 @@ def notebook(dir         ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
-
+    assert 0, "deprecated"
     import worksheet
     worksheet.init_sage_prestart()
     worksheet.multisession = multisession

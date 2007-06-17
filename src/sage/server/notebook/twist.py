@@ -695,17 +695,47 @@ def notebook_twisted(self,
              directory   = 'sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             port_tries  = 1,
+             port_tries  = 0,
              secure      = True,
-             multisession= True,
-             jsmath      = True):
+             server_pool = None):
     r"""
     Experimental twisted version of the SAGE Notebook.
+
+    INPUT:
+        directory  -- (default: 'sage_notebook') directory that contains
+                      the SAGE notebook files
+        port       -- (default: 8000), port to serve the notebook on
+        address    -- (default: 'localhost'), address to listen on
+        port_tries -- (default: 0), number of additional ports to try if the
+                      first one doesn't work (*not* implemented)
+        secure     -- (default: True) if True use https so all
+                      communication, e.g., logins and passwords,
+                      between web browsers and the SAGE notebook is
+                      encrypted (via GNU TLS).
+    ADVANCED OPTIONS:
+        server_pool -- (default: None), if given, should be a list like
+                      ['sage1@localhost', 'sage2@localhost'], where
+                      you have setup ssh keys so that typing
+                         ssh sage1@localhost
+                      logs in without requiring a password, e.g., by typing
+                      as the notebook server user
+                          cd; ssh-keygen -t rsa
+                      then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
     conf = '%s/twistedconf.py'%directory
+
+    # We load the notebook to make sure it is created with the
+    # given options, then delete it.  The notebook is later
+    # loaded by the *other* Twisted process below.
+    if not server_pool is None:
+        from sage.server.notebook.notebook import load_notebook
+        nb = load_notebook(directory, server_pool=server_pool)
+        nb.set_server_pool(server_pool)
+        nb.save()
+        del nb
 
     def run(port):
         ## Create the config file
@@ -723,13 +753,12 @@ def notebook_twisted(self,
         config = open(conf, 'w')
         config.write("""
 import sage.server.notebook.notebook
-sage.server.notebook.notebook.JSMATH=%s
+sage.server.notebook.notebook.JSMATH=True
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook('%s')
 import sage.server.notebook.worksheet as worksheet
-worksheet.init_sage_prestart()
-worksheet.multisession = %s
+worksheet.init_sage_prestart(twist.notebook.get_server())
 
 import signal, sys
 def my_sigint(x, n):
@@ -764,7 +793,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, strport))
+"""%(os.path.abspath(directory), strport))
 
 
         config.close()
@@ -776,7 +805,7 @@ s.setServiceParent(application)
             raise socket.error
 
 
-    for i in range(int(port_tries)):
+    for i in range(int(port_tries)+1):
         try:
             run(port + i)
         except socket.error:

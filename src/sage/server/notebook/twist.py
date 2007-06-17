@@ -704,8 +704,19 @@ sent to %s.</p></html>
             </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 
-# class Toplevel(resource.Resource):
 class Toplevel(resource.PostableResource):
+    def __init__(self, cookie):
+        self.cookie = cookie
+
+class AnonymousToplevel(Toplevel):
+    addSlash = True
+    child_register = RegistrationPage()
+    child_confirm = RegConfirmation()
+
+    def render(self, ctx):
+        return http.Response(stream = notebook.html_login())
+
+class UserToplevel(Toplevel):
     addSlash = True
 
     child_images = Images()
@@ -716,11 +727,6 @@ class Toplevel(resource.PostableResource):
     child_doc = Doc()
     child_upload = Upload()
     child_upload_worksheet = UploadWorksheet()
-    child_register = RegistrationPage()
-    child_confirm = RegConfirmation()
-
-    def __init__(self, cookie):
-        self.cookie = cookie
 
     def render(self, ctx):
         s = notebook.html()
@@ -734,24 +740,20 @@ class Toplevel(resource.PostableResource):
     def childFactory(self, request, name):
         print request, name
 
-class ToplevelAdmin(Toplevel):
-    """
-    This should be the Toplevel for administrators.
+class AdminToplevel(UserToplevel):
 
-    """
+    def render(self, ctx):
+        s = 'You are the admin.  Look at you!!'
+        return http.Response(responsecode.OK,
+                             {'content-type': http_headers.MimeType('text',
+                                                                    'html'),
+                             'set-cookie':[http_headers.Cookie("sid",
+                                                            self.cookie)]},
+                             stream=s)
 
-    pass
 
-class ToplevelUser(Toplevel):
-    """
-    This should be the Toplevel for regular users.
-
-    """
-
-    pass
-
-setattr(Toplevel, 'child_help.html', Help())
-setattr(Toplevel, 'child_history.html', History())
+setattr(UserToplevel, 'child_help.html', Help())
+setattr(UserToplevel, 'child_history.html', History())
 
 # site = server.Site(Toplevel())
 notebook = None  # this gets set on startup.

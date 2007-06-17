@@ -131,7 +131,7 @@ def setup_server(template=None):
         print cmd[0]
         subprocess.call(cmd, shell=True)
     else:
-        cmd = ['certtool --bits 128 --generate-privkey --outfile %s' % privkey_file]
+        cmd = ['certtool --generate-privkey --outfile %s' % privkey_file]
         print "Using certtool to generate key"
         print cmd[0]
         # cmd = ['openssl genrsa > %s' % privkey_file]

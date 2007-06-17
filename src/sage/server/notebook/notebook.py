@@ -1012,6 +1012,19 @@ class Notebook(SageObject):
 
         return head
 
+    def html_login(self):
+        return """
+        <html><body>
+<form method="POST" action="/login">
+Username: <input type="text" name="email" size="15" />
+Password: <input type="password" name="password" size="15" />
+<br />
+<div align="center">
+<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+</body>
+</html>
+"""
+
     def _html_body(self, worksheet_id, show_debug=False, worksheet_authorized=False):
         if worksheet_id is None or worksheet_id == '':
             main_body = '<div class="worksheet_title">Welcome to the SAGE Notebook</div>\n'
@@ -1027,15 +1040,6 @@ class Notebook(SageObject):
             interrupt_class = "interrupt_grey"
             worksheet = None
         else:
-            if not worksheet_authorized:
-                return """
-<form method="POST" action="https://localhost:8000/login">
-Username: <input type="text" name="email" size="15" />
-Password: <input type="password" name="password" size="15" />
-<br />
-<div align="center">
-<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
-"""
 
             worksheet = self.get_worksheet_with_id(worksheet_id)
             if worksheet.computing():

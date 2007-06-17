@@ -1,0 +1,22 @@
+"""
+Helper functions dealing with the verification of user
+"""
+
+
+def build_msg(key, username, addr, port, secure):
+    url_prefix = "https" if secure else "http"
+    s  = "Hi %s!\n\n" % username
+    s += """\
+Thank you for registering for the SAGE notebook. To complete your registration,
+copy and paste the following link into your browser:
+
+%s://%s:%s/confirm?key=%s
+
+You will be taken to a page which will confirm that you have indeed
+registered.""" % (url_prefix, addr, port, key)
+    return s
+
+def make_key():
+    from random import randint
+    key = randint(0,2**128-1)
+    return key

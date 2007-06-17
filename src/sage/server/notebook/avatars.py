@@ -106,14 +106,14 @@ class LoginSystem(object):
         on the avatarId, (i.e. different permissions / view depending on
         if the user is anonymous, regular, or an admin)
         """
-        from sage.server.notebook.twist import Toplevel
+        from sage.server.notebook.twist import Toplevel, AnonymousToplevel
         log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             if avatarId is checkers.ANONYMOUS: #anonymous user
                 log.msg("returning AnonymousResources")
                 # rsrc = resources.AnonymousRoot(self.cookie, self.dbConnection)
-                rsrc = Toplevel(self.cookie)
+                rsrc = AnonymousToplevel()
                 return (iweb.IResource, rsrc, self.logout)
             elif '@' in avatarId: #'@' in avatarId == some email address
                 log.msg("returning RegularResources for %s" % avatarId)
@@ -142,7 +142,7 @@ class LoginSystem(object):
                 #     return d.addCallback(self.getUserResource)
                 # rsrc = resources.Root(avatarId, self.cookie, None, self.dbConnection)
                 else:
-                    rsrc = Toplevel(self.cookie)
+                    rsrc = AnonymousToplevel()
                 return (iweb.IResource, rsrc, self.logout)
             else:
                 rsrc = Toplevel(self.cookie)

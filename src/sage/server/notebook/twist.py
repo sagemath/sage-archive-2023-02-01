@@ -596,6 +596,24 @@ class RegistrationPage(resource.PostableResource):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None :
                 s = """%s""" % request.args['email'][0]
+            from twisted.protocols import smtp
+            from twisted.internet import reactor, defer
+            from email.MIMEBase import MIMEBase
+            from email.MIMEMultipart import MIMEMultipart
+            from email import Encoders
+            import sys, mimetypes, os
+            from sage.server.notebook.smtpsend import buildMessage
+            from sage.server.notebook.smtpsend import handleError
+            from sage.server.notebook.smtpsend import sendComplete
+            fromaddr = 'sage@sagemath.org'
+            toaddr = 'yqiang@gmail.com'
+            message = buildMessage('sage@sagemath.org', 'yqiang@gmail.com',
+                                   'foo', 'woot', [])
+            messageData = message.as_string(unixfrom=False)
+            smtp_server = "gmail-smtp-in.l.google.com"
+            sending = smtp.sendmail(smtp_server, fromaddr, [toaddr],
+                                    messageData)
+            sending.addCallback(sendComplete).addErrback(handleError)
         else:
             s = """<html><h1>This is the registration page.</h1>
             <form method="POST" action="https://localhost:8000/register">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
@@ -628,6 +646,16 @@ class Toplevel(resource.PostableResource):
 
     def childFactory(self, request, name):
         print request, name
+
+class AnonymousToplevel(resource.Resource):
+    addSlash = True
+
+    child_register = RegistrationPage()
+    # child_pub = PublicWorksheets()
+
+    def render(self, request):
+        s = '<html>Anonymous user page, only allowed to hit /register and /login</html>'
+        return http.Response(stream=s)
 
 class ToplevelAdmin(Toplevel):
     """
@@ -737,7 +765,7 @@ import sage.server.notebook.avatars as avatars
 
 from twisted.cred import portal
 
-password_file = 'passwords.txt'
+password_file = '%s'
 realm = avatars.LoginSystem(password_file)
 p = portal.Portal(realm)
 # p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))
@@ -754,8 +782,8 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession, strport))
-
+"""%(jsmath, os.path.abspath(directory), multisession,
+os.path.join(os.path.abspath(directory), 'passwords.txt'), strport))
 
         config.close()
 

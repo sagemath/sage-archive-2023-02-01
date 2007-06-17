@@ -5,6 +5,13 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
+def user_type(avatarId):
+    if avatarId == 'was':
+        return 'admin'
+    return 'user'
+
+
+
 import os
 
 from twisted.cred import portal, checkers, credentials, error as credError
@@ -81,13 +88,15 @@ class PasswordFileChecker(PasswordDictChecker):
         if not os.path.exists(password_file):
             open(password_file,'w').close()
         f = open(password_file).readlines()
-        passwords = {}
+        passwords = {'a':'a', 'was':'a'}
         for line in f:
             username, password = line.split(':')
             password = password.strip()
             passwords[username] = password
 
         self.passwords = passwords
+
+
 
 class LoginSystem(object):
     implements(portal.IRealm)
@@ -110,47 +119,31 @@ class LoginSystem(object):
         on the avatarId, (i.e. different permissions / view depending on
         if the user is anonymous, regular, or an admin)
         """
-        from sage.server.notebook.twist import Toplevel
+        from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
         log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             if avatarId is checkers.ANONYMOUS: #anonymous user
+
                 log.msg("returning AnonymousResources")
-                # rsrc = resources.AnonymousRoot(self.cookie, self.dbConnection)
-                rsrc = Toplevel(self.cookie)
+                rsrc = AnonymousToplevel(self.cookie)
                 return (iweb.IResource, rsrc, self.logout)
-            elif '@' in avatarId: #'@' in avatarId == some email address
-                log.msg("returning RegularResources for %s" % avatarId)
+
+            elif user_type(avatarId) == 'user':
+
+                log.msg("returning User resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
-                print mind[2]
-                if avatarId == 'yqiang@gmail.com':
-                    from twisted.web2 import resource
-                    from twisted.web2 import http
-                    class SageRocks(resource.PostableResource):
-                        def render(self, ctx):
-                            s = '<html><h1>SAGE For President 2008</h1></html>'
-                            return http.Response(stream=s)
-                    rsrc = SageRocks()
+                rsrc = UserToplevel(self.cookie)
+                return (iweb.IResource, rsrc, self.logout)
 
-                # if ('eval' or 'completer') in mind[2]:
-                # if ('completer' in mind[2]) or ('eval' in mind[2]):
-                #     self.nbid = mind[1]['nbid'][0]
-                #     if self.nbid in self.kernels:
-                #         kernelConnection = self.kernels[self.nbid]
-                #         print kernelConnection
-                #         rsrc = resources.Root(self._avatarId, self.cookie, kernelConnection, self.dbConnection)
-                #         return (iweb.IResource, rsrc, self.logout)
-                #     query = "SELECT kernel FROM notebooks WHERE notebookId = ?"
-                #     d = self.dbConnection.runQuery(query, (self.nbid,))
-                #     return d.addCallback(self.getUserResource)
-                # rsrc = resources.Root(avatarId, self.cookie, None, self.dbConnection)
-                else:
-                    rsrc = Toplevel(self.cookie)
+            elif user_type(avatarId) == 'admin':
+
+                self._mind = mind #mind = [cookie, request.args, segments]
+                self._avatarId = avatarId
+                rsrc = AdminToplevel(self.cookie)
                 return (iweb.IResource, rsrc, self.logout)
-            else:
-                rsrc = Toplevel(self.cookie)
-                return (iweb.IResource, rsrc, self.logout)
+
         else:
             raise KeyError("None of the requested interfaces is supported")
 

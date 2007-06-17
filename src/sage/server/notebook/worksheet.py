@@ -56,7 +56,7 @@ SAGE_ERROR=SC+'r'
 # in notebook.py is called.
 multisession = True
 def initialized_sage():
-    S = Sage(maxread = 1)
+    S = Sage(maxread = 1, python=True)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')

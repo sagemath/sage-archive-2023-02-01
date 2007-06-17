@@ -92,7 +92,7 @@ class WorksheetFile(resource.Resource):
             css_href = DOC + directory + css_href
         W = doc_worksheet()
         W.edit_save(doc_page)
-        s = notebook.html(worksheet_id = W.name())
+        s = notebook.html(worksheet_id = W.name(),  username=username)
         return http.Response(stream=s)
 
     def childFactory(self, request, name):
@@ -265,7 +265,7 @@ def Worksheet_delete(name):
 
 def Worksheet_create(name):
     def do_create():
-        notebook.create_new_worksheet(name)
+        notebook.create_new_worksheet(name, username)
     return YesNo('Do you want to create the worksheet "%s"?'%name,
                  '.', '/', yes_effect=do_create)
 
@@ -520,7 +520,7 @@ class Worksheet(WorksheetResource, resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        s = notebook.html(worksheet_id = self.name)
+        s = notebook.html(worksheet_id = self.name,  username=username)
         self.worksheet.sage()
         return http.Response(stream=s)
 
@@ -710,9 +710,10 @@ sent to %s.</p></html>
         return http.Response(stream=s)
 
 class Toplevel(resource.PostableResource):
-    def __init__(self, cookie, username):
+    def __init__(self, cookie, _username):
         self.cookie = cookie
-        self.username = username
+        global username
+        username = _username
 
 class AnonymousToplevel(Toplevel):
     addSlash = True
@@ -735,7 +736,7 @@ class UserToplevel(Toplevel):
     child_upload_worksheet = UploadWorksheet()
 
     def render(self, ctx):
-        s = notebook.html(username=self.username)
+        s = notebook.html(username=username)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -749,7 +750,7 @@ class UserToplevel(Toplevel):
 class AdminToplevel(UserToplevel):
 
     def render(self, ctx):
-        s = notebook.html(username=self.username, admin=True)
+        s = notebook.html(username=username, admin=True)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -761,8 +762,9 @@ class AdminToplevel(UserToplevel):
 setattr(UserToplevel, 'child_help.html', Help())
 setattr(UserToplevel, 'child_history.html', History())
 
-# site = server.Site(Toplevel())
 notebook = None  # this gets set on startup.
+
+username = None  # This is set when a request comes in.
 
 ##########################################################
 # This actually serves up the notebook.

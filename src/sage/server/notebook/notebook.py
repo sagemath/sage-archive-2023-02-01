@@ -401,14 +401,14 @@ class Notebook(SageObject):
         # todo -- make
         return user == 'admin'
         try:
-            return self.__admins.contains(user)
+            return user in self.__admins
         except AttributeError:
             self.__admins = []
             return False
 
     def add_admin(self, user):
         try:
-            if not self.__admins.contains(user):
+            if not user in self.__admins:
                 self.__admins.append(user)
         except AttributeError:
             self.__admins = [user]
@@ -705,11 +705,10 @@ class Notebook(SageObject):
     def worksheet_ids(self):
         return set([W.id() for W in self.__worksheets.itervalues()])
 
-    def create_new_worksheet(self, name='untitled', passcode=''):
-        if name in self.__worksheets.keys():
-            return self.__worksheets[name]
-        name = str(name)
-        passcode = str(passcode)
+    def create_new_worksheet(self, worksheet_name, username):
+        if worksheet_name in self.__worksheets.keys():
+            raise ValueError, "worksheet already exists."
+        worksheet_name = str(worksheet_name)
         wids = self.worksheet_ids()
         id = 0
         while id in wids:
@@ -718,8 +717,9 @@ class Notebook(SageObject):
         if id >= MAX_WORKSHEETS:
             raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
         self.__next_worksheet_id += 1
-        W = worksheet.Worksheet(name, self, id, system=self.system(), passcode=passcode)
-        self.__worksheets[name] = W
+
+        W = worksheet.Worksheet(worksheet_name, self, id, system=self.system(), user=username)
+        self.__worksheets[worksheet_name] = W
         return W
 
     def delete_worksheet(self, name):
@@ -902,8 +902,9 @@ class Notebook(SageObject):
                 self.delete_worksheet(n)
 
     def worksheet_list_html(self, current_worksheet, username):
+        print current_worksheet, username
         s = []
-        names = self.worksheet_names()
+        names = self.get_worksheet_names_with_viewer(username)
         m = max([len(x) for x in names] + [30])
         for n in names:
             if n.startswith('doc_browser'): continue
@@ -976,7 +977,7 @@ Password: <input type="password" name="password" size="15" />
                 interrupt_class = "interrupt"
             else:
                 interrupt_class = "interrupt_grey"
-            main_body = worksheet.html(authorized = worksheet_authorized)
+            main_body = worksheet.html()
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -1062,10 +1063,10 @@ Password: <input type="password" name="password" size="15" />
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
-        if worksheet_authorized:
-            body += '<script type="text/javascript">worksheet_locked=false;</script>'
-        else:
+        if worksheet.user_is_only_viewer(username):
             body += '<script type="text/javascript">worksheet_locked=true;</script>'
+        else:
+            body += '<script type="text/javascript">worksheet_locked=false;</script>'
 
         if worksheet.computing():
             # Set the update checking back in motion.

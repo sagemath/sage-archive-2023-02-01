@@ -124,7 +124,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _neg_c_impl(self):
         return self.polynomial([-x for x in self.list()])
 
-    def plot(self, xmin=0, xmax=1, *args, **kwds):
+    def plot(self, xmin=None, xmax=None, *args, **kwds):
         """
         Return a plot of this polynomial.
 

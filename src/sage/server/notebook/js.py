@@ -1226,12 +1226,12 @@ function text_cursor_split(input) {
 }
 
 function worksheet_command(cmd) {
-    return cmd;
+    return ('/ws/' + worksheet_name + '/' + cmd);
 }
 
 function evaluate_cell(id, action) {
     if(worksheet_locked) {
-        alert("This worksheet is locked.  Click on the word [locked] next to the worksheet name to unlock it.")
+        alert("This worksheet is read only.  Please make a copy or contact the owner to change it.")
         return;
     }
 

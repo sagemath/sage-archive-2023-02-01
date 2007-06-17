@@ -368,19 +368,23 @@ def open_page(address, port):
     os.system(cmd)
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook', username=None,
-                 password=None, color='default', system=None,
-                 show_debug = False, log_server=False):
+    def __init__(self,
+                 dir='sage_notebook',
+                 system=None,
+                 show_debug = False,
+                 log_server=False,
+                 address='localhost',
+                 port=8000,
+                 secure=True,
+                 server_pool = []):
         self.__dir = dir
+        self.__server_pool = server_pool
         self.set_system(system)
-        self.__color = color
-        if not (username is None):
-            self.set_auth(username,password)
         self.__worksheets = {}
         self.__load_defaults()
-        self.__filename     = '%s/nb.sobj'%dir
+        self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
-        self.__object_dir   = '%s/objects'%dir
+        self.__object_dir    = '%s/objects'%dir
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
@@ -391,6 +395,45 @@ class Notebook(SageObject):
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.save()
+        self.__admins = []
+
+    def user_is_admin(self, user):
+        # todo -- make
+        return user == 'admin'
+        try:
+            return user in self.__admins
+        except AttributeError:
+            self.__admins = []
+            return False
+
+    def add_admin(self, user):
+        try:
+            if not user in self.__admins:
+                self.__admins.append(user)
+        except AttributeError:
+            self.__admins = [user]
+
+
+    def server_pool(self):
+        try:
+            return self.__server_pool
+        except AttributeError:
+            self.__server_pool = []
+            return []
+
+    def set_server_pool(self, servers):
+        self.__server_pool = servers
+
+    def get_server(self):
+        P = self.server_pool()
+        if len(P) == 0:
+            return None
+        try:
+            i = (self.__server_number + 1)%len(P)
+        except AttributeError:
+            self.__server_number = 0
+            i = 0
+        return P[i]
 
     def system(self):
         try:
@@ -505,6 +548,13 @@ class Notebook(SageObject):
         return d
 
     def import_worksheet(self, filename):
+        # TODO -- this is broken -- it does *not* work if you
+        # upload a worksheet with the same name as an existing worksheet,
+        # though somebody thinks they wrote it to do that.
+        # The problem is that changing the worksheet name is not
+        # enough -- one must also change the worksheet id.
+        # One should get rid of the id stuff, maybe.  For now,
+        # we raise an error if the worksheet name is already used.
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
         if filename[-4:] != '.sws':
@@ -520,6 +570,7 @@ class Notebook(SageObject):
         worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
         names = self.worksheet_names()
         if D in names:
+            raise ValueError, "Worksheet with given name already defined."
             m = re.match('.*?([0-9]+)$',D)
             if m is None:
                 n = 0
@@ -654,11 +705,10 @@ class Notebook(SageObject):
     def worksheet_ids(self):
         return set([W.id() for W in self.__worksheets.itervalues()])
 
-    def create_new_worksheet(self, name='untitled', passcode=''):
-        if name in self.__worksheets.keys():
-            return self.__worksheets[name]
-        name = str(name)
-        passcode = str(passcode)
+    def create_new_worksheet(self, worksheet_name, username):
+        if worksheet_name in self.__worksheets.keys():
+            raise ValueError, "worksheet already exists."
+        worksheet_name = str(worksheet_name)
         wids = self.worksheet_ids()
         id = 0
         while id in wids:
@@ -667,8 +717,9 @@ class Notebook(SageObject):
         if id >= MAX_WORKSHEETS:
             raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
         self.__next_worksheet_id += 1
-        W = worksheet.Worksheet(name, self, id, system=self.system(), passcode=passcode)
-        self.__worksheets[name] = W
+
+        W = worksheet.Worksheet(worksheet_name, self, id, system=self.system(), user=username)
+        self.__worksheets[worksheet_name] = W
         return W
 
     def delete_worksheet(self, name):
@@ -709,6 +760,26 @@ class Notebook(SageObject):
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
         s += '\n</body>\n'
         return s
+
+    def get_worksheets_with_collaborator(self, user):
+        W = []
+        for w in self.__worksheets.itervalues():
+            if w.user_is_collaborator(user):
+                W.append(w)
+        return W
+
+    def get_worksheet_names_with_collaborator(self, user):
+        return [W.name() for W in self.get_worksheets_with_collaborator(user)]
+
+    def get_worksheets_with_viewer(self, user):
+        W = []
+        for w in self.__worksheets.itervalues():
+            if w.user_is_viewer(user):
+                W.append(w)
+        return W
+
+    def get_worksheet_names_with_viewer(self, user):
+        return [W.name() for W in self.get_worksheets_with_viewer(user)]
 
     def get_worksheet_with_name(self, name):
         return self.__worksheets[name]
@@ -830,9 +901,10 @@ class Notebook(SageObject):
             if n.startswith('doc_browser'):
                 self.delete_worksheet(n)
 
-    def worksheet_list_html(self, current_worksheet=None):
+    def worksheet_list_html(self, current_worksheet, username):
+        print current_worksheet, username
         s = []
-        names = self.worksheet_names()
+        names = self.get_worksheet_names_with_viewer(username)
         m = max([len(x) for x in names] + [30])
         for n in names:
             if n.startswith('doc_browser'): continue
@@ -851,90 +923,7 @@ class Notebook(SageObject):
             s.append(txt)
         return '<br>'.join(s)
 
-    def _doc_html_head(self, worksheet_id, css_href):
-        if worksheet_id is not None:
-            worksheet = self.get_worksheet_with_id(worksheet_id)
-            head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
-        else:
-            head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script  type="text/javascript" src="/javascript/main.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/css/main.css" type="text/css" id="main_css">\n'
-
-        if css_href:
-            head += '\n<link rel=stylesheet type="text/css" href=%s>\n'%(css_href)
-
-        if JSMATH:
-            head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-            #head += '<script type="text/javascript" src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
-            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
-            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-
-        #head += '<script type="text/javascript">' + js.javascript() + '</script>\n'
-        return head
-
-    def _doc_html_body(self, worksheet_id):
-        worksheet = self.get_worksheet_with_id(worksheet_id)
-        main_body = worksheet.html(authorized = True, confirm_before_leave=False)
-
-        vbar = '<span class="vbar"></span>'
-
-        body = ''
-        body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
-        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
-        body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
-        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        # body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
-        body += '  </span>\n'
-
-        #these divs appear in backwards order because they're float:right
-        body += '  <div class="hidden" id="slide_controls">\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
-        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
-        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>\n'
-        body += '    </div>\n'
-        body += '  </div>\n'
-
-        body += '</div>\n'
-        body += '\n<div class="slideshow" id="worksheet">\n'
-
-        body += main_body + '\n</div>\n'
-
-        # The blank space given by '<br>'*15  is needed so the input doesn't get
-        # stuck at the bottom of the screen. This could be replaced by a region
-        # such that clicking on it creates a new cell at the bottom of the worksheet.
-        body += '<br>'*15
-        body += '\n</div>\n'
-
-        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
-        body += '</td></tr></table></span>\n'
-
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script type="text/javascript">jsmath_init();</script>\n'
-        body += '<script type="text/javascript">worksheet_locked=false;</script>'
-
-        if worksheet.computing():
-            # Set the update checking back in motion.
-            # body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            # body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            # body += '    cell_set_running(active_cell_list[i]); \n'
-            # body += 'start_update_check(); </script>\n'
-            body += '<script type="text/javascript">sync_active_cell_list();</script>'
-        return body
-
-    def _html_head(self, worksheet_id):
+    def _html_head(self, worksheet_id, username):
         if worksheet_id is not None:
             worksheet = self.get_worksheet_with_id(worksheet_id)
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
@@ -954,9 +943,22 @@ class Notebook(SageObject):
 
         return head
 
-    def _html_body(self, worksheet_id, show_debug=False, worksheet_authorized=False):
+    def html_login(self):
+        return """
+        <html><body>
+<form method="POST" action="/login">
+Username: <input type="text" name="email" size="15" />
+Password: <input type="password" name="password" size="15" />
+<br />
+<div align="center">
+<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+</body>
+</html>
+"""
+
+    def _html_body(self, worksheet_id, show_debug=False, username=''):
         if worksheet_id is None or worksheet_id == '':
-            main_body = '<div class="worksheet_title">Welcome to the SAGE Notebook</div>\n'
+            main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
             if os.path.isfile(self.directory() + "/index.html"):
                 splash_file = open(self.directory() + "/index.html")
                 main_body+= splash_file.read()
@@ -969,12 +971,13 @@ class Notebook(SageObject):
             interrupt_class = "interrupt_grey"
             worksheet = None
         else:
+
             worksheet = self.get_worksheet_with_id(worksheet_id)
             if worksheet.computing():
                 interrupt_class = "interrupt"
             else:
                 interrupt_class = "interrupt_grey"
-            main_body = worksheet.html(authorized = worksheet_authorized)
+            main_body = worksheet.html()
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -1002,11 +1005,10 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += """<form method="POST" action="https://localhost:8000/login">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Login" /></p>  </div> </form><br /><br />"""
         body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc">Documentation</a>' + vbar
-        body += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>'
+        body += '     <a href="/upload" class="upload_worksheet">Upload</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -1053,7 +1055,7 @@ class Notebook(SageObject):
         body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
         body += '<br></div>'
         body +=    add_new_worksheet_menu
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
+        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet, username)
 
         if worksheet is None:
             return body + endpanespan
@@ -1061,10 +1063,10 @@ class Notebook(SageObject):
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
-        if worksheet_authorized:
-            body += '<script type="text/javascript">worksheet_locked=false;</script>'
-        else:
+        if worksheet.user_is_only_viewer(username):
             body += '<script type="text/javascript">worksheet_locked=true;</script>'
+        else:
+            body += '<script type="text/javascript">worksheet_locked=false;</script>'
 
         if worksheet.computing():
             # Set the update checking back in motion.
@@ -1338,27 +1340,7 @@ Output
           </html>
          """%(css.css(self.color()),js.javascript())
 
-    def doc_html(self,worksheet_id, css_href):
-        try:
-            W = self.get_worksheet_with_id(worksheet_id)
-        except KeyError, msg:
-            W = self.create_new_worksheet(worksheet_id)
-            worksheet_id = W.id()
-        head = self._doc_html_head(worksheet_id, css_href)
-        body = self._doc_html_body(worksheet_id)
-        if worksheet_id is not None:
-           body += '<script type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
-
-        return """
-        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
-
-    def html(self, worksheet_id=None, authorized=True,
-                   show_debug=False, worksheet_authorized=True):
+    def html(self, worksheet_id=None, username=None, show_debug=False, admin=False):
         if worksheet_id is None or worksheet_id == '':
             worksheet_id = None
             W = None
@@ -1369,14 +1351,8 @@ Output
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
-        if authorized:
-            body = self._html_body(worksheet_id, show_debug=show_debug,
-                                   worksheet_authorized=worksheet_authorized)
-        else:
-            body = self._html_authorize()
-
-
-        head = self._html_head(worksheet_id)
+        head = self._html_head(worksheet_id=worksheet_id, username=username)
+        body = self._html_body(worksheet_id=worksheet_id, username=username, show_debug=show_debug)
 
         if worksheet_id is not None:
             head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
@@ -1450,8 +1426,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, username=None, password=None, color=None, system=None,
-                  splashpage=None):
+def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1470,19 +1445,13 @@ def load_notebook(dir, username=None, password=None, color=None, system=None,
 
         nb.delete_doc_browser_worksheets()
         nb.set_directory(dir)
-        if not (username is None):
-            nb.set_auth(username=username, password=password)
-        if not (color is None):
-            nb.set_color(color)
-        if not system is None:
-            nb.set_system(system)
-        if not splashpage is None:
-            nb.set_splashpage(splashpage)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system)
+        nb = Notebook(dir,server_pool=server_pool)
 
+    nb.address = address
+    nb.port = port
+    nb.secure = secure
     return nb
 
 ## IMPORTANT!!! If you add any new input variable to notebook,
@@ -1591,7 +1560,7 @@ def notebook(dir         ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
-
+    assert 0, "deprecated"
     import worksheet
     worksheet.init_sage_prestart()
     worksheet.multisession = multisession

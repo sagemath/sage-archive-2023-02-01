@@ -16,6 +16,13 @@ image_path      = p(SAGE_EXTCODE, "notebook/images")
 javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
 conf_path       = p(DOT_SAGE, 'notebook')
 
+# the list of users waiting to register
+waiting = {}
+
+# the user database
+from user_db import UserDatabase
+users = UserDatabase()
+
 _cols = None
 def word_wrap_cols():
     global _cols
@@ -66,7 +73,7 @@ def doc_worksheet():
         W.clear()
         return W
     else:
-        return notebook.create_new_worksheet(name)
+        return notebook.create_new_worksheet(name, username)
 
 
 class WorksheetFile(resource.Resource):
@@ -85,7 +92,7 @@ class WorksheetFile(resource.Resource):
             css_href = DOC + directory + css_href
         W = doc_worksheet()
         W.edit_save(doc_page)
-        s = notebook.html(worksheet_id = W.name())
+        s = notebook.html(worksheet_id = W.name(),  username=username)
         return http.Response(stream=s)
 
     def childFactory(self, request, name):
@@ -127,11 +134,37 @@ class Doc(resource.Resource):
         <h1><font color="darkred">SAGE Documentation</font></h1>
         <br><br><br>
         <font size=+3>
-        <a href="static">Static Documentation</a><br><br>
-        <a href="live">Interactive Live Documentation</a><br>
+        <a href="static/">Static Documentation</a><br><br>
+        <a href="live/">Interactive Live Documentation</a><br>
         </font>
         """
         return http.Response(stream=s)
+
+############################
+# Uploading a saved worksheet file
+############################
+
+def redirect(url):
+    return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
+
+class Upload(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream = notebook.upload_window())
+
+class UploadWorksheet(resource.PostableResource):
+    def render(self, ctx):
+        tmp = '%s/tmp.sws'%notebook.directory()
+        f = file(tmp,'wb')
+        f.write(ctx.files['fileField'][0][2].read())
+        f.close()
+        try:
+            W = notebook.import_worksheet(tmp)
+        except ValueError, msg:
+            s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
+            return http.Response(stream = s)
+        os.unlink(tmp)
+        return http.RedirectResponse('/ws/'+W.filename())
+
 
 
 ############################
@@ -176,12 +209,12 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
+
 class FastRedirect(resource.Resource):
     def __init__(self, dest):
         self.dest = dest
     def render(self, ctx):
-        s = '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%self.dest
-        return http.Response(stream = s)
+        return http.RedirectResponse(self.dest)
 
 class FastRedirectWithEffect(FastRedirect):
     def __init__(self, dest, effect):
@@ -232,7 +265,7 @@ def Worksheet_delete(name):
 
 def Worksheet_create(name):
     def do_create():
-        notebook.create_new_worksheet(name)
+        notebook.create_new_worksheet(name, username)
     return YesNo('Do you want to create the worksheet "%s"?'%name,
                  '.', '/', yes_effect=do_create)
 
@@ -292,8 +325,9 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
-        s = notebook.html(worksheet_id = self.name)
-        return http.Response(stream=s)
+        return http.RedirectResponse('/ws/'+self.worksheet.filename())
+
+
 
 
 ########################################################
@@ -439,6 +473,17 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
+class Worksheet_download(WorksheetResource, resource.Resource):
+    def childFactory(self, request, name):
+        worksheet_name = self.name
+        try:
+            notebook.export_worksheet(worksheet_name, worksheet_name)
+        except KeyError:
+            return http.Response(stream='No such worksheet.')
+
+        binfile = '%s/%s.sws'%(notebook.directory(), worksheet_name)
+        return static.File(binfile)
+
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)
@@ -475,14 +520,18 @@ class Worksheet(WorksheetResource, resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        s = notebook.html(worksheet_id = self.name)
+        s = notebook.html(worksheet_id = self.name,  username=username)
         self.worksheet.sage()
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
         notebook_save_check()
         try:
+            #MAGIC!
+            #rather than a bunch of if-else statements, we can wrap
+            #any Worksheet_... class as a subresource of a worksheet.
             R = globals()['Worksheet_%s'%op]
+            #/MAGIC!
             return R(self.name)
         except KeyError:
             return NotImplementedWorksheetOp(op)
@@ -587,41 +636,94 @@ class Images(resource.Resource):
     def childFactory(self, request, name):
         return static.File(image_path + "/" + name)
 
-###########################
+#####################################
+# Confirmation of registration
+####################################
+class RegConfirmation(resource.Resource):
+    def render(self, request):
+        key = request.args['key'][0]
+        global notebook
+        url_prefix = "https" if notebook.secure else "http"
+        invalid_confirm_key = """\
+<html>
+<h1>Invalid confirmation key</h1>
+<p>You are reporting a confirmation key that has not been assigned by this
+server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
+</html>""" % (url_prefix, notebook.address, notebook.port)
+        key = int(key)
+        global waiting
+        try:
+            username = waiting[key]
+        except KeyError:
+            return http.Response(stream=invalid_confirm_key)
+        success = """\
+<html>
+<h1>Hello, %s. Thank you for registering!</h1>
+</html>""" % username
+        del waiting[key]
+        return http.Response(stream=success)
+
+############################
 # Registration page
 ############################
 
 class RegistrationPage(resource.PostableResource):
+    # TODO: IMPORTANT -- figure out how to get a handle on the database here; we
+    # want to throw an error when a user tries to register a name that already
+    # exists
     def render(self, request):
         if request.args.has_key('email'):
-            if request.args['email'][0] is not None :
-                s = """%s""" % request.args['email'][0]
-            from twisted.protocols import smtp
-            from twisted.internet import reactor, defer
-            from email.MIMEBase import MIMEBase
-            from email.MIMEMultipart import MIMEMultipart
-            from email import Encoders
-            import sys, mimetypes, os
-            from sage.server.notebook.smtpsend import buildMessage
-            from sage.server.notebook.smtpsend import handleError
-            from sage.server.notebook.smtpsend import sendComplete
-            fromaddr = 'sage@sagemath.org'
-            toaddr = 'yqiang@gmail.com'
-            message = buildMessage('sage@sagemath.org', 'yqiang@gmail.com',
-                                   'foo', 'woot', [])
-            messageData = message.as_string(unixfrom=False)
-            smtp_server = "gmail-smtp-in.l.google.com"
-            sending = smtp.sendmail(smtp_server, fromaddr, [toaddr],
-                                    messageData)
-            sending.addCallback(sendComplete).addErrback(handleError)
+            if request.args['email'][0] is not None:
+                user = request.args['username'][0]
+                passwd  = request.args['password'][0]
+                destaddr = """%s""" % request.args['email'][0]
+                from sage.server.notebook.smtpsend import send_mail
+                from sage.server.notebook.register import make_key, build_msg
+                # TODO: make this come from the server settings
+                key = make_key()
+                listenaddr = notebook.address
+                port = notebook.port
+                fromaddr = 'no-reply@%s' % listenaddr
+                body = build_msg(key, user, listenaddr, port, notebook.secure)
+
+                # Send a confirmation message to the user.
+                send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
+
+                # Store in memory that we are waiting for the user to respond
+                # to their invitation to join the SAGE notebook.
+                waiting[key] = user
+
+            # now say that the user has been registered.
+            s = """\
+<html><h1>Registration information received</h1>
+<p>Thank you for registering with the SAGE notebook.  A confirmation message will be
+sent to %s.</p></html>
+"""%destaddr
         else:
+            url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1>This is the registration page.</h1>
-            <form method="POST" action="https://localhost:8000/register">  Username: <input type="text" name="email" size="15" />  Password: <input type="password" name="password" size="15" /><br />  <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
-            </html>"""
+            <form method="POST" action="%s://%s:%s/register"
+            Username: <input type="text" name="username" size="15" />  Password:
+                <input type="password" name="password" size="15" /><br /> Email
+                Address: <input type="text" name="email" size="15" /><br /> <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
+            </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 
-# class Toplevel(resource.Resource):
 class Toplevel(resource.PostableResource):
+    def __init__(self, cookie, _username):
+        self.cookie = cookie
+        global username
+        username = _username
+
+class AnonymousToplevel(Toplevel):
+    addSlash = True
+    child_register = RegistrationPage()
+    child_confirm = RegConfirmation()
+
+    def render(self, ctx):
+        return http.Response(stream = notebook.html_login())
+
+class UserToplevel(Toplevel):
     addSlash = True
 
     child_images = Images()
@@ -630,13 +732,11 @@ class Toplevel(resource.PostableResource):
     child_ws = Worksheets()
     child_notebook = Notebook()
     child_doc = Doc()
-    child_register = RegistrationPage()
-
-    def __init__(self, cookie):
-        self.cookie = cookie
+    child_upload = Upload()
+    child_upload_worksheet = UploadWorksheet()
 
     def render(self, ctx):
-        s = notebook.html()
+        s = notebook.html(username=username)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -647,42 +747,24 @@ class Toplevel(resource.PostableResource):
     def childFactory(self, request, name):
         print request, name
 
-class AnonymousToplevel(resource.Resource):
-    addSlash = True
+class AdminToplevel(UserToplevel):
 
-    child_register = RegistrationPage()
-    # child_pub = PublicWorksheets()
+    def render(self, ctx):
+        s = notebook.html(username=username, admin=True)
+        return http.Response(responsecode.OK,
+                             {'content-type': http_headers.MimeType('text',
+                                                                    'html'),
+                             'set-cookie':[http_headers.Cookie("sid",
+                                                            self.cookie)]},
+                             stream=s)
 
-    def render(self, request):
-        s = '<html>Anonymous user page, only allowed to hit /register and /login</html>'
-        return http.Response(stream=s)
 
-class ToplevelAdmin(Toplevel):
-    """
-    This should be the Toplevel for administrators.
+setattr(UserToplevel, 'child_help.html', Help())
+setattr(UserToplevel, 'child_history.html', History())
 
-    """
-
-    pass
-
-class ToplevelUser(Toplevel):
-    """
-    This should be the Toplevel for regular users.
-
-    """
-
-    pass
-
-setattr(Toplevel, 'child_help.html', Help())
-setattr(Toplevel, 'child_history.html', History())
-
-# site = server.Site(Toplevel())
 notebook = None  # this gets set on startup.
 
-
-
-
-
+username = None  # This is set when a request comes in.
 
 ##########################################################
 # This actually serves up the notebook.
@@ -702,7 +784,7 @@ def notebook_setup(self=None):
     if not os.path.exists(dsage + '/cacert.pem'):
         import sage.dsage.all
         sage.dsage.all.dsage.setup()
-    if not os.path.exists(dsage + '/cacert.pem'):
+    if not os.path.exists(dsage + '/pubcert.pem'):
         print "Error configuring."
         return
     shutil.copyfile(dsage + '/cacert.pem', private_pem)
@@ -713,17 +795,47 @@ def notebook_twisted(self,
              directory   = 'sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             port_tries  = 1,
+             port_tries  = 0,
              secure      = True,
-             multisession= True,
-             jsmath      = True):
+             server_pool = None):
     r"""
     Experimental twisted version of the SAGE Notebook.
+
+    INPUT:
+        directory  -- (default: 'sage_notebook') directory that contains
+                      the SAGE notebook files
+        port       -- (default: 8000), port to serve the notebook on
+        address    -- (default: 'localhost'), address to listen on
+        port_tries -- (default: 0), number of additional ports to try if the
+                      first one doesn't work (*not* implemented)
+        secure     -- (default: True) if True use https so all
+                      communication, e.g., logins and passwords,
+                      between web browsers and the SAGE notebook is
+                      encrypted (via GNU TLS).
+    ADVANCED OPTIONS:
+        server_pool -- (default: None), if given, should be a list like
+                      ['sage1@localhost', 'sage2@localhost'], where
+                      you have setup ssh keys so that typing
+                         ssh sage1@localhost
+                      logs in without requiring a password, e.g., by typing
+                      as the notebook server user
+                          cd; ssh-keygen -t rsa
+                      then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
     conf = '%s/twistedconf.py'%directory
+
+    # We load the notebook to make sure it is created with the
+    # given options, then delete it.  The notebook is later
+    # loaded by the *other* Twisted process below.
+    if not server_pool is None:
+        from sage.server.notebook.notebook import load_notebook
+        nb = load_notebook(directory, server_pool=server_pool)
+        nb.set_server_pool(server_pool)
+        nb.save()
+        del nb
 
     def run(port):
         ## Create the config file
@@ -738,16 +850,17 @@ def notebook_twisted(self,
         else:
             strport = 'tcp:%s'%port
 
+        notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
+                address, port, secure)
         config = open(conf, 'w')
         config.write("""
 import sage.server.notebook.notebook
-sage.server.notebook.notebook.JSMATH=%s
+sage.server.notebook.notebook.JSMATH=True
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
-twist.notebook = notebook.load_notebook('%s')
+twist.notebook = notebook.load_notebook(%s)
 import sage.server.notebook.worksheet as worksheet
-worksheet.init_sage_prestart()
-worksheet.multisession = %s
+worksheet.init_sage_prestart(twist.notebook.get_server())
 
 import signal, sys
 def my_sigint(x, n):
@@ -782,8 +895,8 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(jsmath, os.path.abspath(directory), multisession,
-os.path.join(os.path.abspath(directory), 'passwords.txt'), strport))
+"""%(notebook_opts, strport))
+
 
         config.close()
 
@@ -794,7 +907,7 @@ os.path.join(os.path.abspath(directory), 'passwords.txt'), strport))
             raise socket.error
 
 
-    for i in range(int(port_tries)):
+    for i in range(int(port_tries)+1):
         try:
             run(port + i)
         except socket.error:

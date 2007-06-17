@@ -55,8 +55,8 @@ SAGE_ERROR=SC+'r'
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
-def initialized_sage():
-    S = Sage(maxread = 1)
+def initialized_sage(server):
+    S = Sage(server=server, maxread = 1, python=True)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
@@ -69,35 +69,62 @@ def initialized_sage():
 
 
 _a_sage = None
-def init_sage_prestart():
+def init_sage_prestart(server):
     global _a_sage
-    _a_sage = initialized_sage()
+    _a_sage = initialized_sage(server)
 
-def one_prestarted_sage():
+def one_prestarted_sage(server):
     global _a_sage
     X = _a_sage
     if multisession:
-        init_sage_prestart()
+        init_sage_prestart(server)
     return X
 
 class Worksheet:
-    def __init__(self, name, notebook, id, system=None, passcode = ''):
+    def __init__(self, name, notebook, id, system, user):
         name = ' '.join(name.split())
         self.__id = id
         self.__system = system
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
-        self.__name = name
+        self.set_name(name)
         self.__notebook = notebook
-        self.__passcode = crypt.crypt(passcode, self.salt())
-        self.__passcrypt= True
-        dir = list(name)
-        for i in range(len(dir)):
-            if not dir[i].isalnum() and dir[i] != '_':
-                dir[i] = '_'
-        dir = ''.join(dir)
-        self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
         self.clear()
+        self.__viewers = []
+        self.__collaborators = [user]
+
+    def user_is_only_viewer(self, user):
+        try:
+            return user in self.__viewers
+        except AttributeError:
+            return False
+
+    def user_is_viewer(self, user):
+        try:
+            return user in self.__viewers or user in self.__collaborators
+        except AttributeError:
+            return True
+
+    def user_is_collaborator(self, user):
+        try:
+            return user in self.__collaborators
+        except AttributeError:
+            return True
+
+
+    def add_viewer(self, user):
+        try:
+            if not user in self.__viewers:
+                self.__viewers.append(user)
+        except AttributeError:
+            self.__viewers = [user]
+
+    def add_collaborator(self, user):
+        try:
+            if not user in self.__collaborators:
+                self.__collaborators.append(user)
+        except AttributeError:
+            self.__collaborators = [user]
 
     def clear(self):
         self.__comp_is_running = False
@@ -122,27 +149,6 @@ class Worksheet:
             for C in self.__cells:
                 C.set_worksheet(self)
 
-    def salt(self):
-        try:
-            return self.__salt
-        except AttributeError:
-            self.__salt = "%f"%time.time()
-            return self.__salt
-
-    def passcode(self):
-        try:
-            c = self.__passcrypt
-        except AttributeError:
-            self.__passcrypt = False
-        try:
-            if not self.__passcrypt:
-                self.__passcode = crypt.crypt(self.__passcode, self.salt())
-                self.__passcrypt = True
-            return self.__passcode
-        except AttributeError:
-            self.__passcode = crypt.crypt('', self.salt())
-            self.__passcrypt = True
-            return self.__passcode
 
     def filename(self):
         return self.__filename
@@ -400,7 +406,7 @@ class Worksheet:
                 return S
         except AttributeError:
             pass
-        self.__sage = one_prestarted_sage()
+        self.__sage = one_prestarted_sage(server=self.notebook().get_server())
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         try:
@@ -548,7 +554,12 @@ class Worksheet:
         if not os.path.exists('%s/code'%self.directory()):
             os.makedirs('%s/code'%self.directory())
         tmp = '%s/code/%s.py'%(self.directory(), id)
-        input = 'os.chdir("%s")\n'%os.path.abspath(D)
+
+        absD = os.path.abspath(D)
+        input = 'os.chdir("%s")\n'%absD
+
+        # TODOss
+        os.system('chmod -R a+rw "%s"'%absD)
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
@@ -718,9 +729,6 @@ class Worksheet:
             rows.append(row)
         return self.__notebook.format_completions_as_html(id, rows)
 
-    def auth(self, passcode):
-        return self.passcode() == crypt.crypt(passcode, self.salt())
-
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
@@ -819,7 +827,7 @@ class Worksheet:
 
         # We do this to avoid getting a stale SAGE that uses old code.
         self.clear_queue()
-        self.__sage = initialized_sage()
+        self.__sage = initialized_sage(server = self.notebook().get_server())
         self.initialize_sage()
         self._enqueue_auto_cells()
         self.start_next_comp()
@@ -1165,6 +1173,12 @@ class Worksheet:
 
     def set_name(self, name):
         self.__name = name
+        dir = list(name)
+        for i in range(len(dir)):
+            if not dir[i].isalnum() and dir[i] != '_':
+                dir[i] = '_'
+        dir = ''.join(dir)
+        self.__filename = dir
 
     def append(self, L):
         self.__cells.append(L)
@@ -1217,7 +1231,7 @@ class Worksheet:
         return s
 
     def html(self, include_title=True, do_print=False,
-             authorized=False, confirm_before_leave=False):
+             confirm_before_leave=False, read_only=False):
         n = len(self.__cells)
         s = ''
         if include_title:
@@ -1230,10 +1244,6 @@ class Worksheet:
                 system = ' (%s mode)'%S
             else:
                 system =''
-            if not authorized:
-                lock_text = '&nbsp;&nbsp;<span id="worksheet_lock" class="locked" onClick="unlock_worksheet()">[locked]</span>'
-            else:
-                lock_text = ''
 
             vbar = '<span class="vbar"></span>'
 
@@ -1247,12 +1257,12 @@ class Worksheet:
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
             menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
-            menu += '    <a class="download_sws" href="download">Download</a>' + vbar
+            menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%self.filename() + vbar
             menu += '    <a class="delete" href="delete">Delete</a>'
             menu += '  </span>'
 
             s += '<div class="worksheet_title">'
-            s += '%s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
+            s += '%s%s%s%s</div>\n'%(self.name(), ' (read only) ' if read_only else '', system, menu)
 
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']

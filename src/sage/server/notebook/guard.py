@@ -68,7 +68,7 @@ class SessionsManager(object):
         uid = session.get_uid()
         self.sessions[uid] = session
         log.msg('Session %r created' % uid)
-        log.msg('All sessions %r' % self.sessions)
+        #log.msg('All sessions %r' % self.sessions)
         if not self.tick.running and len(self.sessions) > 0:
             self.tick.start(self.tickTime)
         return session, uid

@@ -376,7 +376,8 @@ class Notebook(SageObject):
                  address='localhost',
                  port=8000,
                  secure=True,
-                 server_pool = []):
+                 server_pool = [],
+                 admin = None):
         self.__dir = dir
         self.__server_pool = server_pool
         self.set_system(system)
@@ -395,6 +396,16 @@ class Notebook(SageObject):
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.save()
+        self.__admins = []
+        if admin is not None:
+            self.__admins.append(admin)
+
+    def has_admin(self, user):
+        try:
+            return self.__admins.contains(user)
+        except AttributeError:
+            self.__admins = []
+            return False
 
     def server_pool(self):
         try:
@@ -742,6 +753,20 @@ class Notebook(SageObject):
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
         s += '\n</body>\n'
         return s
+
+    def get_worksheets_with_collaborator(self, user):
+        W = []
+        for w in self.__worksheets.itervalues():
+            if w.has_collaborator(user):
+                W.append(w)
+        return W
+
+    def get_worksheets_with_viewer(self, user):
+        W = []
+        for w in self.__worksheets.itervalues():
+            if w.has_viewer(user):
+                W.append(w)
+        return W
 
     def get_worksheet_with_name(self, name):
         return self.__worksheets[name]

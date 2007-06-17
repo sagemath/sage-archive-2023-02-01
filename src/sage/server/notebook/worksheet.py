@@ -81,7 +81,7 @@ def one_prestarted_sage(server):
     return X
 
 class Worksheet:
-    def __init__(self, name, notebook, id, system=None, passcode = ''):
+    def __init__(self, name, notebook, id, system=None, passcode = '', user=None):
         name = ' '.join(name.split())
         self.__id = id
         self.__system = system
@@ -92,6 +92,24 @@ class Worksheet:
         self.__passcrypt= True
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
         self.clear()
+        self._viewers = []
+        self._collaborators = []
+        if user is not None:
+            self._collaborators.append(user)
+
+    def has_viewer(self, user):
+        try:
+            return self._viewers.contains(user) or self.has_collaborator(user)
+        except AttributeError:
+            self.__viewers = []
+            return False
+
+    def has_collaborator(self, user):
+        try:
+            return self._collaborators.contains(user)
+        except AttributeError:
+            self.__collaborators = []
+            return False
 
     def clear(self):
         self.__comp_is_running = False

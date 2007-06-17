@@ -952,6 +952,7 @@ Password: <input type="password" name="password" size="15" />
 <br />
 <div align="center">
 <p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+<a href='/register'>Register an account</a>
 </body>
 </html>
 """

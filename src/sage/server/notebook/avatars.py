@@ -6,12 +6,6 @@
 #####################################################################
 
 import twist
-
-def user_type(avatarId):
-    if twist.notebook.user_is_admin(avatarId):
-        return 'admin'
-    return 'user'
-
 import os
 
 from twisted.cred import portal, checkers, credentials, error as credError
@@ -19,6 +13,12 @@ from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
+
+
+def user_type(avatarId):
+    if twist.notebook.user_is_admin(avatarId):
+        return 'admin'
+    return 'user'
 
 class PasswordDataBaseChecker(object):
     implements(checkers.ICredentialsChecker)
@@ -81,18 +81,37 @@ class PasswordFileChecker(PasswordDictChecker):
         password_file - file that contains passwords
 
         """
+
+        self.password_file = password_file
+
         if not os.path.exists(password_file):
             open(password_file,'w').close()
         f = open(password_file).readlines()
-        passwords = {'a':'a', 'was':'a', 'admin':'a'}
         for line in f:
-            username, password = line.split(':')
+            username, email, password, account_type = line.split(':')
             password = password.strip()
             passwords[username] = password
 
         self.passwords = passwords
 
+    def add_user(self, username, password, email, account_type='user'):
+        self.check_username(username)
+        f = open(self.password_file, 'a')
+        s = '%s:%s:%s:%s\n' % (username, password, email, account_type)
+        f.writelines(s)
+        f.close()
 
+    def check_username(self, username):
+        import pdb; pdb.set_trace()
+        usernames = []
+        f = open(self.password_file).readlines()
+        for line in f:
+            v = line.split(':')
+            usernames.append(v[0])
+        if username in usernames:
+            raise ValueError('Username %s already exists' % username)
+        else:
+            return True
 
 class LoginSystem(object):
     implements(portal.IRealm)
@@ -105,7 +124,8 @@ class LoginSystem(object):
         self.logout = lambda: None #find a good use for logout
 
     def requestAvatar(self, avatarId, mind, *interfaces):
-        """Return a given Avatar depending on the avatarID.
+        """
+        Return a given Avatar depending on the avatarID.
 
         This approximatly boils down to, for a protected web site,
         that given a username (avatarId, which could just be '()' for
@@ -114,32 +134,28 @@ class LoginSystem(object):
         We serve up a given "web site" -> twisted resources, that depends
         on the avatarId, (i.e. different permissions / view depending on
         if the user is anonymous, regular, or an admin)
+
         """
+
         from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
         log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             if avatarId is checkers.ANONYMOUS: #anonymous user
-
                 log.msg("returning AnonymousResources")
                 rsrc = AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
-
             elif user_type(avatarId) == 'user':
-
                 log.msg("returning User resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
-
             elif user_type(avatarId) == 'admin':
-
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
-
         else:
             raise KeyError("None of the requested interfaces is supported")
 

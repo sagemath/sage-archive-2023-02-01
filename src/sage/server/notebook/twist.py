@@ -668,13 +668,13 @@ server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
 ############################
 
 class RegistrationPage(resource.PostableResource):
-    # TODO: IMPORTANT -- figure out how to get a handle on the database here; we
-    # want to throw an error when a user tries to register a name that already
-    # exists
+    def __init__(self, userdb):
+        self.userdb = userdb
+
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None:
-                user = request.args['username'][0]
+                username = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
                 from sage.server.notebook.smtpsend import send_mail
@@ -684,25 +684,37 @@ class RegistrationPage(resource.PostableResource):
                 listenaddr = notebook.address
                 port = notebook.port
                 fromaddr = 'no-reply@%s' % listenaddr
-                body = build_msg(key, user, listenaddr, port, notebook.secure)
+                body = build_msg(key, username, listenaddr, port,
+                                 notebook.secure)
 
                 # Send a confirmation message to the user.
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
 
                 # Store in memory that we are waiting for the user to respond
                 # to their invitation to join the SAGE notebook.
-                waiting[key] = user
+                waiting[key] = username
 
-            # now say that the user has been registered.
-            s = """\
-<html><h1>Registration information received</h1>
-<p>Thank you for registering with the SAGE notebook.  A confirmation message will be
-sent to %s.</p></html>
-"""%destaddr
+            # Add the user to passwords.txt
+            try:
+                self.userdb.add_user(username, passwd, destaddr)
+                # now say that the user has been registered.
+                s = """
+                <html>
+                <h1>Registration information received</h1>
+                <p>Thank you for registering with the SAGE notebook. A
+                confirmation message will be sent to %s.</p>
+                </html>
+                """%destaddr
+            except ValueError:
+                s = """
+                <html>
+                <h1>Username is already taken, please choose another one.</h1>
+                </html>
+                """
         else:
             url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1>This is the registration page.</h1>
-            <form method="POST" action="%s://%s:%s/register"
+            <form method="POST" action="%s://%s:%s/register">
             Username: <input type="text" name="username" size="15" />  Password:
                 <input type="password" name="password" size="15" /><br /> Email
                 Address: <input type="text" name="email" size="15" /><br /> <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
@@ -716,8 +728,9 @@ class Toplevel(resource.PostableResource):
         username = _username
 
 class AnonymousToplevel(Toplevel):
+    from sage.server.notebook.avatars import PasswordFileChecker
     addSlash = True
-    child_register = RegistrationPage()
+    child_register = RegistrationPage(PasswordFileChecker('passwords.txt'))
     child_confirm = RegConfirmation()
 
     def render(self, ctx):
@@ -878,7 +891,7 @@ import sage.server.notebook.avatars as avatars
 
 from twisted.cred import portal
 
-password_file = '%s'
+password_file = 'passwords.txt'
 realm = avatars.LoginSystem(password_file)
 p = portal.Portal(realm)
 # p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))

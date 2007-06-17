@@ -43,32 +43,30 @@ QUICK-START
 -----------
 
 1.  Launch sage
-
 2.  Run 'dsage.setup()'. This is a one-stop-shop to get **DSAGE** running.
-    It will create the databases and set up a private/public key for
-    authentication
-
+    It will create the databases, set up a private/public key for
+    authentication and create a SSL certificate for the server.
 3.  Launch a server, monitor and get a connection to the server:
 
     `sage: D = dsage.start_all()`
 
-    This will start 2 workers by default.
-
+    This will start 2 workers by default.  You can change it by passing in the
+    `workers=N` argument where `N` is the number of workers you want.
 4.  To do a computation, use D just like any other SAGE interface. For
     example:
 
-    `sage: j = D('2+2')`
-    `sage: j.wait()`
-    `sage: j`
-    `4`
+    **1**   `sage: j = D('2+2')`
+    **2**   `sage: j.wait()`
+    **3**   `sage: j`
+    **4**   `4`
 
     Explanation:
-    `D('2+2')` returns a JobWrapper object which is how one accesses the
+    Line 1 returns a JobWrapper object which is how one accesses the
     results of a computation.
 
-    `j.wait()` will block until the job is finished
+    Line 2 `j.wait()` will block until the job is finished
 
-    j calls `__repr__` on the job which in this case prints the result
+    Line 3 calls `__repr__` on the job which in this case prints the result
 
     You can put **any valid** SAGE code in the quotes and it will be
     converted into a JobWrapper object and performed by a worker.

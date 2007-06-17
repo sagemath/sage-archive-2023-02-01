@@ -728,10 +728,21 @@ class Toplevel(resource.PostableResource):
         global username
         username = _username
 
+class LogoutPage(resource.Resource):
+    def render(self, request):
+        s = """
+        <html>
+        <h1>Thanks for logging out, come back soon!</h1>
+        </html>
+        """
+
+        return http.Response(stream=s)
+
 class AnonymousToplevel(Toplevel):
     addSlash = True
     child_register = RegistrationPage(PasswordFileChecker('passwords.txt'))
     child_confirm = RegConfirmation()
+    child_logout = LogoutPage()
 
     def render(self, ctx):
         return http.Response(stream = notebook.html_login())

@@ -55,7 +55,7 @@ class PasswordDictChecker(object):
     def requestAvatarId(self, credentials):
         log.msg("=== requestAvatarId ===")
         username = credentials.username
-        #log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
+        log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
         if self.passwords.has_key(username):
             log.msg("password.has_key(%s)"%username)
             password = self.passwords[username]
@@ -89,7 +89,7 @@ class PasswordFileChecker(PasswordDictChecker):
             open(password_file,'w').close()
         f = open(password_file).readlines()
         for line in f:
-            username, email, password, account_type = line.split(':')
+            username, password, email, account_type = line.split(':')
             password = password.strip()
             passwords[username] = password
 

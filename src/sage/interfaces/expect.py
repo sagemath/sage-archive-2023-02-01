@@ -92,11 +92,13 @@ class Expect(ParentWithBase):
         self.__is_remote = False
         if command == None:
             command = name
-        if server != None:
+        if not server is None:
             command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True
             eval_using_file_cutoff = 0  # don't allow this!
-            #print command
+            if verbose_start:
+                print "Using remote server"
+                print command
             self._server = server
         self.__do_cleaner = do_cleaner
         self.__maxread = maxread

@@ -102,8 +102,8 @@ class Sage(Expect):
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                        logfile=None,  preparse=True, server=None,
-                       do_cleaner=True, python=True, path=None,
-                       init_code=None):
+                       do_cleaner=True, python=False, path=None,
+                       init_code=None, verbose_start=False):
         if python:
             command = "sage -python -u"
             prompt = ">>>"
@@ -126,7 +126,8 @@ class Sage(Expect):
                         logfile = logfile,
                         init_code = init_code,
                         do_cleaner = do_cleaner,
-                        path = path
+                        path = path,
+                        verbose_start = verbose_start,
                         )
         self._preparse = preparse
         self._is_local = (server is None)
@@ -179,12 +180,12 @@ class Sage(Expect):
             return self.__remote_tmpfile
 
     def _send_tmpfile_to_server(self):
-        cmd = 'scp "%s" %s:"%s"'%(tmp, self._server, self._remote_tmpfile())
+        cmd = 'scp "%s" %s:"%s" 1>&2 2>/dev/null'%(tmp, self._server, self._remote_tmpfile())
         #print cmd
         os.system(cmd)
 
     def _get_object_from_server_tmpfile(self):
-        cmd = 'scp %s:"%s_get.sobj" "%s_get.sobj"'%( self._server, self._remote_tmpfile(), tmp)
+        cmd = 'scp %s:"%s_get.sobj" "%s_get.sobj" 1>&2 2>/dev/null'%( self._server, self._remote_tmpfile(), tmp)
         #print cmd
         os.system(cmd)
         return load(tmp + "_get")

@@ -68,8 +68,6 @@ class PasswordDictChecker(object):
         else:
             log.msg("=== Returning anonymous credentials.")
             return defer.succeed(checkers.ANONYMOUS)
-            #return defer.fail(credError.UnauthorizedLogin("No such user"))
-
 
 class PasswordFileChecker(PasswordDictChecker):
     implements(checkers.ICredentialsChecker)
@@ -83,11 +81,13 @@ class PasswordFileChecker(PasswordDictChecker):
         """
 
         self.password_file = password_file
+        self.load_passwords()
 
+    def load_passwords(self):
         passwords = {}
-        if not os.path.exists(password_file):
-            open(password_file,'w').close()
-        f = open(password_file).readlines()
+        if not os.path.exists(self.password_file):
+            open(self.password_file,'w').close()
+        f = open(self.password_file).readlines()
         for line in f:
             username, password, email, account_type = line.split(':')
             password = password.strip()
@@ -112,6 +112,24 @@ class PasswordFileChecker(PasswordDictChecker):
             raise ValueError('Username %s already exists' % username)
         else:
             return True
+
+    def requestAvatarId(self, credentials):
+        self.load_passwords()
+        log.msg("=== requestAvatarId ===")
+        username = credentials.username
+        log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
+        if self.passwords.has_key(username):
+            log.msg("password.has_key(%s)"%username)
+            password = self.passwords[username]
+            if credentials.password == password:
+                return defer.succeed(username)
+            else:
+                log.msg("=== %s entered the wrong password" % username)
+                log.msg("=== Returning anonymous credentials.")
+                return defer.succeed(checkers.ANONYMOUS)
+        else:
+            log.msg("=== Returning anonymous credentials.")
+            return defer.succeed(checkers.ANONYMOUS)
 
 class LoginSystem(object):
     implements(portal.IRealm)

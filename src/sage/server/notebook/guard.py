@@ -270,6 +270,8 @@ class MySessionWrapper(object):
         return rsrc, () #segments
 
     def _loginFailure(self, *x): #TODO
+        log.msg("=== _loginFailure ===")
+
         print x
 
     def incorrectLoginError(self, error, ctx, segments, loginFailure):

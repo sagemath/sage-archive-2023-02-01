@@ -626,8 +626,9 @@ class RegistrationPage(resource.PostableResource):
     # exists
     def render(self, request):
         if request.args.has_key('email'):
+            secure = notebook.secure
+            global notebook, waiting
             if request.args['email'][0] is not None :
-                global notebook, waiting
                 user = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
@@ -637,7 +638,6 @@ class RegistrationPage(resource.PostableResource):
                 key = make_key()
                 listenaddr = notebook.address
                 port = notebook.port
-                secure = notebook.secure
                 fromaddr = 'no-reply@%s' % listenaddr
                 body = build_msg(key, user, listenaddr, port, secure)
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)

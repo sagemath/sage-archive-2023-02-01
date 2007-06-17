@@ -663,9 +663,7 @@ class RegistrationPage(resource.PostableResource):
     # exists
     def render(self, request):
         if request.args.has_key('email'):
-            secure = notebook.secure
-            global notebook, waiting
-            if request.args['email'][0] is not None :
+            if request.args['email'][0] is not None:
                 user = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
@@ -676,7 +674,7 @@ class RegistrationPage(resource.PostableResource):
                 listenaddr = notebook.address
                 port = notebook.port
                 fromaddr = 'no-reply@%s' % listenaddr
-                body = build_msg(key, user, listenaddr, port, secure)
+                body = build_msg(key, user, listenaddr, port, notebook.secure)
 
                 # Send a confirmation message to the user.
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
@@ -688,9 +686,9 @@ class RegistrationPage(resource.PostableResource):
             # now say that the user has been registered.
             s = """\
 <html><h1>Registration information received</h1>
-<p>Thank you for registering with the SAGE notebook. A message will be
-sent to the address that you supplied shortly.</p></html>
-"""
+<p>Thank you for registering with the SAGE notebook.  A confirmation message will be
+sent to %s.</p></html>
+"""%destaddr
         else:
             url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1>This is the registration page.</h1>

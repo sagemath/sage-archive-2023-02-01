@@ -4,6 +4,9 @@
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #####################################################################
+
+import os
+
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
@@ -75,7 +78,8 @@ class PasswordFileChecker(PasswordDictChecker):
         password_file - file that contains passwords
 
         """
-
+        if not os.path.exists(password_file):
+            open(password_file,'w').close()
         f = open(password_file).readlines()
         passwords = {}
         for line in f:

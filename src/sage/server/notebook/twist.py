@@ -664,7 +664,6 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None :
-                global notebook, waiting
                 user = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
@@ -677,8 +676,14 @@ class RegistrationPage(resource.PostableResource):
                 secure = notebook.secure
                 fromaddr = 'no-reply@%s' % listenaddr
                 body = build_msg(key, user, listenaddr, port, secure)
+
+                # Send a confirmation message to the user.
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
+
+                # Store in memory that we are waiting for the user to respond
+                # to their invitation to join the SAGE notebook.
                 waiting[key] = user
+
             # now say that the user has been registered.
             s = """\
 <html><h1>Registration information received</h1>
@@ -686,8 +691,7 @@ class RegistrationPage(resource.PostableResource):
 sent to the address that you supplied shortly.</p></html>
 """
         else:
-            global notebook
-            url_prefix = "https" if secure else "http"
+            url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1>This is the registration page.</h1>
             <form method="POST" action="%s://%s:%s/register"
             Username: <input type="text" name="username" size="15" />  Password:
@@ -877,7 +881,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(os.path.abspath(directory), strport))
+"""%(notebook_opts, strport))
 
 
         config.close()

@@ -19,6 +19,10 @@ conf_path       = p(DOT_SAGE, 'notebook')
 # the list of users waiting to register
 waiting = {}
 
+# the user database
+from user_db import UserDatabase
+users = UserDatabase()
+
 _cols = None
 def word_wrap_cols():
     global _cols
@@ -656,6 +660,7 @@ server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
 <html>
 <h1>Hello, %s. Thank you for registering!</h1>
 </html>""" % username
+        del waiting[key]
         return http.Response(stream=success)
 
 ############################

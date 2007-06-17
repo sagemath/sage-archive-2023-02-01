@@ -766,12 +766,18 @@ class Notebook(SageObject):
                 W.append(w)
         return W
 
+    def get_worksheet_names_with_collaborator(self, user):
+        return [W.name() for W in self.get_worksheets_with_collaborator(user)]
+
     def get_worksheets_with_viewer(self, user):
         W = []
         for w in self.__worksheets.itervalues():
             if w.user_is_viewer(user):
                 W.append(w)
         return W
+
+    def get_worksheet_names_with_viewer(self, user):
+        return [W.name() for W in self.get_worksheets_with_viewer(user)]
 
     def get_worksheet_with_name(self, name):
         return self.__worksheets[name]

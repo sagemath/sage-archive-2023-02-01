@@ -400,7 +400,9 @@ class Notebook(SageObject):
         if admin is not None:
             self.__admins.append(admin)
 
-    def has_admin(self, user):
+    def user_is_admin(self, user):
+        # todo -- make
+        return user == 'admin'
         try:
             return self.__admins.contains(user)
         except AttributeError:
@@ -992,7 +994,7 @@ class Notebook(SageObject):
             body += '<script type="text/javascript">sync_active_cell_list();</script>'
         return body
 
-    def _html_head(self, worksheet_id):
+    def _html_head(self, worksheet_id, username):
         if worksheet_id is not None:
             worksheet = self.get_worksheet_with_id(worksheet_id)
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
@@ -1025,9 +1027,9 @@ Password: <input type="password" name="password" size="15" />
 </html>
 """
 
-    def _html_body(self, worksheet_id, show_debug=False, worksheet_authorized=False):
+    def _html_body(self, worksheet_id, show_debug=False, username=''):
         if worksheet_id is None or worksheet_id == '':
-            main_body = '<div class="worksheet_title">Welcome to the SAGE Notebook</div>\n'
+            main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
             if os.path.isfile(self.directory() + "/index.html"):
                 splash_file = open(self.directory() + "/index.html")
                 main_body+= splash_file.read()
@@ -1428,8 +1430,7 @@ Output
         </html>
         """%(head, body)
 
-    def html(self, worksheet_id=None, authorized=True,
-                   show_debug=False, worksheet_authorized=True):
+    def html(self, worksheet_id=None, username=None, show_debug=False, admin=False):
         if worksheet_id is None or worksheet_id == '':
             worksheet_id = None
             W = None
@@ -1440,14 +1441,8 @@ Output
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
-        if authorized:
-            body = self._html_body(worksheet_id, show_debug=show_debug,
-                                   worksheet_authorized=worksheet_authorized)
-        else:
-            body = self._html_authorize()
-
-
-        head = self._html_head(worksheet_id)
+        head = self._html_head(worksheet_id=worksheet_id, username=username)
+        body = self._html_body(worksheet_id=worksheet_id, username=username, show_debug=show_debug)
 
         if worksheet_id is not None:
             head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())

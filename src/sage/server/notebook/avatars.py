@@ -5,11 +5,12 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
+import twist
+
 def user_type(avatarId):
-    if avatarId == 'was':
+    if twist.notebook.user_is_admin(avatarId):
         return 'admin'
     return 'user'
-
 
 
 import os
@@ -19,10 +20,6 @@ from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
-# import resources
-#kernel connection
-# import kernel
-
 
 class PasswordDataBaseChecker(object):
     implements(checkers.ICredentialsChecker)
@@ -88,7 +85,7 @@ class PasswordFileChecker(PasswordDictChecker):
         if not os.path.exists(password_file):
             open(password_file,'w').close()
         f = open(password_file).readlines()
-        passwords = {'a':'a', 'was':'a'}
+        passwords = {'a':'a', 'was':'a', 'admin':'a'}
         for line in f:
             username, password = line.split(':')
             password = password.strip()
@@ -126,7 +123,7 @@ class LoginSystem(object):
             if avatarId is checkers.ANONYMOUS: #anonymous user
 
                 log.msg("returning AnonymousResources")
-                rsrc = AnonymousToplevel(self.cookie)
+                rsrc = AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'user':
@@ -134,14 +131,14 @@ class LoginSystem(object):
                 log.msg("returning User resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
-                rsrc = UserToplevel(self.cookie)
+                rsrc = UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'admin':
 
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
-                rsrc = AdminToplevel(self.cookie)
+                rsrc = AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
         else:

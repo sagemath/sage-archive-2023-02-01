@@ -710,8 +710,9 @@ sent to %s.</p></html>
         return http.Response(stream=s)
 
 class Toplevel(resource.PostableResource):
-    def __init__(self, cookie):
+    def __init__(self, cookie, username):
         self.cookie = cookie
+        self.username = username
 
 class AnonymousToplevel(Toplevel):
     addSlash = True
@@ -734,7 +735,7 @@ class UserToplevel(Toplevel):
     child_upload_worksheet = UploadWorksheet()
 
     def render(self, ctx):
-        s = notebook.html()
+        s = notebook.html(username=self.username)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -748,7 +749,7 @@ class UserToplevel(Toplevel):
 class AdminToplevel(UserToplevel):
 
     def render(self, ctx):
-        s = 'You are the admin.  Look at you!!'
+        s = notebook.html(username=self.username, admin=True)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),

@@ -43,8 +43,13 @@ QUICK-START
 -----------
 
 1.  Launch sage
-2.  Run 'dsage.setup()'. This is a one-stop-shop to get **DSAGE** running.
-    It will create the databases, set up a private/public key for
+2.  Run
+
+    `sage: dsage.setup()`
+
+    For a **really** quick start, just hit ENTER on all questions.
+    This will create all the necessary supporting files to get **DSAGE**
+    running. It will create the databases, set up a private/public key for
     authentication and create a SSL certificate for the server.
 3.  Launch a server, monitor and get a connection to the server:
 
@@ -55,10 +60,10 @@ QUICK-START
 4.  To do a computation, use D just like any other SAGE interface. For
     example:
 
-    **1**   `sage: j = D('2+2')`
-    **2**   `sage: j.wait()`
-    **3**   `sage: j`
-    **4**   `4`
+    `sage: j = D('2+2')`
+    `sage: j.wait()`
+    `sage: j`
+    `4`
 
     Explanation:
     Line 1 returns a JobWrapper object which is how one accesses the

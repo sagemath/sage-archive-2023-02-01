@@ -16,6 +16,9 @@ image_path      = p(SAGE_EXTCODE, "notebook/images")
 javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
 conf_path       = p(DOT_SAGE, 'notebook')
 
+# the list of users waiting to register
+waiting = {}
+
 _cols = None
 def word_wrap_cols():
     global _cols
@@ -587,13 +590,31 @@ class Images(resource.Resource):
     def childFactory(self, request, name):
         return static.File(image_path + "/" + name)
 
-############################
-# Confirmation
-############################
-#class RegConfirmation(resource):
-#    def render(self, request):
-#        s = "<html>Nothing to see here.</html>"
-
+#####################################
+# Confirmation of registration
+####################################
+class RegConfirmation(resource.Resource):
+    def render(self, request):
+        key = request.args['key'][0]
+        global notebook
+        url_prefix = "https" if notebook.secure else "http"
+        invalid_confirm_key = """\
+<html>
+<h1>Invalid confirmation key</h1>
+<p>You are reporting a confirmation key that has not been assigned by this
+server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
+</html>""" % (url_prefix, notebook.address, notebook.port)
+        key = int(key)
+        global waiting
+        try:
+            username = waiting[key]
+        except KeyError:
+            return http.Response(stream=invalid_confirm_key)
+        success = """\
+<html>
+<h1>Hello, %s. Thank you for registering!</h1>
+</html>""" % username
+        return http.Response(stream=success)
 
 ############################
 # Registration page
@@ -606,7 +627,7 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None :
-                global notebook
+                global notebook, waiting
                 user = request.args['username'][0]
                 passwd  = request.args['password'][0]
                 destaddr = """%s""" % request.args['email'][0]
@@ -615,10 +636,12 @@ class RegistrationPage(resource.PostableResource):
                 # TODO: make this come from the server settings
                 key = make_key()
                 listenaddr = notebook.address
+                port = notebook.port
                 secure = notebook.secure
                 fromaddr = 'no-reply@%s' % listenaddr
-                body = build_msg(key, user, listenaddr, secure)
+                body = build_msg(key, user, listenaddr, port, secure)
                 send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
+                waiting[key] = user
             # now say that the user has been registered.
             s = """\
 <html><h1>Registration information received</h1>
@@ -645,7 +668,7 @@ class Toplevel(resource.PostableResource):
     child_notebook = Notebook()
     child_doc = Doc()
     child_register = RegistrationPage()
-#child_confrim = RegConfirmation()
+    child_confirm = RegConfirmation()
 
     def __init__(self, cookie):
         self.cookie = cookie

@@ -373,6 +373,9 @@ class Notebook(SageObject):
                  system=None,
                  show_debug = False,
                  log_server=False,
+                 address='localhost',
+                 port=8000,
+                 secure=True,
                  server_pool = []):
         self.__dir = dir
         self.__server_pool = server_pool
@@ -1489,7 +1492,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, server_pool=[]):
+def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1512,6 +1515,9 @@ def load_notebook(dir, server_pool=[]):
     else:
         nb = Notebook(dir,server_pool=server_pool)
 
+    nb.address = address
+    nb.port = port
+    nb.secure = secure
     return nb
 
 ## IMPORTANT!!! If you add any new input variable to notebook,

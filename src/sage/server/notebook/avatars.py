@@ -4,6 +4,9 @@
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #####################################################################
+
+import os
+
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
@@ -52,13 +55,39 @@ class PasswordDictChecker(object):
         #log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
         if self.passwords.has_key(username):
             log.msg("password.has_key(%s)"%username)
-            if credentials.password == self.passwords[username]:
+            password = self.passwords[username]
+            if credentials.password == password:
                 return defer.succeed(username)
             else:
+                log.msg("=== %s entered the wrong password" % username)
+                log.msg("=== Returning anonymous credentials.")
                 return defer.succeed(checkers.ANONYMOUS)
         else:
+            log.msg("=== Returning anonymous credentials.")
             return defer.succeed(checkers.ANONYMOUS)
             #return defer.fail(credError.UnauthorizedLogin("No such user"))
+
+
+class PasswordFileChecker(PasswordDictChecker):
+    implements(checkers.ICredentialsChecker)
+    credentialInterfaces = (credentials.IUsernamePassword,)
+
+    def __init__(self, password_file):
+        """
+        INPUT:
+        password_file - file that contains passwords
+
+        """
+        if not os.path.exists(password_file):
+            open(password_file,'w').close()
+        f = open(password_file).readlines()
+        passwords = {}
+        for line in f:
+            username, password = line.split(':')
+            password = password.strip()
+            passwords[username] = password
+
+        self.passwords = passwords
 
 class LoginSystem(object):
     implements(portal.IRealm)
@@ -119,6 +148,9 @@ class LoginSystem(object):
                 else:
                     rsrc = Toplevel(self.cookie)
                 return (iweb.IResource, rsrc, self.logout)
+            else:
+                rsrc = Toplevel(self.cookie)
+                return (iweb.IResource, rsrc, self.logout)
         else:
             raise KeyError("None of the requested interfaces is supported")
 
@@ -127,9 +159,4 @@ class LoginSystem(object):
         kernelConnection = self.kernels[self.nbid] = kernel.KernelManager(ktype)
         rsrc = resources.Root(self._avatarId, self.cookie, kernelConnection, self.dbConnection)
         return (iweb.IResource, rsrc, self.logout)
-
-
-
-
-
 

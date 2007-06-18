@@ -847,7 +847,15 @@ def notebook_twisted(self,
                       as the notebook server user
                           cd; ssh-keygen -t rsa
                       then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
-        ulimit      -- (default: None), if given
+        ulimit      -- (default: None -- leave as is), if given and server_pool is also given,
+                      the worksheet processes are run with these constraints.
+                      See the ulimit documentation. Common options include:
+                           -f   The maximum size of files created by the shell
+                           -t   The maximum amount of cpu time in seconds.
+                           -u   The maximum number of processes available to a single user.
+                           -v   The maximum amount of virtual memory available to the process.
+                      Values are in 1024-byte increments, except for `-t', which is in seconds.
+                      Example:  ulimit="-v 400000 -t 30"
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -859,8 +867,9 @@ def notebook_twisted(self,
     # loaded by the *other* Twisted process below.
     if not server_pool is None or not ulimit is None:
         from sage.server.notebook.notebook import load_notebook
-        nb = load_notebook(directory, server_pool=server_pool, ulimit=ulimit)
+        nb = load_notebook(directory)
         nb.set_server_pool(server_pool)
+        nb.set_ulimit(ulimit)
         nb.save()
         del nb
 

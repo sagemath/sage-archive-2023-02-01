@@ -1429,7 +1429,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, server_pool=[], ulimit=None, address=None, port=None, secure=None):
+def load_notebook(dir, address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1455,9 +1455,6 @@ def load_notebook(dir, server_pool=[], ulimit=None, address=None, port=None, sec
     nb.address = address
     nb.port = port
     nb.secure = secure
-
-    nb.set_server_pool(server_pool)
-    nb.set_ulimit(ulimit)
     return nb
 
 ## IMPORTANT!!! If you add any new input variable to notebook,

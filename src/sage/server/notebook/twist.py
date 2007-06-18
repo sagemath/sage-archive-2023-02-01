@@ -759,9 +759,6 @@ class UserToplevel(Toplevel):
                                                             self.cookie)]},
                              stream=s)
 
-    def childFactory(self, request, name):
-        print request, name
-
 class AdminToplevel(UserToplevel):
 
     def render(self, ctx):
@@ -774,12 +771,16 @@ class AdminToplevel(UserToplevel):
                              stream=s)
 
 
+
 setattr(UserToplevel, 'child_help.html', Help())
 setattr(UserToplevel, 'child_history.html', History())
 
 notebook = None  # this gets set on startup.
-
 username = None  # This is set when a request comes in.
+
+
+
+
 
 ##########################################################
 # This actually serves up the notebook.
@@ -789,7 +790,7 @@ from   sage.server.misc import print_open_msg
 import os, shutil, socket
 
 private_pem = conf_path + '/private.pem'
-public_pem = conf_path + '/public.pem'
+public_pem  = conf_path + '/public.pem'
 
 def notebook_setup(self=None):
     if not os.path.exists(conf_path):
@@ -812,7 +813,8 @@ def notebook_twisted(self,
              address     = 'localhost',
              port_tries  = 0,
              secure      = True,
-             server_pool = None):
+             server_pool = None,
+             ulimit      = None):
     r"""
     Experimental twisted version of the SAGE Notebook.
 
@@ -836,6 +838,15 @@ def notebook_twisted(self,
                       as the notebook server user
                           cd; ssh-keygen -t rsa
                       then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+        ulimit      -- (default: None -- leave as is), if given and server_pool is also given,
+                      the worksheet processes are run with these constraints.
+                      See the ulimit documentation. Common options include:
+                           -f   The maximum size of files created by the shell
+                           -t   The maximum amount of cpu time in seconds.
+                           -u   The maximum number of processes available to a single user.
+                           -v   The maximum amount of virtual memory available to the process.
+                      Values are in 1024-byte increments, except for `-t', which is in seconds.
+                      Example:  ulimit="-v 400000 -t 30"
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -845,10 +856,11 @@ def notebook_twisted(self,
     # We load the notebook to make sure it is created with the
     # given options, then delete it.  The notebook is later
     # loaded by the *other* Twisted process below.
-    if not server_pool is None:
+    if not server_pool is None or not ulimit is None:
         from sage.server.notebook.notebook import load_notebook
-        nb = load_notebook(directory, server_pool=server_pool)
+        nb = load_notebook(directory)
         nb.set_server_pool(server_pool)
+        nb.set_ulimit(ulimit)
         nb.save()
         del nb
 
@@ -875,7 +887,7 @@ import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
 import sage.server.notebook.worksheet as worksheet
-worksheet.init_sage_prestart(twist.notebook.get_server())
+worksheet.init_sage_prestart(twist.notebook.get_server(), twist.notebook.get_ulimit())
 
 import signal, sys
 def my_sigint(x, n):

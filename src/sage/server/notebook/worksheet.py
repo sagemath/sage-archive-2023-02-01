@@ -55,8 +55,8 @@ SAGE_ERROR=SC+'r'
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
-def initialized_sage(server):
-    S = Sage(server=server, maxread = 1, python=True)
+def initialized_sage(server, ulimit):
+    S = Sage(server=server, ulimit=ulimit, maxread = 1, python=True, verbose_start=True)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
@@ -69,15 +69,15 @@ def initialized_sage(server):
 
 
 _a_sage = None
-def init_sage_prestart(server):
+def init_sage_prestart(server, ulimit):
     global _a_sage
-    _a_sage = initialized_sage(server)
+    _a_sage = initialized_sage(server, ulimit)
 
-def one_prestarted_sage(server):
+def one_prestarted_sage(server, ulimit):
     global _a_sage
     X = _a_sage
     if multisession:
-        init_sage_prestart(server)
+        init_sage_prestart(server, ulimit)
     return X
 
 class Worksheet:
@@ -406,7 +406,8 @@ class Worksheet:
                 return S
         except AttributeError:
             pass
-        self.__sage = one_prestarted_sage(server=self.notebook().get_server())
+        self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
+                                          ulimit = self.notebook().get_ulimit())
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         try:
@@ -827,7 +828,8 @@ class Worksheet:
 
         # We do this to avoid getting a stale SAGE that uses old code.
         self.clear_queue()
-        self.__sage = initialized_sage(server = self.notebook().get_server())
+        self.__sage = initialized_sage(server = self.notebook().get_server(),
+                                       ulimit = self.notebook().get_ulimit())
         self.initialize_sage()
         self._enqueue_auto_cells()
         self.start_next_comp()

@@ -391,8 +391,6 @@ class Notebook(SageObject):
         self.__history_count = 0
         self.__log_server = log_server #log all POST's and GET's
         self.__server_log = [] #server log list
-        W = self.create_new_worksheet('Worksheet 1')
-        self.__default_worksheet = W
         self.__show_debug = show_debug
         self.save()
         self.__admins = []
@@ -423,6 +421,16 @@ class Notebook(SageObject):
 
     def set_server_pool(self, servers):
         self.__server_pool = servers
+
+    def get_ulimit(self):
+        try:
+            return self.__ulimit
+        except AttributeError:
+            self.__ulimit = ''
+            return ''
+
+    def set_ulimit(self, ulimit):
+        self.__ulimit = ulimit
 
     def get_server(self):
         P = self.server_pool()
@@ -616,9 +624,6 @@ class Notebook(SageObject):
     def set_debug(self,show_debug):
         self.__show_debug = show_debug
 
-    def default_worksheet(self):
-        return self.__default_worksheet
-
     def directory(self):
         if not os.path.exists(self.__dir):
             # prevent "rm -rf" accidents.
@@ -792,14 +797,11 @@ class Notebook(SageObject):
         INPUT:
             id -- something that identifies a worksheet.
                  string -- use worksheet with that name or filename.
-                 None -- use the default worksheet.
                  string int -- something that coerces to an integer; worksheet with that number
 
         OUTPUT:
             a worksheet.
         """
-        if id is None:
-            return self.default_worksheet()
         try:
             id = int(id)
             for W in self.__worksheets.itervalues():
@@ -1427,7 +1429,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
+def load_notebook(dir, address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1448,7 +1450,7 @@ def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
         nb.set_directory(dir)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,server_pool=server_pool)
+        nb = Notebook(dir)
 
     nb.address = address
     nb.port = port

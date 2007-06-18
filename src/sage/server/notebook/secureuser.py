@@ -1,4 +1,13 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
+This is a brief overview of how the secure separate user
+setup will eventually work.
 
 We assume a UNIX user named "sageserver".
 

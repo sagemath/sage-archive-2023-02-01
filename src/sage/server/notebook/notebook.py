@@ -404,7 +404,7 @@ class Notebook(SageObject):
 
     def user_is_admin(self, user):
         # todo -- make this use the password file !!!
-        return user == 'a'
+        return user in ['a', 'admin']
         try:
             return user in self.__admins
         except AttributeError:

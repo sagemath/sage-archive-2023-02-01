@@ -1,3 +1,17 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
+"""
+Sending mail using Twisted
+
+AUTHOR:
+    -- Bobby Moretti
+"""
+
 from twisted.mail import smtp, relaymanager
 from twisted.internet import reactor, defer
 from email.MIMEBase import MIMEBase

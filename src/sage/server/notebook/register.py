@@ -1,7 +1,13 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
 Helper functions dealing with the verification of user
 """
-
 
 def build_msg(key, username, addr, port, secure):
     url_prefix = "https" if secure else "http"

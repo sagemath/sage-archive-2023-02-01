@@ -81,17 +81,40 @@ def one_prestarted_sage(server, ulimit):
     return X
 
 class Worksheet:
-    def __init__(self, name, notebook, id, system, user):
-        name = ' '.join(name.split())
-        self.__id = id
-        self.__system = system
-        self.__next_id = (_notebook.MAX_WORKSHEETS) * id
-        self.set_name(name)
+    def __init__(self, name, notebook, id, system, owner):
+
+        # Record the basic properties of the worksheet
+
+        self.__id       = id
+        self.__next_id  = (_notebook.MAX_WORKSHEETS) * id
+
+        self.__system   = system
         self.__notebook = notebook
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
+        self.__owner         = owner
+        self.__viewers       = []
+        self.__collaborators = [owner]
+
+        name = ' '.join(name.split())
+        self.set_name(name)
+
+        # set the directory in which the worksheet files will be stored.
+        clean_name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in name])
+        worksheet_dir        = owner + '/' + clean_name
+
+        self.__dir = '%s/%s'%(notebook.worksheet_directory(), worksheet_dir)
+
         self.clear()
-        self.__viewers = []
-        self.__collaborators = [user]
+
+
+    def owner(self):
+        try:
+            return self.__owner
+        except AttributeError:
+            self.__owner = ''
+            return ''
+
+    def set_owner(self, owner):
+        self.__owner = self.owner
 
     def user_is_only_viewer(self, user):
         try:
@@ -354,7 +377,38 @@ class Worksheet:
         return self.__notebook.DIR()
 
     def quit(self):
-        self.restart_sage()
+        try:
+            S = self.__sage
+        except AttributeError:
+            # no sage running anyways!
+            return
+
+        try:
+            pid = S._expect.pid
+            print "PID = ", pid
+            os.killpg(pid, 9)
+            os.kill(pid, 9)
+            S._expect = None
+            del self.__sage
+        except AttributeError, msg:
+            print "WARNING: %s"%msg
+        except Exception, msg:
+            print msg
+            print "WARNING: Error deleting SAGE object!"
+
+        try:
+            os.kill(pid, 9)
+        except:
+            pass
+
+        try:
+            del self.__variables
+        except AttributeError:
+            pass
+
+        # We do this to avoid getting a stale SAGE that uses old code.
+        self.clear_queue()
+
 
     def next_block_id(self):
         try:
@@ -801,33 +855,8 @@ class Worksheet:
         """
         Restart SAGE kernel.
         """
-        print "restarting"
+        self.quit()
 
-        try:
-            S = self.__sage
-        except AttributeError:
-            # no sage running anyways!
-            return
-
-        try:
-            pid = S._expect.pid
-            os.killpg(pid, 9)
-            os.kill(pid, 9)
-            S._expect = None
-            del self.__sage
-        except AttributeError, msg:
-            print "WARNING: %s"%msg
-        except Exception, msg:
-            print msg
-            print "WARNING: Error deleting SAGE object!"
-
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
-
-        # We do this to avoid getting a stale SAGE that uses old code.
-        self.clear_queue()
         self.__sage = initialized_sage(server = self.notebook().get_server(),
                                        ulimit = self.notebook().get_ulimit())
         self.initialize_sage()

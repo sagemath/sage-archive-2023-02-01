@@ -298,7 +298,7 @@ class Expect(ParentWithBase):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
-            if self._do_cleaner() and not self.__is_remote:
+            if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):

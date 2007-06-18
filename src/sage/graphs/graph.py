@@ -2154,7 +2154,7 @@ class GenericGraph(SageObject):
     ### Visualization
 
     def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
-             vertex_size=200, graph_border=False, color_dict=None, partition=None,
+             vertex_size=200, graph_border=False, vertex_colors=None, partition=None,
              edge_colors=None, scaling_term=0.05, xmin=None, xmax=None,
              iterations=50):  # xmin and xmax are ignored
         """
@@ -2170,13 +2170,13 @@ class GenericGraph(SageObject):
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
             edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
                 matplotlib, and each entry is a list of edges.
             partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. color_dict takes precedence.
+                color. vertex_colors takes precedence.
             scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                 is too small, decrease. should be positive, but values much bigger than
                 1/8 won't be useful unless the nodes are huge
@@ -2198,7 +2198,7 @@ class GenericGraph(SageObject):
             ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             ...    pos_dict[i] = [x,y]
             ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl = P.plot(pos=pos_dict, vertex_colors=d)
             sage: pl.save('sage.png')
 
             sage: C = graphs.CubeGraph(8)
@@ -2230,12 +2230,12 @@ class GenericGraph(SageObject):
         """
         from sage.plot.plot import networkx_plot, rainbow
         import networkx
-        if color_dict is None and not partition is None:
+        if vertex_colors is None and not partition is None:
             l = len(partition)
             R = rainbow(l)
-            color_dict = {}
+            vertex_colors = {}
             for i in range(l):
-                color_dict[R[i]] = partition[i]
+                vertex_colors[R[i]] = partition[i]
         if pos is None and layout is None:
             if not self._pos is None:
                 pos = self._pos
@@ -2256,7 +2256,7 @@ class GenericGraph(SageObject):
             for v in pos:
                 for a in range(len(pos[v])):
                     pos[v][a] = float(pos[v][a])
-        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
+        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
             K = Graphics()
@@ -2269,7 +2269,7 @@ class GenericGraph(SageObject):
         return G
 
     def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, vertex_size=200,
-             graph_border=False, color_dict=None, edge_colors=None, partition=None,
+             graph_border=False, vertex_colors=None, edge_colors=None, partition=None,
              scaling_term=0.05, talk=False, iterations=50, **kwds):
         """
         Shows the (di)graph.
@@ -2284,13 +2284,13 @@ class GenericGraph(SageObject):
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
             edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
                 matplotlib, and each entry is a list of edges.
             partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. color_dict takes precedence.
+                color. vertex_colors takes precedence.
             scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                 is too small, decrease. should be positive, but values much bigger than
                 1/8 won't be useful unless the nodes are huge
@@ -2313,7 +2313,7 @@ class GenericGraph(SageObject):
             ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             ...    pos_dict[i] = [x,y]
             ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl = P.plot(pos=pos_dict, vertex_colors=d)
             sage: pl.save('sage.png')
 
             sage: C = graphs.CubeGraph(8)
@@ -2346,8 +2346,8 @@ class GenericGraph(SageObject):
         if talk:
             vertex_size = 500
             if partition is None:
-                color_dict = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term, iterations=iterations).show(**kwds)
+                vertex_colors = {'#FFFFFF':self.vertices()}
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term, iterations=iterations).show(**kwds)
 
 class Graph(GenericGraph):
     r"""
@@ -3639,7 +3639,7 @@ class Graph(GenericGraph):
         f.close()
 
     def plot3d(self, bgcolor=(1,1,1),
-               vertex_color=(1,0,0), vertex_size=0.06,
+               vertex_colors=None, vertex_size=0.06,
                edge_color=(0,0,0), edge_size=0.02,
                pos3d=None, iterations=50, **kwds):
         """
@@ -3648,13 +3648,22 @@ class Graph(GenericGraph):
 
         INPUT:
             bgcolor -- rgb tuple (default: (1,1,1))
-            vertex_color -- rgb tuple (default: (1,0,0))
             vertex_size -- float (default: 0.06)
+            vertex_colors -- optional dictionary to specify vertex colors:
+                each key is a color recognizable by tachyon (rgb tuple
+                (default: (1,0,0))), and each corresponding entry is a list of
+                vertices. If a vertex is not listed, it looks invisible on the
+                resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by tachyon ( default: (0,0,0) ), and each
+                entry is a list of edges.
             edge_color -- rgb tuple (default: (0,0,0))
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            xres -- resolution
+            yres -- resolution
             **kwds -- passed on to the Tachyon command
 
         EXAMPLES:
@@ -3663,13 +3672,13 @@ class Graph(GenericGraph):
             sage: P3D.save('sage.png') # long time
 
             sage: G = graphs.PetersenGraph()
-            sage: G.plot3d(vertex_color=(0,0,1)).save('sage.png') # long time
+            sage: G.plot3d(vertex_colors={(0,0,1):G.vertices()}).save('sage.png') # long time
 
             sage: C = graphs.CubeGraph(4)
-            sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+            sage: C.plot3d(edge_color=(0,1,0), vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
 
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, iterations=iterations, **kwds)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
         for u,v,l in self.edges():
@@ -3678,7 +3687,7 @@ class Graph(GenericGraph):
         return TT
 
     def show3d(self, bgcolor=(1,1,1),
-               vertex_color=(1,0,0), vertex_size=0.06,
+               vertex_colors=None, vertex_size=0.06,
                edge_color=(0,0,0), edge_size=0.02,
                pos3d=None, iterations=50, **kwds):
         """
@@ -3686,14 +3695,23 @@ class Graph(GenericGraph):
 
         INPUT:
             bgcolor -- rgb tuple (default: (1,1,1))
-            vertex_color -- rgb tuple (default: (1,0,0))
             vertex_size -- float (default: 0.06)
+            vertex_colors -- optional dictionary to specify vertex colors:
+                each key is a color recognizable by tachyon (rgb tuple
+                (default: (1,0,0))), and each corresponding entry is a list of
+                vertices. If a vertex is not listed, it looks invisible on the
+                resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by tachyon ( default: (0,0,0) ), and each
+                entry is a list of edges.
             edge_color -- rgb tuple (default: (0,0,0))
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
-            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            xres -- resolution
+            yres -- resolution
+            **kwds -- passed on to the Tachyon command
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph()
@@ -3701,13 +3719,13 @@ class Graph(GenericGraph):
             sage: P3D.save('sage.png') # long time
 
             sage: G = graphs.PetersenGraph()
-            sage: G.plot3d(vertex_color=(0,0,1)).save('sage.png') # long time
+            sage: G.plot3d(vertex_colors={(0,0,1):G.vertices()}).save('sage.png') # long time
 
             sage: C = graphs.CubeGraph(4)
-            sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+            sage: C.plot3d(edge_color=(0,1,0), vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
 
     ### Connected components
 
@@ -4512,7 +4530,7 @@ class DiGraph(GenericGraph):
             sage: SD.set_arc_label(17, 15, 'v_k finite')
             sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
             sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-            sage: SD.plot(pos=posn, vertex_size=400, color_dict={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
+            sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
         """
         if self.has_arc(u, v):
@@ -4935,7 +4953,7 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0),
+    def plot3d(self, bgcolor=(1,1,1), vertex_colors=None,
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
@@ -4946,12 +4964,18 @@ class DiGraph(GenericGraph):
 
         INPUT:
             bgcolor -- rgb tuple (default: (1,1,1))
-            vertex_color -- rgb tuple (default: (1,0,0))
             vertex_size -- float (default: 0.06)
+            vertex_colors -- optional dictionary to specify vertex colors:
+                each key is a color recognizable by tachyon (rgb tuple
+                (default: (1,0,0))), and each corresponding entry is a list of
+                vertices. If a vertex is not listed, it looks invisible on the
+                resulting plot (it doesn't get drawn).
             arc_color -- rgb tuple (default: (0,0,0))
             arc_size -- float (default: 0.02)
             arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
             xres -- resolution
             yres -- resolution
             **kwds -- passed on to the Tachyon command
@@ -4962,7 +4986,7 @@ class DiGraph(GenericGraph):
             sage: D.plot3d().save('sage.png') # long time
 
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
         TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
         for u,v,l in self.arcs():
@@ -4974,7 +4998,7 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc')
         return TT
 
-    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0),
+    def show3d(self, bgcolor=(1,1,1), vertex_colors=None,
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
@@ -4984,12 +5008,18 @@ class DiGraph(GenericGraph):
 
         INPUT:
             bgcolor -- rgb tuple (default: (1,1,1))
-            vertex_color -- rgb tuple (default: (1,0,0))
             vertex_size -- float (default: 0.06)
+            vertex_colors -- optional dictionary to specify vertex colors:
+                each key is a color recognizable by tachyon (rgb tuple
+                (default: (1,0,0))), and each corresponding entry is a list of
+                vertices. If a vertex is not listed, it looks invisible on the
+                resulting plot (it doesn't get drawn).
             arc_color -- rgb tuple (default: (0,0,0))
             arc_size -- float (default: 0.02)
             arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
+            iterations -- how many iterations of the spring layout algorithm to
+                go through, if applicable
             xres -- resolution
             yres -- resolution
             **kwds -- passed on to the Tachyon command
@@ -5000,7 +5030,7 @@ class DiGraph(GenericGraph):
             sage: D.plot3d().save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_color=arc_color, **kwds).show()
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_color=arc_color, **kwds).show()
 
     ### Connected components
 
@@ -5306,17 +5336,21 @@ class DiGraph(GenericGraph):
             raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
-                        vertex_color=(1,0,0),
+                        vertex_colors=None,
                         vertex_size=0.06,
                         pos3d=None,
                         iterations=50, **kwds):
     import networkx
     from math import sqrt
     from sage.plot.tachyon import Tachyon
+
     c = [0,0,0]
     r = []
     verts = g.vertices()
     spring = False
+
+    if vertex_colors is None:
+        vertex_colors = { (1,0,0) : verts }
     if pos3d is None:
         pos3d = graph_fast.spring_layout_fast(g, dim=3, iterations=iterations)
     try:
@@ -5326,6 +5360,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
             c[2] += pos3d[v][2]
     except KeyError:
         raise KeyError, "Oops! You haven't specified positions for all the vertices."
+
     order = g.order()
     c[0] = c[0]/order
     c[1] = c[1]/order
@@ -5342,11 +5377,17 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
         pos3d[v][2] = pos3d[v][2]/r
     TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13, **kwds)
     TT.light((4,3,2), 0.02, (1,1,1))
-    TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
     TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
     TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
-    for v in verts:
-        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), vertex_size, 'node')
+
+    i = 0
+    for color in vertex_colors:
+        i += 1
+        TT.texture('node_color_%d'%i, ambient=0.1, diffuse=0.9,
+                   specular=0.03, opacity=1.0, color=color)
+        for v in vertex_colors[color]:
+            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), vertex_size, 'node_color_%d'%i)
+
     return TT, pos3d
 
 def enum(graph, quick=False):

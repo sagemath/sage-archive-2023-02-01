@@ -1318,7 +1318,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 4: [-1.125     ,-0.50118505,]   }
         vertex_labels -- determines whether labels for nodes are plotted
         vertex_size -- node size
-        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+        vertex_colors -- a dictionary specifying node colors: each key is a color recognized by
                         matplotlib, and each entry is a list of vertices.
         edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
                         matplotlib, and each entry is a list of edges.
@@ -1352,7 +1352,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
         ...    pos_dict[i] = [x,y]
         ...
-        sage: NGP = GraphicPrimitive_NetworkXGraph(graph=P, color_dict=d, pos=pos_dict)
+        sage: NGP = GraphicPrimitive_NetworkXGraph(graph=P, vertex_colors=d, pos=pos_dict)
         sage: g = Graphics()
         sage: g.append(NGP)
         sage: g.axes(False)
@@ -1379,11 +1379,11 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: G.axes(False)
         sage: G.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, color_dict=None, edge_colors=None, scaling_term=0.05):
+    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None, edge_colors=None, scaling_term=0.05):
         self.__nxg = graph
         self.__vertex_size = vertex_size
         self.__vertex_labels = vertex_labels
-        self.__color_dict = color_dict
+        self.__vertex_colors = vertex_colors
         self.__edge_colors = edge_colors
         if len(self.__nxg) != 0:
             import networkx as NX
@@ -1439,11 +1439,11 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         if len(self.__nxg) != 0:
             import networkx as NX
             vertex_size = float(self.__vertex_size)
-            if self.__color_dict is None:
+            if self.__vertex_colors is None:
                 NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
-                for i in self.__color_dict:
-                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=vertex_size)
+                for i in self.__vertex_colors:
+                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i], node_color=i, pos=self.__pos, ax=subplot, node_size=vertex_size)
             if self.__edge_colors is None:
                 NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
@@ -2548,7 +2548,7 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
         P.show(**kwargs)
     return P
 
-def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, color_dict=None,
+def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None,
                   edge_colors=None, graph_border=False, scaling_term=0.05):
     """
     Creates a graphics object ready to display a NetworkX graph.
@@ -2564,7 +2564,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, color_di
                 4: [-1.125     ,-0.50118505,]   }
         vertex_labels -- determines whether labels for nodes are plotted
         vertex_size -- node size
-        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+        vertex_colors -- a dictionary specifying node colors: each key is a color recognized by
                         matplotlib, and each entry is a list of vertices.
         edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
                         matplotlib, and each entry is a list of edges.
@@ -2593,7 +2593,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, color_di
         ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
         ...    pos_dict[i] = [x,y]
         ...
-        sage: g = networkx_plot(graph=P, color_dict=d, pos=pos_dict)
+        sage: g = networkx_plot(graph=P, vertex_colors=d, pos=pos_dict)
         sage: g.save('sage.png')
 
         sage: C = graphs.CubeGraph(5)
@@ -2610,7 +2610,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, color_di
         sage: P.save('sage.png')
     """
     g = Graphics()
-    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, color_dict=color_dict, edge_colors=edge_colors, scaling_term=scaling_term)
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, scaling_term=scaling_term)
     g.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax
@@ -2870,8 +2870,8 @@ def float_to_html(r,g,b):
     for matplotlib. This may not seem necessary, but there are some odd
     cases where matplotlib is just plain schizophrenic- for an example, do
 
-    sage.: color_dict = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
-    sage.: graphs.DodecahedralGraph().show(color_dict=color_dict)
+    sage.: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+    sage.: graphs.DodecahedralGraph().show(vertex_colors=vertex_colors)
 
     Notice how the colors don't respect the partition at all.....
     """ # TODO: figure out WTF
@@ -2887,7 +2887,7 @@ def float_to_html(r,g,b):
                + gg\
                + bb
 
-def rainbow(n):
+def rainbow(n, format='hex'):
     """
     Given an integer n, returns a list of colors, represented in HTML hex,
     that changes smoothly in hue from one end of the spectrum to the other.
@@ -2899,24 +2899,45 @@ def rainbow(n):
         sage: from sage.plot.plot import rainbow
         sage: rainbow(7)
         ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
+        sage: rainbow(7, 'rgbtuple')
+        [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.28571428571428581, 1.0, 0.0), (0.0, 1.0, 0.57142857142857162), (0.0, 0.57142857142857162, 1.0), (0.28571428571428559, 0.0, 1.0), (1.0, 0.0, 0.85714285714285676)]
+
     """
     from math import floor
     R = []
-    for i in range(n):
-        r = 6*float(i)/n
-        h = floor(r)
-        r = float(r - h)
-        if h == 0:#RED
-            R.append(float_to_html(1.,r,0.))
-        elif h == 1:
-            R.append(float_to_html(1. - r,1.,0.))
-        elif h == 2:#GREEN
-            R.append(float_to_html(0.,1.,r))
-        elif h == 3:
-            R.append(float_to_html(0.,1. - r,1.))
-        elif h == 4:#BLUE
-            R.append(float_to_html(r,0.,1.))
-        elif h == 5:
-            R.append(float_to_html(1.,0.,1. - r))
+    if format == 'hex':
+        for i in range(n):
+            r = 6*float(i)/n
+            h = floor(r)
+            r = float(r - h)
+            if h == 0:#RED
+                R.append(float_to_html(1.,r,0.))
+            elif h == 1:
+                R.append(float_to_html(1. - r,1.,0.))
+            elif h == 2:#GREEN
+                R.append(float_to_html(0.,1.,r))
+            elif h == 3:
+                R.append(float_to_html(0.,1. - r,1.))
+            elif h == 4:#BLUE
+                R.append(float_to_html(r,0.,1.))
+            elif h == 5:
+                R.append(float_to_html(1.,0.,1. - r))
+    elif format == 'rgbtuple':
+        for i in range(n):
+            r = 6*float(i)/n
+            h = floor(r)
+            r = float(r - h)
+            if h == 0:#RED
+                R.append((1.,r,0.))
+            elif h == 1:
+                R.append((1. - r,1.,0.))
+            elif h == 2:#GREEN
+                R.append((0.,1.,r))
+            elif h == 3:
+                R.append((0.,1. - r,1.))
+            elif h == 4:#BLUE
+                R.append((r,0.,1.))
+            elif h == 5:
+                R.append((1.,0.,1. - r))
     return R
 

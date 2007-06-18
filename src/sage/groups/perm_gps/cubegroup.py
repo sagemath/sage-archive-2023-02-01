@@ -34,7 +34,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, SymmetricGroup, PermutationGroup_subgroup
+from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
 from types import ListType
 

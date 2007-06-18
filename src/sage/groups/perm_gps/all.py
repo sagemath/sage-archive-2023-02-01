@@ -1,7 +1,7 @@
 
 import permgroup as pg
-from permgroup import (PermutationGroup, PermutationGroupElement,
-                       SymmetricGroup, AlternatingGroup,
+
+from permgroup_named import (SymmetricGroup, AlternatingGroup,
                        DihedralGroup, CyclicPermutationGroup,
                        TransitiveGroup, PGL, PSL, PSp,PSU,PGU,
                        MathieuGroup, KleinFourGroup,Suzuki)

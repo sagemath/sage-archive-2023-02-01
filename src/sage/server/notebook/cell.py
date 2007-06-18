@@ -130,8 +130,8 @@ class Cell(Cell_generic):
     def worksheet(self):
         return self.__worksheet
 
-    def worksheet_name(self):
-        return self.__worksheet.name()
+    def worksheet_filename(self):
+        return self.__worksheet.filename()
 
     def notebook(self):
         return self.__worksheet.notebook()
@@ -515,10 +515,11 @@ class Cell(Cell_generic):
            <textarea class="%s" rows=%s cols=100000
               id         = 'cell_input_%s'
               onKeyPress = 'return input_keypress(%s,event);'
-              onInput   = 'cell_input_resize(this); return true;'
-              onBlur  = 'cell_blur(%s); return true;'
+              onInput    = 'cell_input_resize(this); return true;'
+              onBlur     = 'cell_blur(%s); return true;'
+              onClick    = 'get_cell(cell_input_%s).className = "cell_input_active", "hidden"); return true;'
            >%s</textarea>
-        """%('hidden', r, id, id, id, t)
+        """%('hidden', r, id, id, id, id, t)
 
         t = t.replace("<","&lt;")+" "
 
@@ -544,7 +545,7 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/ws/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
+            url = "/home/%s/data/%s/%s"%(self.worksheet_filename(), self.relative_id(), F)
             if F.endswith('.png') or F.endswith('.bmp'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):

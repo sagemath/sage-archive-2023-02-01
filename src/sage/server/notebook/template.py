@@ -30,5 +30,7 @@ class PageTemplate:
     def __call__(self, **kwds):
         return self.__template.substitute(kwds)
 
-
-login_template = PageTemplate(pjoin(path, 'login.template'))
+# Define variables for each template
+G = globals()
+for name in ['login', 'yes_no']:
+    G[name + '_template'] =  PageTemplate(pjoin(path, '%s.template'%name))

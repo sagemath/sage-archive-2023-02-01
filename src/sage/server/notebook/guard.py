@@ -161,7 +161,7 @@ class MySessionWrapper(object):
                 log.msg("=== logout ===")
                 return self.logout(session, request, segments)
             else:
-                log.msg("session found ... locateResource")
+                #log.msg("session found ... locateResource")
                 creds = session.get_authCreds()
                 return self.locateResource(request, segments, session, creds)
 

@@ -38,7 +38,7 @@ def handleError(error):
 def send_mail(self, fromaddr, toaddr, subject, body):
     try:
         recpt_domain = toaddr.split('@')[1]
-    except ValueError:
+    except (ValueError, IndexError):
         raise ValueError, "mal-formed destination address"
     message = buildMessage(fromaddr, toaddr, subject, body)
     messageData = message.as_string(unixfrom=False)

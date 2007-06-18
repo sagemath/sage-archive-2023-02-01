@@ -198,6 +198,7 @@ var sub_introspecting = false;
 var worksheet_id=0;
 var worksheet_filename='';
 var worksheet_name='';
+var user_name='';
 
 //regular expressions used to peek into the cell input for introspection
 var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
@@ -268,6 +269,10 @@ try{
   os_mac=(nav.indexOf('Mac')!=-1);
   os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
   os_lin=(nua.indexOf('Linux')!=-1);
+  line_height = 1.2;
+  if (os_mac || os_win) {
+     line_height = 1;
+  }
 
   get_keyboard();
 } catch(e){}
@@ -446,7 +451,6 @@ function toggle_left_pane() {
     set_class('worksheet', 'worksheet');
   } else {
     set_class('left_pane', 'hidden');
-    set_class('worksheet', 'slideshow');
   }
 }
 
@@ -622,10 +626,7 @@ function click_on_object(name) {
 ///////////////////////////////////////////////////////////////////
 
 function add_worksheet(name) {
-    open("/ws/" + name)
-    /* to have this actually open in this window (not a new one), just do
-        open("/ws" + name, "_self")
-       instead */
+    open("/home/" + user_name + "/" + name)
 }
 
 function add_worksheet_callback(status,response_text) {
@@ -886,7 +887,6 @@ function refocus_cell() {
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
-    // make_cell_input_active(id);
 
     var cell = get_cell(id);
     if (cell) {
@@ -921,21 +921,12 @@ function focus_delay(id,bottom) {
 
 
 function cell_input_resize(cell_input) {
-    var rows = 2;
-    //var rows = cell_input.value.split('\n').length - 1;
-    var rows = cell_input.value.split('\n').length + 1;
+    var rows = cell_input.value.split('\n').length;
     if (rows <= 1) {
-      rows = 2;
-    } else {
-      /* to avoid bottom chop off */
-      rows = rows + 2;
+      rows = 1;
     }
-    if (rows >= 30) {
-      rows = 30;
-    }
-
     try {
-        cell_input.style.height = rows + 'em'; // this sort of works in konqueror...
+        cell_input.style.height = 0.5 + rows*line_height + 'em';
     } catch(e) {}
     try{
         cell_input.rows = rows;
@@ -1226,7 +1217,7 @@ function text_cursor_split(input) {
 }
 
 function worksheet_command(cmd) {
-    return ('/ws/' + worksheet_name + '/' + cmd);
+   return ('/home/' + worksheet_filename + '/' + cmd);
 }
 
 function evaluate_cell(id, action) {
@@ -1596,7 +1587,6 @@ function slide_mode() {
     set_class('left_pane', 'hidden');
     set_class('cell_controls', 'hidden');
     set_class('slide_controls', 'slide_control_commands');
-    set_class('worksheet', 'slideshow');
     set_class('left_pane_bar', 'hidden');
 
     for(i = 0; i < cell_id_list.length ; i++) {
@@ -2004,13 +1994,13 @@ function history_window() {
 
 
 function doctest_window(worksheet) {
-    log = window.open ("/ws/" + worksheet+"/plain","",
+    log = window.open ("/home/" + worksheet+"/plain","",
     "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
 }
 
 
 function print_window(worksheet) {
-    log = window.open ("/ws/" + worksheet+"/print","",
+    log = window.open ("/home/" + worksheet+"/print","",
       "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 

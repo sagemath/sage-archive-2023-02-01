@@ -107,7 +107,10 @@ class Sage(Expect):
                        server    = None,
                        **kwds):
         if python:
-            command = "sage -cleaner & sage -python -u"
+            if server:
+                command = "sage -cleaner & sage -python -u"
+            else:
+                command = "sage -python -u"
             prompt = ">>>"
             if init_code is None:
                 init_code = ['from sage.all import *', 'import cPickle']

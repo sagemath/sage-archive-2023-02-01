@@ -15,6 +15,8 @@ from twisted.web2 import static, http_headers, responsecode
 
 import css, js, keyboards
 
+import notebook as _notebook
+
 from sage.misc.misc import SAGE_EXTCODE, walltime
 
 p = os.path.join
@@ -169,7 +171,7 @@ class UploadWorksheet(resource.PostableResource):
             s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
             return http.Response(stream = s)
         os.unlink(tmp)
-        return http.RedirectResponse('/ws/'+W.filename())
+        return http.RedirectResponse('/home/'+W.filename())
 
 
 
@@ -185,7 +187,7 @@ class UploadWorksheet(resource.PostableResource):
 class WorksheetResource:
     def __init__(self, name):
         self.name = name
-        self.worksheet = notebook.get_worksheet_with_id(name)
+        self.worksheet = notebook.get_worksheet_with_filename(name)
 
     def id(self, ctx):
         return int(ctx.args['id'][0])
@@ -194,7 +196,7 @@ class WorksheetResource:
 # Worksheet data -- a file that
 # is associated with a cell in some worksheet.
 # The file is stored on the filesystem.
-#      /ws/worksheet_name/data/cell_number/filename
+#      /home/worksheet_name/data/cell_number/filename
 ##############################################
 class CellData(resource.Resource):
     def __init__(self, worksheet, number):
@@ -239,6 +241,10 @@ class YesNo(resource.Resource):
         self.no_effect = no_effect
 
     def render(self, ctx):
+        from sage.server.notebook.template import yes_no_template
+        lt = yes_no_template(mesg=self.mesg)
+        return http.Response(stream = lt)
+
         s = '<html><body>%s<br>'%self.mesg
         s += '<a href="yes">Yes</a> or <a href="no">No</a></body></html>'
         return http.Response(stream = s)
@@ -272,8 +278,10 @@ def Worksheet_delete(name):
 def Worksheet_create(name):
     def do_create():
         notebook.create_new_worksheet(name, username)
+
+    wsname = _notebook.clean_name(name)
     return YesNo('Do you want to create the worksheet "%s"?'%name,
-                 '.', '/', yes_effect=do_create)
+                 '/home/%s/%s'%(username, wsname), '/', yes_effect=do_create)
 
 #Toplevel(), Worksheet(name))
 ## class WorksheetCreate(WorksheetResource, resource.Resource):
@@ -331,7 +339,7 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
             self.worksheet.edit_save(ctx.args['textfield'][0])
-        return http.RedirectResponse('/ws/'+self.worksheet.filename())
+        return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 
 
@@ -354,7 +362,7 @@ class Worksheet_set_cell_output_type(WorksheetResource, resource.PostableResourc
         return http.Response(stream = '')
 
 ########################################################
-# The new cell command: /ws/worksheet/new_cell?id=number
+# The new cell command: /home/worksheet/new_cell?id=number
 ########################################################
 class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
     """
@@ -368,7 +376,7 @@ class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
 
 
 ########################################################
-# The delete cell command: /ws/worksheet/delete_cell?id=number
+# The delete cell command: /home/worksheet/delete_cell?id=number
 ########################################################
 class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
     """
@@ -510,7 +518,7 @@ class Worksheet_plain(WorksheetResource, resource.Resource):
 
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        s = notebook.worksheet_html(self.name)
+        s = notebook.worksheet_html(self.name, do_print=True)
         return http.Response(stream=s)
 
 
@@ -542,15 +550,46 @@ class Worksheet(WorksheetResource, resource.Resource):
         except KeyError:
             return NotImplementedWorksheetOp(op)
 
+class WorksheetsByUser(resource.Resource):
+    addSlash = True
+
+    def __init__(self, user):
+        self.user = user
+
+    def render(self, ctx):
+        if self.user == username:
+            return http.Response(stream = notebook.html_worksheet_list_for_user(username))
+        else:
+            return http.Response(stream = "<html><br><br><br><h2>You are logged in as '%s' so you do not have permission to view the home page of '%s'.</h2></html>."%(
+                username, self.user))
+
+    def childFactory(self, request, name):
+        filename = self.user + '/' + name
+        try:
+            return Worksheet(filename)
+        except KeyError:
+            if username != self.user:
+                return http.Response(stream = "The user '%s' has no worksheet '%s'."%(self.user, name))
+            return Worksheet_create(name)
+
+
 class Worksheets(resource.Resource):
     def render(self, ctx):
         return http.Response(stream = "Please request a specific worksheet")
 
     def childFactory(self, request, name):
-        try:
-            return Worksheet(name)
-        except KeyError:
-            return Worksheet_create(name)
+        return WorksheetsByUser(name)
+
+
+class WorksheetsByUserAdmin(WorksheetsByUser):
+    def render(self, ctx):
+        return http.Response(stream = notebook.html_worksheet_list_for_user(self.user))
+
+class WorksheetsAdmin(Worksheets):
+    def childFactory(self, request, name):
+        return WorksheetsByUserAdmin(name)
+
+
 
 ############################
 # Adding a new worksheet
@@ -597,6 +636,11 @@ class Main_css(resource.Resource):
         return http.Response(stream=s)
 
 class CSS(resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File(css_path)
+
     def childFactory(self, request, name):
         return static.File(css_path + "/" + name)
 
@@ -627,7 +671,11 @@ class Keyboard_js(resource.Resource):
         return Keyboard_js_specific(browser_os)
 
 class Javascript(resource.Resource):
+    addSlash = True
     child_keyboard = Keyboard_js()
+
+    def render(self, ctx):
+        return static.File(javascript_path)
 
     def childFactory(self, request, name):
         return static.File(javascript_path + "/" + name)
@@ -639,6 +687,11 @@ setattr(Javascript, 'child_main.js', Main_js())
 ############################
 
 class Images(resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File(image_path)
+
     def childFactory(self, request, name):
         return static.File(image_path + "/" + name)
 
@@ -694,7 +747,11 @@ class RegistrationPage(resource.PostableResource):
                                  notebook.secure)
 
                 # Send a confirmation message to the user.
-                send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
+                try:
+                    send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
+                except ValueError:
+                    # the email address is invalid
+                    return http.Response(stream="Registration failed -- the email address '%s' is invalid."%destaddr)
 
                 # Store in memory that we are waiting for the user to respond
                 # to their invitation to join the SAGE notebook.
@@ -709,6 +766,8 @@ class RegistrationPage(resource.PostableResource):
                 <h1>Registration information received</h1>
                 <p>Thank you for registering with the SAGE notebook. A
                 confirmation message will be sent to %s.</p>
+                <br>
+                <p><a href="/">Click here to login with your new account.</a></p>
                 </html>
                 """%destaddr
             except ValueError:
@@ -730,34 +789,53 @@ class RegistrationPage(resource.PostableResource):
 class Toplevel(resource.PostableResource):
     def __init__(self, cookie, _username):
         self.cookie = cookie
-        global username
+        global username, admin
         username = _username
+
+setattr(Toplevel, 'child_favicon.ico', static.File(image_path + '/favicon.ico'))
+
+
+
+from sage.server.notebook.template import login_template
+
+class LoginResourceClass(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream =  login_template())
+
+    def childFactory(self, request, name):
+        return LoginResource
+
+LoginResource = LoginResourceClass()
 
 class AnonymousToplevel(Toplevel):
     from sage.server.notebook.avatars import PasswordFileChecker
     addSlash = True
     child_register = RegistrationPage(PasswordFileChecker('passwords.txt'))
     child_confirm = RegConfirmation()
+    child_images = Images()
+    child_css = CSS()
 
     def render(self, ctx):
-        from sage.server.notebook.template import login_template
-        lt = login_template(foo='bobby')
-        return http.Response(stream = lt)
+        return http.Response(stream =  login_template())
+
+    def childFactory(self, request, name):
+        return LoginResource
+
 
 class UserToplevel(Toplevel):
     addSlash = True
 
     child_images = Images()
-    child_javascript = Javascript()
     child_css = CSS()
-    child_ws = Worksheets()
+    child_javascript = Javascript()
+    child_home = Worksheets()
     child_notebook = Notebook()
     child_doc = Doc()
     child_upload = Upload()
     child_upload_worksheet = UploadWorksheet()
 
     def render(self, ctx):
-        s = notebook.html(username=username)
+        s = notebook.html_worksheet_list_for_user(username)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -766,9 +844,10 @@ class UserToplevel(Toplevel):
                              stream=s)
 
 class AdminToplevel(UserToplevel):
+    child_home = WorksheetsAdmin()
 
     def render(self, ctx):
-        s = notebook.html(username=username, admin=True)
+        s = notebook.html_worksheet_list_for_user(username)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),

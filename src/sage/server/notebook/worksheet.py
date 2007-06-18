@@ -94,13 +94,14 @@ class Worksheet:
         self.__viewers       = []
         self.__collaborators = [owner]
 
-        name = ' '.join(name.split())
         self.set_name(name)
 
         # set the directory in which the worksheet files will be stored.
-        clean_name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in name])
-        worksheet_dir        = owner + '/' + clean_name
-
+        # We also add the hash of the name, since the cleaned name loses info, e.g.,
+        # it could be all _'s if all characters are funny.
+        clean_name = _notebook.clean_name(name)
+        worksheet_dir = owner + '/' + clean_name
+        self.__filename = worksheet_dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), worksheet_dir)
 
         self.clear()
@@ -110,8 +111,8 @@ class Worksheet:
         try:
             return self.__owner
         except AttributeError:
-            self.__owner = ''
-            return ''
+            self.__owner = 'pub'
+            return 'pub'
 
     def set_owner(self, owner):
         self.__owner = self.owner
@@ -159,8 +160,9 @@ class Worksheet:
             self.append_new_cell()
 
     def set_notebook(self, notebook, new_id=None):
+        owner = self.owner()
         self.__notebook = notebook
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), self.__filename)
+        self.__dir = '%s/%s/%s'%(notebook.worksheet_directory(), owner, self.__filename)
         if not new_id is None:
             for C in self.__cells:
                 i = C.relative_id()
@@ -1261,6 +1263,9 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
+    def worksheet_command(self, cmd):
+        return '/home/%s/%s'%(self.filename(), cmd)
+
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
         n = len(self.__cells)
@@ -1282,9 +1287,11 @@ class Worksheet:
             menu  = '  <span class="worksheet_control_commands">'
             menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
             menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-            menu += '    <a class="plain_text" href="edit">Edit</a>' + vbar
-            menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%name + vbar
-            menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%name + vbar
+            menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
+            #menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%name + vbar
+            menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
+            #menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%name + vbar
+            menu += '    <a class="doctest_text" href="%s">Printable</a>'%self.worksheet_command('print') + vbar
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
             menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar

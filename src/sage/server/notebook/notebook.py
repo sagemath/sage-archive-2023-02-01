@@ -403,8 +403,8 @@ class Notebook(SageObject):
         self.__admins = []
 
     def user_is_admin(self, user):
-        # todo -- make
-        return user == 'admin'
+        # todo -- make this use the password file !!!
+        return user == 'a'
         try:
             return user in self.__admins
         except AttributeError:
@@ -550,6 +550,7 @@ class Notebook(SageObject):
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         s += '</head>\n'
         s += '<body>\n'
+        s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>\n'%W.name()
         s += '<pre>' + t + '</pre>'
         s += '</body>\n'
         return s
@@ -617,8 +618,8 @@ class Notebook(SageObject):
                 self.__next_worksheet_id += 1
                 break
         worksheet.set_notebook(self, new_id)
-        name = worksheet.name()
-        self.__worksheets[name] = worksheet
+        filename = worksheet.filename()
+        self.__worksheets[filename] = worksheet
         return worksheet
 
     # unpickled, no worksheets will think they are
@@ -740,7 +741,8 @@ class Notebook(SageObject):
         worksheet list.
         """
         if not (name in self.__worksheets.keys()):
-            raise KeyError, "Attempt to delete missing worksheet"
+            print self.__worksheets.keys()
+            raise KeyError, "Attempt to delete missing worksheet '%s'"%name
         W = self.__worksheets[name]
         W.quit()
         cmd = 'rm -rf "%s"'%(W.directory())
@@ -768,6 +770,8 @@ class Notebook(SageObject):
         s += '<link rel=stylesheet href="/css/main.css">\n'
         s += '</head>\n'
         s += '<body>\n'
+        if do_print:
+            s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>'%W.name()
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
@@ -775,21 +779,19 @@ class Notebook(SageObject):
         return s
 
     def get_worksheets_with_collaborator(self, user):
-        W = []
-        for w in self.__worksheets.itervalues():
-            if w.user_is_collaborator(user):
-                W.append(w)
-        return W
+        return [w for w in self.__worksheets.itervalues() if w.user_is_collaborator(user)]
 
     def get_worksheet_names_with_collaborator(self, user):
         return [W.name() for W in self.get_worksheets_with_collaborator(user)]
 
     def get_worksheets_with_viewer(self, user):
-        W = []
-        for w in self.__worksheets.itervalues():
-            if w.user_is_viewer(user):
-                W.append(w)
-        return W
+        return [w for w in self.__worksheets.itervalues() if w.user_is_viewer(user)]
+
+    def get_worksheets_with_owner(self, owner):
+        return [w for w in self.__worksheets.itervalues() if w.owner() == owner]
+
+    def get_worksheets_with_owner_that_are_viewable_by_user(self, owner, user):
+        return [w for w in self.get_worksheets_with_owner(owner) if w.user_is_viewer(user)]
 
     def get_worksheet_names_with_viewer(self, user):
         return [W.name() for W in self.get_worksheets_with_viewer(user)]
@@ -823,7 +825,9 @@ class Notebook(SageObject):
         raise KeyError, 'no worksheet %s'%id
 
     def get_worksheet_with_filename(self, filename):
-        if id != None:
+        if self.__worksheets.has_key(filename):
+            return self.__worksheets[filename]
+        if filename != None:
             for W in self.__worksheets.itervalues():
                 if W.filename() == filename:
                     return W
@@ -832,6 +836,36 @@ class Notebook(SageObject):
     def get_worksheet_that_has_cell_with_id(self, id):
         worksheet_id = id // MAX_WORKSHEETS
         return self.get_worksheet_with_id(worksheet_id)
+
+    ###########################################################
+    def html_worksheet_list_for_user(self, user):
+        add_new_worksheet_menu = """
+             <div class="add_new_worksheet_menu" id="add_worksheet_menu">
+             <input id="new_worksheet_box" class="add_new_worksheet_menu"
+                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
+             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
+             </div>
+        """
+        W = self.get_worksheets_with_viewer(user)
+        s = '<html><body> <ol>\n'
+
+        # This is stupid -- just used for add_new_worksheet_menu -- get rid of this.
+        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
+        s += '<script type="text/javascript">user_name="%s"; </script>'%user
+
+        s += '<br>'*2
+        s += add_new_worksheet_menu
+        s += '<br>'*2
+        s += '<h2>Active Worksheets</h2>'
+        s += '<br>'*2
+        for w in W:
+            s += '<li> <a href="/home/%s">%s</a>\n'%(w.filename(), w.name())
+        s += '</body></html>'
+        return s
+
+
+
+    ###########################################################
 
     def save(self, filename=None):
         print "-"*70
@@ -928,7 +962,7 @@ class Notebook(SageObject):
             name = W.name()
             name += ' (%s)'%len(W)
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/ws/%s">%s</a>'%(
+            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/home/%s">%s</a>'%(
                 cls,W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
@@ -990,23 +1024,22 @@ class Notebook(SageObject):
                 interrupt_class = "interrupt_grey"
             main_body = worksheet.html()
 
-        add_new_worksheet_menu = """
-             <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-             <input id="new_worksheet_box" class="add_new_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
-             </div>
-        """
-                    #<button class="add_new_worksheet_menu" onClick="hide_add_new_worksheet_menu()">Cancel</button>
+##         add_new_worksheet_menu = """
+##              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
+##              <input id="new_worksheet_box" class="add_new_worksheet_menu"
+##                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
+##              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
+##              </div>
+##         """
 
-        delete_worksheet_menu = """
-             <div class="delete_worksheet_menu" id="delete_worksheet_menu">
-             <input id="delete_worksheet_box" class="delete_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_delete_worksheet_menu_submit();"></input>
-             <button class="delete_worksheet_menu" onClick="process_delete_worksheet_menu_submit();">delete</button>
-             &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_delete_worksheet_menu()">X</span>
-             </div>
-        """
+##         delete_worksheet_menu = """
+##              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
+##              <input id="delete_worksheet_box" class="delete_worksheet_menu"
+##                     onKeyPress="if(is_submit(event)) process_delete_worksheet_menu_submit();"></input>
+##              <button class="delete_worksheet_menu" onClick="process_delete_worksheet_menu_submit();">delete</button>
+##              &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_delete_worksheet_menu()">X</span>
+##              </div>
+##         """
 
         vbar = '<span class="vbar"></span>'
 
@@ -1016,10 +1049,12 @@ class Notebook(SageObject):
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="history_link" onClick="history_window()">Log</a>' + vbar
+        body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
+        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a href="/doc">Documentation</a>' + vbar
-        body += '     <a href="/upload" class="upload_worksheet">Upload</a>'
+        body += '     <a href="/upload" class="upload_worksheet">Upload</a>' + vbar
+        body += '     <a href="/logout" class="help">Sign Out</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -1057,22 +1092,22 @@ class Notebook(SageObject):
         body += '<br>'*15
         body += '\n</div>\n'
 
-        body += '<div class="left_pane_bar" id="left_pane_bar" onClick="toggle_left_pane();"></div>\n'
-        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
+#        body += '<div class="left_pane_bar" id="left_pane_bar" onClick="toggle_left_pane();"></div>\n'
+#        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
         endpanespan = '</td></tr></table></span>\n'
 
-        body += '  <div class="worksheets_topbar">'
-        body += '     <b>Worksheets</b> '
-        body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
-        body += '<br></div>'
-        body +=    add_new_worksheet_menu
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet, username)
+##         body += '  <div class="worksheets_topbar">'
+##         body += '     <b>Worksheets</b> '
+##         body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
+##         body += '<br></div>'
+##         body +=    add_new_worksheet_menu
+##         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet, username)
 
         if worksheet is None:
-            return body + endpanespan
+             return body + endpanespan
 
-        body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script type="text/javascript">jsmath_init();</script>\n'
+##         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
+##         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
         if worksheet.user_is_only_viewer(username):
             body += '<script type="text/javascript">worksheet_locked=true;</script>'
@@ -1365,8 +1400,10 @@ Output
         head = self._html_head(worksheet_id=worksheet_id, username=username)
         body = self._html_body(worksheet_id=worksheet_id, username=username, show_debug=show_debug)
 
+        head += '<script type="text/javascript">user_name="%s"; </script>'%username
+
         if worksheet_id is not None:
-            head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+            head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet_id, W.filename(), W.name())
 
         return """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -1666,34 +1703,9 @@ def notebook(dir         ='sage_notebook',
     return nb
 
 
-########################################################################
-# NOTES ABOUT THE restart_on_crash option to notebook.
-## I made some changes to the notebook command so it has the option of running
-## the server as a completely separate process, which will restart it if it
-## dies in any way.   I installed this on sage.math and started those servers
-## running with this.  So if anybody has any systematic way to crash the notebook
-## servers, please try it!  (The only one I have is to tell a computer lab
-## full of 40 high school students to all try to crash the server at once...)
-##
-## Basically what happens is this:
-##
-##   1. You start a Python process then run the notebook command with the
-##      restart_on_kill option True.
-##   2. The notebook command starts another Python running, and in that
-##      it runs the notebook command.  This uses the Sage0 pexpect interface.
-##   3. It then monitors the process started in 2 -- if the process dies
-##      or terminates, then 2 occurs again.  The server log output
-##      is updated every 5 seconds.   If ctrl-c is received,
-##      then everything cleans up and terminates.
-##
-## This means that the SAGE notebook can only currently be totally
-## crashed if the Python simple http server gets into a hung state.
-## From looking at the server logs after past crashes, this doesn't
-## seem to ever happen.  So now instead of the server crashing
-## under crazy loads, etc., it will automatically reset within seconds --
-## this would of course kill all running worksheets (which is bad),
-## but is much better than having the whole sage notebook go down
-## until it is manually restarted!   In the long run, of course, using
-## Twisted for the web server should hopefully mean that it doesn't
-## crash...
-###############################################################
+#######
+# Misc
+
+def clean_name(name):
+    return ''.join([x if (x.isalnum() or x == '_') else '_' for x in name])
+

@@ -822,24 +822,8 @@ div.worksheet {
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 198px;
-  padding-left: 0ex;
-  float: right;
-  padding-top: 0ex;
-}
-
-div.slideshow {
-  position:fixed;
-  overflow:auto;
-  z-index:1;
-  background-color: white;
-  border-top: 0px;
-  border-left: 2px solid <color1>;
-  top: 70px;
-  bottom: 0ex;
-  right: 0ex;
   left: 5px;
-  padding-left: 0ex;
+  padding-left: 3ex;
   float: right;
   padding-top: 0ex;
 }
@@ -981,8 +965,8 @@ pre.cell_input {
 }
 pre.cell_input:hover {
   cursor:pointer;
-  border: 2px solid  #8888fe;
-  background-color: #ffffcc;
+  /* border: 2px solid  #8888fe; */
+  /* background-color: #ffffcc; */
 }
 
 textarea.cell_input_hide {
@@ -1033,17 +1017,7 @@ textarea.cell_input_active {
 }
 
 textarea.cell_input:hover{
-  background-color: #ffffcc;
-  border: 2px solid  #8888fe;
-  font-family: monospace;
-  font-size:12pt;
-  overflow:auto;
-  padding-left:5px;
-  padding-top:3px;
-  padding-bottom:0px;
-  margin-top:0px;
-  margin-bottom:0px;
-  width: 100%;
+  cursor:pointer;
 }
 
 

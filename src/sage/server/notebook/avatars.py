@@ -35,7 +35,6 @@ class PasswordDataBaseChecker(object):
             return checkers.ANONYMOUS #defer.succeed(checkers.ANONYMOUS)
 
     def requestAvatarId(self, credentials):
-        log.msg("=== requestAvatarId ===")
         username = credentials.username
         password = credentials.password
         query = "SELECT avatarId FROM users WHERE avatarId = ? AND password = ?"
@@ -53,20 +52,14 @@ class PasswordDictChecker(object):
         self.passwords = passwords
 
     def requestAvatarId(self, credentials):
-        log.msg("=== requestAvatarId ===")
         username = credentials.username
-        log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
         if self.passwords.has_key(username):
-            log.msg("password.has_key(%s)"%username)
             password = self.passwords[username]
             if credentials.password == password:
                 return defer.succeed(username)
             else:
-                log.msg("=== %s entered the wrong password" % username)
-                log.msg("=== Returning anonymous credentials.")
                 return defer.succeed(checkers.ANONYMOUS)
         else:
-            log.msg("=== Returning anonymous credentials.")
             return defer.succeed(checkers.ANONYMOUS)
 
 class PasswordFileChecker(PasswordDictChecker):
@@ -131,21 +124,14 @@ pass: %s
 
     def requestAvatarId(self, credentials):
         self.load_passwords()
-        log.msg("=== requestAvatarId ===")
         username = credentials.username
-        log.msg("un: %s, pw: %s"%(credentials.username, credentials.password))
         if self.passwords.has_key(username):
-            log.msg("password.has_key(%s)"%username)
             password = self.passwords[username]
             if credentials.password == password:
-                log.msg('=== %s entered correct password'%username)
                 return defer.succeed(username)
             else:
-                log.msg("=== %s entered the wrong password" % username)
-                log.msg("=== Returning anonymous credentials.")
                 return defer.succeed(checkers.ANONYMOUS)
         else:
-            log.msg("=== Returning anonymous credentials.")
             return defer.succeed(checkers.ANONYMOUS)
 
 class LoginSystem(object):
@@ -173,7 +159,6 @@ class LoginSystem(object):
         """
 
         from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
-        log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             log.msg(avatarId)
@@ -188,7 +173,7 @@ class LoginSystem(object):
                 rsrc = UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
             elif user_type(avatarId) == 'admin':
-                log.msg("returning admin resources for %s" % avatarId)
+                log.msg("returning Admin resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = AdminToplevel(self.cookie, avatarId)

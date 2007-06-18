@@ -1,25 +1,75 @@
-* create new worksheet needs confirmation
+TODO for the new Twisted notebook
+
+done * create new worksheet needs confirmation
+
+* carefully control the total number of Python worksheet
+  processes that can be started.   Make sure that worksheets
+  not used for a certain amount of time are stopped, and
+  that only so many can be created.  This is *critical*.
+  The public notebook breaks in a few hours without this.
+
+* A User Model Make it so each user of the notebook has an account on
+  the notebook, and can only see worksheets that are explicitly shared
+  by other users. (I.e., we need either an account and ownership model
+  or a wiki model for the notebook. Email/registration. An account
+  model makes the most sense).
+
+* Published worksheets should be rate-able
+
+* Save/Load Worksheets/Plain Mode Rewrite saving/loading of
+  worksheets, so it doesn't use pickle. Instead use the ''s text
+  encoding and the images in directories. XML, plain text format,
+  etc. Finish implementing the html/edit mode: (1) images shouldn't
+  get deleted on saving, (2) inserting new cells shouldn't be broken.
+
+* Don't lose work: If anything in a page changes, make it so trying to
+  navigate away from the page requires confirmation (like in gmail)
+
+* Worksheet Revisions. Like Google docs.
+  SAVE when -- hit a big "save" button or exit a worksheet.
+
+* Address the "jupiness" of the notebook, e.g., Justin Walker reports
+  that in Safari under OS X, "I reach the bottom of the visible page,
+  and scroll down to make the next cell visible, enter an expression,
+  and hit SHFT- Return, the page jumps back to the top."
 
 
 
+======================================================
+
+Other ideas...
+
+* Highlighting a block of text and pressing tab indents it four spaces; similarly, pressing shift-tab ded
+ents it four spaces.
+
+* In the notebook some input cell should *always* have focus, if this is possible. I hate typing into a w
+orksheet and having random movement happen.
+
+* Create a worksheet settings panel; use this to:
+    * Set the math software system used to evaluate cells
+    * Determine whether pressing shift-enter jumps to the next cell or stays in current one.
+    * Create a notebook settings panel:
+          o Whether or not left panel is displayed by default
+          o Whether shift enter or enter evaluates a cell (Mathematica or Maple mode)
+          o Default math software system for new worksheets.
+
+* New feature -- pdf printing; Printing needs to also allow for the
+  following: Given a single worksheet, print it by (1) saving it to a
+  latex file with embedded images, and (2) running pdflatex on the
+  result, then return the resulting pdf file and/or a tarball with the
+  images and latex. This would be very high quality, and will also be
+  something that would be easily included in latex documents. Printing
+  a notebook (=all worksheets owned by a given user) would create a
+  document with a section for each notebook.
+
+* SageTex as suggested by Sara Billey.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+* Implement some of the features of Google Notebook (http://www.google.com/notebook) -- note we were befo
+re them.
+    * Full search of all worksheets
+    * Cleaner display of worksheet list on the left
+    * Drag and drop
 
 
 

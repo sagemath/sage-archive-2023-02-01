@@ -28,6 +28,7 @@ usage_advanced() {
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
     echo "  -ba [branch]  -- switch to, rebuild all Sagex code, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
+    echo "  -cleaner      -- run the SAGE cleaner"
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
@@ -175,7 +176,7 @@ if [ $# -eq 0 ]; then
     exit $?
 fi
 
-if [ $1 = '-cleantmp' -o $1 = '--cleantmp' ]; then
+if [ $1 = '-cleaner' ]; then
     sage-cleaner
     exit $?
 fi

@@ -13,7 +13,7 @@ from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
-
+from random import randint
 
 def user_type(avatarId):
     if twist.notebook.user_is_admin(avatarId):
@@ -87,7 +87,10 @@ class PasswordFileChecker(PasswordDictChecker):
         passwords = {}
         if not os.path.exists(self.password_file):
             open(self.password_file,'w').close()
+            self.add_first_admin()
         f = open(self.password_file).readlines()
+        if len(f) == 0:
+            self.add_first_admin()
         for line in f:
             username, password, email, account_type = line.split(':')
             password = password.strip()
@@ -101,6 +104,19 @@ class PasswordFileChecker(PasswordDictChecker):
         s = '%s:%s:%s:%s\n' % (username, password, email, account_type)
         f.writelines(s)
         f.close()
+
+    def add_first_admin(self):
+        pw = "%x"%randint(2**24,2**25)
+        self.add_user("admin", pw, "", "admin")
+        log.msg("""
+*************************************
+     INITIALIZING USER DATABASE
+*************************************
+Please visit the notebook immediately
+to configure the server.  Log in with
+user: admin
+pass: %s
+*************************************"""%pw)
 
     def check_username(self, username):
         usernames = []

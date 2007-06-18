@@ -122,6 +122,7 @@ class PasswordFileChecker(PasswordDictChecker):
             log.msg("password.has_key(%s)"%username)
             password = self.passwords[username]
             if credentials.password == password:
+                log.msg('=== %s entered correct password'%username)
                 return defer.succeed(username)
             else:
                 log.msg("=== %s entered the wrong password" % username)
@@ -159,6 +160,7 @@ class LoginSystem(object):
         log.msg("=== requestAvatar ===")
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
+            log.msg(avatarId)
             if avatarId is checkers.ANONYMOUS: #anonymous user
                 log.msg("returning AnonymousResources")
                 rsrc = AnonymousToplevel(self.cookie, avatarId)
@@ -170,6 +172,7 @@ class LoginSystem(object):
                 rsrc = UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
             elif user_type(avatarId) == 'admin':
+                log.msg("returning admin resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = AdminToplevel(self.cookie, avatarId)

@@ -735,7 +735,6 @@ class LogoutPage(resource.Resource):
         <h1>Thanks for logging out, come back soon!</h1>
         </html>
         """
-
         return http.Response(stream=s)
 
 class AnonymousToplevel(Toplevel):
@@ -769,9 +768,6 @@ class UserToplevel(Toplevel):
                                                             self.cookie)]},
                              stream=s)
 
-    def childFactory(self, request, name):
-        print request, name
-
 class AdminToplevel(UserToplevel):
 
     def render(self, ctx):
@@ -784,12 +780,16 @@ class AdminToplevel(UserToplevel):
                              stream=s)
 
 
+
 setattr(UserToplevel, 'child_help.html', Help())
 setattr(UserToplevel, 'child_history.html', History())
 
 notebook = None  # this gets set on startup.
-
 username = None  # This is set when a request comes in.
+
+
+
+
 
 ##########################################################
 # This actually serves up the notebook.
@@ -799,7 +799,7 @@ from   sage.server.misc import print_open_msg
 import os, shutil, socket
 
 private_pem = conf_path + '/private.pem'
-public_pem = conf_path + '/public.pem'
+public_pem  = conf_path + '/public.pem'
 
 def notebook_setup(self=None):
     if not os.path.exists(conf_path):

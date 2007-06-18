@@ -257,7 +257,8 @@ class MySessionWrapper(object):
         return credentials.UsernamePassword(username, password)
 
     def _loginSuccess(self, (iface, rsrc, logout), session, creds, segments):
-        """Return the Root Page after log in success.
+        """
+        Return the Root Page after log in success.
 
         Also saved the credentials that the user used to log in
         to later associate these credentials with the users session.

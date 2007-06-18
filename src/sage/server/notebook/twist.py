@@ -821,6 +821,13 @@ class AnonymousToplevel(Toplevel):
     def childFactory(self, request, name):
         return LoginResource
 
+class FailedToplevel(Toplevel):
+    def __init__(self, info):
+        self.info = info
+
+    def render(self, ctx):
+        return http.Response(stream = 'You -- %s -- you failed!'%self.info)
+
 
 class UserToplevel(Toplevel):
     addSlash = True

@@ -528,8 +528,7 @@ class Notebook(SageObject):
         s += '<br>'*2
         s += add_new_worksheet_menu
         s += '<br>'*2
-        s += '<h2>Logged in as: %s</h2>'%user
-        s += '<h2>Active Worksheets</h2>'
+        s += '<h2>Active Worksheets Viewable by %s</h2>'%uwer
         s += '<br>'*2
         for w in W:
             s += '<li> <a href="/home/%s">%s</a>\n'%(w.filename(), w.name())
@@ -980,33 +979,34 @@ def load_notebook(dir, address=None, port=None, secure=None):
         secure -- whether or not the notebook is secure
     """
     sobj = '%s/nb.sobj'%dir
+    nb = None
     if os.path.exists(dir):
         try:
             nb = load(sobj, compress=False)
         except:
-            print "****************************************************************"
-            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
-            print "WARNING -- failed to load notebook object. Trying backup files."
-            print "****************************************************************"
             backup = '%s/backups/'%dir
-            nb = None
-            for F in os.listdir(backup):
-                file = backup + '/' + F
-                try:
-                    nb = load(file, compress=False)
-                except Exception, msg:
-                    print "Failed to load backup '%s'"%file
-                else:
-                    print "Successfully loaded backup '%s'"%file
-                    nb.save()
-                    break
-            if nb is None:
-                print "Unable to restore notebook from *any* auto-saved backups."
-                print "This is a serious problem."
-        nb.delete_doc_browser_worksheets()
-        nb.set_directory(dir)
-        nb.set_not_computing()
-    else:
+            if os.path.exists(backup):
+                print "****************************************************************"
+                print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
+                print "WARNING -- failed to load notebook object. Trying backup files."
+                print "****************************************************************"
+                for F in os.listdir(backup):
+                    file = backup + '/' + F
+                    try:
+                        nb = load(file, compress=False)
+                    except Exception, msg:
+                        print "Failed to load backup '%s'"%file
+                    else:
+                        print "Successfully loaded backup '%s'"%file
+                        nb.save()
+                        break
+                if nb is None:
+                    print "Unable to restore notebook from *any* auto-saved backups."
+                    print "This is a serious problem."
+                nb.delete_doc_browser_worksheets()
+                nb.set_directory(dir)
+                nb.set_not_computing()
+    if nb is None:
         nb = Notebook(dir)
 
     nb.address = address

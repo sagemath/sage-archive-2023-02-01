@@ -101,6 +101,12 @@ class PasswordFileChecker(PasswordDictChecker):
     def add_first_admin(self):
         pw = "%x"%randint(2**24,2**25)
         self.add_user("admin", pw, "", "admin")
+
+        ## TODO -- for developer convenience for now only!!!!
+        log.msg("Creating accounts a and b with passwords a and b for developer convenience.")
+        self.add_user("a", "a", "", "admin")
+        self.add_user("b", "b", "", "user")
+
         log.msg("""
 *************************************
      INITIALIZING USER DATABASE

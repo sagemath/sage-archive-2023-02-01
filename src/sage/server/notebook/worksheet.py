@@ -80,13 +80,13 @@ def one_prestarted_sage(server, ulimit):
         init_sage_prestart(server, ulimit)
     return X
 
+def worksheet_filename(name, owner):
+    return owner + '/' + _notebook.clean_name(name)
+
 class Worksheet:
-    def __init__(self, name, notebook, id, system, owner):
+    def __init__(self, name, notebook, system, owner):
 
         # Record the basic properties of the worksheet
-
-        self.__id       = id
-        self.__next_id  = (_notebook.MAX_WORKSHEETS) * id
 
         self.__system   = system
         self.__notebook = notebook
@@ -94,15 +94,16 @@ class Worksheet:
         self.__viewers       = []
         self.__collaborators = [owner]
 
+        # Initialize the cell id counter.
+        self.__next_id = 0
+
         self.set_name(name)
 
         # set the directory in which the worksheet files will be stored.
         # We also add the hash of the name, since the cleaned name loses info, e.g.,
         # it could be all _'s if all characters are funny.
-        clean_name = _notebook.clean_name(name)
-        worksheet_dir = owner + '/' + clean_name
-        self.__filename = worksheet_dir
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), worksheet_dir)
+        self.__filename = worksheet_filename(name, owner)
+        self.__dir = '%s/%s'%(notebook.worksheet_directory(), worksheet_filename)
 
         self.clear()
 
@@ -159,21 +160,10 @@ class Worksheet:
         for i in range(INITIAL_NUM_CELLS):
             self.append_new_cell()
 
-    def set_notebook(self, notebook, new_id=None):
+    def set_notebook(self, notebook):
         owner = self.owner()
         self.__notebook = notebook
         self.__dir = '%s/%s/%s'%(notebook.worksheet_directory(), owner, self.__filename)
-        if not new_id is None:
-            for C in self.__cells:
-                i = C.relative_id()
-                C.set_worksheet(self, new_id * _notebook.MAX_WORKSHEETS + i)
-            nid = self.__next_id  - _notebook.MAX_WORKSHEETS*self.__id
-            self.__id = new_id
-            self.__next_id = _notebook.MAX_WORKSHEETS*new_id + nid
-        else:
-            for C in self.__cells:
-                C.set_worksheet(self)
-
 
     def filename(self):
         return self.__filename
@@ -186,9 +176,9 @@ class Worksheet:
 
     def __cmp__(self, other):
         try:
-            return cmp((self.__id, self.__name), (other.__id, other.__name))
+            return cmp(self.__filename, other.__filename)
         except AttributeError:
-            return -1
+            return cmp(type(self), type(other))
 
     def computing(self):
         try:
@@ -250,34 +240,6 @@ class Worksheet:
             cells = [self._new_cell()]
         self.__cells = cells
 
-##         lines = text.split('\n')
-##         input = ""
-##         output = ""
-##         in_cell = False
-##         in_output = False
-##         old_first = self.__cells[0].id()
-##         for line in lines:
-##             if not in_cell:
-##                 if line[:3] == '{{{':
-##                     in_cell = True
-##             elif line != '}}}':
-##                 if not in_output:
-##                     if line == '///':
-##                         in_output = True
-##                     else:
-##                         input += line+'\n'
-##                 else:
-##                     output += line+'\n'
-##             else:
-##                 C = self.new_cell_before(old_first)
-##                 C.set_input_text(input)
-##                 C.set_output_text(output,output)
-##                 C.set_cell_output_type()
-##                 input = ""
-##                 output = ""
-##                 in_cell = False
-##                 in_output = False
-
     def input_text(self):
         """
         Return text version of the input to the worksheet.
@@ -296,9 +258,6 @@ class Worksheet:
             self.__queue = []
         except AttributeError:
             pass
-
-    def id(self):
-        return self.__id
 
     def cell_id_list(self):
         return [C.id() for C in self.__cells]

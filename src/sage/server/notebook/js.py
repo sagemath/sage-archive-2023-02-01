@@ -666,10 +666,6 @@ function delete_worksheet_callback(status, response_text) {
     }
 }
 
-function show_worksheet_menu(worksheet) {
-    // not implemented
-}
-
 function set_worksheet_list(worksheets) {
     var wlist = get_element('worksheet_list');
     wlist.innerHTML = worksheets;

@@ -100,7 +100,7 @@ class WorksheetFile(resource.Resource):
             css_href = DOC + directory + css_href
         W = doc_worksheet()
         W.edit_save(doc_page)
-        s = notebook.html(worksheet_id = W.name(),  username=username)
+        s = notebook.html(worksheet_filename = W.filename(),  username=username)
         return http.Response(stream=s)
 
     def childFactory(self, request, name):
@@ -534,7 +534,7 @@ class Worksheet(WorksheetResource, resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        s = notebook.html(worksheet_id = self.name,  username=username)
+        s = notebook.html(worksheet_filename = self.name,  username=username)
         self.worksheet.sage()
         return http.Response(stream=s)
 

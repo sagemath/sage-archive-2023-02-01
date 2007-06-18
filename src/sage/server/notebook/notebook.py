@@ -28,7 +28,6 @@ import worksheet    # individual worksheets (which make up a notebook)
 import config       # internal configuration stuff (currently, just keycodes)
 import keyboards    # keyboard layouts
 
-MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
 MAX_HISTORY_LENGTH = 500
 WRAP_NCOLS = 80
 
@@ -59,7 +58,6 @@ class Notebook(SageObject):
         self.__worksheet_dir = '%s/worksheets'%dir
         self.__object_dir    = '%s/objects'%dir
         self.__makedirs()
-        self.__next_worksheet_id = 0
         self.__history = []
         self.__history_count = 0
         self.__log_server = log_server #log all POST's and GET's
@@ -127,7 +125,7 @@ class Notebook(SageObject):
             i = 0
         return P[i]
 
-    def system(self):
+    def system(self, username=None):
         try:
             return self.__system
         except AttributeError:
@@ -288,13 +286,7 @@ class Notebook(SageObject):
         print cmd
         os.system(cmd)
         new_id = None
-        id = worksheet.id()
-        for W in self.__worksheets.itervalues():
-            if W.id() == id:
-                new_id = self.__next_worksheet_id
-                self.__next_worksheet_id += 1
-                break
-        worksheet.set_notebook(self, new_id)
+        worksheet.set_notebook(self)
         filename = worksheet.filename()
         self.__worksheets[filename] = worksheet
         return worksheet
@@ -392,45 +384,38 @@ class Notebook(SageObject):
         if not os.path.exists(self.__object_dir):
             os.makedirs(self.__object_dir)
 
-    def worksheet_ids(self):
-        return set([W.id() for W in self.__worksheets.itervalues()])
-
     def create_new_worksheet(self, worksheet_name, username):
-        if worksheet_name in self.__worksheets.keys():
-            raise ValueError, "worksheet already exists."
-        worksheet_name = str(worksheet_name)
-        wids = self.worksheet_ids()
-        id = 0
-        while id in wids:
-            id += 1
-
-        if id >= MAX_WORKSHEETS:
-            raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
-        self.__next_worksheet_id += 1
-
-        W = worksheet.Worksheet(worksheet_name, self, id, system=self.system(), owner=username)
-        self.__worksheets[worksheet_name] = W
+        filename = worksheet.worksheet_filename(worksheet_name, username)
+        if self.__worksheets.has_key(filename):
+            return self.__worksheets[filename]
+        W = worksheet.Worksheet(worksheet_name, self,
+                        system = self.system(username), owner=username)
+        self.__worksheets[W.filename()] = W
         return W
 
-    def delete_worksheet(self, name):
+    def delete_worksheet(self, filename):
         """
         Delete the given worksheet and remove its name from the
         worksheet list.
         """
-        if not (name in self.__worksheets.keys()):
+        if not (filename in self.__worksheets.keys()):
             print self.__worksheets.keys()
-            raise KeyError, "Attempt to delete missing worksheet '%s'"%name
-        W = self.__worksheets[name]
+            raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
+        W = self.__worksheets[filename]
         W.quit()
         cmd = 'rm -rf "%s"'%(W.directory())
         print cmd
         os.system(cmd)
 
-        del self.__worksheets[name]
-        if len(self.__worksheets) == 0:
-            return self.create_new_worksheet('_scratch_')
-        else:
-            return self.__worksheets[self.__worksheets.keys()[0]]
+        self.deleted_worksheets()[filename] = W
+        del self.__worksheets[filename]
+
+    def deleted_worksheets(self):
+        try:
+            return self.__deleted_worksheets
+        except AttributeError:
+            self.__deleted_worksheets = {}
+            return self.__deleted_worksheets
 
     def worksheet_names(self):
         W = self.__worksheets.keys()
@@ -477,18 +462,6 @@ class Notebook(SageObject):
         return self.__worksheets[name]
 
     def get_worksheet_with_id(self, id):
-        """
-        Get the worksheet with given id, which is either a name or the id number.
-        If there is no such worksheet, a KeyError is raised.
-
-        INPUT:
-            id -- something that identifies a worksheet.
-                 string -- use worksheet with that name or filename.
-                 string int -- something that coerces to an integer; worksheet with that number
-
-        OUTPUT:
-            a worksheet.
-        """
         try:
             id = int(id)
             for W in self.__worksheets.itervalues():
@@ -502,17 +475,22 @@ class Notebook(SageObject):
         raise KeyError, 'no worksheet %s'%id
 
     def get_worksheet_with_filename(self, filename):
+        """
+        Get the worksheet with given filename.  If there is no such
+        worksheet, raise a KeyError.
+
+        INPUT:
+            string
+        OUTPUT:
+            a worksheet or KeyError
+        """
         if self.__worksheets.has_key(filename):
             return self.__worksheets[filename]
-        if filename != None:
+        if not filename is None:
             for W in self.__worksheets.itervalues():
                 if W.filename() == filename:
                     return W
         raise KeyError, "no such worksheet %s"%filename
-
-    def get_worksheet_that_has_cell_with_id(self, id):
-        worksheet_id = id // MAX_WORKSHEETS
-        return self.get_worksheet_with_id(worksheet_id)
 
     ###########################################################
     def html_worksheet_list_for_user(self, user):
@@ -533,6 +511,7 @@ class Notebook(SageObject):
         s += '<br>'*2
         s += add_new_worksheet_menu
         s += '<br>'*2
+        s += '<h2>Logged in as: %s</h2>'%user
         s += '<h2>Active Worksheets</h2>'
         s += '<br>'*2
         for w in W:
@@ -565,53 +544,6 @@ class Notebook(SageObject):
         #print "Press control-C to stop the notebook server."
         #print "-"*70
 
-    # TODO -- Delete this function
-##     def start(self, port=8000, address='localhost',
-##                     max_tries=128, open_viewer=False,
-##                     jsmath=False):
-##         global JSMATH
-##         JSMATH = jsmath
-##         tries = 0
-##         port = int(port)
-##         max_tries = int(max_tries)
-##         while True:
-##             try:
-##                 notebook_server = server.NotebookServer(self,
-##                          port, address)
-##             except socket.error, msg:
-##                 print msg
-##                 port += 1
-##                 tries += 1
-##                 if tries > max_tries:
-##                     print "Not trying any more ports.  Probably your network is down."
-##                     break
-##                 print "Trying next port (=%s)"%port
-##             else:
-##                 break
-
-##         print_open_msg(address, port)
-##         print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
-
-##         f = file('%s/pid'%self.directory(), 'w')
-##         f.writelines(["%d\n"%os.getpid(), str(port)])
-##         f.close()
-
-##         if open_viewer:
-##             open_page(address, port)
-##         while True:
-##             try:
-##                 notebook_server.serve()
-##             except KeyboardInterrupt, msg:
-##                 break
-##             except Exception, msg:
-##                 print msg
-##                 print "Automatically restarting server."
-##             else:
-##                 break
-##         self.save()
-##         self.quit()
-##         self.save()
-
     def quit(self):
         for W in self.__worksheets.itervalues():
             W.quit()
@@ -639,14 +571,11 @@ class Notebook(SageObject):
             name = W.name()
             name += ' (%s)'%len(W)
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onMouseOver="show_worksheet_menu(%s)" href="/home/%s">%s</a>'%(
-                cls,W.id(), W.filename(),name)
-            s.append(txt)
         return '<br>'.join(s)
 
-    def _html_head(self, worksheet_id, username):
-        if worksheet_id is not None:
-            worksheet = self.get_worksheet_with_id(worksheet_id)
+    def _html_head(self, worksheet_filename, username):
+        if worksheet_filename is not None:
+            worksheet = self.get_worksheet_with_filename(worksheet_filename)
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
@@ -664,22 +593,8 @@ class Notebook(SageObject):
 
         return head
 
-#    def html_login(self):
-#        return """
-#        <html><body>
-#<form method="POST" action="/login">
-#Username: <input type="text" name="email" size="15" />
-#Password: <input type="password" name="password" size="15" />
-#<br />
-#<div align="center">
-#<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
-#<a href='/register'>Register an account</a>
-#</body>
-#</html>
-#"""
-
-    def _html_body(self, worksheet_id, show_debug=False, username=''):
-        if worksheet_id is None or worksheet_id == '':
+    def _html_body(self, worksheet_filename, show_debug=False, username=''):
+        if worksheet_filename is None or worksheet_filename == '':
             main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
             if os.path.isfile(self.directory() + "/index.html"):
                 splash_file = open(self.directory() + "/index.html")
@@ -694,7 +609,7 @@ class Notebook(SageObject):
             worksheet = None
         else:
 
-            worksheet = self.get_worksheet_with_id(worksheet_id)
+            worksheet = self.get_worksheet_with_filename(worksheet_filename)
             if worksheet.computing():
                 interrupt_class = "interrupt"
             else:
@@ -835,7 +750,6 @@ Output
 ...
 </pre>"""
 
-
         s = """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html><head><title>SAGE Wiki cell text </title>
@@ -852,66 +766,8 @@ Output
             margin-top: 0.5em;
         }
         </style>
-
-        <script type="text/javascript"> <!--
-
-        %s
-
-        function get_element(id) {
-            if(document.getElementById)
-                return document.getElementById(id);
-            if(document.all)
-                return document.all[id];
-            if(document.layers)
-                return document.layers[id];
-        }
-
-        function get_cell_list() {
-            return window.opener.get_cell_list()
-        }
-
-        function send_doc_html() {
-            var cell_id_list = get_cell_list();
-            var num = cell_id_list.length;
-            var lastid = cell_id_list[num-1];
-            var doc_intext = get_element('cell_intext').value; /*for testing doc_html*/
-            window.opener.upload_doc_html(lastid,doc_intext);
-        }
-
-        function send_cell_text() {
-            var cell_id_list = get_cell_list();
-            var num = cell_id_list.length;
-            var lastid = cell_id_list[num-1];
-            var cell_intext = get_element('cell_intext').value;
-            window.opener.upload_cell_text(lastid,cell_intext);
-        }
-
-        function send_to_ws(do_eval) {
-            var f = send_to_ws_callback;
-            if (do_eval)
-                f = send_to_ws_eval_callback;
-            async_request('/delete_cell_all',f, "worksheet_id="+window.opener.get_worksheet_id());
-        }
-
-        function send_to_ws_callback(status, response_text) {
-            window.opener.cell_delete_all_callback(status, response_text);
-            var cell_intext = get_element('cell_intext').value;
-            window.opener.insert_cells_from_wiki(cell_intext, false);
-        }
-
-        function send_to_ws_eval_callback(status, response_text) {
-            window.opener.cell_delete_all_callback(status, response_text);
-            var cell_intext = get_element('cell_intext').value;
-            window.opener.insert_cells_from_wiki(cell_intext, true);
-        }
-
-
-        function clear_wiki_window() {
-            get_element('cell_intext').value = ' ';
-        }
-        --></script></head>
         <body>%s
-        </body></html>"""%(js.async_lib(), body_html)
+        </body></html>"""%body_html
 
         return s
 
@@ -920,60 +776,7 @@ Output
             return self._help_window
         except AttributeError:
             pass
-        help = [
-            ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
-            ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
-            ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
-            ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),
-            ('Create New Worksheet', "Use the menu on the left, or simply put a new worksheet name in the URL, e.g., if your notebook is at http://localhost:8000, then visiting http://localhost:8000/tests will create a new worksheet named tests."),
-               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
-                ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
-                ('Evaluate all Cells', 'Click <u>Eval All</u> in the upper right.'),
-                ('Evaluate Cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('Typeset a Cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
-               ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
-                ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)" or "show(objname)", which will display a nicely typeset image (using javascript!).  You do <i>not</i> need latex for this to work.  Type "lprint()" to make it so output is often typeset by default.'),
-                ('Move between cells', 'Use the up and down arrows on your keyboard.'),
-                ('Interrupt running calculations',
-                 'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
-                ('Tab completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
-                ('Print worksheet', 'Click the print button.'),
-                ('Help About',
-                 'Type ? immediately after the object or function and press tab.'),
-                ('Source Code',
-                 'Put ?? after the object and press tab.'),
-                ('Hide Cell Input',
-                 'Put %hide at the beginning of the cell.  This can be followed by %gap, %latex, %maxima, etc.  Note that %hide must be first.  From the edit screen, use %hideall to hide a complete cell.'),
-                ('Documentation',
-                 'Click on <a href="/doc_browser?/?index.html">Documentation</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
-                ('Insert New Cell',
-                 'Put mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
-                ('Delete Cell',
-                 'Delete cell contents the press backspace.'),
-                ('Text of Worksheet', 'Click the <u>Text</u> and <u>Doctext</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
-                ('History', 'Click the <u>History</u> link for a history of commands entered in any worksheet of this notebook.  This appears in a popup window, which you can search (control-F) and copy and paste from.'),
-                ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('Hide/Show All Output', 'Click <u>Hide</u> in the upper right to hide <i>all</i> output. Click <u>Show</u> to show all output.'),
-                ('Variables',
-                 'All variables and functions that you create during this session are listed on the left.  Even predefined variables that you overwrite will appear.'),
-                ('Objects',
-                 'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to save and load objects.'),
-                ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
-                ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
-                ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
-                ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Downloading and Uploading Worksheets',
-                 'Click <u>Download</u> in the upper right to download a complete worksheet to a local .sws file, and click <a href="__upload__.html">Upload</a> to upload a saved worksheet to the notebook.  Note that <i>everything</i> that has been submitted is automatically saved to disk when you quit the notebook server (or type "%save_server" into a cell).'),
-                ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
-                ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
-                ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
-                ('Customizing the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.'),
-                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
-                ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
-                ('Javascript Debugger', 'Type ?debug at the end of a worksheet url to enable the javascript debugger.  A pair of textareas will appear at the top of the worksheet -- the upper of which is for output, the lower is a direct interface to the page\'s javascript environment.  Type any eval()-able javascript into the input box and press shift+enter to execute it.  Type debug_append(str) to print to, and debug_clear() to clear the debug output window.'),
-                ]
-
-        help.sort()
+        from tutorial import notebook_help
         s = """
         <br><hr>
         <style>
@@ -1018,16 +821,14 @@ Output
 
         <table class="help_window">
         """
-        for x, y in help:
+        for x, y in notebook_help:
             s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>\n'%(x,y)
         s += '</table></div>'
 
         s +="""
         <br>
-        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
-        especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE is <a href="/license.html">licensed
-        either under the GPL or a GPL-compatible license</a>.
+        AUTHORS: Tom Boothby, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein<br><br>
+        LICENSE: SAGE is <a href="/license.html">GPL-compatible</a>.
         <br>
         """
         self._help_window = s
@@ -1063,24 +864,23 @@ Output
           </html>
          """%(css.css(self.color()),js.javascript())
 
-    def html(self, worksheet_id=None, username=None, show_debug=False, admin=False):
-        if worksheet_id is None or worksheet_id == '':
-            worksheet_id = None
+    def html(self, worksheet_filename=None, username=None, show_debug=False, admin=False):
+        if worksheet_filename is None or worksheet_filename == '':
+            worksheet_filename = None
             W = None
         else:
             try:
-                W = self.get_worksheet_with_id(worksheet_id)
-            except KeyError, msg:
-                W = self.create_new_worksheet(worksheet_id)
-                worksheet_id = W.id()
+                W = self.get_worksheet_with_filename(worksheet_filename)
+            except KeyError:
+                W = None
 
-        head = self._html_head(worksheet_id=worksheet_id, username=username)
-        body = self._html_body(worksheet_id=worksheet_id, username=username, show_debug=show_debug)
+        head = self._html_head(worksheet_filename=worksheet_filename, username=username)
+        body = self._html_body(worksheet_filename=worksheet_filename, username=username, show_debug=show_debug)
 
         head += '<script type="text/javascript">user_name="%s"; </script>'%username
 
-        if worksheet_id is not None:
-            head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet_id, W.filename(), W.name())
+        if worksheet_filename is not None:
+            head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet_filename, W.name())
 
         return """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

@@ -50,12 +50,9 @@ class TextCell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.id())
         if not id is None:
             self.__id = id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
 
     def html(self, ncols, do_print=False, do_math_parse=True):
         """
@@ -98,7 +95,7 @@ class Cell(Cell_generic):
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
-        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.id())
         self.__version = 0
 
     def set_cell_output_type(self, typ='wrap'):
@@ -113,16 +110,13 @@ class Cell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.id())
         if not id is None:
             self.set_id(id)
         self.__out_html = self.files_html()
 
     def id(self):
         return self.__id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
 
     def set_id(self, id):
         self.__id = int(id)
@@ -545,7 +539,7 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/home/%s/data/%s/%s"%(self.worksheet_filename(), self.relative_id(), F)
+            url = "/home/%s/data/%s/%s"%(self.worksheet_filename(), self.id(), F)
             if F.endswith('.png') or F.endswith('.bmp'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):
@@ -590,21 +584,8 @@ class Cell(Cell_generic):
 
         s = top + out + '</div>'
 
-        #r = '[%s]'%self.relative_id()
-        #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-##         if do_print:
-##             btn = ""
-##         else:
-##             btn = """
-##                 <span class="hidden" id="evaluate_button_%s"><img
-##                     src="/evaluate.png"
-##                     onMouseOver="this.src='/evaluate_over.png'"
-##                     onMouseOut="this.src='/evaluate.png'"
-##                     onClick="evaluate_cell(%s,0);"></span>
-##                   """%(self.__id,self.__id)
-##        tbl = btn + """
         tbl = """
                <table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">

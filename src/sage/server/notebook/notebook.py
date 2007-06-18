@@ -424,6 +424,16 @@ class Notebook(SageObject):
     def set_server_pool(self, servers):
         self.__server_pool = servers
 
+    def get_ulimit(self):
+        try:
+            return self.__ulimit
+        except AttributeError:
+            self.__ulimit = ''
+            return ''
+
+    def set_ulimit(self, ulimit):
+        self.__ulimit = ulimit
+
     def get_server(self):
         P = self.server_pool()
         if len(P) == 0:
@@ -1427,7 +1437,7 @@ Output
 import sage.interfaces.sage0
 import time
 
-def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
+def load_notebook(dir, server_pool=[], ulimit=None, address=None, port=None, secure=None):
     sobj = '%s/nb.sobj'%dir
     if os.path.exists(sobj):
         try:
@@ -1448,11 +1458,14 @@ def load_notebook(dir, server_pool=[], address=None, port=None, secure=None):
         nb.set_directory(dir)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,server_pool=server_pool)
+        nb = Notebook(dir)
 
     nb.address = address
     nb.port = port
     nb.secure = secure
+
+    nb.set_server_pool(server_pool)
+    nb.set_ulimit(ulimit)
     return nb
 
 ## IMPORTANT!!! If you add any new input variable to notebook,

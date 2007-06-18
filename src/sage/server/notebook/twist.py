@@ -810,7 +810,8 @@ def notebook_twisted(self,
              address     = 'localhost',
              port_tries  = 0,
              secure      = True,
-             server_pool = None):
+             server_pool = None,
+             ulimit      = None):
     r"""
     Experimental twisted version of the SAGE Notebook.
 
@@ -834,6 +835,7 @@ def notebook_twisted(self,
                       as the notebook server user
                           cd; ssh-keygen -t rsa
                       then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+        ulimit      -- (default: None), if given
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -843,9 +845,9 @@ def notebook_twisted(self,
     # We load the notebook to make sure it is created with the
     # given options, then delete it.  The notebook is later
     # loaded by the *other* Twisted process below.
-    if not server_pool is None:
+    if not server_pool is None or not ulimit is None:
         from sage.server.notebook.notebook import load_notebook
-        nb = load_notebook(directory, server_pool=server_pool)
+        nb = load_notebook(directory, server_pool=server_pool, ulimit=ulimit)
         nb.set_server_pool(server_pool)
         nb.save()
         del nb
@@ -873,7 +875,7 @@ import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
 import sage.server.notebook.worksheet as worksheet
-worksheet.init_sage_prestart(twist.notebook.get_server())
+worksheet.init_sage_prestart(twist.notebook.get_server(), twist.notebook.get_ulimit())
 
 import signal, sys
 def my_sigint(x, n):

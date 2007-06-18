@@ -66,6 +66,49 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
 
+
+    ##########################################################
+    # Moving, copying, creating, renaming, and listing worksheets
+    ##########################################################
+
+    def create_new_worksheet(self, worksheet_name, username):
+        filename = worksheet.worksheet_filename(worksheet_name, username)
+        if self.__worksheets.has_key(filename):
+            return self.__worksheets[filename]
+        W = worksheet.Worksheet(worksheet_name, self,
+                        system = self.system(username), owner=username)
+        self.__worksheets[W.filename()] = W
+        return W
+
+    def delete_worksheet(self, filename):
+        """
+        Delete the given worksheet and remove its name from the
+        worksheet list.
+        """
+        if not (filename in self.__worksheets.keys()):
+            print self.__worksheets.keys()
+            raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
+        W = self.__worksheets[filename]
+        W.quit()
+        cmd = 'rm -rf "%s"'%(W.directory())
+        print cmd
+        os.system(cmd)
+
+        self.deleted_worksheets()[filename] = W
+        del self.__worksheets[filename]
+
+    def deleted_worksheets(self):
+        try:
+            return self.__deleted_worksheets
+        except AttributeError:
+            self.__deleted_worksheets = {}
+            return self.__deleted_worksheets
+
+    def worksheet_names(self):
+        W = self.__worksheets.keys()
+        W.sort()
+        return W
+
     def _migrate_old(self):
         """
         Migrate all old worksheets, i.e., ones with no owner
@@ -77,6 +120,9 @@ class Notebook(SageObject):
                 w.set_owner(PUBLIC_USER)
                 self.rename_worksheet_filename(w, w.filename())
 
+    ##########################################################
+    # Information about users
+    ##########################################################
     def user_is_admin(self, user):
         # todo -- make this use the password file !!!
         return user in ['a', 'admin']
@@ -93,6 +139,9 @@ class Notebook(SageObject):
         except AttributeError:
             self.__admins = [user]
 
+    ##########################################################
+    # Information about the pool of worksheet compute servers
+    ##########################################################
 
     def server_pool(self):
         try:
@@ -125,6 +174,12 @@ class Notebook(SageObject):
             i = 0
         return P[i]
 
+    ##########################################################
+    # The default math software system for new worksheets for
+    # a given user or the whole notebook (if username is None).
+    ##########################################################
+
+    # TODO -- only implemented for the notebook right now
     def system(self, username=None):
         try:
             return self.__system
@@ -138,6 +193,9 @@ class Notebook(SageObject):
         elif system:  # don't change if it is None
             self.__system = system
 
+    ##########################################################
+    # The default color scheme for the notebook.
+    ##########################################################
     def color(self):
         try:
             return self.__color
@@ -148,6 +206,9 @@ class Notebook(SageObject):
     def set_color(self,color):
         self.__color = color
 
+    ##########################################################
+    # The directory the notebook runs in.
+    ##########################################################
     def set_directory(self, dir):
         if dir == self.__dir:
             return
@@ -158,6 +219,10 @@ class Notebook(SageObject):
         for W in self.__worksheets.itervalues():
             W.set_notebook(self)
 
+    ##########################################################
+    # The global notebook history.
+    ##########################################################
+    # TODO: per-user history
     def add_to_history(self, input_text):
         H = self.history()
         H.append(input_text)
@@ -190,6 +255,12 @@ class Notebook(SageObject):
     def history_text(self):
         return '\n\n'.join([H.strip() for H in self.history()])
 
+    def max_history_length(self):
+        try:
+            return self.__defaults['max_history_length']
+        except KeyError:
+            return MAX_HISTORY_LENGTH
+
     def history_html(self):
         t = self.history_text()
         t = t.replace('<','&lt;')
@@ -208,6 +279,9 @@ class Notebook(SageObject):
         n = len(start)
         return [x for x in self.history() if x[:n] == start]
 
+    ##########################################################
+    # Importing and exporting worksheets to files
+    ##########################################################
     def export_worksheet(self, worksheet_filename, filename):
         W = self.get_worksheet_with_filename(worksheet_filename)
         W.save()
@@ -217,18 +291,6 @@ class Notebook(SageObject):
         print cmd
         os.system(cmd)
 
-    def plain_text_worksheet_html(self, name, prompts=True):
-        W = self.get_worksheet_with_filename(name)
-        t = W.plain_text(prompts = prompts)
-        t = t.replace('<','&lt;')
-        s = '<head>\n'
-        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>\n'%W.name()
-        s += '<pre>' + t + '</pre>'
-        s += '</body>\n'
-        return s
 
     def tmpdir(self):
         d = '%s/tmp'%self.__dir
@@ -291,16 +353,26 @@ class Notebook(SageObject):
         self.__worksheets[filename] = worksheet
         return worksheet
 
-    # unpickled, no worksheets will think they are
-    # being computed, since they clearly aren't (since
-    # the server just started).
-    def set_not_computing(self):
-        for W in self.__worksheets.values():
-            W.set_not_computing()
+    ##########################################################
+    # Importing and exporting worksheets to a plain text format
+    ##########################################################
 
-    def set_debug(self,show_debug):
-        self.__show_debug = show_debug
+    def plain_text_worksheet_html(self, name, prompts=True):
+        W = self.get_worksheet_with_filename(name)
+        t = W.plain_text(prompts = prompts)
+        t = t.replace('<','&lt;')
+        s = '<head>\n'
+        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>\n'%W.name()
+        s += '<pre>' + t + '</pre>'
+        s += '</body>\n'
+        return s
 
+    ##########################################################
+    # Directories for worksheets, etc.
+    ##########################################################
     def directory(self):
         if not os.path.exists(self.__dir):
             # prevent "rm -rf" accidents.
@@ -318,23 +390,53 @@ class Notebook(SageObject):
             os.makedirs(P)
         return P
 
-    def max_history_length(self):
-        try:
-            return self.__defaults['max_history_length']
-        except KeyError:
-            return MAX_HISTORY_LENGTH
+    def worksheet_directory(self):
+        return self.__worksheet_dir
 
+    def __makedirs(self):
+        if not os.path.exists(self.__dir):
+            os.makedirs(self.__dir)
+        if not os.path.exists(self.__worksheet_dir):
+            os.makedirs(self.__worksheet_dir)
+        if not os.path.exists(self.__object_dir):
+            os.makedirs(self.__object_dir)
+
+    ##########################################################
+    # Server configuration
+    # TODO: Move to server configuration object and give
+    # this a web interface.
+    ##########################################################
     def __load_defaults(self):
-        # in future this will allow override by a file, and
-        # can be set by user via web interface
         self.__defaults = {'cell_input_color':'#0000000',
                            'cell_output_color':'#0000EE',
                            'word_wrap_cols':int(WRAP_NCOLS),
                            'max_history_length':MAX_HISTORY_LENGTH}
 
-    def worksheet_directory(self):
-        return self.__worksheet_dir
+    def defaults(self):
+        return self.__defaults
 
+    def set_debug(self,show_debug):
+        self.__show_debug = show_debug
+
+    def number_of_backups(self):
+        return 5
+
+    def backup_directory(self):
+        try:
+            D = self.__backup_dir
+        except AttributeError:
+            D = self.__dir + "/backups/"
+            self.__backup_dir = D
+        if not os.path.exists(D):
+            os.makedirs(D)
+        return D
+
+
+    ##########################################################
+    # The object store for the notebook.
+    ##########################################################
+    # Todo: like with worksheets, objects should belong to
+    # users, some should be published, rateable, etc.
     def object_directory(self):
         O = self.__object_dir
         if not os.path.exists(O):
@@ -354,76 +456,25 @@ class Notebook(SageObject):
             s.append(a%name + name + '</a>\n')  # '&nbsp;'*(m-len(name)) +
         return '<br>\n'.join(s)
 
-    def defaults(self):
-        return self.__defaults
+    ##########################################################
+    # Computing control
+    ##########################################################
+    def set_not_computing(self):
+        # unpickled, no worksheets will think they are
+        # being computed, since they clearly aren't (since
+        # the server just started).
+        for W in self.__worksheets.values():
+            W.set_not_computing()
 
-    def authorize(self, auth):
-        """
-        Returns True if auth is the correct authorization.
-        """
-        a = self.auth_string()
-        if a == ':':
-            return True
-        return a == auth
+    def quit(self):
+        for W in self.__worksheets.itervalues():
+            W.quit()
 
-    def auth_string(self):
-        try:
-            return self.__auth
-        except AttributeError:
-            self.__auth = ":"
-        return self.__auth
-
-    def set_auth(self, username, password):
-        self.__auth = '%s:%s'%(username, password)
-
-    def __makedirs(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        if not os.path.exists(self.__worksheet_dir):
-            os.makedirs(self.__worksheet_dir)
-        if not os.path.exists(self.__object_dir):
-            os.makedirs(self.__object_dir)
-
-    def create_new_worksheet(self, worksheet_name, username):
-        filename = worksheet.worksheet_filename(worksheet_name, username)
-        if self.__worksheets.has_key(filename):
-            return self.__worksheets[filename]
-        W = worksheet.Worksheet(worksheet_name, self,
-                        system = self.system(username), owner=username)
-        self.__worksheets[W.filename()] = W
-        return W
-
-    def delete_worksheet(self, filename):
-        """
-        Delete the given worksheet and remove its name from the
-        worksheet list.
-        """
-        if not (filename in self.__worksheets.keys()):
-            print self.__worksheets.keys()
-            raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
-        W = self.__worksheets[filename]
-        W.quit()
-        cmd = 'rm -rf "%s"'%(W.directory())
-        print cmd
-        os.system(cmd)
-
-        self.deleted_worksheets()[filename] = W
-        del self.__worksheets[filename]
-
-    def deleted_worksheets(self):
-        try:
-            return self.__deleted_worksheets
-        except AttributeError:
-            self.__deleted_worksheets = {}
-            return self.__deleted_worksheets
-
-    def worksheet_names(self):
-        W = self.__worksheets.keys()
-        W.sort()
-        return W
-
-    def worksheet_html(self, name, do_print=False):
-        W = self.get_worksheet_with_filename(name)
+    ##########################################################
+    # Worksheet HTML generation
+    ##########################################################
+    def worksheet_html(self, filename, do_print=False):
+        W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         if do_print:
@@ -440,59 +491,25 @@ class Notebook(SageObject):
         s += '\n</body>\n'
         return s
 
-    def get_worksheets_with_collaborator(self, user):
-        return [w for w in self.__worksheets.itervalues() if w.user_is_collaborator(user)]
+##     def worksheet_list_html(self, current_worksheet, username):
+##         print current_worksheet, username
+##         s = []
+##         names = self.get_worksheet_names_with_viewer(username)
+##         m = max([len(x) for x in names] + [30])
+##         for n in names:
+##             if n.startswith('doc_browser'): continue
+##             W = self.__worksheets[n]
+##             if W == current_worksheet:
+##                 cls = 'worksheet_current'
+##             else:
+##                 cls = 'worksheet_other'
+##             if W.computing():
+##                 cls += '_computing' # actively computing
+##             name = W.name()
+##             name += ' (%s)'%len(W)
+##             name = name.replace(' ','&nbsp;')
+##         return '<br>'.join(s)
 
-    def get_worksheet_names_with_collaborator(self, user):
-        return [W.name() for W in self.get_worksheets_with_collaborator(user)]
-
-    def get_worksheets_with_viewer(self, user):
-        return [w for w in self.__worksheets.itervalues() if w.user_is_viewer(user)]
-
-    def get_worksheets_with_owner(self, owner):
-        return [w for w in self.__worksheets.itervalues() if w.owner() == owner]
-
-    def get_worksheets_with_owner_that_are_viewable_by_user(self, owner, user):
-        return [w for w in self.get_worksheets_with_owner(owner) if w.user_is_viewer(user)]
-
-    def get_worksheet_names_with_viewer(self, user):
-        return [W.name() for W in self.get_worksheets_with_viewer(user)]
-
-    def get_worksheet_with_name(self, name):
-        return self.__worksheets[name]
-
-    def get_worksheet_with_id(self, id):
-        try:
-            id = int(id)
-            for W in self.__worksheets.itervalues():
-                if W.id() == id:
-                    return W
-        except ValueError:
-            id = str(id).lower()
-            for W in self.__worksheets.itervalues():
-                if W.name().lower() == id or W.filename().lower() == id:
-                    return W
-        raise KeyError, 'no worksheet %s'%id
-
-    def get_worksheet_with_filename(self, filename):
-        """
-        Get the worksheet with given filename.  If there is no such
-        worksheet, raise a KeyError.
-
-        INPUT:
-            string
-        OUTPUT:
-            a worksheet or KeyError
-        """
-        if self.__worksheets.has_key(filename):
-            return self.__worksheets[filename]
-        if not filename is None:
-            for W in self.__worksheets.itervalues():
-                if W.filename() == filename:
-                    return W
-        raise KeyError, "no such worksheet %s"%filename
-
-    ###########################################################
     def html_worksheet_list_for_user(self, user):
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -520,7 +537,49 @@ class Notebook(SageObject):
         return s
 
 
+    ##########################################################
+    # Accessing all worksheets with certain properties.
+    ##########################################################
+    def get_worksheets_with_collaborator(self, user):
+        return [w for w in self.__worksheets.itervalues() if w.user_is_collaborator(user)]
 
+    def get_worksheet_names_with_collaborator(self, user):
+        return [W.name() for W in self.get_worksheets_with_collaborator(user)]
+
+    def get_worksheets_with_viewer(self, user):
+        return [w for w in self.__worksheets.itervalues() if w.user_is_viewer(user)]
+
+    def get_worksheets_with_owner(self, owner):
+        return [w for w in self.__worksheets.itervalues() if w.owner() == owner]
+
+    def get_worksheets_with_owner_that_are_viewable_by_user(self, owner, user):
+        return [w for w in self.get_worksheets_with_owner(owner) if w.user_is_viewer(user)]
+
+    def get_worksheet_names_with_viewer(self, user):
+        return [W.name() for W in self.get_worksheets_with_viewer(user)]
+
+    def get_worksheet_with_name(self, name):
+        for W in self.__worksheets.itervalues():
+            if W.name() == name:
+                return W
+        raise KeyError, "No worksheet with name '%s'"%name
+
+    def get_worksheet_with_filename(self, filename):
+        """
+        Get the worksheet with given filename.  If there is no such
+        worksheet, raise a KeyError.
+
+        INPUT:
+            string
+        OUTPUT:
+            a worksheet or KeyError
+        """
+        if self.__worksheets.has_key(filename):
+            return self.__worksheets[filename]
+        raise KeyError, "No worksheet with filename '%s'"%filename
+
+    ###########################################################
+    # Saving the whole notebook
     ###########################################################
 
     def save(self, filename=None):
@@ -528,9 +587,18 @@ class Notebook(SageObject):
 
         if filename is None:
             F = os.path.abspath(self.__filename)
+            backup_dir = self.backup_directory()
+            backup = backup_dir + '/nb-backup-'
+            for i in range(self.number_of_backups()-1,0,-1):
+                a = padzeros(i-1); b = padzeros(i)
+                try:
+                    shutil.move(backup + '%s.sobj'%a, backup + '%s.sobj'%b)
+                except IOError, msg:
+                    pass
+            a = '%s.sobj'%padzeros(0)
             try:
-                shutil.copy(F, F[:-5] + '-backup.sobj')
-            except IOError:
+                shutil.copy(F, backup + a)
+            except Exception, msg:
                 pass
             F = os.path.abspath(self.__filename)
         else:
@@ -544,35 +612,15 @@ class Notebook(SageObject):
         #print "Press control-C to stop the notebook server."
         #print "-"*70
 
-    def quit(self):
-        for W in self.__worksheets.itervalues():
-            W.quit()
-
     def delete_doc_browser_worksheets(self):
         names = self.worksheet_names()
         for n in self.__worksheets.keys():
             if n.startswith('doc_browser'):
                 self.delete_worksheet(n)
 
-    def worksheet_list_html(self, current_worksheet, username):
-        print current_worksheet, username
-        s = []
-        names = self.get_worksheet_names_with_viewer(username)
-        m = max([len(x) for x in names] + [30])
-        for n in names:
-            if n.startswith('doc_browser'): continue
-            W = self.__worksheets[n]
-            if W == current_worksheet:
-                cls = 'worksheet_current'
-            else:
-                cls = 'worksheet_other'
-            if W.computing():
-                cls += '_computing' # actively computing
-            name = W.name()
-            name += ' (%s)'%len(W)
-            name = name.replace(' ','&nbsp;')
-        return '<br>'.join(s)
-
+    ###########################################################
+    # HTML -- generate most html related to the whole notebook page
+    ###########################################################
     def _html_head(self, worksheet_filename, username):
         if worksheet_filename is not None:
             worksheet = self.get_worksheet_with_filename(worksheet_filename)
@@ -616,23 +664,6 @@ class Notebook(SageObject):
                 interrupt_class = "interrupt_grey"
             main_body = worksheet.html()
 
-##         add_new_worksheet_menu = """
-##              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-##              <input id="new_worksheet_box" class="add_new_worksheet_menu"
-##                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-##              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
-##              </div>
-##         """
-
-##         delete_worksheet_menu = """
-##              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
-##              <input id="delete_worksheet_box" class="delete_worksheet_menu"
-##                     onKeyPress="if(is_submit(event)) process_delete_worksheet_menu_submit();"></input>
-##              <button class="delete_worksheet_menu" onClick="process_delete_worksheet_menu_submit();">delete</button>
-##              &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_delete_worksheet_menu()">X</span>
-##              </div>
-##         """
-
         vbar = '<span class="vbar"></span>'
 
         body = ''
@@ -668,6 +699,7 @@ class Notebook(SageObject):
 
         body += '</div>\n'
         body += '\n<div class="worksheet" id="worksheet">\n'
+
         if self.__show_debug or show_debug:
             body += "<div class='debug_window'>"
             body += "<div class='debug_output'><pre id='debug_output'></pre></div>"
@@ -683,23 +715,10 @@ class Notebook(SageObject):
         # such that clicking on it creates a new cell at the bottom of the worksheet.
         body += '<br>'*15
         body += '\n</div>\n'
-
-#        body += '<div class="left_pane_bar" id="left_pane_bar" onClick="toggle_left_pane();"></div>\n'
-#        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
         endpanespan = '</td></tr></table></span>\n'
-
-##         body += '  <div class="worksheets_topbar">'
-##         body += '     <b>Worksheets</b> '
-##         body += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="left_panel_hide" onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Hide</a>'
-##         body += '<br></div>'
-##         body +=    add_new_worksheet_menu
-##         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet, username)
 
         if worksheet is None:
              return body + endpanespan
-
-##         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
-##         body += '<script type="text/javascript">jsmath_init();</script>\n'
 
         if worksheet.user_is_only_viewer(username):
             body += '<script type="text/javascript">worksheet_locked=true;</script>'
@@ -713,7 +732,6 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
 
-        #body += '<script type="text/javascript">toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):
@@ -948,26 +966,43 @@ Output
         return grid + "\n</ul>"
 
 
-import sage.interfaces.sage0
-import time
+####################################################################
 
 def load_notebook(dir, address=None, port=None, secure=None):
+    """
+    Load the notebook from the given directory, or create one in that directory
+    if one isn't already there.
+
+    INPUT:
+        dir -- a string that defines a directory name
+        address -- the address that the notebook server will listen on
+        port -- the port the server listens on
+        secure -- whether or not the notebook is secure
+    """
     sobj = '%s/nb.sobj'%dir
-    if os.path.exists(sobj):
+    if os.path.exists(dir):
         try:
             nb = load(sobj, compress=False)
         except:
             print "****************************************************************"
             print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
-            print "WARNING -- failed to load notebook data. Trying the backup file."
+            print "WARNING -- failed to load notebook object. Trying backup files."
             print "****************************************************************"
-            try:
-                nb = load('%s/nb-backup.sobj'%dir, compress=False)
-            except:
-                print "Recovering from last op save failed."
-                print "Trying save from last startup."
-                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
-
+            backup = '%s/backups/'%dir
+            nb = None
+            for F in os.listdir(backup):
+                file = backup + '/' + F
+                try:
+                    nb = load(file, compress=False)
+                except Exception, msg:
+                    print "Failed to load backup '%s'"%file
+                else:
+                    print "Successfully loaded backup '%s'"%file
+                    nb.save()
+                    break
+            if nb is None:
+                print "Unable to restore notebook from *any* auto-saved backups."
+                print "This is a serious problem."
         nb.delete_doc_browser_worksheets()
         nb.set_directory(dir)
         nb.set_not_computing()
@@ -979,210 +1014,13 @@ def load_notebook(dir, address=None, port=None, secure=None):
     nb.secure = secure
     return nb
 
-## IMPORTANT!!! If you add any new input variable to notebook,
-## you *must* similarly modify the restart_on_crash block
-## at the beginning of the definition of notebook!!
-def notebook(dir         ='sage_notebook',
-             port        = 8000,
-             address     = 'localhost',
-             open_viewer = True,
-             max_tries   = 10,
-             username    = None,
-             password    = None,
-             color       = None,
-             system      = None,
-             jsmath      = True,
-             show_debug  = False,
-             splashpage  = True,
-             warn        = True,
-             ignore_lock = False,
-             log_server = False,
-             restart_on_crash = False,
-             auto_restart = 1800,
-             multisession = True):
-    r"""
-    Start a SAGE notebook web server at the given port.
 
-    INPUT:
-        dir -- (default: 'sage_notebook') name of the server directory; your
-                sessions are saved in a directory with that name.  If
-                you restart the server with that same name then it will
-                restart in the state you left it, but with none of the
-                variables defined (you have to re-eval blocks).
-        port -- (default: 8000) port on computer where the server is served
-        address -- (default: 'localhost') address that the server
-                   will listen on
-        open_viewer -- bool (default: True); if True, pop up a web browser at the URL
-        max_tries -- (default: 10) maximum number of ports > port to try in
-                     case given port can't be opened.
-        username -- user name used for authenticated logins
-        password -- password used for authenticated logins
-        color -- string or pair of html colors, e.g.,
-                    'gmail'
-                    'grey'
-                    ('#ff0000', '#0000ff')
-        system -- (string) default computer algebra system to use for new
-                  worksheets, e.g., 'maxima', 'gp', 'axiom', 'mathematica', 'macaulay2',
-                  'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
-        jsmath -- whether not to enable javascript typset output for math.
-        debug -- whether or not to show a javascript debugging window
-        splashpage -- whether or not to show a splash page when no worksheet is specified.
-                      you can place a file named index.html into the notebook directory that
-                      will be shown in place of the default.
-
-        restart_on_crash -- if True (the default is False), the server
-                      will be automatically restarted if it crashes in
-                      any way.  Use this on a public servers that many
-                      people might use, and which might be subjected
-                      to intense usage.  NOTE: Log messages are only displayed
-                      every 5 seconds in this mode.
-        auto_restart -- if restart_on_crash is True, always restart
-                      the server every this many seconds.
-        multisession -- (default: True) The default is for there to be
-                       one sage session for each worksheet.  If this
-                       is False, then there is just one global SAGE
-                       session, like with Mathematica.
-
-    NOTES:
-
-    When you type \code{notebook(...)}  you start a web server on the
-    machine you type that command on.  You don't connect to another
-    machine.  So do this if you want to start a SAGE notebook
-    accessible from anywhere:
-
-    \begin{enumerate}
-    \item Figure out the external address of your server, say
-          'www.sagemath.org', for example.
-    \item On your server, type
-        notebook('mysession', address='www.sagemath.org')
-    \item Assuming you have permission to open a port on that
-       machine, it will startup and display a URL, e.g.,
-           \url{http://www.sagemath.org:8000}
-       Note this URL.
-    \item Go to any computer in the world (!), or at least
-       behind your firewall, and use any web browser to
-       visit the above URL.  You're using \sage.
-    \end{enumerate}
-
-    \note{There are no security precautions in place \emph{yet}!  If
-    you open a server as above, and somebody figures this out, they
-    could use their web browser to connect to the same sage session,
-    and type something nasty like \code{os.system('cd; rm -rf *')}
-    and your home directory would be hosed.   I'll be adding an
-    authentication screen in the near future.  In the meantime
-    (and even then), you should consider creating a user with
-    very limited privileges (e.g., empty home directory).}
-
-    FIREFOX ISSUE:
-    If your default web browser if Firefox, then notebook will
-    open a copy of Firefox at the given URL.  You should
-    definitely set the "open links in new tabs" option in
-    Firefox, or you might loose a web page you were looking at.
-    To do this, just go to
-
-         Edit --> Preferences --> Tabs
-
-    and in "Open links from other apps" select the middle button
-    instead of the bottom button.
-    """
-    assert 0, "deprecated"
-    import worksheet
-    worksheet.init_sage_prestart()
-    worksheet.multisession = multisession
-
-    if '/' in dir:
-	# change current working directory and make the notebook
-	# directory a subdirectory of the working directory.
-        base, dir = os.path.split(dir)
-        os.chdir(base)
-
-    if restart_on_crash:
-        # Start a new subprocess
-        def f(x):  # format for passing on
-            if x is None:
-                return 'None'
-            elif isinstance(x, str):
-                return "'%s'"%x
-            else:
-                return str(x)
-        while True:
-            S = sage.interfaces.sage0.Sage()
-            time.sleep(1)
-            S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, restart_on_crash=False, multisession=%s)"%(
-                f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
-                f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
-                f(warn), f(ignore_lock), f(log_server), f(multisession)
-                )
-            print cmd
-            S._send(cmd)
-            tm = 0
-            while True:
-                s = S._get()[1].strip()
-                if len(s) > 0:
-                    print s
-                if not S.is_running():
-                    break
-                time.sleep(5)
-                tm += 5
-                if tm > auto_restart:
-                    S.quit()
-                    break
-            # end while
-        # end while
-        S.quit()
-        return
-
-    if os.path.exists(dir):
-        if not os.path.isdir(dir):
-            raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir
-        if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
-            raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
-        pidfile = '%s/pid'%dir
-
-        if os.path.exists(pidfile) and not ignore_lock:
-            f = file(pidfile)
-            try:
-                p, oldport = f.readlines()
-            except ValueError:
-                p = file(pidfile).read()
-                oldport = port
-            f.close()
-            try:
-                #This is a hack to check whether or not the process is running.
-                os.kill(int(p),0)
-                print "\n".join([" This notebook appears to be running with PID %s.  If it is"%p,
-                                 " not responding, you will need to kill that process to continue.",
-                                 " If another (non-sage) process is running with that PID, call",
-                                 " notebook(..., ignore_lock = True, ...). " ])
-                if open_viewer:
-                   open_page(address, int(oldport))
-                return
-            except OSError:
-                pass
-
-    nb = load_notebook(dir, username, password, color,system, splashpage)
-
-    nb.save()
-    shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
-    nb.set_debug(show_debug)
-    nb.set_log_server(log_server)
-    if warn and address!='localhost' and username==None:
-        print "WARNING -- it is *extremely* dangerous to let the server listen"
-        print "on an external port without at least setting a username/password!!"
-    nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
-    from sage.interfaces.quit import expect_quitall
-    expect_quitall(verbose=False)
-    from sage.misc.misc import delete_tmpfiles
-    delete_tmpfiles()
-    if os.path.exists('%s/pid'%dir):
-        os.remove('%s/pid'%dir)
-    return nb
-
-
-#######
+##########################################################
 # Misc
+##########################################################
 
 def clean_name(name):
     return ''.join([x if (x.isalnum() or x == '_') else '_' for x in name])
 
+def padzeros(s):
+    return "0"*(3-len(str(s))) + str(s)

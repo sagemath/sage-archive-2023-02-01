@@ -1,13 +1,18 @@
 <html>
+<link rel=stylesheet href="/css/main.css">
 <body>
+<img src="/images/sagelogo.png">
+<br>
+<h2>Login to the SAGE Notebook</h2>
+<br><br><br><br>
 <form method="POST" action="/login">
-Don't $foo's templates rock!?
-Username: <input type="text" name="email" size="15" />
-Password: <input type="password" name="password" size="15" />
-<br />
-<div align="center">
-<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
-<a href='/register'>Register an account</a>
+Username: <input type="text" name="email" size="15"><br>
+Password: <input type="password" name="password" size="15"><br>
+<input type="submit" value="Sign In">
+<br><br><br><br>
+
+<a href='/register'>Register for a new account</a>
+
 </body>
 </html>
 

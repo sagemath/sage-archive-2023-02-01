@@ -840,7 +840,7 @@ class HG:
         """
         self('rollback')
 
-    def bundle(self, filename, options='', url=None, base=None):
+    def bundle(self, filename, options='', url=None, base=None, to=None):
         r"""
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the
@@ -889,6 +889,8 @@ class HG:
         if os.path.exists(tmpfile):
             shutil.move(tmpfile, filename)
             print 'Successfully created hg patch bundle %s'%filename
+            if not to is None:
+                os.system('scp "%s" %s'%(filename, to))
         else:
             print 'Problem creating hg patch bundle %s'%filename
 

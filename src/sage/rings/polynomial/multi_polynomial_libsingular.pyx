@@ -220,16 +220,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         nblcks = len(order.blocks)
         offset = 0
 
-##         if nblcks == 1:
-##             self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
-##             self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
-##             self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
-##             self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
-##             self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
-##             self._ring.order[1] = ringorder_C
-##             self._ring.block0[0] = 1
-##             self._ring.block1[0] = n
-##         else:
         self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
         self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
         self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
@@ -2701,19 +2691,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
-##         selfI = idInit(1,1)
-##         rightI = idInit(1,1)
-##         selfI.m[0] = p_Copy(_self._poly, r)
-##         rightI.m[0] = p_Copy(_right._poly, r)
-##         res = idLift(rightI, selfI, NULL, 0, 0, 1);
-
-##         quo = new_MP(parent, pTakeOutComp1(&res.m[0],1))
-
-##         id_Delete(&selfI, r)
-##         id_Delete(&rightI, r)
-##         id_Delete(&res, r)
-##         return quo
-
         quo = singclap_pdivide( _self._poly, _right._poly )
         return new_MP(parent, quo)
 
@@ -3226,6 +3203,61 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         for (m,c) in self.dict().iteritems():
             y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) ])
         return y
+
+    def resultant(self, MPolynomial_libsingular other, variable=None):
+        """
+        computes the resultant of self and the first argument with
+        respect to the variable given as the second argument.
+
+        If a second argument is not provide the first variable of
+        self.parent() is chosen.
+
+        INPUT:
+            other -- polynomial in self.parent()
+            variable -- optional variable (of type polynomial) in self.parent() (default: None)
+
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
+
+            The SINGULAR example:
+            sage: R.<x,y,z> = PolynomialRing(GF(32003),3)
+            sage: f = 3 * (x+2)^3 + y
+            sage: g = x+y+z
+            sage: f.resultant(g,x)
+            3*y^3 + 9*y^2*z + 9*y*z^2 + 3*z^3 - 18*y^2 - 36*y*z - 18*z^2 + 35*y + 36*z - 24
+
+        TESTS:
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y> = MPolynomialRing_libsingular(QQ,2,order='degrevlex')
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
+
+        """
+        cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef poly *rt
+
+        if variable is None:
+            variable = self.parent().gen(0)
+
+        if not self._parent is other._parent:
+            raise TypeError, "first parameter needs to be an element of self.parent()"
+
+        if not variable.parent() is self.parent():
+            raise TypeError, "second parameter needs to be an element of self.parent() or None"
+
+        rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        return new_MP(self._parent, rt)
+
 
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """

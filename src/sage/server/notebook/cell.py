@@ -511,7 +511,7 @@ class Cell(Cell_generic):
               onKeyPress = 'return input_keypress(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onClick    = 'get_cell(cell_input_%s).className = "cell_input_active", "hidden"); return true;'
+              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
            >%s</textarea>
         """%('hidden', r, id, id, id, id, t)
 

@@ -964,9 +964,7 @@ pre.cell_input {
 
 }
 pre.cell_input:hover {
-  cursor:pointer;
-  /* border: 2px solid  #8888fe; */
-  /* background-color: #ffffcc; */
+  cursor:text;
 }
 
 textarea.cell_input_hide {
@@ -999,7 +997,7 @@ pre.cell_input_hide {
 }
 
 pre.cell_input_hide:hover {
-  cursor:pointer;
+  cursor:text;
 }
 
 textarea.cell_input_active {
@@ -1017,7 +1015,7 @@ textarea.cell_input_active {
 }
 
 textarea.cell_input:hover{
-  cursor:pointer;
+  cursor:text;
 }
 
 

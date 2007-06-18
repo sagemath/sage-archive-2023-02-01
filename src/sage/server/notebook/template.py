@@ -18,3 +18,4 @@ class PageTemplate:
 
 
 login_template = PageTemplate(pjoin(path, 'login.template'))
+register_template = PageTemplate(pjoin(path, 'register.template'))

@@ -3275,6 +3275,60 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         p = pDiff(self._poly, var_i)
         return new_MP(self._parent,p)
 
+    def resultant(self, MPolynomial_libsingular other, variable=None):
+        """
+        computes the resultant of self and the first argument with
+        respect to the variable given as the second argument.
+
+        If a second argument is not provide the first variable of
+        self.parent() is chosen.
+
+        INPUT:
+            other -- polynomial in self.parent()
+            variable -- optional variable (of type polynomial) in self.parent() (default: None)
+
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
+
+            The SINGULAR example:
+            sage: R.<x,y,z> = PolynomialRing(GF(32003),3)
+            sage: f = 3 * (x+2)^3 + y
+            sage: g = x+y+z
+            sage: f.resultant(g,x)
+            3*y^3 + 9*y^2*z + 9*y*z^2 + 3*z^3 - 18*y^2 - 36*y*z - 18*z^2 + 35*y + 36*z - 24
+
+        TESTS:
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y> = MPolynomialRing_libsingular(QQ,2,order='degrevlex')
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
+
+        """
+        cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef poly *rt
+
+        if variable is None:
+            variable = self.parent().gen(0)
+
+        if not self._parent is other._parent:
+            raise TypeError, "first parameter needs to be an element of self.parent()"
+
+        if not variable.parent() is self.parent():
+            raise TypeError, "second parameter needs to be an element of self.parent() or None"
+
+        rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        return new_MP(self._parent, rt)
+
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """
     Deserialize a MPolynomial_libsingular object

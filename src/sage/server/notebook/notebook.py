@@ -943,19 +943,19 @@ class Notebook(SageObject):
 
         return head
 
-    def html_login(self):
-        return """
-        <html><body>
-<form method="POST" action="/login">
-Username: <input type="text" name="email" size="15" />
-Password: <input type="password" name="password" size="15" />
-<br />
-<div align="center">
-<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
-<a href='/register'>Register an account</a>
-</body>
-</html>
-"""
+#    def html_login(self):
+#        return """
+#        <html><body>
+#<form method="POST" action="/login">
+#Username: <input type="text" name="email" size="15" />
+#Password: <input type="password" name="password" size="15" />
+#<br />
+#<div align="center">
+#<p><input type="submit" value="Login" /></p>  </div> </form><br /><br />
+#<a href='/register'>Register an account</a>
+#</body>
+#</html>
+#"""
 
     def _html_body(self, worksheet_id, show_debug=False, username=''):
         if worksheet_id is None or worksheet_id == '':

@@ -83,7 +83,8 @@ class Expect(ParentWithBase):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None, maxread=100000,
+    def __init__(self, name, prompt, command=None, server=None,
+                 ulimit = None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
@@ -93,7 +94,10 @@ class Expect(ParentWithBase):
         if command == None:
             command = name
         if not server is None:
-            command = "ssh -t %s %s"%(server, command)
+            if ulimit:
+                command = 'ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+            else:
+                command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True
             eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:

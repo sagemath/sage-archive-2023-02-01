@@ -161,19 +161,19 @@ class LoginSystem(object):
         from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
-            log.msg(avatarId)
+            #log.msg(avatarId)
             if avatarId is checkers.ANONYMOUS: #anonymous user
-                log.msg("returning AnonymousResources")
+                #log.msg("returning AnonymousResources")
                 rsrc = AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
             elif user_type(avatarId) == 'user':
-                log.msg("returning User resources for %s" % avatarId)
+                #log.msg("returning User resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
             elif user_type(avatarId) == 'admin':
-                log.msg("returning Admin resources for %s" % avatarId)
+                #log.msg("returning Admin resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
                 rsrc = AdminToplevel(self.cookie, avatarId)

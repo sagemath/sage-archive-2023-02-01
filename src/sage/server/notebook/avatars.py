@@ -21,14 +21,20 @@ from twisted.python import log
 
 def user_type(avatarId):
     if isinstance(avatarId, FailedLogin):
-        return 'failed_login'
+        if avatarId.failure_type == 'user':
+            return 'invalid_user'
+        elif avatarId.failure_type == 'password':
+            return 'invalid_password'
+        else:
+            raise ValueError, 'invalid failure type'
     if twist.notebook.user_is_admin(avatarId):
         return 'admin'
     return 'user'
 
 class FailedLogin:
-    def __init__(self, username):
+    def __init__(self, username, failure_type = "user"):
         self.username = username
+        self.failure_type = failure_type
 
 class PasswordDictChecker(object):
     implements(checkers.ICredentialsChecker)
@@ -45,9 +51,10 @@ class PasswordDictChecker(object):
             if crypt.crypt(credentials.password, SALT) == password:
                 return defer.succeed(username)
             else:
-                return defer.succeed(checkers.ANONYMOUS)
+                return defer.succeed(FailedLogin(
+                                        username,failure_type='password'))
         else:
-            return defer.succeed(FailedLogin(username))
+            return defer.succeed(FailedLogin(username, failure_type = 'user'))
 
 class PasswordFileChecker(PasswordDictChecker):
     implements(checkers.ICredentialsChecker)
@@ -149,8 +156,12 @@ class LoginSystem(object):
                 rsrc = twist.AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId) == 'failed_login':
-                rsrc = twist.FailedToplevel(avatarId)
+            elif user_type(avatarId) == 'invalid_user':
+                rsrc = twist.FailedToplevel(avatarId, problem='username')
+                return (iweb.IResource, rsrc, self.logout)
+
+            elif user_type(avatarId) == 'invalid_password':
+                rsrc = twist.FailedToplevel(avatarId, problem='password')
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'user':

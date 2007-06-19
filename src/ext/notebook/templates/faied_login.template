@@ -1,0 +1,7 @@
+<html>
+<head>Login failed.</head>
+<body>
+<h1>Login failure</h1>
+You have entered an invalid $problem. Please <a href="/login">try again</a>
+</body>
+</html>

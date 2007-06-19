@@ -35,7 +35,7 @@ _cols = None
 def word_wrap_cols():
     global _cols
     if _cols is None:
-        _cols = notebook.defaults()['word_wrap_cols']
+        _cols = notebook.conf()['word_wrap_cols']
     return _cols
 
 ############################
@@ -808,9 +808,9 @@ class LoginResourceClass(resource.Resource):
 LoginResource = LoginResourceClass()
 
 class AnonymousToplevel(Toplevel):
-    from sage.server.notebook.avatars import PasswordFileChecker
+    from sage.server.notebook.avatars import PasswordChecker
     addSlash = True
-    child_register = RegistrationPage(PasswordFileChecker('passwords.txt'))
+    child_register = RegistrationPage(PasswordChecker())
     child_confirm = RegConfirmation()
     child_images = Images()
     child_css = CSS()

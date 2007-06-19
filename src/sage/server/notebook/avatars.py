@@ -30,61 +30,18 @@ class FailedLogin:
     def __init__(self, username):
         self.username = username
 
-class PasswordDictChecker(object):
+class PasswordChecker(object):
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.IUsernamePassword,)
-
-    def __init__(self, passwords):
-        "passwords: a dict-like object mapping usernames to passwords"
-        self.passwords = passwords
-
-    def requestAvatarId(self, credentials):
-        username = credentials.username
-        if self.passwords.has_key(username):
-            password = self.passwords[username]
-            if crypt.crypt(credentials.password, SALT) == password:
-                return defer.succeed(username)
-            else:
-                return defer.succeed(checkers.ANONYMOUS)
-        else:
-            return defer.succeed(FailedLogin(username))
-
-class PasswordFileChecker(PasswordDictChecker):
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.IUsernamePassword,)
-
-    def __init__(self, password_file):
-        """
-        INPUT:
-        password_file - file that contains passwords
-        """
-
-        self.password_file = password_file
-        self.load_passwords()
-
-    def load_passwords(self):
-        passwords = {}
-        if not os.path.exists(self.password_file):
-            open(self.password_file,'w').close()
-            self.add_first_admin()
-        f = open(self.password_file).readlines()
-        if len(f) == 0:
-            self.add_first_admin()
-        for line in f:
-            username, password, email, account_type = line.split(':')
-            password = password.strip()
-            passwords[username] = password
-
-        self.passwords = passwords
 
     def add_user(self, username, password, email, account_type='user'):
         self.check_username(username)
-        f = open(self.password_file, 'a')
-        s = '%s:%s:%s:%s\n' % (username, crypt.crypt(password, SALT), email, account_type)
-        f.writelines(s)
-        f.close()
+        U = twist.notebook.add_user(username, crypt.crypt(password, SALT), email, account_type)
 
     def add_first_admin(self):
+        passwords = twist.notebook.passwords()
+        if len(passwords) > 0:
+            return
         pw = "%x"%randint(2**24,2**25)
         self.add_user("admin", pw, "", "admin")
 
@@ -104,24 +61,30 @@ pass: %s
 *************************************"""%pw)
 
     def check_username(self, username):
-        usernames = []
-        f = open(self.password_file).readlines()
-        for line in f:
-            v = line.split(':')
-            usernames.append(v[0])
+        usernames = twist.notebook.usernames()
         if username in usernames:
             raise ValueError('Username %s already exists' % username)
         else:
             return True
+
+    def requestAvatarId(self, credentials):
+        username = credentials.username
+        passwords = twist.notebook.passwords()
+        if passwords.has_key(username):
+            password = passwords[username]
+            if crypt.crypt(credentials.password, SALT) == password:
+                return defer.succeed(username)
+            else:
+                return defer.succeed(checkers.ANONYMOUS)
+        else:
+            return defer.succeed(FailedLogin(username))
 
 
 
 class LoginSystem(object):
     implements(portal.IRealm)
 
-    def __init__(self, users):
-        self.users = users #empty, stored in database right now
-        # self.dbConnection = dbConnection
+    def __init__(self):
         self.usersResources = {} #store created resource objects
         self.kernels = {} #logged in users kernel connections.
         self.logout = lambda: None #find a good use for logout

@@ -27,9 +27,9 @@ import server       # web server
 import worksheet    # individual worksheets (which make up a notebook)
 import config       # internal configuration stuff (currently, just keycodes)
 import keyboards    # keyboard layouts
-
-MAX_HISTORY_LENGTH = 500
-WRAP_NCOLS = 80
+import server_conf  # server configuration
+import user_conf    # user configuration
+import user         # users
 
 PUBLIC_USER = 'pub'
 
@@ -53,7 +53,6 @@ class Notebook(SageObject):
         self.__server_pool = server_pool
         self.set_system(system)
         self.__worksheets = {}
-        self.__load_defaults()
         self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
         self.__object_dir    = '%s/objects'%dir
@@ -65,7 +64,49 @@ class Notebook(SageObject):
         self.__show_debug = show_debug
         self.save()
         self.__admins = []
+        self.__conf = server_conf.ServerConfiguration()
 
+
+    ##########################################################
+    # Users
+    ##########################################################
+    def users(self):
+        try:
+            return self.__users
+        except AttributeError:
+            self.__users = {}
+            return self.__users
+
+    def user(self, username):
+        try:
+            return self.__users[username]
+        except AttributeError:
+            self.__users = {}
+            raise KeyError, "no user '%s'"%username
+
+    def user_list(self):
+        try:
+            return list(self.__users.itervalues())
+        except AttributeError:
+            self.__users = {}
+            return []
+
+    def usernames(self):
+        U = self.users()
+        return U.keys()
+
+    def add_user(self, username, password, email, account_type="user"):
+        us = self.users()
+        if us.has_key(username):
+            raise ValueError, "User '%s' already exists"%username
+        U = user.User(username, password, email, account_type)
+        us[username] = U
+
+    def passwords(self):
+        """
+        Return the username:password dictionary.
+        """
+        return dict([(user.username(), user.password()) for user in self.user_list()])
 
     ##########################################################
     # Moving, copying, creating, renaming, and listing worksheets
@@ -257,7 +298,7 @@ class Notebook(SageObject):
 
     def max_history_length(self):
         try:
-            return self.__defaults['max_history_length']
+            return self.conf()['max_history_length']
         except KeyError:
             return MAX_HISTORY_LENGTH
 
@@ -403,23 +444,21 @@ class Notebook(SageObject):
 
     ##########################################################
     # Server configuration
-    # TODO: Move to server configuration object and give
-    # this a web interface.
     ##########################################################
-    def __load_defaults(self):
-        self.__defaults = {'cell_input_color':'#0000000',
-                           'cell_output_color':'#0000EE',
-                           'word_wrap_cols':int(WRAP_NCOLS),
-                           'max_history_length':MAX_HISTORY_LENGTH}
+    def conf(self):
+        try:
+            return self.__conf
+        except AttributeError:
+            C = server_conf.ServerConfiguration()
+            self.__conf = C
+            return C
 
-    def defaults(self):
-        return self.__defaults
 
     def set_debug(self,show_debug):
         self.__show_debug = show_debug
 
     def number_of_backups(self):
-        return 5
+        return self.conf()['number_of_backups']
 
     def backup_directory(self):
         try:

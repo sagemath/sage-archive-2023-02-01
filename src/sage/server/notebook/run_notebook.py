@@ -136,12 +136,10 @@ import sage.server.notebook.avatars as avatars
 
 from twisted.cred import portal
 
-password_file = 'passwords.txt'
-realm = avatars.LoginSystem(password_file)
+realm = avatars.LoginSystem()
 p = portal.Portal(realm)
-# p.registerChecker(avatars.PasswordDataBaseChecker(DBCONNECTION))
-p.registerChecker(avatars.PasswordFileChecker(password_file))
-# p.registerChecker(checkers.AllowAnonymousAccess(), credentials.IAnonymous)
+password_checker = avatars.PasswordChecker()
+p.registerChecker(password_checker)
 p.registerChecker(checkers.AllowAnonymousAccess())
 rsrc = guard.MySessionWrapper(p)
 log.DefaultCommonAccessLoggingObserver().start()
@@ -153,6 +151,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
+password_checker.add_first_admin()
 """%(notebook_opts, strport))
 
 

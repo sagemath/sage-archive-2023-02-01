@@ -335,7 +335,7 @@ class Worksheet:
             s += '<div class="worksheet_title">'
             s += '%s%s%s%s</div>\n'%(self.name(), ' (read only) ' if read_only else '', system, menu)
 
-        D = self.__notebook.defaults()
+        D = self.__notebook.conf()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):

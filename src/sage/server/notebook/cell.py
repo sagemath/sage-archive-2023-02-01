@@ -147,7 +147,7 @@ class Cell(Cell_generic):
 
     def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
-            ncols = self.notebook().defaults()['word_wrap_cols']
+            ncols = self.notebook().conf()['word_wrap_cols']
         s = ''
 
         input_lines = self.__in
@@ -433,7 +433,7 @@ class Cell(Cell_generic):
         """
         self.evaluate()
         if wrap is None:
-            wrap = self.notebook().defaults()['word_wrap_cols']
+            wrap = self.notebook().conf()['word_wrap_cols']
         evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         if evaluated:
             cls = 'cell_evaluated'
@@ -463,7 +463,7 @@ class Cell(Cell_generic):
             return ''
 
         if wrap is None:
-            wrap = self.notebook().defaults()['word_wrap_cols']
+            wrap = self.notebook().conf()['word_wrap_cols']
         if self.worksheet().compute_process_has_been_started():
             evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         else:

@@ -5,43 +5,30 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
-import twist
-import os
+SALT = 'aa'  # (it would be 4096 times more secure to not do this)
 
+import crypt
+import os
+from   random import randint
+
+import twist
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
-from random import randint
+
 
 def user_type(avatarId):
+    if isinstance(avatarId, FailedLogin):
+        return 'failed_login'
     if twist.notebook.user_is_admin(avatarId):
         return 'admin'
     return 'user'
 
-class PasswordDataBaseChecker(object):
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.IUsernamePassword,)
-
-    def __init__(self, dbConnection):
-        self.dbConnection = dbConnection
-
-    def queryDatabase(self, result):
-        if result:
-            avatarId = str(result[0][0])
-            return avatarId #defer.succeed(avatarId)
-        else:
-            return checkers.ANONYMOUS #defer.succeed(checkers.ANONYMOUS)
-
-    def requestAvatarId(self, credentials):
-        username = credentials.username
-        password = credentials.password
-        query = "SELECT avatarId FROM users WHERE avatarId = ? AND password = ?"
-        d = self.dbConnection.runQuery(query, (username, password))
-        d.addCallback(self.queryDatabase)
-        #d.addErrback(self._failed)
-        return d
+class FailedLogin:
+    def __init__(self, username):
+        self.username = username
 
 class PasswordDictChecker(object):
     implements(checkers.ICredentialsChecker)
@@ -55,12 +42,12 @@ class PasswordDictChecker(object):
         username = credentials.username
         if self.passwords.has_key(username):
             password = self.passwords[username]
-            if credentials.password == password:
+            if crypt.crypt(credentials.password, SALT) == password:
                 return defer.succeed(username)
             else:
                 return defer.succeed(checkers.ANONYMOUS)
         else:
-            return defer.succeed(checkers.ANONYMOUS)
+            return defer.succeed(FailedLogin(username))
 
 class PasswordFileChecker(PasswordDictChecker):
     implements(checkers.ICredentialsChecker)
@@ -70,7 +57,6 @@ class PasswordFileChecker(PasswordDictChecker):
         """
         INPUT:
         password_file - file that contains passwords
-
         """
 
         self.password_file = password_file
@@ -94,7 +80,7 @@ class PasswordFileChecker(PasswordDictChecker):
     def add_user(self, username, password, email, account_type='user'):
         self.check_username(username)
         f = open(self.password_file, 'a')
-        s = '%s:%s:%s:%s\n' % (username, password, email, account_type)
+        s = '%s:%s:%s:%s\n' % (username, crypt.crypt(password, SALT), email, account_type)
         f.writelines(s)
         f.close()
 
@@ -128,17 +114,7 @@ pass: %s
         else:
             return True
 
-    def requestAvatarId(self, credentials):
-        self.load_passwords()
-        username = credentials.username
-        if self.passwords.has_key(username):
-            password = self.passwords[username]
-            if credentials.password == password:
-                return defer.succeed(username)
-            else:
-                return defer.succeed(checkers.ANONYMOUS)
-        else:
-            return defer.succeed(checkers.ANONYMOUS)
+
 
 class LoginSystem(object):
     implements(portal.IRealm)
@@ -164,26 +140,33 @@ class LoginSystem(object):
 
         """
 
-        from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
+
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
             #log.msg(avatarId)
             if avatarId is checkers.ANONYMOUS: #anonymous user
                 #log.msg("returning AnonymousResources")
-                rsrc = AnonymousToplevel(self.cookie, avatarId)
+                rsrc = twist.AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
+            elif user_type(avatarId) == 'failed_login':
+                rsrc = twist.FailedToplevel(avatarId)
+                return (iweb.IResource, rsrc, self.logout)
+
             elif user_type(avatarId) == 'user':
                 #log.msg("returning User resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
-                rsrc = UserToplevel(self.cookie, avatarId)
+                rsrc = twist.UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
             elif user_type(avatarId) == 'admin':
                 #log.msg("returning Admin resources for %s" % avatarId)
                 self._mind = mind #mind = [cookie, request.args, segments]
                 self._avatarId = avatarId
-                rsrc = AdminToplevel(self.cookie, avatarId)
+                rsrc = twist.AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
         else:
             raise KeyError("None of the requested interfaces is supported")
 

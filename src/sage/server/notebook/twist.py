@@ -769,8 +769,23 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None:
-                username = request.args['username'][0]
-                passwd  = request.args['password'][0]
+
+                s = ''
+                try:
+                    username = request.args['username'][0]
+                except KeyError:
+                    s += "You must specify a username."
+                try:
+                    passwd  = request.args['password'][0]
+                except KeyError:
+                    s += "  You must specify a password."
+                else:
+                    if len(passwd) == 0:
+                        s = "  Password must be nonempty."
+                if s:
+                    return http.Response(stream=s)
+
+
                 destaddr = """%s""" % request.args['email'][0]
                 from sage.server.notebook.smtpsend import send_mail
                 from sage.server.notebook.register import make_key, build_msg

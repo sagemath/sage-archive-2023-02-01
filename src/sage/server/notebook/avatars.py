@@ -73,6 +73,8 @@ pass: %s
         usernames = twist.notebook.usernames()
         if username in usernames:
             raise ValueError('Username %s already exists' % username)
+        elif username == 'pub':
+            raise ValueError('"pub" is not an allowed user name')
         else:
             return True
 

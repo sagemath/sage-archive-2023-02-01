@@ -620,6 +620,12 @@ class WorksheetsAdmin(Worksheets):
         return WorksheetsByUserAdmin(name)
 
 
+class NotebookConf(Worksheets):
+    def render(self, ctx):
+        s = '<html>' + notebook.conf().html_conf_form('submit') + '</html>'
+        return http.Response(stream = s)
+
+
 
 ############################
 # Adding a new worksheet
@@ -883,6 +889,7 @@ class UserToplevel(Toplevel):
 
 class AdminToplevel(UserToplevel):
     child_home = WorksheetsAdmin()
+    child_conf = NotebookConf()
 
     def render(self, ctx):
         s = notebook.html_worksheet_list_for_user(username)

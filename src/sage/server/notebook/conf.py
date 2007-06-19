@@ -23,3 +23,20 @@ class Configuration:
     def __setitem__(self, key, value):
         self.confs[key] = value
 
+    def html_conf_form(self, action):
+        D = self.defaults()
+        C = self.confs
+        K = list(set(self.confs.keys() + D.keys()))
+        K.sort()
+        options = ''
+        for key in K:
+            options += '<tr><td>%s</td><td><input type="text" name="%s" value="%s"></td></tr>\n'%(key, key, self[key])
+        s = """
+        <form method="post" action="%s" enctype="multipart/form-data">
+        <input type="submit" value="Submit">
+        <table border=0 cellpadding=5 cellspacing=2>
+%s
+        </table>
+        </form>
+        """%(action, options)
+        return s

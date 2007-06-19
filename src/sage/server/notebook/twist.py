@@ -525,6 +525,13 @@ class Worksheet_download(WorksheetResource, resource.Resource):
         return static.Data(r, 'application/sage')
         #return static.File(filename)
 
+class Worksheet_rename(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        print "worksheet rename"
+        # TODO -- this must not block long (!)
+        self.worksheet.set_name(ctx.args['name'][0])
+        return http.Response(stream='done')
+
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)

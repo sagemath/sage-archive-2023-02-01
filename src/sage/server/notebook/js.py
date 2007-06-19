@@ -625,6 +625,15 @@ function click_on_object(name) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function rename_worksheet() {
+   var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
+   if (new_worksheet_name == null) return;
+   var T = get_element("worksheet_title");
+   T.innerHTML = new_worksheet_name;
+   worksheet_name = new_worksheet_name;
+   async_request(worksheet_command('rename'), null, 'name='+new_worksheet_name);
+}
+
 function add_worksheet(name) {
     open("/home/" + user_name + "/" + name)
 }

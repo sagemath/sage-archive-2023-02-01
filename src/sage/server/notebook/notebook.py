@@ -774,7 +774,7 @@ class Notebook(SageObject):
 
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
-        body += '  <img src="/images/sagelogo.png" alt="SAGE"></a></span>\n'
+        body += '  <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics</a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar

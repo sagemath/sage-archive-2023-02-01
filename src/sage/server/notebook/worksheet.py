@@ -367,66 +367,90 @@ class Worksheet:
         self.__cells = cells
 
     ##########################################################
-    # HTML rendering of the whole worksheet
+    # HTML rendering of the wholea worksheet
     ##########################################################
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
-        n = len(self.__cells)
         s = ''
         if include_title:
-            if self.computing():
-                interrupt_class = "interrupt"
-            else:
-                interrupt_class = "interrupt_grey"
-            S = self.system()
-            if not (S is None):
-                system = ' (%s mode)'%S
-            else:
-                system =''
+            s += self.html_title()
+            s += self.html_menu()
 
-            vbar = '<span class="vbar"></span>'
+        s += self.html_worksheet_body(do_print=do_print)
 
-            name = self.filename()
-            menu  = '  <span class="worksheet_control_commands">'
-            menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-            menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-            menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
-            #menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%name + vbar
-            menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
-            #menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%name + vbar
-            menu += '    <a class="doctest_text" href="%s">Printable</a>'%self.worksheet_command('print') + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
-            menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
-            menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
+        if do_print:
+            s += self.javascript_for_jsmath_rendering()
+        else:
+            s += self.javascript_for_being_active_worksheet()
 
-            filename = os.path.split(self.filename())[-1]
-            download_name = _notebook.clean_name(self.name())
-            menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
-            menu += '    <a class="delete" href="delete">Delete</a>'
-            menu += '  </span>'
+        if not do_print and confirm_before_leave:
+            s += self.javascript_confirm_before_leave()
 
-            s += '<div class="worksheet_title">'
-            s += '%s%s%s%s</div>\n'%(self.name(), ' (read only) ' if read_only else '', system, menu)
+        return s
 
+    def html_title(self):
+        name = self.name()
+
+        s = ''
+        s += '<div class="worksheet_title">'
+        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name)
+        s += '</div>'
+        return s
+
+    def html_menu(self):
+        name = self.filename()
+        if self.computing():
+            interrupt_class = "interrupt"
+        else:
+            interrupt_class = "interrupt_grey"
+        vbar = '<span class="vbar"></span>'
+        menu = ''
+
+        menu  += '  <span class="worksheet_control_commands">'
+        menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+        menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
+        menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
+        menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
+        menu += '    <a class="doctest_text" href="%s">Printable</a>'%self.worksheet_command('print') + vbar
+        menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
+        menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
+        menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
+
+        filename = os.path.split(self.filename())[-1]
+        download_name = _notebook.clean_name(self.name())
+
+        menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
+        menu += '    <a class="delete" href="delete">Delete</a>'
+        menu += '  </span>'
+
+        return menu
+
+    def html_worksheet_body(self, do_print):
+        n = len(self.__cells)
+
+        s = ''
         D = self.notebook().conf()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
-            s += cell.html(ncols,do_print=do_print) + '\n'
+            s += cell.html(ncols, do_print=do_print) + '\n'
 
         s += '\n</div>\n'
         s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
+        return s
 
-        if not do_print:
-            s += '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
-            s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
-        else:
-            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+    def javascript_for_being_active_worksheet(self):
+        s =  '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
+        s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
+        return s
 
-        if not do_print and confirm_before_leave:
-            s += """<script type="text/javascript">
+    def javascript_for_jsmath_rendering(self):
+        return '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+
+    def javascript_confirm_before_leave(self):
+        return """<script type="text/javascript">
             window.onbeforeunload = confirmBrowseAway;
             function confirmBrowseAway()
             {
@@ -434,7 +458,6 @@ class Worksheet:
             }
             </script>
             """
-        return s
 
     ##########################################################
     # Managing cells and groups of cells in this worksheet

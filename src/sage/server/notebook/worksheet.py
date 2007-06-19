@@ -163,6 +163,9 @@ class Worksheet:
     def directory(self):
         return self.__dir
 
+    def data_directory(self):
+        return self.directory() + '/data/'
+
     def notebook(self):
         return twist.notebook
 
@@ -294,25 +297,59 @@ class Worksheet:
         text = text[i:]
         self.set_name(name)
 
-        # This is where we would save the last version in a history.
-        cells = []
+        data = []
         while True:
             plain_text = extract_text_before_first_compute_cell(text).strip()
             if len(plain_text) > 0:
-                T = self._new_text_cell(plain_text)
-                cells.append(T)
+                T = plain_text
+                data.append(('plain', T))
             try:
-                input, output, graphics, i = extract_first_compute_cell(text)
-            except EOFError:
-                cells.append(self._new_cell())  # make sure last cell is a compute cell
+                meta, input, output, i = extract_first_compute_cell(text)
+                data.append(('compute', (meta,input,output)))
+            except EOFError, msg:
+                print msg
                 break
             text = text[i:]
-            C = self._new_cell()
-            C.set_input_text(input)
-            C.set_output_text(output, '')
-            cells.append(C)
+
+        ids = set([x[0]['id'] for typ, x in data if typ == 'compute' and  x[0].has_key('id')])
+        used_ids = set([])
+
+        cells = []
+        for typ, T in data:
+            if typ == 'plain':
+                if len(T) > 0:
+                    id = next_available_id(ids)
+                    ids.add(id)
+                    cells.append(self._new_text_cell(T, id=id))
+                    used_ids.add(id)
+            elif typ == 'compute':
+                meta, input, output = T
+                if meta.has_key('id'):
+                    id = meta['id']
+                    if id in used_ids:
+                        # In this case don't reuse, since ids for must be unique.
+                        id = next_available_id(ids)
+                    html = True
+                else:
+                    id = next_available_id(ids)
+                    ids.add(id)
+                    html = False
+                used_ids.add(id)
+                C = self.get_cell_with_id(id = id)
+                if isinstance(C, TextCell):
+                    C = self._new_cell(id)
+                C.set_input_text(input)
+                C.set_output_text(output, '')
+                if html:
+                    print C.directory()
+                    C.update_html_output()
+                cells.append(C)
+
         if len(cells) == 0:   # there must be at least one cell.
             cells = [self._new_cell()]
+
+        self.set_cell_counter()
+
         self.__cells = cells
 
     ##########################################################
@@ -816,6 +853,9 @@ class Worksheet:
         for c in self.__cells:
             if c.is_auto_cell():
                 self.enqueue(c)
+
+    def set_cell_counter(self):
+        self.__next_id = 1 + max([C.id() for C in self.__cells])
 
     def _new_text_cell(self, plain_text, id=None):
         if id is None:
@@ -1420,34 +1460,43 @@ def extract_first_compute_cell(text):
     INPUT:
         a block of wiki-like marked up text
     OUTPUT:
+        meta -- meta information about the cell (as a dictionary)
         input -- string, the input text
         output -- string, the output text
-        graphics -- string, text that describes any embedded graphics
         end -- integer, first position after }}} in text.
     """
     # Find the input block
     i = text.find('{{{')
     if i == -1:
         raise EOFError
-    j = text.find('\n}}}')
-    if j <= i:
-        j = len(text)
-    k = text.find('\n///')
-    if k == -1 or k > j:
-        input = text[i+3:j]
-        output = ''
-        graphics = ''
+    j = text[i:].find('\n')
+    if j == -1:
+        raise EOFError
+    k = text[i:].find('|')
+    if k != -1 and k < j:
+        try:
+            meta = dictify(text[i+3:i+k])
+        except TypeError:
+            meta = {}
+        i += k + 1
     else:
-        input = text[i+3:k].strip()
-        # Find the graphics block, if there is one.
-        l = text[k+4:].find('\n///')
-        if l != -1 and l+k+4 < j:
-            graphics = text[l+k+4+3:j]
-        else:
-            graphics = ''
-            l = j
-        output = text[k+4:l].strip()
-    return input.strip(), output, graphics, j+4
+        meta = {}
+        i += 3
+
+    j = text[i:].find('\n}}}')
+    if j == -1:
+        j = len(text)
+    else:
+        j += i
+    k = text[i:].find('\n///')
+    if k == -1 or k+i > j:
+        input = text[i:j]
+        output = ''
+    else:
+        input = text[i:i+k].strip()
+        output = text[i+k+4:j].strip()
+
+    return meta, input.strip(), output, j+4
 
 def after_first_word(s):
     """
@@ -1522,6 +1571,35 @@ def extract_name(text):
         else:
             name = text[i:]
             n = len(text)-1
-    return name, n
+    return name.strip(), n
 
 
+def dictify(s):
+    """
+    INPUT:
+        s -- a string like 'in=5, out=7'
+    OUTPUT:
+        dict -- such as {'in':5, 'out':7}
+    """
+    w = []
+    try:
+        for v in s.split(','):
+            a, b = v.strip().split('=')
+            try:
+                b = eval(b)
+            except:
+                pass
+            w.append([a, b])
+    except ValueError:
+        return {}
+    return dict(w)
+
+
+def next_available_id(v):
+    """
+    Return smallest positive integer not in v.
+    """
+    i = 0
+    while i in v:
+        i += 1
+    return i

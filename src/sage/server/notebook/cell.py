@@ -50,7 +50,6 @@ class TextCell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.id())
         if not id is None:
             self.__id = id
 
@@ -95,7 +94,6 @@ class Cell(Cell_generic):
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
-        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.id())
         self.__version = 0
 
     def set_cell_output_type(self, typ='wrap'):
@@ -110,9 +108,10 @@ class Cell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.id())
         if not id is None:
             self.set_id(id)
+
+    def update_html_output(self):
         self.__out_html = self.files_html()
 
     def id(self):
@@ -131,16 +130,22 @@ class Cell(Cell_generic):
         return self.__worksheet.notebook()
 
     def directory(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        return self.__dir
+        dir = self._directory_name()
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
+    def _directory_name(self):
+        return '%s/cells/%s'%(self.__worksheet.directory(), self.id())
+
 
     def __cmp__(self, right):
         return cmp(self.id(), right.id())
 
     def __del__(self):
-        if os.path.exists(self.__dir):
-            shutil.rmtree(self.__dir, ignore_errors=True)
+        dir = self._directory_name()
+        if os.path.exists(dir):
+            shutil.rmtree(dir, ignore_errors=True)
 
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
@@ -151,9 +156,6 @@ class Cell(Cell_generic):
         s = ''
 
         input_lines = self.__in
-        #if input_lines[:1] == '%':
-        #    pr = '%s> '%(input_lines.split()[0])[1:]
-        #else:
         pr = 'sage: '
 
         if prompts:
@@ -176,7 +178,6 @@ class Cell(Cell_generic):
                 for v in input_lines:
                     if len(v) == 0:
                         pass
-                    #    s += '<BLANKLINE>\n'
                     elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
                         s += '...   ' + v + '\n'
@@ -222,7 +223,7 @@ class Cell(Cell_generic):
 
     def edit_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        return '{{{\n%s\n}}}'%s
+        return '{{{id=%s|\n%s\n}}}'%(self.id(), s)
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -540,7 +541,7 @@ class Cell(Cell_generic):
             if 'cell://%s'%F in out:
                 continue
             url = "/home/%s/data/%s/%s"%(self.worksheet_filename(), self.id(), F)
-            if F.endswith('.png') or F.endswith('.bmp'):
+            if F.endswith('.png') or F.endswith('.bmp') or F.endswith('.jpg'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
@@ -577,7 +578,7 @@ class Cell(Cell_generic):
 
         out = """<span class="cell_output_%s" id="cell_output_%s">%s</span>
                  <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</span>
-                 <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
+                 <br><span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
                  """%(typ, self.__id, out_wrap,
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)

@@ -338,17 +338,16 @@ class Notebook(SageObject):
         W = self.get_worksheet_with_filename(worksheet_filename)
         W.save_edit_text()
         path = W.filename_without_owner()
-        cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"/worksheet.txt "%s"/cells'%(
+        cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"/worksheet.txt "%s"/cells "%s"/data'%(
             self.__worksheet_dir, W.owner(),
-            os.path.abspath(output_filename), path, path)
+            os.path.abspath(output_filename), path, path, path)
         e = os.system(cmd)
         if e:
             print "Failed to execute command to export worksheet:\n'%s'"%cmd
 
-    def new_worksheet_from_text(self, text, owner):
+    def new_worksheet_with_title_from_text(self, text, owner):
         name, _ = worksheet.extract_name(text)
         W = self.create_new_worksheet(name, owner)
-        W.edit_save(text)
         return W
 
     def change_worksheet_key(self, old_key, new_key):
@@ -380,7 +379,7 @@ class Notebook(SageObject):
             raise ValueError, "invalid worksheet"
         text_filename = '%s/%s/worksheet.txt'%(tmp,D)
         worksheet_txt = open(text_filename).read()
-        worksheet = self.new_worksheet_from_text(worksheet_txt, owner)
+        worksheet = self.new_worksheet_with_title_from_text(worksheet_txt, owner)
         worksheet.set_owner(owner)
         name = worksheet.filename_without_owner()
 
@@ -416,6 +415,9 @@ class Notebook(SageObject):
         print cmd
         if os.system(cmd):
             raise ValueError, "Error moving over files when loading worksheet."
+
+        worksheet.edit_save(worksheet_txt)
+
         shutil.rmtree(tmp)
 
         return worksheet
@@ -801,28 +803,20 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.<br><br>"""
+        body_html += """The format is as follows: <pre>
+... Arbitrary HTML with latex formulas (in $ and $$)...
+{{{meta info about cell|
+Input
+///
+Output
+}}}
+</pre>"""
         body_html += '<form method="post" action="save" enctype="multipart/form-data">\n'
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
-        body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
+        body_html += '<textarea class="edit" id="cell_intext" rows="22" name="textfield">'+t+'</textarea>'
         body_html += '</form>'
-        body_html += """The format is as follows: <pre>
-Arbitrary HTML
-{{{
-Input
-///
-Output
-}}}
-Arbitrary HTML
-{{{
-Input
-///
-Output
-}}}
-...
-</pre>"""
 
         s = """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -831,7 +825,7 @@ Output
 
         textarea.edit {
             font-family: courier, monospace;
-            font-size:12pt;
+            font-size:10pt;
             border: 1px solid #8cacbb;
             color: black;
             background-color: white;
@@ -917,7 +911,7 @@ Output
               <style>%s</style>
               <script type='text/javascript'>%s</script>
             </head>
-            <body onLoad="if(window.focus) window.focus()">
+            <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
               <h1><font size=+3 color="darkred">SAGE</font>&nbsp;&nbsp;&nbsp;&nbsp;<font size=+1>Upload your Worksheet</font></h1>
               <hr>
@@ -930,7 +924,7 @@ Output
               </tr>
               <tr><td></td><td></td></tr>
               <tr>
-              <td></td><td><input type="button" class="upload_worksheet_menu" value="Upload Worksheet" onClick="form.submit(); window.close();"></td>
+              <td></td><td><input type="button" class="upload_worksheet_menu" value="Upload Worksheet" onClick="form.submit();"></td>
               </tr>
               </form><br>
               </div>

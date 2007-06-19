@@ -548,6 +548,10 @@ class Worksheet(WorksheetResource, resource.Resource):
             R = globals()['Worksheet_%s'%op]
             return R(self.name)
         except KeyError:
+            file = self.worksheet.data_directory() + '/' + op
+            if os.path.exists(file):
+                return static.File(file)
+
             return NotImplementedWorksheetOp(op)
 
 class WorksheetsByUser(resource.Resource):

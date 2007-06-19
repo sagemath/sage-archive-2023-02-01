@@ -1,7 +1,7 @@
 import user_conf
 
 class User:
-    def __init__(self, username, password, email, account_type):
+    def __init__(self, username, password='', email='', account_type='admin'):
         self.__username = username
         self.__password = password
         self.__email = email

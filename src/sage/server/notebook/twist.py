@@ -8,7 +8,7 @@
 """
 SAGE Notebook (Twisted Version)
 """
-import os
+import os, time
 
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
@@ -16,6 +16,9 @@ from twisted.web2 import static, http_headers, responsecode
 import css, js, keyboards
 
 import notebook as _notebook
+
+HISTORY_MAX_OUTPUT = 92*5
+HISTORY_NCOLS = 90
 
 from sage.misc.misc import SAGE_EXTCODE, walltime, tmp_filename
 
@@ -299,15 +302,6 @@ def Worksheet_create(name):
     return YesNo('Do you want to create the worksheet "%s"?'%name,
                  yes = yes, no = no)
 
-#Toplevel(), Worksheet(name))
-## class WorksheetCreate(WorksheetResource, resource.Resource):
-##     def render(self, ctx):
-##         notebook.create_new_worksheet(name)
-##         s = "The worksheet '%s' has been created.  <a href='..'>Continue</a>"%self.name
-##         return http.Response(stream = s)
-
-## Worksheet_create = worksheet_confirm(WorksheetCreate, worksheet_create_msg)
-
 ########################################################
 # Worksheet configuration.
 ########################################################
@@ -316,7 +310,7 @@ class Worksheet_conf(WorksheetResource, resource.Resource):
         conf = self.worksheet.conf()
         s = str(conf)
         # TODO: This should be a form that allows for configuring all options
-        # of a given worksheet, saves the result, etc.
+        # of a given worksheet, saves the result,
         return http.Response(stream = s)
 
 ########################################################
@@ -445,6 +439,10 @@ class Worksheet_cell_update(WorksheetResource, resource.PostableResource):
         if status == 'd':
             new_input = cell.changed_input_text()
             out_html = cell.output_html()
+            H = "Worksheet '%s' (%s)\n"%(self.name, time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
+            H += cell.edit_text(ncols=HISTORY_NCOLS, prompts=False,
+                                max_out=HISTORY_MAX_OUTPUT)
+            notebook.add_to_user_history(H, username)
         else:
             new_input = ''
             out_html = ''
@@ -656,7 +654,7 @@ class Help(resource.Resource):
 
 class History(resource.Resource):
     def render(self, ctx):
-        s = notebook.history_html()
+        s = notebook.user_history_html(username)
         return http.Response(stream=s)
 
 

@@ -80,6 +80,10 @@ class Notebook(SageObject):
     def user(self, username):
         try:
             return self.__users[username]
+        except KeyError:
+            U = user.User(username)
+            self.__users[username] = U
+            return U
         except AttributeError:
             self.__users = {}
             raise KeyError, "no user '%s'"%username
@@ -107,6 +111,9 @@ class Notebook(SageObject):
         Return the username:password dictionary.
         """
         return dict([(user.username(), user.password()) for user in self.user_list()])
+
+    def user_conf(self, username):
+        return self.users()[username].conf()
 
     ##########################################################
     # Moving, copying, creating, renaming, and listing worksheets
@@ -272,9 +279,41 @@ class Notebook(SageObject):
             W.set_notebook(self)
 
     ##########################################################
-    # The global notebook history.
+    # The notebook history.
     ##########################################################
-    # TODO: per-user history
+    def user_history(self, username):
+        U = self.user(username)
+        try:
+            return U.history
+        except AttributeError:
+            U.history = []
+            return U.history
+
+    def user_history_text(self, username):
+        H = self.user_history(username)
+        return '\n\n'.join([L.strip() for L in H])
+
+    def user_history_html(self, username):
+        t = self.user_history_text(username)
+        t = t.replace('<','&lt;')
+        s = '<head>\n'
+        s += '<title>Command History for %s</title>\n'%username
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<pre>' + t + '</pre>\n'
+        s += '<a name="bottom"></a>\n'
+        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
+        s += '</body>\n'
+        return s
+
+
+    def add_to_user_history(self, entry, username):
+        H = self.user_history(username)
+        H.append(entry)
+        maxlen = self.user_conf(username)['max_history_length']
+        while len(H) > maxlen:
+            del H[0]
+
     def add_to_history(self, input_text):
         H = self.history()
         H.append(input_text)
@@ -317,7 +356,7 @@ class Notebook(SageObject):
         t = self.history_text()
         t = t.replace('<','&lt;')
         s = '<head>\n'
-        s += '<title>SAGE Input History</title>\n'
+        s += '<title>Command History</title>\n'
         s += '</head>\n'
         s += '<body>\n'
         s += '<pre>' + t + '</pre>\n'

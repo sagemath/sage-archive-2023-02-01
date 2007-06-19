@@ -528,7 +528,7 @@ class Notebook(SageObject):
         s += '<br>'*2
         s += add_new_worksheet_menu
         s += '<br>'*2
-        s += '<h2>Active Worksheets Viewable by %s</h2>'%uwer
+        s += '<h2>Active Worksheets Viewable by %s</h2>'%user
         s += '<br>'*2
         for w in W:
             s += '<li> <a href="/home/%s">%s</a>\n'%(w.filename(), w.name())

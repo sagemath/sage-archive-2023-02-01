@@ -3640,7 +3640,7 @@ class Graph(GenericGraph):
 
     def plot3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
-               edge_color=(0,0,0), edge_size=0.02,
+               edge_colors=None, edge_size=0.02,
                pos3d=None, iterations=50, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
@@ -3657,7 +3657,6 @@ class Graph(GenericGraph):
             edge_colors -- a dictionary specifying edge colors: each key is a
                 color recognized by tachyon ( default: (0,0,0) ), and each
                 entry is a list of edges.
-            edge_color -- rgb tuple (default: (0,0,0))
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
             iterations -- how many iterations of the spring layout algorithm to
@@ -3675,20 +3674,29 @@ class Graph(GenericGraph):
             sage: G.plot3d(vertex_colors={(0,0,1):G.vertices()}).save('sage.png') # long time
 
             sage: C = graphs.CubeGraph(4)
-            sage: C.plot3d(edge_color=(0,1,0), vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
+            sage: C.plot3d(edge_colors={(0,1,0):C.edges()}, vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
+
+            sage: K = graphs.CompleteGraph(3)
+            sage: K.plot3d(edge_colors={(1,0,0):[(0,1,None)], (0,1,0):[(0,2,None)], (0,0,1):[(1,2,None)]}).save('sage.png') # long time
 
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, iterations=iterations, **kwds)
-        TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
-        for u,v,l in self.edges():
-            TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge')
+        edges = self.edges()
+        if edge_colors is None:
+            edge_colors = { (0,0,0) : edges }
+
+        i = 0
+        for color in edge_colors:
+            i += 1
+            TT.texture('edge_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
+            for u, v, l in edge_colors[color]:
+                TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]), (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge_color_%d'%i)
         return TT
 
     def show3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
-               edge_color=(0,0,0), edge_size=0.02,
+               edge_colors=None, edge_size=0.02,
                pos3d=None, iterations=50, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
@@ -3704,7 +3712,6 @@ class Graph(GenericGraph):
             edge_colors -- a dictionary specifying edge colors: each key is a
                 color recognized by tachyon ( default: (0,0,0) ), and each
                 entry is a list of edges.
-            edge_color -- rgb tuple (default: (0,0,0))
             edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
             iterations -- how many iterations of the spring layout algorithm to
@@ -3722,10 +3729,13 @@ class Graph(GenericGraph):
             sage: G.plot3d(vertex_colors={(0,0,1):G.vertices()}).save('sage.png') # long time
 
             sage: C = graphs.CubeGraph(4)
-            sage: C.plot3d(edge_color=(0,1,0), vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
+            sage: C.plot3d(edge_colors={(0,1,0):C.edges()}, vertex_colors={(1,1,1):C.vertices()}, bgcolor=(0,0,0)).save('sage.png') # long time
+
+            sage: K = graphs.CompleteGraph(3)
+            sage: K.plot3d(edge_colors={(1,0,0):[(0,1,None)], (0,1,0):[(0,2,None)], (0,0,1):[(1,2,None)]}).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, edge_color=edge_color, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, edge_colors=edge_colors, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
 
     ### Connected components
 
@@ -4957,7 +4967,7 @@ class DiGraph(GenericGraph):
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
-               arc_color=(0,0,0), pos3d=None, **kwds):
+               arc_colors=None, pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
@@ -4970,7 +4980,9 @@ class DiGraph(GenericGraph):
                 (default: (1,0,0))), and each corresponding entry is a list of
                 vertices. If a vertex is not listed, it looks invisible on the
                 resulting plot (it doesn't get drawn).
-            arc_color -- rgb tuple (default: (0,0,0))
+            arc_colors -- a dictionary specifying arc colors: each key is a
+                color recognized by tachyon ( default: (0,0,0) ), and each
+                entry is a list of arcs.
             arc_size -- float (default: 0.02)
             arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
@@ -4985,24 +4997,40 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
             sage: D.plot3d().save('sage.png') # long time
 
+            sage: P = graphs.PetersenGraph().to_directed()
+            sage: from sage.plot.plot import rainbow
+            sage: arcs = P.arcs()
+            sage: R = rainbow(len(arcs), 'rgbtuple')
+            sage: arc_colors = {}
+            sage: for i in range(len(arcs)):
+            ...       arc_colors[R[i]] = [arcs[i]]
+            sage: P.plot3d(arc_colors=arc_colors).save('sage.png') # long time
+
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
-        TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
-        for u,v,l in self.arcs():
-            TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc')
-            TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
-                           0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
-                           0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc')
+        arcs = self.arcs()
+        if arc_colors is None:
+            arc_colors = { (0,0,0) : arcs }
+
+        i = 0
+        for color in arc_colors:
+            i += 1
+            TT.texture('arc_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
+            for u,v,l in arc_colors[color]:
+                TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
+                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc_color_%d'%i)
+                TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
+                               0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
+                               0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
+                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc_color_%d'%i)
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_colors=None,
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
-               arc_color=(0,0,0), pos3d=None, **kwds):
+               arc_colors=None, pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -5014,7 +5042,9 @@ class DiGraph(GenericGraph):
                 (default: (1,0,0))), and each corresponding entry is a list of
                 vertices. If a vertex is not listed, it looks invisible on the
                 resulting plot (it doesn't get drawn).
-            arc_color -- rgb tuple (default: (0,0,0))
+            arc_colors -- a dictionary specifying arc colors: each key is a
+                color recognized by tachyon ( default: (0,0,0) ), and each
+                entry is a list of arcs.
             arc_size -- float (default: 0.02)
             arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
@@ -5029,8 +5059,17 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
             sage: D.plot3d().save('sage.png') # long time
 
+            sage: P = graphs.PetersenGraph().to_directed()
+            sage: from sage.plot.plot import rainbow
+            sage: arcs = P.arcs()
+            sage: R = rainbow(len(arcs), 'rgbtuple')
+            sage: arc_colors = {}
+            sage: for i in range(len(arcs)):
+            ...       arc_colors[R[i]] = [arcs[i]]
+            sage: P.plot3d(arc_colors=arc_colors).save('sage.png') # long time
+
         """
-        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_color=arc_color, **kwds).show()
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_colors=arc_colors, **kwds).show()
 
     ### Connected components
 
@@ -5347,7 +5386,6 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     c = [0,0,0]
     r = []
     verts = g.vertices()
-    spring = False
 
     if vertex_colors is None:
         vertex_colors = { (1,0,0) : verts }

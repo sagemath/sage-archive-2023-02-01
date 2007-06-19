@@ -336,11 +336,11 @@ class Notebook(SageObject):
     ##########################################################
     def export_worksheet(self, worksheet_filename, output_filename):
         W = self.get_worksheet_with_filename(worksheet_filename)
-        W.save_edit_text()
+        W.save()
         path = W.filename_without_owner()
-        cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"/worksheet.txt "%s"/cells "%s"/data'%(
+        cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"'%(
             self.__worksheet_dir, W.owner(),
-            os.path.abspath(output_filename), path, path, path)
+            os.path.abspath(output_filename), path)
         e = os.system(cmd)
         if e:
             print "Failed to execute command to export worksheet:\n'%s'"%cmd
@@ -537,6 +537,13 @@ class Notebook(SageObject):
     def quit(self):
         for W in self.__worksheets.itervalues():
             W.quit()
+
+    def quit_idle_worksheet_processes(self):
+        timeout = self.conf()['idle_timeout']
+        for W in self.__worksheets.itervalues():
+            if W.compute_process_has_been_started():
+                W.quit_if_idle(timeout)
+
 
     ##########################################################
     # Worksheet HTML generation

@@ -118,6 +118,7 @@ import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
 twist.OPEN_MODE = %s
+twist.init_updates()
 import sage.server.notebook.worksheet as worksheet
 worksheet.init_sage_prestart(twist.notebook.get_server(), twist.notebook.get_ulimit())
 

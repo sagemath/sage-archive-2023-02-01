@@ -31,8 +31,10 @@ import pexpect
 from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
-from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
+from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
 import sage.server.support as support
+
+import worksheet_conf
 
 import twist
 
@@ -124,6 +126,21 @@ class Worksheet:
 
     def __len__(self):
         return len(self.__cells)
+
+    ##########################################################
+    # Configuration
+    ##########################################################
+    def conf(self):
+        try:
+            return self.__conf
+        except AttributeError:
+            file = '%s/conf.sobj'%self.directory()
+            if os.path.exists(file):
+                C = load(file)
+            else:
+                C = worksheet_conf.WorksheetConfiguration()
+            self.__conf = C
+            return C
 
     ##########################################################
     # Basic properties
@@ -234,9 +251,10 @@ class Worksheet:
     ##########################################################
     # Saving
     ##########################################################
-    def save_edit_text(self):
+    def save(self):
         path = os.path.abspath(self.__dir)
         open(path + '/worksheet.txt','w').write(self.edit_text())
+        save(self.conf(), path + '/conf.sobj')
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -246,7 +264,6 @@ class Worksheet:
         self.__dict__ = state
         try:
             del self.__sage
-            del self.__variables
             self.__queue = []
         except AttributeError:
             pass
@@ -528,7 +545,6 @@ class Worksheet:
             os.killpg(pid, 9)
             os.kill(pid, 9)
             S._expect = None
-            del self.__sage
         except AttributeError, msg:
             print "WARNING: %s"%msg
         except Exception, msg:
@@ -540,13 +556,11 @@ class Worksheet:
         except:
             pass
 
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
+        del self.__sage
 
         # We do this to avoid getting a stale SAGE that uses old code.
         self.clear_queue()
+
 
     def next_block_id(self):
         try:
@@ -602,10 +616,6 @@ class Worksheet:
                                           ulimit = self.notebook().get_ulimit())
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
         self.__next_block_id = 0
         self.initialize_sage()
         return self.__sage
@@ -615,6 +625,7 @@ class Worksheet:
             return
 
         if self.__comp_is_running:
+            self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
@@ -623,10 +634,9 @@ class Worksheet:
             return
 
         D = C.directory()
-        V = self.known_variables()
         if not C.introspect():
             I = C.input_text().strip()
-            if I in ['restart', 'quit', 'exit'] and not I in V:
+            if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
                 if S is None: S = 'SAGE'
@@ -635,7 +645,7 @@ class Worksheet:
             if I.startswith('%time'):
                 C.do_time()
                 I = after_first_word(I).lstrip()
-            elif first_word(I) == 'time' and not 'time' in V:
+            elif first_word(I) == 'time':
                 C.do_time()
                 I = after_first_word(I).lstrip()
         else:
@@ -739,6 +749,7 @@ class Worksheet:
             out = self._process_output(out)
             if not C.introspect():
                 C.set_output_text(out, '')
+            self._record_that_we_are_computing()
             return 'w', C
 
         # Finished a computation.
@@ -817,6 +828,34 @@ class Worksheet:
         return '/home/%s/%s'%(self.filename(), cmd)
 
     ##########################################################
+    # Idle timeout
+    ##########################################################
+    def quit_if_idle(self, timeout):
+        """
+        Quit the worksheet process if it has been "idle" for more than timeout seconds,
+        where idle is by definition that the worksheet has not reported back that it
+        is actually computing.  I.e., an ignored worksheet process (since the user closed
+        their browser) is also considered idle, even if code is running.
+        """
+        if self.time_idle() > timeout:
+            print "Quitting idle or ignored worksheet process for '%s'."%self.name()
+            self.quit()
+
+    def time_idle(self):
+        return walltime() - self.last_compute_walltime()
+
+    def last_compute_walltime(self):
+        try:
+            return self.__last_compute_walltime
+        except AttributeError:
+            t = walltime()
+            self.__last_compute_walltime = t
+            return t
+
+    def _record_that_we_are_computing(self):
+        self.__last_compute_walltime = walltime()
+
+    ##########################################################
     # Enqueuing cells
     ##########################################################
     def queue(self):
@@ -832,6 +871,7 @@ class Worksheet:
 
 
     def enqueue(self, C):
+        self._record_that_we_are_computing()
         if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:
@@ -1349,44 +1389,8 @@ class Worksheet:
         return True, cmd
 
     ##########################################################
-    # List of defined variables.
+    # List of attached files.
     ##########################################################
-    def known_variables(self):
-        try:
-            return self.__variables
-        except AttributeError:
-            return []
-
-    def variables(self, with_types=True):
-        try:
-            self.__sage
-        except AttributeError:
-            try:
-                del self.__variables
-            except AttributeError:
-                pass
-            return []
-        try:
-            v = self.__variables
-        except AttributeError:
-            return []
-        if with_types:
-            return v
-        else:
-            return [x.split('-')[0] for x in v]
-
-    def variables_html(self):
-        s = ''
-        div = '<div class="variable_name">'
-        for v in self.variables():
-            try:
-                name, typ = v.split('-')
-            except ValueError:
-                name = v; typ = ''
-            if name:
-                s += div + '<span class="varname">%s</span>&nbsp;<span class="vartype">(%s)</span></div>'%(name, typ)
-        return s
-
     def attached_html(self):
         s = ''
         div = '<div class="attached_filename" onClick="inspect_attached_file(\'%s\')">'

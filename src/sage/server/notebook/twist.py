@@ -52,16 +52,32 @@ def encode_list(v):
 # Notebook autosave.
 ############################
 # save if make a change to notebook and at least some seconds have elapsed since last save.
-save_interval = 10
-last_time = walltime()
+def init_updates():
+    global save_interval, idle_interval, last_save_time, last_idle_time
+
+    save_interval = notebook.conf()['save_interval']
+    idle_interval = notebook.conf()['idle_check_interval']
+    last_save_time = walltime()
+    last_idle_time = walltime()
 
 def notebook_save_check():
-    global last_time
+    global last_save_time
     t = walltime()
-    if t > last_time + save_interval:
+    if t > last_save_time + save_interval:
         notebook.save()
-        last_time = t
+        last_save_time = t
 
+def notebook_idle_check():
+    notebook.quit_idle_worksheet_processes()
+    global last_idle_time
+    t = walltime()
+    if t > last_idle_time + idle_interval:
+        notebook.save()
+        last_idle_time = t
+
+def notebook_updates():
+    notebook_save_check()
+    notebook_idle_check()
 
 ######################################################################################
 # RESOURCES
@@ -192,6 +208,7 @@ class WorksheetResource:
     def id(self, ctx):
         return int(ctx.args['id'][0])
 
+
 ###############################################
 # Worksheet data -- a file that
 # is associated with a cell in some worksheet.
@@ -290,6 +307,17 @@ def Worksheet_create(name):
 ##         return http.Response(stream = s)
 
 ## Worksheet_create = worksheet_confirm(WorksheetCreate, worksheet_create_msg)
+
+########################################################
+# Worksheet configuration.
+########################################################
+class Worksheet_conf(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        conf = self.worksheet.conf()
+        s = str(conf)
+        # TODO: This should be a form that allows for configuring all options
+        # of a given worksheet, saves the result, etc.
+        return http.Response(stream = s)
 
 ########################################################
 # Cell introspection
@@ -482,7 +510,7 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         else:
             s = encode_list([cell.next_id(), 'no_new_cell', str(id)])
 
-        notebook_save_check()
+        notebook_updates()
         return http.Response(stream=s)
 
 
@@ -540,7 +568,7 @@ class Worksheet(WorksheetResource, resource.Resource):
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
-        notebook_save_check()
+        notebook_updates()
         try:
             # Rather than a bunch of if-else statements, we wrap
             # any Worksheet_... class as a subresource of a worksheet

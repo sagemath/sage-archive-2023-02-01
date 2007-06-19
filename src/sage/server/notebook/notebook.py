@@ -17,7 +17,7 @@ import re           # regular expressions
 # SAGE libraries
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
-from   sage.misc.misc       import alarm, cancel_alarm
+from   sage.misc.misc       import alarm, cancel_alarm, tmp_dir
 from   sage.server.misc import print_open_msg
 
 # SAGE Notebook
@@ -116,7 +116,18 @@ class Notebook(SageObject):
         filename = worksheet.worksheet_filename(worksheet_name, username)
         if self.__worksheets.has_key(filename):
             return self.__worksheets[filename]
-        W = worksheet.Worksheet(worksheet_name, self,
+        i = 0
+        dir = self.worksheet_directory() + '/' + username
+        if os.path.exists(dir):
+            D = os.listdir(dir)
+            D.sort()
+            dirname = str(i)
+            while dirname in D:
+                i += 1
+                dirname = str(i)
+        else:
+            dirname = '0'
+        W = worksheet.Worksheet(worksheet_name, dirname, self,
                         system = self.system(username), owner=username)
         self.__worksheets[W.filename()] = W
         return W
@@ -323,76 +334,92 @@ class Notebook(SageObject):
     ##########################################################
     # Importing and exporting worksheets to files
     ##########################################################
-    def export_worksheet(self, worksheet_filename, filename):
+    def export_worksheet(self, worksheet_filename, output_filename):
         W = self.get_worksheet_with_filename(worksheet_filename)
-        W.save()
-        cmd = 'cd %s && tar -jcf %s.sws "%s" && mv %s.sws ..'%(
-            self.__worksheet_dir,
-            filename, W.filename(), filename)
-        print cmd
-        os.system(cmd)
+        W.save_edit_text()
+        path = W.filename_without_owner()
+        cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"/worksheet.txt "%s"/cells'%(
+            self.__worksheet_dir, W.owner(),
+            os.path.abspath(output_filename), path, path)
+        e = os.system(cmd)
+        if e:
+            print "Failed to execute command to export worksheet:\n'%s'"%cmd
 
+    def new_worksheet_from_text(self, text, owner):
+        name, _ = worksheet.extract_name(text)
+        W = self.create_new_worksheet(name, owner)
+        W.edit_save(text)
+        return W
 
-    def tmpdir(self):
-        d = '%s/tmp'%self.__dir
-        if os.path.exists(d):
-            os.system('rm -rf "%s"'%d)
-        if not os.path.exists(d):
-            os.makedirs(d)
-        return d
+    def change_worksheet_key(self, old_key, new_key):
+        ws = self.__worksheets
+        W = ws[old_key]
+        ws[new_key] = W
+        del ws[old_key]
 
-    def import_worksheet(self, filename):
-        # TODO -- this is broken -- it does *not* work if you
-        # upload a worksheet with the same name as an existing worksheet,
-        # though somebody thinks they wrote it to do that.
-        # The problem is that changing the worksheet name is not
-        # enough -- one must also change the worksheet id.
-        # One should get rid of the id stuff, maybe.  For now,
-        # we raise an error if the worksheet name is already used.
+    def import_worksheet(self, filename, owner):
+        """
+        Upload the worksheet with name filename and make it have the
+        given owner.
+        """
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
-        if filename[-4:] != '.sws':
-            raise ValueError, "file %s must have extension sws."%filename
-        tmp = self.tmpdir()
-        cmd = 'cd %s; tar -jxf %s'%(tmp, os.path.abspath(filename))
+
+        # Decompress the worksheet to a temporary directory.
+        tmp = tmp_dir()
+        cmd = 'cd "%s"; tar -jxf "%s"'%(tmp, os.path.abspath(filename))
         print cmd
-        os.system(cmd)
+        e = os.system(cmd)
+        if e:
+            raise ValueError, "Error decompressing saved worksheet."
+
+        # Find the worksheet text representation and load it into memory.
         try:
             D = os.listdir(tmp)[0]
         except IndexError:
             raise ValueError, "invalid worksheet"
-        worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
-        names = self.worksheet_names()
-        if D in names:
-            raise ValueError, "Worksheet with given name already defined."
-            m = re.match('.*?([0-9]+)$',D)
-            if m is None:
-                n = 0
-            else:
-                n = int(m.groups()[0])
-            while "%s%d"%(D,n) in names:
-                n += 1
-            cmd = 'mv %s/%s/%s.sobj %s/%s/%s%d.sobj'%(tmp,D,D,tmp,D,D,n)
-            print cmd
-            os.system(cmd)
-            cmd = 'mv %s/%s %s/%s%d'%(tmp,D,tmp,D,n)
-            print cmd
-            os.system(cmd)
-            D = "%s%d"%(D,n)
-            worksheet.set_name(D)
-        print D
+        text_filename = '%s/%s/worksheet.txt'%(tmp,D)
+        worksheet_txt = open(text_filename).read()
+        worksheet = self.new_worksheet_from_text(worksheet_txt, owner)
+        worksheet.set_owner(owner)
+        name = worksheet.filename_without_owner()
+
+        # Change the filename of the worksheet, if necessary
+        names = [w.filename_without_owner() for w in self.get_worksheets_with_owner(owner)]
+        if name in names:
+            name = 0
+            while str(name) in names:
+                name += 1
+            name = str(name)
+            worksheet.set_filename_without_owner(name)
+
+        # Change the display name of the worksheet if necessary
+        name = worksheet.name()
+        display_names = [w.name() for w in self.get_worksheets_with_owner(owner)]
+        if name in display_names:
+            j = name.rfind('(')
+            if j != -1:
+                name = name[:j].rstrip()
+            i = 2
+            while name + " (%s)"%i in display_names:
+                i += 1
+            name = name + " (%s)"%i
+            worksheet.set_name(name)
+
+
+        # Put the worksheet files in the target directory.
         S = self.__worksheet_dir
-        cmd = 'rm -rf "%s/%s"'%(S,D)
+        target = '%s/%s'%(os.path.abspath(S), worksheet.filename())
+        if not os.path.exists(target):
+            os.makedirs(target)
+        cmd = 'rm -rf "%s"/*; mv "%s/%s/"* "%s/"'%(target, tmp, D, target)
         print cmd
-        os.system(cmd)
-        cmd = 'mv %s/%s %s/'%(tmp, D, S)
-        print cmd
-        os.system(cmd)
-        new_id = None
-        worksheet.set_notebook(self)
-        filename = worksheet.filename()
-        self.__worksheets[filename] = worksheet
+        if os.system(cmd):
+            raise ValueError, "Error moving over files when loading worksheet."
+        shutil.rmtree(tmp)
+
         return worksheet
+
 
     ##########################################################
     # Importing and exporting worksheets to a plain text format
@@ -530,25 +557,6 @@ class Notebook(SageObject):
         s += '\n</body>\n'
         return s
 
-##     def worksheet_list_html(self, current_worksheet, username):
-##         print current_worksheet, username
-##         s = []
-##         names = self.get_worksheet_names_with_viewer(username)
-##         m = max([len(x) for x in names] + [30])
-##         for n in names:
-##             if n.startswith('doc_browser'): continue
-##             W = self.__worksheets[n]
-##             if W == current_worksheet:
-##                 cls = 'worksheet_current'
-##             else:
-##                 cls = 'worksheet_other'
-##             if W.computing():
-##                 cls += '_computing' # actively computing
-##             name = W.name()
-##             name += ' (%s)'%len(W)
-##             name = name.replace(' ','&nbsp;')
-##         return '<br>'.join(s)
-
     def html_worksheet_list_for_user(self, user):
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -558,7 +566,10 @@ class Notebook(SageObject):
              </div>
         """
         W = self.get_worksheets_with_viewer(user)
-        s = '<html><body> <ol>\n'
+        W.sort()
+        s = '<html>'
+        s += '<link rel=stylesheet href="/css/main.css">\n'
+        s = '<body> <ol>\n'
 
         # This is stupid -- just used for add_new_worksheet_menu -- get rid of this.
         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
@@ -570,7 +581,7 @@ class Notebook(SageObject):
         s += '<h2>Active Worksheets Viewable by %s</h2>'%user
         s += '<br>'*2
         for w in W:
-            s += '<li> <a href="/home/%s">%s</a>\n'%(w.filename(), w.name())
+            s += '<li> <a class="worksheetname" href="/home/%s">%s</a>\n'%(w.filename(), w.name())
         s += '</body></html>'
         return s
 
@@ -578,13 +589,19 @@ class Notebook(SageObject):
     ##########################################################
     # Accessing all worksheets with certain properties.
     ##########################################################
+    def get_all_worksheets(self):
+        return list(self.__worksheets.itervalues())
+
     def get_worksheets_with_collaborator(self, user):
+        if user == 'admin': return self.get_all_worksheets()
         return [w for w in self.__worksheets.itervalues() if w.user_is_collaborator(user)]
 
     def get_worksheet_names_with_collaborator(self, user):
+        if user == 'admin': return [W.name() for W in self.get_all_worksheets()]
         return [W.name() for W in self.get_worksheets_with_collaborator(user)]
 
     def get_worksheets_with_viewer(self, user):
+        if user == 'admin': return self.get_all_worksheets()
         return [w for w in self.__worksheets.itervalues() if w.user_is_viewer(user)]
 
     def get_worksheets_with_owner(self, owner):
@@ -594,6 +611,7 @@ class Notebook(SageObject):
         return [w for w in self.get_worksheets_with_owner(owner) if w.user_is_viewer(user)]
 
     def get_worksheet_names_with_viewer(self, user):
+        if user == 'admin': return [W.name() for W in self.get_all_worksheets()]
         return [W.name() for W in self.get_worksheets_with_viewer(user)]
 
     def get_worksheet_with_name(self, name):
@@ -969,39 +987,6 @@ Output
                    </form></div>
 
         """
-
-    def format_completions_as_html(self, cell_id, completions):
-        if len(completions) == 0:
-            return ''
-        lists = []
-
-        # compute the width of each column
-        column_width = []
-        for i in range(len(completions[0])):
-            column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
-
-        for i in range(len(completions)):
-            row = completions[i]
-            for j in range(len(row)):
-                if len(lists) <= j:
-                    lists.append([])
-                cell = """
-   <li id='completion%s_%s_%s' class='completion_menu_two'>
-    <a onClick='do_replacement(%s, "%s"); return false;'
-       onMouseOver='this.focus(); select_replacement(%s,%s);'
-    >%s</a>
-   </li>"""%(cell_id, i, j, cell_id, row[j], i,j,
-             row[j])
-             #row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
-
-                lists[j].append(cell)
-
-        grid = "<ul class='completion_menu_one'>"
-        for L in lists:
-            s = "\n   ".join(L)
-            grid += "\n <li class='completion_menu_one'>\n  <ul class='completion_menu_two'>\n%s\n  </ul>\n </li>"%s
-
-        return grid + "\n</ul>"
 
 
 ####################################################################

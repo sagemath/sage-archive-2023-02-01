@@ -70,7 +70,7 @@ class TextCell(Cell_generic):
     def plain_text(self, prompts=False):
         return self.__text
 
-    def edit_text(self, prompts=False):
+    def edit_text(self):
         return self.__text
 
     def id(self):
@@ -280,7 +280,7 @@ class Cell(Cell_generic):
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()
                 open(file,"w").write(output)
-                html+="<br><a href='/%s' target='_new' class='file_link'>full_output.txt</a>"%file
+                html+="<br><a href='/%s' class='file_link'>full_output.txt</a>"%file
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
                 output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
@@ -545,7 +545,7 @@ class Cell(Cell_generic):
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:
-                files.append('<a target="_new" href="%s" class="file_link">%s</a>'%(url, F))
+                files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
         if len(images) == 0:
             images = ''
         else:

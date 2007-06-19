@@ -17,7 +17,7 @@ import css, js, keyboards
 
 import notebook as _notebook
 
-from sage.misc.misc import SAGE_EXTCODE, walltime
+from sage.misc.misc import SAGE_EXTCODE, walltime, tmp_filename
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
@@ -166,11 +166,11 @@ class UploadWorksheet(resource.PostableResource):
         f.write(ctx.files['fileField'][0][2].read())
         f.close()
         try:
-            W = notebook.import_worksheet(tmp)
+            W = notebook.import_worksheet(tmp, username)
+            os.unlink(tmp)
         except ValueError, msg:
             s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
             return http.Response(stream = s)
-        os.unlink(tmp)
         return http.RedirectResponse('/home/'+W.filename())
 
 
@@ -224,21 +224,13 @@ class FastRedirect(resource.Resource):
     def render(self, ctx):
         return http.RedirectResponse(self.dest)
 
-class FastRedirectWithEffect(FastRedirect):
-    def __init__(self, dest, effect):
-        self.dest = dest
-        if not effect is None:
-            effect()
-
 class YesNo(resource.Resource):
     addSlash = True
 
-    def __init__(self, mesg, yes_path, no_path, yes_effect=None, no_effect=None):
+    def __init__(self, mesg, yes, no):
         self.mesg = mesg
-        self.yes_path = yes_path
-        self.no_path  = no_path
-        self.yes_effect = yes_effect
-        self.no_effect = no_effect
+        self.yes = yes
+        self.no  = no
 
     def render(self, ctx):
         from sage.server.notebook.template import yes_no_template
@@ -251,9 +243,9 @@ class YesNo(resource.Resource):
 
     def childFactory(self, request, op):
         if op == 'yes':
-            return FastRedirectWithEffect(self.yes_path, self.yes_effect)
+            return FastRedirect(self.yes())
         elif op == 'no':
-            return FastRedirectWithEffect(self.no_path, self.no_effect)
+            return FastRedirect(self.no())
 
 
 ########################################################
@@ -266,22 +258,29 @@ class YesNo(resource.Resource):
 ########################################################
 
 def Worksheet_delete(name):
-    def do_delete():
+    def yes():
         notebook.delete_worksheet(name)
+        return '/'
+    def no():
+        return '..'
+
     return YesNo('Do you want to delete the worksheet "%s"?'%name,
-                 '/', '..', yes_effect=do_delete)
+                 yes=yes, no=no)
 
 ########################################################
 # Create a new worksheet.
 ########################################################
 
 def Worksheet_create(name):
-    def do_create():
-        notebook.create_new_worksheet(name, username)
+    def yes():
+        W = notebook.create_new_worksheet(name, username)
+        return '/home/' + W.filename()
+    def no():
+        return '/'
 
     wsname = _notebook.clean_name(name)
     return YesNo('Do you want to create the worksheet "%s"?'%name,
-                 '/home/%s/%s'%(username, wsname), '/', yes_effect=do_create)
+                 yes = yes, no = no)
 
 #Toplevel(), Worksheet(name))
 ## class WorksheetCreate(WorksheetResource, resource.Resource):
@@ -490,13 +489,15 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 class Worksheet_download(WorksheetResource, resource.Resource):
     def childFactory(self, request, name):
         worksheet_name = self.name
+        filename = tmp_filename() + '.sws'
         try:
-            notebook.export_worksheet(worksheet_name, worksheet_name)
+            notebook.export_worksheet(worksheet_name, filename)
         except KeyError:
             return http.Response(stream='No such worksheet.')
-
-        binfile = '%s/%s.sws'%(notebook.directory(), worksheet_name)
-        return static.File(binfile)
+        r = open(filename, 'rb').read()
+        os.unlink(filename)
+        return static.Data(r, 'application/sage')
+        #return static.File(filename)
 
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
@@ -541,11 +542,10 @@ class Worksheet(WorksheetResource, resource.Resource):
     def childFactory(self, request, op):
         notebook_save_check()
         try:
-            #MAGIC!
-            #rather than a bunch of if-else statements, we can wrap
-            #any Worksheet_... class as a subresource of a worksheet.
+            # Rather than a bunch of if-else statements, we wrap
+            # any Worksheet_... class as a subresource of a worksheet
+            # using the following  statement:
             R = globals()['Worksheet_%s'%op]
-            #/MAGIC!
             return R(self.name)
         except KeyError:
             return NotImplementedWorksheetOp(op)
@@ -870,6 +870,6 @@ setattr(UserToplevel, 'child_history.html', History())
 
 notebook = None  # this gets set on startup.
 username = None  # This is set when a request comes in.
-
+OPEN_MODE = None # this gets set on startup.
 
 

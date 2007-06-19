@@ -49,7 +49,7 @@ class PasswordChecker(object):
 
     def add_first_admin(self):
         passwords = twist.notebook.passwords()
-        if len(passwords) > 0:
+        if len(passwords) > 0 or twist.OPEN_MODE:
             return
         pw = "%x"%randint(2**24,2**25)
         self.add_user("admin", pw, "", "admin")
@@ -111,13 +111,15 @@ class LoginSystem(object):
         if the user is anonymous, regular, or an admin)
 
         """
-
-
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
-            #log.msg(avatarId)
+            self._mind = mind
+            self._avatarId = avatarId
+            if twist.OPEN_MODE:
+                rsrc = twist.AdminToplevel(self.cookie, 'admin')
+                return (iweb.IResource, rsrc, self.logout)
+
             if avatarId is checkers.ANONYMOUS: #anonymous user
-                #log.msg("returning AnonymousResources")
                 rsrc = twist.AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
@@ -130,16 +132,10 @@ class LoginSystem(object):
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'user':
-                #log.msg("returning User resources for %s" % avatarId)
-                self._mind = mind #mind = [cookie, request.args, segments]
-                self._avatarId = avatarId
                 rsrc = twist.UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'admin':
-                #log.msg("returning Admin resources for %s" % avatarId)
-                self._mind = mind #mind = [cookie, request.args, segments]
-                self._avatarId = avatarId
                 rsrc = twist.AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 

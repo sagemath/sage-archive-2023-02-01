@@ -21,6 +21,11 @@ import string
 import traceback
 import time
 import crypt
+
+import re
+whitespace = re.compile('\s')  # Match any whitespace character
+non_whitespace = re.compile('\S')
+
 import pexpect
 
 from sage.structure.sage_object  import load, save
@@ -28,6 +33,8 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
+
+import twist
 
 from cell import Cell, TextCell
 
@@ -37,8 +44,6 @@ INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-
-import notebook as _notebook
 
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
@@ -80,16 +85,16 @@ def one_prestarted_sage(server, ulimit):
         init_sage_prestart(server, ulimit)
     return X
 
+import notebook as _notebook
 def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, notebook, system, owner):
+    def __init__(self, name, dirname, notebook, system, owner):
 
         # Record the basic properties of the worksheet
 
         self.__system   = system
-        self.__notebook = notebook
         self.__owner         = owner
         self.__viewers       = []
         self.__collaborators = [owner]
@@ -102,14 +107,15 @@ class Worksheet:
         # set the directory in which the worksheet files will be stored.
         # We also add the hash of the name, since the cleaned name loses info, e.g.,
         # it could be all _'s if all characters are funny.
-        self.__filename = worksheet_filename(name, owner)
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), worksheet_filename)
+        filename = '%s/%s'%(owner, dirname)
+        self.__filename = filename
+        self.__dir = '%s/%s'%(notebook.worksheet_directory(), filename)
 
         self.clear()
 
     def __cmp__(self, other):
         try:
-            return cmp(self.__filename, other.__filename)
+            return cmp(self.name(), other.name())
         except AttributeError:
             return cmp(type(self), type(other))
 
@@ -123,32 +129,45 @@ class Worksheet:
     # Basic properties
     # TODO: Need to create a worksheet configuration object
     ##########################################################
-    def notebook(self):
-        return self.__notebook
+    def delete_notebook_specific_data(self):
+        self.__attached = {}
+        self.__collaborators = [self.owner()]
+        self.__viewer = []
 
     def name(self):
         return self.__name
 
     def set_name(self, name):
         self.__name = name
-        dir = list(name)
-        for i in range(len(dir)):
-            if not dir[i].isalnum() and dir[i] != '_':
-                dir[i] = '_'
-        dir = ''.join(dir)
-        self.__filename = dir
+
+    def set_filename_without_owner(self, nm):
+        filename = '%s/%s'%(self.owner(), nm)
+        self.set_filename(filename)
+
+    def set_filename(self, filename):
+        old_filename = self.__filename
+        self.__filename = filename
+        self.__dir = '%s/%s'%(self.notebook().worksheet_directory(), filename)
+        self.notebook().change_worksheet_key(old_filename, filename)
 
     def filename(self):
         return self.__filename
 
+    def filename_without_owner(self):
+        """
+        Return the part of the worksheet filename after the last /, i.e.,
+        without any information about the owner of this worksheet.
+        """
+        return os.path.split(self.__filename)[-1]
+
     def directory(self):
-        if not os.path.exists(self.__dir):
-            # prevent "rm -rf" accidents.
-            os.makedirs(self.__dir)
         return self.__dir
 
+    def notebook(self):
+        return twist.notebook
+
     def DIR(self):
-        return self.__notebook.DIR()
+        return self.notebook().DIR()
 
     def system(self):
         try:
@@ -172,7 +191,9 @@ class Worksheet:
             return 'pub'
 
     def set_owner(self, owner):
-        self.__owner = self.owner
+        self.__owner = owner
+        if not owner in self.__collaborators:
+            self.__collaborators.append(owner)
 
     def user_is_only_viewer(self, user):
         try:
@@ -208,18 +229,11 @@ class Worksheet:
             self.__collaborators = [user]
 
     ##########################################################
-    # Setting and
+    # Saving
     ##########################################################
-    def set_notebook(self, notebook):
-        owner = self.owner()
-        self.__notebook = notebook
-        self.__dir = '%s/%s/%s'%(notebook.worksheet_directory(), owner, self.__filename)
-
-    def save(self, filename=None):
-        if filename is None:
-            save(self, os.path.abspath(self.__dir + '/' + self.__filename))
-        else:
-            save(self, filename)
+    def save_edit_text(self):
+        path = os.path.abspath(self.__dir)
+        open(path + '/worksheet.txt','w').write(self.edit_text())
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -261,20 +275,25 @@ class Worksheet:
     ##########################################################
     # Editing the worksheet in plain text format (export and import)
     ##########################################################
-    def edit_text(self, prompts=False):
+    def edit_text(self):
         """
         Returns a plain-text version of the worksheet with \{\{\{\}\}\} wiki-formatting,
         suitable for hand editing.
         """
-        s = ''
+        s = self.name() + '\n'
+
         for C in self.__cells:
-            t = C.edit_text(prompts=prompts).strip()
+            t = C.edit_text().strip()
             if t != '':
                 s += '\n\n' + t
         return s
 
     def edit_save(self, text):
         text.replace('\r\n','\n')
+        name, i = extract_name(text)
+        text = text[i:]
+        self.set_name(name)
+
         # This is where we would save the last version in a history.
         cells = []
         while True:
@@ -328,14 +347,17 @@ class Worksheet:
             menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
             menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
-            menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%self.filename() + vbar
+
+            filename = os.path.split(self.filename())[-1]
+            download_name = _notebook.clean_name(self.name())
+            menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
             menu += '    <a class="delete" href="delete">Delete</a>'
             menu += '  </span>'
 
             s += '<div class="worksheet_title">'
             s += '%s%s%s%s</div>\n'%(self.name(), ' (read only) ' if read_only else '', system, menu)
 
-        D = self.__notebook.conf()
+        D = self.notebook().conf()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
@@ -441,8 +463,6 @@ class Worksheet:
     ##########################################################
     def clear(self):
         self.__comp_is_running = False
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
         self.__queue = []
         self.__cells = [ ]
         for i in range(INITIAL_NUM_CELLS):
@@ -517,7 +537,7 @@ class Worksheet:
     def initialize_sage(self):
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
-        object_directory = os.path.abspath(self.__notebook.object_directory())
+        object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
@@ -589,9 +609,12 @@ class Worksheet:
         id = self.next_block_id()
 
         # prevent directory disappear problems
-        if not os.path.exists('%s/code'%self.directory()):
-            os.makedirs('%s/code'%self.directory())
-        tmp = '%s/code/%s.py'%(self.directory(), id)
+        dir = self.directory()
+        if not os.path.exists('%s/code'%dir):
+            os.makedirs('%s/code'%dir)
+        if not os.path.exists('%s/cells'%dir):
+            os.makedirs('%s/cells'%dir)
+        tmp = '%s/code/%s.py'%(dir, id)
 
         absD = os.path.abspath(D)
         input = 'os.chdir("%s")\n'%absD
@@ -855,8 +878,6 @@ class Worksheet:
         else:
             os.makedirs(D)
 
-
-
     def check_cell(self, id):
         """
         Check the status on computation of the cell with given id.
@@ -926,7 +947,7 @@ class Worksheet:
                 except:
                     pass
             rows.append(row)
-        return self.__notebook.format_completions_as_html(id, rows)
+        return format_completions_as_html(id, rows)
 
     ##########################################################
     # Processing of input and output to worksheet process.
@@ -935,7 +956,7 @@ class Worksheet:
         C.set_is_html(False)
         introspect = C.introspect()
         if introspect:
-            input = self.preparse_introspection_input(input, C)
+            input = self.preparse_introspection_input(input, C, introspect)
         else:
             switched, input = self.check_for_system_switching(input, C)
             if not switched:
@@ -943,7 +964,7 @@ class Worksheet:
             input += '\n'
         return input
 
-    def preparse_introspection_input(self, input, C):
+    def preparse_introspection_input(self, input, C, introspect):
         before_prompt, after_prompt = introspect
         i = 0
         while i < len(after_prompt):
@@ -1428,8 +1449,6 @@ def extract_first_compute_cell(text):
         output = text[k+4:l].strip()
     return input.strip(), output, graphics, j+4
 
-import re
-whitespace = re.compile('\s')  # Match any whitespace character
 def after_first_word(s):
     """
     Return everything after the first whitespace in the string s.
@@ -1451,3 +1470,58 @@ def first_word(s):
     if i is None:
         return s
     return s[:i.start()]
+
+
+
+def format_completions_as_html(cell_id, completions):
+    if len(completions) == 0:
+        return ''
+    lists = []
+
+    # compute the width of each column
+    column_width = []
+    for i in range(len(completions[0])):
+        column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
+
+    for i in range(len(completions)):
+        row = completions[i]
+        for j in range(len(row)):
+            if len(lists) <= j:
+                lists.append([])
+            cell = """
+<li id='completion%s_%s_%s' class='completion_menu_two'>
+<a onClick='do_replacement(%s, "%s"); return false;'
+   onMouseOver='this.focus(); select_replacement(%s,%s);'
+>%s</a>
+</li>"""%(cell_id, i, j, cell_id, row[j], i,j,
+         row[j])
+         #row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
+
+            lists[j].append(cell)
+
+    grid = "<ul class='completion_menu_one'>"
+    for L in lists:
+        s = "\n   ".join(L)
+        grid += "\n <li class='completion_menu_one'>\n  <ul class='completion_menu_two'>\n%s\n  </ul>\n </li>"%s
+
+    return grid + "\n</ul>"
+
+
+def extract_name(text):
+    # The first line is the title
+    i = non_whitespace.search(text)
+    if i is None:
+        name = 'Untitled'
+        n = 0
+    else:
+        i = i.start()
+        j = text[i:].find('\n')
+        if j != -1:
+            name = text[i:i+j]
+            n = j+1
+        else:
+            name = text[i:]
+            n = len(text)-1
+    return name, n
+
+

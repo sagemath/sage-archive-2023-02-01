@@ -534,18 +534,23 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
 ########################################################
 # Worksheet/User/Notebooks settings and configuration
 ########################################################
-class ProcessWorksheetSettings(resource.PostableResource):
+
+class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        pass
+        if self.worksheet.owner() != username:
+            s = 'You must be the owner of this worksheet to configure it.'
+            return http.Response(stream = s)
+        else:
+            system = ctx.args['system'][0].strip()
+            self.worksheet.set_system(system)
+            return http.RedirectResponse('/home/'+ self.worksheet.filename())
 
 class Worksheet_settings(WorksheetResource, resource.Resource):
-    child_process = ProcessWorksheetSettings()
     def render(self, ctx):
         if self.worksheet.owner() != username:
             s = 'You must be the owner of this worksheet to configure it.'
         else:
-            s = notebook.html_worksheet_settings(self.worksheet)
-        print s
+            s = notebook.html_worksheet_settings(self.worksheet, username)
         return http.Response(stream = s)
 
 class ProcessUserSettings(resource.PostableResource):
@@ -756,10 +761,12 @@ class WorksheetRating(WorksheetResource, resource.Resource):
         self.do_rating()
         return http.Response(stream="""
         <html>
+        <body>
         <br><br><br>
         Thank you for rating the worksheet '%s'!
         <br><br>
         <a href='/home/%s'>Click here to return to the worksheet</a> or <a href="/pub">browse other published worksheets</a>.
+        </body>
         </html>
         """%(self.worksheet.name(), self.worksheet.filename()))
 

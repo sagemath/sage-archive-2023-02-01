@@ -230,6 +230,9 @@ class Worksheet:
             return None
 
     def set_system(self, system=None):
+        system = system.lower().strip()
+        if system == "sage":
+            system = None
         self.__system = system
 
     ##########################################################

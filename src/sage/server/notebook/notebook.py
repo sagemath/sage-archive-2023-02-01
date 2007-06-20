@@ -816,12 +816,16 @@ class Notebook(SageObject):
         s += '</div>'
         return s
 
-    def html_banner(self):
+    def html_banner(self, system=None):
+        if not system is None and not system.lower() == "sage":
+            k = '&nbsp;&nbsp; -- %s mode'%system.capitalize()
+        else:
+            k = ''
         s = """
         <span class="banner">
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software%s</a>
         </span>
-        """
+        """%k
         return s
 
     def html_search(self, search=None):
@@ -864,7 +868,7 @@ class Notebook(SageObject):
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
             s += '<span class="flush-right">'
-            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Published Worksheets</a>&nbsp;&nbsp;&nbsp;'
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse</a>&nbsp;&nbsp;&nbsp;'
             s += '&nbsp;<a class="usercontrol" href=".">Active</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'
@@ -1546,14 +1550,35 @@ Output
     # In each case the settings html is a form that when submitted
     # pulls up another web page and sets the corresponding options.
     ####################################################################
+    def html_worksheet_settings(self, ws, username):
+        head, body = self.html_worksheet_page_template(ws, username, "Worksheet Settings")
+
+        system = ws.system()
+        if system is None:
+            system = "sage"
+
+        body += """
+        <form width=70%% method="post" action="input_settings">
+           <button>Save Settings</button><br><br>
+
+Evaluation System: <input name="system" id="system" size=20 value="  %s"></input> (e.g., sage, gp, gap, singular, magma, etc.)
+
+           <br><br>
+           <button>Save Settings</button>
+        </form>
+        """%(system)
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
     def html_settings(self):
         s = """
         <h1>Settings</h1>
         """
-        return s
-
-    def html_worksheet_settings(self, ws):
-        s = self.html_settings()
         return s
 
     def html_user_settings(self, username):

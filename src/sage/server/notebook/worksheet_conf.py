@@ -1,6 +1,6 @@
 import conf
 
-defaults = {
+defaults = {'system':'sage',
            }
 
 class WorksheetConfiguration(conf.Configuration):

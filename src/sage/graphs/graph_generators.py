@@ -2384,11 +2384,10 @@ class GraphGenerators():
             seed -- for the random number generator.
 
         EXAMPLES:
-        NetworkX appears to have twice as many edges as necessary:
             sage: G = graphs.DegreeSequenceConfigurationModel([1,1])
             sage: G.adjacency_matrix()
-            [0 2]
-            [2 0]
+            [0 1]
+            [1 0]
 
         Note: as of this writing, plotting of loops and multiple edges is not
         supported, and the output is allowed to contain both types of edges.

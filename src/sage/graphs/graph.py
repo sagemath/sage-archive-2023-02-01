@@ -577,7 +577,7 @@ class GenericGraph(SageObject):
             sage: G = graphs.CubeGraph(4)
             sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
             sage: G.vertex_boundary(['0000', '1111'], l)
-            ['0111', '1011', '1101', '0010', '0100', '0001']
+            ['0010', '0100', '0001', '0111', '1011', '1101']
 
         """
         return self._nxg.node_boundary(vertices1, vertices2)
@@ -3131,35 +3131,35 @@ class Graph(GenericGraph):
             4
             2
             3
-            3
-            2
-            3
-            2
-            3
-            3
-            2
             4
+            2
+            3
+            2
+            3
+            3
+            2
+            3
             sage: for i in G.degree_iterator(labels=True):
             ...    print i
             ((0, 1), 3)
             ((1, 2), 4)
             ((0, 0), 2)
             ((2, 1), 3)
-            ((0, 2), 3)
+            ((1, 1), 4)
             ((2, 0), 2)
             ((1, 3), 3)
             ((2, 3), 2)
             ((2, 2), 3)
             ((1, 0), 3)
             ((0, 3), 2)
-            ((1, 1), 4)
+            ((0, 2), 3)
 
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
 
     ### Centrality
 
-    def centrality_betweenness(self, v=None, normalized=True):
+    def centrality_betweenness(self, normalized=True):
         r"""
         Returns the betweenness centrality (fraction of number of shortest
         paths that go through each node) as a dictionary keyed by vertices.
@@ -3172,7 +3172,6 @@ class Graph(GenericGraph):
         than nodes that occur on less.
 
         INPUT:
-            v -- a vertex label (to find betweenness of only one node)
             normalized -- boolean (default True) - if set to False, result
                           is not normalized.
 
@@ -3183,20 +3182,19 @@ class Graph(GenericGraph):
 
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).centrality_betweenness()
-            {0: 0.069696969696969688, 1: 0.069696969696969688, 2: 0.060606060606060601, 3: 0.060606060606060608, 4: 0.069696969696969688, 5: 0.069696969696969688, 6: 0.060606060606060601, 7: 0.060606060606060601, 8: 0.060606060606060601, 9: 0.060606060606060601, 10: 0.060606060606060601, 11: 0.060606060606060601}
+            {0: 0.069696969696969688, 1: 0.069696969696969688, 2: 0.060606060606060601, 3: 0.060606060606060601, 4: 0.069696969696969688, 5: 0.069696969696969688, 6: 0.060606060606060601, 7: 0.060606060606060601, 8: 0.060606060606060601, 9: 0.060606060606060601, 10: 0.060606060606060601, 11: 0.060606060606060601}
             sage: (graphs.ChvatalGraph()).centrality_betweenness(normalized=False)
-            {0: 7.6666666666666661, 1: 7.6666666666666661, 2: 6.6666666666666661, 3: 6.666666666666667, 4: 7.6666666666666661, 5: 7.6666666666666661, 6: 6.6666666666666661, 7: 6.6666666666666661, 8: 6.6666666666666661, 9: 6.6666666666666661, 10: 6.6666666666666661, 11: 6.6666666666666661}
+            {0: 7.6666666666666661, 1: 7.6666666666666661, 2: 6.6666666666666661, 3: 6.6666666666666661, 4: 7.6666666666666661, 5: 7.6666666666666661, 6: 6.6666666666666661, 7: 6.6666666666666661, 8: 6.6666666666666661, 9: 6.6666666666666661, 10: 6.6666666666666661, 11: 6.6666666666666661}
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage.: D.show(figsize=[2,2])
             sage: D = D.to_undirected()
             sage.: D.show(figsize=[2,2])
             sage: D.centrality_betweenness()
             {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
-            sage: D.centrality_betweenness(v=1)
-            0.16666666666666666
+
         """
         import networkx
-        return networkx.betweenness_centrality(self._nxg, v, None, normalized)
+        return networkx.betweenness_centrality(self._nxg, normalized)
 
     def centrality_degree(self, v=False):
         r"""
@@ -4742,16 +4740,16 @@ class DiGraph(GenericGraph):
             4
             4
             6
-            sage: for i in D.degree_iterator(labels=True):
+
             ...    print i
             ((0, 1), 6)
             ((1, 2), 6)
             ((0, 0), 4)
             ((0, 3), 4)
-            ((0, 2), 6)
+            ((1, 1), 6)
             ((1, 3), 4)
             ((1, 0), 4)
-            ((1, 1), 6)
+            ((0, 2), 6)
 
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
@@ -4792,10 +4790,10 @@ class DiGraph(GenericGraph):
             ((1, 2), 3)
             ((0, 0), 2)
             ((0, 3), 2)
-            ((0, 2), 3)
+            ((1, 1), 3)
             ((1, 3), 2)
             ((1, 0), 2)
-            ((1, 1), 3)
+            ((0, 2), 3)
 
         """
         return self._nxg.in_degree_iter(vertices, with_labels=labels)
@@ -4836,10 +4834,10 @@ class DiGraph(GenericGraph):
             ((1, 2), 3)
             ((0, 0), 2)
             ((0, 3), 2)
-            ((0, 2), 3)
+            ((1, 1), 3)
             ((1, 3), 2)
             ((1, 0), 2)
-            ((1, 1), 3)
+            ((0, 2), 3)
 
         """
         return self._nxg.out_degree_iter(vertices, with_labels=labels)
@@ -4912,15 +4910,10 @@ class DiGraph(GenericGraph):
         """
         Returns a copy of digraph with arcs reversed in direction.
 
-        TODO: results in error because of the following NetworkX bug (0.33) - trac 92
-
         EXAMPLES:
-            sage: import networkx
-            sage: D = networkx.XDiGraph({ 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] })
+            sage: D = DiGraph({ 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] })
             sage: D.reverse()
-            Traceback (most recent call last):
-            ...
-            ValueError: too many values to unpack
+            Digraph on 6 vertices
 
         """
         NXG = self._nxg.reverse()
@@ -4947,9 +4940,9 @@ class DiGraph(GenericGraph):
             sage: D
             Digraph on 9 vertices
             sage: K = D.subgraph([0,1,2], inplace=True); K
-            Subgraph of (None): Digraph on 3 vertices
+            Subgraph of (): Digraph on 3 vertices
             sage: D
-            Subgraph of (None): Digraph on 3 vertices
+            Subgraph of (): Digraph on 3 vertices
             sage: D is K
             True
 
@@ -5435,6 +5428,16 @@ def enum(graph, quick=False):
     INPUT:
         quick -- now we know that the vertices are 0,1,...,n-1
 
+    CAUTION:
+    Enumeration should not be expected to be the same from one version to the
+    next. It depends on what ordering you put on the graph, which will be
+    consistent as long as the functions used are deterministic. However, if
+    the functions change a little bit, for example when a new version of
+    NetworkX comes out, then the enumeration may be different as well. For
+    example, in moving from NX 0.33 to 0.34, the default ordering of the
+    vertices of the cube graph changed, which is reasonable since they are
+    strings of the form '011100100010', not simply integers.
+
     EXAMPLES:
         sage: from sage.graphs.graph import enum
         sage: enum(graphs.DodecahedralGraph())
@@ -5450,7 +5453,7 @@ def enum(graph, quick=False):
         sage: enum(graphs.CubeGraph(5))
         56178607138625465573345383656463935701397275938329921399526324254684498525419117323217491887221387354861371989089284563861938014744765036177184164647909535771592043875566488828479926184925998575521710064024379281086266290501476331004707336065735087197243607743454550839234461575558930808225081956823877550090
         sage: enum(graphs.CubeGraph(6))
-        17009933328531023098235951265708015080189260525466600242007791872273951170067729430659625711869482140011822425402311004663919203785115296476561677814427201708237805402966561863692388687547518491537427897858240566495945005294876576523289206747123399572439707189803821880345487300688962557172856432472391025950779306221469432919735886988596366979797317084123956762362685536557279604675024249987913439836592296340787741671304722135394212035449285260308821361913500205796919484488876249630521666898413890977354122918711285458724686283296097840711521153201188450783978019001984591992381570913097193343212274205747843852376395748070926193308573472616983062165141386183945049871456376379041631456999916186868438148001405477879591035696239287238767746380404501285533026300096772164676955425088646172718295360584249310479706751274583871684827338312536787740914529353458829503642591918761588296961192261166874864565050490306157300749101788751129640698534818737753110920871293122429238702542726347017441416450649382146313791818349648006634724962025571237208317435310419071153813687071275479812184286929976456778629116002591936357623320676067640749567446551071011889378108453641887998273235139859889734259803684619153716302058849155208478850
+        326371529575427670669464238352101792094951995779243649057093680285386836778990822785629081437462007462172136739360216635272989566397063628275237333830290699547744159752476973755505018594972566284771946715901992334775564039636016154597991986233778356987078903014361835460025413303996224858662237588027497025918927773843696364591732103396707501795072057243344934529936711761097527992728782989691631553026180148169817692734910487070747842470495807910198844854395760744998405767420459371010853556720360106317018641801426434924432581636124098971895118996222274389301315349604982951123912064743865540437112291326630674780489999966853075919418865342288080591185687773907958969994946251550738883641209218895538302542467783555412842784641272215426718406548615852119731241895157120923727145201968011104296341986981476957506504881443153478096541541979344838466666125740942737467652895262953068807052825091565753903293986696476057305915151904068785187138739772945549458536843961327405795357506174484599018050509008860510218641137912558770294063176256950306181851162364078941368690851230620321950109095412674676207403596511865820791876904583083905201524354951549014070360944192907835240428450774461600896985187941668314928549093564736937169846530
 
     """
     enumeration = 0

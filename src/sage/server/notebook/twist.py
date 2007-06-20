@@ -372,7 +372,6 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 
-
 class Worksheet_save_snapshot(WorksheetResource, resource.PostableResource):
     """
     Save a snapshot of a worksheet.
@@ -380,6 +379,11 @@ class Worksheet_save_snapshot(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.save_snapshot()
         return http.Response(stream="saved")
+
+class Worksheet_revert_to_last_saved_state(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        self.worksheet.revert_to_last_saved_state()
+        return http.Response(stream="reverted")
 
 class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
     """
@@ -577,7 +581,7 @@ class WorksheetRating(WorksheetResource, resource.Resource):
         <br><br><br>
         Thank you for rating the worksheet '%s'!
         <br><br>
-        <a href='/home/%s'>Click here to return to the worksheet.</a>
+        <a href='/home/%s'>Click here to return to the worksheet</a> or <a href="/pub">browse other published worksheets</a>.
         </html>
         """%(self.worksheet.name(), self.worksheet.filename()))
 
@@ -696,11 +700,15 @@ def render_worksheet_list(args, pub=False):
         reverse = False
 
     if pub:
+        if username is None or username == tuple([]):
+            user = 'pub'
+        else:
+            user = username
         s = notebook.html_worksheet_list_public(
-            sort=sort, reverse=reverse, search=search)
+            user, sort=sort, reverse=reverse, search=search)
     else:
         s = notebook.html_worksheet_list_for_user(
-             username, typ=typ, sort=sort, reverse=reverse, search=search)
+            username, typ=typ, sort=sort, reverse=reverse, search=search)
     return s
 
 

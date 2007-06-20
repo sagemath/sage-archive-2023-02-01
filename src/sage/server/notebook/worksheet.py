@@ -112,6 +112,7 @@ class Worksheet:
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), filename)
 
         self.clear()
+        self.save_snapshot()
 
     def __cmp__(self, other):
         try:
@@ -234,7 +235,10 @@ class Worksheet:
         del self.__rating
 
     def is_rater(self, username):
-        return username in [y for y, _ in self.ratings()]
+        try:
+            return username in [y for y, _ in self.ratings()]
+        except TypeError:
+            return False
 
     def ratings(self):
         try:
@@ -350,14 +354,35 @@ class Worksheet:
     # Saving
     ##########################################################
     def save(self):
-        path = os.path.abspath(self.__dir)
-        open(path + '/worksheet.txt','w').write(self.edit_text())
+        path = self.__dir
+        E = self.edit_text()
+        self.save_snapshot(E)
         save(self.conf(), path + '/conf.sobj')
 
-    def save_snapshot(self):
+    def save_snapshot(self, E=None):
         path = self.snapshot_directory()
         filename = '%s/%s.txt'%(path, int(time.time()))
-        open(filename, 'w').write(self.edit_text())
+        if E is None:
+            E = self.edit_text()
+        open(filename, 'w').write(E)
+        open('%s/worksheet.txt'%self.__dir, 'w').write(E)
+
+    def revert_to_snapshot(self, name):
+        path = self.snapshot_directory()
+        filename = '%s/%s.txt'%(path, name)
+        E = open(filename).read()
+        self.edit_save(E)
+
+    def snapshots(self):
+        names = os.listdir(self.snapshot_directory())
+        names.sort()
+        v = [(convert_time_to_string(x), x) for x in names]
+        return names
+
+    def revert_to_last_saved_state(self):
+        filename = '%s/worksheet.txt'%(self.__dir)
+        E = open(filename).read()
+        self.edit_save(E)
 
     def snapshot_directory(self):
         path = os.path.abspath(self.__dir) + '/snapshots/'
@@ -668,8 +693,7 @@ class Worksheet:
         return convert_seconds_to_meaningful_time_span(t)
 
     def html_time_last_edited(self):
-        lt = time.localtime(self.last_edited())
-        tm = time.strftime('%B %d, %Y %I:%M %p', lt)
+        tm = convert_time_to_string(self.last_edited())
         who = self.last_to_edit()
         t = '<span class="lastedit">last edited on %s by %s</span>'%(tm, who)
         return t
@@ -1852,3 +1876,7 @@ def convert_seconds_to_meaningful_time_span(t):
     if t < 3600*24:
         return "%d hours"%(t/3600)
     return "%d days"%(t/(3600*24))
+
+
+def convert_time_to_string(t):
+    return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))

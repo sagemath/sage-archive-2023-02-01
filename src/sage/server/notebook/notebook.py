@@ -683,13 +683,13 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list_public(self,
+    def html_worksheet_list_public(self, username,
                                   sort='last_edited', reverse=False, search=None):
         W = [x for x in self.__worksheets.itervalues() if x.is_published()]
         sort_worksheet_list(W, sort, reverse)  # changed W in place
 
-        top = self.html_worksheet_list_top('pub', False)
-        list = self.html_worksheet_list(W, 'pub', False, sort=sort, reverse=reverse, typ="all")
+        top  = self.html_worksheet_list_top(username, False, pub=True)
+        list = self.html_worksheet_list(W, username, False, sort=sort, reverse=reverse, typ="all", pub=True)
 
         s = """
         <html>
@@ -741,13 +741,13 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list_top(self, user, actions=True, typ='active'):
+    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False):
         s = ''
 
         entries = [('/home/%s'%user, 'Home', 'Back to your personal worksheet list'),
                    ('/settings', 'Settings', 'Change SAGE notebook settings'),
                    ('/doc', 'Help', 'Documentation')]
-        if user != 'pub':
+        if not pub:
             entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
         entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
@@ -806,14 +806,14 @@ class Notebook(SageObject):
     def html_worksheet_actions(self, user, typ):
         s = """
         <select class="worksheet_list">
-         <option title="Save the selected worksheets">Save</option>
-         <option title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
-         <option title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
-         <option title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
-         <option title="Save the selected worksheets to a single text file">Save as Text...</option>
+         <option onClick="save_worksheets('sws');" title="Save the selected worksheets to disk">Save ...</option>
+         <option onClick="save_worksheets('html');" title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
+         <option onClick="save_worksheets('latex');" title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
+         <option onClick="save_worksheets('pdf');" title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
+         <option onClick="save_worksheets('txt');" title="Save the selected worksheets to a single text file">Save as Text...</option>
          <option onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
          <option onClick="make_active_button();" title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
-         <option title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
+         <option onClick="uncollaborate_me();" title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
         </select>
         """
 
@@ -833,7 +833,7 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list(self, worksheets, user, worksheet_heading, sort, reverse, typ):
+    def html_worksheet_list(self, worksheets, user, worksheet_heading, sort, reverse, typ, pub=False):
         s = ''
 
         s = '<br><br>'
@@ -841,7 +841,7 @@ class Notebook(SageObject):
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
         s += '<tr  class="greybox">'
 
-        if user != 'pub':
+        if not pub:
             s += '<td>&nbsp;<input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>'
         else:
             s += '<td>&nbsp;&nbsp;<a class="listcontrol" href=".?sort=rating">Rating</a></td>'
@@ -859,7 +859,7 @@ class Notebook(SageObject):
         v = []
         for w in worksheets:
             k = '<tr>'
-            k += '<td class="entry">%s</td>'%self.html_check_col(w)
+            k += '<td class="entry">%s</td>'%self.html_check_col(w, user)
             if w.is_active():
                 k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w)
             else:
@@ -875,15 +875,18 @@ class Notebook(SageObject):
 
         return s
 
-    def html_check_col(self, worksheet):
+    def html_check_col(self, worksheet, user):
         pub = worksheet.is_published()
         def doc_options(name):
             if pub:
                 rating = worksheet.rating()
                 if rating == 0:
-                    return "----"
+                    r = "----"
                 else:
-                    return "%.1f"%rating
+                    r = "%.1f"%rating
+                if user != 'pub' and not worksheet.is_rater(user):
+                    r = '<b>%s</b>'%r
+                return r
 
             return """
             <select class="worksheet_edit">
@@ -1128,7 +1131,7 @@ class Notebook(SageObject):
                 rating = 'This page has not yet been rated.'
             else:
                 rating = 'This page is rated %.1f stars <a class="usercontrol" href="rating_info">(more).</a>'%r
-            if not worksheet.is_rater(username):
+            if username != 'pub' and not worksheet.is_rater(username):
                 rating += ' Please rate this page (this is not anonymous): '
                 rating += '  '.join(['<a class="usercontrol" href="rate%s">%s star</a>'%(i,i) for
                                    i in range(1,5)])

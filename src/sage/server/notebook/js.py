@@ -712,14 +712,20 @@ function save_worksheet_callback(status, response_text) {
    }
 }
 
-function save_worksheet_and_close() {
-    async_request(worksheet_command('save_and_close'), save_worksheet_callback, null);
-    window.close()
+function close_callback(status, response_text) {
+   if (status != 'success') {
+       alert(response_text);
+       return;
+   }
+    window.location.replace('/');
 }
 
-function worksheet_and_discard() {
-    async_request(worksheet_command('discard_and_close'), null, null);
-    window.close()
+function save_worksheet_and_close() {
+    async_request(worksheet_command('save_snapshot'), close_callback, null);
+}
+
+function worksheet_discard() {
+    async_request(worksheet_command('revert_to_last_saved_state'), close_callback, null);
 }
 
 function rename_worksheet() {

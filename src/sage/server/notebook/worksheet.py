@@ -195,6 +195,9 @@ class Worksheet:
     def data_directory(self):
         return self.directory() + '/data/'
 
+    def cells_directory(self):
+        return self.directory() + '/cells/'
+
     def notebook(self):
         return twist.notebook
 
@@ -216,6 +219,42 @@ class Worksheet:
     ##########################################################
     def is_published(self):
         return self.owner() == 'pub'
+
+    def worksheet_that_was_published(self):
+        try:
+            return self.__worksheet_came_from
+        except AttributeError:
+            return self
+
+    def this_published_worksheet_came_from(self, W):
+        self.__worksheet_came_from = W
+
+    def rate(self, x, username):
+        self.ratings().append((username, x))
+        del self.__rating
+
+    def is_rater(self, username):
+        return username in [y for y, _ in self.ratings()]
+
+    def ratings(self):
+        try:
+            return self.__ratings
+        except AttributeError:
+            v = []
+            self.__ratings = v
+            return v
+
+    def rating(self):
+        try:
+            return self.__rating
+        except AttributeError:
+            r = [x for _, x in self.ratings()]
+            if len(r) == 0:
+                rating = 0    # means "not rated"
+            else:
+                rating = float(sum(r))/float(len(r))
+            self.__rating = rating
+            return rating
 
     ##########################################################
     # Trash can and archive
@@ -379,6 +418,12 @@ class Worksheet:
         return s
 
     def edit_save(self, text):
+        # Clear any caching.
+        try:
+            del self.__html
+        except AttributeError:
+            pass
+
         text.replace('\r\n','\n')
         name, i = extract_name(text)
         text = text[i:]
@@ -444,7 +489,17 @@ class Worksheet:
     ##########################################################
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
+        if self.is_published():
+            try:
+                return self.__html
+            except AttributeError:
+                s = self.html_worksheet_body(do_print=True)
+                s += self.javascript_for_jsmath_rendering()
+                self.__html = s
+                return s
+
         s = ''
+
         s += self.html_worksheet_body(do_print=do_print)
 
         if do_print:
@@ -457,10 +512,14 @@ class Worksheet:
 
         return s
 
-    def html_title(self):
+    def truncated_name(self):
         name = self.name()
         if len(name) > 30:
             name = name[:30] + ' ...'
+        return name
+
+    def html_title(self):
+        name = self.truncated_name()
 
         s = ''
         s += '<div class="worksheet_title">'
@@ -488,7 +547,7 @@ class Worksheet:
         <a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
         <a class="control" href="revisions" title="View previous versions of this worksheet">Revisions</a>
         <a class="control" href="share" title="Let others edit this worksheet">Share</a>
-        <a class="control"  href="publish" title="Let others view this worksheet">Publish</a>
+        <a class="control" href="publish" title="Let others view this worksheet">Publish</a>
         &nbsp;&nbsp;&nbsp;
         </span>
         """
@@ -543,18 +602,22 @@ class Worksheet:
 
     def html_worksheet_body(self, do_print):
         n = len(self.__cells)
+        published = self.is_published()
 
         s = ''
         D = self.notebook().conf()
         ncols = D['word_wrap_cols']
-        s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
+        if not published:
+            s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
+
         for i in range(n):
             cell = self.__cells[i]
             s += cell.html(ncols, do_print=do_print) + '\n'
 
-        s += '\n</div>\n'
-        s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
-        s += '<div class="worksheet_bottom_padding"></div>\n'
+        if not published:
+            s += '\n</div>\n'
+            s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
+            s += '<div class="worksheet_bottom_padding"></div>\n'
         return s
 
     def javascript_for_being_active_worksheet(self):
@@ -778,6 +841,8 @@ class Worksheet:
         return S
 
     def sage(self):
+        if self.is_published():
+            return None
         try:
             S = self.__sage
             if not S._expect is None:

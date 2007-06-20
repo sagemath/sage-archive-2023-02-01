@@ -538,6 +538,70 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         return http.Response(stream=s)
 
 
+########################################################
+# Publication and rating of a worksheet
+########################################################
+
+class Worksheet_publish(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        W = notebook.publish_worksheet(self.worksheet)
+        addr = '/home/' + W.filename()
+        return http.RedirectResponse(addr)
+
+
+class Worksheet_rating_info(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        ratings = self.worksheet.ratings()
+        r = '\n'.join(['<tr><td>%s</td><td align=center>%s</td></tr>'%(x,y) for x,y in sorted(ratings)])
+        return http.Response(stream="""
+        <html>
+        <h2 align=center>Ratings for %s</h2>
+        <h3 align=center><a href='/home/%s'>Return to the worksheet.</a>
+        <br><br>
+        <table width=30%% align=center border=1 cellpadding=10 cellspacing=0>
+        <tr bgcolor="lightgray"><td width=85%%>User</td><td width=10em align=center>Rating</td></tr>
+        %s
+        </table>
+        <br><br>
+        </html>
+        """%(self.worksheet.name(), self.worksheet.filename(), r))
+
+
+class WorksheetRating(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        if self.worksheet.is_rater(username):
+            return http.Response(stream="You have already rated the worksheet '%s'."%self.worksheet.name())
+        self.do_rating()
+        return http.Response(stream="""
+        <html>
+        <br><br><br>
+        Thank you for rating the worksheet '%s'!
+        <br><br>
+        <a href='/home/%s'>Click here to return to the worksheet.</a>
+        </html>
+        """%(self.worksheet.name(), self.worksheet.filename()))
+
+class Worksheet_rate1(WorksheetRating):
+    def do_rating(self):
+        self.worksheet.rate(1, username)
+
+class Worksheet_rate2(WorksheetRating):
+    def do_rating(self):
+        self.worksheet.rate(2, username)
+
+class Worksheet_rate3(WorksheetRating):
+    def do_rating(self):
+        self.worksheet.rate(3, username)
+
+class Worksheet_rate4(WorksheetRating):
+    def do_rating(self):
+        self.worksheet.rate(4, username)
+
+########################################################
+# Downloading, moving around, renaming, etc.
+########################################################
+
+
 class Worksheet_download(WorksheetResource, resource.Resource):
     def childFactory(self, request, name):
         worksheet_name = self.name
@@ -612,7 +676,7 @@ class Worksheet(WorksheetResource, resource.Resource):
 
             return NotImplementedWorksheetOp(op)
 
-def render_worksheet_list(args):
+def render_worksheet_list(args, pub=False):
     if args.has_key('typ'):
         typ = args['typ'][0]
     else:
@@ -631,7 +695,11 @@ def render_worksheet_list(args):
     else:
         reverse = False
 
-    s = notebook.html_worksheet_list_for_user(
+    if pub:
+        s = notebook.html_worksheet_list_public(
+            sort=sort, reverse=reverse, search=search)
+    else:
+        s = notebook.html_worksheet_list_for_user(
              username, typ=typ, sort=sort, reverse=reverse, search=search)
     return s
 
@@ -697,8 +765,10 @@ class SendWorksheetToActive(SendWorksheetToFolder):
 # Publically Available Worksheets
 ############################
 class PublicWorksheets(resource.Resource):
+    addSlash = True
+
     def render(self, ctx):
-        s = notebook.html_worksheet_list_public()
+        s = render_worksheet_list(ctx.args, pub=True)
         return http.Response(stream = s)
 
     def childFactory(self, request, name):

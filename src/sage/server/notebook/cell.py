@@ -422,12 +422,6 @@ class Cell(Cell_generic):
     def do_time(self):
         self.__time = True
 
-    #def doc_html(self, wrap=None, div_wrap=True, do_print=False):
-     #   self.evaluate()
-        #s = self.output_text()
-      #  s = '\n\n<div class="doc_html" id="doc_html_%s">\n%s\n</div>\n'%(self.id(),self.output_text())
-       # return s
-
     def doc_html(self, wrap=None, div_wrap=True, do_print=False):
         """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
         The problem is how to get the documentation html to display nicely between the example cells.
@@ -507,15 +501,17 @@ class Cell(Cell_generic):
 
         r = len(t.splitlines())
 
-        s += """
-           <textarea class="%s" rows=%s cols=100000
-              id         = 'cell_input_%s'
-              onKeyPress = 'return input_keypress(%s,event);'
-              onInput    = 'cell_input_resize(this); return true;'
-              onBlur     = 'cell_blur(%s); return true;'
-              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
-           >%s</textarea>
-        """%('hidden', r, id, id, id, id, t)
+        if not do_print:
+
+            s += """
+               <textarea class="%s" rows=%s cols=100000
+                  id         = 'cell_input_%s'
+                  onKeyPress = 'return input_keypress(%s,event);'
+                  onInput    = 'cell_input_resize(this); return true;'
+                  onBlur     = 'cell_blur(%s); return true;'
+                  onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+               >%s</textarea>
+            """%('hidden', r, id, id, id, id, t)
 
         t = t.replace("<","&lt;")+" "
 

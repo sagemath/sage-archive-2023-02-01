@@ -1267,6 +1267,12 @@ span.username {
   padding:1ex;
 }
 
+span.ratingmsg {
+  color: #112abb;
+  padding:1ex;
+  font-size:14px;
+}
+
 a.usercontrol {
   color: #112abb;
   padding:1ex;

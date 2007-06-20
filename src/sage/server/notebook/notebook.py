@@ -123,6 +123,45 @@ class Notebook(SageObject):
         return self.users()[username].conf()
 
     ##########################################################
+    # Publishing worksheets
+    ##########################################################
+    def publish_worksheet(self, worksheet):
+        """
+        Publish the given worksheet.
+
+        This creates a new worksheet in the pub directory with the
+        same contents as worksheet.
+        """
+        def initialize(W):
+            # Copy over images and other files
+            data = worksheet.data_directory()
+            if os.path.exists(data):
+                shutil.copytree(data, W.directory() + '/data')
+            cells = worksheet.cells_directory()
+            if os.path.exists(cells):
+                shutil.copytree(cells, W.directory() + '/cells')
+            W.edit_save(worksheet.edit_text())
+            W.this_published_worksheet_came_from(worksheet)
+
+        for X in self.__worksheets.itervalues():
+            if X.owner() == 'pub' and X.worksheet_that_was_published() == worksheet:
+                # Update X based on worksheet instead of creating something new
+                # 1. delete cells and data directories
+                # 2. copy them over
+                # 3. update worksheet text
+                if os.path.exists(X.data_directory()):
+                    shutil.rmtree(X.data_directory())
+                if os.path.exists(X.cells_directory()):
+                    shutil.rmtree(X.cells_directory())
+                initialize(X)
+                return X
+
+        # Have to create a new worksheet
+        W = self.create_new_worksheet(worksheet.name(), 'pub')
+        initialize(W)
+        return W
+
+    ##########################################################
     # Moving, copying, creating, renaming, and listing worksheets
     ##########################################################
 
@@ -645,8 +684,7 @@ class Notebook(SageObject):
 
 
     def html_worksheet_list_public(self,
-                                  sort='last_edited', reverse=False,
-                                  trash=False, search=None):
+                                  sort='last_edited', reverse=False, search=None):
         W = [x for x in self.__worksheets.itervalues() if x.is_published()]
         sort_worksheet_list(W, sort, reverse)  # changed W in place
 
@@ -790,7 +828,7 @@ class Notebook(SageObject):
             s += '<a class="usercontrol" href=".">Active</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>'
-            s += '&nbsp;&nbsp;<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse</a>&nbsp;&nbsp;&nbsp;'
+            s += '&nbsp;&nbsp;<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Public</a>&nbsp;&nbsp;&nbsp;'
             s += '</span>'
         return s
 
@@ -802,7 +840,13 @@ class Notebook(SageObject):
         s += '<table width=100% border=0 cellspacing=0 cellpadding=0>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
         s += '<tr  class="greybox">'
-        s += '<td>&nbsp;<input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>'
+
+        if user != 'pub':
+            s += '<td>&nbsp;<input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>'
+        else:
+            s += '<td>&nbsp;&nbsp;<a class="listcontrol" href=".?sort=rating">Rating</a></td>'
+            worksheet_heading = "Published Worksheets"
+
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=name%s">%s</a> </td>'%(typ,
             '' if sort != 'name' or reverse else '&reverse=True', worksheet_heading)
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner / Collaborators / <i>Viewers</i></a> </td>'%(typ,
@@ -832,7 +876,15 @@ class Notebook(SageObject):
         return s
 
     def html_check_col(self, worksheet):
+        pub = worksheet.is_published()
         def doc_options(name):
+            if pub:
+                rating = worksheet.rating()
+                if rating == 0:
+                    return "----"
+                else:
+                    return "%.1f"%rating
+
             return """
             <select class="worksheet_edit">
             <option title="Open this worksheet and edit it">Edit</option>
@@ -845,28 +897,33 @@ class Notebook(SageObject):
         """
 
         k = ''
-        k += '<input type=checkbox unchecked id="%s">'%worksheet.filename()
+        if not pub:
+            k += '<input type=checkbox unchecked id="%s">'%worksheet.filename()
         k += '&nbsp;'*4
         k += doc_options(worksheet.filename())
         k += '&nbsp;'*4
         return k
 
     def html_worksheet_link(self, worksheet):
-        return '<a id="name/%s" class="worksheetname" href="/home/%s" target="_blank">%s</a>\n'%(
-            worksheet.filename(), worksheet.filename(), worksheet.name())
+        return '<a id="name/%s" class="worksheetname" href="/home/%s">%s</a>\n'%(
+            worksheet.filename(), worksheet.filename(), worksheet.truncated_name())
 
     def html_owner_collab_view(self, worksheet, user, typ):
         v = []
 
         owner = worksheet.owner()
-        if owner == user:
+        pub = False
+        if owner == 'pub':
+            pub = True
+            owner = worksheet.worksheet_that_was_published().owner()
+        elif owner == user:
             owner = "Me"
 
         v.append(owner)
 
         collab = worksheet.collaborators()
 
-        if typ != 'trash' and (owner == "Me" or self.user(user).account_type() == 'admin'):
+        if not pub and typ != 'trash' and (owner == "Me" or self.user(user).account_type() == 'admin'):
             if len(collab) <= 1:
                 share = '<a class="share" href="%s/share">Share now</a>'%(worksheet.filename_without_owner())
             else:
@@ -1056,46 +1113,53 @@ class Notebook(SageObject):
                 interrupt_class = "interrupt_grey"
             main_body = worksheet.html()
 
-
         body = ''
 
-        entries = [('..', 'Home', 'Back to your personal worksheet list'),
-                   ('history_window()', 'Log', 'View a log of recent computations'),
-                   ('settings', 'Settings', 'Worksheet settings'),
-                   ('/doc', 'Help', 'Documentation'),
-                   ('/logout', 'Sign out', 'Logout of the SAGE notebook')]
-        body += self.html_user_control(username, entries)
-        body += self.html_banner()+ '<br><br>'
+        if worksheet.is_published():
+            original_worksheet = worksheet.worksheet_that_was_published()
+            body += '<h1 align=center>%s</h1>'%original_worksheet.name()
+            body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
+            body += main_body
+            body += '<hr class="usercontrol">'
+            body += '<a class="usercontrol" href="edit_published_page">Edit a copy of this SAGE Worksheet.</a>'
+            body += '<hr class="usercontrol">'
+            r = worksheet.rating()
+            if r == 0:
+                rating = 'This page has not yet been rated.'
+            else:
+                rating = 'This page is rated %.1f stars <a class="usercontrol" href="rating_info">(more).</a>'%r
+            if not worksheet.is_rater(username):
+                rating += ' Please rate this page (this is not anonymous): '
+                rating += '  '.join(['<a class="usercontrol" href="rate%s">%s star</a>'%(i,i) for
+                                   i in range(1,5)])
+            body += '<span class="ratingmsg">%s</span>'%rating
 
-        if worksheet_filename:
-            body += worksheet.html_title()
-            body += worksheet.html_save_discard_buttons() + '<br>'
+        else:
 
-            body += '<hr class="greybar">'
-            body += worksheet.html_menu()
-            body += '<span class=thin-right>'
-            body += worksheet.html_share_publish_buttons()
-            body += '</span>'
+            entries = [('..', 'Home', 'Back to your personal worksheet list'),
+                       ('history_window()', 'Log', 'View a log of recent computations'),
+                       ('settings', 'Settings', 'Worksheet settings'),
+                       ('/doc', 'Help', 'Documentation'),
+                       ('/logout', 'Sign out', 'Logout of the SAGE notebook')]
+            body += self.html_user_control(username, entries)
+            body += self.html_banner()+ '<br><br>'
 
-            body += self.html_slide_controls()
+            if worksheet_filename:
+                body += worksheet.html_title()
+                body += worksheet.html_save_discard_buttons() + '<br>'
 
+                body += '<hr class="greybar">'
+                body += worksheet.html_menu()
+                body += '<span class=thin-right>'
+                body += worksheet.html_share_publish_buttons()
+                body += '</span>'
 
-        if self.__show_debug or show_debug:
-            body += self.html_debug_window()
+                body += self.html_slide_controls()
 
+            if self.__show_debug or show_debug:
+                body += self.html_debug_window()
 
-##         body += '  <span class="control_commands" id="cell_controls">\n'
-##         body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
-##         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-##         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-##         body += '    <a href="/doc">Documentation</a>' + vbar
-##         body += '     <a href="/upload" class="upload_worksheet">Upload</a>' + vbar
-##         body += '     <a href="/logout" class="help">Sign Out</a>'
-##         body += '  </span>\n'
-
-        #these divs appear in backwards order because they're float:right
-
-        body += '<div class="worksheet" id="worksheet">%s</div>'%main_body
+            body += '<div class="worksheet" id="worksheet">%s</div>'%main_body
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
         # stuck at the bottom of the screen. This could be replaced by a region
@@ -1398,6 +1462,10 @@ def sort_worksheet_list(v, sort, reverse):
     elif sort == 'owner':
         def c(a,b):
             return cmp((a.owner().lower(), -a.last_edited()), (b.owner().lower(), -b.last_edited()))
+        f = c
+    elif sort == "rating":
+        def c(a,b):
+            return -cmp((a.rating(), -a.last_edited()), (b.rating(), -b.last_edited()))
         f = c
     else:
         raise ValueError, "invalid sort key '%s'"%sort

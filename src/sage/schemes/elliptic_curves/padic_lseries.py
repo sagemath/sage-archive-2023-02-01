@@ -342,8 +342,9 @@ class pAdicLseries(SageObject):
 
     def _e_bounds(self, n, prec):
         p = self._p
-        R = PowerSeriesRing(ZZ,'T',prec)
-        T = R(R.gen(),prec )
+        prec = max(2,prec)
+        R = PowerSeriesRing(ZZ,'T',prec+1)
+        T = R(R.gen(),prec +1)
         w = (1+T)**(p**n) - 1
         return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
@@ -425,6 +426,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
         p = self._p
+        #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
         bounds = self._prec_bounds(n,prec)
         padic_prec = max(bounds[1:]) + 5

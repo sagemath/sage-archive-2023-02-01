@@ -3190,17 +3190,52 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         p-adic analogue of the BSD conjecture.
 
         INPUT:
-            p -- a prime
+            p -- a prime > 3
             prec (optional) -- the precision used in the computation of the
             p-adic L-Series
 
         OUTPUT:
-            p-adic number -- that conjecturally equals #Sha(E)(p)
+            p-adic number -- that conjecturally equals #Sha(E)(p) or -#Sha(E)(p)
 
         NOTE:
             If prec is set to zero (default) then the precision is set so that
             at least the first p-adic digit of conjectural #Sha(E)(p) is
             determined.
+
+        BUG:
+            Currently for supersingular primes for curves of rank > 0, only the
+            first digit will be correct. More is hard to compute anyway.
+
+        EXAMPLES:
+
+        good ordinary examples
+
+            sage: EllipticCurve('11a1').sha_an_padic(5)  #rank 0
+            1 + O(5^2)
+            sage: EllipticCurve('43a1').sha_an_padic(5)  #rank 1
+            1 + O(5)
+            sage: EllipticCurve('389a1').sha_an_padic(5,4) #rank 2
+            1 + O(5^3)
+            sage: EllipticCurve('858k2').sha_an_padic(7)  #rank 0, non trivial sha
+            7^2 + O(7^3)
+
+        exceptional cases
+
+            sage: EllipticCurve('11a1').sha_an_padic(11) #rank 0
+            1 + O(11)
+            sage: EllipticCurve('123a1').sha_an_padic(41) #rank 1
+            40 + O(41)
+            sage: EllipticCurve('817a1').sha_an_padic(43) #rank 2
+            42 + O(43)
+
+        supersingular cases
+
+            sage: EllipticCurve('34a1').sha_an_padic(5) # rank 0
+            1 + O(5^3)
+            sage: EllipticCurve('43a1').sha_an_padic(7) # rank 1
+            1 + O(7)
+            sage: EllipticCurve('1483a1').sha_an_padic(5) # rank 2
+            1 + O(5)
         """
         try:
             return self.__sha_an_padic[(p,prec)]
@@ -3215,8 +3250,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         tam = self.tamagawa_product()
         tors = self.torsion_order()**2
         reg = self.padic_regulator(p)
-        K = reg.parent()
-        lg = log(K(1+p))
         r = self.rank()
 
         #         shortcut to introduce later ::
@@ -3229,6 +3262,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         lp = self.padic_lseries(p)
 
         if self.is_ordinary(p):
+            K = reg.parent()
+            lg = log(K(1+p))
+
             if (self.is_good(p) or self.ap(p) == -1):
                 eps = (1-1/lp.alpha())**2
                 # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
@@ -3273,6 +3309,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             shan = lstar/bsdp
 
         elif self.is_supersingular(p):
+            K = reg[0].parent()
+            lg = log(K(1+p))
+
+
             # according to the p-adic BSD this should be equal to the leading term of the D_p - valued
             # L-series :
             bsdp = tam /tors/lg**r * reg
@@ -3293,15 +3333,21 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 lps = lp.Dp_valued_series(n,prec=r+1)
                 lstar = [lps[0][r],lps[1][r]]
                 verbose("the leading terms : %s"%lstar)
-                if (lstar[0] != 0 and lstar[1] != 0) or ( prec != 0):
+                if (lstar[0] != 0 or lstar[1] != 0) or ( prec != 0):
                     not_yet_enough_prec = False
                 else:
                     n += 1
                     verbose("increased precision to %s"%n)
 
             verbose("...putting things together")
-            shan0 = lstar[0]/bsdp[0]
-            shan1 = lstar[1]/bsdp[1]
+            if bsdp[0] != 0:
+                shan0 = lstar[0]/bsdp[0]
+            else:
+                shan0 = 0   # this should actully never happen
+            if bsdp[1] != 0:
+                shan1 = lstar[1]/bsdp[1]
+            else:
+                shan1 = 0   # this should conjecturally only happen when the rank is 0
             verbose("the two values for Sha : %s"%[shan0,shan1])
 
             # check consistency (the first two are only here to avoid a bud in the p-adic L-series
@@ -3327,7 +3373,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns an upper bound of #Sha(E)(p).
 
         INPUT:
-            p -- a prime
+            p -- a prime > 3
 
         OUTPUT:
             integer -- power of p that bounds #Sha(E)(p) from above
@@ -3338,6 +3384,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             the curve is larger than 1. Note also that this bound is sharp
             if one assumes the main conjecture of Iwasawa theory of
             elliptic curves (and this is known in certain cases).
+
+        EXAMPLES:
+            sage:
+
         """
 
         if self.is_ordinary(p) or self.is_good(p):

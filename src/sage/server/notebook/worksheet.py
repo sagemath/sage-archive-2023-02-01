@@ -16,6 +16,7 @@ from __future__ import with_statement
 ###########################################################################
 
 import os
+import shutil
 import re
 import string
 import traceback
@@ -215,6 +216,47 @@ class Worksheet:
     ##########################################################
     def is_published(self):
         return self.owner() == 'pub'
+
+    ##########################################################
+    # Trash can and archive
+    ##########################################################
+    def is_archived(self):
+        try:
+            return self.__is_archived
+        except AttributeError:
+            self.__is_archived = False
+            return False
+
+    def is_active(self):
+        return not self.is_archived() and not self.is_trashed()
+
+    def move_to_archive(self):
+        self.__is_archived = True
+        self.__is_trashed = False
+
+    def set_active(self):
+        self.__is_archived = False
+        self.__is_trashed = False
+
+    def is_trashed(self):
+        try:
+            return self.__is_trashed
+        except AttributeError:
+            self.__is_trashed = False
+            return False
+
+    def move_to_trash(self):
+        self.__is_trashed = True
+
+    def move_out_of_trash(self):
+        self.__is_trashed = False
+        self.__is_archived = False
+
+    def delete_cells_directory(self):
+        dir = self.directory() + '/cells'
+        if os.path.exists(dir):
+            shutil.rmtree(dir)
+
 
     ##########################################################
     # Owner/viewer/user management
@@ -417,11 +459,12 @@ class Worksheet:
 
     def html_title(self):
         name = self.name()
+        if len(name) > 30:
+            name = name[:30] + ' ...'
 
         s = ''
         s += '<div class="worksheet_title">'
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name)
-        #s += '&nbsp;'*5 + self.html_time_last_edited()
         s += '<br>' + self.html_time_last_edited()
         s += '</div>'
         return s
@@ -487,16 +530,6 @@ class Worksheet:
         vbar = '<span class="vbar"></span>'
         menu = ''
         menu += '&nbsp;'*3 + self.html_file_menu()
-
-##         menu += '  <span class="worksheet_control_commands">'
-##         menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-##         menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-##         menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
-##         menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
-##         menu += '    <a class="doctest_text" href="%s">Preview</a>'%self.worksheet_command('print') + vbar
-##         menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
-##         menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
-##         menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
 
         filename = os.path.split(self.filename())[-1]
         download_name = _notebook.clean_name(self.name())

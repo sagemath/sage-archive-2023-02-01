@@ -629,6 +629,66 @@ function new_worksheet() {
     open("/new_worksheet")
 }
 
+function set_worksheet_list_checks() {
+    /* Go through and set all check boxes the same as they are in the control box */
+    var C, i, id, X;
+    C = get_element("controlbox");
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        X.checked = C.checked;
+    }
+}
+
+function worksheet_list_button(action, desc) {
+    /* For each filename listed in worksheet_filenames, look up the corresponding
+       input check box, see if it is checked, and if so, do the corresponding
+       action.
+     */
+    var i, id, X;
+
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        if (X.checked) {
+            X.checked = 0;
+            async_request(action, worksheet_list_button_callback, 'filename='+worksheet_filenames[i]);
+            Y = get_element('name/' + id);
+            Y.innerHTML = desc + ' ' + Y.innerHTML;
+            Y.className = "worksheetname_moved";
+        }
+    }
+}
+
+function worksheet_list_button_callback(status, response_text) {
+   if (status == 'success') {
+      if (response_text != '') {
+          alert(response_text);
+      }
+   } else {
+      alert("Failure deleting worksheet." + response_text);
+   }
+}
+
+function delete_button() {
+    worksheet_list_button("/send_to_trash", "(in trash)");
+}
+
+function make_active_button() {
+    worksheet_list_button("/send_to_active", "(active)");
+}
+
+function archive_button() {
+    worksheet_list_button("/send_to_archive", "(archived)");
+}
+
+
+function history_window() {
+    window.open ("/history",
+      "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
+
+}
+
 function copy_worksheet() {
     open(worksheet_command("copy"));
 }

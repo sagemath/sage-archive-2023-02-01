@@ -594,6 +594,7 @@ class Worksheet(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.html(worksheet_filename = self.name,  username=username)
         self.worksheet.sage()
+        self.worksheet.set_active()
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
@@ -611,6 +612,30 @@ class Worksheet(WorksheetResource, resource.Resource):
 
             return NotImplementedWorksheetOp(op)
 
+def render_worksheet_list(args):
+    if args.has_key('typ'):
+        typ = args['typ'][0]
+    else:
+        typ = 'active'
+    if args.has_key('search'):
+        search = args['search'][0]
+    else:
+        search = None
+    if not args.has_key('sort'):
+        sort = 'last_edited'
+    else:
+        sort = args['sort'][0]
+    if args.has_key('reverse'):
+        reverse = (args['reverse'][0] == 'True')
+        print args['reverse'], reverse
+    else:
+        reverse = False
+
+    s = notebook.html_worksheet_list_for_user(
+             username, typ=typ, sort=sort, reverse=reverse, search=search)
+    return s
+
+
 class WorksheetsByUser(resource.Resource):
     addSlash = True
 
@@ -618,27 +643,8 @@ class WorksheetsByUser(resource.Resource):
         self.user = user
 
     def render_list(self, ctx):
-        if ctx.args.has_key('trash'):
-            trash = ctx.args['trash'][0]
-        else:
-            trash = False
-        if ctx.args.has_key('search'):
-            search = ctx.args['search'][0]
-        else:
-            search = None
-        if not ctx.args.has_key('sort'):
-            sort = 'last_edited'
-        else:
-            sort = ctx.args['sort'][0]
-        if ctx.args.has_key('reverse'):
-            reverse = (ctx.args['reverse'][0] == 'True')
-            print ctx.args['reverse'], reverse
-        else:
-            reverse = False
-
-        return http.Response(stream = notebook.html_worksheet_list_for_user(
-            username, sort=sort, reverse=reverse,
-            trash=trash, search=search))
+        s = render_worksheet_list(ctx.args)
+        return http.Response(stream = s)
 
     def render(self, ctx):
         if self.user == username:
@@ -657,6 +663,35 @@ class WorksheetsByUser(resource.Resource):
         except KeyError:
             return http.Response(stream = "The user '%s' has no worksheet '%s'."%(self.user, name))
 
+
+############################
+# Trash can, archive and active
+############################
+class SendWorksheetToFolder(resource.PostableResource):
+    def action(self, W):
+        raise NotImplementedError
+    def render(self, ctx):
+        filename = ctx.args['filename'][0]
+        W = notebook.get_worksheet_with_filename(filename)
+        X = notebook.user(username)
+        if X.is_admin() or W.owner() == username:
+            self.action(W)
+            s = ''
+        else:
+            s = "You are not authorized to move '%s'"%W.name()
+        return http.Response(stream = s)
+
+class SendWorksheetToTrash(SendWorksheetToFolder):
+    def action(self, W):
+        W.move_to_trash()
+
+class SendWorksheetToArchive(SendWorksheetToFolder):
+    def action(self, W):
+        W.move_to_archive()
+
+class SendWorksheetToActive(SendWorksheetToFolder):
+    def action(self, W):
+        W.set_active()
 
 ############################
 # Publically Available Worksheets
@@ -738,7 +773,7 @@ class History(resource.Resource):
 
 class LiveHistory(resource.Resource):
     def render(self, ctx):
-        W = notebook.create_new_worksheet_from_history('Log', username)
+        W = notebook.create_new_worksheet_from_history('Log', username, 100)
         return http.RedirectResponse('/home/'+W.filename())
 
 
@@ -986,9 +1021,12 @@ class UserToplevel(Toplevel):
     child_live_history = LiveHistory()
     child_history = History()
     child_help = Help()
+    child_send_to_trash = SendWorksheetToTrash()
+    child_send_to_archive = SendWorksheetToArchive()
+    child_send_to_active = SendWorksheetToActive()
 
     def render(self, ctx):
-        s = notebook.html_worksheet_list_for_user(username)
+        s = render_worksheet_list(ctx.args)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),
@@ -1001,7 +1039,7 @@ class AdminToplevel(UserToplevel):
     child_conf = NotebookConf()
 
     def render(self, ctx):
-        s = notebook.html_worksheet_list_for_user(username)
+        s = render_worksheet_list(ctx.args)
         return http.Response(responsecode.OK,
                              {'content-type': http_headers.MimeType('text',
                                                                     'html'),

@@ -952,6 +952,67 @@ class Notebook(SageObject):
             who = 'Me'
         return s + ' ago by ' + who
 
+    ##########################################################
+    # Revision history for a worksheet
+    ##########################################################
+    def html_worksheet_revision_list(self, username, worksheet):
+        top = self.html_worksheet_list_top(username)
+
+        data = worksheet.snapshot_data()  # pairs ('how long ago', key)
+        rows = []
+        i = 0
+        for desc, key in data:
+            rows.append('<tr><td></td><td><a href="%s">Revision %s</a></td><td><span class="revs">%s ago</span></td></tr>'%
+                        (key, i, desc))
+            i += 1
+        rows = list(reversed(rows))
+        rows = '\n'.join(rows)
+        s = """
+<html>
+           <link rel=stylesheet href="/css/main.css">
+           <title>SAGE: Worksheet Revisions</title>
+%s
+        <hr class="usercontrol">
+
+<h3><a href="..">Back to %s</a></h3>
+<table width=100%%>
+<tr><td width=1%%></td><td width=20%%><b>Revision</b></td> <td width=20%%><b>Last Edited</b></td><td width=30%%></td>
+%s
+</table>
+</html>
+"""%(top, worksheet.name(), rows)
+        return s
+
+    def html_specific_revision(self, username, worksheet, rev):
+        top = self._html_body(worksheet.filename(), top_only=True)
+
+        filename = worksheet.get_snapshot_text_filename(rev)
+        txt = open(filename).read()
+
+        actions = """
+        <a class="listcontrol" href="publish">Publish this one</a>&nbsp;&nbsp;
+        <a class="listcontrol" href="revert">Revert to this one</a>  (in both cases images are lost)
+        """
+
+        s = """
+<html>
+           <link rel=stylesheet href="/css/main.css">
+           <title>SAGE: Worksheet Revisions</title>
+%s
+        <hr class="usercontrol">
+<h3><a href="..">Back to revision list for %s</a></h3>
+%s
+<table width=100%%>
+<pre>
+%s
+</pre>
+        <hr class="usercontrol">
+%s
+</table>
+</html>
+"""%(top, worksheet.name(), actions, txt, actions)
+        return s
+
 
     ##########################################################
     # Accessing all worksheets with certain properties.
@@ -1093,7 +1154,20 @@ class Notebook(SageObject):
 
         return head
 
-    def _html_body(self, worksheet_filename, show_debug=False, username=''):
+    def html_worksheet_topbar(self, worksheet):
+        body  = worksheet.html_title()
+        body += worksheet.html_save_discard_buttons() + '<br>'
+
+        body += '<hr class="greybar">'
+        body += worksheet.html_menu()
+        body += '<span class=thin-right>'
+        body += worksheet.html_share_publish_buttons()
+        body += '</span>'
+
+        body += self.html_slide_controls()
+        return body
+
+    def _html_body(self, worksheet_filename, show_debug=False, username='', top_only=False):
         if worksheet_filename is None or worksheet_filename == '':
             main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
             if os.path.isfile(self.directory() + "/index.html"):
@@ -1144,23 +1218,19 @@ class Notebook(SageObject):
                        ('settings', 'Settings', 'Worksheet settings'),
                        ('/doc', 'Help', 'Documentation'),
                        ('/logout', 'Sign out', 'Logout of the SAGE notebook')]
+
             body += self.html_user_control(username, entries)
             body += self.html_banner()+ '<br><br>'
 
+            if top_only:
+                return body
+
             if worksheet_filename:
-                body += worksheet.html_title()
-                body += worksheet.html_save_discard_buttons() + '<br>'
-
-                body += '<hr class="greybar">'
-                body += worksheet.html_menu()
-                body += '<span class=thin-right>'
-                body += worksheet.html_share_publish_buttons()
-                body += '</span>'
-
-                body += self.html_slide_controls()
+                body += self.html_worksheet_topbar(worksheet)
 
             if self.__show_debug or show_debug:
                 body += self.html_debug_window()
+
 
             body += '<div class="worksheet" id="worksheet">%s</div>'%main_body
 

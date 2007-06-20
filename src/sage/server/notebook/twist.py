@@ -216,6 +216,8 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
+        if not username in self.worksheet.collaborators() and user_type(name) != 'admin':
+            raise RuntimeError, "illegal worksheet access"
 
     def id(self, ctx):
         return int(ctx.args['id'][0])
@@ -393,6 +395,66 @@ class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
         self.worksheet.save_snapshot()
         self.worksheet.quit()
         return http.Response(stream="saved")
+
+#################################
+# Revisions
+#################################
+
+class PublishWorksheetRevision(resource.Resource):
+    def __init__(self, worksheet, rev):
+        self.worksheet = worksheet
+        self.rev = rev
+
+    def render(self, ctx):
+        W = notebook.publish_worksheet(self.worksheet)
+        txt = open(self.worksheet.get_snapshot_text_filename(self.rev)).read()
+        W.delete_cells_directory()
+        W.edit_save(txt)
+        return http.RedirectResponse('/home/'+W.filename())
+
+class RevertToWorksheetRevision(resource.Resource):
+    def __init__(self, worksheet, rev):
+        self.worksheet = worksheet
+        self.rev = rev
+
+    def render(self, ctx):
+        self.worksheet.save_snapshot()
+        txt = open(self.worksheet.get_snapshot_text_filename(self.rev)).read()
+        self.worksheet.delete_cells_directory()
+        self.worksheet.edit_save(txt)
+        return http.RedirectResponse('/home/'+self.worksheet.filename())
+
+
+
+class ViewWorksheetRevision(resource.Resource):
+    addSlash = True
+
+    def __init__(self, worksheet, rev):
+        self.worksheet = worksheet
+        self.rev = rev
+
+    def render(self, ctx):
+        s = notebook.html_specific_revision(username, self.worksheet, self.rev)
+        return http.Response(stream = s)
+
+    def childFactory(self, request, name):
+        if name == 'publish':
+            return PublishWorksheetRevision(self.worksheet, self.rev)
+        elif name == 'revert':
+            return RevertToWorksheetRevision(self.worksheet, self.rev)
+
+class Worksheet_revisions(WorksheetResource, resource.PostableResource):
+    """
+    Show a list of revisions of this worksheet.
+    """
+    addSlash = True
+
+    def render(self, ctx):
+        s = notebook.html_worksheet_revision_list(username, self.worksheet)
+        return http.Response(stream = s)
+
+    def childFactory(self, request, rev):
+        return ViewWorksheetRevision(self.worksheet, rev)
 
 
 ########################################################
@@ -1132,3 +1194,5 @@ username = None  # This is set when a request comes in.
 OPEN_MODE = None # this gets set on startup.
 
 
+def user_type(user):
+    return notebook.user(user).account_type()

@@ -1384,6 +1384,13 @@ span.lastedit {
   color: #717171;
 }
 
+span.revs {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #333333;
+}
+
 a.share {
   font-family: sans-serif;
   font-size:10px;

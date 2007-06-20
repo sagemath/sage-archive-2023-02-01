@@ -367,17 +367,23 @@ class Worksheet:
         open(filename, 'w').write(E)
         open('%s/worksheet.txt'%self.__dir, 'w').write(E)
 
+    def get_snapshot_text_filename(self, name):
+        path = self.snapshot_directory()
+        return '%s/%s'%(path, name)
+
+
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()
         filename = '%s/%s.txt'%(path, name)
         E = open(filename).read()
         self.edit_save(E)
 
-    def snapshots(self):
+    def snapshot_data(self):
         names = os.listdir(self.snapshot_directory())
         names.sort()
-        v = [(convert_time_to_string(x), x) for x in names]
-        return names
+        t = time.time()
+        v = [(convert_seconds_to_meaningful_time_span(t - float(os.path.splitext(x)[0])), x) for x in names]
+        return v
 
     def revert_to_last_saved_state(self):
         filename = '%s/worksheet.txt'%(self.__dir)
@@ -570,7 +576,7 @@ class Worksheet:
         <a  title="Preview this worksheet" class="usercontrol" href="preview"><img border=0 src="/images/icon_preview.gif"> Preview</a>
         <a  title="Print this worksheet" class="usercontrol" href="print"><img border=0 src="/images/icon_print.gif"> Print</a>
         <a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
-        <a class="control" href="revisions" title="View previous versions of this worksheet">Revisions</a>
+        <a class="control" href="revisions" title="View changes to this worksheet over time">Revisions</a>
         <a class="control" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" href="publish" title="Let others view this worksheet">Publish</a>
         &nbsp;&nbsp;&nbsp;

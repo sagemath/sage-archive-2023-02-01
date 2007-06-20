@@ -57,6 +57,7 @@ AUTHOR:
                               is_elementary_abelian, is_pgroup, gens_small,
 			      isomorphism_type_info_simple_group.
                               moved all the "named" groups to a new file.
+    - Nick Alexander (2007-07): move is_isomorphic to isomorphism_to, add from_gap_list
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -80,7 +81,6 @@ NOTE:
 
 
 import random
-from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group
@@ -92,7 +92,7 @@ from sage.rings.finite_field import GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even, log
-QQ = RationalField()
+from sage.rings.rational_field import RationalField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
@@ -105,6 +105,28 @@ def gap_format(x):
     if isinstance(x,str): return x
     x = str(tuple(x)).replace(' ','')
     return x.replace('),(',')(').replace(',)',')')
+
+def from_gap_list(G, src):
+    r"""Convert a string giving a list of GAP permutations into a list of elements of G.
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.permgroup import from_gap_list
+        sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+        sage: L = from_gap_list(G, "[(1,2,3)(4,5), (3,4)]"); L
+        [(1,2,3)(4,5), (3,4)]
+        sage: L[0].parent() is G
+        True
+        sage: L[1].parent() is G
+        True
+    """
+    # trim away the list constructs
+    src = src.replace("[", "").replace("]", "")
+    # cut out the individual elements
+    srcs = src.split("),")
+    for i in range(len(srcs[:-1])):
+        srcs[i] = srcs[i] + ")"
+    srcs = map(G, srcs)
+    return srcs
 
 def PermutationGroup(x, from_group=False, check=True):
     """
@@ -441,7 +463,7 @@ class PermutationGroup_generic(group.FiniteGroup):
                 raise RuntimeError, "(It might be necessary to install the database_gap optional SAGE package, if you haven't already.)\n%s"%s
             self.__gens = tuple([PermutationGroupElement(gens[n],
                                     self, check = False) for n in \
-                                 range(1, int(gens.Length())+1)])
+                                 range(1, Integer(gens.Length())+1)])
             return self.__gens
 
     def gens_small(self):
@@ -463,7 +485,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         return self._gap_().SmallGeneratingSet()
 
     def gen(self, i):
-        return self.gens()[int(i)]
+        return self.gens()[Integer(i)]
 
     def cayley_table(self, names="x"):
         """
@@ -478,7 +500,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)', '(2,3)'])
             sage: G.cayley_table()
-            <BLANKLINE>
             [x0 x1 x2 x3 x4 x5]
             [x1 x0 x3 x2 x5 x4]
             [x2 x4 x0 x5 x1 x3]
@@ -487,8 +508,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             [x5 x3 x4 x1 x2 x0]
             sage: G.list()[3]*G.list()[3] == G.list()[4]
             True
+            sage: G.cayley_table("y")
+            [y0 y1 y2 y3 y4 y5]
+            [y1 y0 y3 y2 y5 y4]
+            [y2 y4 y0 y5 y1 y3]
+            [y3 y5 y1 y4 y0 y2]
+            [y4 y2 y5 y0 y3 y1]
+            [y5 y3 y4 y1 y2 y0]
             sage: G.cayley_table(names="abcdef")
-            <BLANKLINE>
             [a b c d e f]
             [b a d c f e]
             [c e a f b d]
@@ -503,11 +530,11 @@ class PermutationGroup_generic(group.FiniteGroup):
         gap.eval("G := %s"%G._gap_())
         gap.eval("phi := RegularActionHomomorphism( G );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
-        N = int(gap.eval("N := Length(gens);"))
+        N = Integer(gap.eval("N := Length(gens);"))
         gens = [PermutationGroupElement(gap.eval("gens[%s];"%i)) for i in range(1,N+1)]
         H = PermutationGroup(gens)
         nH = H.order()
-        R,vars = PolynomialRing(QQ,names,nH).objgens()
+        R,vars = PolynomialRing(RationalField(),names,nH).objgens()
         multiplication_table_G = sum([(H.list()[i]).matrix()*vars[i] for i in range(nH)])
         MT = multiplication_table_G.rows()
         MT.sort()
@@ -557,7 +584,7 @@ class PermutationGroup_generic(group.FiniteGroup):
              sage: G.exponent()
              6
         """
-        return self._gap_().Exponent()
+        return Integer(self._gap_().Exponent())
 
     def largest_moved_point(self):
         """
@@ -574,7 +601,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return self.__largest_moved_point
         except AttributeError:
-            n = int(self._gap_().LargestMovedPoint())
+            n = Integer(self._gap_().LargestMovedPoint())
         self.__largest_moved_point = n
         return n
 
@@ -590,7 +617,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.smallest_moved_point()
             1
         """
-        return self._gap_().SmallestMovedPoint()
+        try:
+            return self.__smallest_moved_point
+        except AttributeError:
+            n = Integer(self._gap_().SmallestMovedPoint())
+        self.__smallest_moved_point = n
+        return n
 
     def orbits(self):
         """
@@ -733,7 +765,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         from sage.groups.perm_gps.permgroup_morphism import PermutationGroupMorphism_from_gap
         G1 = self._gap_init_()
-        #print G1
         G2 = other._gap_init_()
         cmd1 = "G:=DirectProduct("+G1+","+G2+")"
         cmd2 = "iota1:=Embedding(G,1)"
@@ -783,7 +814,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         gap.eval("G := %s"%G._gap_init_())
         gap.eval("Ssgp := SylowSubgroup(G, %s);"%p)
         gap.eval("gens := GeneratorsOfGroup( Ssgp );")
-        N = int(gap.eval("N := Length(gens);"))
+        N = Integer(gap.eval("N := Length(gens);"))
         if N>0:
             gens = [PermutationGroupElement(gap.eval("gens[%s];"%j)) for j in range(1,N+1)]
             H = PermutationGroup(gens)
@@ -810,7 +841,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         gap.eval(" Q := G/N;")
         gap.eval("phi := RegularActionHomomorphism( Q );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
-        N = int(gap.eval("N := Length(gens);"))
+        N = Integer(gap.eval("N := Length(gens);"))
         if N>0:
             gens = [PermutationGroupElement(gap.eval("gens[%s];"%i)) for i in range(1,N+1)]
             Q = PermutationGroup(gens)
@@ -831,16 +862,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = SymmetricGroup(3)
             sage: G.cohomology(5)                              # requires optional gap_packages
             Trivial Abelian Group
-            sage: G.cohomology(5,2)                              # requires optional gap_packages
+            sage: G.cohomology(5,2)                            # requires optional gap_packages
             Multiplicative Abelian Group isomorphic to C2
             sage: G.homology(5,3)                              # requires optional gap_packages
             Trivial Abelian Group
             sage: G.homology(5,4)                              # requires optional gap_packages
-            Multiplicative Abelian Group isomorphic to C2
-            sage: G.homology(5,5)                              # requires optional gap_packages
-            Trivial Abelian Group
-            sage: G.homology(5,6)                              # requires optional gap_packages
-            Multiplicative Abelian Group isomorphic to C2
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be 0 or prime
 
         This computes $H^4(S_3,ZZ)$, $H^4(S_3,ZZ/2ZZ)$, resp.
 
@@ -855,16 +884,15 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         gap.eval('RequirePackage("HAP")')
-        if not(is_prime(p)):
-            pp = 0
-        else:
-            pp = p
+        from sage.rings.arith import is_prime
+        if not (p == 0 or is_prime(p)):
+            raise ValueError, "p must be 0 or prime"
         G = self
         GG = G._gap_init_()
-        if pp == 0:
+        if p == 0:
             L = eval(gap.eval("GroupCohomology(%s,%s)"%(GG,n)))
         else:
-	    L = eval(gap.eval("GroupCohomology(%s,%s,%s)"%(GG,n,pp)))
+	    L = eval(gap.eval("GroupCohomology(%s,%s,%s)"%(GG,n,p)))
         return AbelianGroup(len(L),L)
 
     def cohomology_part(self, n, p = 0):
@@ -888,16 +916,15 @@ class PermutationGroup_generic(group.FiniteGroup):
             David Joyner and Graham Ellis
         """
         gap.eval('RequirePackage("HAP")')
-        if not(is_prime(p)):
-            pp = 0
-        else:
-            pp = p
+        from sage.rings.arith import is_prime
+        if not (p == 0 or is_prime(p)):
+            raise ValueError, "p must be 0 or prime"
         G = self
         GG = G._gap_init_()
-        if pp == 0:
+        if p == 0:
             H = AbelianGroup(1,[1])
         else:
-            gap.eval("S := SylowSubgroup(%s,%s)"%(GG,pp))
+            gap.eval("S := SylowSubgroup(%s,%s)"%(GG,p))
             gap.eval("R:=ResolutionFiniteGroup(S,%s)"%(n+1))
             gap.eval("HR:=HomToIntegers(R)")
 	    L = eval(gap.eval("Cohomology(HR,%s)"%n))
@@ -937,16 +964,15 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         gap.eval('RequirePackage("HAP")')
-        if not(is_prime(p)):
-            pp = 0
-        else:
-            pp = p
+        from sage.rings.arith import is_prime
+        if not (p == 0 or is_prime(p)):
+            raise ValueError, "p must be 0 or prime"
         G = self
         GG = G._gap_init_()
-        if pp == 0:
+        if p == 0:
             L = eval(gap.eval("GroupHomology(%s,%s)"%(GG,n)))
         else:
-	    L = eval(gap.eval("GroupHomology(%s,%s,%s)"%(GG,n,pp)))
+	    L = eval(gap.eval("GroupHomology(%s,%s,%s)"%(GG,n,p)))
         return AbelianGroup(len(L),L)
 
     def homology_part(self, n, p = 0):
@@ -967,16 +993,15 @@ class PermutationGroup_generic(group.FiniteGroup):
             David Joyner and Graham Ellis
         """
         gap.eval('RequirePackage("HAP")')
-        if not(is_prime(p)):
-            pp = 0
-        else:
-            pp = p
+        from sage.rings.arith import is_prime
+        if not (p == 0 or is_prime(p)):
+            raise ValueError, "p must be 0 or prime"
         G = self
         GG = G._gap_init_()
-        if pp == 0:
+        if p == 0:
             H = AbelianGroup(1,[1])
         else:
-            gap.eval("S := SylowSubgroup(%s,%s)"%(GG,pp))
+            gap.eval("S := SylowSubgroup(%s,%s)"%(GG,p))
             gap.eval("R:=ResolutionFiniteGroup(S,%s)"%(n+1))
             gap.eval("TR:=TensorWithIntegers(R);")
 	    L = eval(gap.eval("Homology(TR,%s)"%n))
@@ -1005,14 +1030,13 @@ class PermutationGroup_generic(group.FiniteGroup):
             David Joyner and Graham Ellis
         """
         gap.eval('RequirePackage("HAP")')
-        if not(is_prime(p)):
-            pp = 2
-        else:
-            pp = p
+        from sage.rings.arith import is_prime
+        if not (p == 0 or is_prime(p)):
+            raise ValueError, "p must be 0 or prime"
         G = self
         GG = G._gap_init_()
-        ff = gap.eval("ff := PoincareSeriesPrimePart(%s,%s,%s)"%(GG,pp,n))
-        R = PolynomialRing(QQ,"x")
+        ff = gap.eval("ff := PoincareSeriesPrimePart(%s,%s,%s)"%(GG,p,n))
+        R = PolynomialRing(RationalField(),"x")
 	x = R.gen()
         nn = gap.eval("NumeratorOfRationalFunction(ff)")
         dd = gap.eval("DenominatorOfRationalFunction(ff)")
@@ -1049,7 +1073,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         gap.eval("pi := NaturalCharacter( %s )"%GG)
         gap.eval("cc := ConstituentsOfCharacter( pi )")
         M = gap.eval("M := MolienSeries(Sum(cc))")
-        R = PolynomialRing(QQ,"x")
+        R = PolynomialRing(RationalField(),"x")
 	x = R.gen()
         nn = gap.eval("NumeratorOfRationalFunction(M)")
         dd = gap.eval("DenominatorOfRationalFunction(M)")
@@ -1127,7 +1151,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         G    = self._gap_()
         cl   = G.ConjugacyClasses()
-        n    = int(cl.Length())
+        n    = Integer(cl.Length())
         irrG = G.Irr()
         ct   = [[irrG[i+1,j+1] for j in range(n)] for i in range(n)]
 
@@ -1172,7 +1196,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         cl = self._gap_().ConjugacyClasses()
-        n = int(cl.Length())
+        n = Integer(cl.Length())
         L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(
             cl.name(),  cl.name()))
         return [PermutationGroupElement(L[i], self, check=False) \
@@ -1198,7 +1222,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         G = self._gap_()
         cl = G.ConjugacyClassesSubgroups()
-        n = int(cl.Length())
+        n = Integer(cl.Length())
         L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(
             cl.name(),  cl.name()))
         return [PermutationGroupElement(L[i], self, check=False) \
@@ -1300,31 +1324,33 @@ class PermutationGroup_generic(group.FiniteGroup):
         t = self._gap_().IsElementaryAbelian()
         return t.bool()
 
-    def is_isomorphic(self,right,mode=None):
+    def isomorphism_to(self,right,mode=None):
         """
-        Return True if the groups are isomorphic. If mode="verbose" then
-        an isomorphism is printed.
+        Return an isomorphism self to right if the groups are isomorphic, otherwise None.
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: H = PermutationGroup(['(1,2,3)(4,5)'])
-            sage: G.is_isomorphic(H)
-            False
-
-        Now, if you type G.is_isomorphic(G,mode="verbose"), of course you will get
-        "True" but in addition an isomorphism (determined by a map of group generators)
-        is printed. The isomorphism is random, but in this case you will probably
-        get something like [ (2,3), (1,2)(3,4,5) ] -> [ (2,3), (1,2)(3,5,4) ],
-        which indicates that g1 = (2,3) and g2 = (1,2)(3,4,5) are generators of G and
-        the map found is the identity map.
+            sage: G.isomorphism_to(H) is None
+            True
+            sage: G = PermutationGroup([(1,2,3), (2,3)])
+            sage: H = PermutationGroup([(1,2,4), (1,4)])
+            sage: G.isomorphism_to(H) # random
+            Homomorphism : Permutation Group with generators [(1,2,3), (2,3)] --> Permutation Group with generators [(1,2,4), (1,4)]
         """
         G = self._gap_init_()
         H = right._gap_init_()
         gap.eval("x:=IsomorphismGroups( %s, %s )"%(G,H))
-        if mode=="verbose":
-            print gap.eval("x")
-            return not(gap.eval("x")=="fail")
-        return not(gap.eval("x")=="fail")
+        s = gap.eval("x")
+        if s == "fail":
+            return None
+        # slice and dice the GAP return to build a SAGE group homomorphism
+        src, dst = s.split("->")
+        # we eval to get things as lists
+        srcs = from_gap_list(self, src)
+        dsts = from_gap_list(right, dst)
+        from permgroup_morphism import PermutationGroupMorphism_im_gens
+        return PermutationGroupMorphism_im_gens(self, right, srcs, dsts)
 
     def is_monomial(self):
         """
@@ -1335,7 +1361,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G.is_monomial()
             True
-
         """
         ans = self._gap_().IsMonomialGroup()
         return ans.bool()
@@ -1364,7 +1389,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: H = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: G.is_normal(H)
             True
-
         """
         t = self._gap_().IsNormal(other._gap_())
         return t.bool()
@@ -1393,7 +1417,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup(['(1,2,3,4,5)'])
             sage: G.is_pgroup()
             True
-
         """
         ans = self._gap_().IsPGroup()
         return ans.bool()
@@ -1424,7 +1447,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G.is_simple()
             False
-
         """
         ans = self._gap_().IsSimpleGroup()
         return ans.bool()
@@ -1436,11 +1458,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G.is_solvable()
-            true
-
+            True
         """
         ans = self._gap_().IsSolvableGroup()
-        return ans
+        return ans.bool()
 
     def is_subgroup(self,other):
         """
@@ -1484,7 +1505,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: G.composition_series()        # somewhat random output
-            <BLANKLINE>
             [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
              Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)],
              Permutation Group with generators [()]]
@@ -1523,9 +1543,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: G.lower_central_series()        # somewhat random output
-            <BLANKLINE>
-           [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
-            Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
+            [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
+             Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
 
         """
         ans = []
@@ -1543,9 +1562,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: G.upper_central_series()        # somewhat random output
-            <BLANKLINE>
-           [Permutation Group with generators [()]]
-
+            [Permutation Group with generators [()]]
         """
         ans = []
         DS = self._gap_().UpperCentralSeriesOfGroup()

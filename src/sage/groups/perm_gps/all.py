@@ -4,7 +4,7 @@ import permgroup as pg
 from permgroup_named import (SymmetricGroup, AlternatingGroup,
                        DihedralGroup, CyclicPermutationGroup,
                        TransitiveGroup, PGL, PSL, PSp,PSU,PGU,
-                       MathieuGroup, KleinFourGroup,Suzuki)
+                       MathieuGroup, KleinFourGroup, SuzukiGroup)
 
 from permgroup import  PermutationGroup, PermutationGroup_generic, PermutationGroup_subgroup, direct_product_permgroups
 

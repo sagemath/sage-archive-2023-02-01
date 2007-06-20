@@ -18,7 +18,7 @@ You can construct the following permutation groups:
                       from the GAP tables of transitive groups (requires
                       the "optional" package database_gap)
 
--- Mathieu groups, of degrees 9, 10, 11, 12, 21, 22, 23, or 24.
+-- MathieuGroup(degree), Mathieu group of degree 9, 10, 11, 12, 21, 22, 23, or 24.
 
 -- KleinFourGroup, subgroup of $S_4$ of order $4$ which is not $C_2 \times C_2$
 
@@ -39,7 +39,7 @@ You can construct the following permutation groups:
              coefficients in the finite field $GF(q^2)$ that respect a
              fixed nondegenerate sesquilinear form, modulo the centre.
 
--- Suzuki(q), Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$.
+-- SuzukiGroup(q), Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$.
 
 
 AUTHOR:
@@ -705,7 +705,7 @@ class PGU(PermutationGroup_generic):
         return "The projective general unitary group of degree %s over %s"%(self._n, self.base_ring())
 
 
-class Suzuki(PermutationGroup_generic):
+class SuzukiGroup(PermutationGroup_generic):
     r"""
     The Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$. A wrapper for the GAP function SuzukiGroup.
 
@@ -716,13 +716,13 @@ class Suzuki(PermutationGroup_generic):
         Sz(q)
 
     EXAMPLE:
-        sage: Suzuki(8)
+        sage: SuzukiGroup(8)
         Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,
         37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,
         49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,
         23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,
         52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
-        sage: print Suzuki(8)
+        sage: print SuzukiGroup(8)
         The Suzuki group over Finite Field in a of size 2^3
 
 
@@ -731,7 +731,10 @@ class Suzuki(PermutationGroup_generic):
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
     def __init__(self, q, var='a'):
-	if is_even(round(log(q,2))):
+        q = Integer(q)
+        from sage.rings.arith import valuation
+        t = valuation(q, 2)
+        if 2**t != q or is_even(t):
 	    raise ValueError,"The ground field size %s must be an odd power of 2."%q
         id = 'SuzukiGroup(IsPermGroup,%s)'%q
         PermutationGroup_generic.__init__(self, id,

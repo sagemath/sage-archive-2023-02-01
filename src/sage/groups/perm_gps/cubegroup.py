@@ -37,7 +37,6 @@ TODO:
 from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
-from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group

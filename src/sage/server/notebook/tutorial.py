@@ -11,7 +11,11 @@ SAGE Notebook Interface
 AUTHORS:
     -- William Stein (2006-05-06): initial version
     -- Alex Clemesha
-    -- Tom Boothby: support for a wide range of web browsers; refactoring of javascript code; systematic keyboard controls
+    -- Tom Boothby: support for a wide range of web browsers;
+       refactoring of javascript code; systematic keyboard controls
+    -- Dorian Ramier
+    -- Yi Qiang
+    -- Bobby Moretti
 
 The SAGE graphical user interface is unusual in that it operates via
 your web browser.  It provides you with SAGE worksheets that you can
@@ -346,52 +350,35 @@ notebook_help = [
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),
-            ('Create New Worksheet', "Use the menu on the left, or simply put a new worksheet name in the URL, e.g., if your notebook is at http://localhost:8000, then visiting http://localhost:8000/tests will create a new worksheet named tests."),
                ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
-                ('Evaluate all Cells', 'Click <u>Eval All</u> in the upper right.'),
                 ('Evaluate Cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('Typeset a Cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
-               ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
-                ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)" or "show(objname)", which will display a nicely typeset image (using javascript!).  You do <i>not</i> need latex for this to work.  Type "lprint()" to make it so output is often typeset by default.'),
-                ('Move between cells', 'Use the up and down arrows on your keyboard.'),
                 ('Interrupt running calculations',
-                 'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
+                 'Click <u>Interrupt</u> or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupt signals.'),
                 ('Tab completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
-                ('Print worksheet', 'Click the print button.'),
                 ('Help About',
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',
                  'Put ?? after the object and press tab.'),
-                ('Hide Cell Input',
-                 'Put %hide at the beginning of the cell.  This can be followed by %gap, %latex, %maxima, etc.  Note that %hide must be first.  From the edit screen, use %hideall to hide a complete cell.'),
                 ('Documentation',
-                 'Click on <a href="/doc_browser?/?index.html">Documentation</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
+                 'Click on <a href="/doc/">Help</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
                 ('Insert New Cell',
-                 'Put mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
+                 'Put the mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
                 ('Delete Cell',
-                 'Delete cell contents the press backspace.'),
-                ('Text of Worksheet', 'Click the <u>Text</u> and <u>Doctext</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
-                ('History', 'Click the <u>History</u> link for a history of commands entered in any worksheet of this notebook.  This appears in a popup window, which you can search (control-F) and copy and paste from.'),
+                 'Delete all cell contents, then the press backspace.'),
+                ('History', 'Click <a href="/history">log</a> commands you have entered in any worksheet of this notebook.'),
                 ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('Hide/Show All Output', 'Click <u>Hide</u> in the upper right to hide <i>all</i> output. Click <u>Show</u> to show all output.'),
-                ('Variables',
-                 'All variables and functions that you create during this session are listed on the left.  Even predefined variables that you overwrite will appear.'),
-                ('Objects',
-                 'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to save and load objects.'),
                 ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
-                ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
+                ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows for easy moving of objects from one worksheet to another, and saving of objects for later use.'),
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Downloading and Uploading Worksheets',
-                 'Click <u>Download</u> in the upper right to download a complete worksheet to a local .sws file, and click <a href="__upload__.html">Upload</a> to upload a saved worksheet to the notebook.  Note that <i>everything</i> that has been submitted is automatically saved to disk when you quit the notebook server (or type "%save_server" into a cell).'),
                 ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
-                ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
-                ('Customizing the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.'),
-                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
-                ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
-                ('Javascript Debugger', 'Type ?debug at the end of a worksheet url to enable the javascript debugger.  A pair of textareas will appear at the top of the worksheet -- the upper of which is for output, the lower is a direct interface to the page\'s javascript environment.  Type any eval()-able javascript into the input box and press shift+enter to execute it.  Type debug_append(str) to print to, and debug_clear() to clear the debug output window.'),
+                ('Working Directory', 'Each block of code is run from its own directory.  If any images are created as a side effect, they will automatically be displayed.'),
+            ('The DIR variable', 'The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
+#                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
+ #               ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
+#                ('Javascript Debugger', 'Type ?debug at the end of a worksheet url to enable the javascript debugger.  A pair of textareas will appear at the top of the worksheet -- the upper of which is for output, the lower is a direct interface to the page\'s javascript environment.  Type any eval()-able javascript into the input box and press shift+enter to execute it.  Type debug_append(str) to print to, and debug_clear() to clear the debug output window.'),
                 ]
 
 notebook_help.sort()

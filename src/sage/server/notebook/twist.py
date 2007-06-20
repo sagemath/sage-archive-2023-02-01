@@ -159,12 +159,27 @@ class Doc(resource.Resource):
 
     def render(self, ctx):
         s = """
+        <html>
+           <link rel=stylesheet href="/css/main.css">
+           <title>SAGE Help</title>
+        <body>
+        <a href="/">Home</a>
+        <br>
+        <center>
         <h1><font color="darkred">SAGE Documentation</font></h1>
-        <br><br><br>
-        <font size=+3>
-        <a href="static/">Static Documentation</a><br><br>
-        <a href="live/">Interactive Live Documentation</a><br>
+        <br>
+        <hr class="usercontrol">
+        <br><br>
+        <font size=+2>
+        <a href="/help/">SAGE Notebook Quickstart</a><br><br>
+        <a href="/doc/static/">Static Documentation</a><br><br>
+        <a href="/doc/live/">Interactive Live Documentation</a><br>
+        <br>
+        <hr class="usercontrol">
         </font>
+        </center>
+        </body>
+        </html>
         """
         return http.Response(stream=s)
 
@@ -971,6 +986,7 @@ class Notebook(resource.Resource):
 ############################
 
 class Help(resource.Resource):
+    addSlash = True
     def render(self, ctx):
         try:
             s = self._cache

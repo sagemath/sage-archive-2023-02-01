@@ -73,8 +73,8 @@ span.control_commands {
 }
 
 span.worksheet_control_commands {
-   position: fixed;
-   top:36px;
+   position: relative;
+   top:0px;
    right:0px;
    text-align:right;
    color:blue;
@@ -89,7 +89,7 @@ div.slide_control_commands {
    position: fixed;
    width:500px;
    top:1ex;
-   right:1ex;
+   right:45%;
    text-align:right;
    color:blue;
    font-weight:normal;
@@ -174,6 +174,7 @@ div.top_control_bar a.cell_mode {
 }
 
 div.top_control_bar a.cell_mode:hover{
+   cursor:pointer;
 }
 
 div.top_control_bar a.slide_arrow {
@@ -829,13 +830,15 @@ div.worksheet {
   overflow:auto;
   z-index:1;
   background-color: white;
-  border-top: 0px;
+  border:1px solid #aaa;
+/*  border-top: 0px;
   border-left: 2px solid <color1>;
-  top: 70px;
+  */
+  top: 7em;
   bottom: 0ex;
   right: 0ex;
-  left: 5px;
-  padding-left: 3ex;
+  left:1ex;
+  padding-left: 0ex;
   float: right;
   padding-top: 0ex;
 }
@@ -846,6 +849,16 @@ span.banner{
   font-family: sans-serif;
   font-size:18px;
   text-decoration: none;
+  color: #1950c8;
+}
+
+span.banner a.banner{
+    text-decoration:none;
+    border:none;
+    margin-top:2px;
+}
+
+a.banner:visited {
   color: #1950c8;
 }
 
@@ -1234,6 +1247,15 @@ a.worksheetname{
     left: expression(parentNode.offsetWidth - offsetWidth + 'px');
 }
 
+.thin-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    top: position-static;   /*All IE and Mozilla or ignored as invalid*/
+    right: 0;               /* All except IE */
+    left: expression(parentNode.offsetWidth - offsetWidth + 'px');
+    width: 70%;
+}
+
 /************ User Home **************************/
 
 span.username {
@@ -1256,9 +1278,24 @@ a.boldusercontrol {
   font-size:14px;
 }
 
+a.control {
+  background-color:#7799bb;
+  font-family: sans-serif;
+  color: #ffffff;
+  padding-top:0.5ex;
+  padding-bottom:0.5ex;
+  padding-left:1ex;
+  padding-right:1ex;
+  font-size:15px;
+  text-weight:bold;
+  text-decoration: none;
+}
+
+
+
 a.listcontrol {
-  color: #112abb;
   padding:1ex;
+  color: #112abb;
   font-weight:bold;
   font-size:14px;
   text-decoration:none;
@@ -1340,6 +1377,54 @@ a.share {
   color: #7777cc;
 }
 
+select.worksheet {
+  width:7em;
+  border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_list {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_edit {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+td.worksheet_link {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #000000;
+}
+
+td.owner_collab {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+td.last_edited {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
 
 """
     if color == 'gmail':

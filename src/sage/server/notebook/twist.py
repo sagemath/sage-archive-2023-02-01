@@ -300,16 +300,16 @@ def Worksheet_delete(name):
 # Create a new worksheet.
 ########################################################
 
-def Worksheet_create(name):
-    def yes():
-        W = notebook.create_new_worksheet(name, username)
-        return '/home/' + W.filename()
-    def no():
-        return '/'
+## def Worksheet_create(name):
+##     def yes():
+##         W = notebook.create_new_worksheet(name, username)
+##         return '/home/' + W.filename()
+##     def no():
+##         return '/'
 
-    wsname = _notebook.clean_name(name)
-    return YesNo('Do you want to create the worksheet "%s"?'%name,
-                 yes = yes, no = no)
+##     wsname = _notebook.clean_name(name)
+##     return YesNo('Do you want to create the worksheet "%s"?'%name,
+##                  yes = yes, no = no)
 
 ########################################################
 # Worksheet configuration.
@@ -372,6 +372,23 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 
+
+class Worksheet_save_snapshot(WorksheetResource, resource.PostableResource):
+    """
+    Save a snapshot of a worksheet.
+    """
+    def render(self, ctx):
+        self.worksheet.save_snapshot()
+        return http.Response(stream="saved")
+
+class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
+    """
+    Save a snapshot of a worksheet then quit it.
+    """
+    def render(self, ctx):
+        self.worksheet.save_snapshot()
+        self.worksheet.quit()
+        return http.Response(stream="saved")
 
 
 ########################################################
@@ -601,6 +618,14 @@ class WorksheetsByUser(resource.Resource):
         self.user = user
 
     def render_list(self, ctx):
+        if ctx.args.has_key('trash'):
+            trash = ctx.args['trash'][0]
+        else:
+            trash = False
+        if ctx.args.has_key('search'):
+            search = ctx.args['search'][0]
+        else:
+            search = None
         if not ctx.args.has_key('sort'):
             sort = 'last_edited'
         else:
@@ -611,7 +636,9 @@ class WorksheetsByUser(resource.Resource):
         else:
             reverse = False
 
-        return http.Response(stream = notebook.html_worksheet_list_for_user(username, sort=sort, reverse=reverse))
+        return http.Response(stream = notebook.html_worksheet_list_for_user(
+            username, sort=sort, reverse=reverse,
+            trash=trash, search=search))
 
     def render(self, ctx):
         if self.user == username:
@@ -621,14 +648,30 @@ class WorksheetsByUser(resource.Resource):
                 username, self.user))
 
     def childFactory(self, request, name):
+        if name == "trash":
+            return TrashCan(self.user)
+
         filename = self.user + '/' + name
         try:
             return Worksheet(filename)
         except KeyError:
-            if username != self.user:
-                return http.Response(stream = "The user '%s' has no worksheet '%s'."%(self.user, name))
-            return Worksheet_create(name)
+            return http.Response(stream = "The user '%s' has no worksheet '%s'."%(self.user, name))
 
+
+############################
+# Publically Available Worksheets
+############################
+class PublicWorksheets(resource.Resource):
+    def render(self, ctx):
+        s = notebook.html_worksheet_list_public()
+        return http.Response(stream = s)
+
+    def childFactory(self, request, name):
+        return http.Response(stream = "Not implemented")
+
+############################
+# Resource that gives access to worksheets
+############################
 
 class Worksheets(resource.Resource):
     def render(self, ctx):
@@ -646,6 +689,9 @@ class WorksheetsAdmin(Worksheets):
     def childFactory(self, request, name):
         return WorksheetsByUserAdmin(name)
 
+############################
+# Adding a new worksheet
+############################
 
 class NotebookConf(Worksheets):
     def render(self, ctx):
@@ -744,6 +790,15 @@ class Javascript(resource.Resource):
         return static.File(javascript_path + "/" + name)
 
 setattr(Javascript, 'child_main.js', Main_js())
+
+############################
+# Logout
+############################
+class Logout(resource.Resource):
+    def render(self, ctx):
+        # TODO -- actually log out.
+        notebook.save()
+        return http.Response(stream="thank you for using sage")
 
 ############################
 # Image resource
@@ -893,6 +948,7 @@ class AnonymousToplevel(Toplevel):
     child_confirm = RegConfirmation()
     child_images = Images()
     child_css = CSS()
+    child_pub = PublicWorksheets()
 
     def render(self, ctx):
         return http.Response(stream =  login_template())
@@ -920,6 +976,8 @@ class UserToplevel(Toplevel):
     child_upload = Upload()
     child_upload_worksheet = UploadWorksheet()
     child_new_worksheet = NewWorksheet()
+    child_logout = Logout()
+    child_pub = PublicWorksheets()
 
     def render(self, ctx):
         s = notebook.html_worksheet_list_for_user(username)

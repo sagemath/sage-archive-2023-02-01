@@ -211,6 +211,12 @@ class Worksheet:
         self.__system = system
 
     ##########################################################
+    # Publication
+    ##########################################################
+    def is_published(self):
+        return self.owner() == 'pub'
+
+    ##########################################################
     # Owner/viewer/user management
     ##########################################################
 
@@ -266,6 +272,17 @@ class Worksheet:
         path = os.path.abspath(self.__dir)
         open(path + '/worksheet.txt','w').write(self.edit_text())
         save(self.conf(), path + '/conf.sobj')
+
+    def save_snapshot(self):
+        path = self.snapshot_directory()
+        filename = '%s/%s.txt'%(path, int(time.time()))
+        open(filename, 'w').write(self.edit_text())
+
+    def snapshot_directory(self):
+        path = os.path.abspath(self.__dir) + '/snapshots/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -386,10 +403,6 @@ class Worksheet:
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
         s = ''
-        if include_title:
-            s += self.html_title()
-            s += self.html_menu()
-
         s += self.html_worksheet_body(do_print=do_print)
 
         if do_print:
@@ -408,9 +421,62 @@ class Worksheet:
         s = ''
         s += '<div class="worksheet_title">'
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name)
-        s += '&nbsp;'*5 + self.html_time_last_edited()
+        #s += '&nbsp;'*5 + self.html_time_last_edited()
+        s += '<br>' + self.html_time_last_edited()
         s += '</div>'
         return s
+
+    def html_save_discard_buttons(self):
+        return """
+        <span class="flush-right">
+        <button title="Save changes" onClick="save_worksheet();">Save</button>
+        <button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button>
+        <button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
+        &nbsp;&nbsp;&nbsp;
+        </span>
+        """
+
+    def html_share_publish_buttons(self):
+        return """
+        <span class="flush-right">
+        <a  title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit Text</a>
+        <a  title="Preview this worksheet" class="usercontrol" href="preview"><img border=0 src="/images/icon_preview.gif"> Preview</a>
+        <a  title="Print this worksheet" class="usercontrol" href="print"><img border=0 src="/images/icon_print.gif"> Print</a>
+        <a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
+        <a class="control" href="revisions" title="View previous versions of this worksheet">Revisions</a>
+        <a class="control" href="share" title="Let others edit this worksheet">Share</a>
+        <a class="control"  href="publish" title="Let others view this worksheet">Publish</a>
+        &nbsp;&nbsp;&nbsp;
+        </span>
+        """
+
+    def html_file_menu(self):
+        return """
+<select class="worksheet">
+ <option title="Open a new worksheet" onClick="new_worksheet();">New...</option>
+ <option title="Save changes" onClick="save_worksheet();">Save</option>
+ <option title="Print this worksheet" onClick="print_worksheet();">Print ...</optooion>
+ <option title="Rename this worksheet" onClick="rename_worksheet();">Rename ...</option>
+ <option title="Copy this worksheet" onClick="copy_worksheet();">Copy worksheet</option>
+ <option title="Move this worksheet to the trash" onClick="delete_worksheet();">Delete worksheet</option>
+ <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) ... </option>
+ <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) ... </option>
+ <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF...</option>
+ <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text...</option>
+ <option title="Configure this worksheet" onClick="worksheet_settings();">Worksheet settings...</option>
+</select>
+
+<select class="worksheet">
+ <option title="Interrupt currently running calculations, if possible" onClick="interrupt();" >Interrupt</option>
+ <option title="Evaluate all input cells in the worksheet" onClick="evaluate_all();">Evaluate All</option>
+ <option title="Hide all output" onClick="hide_all();">Hide All</option>
+ <option title="Show all output" onClick="show_all();">Show All</option>
+ <option title="Restart the worksheet" onClick="restart_sage();">Restart</option>
+ <option title="Switch to single-cell mode" onClick="slide_mode();">One Cell Mode</option>
+ <option title="Switch to multi-cell mode" onClick="cell_mode();">Multi Cell Mode</option>
+ </select>
+
+ """
 
     def html_menu(self):
         name = self.filename()
@@ -420,22 +486,24 @@ class Worksheet:
             interrupt_class = "interrupt_grey"
         vbar = '<span class="vbar"></span>'
         menu = ''
+        menu += '&nbsp;'*3 + self.html_file_menu()
 
-        menu  += '  <span class="worksheet_control_commands">'
-        menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-        menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
-        menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
-        menu += '    <a class="doctest_text" href="%s">Preview</a>'%self.worksheet_command('print') + vbar
-        menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
-        menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
-        menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
+##         menu += '  <span class="worksheet_control_commands">'
+##         menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+##         menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
+##         menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
+##         menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
+##         menu += '    <a class="doctest_text" href="%s">Preview</a>'%self.worksheet_command('print') + vbar
+##         menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
+##         menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
+##         menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
 
         filename = os.path.split(self.filename())[-1]
         download_name = _notebook.clean_name(self.name())
 
-        menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
-        menu += '    <a class="delete" href="delete">Delete</a>'
+        #menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
+        #menu += '    <a class="delete" href="delete">Delete</a>'
+
         menu += '  </span>'
 
         return menu

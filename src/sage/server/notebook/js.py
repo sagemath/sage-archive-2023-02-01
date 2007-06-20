@@ -625,6 +625,43 @@ function click_on_object(name) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function new_worksheet() {
+    open("/new_worksheet")
+}
+
+function copy_worksheet() {
+    open(worksheet_command("copy"));
+}
+
+function share_worksheet() {
+    open(worksheet_command("share"));
+}
+
+function publish_worksheet() {
+    open(worksheet_command("publish"));
+}
+
+function save_worksheet() {
+    async_request(worksheet_command('save_snapshot'), save_worksheet_callback, null);
+}
+
+function save_worksheet_callback(status, response_text) {
+   if (status != 'success') {
+       alert("Failed to save worksheet.");
+       return;
+   }
+}
+
+function save_worksheet_and_close() {
+    async_request(worksheet_command('save_and_close'), save_worksheet_callback, null);
+    window.close()
+}
+
+function worksheet_and_discard() {
+    async_request(worksheet_command('discard_and_close'), null, null);
+    window.close()
+}
+
 function rename_worksheet() {
    var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
    if (new_worksheet_name == null) return;
@@ -1791,12 +1828,13 @@ function interrupt_callback(status, response_text) {
 }
 
 function interrupt() {
-    var link = get_element("interrupt");
+/*    var link = get_element("interrupt");
     if (link.className == "interrupt_grey") {
         return;
     }
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt"
+*/
     async_request(worksheet_command('interrupt'), interrupt_callback);
 }
 
@@ -1860,9 +1898,10 @@ function restart_sage_callback(status, response_text) {
 }
 
 function restart_sage() {
-    var link = get_element("restart_sage");
+/*    var link = get_element("restart_sage");
     link.className = "restart_sage_in_progress";
     link.innerHTML = "Restart";
+    */
     async_request(worksheet_command('restart_sage'), restart_sage_callback);
 }
 
@@ -2005,8 +2044,8 @@ function doctest_window(worksheet) {
 }
 
 
-function print_window(worksheet) {
-    log = window.open ("/home/" + worksheet+"/print","",
+function print_worksheet(worksheet) {
+    log = window.open (worksheet_command("print"),"",
       "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 

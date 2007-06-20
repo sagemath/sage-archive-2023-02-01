@@ -612,7 +612,31 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list_for_user(self, user, active_only=True, sort='last_edited', reverse=False):
+    def html_worksheet_list_public(self, active_only=True,
+                                  sort='last_edited', reverse=False,
+                                  trash=False, search=None):
+        W = [x for x in self.__worksheets.itervalues() if x.is_published()]
+        sort_worksheet_list(W, sort, reverse)  # changed W in place
+
+        top = self.html_worksheet_list_top('pub', False)
+        list = self.html_worksheet_list(W, 'pub', False, sort=sort, reverse=reverse)
+
+        s = """
+        <html>
+           <link rel=stylesheet href="/css/main.css">
+           <title>SAGE: Published Worksheets</title>
+        <body>
+        %s
+        %s
+        </body>
+        </html>
+        """%(top, list)
+
+        return s
+
+    def html_worksheet_list_for_user(self, user, active_only=True,
+                                     sort='last_edited', reverse=False,
+                                     trash=False, search=None):
         W = [x for x in self.get_worksheets_with_viewer(user) if not x.docbrowser()]
         sort_worksheet_list(W, sort, reverse)  # changed W in place
 
@@ -622,6 +646,7 @@ class Notebook(SageObject):
         s = """
         <html>
            <link rel=stylesheet href="/css/main.css">
+           <title>SAGE: Worksheet List</title>
         <body>
         %s
         %s
@@ -635,24 +660,30 @@ class Notebook(SageObject):
     def html_worksheet_list_top(self, user, active_only):
         s = ''
 
-        s += self.html_user_control(user)
+        entries = [('/settings', 'Settings', 'Change SAGE notebook settings'),
+                   ('/doc', 'Help', 'Documentation')]
+        if user == 'pub':
+            entries.insert(0, ('/', 'Home', 'Back to your personal worksheet list'))
+        entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
+
+        s += self.html_user_control(user, entries)
         s += self.html_banner()
         s += '<hr class="usercontrol">'
         s += self.html_new_or_upload()
         s += self.html_search()
         s += '<br>'
         s += '<hr class="usercontrol">'
-        s += self.html_worksheet_acts()
+        s += self.html_worksheet_actions(user)
 
         return s
 
-    def html_user_control(self, user):
+
+    def html_user_control(self, user, entries):
         s = ''
         s += '<div class="flush-right">'
         s += '<span class="username">%s</span>'%user
-        s += vbar + '<a class="usercontrol" href="/settings">Settings</a>\n'
-        s += vbar + '<a class="usercontrol" href="/doc">Help</a>\n'
-        s += vbar + '<a class="usercontrol" href="/logout" class="help">Sign Out</a>\n'
+        for href, name, title in entries:
+            s += vbar + '<a title="%s" class="usercontrol" href="%s">%s</a>\n'%(title, href, name)
         s += '</div>'
         return s
 
@@ -667,8 +698,9 @@ class Notebook(SageObject):
     def html_search(self):
         s = """
         <span class="flush-right">
-        <input id="search_worksheets"></input>
+        <input id="search_worksheets" size=35></input>
         <button class="add_new_worksheet_menu" onClick="process_new_worksheet_menu_submit();">Search Worksheets</button>
+        &nbsp;&nbsp;&nbsp;
         </span>
         """
         return s
@@ -680,22 +712,29 @@ class Notebook(SageObject):
         """
         return s
 
-    def html_worksheet_acts(self):
+    def html_worksheet_actions(self, user):
         s = """
-        <select>
-         <option>Save</option>
-         <option>Save as HTML (zipped) ... </option>
-         <option>Save as LaTeX (zipped) ... </option>
-         <option>Save as PDF...</option>
-         <option>Save as Text...</option>
-         <option>Copy Worksheet</option>
-         <option>Archive</option>
-         <option>Unarchive</option>
-         <option>Un-collaborate me</option>
+        <select class="worksheet_list">
+         <option title="Save the selected worksheets">Save</option>
+         <option title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
+         <option title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
+         <option title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
+         <option title="Save the selected worksheets to a single text file">Save as Text...</option>
+         <option title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
+         <option title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
+         <option title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
         </select>
         """
-        s += '<button>Archive</button>'
-        s += '&nbsp;&nbsp;<button>Delete</button>'
+
+        s += '<button title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>'
+        s += '&nbsp;&nbsp;<button title="Move the selected worksheets to the trash">Delete</button>'
+        s += '&nbsp;&nbsp;<a class="usercontrol" href=".?trash=True">Trash</a>'
+        s += '&nbsp;<a class="usercontrol" href=".?archive=True">Archive</a>'
+
+        if user != "pub":
+            s += '<span class="flush-right">'
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Published Worksheets</a>&nbsp;&nbsp;&nbsp;'
+            s += '</span>'
         return s
 
 
@@ -720,9 +759,9 @@ class Notebook(SageObject):
         for w in worksheets:
             k = '<tr>'
             k += '<td class="entry">%s</td>'%self.html_check_col(w)
-            k += '<td>%s</td>'%self.html_worksheet_link(w)
-            k += '<td>%s</td>'%self.html_owner_collab_view(w, user)
-            k += '<td>%s</td>'%self.html_last_edited(w, user)
+            k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w)
+            k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user)
+            k += '<td class="last_edited">%s</td>'%self.html_last_edited(w, user)
             k += '</tr>'
             k += '<tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>'
             v.append(k)
@@ -735,12 +774,13 @@ class Notebook(SageObject):
     def html_check_col(self, worksheet):
         def doc_options(name):
             return """
-            <select>
-            <option>Edit</option>
-            <option>Collaborate</option>
-            <option>Publish</option>
-            <option>Revisions</option>
-            <option>Preview</option>
+            <select class="worksheet_edit">
+            <option title="Open this worksheet and edit it">Edit</option>
+            <option title="Copy this worksheet">Copy Worksheet</option>
+            <option title="Share this worksheet with others">Collaborate</option>
+            <option title="Publish this worksheet on the internet">Publish</option>
+            <option title="See all revisions of this worksheet">Revisions</option>
+            <option title="Preview this worksheet">Preview</option>
             </select>
         """
 
@@ -752,7 +792,7 @@ class Notebook(SageObject):
         return k
 
     def html_worksheet_link(self, worksheet):
-        return '<a class="worksheetname" href="/home/%s" target="_new">%s</a>\n'%(
+        return '<a class="worksheetname" href="/home/%s" target="_blank">%s</a>\n'%(
               worksheet.filename(), worksheet.name())
 
     def html_owner_collab_view(self, worksheet, user):
@@ -884,10 +924,39 @@ class Notebook(SageObject):
     ###########################################################
     # HTML -- generate most html related to the whole notebook page
     ###########################################################
+    def html_slide_controls(self):
+        return """
+          <div class="hidden" id="slide_controls">
+            <div class="slideshow_control">
+             <a class="slide_arrow" onClick="slide_next()">&gt;</a>
+              <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a> %s
+              <a class="cell_mode" onClick="cell_mode()">Exit</a>
+            </div>
+            <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">
+              <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>
+              <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>
+            </div>
+            <div class="slideshow_control">
+              <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>
+              <a class="slide_arrow" onClick="slide_prev()">&lt;</a>
+            </div>
+          </div>
+          """%vbar
+
+    def html_debug_window(self):
+        return """
+        <div class='debug_window'>
+        <div class='debug_output'><pre id='debug_output'></pre></div>
+        <textarea rows=5 id='debug_input' class='debug_input'
+         onKeyPress='return debug_keypress(event);'
+         onFocus='debug_focus();' onBlur='debug_blur();'></textarea>
+        </div>"""
+
+
     def _html_head(self, worksheet_filename, username):
         if worksheet_filename is not None:
             worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
+            head = '\n<title>SAGE: %s</title>'%(worksheet.name())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
@@ -930,46 +999,42 @@ class Notebook(SageObject):
 
         body = ''
 
-        body += '<div class="top_control_bar">\n'
-        body += self.html_banner()
-        body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a href="/doc">Documentation</a>' + vbar
-        body += '     <a href="/upload" class="upload_worksheet">Upload</a>' + vbar
-        body += '     <a href="/logout" class="help">Sign Out</a>'
-        body += '  </span>\n'
+        entries = [('..', 'Home', 'Back to your personal worksheet list'),
+                   ('settings', 'Settings', 'Worksheet settings'),
+                   ('/doc', 'Help', 'Documentation'),
+                   ('/logout', 'Sign out', 'Logout of the SAGE notebook')]
+        body += self.html_user_control(username, entries)
+        body += self.html_banner()+ '<br><br>'
 
-        #these divs appear in backwards order because they're float:right
-        body += '  <div class="hidden" id="slide_controls">\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Show Full Worksheet</a>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
-        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
-        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>\n'
-        body += '    </div>\n'
-        body += '    <div class="slideshow_control">\n'
-        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>\n'
-        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>\n'
-        body += '    </div>\n'
-        body += '  </div>\n'
+        if worksheet_filename:
+            body += worksheet.html_title()
+            body += worksheet.html_save_discard_buttons() + '<br>'
 
-        body += '</div>\n'
-        body += '\n<div class="worksheet" id="worksheet">\n'
+            body += '<hr class="greybar">'
+            body += worksheet.html_menu()
+            body += '<span class=thin-right>'
+            body += worksheet.html_share_publish_buttons()
+            body += '</span>'
+
+            body += self.html_slide_controls()
+
 
         if self.__show_debug or show_debug:
-            body += "<div class='debug_window'>"
-            body += "<div class='debug_output'><pre id='debug_output'></pre></div>"
-            body += "<textarea rows=5 id='debug_input' class='debug_input' "
-            body += " onKeyPress='return debug_keypress(event);' "
-            body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
-            body += "</div>"
+            body += self.html_debug_window()
 
-        body += main_body + '\n</div>\n'
+
+##         body += '  <span class="control_commands" id="cell_controls">\n'
+##         body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
+##         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
+##         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+##         body += '    <a href="/doc">Documentation</a>' + vbar
+##         body += '     <a href="/upload" class="upload_worksheet">Upload</a>' + vbar
+##         body += '     <a href="/logout" class="help">Sign Out</a>'
+##         body += '  </span>\n'
+
+        #these divs appear in backwards order because they're float:right
+
+        body += '<div class="worksheet" id="worksheet">%s</div>'%main_body
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
         # stuck at the bottom of the screen. This could be replaced by a region
@@ -977,6 +1042,7 @@ class Notebook(SageObject):
         body += '<br>'*15
         body += '\n</div>\n'
         endpanespan = '</td></tr></table></span>\n'
+
 
         if worksheet is None:
              return body + endpanespan
@@ -1005,7 +1071,7 @@ class Notebook(SageObject):
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body_html = ''
-        body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
+        body_html += '<h1 class="edit">SAGE: Editing Worksheet "%s"</h1>\n'%worksheet.name()
         body_html += """The format is as follows: <pre>
 ... Arbitrary HTML with latex formulas (in $ and $$)...
 {{{meta info about cell|

@@ -159,6 +159,7 @@ class Worksheet:
 
     def set_name(self, name):
         self.__name = name
+        self.record_edit(name)
 
     def set_filename_without_owner(self, nm):
         filename = '%s/%s'%(self.owner(), nm)
@@ -400,6 +401,7 @@ class Worksheet:
         s = ''
         s += '<div class="worksheet_title">'
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name)
+        s += '&nbsp;'*5 + self.html_time_last_edited()
         s += '</div>'
         return s
 
@@ -417,7 +419,7 @@ class Worksheet:
         menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
         menu += '    <a class="plain_text" href="%s">Edit</a>'%self.worksheet_command('edit') + vbar
         menu += '    <a class="doctest_text" href="%s">Text</a>'%self.worksheet_command('plain') + vbar
-        menu += '    <a class="doctest_text" href="%s">Printable</a>'%self.worksheet_command('print') + vbar
+        menu += '    <a class="doctest_text" href="%s">Preview</a>'%self.worksheet_command('print') + vbar
         menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
         menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
         menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
@@ -495,7 +497,11 @@ class Worksheet:
         return convert_seconds_to_meaningful_time_span(t)
 
     def html_time_last_edited(self):
-        return time.asctime(time.localtime(self.last_edited()))
+        lt = time.localtime(self.last_edited())
+        tm = time.strftime('%B %d, %Y %I:%M %p', lt)
+        who = self.last_to_edit()
+        t = '<span class="lastedit">last edited on %s by %s</span>'%(tm, who)
+        return t
 
     ##########################################################
     # Managing cells and groups of cells in this worksheet

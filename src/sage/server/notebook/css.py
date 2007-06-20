@@ -1327,6 +1327,20 @@ div.ultrathinspace {
    width: 100%;
    height: 0px;
 }
+
+span.lastedit {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #717171;
+}
+
+a.share {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #7777cc;
+}
+
+
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

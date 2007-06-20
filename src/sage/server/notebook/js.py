@@ -634,6 +634,7 @@ function rename_worksheet() {
    async_request(worksheet_command('rename'), null, 'name='+new_worksheet_name);
 }
 
+
 function add_worksheet(name) {
     open("/home/" + user_name + "/" + name)
 }

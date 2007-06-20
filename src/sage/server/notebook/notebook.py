@@ -613,7 +613,7 @@ class Notebook(SageObject):
         sort_worksheet_list(W, sort, reverse)  # changed W in place
 
         top = self.html_worksheet_list_top(user, active_only=active_only)
-        list = self.html_worksheet_list(W, user, active_only=active_only)
+        list = self.html_worksheet_list(W, user, active_only=active_only, sort=sort, reverse=reverse)
 
         s = """
         <html>
@@ -629,16 +629,6 @@ class Notebook(SageObject):
 
 
     def html_worksheet_list_top(self, user, active_only):
-##         add_new_worksheet_menu = """
-##              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-##              <input id="new_worksheet_box" class="add_new_worksheet_menu"
-##                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-##              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
-##              </div>"""
-##         # This is stupid -- just used for add_new_worksheet_menu -- get rid of this.
-##         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
-##        s += '<script type="text/javascript">user_name="%s"; </script>'%user
-
         s = ''
 
         s += self.html_user_control(user)
@@ -665,7 +655,7 @@ class Notebook(SageObject):
     def html_banner(self):
         s = """
         <span class="banner">
-        <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
         </span>
         """
         return s
@@ -700,20 +690,25 @@ class Notebook(SageObject):
          <option>Un-collaborate me</option>
         </select>
         """
+        s += '<button>Archive</button>'
+        s += '&nbsp;&nbsp;<button>Delete</button>'
         return s
 
 
-    def html_worksheet_list(self, worksheets, user, active_only):
+    def html_worksheet_list(self, worksheets, user, active_only, sort, reverse):
         s = ''
 
         s = '<br><br>'
         s += '<table width=100% border=0 cellspacing=0 cellpadding=0>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
         s += '<tr  class="greybox">'
-        s += '<td><input type=checkbox></td>'
-        s += '<td><a class="listcontrol" href="">Active Worksheets</a> </td>'
-        s += '<td><a class="listcontrol" href="">Owner / Collaborators / <i>Viewers</i></a> </td>'
-        s += '<td><a class="listcontrol" href="">Last Edited</a> </td>'
+        s += '<td>&nbsp;<input class="entry" type=checkbox></td>'
+        s += '<td><a class="listcontrol" href=".?sort=name%s">Active Worksheets</a> </td>'%(
+            '' if sort != 'name' or reverse else '&reverse=True')
+        s += '<td><a class="listcontrol" href=".?sort=owner%s">Owner / Collaborators / <i>Viewers</i></a> </td>'%(
+            '' if sort != 'owner' or reverse else '&reverse=True')
+        s += '<td><a class="listcontrol" href=".%s">Last Edited</a> </td>'%(
+            '' if sort != 'last_edited' or reverse else '?reverse=True')
         s += '</tr>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
 
@@ -753,7 +748,7 @@ class Notebook(SageObject):
         return k
 
     def html_worksheet_link(self, worksheet):
-        return '<a class="worksheetname" href="/home/%s">%s</a>\n'%(
+        return '<a class="worksheetname" href="/home/%s" target="_new">%s</a>\n'%(
               worksheet.filename(), worksheet.name())
 
     def html_owner_collab_view(self, worksheet, user):
@@ -767,12 +762,15 @@ class Notebook(SageObject):
 
         collab = worksheet.collaborators()
 
-        if len(collab) <= 1:
-            share = '<a href="">Share now</a>'
+        if owner == "Me" or self.user(user).account_type() == 'admin':
+            if len(collab) <= 1:
+                share = '<a class="share" href="%s/share">Share now</a>'%(worksheet.filename_without_owner())
+            else:
+                collaborators = ', '.join([x for x in collab if x != user])
+                v.append(collaborators)
+                share = '<a class="share" href="%s/collaborate">Add</a>'%(worksheet.filename_without_owner())
         else:
-            collaborators = ', '.join([x for x in collab if x != user])
-            v.append(collaborators)
-            share = '<a href="">Add</a>'
+            share = ''
 
         viewers = worksheet.viewers()
         if len(viewers) > 0:
@@ -929,8 +927,7 @@ class Notebook(SageObject):
         body = ''
 
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
-        body += '  <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a></span>\n'
+        body += self.html_banner()
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
@@ -1121,12 +1118,18 @@ Output
                     name="upload" enctype="multipart/form-data">
               <table><tr>
               <td>
-              Worksheet file:&nbsp&nbsp&nbsp </td>
-              <td><input class="upload_worksheet_menu" size="40" type="file" name="fileField" id="upload_worksheet_filename"></input></td>
+              <b>Browse your computer to select a worksheet file to upload:</b><br>
+              <input class="upload_worksheet_menu" size="50" type="file" name="fileField" id="upload_worksheet_filename"></input><br><br>
+              <b>Or enter the url of a worksheet file on the web:</b><br>
+
+              <input class="upload_worksheet_menu" size="50" type="text" name="urlField" id="upload_worksheet_url"></input></br>
+              <br><br>
+              <b>What do you want to call it? (if different than the original name)</b><br>
+              <input class="upload_worksheet_menu" size="50" type="text" name="nameField" id="upload_worksheet_name"></input></br>
+              </td>
               </tr>
-              <tr><td></td><td></td></tr>
               <tr>
-              <td></td><td><input type="button" class="upload_worksheet_menu" value="Upload Worksheet" onClick="form.submit();"></td>
+              <td><br><input type="button" class="upload_worksheet_menu" value="Upload Worksheet" onClick="form.submit();"></td>
               </tr>
               </form><br>
               </div>
@@ -1258,11 +1261,11 @@ def sort_worksheet_list(v, sort, reverse):
         f = c
     elif sort == 'name':
         def c(a,b):
-            return cmp(a.name(), b.name())
+            return cmp((a.name().lower(), -a.last_edited()), (b.name().lower(), -b.last_edited()))
         f = c
     elif sort == 'owner':
         def c(a,b):
-            return cmp(a.owner(), b.owner())
+            return cmp((a.owner().lower(), -a.last_edited()), (b.owner().lower(), -b.last_edited()))
         f = c
     else:
         raise ValueError, "invalid sort key '%s'"%sort

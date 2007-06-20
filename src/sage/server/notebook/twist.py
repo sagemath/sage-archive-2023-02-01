@@ -168,6 +168,15 @@ class Doc(resource.Resource):
         return http.Response(stream=s)
 
 ############################
+# A New Worksheet
+############################
+class NewWorksheet(resource.Resource):
+    def render(self, ctx):
+        W = notebook.create_new_worksheet("Untitled", username)
+        return http.RedirectResponse('/home/'+W.filename())
+
+
+############################
 # Uploading a saved worksheet file
 ############################
 
@@ -593,9 +602,22 @@ class WorksheetsByUser(resource.Resource):
     def __init__(self, user):
         self.user = user
 
+    def render_list(self, ctx):
+        if not ctx.args.has_key('sort'):
+            sort = 'last_edited'
+        else:
+            sort = ctx.args['sort'][0]
+        if ctx.args.has_key('reverse'):
+            reverse = (ctx.args['reverse'][0] == 'True')
+            print ctx.args['reverse'], reverse
+        else:
+            reverse = False
+
+        return http.Response(stream = notebook.html_worksheet_list_for_user(username, sort=sort, reverse=reverse))
+
     def render(self, ctx):
         if self.user == username:
-            return http.Response(stream = notebook.html_worksheet_list_for_user(username))
+            return self.render_list(ctx)
         else:
             return http.Response(stream = "<html><br><br><br><h2>You are logged in as '%s' so you do not have permission to view the home page of '%s'.</h2></html>."%(
                 username, self.user))
@@ -620,7 +642,7 @@ class Worksheets(resource.Resource):
 
 class WorksheetsByUserAdmin(WorksheetsByUser):
     def render(self, ctx):
-        return http.Response(stream = notebook.html_worksheet_list_for_user(self.user))
+        return self.render_list(ctx)
 
 class WorksheetsAdmin(Worksheets):
     def childFactory(self, request, name):
@@ -899,6 +921,7 @@ class UserToplevel(Toplevel):
     child_doc = Doc()
     child_upload = Upload()
     child_upload_worksheet = UploadWorksheet()
+    child_new_worksheet = NewWorksheet()
 
     def render(self, ctx):
         s = notebook.html_worksheet_list_for_user(username)

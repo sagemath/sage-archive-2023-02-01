@@ -910,10 +910,6 @@ class Worksheet:
         else:
             C.set_output_text(out, C.files_html(out), sage=self.sage())
             C.set_introspect_html('')
-            #history = "Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
-            #history += C.edit_text(ncols=HISTORY_NCOLS, prompts=False,
-            #                        max_out=HISTORY_MAX_OUTPUT)
-            #self.notebook().add_to_history(history)
 
         return 'd', C
 

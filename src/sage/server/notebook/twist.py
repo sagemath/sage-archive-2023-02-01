@@ -465,7 +465,7 @@ class Worksheet_cell_update(WorksheetResource, resource.PostableResource):
         if status == 'd':
             new_input = cell.changed_input_text()
             out_html = cell.output_html()
-            H = "Worksheet '%s' (%s)\n"%(self.name, time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
+            H = "Worksheet '%s' (%s)\n"%(worksheet.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
             H += cell.edit_text(ncols=HISTORY_NCOLS, prompts=False,
                                 max_out=HISTORY_MAX_OUTPUT)
             notebook.add_to_user_history(H, username)
@@ -736,6 +736,11 @@ class History(resource.Resource):
         s = notebook.user_history_html(username)
         return http.Response(stream=s)
 
+class LiveHistory(resource.Resource):
+    def render(self, ctx):
+        W = notebook.create_new_worksheet_from_history('Log', username)
+        return http.RedirectResponse('/home/'+W.filename())
+
 
 ############################
 
@@ -978,6 +983,9 @@ class UserToplevel(Toplevel):
     child_new_worksheet = NewWorksheet()
     child_logout = Logout()
     child_pub = PublicWorksheets()
+    child_live_history = LiveHistory()
+    child_history = History()
+    child_help = Help()
 
     def render(self, ctx):
         s = notebook.html_worksheet_list_for_user(username)
@@ -1002,9 +1010,6 @@ class AdminToplevel(UserToplevel):
                              stream=s)
 
 
-
-setattr(UserToplevel, 'child_help.html', Help())
-setattr(UserToplevel, 'child_history.html', History())
 
 notebook = None  # this gets set on startup.
 username = None  # This is set when a request comes in.

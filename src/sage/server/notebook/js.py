@@ -2033,8 +2033,8 @@ function insert_cells_from_wiki_callback(status, response_text) {
 ///////////////////////////////////////////////////////////////////
 
 function history_window() {
-    history = window.open ("/history.html",
-      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1,resizable=1");
+    history = window.open ("/history",
+      "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
 }
 
 
@@ -2054,7 +2054,7 @@ function print_worksheet(worksheet) {
 /////////////////////////////////
 
 function show_help_window(worksheet) {
-    help = window.open ("/help.html","",
+    help = window.open ("/help","",
     "menubar=1,scrollbars=1,width=800,height=600,resizable=1, toolbar=1");
 }
 

@@ -49,25 +49,15 @@ class PasswordChecker(object):
 
     def add_first_admin(self):
         passwords = twist.notebook.passwords()
+
         if len(passwords) > 0 or twist.OPEN_MODE:
             return
         pw = "%x"%randint(2**24,2**25)
-        self.add_user("admin", pw, "", "admin")
-
         ## TODO -- for developer convenience for now only!!!!
-        log.msg("Creating accounts a and b with passwords a and b for developer convenience.")
+        log.msg("Creating accounts admin, a and b with passwords admin, a and b for developer convenience.")
+        self.add_user("admin","admin", "", "admin")
         self.add_user("a", "a", "", "admin")
         self.add_user("b", "b", "", "user")
-
-        log.msg("""
-*************************************
-     INITIALIZING USER DATABASE
-*************************************
-Please visit the notebook immediately
-to configure the server.  Log in with
-user: admin
-pass: %s
-*************************************"""%pw)
 
     def check_username(self, username):
         usernames = twist.notebook.usernames()

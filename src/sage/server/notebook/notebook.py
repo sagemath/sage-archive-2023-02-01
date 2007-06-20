@@ -108,6 +108,11 @@ class Notebook(SageObject):
         U = user.User(username, password, email, account_type)
         us[username] = U
 
+    def del_user(self, username):
+        us = self.users()
+        if us.has_key(username):
+            del us[username]
+
     def passwords(self):
         """
         Return the username:password dictionary.
@@ -295,6 +300,11 @@ class Notebook(SageObject):
             U.history = []
             return U.history
 
+    def create_new_worksheet_from_history(self, name, username):
+        W = self.create_new_worksheet(name, username)
+        W.edit_save('Log Worksheet\n' + self.user_history_text(username))
+        return W
+
     def user_history_text(self, username):
         H = self.user_history(username)
         return '\n\n'.join([L.strip() for L in H])
@@ -302,14 +312,24 @@ class Notebook(SageObject):
     def user_history_html(self, username):
         t = self.user_history_text(username)
         t = t.replace('<','&lt;')
-        s = '<head>\n'
-        s += '<title>Command History for %s</title>\n'%username
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<pre>' + t + '</pre>\n'
-        s += '<a name="bottom"></a>\n'
-        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
-        s += '</body>\n'
+        s = """
+        <html>
+        <head>
+           <link rel=stylesheet href="/css/main.css">
+           <title>SAGE: History for %s</title>
+        </head>
+        <body>
+        %s
+        <pre>
+        %s
+        </pre>
+        <hr class="usercontrol">
+        <a title="Click here to turn the above into a SAGE worksheet" href="/live_history">Create a new SAGE worksheet version of the above log.</a>
+        <a name="bottom"></a>
+        <script type="text/javascript"> window.location="#bottom"</script>
+        </body>
+        </html>
+        """%(username, self.html_worksheet_list_top(username, actions=False), t)
         return s
 
 
@@ -593,6 +613,16 @@ class Notebook(SageObject):
     ##########################################################
     # Worksheet HTML generation
     ##########################################################
+    def history_window_javascript(self):
+        return """
+           <script type="text/javascript">
+              function history_window() {
+              history = window.open ("/history",
+              "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
+           }
+           </script>
+        """
+
     def worksheet_html(self, filename, do_print=False):
         W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
@@ -647,23 +677,25 @@ class Notebook(SageObject):
         <html>
            <link rel=stylesheet href="/css/main.css">
            <title>SAGE: Worksheet List</title>
+           %s
         <body>
         %s
         %s
         </body>
         </html>
-        """%(top, list)
+        """%(self.history_window_javascript(), top, list)
 
         return s
 
 
-    def html_worksheet_list_top(self, user, active_only):
+    def html_worksheet_list_top(self, user, active_only=True, actions=True):
         s = ''
 
-        entries = [('/settings', 'Settings', 'Change SAGE notebook settings'),
+        entries = [('/', 'Home', 'Back to your personal worksheet list'),
+                   ('/settings', 'Settings', 'Change SAGE notebook settings'),
                    ('/doc', 'Help', 'Documentation')]
-        if user == 'pub':
-            entries.insert(0, ('/', 'Home', 'Back to your personal worksheet list'))
+        if user != 'pub':
+            entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
         entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
         s += self.html_user_control(user, entries)
@@ -673,7 +705,8 @@ class Notebook(SageObject):
         s += self.html_search()
         s += '<br>'
         s += '<hr class="usercontrol">'
-        s += self.html_worksheet_actions(user)
+        if actions:
+            s += self.html_worksheet_actions(user)
 
         return s
 
@@ -683,7 +716,12 @@ class Notebook(SageObject):
         s += '<div class="flush-right">'
         s += '<span class="username">%s</span>'%user
         for href, name, title in entries:
-            s += vbar + '<a title="%s" class="usercontrol" href="%s">%s</a>\n'%(title, href, name)
+            if '(' in href:
+                action = 'onClick="%s"'%href
+            else:
+                action = 'href="%s"'%href
+            x = '<a title="%s" class="usercontrol" %s>%s</a>\n'%(title, action, name)
+            s += vbar + x
         s += '</div>'
         return s
 
@@ -733,7 +771,7 @@ class Notebook(SageObject):
 
         if user != "pub":
             s += '<span class="flush-right">'
-            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Published Worksheets</a>&nbsp;&nbsp;&nbsp;'
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse</a>&nbsp;&nbsp;&nbsp;'
             s += '</span>'
         return s
 
@@ -1000,6 +1038,7 @@ class Notebook(SageObject):
         body = ''
 
         entries = [('..', 'Home', 'Back to your personal worksheet list'),
+                   ('history_window()', 'Log', 'View a log of recent computations'),
                    ('settings', 'Settings', 'Worksheet settings'),
                    ('/doc', 'Help', 'Documentation'),
                    ('/logout', 'Sign out', 'Logout of the SAGE notebook')]

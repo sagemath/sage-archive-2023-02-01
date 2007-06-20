@@ -515,7 +515,6 @@ div.attached_filename:hover {
 
 /************ WORKSHEETS **************************/
 
-
 span.pane div.worksheets_topbar {
    color:black;
    height: 3ex;
@@ -1227,6 +1226,107 @@ a.worksheetname{
    text-decoration: none;
 }
 
+.flush-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    top: position-static;   /*All IE and Mozilla or ignored as invalid*/
+    right: 0;               /* All except IE */
+    left: expression(parentNode.offsetWidth - offsetWidth + 'px');
+}
+
+/************ User Home **************************/
+
+span.username {
+  font-family: sans-serif;
+  font-weight:bold;
+  font-size:14px;
+  padding:1ex;
+}
+
+a.usercontrol {
+  color: #112abb;
+  padding:1ex;
+  font-size:14px;
+}
+
+a.boldusercontrol {
+  color: #112abb;
+  padding:1ex;
+  font-weight:bold;
+  font-size:14px;
+}
+
+a.listcontrol {
+  color: #112abb;
+  padding:1ex;
+  font-weight:bold;
+  font-size:14px;
+  text-decoration:none;
+}
+
+hr.usercontrol {
+   border: 0;
+   width: 100%;
+   color: #c9d7f1;
+   background-color: #c9d7f1;
+   height: 1px;
+}
+
+hr.greybar {
+   border: 0;
+   width: 100%;
+   color: #aaa;
+   background-color: #aaa;
+   height: 1px;
+}
+
+span.checkcol {
+  position:relative;
+  left:0%;
+  width:10%;
+}
+
+span.leftcol {
+  position:relative;
+  left:10%;
+  width:20%;
+}
+
+span.middlecol {
+  position:relative;
+  left:30%;
+  width:20%;
+}
+
+span.rightcol {
+  position:relative;
+  left:50%;
+  width:20%;
+}
+
+tr.greybox {
+   background-color: #e8eef7;
+}
+
+td.entry {
+   padding:4px;
+}
+
+div.thinspace {
+   border: 0;
+   width: 100%;
+   height: 2px;
+}
+
+tr.thingreybox {
+   background-color: #aaa;
+}
+
+div.ultrathinspace {
+   border: 0;
+   width: 100%;
+   height: 0px;
+}
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

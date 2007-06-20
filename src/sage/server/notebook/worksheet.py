@@ -143,6 +143,12 @@ class Worksheet:
     # Basic properties
     # TODO: Need to create a worksheet configuration object
     ##########################################################
+    def collaborators(self):
+        return self.__collaborators
+
+    def viewers(self):
+        return self.__viewers
+
     def delete_notebook_specific_data(self):
         self.__attached = {}
         self.__collaborators = [self.owner()]
@@ -458,6 +464,38 @@ class Worksheet:
             }
             </script>
             """
+
+
+
+    ##########################################################
+    # Last edited
+    ##########################################################
+    def last_edited(self):
+        try:
+            return self.__last_edited[0]
+        except AttributeError:
+            t = time.time()
+            self.__last_edited = (t, self.owner())
+            return t
+
+    def last_to_edit(self):
+        try:
+            return self.__last_edited[1]
+        except AttributeError:
+            return self.owner()
+
+    def record_edit(self, user):
+        self.__last_edited = (time.time(), user)
+
+    def time_since_last_edited(self):
+        return time.time() - self.last_edited()
+
+    def html_time_since_last_edited(self):
+        t = self.time_since_last_edited()
+        return convert_seconds_to_meaningful_time_span(t)
+
+    def html_time_last_edited(self):
+        return time.asctime(time.localtime(self.last_edited()))
 
     ##########################################################
     # Managing cells and groups of cells in this worksheet
@@ -872,8 +910,10 @@ class Worksheet:
             self.__last_compute_walltime = t
             return t
 
-    def _record_that_we_are_computing(self):
+    def _record_that_we_are_computing(self, username=None):
         self.__last_compute_walltime = walltime()
+        if username:
+            self.record_edit(username)
 
     ##########################################################
     # Enqueuing cells
@@ -890,8 +930,8 @@ class Worksheet:
                 self.__queue.append(c)
 
 
-    def enqueue(self, C):
-        self._record_that_we_are_computing()
+    def enqueue(self, C, username=None):
+        self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:
@@ -1627,3 +1667,13 @@ def next_available_id(v):
     while i in v:
         i += 1
     return i
+
+
+def convert_seconds_to_meaningful_time_span(t):
+    if t < 60:
+        return "%d seconds"%t
+    if t < 3600:
+        return "%d minutes"%(t/60)
+    if t < 3600*24:
+        return "%d hours"%(t/3600)
+    return "%d days"%(t/(3600*24))

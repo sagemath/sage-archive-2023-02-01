@@ -35,6 +35,8 @@ PUBLIC_USER = 'pub'
 
 JSMATH = True
 
+vbar = '<span class="vbar"></span>'
+
 def open_page(address, port):
     cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
     os.system(cmd)
@@ -605,33 +607,188 @@ class Notebook(SageObject):
         s += '\n</body>\n'
         return s
 
-    def html_worksheet_list_for_user(self, user):
-        add_new_worksheet_menu = """
-             <div class="add_new_worksheet_menu" id="add_worksheet_menu">
-             <input id="new_worksheet_box" class="add_new_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
-             <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
-             </div>
-        """
+
+    def html_worksheet_list_for_user(self, user, active_only=True, sort='last_edited', reverse=False):
         W = self.get_worksheets_with_viewer(user)
-        W.sort()
-        s = '<html>'
-        s += '<link rel=stylesheet href="/css/main.css">\n'
-        s = '<body> <ol>\n'
+        sort_worksheet_list(W, sort, reverse)  # changed W in place
 
-        # This is stupid -- just used for add_new_worksheet_menu -- get rid of this.
-        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
-        s += '<script type="text/javascript">user_name="%s"; </script>'%user
+        top = self.html_worksheet_list_top(user, active_only=active_only)
+        list = self.html_worksheet_list(W, user, active_only=active_only)
 
-        s += '<br>'*2
-        s += add_new_worksheet_menu
-        s += '<br>'*2
-        s += '<h2>Active Worksheets Viewable by %s</h2>'%user
-        s += '<br>'*2
-        for w in W:
-            s += '<li> <a class="worksheetname" href="/home/%s">%s</a>\n'%(w.filename(), w.name())
-        s += '</body></html>'
+        s = """
+        <html>
+           <link rel=stylesheet href="/css/main.css">
+        <body>
+        %s
+        %s
+        </body>
+        </html>
+        """%(top, list)
+
         return s
+
+
+    def html_worksheet_list_top(self, user, active_only):
+##         add_new_worksheet_menu = """
+##              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
+##              <input id="new_worksheet_box" class="add_new_worksheet_menu"
+##                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
+##              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">New</button>
+##              </div>"""
+##         # This is stupid -- just used for add_new_worksheet_menu -- get rid of this.
+##         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
+##        s += '<script type="text/javascript">user_name="%s"; </script>'%user
+
+        s = ''
+
+        s += self.html_user_control(user)
+        s += self.html_banner()
+        s += '<hr class="usercontrol">'
+        s += self.html_new_or_upload()
+        s += self.html_search()
+        s += '<br>'
+        s += '<hr class="usercontrol">'
+        s += self.html_worksheet_acts()
+
+        return s
+
+    def html_user_control(self, user):
+        s = ''
+        s += '<div class="flush-right">'
+        s += '<span class="username">%s</span>'%user
+        s += vbar + '<a class="usercontrol" href="/settings">Settings</a>\n'
+        s += vbar + '<a class="usercontrol" href="/doc">Help</a>\n'
+        s += vbar + '<a class="usercontrol" href="/logout" class="help">Sign Out</a>\n'
+        s += '</div>'
+        return s
+
+    def html_banner(self):
+        s = """
+        <span class="banner">
+        <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
+        </span>
+        """
+        return s
+
+    def html_search(self):
+        s = """
+        <span class="flush-right">
+        <input id="search_worksheets"></input>
+        <button class="add_new_worksheet_menu" onClick="process_new_worksheet_menu_submit();">Search Worksheets</button>
+        </span>
+        """
+        return s
+
+    def html_new_or_upload(self):
+        s = """
+        <a class="boldusercontrol" href="/new_worksheet">New Worksheet</a>\n
+        <a class="boldusercontrol" href="/upload">Upload</a>\n
+        """
+        return s
+
+    def html_worksheet_acts(self):
+        s = """
+        <select>
+         <option>Save</option>
+         <option>Save as HTML (zipped) ... </option>
+         <option>Save as LaTeX (zipped) ... </option>
+         <option>Save as PDF...</option>
+         <option>Save as Text...</option>
+         <option>Copy Worksheet</option>
+         <option>Archive</option>
+         <option>Unarchive</option>
+         <option>Un-collaborate me</option>
+        </select>
+        """
+        return s
+
+
+    def html_worksheet_list(self, worksheets, user, active_only):
+        s = ''
+
+        s = '<br><br>'
+        s += '<table width=100% border=0 cellspacing=0 cellpadding=0>'
+        s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
+        s += '<tr  class="greybox">'
+        s += '<td><input type=checkbox></td>'
+        s += '<td><a class="listcontrol" href="">Active Worksheets</a> </td>'
+        s += '<td><a class="listcontrol" href="">Owner / Collaborators / <i>Viewers</i></a> </td>'
+        s += '<td><a class="listcontrol" href="">Last Edited</a> </td>'
+        s += '</tr>'
+        s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
+
+        v = []
+        for w in worksheets:
+            k = '<tr>'
+            k += '<td class="entry">%s</td>'%self.html_check_col(w)
+            k += '<td>%s</td>'%self.html_worksheet_link(w)
+            k += '<td>%s</td>'%self.html_owner_collab_view(w, user)
+            k += '<td>%s</td>'%self.html_last_edited(w, user)
+            k += '</tr>'
+            k += '<tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>'
+            v.append(k)
+
+        s += ''.join(v)
+        s += '</table>'
+
+        return s
+
+    def html_check_col(self, worksheet):
+        def doc_options(name):
+            return """
+            <select>
+            <option>Edit</option>
+            <option>Collaborate</option>
+            <option>Publish</option>
+            <option>Revisions</option>
+            <option>Preview</option>
+            </select>
+        """
+
+        k = ''
+        k += '<input type=checkbox>'
+        k += '&nbsp;'*4
+        k += doc_options(worksheet.filename())
+        k += '&nbsp;'*4
+        return k
+
+    def html_worksheet_link(self, worksheet):
+        return '<a class="worksheetname" href="/home/%s">%s</a>\n'%(
+              worksheet.filename(), worksheet.name())
+
+    def html_owner_collab_view(self, worksheet, user):
+        v = []
+
+        owner = worksheet.owner()
+        if owner == user:
+            owner = "Me"
+
+        v.append(owner)
+
+        collab = worksheet.collaborators()
+
+        if len(collab) <= 1:
+            share = '<a href="">Share now</a>'
+        else:
+            collaborators = ', '.join([x for x in collab if x != user])
+            v.append(collaborators)
+            share = '<a href="">Add</a>'
+
+        viewers = worksheet.viewers()
+        if len(viewers) > 0:
+            viewers = '<i>' + ', '.join(viewers) + '</i>'
+            v.append(viewers)
+
+        s = ' / '.join(v) + ' ' + share
+
+        return s
+
+    def html_last_edited(self, worksheet, user):
+        s = worksheet.html_time_since_last_edited()
+        who = worksheet.last_to_edit()
+        if who == user:
+            who = 'Me'
+        return s + ' ago by ' + who
 
 
     ##########################################################
@@ -768,13 +925,12 @@ class Notebook(SageObject):
                 interrupt_class = "interrupt_grey"
             main_body = worksheet.html()
 
-        vbar = '<span class="vbar"></span>'
 
         body = ''
 
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
-        body += '  <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics</a></span>\n'
+        body += '  <img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="help" href="/home/%s">Worksheets</a>'%username + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
@@ -1088,3 +1244,26 @@ def clean_name(name):
 
 def padzeros(s):
     return "0"*(3-len(str(s))) + str(s)
+
+def sort_worksheet_list(v, sort, reverse):
+    """
+    INPUT:
+        sort -- 'last_edited', 'owner', or 'name'
+        reverse -- if True, reverse the order of the sort.
+    """
+    f = None
+    if sort == 'last_edited':
+        def c(a, b):
+            return -cmp(a.last_edited(), b.last_edited())
+        f = c
+    elif sort == 'name':
+        def c(a,b):
+            return cmp(a.name(), b.name())
+        f = c
+    elif sort == 'owner':
+        def c(a,b):
+            return cmp(a.owner(), b.owner())
+        f = c
+    else:
+        raise ValueError, "invalid sort key '%s'"%sort
+    v.sort(cmp = f, reverse=reverse)

@@ -497,7 +497,7 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         W = self.worksheet
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
-        cell.evaluate()
+        cell.evaluate(username=username)
 
         if cell.is_last():
             new_cell = W.append_new_cell()

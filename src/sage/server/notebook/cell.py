@@ -390,16 +390,17 @@ class Cell(Cell_generic):
     def set_introspect(self, before_prompt, after_prompt):
         self.__introspect = [before_prompt, after_prompt]
 
-    def evaluate(self, introspect=False, time=False):
+    def evaluate(self, introspect=False, time=False, username=None):
         """
         INPUT:
+            username -- name of user doing the evaluation
             time -- if True return time computation takes
             introspect -- either False or a pair [before_curse, after_cursor] of strings.
         """
         self.__interrupted = False
         self.__time = time
         self.__introspect = introspect
-        self.__worksheet.enqueue(self)
+        self.__worksheet.enqueue(self, username=username)
         self.__type = 'wrap'
         dir = self.directory()
         for D in os.listdir(dir):

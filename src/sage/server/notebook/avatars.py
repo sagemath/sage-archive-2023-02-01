@@ -5,8 +5,6 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
-SALT = 'aa'  # (it would be 4096 times more secure to not do this)
-
 import crypt
 import os
 from   random import randint
@@ -17,7 +15,6 @@ from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
-
 
 def user_type(avatarId):
     if isinstance(avatarId, FailedLogin):
@@ -42,22 +39,9 @@ class PasswordChecker(object):
 
 
 
-
     def add_user(self, username, password, email, account_type='user'):
         self.check_username(username)
-        U = twist.notebook.add_user(username, crypt.crypt(password, SALT), email, account_type)
-
-    def add_first_admin(self):
-        passwords = twist.notebook.passwords()
-
-        if len(passwords) > 0 or twist.OPEN_MODE:
-            return
-        pw = "%x"%randint(2**24,2**25)
-        ## TODO -- for developer convenience for now only!!!!
-        log.msg("Creating accounts admin, a and b with passwords admin, a and b for developer convenience.")
-        self.add_user("admin","admin", "", "admin")
-        self.add_user("a", "a", "", "admin")
-        self.add_user("b", "b", "", "user")
+        U = twist.notebook.add_user(username, password, email, account_type)
 
     def check_username(self, username):
         usernames = twist.notebook.usernames()
@@ -70,16 +54,16 @@ class PasswordChecker(object):
 
     def requestAvatarId(self, credentials):
         username = credentials.username
-        passwords = twist.notebook.passwords()
-        if passwords.has_key(username):
-            password = passwords[username]
-            if crypt.crypt(credentials.password, SALT) == password:
-                return defer.succeed(username)
-            else:
-                return defer.succeed(FailedLogin(
-                             username,failure_type='password'))
-        else:
+        password = credentials.password
+        try:
+            U = twist.notebook.user(username)
+        except KeyError:
             return defer.succeed(FailedLogin(username, failure_type = 'user'))
+
+        if U.password_is(password):
+            return defer.succeed(username)
+        else:
+            return defer.succeed(FailedLogin(username,failure_type='password'))
 
 
 class LoginSystem(object):

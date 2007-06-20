@@ -571,8 +571,8 @@ input.add_new_worksheet_menu {
 }
 
 button.add_new_worksheet_menu {
-   font-size:11px;
-   font-family:arial;
+   font-size:14px;
+   font-family:sans-serif;
 }
 
 span.pane div.upload_worksheet_menu {

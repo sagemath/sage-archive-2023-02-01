@@ -67,6 +67,9 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
+        self.add_user('admin', 'admin', '', account_type='admin')
+        self.add_user("a", "a", "", "admin")
+        self.add_user("b", "b", "", "user")
 
 
     ##########################################################
@@ -125,6 +128,19 @@ class Notebook(SageObject):
     ##########################################################
     # Publishing worksheets
     ##########################################################
+    def _initialize_worksheet(self, src, W):
+        """
+        src and W are worksheets and W is brand new.
+        """
+        # Copy over images and other files
+        data = src.data_directory()
+        if os.path.exists(data):
+            shutil.copytree(data, W.directory() + '/data')
+        cells = src.cells_directory()
+        if os.path.exists(cells):
+            shutil.copytree(cells, W.directory() + '/cells')
+        W.edit_save(src.edit_text())
+
     def publish_worksheet(self, worksheet):
         """
         Publish the given worksheet.
@@ -132,16 +148,6 @@ class Notebook(SageObject):
         This creates a new worksheet in the pub directory with the
         same contents as worksheet.
         """
-        def initialize(W):
-            # Copy over images and other files
-            data = worksheet.data_directory()
-            if os.path.exists(data):
-                shutil.copytree(data, W.directory() + '/data')
-            cells = worksheet.cells_directory()
-            if os.path.exists(cells):
-                shutil.copytree(cells, W.directory() + '/cells')
-            W.edit_save(worksheet.edit_text())
-            W.this_published_worksheet_came_from(worksheet)
 
         for X in self.__worksheets.itervalues():
             if X.owner() == 'pub' and X.worksheet_that_was_published() == worksheet:
@@ -154,11 +160,13 @@ class Notebook(SageObject):
                 if os.path.exists(X.cells_directory()):
                     shutil.rmtree(X.cells_directory())
                 initialize(X)
+                X.set_worksheet_that_was_published(worksheet)
                 return X
 
         # Have to create a new worksheet
         W = self.create_new_worksheet(worksheet.name(), 'pub')
-        initialize(W)
+        self._initialize_worksheet(worksheet, W)
+        W.set_worksheet_that_was_published(worksheet)
         return W
 
     ##########################################################
@@ -187,6 +195,14 @@ class Notebook(SageObject):
                                 docbrowser = docbrowser)
 
         self.__worksheets[W.filename()] = W
+        return W
+
+    def copy_worksheet(self, ws, owner):
+        W = self.create_new_worksheet('default', owner)
+        print W.name(), W.filename()
+        self._initialize_worksheet(ws, W)
+        name = "Copy of %s"%ws.name()
+        W.set_name(name)
         return W
 
     def delete_worksheet(self, filename):
@@ -686,21 +702,27 @@ class Notebook(SageObject):
     def html_worksheet_list_public(self, username,
                                   sort='last_edited', reverse=False, search=None):
         W = [x for x in self.__worksheets.itervalues() if x.is_published()]
-        sort_worksheet_list(W, sort, reverse)  # changed W in place
 
-        top  = self.html_worksheet_list_top(username, False, pub=True)
+        if search:
+            W = [x for x in W if x.satisfies_search(search)]
+
+        sort_worksheet_list(W, sort, reverse)  # changed W in place
+        worksheet_filenames = [x.filename() for x in W]
+
+        top  = self.html_worksheet_list_top(username, False, pub=True, search=search)
         list = self.html_worksheet_list(W, username, False, sort=sort, reverse=reverse, typ="all", pub=True)
 
         s = """
         <html>
            <link rel=stylesheet href="/css/main.css">
            <title>SAGE: Published Worksheets</title>
+           %s
         <body>
         %s
         %s
         </body>
         </html>
-        """%(top, list)
+        """%(self.list_window_javascript(worksheet_filenames), top, list)
 
         return s
 
@@ -720,9 +742,12 @@ class Notebook(SageObject):
         else: # typ must be archived or "all"
             worksheet_heading = "Archived and Active"
             W = [x for x in X if not x.is_trashed()]
+        if search:
+            W = [x for x in W if x.satisfies_search(search)]
+
         sort_worksheet_list(W, sort, reverse)  # changed W in place
 
-        top = self.html_worksheet_list_top(user, typ=typ)
+        top = self.html_worksheet_list_top(user, typ=typ, search=search)
         list = self.html_worksheet_list(W, user, worksheet_heading, sort=sort, reverse=reverse, typ=typ)
         worksheet_filenames = [x.filename() for x in W]
 
@@ -741,12 +766,14 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False):
+    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
         s = ''
 
         entries = [('/home/%s'%user, 'Home', 'Back to your personal worksheet list'),
-                   ('/settings', 'Settings', 'Change SAGE notebook settings'),
+                   ('/settings', 'Settings', 'Change user settings'),
                    ('/doc', 'Help', 'Documentation')]
+        if self.user(user).is_admin():
+            entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
         if not pub:
             entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
         entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
@@ -755,7 +782,7 @@ class Notebook(SageObject):
         s += self.html_banner()
         s += '<hr class="usercontrol">'
         s += self.html_new_or_upload()
-        s += self.html_search()
+        s += self.html_search(search)
         s += '<br>'
         s += '<hr class="usercontrol">'
         if actions:
@@ -786,14 +813,14 @@ class Notebook(SageObject):
         """
         return s
 
-    def html_search(self):
+    def html_search(self, search=None):
         s = """
         <span class="flush-right">
-        <input id="search_worksheets" size=35></input>
-        <button class="add_new_worksheet_menu" onClick="process_new_worksheet_menu_submit();">Search Worksheets</button>
+        <input id="search_worksheets" size=20 onkeypress="return entsub(event);" value="%s"></input>
+        <button class="add_new_worksheet_menu" onClick="search_worksheets();">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """
+        """%('' if search is None else search)
         return s
 
     def html_new_or_upload(self):
@@ -804,13 +831,14 @@ class Notebook(SageObject):
         return s
 
     def html_worksheet_actions(self, user, typ):
+##
+##          <option onClick="save_worksheets('sws');" title="Save the selected worksheets to disk">Save ...</option>
+##          <option onClick="save_worksheets('html');" title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
+##          <option onClick="save_worksheets('latex');" title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
+##          <option onClick="save_worksheets('pdf');" title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
+##          <option onClick="save_worksheets('txt');" title="Save the selected worksheets to a single text file">Save as Text...</option>
         s = """
-        <select class="worksheet_list">
-         <option onClick="save_worksheets('sws');" title="Save the selected worksheets to disk">Save ...</option>
-         <option onClick="save_worksheets('html');" title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
-         <option onClick="save_worksheets('latex');" title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
-         <option onClick="save_worksheets('pdf');" title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
-         <option onClick="save_worksheets('txt');" title="Save the selected worksheets to a single text file">Save as Text...</option>
+         <select class="worksheet_list">
          <option onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
          <option onClick="make_active_button();" title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
          <option onClick="uncollaborate_me();" title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
@@ -825,10 +853,10 @@ class Notebook(SageObject):
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
             s += '<span class="flush-right">'
-            s += '<a class="usercontrol" href=".">Active</a>'
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Published Worksheets</a>&nbsp;&nbsp;&nbsp;'
+            s += '&nbsp;<a class="usercontrol" href=".">Active</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
-            s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>'
-            s += '&nbsp;&nbsp;<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse Public</a>&nbsp;&nbsp;&nbsp;'
+            s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'
             s += '</span>'
         return s
 
@@ -890,14 +918,14 @@ class Notebook(SageObject):
 
             return """
             <select class="worksheet_edit">
-            <option title="Open this worksheet and edit it">Edit</option>
-            <option title="Copy this worksheet">Copy Worksheet</option>
-            <option title="Share this worksheet with others">Collaborate</option>
-            <option title="Publish this worksheet on the internet">Publish</option>
-            <option title="See all revisions of this worksheet">Revisions</option>
-            <option title="Preview this worksheet">Preview</option>
+            <option onClick="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
+            <option onClick="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
+            <option onClick="list_share_worksheet('%s');" title="Share this worksheet with others">Collaborate</option>
+            <option onClick="list_publish_worksheet('%s');" title="Publish this worksheet on the internet">Publish</option>
+            <option onClick="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
+            <option onClick="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
             </select>
-        """
+            """%(name, name,name,name,name,name)
 
         k = ''
         if not pub:
@@ -1184,15 +1212,11 @@ class Notebook(SageObject):
         else:
 
             worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            if worksheet.computing():
-                interrupt_class = "interrupt"
-            else:
-                interrupt_class = "interrupt_grey"
             main_body = worksheet.html()
 
         body = ''
 
-        if worksheet.is_published():
+        if worksheet.is_published() or username=='pub':
             original_worksheet = worksheet.worksheet_that_was_published()
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
@@ -1313,6 +1337,8 @@ Output
             pass
         from tutorial import notebook_help
         s = """
+        <html>
+        <body>
         <br><hr>
         <style>
         div.help_window {
@@ -1365,6 +1391,8 @@ Output
         AUTHORS: Tom Boothby, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein<br><br>
         LICENSE: SAGE is <a href="/license.html">GPL-compatible</a>.
         <br>
+        </body>
+        </html>
         """
         self._help_window = s
         return s
@@ -1455,6 +1483,30 @@ Output
                    </form></div>
 
         """
+
+
+    ####################################################################
+    # Configuration html.
+    # In each case the settings html is a form that when submitted
+    # pulls up another web page and sets the corresponding options.
+    ####################################################################
+    def html_settings(self):
+        s = """
+        <h1>Settings</h1>
+        """
+        return s
+
+    def html_worksheet_settings(self, ws):
+        s = self.html_settings()
+        return s
+
+    def html_user_settings(self, username):
+        s = self.html_settings()
+        return s
+
+    def html_notebook_settings(self):
+        s = self.html_settings()
+        return s
 
 
 ####################################################################

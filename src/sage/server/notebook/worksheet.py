@@ -185,8 +185,9 @@ class Worksheet:
 
     def filename_without_owner(self):
         """
-        Return the part of the worksheet filename after the last /, i.e.,
-        without any information about the owner of this worksheet.
+        Return the part of the worksheet filename after the last /,
+        i.e., without any information about the owner of this
+        worksheet.
         """
         return os.path.split(self.__filename)[-1]
 
@@ -227,7 +228,9 @@ class Worksheet:
         except AttributeError:
             return self
 
-    def this_published_worksheet_came_from(self, W):
+    def set_worksheet_that_was_published(self, W):
+        if not isinstance(W, Worksheet):
+            raise TypeError, "W must be a worksheet"
         self.__worksheet_came_from = W
 
     def rate(self, x, username):
@@ -349,6 +352,26 @@ class Worksheet:
                 self.__collaborators.append(user)
         except AttributeError:
             self.__collaborators = [user]
+
+    ##########################################################
+    # Searching
+    ##########################################################
+    def satisfies_search(self, search):
+        """
+        INPUT:
+            search is a string that describes a search query, i.e.,
+            a space-separated collections of words.
+
+        OUTPUT:
+            True if the search is satisfied by self, i.e., all
+            the words appear in the text version of self.
+        """
+        E = self.edit_text().lower()
+        for word in search.split():
+            if not word.lower() in E:
+                return False
+        return True
+
 
     ##########################################################
     # Saving
@@ -584,19 +607,20 @@ class Worksheet:
         """
 
     def html_file_menu(self):
+##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>
+##  <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) </option>
+##  <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF</option>
+##  <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text</option>
         return """
 <select class="worksheet">
- <option title="Open a new worksheet" onClick="new_worksheet();">New...</option>
+ <option title="Save this worksheet to an sws file" onClick="download_worksheet('%s');">Save as File...</option>
+ <option title="Create a new worksheet" onClick="new_worksheet();">New</option>
  <option title="Save changes" onClick="save_worksheet();">Save</option>
- <option title="Print this worksheet" onClick="print_worksheet();">Print ...</optooion>
- <option title="Rename this worksheet" onClick="rename_worksheet();">Rename ...</option>
+ <option title="Print this worksheet" onClick="print_worksheet();">Print</optooion>
+ <option title="Rename this worksheet" onClick="rename_worksheet();">Rename</option>
  <option title="Copy this worksheet" onClick="copy_worksheet();">Copy worksheet</option>
- <option title="Move this worksheet to the trash" onClick="delete_worksheet();">Delete worksheet</option>
- <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) ... </option>
- <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) ... </option>
- <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF...</option>
- <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text...</option>
- <option title="Configure this worksheet" onClick="worksheet_settings();">Worksheet settings...</option>
+ <option title="Move this worksheet to the trash" onClick="delete_worksheet('%s');">Delete worksheet</option>
+ <option title="Configure this worksheet" onClick="worksheet_settings();">Worksheet settings</option>
 </select>
 
 <select class="worksheet">
@@ -609,7 +633,7 @@ class Worksheet:
  <option title="Switch to multi-cell mode" onClick="cell_mode();">Multi Cell Mode</option>
  </select>
 
- """
+ """%(_notebook.clean_name(self.name()), self.filename())
 
     def html_menu(self):
         name = self.filename()

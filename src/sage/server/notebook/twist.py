@@ -21,6 +21,7 @@ HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
 from sage.misc.misc import SAGE_EXTCODE, walltime, tmp_filename
+from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
@@ -189,16 +190,26 @@ class Upload(resource.Resource):
 
 class UploadWorksheet(resource.PostableResource):
     def render(self, ctx):
-        tmp = '%s/tmp.sws'%notebook.directory()
-        f = file(tmp,'wb')
-        f.write(ctx.files['fileField'][0][2].read())
-        f.close()
+        url = ctx.args['urlField'][0].strip()
+        if url != '':
+            tmp = get_remote_file(url, verbose=True)
+        else:
+            tmp = '%s/tmp.sws'%notebook.directory()
+            f = file(tmp,'wb')
+            f.write(ctx.files['fileField'][0][2].read())
+            f.close()
+
         try:
             W = notebook.import_worksheet(tmp, username)
             os.unlink(tmp)
         except ValueError, msg:
             s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
             return http.Response(stream = s)
+
+        name = ctx.args['nameField'][0].strip()
+        if len(name) > 0:
+            W.set_name(name)
+
         return http.RedirectResponse('/home/'+W.filename())
 
 
@@ -362,6 +373,32 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
 
 
 ########################################################
+# Preview what the worksheet will look like when published.
+########################################################
+class Worksheet_preview(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        s = notebook.html(worksheet_filename = self.name,  username='pub')
+        return http.Response(stream=s)
+
+
+########################################################
+# Copy a worksheet
+########################################################
+class Worksheet_copy(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        W = notebook.copy_worksheet(self.worksheet, username)
+        return http.RedirectResponse('/home/' + W.filename())
+
+########################################################
+# Get a copy of a published worksheet and start editing it
+########################################################
+class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        W = notebook.copy_worksheet(self.worksheet, username)
+        W.set_name(self.worksheet.name())
+        return http.RedirectResponse('/home/' + W.filename())
+
+########################################################
 # Save a worksheet
 ########################################################
 class Worksheet_save(WorksheetResource, resource.PostableResource):
@@ -455,6 +492,48 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
 
     def childFactory(self, request, rev):
         return ViewWorksheetRevision(self.worksheet, rev)
+
+
+########################################################
+# Worksheet/User/Notebooks settings and configuration
+########################################################
+class ProcessWorksheetSettings(resource.PostableResource):
+    def render(self, ctx):
+        pass
+
+class Worksheet_settings(WorksheetResource, resource.Resource):
+    child_process = ProcessWorksheetSettings()
+    def render(self, ctx):
+        if self.worksheet.owner() != username:
+            s = 'You must be the owner of this worksheet to configure it.'
+        else:
+            s = notebook.html_worksheet_settings(self.worksheet)
+        print s
+        return http.Response(stream = s)
+
+class ProcessUserSettings(resource.PostableResource):
+    def render(self, ctx):
+        pass
+
+class UserSettings(resource.Resource):
+    child_process = ProcessUserSettings()
+
+    def render(self, ctx):
+        s = notebook.html_user_settings(username)
+        return http.Response(stream = s)
+
+class ProcessNotebookSettings(resource.PostableResource):
+    def render(self, ctx):
+        pass
+
+class NotebookSettings(resource.Resource):
+    child_process = ProcessNotebookSettings()
+    def render(self, ctx):
+        if user_type(username) != 'admin':
+            s = 'You must an admin to configure the notebook.'
+        else:
+            s = notebook.html_notebook_settings()
+        return http.Response(stream = s)
 
 
 ########################################################
@@ -697,7 +776,6 @@ class Worksheet_interrupt(WorksheetResource, resource.Resource):
         # TODO -- this must not block long (!)
         s = self.worksheet.interrupt()
         return http.Response(stream='ok' if s else 'failed')
-
 
 class Worksheet_plain(WorksheetResource, resource.Resource):
     def render(self, ctx):
@@ -1164,6 +1242,8 @@ class UserToplevel(Toplevel):
     child_send_to_trash = SendWorksheetToTrash()
     child_send_to_archive = SendWorksheetToArchive()
     child_send_to_active = SendWorksheetToActive()
+    child_notebook_settings = NotebookSettings()
+    child_settings = UserSettings()
 
     def render(self, ctx):
         s = render_worksheet_list(ctx.args)

@@ -29,7 +29,9 @@ def javascript():
     s = async_lib()
     s += notebook_lib()
 
-    s = JavaScriptCompressor().getPacked(s)
+    # TODO -- disabled while debuging.
+    #s = JavaScriptCompressor().getPacked(s)
+
     return s
 
 
@@ -690,16 +692,29 @@ function history_window() {
 }
 
 function copy_worksheet() {
-    open(worksheet_command("copy"));
+    window.location.replace(worksheet_command("copy"));
+}
+
+function download_worksheet(base_filename) {
+    open(worksheet_command("download/" + base_filename + '.sws'));
+}
+
+function worksheet_settings() {
+    window.location.replace(worksheet_command("settings"));
 }
 
 function share_worksheet() {
-    open(worksheet_command("share"));
+    window.location.replace(worksheet_command("share"));
 }
 
 function publish_worksheet() {
-    open(worksheet_command("publish"));
+    window.location.replace(worksheet_command("publish"));
 }
+
+function save_as(typ) {
+    open(worksheet_command('save_as') + '?typ=' +typ);
+}
+
 
 function save_worksheet() {
     async_request(worksheet_command('save_snapshot'), save_worksheet_callback, null);
@@ -735,6 +750,19 @@ function rename_worksheet() {
    T.innerHTML = new_worksheet_name;
    worksheet_name = new_worksheet_name;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
+}
+
+function entsub(event) {
+  if (event && event.which == 13)
+     search_worksheets();
+  else
+     return true;
+}
+
+function search_worksheets() {
+    X = get_element('search_worksheets');
+    url = '?search=' + escape0(X.value);
+    window.location.replace(url);
 }
 
 
@@ -909,6 +937,41 @@ function sync_active_cell_list_callback(status, response_text) {
             cell_set_running(active_cell_list[i]);
         start_update_check();
     }
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// WORKSHEET list functions -- i.e., functions on a specific
+// worksheet in the list of worksheets display.
+//
+///////////////////////////////////////////////////////////////////
+
+function list_edit_worksheet(filename) {
+    window.location.replace('/home/' + filename);
+}
+
+function list_copy_worksheet(filename) {
+    async_request('/home/' + filename + '/copy', list_copy_worksheet_callback, null);
+}
+
+function list_copy_worksheet_callback(status, response_text) {
+    window.location.replace('/');
+}
+
+function list_share_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/share');
+}
+
+function list_publish_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/publish');
+}
+
+function list_revisions_of_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/revisions');
+}
+
+function list_preview_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/preview');
 }
 
 ///////////////////////////////////////////////////////////////////

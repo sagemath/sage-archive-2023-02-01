@@ -1,9 +1,14 @@
+
+import crypt
+
+SALT = 'aa'
+
 import user_conf
 
 class User:
     def __init__(self, username, password='', email='', account_type='admin'):
         self.__username = username
-        self.__password = password
+        self.__password = crypt.crypt(password, SALT)
         self.__email = email
         self.__account_type = account_type
         self.__conf = user_conf.UserConfiguration()
@@ -19,6 +24,12 @@ class User:
 
     def password(self):
         return self.__password
+
+    def set_password(self, password):
+        self.__password = crypt.crypt(password, SALT)
+
+    def password_is(self, password):
+        return self.__password == crypt.crypt(password, SALT)
 
     def account_type(self):
         return self.__account_type

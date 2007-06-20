@@ -154,6 +154,22 @@ class Worksheet:
     def collaborators(self):
         return self.__collaborators
 
+    def add_collaborators(self, v):
+        n = self.notebook()
+        U = n.users().keys()
+        L = [x.lower() for x in U]
+        owner = self.owner()
+        for x in v:
+            y = x.lower()
+            try:
+                i = L.index(y)
+                z = U[i]
+                if z != owner and not z in self.__collaborators:
+                    self.__collaborators.append(z)
+            except ValueError:
+                pass
+        self.__collaborators.sort()
+
     def viewers(self):
         return self.__viewers
 
@@ -588,6 +604,7 @@ class Worksheet:
     def html_save_discard_buttons(self):
         return """
         <span class="flush-right">
+        <button title="Edit" onClick="edit_worksheet();">Edit</button>
         <button title="Save changes" onClick="save_worksheet();">Save</button>
         <button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button>
         <button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
@@ -658,9 +675,9 @@ class Worksheet:
 
         return menu
 
-    def html_worksheet_body(self, do_print):
+    def html_worksheet_body(self, do_print, publish=False):
         n = len(self.__cells)
-        published = self.is_published()
+        published = self.is_published() or publish
 
         s = ''
         D = self.notebook().conf()

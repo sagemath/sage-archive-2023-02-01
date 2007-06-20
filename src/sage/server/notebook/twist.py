@@ -242,7 +242,7 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
-        if not username in self.worksheet.collaborators() and user_type(name) != 'admin':
+        if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
             raise RuntimeError, "illegal worksheet access"
 
     def id(self, ctx):
@@ -448,6 +448,22 @@ class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
         self.worksheet.quit()
         return http.Response(stream="saved")
 
+########################################################
+# Collaborate with others
+########################################################
+class Worksheet_share(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        s = notebook.html_share(self.worksheet, username)
+        return http.Response(stream = s)
+
+class Worksheet_invite_collab(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        collab = ctx.args['collaborators'][0]
+        v = [x.strip() for x in collab.split(',')]
+        self.worksheet.add_collaborators(v)
+        return http.RedirectResponse('share')
+
+
 #################################
 # Revisions
 #################################
@@ -476,37 +492,43 @@ class RevertToWorksheetRevision(resource.Resource):
         self.worksheet.edit_save(txt)
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
+def worksheet_revision_publish(worksheet, rev):
+    W = notebook.publish_worksheet(worksheet)
+    txt = open(worksheet.get_snapshot_text_filename(rev)).read()
+    W.delete_cells_directory()
+    W.edit_save(txt)
+    return http.RedirectResponse('/home/'+W.filename())
 
+def worksheet_revision_revert(worksheet, rev):
+    worksheet.save_snapshot()
+    txt = open(worksheet.get_snapshot_text_filename(rev)).read()
+    worksheet.delete_cells_directory()
+    worksheet.edit_save(txt)
+    return http.RedirectResponse('/home/'+worksheet.filename())
 
-class ViewWorksheetRevision(resource.Resource):
-    addSlash = True
-
-    def __init__(self, worksheet, rev):
-        self.worksheet = worksheet
-        self.rev = rev
-
-    def render(self, ctx):
-        s = notebook.html_specific_revision(username, self.worksheet, self.rev)
-        return http.Response(stream = s)
-
-    def childFactory(self, request, name):
-        if name == 'publish':
-            return PublishWorksheetRevision(self.worksheet, self.rev)
-        elif name == 'revert':
-            return RevertToWorksheetRevision(self.worksheet, self.rev)
 
 class Worksheet_revisions(WorksheetResource, resource.PostableResource):
     """
     Show a list of revisions of this worksheet.
     """
-    addSlash = True
-
     def render(self, ctx):
-        s = notebook.html_worksheet_revision_list(username, self.worksheet)
+        if not ctx.args.has_key('action'):
+            if ctx.args.has_key('rev'):
+                rev = ctx.args['rev'][0]
+                s = notebook.html_specific_revision(username, self.worksheet, rev)
+            else:
+                s = notebook.html_worksheet_revision_list(username, self.worksheet)
+        else:
+            rev = ctx.args['rev'][0]
+            action = ctx.args['action'][0]
+            print action
+            if action == 'revert':
+                return worksheet_revision_revert(self.worksheet, rev)
+            elif action == 'publish':
+                return worksheet_revision_publish(self.worksheet, rev)
+            else:
+                s = 'Error'
         return http.Response(stream = s)
-
-    def childFactory(self, request, rev):
-        return ViewWorksheetRevision(self.worksheet, rev)
 
 
 ########################################################

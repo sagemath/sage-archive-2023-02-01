@@ -29,6 +29,8 @@ class User:
         self.__password = crypt.crypt(password, SALT)
 
     def password_is(self, password):
+        if self.__username == "pub":
+            return False
         return self.__password == crypt.crypt(password, SALT)
 
     def account_type(self):

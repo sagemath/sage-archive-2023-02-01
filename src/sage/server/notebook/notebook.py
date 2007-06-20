@@ -10,9 +10,10 @@ The SAGE Notebook object
 #############################################################################
 
 import os
+import re
 import shutil
 import socket
-import re           # regular expressions
+import time
 
 # SAGE libraries
 from   sage.structure.sage_object import SageObject, load
@@ -70,6 +71,7 @@ class Notebook(SageObject):
         self.add_user('admin', 'admin', '', account_type='admin')
         self.add_user("a", "a", "", "admin")
         self.add_user("b", "b", "", "user")
+        self.add_user("pub", "x", "", "user")
 
 
     ##########################################################
@@ -83,15 +85,13 @@ class Notebook(SageObject):
             return self.__users
 
     def user(self, username):
+        if '/' in username:
+            raise ValueError
         try:
             return self.__users[username]
-        except KeyError:
-            U = user.User(username)
-            self.__users[username] = U
-            return U
         except AttributeError:
-            self.__users = {}
             raise KeyError, "no user '%s'"%username
+
 
     def user_list(self):
         try:
@@ -175,7 +175,15 @@ class Notebook(SageObject):
     # Moving, copying, creating, renaming, and listing worksheets
     ##########################################################
 
-    def create_new_worksheet(self, worksheet_name, username, docbrowser=False):
+    def scratch_worksheet(self):
+        try:
+            return self.__scratch_worksheet
+        except AttributeError:
+            W = self.create_new_worksheet('scratch', '_sage_', add_to_list=False)
+            self.__scratch_worksheet = W
+            return W
+
+    def create_new_worksheet(self, worksheet_name, username, docbrowser=False, add_to_list=True):
         filename = worksheet.worksheet_filename(worksheet_name, username)
         if self.__worksheets.has_key(filename):
             return self.__worksheets[filename]
@@ -196,7 +204,8 @@ class Notebook(SageObject):
                                 owner=username,
                                 docbrowser = docbrowser)
 
-        self.__worksheets[W.filename()] = W
+        if add_to_list:
+            self.__worksheets[W.filename()] = W
         return W
 
     def copy_worksheet(self, ws, owner):
@@ -964,7 +973,7 @@ class Notebook(SageObject):
             else:
                 collaborators = ', '.join([x for x in collab if x != user])
                 v.append(collaborators)
-                share = '<a class="share" href="%s/collaborate">Add</a>'%(worksheet.filename_without_owner())
+                share = '<a class="share" href="/home/%s/share">Add or Delete</a>'%(worksheet.filename())
         else:
             share = ''
 
@@ -988,62 +997,107 @@ class Notebook(SageObject):
     # Revision history for a worksheet
     ##########################################################
     def html_worksheet_revision_list(self, username, worksheet):
-        top = self.html_worksheet_list_top(username)
-
+        head, body = self.html_worksheet_page_template(worksheet, username, "Revision History")
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
         rows = []
         i = 0
         for desc, key in data:
-            rows.append('<tr><td></td><td><a href="%s">Revision %s</a></td><td><span class="revs">%s ago</span></td></tr>'%
+            rows.append('<tr><td></td><td><a href="revisions?rev=%s">Revision %s</a></td><td><span class="revs">%s ago</span></td></tr>'%
                         (key, i, desc))
             i += 1
+
         rows = list(reversed(rows))
         rows = '\n'.join(rows)
-        s = """
-<html>
-           <link rel=stylesheet href="/css/main.css">
-           <title>SAGE: Worksheet Revisions</title>
-%s
+        body += """
         <hr class="usercontrol">
-
-<h3><a href="..">Back to %s</a></h3>
 <table width=100%%>
 <tr><td width=1%%></td><td width=20%%><b>Revision</b></td> <td width=20%%><b>Last Edited</b></td><td width=30%%></td>
 %s
 </table>
-</html>
-"""%(top, worksheet.name(), rows)
-        return s
+"""%rows
 
-    def html_specific_revision(self, username, worksheet, rev):
-        top = self._html_body(worksheet.filename(), top_only=True)
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
 
-        filename = worksheet.get_snapshot_text_filename(rev)
+
+    def html_specific_revision(self, username, ws, rev):
+        t = time.time() - float(rev[:-4])
+        when = worksheet.convert_seconds_to_meaningful_time_span(t)
+        head, body = self.html_worksheet_page_template(ws, username, "Revision from %s ago"%when)
+
+        filename = ws.get_snapshot_text_filename(rev)
         txt = open(filename).read()
+        W = self.scratch_worksheet()
+        W.delete_cells_directory()
+        W.edit_save(txt)
+        html = W.html_worksheet_body(do_print=True, publish=True)
 
         actions = """
-        <a class="listcontrol" href="publish">Publish this one</a>&nbsp;&nbsp;
-        <a class="listcontrol" href="revert">Revert to this one</a>  (in both cases images are lost)
-        """
+        <a class="listcontrol" href="revisions?rev=%s&action=publish">Publish this one</a>&nbsp;&nbsp;
+        <a class="listcontrol" href="revisions?rev=%s&action=revert">Revert to this one</a>  (note that images are note recorded)
+        """%(rev, rev)
 
         s = """
-<html>
-           <link rel=stylesheet href="/css/main.css">
-           <title>SAGE: Worksheet Revisions</title>
-%s
+        %s
         <hr class="usercontrol">
-<h3><a href="..">Back to revision list for %s</a></h3>
-%s
 <table width=100%%>
-<pre>
 %s
-</pre>
         <hr class="usercontrol">
 %s
 </table>
-</html>
-"""%(top, worksheet.name(), actions, txt, actions)
-        return s
+"""%(actions, html, actions)
+        body += s
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
+    def html_worksheet_page_template(self, worksheet, username, title):
+        head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
+        head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet.filename(), worksheet.name())
+        body = self._html_body(top_only=True)
+        body += self.html_worksheet_topbar(worksheet)
+        body += '<hr class="usercontrol">'
+        body += '<span class="sharebar">%s</span>'%title
+        body += '<br>'*3
+        return head, body
+
+
+    def html_share(self, worksheet, username):
+        head, body = self.html_worksheet_page_template(worksheet, username, "Share this document")
+
+        body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
+        body += 'You may add more (separate user names by commas).<br><br>'
+
+        collabs = ', '.join(worksheet.collaborators())
+        body += '<form width=70% method="post" action="invite_collab">\n'
+        body += '<textarea name="collaborators" rows=5 cols=70 class="edit" id="collaborators">%s</textarea><br><br>'%collabs
+        body += '<input type="submit" title="Give access to your worksheet to the above collaborators" value="Invite Collaborators">'
+        body += '</form>'
+
+        body += '<br>'*2
+        body += '<hr class="usercontrol">'
+        body += '<span class="username">SAGE Users:</span>'
+        U = self.users()
+        K = [x for x in U.keys() if x != 'pub']
+        K.sort()
+        body += '<span class="users">%s</span>'%(', '.join(K))
+
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
 
 
     ##########################################################
@@ -1199,7 +1253,7 @@ class Notebook(SageObject):
         body += self.html_slide_controls()
         return body
 
-    def _html_body(self, worksheet_filename, show_debug=False, username='', top_only=False):
+    def _html_body(self, worksheet_filename=None, show_debug=False, username='', top_only=False):
         if worksheet_filename is None or worksheet_filename == '':
             main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
             if os.path.isfile(self.directory() + "/index.html"):
@@ -1220,7 +1274,7 @@ class Notebook(SageObject):
 
         body = ''
 
-        if worksheet.is_published() or username=='pub':
+        if not worksheet is None and (worksheet.is_published() or username=='pub'):
             original_worksheet = worksheet.worksheet_that_was_published()
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()

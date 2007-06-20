@@ -1275,8 +1275,8 @@ span.ratingmsg {
 
 a.usercontrol {
   color: #112abb;
-  padding:1ex;
-  font-size:14px;
+  padding:0.6ex;
+  font-size:13px;
   text-decoration:underline;
 }
 
@@ -1304,7 +1304,30 @@ a.control {
   text-decoration: none;
 }
 
+span.sharebar {
+  background-color:#7799bb;
+  font-family: sans-serif;
+  color: #ffffff;
+  position:absolute;
+  left:1ex;
+  right:0ex;
+  padding-top:1ex;
+  padding-bottom:1ex;
+  padding-left:4ex;
+  font-size:18px;
+  font-weight:bold;
+}
 
+textarea.edit {
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    width: 100%%;
+    margin-top: 0.5em;
+}
 
 a.listcontrol {
   padding:1ex;
@@ -1389,6 +1412,12 @@ span.revs {
   font-size:12px;
   font-weight:bold;
   color: #333333;
+}
+
+span.users {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222222;
 }
 
 a.share {

@@ -89,14 +89,14 @@ def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, dirname, notebook, system, owner):
+    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False):
 
         # Record the basic properties of the worksheet
-
         self.__system   = system
         self.__owner         = owner
         self.__viewers       = []
         self.__collaborators = [owner]
+        self.__docbrowser = docbrowser
 
         # Initialize the cell id counter.
         self.__next_id = 0
@@ -123,6 +123,12 @@ class Worksheet:
 
     def __len__(self):
         return len(self.__cells)
+
+    def docbrowser(self):
+        try:
+            return self.__docbrowser
+        except AttributeError:
+            return False
 
     ##########################################################
     # Configuration
@@ -158,8 +164,9 @@ class Worksheet:
         return self.__name
 
     def set_name(self, name):
+        if len(name.strip()) == 0:
+            name = 'Untitled'
         self.__name = name
-        self.record_edit(name)
 
     def set_filename_without_owner(self, nm):
         filename = '%s/%s'%(self.owner(), nm)

@@ -631,7 +631,7 @@ function rename_worksheet() {
    var T = get_element("worksheet_title");
    T.innerHTML = new_worksheet_name;
    worksheet_name = new_worksheet_name;
-   async_request(worksheet_command('rename'), null, 'name='+new_worksheet_name);
+   async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
 

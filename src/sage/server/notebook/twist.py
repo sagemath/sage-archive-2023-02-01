@@ -100,7 +100,7 @@ def doc_worksheet():
         W.clear()
         return W
     else:
-        return notebook.create_new_worksheet(name, username)
+        return notebook.create_new_worksheet(name, username, docbrowser=True)
 
 
 class WorksheetFile(resource.Resource):
@@ -536,8 +536,6 @@ class Worksheet_download(WorksheetResource, resource.Resource):
 
 class Worksheet_rename(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        print "worksheet rename"
-        # TODO -- this must not block long (!)
         self.worksheet.set_name(ctx.args['name'][0])
         return http.Response(stream='done')
 

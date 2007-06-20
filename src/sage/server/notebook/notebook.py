@@ -159,14 +159,16 @@ class Notebook(SageObject):
                     shutil.rmtree(X.data_directory())
                 if os.path.exists(X.cells_directory()):
                     shutil.rmtree(X.cells_directory())
-                initialize(X)
+                self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
+                X.move_to_archive()
                 return X
 
         # Have to create a new worksheet
         W = self.create_new_worksheet(worksheet.name(), 'pub')
         self._initialize_worksheet(worksheet, W)
         W.set_worksheet_that_was_published(worksheet)
+        W.move_to_archive()
         return W
 
     ##########################################################
@@ -701,7 +703,7 @@ class Notebook(SageObject):
 
     def html_worksheet_list_public(self, username,
                                   sort='last_edited', reverse=False, search=None):
-        W = [x for x in self.__worksheets.itervalues() if x.is_published()]
+        W = [x for x in self.__worksheets.itervalues() if x.is_published() and not x.is_trashed()]
 
         if search:
             W = [x for x in W if x.satisfies_search(search)]
@@ -877,7 +879,7 @@ class Notebook(SageObject):
 
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=name%s">%s</a> </td>'%(typ,
             '' if sort != 'name' or reverse else '&reverse=True', worksheet_heading)
-        s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner / Collaborators / <i>Viewers</i></a> </td>'%(typ,
+        s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner / Collaborators</a> </td>'%(typ,
             '' if sort != 'owner' or reverse else '&reverse=True')
         s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
             '' if sort != 'last_edited' or reverse else 'reverse=True')
@@ -887,11 +889,11 @@ class Notebook(SageObject):
         v = []
         for w in worksheets:
             k = '<tr>'
-            k += '<td class="entry">%s</td>'%self.html_check_col(w, user)
+            k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
             if w.is_active():
-                k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w)
+                k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
             else:
-                k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w)
+                k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
             k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user, typ)
             k += '<td class="last_edited">%s</td>'%self.html_last_edited(w, user)
             k += '</tr>'
@@ -903,8 +905,7 @@ class Notebook(SageObject):
 
         return s
 
-    def html_check_col(self, worksheet, user):
-        pub = worksheet.is_published()
+    def html_check_col(self, worksheet, user, pub):
         def doc_options(name):
             if pub:
                 rating = worksheet.rating()
@@ -935,9 +936,12 @@ class Notebook(SageObject):
         k += '&nbsp;'*4
         return k
 
-    def html_worksheet_link(self, worksheet):
+    def html_worksheet_link(self, worksheet, pub):
+        name = worksheet.truncated_name()
+        if not pub and worksheet.is_published():
+            name += ' (published)'
         return '<a id="name/%s" class="worksheetname" href="/home/%s">%s</a>\n'%(
-            worksheet.filename(), worksheet.filename(), worksheet.truncated_name())
+            worksheet.filename(), worksheet.filename(), name)
 
     def html_owner_collab_view(self, worksheet, user, typ):
         v = []
@@ -956,7 +960,7 @@ class Notebook(SageObject):
 
         if not pub and typ != 'trash' and (owner == "Me" or self.user(user).account_type() == 'admin'):
             if len(collab) <= 1:
-                share = '<a class="share" href="%s/share">Share now</a>'%(worksheet.filename_without_owner())
+                share = '<a class="share" href="/home/%s/share">Share now</a>'%(worksheet.filename())
             else:
                 collaborators = ', '.join([x for x in collab if x != user])
                 v.append(collaborators)
@@ -1228,9 +1232,9 @@ class Notebook(SageObject):
             if r == 0:
                 rating = 'This page has not yet been rated.'
             else:
-                rating = 'This page is rated %.1f stars <a class="usercontrol" href="rating_info">(more).</a>'%r
+                rating = 'This page is rated %.1f stars <a class="usercontrol" href="rating_info">(more).</a><br>'%r
             if username != 'pub' and not worksheet.is_rater(username):
-                rating += ' Please rate this page (this is not anonymous): '
+                rating += '&nbsp;&nbsp;Please rate this page (this is not anonymous): '
                 rating += '  '.join(['<a class="usercontrol" href="rate%s">%s star</a>'%(i,i) for
                                    i in range(1,5)])
             body += '<span class="ratingmsg">%s</span>'%rating

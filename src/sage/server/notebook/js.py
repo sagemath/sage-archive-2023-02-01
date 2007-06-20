@@ -673,15 +673,15 @@ function worksheet_list_button_callback(status, response_text) {
 }
 
 function delete_button() {
-    worksheet_list_button("/send_to_trash", "(in trash)");
+    worksheet_list_button("/send_to_trash", "--> trash");
 }
 
 function make_active_button() {
-    worksheet_list_button("/send_to_active", "(active)");
+    worksheet_list_button("/send_to_active", "(--> active");
 }
 
 function archive_button() {
-    worksheet_list_button("/send_to_archive", "(archived)");
+    worksheet_list_button("/send_to_archive", "--> archived");
 }
 
 

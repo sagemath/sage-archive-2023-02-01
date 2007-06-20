@@ -817,7 +817,6 @@ class Worksheet(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.html(worksheet_filename = self.name,  username=username)
         self.worksheet.sage()
-        self.worksheet.set_active()
         return http.Response(stream=s)
 
     def childFactory(self, request, op):
@@ -905,7 +904,7 @@ class SendWorksheetToFolder(resource.PostableResource):
         filename = ctx.args['filename'][0]
         W = notebook.get_worksheet_with_filename(filename)
         X = notebook.user(username)
-        if X.is_admin() or W.owner() == username:
+        if X.is_admin() or W.owner() == username or W.publisher() == username:
             self.action(W)
             s = ''
         else:

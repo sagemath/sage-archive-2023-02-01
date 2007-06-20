@@ -228,6 +228,9 @@ class Worksheet:
         except AttributeError:
             return self
 
+    def publisher(self):
+        return self.worksheet_that_was_published().owner()
+
     def set_worksheet_that_was_published(self, W):
         if not isinstance(W, Worksheet):
             raise TypeError, "W must be a worksheet"
@@ -328,7 +331,7 @@ class Worksheet:
 
     def user_is_viewer(self, user):
         try:
-            return user in self.__viewers or user in self.__collaborators
+            return user in self.__viewers or user in self.__collaborators or user == self.publisher()
         except AttributeError:
             return True
 

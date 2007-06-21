@@ -247,7 +247,8 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
-        self.worksheet.set_active(username)
+        if not self.worksheet.is_published():
+            self.worksheet.set_active(username)
         if username != self.worksheet.owner():
             if not self.worksheet.is_published():
                 if not username in self.worksheet.collaborators() and user_type(username) != 'admin':

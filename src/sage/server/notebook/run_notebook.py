@@ -43,7 +43,7 @@ def notebook_twisted(self,
              server_pool = None,
              ulimit      = None):
     r"""
-    Experimental twisted version of the SAGE Notebook.
+    The SAGE Notebook.
 
     INPUT:
         directory  -- (default: 'sage_notebook') directory that contains
@@ -56,7 +56,19 @@ def notebook_twisted(self,
                       communication, e.g., logins and passwords,
                       between web browsers and the SAGE notebook is
                       encrypted (via GNU TLS).
-    ADVANCED OPTIONS:
+
+    The recommended somewhat secure way to run the SAGE notebook
+    publically is to (1) use a chroot jail, and (2) a command like
+
+       notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 1000000')
+
+    The secure=True option will use ssl for securing all
+    communications, the server pool option will ensure that the sage
+    worksheet process (where the users can execute arbitrary code) are
+    run as a separate process, and ulimit option ensures that no user
+    uses more than 1GB RAM per process.
+
+    INPUT:  (more advanced)
         server_pool -- (default: None), if given, should be a list like
                       ['sage1@localhost', 'sage2@localhost'], where
                       you have setup ssh keys so that typing

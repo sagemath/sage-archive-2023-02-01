@@ -10,6 +10,7 @@ The SAGE Notebook object
 #############################################################################
 
 import os
+import random
 import re
 import shutil
 import socket
@@ -76,13 +77,16 @@ class Notebook(SageObject):
     ##########################################################
     def default_users(self):
         self.add_user('pub', '', '', account_type='guest')
-        self.add_user('guest', 'a', '', account_type='guest')
-        self.add_user('guest2', 'a', '', account_type='guest')
-        self.add_user('admin', 'a', '', account_type='admin')
-        self.add_user("a", "a", "", "admin")
-        self.add_user("b", "a", "", "user")
-        for n in range(20):
-            self.add_user("s%s"%n, "a", "", "user")
+        self.add_user('guest', '', '', account_type='guest')
+        pw = hex(random.randint(1,2**24))[2:]
+        self.add_user('admin', pw, '', account_type='admin')
+        print "*"*60
+        print "*"*60
+        print ""
+        print "Setting Admin password to '%s'"%pw
+        print ""
+        print "*"*60
+        print "*"*60
 
     def users(self):
         try:
@@ -1193,7 +1197,7 @@ class Notebook(SageObject):
         else:
             F = os.path.abspath(filename)
 
-        print "Saving notebook to '%s'..."%F
+        #print "Saving notebook to '%s'..."%F
         D, _ = os.path.split(F)
         if not os.path.exists(D):
             os.makedirs(D)

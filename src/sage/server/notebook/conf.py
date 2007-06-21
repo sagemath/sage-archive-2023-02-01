@@ -21,6 +21,10 @@ class Configuration:
                 raise KeyError, "No key '%s' and no default for this key"%key
 
     def __setitem__(self, key, value):
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            value = str(value)
         self.confs[key] = value
 
     def html_conf_form(self, action):

@@ -169,7 +169,7 @@ s.setServiceParent(application)
         try:
             run(port + i)
         except socket.error:
-            print "Port %s is already in use.  Trying next port..."%port
+            print "Port %s is already in use." #  Trying next port..."%port
         else:
             break
 

@@ -178,6 +178,9 @@ var update_error_delta = 1024;
 var update_normal_delta = 512;
 var cell_output_delta = update_normal_delta;
 
+var server_ping_time = 10000;  /* Is once very 10 seconds way too fast?  Is it just right?  */
+
+
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
 var current_cell = -1;       // gets set on focus / blur
 var no_async = false; //this isn't really used -- should we think about dealing with this?
@@ -980,6 +983,41 @@ function list_revisions_of_worksheet(filename) {
 
 function list_preview_worksheet(filename) {
    window.location.replace('/home/' + filename + '/preview');
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// Tell server I am alive
+//
+///////////////////////////////////////////////////////////////////
+
+/* This pings the server every 30 seconds to announce that we are
+   still viewing this page.   If it fails, it should probably perform
+   some action to indicate that there is no server running.
+*/
+
+function server_ping_while_alive() {
+    async_request(worksheet_command('alive'), xx, null);
+}
+
+
+function xx(status, response_text) {
+    if (status == "failure") {
+        server_down();
+    } else {
+        server_up();
+    }
+    setTimeout("server_ping_while_alive();", server_ping_time);
+}
+
+function server_down() {
+   X = get_element("ping");
+   X.className = "pingdown";
+}
+
+function server_up() {
+   X = get_element("ping");
+   X.className = "ping";
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -825,7 +825,7 @@ class Notebook(SageObject):
     def html_banner(self):
         s = """
         <span class="banner">
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a> <span class="ping" id="ping">Unable to contact SAGE server!</span>
         </span>
         """
         return s
@@ -1078,7 +1078,7 @@ class Notebook(SageObject):
 
     def html_worksheet_page_template(self, worksheet, username, title):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
-        head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet.filename(), worksheet.name())
+        head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet.filename(), worksheet.name())
         body = self._html_body(worksheet.filename(), top_only=True, username=username)
         body += self.html_worksheet_topbar(worksheet)
         body += '<hr class="usercontrol">'
@@ -1526,7 +1526,7 @@ class Notebook(SageObject):
         head += '<script type="text/javascript">user_name="%s"; </script>'%username
 
         if worksheet_filename is not None:
-            head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet_filename, W.name())
+            head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet_filename, W.name())
 
         return """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

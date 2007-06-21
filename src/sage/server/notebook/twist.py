@@ -282,70 +282,43 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 # request.  See WorksheetDelete and WorksheetAdd for
 # examples.
 ########################################################
+## class FastRedirect(resource.Resource):
+##     def __init__(self, dest):
+##         self.dest = dest
+##     def render(self, ctx):
+##         return http.RedirectResponse(self.dest)
+## class YesNo(resource.Resource):
+##     addSlash = True
 
-class FastRedirect(resource.Resource):
-    def __init__(self, dest):
-        self.dest = dest
+##     def __init__(self, mesg, yes, no):
+##         self.mesg = mesg
+##         self.yes = yes
+##         self.no  = no
+
+##     def render(self, ctx):
+##         from sage.server.notebook.template import yes_no_template
+##         lt = yes_no_template(mesg=self.mesg)
+##         return http.Response(stream = lt)
+
+##         s = '%s<br>'%self.mesg
+##         s += '<a href="yes">Yes</a> or <a href="no">No</a>'
+##         return http.Response(stream = message(s))
+
+##     def childFactory(self, request, op):
+##         if op == 'yes':
+##             return FastRedirect(self.yes())
+##         elif op == 'no':
+##             return FastRedirect(self.no())
+
+
+########################################################
+# keep alive
+########################################################
+
+class Worksheet_alive(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        return http.RedirectResponse(self.dest)
-
-class YesNo(resource.Resource):
-    addSlash = True
-
-    def __init__(self, mesg, yes, no):
-        self.mesg = mesg
-        self.yes = yes
-        self.no  = no
-
-    def render(self, ctx):
-        from sage.server.notebook.template import yes_no_template
-        lt = yes_no_template(mesg=self.mesg)
-        return http.Response(stream = lt)
-
-        s = '%s<br>'%self.mesg
-        s += '<a href="yes">Yes</a> or <a href="no">No</a>'
-        return http.Response(stream = message(s))
-
-    def childFactory(self, request, op):
-        if op == 'yes':
-            return FastRedirect(self.yes())
-        elif op == 'no':
-            return FastRedirect(self.no())
-
-
-########################################################
-# Completely delete the worksheet from the notebook
-# server.  It is assumed that the javascript has already
-# done all relevant confirmation, and of course in the
-# future we'll check that the users is authenticated to
-# touch the worksheet.  Delete should also, in the
-# future, really just put the result in a trash can.
-########################################################
-
-def Worksheet_delete(name):
-    def yes():
-        notebook.delete_worksheet(name)
-        return '/'
-    def no():
-        return '..'
-
-    return YesNo('Do you want to delete the worksheet "%s"?'%name,
-                 yes=yes, no=no)
-
-########################################################
-# Create a new worksheet.
-########################################################
-
-## def Worksheet_create(name):
-##     def yes():
-##         W = notebook.create_new_worksheet(name, username)
-##         return '/home/' + W.filename()
-##     def no():
-##         return '/'
-
-##     wsname = _notebook.clean_name(name)
-##     return YesNo('Do you want to create the worksheet "%s"?'%name,
-##                  yes = yes, no = no)
+        self.worksheet.ping()
+        return http.Response(stream = '')
 
 ########################################################
 # Worksheet configuration.

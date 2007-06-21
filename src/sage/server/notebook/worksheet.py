@@ -1254,6 +1254,9 @@ class Worksheet:
         if username:
             self.record_edit(username)
 
+    def ping(self):
+        self._record_that_we_are_computing()
+
     ##########################################################
     # Enqueuing cells
     ##########################################################

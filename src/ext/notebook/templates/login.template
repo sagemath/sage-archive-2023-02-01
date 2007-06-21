@@ -1,17 +1,66 @@
 <html>
 <link rel=stylesheet href="/css/main.css">
 <body>
-<img src="/images/sagelogo.png">
-<br>
-<h2>Login to the SAGE Notebook</h2>
-<br><br><br><br>
-<form method="POST" action="/login">
-Username: <input type="text" name="email" size="15"><br>
-Password: <input type="password" name="password" size="15"><br>
-<input type="submit" value="Sign In">
-<br><br><br><br>
+        <span class="banner">
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>: Welcome!
+        </span>
+<br><br>
+<table>
+<tr><td width=50%>
 
-<a href='/register'>Register for a new account</a>
+
+<span class="addtext">
+<b>SAGE</b> is a different approach to mathematics software.<br><br>
+
+<b>General and Advanced Pure and Applied Mathematics</b><br>
+Use SAGE for studying
+calculus, elementary to very advanced
+number theory, cryptography,
+commutative algebra, group theory,
+graph theory, numerical and exact linear algebra, and more.
+<br><br>
+
+<b>Use an Open Source Alternative</b><br>
+By using SAGE you help to support a viable open source
+alternative to
+Magma, Maple, Mathematica, and MATLAB.
+SAGE includes many
+high-quality open source math packages.
+<br><br>
+
+<b>Use Most Mathematics Software from Within SAGE</b><br>
+SAGE makes it easy for you
+to use most mathematics software together.
+SAGE includes GAP, GP/PARI, Maxima, and Singular, and
+dozens of other open packages.
+<br><br>
+
+<b>Use a Mainstream Programming Language</b><br>
+You work with SAGE using the highly regarded
+scripting language Python.
+You can write programs that combine serious mathematics with
+anything else.
+</span>
+</td>
+<td bgcolor="#efefff" align=center>
+<span class="addtext">Sign into the SAGE Notebook<br><br>
+<form method="POST" action="/login">
+<table>
+<tr><td align=right>Username:</td><td><input type="text" name="email" size="15"></td></tr>
+<tr><td align=right>Password:</td><td><input type="password" name="password" size="15"></td></tr>
+<tr><td>&nbsp</td><td><input type="submit" value="Sign In"></td></tr>
+</table>
+<br><br><br><br>
+<a href='/register'><b>Sign up for the SAGE Notebook</b></a>
+<br><br>
+<a href='/pub'><b>Browse published SAGE worksheets<br>(registration not required)</b></a>
+</span>
+</td>
+</tr>
+</table>
+
+
+
 
 </body>
 </html>

@@ -22,8 +22,21 @@ EXAMPLES:
     sage: lisp.eval('(+ %s %s)'%(a.name(), b.name()))
     '8'
 
+One can define functions and the interface supports object-oriented
+notation for calling them:
+    sage: lisp.eval('(defun factorial (n) (if (= n 1) 1 (* n (factorial (- n 1)))))')
+    'FACTORIAL'
+    sage: lisp('(factorial 10)')
+    3628800
+    sage: lisp(10).factorial()
+    3628800
+    sage: a = lisp(17)
+    sage: a.factorial()
+    355687428096000
+
 AUTHORS:
-    -- William Stein (template)
+    -- William Stein (first version)
+    -- William Stein (2007-06-20): significant improvements.
 """
 
 ##########################################################################
@@ -90,6 +103,7 @@ class Lisp(Expect):
         self._synchronize()
         code = str(code)
         code = code.strip()
+        code = code.replace('\n',' ')
         x = []
         for L in code.split('\n'):
             if L != '':

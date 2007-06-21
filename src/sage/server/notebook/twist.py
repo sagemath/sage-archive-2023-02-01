@@ -88,6 +88,29 @@ def notebook_updates():
 ######################################################################################
 
 ############################
+# An error message
+############################
+def message(msg, cont=None):
+    s = notebook.html_banner()
+    s += '<span class="flush-right"><a class="usercontrol" href="/">Home</a></span>'
+    s += '<hr class="usercontrol">'
+    s += '<br>'*2
+    s += msg
+    s += '<br>'*2
+    if cont:
+        s += '<center><a class="boldusercontrol" href="%s"><font size=+1>Continue</font></a></center>'%cont
+    return """
+        <html>
+        <head>
+           <link rel=stylesheet href="/css/main.css">
+           <title>The SAGE Notebook</title>
+        </head>
+        <body>
+        %s
+        </body>
+    """%s
+
+############################
 # Create a SAGE worksheet from a latex2html'd file
 ############################
 from docHTMLProcessor import DocHTMLProcessor
@@ -218,8 +241,8 @@ class UploadWorksheet(resource.PostableResource):
             W = notebook.import_worksheet(tmp, username)
             os.unlink(tmp)
         except ValueError, msg:
-            s = "<html>Error uploading worksheet '%s'.  <a href='/'>continue</a></html>"%msg
-            return http.Response(stream = s)
+            s = "Error uploading worksheet '%s'."%msg
+            return http.Response(stream = message(s, '/'))
 
         name = ctx.args['nameField'][0].strip()
         if len(name) > 0:
@@ -242,8 +265,9 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
-        if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
-            raise RuntimeError, "illegal worksheet access"
+        if not self.worksheet.is_published():
+            if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
+                raise RuntimeError, "illegal worksheet access"
 
     def id(self, ctx):
         return int(ctx.args['id'][0])
@@ -294,9 +318,9 @@ class YesNo(resource.Resource):
         lt = yes_no_template(mesg=self.mesg)
         return http.Response(stream = lt)
 
-        s = '<html><body>%s<br>'%self.mesg
-        s += '<a href="yes">Yes</a> or <a href="no">No</a></body></html>'
-        return http.Response(stream = s)
+        s = '%s<br>'%self.mesg
+        s += '<a href="yes">Yes</a> or <a href="no">No</a>'
+        return http.Response(stream = message(s))
 
     def childFactory(self, request, op):
         if op == 'yes':
@@ -409,8 +433,14 @@ class Worksheet_copy(WorksheetResource, resource.PostableResource):
 ########################################################
 class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        W = notebook.copy_worksheet(self.worksheet, username)
-        W.set_name(self.worksheet.name())
+        if user_type(username) == 'guest':
+            return http.Response(stream = message(
+                'You must <a href="/">login first</a> in order to edit this worksheet.'))
+        if self.worksheet.user_is_collaborator(username) or self.worksheet.owner() == username:
+            W = self.worksheet
+        else:
+            W = notebook.copy_worksheet(self.worksheet, username)
+            W.set_name(self.worksheet.name())
         return http.RedirectResponse('/home/' + W.filename())
 
 ########################################################
@@ -528,7 +558,7 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
                 return worksheet_revision_publish(self.worksheet, rev)
             else:
                 s = 'Error'
-        return http.Response(stream = s)
+        return http.Response(stream = message(s))
 
 
 ########################################################
@@ -539,7 +569,7 @@ class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         if self.worksheet.owner() != username:
             s = 'You must be the owner of this worksheet to configure it.'
-            return http.Response(stream = s)
+            return http.Response(stream = message(s))
         else:
             system = ctx.args['system'][0].strip().lower()
             self.worksheet.set_system(system)
@@ -558,7 +588,7 @@ class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
 class Worksheet_settings(WorksheetResource, resource.Resource):
     def render(self, ctx):
         if self.worksheet.owner() != username:
-            s = 'You must be the owner of this worksheet to configure it.'
+            s = message('You must be the owner of this worksheet to configure it.')
         else:
             s = notebook.html_worksheet_settings(self.worksheet, username)
         return http.Response(stream = s)
@@ -582,7 +612,7 @@ class NotebookSettings(resource.Resource):
     child_process = ProcessNotebookSettings()
     def render(self, ctx):
         if user_type(username) != 'admin':
-            s = 'You must an admin to configure the notebook.'
+            s = message('You must an admin to configure the notebook.')
         else:
             s = notebook.html_notebook_settings()
         return http.Response(stream = s)
@@ -750,8 +780,7 @@ class Worksheet_rating_info(WorksheetResource, resource.Resource):
     def render(self, ctx):
         ratings = self.worksheet.ratings()
         r = '\n'.join(['<tr><td>%s</td><td align=center>%s</td></tr>'%(x,y) for x,y in sorted(ratings)])
-        return http.Response(stream="""
-        <html>
+        return http.Response(stream=message("""
         <h2 align=center>Ratings for %s</h2>
         <h3 align=center><a href='/home/%s'>Return to the worksheet.</a>
         <br><br>
@@ -760,25 +789,21 @@ class Worksheet_rating_info(WorksheetResource, resource.Resource):
         %s
         </table>
         <br><br>
-        </html>
-        """%(self.worksheet.name(), self.worksheet.filename(), r))
+        """%(self.worksheet.name(), self.worksheet.filename(), r)))
 
 
 class WorksheetRating(WorksheetResource, resource.Resource):
     def render(self, ctx):
         if self.worksheet.is_rater(username):
-            return http.Response(stream="You have already rated the worksheet '%s'."%self.worksheet.name())
+            return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), '/home/' + self.worksheet.filename()))
+        if username == "guest":
+            return http.Response(stream = message(
+                'You must <a href="/">login first</a> in order to rate this worksheet.'))
+
         self.do_rating()
-        return http.Response(stream="""
-        <html>
-        <body>
-        <br><br><br>
-        Thank you for rating the worksheet '%s'!
-        <br><br>
-        <a href='/home/%s'>Click here to return to the worksheet</a> or <a href="/pub">browse other published worksheets</a>.
-        </body>
-        </html>
-        """%(self.worksheet.name(), self.worksheet.filename()))
+        return http.Response(stream=message("""
+        Thank you for rating the worksheet <b><i>%s</i></b>!
+        """%self.worksheet.name(), '/home/' + self.worksheet.filename()))
 
 class Worksheet_rate1(WorksheetRating):
     def do_rating(self):
@@ -808,7 +833,7 @@ class Worksheet_download(WorksheetResource, resource.Resource):
         try:
             notebook.export_worksheet(worksheet_name, filename)
         except KeyError:
-            return http.Response(stream='No such worksheet.')
+            return http.Response(stream=message('No such worksheet.'))
         r = open(filename, 'rb').read()
         os.unlink(filename)
         return static.Data(r, 'application/sage')
@@ -843,11 +868,14 @@ class Worksheet_print(WorksheetResource, resource.Resource):
 
 
 class NotImplementedWorksheetOp(resource.Resource):
-    def __init__(self, op):
+    def __init__(self, op, ws):
         self.op = op
+        self.ws = ws
 
     def render(self, ctx):
-        return http.Response(stream = 'The worksheet operation "%s" is not implemented.'%self.op)
+        return http.Response(stream = message(
+            'The worksheet operation "%s" is not defined.'%self.op,
+            '/home/'+self.ws.filename()))
 
 
 class Worksheet(WorksheetResource, resource.Resource):
@@ -871,7 +899,7 @@ class Worksheet(WorksheetResource, resource.Resource):
             if os.path.exists(file):
                 return static.File(file)
 
-            return NotImplementedWorksheetOp(op)
+            return NotImplementedWorksheetOp(op, self.worksheet)
 
 def render_worksheet_list(args, pub=False):
     if args.has_key('typ'):
@@ -919,8 +947,8 @@ class WorksheetsByUser(resource.Resource):
         if self.user == username:
             return self.render_list(ctx)
         else:
-            return http.Response(stream = "<html><br><br><br><h2>You are logged in as '%s' so you do not have permission to view the home page of '%s'.</h2></html>."%(
-                username, self.user))
+            return http.Response(stream = message("You are logged in as '%s' so you do not have permission to view the home page of '%s'."%(
+                username, self.user)))
 
     def childFactory(self, request, name):
         if name == "trash":
@@ -930,7 +958,7 @@ class WorksheetsByUser(resource.Resource):
         try:
             return Worksheet(filename)
         except KeyError:
-            return http.Response(stream = "The user '%s' has no worksheet '%s'."%(self.user, name))
+            return http.Response(stream = message("The user '%s' has no worksheet '%s'."%(self.user, name)))
 
 
 ############################
@@ -940,14 +968,24 @@ class SendWorksheetToFolder(resource.PostableResource):
     def action(self, W):
         raise NotImplementedError
     def render(self, ctx):
-        filename = ctx.args['filename'][0]
-        W = notebook.get_worksheet_with_filename(filename)
         X = notebook.user(username)
-        if X.is_admin() or W.owner() == username or W.publisher() == username:
-            self.action(W)
-            s = ''
-        else:
-            s = "You are not authorized to move '%s'"%W.name()
+        s = ''
+        def send_worksheet_to_folder(filename):
+            W = notebook.get_worksheet_with_filename(filename)
+            if X.is_admin() or W.owner() == username or W.publisher() == username:
+                self.action(W)
+            else:
+                s += message("You are not authorized to move '%s'"%W.name())
+
+        if ctx.args.has_key('filename'):
+            filenames = [ctx.args['filename'][0]]
+        elif ctx.args.has_key('filenames'):
+            sep = ctx.args['sep'][0]
+            filenames = [x for x in ctx.args['filenames'][0].split(sep) if len(x.strip()) > 0]
+
+        for F in filenames:
+            send_worksheet_to_folder(F)
+
         return http.Response(stream = s)
 
 class SendWorksheetToTrash(SendWorksheetToFolder):
@@ -973,7 +1011,11 @@ class PublicWorksheets(resource.Resource):
         return http.Response(stream = s)
 
     def childFactory(self, request, name):
-        return http.Response(stream = "Not implemented")
+        return Worksheet('pub/' + name)
+
+class PublicWorksheetsHome(resource.Resource):
+    addSlash = True
+    child_pub = PublicWorksheets()
 
 ############################
 # Resource that gives access to worksheets
@@ -981,7 +1023,7 @@ class PublicWorksheets(resource.Resource):
 
 class Worksheets(resource.Resource):
     def render(self, ctx):
-        return http.Response(stream = "Please request a specific worksheet")
+        return http.Response(stream = message("Please request a specific worksheet"))
 
     def childFactory(self, request, name):
         return WorksheetsByUser(name)
@@ -1110,7 +1152,7 @@ class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
         notebook.save()
-        return http.Response(stream="thank you for using sage")
+        return http.Response(stream=messsage("Thank you for using SAGE."))
 
 ############################
 # Image resource
@@ -1235,7 +1277,10 @@ class Toplevel(resource.PostableResource):
     def __init__(self, cookie, _username):
         self.cookie = cookie
         global username, admin
-        username = _username
+        if _username == tuple([]):
+            username = 'guest'
+        else:
+            username = _username
 
 setattr(Toplevel, 'child_favicon.ico', static.File(image_path + '/favicon.ico'))
 
@@ -1260,6 +1305,7 @@ class AnonymousToplevel(Toplevel):
     child_confirm = RegConfirmation()
     child_images = Images()
     child_css = CSS()
+    child_home = PublicWorksheetsHome()
     child_pub = PublicWorksheets()
 
     def render(self, ctx):
@@ -1329,4 +1375,9 @@ OPEN_MODE = None # this gets set on startup.
 
 
 def user_type(user):
-    return notebook.user(user).account_type()
+    # one of admin, guest, user
+    try:
+        U = notebook.user(user)
+    except KeyError:
+        return 'guest'
+    return U.account_type()

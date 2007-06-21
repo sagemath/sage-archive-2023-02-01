@@ -642,7 +642,7 @@ function set_worksheet_list_checks() {
     }
 }
 
-function worksheet_list_button(action, desc) {
+function worksheet_list_button0(action, desc) {
     /* For each filename listed in worksheet_filenames, look up the corresponding
        input check box, see if it is checked, and if so, do the corresponding
        action.
@@ -662,6 +662,24 @@ function worksheet_list_button(action, desc) {
     }
 }
 
+function worksheet_list_button(action, desc) {
+    /* For each filename listed in worksheet_filenames, look up the corresponding
+       input check box, see if it is checked, and if so, do the corresponding
+       action.
+     */
+    var i, id, X, filenames;
+    filenames = "";
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        if (X.checked) {
+            filenames = filenames + worksheet_filenames[i] + SEP;
+            X.checked = 0;
+        }
+    }
+    async_request(action, worksheet_list_button_callback, 'filenames='+filenames + '&sep='+SEP);
+}
+
 function worksheet_list_button_callback(status, response_text) {
    if (status == 'success') {
       if (response_text != '') {
@@ -670,6 +688,7 @@ function worksheet_list_button_callback(status, response_text) {
    } else {
       alert("Failure deleting worksheet." + response_text);
    }
+   window.location.replace(".");
 }
 
 function delete_button() {
@@ -708,7 +727,7 @@ function share_worksheet() {
 }
 
 function publish_worksheet() {
-    window.location.replace(worksheet_command("publish"));
+    open(worksheet_command("publish"));
 }
 
 function save_as(typ) {

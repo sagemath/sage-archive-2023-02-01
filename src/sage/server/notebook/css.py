@@ -1268,9 +1268,17 @@ span.username {
 }
 
 span.ratingmsg {
+  font-family: sans-serif;
   color: #112abb;
-  padding:1ex;
+  padding:0.6ex;
   font-size:14px;
+}
+
+span.pubmsg {
+  font-family: sans-serif;
+  color: #112abb;
+  padding:0.6ex;
+  font-size:12px;
 }
 
 a.usercontrol {
@@ -1479,6 +1487,12 @@ td.last_edited {
   font-family: sans-serif;
   font-size:12px;
   color: #000000;
+}
+
+span.addtext {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222;
 }
 
 """

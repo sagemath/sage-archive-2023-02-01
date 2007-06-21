@@ -250,6 +250,30 @@ class Worksheet:
     def publisher(self):
         return self.worksheet_that_was_published().owner()
 
+    def has_published_version(self):
+        try:
+            self.published_version()
+            return True
+        except ValueError:
+            return False
+
+    def set_published_version(self, filename):
+        self.__published_version = filename
+
+    def published_version(self):
+        try:
+            filename =self.__published_version
+            try:
+                W = self.notebook().get_worksheet_with_filename(filename)
+                if W.is_trashed():
+                    raise KeyError
+                return W
+            except KeyError:
+                del self.__published_version
+                raise ValueError
+        except AttributeError:
+            raise ValueError, "no published version"
+
     def set_worksheet_that_was_published(self, W):
         if not isinstance(W, Worksheet):
             raise TypeError, "W must be a worksheet"
@@ -337,6 +361,9 @@ class Worksheet:
             self.__owner = 'pub'
             return 'pub'
 
+    def is_owner(self, username):
+        return self.owner() == username
+
     def set_owner(self, owner):
         self.__owner = owner
         if not owner in self.__collaborators:
@@ -388,7 +415,9 @@ class Worksheet:
             True if the search is satisfied by self, i.e., all
             the words appear in the text version of self.
         """
-        E = self.edit_text().lower()
+        E = self.edit_text() + \
+            ' '.join(self.collaborators()) + ' '.join(self.viewers()) + ' ' + self.publisher()
+        E = E.lower()
         for word in search.split():
             if not word.lower() in E:
                 return False
@@ -593,10 +622,10 @@ class Worksheet:
 
         return s
 
-    def truncated_name(self):
+    def truncated_name(self, max=30):
         name = self.name()
-        if len(name) > 30:
-            name = name[:30] + ' ...'
+        if len(name) > max:
+            name = name[:max] + ' ...'
         return name
 
     def html_title(self):

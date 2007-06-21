@@ -68,6 +68,7 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
+        self.add_user('guest', 'guest', '', account_type='guest')
         self.add_user('admin', 'admin', '', account_type='admin')
         self.add_user("a", "a", "", "admin")
         self.add_user("b", "b", "", "user")
@@ -162,6 +163,7 @@ class Notebook(SageObject):
                 self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
                 X.move_to_archive()
+                worksheet.set_published_version(X.filename())
                 return X
 
         # Have to create a new worksheet
@@ -169,6 +171,7 @@ class Notebook(SageObject):
         self._initialize_worksheet(worksheet, W)
         W.set_worksheet_that_was_published(worksheet)
         W.move_to_archive()
+        worksheet.set_published_version(W.filename())
         return W
 
     ##########################################################
@@ -780,14 +783,20 @@ class Notebook(SageObject):
     def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
         s = ''
 
-        entries = [('/home/%s'%user, 'Home', 'Back to your personal worksheet list'),
-                   ('/settings', 'Settings', 'Change user settings'),
-                   ('/doc', 'Help', 'Documentation')]
+        entries = []
+        if user == 'guest':
+            entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
+        else:
+            entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
+            entries.append(('/settings', 'Settings', 'Change user settings'))
+            entries.append(('/doc', 'Help', 'Documentation'))
+
         if self.user(user).is_admin():
             entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
         if not pub:
             entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
-        entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
+        if user != 'guest':
+            entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
         s += self.html_user_control(user, entries)
         s += self.html_banner()
@@ -856,7 +865,7 @@ class Notebook(SageObject):
         </select>
         """
 
-        if user != 'pub':
+        if user != 'guest':
             s += '<button onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>'
             if typ != 'trash':
                 s += '&nbsp;&nbsp;<button onClick="delete_button();" title="Move the selected worksheets to the trash">Delete</button>'
@@ -864,7 +873,8 @@ class Notebook(SageObject):
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
             s += '<span class="flush-right">'
-            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Browse</a>&nbsp;&nbsp;&nbsp;'
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published</a>'
+            s += '&nbsp;'*10
             s += '&nbsp;<a class="usercontrol" href=".">Active</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'
@@ -922,8 +932,8 @@ class Notebook(SageObject):
                     r = "----"
                 else:
                     r = "%.1f"%rating
-                if user != 'pub' and not worksheet.is_rater(user):
-                    r = '<b>%s</b>'%r
+                if user != 'guest' and not worksheet.is_rater(user):
+                    r = '<i>%s</i>'%r
                 return r
 
             return """
@@ -946,11 +956,11 @@ class Notebook(SageObject):
         return k
 
     def html_worksheet_link(self, worksheet, pub):
-        name = worksheet.truncated_name()
+        name = worksheet.truncated_name(35)
         if not pub and worksheet.is_published():
             name += ' (published)'
-        return '<a id="name/%s" class="worksheetname" href="/home/%s">%s</a>\n'%(
-            worksheet.filename(), worksheet.filename(), name)
+        return '<a title="%s" id="name/%s" class="worksheetname" href="/home/%s">%s</a>\n'%(
+            worksheet.name(), worksheet.filename(), worksheet.filename(), name)
 
     def html_owner_collab_view(self, worksheet, user, typ):
         v = []
@@ -976,6 +986,9 @@ class Notebook(SageObject):
                 share = '<a class="share" href="/home/%s/share">Add or Delete</a>'%(worksheet.filename())
         else:
             share = ''
+        if worksheet.has_published_version():
+            pub_ver = worksheet.published_version().filename()
+            share += ' <a href="/home/%s">(published)'%pub_ver
 
         viewers = worksheet.viewers()
         if len(viewers) > 0:
@@ -1280,26 +1293,42 @@ class Notebook(SageObject):
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
             body += main_body
             body += '<hr class="usercontrol">'
-            body += '<a class="usercontrol" href="edit_published_page">Edit a copy of this SAGE Worksheet.</a>'
-            body += '<hr class="usercontrol">'
+            if worksheet.user_is_collaborator(username) or worksheet.is_owner(username):
+                s = "Edit this worksheet."
+                url = 'edit_published_page'
+            elif username == "guest":
+                s = 'Log in if you would like to edit a copy of this worksheet.'
+                url = '/'
+            else:
+                s = 'Edit a copy of this worksheet.'
+                url = 'edit_published_page'
+            body += '<a class="usercontrol" href="%s">%s</a>'%(url, s)
+            body += '&nbsp;'*10
+
             r = worksheet.rating()
             if r == 0:
                 rating = 'This page has not yet been rated.'
             else:
-                rating = 'This page is rated %.1f stars <a class="usercontrol" href="rating_info">(more).</a><br>'%r
-            if username != 'pub' and not worksheet.is_rater(username):
-                rating += '&nbsp;&nbsp;Please rate this page (this is not anonymous): '
-                rating += '  '.join(['<a class="usercontrol" href="rate%s">%s star</a>'%(i,i) for
+                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
+            if username != 'guest' and not worksheet.is_rater(username):
+                rating += '&nbsp;&nbsp; Rate it: '
+                rating += '  '.join(['<a class="usercontrol" href="rate%s">&nbsp;%s&nbsp;</a>'%(i,i) for
                                    i in range(1,5)])
             body += '<span class="ratingmsg">%s</span>'%rating
+
+            body += '<hr class="usercontrol">'
+            body += '<br>'*2
+            body += '<span class="pubmsg">This document was published using <a href="/">SAGE</a>.'
+            body += '  Browser <a href="/pub/">other published documents.</a></span>'
 
         else:
 
             entries = [('..', 'Home', 'Back to your personal worksheet list'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        ('settings', 'Settings', 'Worksheet settings'),
-                       ('/doc', 'Help', 'Documentation'),
-                       ('/logout', 'Sign out', 'Logout of the SAGE notebook')]
+                       ('/doc', 'Help', 'Documentation')]
+            if username != 'guest':
+                entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
             body += self.html_user_control(username, entries)
             body += self.html_banner()+ '<br><br>'
@@ -1459,7 +1488,6 @@ Output
             <head>
               <title>Upload File</title>
               <style>%s</style>
-              <script type='text/javascript'>%s</script>
             </head>
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
@@ -1486,9 +1514,9 @@ Output
               </div>
             </body>
           </html>
-         """%(css.css(self.color()),js.javascript())
+         """%css.css(self.color())
 
-    def html(self, worksheet_filename=None, username=None, show_debug=False, admin=False):
+    def html(self, worksheet_filename=None, username='guest', show_debug=False, admin=False):
         if worksheet_filename is None or worksheet_filename == '':
             worksheet_filename = None
             W = None

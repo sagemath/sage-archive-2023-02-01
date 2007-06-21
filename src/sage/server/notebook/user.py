@@ -10,6 +10,8 @@ class User:
         self.__username = username
         self.__password = crypt.crypt(password, SALT)
         self.__email = email
+        if not account_type in ['admin', 'user', 'guest']:
+            raise ValueError, "account type must be one of admin, user, or guest"
         self.__account_type = account_type
         self.__conf = user_conf.UserConfiguration()
 

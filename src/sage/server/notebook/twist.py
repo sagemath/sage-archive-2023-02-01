@@ -541,8 +541,18 @@ class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
             s = 'You must be the owner of this worksheet to configure it.'
             return http.Response(stream = s)
         else:
-            system = ctx.args['system'][0].strip()
+            system = ctx.args['system'][0].strip().lower()
             self.worksheet.set_system(system)
+            if system != 'sage':
+                post = ' (%s)'%system
+                n = self.worksheet.name()
+                i = n.rfind('(')
+                if i != -1:
+                    j = n.rfind(')')
+                    if j != -1:
+                        n = n[:i]
+                n = n.strip() + post
+                self.worksheet.set_name(n)
             return http.RedirectResponse('/home/'+ self.worksheet.filename())
 
 class Worksheet_settings(WorksheetResource, resource.Resource):

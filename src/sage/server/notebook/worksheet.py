@@ -226,8 +226,8 @@ class Worksheet:
         try:
             return self.__system
         except AttributeError:
-            self.__system = None
-            return None
+            self.__system = 'sage'
+            return 'sage'
 
     def set_system(self, system=None):
         system = system.lower().strip()
@@ -486,6 +486,7 @@ class Worksheet:
         suitable for hand editing.
         """
         s = self.name() + '\n'
+        s += 'system:%s'%self.system()
 
         for C in self.__cells:
             t = C.edit_text().strip()
@@ -502,8 +503,12 @@ class Worksheet:
 
         text.replace('\r\n','\n')
         name, i = extract_name(text)
-        text = text[i:]
         self.set_name(name)
+        text = text[i:]
+
+        system, i = extract_system(text)
+        self.set_system(system)
+        text = text[i:]
 
         data = []
         while True:
@@ -636,8 +641,8 @@ class Worksheet:
 ##  <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text</option>
         return """
 <select class="worksheet">
- <option title="Save this worksheet to an sws file" onClick="download_worksheet('%s');">Save as File...</option>
  <option title="Create a new worksheet" onClick="new_worksheet();">New</option>
+ <option title="Save this worksheet to an sws file" onClick="download_worksheet('%s');">Download</option>
  <option title="Save changes" onClick="save_worksheet();">Save</option>
  <option title="Print this worksheet" onClick="print_worksheet();">Print</optooion>
  <option title="Rename this worksheet" onClick="rename_worksheet();">Rename</option>
@@ -953,7 +958,7 @@ class Worksheet:
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
-                if S is None: S = 'SAGE'
+                if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
             if I.startswith('%time'):
@@ -1888,6 +1893,24 @@ def extract_name(text):
             name = text[i:]
             n = len(text)-1
     return name.strip(), n
+
+def extract_system(text):
+    # If the first line is "system: ..." , then it is the system.  Otherwise the system is SAGE.
+    i = non_whitespace.search(text)
+    if i is None:
+        return 'sage', 0
+    else:
+        i = i.start()
+        if not text[i:].startswith('system:'):
+            return 'sage', 0
+        j = text[i:].find('\n')
+        if j != -1:
+            system = text[i:i+j][7:].strip()
+            n = j+1
+        else:
+            system = text[i:][7:].strip()
+            n = len(text)-1
+        return system, n
 
 
 def dictify(s):

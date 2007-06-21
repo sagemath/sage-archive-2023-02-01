@@ -816,16 +816,12 @@ class Notebook(SageObject):
         s += '</div>'
         return s
 
-    def html_banner(self, system=None):
-        if not system is None and not system.lower() == "sage":
-            k = '&nbsp;&nbsp; -- %s mode'%system.capitalize()
-        else:
-            k = ''
+    def html_banner(self):
         s = """
         <span class="banner">
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software%s</a>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Mathematics Software</a>
         </span>
-        """%k
+        """
         return s
 
     def html_search(self, search=None):
@@ -1459,7 +1455,6 @@ Output
 
     def upload_window(self):
         return """
-          <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
           <html>
             <head>
               <title>Upload File</title>

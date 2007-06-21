@@ -162,25 +162,28 @@ div.top_control_bar a.help {
 }
 
 div.top_control_bar a.help:hover{
-}
-
-div.top_control_bar a.slide_mode {
-}
-
-div.top_control_bar a.slide_mode:hover{
-}
-
-div.top_control_bar a.cell_mode {
-}
-
-div.top_control_bar a.cell_mode:hover{
    cursor:pointer;
 }
 
-div.top_control_bar a.slide_arrow {
+a.slide_mode {
 }
 
-div.top_control_bar a.slide_arrow:hover{
+a.slide_mode:hover{
+   cursor:pointer;
+}
+
+a.cell_mode {
+}
+
+a.cell_mode:hover{
+   cursor:pointer;
+}
+
+a.slide_arrow {
+}
+
+a.slide_arrow:hover{
+   cursor:pointer;
 }
 
 
@@ -241,6 +244,11 @@ div.slideshow_control {
   float:right;
 }
 
+div.slideshow_control:hover {
+   cursor:pointer;
+}
+
+
 div.slideshow_progress {
   float:right;
   background-color:white;
@@ -252,6 +260,9 @@ div.slideshow_progress_bar{
   z-index:1;
   position:relative;
   background-color: <color1>;
+}
+div.slideshow_progress_bar:hover {
+   cursor:pointer;
 }
 div.slideshow_progress_text{
   position:absolute;
@@ -1312,6 +1323,10 @@ a.control {
   text-decoration: none;
 }
 
+a.control:hover {
+   cursor:pointer;
+}
+
 span.sharebar {
   background-color:#7799bb;
   font-family: sans-serif;
@@ -1333,7 +1348,7 @@ textarea.edit {
     color: black;
     background-color: white;
     padding: 3px;
-    width: 100%%;
+    width: 100%;
     margin-top: 0.5em;
 }
 
@@ -1435,7 +1450,7 @@ a.share {
 }
 
 select.worksheet {
-  width:7em;
+  width:9em;
   border: #aaaaaa;
   border-style: solid;
   border-top-width: 1px;
@@ -1493,6 +1508,29 @@ span.addtext {
   font-family: sans-serif;
   font-size:13px;
   color: #222;
+}
+
+textarea.plaintextedit {
+    position:fixed;
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    top: 10em;
+    bottom: 0ex;
+    right: 0ex;
+    left:1ex;
+    margin-top: 0.5em;
+}
+
+div.docidx {
+  text-align:center;
+  font-family: sans-serif;
+  font-size:16px;
+  color: #222;
+  font-weight:bold;
 }
 
 """

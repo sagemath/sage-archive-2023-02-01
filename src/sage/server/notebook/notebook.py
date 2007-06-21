@@ -33,6 +33,8 @@ import user_conf    # user configuration
 import user         # users
 
 
+SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'kash', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'singular']
+
 JSMATH = True
 
 vbar = '<span class="vbar"></span>'
@@ -67,6 +69,12 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
+        self.default_users()
+
+    ##########################################################
+    # Users
+    ##########################################################
+    def default_users(self):
         self.add_user('pub', '', '', account_type='guest')
         self.add_user('guest', 'a', '', account_type='guest')
         self.add_user('guest2', 'a', '', account_type='guest')
@@ -74,11 +82,8 @@ class Notebook(SageObject):
         self.add_user("a", "a", "", "admin")
         self.add_user("b", "a", "", "user")
         for n in range(20):
-            self.add_user("Joe User %s"%n, "a", "", "user")
+            self.add_user("s%s"%n, "a", "", "user")
 
-    ##########################################################
-    # Users
-    ##########################################################
     def users(self):
         try:
             return self.__users
@@ -93,6 +98,9 @@ class Notebook(SageObject):
             return self.__users[username]
         except KeyError:
             raise KeyError, "no user '%s'"%username
+
+    def user_is_admin(self, user):
+        return self.user(user).is_admin()
 
     def user_is_guest(self, username):
         try:
@@ -112,8 +120,6 @@ class Notebook(SageObject):
         return U.keys()
 
     def add_user(self, username, password, email, account_type="user"):
-        if username == 'pub':
-            raise ValueError, "the username 'pub' is not allowed"
         us = self.users()
         if us.has_key(username):
             raise ValueError, "User '%s' already exists"%username
@@ -195,7 +201,7 @@ class Notebook(SageObject):
             return W
 
     def create_new_worksheet(self, worksheet_name, username, docbrowser=False, add_to_list=True):
-        if self.user_is_guest(username):
+        if username!='pub' and self.user_is_guest(username):
             raise ValueError, "guests cannot create new worksheets"
 
         filename = worksheet.worksheet_filename(worksheet_name, username)
@@ -272,25 +278,6 @@ class Notebook(SageObject):
                 self.rename_worksheet_filename(w, w.filename())
 
     ##########################################################
-    # Information about users
-    ##########################################################
-    def user_is_admin(self, user):
-        # todo -- make this use the password file !!!
-        return user in ['a', 'admin']
-        try:
-            return user in self.__admins
-        except AttributeError:
-            self.__admins = []
-            return False
-
-    def add_admin(self, user):
-        try:
-            if not user in self.__admins:
-                self.__admins.append(user)
-        except AttributeError:
-            self.__admins = [user]
-
-    ##########################################################
     # Information about the pool of worksheet compute servers
     ##########################################################
 
@@ -332,17 +319,10 @@ class Notebook(SageObject):
 
     # TODO -- only implemented for the notebook right now
     def system(self, username=None):
-        try:
-            return self.__system
-        except AttributeError:
-            self.__system = None
-            return None
+        return self.user(username).conf()['default_system']
 
     def set_system(self, system):
-        if system == 'sage':
-            self.__system = None
-        elif system:  # don't change if it is None
-            self.__system = system
+        self.__system = system
 
     ##########################################################
     # The default color scheme for the notebook.
@@ -791,10 +771,8 @@ class Notebook(SageObject):
 
         return s
 
-
-    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
+    def html_topbar(self, user, pub=False):
         s = ''
-
         entries = []
         if self.user_is_guest(user):
             entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
@@ -813,13 +791,16 @@ class Notebook(SageObject):
         s += self.html_user_control(user, entries)
         s += self.html_banner()
         s += '<hr class="usercontrol">'
+        return s
+
+    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
+        s = self.html_topbar(user, pub)
         s += self.html_new_or_upload()
         s += self.html_search(search, typ)
         s += '<br>'
         s += '<hr class="usercontrol">'
         if actions:
             s += self.html_worksheet_actions(user, typ=typ)
-
         return s
 
 
@@ -1034,7 +1015,7 @@ class Notebook(SageObject):
         rows = []
         i = 0
         for desc, key in data:
-            rows.append('<tr><td></td><td><a href="revisions?rev=%s">Revision %s</a></td><td><span class="revs">%s ago</span></td></tr>'%
+            rows.append('<tr><td></td><td><a href="revisions?rev=%s">Revision %s</a></td><td><span class="revs">%s</span></td></tr>'%
                         (key, i, desc))
             i += 1
 
@@ -1393,61 +1374,43 @@ class Notebook(SageObject):
 
         return body
 
-    def edit_window(self, worksheet):
+    def edit_window(self, worksheet, username):
         """
         Return a window for editing worksheet.
 
         INPUT:
             worksheet -- a worksheet
         """
+        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit Text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel">')
+
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
-        body_html = ''
-        body_html += '<h1 class="edit">SAGE: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += """The format is as follows: <pre>
-... Arbitrary HTML with latex formulas (in $ and $$)...
-{{{meta info about cell|
-Input
-///
-Output
-}}}
-</pre>"""
-        body_html += '<form method="post" action="save" enctype="multipart/form-data">\n'
-        body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
-        #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
-        body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
-        body_html += '<textarea class="edit" id="cell_intext" rows="22" name="textfield">'+t+'</textarea>'
-        body_html += '</form>'
+        body = '        <form method="post" action="save" enctype="multipart/form-data">' + body
+        body += """
+        <textarea class="plaintextedit" id="cell_intext" name="textfield">%s</textarea>
+        </form>
+        """%t
 
-        s = """
-        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-        <html><head><title>SAGE Wiki cell text </title>
-        <style type="text/css">
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
 
-        textarea.edit {
-            font-family: courier, monospace;
-            font-size:10pt;
-            border: 1px solid #8cacbb;
-            color: black;
-            background-color: white;
-            padding: 3px;
-            width: 100%%;
-            margin-top: 0.5em;
-        }
-        </style>
-        <body>%s
-        </body></html>"""%body_html
+    def html_notebook_help_window(self, username):
+        top = self._html_head(None, username) + self.html_topbar(username)
 
-        return s
-
-    def help_window(self):
         from tutorial import notebook_help
         s = """
         <html>
         <body>
-        <a href="/">Home</a>
+        """ + top + \
+        """
         <style>
+
         div.help_window {
+            font-family: sans-serif;
             background-color:white;
             border: 3px solid #3d86d0;
             top: 10ex;
@@ -1455,12 +1418,13 @@ Output
             left:25%;
             right:15%;
             padding:2ex;
+            width:70%;
         }
 
 
         table.help_window {
             background-color:white;
-            width:100%;
+            width:90%;
         }
 
         td.help_window_cmd {
@@ -1477,29 +1441,32 @@ Output
         </style>
 
         <br>
-        <h1 align=center><font color='darkred'>SAGE</font> Notebook Quickstart</h1>
-        <div class="help_window">
+        <h1 align=center>Quick Guide to the SAGE Notebook</h1>
 
-        A <i>worksheet</i> is an ordered list of SAGE calculations with output.
-        A <i>session</i> is a worksheet and a set of variables in some state.
-        A <i>notebook</i> is a collection of worksheets and saved objects.
+<center>
+        <div class="help_window">
+        The SAGE Notebook was written by Tom Boothby, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein.   SAGE is <a href="/license.html">GPL-compatible</a>.
+        <br><br>
+
+        A <i>worksheet</i> is an ordered list of SAGE calculations with output. <br>
+        A <i>session</i> is a worksheet and a set of variables in some state.<br>
+        The <i>SAGE notebook</i> is a collection of worksheets, saved objects, and user information.<br>
         <br>
         <br>
-        To get started with SAGE, <a href="/doc/live/tut/tut.html">view the tutorial</a> (if
+        To get started with SAGE, <a href="/doc/live/tut/tut.html">work through the tutorial</a> (if
         you have trouble with it, view the <a href="/doc/static/tut/tut.html">static version</a>).
         <br><br>
 
         <table class="help_window">
         """
+
         for x, y in notebook_help:
             s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>\n'%(x,y)
         s += '</table></div>'
 
         s +="""
         <br>
-        AUTHORS: Tom Boothby, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein.  User interface design based on Google Documents.<br><br>
-        LICENSE: SAGE is <a href="/license.html">GPL-compatible</a>.
-        <br>
+        </center>
         </body>
         </html>
         """
@@ -1596,23 +1563,25 @@ Output
     # In each case the settings html is a form that when submitted
     # pulls up another web page and sets the corresponding options.
     ####################################################################
-    def html_worksheet_settings(self, ws, username):
-        head, body = self.html_worksheet_page_template(ws, username, "Worksheet Settings")
-
+    def html_system_select_form_element(self, ws):
         system = ws.system()
-        if system is None:
-            system = "sage"
+        options = ''
+        for S in SYSTEMS:
+            if S == system:
+                selected = "selected=1"
+            else:
+                selected = ''
+            options += '<option %s onClick="system_select(\'%s\');">%s</option>\n'%(selected, S,S)
+        s = """<select class="worksheet">
+            %s
+            </select>"""%options
+        return s
 
-        body += """
-        <form width=70%% method="post" action="input_settings">
-           <button>Save Settings</button><br><br>
+    def html_worksheet_settings(self, ws, username):
+        head, body = self.html_worksheet_page_template(ws, username, 'Worksheet Settings &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button name="button_save">Save Settings</button>  <input type="submit" value="Cancel" name="button_cancel"/>')
 
-Evaluation System: <input name="system" id="system" size=20 value="  %s"></input> (e.g., sage, gp, gap, singular, magma, etc.)
-
-           <br><br>
-           <button>Save Settings</button>
-        </form>
-        """%(system)
+        body = '<form width=70%% method="post" action="input_settings"  enctype="multipart/form-data">' + body
+        body += '</form>'
 
         return """
         <html>
@@ -1635,6 +1604,35 @@ Evaluation System: <input name="system" id="system" size=20 value="  %s"></input
         s = self.html_settings()
         return s
 
+    def html_doc(self, username):
+        top = self._html_head(None, username) + self.html_topbar(username)
+        body = """
+        <br>
+        <div class="docidx">
+        <h1>SAGE Documentation</h1>
+        <br>
+        <hr class="usercontrol">
+        <br><br>
+        <font size=+2>
+        <a href="/help/">Quick Guide to the SAGE Notebook</a><br><br>
+        <a href="/doc/live/">Interactive Documentation</a><br>
+        <a href="/doc/static/">Static Documentation</a><br><br>
+        <br>
+        <hr class="usercontrol">
+        </font>
+        </div>
+        """
+
+        s = """
+        <html>
+        %s
+        <body>
+        %s
+        </body>
+        </html>
+        """%(top, body)
+
+        return s
 
 ####################################################################
 

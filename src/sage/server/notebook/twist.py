@@ -181,29 +181,7 @@ class Doc(resource.Resource):
     child_live = DocLive()
 
     def render(self, ctx):
-        s = """
-        <html>
-           <link rel=stylesheet href="/css/main.css">
-           <title>SAGE Help</title>
-        <body>
-        <a href="/">Home</a>
-        <br>
-        <center>
-        <h1><font color="darkred">SAGE Documentation</font></h1>
-        <br>
-        <hr class="usercontrol">
-        <br><br>
-        <font size=+2>
-        <a href="/help/">SAGE Notebook Quickstart</a><br><br>
-        <a href="/doc/static/">Static Documentation</a><br><br>
-        <a href="/doc/live/">Interactive Live Documentation</a><br>
-        <br>
-        <hr class="usercontrol">
-        </font>
-        </center>
-        </body>
-        </html>
-        """
+        s = notebook.html_doc(username)
         return http.Response(stream=s)
 
 ############################
@@ -375,6 +353,16 @@ class Worksheet_conf(WorksheetResource, resource.Resource):
         # of a given worksheet, saves the result,
         return http.Response(stream = s)
 
+class TrivialResource(resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream="success")
+
+class Worksheet_system(WorksheetResource, resource.Resource):
+    def childFactory(self, request, system):
+        self.worksheet.set_system(system)
+        return TrivialResource()
+
+
 ########################################################
 # Cell introspection
 ########################################################
@@ -409,7 +397,7 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
     worksheet with the given filename.
     """
     def render(self, ctx):
-        return http.Response(stream = notebook.edit_window(self.worksheet))
+        return http.Response(stream = notebook.edit_window(self.worksheet, username))
 
 
 ########################################################
@@ -437,8 +425,9 @@ class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
         if user_type(username) == 'guest':
             return http.Response(stream = message(
                 'You must <a href="/">login first</a> in order to edit this worksheet.'))
-        if self.worksheet.user_is_collaborator(username) or self.worksheet.owner() == username:
-            W = self.worksheet
+        ws = self.worksheet.worksheet_that_was_published()
+        if ws.user_is_collaborator(username) or ws.owner() == username:
+            W = ws
         else:
             W = notebook.copy_worksheet(self.worksheet, username)
             W.set_name(self.worksheet.name())
@@ -558,8 +547,8 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
             elif action == 'publish':
                 return worksheet_revision_publish(self.worksheet, rev)
             else:
-                s = 'Error'
-        return http.Response(stream = message(s))
+                s = message('Error')
+        return http.Response(stream = s)
 
 
 ########################################################
@@ -568,7 +557,11 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
 
 class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        if self.worksheet.owner() == username or self.worksheet.user_is_collaborator(username):
+        if ctx.args.has_key('button_cancel'):
+            return http.RedirectResponse('/home/'+self.worksheet.filename())
+        if user_type(username) == 'admin' or \
+               self.worksheet.owner() == username \
+               or self.worksheet.user_is_collaborator(username):
             system = ctx.args['system'][0].strip().lower()
             self.worksheet.set_system(system)
             if system != 'sage':
@@ -1076,7 +1069,7 @@ class Help(resource.Resource):
         try:
             s = self._cache
         except AttributeError:
-            s = notebook.help_window()
+            s = notebook.html_notebook_help_window(username)
             self._cache = s
         return http.Response(stream=s)
 
@@ -1157,7 +1150,7 @@ class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
         notebook.save()
-        return http.Response(stream=messsage("Thank you for using SAGE."))
+        return http.Response(stream=message("Thank you for using SAGE."))
 
 ############################
 # Image resource
@@ -1270,7 +1263,7 @@ class RegistrationPage(resource.PostableResource):
                 """
         else:
             url_prefix = "https" if notebook.secure else "http"
-            s = """<html><h1>This is the registration page.</h1>
+            s = """<html><h1>Sign up for the SAGE Notebook.</h1>
             <form method="POST" action="%s://%s:%s/register">
             Username: <input type="text" name="username" size="15" />  Password:
                 <input type="password" name="password" size="15" /><br /> Email
@@ -1310,6 +1303,7 @@ class AnonymousToplevel(Toplevel):
     child_confirm = RegConfirmation()
     child_images = Images()
     child_css = CSS()
+    child_javascript = Javascript()
     child_home = PublicWorksheetsHome()
     child_pub = PublicWorksheets()
 

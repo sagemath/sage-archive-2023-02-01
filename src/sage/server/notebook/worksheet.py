@@ -234,11 +234,8 @@ class Worksheet:
             self.__system = 'sage'
             return 'sage'
 
-    def set_system(self, system=None):
-        system = system.lower().strip()
-        if system == "sage" or system=="none":
-            system = None
-        self.__system = system
+    def set_system(self, system='sage'):
+        self.__system = system.strip()
 
     ##########################################################
     # Publication
@@ -459,7 +456,8 @@ class Worksheet:
 
     def save_snapshot(self, user, E=None):
         path = self.snapshot_directory()
-        filename = '%s/%s.txt'%(path, int(time.time()))
+        basename = '%s.txt'%int(time.time())
+        filename = '%s/%s'%(path, basename)
         if E is None:
             E = self.edit_text()
         open(filename, 'w').write(E)
@@ -469,7 +467,7 @@ class Worksheet:
         except AttributeError:
             X = {}
             self.__saved_by_info = X
-        X[filename] = user
+        X[basename] = user
 
     def get_snapshot_text_filename(self, name):
         path = self.snapshot_directory()
@@ -485,9 +483,9 @@ class Worksheet:
     def _saved_by_info(self, x):
         try:
             u = self.__saved_by_info[x]
-            return ' by %s'%u
+            return ' ago by %s'%u
         except (KeyError,AttributeError):
-            return ''
+            return ' ago'
 
     def snapshot_data(self):
         filenames = os.listdir(self.snapshot_directory())
@@ -689,14 +687,18 @@ class Worksheet:
 
     def html_share_publish_buttons(self):
         #<a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
+        #<a  title="Preview this worksheet" class="usercontrol" href="preview_"><img border=0 src="/images/icon_preview.gif"> Preview</a>
+        #<a  title="Edit text version of this worksheet" class="usercontrol" href="edit"><img border=0 src="/images/icon_preview.gif"> Edit Text</a>
+
+
         return """
         <span class="flush-right">
-        <a  title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit Text</a>
-        <a  title="Preview this worksheet" class="usercontrol" href="preview"><img border=0 src="/images/icon_preview.gif"> Preview</a>
-        <a  title="Print this worksheet" class="usercontrol" href="print"><img border=0 src="/images/icon_print.gif"> Print</a>
+
+        <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif"> Print</a>
+        <a class="control" title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit Text</a>
         <a class="control" href="revisions" title="View changes to this worksheet over time">Revisions</a>
         <a class="control" href="share" title="Let others edit this worksheet">Share</a>
-        <a class="control" href="publish" title="Let others view this worksheet">Publish</a>
+        <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
         &nbsp;&nbsp;&nbsp;
         </span>
         """
@@ -728,7 +730,9 @@ class Worksheet:
  <option title="Switch to multi-cell mode" onClick="cell_mode();">Multi Cell Mode</option>
  </select>
 
- """%(_notebook.clean_name(self.name()), self.filename())
+ %s
+
+ """%(_notebook.clean_name(self.name()), self.filename(), self.notebook().html_system_select_form_element(self))
 
     def html_menu(self):
         name = self.filename()
@@ -1725,12 +1729,12 @@ class Worksheet:
         z = s
         s = s.lstrip()
         S = self.system()
-        if not (S is None):
+        if S != 'sage':
             if s.startswith('%sage'):
                 s = after_first_word(s).lstrip()
                 z = s
             else:
-                return True, self._eval_cmd(self.__system, s)
+                return True, self._eval_cmd(S, s)
 
         if len(s) == 0 or s[0] != '%':
             return False, z
@@ -2005,12 +2009,24 @@ def next_available_id(v):
 
 def convert_seconds_to_meaningful_time_span(t):
     if t < 60:
-        return "%d seconds"%t
+        s = int(t)
+        if s == 1:
+            return "1 second"
+        return "%d seconds"%s
     if t < 3600:
-        return "%d minutes"%(t/60)
+        m = int(t/60)
+        if m == 1:
+            return "1 minute"
+        return "%d minutes"%m
     if t < 3600*24:
-        return "%d hours"%(t/3600)
-    return "%d days"%(t/(3600*24))
+        h = int(t/3600)
+        if h == 1:
+            return "1 hour"
+        return "%d hours"%h
+    d = int(t/(3600*24))
+    if d == 1:
+        return "1 day"
+    return "%d days"%d
 
 
 def convert_time_to_string(t):

@@ -265,9 +265,10 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
-        if not self.worksheet.is_published():
-            if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
-                raise RuntimeError, "illegal worksheet access"
+        if username != self.worksheet.owner():
+            if not self.worksheet.is_published():
+                if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
+                    raise RuntimeError, "illegal worksheet access"
 
     def id(self, ctx):
         return int(ctx.args['id'][0])
@@ -461,7 +462,7 @@ class Worksheet_save_snapshot(WorksheetResource, resource.PostableResource):
     Save a snapshot of a worksheet.
     """
     def render(self, ctx):
-        self.worksheet.save_snapshot()
+        self.worksheet.save_snapshot(username)
         return http.Response(stream="saved")
 
 class Worksheet_revert_to_last_saved_state(WorksheetResource, resource.PostableResource):
@@ -474,7 +475,7 @@ class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
     Save a snapshot of a worksheet then quit it.
     """
     def render(self, ctx):
-        self.worksheet.save_snapshot()
+        self.worksheet.save_snapshot(username)
         self.worksheet.quit()
         return http.Response(stream="saved")
 
@@ -504,7 +505,7 @@ class PublishWorksheetRevision(resource.Resource):
         self.rev = rev
 
     def render(self, ctx):
-        W = notebook.publish_worksheet(self.worksheet)
+        W = notebook.publish_worksheet(self.worksheet, username)
         txt = open(self.worksheet.get_snapshot_text_filename(self.rev)).read()
         W.delete_cells_directory()
         W.edit_save(txt)
@@ -516,21 +517,21 @@ class RevertToWorksheetRevision(resource.Resource):
         self.rev = rev
 
     def render(self, ctx):
-        self.worksheet.save_snapshot()
+        self.worksheet.save_snapshot(username)
         txt = open(self.worksheet.get_snapshot_text_filename(self.rev)).read()
         self.worksheet.delete_cells_directory()
         self.worksheet.edit_save(txt)
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 def worksheet_revision_publish(worksheet, rev):
-    W = notebook.publish_worksheet(worksheet)
+    W = notebook.publish_worksheet(worksheet, username)
     txt = open(worksheet.get_snapshot_text_filename(rev)).read()
     W.delete_cells_directory()
     W.edit_save(txt)
     return http.RedirectResponse('/home/'+W.filename())
 
 def worksheet_revision_revert(worksheet, rev):
-    worksheet.save_snapshot()
+    worksheet.save_snapshot(username)
     txt = open(worksheet.get_snapshot_text_filename(rev)).read()
     worksheet.delete_cells_directory()
     worksheet.edit_save(txt)
@@ -567,10 +568,7 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
 
 class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        if self.worksheet.owner() != username:
-            s = 'You must be the owner of this worksheet to configure it.'
-            return http.Response(stream = message(s))
-        else:
+        if self.worksheet.owner() == username or self.worksheet.user_is_collaborator(username):
             system = ctx.args['system'][0].strip().lower()
             self.worksheet.set_system(system)
             if system != 'sage':
@@ -584,6 +582,9 @@ class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
                 n = n.strip() + post
                 self.worksheet.set_name(n)
             return http.RedirectResponse('/home/'+ self.worksheet.filename())
+        else:
+            s = 'You must be the owner of this worksheet to configure it.'
+            return http.Response(stream = message(s))
 
 class Worksheet_settings(WorksheetResource, resource.Resource):
     def render(self, ctx):
@@ -771,7 +772,7 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 
 class Worksheet_publish(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        W = notebook.publish_worksheet(self.worksheet)
+        W = notebook.publish_worksheet(self.worksheet, username)
         addr = '/home/' + W.filename()
         return http.RedirectResponse(addr)
 
@@ -796,7 +797,7 @@ class WorksheetRating(WorksheetResource, resource.Resource):
     def render(self, ctx):
         if self.worksheet.is_rater(username):
             return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), '/home/' + self.worksheet.filename()))
-        if username == "guest":
+        if user_type(username) == "guest":
             return http.Response(stream = message(
                 'You must <a href="/">login first</a> in order to rate this worksheet.'))
 
@@ -967,15 +968,15 @@ class WorksheetsByUser(resource.Resource):
 class SendWorksheetToFolder(resource.PostableResource):
     def action(self, W):
         raise NotImplementedError
+
     def render(self, ctx):
         X = notebook.user(username)
-        s = ''
+        if user_type(username) == 'guest':
+            return http.Response(stream = message("You are not authorized to move '%s'"%W.name()))
+
         def send_worksheet_to_folder(filename):
             W = notebook.get_worksheet_with_filename(filename)
-            if X.is_admin() or W.owner() == username or W.publisher() == username:
-                self.action(W)
-            else:
-                s += message("You are not authorized to move '%s'"%W.name())
+            self.action(W)
 
         if ctx.args.has_key('filename'):
             filenames = [ctx.args['filename'][0]]
@@ -983,22 +984,26 @@ class SendWorksheetToFolder(resource.PostableResource):
             sep = ctx.args['sep'][0]
             filenames = [x for x in ctx.args['filenames'][0].split(sep) if len(x.strip()) > 0]
 
+        else:
+
+            filenames = []
+
         for F in filenames:
             send_worksheet_to_folder(F)
 
-        return http.Response(stream = s)
+        return http.Response(stream = '')
 
 class SendWorksheetToTrash(SendWorksheetToFolder):
     def action(self, W):
-        W.move_to_trash()
+        W.move_to_trash(username)
 
 class SendWorksheetToArchive(SendWorksheetToFolder):
     def action(self, W):
-        W.move_to_archive()
+        W.move_to_archive(username)
 
 class SendWorksheetToActive(SendWorksheetToFolder):
     def action(self, W):
-        W.set_active()
+        W.set_active(username)
 
 ############################
 # Publically Available Worksheets

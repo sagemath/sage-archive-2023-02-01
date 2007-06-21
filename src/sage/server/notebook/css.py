@@ -834,7 +834,7 @@ div.worksheet {
 /*  border-top: 0px;
   border-left: 2px solid <color1>;
   */
-  top: 7em;
+  top: 8em;
   bottom: 0ex;
   right: 0ex;
   left:1ex;

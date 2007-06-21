@@ -32,7 +32,6 @@ import server_conf  # server configuration
 import user_conf    # user configuration
 import user         # users
 
-PUBLIC_USER = 'pub'
 
 JSMATH = True
 
@@ -68,12 +67,14 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
-        self.add_user('guest', 'guest', '', account_type='guest')
-        self.add_user('admin', 'admin', '', account_type='admin')
+        self.add_user('pub', '', '', account_type='guest')
+        self.add_user('guest', 'a', '', account_type='guest')
+        self.add_user('guest2', 'a', '', account_type='guest')
+        self.add_user('admin', 'a', '', account_type='admin')
         self.add_user("a", "a", "", "admin")
-        self.add_user("b", "b", "", "user")
-        self.add_user("pub", "x", "", "user")
-
+        self.add_user("b", "a", "", "user")
+        for n in range(20):
+            self.add_user("Joe User %s"%n, "a", "", "user")
 
     ##########################################################
     # Users
@@ -90,9 +91,14 @@ class Notebook(SageObject):
             raise ValueError
         try:
             return self.__users[username]
-        except AttributeError:
+        except KeyError:
             raise KeyError, "no user '%s'"%username
 
+    def user_is_guest(self, username):
+        try:
+            return self.user(username).is_guest()
+        except KeyError:
+            return False
 
     def user_list(self):
         try:
@@ -106,6 +112,8 @@ class Notebook(SageObject):
         return U.keys()
 
     def add_user(self, username, password, email, account_type="user"):
+        if username == 'pub':
+            raise ValueError, "the username 'pub' is not allowed"
         us = self.users()
         if us.has_key(username):
             raise ValueError, "User '%s' already exists"%username
@@ -142,7 +150,7 @@ class Notebook(SageObject):
             shutil.copytree(cells, W.directory() + '/cells')
         W.edit_save(src.edit_text())
 
-    def publish_worksheet(self, worksheet):
+    def publish_worksheet(self, worksheet, username):
         """
         Publish the given worksheet.
 
@@ -162,7 +170,7 @@ class Notebook(SageObject):
                     shutil.rmtree(X.cells_directory())
                 self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
-                X.move_to_archive()
+                X.move_to_archive(username)
                 worksheet.set_published_version(X.filename())
                 return X
 
@@ -170,7 +178,7 @@ class Notebook(SageObject):
         W = self.create_new_worksheet(worksheet.name(), 'pub')
         self._initialize_worksheet(worksheet, W)
         W.set_worksheet_that_was_published(worksheet)
-        W.move_to_archive()
+        W.move_to_archive(username)
         worksheet.set_published_version(W.filename())
         return W
 
@@ -187,6 +195,9 @@ class Notebook(SageObject):
             return W
 
     def create_new_worksheet(self, worksheet_name, username, docbrowser=False, add_to_list=True):
+        if self.user_is_guest(username):
+            raise ValueError, "guests cannot create new worksheets"
+
         filename = worksheet.worksheet_filename(worksheet_name, username)
         if self.__worksheets.has_key(filename):
             return self.__worksheets[filename]
@@ -248,15 +259,16 @@ class Notebook(SageObject):
         W.sort()
         return W
 
-    def _migrate_old(self):
+    def migrate_old(self):
         """
         Migrate all old worksheets, i.e., ones with no owner
         to /pub.
         """
+        raise NotImplementedError
         for w in self.__worksheets.itervalues():
             if not '/' in w.filename():
                 print "Moving worksheet ", w.name()
-                w.set_owner(PUBLIC_USER)
+                w.set_owner('old')
                 self.rename_worksheet_filename(w, w.filename())
 
     ##########################################################
@@ -715,7 +727,7 @@ class Notebook(SageObject):
 
     def html_worksheet_list_public(self, username,
                                   sort='last_edited', reverse=False, search=None):
-        W = [x for x in self.__worksheets.itervalues() if x.is_published() and not x.is_trashed()]
+        W = [x for x in self.__worksheets.itervalues() if x.is_published() and not x.is_trashed(user)]
 
         if search:
             W = [x for x in W if x.satisfies_search(search)]
@@ -749,13 +761,13 @@ class Notebook(SageObject):
         X = [x for x in self.get_worksheets_with_viewer(user) if not x.docbrowser()]
         if typ == "trash":
             worksheet_heading = "Trash"
-            W = [x for x in X if x.is_trashed()]
+            W = [x for x in X if x.is_trashed(user)]
         elif typ == "active":
             worksheet_heading = "Active Worksheets"
-            W = [x for x in X if x.is_active() and not x.is_trashed()]
+            W = [x for x in X if x.is_active(user)]
         else: # typ must be archived or "all"
             worksheet_heading = "Archived and Active"
-            W = [x for x in X if not x.is_trashed()]
+            W = [x for x in X if not x.is_trashed(user)]
         if search:
             W = [x for x in W if x.satisfies_search(search)]
 
@@ -784,7 +796,7 @@ class Notebook(SageObject):
         s = ''
 
         entries = []
-        if user == 'guest':
+        if self.user_is_guest(user):
             entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
         else:
             entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
@@ -795,14 +807,14 @@ class Notebook(SageObject):
             entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
         if not pub:
             entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
-        if user != 'guest':
+        if not self.user_is_guest(user):
             entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
         s += self.html_user_control(user, entries)
         s += self.html_banner()
         s += '<hr class="usercontrol">'
         s += self.html_new_or_upload()
-        s += self.html_search(search)
+        s += self.html_search(search, typ)
         s += '<br>'
         s += '<hr class="usercontrol">'
         if actions:
@@ -833,14 +845,14 @@ class Notebook(SageObject):
         """
         return s
 
-    def html_search(self, search=None):
+    def html_search(self, search, typ):
         s = """
         <span class="flush-right">
         <input id="search_worksheets" size=20 onkeypress="return entsub(event);" value="%s"></input>
-        <button class="add_new_worksheet_menu" onClick="search_worksheets();">Search Worksheets</button>
+        <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """%('' if search is None else search)
+        """%('' if search is None else search, typ)
         return s
 
     def html_new_or_upload(self):
@@ -857,16 +869,21 @@ class Notebook(SageObject):
 ##          <option onClick="save_worksheets('latex');" title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
 ##          <option onClick="save_worksheets('pdf');" title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
 ##          <option onClick="save_worksheets('txt');" title="Save the selected worksheets to a single text file">Save as Text...</option>
-        s = """
-         <select class="worksheet_list">
-         <option onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
-         <option onClick="make_active_button();" title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
-         <option onClick="uncollaborate_me();" title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
-        </select>
-        """
+##         s = """
+##          <select class="worksheet_list">
+##          <option onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
+##          <option onClick="make_active_button();" title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
+##          <option onClick="uncollaborate_me();" title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
+##         </select>
+##         """
+        s = ''
 
-        if user != 'guest':
-            s += '<button onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>'
+        if not self.user_is_guest(user):
+            if typ == 'archive':
+                s += '<button onClick="make_active_button();" title="Unarchive selected worksheets so it appears in the default worksheet list">Unarchive</button>'
+            else:
+                s += '<button onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>'
+
             if typ != 'trash':
                 s += '&nbsp;&nbsp;<button onClick="delete_button();" title="Move the selected worksheets to the trash">Delete</button>'
             else:
@@ -909,7 +926,7 @@ class Notebook(SageObject):
         for w in worksheets:
             k = '<tr>'
             k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
-            if w.is_active():
+            if w.is_active(user):
                 k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
             else:
                 k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
@@ -932,7 +949,7 @@ class Notebook(SageObject):
                     r = "----"
                 else:
                     r = "%.1f"%rating
-                if user != 'guest' and not worksheet.is_rater(user):
+                if not self.user_is_guest(user) and not worksheet.is_rater(user):
                     r = '<i>%s</i>'%r
                 return r
 
@@ -977,11 +994,13 @@ class Notebook(SageObject):
 
         collab = worksheet.collaborators()
 
-        if not pub and typ != 'trash' and (owner == "Me" or self.user(user).account_type() == 'admin'):
+        if not pub and typ != 'trash' and (owner == "Me" or self.user(user).is_admin()):
             if len(collab) <= 1:
                 share = '<a class="share" href="/home/%s/share">Share now</a>'%(worksheet.filename())
             else:
                 collaborators = ', '.join([x for x in collab if x != user])
+                if len(collaborators) > 21:
+                    collaborators = collaborators[:21] + '...'
                 v.append(collaborators)
                 share = '<a class="share" href="/home/%s/share">Add or Delete</a>'%(worksheet.filename())
         else:
@@ -1075,7 +1094,7 @@ class Notebook(SageObject):
     def html_worksheet_page_template(self, worksheet, username, title):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
         head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet.filename(), worksheet.name())
-        body = self._html_body(top_only=True)
+        body = self._html_body(top_only=True, username=username)
         body += self.html_worksheet_topbar(worksheet)
         body += '<hr class="usercontrol">'
         body += '<span class="sharebar">%s</span>'%title
@@ -1087,7 +1106,7 @@ class Notebook(SageObject):
         head, body = self.html_worksheet_page_template(worksheet, username, "Share this document")
 
         body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
-        body += 'You may add more (separate user names by commas).<br><br>'
+        body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
 
         collabs = ', '.join(worksheet.collaborators())
         body += '<form width=70% method="post" action="invite_collab">\n'
@@ -1099,8 +1118,10 @@ class Notebook(SageObject):
         body += '<hr class="usercontrol">'
         body += '<span class="username">SAGE Users:</span>'
         U = self.users()
-        K = [x for x in U.keys() if x != 'pub']
-        K.sort()
+        K = [x for x, u in U.iteritems() if not u.is_guest() and u.username() != username]
+        def mycmp(x,y):
+            return cmp(x.lower(), y.lower())
+        K.sort(mycmp)
         body += '<span class="users">%s</span>'%(', '.join(K))
 
 
@@ -1258,10 +1279,10 @@ class Notebook(SageObject):
         body += worksheet.html_save_discard_buttons() + '<br>'
 
         body += '<hr class="greybar">'
-        body += worksheet.html_menu()
-        body += '<span class=thin-right>'
-        body += worksheet.html_share_publish_buttons()
-        body += '</span>'
+        menu = worksheet.html_menu()
+        share = '<span class=thin-right>%s</span>'%worksheet.html_share_publish_buttons()
+
+        body += '<table><tr><td>%s</td><td>%s</td></tr></table>'%(menu, share)
 
         body += self.html_slide_controls()
         return body
@@ -1287,16 +1308,16 @@ class Notebook(SageObject):
 
         body = ''
 
-        if not worksheet is None and (worksheet.is_published() or username=='pub'):
+        if not worksheet is None and (worksheet.is_published() or self.user_is_guest(username)):
             original_worksheet = worksheet.worksheet_that_was_published()
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
             body += main_body
             body += '<hr class="usercontrol">'
-            if worksheet.user_is_collaborator(username) or worksheet.is_owner(username):
+            if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
                 s = "Edit this worksheet."
                 url = 'edit_published_page'
-            elif username == "guest":
+            elif self.user_is_guest(username):
                 s = 'Log in if you would like to edit a copy of this worksheet.'
                 url = '/'
             else:
@@ -1307,27 +1328,29 @@ class Notebook(SageObject):
 
             r = worksheet.rating()
             if r == 0:
-                rating = 'This page has not yet been rated.'
+                rating = 'This page has not been rated.'
             else:
                 rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
-            if username != 'guest' and not worksheet.is_rater(username):
+            if not self.user_is_guest(username) and not worksheet.is_rater(username) \
+                   and not worksheet.is_publisher(username):
                 rating += '&nbsp;&nbsp; Rate it: '
                 rating += '  '.join(['<a class="usercontrol" href="rate%s">&nbsp;%s&nbsp;</a>'%(i,i) for
                                    i in range(1,5)])
             body += '<span class="ratingmsg">%s</span>'%rating
 
             body += '<hr class="usercontrol">'
-            body += '<br>'*2
+            body += '<br>'
             body += '<span class="pubmsg">This document was published using <a href="/">SAGE</a>.'
             body += '  Browser <a href="/pub/">other published documents.</a></span>'
 
         else:
 
-            entries = [('..', 'Home', 'Back to your personal worksheet list'),
+            entries = [('/', 'Home', 'Back to your personal worksheet list'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        ('settings', 'Settings', 'Worksheet settings'),
                        ('/doc', 'Help', 'Documentation')]
-            if username != 'guest':
+
+            if not self.user_is_guest(username):
                 entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
             body += self.html_user_control(username, entries)

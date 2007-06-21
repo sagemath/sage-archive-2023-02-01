@@ -53,6 +53,11 @@ SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 
+##################################3
+ARCHIVED = 0
+ACTIVE   = 1
+TRASH    = 2
+
 
 # The default is for there to be one sage session for
 # each worksheet.  If this is False, then there is just
@@ -96,7 +101,7 @@ class Worksheet:
         self.__system   = system
         self.__owner         = owner
         self.__viewers       = []
-        self.__collaborators = [owner]
+        self.__collaborators = []
         self.__docbrowser = docbrowser
 
         # Initialize the cell id counter.
@@ -112,7 +117,7 @@ class Worksheet:
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), filename)
 
         self.clear()
-        self.save_snapshot()
+        self.save_snapshot(owner)
 
     def __cmp__(self, other):
         try:
@@ -231,7 +236,7 @@ class Worksheet:
 
     def set_system(self, system=None):
         system = system.lower().strip()
-        if system == "sage":
+        if system == "sage" or system=="none":
             system = None
         self.__system = system
 
@@ -250,6 +255,9 @@ class Worksheet:
     def publisher(self):
         return self.worksheet_that_was_published().owner()
 
+    def is_publisher(self, username):
+        return self.publisher() == username
+
     def has_published_version(self):
         try:
             self.published_version()
@@ -265,8 +273,6 @@ class Worksheet:
             filename =self.__published_version
             try:
                 W = self.notebook().get_worksheet_with_filename(filename)
-                if W.is_trashed():
-                    raise KeyError
                 return W
             except KeyError:
                 del self.__published_version
@@ -310,39 +316,57 @@ class Worksheet:
             return rating
 
     ##########################################################
-    # Trash can and archive
+    # Active, trash can and archive
     ##########################################################
-    def is_archived(self):
+    def everyone_has_deleted_this_worksheet(self):
+        for user in self.__collaborators + [self.owner()]:
+            if not self.is_trashed(user):
+                return False
+        return True
+
+    def user_view(self, user):
         try:
-            return self.__is_archived
+            return self.__user_view[user]
         except AttributeError:
-            self.__is_archived = False
-            return False
+            self.__user_view = {}
+        except KeyError:
+            pass
+        self.__user_view[user] = ACTIVE
+        return ACTIVE
 
-    def is_active(self):
-        return not self.is_archived() and not self.is_trashed()
-
-    def move_to_archive(self):
-        self.__is_archived = True
-        self.__is_trashed = False
-
-    def set_active(self):
-        self.__is_archived = False
-        self.__is_trashed = False
-
-    def is_trashed(self):
+    def set_user_view(self, user, x):
         try:
-            return self.__is_trashed
-        except AttributeError:
-            self.__is_trashed = False
-            return False
+            self.__user_view[user] = x
+        except (KeyError, AttributeError):
+            self.user_view(user)
+            self.__user_view[user] = x
 
-    def move_to_trash(self):
-        self.__is_trashed = True
+    def user_view_is(self, user, x):
+        return self.user_view(user) == x
 
-    def move_out_of_trash(self):
-        self.__is_trashed = False
-        self.__is_archived = False
+    def is_archived(self, user):
+        return self.user_view_is(user, ARCHIVED)
+
+    def is_active(self, user):
+        return self.user_view_is(user, ACTIVE)
+
+    def is_trashed(self, user):
+        return self.user_view_is(user, TRASH)
+
+    def move_to_archive(self, user):
+        self.set_user_view(user, ARCHIVED)
+
+    def set_active(self, user):
+        self.set_user_view(user, ACTIVE)
+
+    def move_to_trash(self, user):
+        self.set_user_view(user, TRASH)
+
+    def move_out_of_trash(self, user):
+        self.set_active(user)
+
+
+    #############
 
     def delete_cells_directory(self):
         dir = self.directory() + '/cells'
@@ -430,16 +454,22 @@ class Worksheet:
     def save(self):
         path = self.__dir
         E = self.edit_text()
-        self.save_snapshot(E)
+        self.save_snapshot(self.owner(), E)
         save(self.conf(), path + '/conf.sobj')
 
-    def save_snapshot(self, E=None):
+    def save_snapshot(self, user, E=None):
         path = self.snapshot_directory()
         filename = '%s/%s.txt'%(path, int(time.time()))
         if E is None:
             E = self.edit_text()
         open(filename, 'w').write(E)
         open('%s/worksheet.txt'%self.__dir, 'w').write(E)
+        try:
+            X = self.__saved_by_info
+        except AttributeError:
+            X = {}
+            self.__saved_by_info = X
+        X[filename] = user
 
     def get_snapshot_text_filename(self, name):
         path = self.snapshot_directory()
@@ -452,11 +482,19 @@ class Worksheet:
         E = open(filename).read()
         self.edit_save(E)
 
+    def _saved_by_info(self, x):
+        try:
+            u = self.__saved_by_info[x]
+            return ' by %s'%u
+        except (KeyError,AttributeError):
+            return ''
+
     def snapshot_data(self):
-        names = os.listdir(self.snapshot_directory())
-        names.sort()
+        filenames = os.listdir(self.snapshot_directory())
+        filenames.sort()
         t = time.time()
-        v = [(convert_seconds_to_meaningful_time_span(t - float(os.path.splitext(x)[0])), x) for x in names]
+        v = [(convert_seconds_to_meaningful_time_span(t - float(os.path.splitext(x)[0]))+ self._saved_by_info(x), x)  \
+             for x in filenames]
         return v
 
     def revert_to_last_saved_state(self):
@@ -650,12 +688,12 @@ class Worksheet:
         """
 
     def html_share_publish_buttons(self):
+        #<a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
         return """
         <span class="flush-right">
         <a  title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit Text</a>
         <a  title="Preview this worksheet" class="usercontrol" href="preview"><img border=0 src="/images/icon_preview.gif"> Preview</a>
         <a  title="Print this worksheet" class="usercontrol" href="print"><img border=0 src="/images/icon_print.gif"> Print</a>
-        <a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
         <a class="control" href="revisions" title="View changes to this worksheet over time">Revisions</a>
         <a class="control" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" href="publish" title="Let others view this worksheet">Publish</a>
@@ -694,19 +732,11 @@ class Worksheet:
 
     def html_menu(self):
         name = self.filename()
-        if self.computing():
-            interrupt_class = "interrupt"
-        else:
-            interrupt_class = "interrupt_grey"
-        vbar = '<span class="vbar"></span>'
-        menu = ''
-        menu += '&nbsp;'*3 + self.html_file_menu()
+
+        menu = '&nbsp;'*3 + self.html_file_menu()
 
         filename = os.path.split(self.filename())[-1]
         download_name = _notebook.clean_name(self.name())
-
-        #menu += '    <a class="download_sws" href="download/%s.sws">Download</a>'%download_name + vbar
-        #menu += '    <a class="delete" href="delete">Delete</a>'
 
         menu += '  </span>'
 

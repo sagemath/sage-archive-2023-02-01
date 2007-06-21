@@ -40,3 +40,6 @@ class User:
 
     def is_admin(self):
         return self.__account_type == 'admin'
+
+    def is_guest(self):
+        return self.__account_type == 'guest'

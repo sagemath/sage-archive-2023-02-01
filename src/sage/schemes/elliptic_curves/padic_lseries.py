@@ -450,7 +450,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         teich = self.teichmuller(padic_prec)
         p_power = p**(n-1)
 
-        verbose("Now iterating over %s summands"%p_power)
+        verbose("Now iterating over %s summands"%((p-1)*p_power))
         verbose_level = get_verbose()
         count_verb = 0
         for j in range(p_power):
@@ -569,8 +569,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
         prec = min(p**(n-1), prec)
         bounds = self._prec_bounds(n,prec)
         padic_prec = max(sum(bounds[1:],[])) + 5
+        verbose("using p-adic precision of %s"%padic_prec)
         ans = self._get_series_from_cache(n, prec)
         if not ans is None:
+            verbose("found series in cache")
             return ans
 
         alpha = self.alpha(prec=padic_prec)
@@ -582,8 +584,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
         one_plus_T_factor = R(1)
         gamma_power = 1
         teich = self.teichmuller(padic_prec)
+
+        verbose("Now iterating over %s summands"%((p-1)*p**(n-1)))
+        verbose_level = get_verbose()
+        count_verb = 0
         for j in range(p**(n-1)):
             s = K(0)
+            if verbose_level >= 2 and j/p**(n-1)*100 > count_verb + 3:
+                verbose("%.2f percent done"%(float(j)/p**(n-1)*100))
+                count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec)
@@ -654,16 +663,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
         QpT , T = PowerSeriesRing(R,'T',prec).objgen()
         G = QpT([lps[n][0] for n in range(0,lps.prec())], prec)
         H = QpT([lps[n][1] for n in range(0,lps.prec())], prec)
-        #print G,H
 
         # now compute phi
         phi =  self.geometric_frob_on_Dp()
         phi_omega_0 = phi[0,0]
         phi_omega_1 = phi[1,0]
-        #print phi
         R = phi_omega_0.parent()
         lpv = vector([G  + R(E.ap(p))*H - R(p) * phi_omega_0* H , - R(p)*phi_omega_1*H])  # this is L_p
-        #print lpv
         eps = (1-phi)**(-2)
         resu = lpv*eps.transpose()
         return resu
@@ -704,7 +710,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         c=fr[1,0]
         d=fr[1,1]
         usq = (Ew.discriminant()/E.discriminant()).nth_root(6)
-        r = (4*E.a2() + E.a1())/12*usq;
+        r = (4*E.a2() + E.a1()**2)/12*usq;
         frn = matrix.matrix([[a+c*r,(b-a*r+d*r-r**2*c)/usq],[usq*c,d-r*c]])
         return frn**(-1)
 

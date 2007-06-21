@@ -115,16 +115,19 @@ def message(msg, cont=None):
 ############################
 from docHTMLProcessor import DocHTMLProcessor
 
+doc_worksheet_number = 0
 def doc_worksheet():
+    global doc_worksheet_number
     wnames = notebook.worksheet_names()
-    name = 'doc_browser_0'
+    name = 'doc_browser_%s'%doc_worksheet_number
+    doc_worksheet_number = doc_worksheet_number % notebook.conf()['doc_pool_size']
     if name in wnames:
         W = notebook.get_worksheet_with_name(name)
-        W.restart_sage()
         W.clear()
-        return W
     else:
-        return notebook.create_new_worksheet(name, username, docbrowser=True)
+        W = notebook.create_new_worksheet(name, username, docbrowser=True)
+    W.set_is_doc_worksheet(True)
+    return W
 
 
 class WorksheetFile(resource.Resource):
@@ -139,6 +142,7 @@ class WorksheetFile(resource.Resource):
         directory = os.path.split(self.docpath)[0]
         doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
                                directory, doc_page_html)
+        doc_page = extract_title(doc_page_html) + '\n\n' + doc_page
         if css_href:
             css_href = DOC + directory + css_href
         W = doc_worksheet()
@@ -170,7 +174,7 @@ class DocLive(resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        return static.File('%s/index.html'%DOC)
+        return WorksheetFile('%s/index.html'%DOC, evil_hack)
 
     def childFactory(self, request, name):
         return WorksheetFile('%s/%s'%(DOC,name))
@@ -243,6 +247,7 @@ class WorksheetResource:
     def __init__(self, name):
         self.name = name
         self.worksheet = notebook.get_worksheet_with_filename(name)
+        self.worksheet.set_active(username)
         if username != self.worksheet.owner():
             if not self.worksheet.is_published():
                 if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
@@ -1380,3 +1385,13 @@ def user_type(user):
     except KeyError:
         return 'guest'
     return U.account_type()
+
+
+def extract_title(html_page):
+    h = html_page.lower()
+    i = h.find('<title>')
+    if i == -1:
+        return "Untitled"
+    j = h.find('</title>')
+    return h[i + len('<title>') : j]
+

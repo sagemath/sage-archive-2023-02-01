@@ -669,12 +669,24 @@ class Worksheet:
 
         s = ''
         s += '<div class="worksheet_title">'
-        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name)
+        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
         s += '<br>' + self.html_time_last_edited()
         s += '</div>'
+
         return s
 
+    def is_doc_worksheet(self):
+        try:
+            return self.__is_doc_worksheet
+        except AttributeError:
+            return False
+
+    def set_is_doc_worksheet(self, value):
+        self.__is_doc_worksheet = value
+
     def html_save_discard_buttons(self):
+        if self.is_doc_worksheet():
+            return ''
         return """
         <span class="flush-right">
         <button title="Edit" onClick="edit_worksheet();">Edit</button>
@@ -690,7 +702,8 @@ class Worksheet:
         #<a  title="Preview this worksheet" class="usercontrol" href="preview_"><img border=0 src="/images/icon_preview.gif"> Preview</a>
         #<a  title="Edit text version of this worksheet" class="usercontrol" href="edit"><img border=0 src="/images/icon_preview.gif"> Edit Text</a>
 
-
+        if self.is_doc_worksheet():
+            return ''
         return """
         <span class="flush-right">
 
@@ -708,6 +721,12 @@ class Worksheet:
 ##  <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) </option>
 ##  <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF</option>
 ##  <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text</option>
+
+        if self.is_doc_worksheet():
+            system_select = ''
+        else:
+            system_select = self.notebook().html_system_select_form_element(self)
+
         return """
 <select class="worksheet">
  <option title="Create a new worksheet" onClick="new_worksheet();">New</option>
@@ -732,7 +751,7 @@ class Worksheet:
 
  %s
 
- """%(_notebook.clean_name(self.name()), self.filename(), self.notebook().html_system_select_form_element(self))
+ """%(_notebook.clean_name(self.name()), self.filename(), system_select)
 
     def html_menu(self):
         name = self.filename()

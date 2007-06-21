@@ -360,8 +360,6 @@ notebook_help = [
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',
                  'Put ?? after the object and press tab.'),
-                ('Documentation',
-                 'Click on <a href="/doc/">Help</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
                 ('Insert New Cell',
                  'Put the mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
                 ('Delete Cell',

@@ -33,7 +33,7 @@ import user_conf    # user configuration
 import user         # users
 
 
-SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'kash', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'singular']
+SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'sage', 'sh', 'singular']
 
 JSMATH = True
 
@@ -125,6 +125,9 @@ class Notebook(SageObject):
             raise ValueError, "User '%s' already exists"%username
         U = user.User(username, password, email, account_type)
         us[username] = U
+
+    def change_password(self, username, password):
+        self.user(username).set_password(password)
 
     def del_user(self, username):
         us = self.users()
@@ -696,8 +699,8 @@ class Notebook(SageObject):
         s += '<link rel=stylesheet href="/css/main.css">\n'
         s += '</head>\n'
         s += '<body>\n'
-        if do_print:
-            s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>'%W.name()
+        #if do_print:
+        #    s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>'%W.name()
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
@@ -778,11 +781,12 @@ class Notebook(SageObject):
             entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
         else:
             entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
-            entries.append(('/settings', 'Settings', 'Change user settings'))
-            entries.append(('/doc', 'Help', 'Documentation'))
+            #entries.append(('/settings', 'Settings', 'Change user settings'))   # TODO -- settings
+            entries.append(('/help', 'Help', 'Documentation'))
 
-        if self.user(user).is_admin():
-            entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
+        ## TODO -- settings
+        #if self.user(user).is_admin():
+        #    entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
         if not pub:
             entries.insert(1, ('history_window()', 'Log', 'View a log of recent computations'))
         if not self.user_is_guest(user):
@@ -1075,7 +1079,7 @@ class Notebook(SageObject):
     def html_worksheet_page_template(self, worksheet, username, title):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
         head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; </script>'%(worksheet.filename(), worksheet.name())
-        body = self._html_body(top_only=True, username=username)
+        body = self._html_body(worksheet.filename(), top_only=True, username=username)
         body += self.html_worksheet_topbar(worksheet)
         body += '<hr class="usercontrol">'
         body += '<span class="sharebar">%s</span>'%title
@@ -1256,7 +1260,8 @@ class Notebook(SageObject):
         return head
 
     def html_worksheet_topbar(self, worksheet):
-        body  = worksheet.html_title()
+        body = ''
+        body += worksheet.html_title()
         body += worksheet.html_save_discard_buttons() + '<br>'
 
         body += '<hr class="greybar">'
@@ -1268,32 +1273,17 @@ class Notebook(SageObject):
         body += self.html_slide_controls()
         return body
 
-    def _html_body(self, worksheet_filename=None, show_debug=False, username='', top_only=False):
-        if worksheet_filename is None or worksheet_filename == '':
-            main_body = '<div class="worksheet_title">Welcome %s to the SAGE Notebook</div>\n'%username
-            if os.path.isfile(self.directory() + "/index.html"):
-                splash_file = open(self.directory() + "/index.html")
-                main_body+= splash_file.read()
-                splash_file.close()
-            else:
-                dir = os.path.abspath('%s'%self.directory())
-                main_body+= "<br>&nbsp;&nbsp;&nbsp;SAGE Notebook running from <tt>%s</tt>."%dir
-                main_body+= self.help_window()
-                main_body += "&nbsp;&nbsp;&nbsp;Create a file <tt>%s/index.html</tt> to replace this splash page.<br>"%(dir)
-            interrupt_class = "interrupt_grey"
-            worksheet = None
-        else:
-
-            worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            main_body = worksheet.html()
+    def _html_body(self, worksheet_filename, show_debug=False, username='', top_only=False):
+        worksheet = self.get_worksheet_with_filename(worksheet_filename)
+        worksheet_html = worksheet.html()
 
         body = ''
 
-        if not worksheet is None and (worksheet.is_published() or self.user_is_guest(username)):
+        if worksheet.is_published() or self.user_is_guest(username):
             original_worksheet = worksheet.worksheet_that_was_published()
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
-            body += main_body
+            body += worksheet_html
             body += '<hr class="usercontrol">'
             if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
                 s = "Edit this worksheet."
@@ -1328,14 +1318,15 @@ class Notebook(SageObject):
 
             entries = [('/', 'Home', 'Back to your personal worksheet list'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
-                       ('settings', 'Settings', 'Worksheet settings'),
-                       ('/doc', 'Help', 'Documentation')]
+                       #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
+                       ('/help', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):
                 entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
 
             body += self.html_user_control(username, entries)
             body += self.html_banner()+ '<br><br>'
+
 
             if top_only:
                 return body
@@ -1347,7 +1338,7 @@ class Notebook(SageObject):
                 body += self.html_debug_window()
 
 
-            body += '<div class="worksheet" id="worksheet">%s</div>'%main_body
+            body += '<div class="worksheet" id="worksheet">%s</div>'%worksheet_html
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
         # stuck at the bottom of the screen. This could be replaced by a region
@@ -1404,6 +1395,8 @@ class Notebook(SageObject):
         from tutorial import notebook_help
         s = """
         <html>
+        <title>SAGE Documentation</title>
+
         <body>
         """ + top + \
         """
@@ -1418,13 +1411,13 @@ class Notebook(SageObject):
             left:25%;
             right:15%;
             padding:2ex;
-            width:70%;
+            width:80%;
         }
 
 
         table.help_window {
             background-color:white;
-            width:90%;
+            width:95%;
         }
 
         td.help_window_cmd {
@@ -1440,12 +1433,22 @@ class Notebook(SageObject):
         }
         </style>
 
+        <center>
         <br>
-        <h1 align=center>Quick Guide to the SAGE Notebook</h1>
+        <a class="control" href="/doc/live/tut/index.html">Tutorial</a>
+        &nbsp;&nbsp;
+        <a class="control" href="/doc/live/ref/index.html">Reference Manual</a>
+        &nbsp;&nbsp;
+        <a class="control" href="/doc/live/prog/index.html">Programming Guide</a>
+        &nbsp;&nbsp;
+        <a class="control" href="/doc/live/const/const.html">Constructions</a>
+        <br><br>
+        <hr class="usercontrol">
+        <br>
 
-<center>
         <div class="help_window">
-        The SAGE Notebook was written by Tom Boothby, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein.   SAGE is <a href="/license.html">GPL-compatible</a>.
+        <h2>How to use the SAGE Notebook</h2>
+
         <br><br>
 
         A <i>worksheet</i> is an ordered list of SAGE calculations with output. <br>
@@ -1465,7 +1468,8 @@ class Notebook(SageObject):
         s += '</table></div>'
 
         s +="""
-        <br>
+        <br>        <br>
+        The SAGE Notebook was written by Tom Boothby, Timothy Clemens, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein.
         </center>
         </body>
         </html>
@@ -1614,14 +1618,15 @@ class Notebook(SageObject):
         <hr class="usercontrol">
         <br><br>
         <font size=+2>
-        <a href="/help/">Quick Guide to the SAGE Notebook</a><br><br>
-        <a href="/doc/live/">Interactive Documentation</a><br>
-        <a href="/doc/static/">Static Documentation</a><br><br>
+        <a href="/doc/live/">Documentation</a><br><br>
+        <a href="/help/">SAGE Notebook Howto</a><br><br>
+        <br><br>
         <br>
         <hr class="usercontrol">
         </font>
         </div>
         """
+        #(<a href="/doc/static/">static</a>)
 
         s = """
         <html>

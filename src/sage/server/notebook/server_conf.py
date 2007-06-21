@@ -10,6 +10,8 @@ defaults = {'cell_input_color':'#0000000',
             'idle_check_interval':30,
 
             'save_interval':15,
+
+            'doc_pool_size':128
            }
 
 class ServerConfiguration(conf.Configuration):

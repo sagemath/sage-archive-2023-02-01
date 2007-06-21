@@ -310,7 +310,7 @@ class Notebook(SageObject):
 
     def get_server(self):
         P = self.server_pool()
-        if len(P) == 0:
+        if P is None or len(P) == 0:
             return None
         try:
             i = (self.__server_number + 1)%len(P)

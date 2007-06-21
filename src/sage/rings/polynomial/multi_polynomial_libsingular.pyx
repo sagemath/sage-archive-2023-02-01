@@ -456,7 +456,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
-            element = sage_eval(element,d)
+            element = eval(element.replace("^","**"),{},d)
 
             # we need to do this, to make sure that we actually get an
             # element in self.
@@ -1976,7 +1976,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 return co.si2sa(p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base)
             p = pNext(p)
 
-        return (<MPolynomialRing_libsingular>self._parent)._base(0)
+        return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
     def dict(self):
         """
@@ -2068,7 +2068,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
 
         p_Delete(&m,r)
-        return (<MPolynomialRing_libsingular>self._parent)._base(0)
+        return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
     def coefficient(self, MPolynomial_libsingular mon):
         """
@@ -2434,7 +2434,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *p = self._poly
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
         if p == NULL:
-            return (<MPolynomialRing_libsingular>self._parent)._zero
+            return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
         while p.next:
             p = pNext(p)
@@ -2442,7 +2442,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if p_LmIsConstant(p, r):
             return co.si2sa( p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base )
         else:
-            return (<MPolynomialRing_libsingular>self._parent)._base(0)
+            return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
     def is_univariate(self):
         """

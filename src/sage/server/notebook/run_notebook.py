@@ -10,6 +10,8 @@
 Server the SAGE Notebook.
 """
 
+import getpass
+
 ##########################################################
 # This actually serves up the notebook.
 ##########################################################
@@ -17,6 +19,8 @@ Server the SAGE Notebook.
 from sage.misc.misc import DOT_SAGE
 from   sage.server.misc import print_open_msg
 import os, shutil, socket
+
+import notebook
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 
@@ -39,7 +43,9 @@ def notebook_twisted(self,
              port        = 8000,
              address     = 'localhost',
              port_tries  = 0,
-             secure      = False,
+             secure      = True,
+             reset       = False,
+
              server_pool = None,
              ulimit      = None):
     r"""
@@ -52,23 +58,53 @@ def notebook_twisted(self,
         address    -- (default: 'localhost'), address to listen on
         port_tries -- (default: 0), number of additional ports to try if the
                       first one doesn't work (*not* implemented)
-        secure     -- (default: False) if True use https so all
+        secure     -- (default: True) if True use https so all
                       communication, e.g., logins and passwords,
                       between web browsers and the SAGE notebook is
                       encrypted (via GNU TLS).
+        reset      -- (default: False) if True allows you to set the
+                      admin password.  Use this if you forget your
+                      admin password.
+    \begin{verbatim}
+    EXAMPLES:
 
-    The recommended somewhat secure way to run the SAGE notebook
-    publically is to (1) use a chroot jail, and (2) a command like
+    1. I want to run the SAGE notebook server on a remote machine
+       and be the only person allowed to log in.  Type
 
-       notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 1000000')
+                   notebook(address="")
 
-    The secure=True option will use ssl for securing all
-    communications, the server pool option will ensure that the sage
-    worksheet process (where the users can execute arbitrary code) are
-    run as a separate process, and ulimit option ensures that no user
-    uses more than 1GB RAM per process.
+       the first time you do this you'll be prompted to set
+       an administrator password.  Use this to login.
+
+    2. I just want to run the server locally and do not want to be
+       bothered with SSL, accounts, etc., and I am the only
+       user so I do not have to worry about somebody else using
+       the notebook on localhost and deleting my files.  Use
+
+             notebook(secure = False)
+
+    3. I want to create a SAGE notebook server that is open to anybody
+       in the world to create new accounts, etc.  To run the SAGE
+       notebook publically (1) at a minimu run it from a chroot jail
+       (see the SAGE install guide), and (2) use a command like
+
+    notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 500000')
+
+       The secure option enables enccryption between all users and the
+       notebook server.  The server_pool option specifies that
+       worksheet processes run as a separate user.  The ulimit option
+       restricts the memory available to each worksheet processes to
+       500MB.  You will have to explicitly login as the admin user
+       and click "Server" in the upper right home page to configure the
+       server to allow users to create new accounts.
+
+
 
     INPUT:  (more advanced)
+
+      NOTE: The values of these two properties default to what they were
+     last time the notebook command was called.
+
         server_pool -- (default: None), if given, should be a list like
                       ['sage1@localhost', 'sage2@localhost'], where
                       you have setup ssh keys so that typing
@@ -76,7 +112,11 @@ def notebook_twisted(self,
                       logs in without requiring a password, e.g., by typing
                       as the notebook server user
                           cd; ssh-keygen -t rsa
-                      then putting ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+                      then put ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+                      Note -- you have to get the permissions of files
+                      and directories just right -- do a web search
+                      for more details.
+
         ulimit      -- (default: None -- leave as is), if given and server_pool is also given,
                       the worksheet processes are run with these constraints.
                       See the ulimit documentation. Common options include:
@@ -86,22 +126,44 @@ def notebook_twisted(self,
                            -v   The maximum amount of virtual memory available to the process.
                       Values are in 1024-byte increments, except for `-t', which is in seconds.
                       Example:  ulimit="-v 400000 -t 30"
+
+    \end{verbatim}
     """
+
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
     conf = '%s/twistedconf.tac'%directory
 
-    # We load the notebook to make sure it is created with the
-    # given options, then delete it.  The notebook is later
-    # loaded by the *other* Twisted process below.
-    if not server_pool is None or not ulimit is None:
-        from sage.server.notebook.notebook import load_notebook
-        nb = load_notebook(directory)
+    nb = notebook.load_notebook(directory)
+    if reset or not nb.user_exists('admin'):
+        if not reset:
+            print '\n' + '-'*70
+            print "Creating a new SAGE notebook, which will be stored in the directory"
+            print os.path.abspath(directory)
+        while True:
+            print "Setting password for admin user."
+            passwd = getpass.getpass("Enter new password: ")
+            passwd2 = getpass.getpass("Retype new password: ")
+            if passwd != passwd2:
+                print "Sorry, passwords do not match."
+            else:
+                break
+        if reset:
+            nb.user('admin').set_password(passwd)
+            print "Password changed for user 'admin'."
+        else:
+            nb.create_default_users(passwd)
+            print "User admin created with the password you specified."
+
+    if not server_pool is None:
         nb.set_server_pool(server_pool)
+
+    if not ulimit is None:
         nb.set_ulimit(ulimit)
-        nb.save()
-        del nb
+
+    nb.save()
+    del nb
 
     def run(port):
         ## Create the config file
@@ -186,3 +248,30 @@ s.setServiceParent(application)
             break
 
     return True
+
+
+
+
+
+
+
+
+
+
+#######
+
+##     if address != 'localhost':
+##         if not secure:
+##             print "*"*70
+##             print "WARNING: Insecure notebook server listening on external address."
+##             print "Unless you are running this via ssh port forwarding, you are"
+##             print "**crazy**!  You should run the notebook with the option secure=True."
+##             print "*"*70
+
+##         if secure and not server_pool:
+##             print "*"*70
+##             print "You are running an ecrypted secure server, but without an external"
+##             print "server pool of worksheet users.  This is a bad idea, since anybody"
+##             print "can trivially ** kill ** your server at any time."
+##             print "*"*70
+

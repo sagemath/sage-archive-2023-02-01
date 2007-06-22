@@ -1,5 +1,119 @@
 TODO for the new Twisted notebook
 
+* implement notebook() command as described in docs
+
+* make sure notebook? gives docs.
+
+* safari os x
+
+* firefox os x
+
+* firefox windows
+
+[ ] debugging.
+
+
+Later...
+[ ] if a worksheet is in the trash after x days all images are deleted...
+[ ] migration of old notebooks to new format
+[ ] implement user configuration:
+      * default system
+
+[ ] implement server configuration:
+      ban/add/delete users (where do their worksheets go?)
+
+[ ] implement worksheet configuration:
+     * system
+
+
+
+BUG FIXING:
+----------
+[x] keep alive
+
+ * anonymous login can still see something sort of
+
+----------------------------
+[x] fix broken interactive docbrowser
+
+
+[x] bug: edit a worksheet you published gives a copy anyways
+
+[x] edit mode should have same header.
+
+[x] rewrite trash/active/archived to be relative to a username
+
+
+
+[x] implement worksheet collaboration.
+
+[ ] admin -- should have power to become any other user, hence change their password, etc.
+
+Here's my todo list:
+[x] way to delete published worksheets (?)
+
+[] typing notebook(...) -- if fail, should try next few ports; to
+implement, have something written to a file to indicate success, then
+check that file on exit.
+
+[x] standard notebook help screen.
+
+[x] full text search of all worksheet
+
+
+[x] make sure "pub" is not an allowed username
+
+[x] renaming worksheets
+
+[x] worksheet list
+
+[x] copy worksheet
+
+[x] full save -- when shutting down notebook server and/or once in a long while, save all worksheet.txt and conf.txt files to disk (by looping through all worksheets).
+
+[?] place where system is displayed and can be changed via a click (should list common / all options, by finding
+out which objects have an eval method?)
+
+[x] whether or not a given worksheet is read only
+
+[] make worksheet prefs be stored in a txt files instead of an sobj.
+
+[x] clicking "new" to create a new worksheet should not pop
+    up a new window
+
+[] user-saved objects: these should all be in worksheets/username/objects
+
+[] publishing objects
+
+[x] publishing worksheets: a "publish" button
+
+[] stats about the server:
+      # of processes, # worksheets running, memory usage
+
+[] page with a list of users; sort by activity, order, etc.; click to
+see all worksheets/data they have published.
+
+[x] data directory for individual worksheets; way to
+upload/download/delete from it; this is needed so worksheets can have
+pictures, etc., not computed by SAGE -- just like moin-moin's
+"attachments".
+
+[x] using a published worksheets (copying it from the published space
+to one's own).
+
+[] sharing a worksheet should optionally send an email to users being
+shared with
+
+[x] some obvious basic restyling of individual worksheet page to be
+simpler; in partiuclar, the title should be bigger, etc. -- should
+look more like google docs.
+
+[x] a save button, which saves a snapshot of the text of the worksheet
+(images aren't saved -- they are too big).  Configure how far back the
+snapshots go. Also, give easy interface to see or revert to any past
+snapshot.
+
+
 done * create new worksheet needs confirmation
 
 * carefully control the total number of Python worksheet

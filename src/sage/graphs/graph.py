@@ -5409,6 +5409,8 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
         pos3d[v][2] = pos3d[v][2] - c[2]
         r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
     r = max(r)
+    if r == 0:
+        r = 1
     for v in verts:
         pos3d[v][0] = pos3d[v][0]/r
         pos3d[v][1] = pos3d[v][1]/r

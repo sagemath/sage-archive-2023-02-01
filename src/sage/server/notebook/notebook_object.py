@@ -16,9 +16,85 @@ import run_notebook
 
 class NotebookObject:
     """
-    Start the notebook.
+    Start the SAGE Notebook server.
 
-    Type notebook.notebook? for more help.
+    INPUT:
+        directory  -- (default: 'sage_notebook') directory that contains
+                      the SAGE notebook files
+        port       -- (default: 8000), port to serve the notebook on
+        address    -- (default: 'localhost'), address to listen on
+        port_tries -- (default: 0), number of additional ports to try if the
+                      first one doesn't work (*not* implemented)
+        secure     -- (default: True) if True use https so all
+                      communication, e.g., logins and passwords,
+                      between web browsers and the SAGE notebook is
+                      encrypted (via GNU TLS).
+        reset      -- (default: False) if True allows you to set the
+                      admin password.  Use this if you forget your
+                      admin password.
+    \begin{verbatim}
+    EXAMPLES:
+
+    1. I want to run the SAGE notebook server on a remote machine
+       and be the only person allowed to log in.  Type
+
+                   notebook(address="")
+
+       the first time you do this you'll be prompted to set
+       an administrator password.  Use this to login.
+
+    2. I just want to run the server locally and do not want to be
+       bothered with SSL, accounts, etc., and I am the only
+       user so I do not have to worry about somebody else using
+       the notebook on localhost and deleting my files.  Use
+
+             notebook(secure = False)
+
+    3. I want to create a SAGE notebook server that is open to anybody
+       in the world to create new accounts, etc.  To run the SAGE
+       notebook publically (1) at a minimu run it from a chroot jail
+       (see the SAGE install guide), and (2) use a command like
+
+    notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 500000')
+
+       The secure option enables enccryption between all users and the
+       notebook server.  The server_pool option specifies that
+       worksheet processes run as a separate user.  The ulimit option
+       restricts the memory available to each worksheet processes to
+       500MB.  You will have to explicitly login as the admin user
+       and click "Server" in the upper right home page to configure the
+       server to allow users to create new accounts.
+
+
+
+    INPUT:  (more advanced)
+
+      NOTE: The values of these two properties default to what they were
+     last time the notebook command was called.
+
+        server_pool -- (default: None), if given, should be a list like
+                      ['sage1@localhost', 'sage2@localhost'], where
+                      you have setup ssh keys so that typing
+                         ssh sage1@localhost
+                      logs in without requiring a password, e.g., by typing
+                      as the notebook server user
+                          cd; ssh-keygen -t rsa
+                      then put ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+                      Note -- you have to get the permissions of files
+                      and directories just right -- do a web search
+                      for more details.
+
+        ulimit      -- (default: None -- leave as is), if given and server_pool is also given,
+                      the worksheet processes are run with these constraints.
+                      See the ulimit documentation. Common options include:
+                           -f   The maximum size of files created by the shell
+                           -t   The maximum amount of cpu time in seconds.
+                           -u   The maximum number of processes available to a single user.
+                           -v   The maximum amount of virtual memory available to the process.
+                      Values are in 1024-byte increments, except for `-t', which is in seconds.
+                      Example:  ulimit="-v 400000 -t 30"
+
+    \end{verbatim}
     """
     def __call__(self, *args, **kwds):
         return self.notebook(*args, **kwds)

@@ -66,6 +66,7 @@ from sage.rings.integer cimport Integer
 import sage.structure.element
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, ModuleElement, Element
+from sage.categories.morphism cimport Morphism
 
 from sage.structure.parent cimport Parent
 
@@ -122,7 +123,6 @@ def IntegerMod(parent, value):
         return IntegerMod_int64(parent, value)
     else:
         return IntegerMod_gmp(parent, value)
-
 
 def is_IntegerMod(x):
     """
@@ -2408,3 +2408,103 @@ def slow_lucas(k, P, Q=1):
         return P
     else:
         return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)
+
+
+############# Homomorphisms ###############
+
+cdef class IntegerMod_hom(Morphism):
+    cdef IntegerMod_abstract zero
+    cdef NativeIntStruct modulus
+    def __init__(self, parent):
+        Morphism.__init__(self, parent)
+        self.zero = self._codomain(0)
+        self.modulus = self._codomain._pyx_order
+    cdef Element _call_c(self, Element x):
+        return IntegerMod(self.codomain, x)
+
+cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
+    """
+    Very fast IntegerMod to IntegerMod homomorphism.
+
+    sage: from sage.rings.integer_mod import IntegerMod_to_IntegerMod
+    sage: R = Integers(2^8); S = Integers(2^3)
+    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
+    sage: hom(R(-1))
+    7
+    sage: R = Integers(2^18); S = Integers(2^3)
+    sage: type(R(1))
+    <type 'sage.rings.integer_mod.IntegerMod_int64'>
+    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
+    sage: hom(R(-1))
+    7
+    sage: R = Integers(2^118); S = Integers(2^3)
+    sage: type(R(1))
+    <type 'sage.rings.integer_mod.IntegerMod_gmp'>
+    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
+    sage: hom(R(-1))
+    7
+    sage: R = Integers(3^118); S = Integers(3^109)
+    sage: type(S(1))
+    <type 'sage.rings.integer_mod.IntegerMod_gmp'>
+    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
+    sage: hom(R(-1)) + 1
+    0
+    """
+    cdef Element _call_c(self, Element x):
+        cdef IntegerMod_abstract a
+        if PY_TYPE_CHECK(x, IntegerMod_int):
+            return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
+        elif PY_TYPE_CHECK(x, IntegerMod_int64):
+            return self.zero._new_c_from_long((<IntegerMod_int64>x).ivalue  % self.modulus.int64)
+        else: # PY_TYPE_CHECK(x, IntegerMod_gmp)
+            a = self.zero._new_c_from_long(0)
+            a.set_from_mpz((<IntegerMod_gmp>x).value)
+            return a
+
+cdef class Integer_to_IntegerMod(IntegerMod_hom):
+    """
+    Fast $\Z \rightarrow \Z/n\Z$ morphism.
+
+    sage: from sage.rings.integer_mod import Integer_to_IntegerMod
+    sage: R = Integers(5)
+    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
+    sage: hom(-1)
+    4
+    sage: R = Integers(2^20)
+    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
+    sage: hom(5)
+    5
+    sage: R = Integers(5^120)
+    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
+    sage: hom(2)
+    2
+    """
+    cdef Element _call_c(self, Element x):
+        cdef IntegerMod_abstract a
+        cdef Py_ssize_t res
+        if self.modulus.table is not None:
+            res = x % self.modulus.int64
+            a = self.modulus.lookup(res)
+            if a._parent is not self._codomain:
+               a._parent = self._codomain
+#                print (<Element>a)._parent, " is not ", parent
+            return a
+        else:
+            a = self.zero._new_c_from_long(0)
+            a.set_from_mpz((<Integer>x).value)
+            return a
+
+cdef class Int_to_IntegerMode(IntegerMod_hom):
+    cdef Element _call_c(self, Element x):
+        cdef IntegerMod_abstract a
+        cdef Py_ssize_t res
+        if self.modulus.table is not None:
+            res = x
+            res %= self.modulus.int64
+            a = self.modulus.lookup(res)
+            if a._parent is not self._codomain:
+               a._parent = self._codomain
+#                print (<Element>a)._parent, " is not ", parent
+            return a
+        else:
+            return self.zero._new_c_from_long(x)

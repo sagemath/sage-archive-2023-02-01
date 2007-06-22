@@ -46,8 +46,9 @@ import integer
 
 from integer_ring import ZZ
 
-from sage.structure.element cimport RingElement, ModuleElement
+from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
+from sage.categories.morphism cimport Morphism
 
 import sage.rings.real_mpfr
 
@@ -1458,3 +1459,9 @@ def make_rational(s):
     r = Rational()
     r._reduce_set(s)
     return r
+
+cdef class Z_to_Q(Morphism):
+    cdef Element _call_c(self, Element x):
+        cdef Rational rat
+        rat = <Rational> PY_NEW(Rational)
+        mpq_set_z(rat.value, (<integer.Integer>x).value)

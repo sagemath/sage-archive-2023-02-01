@@ -2910,8 +2910,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def is_supersingular(self, p, ell=None):
         """
-        Return True precisely when the mod-p representation attached
-        to this elliptic curve is supersingular at ell.
+        Return True precisely when p is a prime of good reduction so
+        that the mod-p representation attached to this elliptic curve
+        is supersingular at ell.
 
         INPUT:
             p -- a prime
@@ -2922,7 +2923,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if ell is None:
             ell = p
-        return not self.is_ordinary(p, ell)
+        return self.is_good(p) and not self.is_ordinary(p, ell)
 
     def supersingular_primes(self, B):
         """
@@ -2940,7 +2941,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.aplist(20)
             [0, 0, 0, -1, 0, 5, 0, -7]
             sage: e.supersingular_primes(97)
-            [2, 3, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
+            [2, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
             sage: e.ordinary_primes(97)
             [7, 13, 19, 31, 37, 43, 61, 67, 73, 79, 97]
             sage: e.supersingular_primes(3)
@@ -2952,8 +2953,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         v = self.aplist(max(B, 3))
         P = arith.prime_range(max(B,3)+1)
+        N = self.conductor()
         return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0] + \
-                      [P[i] for i in range(2,len(v)) if v[i] == 0]
+                      [P[i] for i in range(2,len(v)) if v[i] == 0 and N%P[i] != 0]
 
     def ordinary_primes(self, B):
         """

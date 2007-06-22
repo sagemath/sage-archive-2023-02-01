@@ -73,8 +73,8 @@ span.control_commands {
 }
 
 span.worksheet_control_commands {
-   position: fixed;
-   top:36px;
+   position: relative;
+   top:0px;
    right:0px;
    text-align:right;
    color:blue;
@@ -89,7 +89,7 @@ div.slide_control_commands {
    position: fixed;
    width:500px;
    top:1ex;
-   right:1ex;
+   right:45%;
    text-align:right;
    color:blue;
    font-weight:normal;
@@ -162,24 +162,28 @@ div.top_control_bar a.help {
 }
 
 div.top_control_bar a.help:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.slide_mode {
+a.slide_mode {
 }
 
-div.top_control_bar a.slide_mode:hover{
+a.slide_mode:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.cell_mode {
+a.cell_mode {
 }
 
-div.top_control_bar a.cell_mode:hover{
+a.cell_mode:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.slide_arrow {
+a.slide_arrow {
 }
 
-div.top_control_bar a.slide_arrow:hover{
+a.slide_arrow:hover{
+   cursor:pointer;
 }
 
 
@@ -240,6 +244,11 @@ div.slideshow_control {
   float:right;
 }
 
+div.slideshow_control:hover {
+   cursor:pointer;
+}
+
+
 div.slideshow_progress {
   float:right;
   background-color:white;
@@ -251,6 +260,9 @@ div.slideshow_progress_bar{
   z-index:1;
   position:relative;
   background-color: <color1>;
+}
+div.slideshow_progress_bar:hover {
+   cursor:pointer;
 }
 div.slideshow_progress_text{
   position:absolute;
@@ -570,8 +582,8 @@ input.add_new_worksheet_menu {
 }
 
 button.add_new_worksheet_menu {
-   font-size:11px;
-   font-family:arial;
+   font-size:14px;
+   font-family:sans-serif;
 }
 
 span.pane div.upload_worksheet_menu {
@@ -647,18 +659,30 @@ div.worksheet_top_padding {
    height:5%;
 }
 
+div.worksheet_menu {
+   top:50px;
+}
+
+a.worksheet_title {
+   text-decoration:none;
+   font-size:20px;
+   font-family:arial;
+   font-weight:bold;
+   color:#000000;
+}
+
+a.worksheet_title:hover {
+   background-color:#ffffcc;
+   cursor:pointer;
+}
+
 div.worksheet_title {
    z-index:2;
    top:36px;
    height:31px;
    padding-top: 3px;
    padding-left: 1em;
-   background: url('/images/corner.png') no-repeat top left;
-   background-color: <color1>;
-   width: 100%;
-   font-family:arial;
-   font-size: 16px;
-   font-weight:bold;
+   background-color: #ffffff;
    color:black;
    position: fixed;
 }
@@ -817,13 +841,15 @@ div.worksheet {
   overflow:auto;
   z-index:1;
   background-color: white;
-  border-top: 0px;
+  border:1px solid #aaa;
+/*  border-top: 0px;
   border-left: 2px solid <color1>;
-  top: 70px;
+  */
+  top: 8em;
   bottom: 0ex;
   right: 0ex;
-  left: 5px;
-  padding-left: 3ex;
+  left:1ex;
+  padding-left: 0ex;
   float: right;
   padding-top: 0ex;
 }
@@ -831,11 +857,20 @@ div.worksheet {
 
 span.banner{
   background-color:white;
-  /* font-family:arial;
-  font-size:30px;
+  font-family: sans-serif;
+  font-size:18px;
   text-decoration: none;
-  font-weight: bold;
-  color: #387CAF; */
+  color: #1950c8;
+}
+
+span.banner a.banner{
+    text-decoration:none;
+    border:none;
+    margin-top:2px;
+}
+
+a.banner:visited {
+  color: #1950c8;
 }
 
 span.banner a.banner img{
@@ -964,9 +999,7 @@ pre.cell_input {
 
 }
 pre.cell_input:hover {
-  cursor:pointer;
-  /* border: 2px solid  #8888fe; */
-  /* background-color: #ffffcc; */
+  cursor:text;
 }
 
 textarea.cell_input_hide {
@@ -999,7 +1032,7 @@ pre.cell_input_hide {
 }
 
 pre.cell_input_hide:hover {
-  cursor:pointer;
+  cursor:text;
 }
 
 textarea.cell_input_active {
@@ -1017,7 +1050,7 @@ textarea.cell_input_active {
 }
 
 textarea.cell_input:hover{
-  cursor:pointer;
+  cursor:text;
 }
 
 
@@ -1211,6 +1244,314 @@ span.red{
   color:red;
 }
 
+/****************** Other **************/
+
+a.worksheetname{
+   text-decoration: none;
+}
+
+a.worksheetname_moved{
+   color:#888888;
+   text-decoration: none;
+   font-weight:normal;
+}
+
+.flush-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    right: 0;               /* All except IE */
+}
+
+.thin-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    right: 0;               /* All except IE */
+    width: 70%;
+}
+
+/************ User Home **************************/
+
+span.username {
+  font-family: sans-serif;
+  font-weight:bold;
+  font-size:14px;
+  padding:1ex;
+}
+
+span.ratingmsg {
+  font-family: sans-serif;
+  color: #112abb;
+  padding:0.6ex;
+  font-size:14px;
+}
+
+span.pubmsg {
+  font-family: sans-serif;
+  color: #112abb;
+  padding:0.6ex;
+  font-size:12px;
+}
+
+a.usercontrol {
+  color: #112abb;
+  padding:0.6ex;
+  font-size:13px;
+  text-decoration:underline;
+}
+
+a.usercontrol:hover {
+  cursor:pointer;
+}
+
+a.boldusercontrol {
+  color: #112abb;
+  padding:1ex;
+  font-weight:bold;
+  font-size:14px;
+}
+
+a.control, a.control-select {
+  background-color:#7799bb;
+  font-family: sans-serif;
+  color: #ffffff;
+  padding-top:0.5ex;
+  padding-bottom:0.5ex;
+  padding-left:1ex;
+  padding-right:1ex;
+  font-size:15px;
+  font-weight:bold;
+  text-decoration: none;
+}
+
+a.control:hover {
+   cursor:pointer;
+}
+
+a.control-select {
+ background-color:#4477aa;
+}
+
+a.control-select:hover {
+   cursor:pointer;
+}
+
+span.sharebar {
+  background-color:#4477aa;
+  font-family: sans-serif;
+  color: #ffffff;
+  position:absolute;
+  left:1ex;
+  right:0ex;
+  padding-top:1ex;
+  padding-bottom:1ex;
+  padding-left:4ex;
+  font-size:18px;
+  font-weight:bold;
+}
+
+textarea.edit {
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+a.listcontrol {
+  padding:1ex;
+  color: #112abb;
+  font-weight:bold;
+  font-size:14px;
+  text-decoration:none;
+}
+
+hr.usercontrol {
+   border: 0;
+   width: 100%;
+   color: #c9d7f1;
+   background-color: #c9d7f1;
+   height: 1px;
+}
+
+hr.greybar {
+   border: 0;
+   width: 100%;
+   color: #aaa;
+   background-color: #aaa;
+   height: 1px;
+}
+
+span.checkcol {
+  position:relative;
+  left:0%;
+  width:10%;
+}
+
+span.leftcol {
+  position:relative;
+  left:10%;
+  width:20%;
+}
+
+span.middlecol {
+  position:relative;
+  left:30%;
+  width:20%;
+}
+
+span.rightcol {
+  position:relative;
+  left:50%;
+  width:20%;
+}
+
+tr.greybox {
+   background-color: #e8eef7;
+}
+
+td.entry {
+   padding:4px;
+}
+
+div.thinspace {
+   border: 0;
+   width: 100%;
+   height: 2px;
+}
+
+tr.thingreybox {
+   background-color: #aaa;
+}
+
+div.ultrathinspace {
+   border: 0;
+   width: 100%;
+   height: 0px;
+}
+
+span.lastedit {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #717171;
+}
+
+span.revs {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #333333;
+}
+
+span.users {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222222;
+}
+
+a.share {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #7777cc;
+}
+
+select.worksheet {
+  width:9em;
+  border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_list {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_edit {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+td.worksheet_link {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #000000;
+}
+
+td.archived_worksheet_link {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+td.owner_collab {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+td.last_edited {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+span.addtext {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222;
+}
+
+textarea.plaintextedit {
+    position:fixed;
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    top: 10em;
+    bottom: 0ex;
+    right: 0ex;
+    left:1ex;
+    margin-top: 0.5em;
+}
+
+div.docidx {
+  text-align:center;
+  font-family: sans-serif;
+  font-size:16px;
+  color: #222;
+  font-weight:bold;
+}
+
+span.ping {
+   display:none;
+}
+
+span.pingdown {
+   font-family:sans-serif;
+   font-size:15px;
+   font-weight:bold;
+   color:white;
+   background-color: darkred;
+}
 
 """
     if color == 'gmail':

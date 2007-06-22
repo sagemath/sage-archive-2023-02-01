@@ -5,141 +5,71 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
-import twist
+import crypt
 import os
+from   random import randint
 
+import twist
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, defer
 from zope.interface import Interface, implements
 from twisted.web2 import iweb
 from twisted.python import log
-from random import randint
 
 def user_type(avatarId):
+    if isinstance(avatarId, FailedLogin):
+        if avatarId.failure_type == 'user':
+            return 'invalid_user'
+        elif avatarId.failure_type == 'password':
+            return 'invalid_password'
+        else:
+            raise ValueError, 'invalid failure type'
     if twist.notebook.user_is_admin(avatarId):
         return 'admin'
     return 'user'
 
-class PasswordDataBaseChecker(object):
+class FailedLogin:
+    def __init__(self, username, failure_type = "user"):
+        self.username = username
+        self.failure_type = failure_type
+
+class PasswordChecker(object):
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.IUsernamePassword,)
 
-    def __init__(self, dbConnection):
-        self.dbConnection = dbConnection
 
-    def queryDatabase(self, result):
-        if result:
-            avatarId = str(result[0][0])
-            return avatarId #defer.succeed(avatarId)
-        else:
-            return checkers.ANONYMOUS #defer.succeed(checkers.ANONYMOUS)
-
-    def requestAvatarId(self, credentials):
-        username = credentials.username
-        password = credentials.password
-        query = "SELECT avatarId FROM users WHERE avatarId = ? AND password = ?"
-        d = self.dbConnection.runQuery(query, (username, password))
-        d.addCallback(self.queryDatabase)
-        #d.addErrback(self._failed)
-        return d
-
-class PasswordDictChecker(object):
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.IUsernamePassword,)
-
-    def __init__(self, passwords):
-        "passwords: a dict-like object mapping usernames to passwords"
-        self.passwords = passwords
-
-    def requestAvatarId(self, credentials):
-        username = credentials.username
-        if self.passwords.has_key(username):
-            password = self.passwords[username]
-            if credentials.password == password:
-                return defer.succeed(username)
-            else:
-                return defer.succeed(checkers.ANONYMOUS)
-        else:
-            return defer.succeed(checkers.ANONYMOUS)
-
-class PasswordFileChecker(PasswordDictChecker):
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.IUsernamePassword,)
-
-    def __init__(self, password_file):
-        """
-        INPUT:
-        password_file - file that contains passwords
-
-        """
-
-        self.password_file = password_file
-        self.load_passwords()
-
-    def load_passwords(self):
-        passwords = {}
-        if not os.path.exists(self.password_file):
-            open(self.password_file,'w').close()
-            self.add_first_admin()
-        f = open(self.password_file).readlines()
-        if len(f) == 0:
-            self.add_first_admin()
-        for line in f:
-            username, password, email, account_type = line.split(':')
-            password = password.strip()
-            passwords[username] = password
-
-        self.passwords = passwords
 
     def add_user(self, username, password, email, account_type='user'):
         self.check_username(username)
-        f = open(self.password_file, 'a')
-        s = '%s:%s:%s:%s\n' % (username, password, email, account_type)
-        f.writelines(s)
-        f.close()
-
-    def add_first_admin(self):
-        pw = "%x"%randint(2**24,2**25)
-        self.add_user("admin", pw, "", "admin")
-        log.msg("""
-*************************************
-     INITIALIZING USER DATABASE
-*************************************
-Please visit the notebook immediately
-to configure the server.  Log in with
-user: admin
-pass: %s
-*************************************"""%pw)
+        U = twist.notebook.add_user(username, password, email, account_type)
 
     def check_username(self, username):
-        usernames = []
-        f = open(self.password_file).readlines()
-        for line in f:
-            v = line.split(':')
-            usernames.append(v[0])
+        usernames = twist.notebook.usernames()
         if username in usernames:
             raise ValueError('Username %s already exists' % username)
+        elif username == 'pub':
+            raise ValueError('"pub" is not an allowed user name')
         else:
             return True
 
     def requestAvatarId(self, credentials):
-        self.load_passwords()
         username = credentials.username
-        if self.passwords.has_key(username):
-            password = self.passwords[username]
-            if credentials.password == password:
-                return defer.succeed(username)
-            else:
-                return defer.succeed(checkers.ANONYMOUS)
+        password = credentials.password
+        try:
+            U = twist.notebook.user(username)
+        except KeyError:
+            return defer.succeed(FailedLogin(username, failure_type = 'user'))
+
+        if U.password_is(password):
+            return defer.succeed(username)
         else:
-            return defer.succeed(checkers.ANONYMOUS)
+            return defer.succeed(FailedLogin(username,failure_type='password'))
+
 
 class LoginSystem(object):
     implements(portal.IRealm)
 
-    def __init__(self, users):
-        self.users = users #empty, stored in database right now
-        # self.dbConnection = dbConnection
+    def __init__(self):
         self.usersResources = {} #store created resource objects
         self.kernels = {} #logged in users kernel connections.
         self.logout = lambda: None #find a good use for logout
@@ -157,27 +87,34 @@ class LoginSystem(object):
         if the user is anonymous, regular, or an admin)
 
         """
-
-        from sage.server.notebook.twist import AnonymousToplevel, UserToplevel, AdminToplevel
         self.cookie = mind[0]
         if iweb.IResource in interfaces:
-            log.msg(avatarId)
+            self._mind = mind
+            self._avatarId = avatarId
+            if twist.OPEN_MODE:
+                rsrc = twist.AdminToplevel(self.cookie, 'admin')
+                return (iweb.IResource, rsrc, self.logout)
+
             if avatarId is checkers.ANONYMOUS: #anonymous user
-                log.msg("returning AnonymousResources")
-                rsrc = AnonymousToplevel(self.cookie, avatarId)
+                rsrc = twist.AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
+            elif user_type(avatarId) == 'invalid_user':
+                rsrc = twist.FailedToplevel(avatarId, problem='username')
+                return (iweb.IResource, rsrc, self.logout)
+
+            elif user_type(avatarId) == 'invalid_password':
+                rsrc = twist.FailedToplevel(avatarId, problem='password')
+                return (iweb.IResource, rsrc, self.logout)
+
             elif user_type(avatarId) == 'user':
-                log.msg("returning User resources for %s" % avatarId)
-                self._mind = mind #mind = [cookie, request.args, segments]
-                self._avatarId = avatarId
-                rsrc = UserToplevel(self.cookie, avatarId)
+                rsrc = twist.UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
             elif user_type(avatarId) == 'admin':
-                log.msg("returning Admin resources for %s" % avatarId)
-                self._mind = mind #mind = [cookie, request.args, segments]
-                self._avatarId = avatarId
-                rsrc = AdminToplevel(self.cookie, avatarId)
+                rsrc = twist.AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
+
         else:
             raise KeyError("None of the requested interfaces is supported")
 

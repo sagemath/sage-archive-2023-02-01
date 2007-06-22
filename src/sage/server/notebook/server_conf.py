@@ -1,0 +1,19 @@
+import conf
+
+defaults = {'cell_input_color':'#0000000',
+            'cell_output_color':'#0000EE',
+            'word_wrap_cols':72,
+            'max_history_length':250,
+            'number_of_backups':3,
+
+            'idle_timeout':300,        # 5 minutes
+            'idle_check_interval':30,
+
+            'save_interval':15,
+
+            'doc_pool_size':128
+           }
+
+class ServerConfiguration(conf.Configuration):
+    def defaults(self):
+        return defaults

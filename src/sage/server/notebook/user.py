@@ -28,7 +28,10 @@ class User:
         return self.__password
 
     def set_password(self, password):
-        self.__password = crypt.crypt(password, SALT)
+        if password == '':
+            self.__password = 'x'   # won't get as a password -- i.e., this account is closed.
+        else:
+            self.__password = crypt.crypt(password, SALT)
 
     def password_is(self, password):
         if self.__username == "pub":

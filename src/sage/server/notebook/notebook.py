@@ -70,13 +70,14 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
-        self.default_users()
+        self.create_default_users()
 
     ##########################################################
     # Users
     ##########################################################
-    def default_users(self):
-        self.add_user('pub', '', '', account_type='guest')
+    def create_default_users(self):
+        self.add_user('pub', '', '', account_type='user')
+        self.add_user('_sage_', '', '', account_type='user')
         self.add_user('guest', '', '', account_type='guest')
         pw = hex(random.randint(1,2**24))[2:]
         self.add_user('admin', pw, '', account_type='admin')
@@ -126,7 +127,7 @@ class Notebook(SageObject):
     def add_user(self, username, password, email, account_type="user"):
         us = self.users()
         if us.has_key(username):
-            raise ValueError, "User '%s' already exists"%username
+            print "WARNING: User '%s' already exists -- and is now being replaced."%username
         U = user.User(username, password, email, account_type)
         us[username] = U
 
@@ -878,8 +879,9 @@ class Notebook(SageObject):
             else:
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
-            s += '<span class="flush-right">'
-            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published</a>'
+            s += '<span>'
+            s += '&nbsp;'*10
+            s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published Worksheets</a>'
             s += '&nbsp;'*10
             s += '&nbsp;<a class="usercontrol" href=".">Active</a>'
             s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
@@ -1018,7 +1020,7 @@ class Notebook(SageObject):
     # Revision history for a worksheet
     ##########################################################
     def html_worksheet_revision_list(self, username, worksheet):
-        head, body = self.html_worksheet_page_template(worksheet, username, "Revision History")
+        head, body = self.html_worksheet_page_template(worksheet, username, "Revision history", select="revisions")
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
         rows = []
         i = 0
@@ -1048,7 +1050,7 @@ class Notebook(SageObject):
     def html_specific_revision(self, username, ws, rev):
         t = time.time() - float(rev[:-4])
         when = worksheet.convert_seconds_to_meaningful_time_span(t)
-        head, body = self.html_worksheet_page_template(ws, username, "Revision from %s ago"%when)
+        head, body = self.html_worksheet_page_template(ws, username, "Revision from %s ago"%when, select="revisions")
 
         filename = ws.get_snapshot_text_filename(rev)
         txt = open(filename).read()
@@ -1080,11 +1082,11 @@ class Notebook(SageObject):
         </html>
         """%(head, body)
 
-    def html_worksheet_page_template(self, worksheet, username, title):
+    def html_worksheet_page_template(self, worksheet, username, title, select=None):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
         head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet.filename(), worksheet.name())
         body = self._html_body(worksheet.filename(), top_only=True, username=username)
-        body += self.html_worksheet_topbar(worksheet)
+        body += self.html_worksheet_topbar(worksheet, select=select)
         body += '<hr class="usercontrol">'
         body += '<span class="sharebar">%s</span>'%title
         body += '<br>'*3
@@ -1092,7 +1094,7 @@ class Notebook(SageObject):
 
 
     def html_share(self, worksheet, username):
-        head, body = self.html_worksheet_page_template(worksheet, username, "Share this document")
+        head, body = self.html_worksheet_page_template(worksheet, username, "Share this document", select="share")
 
         body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
         body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
@@ -1263,14 +1265,14 @@ class Notebook(SageObject):
 
         return head
 
-    def html_worksheet_topbar(self, worksheet):
+    def html_worksheet_topbar(self, worksheet, select=None):
         body = ''
         body += worksheet.html_title()
         body += worksheet.html_save_discard_buttons() + '<br>'
 
         body += '<hr class="greybar">'
         menu = worksheet.html_menu()
-        share = '<span class=thin-right>%s</span>'%worksheet.html_share_publish_buttons()
+        share = '<span class=thin-right>%s</span>'%worksheet.html_share_publish_buttons(select=select)
 
         body += '<table><tr><td>%s</td><td>%s</td></tr></table>'%(menu, share)
 
@@ -1336,7 +1338,7 @@ class Notebook(SageObject):
                 return body
 
             if worksheet_filename:
-                body += self.html_worksheet_topbar(worksheet)
+                body += self.html_worksheet_topbar(worksheet, select="edit")
 
             if self.__show_debug or show_debug:
                 body += self.html_debug_window()
@@ -1376,7 +1378,7 @@ class Notebook(SageObject):
         INPUT:
             worksheet -- a worksheet
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit Text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel">')
+        head, body = self.html_worksheet_page_template(worksheet, username, 'Plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="text")
 
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')

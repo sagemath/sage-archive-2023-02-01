@@ -1310,7 +1310,7 @@ a.boldusercontrol {
   font-size:14px;
 }
 
-a.control {
+a.control, a.control-select {
   background-color:#7799bb;
   font-family: sans-serif;
   color: #ffffff;
@@ -1327,8 +1327,16 @@ a.control:hover {
    cursor:pointer;
 }
 
+a.control-select {
+ background-color:#4477aa;
+}
+
+a.control-select:hover {
+   cursor:pointer;
+}
+
 span.sharebar {
-  background-color:#7799bb;
+  background-color:#4477aa;
   font-family: sans-serif;
   color: #ffffff;
   position:absolute;

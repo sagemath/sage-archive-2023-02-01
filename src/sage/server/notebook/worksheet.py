@@ -689,7 +689,6 @@ class Worksheet:
             return ''
         return """
         <span class="flush-right">
-        <button title="Edit" onClick="edit_worksheet();">Edit</button>
         <button title="Save changes" onClick="save_worksheet();">Save</button>
         <button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button>
         <button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
@@ -697,24 +696,30 @@ class Worksheet:
         </span>
         """
 
-    def html_share_publish_buttons(self):
+    def html_share_publish_buttons(self, select=None):
         #<a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
         #<a  title="Preview this worksheet" class="usercontrol" href="preview_"><img border=0 src="/images/icon_preview.gif"> Preview</a>
-        #<a  title="Edit text version of this worksheet" class="usercontrol" href="edit"><img border=0 src="/images/icon_preview.gif"> Edit Text</a>
 
         if self.is_doc_worksheet():
             return ''
+        def cls(x):
+            if x == select:
+                return "control-select"
+            else:
+                return "control"
+
         return """
         <span class="flush-right">
 
         <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif"> Print</a>
-        <a class="control" title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit Text</a>
-        <a class="control" href="revisions" title="View changes to this worksheet over time">Revisions</a>
-        <a class="control" href="share" title="Let others edit this worksheet">Share</a>
+        <a class="%s" title="Edit this worksheet" onClick="edit_worksheet();">Edit</a>
+        <a class="%s" title="Edit text version of this worksheet" class="usercontrol" href="edit">Text</a>
+        <a class="%s" href="revisions" title="View changes to this worksheet over time">Revisions</a>
+        <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """
+        """%(cls('edit'),cls('text'),cls('revisions'),cls('share'))
 
     def html_file_menu(self):
 ##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>

@@ -711,7 +711,7 @@ function share_worksheet() {
 
 function publish_worksheet() {
     window.open(worksheet_command("publish"), "",
-      "menubar=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
+      "menubar=1,location=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
 }
 
 function save_as(typ) {

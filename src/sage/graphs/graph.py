@@ -682,10 +682,18 @@ class GenericGraph(SageObject):
 
     def vertices(self):
         """
-        Return a list of the vertex keys.
+        Return a list of the vertex keys. If the graph is a graph with
+        boundary, boundary vertices are listed first.
 
         """
-        return self._nxg.nodes()
+        bdy_verts = []
+        int_verts = []
+        for v in self.vertex_iterator():
+            if v in self._boundary:
+                bdy_verts.append(v)
+            else:
+                int_verts.append(v)
+        return bdy_verts + int_verts
 
     def relabel(self, perm, inplace=True, quick=False):
         r"""
@@ -2230,12 +2238,24 @@ class GenericGraph(SageObject):
         """
         from sage.plot.plot import networkx_plot, rainbow
         import networkx
-        if vertex_colors is None and not partition is None:
-            l = len(partition)
-            R = rainbow(l)
-            vertex_colors = {}
-            for i in range(l):
-                vertex_colors[R[i]] = partition[i]
+        if vertex_colors is None:
+            if partition is not None:
+                l = len(partition)
+                R = rainbow(l)
+                vertex_colors = {}
+                for i in range(l):
+                    vertex_colors[R[i]] = partition[i]
+            elif len(self._boundary) != 0:
+                vertex_colors = {}
+                bdy_verts = []
+                int_verts = []
+                for v in self.vertex_iterator():
+                    if v in self._boundary:
+                        bdy_verts.append(v)
+                    else:
+                        int_verts.append(v)
+                vertex_colors['#ffffff'] = bdy_verts
+                vertex_colors['#999999'] = int_verts
         if pos is None and layout is None:
             if not self._pos is None:
                 pos = self._pos
@@ -2393,8 +2413,8 @@ class Graph(GenericGraph):
                 of elliptic curves, and the graph produced has each curve as a
                 vertex (it's Cremona label) and an edge E-F labelled p if and
                 only if E is congruent to F mod p
-        boundary -- a list of boundary vertices, if none, graph is considered as a 'graph
-            without boundary'
+        boundary -- a list of boundary vertices, if empty, graph is considered
+            as a 'graph without boundary'
 
     EXAMPLES:
     We illustrate the first six input formats (the other two
@@ -2470,7 +2490,7 @@ class Graph(GenericGraph):
         Graph on 6 vertices
 
     """
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -4054,7 +4074,7 @@ class DiGraph(GenericGraph):
 
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:

@@ -1,4 +1,6 @@
-from category import   (is_Category,
+from category import    is_Category
+
+from category_types import(
                         Elements,
                         Sequences,
                         Objects,

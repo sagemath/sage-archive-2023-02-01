@@ -4,6 +4,7 @@ Morphisms
 AUTHORS:
     -- William Stein: initial version
     -- David Joyner (12-17-2005): added examples
+    -- Robert Bradshaw (2007-06-25) Pyrexification
 """
 
 #*****************************************************************************
@@ -27,16 +28,19 @@ import homset
 
 import sage.rings.arith as arith
 
-from sage.structure.element import Element
+include "../ext/stdsage.pxi"
+from sage.structure.element cimport Element
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
 
-class Morphism(Element):
-    def __init__(self, parent):
+cdef class Morphism(Element):
+    def __init__(Morphism self, parent):
         if not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
         Element.__init__(self, parent)
+        self._domain = parent.domain()
+        self._codomain = parent.codomain()
 
     def _repr_type(self):
         return "Generic"
@@ -72,13 +76,17 @@ class Morphism(Element):
         raise NotImplementedError
 
     def __call__(self, x):
-        try:
-            y = self.domain()(x)
-        except TypeError:
-            raise TypeError, "%s must be coercible into %s"%(x,self.domain())
+        if not PY_TYPE_CHECK(x, Element) or (<Element>x)._parent is not self._domain:
+            try:
+                y = self._domain(x)
+            except TypeError:
+                raise TypeError, "%s must be coercible into %s"%(x,self._domain())
         return self._call_(y)
 
     def _call_(self, x):
+        return self._call_c(x)
+
+    cdef Element _call_c(self, Element x):
         raise NotImplementedError
 
     def __mul__(self, right):
@@ -102,7 +110,7 @@ class Morphism(Element):
     def _composition_(self, right, homset):
         return FormalCompositeMorphism(homset, right, self)
 
-    def __pow__(self, n):
+    def __pow__(self, n, dummy):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.

@@ -24,7 +24,6 @@ AUTHORS:
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-import sage.categories.all
 from sage.misc.latex import latex
 import sage.rings.infinity
 
@@ -139,6 +138,7 @@ class Set_generic(Parent):
             sage: Set(QQ).category()
             Category of sets
         """
+        import sage.categories.all
         return sage.categories.all.Sets()
 
     def object(self):

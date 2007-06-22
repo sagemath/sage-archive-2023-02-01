@@ -2161,10 +2161,11 @@ class GenericGraph(SageObject):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
-             vertex_size=200, graph_border=False, vertex_colors=None, partition=None,
-             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None,
-             iterations=50):  # xmin and xmax are ignored
+    def plot(self, pos=None, layout=None, vertex_labels=True,\
+             edge_labels=False, vertex_size=200, graph_border=False,\
+             vertex_colors=None, partition=None, edge_colors=None,\
+             scaling_term=0.05, xmin=None, xmax=None,\
+             iterations=50, color_by_label=False):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 
@@ -2190,6 +2191,7 @@ class GenericGraph(SageObject):
                 1/8 won't be useful unless the nodes are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            color_by_label -- if True, color edges or arcs by their labels
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2276,6 +2278,29 @@ class GenericGraph(SageObject):
             for v in pos:
                 for a in range(len(pos[v])):
                     pos[v][a] = float(pos[v][a])
+
+        if color_by_label:
+            edge_labels = []
+            if self.is_directed():
+                iterator = self.arc_iterator
+            else:
+                iterator = self.edge_iterator
+            for e in iterator():
+                i = 0
+                while i < len(edge_labels):
+                    if not edge_labels[i][0][2] == a[2]:
+                        i += 1
+                    else:
+                        edge_labels[i].append(a)
+                        break
+                if i == len(edge_labels):
+                    edge_labels.append([a])
+            num_labels = len(edge_labels)
+            R = rainbow(num_labels)
+            edge_colors = {}
+            for i in range(num_labels):
+                edge_colors[R[i]] = edge_labels[i]
+
         G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
@@ -2288,9 +2313,11 @@ class GenericGraph(SageObject):
             G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, vertex_size=200,
-             graph_border=False, vertex_colors=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, iterations=50, **kwds):
+    def show(self, pos=None, layout=None, vertex_labels=True,\
+             edge_labels=False, vertex_size=200, graph_border=False,\
+             vertex_colors=None, edge_colors=None, partition=None,\
+             scaling_term=0.05, talk=False, iterations=50,\
+             color_by_label=False, **kwds):
         """
         Shows the (di)graph.
 
@@ -2317,6 +2344,7 @@ class GenericGraph(SageObject):
             talk -- if true, prints large nodes with white backgrounds so that labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            color_by_label -- if True, color edges or arcs by their labels
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2367,7 +2395,12 @@ class GenericGraph(SageObject):
             vertex_size = 500
             if partition is None:
                 vertex_colors = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term, iterations=iterations).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,\
+                  edge_labels=edge_labels, vertex_size=vertex_size,\
+                  vertex_colors=vertex_colors, edge_colors=edge_colors,\
+                  graph_border=graph_border, partition=partition,\
+                  scaling_term=scaling_term, iterations=iterations,\
+                  color_by_label=color_by_label).show(**kwds)
 
 class Graph(GenericGraph):
     r"""

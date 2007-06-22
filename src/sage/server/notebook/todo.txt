@@ -8,8 +8,9 @@ TODO for the new Twisted notebook
 
 [] I forgot the "doctest text" display for the worksheets!
 
-[] bug: published worksheets always say "last edited on June 22, 2007 04:18 AM by pub"
-but they should give who really edited them.
+[] bug: published worksheets always say "last edited on June 22, 2007
+04:18 AM by pub" but they should give who really edited them.  The
+time maybe doesn't get updated either.
 
 [] some from "plain text mode" should make an entry in the revisions log.
 

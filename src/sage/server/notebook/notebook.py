@@ -70,15 +70,16 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
+        self.create_default_users('')
 
     ##########################################################
     # Users
     ##########################################################
-    def create_default_users(self, admin_password):
+    def create_default_users(self, passwd):
         self.add_user('pub', '', '', account_type='user')
         self.add_user('_sage_', '', '', account_type='user')
         self.add_user('guest', '', '', account_type='guest')
-        self.add_user('admin', admin_password, '', account_type='admin')
+        self.add_user('root', passwd, '', account_type='admin')
 
     def user_exists(self, username):
         return username in self.users()

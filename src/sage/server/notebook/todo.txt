@@ -6,7 +6,22 @@ TODO for the new Twisted notebook
 
 * firefox windows
 
-[ ] debugging.
+[] I forgot the "doctest text" display for the worksheets!
+
+[] bug: published worksheets always say "last edited on June 22, 2007 04:18 AM by pub"
+but they should give who really edited them.
+
+[] some from "plain text mode" should make an entry in the revisions log.
+
+[ ] definitely *need* autosave!
+
+[] marketing text: "Idea for marketing text: With the SAGE Notebook
+anyone can create, collaborate on, and publish interactive
+worksheets. In a worksheet, one can write code using SAGE and the
+different software included such as Python and evaluate it his
+code. He could make pretty pictures, calculate something new, tutor
+someone, learn about programming, and many other things."
+
 
 Later...
 [ ] if a worksheet is in the trash after x days all images are deleted...

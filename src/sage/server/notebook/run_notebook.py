@@ -54,13 +54,13 @@ def notebook_twisted(self,
     conf = '%s/twistedconf.tac'%directory
 
     nb = notebook.load_notebook(directory)
-    if reset or not nb.user_exists('admin'):
+    if reset or not nb.user_exists('root'):
         if not reset:
             print '\n' + '-'*70
             print "Creating a new SAGE notebook, which will be stored in the directory"
             print os.path.abspath(directory)
         while True:
-            print "Setting password for admin user."
+            print "Setting password for the root user."
             passwd = getpass.getpass("Enter new password: ")
             passwd2 = getpass.getpass("Retype new password: ")
             if passwd != passwd2:
@@ -68,11 +68,16 @@ def notebook_twisted(self,
             else:
                 break
         if reset:
-            nb.user('admin').set_password(passwd)
-            print "Password changed for user 'admin'."
+            nb.user('root').set_password(passwd)
+            print "Password changed for user 'root'."
         else:
             nb.create_default_users(passwd)
-            print "User admin created with the password you specified."
+            print "User root created with the password you specified."
+            print "\n\n"
+            print "*"*70
+            print "\n"
+            print "Login to the SAGE notebook using a username of root and the password you specified above."
+
 
     if not server_pool is None:
         nb.set_server_pool(server_pool)

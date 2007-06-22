@@ -92,7 +92,7 @@ class LoginSystem(object):
             self._mind = mind
             self._avatarId = avatarId
             if twist.OPEN_MODE:
-                rsrc = twist.AdminToplevel(self.cookie, 'admin')
+                rsrc = twist.AdminToplevel(self.cookie, 'root')
                 return (iweb.IResource, rsrc, self.logout)
 
             if avatarId is checkers.ANONYMOUS: #anonymous user

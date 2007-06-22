@@ -745,7 +745,7 @@ class Worksheet:
 </select>
 
 <select class="worksheet">
- <option title="Interrupt currently running calculations, if possible" onClick="interrupt();" >Interrupt</option>
+ <option title="Interrupt currently running calculations, if possible" onClick="interrupt();">Interrupt</option>
  <option title="Evaluate all input cells in the worksheet" onClick="evaluate_all();">Evaluate All</option>
  <option title="Hide all output" onClick="hide_all();">Hide All</option>
  <option title="Show all output" onClick="show_all();">Show All</option>

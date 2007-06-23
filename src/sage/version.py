@@ -1,2 +1,2 @@
 """nodoctests"""
-version='scipy'; date='2007-06-16'
+version='2.7.alpha1'; date='2007-06-22'

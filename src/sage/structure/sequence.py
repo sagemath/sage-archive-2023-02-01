@@ -204,7 +204,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                 import sage.categories.all
                 universe = sage.categories.all.Objects()
             else:
-                import sage.structure.coerce as coerce
+                import sage.structure.element as coerce
                 y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
                 for i in range(len(x)-1):

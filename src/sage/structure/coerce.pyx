@@ -1,284 +1,200 @@
-"""
-Coercion helper functions
-
-TODO -- DELETE THIS FILE -- the code is in element.pyx
-
-
-
-"""
-
 #*****************************************************************************
-#       Copyright (C) 2004-2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 
-#### DO NOT EDIT ##### see note above
+include "../ext/stdsage.pxi"
+include "coerce.pxi"
 
-include '../ext/stdsage.pxi'
-
-import __builtin__
 import operator
 
-import  element
 
-cimport sage.modules.module
-import  sage.modules.module
+cdef class CoercionModel_simple(CoercionModel):
+    """
+    This is the original coercion model, as of SAGE 2.6 (2007-06-02)
+    """
 
-def lcm(x,y):
-    from sage.rings.arith import lcm
-    return lcm(x,y)
+    def canonical_coercion(self, x, y):
+        """
+        canonical_coercion(x,y) is what is called before doing an
+        arithmetic operation between x and y.  It returns a pair (z,w)
+        such that z is got from x and w from y via canonical coercion and
+        the parents of z and w are identical.
 
-def gcd(x,y):
-    from sage.rings.arith import gcd
-    return gcd(x,y)
+        EXAMPLES:
+            sage: A = Matrix([[0,1],[1,0]])
+            sage: canonical_coercion(A,1)
+            ([0 1]
+            [1 0], [1 0]
+            [0 1])
+        """
+        return self.canonical_coercion_c(x,y)
 
-def xgcd(x,y):
-    from sage.rings.arith import xgcd
-    return xgcd(x,y)
+    cdef canonical_coercion_c(self, x, y):
+        cdef int i
+        xp = parent_c(x)
+        yp = parent_c(y)
+        if xp is yp:
+            return x, y
 
-def parent(x):
-    try:
-        return x.parent()
-    except AttributeError:
-        return type(x)
-
-def coerce(p, x):
-    try:
-        return p._coerce_(x)
-    except AttributeError:
-        return p(x)
-
-def canonical_coercion(x, y):
-    return canonical_coercion_c(x,y)
-
-cdef canonical_coercion_c(x, y):
-    cdef int i
-    xp = parent(x)
-    yp = parent(y)
-    if xp is yp:
-        return x, y
-
-    try:
         if PY_IS_NUMERIC(x):
             try:
                 x = yp(x)
             except TypeError:
                 y = x.__class__(y)
                 return x, y
+            # Calling this every time incurs overhead -- however, if a mistake
+            # gets through then one can get infinite loops in C code hence core
+            # dumps.  And users define _coerce_ and __call__ for rings, which
+            # can easily have bugs in it, i.e., not really make the element
+            # have the correct parent.  Thus this check is *crucial*.
+            return _verify_canonical_coercion_c(x,y)
+
         elif PY_IS_NUMERIC(y):
             try:
                 y = xp(y)
             except TypeError:
                 x = y.__class__(x)
                 return x, y
-        else:
-            i = 0
-            try:
-                x0 = x
-                x = coerce(yp, x)
-            except TypeError, msg:
-                i = i + 1
-            try:
-                y = coerce(xp, y)
-            except TypeError, msg:
-                i = i + 1
-            if i == 0:
-                # Both succeed.  But we must be careful to take x before
-                # it was coerced, or we end up *switching* to the parents,
-                # which is no good.
-                return x0, y
-            elif i == 2:
-                import  sage.rings.ring
-                if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
-                    raise TypeError, "you cannot +,*,/ a ring with a number."
-                raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-        return x, y
-    except AttributeError:
-        raise TypeError, "unable to find a common canonical parent"
+            return _verify_canonical_coercion_c(x,y)
 
-def canonical_base_coercion(x, y):
-    try:
-        xb = x.base_ring()
-    except AttributeError:
-        #raise TypeError, "unable to find base ring for %s (parent: %s)"%(x,x.parent())
-        raise TypeError, "unable to find base ring"
-    try:
-        yb = y.base_ring()
-    except AttributeError:
-        raise TypeError, "unable to find base ring"
-        #raise TypeError, "unable to find base ring for %s (parent: %s)"%(y,y.parent())
-    try:
-        b = canonical_coercion_c(xb(0),yb(0))[0].parent()
-    except TypeError:
-        raise TypeError, "unable to find base ring"
-        #raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
-    return x.change_ring(b), y.change_ring(b)
+        try:
+            if xp.has_coerce_map_from(yp):
+                y = (<Parent>xp)._coerce_c(y)
+                return _verify_canonical_coercion_c(x,y)
+        except AttributeError:
+            pass
+        try:
+            if yp.has_coerce_map_from(xp):
+                x = (<Parent>yp)._coerce_c(x)
+                return _verify_canonical_coercion_c(x,y)
+        except AttributeError:
+            pass
+        raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
+
+    cdef canonical_base_coercion_c(self, Element x, Element y):
+        if not have_same_base(x, y):
+            if (<Parent> x._parent._base).has_coerce_map_from_c(y._parent._base):
+                # coerce all elements of y to the base ring of x
+                y = y.base_extend_c(x._parent._base)
+            elif (<Parent> y._parent._base).has_coerce_map_from_c(x._parent._base):
+                # coerce x to have elements in the base ring of y
+                x = x.base_extend_c(y._parent._base)
+        return x,y
+
+    def canonical_base_coercion(self, x, y):
+        try:
+            xb = x.base_ring()
+        except AttributeError:
+            #raise TypeError, "unable to find base ring for %s (parent: %s)"%(x,x.parent())
+            raise TypeError, "unable to find base ring"
+        try:
+            yb = y.base_ring()
+        except AttributeError:
+            raise TypeError, "unable to find base ring"
+            #raise TypeError, "unable to find base ring for %s (parent: %s)"%(y,y.parent())
+        try:
+            b = self.canonical_coercion_c(xb(0),yb(0))[0].parent()
+        except TypeError:
+            raise TypeError, "unable to find base ring"
+            #raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
+        return x.change_ring(b), y.change_ring(b)
 
 
-N = type(None)
 
-cdef class Coerce:
+    def bin_op(self, x, y, op):
+        return self.bin_op_c(x,y,op)
+
     cdef bin_op_c(self, x, y, op):
         """
         Compute x op y, where coercion of x and y works according to
         SAGE's coercion rules.
         """
-        #print "bin_op(%s,%s,%s)"%(x,y,op)   # debug
-        if isinstance(y, element.InfinityElement):
-            return op(y,x)
-        if op == operator.mul and \
-               isinstance(y, (\
-                          element.ModuleElement,
-                          element.AlgebraElement,
-                          sage.modules.module.Module)) and \
-               isinstance(x, (element.RingElement, int, long, float)):
-            return op(y,x)
+        # Try canonical element coercion.
         try:
-            #print 1, x, y, x.parent(), y.parent()
-            x, y = canonical_coercion_c(x, y)
-            #print 2, x, y, x.parent(), y.parent()
-        except TypeError, mesg:
+            x1, y1 = self.canonical_coercion_c(x, y)
+            return op(x1,y1)
+        except TypeError, msg:
+            #print msg  # this can be useful for debugging.
+            if not op is operator.mul:
+                raise TypeError, arith_error_message(x,y,op)
+
+        # If the op is multiplication, then some other algebra multiplications
+        # may be defined
+
+        # 2. Try scalar multiplication.
+        # No way to multiply x and y using the ``coerce into a canonical
+        # parent'' rule.
+        # The next rule to try is scalar multiplication by coercing
+        # into the base ring.
+        cdef bint x_is_modelt, y_is_modelt
+
+        y_is_modelt = PY_TYPE_CHECK(y, ModuleElement)
+        if y_is_modelt:
+            # First try to coerce x into the base ring of y if y is an element.
             try:
-                return y._r_action(x)
-            except AttributeError:
-                raise TypeError, '%s: x parent: %s, y parent: %s'%(mesg, parent(x), parent(y))
-            except TypeError:
-                raise TypeError, "No right action defined"
-            try:
-                return x._l_action(y)
-            except AttributeError:
-                raise TypeError, mesg
-            except TypeError:
-                raise TypeError, "No left action defined"
-                #raise TypeError, "No left action of %s on %s defined"%(x,y)
-
-        return op(x,y)
-
-    cdef cmp_c(self, x, y):
-        tx = type(x); ty = type(y)
-        if (tx == N and ty != N) or (tx != N and ty == N):
-            return -1
-        elif isinstance(y, element.InfinityElement):
-            return -y.__cmp__(x)
-
-        xp = parent(x)
-        yp = parent(y)
-        if xp is yp:
-            return __builtin__.cmp(x,y)
-
-        cdef int fails
-        fails = 0
-        if isinstance(x, (int, long)):
-
-            return __builtin__.cmp(yp(x), y)
-
-        elif isinstance(y, (int, long)):
-
-            return __builtin__.cmp(x, xp(y))
-
-        else:
-
-            fails = 0
-            try:
-                x0 = x
-                x = coerce(yp, x)
-            except (TypeError, ValueError):
-            #    print "coercing %s to %s failed"%(x0,yp)
-                fails = fails + 1
-            #else:
-            #    print "coercion %s to %s suceeded with %s (parent=%s)"%(x0,yp,x,parent(x))
-
-            try:
-                y0 = y
-                y = coerce(xp, y)
-            except (TypeError, ValueError):
-            #    print "coercing %s to %s failed"%(y0,xp)
-                fails = fails + 1
-            #else:
-            #    print "coercion %s to %s suceeded with %s (parent=%s)"%(y0,xp,y,parent(y))
-
-
-            if fails == 0:
-                assert (parent(x0) is parent(y))  # debug
-                return __builtin__.cmp(x0,y)
-
-            elif fails == 2:
-
-                return -1
-
-            else:
-                if not (parent(x) is parent(y)):
-                    raise RuntimeError, "There is a bug in coercion: x=%s (parent=%s), y=%s (parent=%s)"%(x, parent(x), y, parent(y))
-                return __builtin__.cmp(x,y)
-
-
-cdef Coerce functions
-functions = Coerce()
-
-def cmp(x,y):  # external interface to cmp_cdef
-    return functions.cmp_c(x,y)
-
-def bin_op(x, y, op):
-    return functions.bin_op_c(x,y,op)
-
-
-#########
-
-cdef x_canonical_coercion_c(x, y):
-    cdef int i
-    xp = parent(x)
-    yp = parent(y)
-    if xp is yp:
-        return x, y
-
-    try:
-        if x.__class__ in [int, long, float, complex]:
-            try:
-                x = yp(x)
-            except TypeError:
-                y = x.__class__(y)
-                return x, y
-        elif y.__class__ in [int, long, float, complex]:
-            try:
-                y = xp(y)
-            except TypeError:
-                x = y.__class__(x)
-                return x, y
-        else:
-            i = 0
-            try:
-                x0 = x
-                x = coerce(yp, x)
+                R = (<ModuleElement> y)._parent._base
+                if R is None:
+                    raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> y)._parent)
+                x = (<Parent>R)._coerce_c(x)
+                return (<ModuleElement> y)._rmul_c(x)     # the product x * y
             except TypeError, msg:
-                i = i + 1
-            try:
-                y = coerce(xp, y)
-            except TypeError, msg:
-                i = i + 1
-            if i == 0:
-                # Both succeed.  But we must be careful to take x before
-                # it was coerced, or we end up *switching* to the parents,
-                # which is no good.
-                return x0, y
-            elif i == 2:
-                import  sage.rings.ring
-                if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
-                    raise TypeError, "you cannot +,*,/ a ring with a number."
-                raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-        return x, y
-    except AttributeError:
-        raise TypeError, "unable to find a common canonical parent"
+                pass
 
-def x_canonical_coercion(x, y):
-    return x_canonical_coercion_c(x,y)
+        x_is_modelt = PY_TYPE_CHECK(x, ModuleElement)
+        if x_is_modelt:
+            # That did not work.  Try to coerce y into the base ring of x.
+            try:
+                R = (<ModuleElement> x)._parent._base
+                if R is None:
+                    raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> x)._parent)
+                y = (<Parent> R)._coerce_c(y)
+                return (<ModuleElement> x)._lmul_c(y)    # the product x * y
+            except TypeError:
+                pass
+
+        if y_is_modelt and x_is_modelt:
+            # 3. Both canonical coercion failed, but both are module elements.
+            # Try base extending the right object by the parent of the left
+
+            ## TODO -- WORRY -- only unambiguous if one succeeds!
+            if  PY_TYPE_CHECK(x, RingElement):
+                try:
+                    return x * y.base_extend((<RingElement>x)._parent)
+                except (TypeError, AttributeError), msg:
+                    pass
+            # Also try to base extending the left object by the parent of the right
+            if  PY_TYPE_CHECK(y, RingElement):
+                try:
+                    return y * x.base_extend((<Element>y)._parent)
+                except (TypeError, AttributeError), msg:
+                    pass
+
+        # 4. Try _l_action or _r_action.
+        # Test to see if an _r_action or _l_action is
+        # defined on either side.
+        try:
+            return x._l_action(y)
+        except (AttributeError, TypeError):
+            pass
+        try:
+            return y._r_action(x)
+        except (AttributeError, TypeError):
+            pass
+
+        raise TypeError, arith_error_message(x,y,op)
+
+    def coerce_cmp(self, x,y):
+        cdef int c
+        try:
+            x, y = self.canonical_coercion_c(x, y)
+            return cmp(x,y)
+        except TypeError:
+            c = cmp(type(x), type(y))
+            if c == 0: c = -1
+            return c
+

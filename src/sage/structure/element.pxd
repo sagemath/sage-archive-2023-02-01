@@ -136,3 +136,9 @@ cdef class Matrix(AlgebraElement):
 
 
 
+
+cdef class CoercionModel:
+    cdef canonical_coercion_c(self, x, y)
+    cdef canonical_base_coercion_c(self, Element x, Element y)
+    cdef bin_op_c(self, x, y, op)
+

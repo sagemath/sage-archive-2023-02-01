@@ -1546,10 +1546,6 @@ cdef class Vector(ModuleElement):
         raise TypeError, arith_error_message(self, right, operator.div)
 
 
-cdef have_same_base(Element x, Element y):
-    return x._parent._base is y._parent._base
-
-
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
@@ -1882,24 +1878,7 @@ cdef class PlusInfinityElement(InfinityElement):
 cdef class MinusInfinityElement(InfinityElement):
     pass
 
-
-cdef inline int have_same_parent(left, right):
-    """
-    Return nonzero true value if and only if left and right are
-    elements and have the same parent.
-    """
-    # (We know at least one of the arguments is an Element. So if
-    # their types are *equal* (fast to check) then they are both
-    # Elements.  Otherwise use the slower test via PY_TYPE_CHECK.)
-    if PY_TYPE(left) is PY_TYPE(right):
-        return (<Element>left)._parent is (<Element>right)._parent
-
-    if PY_TYPE_CHECK(right, Element) and PY_TYPE_CHECK(left, Element):
-        return (<Element>left)._parent is (<Element>right)._parent
-
-    return 0
-
-
+include "coerce.pxi"
 
 
 #################################################################################
@@ -1922,6 +1901,18 @@ cdef inline RingElement _div_c(RingElement left, RingElement right):
     return left._div_(right) if HAS_DICTIONARY(left) else left._div_c_impl(right)
 
 
+cdef class CoercionModel:
+    cdef canonical_coercion_c(self, x, y):
+        pass
+    cdef canonical_base_coercion_c(self, Element x, Element y):
+        pass
+    cdef bin_op_c(self, x, y, op):
+        pass
+
+from coerce import CoercionModel_simple
+cdef object Coerce = CoercionModel_simple()
+
+
 #################################################################################
 #
 #  Coercion of elements
@@ -1932,17 +1923,6 @@ import operator
 
 cimport sage.modules.module
 import  sage.modules.module
-
-#################################################################################
-# parent
-#################################################################################
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x,Element):
-        return (<Element>x)._parent
-    return <object>PY_TYPE(x)
-
-def parent(x):
-    return parent_c(x)
 
 #################################################################################
 # coerce
@@ -1957,13 +1937,6 @@ def coerce(Parent p, x):
 #################################################################################
 # canonical coercion of two ring elements into one of their parents.
 #################################################################################
-cdef inline _verify_canonical_coercion_c(x, y):
-    if not have_same_parent(x,y):
-        raise RuntimeError, """There is a bug in the coercion code in SAGE.
-Both x (=%s) and y (=%s) are supposed to have identical parents but they don't.
-In fact, x has parent '%s'
-whereas y has parent '%s'"""%(x,y,parent_c(x),parent_c(y))
-    return x, y
 
 def canonical_coercion(x, y):
     """

@@ -75,9 +75,19 @@ class GenericSQLQuery(SageObject):
         self.__query_string__ = query_string
 
     def __repr__(self):
-        # stupid problem with this crap
-        print self.__query_string__
-        print str(self.__param_tuple__)
+        """
+        __repr__ gets called when you type self and hit enter. It should
+        return a string representing the object. Here, the current query
+        string along with the parameter tuples are printed.
+
+        """
+        s = "Query for sql database: "
+        s += self.__database__ + "\n"
+        s += "Query string: "
+        s += self.__query_string__ + "\n"
+        s += "Parameter tuple: "
+        s += str(self.__param_tuple__) + "\n"
+        return s
 
     def run_query(self):
         try:

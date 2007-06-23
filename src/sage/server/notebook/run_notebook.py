@@ -82,7 +82,6 @@ def notebook_twisted(self,
         nb.set_ulimit(ulimit)
 
     nb.save()
-    print nb.usernames()
     del nb
 
     def run(port):
@@ -154,7 +153,7 @@ s.setServiceParent(application)
 
         ## Start up twisted
         print_open_msg(address, port, secure=secure)
-        e = os.system('cd "%s" && sage -twistd -ny twistedconf.tac'%directory)
+        e = os.system('sage -twistd -ny "%s"/twistedconf.tac'%directory)
         if e == 256:
             raise socket.error
 

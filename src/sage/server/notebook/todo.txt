@@ -1,14 +1,22 @@
 TODO for the new Twisted notebook
 
+[] logout doesn't work at all.
+
+[] make cookies persistent
+
 * safari os x
 
 * firefox os x
 
 * firefox windows
 
+* IE/windows
+
 [] don't let two people edit a worksheet at the same time -- only edit a copy.
 
 [] search_doc -- fix it.
+
+[] unpublish -- appears to owners.
 
 [] bug -- using text mode can have multiple cells with the same id. Ick!
 

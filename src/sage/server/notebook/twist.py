@@ -10,6 +10,8 @@ SAGE Notebook (Twisted Version)
 """
 import os, time
 
+import bz2
+
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 
@@ -376,8 +378,20 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
     worksheet with the given filename.
     """
     def render(self, ctx):
-        return http.Response(stream = notebook.edit_window(self.worksheet, username))
+        s = notebook.html_edit_window(self.worksheet, username)
+        return http.Response(stream = s)
 
+########################################################
+# Plain text log view of worksheet
+########################################################
+class Worksheet_text(WorksheetResource, resource.Resource):
+    """
+    Return a window that allows the user to edit the text of the
+    worksheet with the given filename.
+    """
+    def render(self, ctx):
+        s = notebook.html_plain_text_window(self.worksheet, username)
+        return http.Response(stream = s)
 
 ########################################################
 # Preview what the worksheet will look like when published.
@@ -457,10 +471,13 @@ class Worksheet_share(WorksheetResource, resource.Resource):
 
 class Worksheet_invite_collab(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
-        collab = ctx.args['collaborators'][0]
-        v = [x.strip() for x in collab.split(',')]
-        self.worksheet.add_collaborators(v)
-        return http.RedirectResponse('share')
+        if not ctx.args.has_key('collaborators'):
+            v = []
+        else:
+            collab = ctx.args['collaborators'][0]
+            v = [x.strip() for x in collab.split(',')]
+        self.worksheet.set_collaborators(v)
+        return http.RedirectResponse('.')
 
 
 #################################
@@ -493,14 +510,14 @@ class RevertToWorksheetRevision(resource.Resource):
 
 def worksheet_revision_publish(worksheet, rev):
     W = notebook.publish_worksheet(worksheet, username)
-    txt = open(worksheet.get_snapshot_text_filename(rev)).read()
+    txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
     W.delete_cells_directory()
     W.edit_save(txt)
     return http.RedirectResponse('/home/'+W.filename())
 
 def worksheet_revision_revert(worksheet, rev):
     worksheet.save_snapshot(username)
-    txt = open(worksheet.get_snapshot_text_filename(rev)).read()
+    txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
     worksheet.delete_cells_directory()
     worksheet.edit_save(txt)
     return http.RedirectResponse('/home/'+worksheet.filename())
@@ -1237,11 +1254,23 @@ class RegistrationPage(resource.PostableResource):
                 """
         else:
             url_prefix = "https" if notebook.secure else "http"
-            s = """<html><h1>Sign up for the SAGE Notebook.</h1>
+            s = """<html><h1 align=center>Sign up for the SAGE Notebook.</h1>
+            <br>
+            <hr>
+            <br>
             <form method="POST" action="%s://%s:%s/register">
-            Username: <input type="text" name="username" size="15" />  Password:
-                <input type="password" name="password" size="15" /><br /> Email
-                Address: <input type="text" name="email" size="15" /><br /> <div align="center">  <p><input type="submit" value="Register" /></p>  </div> </form><br /><br />
+            <br><br>
+            <table align=center><tr>
+            <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
+            <tr><td align=right>Password:</td><td>
+                <input type="password" name="password" size="15" />
+                </td></tr>
+            <tr><td align=right>Email
+                Address:</td> <td><input type="text" name="email" size="15" />
+                </td></tr>
+          <tr><td></td><td></td></tr>
+            <tr><td></td><td align=left><input type="submit" value="Register Now" /></td></tr>
+            </table> </form>
             </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 

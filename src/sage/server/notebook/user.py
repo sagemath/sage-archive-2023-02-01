@@ -24,6 +24,12 @@ class User:
     def conf(self):
         return self.__conf
 
+    def __getitem__(self, *args):
+        return self.__conf.__getitem__(*args)
+
+    def __setitem__(self, *args):
+        self.__conf.__setitem__(*args)
+
     def password(self):
         return self.__password
 

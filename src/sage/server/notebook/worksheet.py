@@ -23,6 +23,8 @@ import traceback
 import time
 import crypt
 
+import bz2
+
 import re
 whitespace = re.compile('\s')  # Match any whitespace character
 non_whitespace = re.compile('\S')
@@ -66,7 +68,7 @@ TRASH    = 2
 # in notebook.py is called.
 multisession = True
 def initialized_sage(server, ulimit):
-    S = Sage(server=server, ulimit=ulimit, maxread = 1, python=True, verbose_start=True)
+    S = Sage(server=server, ulimit=ulimit, maxread = 1, python=True, verbose_start=False)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
@@ -159,11 +161,12 @@ class Worksheet:
     def collaborators(self):
         return self.__collaborators
 
-    def add_collaborators(self, v):
+    def set_collaborators(self, v):
         n = self.notebook()
         U = n.users().keys()
         L = [x.lower() for x in U]
         owner = self.owner()
+        self.__collaborators = []
         for x in v:
             y = x.lower()
             try:
@@ -456,11 +459,11 @@ class Worksheet:
 
     def save_snapshot(self, user, E=None):
         path = self.snapshot_directory()
-        basename = '%s.txt'%int(time.time())
-        filename = '%s/%s'%(path, basename)
+        basename = str(int(time.time()))
+        filename = '%s/%s.bz2'%(path, basename)
         if E is None:
             E = self.edit_text()
-        open(filename, 'w').write(E)
+        open(filename, 'w').write(bz2.compress(E))
         open('%s/worksheet.txt'%self.__dir, 'w').write(E)
         try:
             X = self.__saved_by_info
@@ -473,11 +476,24 @@ class Worksheet:
         path = self.snapshot_directory()
         return '%s/%s'%(path, name)
 
+    def user_autosave_interval(self, username):
+        return self.notebook().user(username)['autosave_interval']
+
+    def autosave(self, username):
+        try:
+            last = self.__last_autosave
+        except AttributeError:
+            self.__last_autosave = time.time()
+            return
+        t = time.time()
+        if t - last >= self.user_autosave_interval(username):
+            self.__last_autosave = t
+            self.save_snapshot(username)
 
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()
         filename = '%s/%s.txt'%(path, name)
-        E = open(filename).read()
+        E = bz2.decompress(open(filename).read())
         self.edit_save(E)
 
     def _saved_by_info(self, x):
@@ -521,15 +537,18 @@ class Worksheet:
     ##########################################################
     # Exporting the worksheet in plain text command-line format
     ##########################################################
-    def plain_text(self, prompts=False):
+    def plain_text(self, prompts=False, banner=True):
         """
         Return a plain-text version of the worksheet.
 
         prompts -- if True format for inclusion in docstrings.
         """
-        s  = "#"*80 + '\n'
-        s += "# Worksheet: %s"%self.name() + '\n'
-        s += "#"*80+ '\n\n'
+        s = ''
+        if banner:
+            s += "#"*80 + '\n'
+            s += "# Worksheet: %s"%self.name() + '\n'
+            s += "#"*80+ '\n\n'
+
         for C in self.__cells:
             t = C.plain_text(prompts=prompts).strip('\n')
             if t != '':
@@ -688,12 +707,7 @@ class Worksheet:
         if self.is_doc_worksheet():
             return ''
         return """
-        <span class="flush-right">
-        <button title="Save changes" onClick="save_worksheet();">Save</button>
-        <button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button>
-        <button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
-        &nbsp;&nbsp;&nbsp;
-        </span>
+        <button title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
         """
 
     def html_share_publish_buttons(self, select=None):
@@ -709,17 +723,15 @@ class Worksheet:
                 return "control"
 
         return """
-        <span class="flush-right">
 
         <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif"> Print</a>
-        <a class="%s" title="Edit this worksheet" onClick="edit_worksheet();">Edit</a>
-        <a class="%s" title="Edit text version of this worksheet" class="usercontrol" href="edit">Text</a>
+        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Use</a>
+        <a class="%s" title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit</a>
+        <a class="%s" title="View plain text version of this worksheet" class="usercontrol" href="text">Text</a>
         <a class="%s" href="revisions" title="View changes to this worksheet over time">Revisions</a>
         <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
-        &nbsp;&nbsp;&nbsp;
-        </span>
-        """%(cls('edit'),cls('text'),cls('revisions'),cls('share'))
+        """%(cls('use'),cls('edit'),cls('text'),cls('revisions'),cls('share'))
 
     def html_file_menu(self):
 ##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>
@@ -829,6 +841,7 @@ class Worksheet:
 
     def record_edit(self, user):
         self.__last_edited = (time.time(), user)
+        self.autosave(user)
 
     def time_since_last_edited(self):
         return time.time() - self.last_edited()
@@ -1003,7 +1016,6 @@ class Worksheet:
             print msg
             del self.__sage
             raise RuntimeError
-        print "Done starting"
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all

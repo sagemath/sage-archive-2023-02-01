@@ -187,7 +187,7 @@ class SQLQuery(GenericSQLQuery):
 
         # concatenate where clause - pretty easy
         new_query = re.sub(' WHERE ',' WHERE ( ',new_query)
-        new_query += re.sub('^.* WHERE ',' ) OR ( ',other.__query_string__)
+        new_query += re.sub('^.* WHERE ',' ) AND ( ',other.__query_string__)
         q.__query_string__ = new_query + ' )'
 
         q.__param_tuple__ = self.__param_tuple__ + other.__param_tuple__
@@ -223,7 +223,7 @@ class SQLQuery(GenericSQLQuery):
 
         # concatenate where clause - pretty easy
         new_query = re.sub(' WHERE ',' WHERE ( ',new_query)
-        new_query += re.sub('^.* WHERE ',' ) AND ( ',other.__query_string__)
+        new_query += re.sub('^.* WHERE ',' ) OR ( ',other.__query_string__)
         q.__query_string__ = new_query + ' )'
 
         q.__param_tuple__ = self.__param_tuple__ + other.__param_tuple__

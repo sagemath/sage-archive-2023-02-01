@@ -70,12 +70,12 @@ class Notebook(SageObject):
         self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
-        self.create_default_users('')
 
     ##########################################################
     # Users
     ##########################################################
     def create_default_users(self, passwd):
+        print "Creating default users."
         self.add_user('pub', '', '', account_type='user')
         self.add_user('_sage_', '', '', account_type='user')
         self.add_user('guest', '', '', account_type='guest')
@@ -95,7 +95,7 @@ class Notebook(SageObject):
         if '/' in username:
             raise ValueError
         try:
-            return self.__users[username]
+            return self.users()[username]
         except KeyError:
             raise KeyError, "no user '%s'"%username
 
@@ -109,11 +109,7 @@ class Notebook(SageObject):
             return False
 
     def user_list(self):
-        try:
-            return list(self.__users.itervalues())
-        except AttributeError:
-            self.__users = {}
-            return []
+        return list(self.users().itervalues())
 
     def usernames(self):
         U = self.users()
@@ -1436,13 +1432,13 @@ class Notebook(SageObject):
 
         <center>
         <br>
-        <a class="control" href="/doc/live/tut/index.html">Tutorial</a>
+        <a class="control" title="To quickly try out SAGE start here" href="/doc/live/tut/index.html">Tutorial</a>
         &nbsp;&nbsp;
-        <a class="control" href="/doc/live/ref/index.html">Reference Manual</a>
+        <a class="control" title="View a 2000 page reference manual about SAGE" href="/doc/live/ref/index.html">Reference Manual</a>
         &nbsp;&nbsp;
-        <a class="control" href="/doc/live/prog/index.html">Programming Guide</a>
+        <a class="control" title="Learn to write SAGE programs" href="/doc/live/prog/index.html">Programming Guide</a>
         &nbsp;&nbsp;
-        <a class="control" href="/doc/live/const/const.html">Constructions</a>
+        <a class="control" title="How do I construct ... in SAGE?" href="/doc/live/const/const.html">Constructions</a>
         <br><br>
         <hr class="usercontrol">
         <br>
@@ -1528,6 +1524,8 @@ class Notebook(SageObject):
 
         if worksheet_filename is not None:
             head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet_filename, W.name())
+            if W and W.name() == "Untitled":
+                head += '<script  type="text/javascript">setTimeout("rename_worksheet()",1)</script>'
 
         return """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

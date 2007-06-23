@@ -55,10 +55,6 @@ def notebook_twisted(self,
 
     nb = notebook.load_notebook(directory)
     if reset or not nb.user_exists('root'):
-        if not reset:
-            print '\n' + '-'*70
-            print "Creating a new SAGE notebook, which will be stored in the directory"
-            print os.path.abspath(directory)
         while True:
             print "Setting password for the root user."
             passwd = getpass.getpass("Enter new password: ")
@@ -76,7 +72,7 @@ def notebook_twisted(self,
             print "\n\n"
             print "*"*70
             print "\n"
-            print "Login to the SAGE notebook using a username of root and the password you specified above."
+            print "Login to the SAGE notebook as root with the password you specified above."
 
 
     if not server_pool is None:
@@ -86,6 +82,7 @@ def notebook_twisted(self,
         nb.set_ulimit(ulimit)
 
     nb.save()
+    print nb.usernames()
     del nb
 
     def run(port):

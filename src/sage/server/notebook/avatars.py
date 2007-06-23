@@ -108,6 +108,8 @@ class LoginSystem(object):
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'user':
+                print "user toplevel"
+                print "avatarId = ", avatarId
                 rsrc = twist.UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 

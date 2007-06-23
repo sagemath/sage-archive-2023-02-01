@@ -6,6 +6,20 @@ TODO for the new Twisted notebook
 
 * firefox windows
 
+[] don't let two people edit a worksheet at the same time -- only edit a copy.
+
+[] search_doc -- fix it.
+
+[] bug -- using text mode can have multiple cells with the same id. Ick!
+
+[] way to attach local text files:
+    (1) Click "upload"
+    (2) select a .py, .sage, or .spyx file.
+    (3) Then it gets listed in
+        nb.__files
+    (4) Can edit using a javascript code text editor
+    (5) It has a name and can be loaded, attached, doctested.
+
 [] I forgot the "doctest text" display for the worksheets!
 
 [] bug: published worksheets always say "last edited on June 22, 2007
@@ -22,6 +36,8 @@ worksheets. In a worksheet, one can write code using SAGE and the
 different software included such as Python and evaluate it his
 code. He could make pretty pictures, calculate something new, tutor
 someone, learn about programming, and many other things."
+
+-----------------------
 
 
 Later...
@@ -44,6 +60,8 @@ done * implement notebook() command as described in docs
 
 done * make sure notebook? gives docs.
 
+
+[] why not have "click to the left" of input cell toggle whether it is shown?
 
 [x] keep alive
 

@@ -23,6 +23,8 @@ one would write a function that takes a input some post variables
 and serves a request depending on those post vars.
 """
 
+assert False, "The server.py file should not be imported!!"
+
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #

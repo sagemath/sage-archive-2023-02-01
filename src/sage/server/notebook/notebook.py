@@ -21,12 +21,10 @@ import bz2
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
 from   sage.misc.misc       import alarm, cancel_alarm, tmp_dir
-from   sage.server.misc import print_open_msg
 
 # SAGE Notebook
 import css          # style
 import js           # javascript
-import server       # web server
 import worksheet    # individual worksheets (which make up a notebook)
 import config       # internal configuration stuff (currently, just keycodes)
 import keyboards    # keyboard layouts

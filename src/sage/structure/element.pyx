@@ -262,7 +262,7 @@ cdef class Element(sage_object.SageObject):
         return self._parent.base_ring()
 
     def category(self):
-        from sage.categories.category import Elements
+        from sage.categories.category_types import Elements
         return Elements(self._parent)
 
     def parent(self, x=None):
@@ -1902,6 +1902,24 @@ cdef inline int have_same_parent(left, right):
 
 
 
+#################################################################################
+# Fast (inline) dispatcher for arithmatic
+#################################################################################
+
+cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
+    # See extensive documentation at the top of element.pyx.
+    return left._add_(right) if HAS_DICTIONARY(left) else left._add_c_impl(right)
+
+cdef inline ModuleElement _sub_c(ModuleElement left, ModuleElement right):
+    # See extensive documentation at the top of element.pyx.
+    return left._sub_(right) if HAS_DICTIONARY(left) else left._sub_c_impl(right)
+
+cdef inline RingElement _mul_c(RingElement left, RingElement right):
+    # See extensive documentation at the top of element.pyx.
+    return left._mul_(right) if HAS_DICTIONARY(left) else left._mul_c_impl(right)
+
+cdef inline RingElement _div_c(RingElement left, RingElement right):
+    return left._div_(right) if HAS_DICTIONARY(left) else left._div_c_impl(right)
 
 
 #################################################################################

@@ -71,10 +71,6 @@ include '../ext/stdsage.pxi'
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 
-cimport sage.structure.coerce
-cdef sage.structure.coerce.Coerce coerce
-coerce = sage.structure.coerce.Coerce()
-
 from sage.structure.sequence import Sequence
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector

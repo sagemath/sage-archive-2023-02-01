@@ -34,8 +34,8 @@ Arithmetic obeys the usual coercion rules.
 import math
 import types
 from sage.misc.misc import xsrange
-import sage.structure.coerce
 import operator
+import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 
@@ -270,7 +270,7 @@ cdef class gen(sage.structure.element.RingElement):
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mod(other)
-        return sage.structure.coerce.bin_op(self, other, operator.mod)
+        return sage.structure.element.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)

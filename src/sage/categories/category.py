@@ -135,6 +135,7 @@ class Category(SageObject):
         if not isinstance(c, Category):
             raise TypeError, "Argument c (= %s, type = %s) must be a category"%(c, type(c))
         if self == c: return True
+        from category_types import category_hierarchy
         if category_hierarchy.has_key(self.__class__):
             S = category_hierarchy[self.__class__]
             if not c.__class__ in S:
@@ -143,6 +144,7 @@ class Category(SageObject):
         return False
 
     def _is_subclass(self, c,):
+        from category_types import category_hierarchy
         if isinstance(c, Category):
             return self.is_subcategory(c)
         if self.__class__ == c:

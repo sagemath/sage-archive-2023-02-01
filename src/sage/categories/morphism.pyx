@@ -26,8 +26,6 @@ import operator
 
 import homset
 
-import sage.rings.arith as arith
-
 include "../ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
@@ -61,7 +59,7 @@ cdef class Morphism(Element):
         return s
 
     def domain(self):
-        return self.parent().domain()
+        return self._domain
 
     def codomain(self):
         return self.parent().codomain()
@@ -78,10 +76,10 @@ cdef class Morphism(Element):
     def __call__(self, x):
         if not PY_TYPE_CHECK(x, Element) or (<Element>x)._parent is not self._domain:
             try:
-                y = self._domain(x)
+                x = self._domain(x)
             except TypeError:
-                raise TypeError, "%s must be coercible into %s"%(x,self._domain())
-        return self._call_(y)
+                raise TypeError, "%s must be coercible into %s"%(x,self._domain)
+        return self._call_(x)
 
     def _call_(self, x):
         return self._call_c(x)
@@ -114,9 +112,10 @@ cdef class Morphism(Element):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
+        import sage.rings.arith as arith
         return arith.generic_power(self, n)
 
-class FormalCoercionMorphism(Morphism):
+cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         if not self.codomain().has_coerce_map_from(self.domain()):
@@ -125,16 +124,18 @@ class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    def _call_(self, x):
-        return self.codomain()._coerce_(self.domain()._coerce_(x))
+    cdef Element _call_c(self, Element x):
+        if x._parent is not self._domain:
+            x = x._domain._coerce_c(x)
+        return self._codomain._coerce_c(x)
 
-class FormalCompositeMorphism(Morphism):
+cdef class FormalCompositeMorphism(Morphism):
     def __init__(self, parent, first, second):
         Morphism.__init__(self, parent)
         self.__first = first
         self.__second = second
 
-    def _call_(self, x):
+    cdef Element _call_c(self, Element x):
         return self.__second(self.__first(x))
 
     def _repr_type(self):

@@ -87,7 +87,6 @@ import sage.misc.misc
 import ring_element
 import arith
 import sage.misc.latex
-import sage.structure.coerce
 import rational_field, integer_ring
 from integer import Integer
 from integer_mod_ring import IntegerModRing

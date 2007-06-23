@@ -59,7 +59,6 @@ import  sage.structure.element
 
 import sage.misc.misc as misc
 
-import sage.structure.coerce
 import operator
 
 from sage.libs.pari.gen import PariInstance, gen

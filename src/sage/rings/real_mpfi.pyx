@@ -134,7 +134,6 @@ cimport real_mpfr
 from real_mpfr cimport RealField, RealNumber
 import real_mpfr
 
-import sage.structure.coerce
 import operator
 
 from integer import Integer
@@ -1308,7 +1307,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int,long, Integer)):
             return x._lshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.lshift)
+        return sage.structure.element.bin_op(x, y, operator.lshift)
 
     def _rshift_(RealIntervalFieldElement self, n):
         if n > sys.maxint:
@@ -1330,7 +1329,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if isinstance(x, RealIntervalFieldElement) and \
                isinstance(y, (int,long,Integer)):
             return x._rshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.rshift)
+        return sage.structure.element.bin_op(x, y, operator.rshift)
 
     def multiplicative_order(self):
         if self == 1:

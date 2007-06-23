@@ -54,6 +54,7 @@ def Hom(X, Y, cat=None):
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
     """
+    import category_types
     global _cache
     key = (X,Y,cat)
     if _cache.has_key(key):
@@ -94,22 +95,22 @@ def Hom(X, Y, cat=None):
     #X = cat(X); Y = cat(Y)
 
     # construct H
-    if cat._is_subclass(category.HeckeModules):
+    if cat._is_subclass(category_types.HeckeModules):
 
         from sage.modular.hecke.homspace import HeckeModuleHomspace
         H = HeckeModuleHomspace(X, Y)
 
-    elif cat._is_subclass(category.FreeModules):
+    elif cat._is_subclass(category_types.FreeModules):
 
         from sage.modules.free_module_homspace import FreeModuleHomspace
         H = FreeModuleHomspace(X, Y, cat)
 
-    elif cat._is_subclass(category.Rings):
+    elif cat._is_subclass(category_types.Rings):
 
         from sage.rings.homset import RingHomset
         H = RingHomset(X, Y)
 
-    elif cat._is_subclass(category.Schemes) or cat._is_subclass(category.Schemes_over_base):
+    elif cat._is_subclass(category_types.Schemes) or cat._is_subclass(category_types.Schemes_over_base):
 
         from sage.schemes.generic.homset import SchemeHomset
         H = SchemeHomset(X, Y)

@@ -82,7 +82,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.real_mpfr cimport RealNumber
 
-import sage.structure.coerce
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 

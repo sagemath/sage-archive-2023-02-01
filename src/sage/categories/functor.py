@@ -141,7 +141,7 @@ def ForgetfulFunctor(domain, codomain):
         sage: F
         The forgetful functor from Rings to AbelianGroups
     """
-    from category import category_hierarchy
+    from category_types import category_hierarchy
     if domain == codomain:
         return IdentityFunctor(domain, codomain)
     if not domain.is_subcategory(codomain):

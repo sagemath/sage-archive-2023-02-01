@@ -24,7 +24,6 @@ include "../ext/python.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
-import sage.structure.coerce
 import sage.rings.integer
 
 from   sage.misc.misc import verbose, get_verbose

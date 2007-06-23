@@ -17,7 +17,6 @@ from sage.matrix.constructor import matrix
 
 class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_generic):
 
-
 # The functions below were prototyped at the 2007 Arizona Winter School by
 # Robert Bradshaw and Ralf Gerkmann, working with Miljan Brakovevic and
 # Kiran Kedlaya

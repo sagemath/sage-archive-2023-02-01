@@ -239,15 +239,13 @@ class SQLQuery(GenericSQLQuery):
 
 class SQLDatabase(SageObject):
     """
-    (Immutable Database)
+    Immutable Database class.
+
+    INPUT:
+        filename -- where to keep the database
     """
     def __init__(self, filename):
-        """
-        Immutable Database.
 
-        INPUT:
-            filename -- where to keep the database
-        """
         if (filename[-3:] != '.db'):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename

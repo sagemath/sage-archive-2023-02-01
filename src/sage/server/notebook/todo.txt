@@ -6,6 +6,8 @@ TODO for the new Twisted notebook
 * firefox windows
 * IE/windows
 
+[] have an active/archived/trash/new folder thing for published worksheets (!)
+
 
 [x] logout doesn't work at all.
 

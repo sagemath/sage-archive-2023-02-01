@@ -924,7 +924,7 @@ class Notebook(SageObject):
             else:
                 k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
             k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user, typ)
-            k += '<td class="last_edited">%s</td>'%self.html_last_edited(w, user)
+            k += '<td class="last_edited">%s</td>'%w.html_time_since_last_edited()
             k += '</tr>'
             k += '<tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>'
             v.append(k)
@@ -980,14 +980,12 @@ class Notebook(SageObject):
         if owner == 'pub':
             pub = True
             owner = worksheet.worksheet_that_was_published().owner()
-        elif owner == user:
-            owner = "Me"
 
         v.append(owner)
 
         collab = worksheet.collaborators()
 
-        if not pub and typ != 'trash' and (owner == "Me" or self.user(user).is_admin()):
+        if not pub and typ != 'trash' and (owner == user or self.user(user).is_admin()):
             if len(collab) <= 1:
                 share = '<a class="share" href="/home/%s/share">Share now</a>'%(worksheet.filename())
             else:
@@ -1011,12 +1009,6 @@ class Notebook(SageObject):
 
         return s
 
-    def html_last_edited(self, worksheet, user):
-        s = worksheet.html_time_since_last_edited()
-        who = worksheet.last_to_edit()
-        if who == user:
-            who = 'Me'
-        return s + ' ago by ' + who
 
     ##########################################################
     # Revision history for a worksheet
@@ -1292,7 +1284,7 @@ class Notebook(SageObject):
         if worksheet.is_published() or self.user_is_guest(username):
             original_worksheet = worksheet.worksheet_that_was_published()
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
-            body += '<h2 align=center>%s</h2>'%worksheet.html_time_last_edited()
+            body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
             body += worksheet_html
             body += '<hr class="usercontrol">'
             if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):

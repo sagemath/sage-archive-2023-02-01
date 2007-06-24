@@ -823,7 +823,7 @@ class WorksheetRating(WorksheetResource, resource.Resource):
         self.do_rating()
         return http.Response(stream=message("""
         Thank you for rating the worksheet <b><i>%s</i></b>!
-        """%self.worksheet.name(), '/home/' + self.worksheet.filename()))
+        """%self.worksheet.name(), '/pub/'))
 
 class Worksheet_rate1(WorksheetRating):
     def do_rating(self):

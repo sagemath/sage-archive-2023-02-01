@@ -9,7 +9,7 @@ defaults = {'cell_input_color':'#0000000',
             'idle_timeout':300,        # 5 minutes
             'idle_check_interval':30,
 
-            'save_interval':15,
+            'save_interval':30,        # seconds
 
             'doc_pool_size':128
            }

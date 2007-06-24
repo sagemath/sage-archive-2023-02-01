@@ -17,6 +17,8 @@ from twisted.web2 import static, http_headers, responsecode
 
 import css, js, keyboards
 
+from guard import SID_COOKIE
+
 import notebook as _notebook
 
 HISTORY_MAX_OUTPUT = 92*5
@@ -1141,7 +1143,7 @@ class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
         notebook.save()
-        return http.Response(stream=message("Thank you for using SAGE."))
+        return http.Response(stream=message("Thank you for using SAGE.  <a href='/'>Please login and use SAGE again soon.</a>"))
 
 ############################
 # Image resource
@@ -1274,7 +1276,16 @@ class RegistrationPage(resource.PostableResource):
             </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 
+class InvalidPage(resource.Resource):
+    def render(self, ctx):
+        s = "This is an invalid page."
+        if username == 'guest':
+            s += ' You might have to login to view this page.'
+        return http.Response(stream = message(s, '/'))
+
 class Toplevel(resource.PostableResource):
+    child_logout = Logout()
+
     def __init__(self, cookie, _username):
         self.cookie = cookie
         global username, admin
@@ -1282,6 +1293,13 @@ class Toplevel(resource.PostableResource):
             username = 'guest'
         else:
             username = _username
+
+    def render(self, ctx):
+        return http.Response(stream =  login_template())
+
+    def childFactory(self, request, name):
+        return LoginResource
+
 
 setattr(Toplevel, 'child_favicon.ico', static.File(image_path + '/favicon.ico'))
 
@@ -1309,12 +1327,14 @@ class AnonymousToplevel(Toplevel):
     child_javascript = Javascript()
     child_home = PublicWorksheetsHome()
     child_pub = PublicWorksheets()
+    child_login = LoginResource
 
     def render(self, ctx):
         return http.Response(stream =  login_template())
 
     def childFactory(self, request, name):
-        return LoginResource
+        return InvalidPage()
+
 
 class FailedToplevel(Toplevel):
     def __init__(self, info, problem):
@@ -1350,10 +1370,7 @@ class UserToplevel(Toplevel):
     def render(self, ctx):
         s = render_worksheet_list(ctx.args)
         return http.Response(responsecode.OK,
-                             {'content-type': http_headers.MimeType('text',
-                                                                    'html'),
-                             'set-cookie':[http_headers.Cookie("sid",
-                                                            self.cookie)]},
+                             {'set-cookie':set_cookie(self.cookie)},
                              stream=s)
 
 class AdminToplevel(UserToplevel):
@@ -1363,13 +1380,14 @@ class AdminToplevel(UserToplevel):
     def render(self, ctx):
         s = render_worksheet_list(ctx.args)
         return http.Response(responsecode.OK,
-                             {'content-type': http_headers.MimeType('text',
-                                                                    'html'),
-                             'set-cookie':[http_headers.Cookie("sid",
-                                                            self.cookie)]},
+                             {'set-cookie':set_cookie(self.cookie)},
                              stream=s)
 
 
+
+def set_cookie(cookie):
+    print "Setting cookie: ", cookie
+    return [http_headers.Cookie(SID_COOKIE, cookie)]
 
 notebook = None  # this gets set on startup.
 username = None  # This is set when a request comes in.

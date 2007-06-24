@@ -1203,8 +1203,8 @@ class Notebook(SageObject):
         if not os.path.exists(D):
             os.makedirs(D)
         SageObject.save(self, F, compress=False)
-        print "Saved notebook to '%s'."%F
-        print "Press control-C to stop the notebook server."
+        #print "Saved notebook to '%s'."%F
+        #print "Press control-C to stop the notebook server."
 
     def delete_doc_browser_worksheets(self):
         names = self.worksheet_names()
@@ -1559,8 +1559,10 @@ class Notebook(SageObject):
 
         if worksheet_filename is not None:
             head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet_filename, W.name())
-            if W and W.name() == "Untitled":
-                head += '<script  type="text/javascript">setTimeout("rename_worksheet()",1)</script>'
+
+            # Uncomment this to force rename when the worksheet is opened (annoying!)
+            #if W and W.name() == "Untitled":
+            #    head += '<script  type="text/javascript">setTimeout("rename_worksheet()",1)</script>'
 
         return """
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

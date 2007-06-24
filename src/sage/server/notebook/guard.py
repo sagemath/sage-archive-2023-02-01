@@ -244,7 +244,7 @@ class MySessionWrapper(object):
         """
         cookie = get_our_cookie(request)
         #log.msg("cookie from header: %s"%sid_cookie)
-        session = self.sessionManager.getSession(sid_cookie)
+        session = self.sessionManager.getSession(cookie)
         return session
 
     def getCredentials(self, request):

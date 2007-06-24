@@ -1,8 +1,8 @@
 TODO for the new Twisted notebook
 
-[] logout doesn't work at all.
+[x] logout doesn't work at all.
 
-[] make cookies persistent
+[x] make cookies persistent
 
 * safari os x
 

@@ -420,6 +420,12 @@ ext_modules = [ \
     Extension('sage.categories.morphism',
               sources = ['sage/categories/morphism.pyx']), \
 
+    Extension('sage.categories.functor',
+              sources = ['sage/categories/functor.pyx']), \
+
+    Extension('sage.categories.action',
+              sources = ['sage/categories/action.pyx']), \
+
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']), \
 

@@ -12,4 +12,4 @@ from permgroup_element import PermutationGroupElement,is_PermutationGroupElement
 
 from permgroup_morphism import is_PermutationGroupMorphism,PermutationGroupMap,PermutationGroupMorphism,PermutationGroupMorphism_im_gens,PermutationGroupMorphism_id
 
-from cubegroup import CubeGroup
+from cubegroup import CubeGroup, plot_cube, plot3d_cube

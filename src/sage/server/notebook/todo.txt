@@ -1,25 +1,26 @@
 TODO for the new Twisted notebook
 
-[] fix cell://
+[x] fix cell://
 
-[] cross browser
+[x] cross browser
 * safari os x
 * firefox os x
 * firefox windows
-* IE/windows
+* (later) IE/windows
 
 
 [x] logout doesn't work at all.
 
 [x] make cookies persistent
 
-[] don't let two people edit a worksheet at the same time -- only edit a copy.
+[x] don't let two people edit a worksheet at the same time -- only edit a copy.
+  (at least give a warning now)
 
 [x] search_doc and search-src -- fix it.
 
 [] unpublish -- appears to owners.
 
-[] bug -- using text mode can have multiple cells with the same id. Ick!
+[x] bug -- using text mode can have multiple cells with the same id. Ick!
 
 [] way to attach local text files:
     (1) Click "upload"
@@ -29,7 +30,7 @@ TODO for the new Twisted notebook
     (4) Can edit using a javascript code text editor
     (5) It has a name and can be loaded, attached, doctested.
 
-[] I forgot the "doctest text" display for the worksheets!
+[x] I forgot the "doctest text" display for the worksheets!
 
 [] bug: published worksheets always say "last edited on June 22, 2007
 04:18 AM by pub" but they should give who really edited them.  The

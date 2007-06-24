@@ -960,6 +960,7 @@ div.cellbox {
 
 textarea.cell_input {
   color:#000000;
+  overflow:none;
   background-color: white;
   border-left: 1px solid  #a8a8a8;
   border-bottom: 1px solid  #a8a8a8;
@@ -1032,6 +1033,7 @@ pre.cell_input_hide:hover {
 }
 
 textarea.cell_input_active {
+  overflow:none;
   background-color: white;
   border-left: 1px solid  #8888fe;
   border-bottom: 1px solid  #8888fe;

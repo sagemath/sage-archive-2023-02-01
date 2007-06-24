@@ -321,7 +321,7 @@ class Cell(Cell_generic):
 
     def process_cell_urls(self, x):
         end = '?%d"'%self.version()
-        begin = '"%s/'%self.directory()
+        begin = '"/home/%s/data/%s'%(self.worksheet_filename(), self.id())
         for s in re_cell.findall(x) + re_cell_2.findall(x):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
@@ -446,6 +446,9 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        if do_print:
+            wrap = 68
+            div_wrap = 68
         key = (wrap,div_wrap,do_print)
         try:
             return self._html_cache[key]
@@ -464,7 +467,7 @@ class Cell(Cell_generic):
             evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         else:
             evaluated = False
-        if evaluated:
+        if evaluated or do_print:
             cls = 'cell_evaluated'
         else:
             cls = 'cell_not_evaluated'
@@ -478,7 +481,7 @@ class Cell(Cell_generic):
         self._html_cache[key] = s
         return s
 
-    def html_in(self, do_print=False):
+    def html_in(self, do_print=False, ncols=80):
         id = self.__id
         t = self.__in.rstrip()
 
@@ -487,40 +490,41 @@ class Cell(Cell_generic):
         else:
             cls = "cell_input"
 
-        if do_print:
-            if 'hide' in cls:
-                return ''
-            else:
-                s = '<pre class="shrunk">%s</pre>'%(self.__in.replace('<','&lt;'))
-                return s
+##         if False: #do_print:
+##             if 'hide' in cls:
+##                 return ''
+##             else:
+##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
+##                 return s
 
         s = """<div class="insert_new_cell" id="insert_new_cell_%s"
                    onmousedown="insert_new_cell_before(%s);">
                  </div>
               """%(id, id)
 
-        r = len(t.splitlines())
+        if do_print:
+            ncols = 70
 
-        if not do_print:
+        r = number_of_rows(t, ncols)
 
-            s += """
-               <textarea class="%s" rows=%s cols=100000
-                  id         = 'cell_input_%s'
-                  onKeyPress = 'return input_keypress(%s,event);'
-                  onInput    = 'cell_input_resize(this); return true;'
-                  onBlur     = 'cell_blur(%s); return true;'
-                  onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
-               >%s</textarea>
-            """%('hidden', r, id, id, id, id, t)
+        s += """
+           <textarea class="%s" rows=%s cols=%s
+              id         = 'cell_input_%s'
+              onKeyPress = 'return input_keypress(%s,event);'
+              onInput    = 'cell_input_resize(this); return true;'
+              onBlur     = 'cell_blur(%s); return true;'
+              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+           >%s</textarea>
+        """%(cls, r, ncols, id, id, id, id, t)
 
         t = t.replace("<","&lt;")+" "
 
-        s += """
-           <pre class="%s"
-              id         = 'cell_display_%s'
-              onClick  = 'cell_focus(%s, false); return false;'
-           >%s</pre>
-        """%(cls, id, id, t)
+        #s += """
+        #   <pre class="%s"
+        #      id         = 'cell_display_%s'
+        #      onClick  = 'cell_focus(%s, false); return false;'
+        #   >%s</pre>
+        #"""%(cls, id, id, t)
         return s
 
     def files_html(self, out=''):
@@ -573,11 +577,16 @@ class Cell(Cell_generic):
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
-        out = """<span class="cell_output_%s" id="cell_output_%s">%s</span>
-                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</span>
+        if do_print:
+            prnt = "print_"
+        else:
+            prnt = ""
+
+        out = """<span class="cell_output_%s%s" id="cell_output_%s">%s</span>
+                 <span class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</span>
                  <br><span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
-                 """%(typ, self.__id, out_wrap,
-                      typ, self.__id, out_nowrap,
+                 """%(prnt, typ, self.__id, out_wrap,
+                      prnt, typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
         s = top + out + '</div>'
@@ -662,3 +671,9 @@ def math_parse(s):
 
 
 
+def number_of_rows(txt, ncols):
+    rows = txt.splitlines()
+    nrows = len(rows)
+    for i in range(nrows):
+        nrows += int(len(rows[i])/ncols)
+    return nrows

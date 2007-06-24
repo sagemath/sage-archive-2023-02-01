@@ -651,9 +651,9 @@ class Worksheet:
                     C = self._new_cell(id)
                 C.set_input_text(input)
                 C.set_output_text(output, '')
-                if html:
+                #if html:
                     #print C.directory()
-                    C.update_html_output()
+                    #    C.update_html_output()
                 cells.append(C)
 
         if len(cells) == 0:   # there must be at least one cell.
@@ -764,25 +764,29 @@ class Worksheet:
             system_select = self.notebook().html_system_select_form_element(self)
 
         return """
-<select class="worksheet">
- <option title="Create a new worksheet" onClick="new_worksheet();">New</option>
- <option title="Save this worksheet to an sws file" onClick="download_worksheet('%s');">Download</option>
- <option title="Save changes" onClick="save_worksheet();">Save</option>
- <option title="Print this worksheet" onClick="print_worksheet();">Print</optooion>
- <option title="Rename this worksheet" onClick="rename_worksheet();">Rename</option>
- <option title="Copy this worksheet" onClick="copy_worksheet();">Copy worksheet</option>
- <option title="Move this worksheet to the trash" onClick="delete_worksheet('%s');">Delete worksheet</option>
- <option title="Configure this worksheet" onClick="worksheet_settings();">Worksheet settings</option>
+<select class="worksheet"  onchange="go_option(this);">
+<option title="Select a file related function" value=""  selected=1>File...</option>
+ <option title="Create a new worksheet" value="new_worksheet();">New</option>
+ <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download</option>
+ <option title="Save changes" value="save_worksheet();">Save</option>
+ <option title="Print this worksheet" value="print_worksheet();">Print</optooion>
+ <option title="Rename this worksheet" value="rename_worksheet();">Rename</option>
+ <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
+ <option title="Move this worksheet to the trash" value="delete_worksheet('%s');">Delete worksheet</option>
+ <option title="Configure this worksheet" value="worksheet_settings();">Worksheet settings</option>
 </select>
 
-<select class="worksheet">
- <option title="Interrupt currently running calculations, if possible" onClick="interrupt();">Interrupt</option>
- <option title="Evaluate all input cells in the worksheet" onClick="evaluate_all();">Evaluate All</option>
- <option title="Hide all output" onClick="hide_all();">Hide All</option>
- <option title="Show all output" onClick="show_all();">Show All</option>
- <option title="Restart the worksheet" onClick="restart_sage();">Restart</option>
- <option title="Switch to single-cell mode" onClick="slide_mode();">One Cell Mode</option>
- <option title="Switch to multi-cell mode" onClick="cell_mode();">Multi Cell Mode</option>
+<select class="worksheet"  onchange="go_option(this);" >
+ <option title="Select a worksheet function" value="" selected=1>Worksheet...</option>
+ <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
+ <option title="Restart the worksheet" value="restart_sage();">Restart</option>
+ <option value="">---------------------------</option>
+ <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
+ <option title="Hide all output" value="hide_all();">Hide All</option>
+ <option title="Show all output" value="show_all();">Show All</option>
+ <option value="">---------------------------</option>
+ <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
+ <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
  </select>
 
  %s
@@ -1001,7 +1005,7 @@ class Worksheet:
 
         try:
             pid = S._expect.pid
-            print "PID = ", pid
+            #print "PID = ", pid
             os.killpg(pid, 9)
             os.kill(pid, 9)
             S._expect = None

@@ -687,6 +687,15 @@ div.worksheet_title {
 }
 
 
+div.worksheet_print_title {
+   text-decoration:none;
+   font-size:24px;
+   font-family:arial;
+   font-weight:bold;
+   color:#000000;
+   text-align:center;
+}
+
 div.worksheet_title_under {
    z-index:0;
    padding-top: 3px;
@@ -902,12 +911,12 @@ div.cell_visible {
 }
 
 div.cell_evaluated {
-    border-left: 3px solid white;
+    border-left: 1px solid white;
     padding-left:3px;
 }
 
 div.cell_not_evaluated {
-    border-left: 2px dotted #ff8888;
+    border-left: 1px solid #ff8888;
     padding-left:3px;
 }
 
@@ -948,45 +957,39 @@ div.cellbox {
   padding-top: 4em;
 }
 
-pre.cell_input_pre {
-  background-color: white;
-  border: 0px solid white;
-  font-family: monospace;
-  font-size:12pt;
-  overflow:hidden;
-  padding-left:0px;
-  padding-top:0px;
-  padding-bottom:0px;
-  margin:0px;
-  display:inline;
-  width: 100%;
-}
 
 textarea.cell_input {
   color:#000000;
   background-color: white;
-  border: 2px solid #e8e8e8;
+  border-left: 1px solid  #a8a8a8;
+  border-bottom: 1px solid  #a8a8a8;
+  border-top: 1px solid  #a8a8a8;
+  border-right: 1px solid  #a8a8a8;
   font-family: monospace;
   font-size:12pt;
   overflow:auto;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 100%;
+                /*  width: 100%;  */
   margin-bottom:0px;
   margin-top:0px;
+  line-height:1.2em;
 }
 
 pre.cell_input {
   color:#000000;
   background-color: white;
-  border: 2px solid #e8e8e8;
+  border-left: 1px solid  #a8a8a8;
+  border-bottom: 1px solid  #a8a8a8;
+  border-top: 1px solid  #a8a8a8;
+  border-right: 1px solid  #a8a8a8;
   font-family: monospace;
   font-size:12pt;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 1000%;
+/*  width: 100%;  */
   margin-bottom:0px;
   margin-top:0px;
 
@@ -1030,7 +1033,10 @@ pre.cell_input_hide:hover {
 
 textarea.cell_input_active {
   background-color: white;
-  border: 2px solid  #8888fe;
+  border-left: 1px solid  #8888fe;
+  border-bottom: 1px solid  #8888fe;
+  border-top: 1px solid  #8888fe;
+  border-right: 1px solid  #8888fe;
   font-family: monospace;
   font-size:12pt;
   overflow:auto;
@@ -1039,7 +1045,8 @@ textarea.cell_input_active {
   padding-bottom:0px;
   margin-top:0px;
   margin-bottom:0px;
-  width: 100%;
+  line-height:1.2em;
+/*  width: 100%;  */
 }
 
 textarea.cell_input:hover{
@@ -1085,12 +1092,17 @@ div.cell_output_wrap {
   color:#0000aa;
 }
 
-span.cell_output_wrap {
+span.cell_output_wrap span.cell_output_print_wrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
   color:#0000aa;
 }
+
+span.cell_output_print_wrap {
+   font-size:10pt;
+}
+
 span.cell_output_nowrap {
   display:none;
 }
@@ -1482,7 +1494,7 @@ select.worksheet_list {
 }
 
 select.worksheet_edit {
-  width:5em;
+  width:8em;
     border: #aaaaaa;
   border-style: solid;
   border-top-width: 1px;
@@ -1530,11 +1542,16 @@ textarea.plaintextedit {
     color: black;
     background-color: white;
     padding: 3px;
-    top: 10em;
+    top: 12em;
     bottom: 0ex;
     right: 0ex;
     left:1ex;
-    margin-top: 0.5em;
+    height: 65%;
+    width: 99%;
+/*    margin-bottom:0ex;
+    margin-top: 0ex;
+    margin-right: 0ex;
+    margin-left: 1ex;     */
 }
 
 pre.plaintext {
@@ -1546,7 +1563,7 @@ pre.plaintext {
     color: black;
     background-color: white;
     padding: 3px;
-    top: 10em;
+    top: 12em;
     bottom: 0ex;
     right: 0ex;
     left:1ex;

@@ -229,6 +229,8 @@ var updating = false; var update_time = -1;
 
 var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
 
+jsMath = {Font: {Message: function () {}}}
+
 var cell_id_list; // this gets set in worksheet.py
 
 var input_keypress; //this gets set to a function when we set up the keyboards
@@ -274,11 +276,17 @@ try{
   os_mac=(nav.indexOf('Mac')!=-1);
   os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
   os_lin=(nua.indexOf('Linux')!=-1);
-  line_height = 1.2;
-  if (os_mac || os_win) {
-     line_height = 1;
+
+  if(browser_ie) {
+      alert("Using SAGE with Microsoft Internet Explorer is currently not supported.");
   }
 
+/*  line_height = 1.2;
+  if (os_mac) {
+     line_height = 1;
+  }
+  */
+  line_height = 1.2;
   get_keyboard();
 } catch(e){}
 
@@ -962,9 +970,10 @@ function sync_active_cell_list_callback(status, response_text) {
 //
 ///////////////////////////////////////////////////////////////////
 
-function go_list_worksheet(theform) {
+function go_option(theform) {
    with(theform) {
       eval(options[selectedIndex].value);
+      options[0].selected = 1;
    }
 }
 
@@ -1149,11 +1158,29 @@ function focus_delay(id,bottom) {
          setTimeout('cell_focus('+id+',true)', 10);
 }
 
+function number_of_rows(txt, ncols) {
+    var r;
+    r = txt.split('\n');
+    var e, i, k, nrows;
+    nrows = r.length;
+    for(i=0; i < nrows; i++) {
+        try {
+            nrows += Math.floor(r[i].length/ncols);
+        } catch(e) {
+
+        };
+    }
+    return (nrows);
+}
+
 
 function cell_input_resize(cell_input) {
-    var rows = cell_input.value.split('\n').length;
+    var rows = number_of_rows(cell_input.value, cell_input.cols);
     if (rows <= 1) {
       rows = 1;
+    }
+    if (browser_saf) {
+       rows += 1;
     }
     try {
         cell_input.style.height = 0.5 + rows*line_height + 'em';
@@ -1188,7 +1215,7 @@ function cell_input_minimize_size(cell_input) {
     }
 
     cell_input.className = 'cell_input';
-    var rows = v.split('\n').length ;
+    var rows = number_of_rows(v, cell_input.cols);
     if (rows < 1) {
       rows = 1;
     }
@@ -1312,6 +1339,11 @@ function cell_input_key_event(id, e) {
     }
 
     cell_input_resize(cell_input);
+    cell_input.focus();
+/*    if (browser_saf)   {
+        cell_input.scrollIntoView();
+    }
+    */
 
     // Will need IE version... if possible.
     if (!in_slide_mode && key_up_arrow(e)) {
@@ -2236,6 +2268,10 @@ function print_worksheet(worksheet) {
       "menubar=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
 }
 
+function help(worksheet) {
+    log = window.open ("/help","",
+    "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
+}
 
 
 //////////////////////////////////
@@ -2256,7 +2292,7 @@ function jsmath_init() {
     jsMath.Process();
     /*   jsMath.ProcessBeforeShowing(); */
     } catch(e) {
-        font_warning();
+/*        font_warning(); */
     }
 
 }

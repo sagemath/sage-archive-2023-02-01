@@ -687,14 +687,14 @@ class Notebook(SageObject):
         W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         if do_print:
             s += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
-        s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         s += '<link rel=stylesheet href="/css/main.css">\n'
         s += '</head>\n'
         s += '<body>\n'
-        #if do_print:
-        #    s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>'%W.name()
+        if do_print:
+            s += '<div class="worksheet_print_title">%s</div>'%W.name()
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
@@ -777,7 +777,7 @@ class Notebook(SageObject):
             entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
             entries.append(('/pub', 'Published', 'Browse the published worksheets'))
             #entries.append(('/settings', 'Settings', 'Change user settings'))   # TODO -- settings
-            entries.append(('/help', 'Help', 'Documentation'))
+            entries.append(('help()', 'Help', 'Documentation'))
 
         ## TODO -- settings
         #if self.user(user).is_admin():
@@ -946,15 +946,16 @@ class Notebook(SageObject):
                 return r
 
             return """
-            <select onchange="go_list_worksheet(this);" class="worksheet_edit">
+            <select onchange="go_option(this);" class="worksheet_edit">
+            <option value="" title="File options" selected=1>File...</option>
             <option value="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
             <option value="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
             <option value="list_share_worksheet('%s');" title="Share this worksheet with others">Collaborate</option>
             <option value="list_publish_worksheet('%s');" title="Publish this worksheet on the internet">Publish</option>
             <option value="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
-            <option value="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
             </select>
-            """%(name, name,name,name,name,name)
+            """%(name, name,name,name,name)
+            #<option value="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
 
         k = ''
         if not pub:
@@ -1337,7 +1338,7 @@ class Notebook(SageObject):
             body += '<hr class="usercontrol">'
             body += '<br>'
             body += '<span class="pubmsg">This document was published using <a href="/">SAGE</a>.'
-            body += '  Browser <a href="/pub/">other published documents.</a></span>'
+            body += '  Browse <a href="/pub/">other published documents.</a></span>'
 
         else:
 
@@ -1345,7 +1346,7 @@ class Notebook(SageObject):
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
-                       ('/help', 'Help', 'Documentation')]
+                       ('help()', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):
                 entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))

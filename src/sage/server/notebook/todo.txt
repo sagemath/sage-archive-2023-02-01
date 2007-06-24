@@ -1,5 +1,7 @@
 TODO for the new Twisted notebook
 
+[] fix cell://
+
 [] cross browser
 * safari os x
 * firefox os x

@@ -12,27 +12,10 @@ include "coerce.pxi"
 
 import operator
 
-
 cdef class CoercionModel_simple(CoercionModel):
     """
     This is the original coercion model, as of SAGE 2.6 (2007-06-02)
     """
-
-    def canonical_coercion(self, x, y):
-        """
-        canonical_coercion(x,y) is what is called before doing an
-        arithmetic operation between x and y.  It returns a pair (z,w)
-        such that z is got from x and w from y via canonical coercion and
-        the parents of z and w are identical.
-
-        EXAMPLES:
-            sage: A = Matrix([[0,1],[1,0]])
-            sage: canonical_coercion(A,1)
-            ([0 1]
-            [1 0], [1 0]
-            [0 1])
-        """
-        return self.canonical_coercion_c(x,y)
 
     cdef canonical_coercion_c(self, x, y):
         cdef int i
@@ -104,10 +87,6 @@ cdef class CoercionModel_simple(CoercionModel):
             #raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
         return x.change_ring(b), y.change_ring(b)
 
-
-
-    def bin_op(self, x, y, op):
-        return self.bin_op_c(x,y,op)
 
     cdef bin_op_c(self, x, y, op):
         """
@@ -188,13 +167,42 @@ cdef class CoercionModel_simple(CoercionModel):
 
         raise TypeError, arith_error_message(x,y,op)
 
-    def coerce_cmp(self, x,y):
-        cdef int c
-        try:
-            x, y = self.canonical_coercion_c(x, y)
-            return cmp(x,y)
-        except TypeError:
-            c = cmp(type(x), type(y))
-            if c == 0: c = -1
-            return c
+cdef class CoercionModel_cache_maps(CoercionModel_simple):
 
+    cdef coercion_maps_c(self, R, S):
+        try:
+            return self._coercion_maps[R,S]
+        except KeyError:
+            homs = self.discover_coercion_c(R, S)
+            self._coercion_maps[R,S] = homs
+            self._coercion_maps[S,R] = (homs[1], homs[0])
+            return homs
+
+    cdef action_maps_c(self, R, S, op):
+        try:
+            return self._action_maps[R,S,op]
+        except KeyError:
+            action = self.discover_action_c(R, S, op)
+            self._action_maps[R,S,op] = action
+            return action
+
+    cdef discover_coercion_c(self, R, S):
+        from sage.categories.homset import Hom
+        if R is S:
+            return None, None
+
+        # See if there is a natural coercion from R to S
+        try:
+            return Hom(R, S).natural_map(), None
+        except TypeError:
+            pass
+
+        # See if there is a natural coercion from S to R
+        try:
+            return None, Hom(S, R).natural_map()
+        except TypeError:
+            pass
+
+
+    cdef discover_action_c(self, R, S, op):
+        pass

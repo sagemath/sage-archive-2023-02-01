@@ -359,6 +359,35 @@ class Monoids(Category_uniq):
 
 
 #############################################################
+# Groupoid
+#############################################################
+class Groupoid(uniq1, Category):
+    """
+    The category of groupoids, for a set (usually a group) $G$.
+
+    EXAMPLES:
+        sage: Groupoid(DihedralGroup(3))
+        Groupoid with underlying set Dihedral group of order 6 as a permutation group
+    """
+    def __init__(self, G):
+        Category.__init__(self, "Groupoid")
+        self.__G = G
+
+    def __repr__(self):
+        return "Groupoid with underlying set %s"%self.__G
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: S8 = SymmetricGroup(8)
+            sage: C = Groupoid(S8)
+            sage: loads(C.dumps()) == C
+            True
+        """
+        return Groupoid, (self.__G, )
+
+
+#############################################################
 # Group
 #############################################################
 class Groups(Category_uniq):

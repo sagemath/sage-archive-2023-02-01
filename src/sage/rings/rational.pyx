@@ -1461,7 +1461,7 @@ def make_rational(s):
     return r
 
 cdef class Z_to_Q(Morphism):
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)

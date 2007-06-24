@@ -79,12 +79,18 @@ cdef class Morphism(Element):
                 x = self._domain(x)
             except TypeError:
                 raise TypeError, "%s must be coercible into %s"%(x,self._domain)
-        return self._call_(x)
-
-    def _call_(self, x):
         return self._call_c(x)
 
-    cdef Element _call_c(self, Element x):
+    def _call_(self, x):
+        return self._call_c_impl(x)
+
+    cdef Element _call_c(self, x):
+        if HAS_DICTIONARY(self):
+            return self._call_(x)
+        else:
+            return self._call_c_impl(x)
+
+    cdef Element _call_c_impl(self, Element x):
         raise NotImplementedError
 
     def __mul__(self, right):
@@ -124,10 +130,10 @@ cdef class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         if x._parent is not self._domain:
-            x = x._domain._coerce_c(x)
-        return self._codomain._coerce_c(x)
+            x = x._domain._coerce_(x)
+        return self._codomain._coerce_(x)
 
 cdef class FormalCompositeMorphism(Morphism):
     def __init__(self, parent, first, second):
@@ -135,7 +141,7 @@ cdef class FormalCompositeMorphism(Morphism):
         self.__first = first
         self.__second = second
 
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         return self.__second(self.__first(x))
 
     def _repr_type(self):

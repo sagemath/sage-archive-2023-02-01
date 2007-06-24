@@ -2419,7 +2419,7 @@ cdef class IntegerMod_hom(Morphism):
         Morphism.__init__(self, parent)
         self.zero = self._codomain(0)
         self.modulus = self._codomain._pyx_order
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         return IntegerMod(self.codomain, x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
@@ -2450,7 +2450,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     sage: hom(R(-1)) + 1
     0
     """
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         cdef IntegerMod_abstract a
         if PY_TYPE_CHECK(x, IntegerMod_int):
             return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
@@ -2479,7 +2479,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
     sage: hom(2)
     2
     """
-    cdef Element _call_c(self, Element x):
+    cdef Element _call_c_impl(self, Element x):
         cdef IntegerMod_abstract a
         cdef Py_ssize_t res
         if self.modulus.table is not None:
@@ -2494,10 +2494,10 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             a.set_from_mpz((<Integer>x).value)
             return a
 
-cdef class Int_to_IntegerMode(IntegerMod_hom):
-    cdef Element _call_c(self, Element x):
+class Int_to_IntegerMode(IntegerMod_hom):
+    def _call_(self, x):
         cdef IntegerMod_abstract a
-        cdef Py_ssize_t res
+        cdef long res
         if self.modulus.table is not None:
             res = x
             res %= self.modulus.int64

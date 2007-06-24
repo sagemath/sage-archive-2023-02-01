@@ -8,6 +8,7 @@ from category_types import(
                         GSets,
                         Semigroups,
                         Monoids,
+                        Groupoid,
                         Groups,
                         AbelianSemigroups,
                         AbelianMonoids,

@@ -296,6 +296,8 @@ class MySessionWrapper(object):
 
 def get_our_cookie(request):
     cookies = request.headers.getHeader('cookie')
+    if cookies is None:
+        return None
     for C in cookies:
         if C.name == twist.SID_COOKIE:
             return C.value

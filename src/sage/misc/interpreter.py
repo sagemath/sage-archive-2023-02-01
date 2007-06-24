@@ -410,10 +410,17 @@ def sage_prefilter(self, block, continuation):
     return InteractiveShell._prefilter(self, block2, continuation)
 
 
+import sage.server.support
+def embedded():
+    return sage.server.support.EMBEDDED_MODE
+
 ipython_prefilter = InteractiveShell.prefilter
 def preparser(on=True):
     """
     Turn on or off the SAGE preparser.
+
+    NOTE: This only works on the command line.  To turn off preparsing
+    in the notebook, switch to python mode.
 
     INPUT:
         on -- bool (default: True) if True turn on preparsing; if False, turn it off.
@@ -428,6 +435,8 @@ def preparser(on=True):
         sage: 2^3
         8
     """
+    if embedded():
+        print "To turn off preparsing in the notebook, swith to Python mode."
     if on:
         InteractiveShell.prefilter = sage_prefilter
     else:

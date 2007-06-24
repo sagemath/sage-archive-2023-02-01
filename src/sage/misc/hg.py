@@ -30,12 +30,12 @@ This system should all be mostly from the SAGE notebook.
 
 import os, shutil
 
-import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file
 from   sage.server.misc import print_open_msg
 
+import sage.server.support
 def embedded():
     return sage.server.support.EMBEDDED_MODE
 

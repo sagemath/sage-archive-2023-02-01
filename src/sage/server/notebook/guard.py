@@ -23,6 +23,7 @@ import random
 import time
 import md5
 
+SID_COOKIE = "session_id"
 
 class Session(object):
     """A single users session, defined by the uid.
@@ -142,23 +143,24 @@ class MySessionWrapper(object):
         Inital logic occurs here to decide the
         authentication status of a given user.
         """
-        #log.msg("=== locateChild 'guard.py' ===")
-        #log.msg("=== %s ==" % request.args)
-        #log.msg("request.args: %s, segments: %s" % (str(request.args), segments))
+        #log.msg("request: %s, segments: %s" % (str(request.args), segments))
         #see if the user already has a session going
         if segments and segments[0] == "login":
+            log.msg("Login")
             #get the username and password in the postdata
             #the callback function needs no args because the parsing
             #of the POSTData just updates the request args.
             l = server.parsePOSTData(request)
             l.addCallback(lambda _: self.requestPasswordAuthentication(request, segments))
             return l
+
         session = self.getSession(request)
         if session is None:
+            #log.msg("unknown session")
             return self.requestAnonymousAuthentication(request, segments)
         else:
             if segments and segments[0] == "logout":
-                #log.msg("=== logout ===")
+                #log.msg("Logout")
                 return self.logout(session, request, segments)
             else:
                 #log.msg("session found ... locateResource")
@@ -193,7 +195,7 @@ class MySessionWrapper(object):
         If no session exists, create a new session defined
         by a uid, and then set that uid as the cookie.
         """
-        cookie = request.headers.getHeader('cookie')
+        cookie = get_our_cookie(request)
         if cookie in self.sessions:
             session = self.sessions[cookie]
             return self.checkLogin(request, session, segments)
@@ -238,13 +240,11 @@ class MySessionWrapper(object):
 
         Pull the cookie out of the http header and
         pass it to the session manager, will handles
-        find the users actuall session object.
+        find the users actual session object.
         """
-        cookie = request.headers.getHeader('cookie')
-        if cookie:
-            cookie = cookie[0].value
-        #log.msg("cookie from header: %s"%cookie)
-        session = self.sessionManager.getSession(cookie)
+        cookie = get_our_cookie(request)
+        #log.msg("cookie from header: %s"%sid_cookie)
+        session = self.sessionManager.getSession(sid_cookie)
         return session
 
     def getCredentials(self, request):
@@ -289,4 +289,13 @@ class MySessionWrapper(object):
         return self.requestAnonymousAuthentication(request, segments)
 
 
+
+
+
+def get_our_cookie(request):
+    cookies = request.headers.getHeader('cookie')
+    for C in cookies:
+        if C.name == SID_COOKIE:
+            return C.value
+    return None  # not found
 

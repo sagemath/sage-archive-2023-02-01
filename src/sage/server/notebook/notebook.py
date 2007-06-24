@@ -1104,7 +1104,7 @@ class Notebook(SageObject):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
         head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet.filename(), worksheet.name())
         body = self._html_body(worksheet.filename(), top_only=True, username=username)
-        body += self.html_worksheet_topbar(worksheet, select=select)
+        body += self.html_worksheet_topbar(worksheet, select=select, username=username)
         body += '<hr class="usercontrol">'
         body += '<span class="sharebar">%s</span>'%title
         body += '<br>'*3
@@ -1281,7 +1281,7 @@ class Notebook(SageObject):
 
         return head
 
-    def html_worksheet_topbar(self, worksheet, select=None):
+    def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
         body = ''
         body += """
 <table width=100%%>
@@ -1292,7 +1292,7 @@ class Notebook(SageObject):
   <td align=left> %s </td>   <td align=right> %s </td>
 </tr>
 </table>
-"""%(worksheet.html_title(), worksheet.html_save_discard_buttons(),
+"""%(worksheet.html_title(username), worksheet.html_save_discard_buttons(),
      worksheet.html_menu(), worksheet.html_share_publish_buttons(select=select))
 
         body += self.html_slide_controls()
@@ -1356,7 +1356,7 @@ class Notebook(SageObject):
                 return body
 
             if worksheet_filename:
-                body += self.html_worksheet_topbar(worksheet, select="use")
+                body += self.html_worksheet_topbar(worksheet, select="use", username=username)
 
             if self.__show_debug or show_debug:
                 body += self.html_debug_window()

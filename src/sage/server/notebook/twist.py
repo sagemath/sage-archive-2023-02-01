@@ -351,7 +351,7 @@ class Worksheet_data(WorksheetResource, resource.Resource):
 
 class Worksheet_alive(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        self.worksheet.ping()
+        self.worksheet.ping(username)
         return http.Response(stream = '')
 
 ########################################################

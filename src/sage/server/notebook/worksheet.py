@@ -46,6 +46,8 @@ from cell import Cell, TextCell
 INTERRUPT_TRIES = 3
 INITIAL_NUM_CELLS = 1
 
+WARN_THRESHOLD = 100
+
 
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
@@ -696,13 +698,17 @@ class Worksheet:
             name = name[:max] + ' ...'
         return name
 
-    def html_title(self):
+    def html_title(self, username='guest'):
         name = self.truncated_name()
+
+        warn = self.warn_about_other_person_editing(username, WARN_THRESHOLD)
 
         s = ''
         s += '<div class="worksheet_title">'
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
         s += '<br>' + self.html_time_last_edited()
+        if warn and username!='guest':
+            s += '&nbsp;&nbsp;<span class="pingdown">Conflict WARNING!</span>'
         s += '</div>'
 
         return s
@@ -858,6 +864,25 @@ class Worksheet:
 
     def time_since_last_edited(self):
         return time.time() - self.last_edited()
+
+    def warn_about_other_person_editing(self,username, threshold):
+        """
+        Check to see if another user besides username was the last to
+        edited this worksheet during the last threshold seconds.  If
+        so, return True and that user name.  If not, return False.
+
+        INPUT:
+           username -- user who would like to edit this file.
+           threshold -- number of seconds, so if there was no activity on
+                   this worksheet for this many seconds, then editing is
+                   considered safe.
+        """
+        if self.time_since_last_edited() < threshold:
+            user = self.last_to_edit()
+            if user != username:
+                return True, user
+        False
+
 
     def html_time_since_last_edited(self):
         t = self.time_since_last_edited()
@@ -1289,8 +1314,8 @@ class Worksheet:
         if username:
             self.record_edit(username)
 
-    def ping(self):
-        self._record_that_we_are_computing()
+    def ping(self, username):
+        self._record_that_we_are_computing(username)
 
     ##########################################################
     # Enqueuing cells

@@ -33,7 +33,7 @@ TODO for the new Twisted notebook
 04:18 AM by pub" but they should give who really edited them.  The
 time maybe doesn't get updated either.
 
-[] save from "plain text mode" should make an entry in the revisions log.
+[x] save from "plain text mode" should make an entry in the revisions log.
 
 [x] definitely *need* autosave!
 
@@ -72,6 +72,8 @@ done * make sure notebook? gives docs.
 
 
 [] why not have "click to the left" of input cell toggle whether it is shown?
+
+[] move between cells should save their contents to the server if they change (?)
 
 [x] keep alive
 

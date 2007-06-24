@@ -26,7 +26,7 @@ import weakref
 
 import category
 import morphism
-from sage.sets.set import Set_generic
+from sage.structure.parent import Set_generic
 from sage.structure.parent_base import ParentWithBase
 
 _cache = {}

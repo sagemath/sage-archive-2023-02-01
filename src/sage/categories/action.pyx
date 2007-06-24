@@ -37,7 +37,7 @@ cdef class Action(Functor):
 
     def __init__(self, G, S, bint is_left = 1):
         from category_types import Groupoid
-        Functor.__init__(Groupoid(G), S.category())
+        Functor.__init__(self, Groupoid(G), S.category())
         self._G = G
         self._S = S
         self._is_left = is_left
@@ -82,19 +82,44 @@ cdef class Action(Functor):
         else:
             return self._call_c(a, g)
 
+    def is_left(self):
+        return self._is_left
+
+    def __repr__(self):
+        side = "Left" if self._is_left else "Right"
+        return "%s action of %r on %r"%(side, self._G, self._S)
 
 cdef class ActionEndomorphism(Morphism):
 
     def __init__(self, Action action, g):
-        Morphism.__init__(homset.Hom(action._S, action._S))
+        Morphism.__init__(self, homset.Hom(action._S, action._S))
         self._action = action
         self._g = g
 
     cdef Element _call_c_impl(self, Element x):
-        if self.action._is_left:
-            return self.action._call_c(self._g, x)
+        if self._action._is_left:
+            return self._action._call_c(self._g, x)
         else:
-            return self.action._call_c(x, self._g)
+            return self._action._call_c(x, self._g)
 
     def _repr_(self):
         return "Action of %s on %s under %s."%(self._g, self._action._S, self._action)
+
+    def __mul__(left, right):
+        cdef ActionEndomorphism left_c, right_c
+        if PY_TYPE_CHECK(left, ActionEndomorphism) and PY_TYPE_CHECK(right, ActionEndomorphism):
+            left_c = left
+            right_c = right
+            if left_c._action is right_c._action:
+                if left_c._action._is_left:
+                    return ActionEndomorphism(left_c._action, left_c._g * right_c._g)
+                else:
+                    return ActionEndomorphism(left_c._action, right_c._g * left_c._g)
+        return Morphism.__mul__(left, right)
+
+    def __invert__(self):
+            return ActionEndomorphism(self._action, ~self._g)
+
+
+
+

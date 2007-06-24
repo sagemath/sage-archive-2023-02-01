@@ -1,4 +1,5 @@
 from sage.structure.sage_object cimport SageObject
 
 cdef class Functor(SageObject):
-    pass
+    cdef object __domain
+    cdef object __codomain

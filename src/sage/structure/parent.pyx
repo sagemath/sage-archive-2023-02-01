@@ -347,3 +347,28 @@ cdef class Parent(sage_object.SageObject):
             pass
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
+
+    ############################################################################
+    # Set baseclass --
+    ############################################################################
+
+
+class Set_generic(Parent):
+    """
+    Abstract base class for sets.
+    """
+    def category(self):
+        """
+        The category that this set belongs to, which is the category
+        of all sets.
+
+        EXAMPLES:
+            sage: Set(QQ).category()
+            Category of sets
+        """
+        import sage.categories.all
+        return sage.categories.all.Sets()
+
+    def object(self):
+        return self
+

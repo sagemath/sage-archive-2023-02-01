@@ -1985,7 +1985,7 @@ cdef class CoercionModel:
         raise TypeError, arith_error_message(x,y,op)
 
 import coerce
-cdef CoercionModel coercion_model = coerce.CoercionModel_simple()
+cdef CoercionModel coercion_model = coerce.CoercionModel_original()
 
 
 

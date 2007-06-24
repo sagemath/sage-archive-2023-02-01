@@ -8,11 +8,12 @@
 
 
 include "../ext/stdsage.pxi"
+include "../ext/python_tuple.pxi"
 include "coerce.pxi"
 
 import operator
 
-cdef class CoercionModel_simple(CoercionModel):
+cdef class CoercionModel_original(CoercionModel):
     """
     This is the original coercion model, as of SAGE 2.6 (2007-06-02)
     """
@@ -167,16 +168,100 @@ cdef class CoercionModel_simple(CoercionModel):
 
         raise TypeError, arith_error_message(x,y,op)
 
-cdef class CoercionModel_cache_maps(CoercionModel_simple):
+
+# just so we can detect these fast to avoid action-finding
+cdef op_add, op_sub
+from operator import add as op_add, sub as op_sub
+
+cdef class CoercionModel_cache_maps(CoercionModel_original):
+
+    def __init__(self):
+        # This MUST be a mapping of tuples, where each
+        # tuple contains at least two elements that are either
+        # None or of type Morphism.
+        self._coercion_maps = {}
+        # This MUST be a mapping of actions.
+        self._action_maps = {}
+
+    cdef bin_op_c(self, x, y, op):
+
+        if (op is not op_add) and (op is not op_sub):
+            # Actions take preference over common-parent coercions.
+            xp = parent_c(x)
+            yp = parent_c(y)
+            if xp is yp:
+                return op(x,y)
+            action = self.action_maps_c(xp, yp, op)
+            if action is not None:
+                return (<Action>action)._call_c(x, y)
+
+        try:
+            xy = self.canonical_coercion_c(x,y)
+            return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
+
+        except TypeError:
+            raise TypeError, arith_error_message(x,y,op)
+
+    cdef canonical_coercion_c(self, x, y):
+        xp = parent_c(x)
+        yp = parent_c(y)
+        if xp is yp:
+            return x,y
+
+        cdef Element x_elt, y_elt
+        coercions = self.coercion_maps_c(xp, yp)
+        if coercions is not None:
+            # Unsafe access for speed
+            x_map = <object>PyTuple_GET_ITEM(coercions, 0)
+            y_map = <object>PyTuple_GET_ITEM(coercions, 1)
+            if x_map is not None:
+                x_elt = (<Morphism>x_map)._call_c(x)
+            else:
+                x_elt = x
+            if y_map is not None:
+                y_elt = (<Morphism>y_map)._call_c(y)
+            else:
+                y_elt = y
+            if have_same_parent(x_elt,y_elt):
+                # We must verify this as otherwise we are prone to
+                # getting into an infinite loop in c, and the above
+                # morphisms may be written by (imperfect) users.
+                return x_elt,y_elt
+            else:
+                self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
+
+        raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
+
+
+    def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
+        raise RuntimeError, """There is a bug in the coercion code in SAGE.
+Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.
+In fact, x has parent '%s'
+whereas y has parent '%s'
+
+Original elements %r (parent %s) and %r (parent %s) and morphisms
+%s %r
+%s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
+            x, parent_c(x), y, parent_c(y),
+            type(x_map), x_map, type(y_map), y_map)
+
+    def coercion_maps(self, R, S):
+        return self.coercion_maps_c(R, S)
 
     cdef coercion_maps_c(self, R, S):
         try:
             return self._coercion_maps[R,S]
         except KeyError:
             homs = self.discover_coercion_c(R, S)
-            self._coercion_maps[R,S] = homs
-            self._coercion_maps[S,R] = (homs[1], homs[0])
+            if homs is not None:
+                self._coercion_maps[R,S] = homs
+                self._coercion_maps[S,R] = (homs[1], homs[0])
+            else:
+                self._coercion_maps[R,S] = self._coercion_maps[S,R] = None
             return homs
+
+    def action_maps(self, R, S, op):
+        return self.action_maps_c(R, S, op)
 
     cdef action_maps_c(self, R, S, op):
         try:
@@ -203,6 +288,87 @@ cdef class CoercionModel_cache_maps(CoercionModel_simple):
         except TypeError:
             pass
 
-
     cdef discover_action_c(self, R, S, op):
+        if op is operator.mul:
+            try:
+                return LeftModuleAction(R, S)
+            except TypeError:
+                pass
+
+            try:
+                return RightModuleAction(S, R)
+            except TypeError:
+                pass
+
+        elif op is operator.div:
+            try:
+                return ~RightModuleAction(S, R)
+            except TypeError:
+                pass
+
+
+
+from sage.structure.element cimport Element # workaround SageX bug
+
+
+cdef class LeftModuleAction(Action):
+    def __init__(self, G, S):
+        # TODO: detect this better
+        cdef ModuleElement a
+        cdef RingElement g
+        # if this is bad it will raise a type error in the next three lines, which we propagate
+        g = rand_elt(G)
+        a = rand_elt(S)
+        res = a._rmul_c(g) # g * a
+        print g, a, res
+        if parent_c(res) is not S:
+            raise TypeError
+        Action.__init__(self, G, S, 1)
+
+    cdef Element _call_c_impl(self, Element g, Element a):
+        return (<ModuleElement>a)._rmul_c(g)
+
+cdef class RightModuleAction(Action):
+    def __init__(self, G, S):
+        # TODO: detect this better
+        cdef ModuleElement a
+        cdef RingElement g
+        # if this is bad it will raise a type error in the next three lines, which we propagate
+        g = rand_elt(G)
+        a = rand_elt(S)
+        res = a._lmul_c(g) # a * g
+        if parent_c(res) is not S:
+            raise TypeError
+        Action.__init__(self, G, S, 0)
+
+    cdef Element _call_c_impl(self, Element a, Element g):
+        return (<ModuleElement>a)._lmul_c(g)
+
+
+def rand_elt(R):
+    """
+    Want to return something sufficiently generic that __call__()
+    won't work in general (as _lmul_ and _rmul_ are to liberal).
+    """
+    try:
+        z = R.random_element()
+        if z not in ZZ:
+            return z
+    except:
         pass
+    try:
+        from sage.functions.constants import pi
+        return R(pi)
+    except:
+        pass
+    try:
+        from sage.rings.integer_ring import ZZ
+        return R.gen()*ZZ.random_element()
+    except:
+        pass
+    try:
+        from sage.rings.integer_ring import ZZ
+        return R(ZZ.random_element())
+    except:
+        pass
+    raise TypeError

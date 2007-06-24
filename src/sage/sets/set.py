@@ -23,7 +23,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.parent import Parent
+from sage.structure.parent import Parent, Set_generic
 from sage.misc.latex import latex
 import sage.rings.infinity
 
@@ -124,25 +124,6 @@ def is_Set(x):
         True
     """
     return isinstance(x, Set_generic)
-
-class Set_generic(Parent):
-    """
-    Abstract base class for sets.
-    """
-    def category(self):
-        """
-        The category that this set belongs to, which is the category
-        of all sets.
-
-        EXAMPLES:
-            sage: Set(QQ).category()
-            Category of sets
-        """
-        import sage.categories.all
-        return sage.categories.all.Sets()
-
-    def object(self):
-        return self
 
 class Set_object(Set_generic):
     r"""

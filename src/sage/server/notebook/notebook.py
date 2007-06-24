@@ -1534,19 +1534,20 @@ class Notebook(SageObject):
             </head>
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
-              <h1><font size=+3 color="darkred">SAGE</font>&nbsp;&nbsp;&nbsp;&nbsp;<font size=+1>Upload your Worksheet</font></h1>
+              %s
+              <h1><font size=+1>Upload your Worksheet</font></h1>
               <hr>
               <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">
               <table><tr>
               <td>
-              <b>Browse your computer to select a worksheet file to upload:</b><br>
+              Browse your computer to select a worksheet file to upload:<br>
               <input class="upload_worksheet_menu" size="50" type="file" name="fileField" id="upload_worksheet_filename"></input><br><br>
-              <b>Or enter the url of a worksheet file on the web:</b><br>
+              Or enter the url of a worksheet file on the web:<br>
 
-              <input class="upload_worksheet_menu" size="50" type="text" name="urlField" id="upload_worksheet_url"></input></br>
+              <input class="upload_worksheet_menu" size="50" type="text" name="urlField" id="upload_worksheet_url"></input>
               <br><br>
-              <b>What do you want to call it? (if different than the original name)</b><br>
+              What do you want to call it? (if different than the original name)<br>
               <input class="upload_worksheet_menu" size="50" type="text" name="nameField" id="upload_worksheet_name"></input></br>
               </td>
               </tr>
@@ -1557,7 +1558,42 @@ class Notebook(SageObject):
               </div>
             </body>
           </html>
-         """%css.css(self.color())
+         """%(css.css(self.color()),self.html_banner())
+
+    def html_upload_data_window(self, ws):
+        return """
+          <html>
+            <head>
+              <title>Upload Data File to the Worksheet %s</title>
+              <style>%s</style>
+            </head>
+            <body>
+            %s
+              <div class="upload_worksheet_menu" id="upload_worksheet_menu">
+              <h1><font size=+1>Upload your data file to the worksheet named '%s'</font></h1>
+              <hr>
+              <form method="POST" action="do_upload_data"
+                    name="upload" enctype="multipart/form-data">
+              <table><tr>
+              <td>
+              Browse your computer to select a file to upload:<br>
+              <input class="upload_worksheet_menu" size="50" type="file" name="fileField" value="" id="upload_filename"></input><br><br>
+              Or enter the url of a file on the web:<br>
+
+              <input class="upload_worksheet_menu" size="50" type="text" name="urlField" value="" id="upload_url"></input></br>
+              <br><br>
+              What do you want to call it? (if different than the original name)<br>
+              <input class="upload_worksheet_menu" size="50" type="text" name="nameField" value="" id="upload_name"></input></br>
+              </td>
+              </tr>
+              <tr>
+              <td><br><input type="button" class="upload_worksheet_menu" value="Upload File" onClick="form.submit();"></td>
+              </tr>
+              </form><br>
+              </div>
+            </body>
+          </html>
+         """%(ws.name(), css.css(self.color()), self.html_banner(), ws.name())
 
     def html(self, worksheet_filename=None, username='guest', show_debug=False, admin=False):
         if worksheet_filename is None or worksheet_filename == '':

@@ -790,6 +790,21 @@ function system_select(s) {
     async_request(worksheet_command('system/'+s), null, null);
 }
 
+
+function go_data(theform) {
+   var value;
+   with(theform) {
+      value = options[selectedIndex].value;
+      if(value == "__upload_data_file__") {
+          window.location.replace(worksheet_command("upload_data"));
+      } else {
+          window.open("/home/" + worksheet_filename + "/" + value,
+          "menubar=1,location=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
+      }
+      options[0].selected = 1;
+   }
+}
+
 function add_worksheet(name) {
     open("/home/" + user_name + "/" + name)
 }

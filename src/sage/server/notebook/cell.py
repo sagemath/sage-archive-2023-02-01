@@ -34,6 +34,7 @@ re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 import os, shutil
 
 from   sage.misc.misc import word_wrap
+from   sage.misc.html import math_parse
 
 import notebook
 
@@ -321,7 +322,7 @@ class Cell(Cell_generic):
 
     def process_cell_urls(self, x):
         end = '?%d"'%self.version()
-        begin = '"/home/%s/data/%s'%(self.worksheet_filename(), self.id())
+        begin = '"/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
         for s in re_cell.findall(x) + re_cell_2.findall(x):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
@@ -541,7 +542,7 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/home/%s/data/%s/%s"%(self.worksheet_filename(), self.id(), F)
+            url = "/home/%s/cells/%s/%s"%(self.worksheet_filename(), self.id(), F)
             if F.endswith('.png') or F.endswith('.bmp') or F.endswith('.jpg'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):
@@ -623,52 +624,6 @@ def format_exception(s0, ncols):
     return t
 
 ComputeCell=Cell
-
-
-def math_parse(s):
-    r"""
-    Do the following:
-    \begin{verbatim}
-       * Replace all $ text $'s by
-          <span class='math'> text </span>
-       * Replace all $$ text $$'s by
-          <div class='math'> text </div>
-       * Replace all \$'s by $'.s  Note that in
-         the above two cases nothing is done if the $
-         is preceeded by a backslash.
-    \end{verbatim}
-    """
-    t = ''
-    while True:
-        i = s.find('$')
-        if i == -1:
-            return t + s
-        elif i > 0 and s[i-1] == '\\':
-            t += s[:i-1] + '$'
-            s = s[i+1:]
-        elif i-1 < len(s) and s[i+1] == '$':
-            typ = 'div'
-        else:
-            typ = 'span'
-        j = s[i+2:].find('$')
-        if j == -1:
-            j = len(s)
-            s += '$'
-            if typ == 'div':
-                s += '$$'
-        else:
-            j += i + 2
-        if typ == 'div':
-            txt = s[i+2:j]
-        else:
-            txt = s[i+1:j]
-        t += s[:i] + '<%s class="math">%s</%s>'%(typ,
-                      ' '.join(txt.splitlines()), typ)
-        s = s[j+1:]
-        if typ == 'div':
-            s = s[1:]
-    return t
-
 
 
 def number_of_rows(txt, ncols):

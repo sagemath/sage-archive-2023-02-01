@@ -223,6 +223,12 @@ class Worksheet:
     def data_directory(self):
         return self.directory() + '/data/'
 
+    def attached_data_files(self):
+        D = self.data_directory()
+        if not os.path.exists(D):
+            return []
+        return os.listdir(D)
+
     def cells_directory(self):
         return self.directory() + '/cells/'
 
@@ -752,6 +758,11 @@ class Worksheet:
         <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
         """%(cls('use'),cls('edit'),cls('text'),cls('revisions'),cls('share'))
 
+    def html_data_options_list(self):
+        D = self.attached_data_files()
+        x = '\n'.join(['<option value="data/%s">%s</option>'%(nm,nm) for nm in D])
+        return x
+
     def html_file_menu(self):
 ##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>
 ##  <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) </option>
@@ -763,21 +774,21 @@ class Worksheet:
         else:
             system_select = self.notebook().html_system_select_form_element(self)
 
+        data = self.html_data_options_list()
+
         return """
 <select class="worksheet"  onchange="go_option(this);">
 <option title="Select a file related function" value=""  selected=1>File...</option>
- <option title="Create a new worksheet" value="new_worksheet();">New</option>
+ <option title="Create a new worksheet" value="new_worksheet();">Create New Worksheet</option>
  <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download</option>
- <option title="Save changes" value="save_worksheet();">Save</option>
  <option title="Print this worksheet" value="print_worksheet();">Print</optooion>
- <option title="Rename this worksheet" value="rename_worksheet();">Rename</option>
+ <option title="Rename this worksheet" value="rename_worksheet();">Rename worksheet</option>
  <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
  <option title="Move this worksheet to the trash" value="delete_worksheet('%s');">Delete worksheet</option>
- <option title="Configure this worksheet" value="worksheet_settings();">Worksheet settings</option>
 </select>
 
 <select class="worksheet"  onchange="go_option(this);" >
- <option title="Select a worksheet function" value="" selected=1>Worksheet...</option>
+ <option title="Select a worksheet function" value="" selected=1>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
  <option title="Restart the worksheet" value="restart_sage();">Restart</option>
  <option value="">---------------------------</option>
@@ -789,9 +800,21 @@ class Worksheet:
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
  </select>
 
- %s
+<select class="worksheet" onchange="go_data(this);" >
+ <option title="Select an attached file" value="" selected=1>Data...</option>
+ <option title="Upload a data file in a wide range of formats" value="__upload_data_file__">Upload a file...</option>
+ <option value="">--------------------</option>
+%s
+<option value="">--------------------</option>
+ <option title="Browse the data directory" value="data/">Browse data directory...</option>
+ <option title="Browse the directory of output from cells" value="celldata/">Browse cell output directories...</option>
+</select>
 
- """%(_notebook.clean_name(self.name()), self.filename(), system_select)
+ %s
+ """%(_notebook.clean_name(self.name()), self.filename(),
+      data, system_select)
+
+# <option title="Configure this worksheet" value="worksheet_settings();">Worksheet settings</option>
 
     def html_menu(self):
         name = self.filename()

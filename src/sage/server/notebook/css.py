@@ -1476,7 +1476,7 @@ a.share {
 }
 
 select.worksheet {
-  width:9em;
+  width:6em;
   border: #aaaaaa;
   border-style: solid;
   border-top-width: 1px;
@@ -1496,7 +1496,7 @@ select.worksheet_list {
 }
 
 select.worksheet_edit {
-  width:8em;
+  width:5em;
     border: #aaaaaa;
   border-style: solid;
   border-top-width: 1px;

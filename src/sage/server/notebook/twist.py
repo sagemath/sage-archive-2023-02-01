@@ -249,12 +249,18 @@ class UploadWorksheet(resource.PostableResource):
         else:
             tmp = '%s/tmp.sws'%notebook.directory()
             f = file(tmp,'wb')
+
+            # Blocking issues (?!)
             f.write(ctx.files['fileField'][0][2].read())
             f.close()
 
         try:
             W = notebook.import_worksheet(tmp, username)
             os.unlink(tmp)
+            if ctx.args.has_key('nameField'):
+                new_name = ctx.args['nameField'][0].strip()
+                if new_name:
+                    W.rename(new_name)
         except ValueError, msg:
             s = "Error uploading worksheet '%s'."%msg
             return http.Response(stream = message(s, '/'))
@@ -297,19 +303,71 @@ class WorksheetResource:
 # The file is stored on the filesystem.
 #      /home/worksheet_name/data/cell_number/filename
 ##############################################
+class Worksheet_upload_data(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        return http.Response(stream = notebook.html_upload_data_window(self.worksheet))
+
+class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        name = ''
+        if ctx.args.has_key('nameField'):
+            name = ctx.args['nameField'][0].strip()
+        if not name:
+            name = ctx.files['fileField'][0][0]
+        dest = '%s/%s'%(self.worksheet.data_directory(), name)
+
+        url = ctx.args['urlField'][0].strip()
+        if url != '':
+            tmp = get_remote_file(url, verbose=True)
+            shutil.move(tmp, dest)
+        else:
+            f = file(dest,'wb')
+            f.write(ctx.files['fileField'][0][2].read())
+            f.close()
+        return http.RedirectResponse('/home/'+self.worksheet.filename())
+
+
+class Worksheet_data(WorksheetResource, resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        dir = os.path.abspath(self.worksheet.data_directory())
+        if os.path.exists(dir):
+            return static.File(dir)
+        else:
+            return http.Response(stream = message("No data files",'..'))
+
+    def childFactory(self, request, name):
+        dir = os.path.abspath(self.worksheet.data_directory())
+        return static.File('%s/%s'%(dir, name))
+
+
 class CellData(resource.Resource):
     def __init__(self, worksheet, number):
         self.worksheet = worksheet
         self.number = number
+
+    def render(self, ctx):
+        return http.Response(stream = message("No data file (%s)"%self.number,'..'))
 
     def childFactory(self, request, name):
         dir = self.worksheet.directory()
         path = '%s/cells/%s/%s'%(dir, self.number, name)
         return static.File(path)
 
-class Worksheet_data(WorksheetResource, resource.Resource):
-    def childFactory(self, request, number):
-        return CellData(self.worksheet, number)
+
+class Worksheet_cells(WorksheetResource, resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File(self.worksheet.cells_directory())
+
+    def childFactory(self, request, segment):
+        return static.File(self.worksheet.cells_directory() + segment)
+    #return CellData(self.worksheet, segment)
+
+
+
 
 ########################################################
 # Use this to wrap a worksheet operation in a confirmation
@@ -451,7 +509,7 @@ class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
             return http.Response(stream = message(
                 'You must <a href="/">login first</a> in order to edit this worksheet.'))
         ws = self.worksheet.worksheet_that_was_published()
-        if ws.user_is_collaborator(username) or ws.owner() == username:
+        if ws.owner() == username:
             W = ws
         else:
             W = notebook.copy_worksheet(self.worksheet, username)
@@ -922,7 +980,9 @@ class Worksheet(WorksheetResource, resource.Resource):
             file = self.worksheet.data_directory() + '/' + op
             if os.path.exists(file):
                 return static.File(file)
-
+            file = self.worksheet.cells_directory() + '/' + op
+            if os.path.exists(file):
+                return static.File(file)
             return NotImplementedWorksheetOp(op, self.worksheet)
 
 def render_worksheet_list(args, pub=False):

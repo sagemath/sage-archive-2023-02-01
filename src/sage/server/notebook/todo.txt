@@ -1,20 +1,19 @@
 TODO for the new Twisted notebook
 
+[] cross browser
+* safari os x
+* firefox os x
+* firefox windows
+* IE/windows
+
+
 [x] logout doesn't work at all.
 
 [x] make cookies persistent
 
-* safari os x
-
-* firefox os x
-
-* firefox windows
-
-* IE/windows
-
 [] don't let two people edit a worksheet at the same time -- only edit a copy.
 
-[] search_doc -- fix it.
+[x] search_doc and search-src -- fix it.
 
 [] unpublish -- appears to owners.
 

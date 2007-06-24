@@ -23,7 +23,9 @@ import random
 import time
 import md5
 
-SID_COOKIE = "session_id"
+# SAGE's twist stuff
+import twist
+
 
 class Session(object):
     """A single users session, defined by the uid.
@@ -295,7 +297,7 @@ class MySessionWrapper(object):
 def get_our_cookie(request):
     cookies = request.headers.getHeader('cookie')
     for C in cookies:
-        if C.name == SID_COOKIE:
+        if C.name == twist.SID_COOKIE:
             return C.value
     return None  # not found
 

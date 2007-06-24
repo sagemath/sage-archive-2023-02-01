@@ -111,6 +111,7 @@ import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
 twist.OPEN_MODE = %s
+twist.SID_COOKIE = str(hash("%s"))
 twist.init_updates()
 import sage.server.notebook.worksheet as worksheet
 worksheet.init_sage_prestart(twist.notebook.get_server(), twist.notebook.get_ulimit())
@@ -146,7 +147,7 @@ from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 s.setServiceParent(application)
-"""%(notebook_opts, not secure, strport))
+"""%(notebook_opts, not secure, os.path.abspath(directory), strport))
 
 
         config.close()

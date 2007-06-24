@@ -884,9 +884,10 @@ class Notebook(SageObject):
             s += '&nbsp;'*10
             #s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published Worksheets</a>'
             s += '&nbsp;'*10
-            s += '&nbsp;<a class="usercontrol" href=".">Active</a>'
-            s += '&nbsp;<a class="usercontrol" href=".?typ=archive">Archive</a>'
-            s += '&nbsp;<a class="usercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'
+            s += "Current Folder: "
+            s += '&nbsp;<a class="%susercontrol" href=".">Active</a>'%('bold' if typ=='active' else '')
+            s += '&nbsp;<a class="%susercontrol" href=".?typ=archive">Archived</a>'%('bold' if typ=='archive' else '')
+            s += '&nbsp;<a class="%susercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'%('bold' if typ=='trash' else '')
             s += '</span>'
         return s
 
@@ -1674,6 +1675,57 @@ class Notebook(SageObject):
         """%(top, body)
 
         return s
+
+    def html_src(self, filename, username):
+        top = self._html_head(None, username) + self.html_topbar(username)
+
+        if not os.path.exists(filename):
+            file = "No such file '%s'"%filename
+        else:
+            file = open(filename).read()
+        file = file.replace('<','&lt;')
+        s = """
+<html>
+<head>
+"""
+        s += '<title>%s | SAGE Source Code</title>' % filename
+        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+        s += """
+</head>
+<body>
+"""
+        s += '<h1 align=center>SAGE Source Browser</h1>\n'
+        s += '<h2 align=center><tt>%s  <a href="..">(browse directory)</a></tt></h2>\n'%filename
+        s += '<br><hr><br>\n'
+        s += '<font size=+1><pre id="code">%s</pre></font>\n'%file
+        s += '<br><hr><br>\n'
+        s += '<script src="/highlight/prettify.js" type="text/javascript"></script>\n'
+        s += """<script type="text/javascript">
+function get_element(id) {
+  if(document.getElementById)
+    return document.getElementById(id);
+  if(document.all)
+    return document.all[id];
+  if(document.layers)
+    return document.layers[id];
+}
+
+var x = get_element("code");
+x.innerHTML = prettyPrintOne(x.innerHTML);
+</script>
+"""
+
+        s = """
+        <html>
+        %s
+        <body>
+        %s
+        </body>
+        </html>
+        """%(top, s)
+
+        return s
+
 
 ####################################################################
 

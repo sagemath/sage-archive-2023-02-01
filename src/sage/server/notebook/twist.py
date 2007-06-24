@@ -1421,7 +1421,9 @@ class AdminToplevel(UserToplevel):
 
 
 def set_cookie(cookie):
-    print "Setting cookie: ", cookie
+    #print "Setting cookie: ", cookie
+    if not OPEN_MODE:
+        print "User %s logged in."%username
     return [http_headers.Cookie(SID_COOKIE, cookie)]
 
 notebook = None  # this gets set on startup.

@@ -772,6 +772,12 @@ function search_worksheets(typ) {
     window.location.replace(url);
 }
 
+function go_system_select(theform) {
+   with(theform) {
+      system_select(options[selectedIndex].value);
+   }
+}
+
 function system_select(s) {
     async_request(worksheet_command('system/'+s), null, null);
 }
@@ -955,6 +961,12 @@ function sync_active_cell_list_callback(status, response_text) {
 // worksheet in the list of worksheets display.
 //
 ///////////////////////////////////////////////////////////////////
+
+function go_list_worksheet(theform) {
+   with(theform) {
+      eval(options[selectedIndex].value);
+   }
+}
 
 function list_edit_worksheet(filename) {
     window.location.replace('/home/' + filename);

@@ -652,7 +652,7 @@ class Worksheet:
                 C.set_input_text(input)
                 C.set_output_text(output, '')
                 if html:
-                    print C.directory()
+                    #print C.directory()
                     C.update_html_output()
                 cells.append(C)
 
@@ -1046,7 +1046,7 @@ class Worksheet:
         return True
 
     def initialize_sage(self):
-        print "Starting SAGE server for worksheet %s..."%self.name()
+        #print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage

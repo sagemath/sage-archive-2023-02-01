@@ -409,6 +409,7 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
     worksheet with the given filename.
     """
     def render(self, ctx):
+        self.worksheet.save_snapshot(username)
         s = notebook.html_edit_window(self.worksheet, username)
         return http.Response(stream = s)
 
@@ -466,7 +467,10 @@ class Worksheet_save(WorksheetResource, resource.PostableResource):
     """
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
-            self.worksheet.edit_save(ctx.args['textfield'][0])
+            E = ctx.args['textfield'][0]
+            self.worksheet.edit_save(E)
+            self.worksheet.record_edit(username)
+            self.worksheet.save_snapshot(username, E)
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 

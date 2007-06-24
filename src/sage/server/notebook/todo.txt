@@ -6,8 +6,6 @@ TODO for the new Twisted notebook
 * firefox windows
 * IE/windows
 
-[] have an active/archived/trash/new folder thing for published worksheets (!)
-
 
 [x] logout doesn't work at all.
 
@@ -35,9 +33,9 @@ TODO for the new Twisted notebook
 04:18 AM by pub" but they should give who really edited them.  The
 time maybe doesn't get updated either.
 
-[] some from "plain text mode" should make an entry in the revisions log.
+[] save from "plain text mode" should make an entry in the revisions log.
 
-[ ] definitely *need* autosave!
+[x] definitely *need* autosave!
 
 [] marketing text: "Idea for marketing text: With the SAGE Notebook
 anyone can create, collaborate on, and publish interactive
@@ -50,6 +48,9 @@ someone, learn about programming, and many other things."
 
 
 Later...
+
+[] have an active/archived/trash/new folder thing for published worksheets
+
 [ ] if a worksheet is in the trash after x days all images are deleted...
 [ ] migration of old notebooks to new format
 [ ] implement user configuration:

@@ -1018,10 +1018,10 @@ class Notebook(SageObject):
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
         rows = []
         i = 0
-        for desc, key in data:
+        for i in range(len(data)):
+            desc, key = data[i]
             rows.append('<tr><td></td><td><a href="revisions?rev=%s">Revision %s</a></td><td><span class="revs">%s</span></td></tr>'%
                         (key, i, desc))
-            i += 1
 
         rows = list(reversed(rows))
         rows = '\n'.join(rows)
@@ -1044,7 +1044,8 @@ class Notebook(SageObject):
     def html_specific_revision(self, username, ws, rev):
         t = time.time() - float(rev[:-4])
         when = worksheet.convert_seconds_to_meaningful_time_span(t)
-        head, body = self.html_worksheet_page_template(ws, username, "Revision from %s ago"%when, select="revisions")
+        head, body = self.html_worksheet_page_template(ws, username,
+                                       "Revision from %s ago&nbsp;&nbsp;&nbsp;&nbsp;<a href='revisions'>Revision List</a>"%when, select="revisions")
 
         filename = ws.get_snapshot_text_filename(rev)
         txt = bz2.decompress(open(filename).read())
@@ -1053,10 +1054,33 @@ class Notebook(SageObject):
         W.edit_save(txt)
         html = W.html_worksheet_body(do_print=True, publish=True)
 
+        data = ws.snapshot_data()  # pairs ('how long ago', key)
+        prev_rev = None
+        next_rev = None
+        for i in range(len(data)):
+            if data[i][1] == rev:
+                if i > 0:
+                    prev_rev = data[i-1][1]
+                if i < len(data)-1:
+                    next_rev = data[i+1][1]
+                break
+
+        if prev_rev:
+            prev = '<a class="listcontrol" href="revisions?rev=%s">Older</a>&nbsp;&nbsp;'%prev_rev
+        else:
+            prev = 'Oldest'
+
+        if next_rev:
+            next = '<a class="listcontrol" href="revisions?rev=%s">Newer</a>&nbsp;&nbsp;'%next_rev
+        else:
+            next = 'Newest'
+
         actions = """
+        %s
+        %s
+        <a class="listcontrol" href="revisions?rev=%s&action=revert">Revert to this one</a>  <span class="lastedit">(note that images are note recorded)</span>&nbsp;&nbsp;
         <a class="listcontrol" href="revisions?rev=%s&action=publish">Publish this one</a>&nbsp;&nbsp;
-        <a class="listcontrol" href="revisions?rev=%s&action=revert">Revert to this one</a>  (note that images are note recorded)
-        """%(rev, rev)
+        """%(prev, next, rev, rev)
 
         s = """
         %s

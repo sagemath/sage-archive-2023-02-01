@@ -125,7 +125,7 @@ class Worksheet:
 
     def __cmp__(self, other):
         try:
-            return cmp(self.name(), other.name())
+            return cmp(self.filename(), other.filename())
         except AttributeError:
             return cmp(type(self), type(other))
 

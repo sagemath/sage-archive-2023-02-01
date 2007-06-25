@@ -1447,8 +1447,16 @@ class InvalidPage(resource.Resource):
             s += ' You might have to login to view this page.'
         return http.Response(stream = message(s, '/'))
 
+
+class RedirectLogin(resource.PostableResource):
+    def render(self, ctx):
+        return http.RedirectResponse('/')
+    def childFactory(self, request, name):
+        return RedirectLogin()
+
 class Toplevel(resource.PostableResource):
     child_logout = Logout()
+    child_login = RedirectLogin()
 
     def __init__(self, cookie, _username):
         self.cookie = cookie
@@ -1493,7 +1501,7 @@ class AnonymousToplevel(Toplevel):
     child_javascript = Javascript()
     child_home = PublicWorksheetsHome()
     child_pub = PublicWorksheets()
-    child_login = LoginResource
+    #child_login = LoginResource
 
     def render(self, ctx):
         return http.Response(stream =  login_page_template(notebook.get_accounts()))
@@ -1508,7 +1516,8 @@ class FailedToplevel(Toplevel):
         self.problem= problem
 
     def render(self, ctx):
-        return http.Response(stream = login_template())
+        return http.Response(stream = login_page_template(notebook.get_accounts()))
+
 
 class UserToplevel(Toplevel):
     addSlash = True
@@ -1533,6 +1542,7 @@ class UserToplevel(Toplevel):
     child_send_to_active = SendWorksheetToActive()
     child_notebook_settings = NotebookSettings()
     child_settings = UserSettings()
+    #child_login = RedirectLogin()
 
     def render(self, ctx):
         s = render_worksheet_list(ctx.args)
@@ -1554,8 +1564,8 @@ class AdminToplevel(UserToplevel):
 
 def set_cookie(cookie):
     #print "Setting cookie: ", cookie
-    if not OPEN_MODE:
-        print "User %s logged in."%username
+    #if not OPEN_MODE:
+        #print "User %s logged in."%username
     return [http_headers.Cookie(SID_COOKIE, cookie)]
 
 notebook = None  # this gets set on startup.

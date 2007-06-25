@@ -148,7 +148,7 @@ class MySessionWrapper(object):
         #log.msg("request: %s, segments: %s" % (str(request.args), segments))
         #see if the user already has a session going
         if segments and segments[0] == "login":
-            log.msg("Login")
+            #log.msg("Login")
             #get the username and password in the postdata
             #the callback function needs no args because the parsing
             #of the POSTData just updates the request args.
@@ -265,12 +265,8 @@ class MySessionWrapper(object):
         Also saved the credentials that the user used to log in
         to later associate these credentials with the users session.
         """
-        #log.msg("=== _loginSuccess ===")
-        #log.msg("resource: %s " % rsrc)
-        #log.msg("segments: %s " % segments)
-        #put the users creds in the session object
         session.set_authCreds(creds)
-        return rsrc, () #segments
+        return rsrc, ()
 
     def _loginFailure(self, *x): #TODO
         #log.msg("=== _loginFailure ===")

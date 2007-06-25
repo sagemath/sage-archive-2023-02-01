@@ -181,9 +181,8 @@ class Notebook(SageObject):
         This creates a new worksheet in the pub directory with the
         same contents as worksheet.
         """
-
         for X in self.__worksheets.itervalues():
-            if X.owner() == 'pub' and X.worksheet_that_was_published() == worksheet:
+            if X.is_published() and X.worksheet_that_was_published() == worksheet:
                 # Update X based on worksheet instead of creating something new
                 # 1. delete cells and data directories
                 # 2. copy them over
@@ -927,8 +926,9 @@ class Notebook(SageObject):
 
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=name%s">%s</a> </td>'%(typ,
             '' if sort != 'name' or reverse else '&reverse=True', worksheet_heading)
-        s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner / Collaborators</a> </td>'%(typ,
-            '' if sort != 'owner' or reverse else '&reverse=True')
+        s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner%s</a> </td>'%(typ,
+            '' if sort != 'owner' or reverse else '&reverse=True',
+            '' if pub else ' / Collaborators')
         s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
             '' if sort != 'last_edited' or reverse else 'reverse=True')
         s += '</tr>'
@@ -1004,18 +1004,20 @@ class Notebook(SageObject):
         v.append(owner)
 
         collab = worksheet.collaborators()
+        share = ''
 
-        if not pub and typ != 'trash' and (owner == user or self.user(user).is_admin()):
-            if len(collab) <= 1:
+        if not pub and typ != 'trash' or self.user(user).is_admin():
+            if len(collab) == 0:
                 share = '<a class="share" href="/home/%s/share">Share now</a>'%(worksheet.filename())
             else:
-                collaborators = ', '.join([x for x in collab if x != user])
+                collaborators = ', '.join([x for x in collab])
                 if len(collaborators) > 21:
                     collaborators = collaborators[:21] + '...'
                 v.append(collaborators)
                 share = '<a class="share" href="/home/%s/share">Add or Delete</a>'%(worksheet.filename())
-        else:
+        if not (self.user(user).is_admin() or owner == user):
             share = ''
+
         if worksheet.has_published_version():
             pub_ver = worksheet.published_version().filename()
             share += ' <a href="/home/%s">(published)'%pub_ver
@@ -1134,24 +1136,28 @@ class Notebook(SageObject):
     def html_share(self, worksheet, username):
         head, body = self.html_worksheet_page_template(worksheet, username, "Share this document", select="share")
 
-        body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
-        body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
+        if not (self.user(username).is_admin() or username == worksheet.owner()):
+            body += "Only the owner of a worksheet is allowed to share it."
+            body += 'You can do whatever you want if you <a href="copy">make your own copy</a>.'
+        else:
+            body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
+            body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
 
-        collabs = ', '.join(worksheet.collaborators())
-        body += '<form width=70% method="post" action="invite_collab">\n'
-        body += '<textarea name="collaborators" rows=5 cols=70 class="edit" id="collaborators">%s</textarea><br><br>'%collabs
-        body += '<input type="submit" title="Give access to your worksheet to the above collaborators" value="Invite Collaborators">'
-        body += '</form>'
+            collabs = ', '.join(worksheet.collaborators())
+            body += '<form width=70% method="post" action="invite_collab">\n'
+            body += '<textarea name="collaborators" rows=5 cols=70 class="edit" id="collaborators">%s</textarea><br><br>'%collabs
+            body += '<input type="submit" title="Give access to your worksheet to the above collaborators" value="Invite Collaborators">'
+            body += '</form>'
 
-        body += '<br>'*2
-        body += '<hr class="usercontrol">'
-        body += '<span class="username">SAGE Users:</span>'
-        U = self.users()
-        K = [x for x, u in U.iteritems() if not u.is_guest() and not u.username() in [username, 'pub', '_sage_']]
-        def mycmp(x,y):
-            return cmp(x.lower(), y.lower())
-        K.sort(mycmp)
-        body += '<span class="users">%s</span>'%(', '.join(K))
+            body += '<br>'*2
+            body += '<hr class="usercontrol">'
+            body += '<span class="username">SAGE Users:</span>'
+            U = self.users()
+            K = [x for x, u in U.iteritems() if not u.is_guest() and not u.username() in [username, 'pub', '_sage_']]
+            def mycmp(x,y):
+                return cmp(x.lower(), y.lower())
+            K.sort(mycmp)
+            body += '<span class="users">%s</span>'%(', '.join(K))
 
 
         return """

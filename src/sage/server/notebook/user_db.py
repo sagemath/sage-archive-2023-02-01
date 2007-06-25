@@ -5,8 +5,15 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-#from test_notebook import notebook_playback
-#from twist import notebook_twisted as notebook
+class UserDatabase():
+    def add_user(self, user, passwd, email):
+        self[user] = UserRecord(user, passwd, email)
 
-from notebook_object import notebook
+    def remove_user(self, user):
+        del self[user]
 
+class UserRecord:
+    def __init__(self, username, passwd, email):
+        self.username = username
+        self.passwd = passwd
+        self.email = email

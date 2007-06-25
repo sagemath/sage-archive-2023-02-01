@@ -1,3 +1,10 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
 SAGE Notebook CSS
 """
@@ -22,6 +29,10 @@ def css(color='default'):
         <type 'str'>
     """
     s = r"""
+body {
+  background-color: white;
+}
+
 div.hidden {
   display:none;
 }
@@ -66,8 +77,8 @@ span.control_commands {
 }
 
 span.worksheet_control_commands {
-   position: fixed;
-   top:36px;
+   position: relative;
+   top:0px;
    right:0px;
    text-align:right;
    color:blue;
@@ -82,7 +93,7 @@ div.slide_control_commands {
    position: fixed;
    width:500px;
    top:1ex;
-   right:1ex;
+   right:45%;
    text-align:right;
    color:blue;
    font-weight:normal;
@@ -155,24 +166,28 @@ div.top_control_bar a.help {
 }
 
 div.top_control_bar a.help:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.slide_mode {
+a.slide_mode {
 }
 
-div.top_control_bar a.slide_mode:hover{
+a.slide_mode:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.cell_mode {
+a.cell_mode {
 }
 
-div.top_control_bar a.cell_mode:hover{
+a.cell_mode:hover{
+   cursor:pointer;
 }
 
-div.top_control_bar a.slide_arrow {
+a.slide_arrow {
 }
 
-div.top_control_bar a.slide_arrow:hover{
+a.slide_arrow:hover{
+   cursor:pointer;
 }
 
 
@@ -233,6 +248,11 @@ div.slideshow_control {
   float:right;
 }
 
+div.slideshow_control:hover {
+   cursor:pointer;
+}
+
+
 div.slideshow_progress {
   float:right;
   background-color:white;
@@ -244,6 +264,9 @@ div.slideshow_progress_bar{
   z-index:1;
   position:relative;
   background-color: <color1>;
+}
+div.slideshow_progress_bar:hover {
+   cursor:pointer;
 }
 div.slideshow_progress_text{
   position:absolute;
@@ -510,15 +533,31 @@ div.attached_filename:hover {
 
 span.pane div.worksheets_topbar {
    color:black;
-   height: 2ex;
+   height: 3ex;
    top: 0ex;
-   background: url('corner.png') no-repeat top left;
+   background: url('/images/corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
-   font-size:12px;
+   font-size:15px;
    font-family:arial;
    padding-left: 10px;
+   padding-top:10px;
    width: 174px;
+}
+
+a.left_panel_hide {
+   position: relative;
+   top:0px;
+   right:-1px;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
+   font-family:arial;
+   font-size:12px;
+}
+
+a.left_panel_hide:hover {
+   cursor:pointer;
 }
 
 span.X {
@@ -529,24 +568,26 @@ span.X {
 }
 
 span.pane div.add_new_worksheet_menu {
+   position:relative;
    color:black;
-   top: 0ex;
-   background-color: <color2>;
+   padding-top: 0.5ex;
+   padding-bottom: 0.5ex;
+   left: 0ex;
+   background-color: white;
    text-decoration: none;
    font-size:11px;
    font-family:arial;
-   padding-left: 10px;
+   padding-left: 0px;
    width: 174px;
-   display:none;
 }
 
 input.add_new_worksheet_menu {
-   width:60%
+   width:100%
 }
 
 button.add_new_worksheet_menu {
-   font-size:11px;
-   font-family:arial;
+   font-size:14px;
+   font-family:sans-serif;
 }
 
 span.pane div.upload_worksheet_menu {
@@ -593,18 +634,19 @@ button.delete_worksheet_menu {
 }
 
 span.pane div.worksheet_list {
+   position:fixed;
+   overflow:scroll;
    font-size:12px;
-   top:0ex;
-   height:45ex;
+   top:25ex;
+   bottom:2ex;
+   left:1ex;
    border:2px solid <color2>;
-   overflow:auto;
    width: 180px;
 }
 
 a.new_worksheet {
    font-family: arial, monospace;
-   font-size:8pt;
-   text-decoration:underline;
+   font-size:12pt;
    text-align:right;
    color: #0000aa
 }
@@ -621,20 +663,37 @@ div.worksheet_top_padding {
    height:5%;
 }
 
-div.worksheet_title {
-   z-index:2;
-   top:36px;
-   height:31px;
-   padding-top: 3px;
-   padding-left: 1em;
-   background: url('corner.png') no-repeat top left;
-   background-color: <color1>;
-   width: 100%;
+div.worksheet_menu {
+   top:50px;
+}
+
+a.worksheet_title {
+   text-decoration:none;
+   font-size:20px;
    font-family:arial;
-   font-size: 16px;
    font-weight:bold;
+   color:#000000;
+}
+
+a.worksheet_title:hover {
+   background-color:#ffffcc;
+   cursor:pointer;
+}
+
+div.worksheet_title {
+   padding-left: 1em;
+   background-color: #ffffff;
    color:black;
-   position: fixed;
+}
+
+
+div.worksheet_print_title {
+   text-decoration:none;
+   font-size:24px;
+   font-family:arial;
+   font-weight:bold;
+   color:#000000;
+   text-align:center;
 }
 
 div.worksheet_title_under {
@@ -673,7 +732,6 @@ a.upload_worksheet:hover {
 span.pane a.worksheet_current {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color2>;
    background-color:<color2>;
    text-decoration:none;
    color:black;
@@ -682,7 +740,6 @@ span.pane a.worksheet_current {
 span.pane a.worksheet_current_computing {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color1>;
    background-color:#ffd1d1;
    text-decoration:none;
    color:black;
@@ -691,7 +748,6 @@ span.pane a.worksheet_current_computing {
 span.pane a.worksheet_other {
    font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color2>;
    background-color:white;
    text-decoration:none;
    color:black;
@@ -704,9 +760,8 @@ span.pane a.worksheet_other:hover {
 }
 
 span.pane a.worksheet_other_computing {
-   font-size:12px;
+   font-size:14px;
    padding-left:1ex;
-   border-top:1px solid <color1>;
    background-color:#ffd1d1;
    text-decoration:none;
    color:black;
@@ -793,43 +848,31 @@ span.control:hover a.cs, span.control a:hover.cs {
 div.worksheet {
   position:fixed;
   overflow:auto;
-  z-index:1;
   background-color: white;
-  border-top: 0px;
-  border-left: 2px solid <color1>;
-  top: 70px;
-  bottom: 0ex;
-  right: 0ex;
-  left: 198px;
-  padding-left: 0ex;
-  float: right;
-  padding-top: 0ex;
-}
-
-div.slideshow {
-  position:fixed;
-  overflow:auto;
-  z-index:1;
-  background-color: white;
-  border-top: 0px;
-  border-left: 2px solid <color1>;
-  top: 70px;
-  bottom: 0ex;
-  right: 0ex;
-  left: 5px;
-  padding-left: 0ex;
-  float: right;
-  padding-top: 0ex;
+  border:1px solid #aaa;
+    top: 8em;
+    bottom: 0ex;
+    right: 0ex;
+    left:1ex;
 }
 
 
 span.banner{
   background-color:white;
-  /* font-family:arial;
-  font-size:30px;
+  font-family: sans-serif;
+  font-size:18px;
   text-decoration: none;
-  font-weight: bold;
-  color: #387CAF; */
+  color: #1950c8;
+}
+
+span.banner a.banner{
+    text-decoration:none;
+    border:none;
+    margin-top:2px;
+}
+
+a.banner:visited {
+  color: #1950c8;
 }
 
 span.banner a.banner img{
@@ -868,12 +911,12 @@ div.cell_visible {
 }
 
 div.cell_evaluated {
-    border-left: 3px solid white;
+    border-left: 1px solid white;
     padding-left:3px;
 }
 
 div.cell_not_evaluated {
-    border-left: 2px dotted #ff8888;
+    border-left: 1px solid #ff8888;
     padding-left:3px;
 }
 
@@ -914,53 +957,46 @@ div.cellbox {
   padding-top: 4em;
 }
 
-pre.cell_input_pre {
-  background-color: white;
-  border: 0px solid white;
-  font-family: monospace;
-  font-size:12pt;
-  overflow:hidden;
-  padding-left:0px;
-  padding-top:0px;
-  padding-bottom:0px;
-  margin:0px;
-  display:inline;
-  width: 100%;
-}
 
 textarea.cell_input {
   color:#000000;
+  overflow:none;
   background-color: white;
-  border: 2px solid #e8e8e8;
+  border-left: 1px solid  #a8a8a8;
+  border-bottom: 1px solid  #a8a8a8;
+  border-top: 1px solid  #a8a8a8;
+  border-right: 1px solid  #a8a8a8;
   font-family: monospace;
   font-size:12pt;
   overflow:auto;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 100%;
+                /*  width: 100%;  */
   margin-bottom:0px;
   margin-top:0px;
+  line-height:1.2em;
 }
 
 pre.cell_input {
   color:#000000;
   background-color: white;
-  border: 2px solid #e8e8e8;
+  border-left: 1px solid  #a8a8a8;
+  border-bottom: 1px solid  #a8a8a8;
+  border-top: 1px solid  #a8a8a8;
+  border-right: 1px solid  #a8a8a8;
   font-family: monospace;
   font-size:12pt;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 1000%;
+/*  width: 100%;  */
   margin-bottom:0px;
   margin-top:0px;
 
 }
 pre.cell_input:hover {
-  cursor:pointer;
-  border: 2px solid  #8888fe;
-  background-color: #ffffcc;
+  cursor:text;
 }
 
 textarea.cell_input_hide {
@@ -993,12 +1029,16 @@ pre.cell_input_hide {
 }
 
 pre.cell_input_hide:hover {
-  cursor:pointer;
+  cursor:text;
 }
 
 textarea.cell_input_active {
+  overflow:none;
   background-color: white;
-  border: 2px solid  #8888fe;
+  border-left: 1px solid  #8888fe;
+  border-bottom: 1px solid  #8888fe;
+  border-top: 1px solid  #8888fe;
+  border-right: 1px solid  #8888fe;
   font-family: monospace;
   font-size:12pt;
   overflow:auto;
@@ -1007,21 +1047,12 @@ textarea.cell_input_active {
   padding-bottom:0px;
   margin-top:0px;
   margin-bottom:0px;
-  width: 100%;
+  line-height:1.2em;
+/*  width: 100%;  */
 }
 
 textarea.cell_input:hover{
-  background-color: #ffffcc;
-  border: 2px solid  #8888fe;
-  font-family: monospace;
-  font-size:12pt;
-  overflow:auto;
-  padding-left:5px;
-  padding-top:3px;
-  padding-bottom:0px;
-  margin-top:0px;
-  margin-bottom:0px;
-  width: 100%;
+  cursor:text;
 }
 
 
@@ -1063,12 +1094,17 @@ div.cell_output_wrap {
   color:#0000aa;
 }
 
-span.cell_output_wrap {
+span.cell_output_wrap span.cell_output_print_wrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
   color:#0000aa;
 }
+
+span.cell_output_print_wrap {
+   font-size:10pt;
+}
+
 span.cell_output_nowrap {
   display:none;
 }
@@ -1215,6 +1251,346 @@ span.red{
   color:red;
 }
 
+/****************** Other **************/
+
+a.worksheetname{
+   text-decoration: none;
+}
+
+a.worksheetname_moved{
+   color:#888888;
+   text-decoration: none;
+   font-weight:normal;
+}
+
+span.worksheet_buttons {
+    position:relative;
+    top: -20ex;
+    right: 0ex;
+}
+
+.flush-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    right: 0;               /* All except IE */
+}
+
+.thin-right {
+    position:absolute;      /* All browsers */
+    top: auto;              /* Standards  browsers */
+    right: 0;               /* All except IE */
+    width: 70%;
+}
+
+/************ User Home **************************/
+
+span.username {
+  font-family: sans-serif;
+  font-weight:bold;
+  font-size:14px;
+  padding:1ex;
+}
+
+span.ratingmsg {
+  font-family: sans-serif;
+  color: #112abb;
+  padding:0.6ex;
+  font-size:14px;
+}
+
+span.pubmsg {
+  font-family: sans-serif;
+  color: #112abb;
+  padding:0.6ex;
+  font-size:12px;
+}
+
+a.usercontrol {
+  color: #112abb;
+  padding:0.6ex;
+  font-size:14px;
+  text-decoration:underline;
+}
+
+a.usercontrol:hover {
+  cursor:pointer;
+}
+
+a.boldusercontrol {
+  color: #112abb;
+  padding:1ex;
+  font-weight:bold;
+  font-size:14px;
+}
+
+a.control, a.control-select {
+  background-color:#7799bb;
+  font-family: sans-serif;
+  color: #ffffff;
+  padding-top:0.5ex;
+  padding-bottom:0.5ex;
+  padding-left:1ex;
+  padding-right:1ex;
+  font-size:15px;
+  font-weight:bold;
+  text-decoration: none;
+}
+
+a.control:hover {
+   cursor:pointer;
+}
+
+a.control-select {
+ background-color:#4477aa;
+}
+
+a.control-select:hover {
+   cursor:pointer;
+}
+
+span.sharebar {
+  background-color:#4477aa;
+  font-family: sans-serif;
+  color: #ffffff;
+  position:absolute;
+  left:1ex;
+  right:0ex;
+  padding-top:1ex;
+  padding-bottom:1ex;
+  padding-left:4ex;
+  font-size:18px;
+  font-weight:bold;
+}
+
+textarea.edit {
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+a.listcontrol {
+  padding:1ex;
+  color: #112abb;
+  font-weight:bold;
+  font-size:14px;
+  text-decoration:none;
+}
+
+hr.usercontrol {
+   border: 0;
+   width: 100%;
+   color: #c9d7f1;
+   background-color: #c9d7f1;
+   height: 1px;
+}
+
+hr.greybar hr.negative_greybar {
+   border: 0;
+   width: 100%;
+   color: #aaa;
+   background-color: #aaa;
+   height: 1px;
+}
+
+hr.negative_greybar {
+   top:-1em;
+   position:relative;
+}
+
+span.checkcol {
+  position:relative;
+  left:0%;
+  width:10%;
+}
+
+span.leftcol {
+  position:relative;
+  left:10%;
+  width:20%;
+}
+
+span.middlecol {
+  position:relative;
+  left:30%;
+  width:20%;
+}
+
+span.rightcol {
+  position:relative;
+  left:50%;
+  width:20%;
+}
+
+tr.greybox {
+   background-color: #e8eef7;
+}
+
+td.entry {
+   padding:4px;
+}
+
+div.thinspace {
+   border: 0;
+   width: 100%;
+   height: 2px;
+}
+
+tr.thingreybox {
+   background-color: #aaa;
+}
+
+div.ultrathinspace {
+   border: 0;
+   width: 100%;
+   height: 0px;
+}
+
+span.lastedit {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #717171;
+}
+
+span.revs {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #333333;
+}
+
+span.users {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222222;
+}
+
+a.share {
+  font-family: sans-serif;
+  font-size:10px;
+  color: #7777cc;
+}
+
+select.worksheet {
+  width:6em;
+  border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_list {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+select.worksheet_edit {
+  width:5em;
+    border: #aaaaaa;
+  border-style: solid;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px
+}
+
+td.worksheet_link {
+  font-family: sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  color: #000000;
+}
+
+td.archived_worksheet_link {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+td.owner_collab {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+td.last_edited {
+  font-family: sans-serif;
+  font-size:12px;
+  color: #000000;
+}
+
+span.addtext {
+  font-family: sans-serif;
+  font-size:13px;
+  color: #222;
+}
+
+textarea.plaintextedit {
+    position:fixed;
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    top: 12em;
+    bottom: 0ex;
+    right: 0ex;
+    left:1ex;
+    height: 65%;
+    width: 99%;
+/*    margin-bottom:0ex;
+    margin-top: 0ex;
+    margin-right: 0ex;
+    margin-left: 1ex;     */
+}
+
+pre.plaintext {
+    overflow:auto;
+    position:fixed;
+    font-family: courier, monospace;
+    font-size:10pt;
+    border: 1px solid #8cacbb;
+    color: black;
+    background-color: white;
+    padding: 3px;
+    top: 12em;
+    bottom: 0ex;
+    right: 0ex;
+    left:1ex;
+    margin-top: 0.5em;
+}
+
+div.docidx {
+  text-align:center;
+  font-family: sans-serif;
+  font-size:16px;
+  color: #222;
+  font-weight:bold;
+}
+
+span.ping {
+   display:none;
+}
+
+span.pingdown {
+   font-family:sans-serif;
+   font-size:15px;
+   font-weight:bold;
+   color:white;
+   background-color: darkred;
+}
 
 """
     if color == 'gmail':

@@ -100,11 +100,11 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.private_key = keys.getPrivateKeyObject(
                             data=TEST_PRIV_KEY)
         self.public_key = keys.getPublicKeyObject(self.public_key_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -140,12 +140,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-
-        d = factory.login(None, None)
-        d.addErrback(lambda f: self.assertEquals(TypeError,
-                                                 f.check(TypeError)))
-
-        return d
+        self.assertRaises(TypeError, factory.login, None, None)
 
     def testBadLogin2(self):
         factory = PBClientFactory()
@@ -153,7 +148,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                              self.port,
                                             factory)
         bad_creds = credentials.SSHPrivateKey('bad username',
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -171,7 +166,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                              self.port,
                                              factory)
         bad_creds = credentials.SSHPrivateKey(self.username,
-                                              self.alg_name,
+                                              self.algorithm,
                                               None,
                                               self.data,
                                               self.signature)

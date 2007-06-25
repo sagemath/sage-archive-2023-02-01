@@ -410,19 +410,44 @@ def sage_prefilter(self, block, continuation):
     return InteractiveShell._prefilter(self, block2, continuation)
 
 
+import sage.server.support
+def embedded():
+    return sage.server.support.EMBEDDED_MODE
 
-# Rebind this to be the new IPython prefilter:
-InteractiveShell.prefilter = sage_prefilter
+ipython_prefilter = InteractiveShell.prefilter
+def preparser(on=True):
+    """
+    Turn on or off the SAGE preparser.
 
-# Clean up the namespace.
-#del InteractiveShell, sage_prefilter
+    NOTE: This only works on the command line.  To turn off preparsing
+    in the notebook, switch to python mode.
+
+    INPUT:
+        on -- bool (default: True) if True turn on preparsing; if False, turn it off.
+
+    EXAMPLES:
+        sage: 2/3
+        2/3
+        sage: preparser(False)
+        sage: 2/3
+        0
+        sage: preparser(True)
+        sage: 2^3
+        8
+    """
+    if embedded():
+        print "To turn off preparsing in the notebook, swith to Python mode."
+    if on:
+        InteractiveShell.prefilter = sage_prefilter
+    else:
+        InteractiveShell.prefilter = ipython_prefilter
+
+
 import sagedoc
-
 import IPython.OInspect
 IPython.OInspect.getdoc = sagedoc.my_getdoc
 IPython.OInspect.getsource = sagedoc.my_getsource
 
-import log
 
 import __builtin__
 _prompt = 'sage'

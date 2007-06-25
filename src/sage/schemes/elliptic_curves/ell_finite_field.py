@@ -63,6 +63,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
 
+    def _magma_init_(self):
+        k = self.base_ring()
+        kmn = k._magma_().name()
+        return 'EllipticCurve([%s|%s])'%(kmn,','.join([x._magma_init_() for x in self.ainvs()]))
+
     def _gp(self):
         """
         Return an elliptic curve in a GP/PARI interpreter with all Cremona's code
@@ -170,6 +175,20 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         Returns the point at infinity with probability $1/(\#k+1)$
         where $k$ is the base field.
+
+        EXAMPLES:
+            sage: k = GF(next_prime(7^5))
+            sage: E = EllipticCurve(k,[2,4])
+            sage: P = E.random_element()
+            sage: type(P)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+
+            sage: k.<a> = GF(7^5)
+            sage: E = EllipticCurve(k,[2,4])
+            sage: P = E.random_element()
+            sage: type(P)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+
         """
         k = self.base_field()
         if random.random() <= 1/float(k.order()+1):
@@ -179,7 +198,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             x = k.random_element()
             d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
             try:
-                m = d.square_root()
+                m = d.sqrt(extend=False)
                 y = (-(a1*x + a3) + m) / k(2)
                 return self([x,y])
             except ValueError:

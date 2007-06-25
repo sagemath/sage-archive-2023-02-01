@@ -73,7 +73,8 @@ def notebook_twisted(self,
             print "\n\n"
             print "*"*70
             print "\n"
-            print "Login to the SAGE notebook as root with the password you specified above."
+            if secure:
+                print "Login to the SAGE notebook as root with the password you specified above."
 
 
     if not server_pool is None:
@@ -83,6 +84,11 @@ def notebook_twisted(self,
         nb.set_ulimit(ulimit)
 
     nb.set_accounts(accounts)
+
+    if os.path.exists('%s/nb-older-backup.sobj'%directory):
+        nb._migrate_worksheets()
+        os.unlink('%s/nb-older-backup.sobj'%directory)
+        print "Updating to new format complete."
 
     nb.save()
     del nb

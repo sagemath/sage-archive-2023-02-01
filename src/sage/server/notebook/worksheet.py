@@ -161,7 +161,11 @@ class Worksheet:
     # TODO: Need to create a worksheet configuration object
     ##########################################################
     def collaborators(self):
-        return self.__collaborators
+        try:
+            return self.__collaborators
+        except AttributeError:
+            self.__collaborators = []
+            return self.__collaborators
 
     def set_collaborators(self, v):
         n = self.notebook()
@@ -181,7 +185,11 @@ class Worksheet:
         self.__collaborators.sort()
 
     def viewers(self):
-        return self.__viewers
+        try:
+            return self.__viewers
+        except AttributeError:
+            self.__viewers = []
+            return self.__viewers
 
     def delete_notebook_specific_data(self):
         self.__attached = {}
@@ -602,7 +610,7 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
-    def edit_save(self, text):
+    def edit_save(self, text, ignore_ids=False):
         # Clear any caching.
         try:
             del self.__html
@@ -615,6 +623,8 @@ class Worksheet:
         text = text[i:]
 
         system, i = extract_system(text)
+        if system == "None":
+            system = "sage"
         self.set_system(system)
         text = text[i:]
 
@@ -645,7 +655,7 @@ class Worksheet:
                     used_ids.add(id)
             elif typ == 'compute':
                 meta, input, output = T
-                if meta.has_key('id'):
+                if not ignore_ids and meta.has_key('id'):
                     id = meta['id']
                     if id in used_ids:
                         # In this case don't reuse, since ids must be unique.

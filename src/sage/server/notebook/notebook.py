@@ -70,15 +70,43 @@ class Notebook(SageObject):
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
 
+
+    def _migrate_worksheets(self):
+        v = []
+        for key, W in self.__worksheets.iteritems():
+            if not '/' in W.filename():
+                v.append((key, W))
+        if len(v) > 0:
+            print "Migrating from old to new worksheet format"
+            D = self.directory()
+            if os.path.exists('%s/worksheets'):
+                import shutil
+                target = '%s/../old_worksheets.tar.bz2'%D
+                print "First archiving old worksheets and objects directory to '%s'"%target
+                os.system('tar jcf "%s" "%s/worksheets" "%s/objects"'%(target, D, D))
+                ws_tree = "%s/worksheets"%D
+                print "Now removing ", ws_tree
+                shutil.rmtree(ws_tree)
+                obj_tree = "%s/objects"%D
+                if os.path.exists(obj_tree):
+                    shutil.rmtree(obj_tree)
+            for key, W in v:
+                txt = W.edit_text()
+                N = self.create_new_worksheet(W.name(), 'pub')
+                N.edit_save(txt, ignore_ids=True)
+                del self.__worksheets[key]
+            print "Your old worksheets are all available by clicking the published link"
+            print "in the upper right corner."
+
     ##########################################################
     # Users
     ##########################################################
     def create_default_users(self, passwd):
         print "Creating default users."
-        self.add_user('pub', '', '', account_type='user')
-        self.add_user('_sage_', '', '', account_type='user')
-        self.add_user('guest', '', '', account_type='guest')
-        self.add_user('root', passwd, '', account_type='admin')
+        self.add_user('pub', '', '', account_type='user', force=True)
+        self.add_user('_sage_', '', '', account_type='user', force=True)
+        self.add_user('guest', '', '', account_type='guest', force=True)
+        self.add_user('root', passwd, '', account_type='admin', force=True)
 
     def user_exists(self, username):
         return username in self.users()
@@ -124,7 +152,7 @@ class Notebook(SageObject):
             self.__accounts = False
             return False
 
-    def add_user(self, username, password, email, account_type="user"):
+    def add_user(self, username, password, email, account_type="user", force=False):
         """
         INPUT:
             username -- the username
@@ -132,7 +160,7 @@ class Notebook(SageObject):
             email -- the email address
             account_type -- one of 'user', 'admin', or 'guest'
         """
-        if not self.get_accounts():
+        if not self.get_accounts() and not force:
             raise ValueError, "creating new accounts disabled."
 
         us = self.users()
@@ -363,8 +391,6 @@ class Notebook(SageObject):
         self.__filename = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
         self.__object_dir = '%s/objects'%dir
-        for W in self.__worksheets.itervalues():
-            W.set_notebook(self)
 
     ##########################################################
     # The notebook history.
@@ -848,7 +874,7 @@ class Notebook(SageObject):
         s = """
         <span class="banner">
         <table><tr><td>
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Unable to contact SAGE server!</span></td>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Error connecting to the SAGE server.</span></td>
         </tr></table>
         </span>
         """
@@ -1371,10 +1397,6 @@ class Notebook(SageObject):
 
         if worksheet.is_published() or self.user_is_guest(username):
             original_worksheet = worksheet.worksheet_that_was_published()
-            body += '<h1 align=center>%s</h1>'%original_worksheet.name()
-            body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
-            body += worksheet_html
-            body += '<hr class="usercontrol">'
             if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
                 s = "Edit this worksheet."
                 url = 'edit_published_page'
@@ -1384,7 +1406,14 @@ class Notebook(SageObject):
             else:
                 s = 'Edit a copy of this worksheet.'
                 url = 'edit_published_page'
-            body += '<a class="usercontrol" href="%s">%s</a>'%(url, s)
+            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s)
+            body += edit_line
+            body += '<hr class="usercontrol">'
+            body += '<h1 align=center>%s</h1>'%original_worksheet.name()
+            body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
+            body += worksheet_html
+            body += '<hr class="usercontrol">'
+            body += edit_line
             body += '&nbsp;'*10
 
             r = worksheet.rating()
@@ -1886,15 +1915,16 @@ def load_notebook(dir, address=None, port=None, secure=None):
                 if nb is None:
                     print "Unable to restore notebook from *any* auto-saved backups."
                     print "This is a serious problem."
-                nb.delete_doc_browser_worksheets()
-                nb.set_directory(dir)
-                nb.set_not_computing()
     if nb is None:
         nb = Notebook(dir)
 
+    nb.delete_doc_browser_worksheets()
+    nb.set_directory(dir)
+    nb.set_not_computing()
     nb.address = address
     nb.port = port
     nb.secure = secure
+
     return nb
 
 

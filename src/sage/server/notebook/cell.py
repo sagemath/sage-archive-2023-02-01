@@ -151,9 +151,15 @@ class Cell(Cell_generic):
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
+    def word_wrap_cols(self):
+        try:
+            return self.notebook().conf()['word_wrap_cols']
+        except AttributeError:
+            return 70
+
     def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
-            ncols = self.notebook().conf()['word_wrap_cols']
+            ncols = self.word_wrap_cols()
         s = ''
 
         input_lines = self.__in

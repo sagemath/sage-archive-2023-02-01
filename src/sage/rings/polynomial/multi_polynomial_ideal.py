@@ -1,11 +1,14 @@
 """
 Ideals in multivariate polynomial rings.
 
+Most functionality of multivariate polynomial ideals in SAGE is
+provided through SINGULAR.
+
 AUTHOR:
     -- William Stein
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               some Singular features
-    -- Martin Albrecht (2006-08-28): reorganized class hierarchy
+    -- Martin Albrecht
 
 EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
@@ -121,6 +124,7 @@ singular = singular_default
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
+from sage.misc.misc import prod
 import sage.rings.integer_ring
 
 
@@ -223,6 +227,8 @@ class MPolynomialIdeal_singular_repr:
 
     def _contains_(self, f):
         """
+        Returns True if f is in the ideal self.
+
         EXAMPLES:
             sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = (x^3 + y, y)*R
@@ -232,6 +238,9 @@ class MPolynomialIdeal_singular_repr:
             True
             sage: x^3 + 2*y in I
             True
+
+        NOTE: Requires computation of a Groebner basis, which is a
+        very expensive operation.
         """
 
         if self.base_ring() == sage.rings.integer_ring.ZZ:
@@ -352,6 +361,9 @@ class MPolynomialIdeal_singular_repr:
     def dimension(self):
         """
         The dimension of the ring modulo this ideal.
+
+        NOTE: Requires computation of a Groebner basis, which is a
+        very expensive operation.
         """
         try:
             return self.__dimension
@@ -591,6 +603,9 @@ class MPolynomialIdeal_singular_repr:
             y^4 - 2*x*y^2 + x^2
             sage: (y^2 - x)^2
             y^4 - 2*x*y^2 + x^2
+
+        NOTE: Requires computation of a Groebner basis, which is a
+        very expensive operation.
         """
         if self.base_ring() == sage.rings.integer_ring.ZZ:
             return self._reduce_using_macaulay2(f)
@@ -769,6 +784,35 @@ class MPolynomialIdeal_singular_repr:
         else:
             raise TypeError, "Cannot convert basis with given algorithm"
 
+    def elimination_ideal(self, variables):
+        """
+        Returns the elimination ideal of self with respect to the
+        variables given in 'variables'.
+
+        INPUT:
+            variables -- a list or tuple of variables in self.ring()
+
+        EXAMPLE:
+            sage: R.<x,y,t,s,z> = PolynomialRing(QQ,5)
+            sage: I = R * [x-t,y-t^2,z-t^3,s-x+y^3]
+            sage: I.elimination_ideal([t,s])
+            Ideal (y^2 - x*z, x*y - z, x^2 - y) of Polynomial Ring in x, y, t, s, z over Rational Field
+
+        ALGORITHM: Uses SINGULAR
+
+        NOTE: Requires computation of a Groebner basis, which is a
+        very expensive operation.
+        """
+        if not isinstance(variables, (list,tuple)):
+            variables = (variables,)
+
+        try:
+            Is = self.__singular_groebner_basis
+        except AttributeError:
+            Is = self._singular_()
+
+        R = self.ring()
+        return MPolynomialIdeal(R, [f.sage_poly(R) for f in Is.eliminate( prod(variables) ) ] )
 
 class MPolynomialIdeal_macaulay2_repr:
     """

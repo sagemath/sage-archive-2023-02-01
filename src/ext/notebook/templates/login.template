@@ -57,10 +57,10 @@ anything else.
 <tr><td align=right>Password:</td><td><input type="password" name="password" size="15"></td></tr>
 <tr><td>&nbsp</td><td><input type="submit" value="Sign In"></td></tr>
 </table>
-<br><br><br><br>
-<a href='/register'><b>Sign up for the SAGE Notebook</b></a>
-<br><br>
-<a href='/pub'><b>Browse published SAGE worksheets<br>(registration not required)</b></a>
+<br><br><br>
+$register
+<br><br><br>
+<a href='/pub'><b>Browse published SAGE worksheets<br>(no login required)</b></a>
 </span>
 </td>
 </tr>

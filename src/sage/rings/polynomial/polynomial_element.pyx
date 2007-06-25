@@ -124,7 +124,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _neg_c_impl(self):
         return self.polynomial([-x for x in self.list()])
 
-    def plot(self, xmin=0, xmax=1, *args, **kwds):
+    def plot(self, xmin=None, xmax=None, *args, **kwds):
         """
         Return a plot of this polynomial.
 
@@ -193,13 +193,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(0)
         return self * self.parent()(right)
 
-    def __call__(self, *x):
+    def subs(self, *x, **kwds):
+        r"""
+        Identical to self(*x).
+
+        See the docstring for \code{self.__call__}.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + x - 3
+            sage: f.subs(x=5)
+            127
+            sage: f.subs(5)
+            127
         """
-        Evaluate polynomial at x=a using Horner's rule
+        return self.__call__(*x, **kwds)
+
+    def __call__(self, *x, **kwds):
+        """
+        Evaluate polynomial at x=a.
 
         INPUT:
             a -- ring element a; need not be in the coefficient
                  ring of the polynomial.
+          -- or --
+            a dictionary for kwds:value pairs.  If the variable
+            name of the polynomial is a kwds it is substituted in;
+            otherwise this polynomial is returned unchanged.
 
         OUTPUT:
             the value of f at a.
@@ -243,9 +263,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
+            sage: R.<w> = GF(17)[]
+            sage: f = w^3 + 3*w +2
+            sage: f(5)
+            6
+            sage: f(w=5)
+            6
+            sage: f(x=10)   # x isn't mention
+            w^3 + 3*w + 2
+
         Nested polynomial ring elements can be called like multi-variate polynomials.
-            sage: R.<x> = QQ[]
-            sage: S.<y> = R[]
+            sage: R.<x> = QQ[]; S.<y> = R[]
             sage: f = x+y*x+y^2
             sage: f.parent()
             Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
@@ -253,6 +281,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*x + 4
             sage: f(2,4)
             16
+            sage: f(y=2,x=4)
+            16
+            sage: f(2,x=4)
+            16
+            sage: f(2,x=4,z=5)
+            16
+            sage: f(2,4, z=10)
+            16
+            sage: f(y=x)
+            2*x^2 + x
+            sage: f(x=y)
+            2*y^2 + y
+
+        The following results in an element of the symbolic ring.
+            sage: f(x=sqrt(2))
+            y*(y + sqrt(2)) + sqrt(2)
+
             sage: R.<t> = PowerSeriesRing(QQ, 't'); S.<x> = R[]
             sage: f = 1 + x*t^2 + 3*x*t^4
             sage: f(2)
@@ -267,11 +312,47 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -- William Stein, 2007-03-24: fix parent being determined in the constant case!
             -- Robert Bradshaw, 2007-04-09: add support for nested calling
             -- Tom Boothby, 2007-05-01: evaluation done by CompiledPolynomialFunction
+            -- William Stein, 2007-06-03: add support for keyword arguments.
         """
+        cdef long i, d = self.degree()
+
+        if len(kwds) >= 1:
+            P = self.parent()
+            name = P.variable_name()
+            if kwds.has_key(name):
+                if len(x) > 0:
+                    raise ValueError, "must not specify both a keyword and positional argument"
+                a = self(kwds[name])
+                del kwds[name]
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            elif len(x) > 0:
+                a = self(*x)
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            else:
+                result = self[d]
+                a = P.gen()
+                i = d - 1
+                while i >= 0:
+                    try:
+                        s = self[i](**kwds)
+                    except TypeError:
+                        s = self[i]
+                    result = result * a + s
+                    i -= 1
+                return result
+
+        if len(x) == 0:
+            return self
+
         if isinstance(x[0], tuple):
             x = x[0]
         a = x[0]
-        cdef long i, d = self.degree()
 
         result = self[d]
         if len(x) > 1:

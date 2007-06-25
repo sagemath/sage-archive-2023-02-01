@@ -100,12 +100,17 @@ class Sage(Expect):
     its arguments using the s interpeter, so the call to s3 is passed
     \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
-                       logfile=None,  preparse=True, server=None,
-                       do_cleaner=True, python=True, path=None,
-                       init_code=None):
+    def __init__(self, logfile   = None,
+                       preparse  = True,
+                       python    = False,
+                       init_code = None,
+                       server    = None,
+                       **kwds):
         if python:
-            command = "sage -python -u"
+            if server:
+                command = "sage -cleaner & sage -python -u"
+            else:
+                command = "sage -python -u"
             prompt = ">>>"
             if init_code is None:
                 init_code = ['from sage.all import *', 'import cPickle']
@@ -119,14 +124,11 @@ class Sage(Expect):
                         name = 'sage',
                         prompt = prompt,
                         command = command,
-                        server = server,
-                        maxread = maxread,
-                        script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         logfile = logfile,
                         init_code = init_code,
-                        do_cleaner = do_cleaner,
-                        path = path
+                        server = server,
+                        **kwds
                         )
         self._preparse = preparse
         self._is_local = (server is None)
@@ -179,12 +181,12 @@ class Sage(Expect):
             return self.__remote_tmpfile
 
     def _send_tmpfile_to_server(self):
-        cmd = 'scp "%s" %s:"%s"'%(tmp, self._server, self._remote_tmpfile())
+        cmd = 'scp "%s" %s:"%s" 1>&2 2>/dev/null'%(tmp, self._server, self._remote_tmpfile())
         #print cmd
         os.system(cmd)
 
     def _get_object_from_server_tmpfile(self):
-        cmd = 'scp %s:"%s_get.sobj" "%s_get.sobj"'%( self._server, self._remote_tmpfile(), tmp)
+        cmd = 'scp %s:"%s_get.sobj" "%s_get.sobj" 1>&2 2>/dev/null'%( self._server, self._remote_tmpfile(), tmp)
         #print cmd
         os.system(cmd)
         return load(tmp + "_get")

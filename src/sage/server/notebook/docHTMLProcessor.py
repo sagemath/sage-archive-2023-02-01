@@ -1,3 +1,10 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
 Processes SAGE documentation into notebook worksheet format with
 evaluatable examples.
@@ -12,8 +19,8 @@ Note: This extension of sgmllib.SGMLParser was partly inspired by Mark
 Pilgrim's 'Dive Into Python' examples.
 
 Author:
-    -- Dorian Raymer (2006)
-
+    -- Dorian Raymer (2006): first version
+    -- William Stein (2007-06-10): rewrite to work with twisted SAGE notebook
 
 """
 
@@ -75,13 +82,10 @@ class DocHTMLProcessor(SGMLParser):
         pieces = "".join(self.temp_pieces)
         pieces = pieces.lstrip()
         if piece_type=='to_doc_pieces':
-            # pieces = '%html\n' + pieces
-            # self.all_pieces.append(pieces)
             self.all_pieces += pieces
             self.temp_pieces = []
         else:
             pieces = self.process_cell_input_output(pieces)
-            # self.all_pieces.append(pieces)
             self.all_pieces += pieces
             self.temp_pieces = []
         self.allcount += 1
@@ -138,36 +142,7 @@ class DocHTMLProcessor(SGMLParser):
 
 
 
-    def rewrite_href(self,href_value):
-        # hack to make the hrefs work.
-        href_value, href_tag = splittag(href_value)
-        href_split = href_value.split('/')
-        full_path = self.full_path
-        if len(href_split) > 1:
-            path = '/'.join(href_split[:-1]) + '/'
-            full_path += path
-            file_name = href_split[-1]
-        else:
-            file_name = href_value
-        # parts = ''
-        # for part in href_split:
-        #     if part == '..':
-        #         poptart = full_path.pop(-1)
-        #     else:
-        #         parts += '/' + part
-        url_path = '/doc_browser?' + full_path + '?'
-
-        if href_tag:
-            href_new = url_path + file_name + '#' + href_tag
-        else:
-            href_new = url_path + file_name
-
-        return href_new
-
     def rewrite_src(self, src_value):
-        # src_split = src_value.split('/')
-        # full_path = self.full_path.split('/')
-        # for part in src_split:
         return src_value.lstrip('..')
 
 
@@ -221,20 +196,8 @@ class DocHTMLProcessor(SGMLParser):
         if 'stylesheet' in rel:
             self.css_href = href[0]
 
-
-
     def start_body(self, attrs):
         self.bodyQ = True
-
-    def start_a(self, attrs):
-        if self.bodyQ:
-            count = 0
-            for name, value in attrs:
-                if name.lower()=='href':
-                    href_new = self.rewrite_href(value)
-                    attrs[count] = ('href', href_new)
-                count += 1
-            self.unknown_starttag('a', attrs)
 
 
     def start_div(self, attrs):

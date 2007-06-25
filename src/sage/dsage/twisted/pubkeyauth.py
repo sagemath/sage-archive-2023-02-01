@@ -47,7 +47,8 @@ class PublicKeyCredentialsChecker(object):
     """
 
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
+    credentialInterfaces = (credentials.ISSHPrivateKey,
+                            credentials.IAnonymous)
 
     def __init__(self, pubkeydb):
         self.authorizedKeys = self.getAuthorizedKeys(pubkeydb)
@@ -92,7 +93,8 @@ class PublicKeyCredentialsChecker(object):
 
 class PublicKeyCredentialsCheckerDB(object):
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
+    credentialInterfaces = (credentials.ISSHPrivateKey,
+                            credentials.IAnonymous)
 
     def __init__(self, clientdb):
         from sage.dsage.database.clientdb import ClientDatabase

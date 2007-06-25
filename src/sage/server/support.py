@@ -63,7 +63,7 @@ def get_rightmost_identifier(s):
         i -= 1
     return s[i+1:]
 
-def completions(s, globs, format=False, width=90):
+def completions(s, globs, format=False, width=90, system="None"):
     """
     Return a list of completions in the context of globs.
     """
@@ -95,16 +95,14 @@ def completions(s, globs, format=False, width=90):
                 else:
                     v = [obj + '.'+x for x in D if x[:n] == method]
             except Exception, msg:
-                print msg
                 v = []
         v = list(set(v))   # make uniq
         v.sort()
     except Exception, msg:
-        print msg
         v = []
     if format:
         if len(v) == 0:
-            return "no completions of %s"%s
+            return "No completions of '%s' currently defined"%s
         else:
             return tabulate(v, width)
     return v

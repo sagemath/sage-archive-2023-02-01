@@ -735,7 +735,7 @@ class Notebook(SageObject):
                                      reverse=False,
                                      search=None):
 
-        X = [x for x in self.get_worksheets_with_viewer(user) if not x.docbrowser()]
+        X = self.get_worksheets_with_viewer(user)
         if typ == "trash":
             worksheet_heading = "Trash"
             W = [x for x in X if x.is_trashed(user)]
@@ -1144,10 +1144,22 @@ class Notebook(SageObject):
 
 
     def html_download_or_delete_datafile(self, ws, username, filename):
-        head, body = self.html_worksheet_page_template(ws, username, "Download or delete a data file")
+        head, body = self.html_worksheet_page_template(ws, username, "Data file: %s"%filename)
         path = "/home/%s/data/%s"%(ws.filename(), filename)
         body += 'You may download <a href="%s">%s</a>'%(path, filename)
-        body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete this file.</a>'%(ws.filename(),filename)
+
+        X = self.get_worksheets_with_viewer(username)
+        v = [x for x in X if x.is_active(username)]
+        sort_worksheet_list(v, 'name', False)
+        ws_form = ['<option selected=1>select worksheet</option>'] + \
+                  ["""<option value='link_datafile("%s","%s")'>%s</option>"""%(
+                           x.filename(), filename, x.name()) for x in v]
+        ws_form = '\n'.join(ws_form)
+        ws_form = "<select onchange='go_option(this);' class='worksheet'>%s</select>"%ws_form
+        body += ' or create a linked copy to the worksheet %s,'%ws_form
+        body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete %s.</a>'%(ws.filename(),filename, filename)
+
+
         body += '<hr class="usercontrol">'
         ext = os.path.splitext(filename)[1]
         if ext in ['.png', '.jpg', '.gif']:
@@ -1195,7 +1207,7 @@ class Notebook(SageObject):
 
     def get_worksheet_names_with_viewer(self, user):
         if user == 'admin': return [W.name() for W in self.get_all_worksheets()]
-        return [W.name() for W in self.get_worksheets_with_viewer(user)]
+        return [W.name() for W in self.get_worksheets_with_viewer(user) if not W.docbrowser()]
 
     def get_worksheet_with_name(self, name):
         for W in self.__worksheets.itervalues():
@@ -1586,17 +1598,12 @@ class Notebook(SageObject):
           </html>
          """%(css.css(self.color()),self.html_banner())
 
-    def html_upload_data_window(self, ws):
-        return """
-          <html>
-            <head>
-              <title>Upload Data File to the Worksheet %s</title>
-              <style>%s</style>
-            </head>
-            <body>
-            %s
+    def html_upload_data_window(self, ws, username):
+        head, body = self.html_worksheet_page_template(ws, username, "Upload or Create Data File")
+
+        body += """
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
-              <h1><font size=+1>Upload your data file to the worksheet named '%s'</font></h1>
+              <h1><font size=+1>Upload or create data file attached to the worksheet '%s'</font></h1>
               <hr>
               <form method="POST" action="do_upload_data"
                     name="upload" enctype="multipart/form-data">
@@ -1608,6 +1615,9 @@ class Notebook(SageObject):
 
               <input class="upload_worksheet_menu" size="50" type="text" name="urlField" value="" id="upload_url"></input></br>
               <br><br>
+              Or enter the name of a new file, which will be created:<br>
+              <input class="upload_worksheet_menu" size="50" type="text" name="newField" value="" id="upload_filename"></input><br><br>
+
               What do you want to call it? (if different than the original name)<br>
               <input class="upload_worksheet_menu" size="50" type="text" name="nameField" value="" id="upload_name"></input></br>
               </td>
@@ -1619,7 +1629,14 @@ class Notebook(SageObject):
               </div>
             </body>
           </html>
-         """%(ws.name(), css.css(self.color()), self.html_banner(), ws.name())
+         """%(ws.name())
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
 
     def html(self, worksheet_filename=None, username='guest', show_debug=False, admin=False):
         if worksheet_filename is None or worksheet_filename == '':

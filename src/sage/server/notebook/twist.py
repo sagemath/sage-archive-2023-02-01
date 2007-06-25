@@ -8,7 +8,7 @@
 """
 SAGE Notebook (Twisted Version)
 """
-import os, time
+import os, shutil, time
 
 import bz2
 
@@ -127,7 +127,7 @@ def doc_worksheet():
         W = notebook.get_worksheet_with_name(name)
         W.clear()
     else:
-        W = notebook.create_new_worksheet(name, username, docbrowser=True)
+        W = notebook.create_new_worksheet(name, '_sage_', docbrowser=True)
     W.set_is_doc_worksheet(True)
     return W
 
@@ -176,7 +176,7 @@ class DocLive(resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        return WorksheetFile('%s/index.html'%DOC, evil_hack)
+        return http.Response(stream=message('nothing to see.'))
 
     def childFactory(self, request, name):
         return WorksheetFile('%s/%s'%(DOC,name))
@@ -288,7 +288,8 @@ class WorksheetResource:
         self.worksheet = notebook.get_worksheet_with_filename(name)
         if not self.worksheet.is_published():
             self.worksheet.set_active(username)
-        if username != self.worksheet.owner():
+        owner = self.worksheet.owner()
+        if owner != '_sage_' and username != owner:
             if not self.worksheet.is_published():
                 if not username in self.worksheet.collaborators() and user_type(username) != 'admin':
                     raise RuntimeError, "illegal worksheet access"
@@ -312,29 +313,57 @@ class Worksheet_savedatafile(WorksheetResource, resource.PostableResource):
             open(dest,'w').write(E)
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
+class Worksheet_link_datafile(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        target_worksheet_filename = ctx.args['target'][0]
+        data_filename = ctx.args['filename'][0]
+        src = os.path.abspath(self.worksheet.data_directory() + '/' +data_filename)
+        target_ws =  notebook.get_worksheet_with_filename(target_worksheet_filename)
+        target = os.path.abspath(target_ws.data_directory() + '/' + data_filename)
+        if target_ws.owner() != username and not target_ws.user_is_collaborator(username):
+            return http.Response(stream=message("illegal link attempt!"))
+        os.system('ln "%s" "%s"'%(src, target))
+        return http.RedirectResponse('/home/'+target_ws.filename() + '/datafile?name=%s'%data_filename)
+
 
 class Worksheet_upload_data(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        return http.Response(stream = notebook.html_upload_data_window(self.worksheet))
+        return http.Response(stream = notebook.html_upload_data_window(self.worksheet, username))
 
 class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         name = ''
+        if ctx.args.has_key('newField'):
+            newfield = ctx.args['newField'][0].strip()
+        else:
+            newfield = None
+
         if ctx.args.has_key('nameField'):
             name = ctx.args['nameField'][0].strip()
-        if not name:
-            name = ctx.files['fileField'][0][0]
-        dest = '%s/%s'%(self.worksheet.data_directory(), name)
 
         url = ctx.args['urlField'][0].strip()
+
+        if not name:
+            name = ctx.files['fileField'][0][0]
+
+        if not name:
+            name = newfield
+
+        if url and not name:
+            name = os.path.split(url)[-1]
+
+        dest = '%s/%s'%(self.worksheet.data_directory(), name)
+
         if url != '':
             tmp = get_remote_file(url, verbose=True)
             shutil.move(tmp, dest)
+        elif newfield:
+            open(dest,'w').close()
         else:
             f = file(dest,'wb')
             f.write(ctx.files['fileField'][0][2].read())
             f.close()
-        return http.RedirectResponse('/home/'+self.worksheet.filename())
+        return http.RedirectResponse('/home/'+self.worksheet.filename() + '/datafile?name=%s'%name)
 
 
 ##############################################
@@ -750,13 +779,23 @@ class Worksheet_set_cell_output_type(WorksheetResource, resource.PostableResourc
 ########################################################
 # The new cell command: /home/worksheet/new_cell?id=number
 ########################################################
-class Worksheet_new_cell(WorksheetResource, resource.PostableResource):
+class Worksheet_new_cell_before(WorksheetResource, resource.PostableResource):
     """
     Adds a new cell before a given cell.
     """
     def render(self, ctx):
         id = self.id(ctx)
         cell = self.worksheet.new_cell_before(id)
+        s = encode_list([cell.id(), cell.html(div_wrap=False), id])
+        return http.Response(stream = s)
+
+class Worksheet_new_cell_after(WorksheetResource, resource.PostableResource):
+    """
+    Adds a new cell after a given cell.
+    """
+    def render(self, ctx):
+        id = self.id(ctx)
+        cell = self.worksheet.new_cell_after(id)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
         return http.Response(stream = s)
 
@@ -1013,7 +1052,6 @@ class Worksheet(WorksheetResource, resource.Resource):
             dir = self.worksheet.cells_directory()
             for F in os.listdir(dir):
                 h = '%s/%s/%s'%(dir,F,op)
-                print h
                 if os.path.exists(h):
                     return static.File(h)
             return NotImplementedWorksheetOp(op, self.worksheet)

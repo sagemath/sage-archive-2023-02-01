@@ -44,12 +44,18 @@ time maybe doesn't get updated either.
 
 [x] definitely *need* autosave!
 
-[] marketing text: "Idea for marketing text: With the SAGE Notebook
+[x] marketing text: "Idea for marketing text: With the SAGE Notebook
 anyone can create, collaborate on, and publish interactive
 worksheets. In a worksheet, one can write code using SAGE and the
 different software included such as Python and evaluate it his
 code. He could make pretty pictures, calculate something new, tutor
 someone, learn about programming, and many other things."
+
+[ ] i definitely do not know how to make twisted listen on the same port
+with both https and http.  however, it is easy to make twisted listen
+on separate ports for both http and https, and allow the anonymous
+view view https.  good idea.
+
 
 -----------------------
 

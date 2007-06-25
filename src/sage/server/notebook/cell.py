@@ -64,7 +64,7 @@ class TextCell(Cell_generic):
         if do_math_parse:
             # Do dollar sign math parsing
             t = math_parse(t)
-        s = '<font size=+1>%s</font>'%t
+        s = '<div><font size=+1>%s</font></div>'%t
         return s
 
     def plain_text(self, prompts=False):
@@ -477,6 +477,7 @@ class Cell(Cell_generic):
         introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
         s = html_in  + introspect + html_out
+
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
         self._html_cache[key] = s
@@ -498,15 +499,12 @@ class Cell(Cell_generic):
 ##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
 ##                 return s
 
-        s = """<div class="insert_new_cell" id="insert_new_cell_%s"
-                   onmousedown="insert_new_cell_before(%s);">
-                 </div>
-              """%(id, id)
+        s = self.html_new_cell_before()
 
         if do_print:
             ncols = 70
 
-        r = number_of_rows(t, ncols)
+        r = max(1, number_of_rows(t.strip(), ncols))
 
         s += """
            <textarea class="%s" rows=%s cols=%s
@@ -526,7 +524,19 @@ class Cell(Cell_generic):
         #      onClick  = 'cell_focus(%s, false); return false;'
         #   >%s</pre>
         #"""%(cls, id, id, t)
+
         return s
+
+    def html_new_cell_before(self):
+        return """<div class="insert_new_cell" id="insert_new_cell_%s"
+                   onmousedown="insert_new_cell_before(%s);">
+                 </div>
+              """%(self.id(), self.id())
+    def html_new_cell_after(self):
+        return """<div class="insert_new_cell" id="insert_new_cell_%s"
+                   onmousedown="insert_new_cell_after(%s);">
+                 </div>
+              """%(self.id(), self.id())
 
     def files_html(self, out=''):
         dir = self.directory()

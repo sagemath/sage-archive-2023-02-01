@@ -798,8 +798,7 @@ function go_data(theform) {
       if(value == "__upload_data_file__") {
           window.location.replace(worksheet_command("upload_data"));
       } else {
-          window.open("/home/" + worksheet_filename + "/" + value,
-          "menubar=1,location=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
+          window.location.replace("/home/" + worksheet_filename + "/" + value);
       }
       options[0].selected = 1;
    }
@@ -991,6 +990,12 @@ function go_option(theform) {
       options[0].selected = 1;
    }
 }
+
+function link_datafile(target_worksheet_filename, filename) {
+   open(worksheet_command("link_datafile?filename=" + escape0(filename) +
+         "&target="+escape0(target_worksheet_filename)));
+}
+
 
 function list_edit_worksheet(filename) {
     window.location.replace('/home/' + filename);
@@ -1995,15 +2000,46 @@ function do_insert_new_cell_before(id, new_id, new_html) {
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
 }
 
+function insert_new_cell_after(id) {
+    async_request(worksheet_command('new_cell_after'), insert_new_cell_after_callback, 'id='+id);
+}
+
+function insert_new_cell_after_callback(status, response_text) {
+    if (status == "failure") {
+        alert("Problem inserting new input cell after current input cell.\n" + response_text);
+        return ;
+    }
+    if (response_text == "locked") {
+        alert("Worksheet is locked.  Cannot insert cells.");
+        return;
+    }
+    /* Insert a new cell _after_ a cell. */
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_after(id, new_id, new_html);
+    jump_to_cell(new_id,0);
+}
+
+
 function do_insert_new_cell_after(id, new_id, new_html) {
   /* Insert a new cell with the given new_id and new_html
-     after the cell with given id. */
+     after the cell with given id.      */
+
     i = id_of_cell_delta(id,1);
     if(i == id) {
         append_new_cell(new_id,new_html);
     } else {
         do_insert_new_cell_before(i, new_id, new_html);
     }
+}
+
+
+
+
+function insert_new_cell_before(id) {
+    async_request(worksheet_command('new_cell_before'), insert_new_cell_before_callback, 'id='+id);
 }
 
 function insert_new_cell_before_callback(status, response_text) {
@@ -2022,10 +2058,6 @@ function insert_new_cell_before_callback(status, response_text) {
     var id = eval(X[2]);
     do_insert_new_cell_before(id, new_id, new_html);
     jump_to_cell(new_id,0);
-}
-
-function insert_new_cell_before(id) {
-    async_request(worksheet_command('new_cell'), insert_new_cell_before_callback, 'id='+id);
 }
 
 

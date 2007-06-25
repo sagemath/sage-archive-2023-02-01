@@ -457,15 +457,15 @@ class Cell(Cell_generic):
             wrap = 68
             div_wrap = 68
         key = (wrap,div_wrap,do_print)
-        try:
-            return self._html_cache[key]
-        except KeyError:
-            pass
-        except AttributeError:
-            self._html_cache = {}
+        #try:
+        #    return self._html_cache[key]
+        #except KeyError:
+        #    pass
+        #except AttributeError:
+        #    self._html_cache = {}
 
         if self.__in.lstrip()[:8] == '%hideall':
-            self._html_cache[key] = ''
+            #self._html_cache[key] = ''
             return ''
 
         if wrap is None:
@@ -486,7 +486,7 @@ class Cell(Cell_generic):
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
-        self._html_cache[key] = s
+        #self._html_cache[key] = s
         return s
 
     def html_in(self, do_print=False, ncols=80):
@@ -498,12 +498,12 @@ class Cell(Cell_generic):
         else:
             cls = "cell_input"
 
-        if do_print:
-            if 'hide' in cls:
-                return ''
-            else:
-                s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
-                return s
+##         if do_print:
+##             if 'hide' in cls:
+##                 return ''
+##             else:
+##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
+##                 return s
 
         s = self.html_new_cell_before()
 
@@ -519,8 +519,9 @@ class Cell(Cell_generic):
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
               onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+              %s
            >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id, t)
+        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 

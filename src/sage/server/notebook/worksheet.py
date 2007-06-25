@@ -671,9 +671,8 @@ class Worksheet:
                     C = self._new_cell(id)
                 C.set_input_text(input)
                 C.set_output_text(output, '')
-                #if html:
-                    #print C.directory()
-                    #    C.update_html_output()
+                if html:
+                    C.update_html_output()
                 cells.append(C)
 
         if len(cells) == 0:   # there must be at least one cell.
@@ -927,10 +926,7 @@ class Worksheet:
     def html_time_since_last_edited(self):
         t = self.time_since_last_edited()
         tm = convert_seconds_to_meaningful_time_span(t)
-        if self.is_published():
-            who = ''
-        else:
-            who = ' by %s'%self.last_to_edit()
+        who = ' by %s'%self.last_to_edit()
         return '<span class="lastedit">%s ago%s</span>'%(tm, who)
 
     def html_time_last_edited(self):
@@ -1356,6 +1352,8 @@ class Worksheet:
             self.record_edit(username)
 
     def ping(self, username):
+        if self.is_published():
+            return
         self._record_that_we_are_computing(username)
 
     ##########################################################

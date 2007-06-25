@@ -51,7 +51,7 @@ anything else.
 <tr><td>&nbsp</td><td><input type="submit" value="Sign In"></td></tr>
 </table>
 <br><br><br>
-<a href='/register'><b>Sign up for a new SAGE Notebook account</b></a>
+$register
 <br><br><br>
 <a href='/pub'><b>Browse published SAGE worksheets<br>(no login required)</b></a>
 </span>

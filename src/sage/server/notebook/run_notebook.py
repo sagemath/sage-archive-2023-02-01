@@ -45,6 +45,7 @@ def notebook_twisted(self,
              port_tries  = 0,
              secure      = True,
              reset       = False,
+             accounts    = False,
 
              server_pool = None,
              ulimit      = None):
@@ -80,6 +81,8 @@ def notebook_twisted(self,
 
     if not ulimit is None:
         nb.set_ulimit(ulimit)
+
+    nb.set_accounts(accounts)
 
     nb.save()
     del nb

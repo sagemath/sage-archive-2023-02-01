@@ -114,7 +114,27 @@ class Notebook(SageObject):
         U = self.users()
         return U.keys()
 
+    def set_accounts(self, value):
+        self.__accounts = value
+
+    def get_accounts(self):
+        try:
+            return self.__accounts
+        except AttributeError:
+            self.__accounts = False
+            return False
+
     def add_user(self, username, password, email, account_type="user"):
+        """
+        INPUT:
+            username -- the username
+            password -- the password
+            email -- the email address
+            account_type -- one of 'user', 'admin', or 'guest'
+        """
+        if not self.get_accounts():
+            raise ValueError, "creating new accounts disabled."
+
         us = self.users()
         if us.has_key(username):
             print "WARNING: User '%s' already exists -- and is now being replaced."%username

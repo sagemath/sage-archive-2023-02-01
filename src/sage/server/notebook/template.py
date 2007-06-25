@@ -35,3 +35,11 @@ G = globals()
 templates = ['login', 'yes_no', 'failed_login']
 for name in templates:
     G[name + '_template'] =  PageTemplate(pjoin(path, '%s.template'%name))
+
+def login_page_template(accounts):
+    if accounts:
+        reg = "<a href='/register'><b>Sign up for a new SAGE Notebook account</b></a>"
+    else:
+        reg = ""
+    return login_template(register = reg)
+

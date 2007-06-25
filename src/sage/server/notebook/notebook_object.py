@@ -32,6 +32,16 @@ class NotebookObject:
         reset      -- (default: False) if True allows you to set the
                       admin password.  Use this if you forget your
                       admin password.
+        accounts   -- (default: False) if True, any visitor to the website
+                      will be able to create a new account.  If False,
+                      only the admin can create accounts (currently, this
+                      can only be done by running with accounts=True for
+                      a few minutes, or on the command line with, e.g.,
+                          nb = load('sage_notebook/nb.sobj')
+                          nb.set_accounts(True)
+                          nb.add_user("username", "password", "email@place", "user")
+                          nb.save()
+
     \begin{verbatim}
     EXAMPLES:
 

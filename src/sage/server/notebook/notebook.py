@@ -955,7 +955,11 @@ class Notebook(SageObject):
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner%s</a> </td>'%(typ,
             '' if sort != 'owner' or reverse else '&reverse=True',
             '' if pub else ' / Collaborators')
-        s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
+        if pub:
+            s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Activity</a> </td>'%(typ,
+            '' if sort != 'last_edited' or reverse else 'reverse=True')
+        else:
+            s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
             '' if sort != 'last_edited' or reverse else 'reverse=True')
         s += '</tr>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'

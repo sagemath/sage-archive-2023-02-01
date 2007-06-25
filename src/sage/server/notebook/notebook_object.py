@@ -65,16 +65,13 @@ class NotebookObject:
        notebook publically (1) at a minimu run it from a chroot jail
        (see the SAGE install guide), and (2) use a command like
 
-    notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 500000')
+    notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
 
        The secure option enables enccryption between all users and the
        notebook server.  The server_pool option specifies that
        worksheet processes run as a separate user.  The ulimit option
        restricts the memory available to each worksheet processes to
-       500MB.  You will have to explicitly login as the admin user
-       and click "Server" in the upper right home page to configure the
-       server to allow users to create new accounts.
-
+       500MB.  See help on the accounts option above.
 
 
     INPUT:  (more advanced)

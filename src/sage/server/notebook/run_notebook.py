@@ -163,7 +163,10 @@ s.setServiceParent(application)
 
         ## Start up twisted
         print_open_msg(address, port, secure=secure)
-        e = os.system('sage -twistd -ny "%s"/twistedconf.tac'%directory)
+        if secure:
+            print "There is a root account.  If you do not remember the password,"
+            print "quit the notebook and type notebook(reset=True)."
+        e = os.system('sage -twistd --pidfile="%s"/twistd.pd -ny "%s"/twistedconf.tac'%(directory, directory))
         if e == 256:
             raise socket.error
 

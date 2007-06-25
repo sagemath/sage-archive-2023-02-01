@@ -928,10 +928,10 @@ class Worksheet:
         t = self.time_since_last_edited()
         tm = convert_seconds_to_meaningful_time_span(t)
         if self.is_published():
-            who = self.publisher()
+            who = ''
         else:
-            who = self.last_to_edit()
-        return '<span class="lastedit">%s ago by %s</span>'%(tm, who)
+            who = ' by %s'%self.last_to_edit()
+        return '<span class="lastedit">%s ago%s</span>'%(tm, who)
 
     def html_time_last_edited(self):
         tm = convert_time_to_string(self.last_edited())

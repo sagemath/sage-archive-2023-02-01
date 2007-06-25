@@ -1108,12 +1108,19 @@ span.cell_output_print_wrap {
 span.cell_output_nowrap {
   display:none;
 }
+span.cell_output_print_nowrap {
+  display:none;
+}
+
 span.cell_output_hidden {
   display:none;
 }
 
 
 span.cell_output_nowrap_wrap {
+ display:none;
+}
+span.cell_output_print_nowrap_wrap {
  display:none;
 }
 span.cell_output_nowrap_nowrap {

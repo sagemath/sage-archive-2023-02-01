@@ -227,6 +227,7 @@ class Notebook(SageObject):
                 X.set_worksheet_that_was_published(worksheet)
                 X.move_to_archive(username)
                 worksheet.set_published_version(X.filename())
+                X.record_edit(username)
                 return X
 
         # Have to create a new worksheet
@@ -960,11 +961,7 @@ class Notebook(SageObject):
         s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner%s</a> </td>'%(typ,
             '' if sort != 'owner' or reverse else '&reverse=True',
             '' if pub else ' / Collaborators')
-        if pub:
-            s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Activity</a> </td>'%(typ,
-            '' if sort != 'last_edited' or reverse else 'reverse=True')
-        else:
-            s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
+        s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
             '' if sort != 'last_edited' or reverse else 'reverse=True')
         s += '</tr>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
@@ -1620,7 +1617,7 @@ class Notebook(SageObject):
 
         s +="""
         <br>        <br>
-        The SAGE Notebook was written by Tom Boothby, Timothy Clemens, Alex Clemesha, Bobby Moretti, Yi Qiang, Dorian Ramier, and William Stein.
+        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Ramier.
         </center>
         </body>
         </html>

@@ -45,10 +45,16 @@ def math_parse(s):
             s = s[1:]
     return t
 
+class HTMLExpr(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
 
 class HTML:
     def __call__(self, *args, **kwds):
-        return self.eval(*args, **kwds)
+        return HTMLExpr(self.eval(*args, **kwds))
 
     def eval(self, s, globals={}, locals={}):
         s = str(s)

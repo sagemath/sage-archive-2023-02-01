@@ -1143,6 +1143,32 @@ class Notebook(SageObject):
 
 
 
+    def html_download_or_delete_datafile(self, ws, username, filename):
+        head, body = self.html_worksheet_page_template(ws, username, "Download or delete a data file")
+        path = "/home/%s/data/%s"%(ws.filename(), filename)
+        body += 'You may download <a href="%s">%s</a>'%(path, filename)
+        body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete this file.</a>'%(ws.filename(),filename)
+        body += '<hr class="usercontrol">'
+        ext = os.path.splitext(filename)[1]
+        if ext in ['.png', '.jpg', '.gif']:
+            body += '<div align=center><img src="%s"></div>'%path
+        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py']:
+            body += '<form method="post" action="savedatafile" enctype="multipart/form-data">'
+            body += '<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel"><br>'
+            body += '<textarea class="edit" name="textfield" rows=17 cols=70 id="textfield">%s</textarea>'%open('%s/%s'%(ws.data_directory(), filename)).read()
+            body += '<input type="hidden" name="filename" value="%s" id="filename">'%filename
+            body += '</form>'
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
+
+
+
     ##########################################################
     # Accessing all worksheets with certain properties.
     ##########################################################

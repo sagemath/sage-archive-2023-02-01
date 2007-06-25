@@ -303,6 +303,16 @@ class WorksheetResource:
 # The file is stored on the filesystem.
 #      /home/worksheet_name/data/cell_number/filename
 ##############################################
+class Worksheet_savedatafile(WorksheetResource, resource.PostableResource):
+    def render(self, ctx):
+        if ctx.args.has_key('button_save'):
+            E = ctx.args['textfield'][0]
+            filename = ctx.args['filename'][0]
+            dest = '%s/%s'%(self.worksheet.data_directory(), filename)
+            open(dest,'w').write(E)
+        return http.RedirectResponse('/home/'+self.worksheet.filename())
+
+
 class Worksheet_upload_data(WorksheetResource, resource.Resource):
     def render(self, ctx):
         return http.Response(stream = notebook.html_upload_data_window(self.worksheet))
@@ -327,6 +337,26 @@ class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
 
+##############################################
+# Download or delete a data file
+##############################################
+
+class Worksheet_datafile(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        dir = os.path.abspath(self.worksheet.data_directory())
+        filename = ctx.args['name'][0]
+        if ctx.args.has_key('action'):
+            if ctx.args['action'][0] == 'delete':
+                path = '%s/%s'%(self.worksheet.data_directory(), filename)
+                os.unlink(path)
+                return http.Response(stream = message("Successfully deleted '%s'"%filename,
+                                                      '/home/' + self.worksheet.filename()))
+        s = notebook.html_download_or_delete_datafile(self.worksheet, username, filename)
+        return http.Response(stream=s)
+
+##############################################
+# Returns an object in the datafile directory
+##############################################
 class Worksheet_data(WorksheetResource, resource.Resource):
     addSlash = True
 
@@ -980,9 +1010,12 @@ class Worksheet(WorksheetResource, resource.Resource):
             file = self.worksheet.data_directory() + '/' + op
             if os.path.exists(file):
                 return static.File(file)
-            file = self.worksheet.cells_directory() + '/' + op
-            if os.path.exists(file):
-                return static.File(file)
+            dir = self.worksheet.cells_directory()
+            for F in os.listdir(dir):
+                h = '%s/%s/%s'%(dir,F,op)
+                print h
+                if os.path.exists(h):
+                    return static.File(h)
             return NotImplementedWorksheetOp(op, self.worksheet)
 
 def render_worksheet_list(args, pub=False):

@@ -760,7 +760,7 @@ class Worksheet:
 
     def html_data_options_list(self):
         D = self.attached_data_files()
-        x = '\n'.join(['<option value="data/%s">%s</option>'%(nm,nm) for nm in D])
+        x = '\n'.join(['<option value="datafile?name=%s">%s</option>'%(nm,nm) for nm in D])
         return x
 
     def html_file_menu(self):
@@ -803,11 +803,10 @@ class Worksheet:
 <select class="worksheet" onchange="go_data(this);" >
  <option title="Select an attached file" value="" selected=1>Data...</option>
  <option title="Upload a data file in a wide range of formats" value="__upload_data_file__">Upload a file...</option>
+ <option title="Browse the data directory" value="data/">Browse data directory...</option>
+ <option title="Browse the directory of output from cells" value="cells/">Browse cell output directories...</option>
  <option value="">--------------------</option>
 %s
-<option value="">--------------------</option>
- <option title="Browse the data directory" value="data/">Browse data directory...</option>
- <option title="Browse the directory of output from cells" value="celldata/">Browse cell output directories...</option>
 </select>
 
  %s
@@ -1079,7 +1078,8 @@ class Worksheet:
         S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
-            cmd += '_support_.init("%s", globals()); '%object_directory
+            #cmd += '_support_.init("%s", globals()); '%object_directory
+            cmd += '_support_.init(None, globals()); '
             S._send(cmd)   # non blocking
         except Exception, msg:
             print "ERROR initializing compute process:\n"

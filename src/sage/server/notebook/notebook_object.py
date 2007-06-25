@@ -48,7 +48,7 @@ class NotebookObject:
     1. I want to run the SAGE notebook server on a remote machine
        and be the only person allowed to log in.  Type
 
-                   notebook(address="")
+                   notebook(address="address.of.remote.machine")
 
        the first time you do this you'll be prompted to set
        an administrator password.  Use this to login.
@@ -65,7 +65,8 @@ class NotebookObject:
        notebook publically (1) at a minimu run it from a chroot jail
        (see the SAGE install guide), and (2) use a command like
 
-    notebook(secure=True, server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
+    notebook(address="address.of.remote.machine",
+         server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
 
        The secure option enables enccryption between all users and the
        notebook server.  The server_pool option specifies that

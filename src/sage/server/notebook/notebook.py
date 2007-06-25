@@ -79,24 +79,28 @@ class Notebook(SageObject):
         if len(v) > 0:
             print "Migrating from old to new worksheet format"
             D = self.directory()
-            if os.path.exists('%s/worksheets'):
-                import shutil
-                target = '%s/../old_worksheets.tar.bz2'%D
-                print "First archiving old worksheets and objects directory to '%s'"%target
-                os.system('tar jcf "%s" "%s/worksheets" "%s/objects"'%(target, D, D))
-                ws_tree = "%s/worksheets"%D
-                print "Now removing ", ws_tree
-                shutil.rmtree(ws_tree)
-                obj_tree = "%s/objects"%D
-                if os.path.exists(obj_tree):
-                    shutil.rmtree(obj_tree)
+##             if os.path.exists('%s/worksheets'%D):
+##                 import shutil
+##                 target = '%s/../old_worksheets.tar.bz2'%D
+##                 print "First archiving old worksheets and objects directory to '%s'"%target
+##                 os.system('tar jcf "%s" "%s/worksheets" "%s/objects"'%(target, D, D))
+##                 ws_tree = "%s/worksheets"%D
+##                 print "Now removing ", ws_tree
+##                 shutil.rmtree(ws_tree)
+##                 obj_tree = "%s/objects"%D
+##                 if os.path.exists(obj_tree):
+##                     shutil.rmtree(obj_tree)
             for key, W in v:
+                print W.name()
                 txt = W.edit_text()
                 N = self.create_new_worksheet(W.name(), 'pub')
                 N.edit_save(txt, ignore_ids=True)
                 del self.__worksheets[key]
             print "Your old worksheets are all available by clicking the published link"
             print "in the upper right corner."
+            print "If you want to save disk space, you could immediately remove"
+            print "the objects and worksheets directories in your SAGE notebook, as"
+            print "they are no longer used.  Do this now or never."
 
     ##########################################################
     # Users

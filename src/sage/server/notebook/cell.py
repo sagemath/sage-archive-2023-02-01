@@ -498,12 +498,12 @@ class Cell(Cell_generic):
         else:
             cls = "cell_input"
 
-##         if False: #do_print:
-##             if 'hide' in cls:
-##                 return ''
-##             else:
-##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
-##                 return s
+        if do_print:
+            if 'hide' in cls:
+                return ''
+            else:
+                s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
+                return s
 
         s = self.html_new_cell_before()
 

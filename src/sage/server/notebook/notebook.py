@@ -1777,15 +1777,16 @@ function save_worksheet_and_close() {
     def html_system_select_form_element(self, ws):
         system = ws.system()
         options = ''
+        i = SYSTEMS.index(system)
         for S in SYSTEMS:
             if S == system:
                 selected = "selected=1"
             else:
                 selected = ''
-            options += '<option %s value="%s">%s</option>\n'%(selected, S,S)
-        s = """<select onchange="go_system_select(this);" class="worksheet">
+            options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(S, selected, S,S)
+        s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
             %s
-            </select>"""%options
+            </select>"""%(i, options)
         return s
 
     def html_worksheet_settings(self, ws, username):

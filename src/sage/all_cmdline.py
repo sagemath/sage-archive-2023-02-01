@@ -25,3 +25,8 @@ except ValueError, msg:
 
 
 
+def _init_cmdline(globs):
+    from sage.misc.inline_fortran import InlineFortran
+    fortran = InlineFortran(globs)
+    globs['fortran'] = fortran
+

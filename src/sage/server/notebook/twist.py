@@ -971,52 +971,39 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
 
 class Worksheet_rating_info(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        ratings = self.worksheet.ratings()
-        r = '\n'.join(['<tr><td>%s</td><td align=center>%s</td></tr>'%(x,y) for x,y in sorted(ratings)])
+        s = self.worksheet.html_ratings_info()
         return http.Response(stream=message("""
         <h2 align=center>Ratings for %s</h2>
         <h3 align=center><a href='/home/%s'>Return to the worksheet.</a>
         <br><br>
-        <table width=30%% align=center border=1 cellpadding=10 cellspacing=0>
-        <tr bgcolor="lightgray"><td width=85%%>User</td><td width=10em align=center>Rating</td></tr>
+        <table width=70%%align=center border=1 cellpadding=10 cellspacing=0>
+        <tr bgcolor="#7799bb"><td width=30em>User</td><td width=10em align=center>Rating</td><td width=10em align=center width=60em>Comment</td></tr>
         %s
         </table>
         <br><br>
-        """%(self.worksheet.name(), self.worksheet.filename(), r)))
+        """%(self.worksheet.name(), self.worksheet.filename(), s)))
 
 
-class WorksheetRating(WorksheetResource, resource.Resource):
+class Worksheet_rate(WorksheetResource, resource.Resource):
     def render(self, ctx):
+        ret = '/home/' + self.worksheet.filename()
         if self.worksheet.is_rater(self.username):
-            return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), '/home/' + self.worksheet.filename()))
+            return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), ret))
         if user_type(self.username) == "guest":
             return http.Response(stream = message(
-                'You must <a href="/">login first</a> in order to rate this worksheet.'))
+                'You must <a href="/">login first</a> in order to rate this worksheet.', ret))
 
-        self.do_rating()
+        rating = int(ctx.args['rating'][0])
+        if rating < 0 or rating >= 5:
+            return http.Response(stream = message(
+                "Gees -- You can't fool the rating system that easily!", ret))
+        comment = ctx.args['comment'][0]
+        self.worksheet.rate(rating, comment, self.username)
         return http.Response(stream=message("""
         Thank you for rating the worksheet <b><i>%s</i></b>!
+        You can <a href="rating_info">see all ratings of this worksheet.</a>
         """%self.worksheet.name(), '/pub/'))
 
-class Worksheet_rate0(WorksheetRating):
-    def do_rating(self):
-        self.worksheet.rate(0, self.username)
-
-class Worksheet_rate1(WorksheetRating):
-    def do_rating(self):
-        self.worksheet.rate(1, self.username)
-
-class Worksheet_rate2(WorksheetRating):
-    def do_rating(self):
-        self.worksheet.rate(2, self.username)
-
-class Worksheet_rate3(WorksheetRating):
-    def do_rating(self):
-        self.worksheet.rate(3, self.username)
-
-class Worksheet_rate4(WorksheetRating):
-    def do_rating(self):
-        self.worksheet.rate(4, self.username)
 
 ########################################################
 # Downloading, moving around, renaming, etc.

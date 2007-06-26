@@ -992,7 +992,7 @@ class Notebook(SageObject):
         def doc_options(name):
             if pub:
                 rating = worksheet.rating()
-                if rating == 0:
+                if rating == -1:
                     r = "----"
                 else:
                     r = "%.1f"%rating
@@ -1415,32 +1415,33 @@ class Notebook(SageObject):
             else:
                 s = 'Edit a copy of this worksheet.'
                 url = 'edit_published_page'
-            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s)
+            r = worksheet.rating()
+            if r == -1:
+                rating = ''
+            else:
+                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
+            if not self.user_is_guest(username) and not worksheet.is_rater(username) \
+                   and not worksheet.is_publisher(username):
+                rating += '&nbsp;&nbsp; <span class="usercontrol">Rate it: </span>'
+                rating += '  '.join(['<a class="usercontrol" onClick="rate_worksheet(%s)">&nbsp;%s&nbsp;</a>'%(i,i) for
+                                   i in range(5)])
+                rating += '&nbsp;&nbsp; <input name="rating_comment" id="rating_comment"></input>'
+
+            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s) + \
+                        '<span class="ratingmsg">%s</span>'%rating
+
             body += edit_line
+            #This document was published using <a href="/">SAGE</a>.'
+            body += '<span class="pubmsg">'
+            body += '<a href="/pub/">Other published documents...</a></span>'
             body += '<hr class="usercontrol">'
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
             body += worksheet_html
             body += '<hr class="usercontrol">'
-            body += edit_line
             body += '&nbsp;'*10
 
-            r = worksheet.rating()
-            if r == 0:
-                rating = 'This page has not been rated.'
-            else:
-                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
-            if not self.user_is_guest(username) and not worksheet.is_rater(username) \
-                   and not worksheet.is_publisher(username):
-                rating += '&nbsp;&nbsp; Rate it: '
-                rating += '  '.join(['<a class="usercontrol" href="rate%s">&nbsp;%s&nbsp;</a>'%(i,i) for
-                                   i in range(5)])
-            body += '<span class="ratingmsg">%s</span>'%rating
 
-            body += '<hr class="usercontrol">'
-            body += '<br>'
-            body += '<span class="pubmsg">This document was published using <a href="/">SAGE</a>.'
-            body += '  Browse <a href="/pub/">other published documents.</a></span>'
 
         else:
 

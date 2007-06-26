@@ -705,6 +705,11 @@ function copy_worksheet() {
     window.location.replace(worksheet_command("copy"));
 }
 
+function rate_worksheet(rating) {
+    comment = get_element("rating_comment").value;
+    window.location.replace(worksheet_command("rate?rating="+rating + "&comment="+escape0(comment)));
+}
+
 function download_worksheet(base_filename) {
     open(worksheet_command("download/" + base_filename + '.sws'));
 }

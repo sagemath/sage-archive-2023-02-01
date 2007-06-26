@@ -304,13 +304,16 @@ class Worksheet:
             raise TypeError, "W must be a worksheet"
         self.__worksheet_came_from = W
 
-    def rate(self, x, username):
-        self.ratings().append((username, x))
-        del self.__rating
+    def rate(self, x, comment, username):
+        self.ratings().append((username, x, comment))
+##         try:
+##             del self.__rating
+##         except AttributeError:
+##             pass
 
     def is_rater(self, username):
         try:
-            return username in [y for y, _ in self.ratings()]
+            return username in [x[0] for x in self.ratings()]
         except TypeError:
             return False
 
@@ -322,16 +325,29 @@ class Worksheet:
             self.__ratings = v
             return v
 
+    def html_ratings_info(self):
+        ratings = self.ratings()
+        lines = []
+        for z in sorted(ratings):
+            if len(z) == 2:
+                person, rating = z
+                comment = ''
+            else:
+                person, rating, comment = z
+            lines.append('<tr><td>%s</td><td align=center>%s</td><td>%s</td></tr>'%(
+                person, rating, '&nbsp;' if not comment else comment))
+        return '\n'.join(lines)
+
     def rating(self):
-        try:
-            return self.__rating
-        except AttributeError:
-            r = [x for _, x in self.ratings()]
+##         try:
+##             return self.__rating
+##         except AttributeError:
+            r = [x[1] for x in self.ratings()]
             if len(r) == 0:
-                rating = 0    # means "not rated"
+                rating = -1    # means "not rated"
             else:
                 rating = float(sum(r))/float(len(r))
-            self.__rating = rating
+#            self.__rating = rating
             return rating
 
     ##########################################################

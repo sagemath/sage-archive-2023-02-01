@@ -67,19 +67,18 @@ cdef extern from "libsingular.h":
     # layer less.
 
     ctypedef struct ring "ip_sring":
-        char **names # array of names
-        short N # number of generators
-
         int  *order  # array of orderings
         int  *block0 # starting pos
         int  *block1 # ending pos
-        int  **wvhdl # weight arrays
-
-        int  OrdSgn  # determines if we have a polynomial or a quotient ring
-        int  ShortOut # short printing
-        int  CanShortOut # short printing capabilities
+        int  **wvhdl
+        int  OrdSgn
+        int  ShortOut
+        int  CanShortOut
+        number *minpoly
+        char **names
         char **parameter
         ring *algring
+        short N
         short P
         int ch
 
@@ -155,6 +154,9 @@ cdef extern from "libsingular.h":
 
     # this enables the changes done after rUnComplete
     void rComplete(ring *r, int force)
+
+    ring *rCopy0(ring *)
+
 
     ###
 
@@ -339,6 +341,14 @@ cdef extern from "libsingular.h":
     cdef long SR_INT
     long SR_TO_INT(number *)
     long SR_HDL(mpz_t )
+
+
+    ctypedef struct napoly "polyrec"
+
+    ctypedef struct lnumber "slnumber":
+        napoly *z
+        napoly *n
+        int s
 
 
     # Ideals

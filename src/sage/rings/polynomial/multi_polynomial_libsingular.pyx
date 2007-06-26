@@ -6,6 +6,7 @@ AUTHORS:
 
 TODO:
    -- implement $GF(p^n)$
+   -- implement block orderings
    -- implement Real, Complex
 
 TESTS:
@@ -435,6 +436,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(a)
             x
 
+        If everything else fails, we try to coerce to the base ring:
+            sage: R.<x,y,z> = GF(3)[]
+            sage: R(1/2)
+            -1
+
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -454,7 +460,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
-            element = eval(element.replace("^","**"),{},d)
+            element = sage_eval(element,d)
 
             # we need to do this, to make sure that we actually get an
             # element in self.
@@ -720,8 +726,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
 
         TESTS:
-            sage: P.<x> = QQ[]
-            sage: Q._singular_()
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x> = MPolynomialRing_libsingular(QQ,1)
+            sage: P._singular_()
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp

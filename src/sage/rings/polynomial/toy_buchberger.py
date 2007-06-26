@@ -30,7 +30,7 @@ EXAMPLES:
     Consider Katsura-6 w.r.t. a $degrevlex$ ordering.
 
     sage: from sage.rings.polynomial.toy_buchberger import *
-    sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(QQ,10)
+    sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(GF(32003),10)
     sage: I = sage.rings.ideal.Katsura(P,6)
 
     sage: g1 = buchberger(I)

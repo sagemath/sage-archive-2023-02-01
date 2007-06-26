@@ -293,7 +293,7 @@ class Cell(Cell_generic):
                     self.url_to_self())
                 html+="<br>" + url
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
-                output = 'WARNING: Output truncated (%s)!\n'%url + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
                 output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output

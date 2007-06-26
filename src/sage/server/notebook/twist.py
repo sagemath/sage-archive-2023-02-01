@@ -695,15 +695,15 @@ class RevertToWorksheetRevision(resource.Resource):
         self.worksheet.edit_save(txt)
         return http.RedirectResponse('/home/'+self.worksheet.filename())
 
-def worksheet_revision_publish(worksheet, rev):
-    W = notebook.publish_worksheet(worksheet, self.username)
+def worksheet_revision_publish(worksheet, rev, username):
+    W = notebook.publish_worksheet(worksheet, username)
     txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
     W.delete_cells_directory()
     W.edit_save(txt)
     return http.RedirectResponse('/home/'+W.filename())
 
-def worksheet_revision_revert(worksheet, rev):
-    worksheet.save_snapshot(self.username)
+def worksheet_revision_revert(worksheet, rev, username):
+    worksheet.save_snapshot(username)
     txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
     worksheet.delete_cells_directory()
     worksheet.edit_save(txt)
@@ -725,9 +725,9 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
             rev = ctx.args['rev'][0]
             action = ctx.args['action'][0]
             if action == 'revert':
-                return worksheet_revision_revert(self.worksheet, rev)
+                return worksheet_revision_revert(self.worksheet, rev, self.username)
             elif action == 'publish':
-                return worksheet_revision_publish(self.worksheet, rev)
+                return worksheet_revision_publish(self.worksheet, rev, self.username)
             else:
                 s = message('Error')
         return http.Response(stream = s)

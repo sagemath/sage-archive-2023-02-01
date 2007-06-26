@@ -69,6 +69,7 @@ TESTS:
     sage: R = Integers(D)
     sage: p = matrix(R,[[84, 97, 55, 58, 51]])
     sage: 2*p.row(0)
+    (168, 194, 110, 116, 102)
 """
 
 import operator

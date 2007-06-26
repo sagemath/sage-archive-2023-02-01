@@ -294,7 +294,7 @@ class UploadWorksheet(resource.PostableResource):
             if ctx.args.has_key('nameField'):
                 new_name = ctx.args['nameField'][0].strip()
                 if new_name:
-                    W.rename(new_name)
+                    W.set_name(new_name)
         except ValueError, msg:
             s = "Error uploading worksheet '%s'."%msg
             return http.Response(stream = message(s, '/'))

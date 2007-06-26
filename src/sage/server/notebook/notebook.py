@@ -299,7 +299,7 @@ class Notebook(SageObject):
         W = self.__worksheets[filename]
         W.quit()
         cmd = 'rm -rf "%s"'%(W.directory())
-        print cmd
+        #print cmd
         os.system(cmd)
 
         self.deleted_worksheets()[filename] = W
@@ -591,7 +591,7 @@ class Notebook(SageObject):
         if not os.path.exists(target):
             os.makedirs(target)
         cmd = 'rm -rf "%s"/*; mv "%s/%s/"* "%s/"'%(target, tmp, D, target)
-        print cmd
+        #print cmd
         if os.system(cmd):
             raise ValueError, "Error moving over files when loading worksheet."
 
@@ -1407,13 +1407,13 @@ class Notebook(SageObject):
         if worksheet.is_published() or self.user_is_guest(username):
             original_worksheet = worksheet.worksheet_that_was_published()
             if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
-                s = "Edit this worksheet."
+                s = "Edit this."
                 url = 'edit_published_page'
             elif self.user_is_guest(username):
-                s = 'Log in if you would like to edit a copy of this worksheet.'
+                s = 'Log in to edit a copy.'
                 url = '/'
             else:
-                s = 'Edit a copy of this worksheet.'
+                s = 'Edit a copy.'
                 url = 'edit_published_page'
             r = worksheet.rating()
             if r == -1:
@@ -1427,8 +1427,10 @@ class Notebook(SageObject):
                                    i in range(5)])
                 rating += '&nbsp;&nbsp; <input name="rating_comment" id="rating_comment"></input>'
 
+            download_name = os.path.split(worksheet.name())[-1]
             edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s) + \
-                        '<span class="ratingmsg">%s</span>'%rating
+                        '  <a class="usercontrol" href="download/%s.sws">Download.</a>'%download_name + \
+                        '  <span class="ratingmsg">%s</span>'%rating
 
             body += edit_line
             #This document was published using <a href="/">SAGE</a>.'

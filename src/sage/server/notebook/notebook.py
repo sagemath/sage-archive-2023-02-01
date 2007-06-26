@@ -1524,8 +1524,16 @@ class Notebook(SageObject):
         INPUT:
             worksheet -- a worksheet
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
+        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save" id="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
 
+
+        body += """<script type="text/javascript">
+function save_worksheet() {
+}
+function save_worksheet_and_close() {
+}
+        </script>
+        """
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body

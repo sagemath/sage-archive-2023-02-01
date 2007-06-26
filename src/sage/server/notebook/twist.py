@@ -989,8 +989,8 @@ class Worksheet_rating_info(WorksheetResource, resource.Resource):
 class Worksheet_rate(WorksheetResource, resource.Resource):
     def render(self, ctx):
         ret = '/home/' + self.worksheet.filename()
-        if self.worksheet.is_rater(self.username):
-            return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), ret))
+        #if self.worksheet.is_rater(self.username):
+        #    return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), ret))
         if user_type(self.username) == "guest":
             return http.Response(stream = message(
                 'You must <a href="/">login first</a> in order to rate this worksheet.', ret))

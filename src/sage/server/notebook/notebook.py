@@ -1420,9 +1420,13 @@ class Notebook(SageObject):
                 rating = ''
             else:
                 rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
-            if not self.user_is_guest(username) and not worksheet.is_rater(username) \
+            if not self.user_is_guest(username) \
                    and not worksheet.is_publisher(username):
-                rating += '&nbsp;&nbsp; <span class="usercontrol">Rate it: </span>'
+                if worksheet.is_rater(username):
+                    action = "Rerate"
+                else:
+                    action = "Rate"
+                rating += '&nbsp;&nbsp; <span class="usercontrol">%s it: </span>'%action
                 rating += '  '.join(['<a class="usercontrol" onClick="rate_worksheet(%s)">&nbsp;%s&nbsp;</a>'%(i,i) for
                                    i in range(5)])
                 rating += '&nbsp;&nbsp; <input name="rating_comment" id="rating_comment"></input>'

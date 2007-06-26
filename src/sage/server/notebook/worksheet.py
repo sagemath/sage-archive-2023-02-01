@@ -305,7 +305,13 @@ class Worksheet:
         self.__worksheet_came_from = W
 
     def rate(self, x, comment, username):
-        self.ratings().append((username, x, comment))
+        r = self.ratings()
+        for i in range(len(r)):
+            if r[i][0] == username:
+                r[i] = (username, x, comment)
+                return
+        else:
+            r.append((username, x, comment))
 ##         try:
 ##             del self.__rating
 ##         except AttributeError:

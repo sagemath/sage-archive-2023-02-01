@@ -493,6 +493,7 @@ class Cell(Cell_generic):
         return s
 
     def html_in(self, do_print=False, ncols=80):
+        s = ''
         id = self.__id
         t = self.__in.rstrip()
 
@@ -508,7 +509,8 @@ class Cell(Cell_generic):
 ##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
 ##                 return s
 
-        s = self.html_new_cell_before()
+        if not do_print:
+            s += self.html_new_cell_before()
 
         if do_print:
             ncols = 70

@@ -705,6 +705,11 @@ function copy_worksheet() {
     window.location.replace(worksheet_command("copy"));
 }
 
+function rate_worksheet(rating) {
+    comment = get_element("rating_comment").value;
+    window.location.replace(worksheet_command("rate?rating="+rating + "&comment="+escape0(comment)));
+}
+
 function download_worksheet(base_filename) {
     open(worksheet_command("download/" + base_filename + '.sws'));
 }
@@ -780,9 +785,14 @@ function search_worksheets(typ) {
     window.location.replace(url);
 }
 
-function go_system_select(theform) {
+function go_system_select(theform, original_system) {
    with(theform) {
-      system_select(options[selectedIndex].value);
+      var system = options[selectedIndex].value;
+      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+          system_select(system);
+      } else {
+          options[original_system].selected = 1;
+      }
    }
 }
 

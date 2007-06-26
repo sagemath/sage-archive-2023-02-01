@@ -285,10 +285,13 @@ class Cell(Cell_generic):
             del self._html_cache
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
+            url = ""
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()
                 open(file,"w").write(output)
-                html+="<br><a href='/%s' class='file_link'>full_output.txt</a>"%file
+                url = "<a href='%s/full_output.txt' class='file_link'>full_output.txt</a>"%(
+                    self.url_to_self())
+                html+="<br>" + url
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
                 output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
@@ -328,7 +331,7 @@ class Cell(Cell_generic):
 
     def process_cell_urls(self, x):
         end = '?%d"'%self.version()
-        begin = '"/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
+        begin = self.url_to_self()
         for s in re_cell.findall(x) + re_cell_2.findall(x):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
@@ -545,6 +548,13 @@ class Cell(Cell_generic):
                  </div>
               """%(self.id(), self.id())
 
+    def url_to_self(self):
+        try:
+            return self.__url_to_self
+        except AttributeError:
+            self.__url_to_self = '/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
+            return self.__url_to_self
+
     def files_html(self, out=''):
         dir = self.directory()
         D = os.listdir(dir)
@@ -559,7 +569,7 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/home/%s/cells/%s/%s"%(self.worksheet_filename(), self.id(), F)
+            url = "%s/%s"%(self.url_to_self(), F)
             if F.endswith('.png') or F.endswith('.bmp') or F.endswith('.jpg'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):

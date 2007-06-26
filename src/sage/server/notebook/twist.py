@@ -1406,23 +1406,19 @@ class RegConfirmation(resource.Resource):
         global notebook
         url_prefix = "https" if notebook.secure else "http"
         invalid_confirm_key = """\
-<html>
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this
 server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
-</html>""" % (url_prefix, notebook.address, notebook.port)
+""" % (url_prefix, notebook.address, notebook.port)
         key = int(key)
         global waiting
         try:
             username = waiting[key]
         except KeyError:
-            return http.Response(stream=invalid_confirm_key)
-        success = """\
-<html>
-<h1>Hello, %s. Thank you for registering!</h1>
-</html>""" % username
+            return http.Response(stream=message(invalid_confirm_key, '/register'))
+        success = """<h1>Hello, %s. Thank you for registering!</h1>""" % username
         del waiting[key]
-        return http.Response(stream=success)
+        return http.Response(stream=message(success))
 
 ############################
 # Registration page
@@ -1449,7 +1445,7 @@ class RegistrationPage(resource.PostableResource):
                     if len(passwd) == 0:
                         s = "  Password must be nonempty."
                 if s:
-                    return http.Response(stream=s)
+                    return http.Response(stream=message(s, '/register'))
 
 
                 destaddr = """%s""" % request.args['email'][0]
@@ -1468,7 +1464,9 @@ class RegistrationPage(resource.PostableResource):
                     send_mail(self, fromaddr, destaddr, "SAGE Notebook Registration",body)
                 except ValueError:
                     # the email address is invalid
-                    return http.Response(stream="Registration failed -- the email address '%s' is invalid."%destaddr)
+                    s = message("Registration failed -- the email address '%s' is invalid."%destaddr,
+                                 '/register')
+                    return http.Response(stream=s)
 
                 # Store in memory that we are waiting for the user to respond
                 # to their invitation to join the SAGE notebook.
@@ -1512,6 +1510,10 @@ class RegistrationPage(resource.PostableResource):
           <tr><td></td><td></td></tr>
             <tr><td></td><td align=left><input type="submit" value="Register Now" /></td></tr>
             </table> </form>
+            <br><br>
+            <div align=center><a href="/">Cancel and return to the login page</a></div>
+            <br>
+
             </html>""" % (url_prefix, notebook.address, notebook.port)
         return http.Response(stream=s)
 

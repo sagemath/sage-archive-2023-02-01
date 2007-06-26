@@ -941,6 +941,8 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
             input_text = input_text.replace('\r\n', '\n')   # DOS
 
         W = self.worksheet
+        if W.owner() != self.username and not (self.username in W.collaborators()):
+            return InvalidPage(msg = "can't evaluate worksheet cells", username = self.username)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         cell.evaluate(username = self.username)

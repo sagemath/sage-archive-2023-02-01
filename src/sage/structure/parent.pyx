@@ -55,8 +55,35 @@ cdef class Parent(sage_object.SageObject):
     """
     Parents are the SAGE/mathematical analogues of container objects in computer science.
     """
-    def __init__(self):
+
+    def __init__(self, coerce_from=[], actions=[], embeddings=[]):
+        # TODO: many classes don't call this at all, but __new__ crashes SAGE
+#        if len(coerce_from) > 0:
+#            print type(self), coerce_from
+        self._coerce_from_list = list(coerce_from)
+        self._coerce_from_hash = {}
+        self._action_list = list(actions)
+        self._action_hash = {}
+
+        cdef Parent other
+        for mor in embeddings:
+            other = mor.domain()
+            print "embedding", self, " --> ", other
+            print mor
+            other.init_coerce() # TODO remove when we can
+            other._coerce_from_list.append(mor)
+
+        # old
         self._has_coerce_map_from = {}
+
+    def init_coerce(self):
+        if self._coerce_from_hash is None:
+#            print "init_coerce() for ", type(self)
+            self._coerce_from_list = []
+            self._coerce_from_hash = {}
+            self._action_list = []
+            self._action_hash = {}
+
 
     #############################################################################
     # Containment testing
@@ -101,7 +128,13 @@ cdef class Parent(sage_object.SageObject):
         if S is self:
             from sage.categories.homset import Hom
             return Hom(self, self).identity()
+        elif S == self:
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import FormalCoercionMorphism
+            return FormalCoercionMorphism(Hom(S, self))
         try:
+            if self._coerce_from_hash is None:
+                self.init_coerce()
             return self._coerce_from_hash[S]
         except KeyError:
             pass
@@ -114,17 +147,20 @@ cdef class Parent(sage_object.SageObject):
             mor = sage.categories.morphism.CallMorphism(S, self)
         elif mor is False:
             mor = None
-        elif not isinstance(mor, sage.categories.morphism.Morphism):
+        elif mor is not None and not isinstance(mor, sage.categories.morphism.Morphism):
             raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Morphism"
         if mor is not None:
-            self._coerce_from_has[S] = mor # TODO: if this is None, could it be non-None in the future?
+            self._coerce_from_hash[S] = mor # TODO: if this is None, could it be non-None in the future?
         return mor
 
     def coerce_map_from_impl(self, S):
         return self.coerce_map_from_c_impl(S)
 
     cdef coerce_map_from_c_impl(self, S):
-        from sage.categories.morphism import Morphism, CallMorphism, IdentityMorphism
+        import sage.categories.morphism
+        from sage.categories.morphism import Morphism
+        from sage.categories.homset import Hom
+        cdef Parent R
         for mor in self._coerce_from_list:
             if PY_TYPE_CHECK(mor, Morphism):
                 R = mor.domain()
@@ -132,15 +168,25 @@ cdef class Parent(sage_object.SageObject):
                 R = mor
                 mor = None
             if R is S:
-                connecting = IdentityMorphism(S) # will vanish on mul
+                connecting = S # can't let it be None
             else:
+                print "R = ", R
                 connecting = R.coerce_map_from_c(S)
             if connecting is not None:
                 if mor is None:
                     i = self._coerce_from_list.index(R)
-                    mor = CallMorphism(R, self)
+                    mor = sage.categories.morphism.CallMorphism(Hom(R, self))
                     self._coerce_from_list[i] = mor # in case we need it again
-                return mor * connecting
+                return mor if connecting is S else mor * connecting
+
+        # Piggyback of the old code for now
+        # WARNING: when working on this, make sure circular dependancies aren't introduced!
+        if self.has_coerce_map_from_c(S):
+            if isinstance(S, type):
+                S = Set_PythonType(S)
+            return sage.categories.morphism.FormalCoercionMorphism(Hom(S, self))
+        else:
+            return None
 
 
     cdef get_action_c(self, S, op, bint self_on_left):
@@ -445,3 +491,39 @@ class Set_generic(Parent):
     def object(self):
         return self
 
+
+class Set_PythonType(Set_generic):
+
+    def __init__(self, theType):
+        self._type = theType
+
+    def __call__(self, x):
+        return self._type(x)
+
+    def __hash__(self):
+        return hash(self._type)
+
+    def __cmp__(self, other):
+        if isinstance(other, Set_PythonType):
+            return cmp(self._type, other._type)
+        else:
+            return cmp(self._type, other)
+
+    def __contains__(self, x):
+        return isinstance(x, self._type)
+
+    def _latex_(self):
+        return self._repr_()
+
+    def _repr_(self):
+        return "Set of Python objects of %s"%(str(self._type)[1:-1])
+
+    def object(self):
+        return self._type
+
+    def cardinality(self):
+        if self._type is bool:
+            return 2
+        else:
+            import sage.rings.infinity
+            return sage.rings.infinity.infinity

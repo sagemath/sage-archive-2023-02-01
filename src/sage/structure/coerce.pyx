@@ -12,6 +12,7 @@ include "../ext/python_tuple.pxi"
 include "coerce.pxi"
 
 import operator
+import sage.categories.morphism
 
 cdef class CoercionModel_original(CoercionModel):
     """
@@ -99,7 +100,7 @@ cdef class CoercionModel_original(CoercionModel):
             x1, y1 = self.canonical_coercion_c(x, y)
             return op(x1,y1)
         except TypeError, msg:
-            #print msg  # this can be useful for debugging.
+            # print msg  # this can be useful for debugging.
             if not op is operator.mul:
                 raise TypeError, arith_error_message(x,y,op)
 
@@ -169,7 +170,7 @@ cdef class CoercionModel_original(CoercionModel):
         raise TypeError, arith_error_message(x,y,op)
 
 
-# just so we can detect these fast to avoid action-finding
+# just so we can detect these fast to avoid action-searching
 cdef op_add, op_sub
 from operator import add as op_add, sub as op_sub
 
@@ -200,7 +201,27 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
 
         except TypeError:
-            raise TypeError, arith_error_message(x,y,op)
+            pass
+
+        if op is operator.mul:
+            if isinstance(x, (str, list, tuple)):
+                # __mul__ overridden with special meaning for sequences
+                if y == int(y):
+                    return x * int(y)
+
+            # TODO: roll into actions (here now so doctests pass)
+            try:
+                return x._l_action(y)
+            except (AttributeError, TypeError):
+                pass
+            try:
+                return y._r_action(x)
+            except (AttributeError, TypeError):
+                pass
+
+        raise TypeError, arith_error_message(x,y,op)
+
+
 
     cdef canonical_coercion_c(self, x, y):
         xp = parent_c(x)
@@ -222,19 +243,25 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 y_elt = (<Morphism>y_map)._call_c(y)
             else:
                 y_elt = y
-            if have_same_parent(x_elt,y_elt):
+            if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above
                 # morphisms may be written by (imperfect) users.
                 return x_elt,y_elt
-            else:
-                self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
+            elif x_elt._parent == y_elt._parent:
+                # TODO: Non-uniqueness of parents strikes again!
+                # print parent_c(x_elt), " is not ", parent_c(y_elt)
+                y_elt = parent_c(x_elt)(y_elt)
+                if x_elt._parent is y_elt._parent:
+                    return x_elt,y_elt
+            self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
         # Now handle the native python + sage object cases
         # that were not taken care of above.
         elif PY_IS_NUMERIC(x):
             try:
                 x = yp(x)
+                if PY_TYPE_CHECK(yp, type): return x,y
             except TypeError:
                 y = x.__class__(y)
                 return x, y
@@ -243,6 +270,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         elif PY_IS_NUMERIC(y):
             try:
                 y = xp(y)
+                if PY_TYPE_CHECK(xp, type): return x,y
             except TypeError:
                 x = y.__class__(x)
                 return x, y
@@ -298,15 +326,28 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         if PY_TYPE_CHECK(R, Parent):
             mor = (<Parent>R).coerce_map_from_c(S)
             if mor is not None:
-                return mor, None
+                return None, mor
 
         # See if there is a natural coercion from S to R
         if PY_TYPE_CHECK(S, Parent):
             mor = (<Parent>S).coerce_map_from_c(R)
             if mor is not None:
-                return None, mor
+                return mor, None
 
-        # do some base extension stuff
+        # Try base extending to left and right
+        # TODO: This is simple and ambiguous, add sophistication
+        if PY_TYPE_CHECK(R, ParentWithBase) and PY_TYPE_CHECK(S, Parent):
+            if (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
+                Z = R.base_extend(S) # should there be a base-extension morphism?
+            elif (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
+                Z = S.base_extend(R)
+            else:
+                Z = None
+            if Z is not None:
+                from sage.categories.homset import Hom
+                # Can I trust always __call__() to do the right thing in this case?
+                return sage.categories.morphism.CallMorphism(Hom(R, Z)), sage.categories.morphism.CallMorphism(Hom(S, Z))
+
         return None
 
     cdef discover_action_c(self, R, S, op):

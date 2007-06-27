@@ -144,9 +144,9 @@ cdef class CallMorphism(Morphism):
 cdef class IdentityMorphism(Morphism):
 
     def __init__(self, parent):
-        if not isinstance(parent, homset.HomSet):
+        if not isinstance(parent, homset.Homset):
             parent = homset.Hom(parent, parent)
-        Morphism.__init__(parent)
+        Morphism.__init__(self, parent)
 
     def _repr_type(self):
         return "Identity"

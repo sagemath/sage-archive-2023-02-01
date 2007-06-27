@@ -2,8 +2,8 @@ from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
 
 cdef class Morphism(Element):
-#    cdef Parent _domain
-#    cdef Parent _codomain
+    cdef Parent _domain
+    cdef Parent _codomain
 
 # TODO: remove this requirement when we better understand pickling
     cdef __dict__
@@ -16,6 +16,6 @@ cdef class FormalCoercionMorphism(Morphism):
     pass
 
 cdef class FormalCompositeMorphism(Morphism):
-#    cdef Morphism __first
-#    cdef Morphism __second
+    cdef Morphism __first
+    cdef Morphism __second
     pass

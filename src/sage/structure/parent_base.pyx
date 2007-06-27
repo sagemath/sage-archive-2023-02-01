@@ -40,9 +40,13 @@ def is_ParentWithBase(x):
     return bool(PY_TYPE_CHECK(x, ParentWithBase))
 
 cdef class ParentWithBase(parent.Parent):
-    def __init__(self, base):
+    def __init__(self, base, coerce_from=[], actions=[], embeddings=[]):
+        # TODO: SymbolicExpressionRing has base RR, which makes this bad
+#        print type(self), "base", base, coerce_from
+#        if base != self and not base in coerce_from:
+#            coerce_from.append(base)
+        parent.Parent.__init__(self, coerce_from=coerce_from, actions=actions, embeddings=embeddings)
         self._base = base
-        self._has_coerce_map_from = {}
 
 ##     def x__reduce__(self):
 ##         if HAS_DICTIONARY(self):

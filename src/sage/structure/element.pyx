@@ -1985,7 +1985,19 @@ cdef class CoercionModel:
         raise TypeError, arith_error_message(x,y,op)
 
 import coerce
-cdef CoercionModel coercion_model = coerce.CoercionModel_original()
+cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
+
+def set_coercion_model(cm):
+    global coercion_model
+    coercion_model = cm
+
+def swap_coercion_model():
+    global coercion_model
+    if isinstance(coercion_model, coerce.CoercionModel_cache_maps):
+        coercion_model = coerce.CoercionModel_original()
+    else:
+        coercion_model = coerce.CoercionModel_cache_maps()
+    return coercion_model
 
 
 

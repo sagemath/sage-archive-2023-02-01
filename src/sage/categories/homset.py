@@ -77,7 +77,34 @@ def Hom(X, Y, cat=None):
                 raise ValueError, "No unambiguous category found for Hom from %s to %s."%(X,Y)
             cat = cat_X
         else:
-            raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
+            # try hard to find a suitable base category
+            subcats_X = category_types.category_hierarchy[cat_X.__class__]
+            subcats_Y = category_types.category_hierarchy[cat_Y.__class__]
+            cats = set(subcats_X).intersection(set(subcats_Y))
+            params = tuple(set(cat_X._parameters()).intersection(cat_Y._parameters()))
+
+            cat = None
+            size = -1
+
+            for c in cats:
+                if len(category_types.category_hierarchy[c]) > size:
+                    try:
+                        cat = c(*params)
+                        size = len(category_types.category_hierarchy[c])
+                    except TypeError:
+                        pass
+
+            if cat is None:
+                for c in cats:
+                    if len(category_types.category_hierarchy[c]) > size:
+                        try:
+                            cat = c()
+                            size = len(category_types.category_hierarchy[c])
+                        except TypeError:
+                            pass
+
+            if cat is None:
+                raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
 
     elif isinstance(cat, category.Category):
         if not isinstance(cat, category.Category):

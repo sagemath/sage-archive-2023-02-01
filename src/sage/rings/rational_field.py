@@ -180,6 +180,16 @@ class RationalField(_uniq, field.Field):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
+    def coerce_map_from_impl(self, S):
+        global ZZ
+        if ZZ is None:
+            import integer_ring
+            ZZ = integer_ring.ZZ
+        if S is ZZ:
+            return sage.rings.rational.Z_to_Q()
+        else:
+            return field.Field.coerce_map_from_impl(self, S)
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))

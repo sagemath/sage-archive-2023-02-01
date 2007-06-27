@@ -1461,7 +1461,16 @@ def make_rational(s):
     return r
 
 cdef class Z_to_Q(Morphism):
+
+    def __init__(self):
+        import integer_ring
+        import rational_field
+        import sage.categories.homset
+        Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
+
     cdef Element _call_c_impl(self, Element x):
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
+        return rat
+

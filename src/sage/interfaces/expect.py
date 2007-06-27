@@ -272,7 +272,6 @@ class Expect(ParentWithBase):
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
-
         #if self.__name in failed_to_start:
         #    if alt_message:
         #        raise RuntimeError, alt_message

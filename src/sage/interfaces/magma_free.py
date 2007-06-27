@@ -17,7 +17,7 @@ class MagmaExpr(str):
     def __repr__(self):
         return str(self)
 
-def magma_free_eval(code, strip=True):
+def magma_free_eval(code, strip=True, columns=0):
     """
     Use the free online MAGMA calculator to evaluate the given
     input code and return the answer as a string.
@@ -31,6 +31,7 @@ def magma_free_eval(code, strip=True):
     """
     import urllib
     url = "http://magma.maths.usyd.edu.au/calc/"
+    code = "SetColumns(%s);\n"%columns + code
     urldata = urllib.urlencode({'input':code})
     results = urllib.urlopen(url, urldata).read()
     if strip:
@@ -55,7 +56,7 @@ class MagmaFree:
     """
     def eval(self, x):
         return magma_free_eval(x)
-    def __call__(self, code, strip=True):
-        return magma_free_eval(code, strip=strip)
+    def __call__(self, code, strip=True, columns=0):
+        return magma_free_eval(code, strip=strip, columns=columns)
 
 magma_free = MagmaFree()

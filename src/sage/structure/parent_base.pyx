@@ -102,3 +102,4 @@ cdef class ParentWithBase(parent.Parent):
             pass
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
+

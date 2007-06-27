@@ -215,7 +215,10 @@ def end(X, f):
     """
     return End(X)(f)
 
-class Homset(Set_generic):
+# We have to use ParentWithBase here, otherwise
+# we can't create elements of this Homset as
+# Element._parent has been changed to ParentWithBase.
+class Homset(ParentWithBase, Set_generic):
     """
     The class for collections of morphisms in a category.
 
@@ -297,7 +300,8 @@ class Homset(Set_generic):
         """
         return Homset(self.__codomain, self.__domain, self.__category)
 
-class HomsetWithBase(ParentWithBase, Homset):
+# class HomsetWithBase(ParentWithBase, Homset): # redundant, see above
+class HomsetWithBase(Homset):
     def __init__(self, X, Y, cat=None, check=True, base=None):
         Homset.__init__(self, X, Y, cat, check)
         if base is None:

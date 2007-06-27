@@ -467,12 +467,13 @@ cdef class Parent(sage_object.SageObject):
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
 
+
     ############################################################################
     # Set baseclass --
     ############################################################################
 
 
-class Set_generic(Parent):
+class Set_generic(Parent): # Cannot use Parent because Element._parent is ParentWithBase
     """
     Abstract base class for sets.
     """
@@ -527,3 +528,4 @@ class Set_PythonType(Set_generic):
         else:
             import sage.rings.infinity
             return sage.rings.infinity.infinity
+

@@ -1222,10 +1222,10 @@ class Notebook(SageObject):
 
 
         body += '<hr class="usercontrol">'
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filename)[1].lower()
         if ext in ['.png', '.jpg', '.gif']:
             body += '<div align=center><img src="%s"></div>'%path
-        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py']:
+        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py', '.f', '.f90', '.c']:
             body += '<form method="post" action="savedatafile" enctype="multipart/form-data">'
             body += '<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel"><br>'
             body += '<textarea class="edit" name="textfield" rows=17 cols=70 id="textfield">%s</textarea>'%open('%s/%s'%(ws.data_directory(), filename)).read()

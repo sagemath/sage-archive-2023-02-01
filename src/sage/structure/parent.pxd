@@ -8,6 +8,34 @@
 
 cimport sage_object
 cdef class Parent(sage_object.SageObject):
+
+    # List consisting of Morphisms (from anything to self)
+    # and Parents for which the __call__ method of self
+    # results in natural coercion.
+    # Initalized at ring creation.
+    cdef _coerce_from_list
+    # Hashtable of everything we've (possibliy recursively) discovered so far.
+    cdef _coerce_from_hash
+
+    # List consisting of Actions (either by or on self)
+    # and Parents for which _rmul_ and/or _lmul_ do the
+    # correct thing.
+    # Initalized at ring creation.
+    cdef _action_list
+    # Hashtable of everything we've (possibliy recursively) discovered so far.
+    cdef _action_hash
+
+    # returns a Morphism from S to self, or None
+    cdef coerce_map_from_c(self, S)
+    cdef coerce_map_from_c_impl(self, S)
+
+    # returns the Action by/on self on/by S
+    # corresponding to op and self_on_left
+    cdef get_action_c(self, S, op, bint self_on_left)
+    cdef get_action_c_impl(self, S, op, bint self_on_left)
+
+
+
     cdef public object _has_coerce_map_from
 
     #########################################

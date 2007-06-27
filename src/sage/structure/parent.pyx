@@ -91,6 +91,79 @@ cdef class Parent(sage_object.SageObject):
 
 
     #################################################################################
+    # New Coercion support functionality
+    #################################################################################
+
+    def coerce_map_from(self, S):
+        return self.coerce_map_from_c(S)
+
+    cdef coerce_map_from_c(self, S):
+        if S is self:
+            from sage.categories.homset import Hom
+            return Hom(self, self).identity()
+        try:
+            return self._coerce_from_hash[S]
+        except KeyError:
+            pass
+        if HAS_DICTIONARY(self):
+            mor = self.coerce_map_from_impl(S)
+        else:
+            mor = self.coerce_map_from_c_impl(S)
+        import sage.categories.morphism
+        if mor is True:
+            mor = sage.categories.morphism.CallMorphism(S, self)
+        elif mor is False:
+            mor = None
+        elif not isinstance(mor, sage.categories.morphism.Morphism):
+            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Morphism"
+        if mor is not None:
+            self._coerce_from_has[S] = mor # TODO: if this is None, could it be non-None in the future?
+        return mor
+
+    def coerce_map_from_impl(self, S):
+        return self.coerce_map_from_c_impl(S)
+
+    cdef coerce_map_from_c_impl(self, S):
+        from sage.categories.morphism import Morphism, CallMorphism, IdentityMorphism
+        for mor in self._coerce_from_list:
+            if PY_TYPE_CHECK(mor, Morphism):
+                R = mor.domain()
+            else:
+                R = mor
+                mor = None
+            if R is S:
+                connecting = IdentityMorphism(S) # will vanish on mul
+            else:
+                connecting = R.coerce_map_from_c(S)
+            if connecting is not None:
+                if mor is None:
+                    i = self._coerce_from_list.index(R)
+                    mor = CallMorphism(R, self)
+                    self._coerce_from_list[i] = mor # in case we need it again
+                return mor * connecting
+
+
+    cdef get_action_c(self, S, op, bint self_on_left):
+        try:
+            return self._action_hash[S, op, self_on_left]
+        except KeyError:
+            pass
+        if HAS_DICTIONARY(self):
+            action = self.get_action_impl(S, op, self_on_left)
+        else:
+            action = self.get_action_c_impl(S, op, self_on_left)
+        if action is not None:
+            from sage.categories.action import Action
+            if not isinstance(action, Action):
+                raise TypeError, "get_action_impl must return None or an Action"
+            self._action_hash[S, op, self_on_left] = action
+        return action
+
+    cdef get_action_c_impl(self, S, op, bint self_on_left):
+        pass
+
+
+    #################################################################################
     # Coercion support functionality
     #################################################################################
 

@@ -244,6 +244,12 @@ class Homset(Set_generic):
     def natural_map(self):
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
+    def identity(self):
+        if self.is_endomorphism_set():
+            return morphism.IdentityMorphism(self)
+        else:
+            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+
     def domain(self):
         return self.__domain
 

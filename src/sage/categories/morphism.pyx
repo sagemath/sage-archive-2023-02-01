@@ -130,10 +130,45 @@ cdef class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    cdef Element _call_c_impl(self, Element x):
-        if x._parent is not self._domain:
-            x = x._domain._coerce_(x)
+    cdef Element _call_c(self, x):
         return self._codomain._coerce_(x)
+
+cdef class CallMorphism(Morphism):
+
+    def _repr_type(self):
+        return "Call"
+
+    cdef Element _call_c(self, x):
+        return self._codomain(x)
+
+cdef class IdentityMorphism(Morphism):
+
+    def __init__(self, parent):
+        if not isinstance(parent, homset.HomSet):
+            parent = homset.Hom(parent, parent)
+        Morphism.__init__(parent)
+
+    def _repr_type(self):
+        return "Identity"
+
+    cdef Element _call_c(self, x):
+        return x
+
+    def __mull__(left, right):
+        if not isinstance(right, Morphism):
+            raise TypeError, "right (=%s) must be a morphism to multiply it by %s"%(right, left)
+        if not isinstance(left, Morphism):
+            raise TypeError, "left (=%s) must be a morphism to multiply it by %s"%(left, right)
+        if right.codomain() != left.domain():
+            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(left, right)
+        if isinstance(left, IdentityMorphism):
+            return right
+        else:
+            return left
+
+    def __pow__(self, n, dummy):
+        return self
+
 
 cdef class FormalCompositeMorphism(Morphism):
     def __init__(self, parent, first, second):

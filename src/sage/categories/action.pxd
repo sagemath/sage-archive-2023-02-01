@@ -9,5 +9,15 @@ cdef class Action(Functor):
     cdef Element _call_c(self, a, b)
     cdef Element _call_c_impl(self, Element a, Element b)
 
+
+cdef class InverseAction(Action):
+    cdef Action _action
+
+cdef class PrecomposedAction(Action):
+    cdef Action _action
+    cdef Morphism _left_precomposition
+    cdef Morphism _right_precomposition
+
 cdef class ActionEndomorphism(Morphism):
-    pass
+    cdef Action _action
+    cdef Element _g

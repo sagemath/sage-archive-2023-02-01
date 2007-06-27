@@ -30,6 +30,7 @@ from functor cimport Functor
 from morphism cimport Morphism
 
 import homset
+import sage.structure.element
 
 include "../ext/stdsage.pxi"
 
@@ -82,12 +83,84 @@ cdef class Action(Functor):
         else:
             return self._call_c(a, g)
 
+    def __invert__(self):
+        return InverseAction(self)
+
     def is_left(self):
         return self._is_left
 
     def __repr__(self):
         side = "Left" if self._is_left else "Right"
         return "%s action of %r on %r"%(side, self._G, self._S)
+
+    def actor(self):
+        return self._G
+
+    def codomain(self):
+        return self._S
+
+    def left_domain(self):
+        if self._is_left:
+            return self._G
+        else:
+            return self._S
+
+    def right_domain(self):
+        if self._is_left:
+            return self._S
+        else:
+            return self._G
+
+
+cdef class InverseAction(Action):
+    """
+    An action whose acts as the inverse of the given action.
+    """
+    def __init__(self, Action action):
+        Action.__init__(action._G, action._S, action._is_left)
+        self._action = action
+
+    cdef Element _call_c(self, a, b):
+        if self._action._is_left:
+            return self._action._call_c(~a, b)
+        else:
+            return self._action._call_c(a, ~b)
+
+    def __invert__(self):
+        return self._action
+
+
+cdef class PrecomposedAction(Action):
+
+    def __init__(self, Action action, Morphism left_precomposition, Morphism right_precomposition):
+        left = action.left_domain()
+        right = action.right_domain()
+        if left_precomposition is not None:
+            if left_precomposition._codomain is not left:
+                left_precomposition = homset.Hom(left_precomposition._codomain, left).natural_map() * left_precomposition
+            left = left_precomposition._domain
+        if right_precomposition is not None:
+            if right_precomposition._codomain is not right:
+              right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
+            right = right_precomposition._domain
+        if action._is_left:
+            G = left
+            S = right
+        else:
+            G = right
+            S = left
+        Action.__init__(G, S, action._is_left)
+        self._action = action
+        self._left_precomposition = left_precomposition
+        self._right_precomposition = right_precomposition
+
+    cdef Element _call_c(self, a, b):
+        if self._left_precomposition is not None:
+            a = self._left_precomposition._call_c(a)
+        if self._right_precomposition is not None:
+            b = self._right_precomposition._call_c(b)
+        return self._action._call_c(a, b)
+
 
 cdef class ActionEndomorphism(Morphism):
 
@@ -96,7 +169,7 @@ cdef class ActionEndomorphism(Morphism):
         self._action = action
         self._g = g
 
-    cdef Element _call_c_impl(self, Element x):
+    cdef Element _call_c(self, x):
         if self._action._is_left:
             return self._action._call_c(self._g, x)
         else:
@@ -118,8 +191,10 @@ cdef class ActionEndomorphism(Morphism):
         return Morphism.__mul__(left, right)
 
     def __invert__(self):
-            return ActionEndomorphism(self._action, ~self._g)
-
-
+            inv_g = ~self._g
+            if sage.structure.element.parent(inv_g) is sage.structure.element.parent(self._g):
+                return ActionEndomorphism(self._action, inv_g)
+            else:
+                return (~self._action)(self._g)
 
 

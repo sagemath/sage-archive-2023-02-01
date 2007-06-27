@@ -230,6 +230,24 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             else:
                 self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
+        # Now handle the native python + sage object cases
+        # that were not taken care of above.
+        elif PY_IS_NUMERIC(x):
+            try:
+                x = yp(x)
+            except TypeError:
+                y = x.__class__(y)
+                return x, y
+            return _verify_canonical_coercion_c(x,y)
+
+        elif PY_IS_NUMERIC(y):
+            try:
+                y = xp(y)
+            except TypeError:
+                x = y.__class__(x)
+                return x, y
+            return _verify_canonical_coercion_c(x,y)
+
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 
 
@@ -277,18 +295,22 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return None, None
 
         # See if there is a natural coercion from R to S
-        try:
-            return Hom(R, S).natural_map(), None
-        except TypeError:
-            pass
+        if PY_TYPE_CHECK(R, Parent):
+            mor = (<Parent>R).coerce_map_from_c(S)
+            if mor is not None:
+                return mor, None
 
         # See if there is a natural coercion from S to R
-        try:
-            return None, Hom(S, R).natural_map()
-        except TypeError:
-            pass
+        if PY_TYPE_CHECK(S, Parent):
+            mor = (<Parent>S).coerce_map_from_c(R)
+            if mor is not None:
+                return None, mor
+
+        # do some base extension stuff
+        return None
 
     cdef discover_action_c(self, R, S, op):
+        return None # for now
         if op is operator.mul:
             try:
                 return LeftModuleAction(R, S)
@@ -316,7 +338,7 @@ cdef class LeftModuleAction(Action):
         # TODO: detect this better
         cdef ModuleElement a
         cdef RingElement g
-        # if this is bad it will raise a type error in the next three lines, which we propagate
+        # if this is bad it will raise a type error in the subsequent lines, which we propagate
         g = rand_elt(G)
         a = rand_elt(S)
         res = a._rmul_c(g) # g * a
@@ -333,7 +355,7 @@ cdef class RightModuleAction(Action):
         # TODO: detect this better
         cdef ModuleElement a
         cdef RingElement g
-        # if this is bad it will raise a type error in the next three lines, which we propagate
+        # if this is bad it will raise a type error in the subsequent lines, which we propagate
         g = rand_elt(G)
         a = rand_elt(S)
         res = a._lmul_c(g) # a * g

@@ -8,7 +8,7 @@ cdef class Morphism(Element):
 # TODO: remove this requirement when we better understand pickling
     cdef __dict__
 
-    # this method assumes Element is an element of domain, and returns an element with parent codomain
+    # these methods assume x is an element of domain, and returns an element with parent codomain
     cdef Element _call_c(self, x)
     cdef Element _call_c_impl(self, Element x)
 

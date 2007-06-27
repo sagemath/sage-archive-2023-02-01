@@ -976,7 +976,7 @@ class Worksheet_rating_info(WorksheetResource, resource.Resource):
         s = self.worksheet.html_ratings_info()
         return http.Response(stream=message("""
         <h2 align=center>Ratings for %s</h2>
-        <h3 align=center><a href='/home/%s'>Return to the worksheet.</a>
+        <h3 align=center><a href='/home/%s'>Go to the worksheet.</a>
         <br><br>
         <table width=70%%align=center border=1 cellpadding=10 cellspacing=0>
         <tr bgcolor="#7799bb"><td width=30em>User</td><td width=10em align=center>Rating</td><td width=10em align=center width=60em>Comment</td></tr>

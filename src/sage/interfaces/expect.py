@@ -95,7 +95,8 @@ class Expect(ParentWithBase):
             command = name
         if not server is None:
             if ulimit:
-                command = 'ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+                command = 'ssh -t %s "PATH=%s:$PATH; export PATH; ulimit %s; %s"'%(
+                    server, SAGE_ROOT, ulimit, command)
             else:
                 command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True

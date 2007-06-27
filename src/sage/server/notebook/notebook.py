@@ -892,11 +892,11 @@ class Notebook(SageObject):
     def html_search(self, search, typ):
         s = """
         <span class="flush-right">
-        <input id="search_worksheets" size=20 onkeypress="return entsub(event);" value="%s"></input>
+        <input id="search_worksheets" size=20 onkeypress="return entsub_ws(event, '%s');" value="%s"></input>
         <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """%('' if search is None else search, typ)
+        """%(typ, '' if search is None else search, typ)
         return s
 
     def html_new_or_upload(self):
@@ -998,18 +998,21 @@ class Notebook(SageObject):
                     r = "%.1f"%rating
                 if not self.user_is_guest(user) and not worksheet.is_rater(user):
                     r = '<i>%s</i>'%r
+                if r != '----':
+                    r = '<a class="worksheet_edit" href="/home/%s/rating_info">%s</a>'%(name,r)
                 return r
 
             return """
             <select onchange="go_option(this);" class="worksheet_edit">
-            <option value="" title="File options" selected=1>File...</option>
+            <option value="" title="File options" selected=1>File</option>
+            <option value="list_rename_worksheet('%s','%s');" title="Change the name of this worksheet.">Rename...</option>
             <option value="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
             <option value="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
             <option value="list_share_worksheet('%s');" title="Share this worksheet with others">Collaborate</option>
             <option value="list_publish_worksheet('%s');" title="Publish this worksheet on the internet">Publish</option>
             <option value="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
             </select>
-            """%(name, name,name,name,name)
+            """%(name, worksheet.name(), name, name,name,name,name)
             #<option value="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
 
         k = ''
@@ -1038,7 +1041,7 @@ class Notebook(SageObject):
 
         v.append(owner)
 
-        collab = worksheet.collaborators()
+        collab = [x for x in worksheet.collaborators() if not x == owner]
         share = ''
 
         if not pub and typ != 'trash' or self.user(user).is_admin():

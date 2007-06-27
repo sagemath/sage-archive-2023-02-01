@@ -751,7 +751,7 @@ function close_callback(status, response_text) {
        alert(response_text);
        return;
    }
-    window.location.replace('/');
+    window.location.replace('/');o
 }
 
 function save_worksheet_and_close() {
@@ -766,14 +766,20 @@ function rename_worksheet() {
    var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
    if (new_worksheet_name == null) return;
    var T = get_element("worksheet_title");
-   T.innerHTML = new_worksheet_name;
+   var set_name;
+   if (new_worksheet_name.length >= 30) {
+       set_name = new_worksheet_name.slice(0,30) + ' ...';
+   } else {
+       set_name = new_worksheet_name;
+   }
+   T.innerHTML = set_name;
    worksheet_name = new_worksheet_name;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
-function entsub(event) {
+function entsub_ws(event, typ) {
   if (event && event.which == 13)
-     search_worksheets();
+     search_worksheets(typ);
   else
      return true;
 }
@@ -994,6 +1000,10 @@ function sync_active_cell_list_callback(status, response_text) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function refresh() {
+    window.location.replace(location.href);
+}
+
 function go_option(theform) {
    with(theform) {
       eval(options[selectedIndex].value);
@@ -1004,6 +1014,17 @@ function go_option(theform) {
 function link_datafile(target_worksheet_filename, filename) {
    open(worksheet_command("link_datafile?filename=" + escape0(filename) +
          "&target="+escape0(target_worksheet_filename)));
+}
+
+
+function list_rename_worksheet(filename, curname) {
+   var new_name = prompt('Enter new worksheet name:', curname);
+   async_request('/home/' + filename + '/' + 'rename',
+            list_rename_worksheet_callback, 'name='+ escape0(new_name));
+}
+
+function list_rename_worksheet_callback(status, response_text) {
+   refresh();
 }
 
 

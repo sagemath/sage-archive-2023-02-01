@@ -1,13 +1,13 @@
 TODO for the new Twisted notebook
 
-[ ] search is broken in that the typ=??? field gives "undefined".
+[x] search is broken in that the typ=??? field gives "undefined".
 
-[ ] rename in worksheet list view would be very useful.
+[x] rename in worksheet list view would be very useful.
 
-[ ] javascript -- when reset title it should truncate without having to refresh window, i.e.,
+[x] javascript -- when reset title it should truncate without having to refresh window, i.e.,
    javascript should do the truncation too.
 
-[ ] Click rating link to see user ratings.
+[x] Click rating link to see user ratings.
 
 
 [x] backward compatible

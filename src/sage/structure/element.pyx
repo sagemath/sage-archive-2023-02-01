@@ -267,6 +267,9 @@ cdef class Element(sage_object.SageObject):
     def base_extend(self, R):
         return self.base_extend_c_impl(R)
 
+    def base_base_extend(self, R):
+        return self.base_extend_c_impl(self.base_ring().base_extend(R))
+
     cdef base_extend_recursive_c(self, ParentWithBase R):
         cdef ParentWithBase V
         # Don't call _c function so we check for ParentWithBase
@@ -1341,14 +1344,15 @@ cdef class RingElement(ModuleElement):
                 # Now self must be a ring element:
                 # If the parent is the same as the base ring, good
                 if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
-                    # this won't be executed !?
+                    # this won't be executed !? (it's already dealt with above!)
                     print "NOT EXECUTED"
                     return (<ModuleElement>right)._rmul_c(self)
                 elif PY_TYPE_CHECK(right, Matrix):
-                    # this won't be executed !?
+                    # this won't be executed !? (since Matrix subclasses RingElement)
                     print "NOT EXECUTED"
                     return (<Matrix>right)._rmultiply_by_scalar(self)
                 elif PY_TYPE_CHECK(right, Vector):
+                    # scalar * right
                     right = (<Vector>right).base_base_extend_canonical_sym_c((<ModuleElement>self)._parent)
                     return (<Vector>right)._rmultiply_by_scalar(self)
                 else:
@@ -1362,7 +1366,7 @@ cdef class RingElement(ModuleElement):
                             (<Parent>(<ModuleElement>right)._parent._base)._coerce_c(self))
                     except TypeError:
                         # that failed -- try to base extend right then do the multiply:
-                        right = right.base_extend_recursive_c((<RingElement>self)._parent)
+                        right = (<ModuleElement>right).base_extend_recursive_c((<RingElement>self)._parent)
                         return (<ModuleElement>right)._rmul_c(self)
             elif PY_TYPE_CHECK(right, Matrix):  # matrix is a ring element
                 right = (<Matrix>right).base_base_extend_canonical_sym_c((<ModuleElement>self)._parent)
@@ -1853,9 +1857,12 @@ cdef class Vector(ModuleElement):
                 print "NOT EXECUTED"
                 return (<Vector>left)._vector_times_vector_c(<Vector>right)
             #     scalar * right
-            # this won't be executed !? (see: RingElement.__mul__)
-            print "NOT EXECUTED"
-            return (<ModuleElement>right)._rmultiply_by_scalar(left)
+            # almost not executed, except it will be used for non-sage scalars
+            # by python rules (this is same as in: RingElement.__mul__)
+            if not isinstance(left, Element):
+                left = py_scalar_to_element(left)
+            right = (<Vector>right).base_base_extend_canonical_sym_c((<Element>left)._parent)
+            return (<Vector>right)._rmultiply_by_scalar(left)
 
     cdef Vector _vector_times_vector_c(Vector left, Vector right):
         if left._degree != right._degree:
@@ -1872,6 +1879,8 @@ cdef class Vector(ModuleElement):
         return left.vector_time_vector_c_impl(right)
 
     def __div__(self, right):
+        if PY_IS_NUMERIC(right):
+            right = py_scalar_to_element(right)
         if PY_TYPE_CHECK(right, RingElement):
             # Let __mul__ do the job
             return self.__mul__(~right)
@@ -2092,8 +2101,11 @@ cdef class Matrix(AlgebraElement):
                 print "NOT EXECUTED"
                 return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
             #     scalar * right
-            print "NOT EXECUTED"
-            # this won't be executed !? (see: RingElement.__mul__)
+            # almost not executed, except it will be used for non-sage scalars
+            # by python rules (this is same as in: RingElement.__mul__)
+            if not isinstance(left, Element):
+                left = py_scalar_to_element(left)
+            right = (<Matrix>right).base_base_extend_canonical_sym_c((<Element>left)._parent)
             return (<Matrix>right)._rmultiply_by_scalar(left)
 
     cdef Vector _vector_times_matrix_c(matrix_right, Vector vector_left):

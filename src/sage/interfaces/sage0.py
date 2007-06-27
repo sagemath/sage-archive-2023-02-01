@@ -108,8 +108,7 @@ class Sage(Expect):
                        **kwds):
         if python:
             if server:
-                # It is important that the cleaner stay running no matter what.
-                command = "nohup sage -cleaner & sage -python -u"
+                command = "sage -python -u"
             else:
                 command = "sage -python -u"
             prompt = ">>>"

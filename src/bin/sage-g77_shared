@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ $UNAME = "Darwin" ]; then
+    g77 -bundle -undefined dynamic_lookup $@
+else
+    g77 -shared $@
+fi
+
+echo $?

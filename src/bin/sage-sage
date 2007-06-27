@@ -151,6 +151,7 @@ SAGE_STARTUP_COMMAND="
 import sage.misc.misc; print \
 sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
 from sage.all_cmdline import *;\
+import sage.all_cmdline; sage.all_cmdline._init_cmdline(globals());\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\
 from sage.misc.interpreter import attached_files;\

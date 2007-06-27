@@ -271,11 +271,11 @@ class Expect(ParentWithBase):
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
-        if self.__name in failed_to_start:
-            if alt_message:
-                raise RuntimeError, alt_message
-            else:
-                raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
+        #if self.__name in failed_to_start:
+        #    if alt_message:
+        #        raise RuntimeError, alt_message
+        #    else:
+        #        raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
 
         self._session_number += 1
         current_path = os.path.abspath('.')

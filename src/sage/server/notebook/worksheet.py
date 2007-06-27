@@ -1145,7 +1145,7 @@ class Worksheet:
             return
 
         if self.__comp_is_running:
-            self._record_that_we_are_computing()
+            #self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
@@ -1269,7 +1269,7 @@ class Worksheet:
             out = self._process_output(out)
             if not C.introspect():
                 C.set_output_text(out, '')
-            self._record_that_we_are_computing()
+            #self._record_that_we_are_computing()
             return 'w', C
 
         # Finished a computation.
@@ -1354,7 +1354,7 @@ class Worksheet:
         their browser) is also considered idle, even if code is running.
         """
         if self.time_idle() > timeout:
-            print "Quitting idle or ignored worksheet process for '%s'."%self.name()
+            print "Quitting ignored worksheet process for '%s'."%self.name()
             self.quit()
 
     def time_idle(self):
@@ -1394,7 +1394,7 @@ class Worksheet:
 
 
     def enqueue(self, C, username=None):
-        self._record_that_we_are_computing(username)
+        #self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:

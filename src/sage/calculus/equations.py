@@ -283,7 +283,9 @@ def assume(*args):
     just the assume command!):
         sage: from sage.calculus.calculus import maxima as calcmaxima
         sage: calcmaxima.eval('declare(n,integer)')
+        'done'
         sage: var('r2')
+        r2
         sage: c = P*e^(r*n)
         sage: d = P*(1+r2)^n
         sage: solve(c==d,r2)
@@ -357,7 +359,10 @@ def forget_all():
     global _assumptions
     if len(_assumptions) == 0:
         return
-    maxima._eval_line('forget(facts());')
+    try:
+        maxima._eval_line('forget(facts());')
+    except TypeError:
+        pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
     _assumptions = []
 

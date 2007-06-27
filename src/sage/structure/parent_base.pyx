@@ -75,7 +75,7 @@ cdef class ParentWithBase(parent.Parent):
         return  self.base_extend_canonical_c(X)
 
     # Canonical base extension by X (recursive)
-    def base_extend_canonical_c(self, ParentWithBase X):
+    cdef base_extend_canonical_c(self, ParentWithBase X):
         """
         AUTHOR: Gonzalo Tornaria (2007-06-20)
 
@@ -243,10 +243,10 @@ cdef class ParentWithBase(parent.Parent):
 
         if X.has_coerce_map_from(self):
             return X
-        B = self.base_extend_canonical_rec(X)
+        B = self._base_extend_canonical_rec(X)
         if B is None:
             raise TypeError, "No base extension defined"
-        if X.base_extend_canonical_rec(self) is None:
+        if X._base_extend_canonical_rec(self) is None:
             return B
         raise TypeError, "Ambiguous base extension"
 
@@ -258,7 +258,7 @@ cdef class ParentWithBase(parent.Parent):
         """
         return  self.base_extend_canonical_sym_c(X)
 
-    def base_extend_canonical_sym_c(self, ParentWithBase X):
+    cdef base_extend_canonical_sym_c(self, ParentWithBase X):
         from sage.matrix.matrix_space import MatrixSpace_generic
         from sage.modules.free_module import FreeModule_generic
 
@@ -281,8 +281,8 @@ cdef class ParentWithBase(parent.Parent):
         if X.has_coerce_map_from(self):
             return X
 
-        B1 = self.base_extend_canonical_rec(X)
-        B2 = X.base_extend_canonical_rec(self)
+        B1 = self._base_extend_canonical_rec(X)
+        B2 = X._base_extend_canonical_rec(self)
         if B1 is None and B2 is None:
             raise TypeError, "No base extension defined"
         if B1 is None:
@@ -301,38 +301,39 @@ cdef class ParentWithBase(parent.Parent):
 
     # Not sure if this function is ready to use. It should work fine in the non-ambiguous case,
     # but might give some unexpected answers in cases of ambiguity.
-    def base_extend_recursive_c(self, ParentWithBase X):
+    cdef base_extend_recursive_c(self, ParentWithBase X):
         """
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
         if X.has_coerce_map_from(self):
             return X
-        B = self.base_extend_canonical_rec(X)
+        B = self._base_extend_canonical_rec(X)
         if B is None:
             raise TypeError, "No base extension defined"
         return B
 
     # Private function for recursion
-    def base_extend_canonical_rec(self, ParentWithBase X):
+    cdef _base_extend_canonical_rec(self, ParentWithBase X):
         """
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
-        self_b = self.base()
+        cdef ParentWithBase self_b
+        self_b = self._base
         if self_b is self:
             return None
         try:
             if X.has_coerce_map_from(self_b):
                 return self.base_extend(X)
             else:
-                B = X.base_extend_canonical_rec(self_b)
+                B = X._base_extend_canonical_rec(self_b)
             if B is None:
-                B = self_b.base_extend_canonical_rec(X)
+                B = self_b._base_extend_canonical_rec(X)
                 if not B is None:
                     return self.base_extend(B)
             else:
                 if not B.has_coerce_map_from(self):
                     return self.base_extend(B)
-            B = self_b.base_extend_canonical_rec(X.base())
+            B = self_b._base_extend_canonical_rec(X.base())
             if B is None:
                 return None
             return self.base_extend(B)

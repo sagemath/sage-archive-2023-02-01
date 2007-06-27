@@ -824,7 +824,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = left._mul_c(<RingElement>(self._entries[i]))
+            v[i] = (<RingElement>(self._entries[i]))._rmul_c(left)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
@@ -834,7 +834,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._mul_c(right)
+            v[i] = (<RingElement>(self._entries[i]))._lmul_c(right)
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

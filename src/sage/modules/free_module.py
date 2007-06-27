@@ -470,6 +470,36 @@ class FreeModule_generic(module.Module):
             self.coordinates(w)
         return w
 
+    def is_submodule(self, other):
+        """
+        Copied from FreeModule_generic_pid
+        It only works partially since basis() is not implemented in general
+        Trivial cases are already useful for coercion, e.g.
+            sage: QQ(1/2) * vector(ZZ[x][y],[1,2,3,4])
+            (1/2, 1, 3/2, 2)
+            sage: vector(ZZ[x][y],[1,2,3,4]) * QQ(1/2)
+            (1/2, 1, 3/2, 2)
+        """
+        if not isinstance(other, FreeModule_generic):
+            return False
+        if self.ambient_vector_space() != other.ambient_vector_space():
+            return False
+        if other == other.ambient_vector_space():
+            return True
+        if other.rank() < self.rank():
+            return False
+        if self.base_ring() != other.base_ring():
+            try:
+                if not self.base_ring().is_subring(other.base_ring()):
+                    return False
+            except NotImplementedError:
+                return False
+        for b in self.basis():
+            if not (b in other):
+                return False
+        return True
+
+
     def _has_coerce_map_from_space(self, V):
         """
         Return True if V canonically coerces to self.

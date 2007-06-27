@@ -65,6 +65,282 @@ cdef class ParentWithBase(parent.Parent):
     def base(self):
         return self._base
 
+    # Canonical base extension by X (recursive)
+    def base_extend_canonical(self, X):
+        """
+        Returns canonical base extension.
+        NOTE: this function should not be extended.
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+        """
+        return  self.base_extend_canonical_c(X)
+
+    # Canonical base extension by X (recursive)
+    def base_extend_canonical_c(self, ParentWithBase X):
+        """
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+
+        TEST CASES:
+
+        sage: ZZ.base_extend_canonical(QQ)
+        Rational Field
+        sage: ZZ[x].base_extend_canonical(QQ)
+        Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x].base_extend_canonical(QQ[x])
+        Univariate Polynomial Ring in x over Rational Field
+
+        sage: ZZ[x][y].base_extend_canonical(QQ)
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y].base_extend_canonical(QQ[x])
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y].base_extend_canonical(QQ[y])
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y].base_extend_canonical(QQ[x][y])
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        sage: ZZ[x][y][z].base_extend_canonical(QQ)
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[x])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[z])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[x][y])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[x][z])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y][z])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[x][y][z])
+        Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        sage: ZZ[x][y][z][t].base_extend_canonical(QQ[x][y][z])
+        Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z][t].base_extend_canonical(QQ[y][z])
+        Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: ZZ[x][y][z][r][s][t].base_extend_canonical(QQ[r][s][t])
+        Univariate Polynomial Ring in t over Univariate Polynomial Ring in s over Univariate Polynomial Ring in r over Univariate Polynomial Ring in z over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        # Incorrectly ordered variables will fail.
+        # This is consistent with has_coerce_map_from
+
+        sage: ZZ[x][y].base_extend_canonical(QQ[y][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[z][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[z][y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[x][z][y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y][x][z])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[y][z][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[z][x][y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x][y][z].base_extend_canonical(QQ[z][y][x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+
+
+        # Some tests for matrix spaces
+
+        sage: MatrixSpace(ZZ,2,2).base_extend_canonical(QQ)
+        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        sage: MatrixSpace(ZZ[x],2,2).base_extend_canonical(QQ)
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        sage: MatrixSpace(ZZ[x],2,2).base_extend_canonical(QQ[x])
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        sage: MatrixSpace(ZZ[x][y],2,2).base_extend_canonical(QQ)
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: MatrixSpace(ZZ[x][y],2,2).base_extend_canonical(QQ[x])
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: MatrixSpace(ZZ[x][y],2,2).base_extend_canonical(QQ[y])
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+        sage: MatrixSpace(ZZ[x][y],2,2).base_extend_canonical(QQ[x][y])
+        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        # Some ambiguous extensions
+
+        sage: ZZ[x].base_extend_canonical(ZZ[y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: ZZ[x].base_extend_canonical(QQ[y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: QQ[y].base_extend_canonical(ZZ[x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+        sage: QQ[y].base_extend_canonical(QQ[x])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+
+        sage: ZZ[x][z].base_extend_canonical(ZZ[y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+
+        sage: MatrixSpace(ZZ,1,1).base_extend_canonical(ZZ[y])
+        Full MatrixSpace of 1 by 1 dense matrices over Univariate Polynomial Ring in y over Integer Ring
+        sage: MatrixSpace(ZZ[x],1,1).base_extend_canonical(ZZ[y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+
+        sage: FreeModule(ZZ,1).base_extend_canonical(ZZ[y])
+        Ambient free module of rank 1 over the integral domain Univariate Polynomial Ring in y over Integer Ring
+        sage: FreeModule(ZZ[x],1).base_extend_canonical(ZZ[y])
+        Traceback (most recent call last):
+        ...
+        TypeError: Ambiguous base extension
+
+
+        """
+        #cdef special(t):
+        #    return PY_TYPE_CHECK(self, t) and not PY_TYPE_CHECK(X, t)
+        #
+        #if special(matrix.matrix_space.MatrixSpace_generic) or \
+        #   special(sage.modules.free_module.FreeModule_generic):
+        #    return self.base_extend(self.base().base_extend_canonical(X))
+
+        # NOTE: if you add more special cases here, make sure you add them down in
+        # base_extend_canonical_sym_c()
+        from sage.matrix.matrix_space import MatrixSpace_generic
+        from sage.modules.free_module import FreeModule_generic
+        if (
+                PY_TYPE_CHECK(self, MatrixSpace_generic) and not PY_TYPE_CHECK(X, MatrixSpace_generic)
+           ) or (
+                PY_TYPE_CHECK(self, FreeModule_generic) and not PY_TYPE_CHECK(X, FreeModule_generic)
+           ):
+            return self.base_extend(self.base().base_extend_canonical(X))
+
+        if X.has_coerce_map_from(self):
+            return X
+        B = self.base_extend_canonical_rec(X)
+        if B is None:
+            raise TypeError, "No base extension defined"
+        if X.base_extend_canonical_rec(self) is None:
+            return B
+        raise TypeError, "Ambiguous base extension"
+
+    def base_extend_canonical_sym(self, ParentWithBase X):
+        """
+        Symmetric version of base_extend_canonical()
+        NOTE: this function should not be extended.
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+        """
+        return  self.base_extend_canonical_sym_c(X)
+
+    def base_extend_canonical_sym_c(self, ParentWithBase X):
+        from sage.matrix.matrix_space import MatrixSpace_generic
+        from sage.modules.free_module import FreeModule_generic
+
+        if (
+                PY_TYPE_CHECK(self, MatrixSpace_generic) and not PY_TYPE_CHECK(X, MatrixSpace_generic)
+           ) or (
+                PY_TYPE_CHECK(self, FreeModule_generic) and not PY_TYPE_CHECK(X, FreeModule_generic)
+           ):
+                return self.base_extend(self.base().base_extend_canonical(X))
+
+        if (
+                not PY_TYPE_CHECK(self, MatrixSpace_generic) and PY_TYPE_CHECK(X, MatrixSpace_generic)
+           ) or (
+                not PY_TYPE_CHECK(self, FreeModule_generic) and PY_TYPE_CHECK(X, FreeModule_generic)
+           ):
+                return X.base_extend(X.base().base_extend_canonical(self))
+
+        if self.has_coerce_map_from(X):
+            return self
+        if X.has_coerce_map_from(self):
+            return X
+
+        B1 = self.base_extend_canonical_rec(X)
+        B2 = X.base_extend_canonical_rec(self)
+        if B1 is None and B2 is None:
+            raise TypeError, "No base extension defined"
+        if B1 is None:
+            return B2
+        if B2 is None:
+            return B1
+        raise TypeError, "Ambiguous base extension"
+
+    def base_extend_recursive(self, X):
+        """
+        Returns recursive base extension.
+        NOTE: this function should not be extended.
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+        """
+        return  self.base_extend_recursive_c(X)
+
+    # Not sure if this function is ready to use. It should work fine in the non-ambiguous case,
+    # but might give some unexpected answers in cases of ambiguity.
+    def base_extend_recursive_c(self, ParentWithBase X):
+        """
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+        """
+        if X.has_coerce_map_from(self):
+            return X
+        B = self.base_extend_canonical_rec(X)
+        if B is None:
+            raise TypeError, "No base extension defined"
+        return B
+
+    # Private function for recursion
+    def base_extend_canonical_rec(self, ParentWithBase X):
+        """
+        AUTHOR: Gonzalo Tornaria (2007-06-20)
+        """
+        self_b = self.base()
+        if self_b is self:
+            return None
+        try:
+            if X.has_coerce_map_from(self_b):
+                return self.base_extend(X)
+            else:
+                B = X.base_extend_canonical_rec(self_b)
+            if B is None:
+                B = self_b.base_extend_canonical_rec(X)
+                if not B is None:
+                    return self.base_extend(B)
+            else:
+                if not B.has_coerce_map_from(self):
+                    return self.base_extend(B)
+            B = self_b.base_extend_canonical_rec(X.base())
+            if B is None:
+                return None
+            return self.base_extend(B)
+
+        except TypeError:
+
+            return None
+
 
     ############################################################################
     # Homomorphism --

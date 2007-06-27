@@ -567,9 +567,9 @@ def preparse_file(contents, attached={}, magic=True,
                 import interpreter
                 L = interpreter.load_sagex(name_load)
             else:
-                print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
-                L = ''
-                continue
+                #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
+                L = 'load("%s")'%name_load
+
         M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
         F.append(M)
         i += 1

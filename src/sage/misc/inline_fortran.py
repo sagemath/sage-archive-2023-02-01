@@ -1,6 +1,7 @@
 import __builtin__
-import tempfile
 import os
+
+from sage.misc.misc import tmp_filename, tmp_dir
 
 count=0
 
@@ -10,19 +11,29 @@ class InlineFortran:
         self.globals=globals
         self.library_paths=[]
         self.libraries=[]
-        self._verbose = False
+        self.verbose = False
 
     def __repr__(self):
         return "Interface to Fortran compiler"
 
+    def __call__(self, *args, **kwds):
+        return self.eval(*args, **kwds)
+
     def eval(self,x):
-        import os
+        if len(x.splitlines()) == 1 and os.path.exists(x):
+            filename = x
+            x = open(x).read()
+            if filename.lower().endswith('.f90'):
+                x = '!f90\n' + x
         global count
         # On linux g77_shared should be a script that runs gfortran -shared
         # On OSX it should be a script that runs gfortran -bundle -undefined dynamic_lookup
         path = os.environ['SAGE_LOCAL']+'/bin/sage-g77_shared'
         from numpy import f2py
-        name='fortran_module_%d'%count
+        #name = tmp_dir() + '/fortran_module_%d'%count
+        name = 'fortran_module_%d'%count
+        if os.path.exists(name):
+            os.unlink(name)
         s_lib_path=""
         s_lib=""
         for s in self.library_paths:
@@ -33,30 +44,38 @@ class InlineFortran:
 
         # if the first line has !f90 as a commment gfortran will treat it as
         # fortran 90 code
-        if x[0:4]=='!f90':
-            fname = os.path.join(tempfile.mktemp()+'.f90')
+        if x.startswith('!f90'):
+            fname = os.path.join(tmp_filename() +'.f90')
         else:
-            fname = os.path.join(tempfile.mktemp()+'.f')
+            fname = os.path.join(tmp_filename() +'.f')
 
-        f2py.compile(x, name, '--quiet --f77exec=%s --f90exec=%s'%(path,path)+ \
-                     ' '+s_lib_path+' '+s_lib,source_fn=fname)
-        if self._verbose:
-            print "OUTPUT from Fortran"
-            print f.read()
+        log = tmp_filename()
+        extra_args = '--quiet --f77exec=%s --f90exec=%s %s %s  1>&2 >"%s"'%(
+                    path, path, s_lib_path, s_lib, log)
+
+        f2py.compile(x, name, extra_args = extra_args, source_fn=fname)
+
+        log_string = open(log).read()
+
+        os.unlink(log)
+        os.unlink(fname)
+
+        if self.verbose:
+            print log_string
 
         count += 1
-        m=__builtin__.__import__(name)
+        try:
+            m=__builtin__.__import__(name)
+        except ImportError:
+            if not self.verbose:
+                print log_string
+            return
+        finally:
+            os.unlink(name + '.so')
+
         for k, x in m.__dict__.iteritems():
             if k[0] != '_':
                 self.globals[k] = x
-
-    def verbose(self, option):
-        """
-        EXAMPLES:
-            sage: fortran.verbose(False)
-            sage: fortran.verbose(True)
-        """
-        self._verbose = bool(option)
 
     def add_library(self,s):
        self.libraries.append(s)

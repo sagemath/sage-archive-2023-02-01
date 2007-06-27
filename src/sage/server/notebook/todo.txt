@@ -36,7 +36,7 @@ TODO for the new Twisted notebook
 
 [x] bug -- using text mode can have multiple cells with the same id. Ick!
 
-[] way to attach local text files:
+[x] way to attach local text files:
     (1) Click "upload"
     (2) select a .py, .sage, or .spyx file.
     (3) Then it gets listed in

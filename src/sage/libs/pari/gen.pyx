@@ -4819,6 +4819,13 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(mathnf0(self.g, flag))
 
+    def mathnfmod(self, gen d):
+        """
+	trying to interface with hnfmod
+        """
+        _sig_on
+        return self.new_gen(hnfmod(self.g, d.g))
+
     def matsnf(self, flag=0):
         """
         x.matsnf({flag=0}): Smith normal form (i.e. elementary

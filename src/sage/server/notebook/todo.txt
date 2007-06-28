@@ -1,11 +1,12 @@
 TODO for the new Twisted notebook
 
+[ ] Viewing published pages still sometimes claims they were last updated
+    "by pub", which is wrong.
+
 [ ] admin users should be able to delete worksheets, especially published ones
 
 [ ] when saving after edit mode, the status info about whether or not
 a cell has been evaluated is all set to "not evaluated".  It shouldn't be.
-
-[ ]
 
 [x] search is broken in that the typ=??? field gives "undefined".
 
@@ -53,7 +54,7 @@ a cell has been evaluated is all set to "not evaluated".  It shouldn't be.
 
 [x] I forgot the "doctest text" display for the worksheets!
 
-[] bug: published worksheets always say "last edited on June 22, 2007
+[x] bug: published worksheets always say "last edited on June 22, 2007
 04:18 AM by pub" but they should give who really edited them.  The
 time maybe doesn't get updated either.
 
@@ -71,7 +72,7 @@ someone, learn about programming, and many other things."
 [ ] i definitely do not know how to make twisted listen on the same port
 with both https and http.  however, it is easy to make twisted listen
 on separate ports for both http and https, and allow the anonymous
-view view https.  good idea.
+view http.
 
 
 -----------------------
@@ -79,10 +80,12 @@ view view https.  good idea.
 
 Later...
 
-[] have an active/archived/trash/new folder thing for published worksheets
+[x] have an active/archived/trash/new folder thing for published worksheets
 
 [ ] if a worksheet is in the trash after x days all images are deleted...
+
 [ ] migration of old notebooks to new format
+
 [ ] implement user configuration:
       * default system
 

@@ -88,14 +88,16 @@ class Expect(ParentWithBase):
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_cleaner = True, path=None):
+                 do_cleaner = True, remote_cleaner = False, path=None):
 
         self.__is_remote = False
+        self.__remote_cleaner = remote_cleaner
         if command == None:
             command = name
         if not server is None:
             if ulimit:
-                command = 'ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+                command = 'ssh -t %s "PATH=%s:$PATH; export PATH; ulimit %s; %s"'%(
+                    server, SAGE_ROOT, ulimit, command)
             else:
                 command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True
@@ -104,6 +106,8 @@ class Expect(ParentWithBase):
                 print "Using remote server"
                 print command
             self._server = server
+        else:
+            self._server = None
         self.__do_cleaner = do_cleaner
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
@@ -271,11 +275,11 @@ class Expect(ParentWithBase):
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
-        if self.__name in failed_to_start:
-            if alt_message:
-                raise RuntimeError, alt_message
-            else:
-                raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
+        #if self.__name in failed_to_start:
+        #    if alt_message:
+        #        raise RuntimeError, alt_message
+        #    else:
+        #        raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
 
         self._session_number += 1
         current_path = os.path.abspath('.')
@@ -297,6 +301,9 @@ class Expect(ParentWithBase):
             print "Starting %s"%cmd.split()[0]
 
         try:
+            if self.__remote_cleaner and self._server:
+                c = 'ssh %s "nohup sage -cleaner"  &'%self._server
+                os.system(c)
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
             if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)

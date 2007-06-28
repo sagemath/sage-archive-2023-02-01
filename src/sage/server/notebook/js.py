@@ -705,6 +705,11 @@ function copy_worksheet() {
     window.location.replace(worksheet_command("copy"));
 }
 
+function rate_worksheet(rating) {
+    comment = get_element("rating_comment").value;
+    window.location.replace(worksheet_command("rate?rating="+rating + "&comment="+escape0(comment)));
+}
+
 function download_worksheet(base_filename) {
     open(worksheet_command("download/" + base_filename + '.sws'));
 }
@@ -761,14 +766,20 @@ function rename_worksheet() {
    var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
    if (new_worksheet_name == null) return;
    var T = get_element("worksheet_title");
-   T.innerHTML = new_worksheet_name;
+   var set_name;
+   if (new_worksheet_name.length >= 30) {
+       set_name = new_worksheet_name.slice(0,30) + ' ...';
+   } else {
+       set_name = new_worksheet_name;
+   }
+   T.innerHTML = set_name;
    worksheet_name = new_worksheet_name;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
-function entsub(event) {
+function entsub_ws(event, typ) {
   if (event && event.which == 13)
-     search_worksheets();
+     search_worksheets(typ);
   else
      return true;
 }
@@ -780,9 +791,14 @@ function search_worksheets(typ) {
     window.location.replace(url);
 }
 
-function go_system_select(theform) {
+function go_system_select(theform, original_system) {
    with(theform) {
-      system_select(options[selectedIndex].value);
+      var system = options[selectedIndex].value;
+      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+          system_select(system);
+      } else {
+          options[original_system].selected = 1;
+      }
    }
 }
 
@@ -825,21 +841,13 @@ function add_worksheet_callback(status,response_text) {
 }
 
 function delete_worksheet(name) {
-    async_request('/delete_worksheet', delete_worksheet_callback, 'name='+name)
+    async_request('/send_to_trash', delete_worksheet_callback, 'filename='+escape0(name))
 }
 
 function delete_worksheet_callback(status, response_text) {
     if (status == "success") {
-        /* expect response_text to encode a pair consisting of
-           the HTML for the updated worksheet list and the
-           id of a worksheet to switch to in case we just
-           deleted the current worksheet. */
-        var X = response_text.split(SEP);
-        if (X.length <= 1) {
-            alert("Possible failure deleting worksheet.  " + response_text);
-        } else {
-            set_worksheet_list(X[0]);
-        }
+        window.location.replace("/?typ=trash");
+
     } else {
         alert("Possible failure deleting worksheet.");
     }
@@ -984,6 +992,10 @@ function sync_active_cell_list_callback(status, response_text) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function refresh() {
+    window.location.replace(location.href);
+}
+
 function go_option(theform) {
    with(theform) {
       eval(options[selectedIndex].value);
@@ -994,6 +1006,17 @@ function go_option(theform) {
 function link_datafile(target_worksheet_filename, filename) {
    open(worksheet_command("link_datafile?filename=" + escape0(filename) +
          "&target="+escape0(target_worksheet_filename)));
+}
+
+
+function list_rename_worksheet(filename, curname) {
+   var new_name = prompt('Enter new worksheet name:', curname);
+   async_request('/home/' + filename + '/' + 'rename',
+            list_rename_worksheet_callback, 'name='+ escape0(new_name));
+}
+
+function list_rename_worksheet_callback(status, response_text) {
+   refresh();
 }
 
 

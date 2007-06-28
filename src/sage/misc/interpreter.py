@@ -188,9 +188,7 @@ def do_prefilter_paste(line, continuation):
                         X = load_sagex(F)
                         __IPYTHON__.push(X)
                     else:
-                        print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%F
-                        line = ''
-                        raise IOError
+                        line = 'load("%s")'%F
                     t = os.path.getmtime(F)
                     attached[F] = t
                 except IOError:
@@ -282,8 +280,9 @@ def do_prefilter_paste(line, continuation):
             elif name[-5:] == '.spyx':
                 line = load_sagex(name)
             else:
-                raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
-                line = ''
+                line = 'load("%s")'%name
+                #raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+                #line = ''
 
     elif line[:13] == 'save_session(':
         line = 'save_session(locals(), %s'%line[13:]
@@ -339,7 +338,9 @@ def do_prefilter_paste(line, continuation):
                 raise ImportError, "File '%s' not found."%name
                 line = ''
         else:
+            #line = 'load("%s")'%name
             raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line, not continuation)
     return line

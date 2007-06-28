@@ -6,7 +6,7 @@ defaults = {'cell_input_color':'#0000000',
             'max_history_length':250,
             'number_of_backups':3,
 
-            'idle_timeout':300,        # 5 minutes
+            'idle_timeout':120,        # 2 minutes
             'idle_check_interval':30,
 
             'save_interval':30,        # seconds

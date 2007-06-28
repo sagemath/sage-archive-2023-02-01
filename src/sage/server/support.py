@@ -48,8 +48,16 @@ def init(object_directory=None, globs={}):
     sage.misc.latex.EMBEDDED_MODE = True
     sage.misc.pager.EMBEDDED_MODE = True
 
+    setup_systems(globs)
+
     # Turn on latex print mode by default.
     #sage.misc.latex.lprint()
+
+
+def setup_systems(globs):
+    from sage.misc.inline_fortran import InlineFortran
+    fortran = InlineFortran(globs)
+    globs['fortran'] = fortran
 
 
 ######################################################################

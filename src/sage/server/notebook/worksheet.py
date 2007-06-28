@@ -304,13 +304,22 @@ class Worksheet:
             raise TypeError, "W must be a worksheet"
         self.__worksheet_came_from = W
 
-    def rate(self, x, username):
-        self.ratings().append((username, x))
-        del self.__rating
+    def rate(self, x, comment, username):
+        r = self.ratings()
+        for i in range(len(r)):
+            if r[i][0] == username:
+                r[i] = (username, x, comment)
+                return
+        else:
+            r.append((username, x, comment))
+##         try:
+##             del self.__rating
+##         except AttributeError:
+##             pass
 
     def is_rater(self, username):
         try:
-            return username in [y for y, _ in self.ratings()]
+            return username in [x[0] for x in self.ratings()]
         except TypeError:
             return False
 
@@ -322,16 +331,29 @@ class Worksheet:
             self.__ratings = v
             return v
 
+    def html_ratings_info(self):
+        ratings = self.ratings()
+        lines = []
+        for z in sorted(ratings):
+            if len(z) == 2:
+                person, rating = z
+                comment = ''
+            else:
+                person, rating, comment = z
+            lines.append('<tr><td>%s</td><td align=center>%s</td><td>%s</td></tr>'%(
+                person, rating, '&nbsp;' if not comment else comment))
+        return '\n'.join(lines)
+
     def rating(self):
-        try:
-            return self.__rating
-        except AttributeError:
-            r = [x for _, x in self.ratings()]
+##         try:
+##             return self.__rating
+##         except AttributeError:
+            r = [x[1] for x in self.ratings()]
             if len(r) == 0:
-                rating = 0    # means "not rated"
+                rating = -1    # means "not rated"
             else:
                 rating = float(sum(r))/float(len(r))
-            self.__rating = rating
+#            self.__rating = rating
             return rating
 
     ##########################################################
@@ -660,6 +682,7 @@ class Worksheet:
                     if id in used_ids:
                         # In this case don't reuse, since ids must be unique.
                         id = next_available_id(ids)
+                        ids.add(id)
                     html = True
                 else:
                     id = next_available_id(ids)
@@ -745,7 +768,7 @@ class Worksheet:
         if self.is_doc_worksheet():
             return ''
         return """
-        <button title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
+        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
         """
 
     def html_share_publish_buttons(self, select=None):
@@ -1086,6 +1109,7 @@ class Worksheet:
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
+        self._enqueue_auto_cells()
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
             #cmd += '_support_.init("%s", globals()); '%object_directory
@@ -1112,7 +1136,6 @@ class Worksheet:
             pass
         self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
                                           ulimit = self.notebook().get_ulimit())
-        verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__next_block_id = 0
         self.initialize_sage()
@@ -1123,7 +1146,7 @@ class Worksheet:
             return
 
         if self.__comp_is_running:
-            self._record_that_we_are_computing()
+            #self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
@@ -1247,7 +1270,7 @@ class Worksheet:
             out = self._process_output(out)
             if not C.introspect():
                 C.set_output_text(out, '')
-            self._record_that_we_are_computing()
+            #self._record_that_we_are_computing()
             return 'w', C
 
         # Finished a computation.
@@ -1314,7 +1337,6 @@ class Worksheet:
         self.__sage = initialized_sage(server = self.notebook().get_server(),
                                        ulimit = self.notebook().get_ulimit())
         self.initialize_sage()
-        self._enqueue_auto_cells()
         self.start_next_comp()
 
 
@@ -1332,7 +1354,7 @@ class Worksheet:
         their browser) is also considered idle, even if code is running.
         """
         if self.time_idle() > timeout:
-            print "Quitting idle or ignored worksheet process for '%s'."%self.name()
+            print "Quitting ignored worksheet process for '%s'."%self.name()
             self.quit()
 
     def time_idle(self):
@@ -1372,18 +1394,11 @@ class Worksheet:
 
 
     def enqueue(self, C, username=None):
-        self._record_that_we_are_computing(username)
+        #self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:
             raise ValueError, "C must be have self as worksheet."
-        # If the SAGE server hasn't started and the queue is empty,
-        # first enqueue the auto cells:
-        if len(self.__queue) == 0:
-            try:
-                self.__sage
-            except AttributeError:
-                self._enqueue_auto()
 
         # Now enqueue the requested cell.
         if not (C in self.__queue):
@@ -2142,7 +2157,7 @@ def dictify(s):
 
 def next_available_id(v):
     """
-    Return smallest positive integer not in v.
+    Return smallest nonnegative integer not in v.
     """
     i = 0
     while i in v:

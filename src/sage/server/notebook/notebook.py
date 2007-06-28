@@ -146,6 +146,9 @@ class Notebook(SageObject):
         U = self.users()
         return U.keys()
 
+    def valid_login_names(self):
+        return [x for x in self.usernames() if not x in ['guest', '_sage_', 'pub']]
+
     def set_accounts(self, value):
         self.__accounts = value
 
@@ -296,7 +299,7 @@ class Notebook(SageObject):
         W = self.__worksheets[filename]
         W.quit()
         cmd = 'rm -rf "%s"'%(W.directory())
-        print cmd
+        #print cmd
         os.system(cmd)
 
         self.deleted_worksheets()[filename] = W
@@ -588,7 +591,7 @@ class Notebook(SageObject):
         if not os.path.exists(target):
             os.makedirs(target)
         cmd = 'rm -rf "%s"/*; mv "%s/%s/"* "%s/"'%(target, tmp, D, target)
-        print cmd
+        #print cmd
         if os.system(cmd):
             raise ValueError, "Error moving over files when loading worksheet."
 
@@ -879,7 +882,7 @@ class Notebook(SageObject):
     def html_banner(self):
         s = """
         <span class="banner">
-        <table><tr><td>
+        <table width=100%%><tr><td>
         <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Error connecting to the SAGE server.</span></td>
         </tr></table>
         </span>
@@ -889,11 +892,11 @@ class Notebook(SageObject):
     def html_search(self, search, typ):
         s = """
         <span class="flush-right">
-        <input id="search_worksheets" size=20 onkeypress="return entsub(event);" value="%s"></input>
+        <input id="search_worksheets" size=20 onkeypress="return entsub_ws(event, '%s');" value="%s"></input>
         <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """%('' if search is None else search, typ)
+        """%(typ, '' if search is None else search, typ)
         return s
 
     def html_new_or_upload(self):
@@ -989,24 +992,27 @@ class Notebook(SageObject):
         def doc_options(name):
             if pub:
                 rating = worksheet.rating()
-                if rating == 0:
+                if rating == -1:
                     r = "----"
                 else:
                     r = "%.1f"%rating
                 if not self.user_is_guest(user) and not worksheet.is_rater(user):
                     r = '<i>%s</i>'%r
+                if r != '----':
+                    r = '<a class="worksheet_edit" href="/home/%s/rating_info">%s</a>'%(name,r)
                 return r
 
             return """
             <select onchange="go_option(this);" class="worksheet_edit">
-            <option value="" title="File options" selected=1>File...</option>
+            <option value="" title="File options" selected=1>File</option>
+            <option value="list_rename_worksheet('%s','%s');" title="Change the name of this worksheet.">Rename...</option>
             <option value="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
             <option value="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
             <option value="list_share_worksheet('%s');" title="Share this worksheet with others">Collaborate</option>
             <option value="list_publish_worksheet('%s');" title="Publish this worksheet on the internet">Publish</option>
             <option value="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
             </select>
-            """%(name, name,name,name,name)
+            """%(name, worksheet.name(), name, name,name,name,name)
             #<option value="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
 
         k = ''
@@ -1035,7 +1041,7 @@ class Notebook(SageObject):
 
         v.append(owner)
 
-        collab = worksheet.collaborators()
+        collab = [x for x in worksheet.collaborators() if not x == owner]
         share = ''
 
         if not pub and typ != 'trash' or self.user(user).is_admin():
@@ -1219,10 +1225,10 @@ class Notebook(SageObject):
 
 
         body += '<hr class="usercontrol">'
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filename)[1].lower()
         if ext in ['.png', '.jpg', '.gif']:
             body += '<div align=center><img src="%s"></div>'%path
-        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py']:
+        elif ext in ['.txt', '.tex', '.sage', '.spyx', '.py', '.f', '.f90', '.c']:
             body += '<form method="post" action="savedatafile" enctype="multipart/form-data">'
             body += '<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel"><br>'
             body += '<textarea class="edit" name="textfield" rows=17 cols=70 id="textfield">%s</textarea>'%open('%s/%s'%(ws.data_directory(), filename)).read()
@@ -1404,40 +1410,47 @@ class Notebook(SageObject):
         if worksheet.is_published() or self.user_is_guest(username):
             original_worksheet = worksheet.worksheet_that_was_published()
             if original_worksheet.user_is_collaborator(username) or original_worksheet.is_owner(username):
-                s = "Edit this worksheet."
+                s = "Edit this."
                 url = 'edit_published_page'
             elif self.user_is_guest(username):
-                s = 'Log in if you would like to edit a copy of this worksheet.'
+                s = 'Log in to edit a copy.'
                 url = '/'
             else:
-                s = 'Edit a copy of this worksheet.'
+                s = 'Edit a copy.'
                 url = 'edit_published_page'
-            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s)
+            r = worksheet.rating()
+            if r == -1:
+                rating = ''
+            else:
+                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
+            if not self.user_is_guest(username) \
+                   and not worksheet.is_publisher(username):
+                if worksheet.is_rater(username):
+                    action = "Rerate"
+                else:
+                    action = "Rate"
+                rating += '&nbsp;&nbsp; <span class="usercontrol">%s it: </span>'%action
+                rating += '  '.join(['<a class="usercontrol" onClick="rate_worksheet(%s)">&nbsp;%s&nbsp;</a>'%(i,i) for
+                                   i in range(5)])
+                rating += '&nbsp;&nbsp; <input name="rating_comment" id="rating_comment"></input>'
+
+            download_name = os.path.split(worksheet.name())[-1]
+            edit_line = '<a class="usercontrol" href="%s">%s</a>'%(url, s) + \
+                        '  <a class="usercontrol" href="download/%s.sws">Download.</a>'%download_name + \
+                        '  <span class="ratingmsg">%s</span>'%rating
+
             body += edit_line
+            #This document was published using <a href="/">SAGE</a>.'
+            body += '<span class="pubmsg">'
+            body += '<a href="/pub/">Other published documents...</a></span>'
             body += '<hr class="usercontrol">'
             body += '<h1 align=center>%s</h1>'%original_worksheet.name()
             body += '<h2 align=center>%s</h2>'%worksheet.html_time_since_last_edited()
             body += worksheet_html
             body += '<hr class="usercontrol">'
-            body += edit_line
             body += '&nbsp;'*10
 
-            r = worksheet.rating()
-            if r == 0:
-                rating = 'This page has not been rated.'
-            else:
-                rating = '<a class="usercontrol" href="rating_info">This page is rated %.1f.</a>'%r
-            if not self.user_is_guest(username) and not worksheet.is_rater(username) \
-                   and not worksheet.is_publisher(username):
-                rating += '&nbsp;&nbsp; Rate it: '
-                rating += '  '.join(['<a class="usercontrol" href="rate%s">&nbsp;%s&nbsp;</a>'%(i,i) for
-                                   i in range(1,5)])
-            body += '<span class="ratingmsg">%s</span>'%rating
 
-            body += '<hr class="usercontrol">'
-            body += '<br>'
-            body += '<span class="pubmsg">This document was published using <a href="/">SAGE</a>.'
-            body += '  Browse <a href="/pub/">other published documents.</a></span>'
 
         else:
 
@@ -1518,8 +1531,16 @@ class Notebook(SageObject):
         INPUT:
             worksheet -- a worksheet
         """
-        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
+        head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save" id="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
 
+
+        body += """<script type="text/javascript">
+function save_worksheet() {
+}
+function save_worksheet_and_close() {
+}
+        </script>
+        """
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body
@@ -1763,15 +1784,16 @@ class Notebook(SageObject):
     def html_system_select_form_element(self, ws):
         system = ws.system()
         options = ''
+        i = SYSTEMS.index(system)
         for S in SYSTEMS:
             if S == system:
                 selected = "selected=1"
             else:
                 selected = ''
-            options += '<option %s value="%s">%s</option>\n'%(selected, S,S)
-        s = """<select onchange="go_system_select(this);" class="worksheet">
+            options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(S, selected, S,S)
+        s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
             %s
-            </select>"""%options
+            </select>"""%(i, options)
         return s
 
     def html_worksheet_settings(self, ws, username):

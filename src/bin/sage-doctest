@@ -304,9 +304,15 @@ def test_file(file):
             os.makedirs(".doctest")
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
+        if gdb:
+            print "*"*80
+            print "Type r at the (gdb) prompt to run the doctests."
+            print "Type bt if there is a crash to see a traceback."
+            print "*"*80
+            cmd = "gdb --args " + cmd
         tm = time.time()
         try:
-            if verbose:
+            if verbose or gdb:
                 e = os.system(cmd)
                 out = ''; err = ''
             else:
@@ -370,9 +376,10 @@ if __name__ ==  '__main__':
     else:
         if has_opt('help') or has_opt('h') or has_opt('?'):
             usage()
-        optional = has_opt('optional')
+        optional  = has_opt('optional')
         long_time = has_opt('long')
-        verbose = has_opt('verbose')
+        verbose   = has_opt('verbose')
+        gdb       = has_opt('gdb')
         if argv[1][0] == '-':
             usage()
         try:

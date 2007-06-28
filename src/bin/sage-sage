@@ -11,6 +11,7 @@ usage() {
     echo "  -i [packages] -- install the given SAGE packages"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
+    echo "        options to '-t':   --verbose, --gdb, --long, --optional"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"

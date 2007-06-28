@@ -1315,7 +1315,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             4580
         """
         if len(kwds) > 0:
-            f = self.fix(**kwds)
+            f = self.subs(**kwds)
             if len(x) > 0:
                 return f(*x)
             else:
@@ -1345,14 +1345,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         cdef ideal *to_id = idInit(l,1)
         for i from 0 <= i < l:
-            e = x[i] # TODO: optimize this line
             to_id.m[i]= p_Copy( (<MPolynomial_libsingular>x[i])._poly, _ring)
 
         cdef ideal *from_id=idInit(1,1)
-        from_id.m[0] = p_Copy(self._poly, _ring)
+        from_id.m[0] = self._poly
 
         cdef ideal *res_id = fast_map(from_id, _ring, to_id, _ring)
-        cdef poly *res = p_Copy(res_id.m[0], _ring)
+        cdef poly *res = res_id.m[0]
+
+        from_id.m[0] = NULL
+        res_id.m[0] = NULL
 
         id_Delete(&to_id, _ring)
         id_Delete(&from_id, _ring)
@@ -2298,7 +2300,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def is_monomial(self):
         return not self._poly.next
 
-    def fix(self, fixed=None, **kw):
+    def subs(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
@@ -2321,7 +2323,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f(5,y)
             25*y^2 + y + 30
-            sage: f.fix({x:5})
+            sage: f.subs({x:5})
             25*y^2 + y + 30
             sage: f.subs(x=5)
             25*y^2 + y + 30
@@ -2329,7 +2331,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         TESTS:
             sage: P.<x,y,z> = QQ[]
             sage: f = y
-            sage: f.fix({y:x}).fix({x:z})
+            sage: f.subs({y:x}).subs({x:z})
             z
 
         NOTE: The evaluation is performed by evalutating every
@@ -2485,7 +2487,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             TypeError: polynomial must involve at most one variable
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305

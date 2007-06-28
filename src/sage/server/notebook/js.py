@@ -751,7 +751,7 @@ function close_callback(status, response_text) {
        alert(response_text);
        return;
    }
-    window.location.replace('/');o
+    window.location.replace('/');
 }
 
 function save_worksheet_and_close() {

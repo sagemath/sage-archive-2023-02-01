@@ -88,9 +88,10 @@ class Expect(ParentWithBase):
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_cleaner = True, path=None):
+                 do_cleaner = True, remote_cleaner = False, path=None):
 
         self.__is_remote = False
+        self.__remote_cleaner = remote_cleaner
         if command == None:
             command = name
         if not server is None:
@@ -300,7 +301,7 @@ class Expect(ParentWithBase):
             print "Starting %s"%cmd.split()[0]
 
         try:
-            if self._server:
+            if self.__remote_cleaner and self._server:
                 c = 'ssh %s "nohup sage -cleaner"  &'%self._server
                 os.system(c)
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)

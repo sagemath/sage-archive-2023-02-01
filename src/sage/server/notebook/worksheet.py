@@ -682,6 +682,7 @@ class Worksheet:
                     if id in used_ids:
                         # In this case don't reuse, since ids must be unique.
                         id = next_available_id(ids)
+                        ids.add(id)
                     html = True
                 else:
                     id = next_available_id(ids)
@@ -2164,7 +2165,7 @@ def dictify(s):
 
 def next_available_id(v):
     """
-    Return smallest positive integer not in v.
+    Return smallest nonnegative integer not in v.
     """
     i = 0
     while i in v:

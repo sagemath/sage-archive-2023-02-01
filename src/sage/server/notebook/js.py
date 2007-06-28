@@ -841,21 +841,13 @@ function add_worksheet_callback(status,response_text) {
 }
 
 function delete_worksheet(name) {
-    async_request('/delete_worksheet', delete_worksheet_callback, 'name='+name)
+    async_request('/send_to_trash', delete_worksheet_callback, 'filename='+escape0(name))
 }
 
 function delete_worksheet_callback(status, response_text) {
     if (status == "success") {
-        /* expect response_text to encode a pair consisting of
-           the HTML for the updated worksheet list and the
-           id of a worksheet to switch to in case we just
-           deleted the current worksheet. */
-        var X = response_text.split(SEP);
-        if (X.length <= 1) {
-            alert("Possible failure deleting worksheet.  " + response_text);
-        } else {
-            set_worksheet_list(X[0]);
-        }
+        window.location.replace("/?typ=trash");
+
     } else {
         alert("Possible failure deleting worksheet.");
     }

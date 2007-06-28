@@ -1,5 +1,12 @@
 TODO for the new Twisted notebook
 
+[ ] admin users should be able to delete worksheets, especially published ones
+
+[ ] when saving after edit mode, the status info about whether or not
+a cell has been evaluated is all set to "not evaluated".  It shouldn't be.
+
+[ ]
+
 [x] search is broken in that the typ=??? field gives "undefined".
 
 [x] rename in worksheet list view would be very useful.

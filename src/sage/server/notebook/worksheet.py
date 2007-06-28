@@ -1109,6 +1109,7 @@ class Worksheet:
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
+        self._enqueue_auto_cells()
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
             #cmd += '_support_.init("%s", globals()); '%object_directory
@@ -1135,7 +1136,6 @@ class Worksheet:
             pass
         self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
                                           ulimit = self.notebook().get_ulimit())
-        verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__next_block_id = 0
         self.initialize_sage()
@@ -1337,7 +1337,6 @@ class Worksheet:
         self.__sage = initialized_sage(server = self.notebook().get_server(),
                                        ulimit = self.notebook().get_ulimit())
         self.initialize_sage()
-        self._enqueue_auto_cells()
         self.start_next_comp()
 
 
@@ -1400,13 +1399,6 @@ class Worksheet:
             raise TypeError
         if C.worksheet() != self:
             raise ValueError, "C must be have self as worksheet."
-        # If the SAGE server hasn't started and the queue is empty,
-        # first enqueue the auto cells:
-        if len(self.__queue) == 0:
-            try:
-                self.__sage
-            except AttributeError:
-                self._enqueue_auto()
 
         # Now enqueue the requested cell.
         if not (C in self.__queue):

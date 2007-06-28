@@ -22,7 +22,7 @@ def math_parse(s):
         elif i > 0 and s[i-1] == '\\':
             t += s[:i-1] + '$'
             s = s[i+1:]
-        elif i-1 < len(s) and s[i+1] == '$':
+        elif i+1 < len(s) and s[i+1] == '$':
             typ = 'div'
         else:
             typ = 'span'

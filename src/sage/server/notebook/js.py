@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Javascript (AJAX) Component of SAGE Notebook
 
 AUTHORS:

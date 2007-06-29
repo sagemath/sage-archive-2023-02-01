@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 The SAGE Notebook object
 """
 

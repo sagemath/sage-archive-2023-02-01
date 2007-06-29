@@ -1,8 +1,32 @@
 import wave
 from sage.plot.plot import list_plot
-#from sage.structure import sage_object as sobj
+from sage.structure.sage_object import SageObject
 
-class Wave:
+class Wave(SageObject):
+    """
+    A class wrapping a wave audio file.
+
+    INPUT:
+        You must call Wave() with either data = filename, where
+        filename is the name of a wave file, or with each of the
+        following options:
+
+            channels  -- the number of channels in the wave file (1 for
+                        mono, 2 for stereo, etc...
+            width     -- the number of bytes per frame
+            framerate -- the number of frames per second
+            nframes   -- the number of frames in the data stream
+            bytes     -- a string object containing the bytes of the
+                         data stream
+
+    Slicing:
+        Slicing a Wave object returns a new wave object that has been
+        trimmed to the bytes that you have given it.
+
+    Indexing:
+        Getting the $n$th item in a Wave object will give you the value
+        of the $n$th frame.
+    """
     def __init__(self, data=None, **kwds):
         if data is not None:
             self._filename = data
@@ -43,15 +67,17 @@ class Wave:
     def _repr_(self):
         return "Wave file of length %s seconds"% self.getlength()
 
-    def plot(self, xmin = None, ymin = None, npoints=None, **kwds):
+    def plot(self, npoints=None, **kwds):
+        """
+        Plots the audio data.
+        """
         if npoints == None:
             npoints = self._nframes
         # figure out on what intervals to sample the data
         seconds = float(self._nframes) / float(self._width)
         sample_step = seconds / float(npoints)
 
-        domain = [n * sample_step for n in range(npoints)]
-
+        domain = [float(n * sample_step) / float(self._framerate) for n in range(npoints)]
         # now, how many of the frames do we sample?
         frame_skip = self._nframes / npoints
         # the values of the function at each point in the domain

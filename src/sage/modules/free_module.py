@@ -393,7 +393,7 @@ class FreeModule_generic(module.Module):
             Basis matrix:
             [1 2 3]
         """
-        if self.__is_sparse:
+        if self.is_sparse():
             return self._dense_module()
         return self
 
@@ -433,7 +433,7 @@ class FreeModule_generic(module.Module):
             Basis matrix:
             [1 2 3]
         """
-        if self.__is_sparse:
+        if self.is_sparse():
             return self
         return self._sparse_module()
 
@@ -1043,7 +1043,7 @@ class FreeModule_generic(module.Module):
             sage: FreeModule(ZZ, 2, sparse=True).is_dense()
             False
         """
-        return not self.__is_sparse
+        return not self.is_sparse()
 
     def is_full(self):
         """
@@ -3322,6 +3322,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     EXAMPLES:
         sage: M = ZZ^3
+        sage: loads(dumps(M)) == M
+        True
         sage: W = M.span_of_basis([[1,2,3],[4,5,19]]); W
         Free module of degree 3 and rank 2 over Integer Ring
         User basis matrix:

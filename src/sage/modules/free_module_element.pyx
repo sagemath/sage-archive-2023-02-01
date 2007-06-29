@@ -732,8 +732,11 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
-        EXAMPLES:
-            sage: v = (ZZ^3).0
+        TESTS:
+            sage: V = ZZ^3
+            sage: loads(dumps(V)) == V
+            True
+            sage: v = V.0
             sage: loads(dumps(v)) == v
             True
             sage: v = (QQ['x']^3).0

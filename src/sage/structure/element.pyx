@@ -1345,11 +1345,11 @@ cdef class RingElement(ModuleElement):
                 # If the parent is the same as the base ring, good
                 if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
                     # this won't be executed !? (it's already dealt with above!)
-                    print "NOT EXECUTED"
+                    assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                     return (<ModuleElement>right)._rmul_c(self)
                 elif PY_TYPE_CHECK(right, Matrix):
                     # this won't be executed !? (since Matrix subclasses RingElement)
-                    print "NOT EXECUTED"
+                    assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                     return (<Matrix>right)._rmultiply_by_scalar(self)
                 elif PY_TYPE_CHECK(right, Vector):
                     # scalar * right
@@ -1849,12 +1849,12 @@ cdef class Vector(ModuleElement):
             #     matrix * right
             if PY_TYPE_CHECK(left, Matrix):
                 # this won't be executed !? (see: Matrix.__mul__)
-                print "NOT EXECUTED"
+                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                 return (<Matrix>left)._matrix_times_vector_c(<Vector>right)
             #     vector * right
             if PY_TYPE_CHECK(left, Vector):
                 # this won't be executed !? (see: code above)
-                print "NOT EXECUTED"
+                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                 return (<Vector>left)._vector_times_vector_c(<Vector>right)
             #     scalar * right
             # almost not executed, except it will be used for non-sage scalars
@@ -2093,12 +2093,12 @@ cdef class Matrix(AlgebraElement):
             #     matrix * right
             if PY_TYPE_CHECK(left, Matrix):
                 # this won't be executed !? (see: code above)
-                print "NOT EXECUTED"
+                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                 return (<Matrix>left)._matrix_times_matrix_c(<Matrix>right)
             #     vector * right
             if PY_TYPE_CHECK(left, Vector):
                 # this won't be executed !? (see: Vector.__mul__)
-                print "NOT EXECUTED"
+                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
                 return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
             #     scalar * right
             # almost not executed, except it will be used for non-sage scalars

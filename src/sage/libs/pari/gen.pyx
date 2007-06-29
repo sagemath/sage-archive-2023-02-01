@@ -4819,12 +4819,59 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(mathnf0(self.g, flag))
 
-    def mathnfmod(self, gen d):
+    def mathnfmod(self, d):
         """
-	trying to interface with hnfmod
+        Returns the Hermite normal form if d is a multiple of the determinant
+
+        Beware that PARI's concept of a hermite normal form is an upper
+        triangular matrix with the same column space as the input matrix.
+
+        INPUT:
+            d -- multiple of the determinant of self
+
+        EXAMPLES:
+            sage: M=matrix([[1,2,3],[4,5,6],[7,8,11]])
+	    sage: d=M.det()
+	    sage: pari(M).mathnfmod(d)
+            [6, 4, 3; 0, 1, 0; 0, 0, 1]
+
+	Note that d really needs to be a multiple of the discriminant, not
+	just of the exponent of the cokernel:
+
+            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+	    sage: pari(M).mathnfmod(6)
+	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
+	    sage: pari(M).mathnfmod(12)
+	    [1, 0, 0; 0, 2, 0; 0, 0, 6]
+
         """
         _sig_on
-        return self.new_gen(hnfmod(self.g, d.g))
+        t0GEN(d)
+        return self.new_gen(hnfmod(self.g, t0))
+
+    def mathnfmodid(self, d):
+        """
+        Returns the Hermite Normal Form of M concatenated with d*Identity
+
+        Beware that PARI's concept of a Hermite normal form is a maximal rank
+        upper triangular matrix with the same column space as the input matrix.
+
+        INPUT:
+            d -- Determines
+
+        EXAMPLES:
+            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+	    sage: pari(M).mathnfmodid(6)
+            [1, 0, 0; 0, 2, 0; 0, 0, 6]
+
+	This routine is not completely equivalent to mathnfmod:
+
+	    sage: pari(M).mathnfmod(6)
+	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
+        """
+        _sig_on
+        t0GEN(d)
+        return self.new_gen(hnfmodid(self.g, t0))
 
     def matsnf(self, flag=0):
         """

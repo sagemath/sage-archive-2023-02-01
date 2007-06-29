@@ -733,10 +733,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     who note that their implementation is practical for
                     any rank and conductor $\leq 10^{10}$ in 10 minutes.
 
-                -- 'ec' -- use Watkins's program ec (this has bugs if more
-                    than a million terms of the L-series are required, i.e.,
-                    only use this for conductor up to about $10^11$).
-
                 -- 'sympow' --use Watkins's program sympow
 
                 -- 'rubinstein' -- use Rubinstein's L-function C++ program lcalc.
@@ -757,8 +753,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage.: E.analytic_rank(algorithm='ec')
-            2
             sage: E.analytic_rank(algorithm='cremona')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
@@ -767,16 +761,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional
             2
-            sage.: E.analytic_rank(algorithm='all')
+            sage: E.analytic_rank(algorithm='all')
             2
         """
-        if algorithm == 'ec' and misc.is_64_bit:
-            algorithm = 'sympow'
-
         if algorithm == 'cremona':
             return rings.Integer(gp_cremona.ellanalyticrank(self.minimal_model().a_invariants()))
-        elif algorithm == 'ec':
-            return rings.Integer(self.watkins_data()['analytic rank'])
         elif algorithm == 'rubinstein':
             from sage.lfunctions.lcalc import lcalc
             return lcalc.analytic_rank(L=self)
@@ -786,7 +775,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         elif algorithm == 'magma':
             return rings.Integer(self._magma_().AnalyticRank())
         elif algorithm == 'all':
-            S = list(set([self.analytic_rank('cremona'), self.analytic_rank('ec'),
+            S = list(set([self.analytic_rank('cremona'),
                      self.analytic_rank('rubinstein'), self.analytic_rank('sympow')]))
             if len(S) != 1:
                 raise RuntimeError, "Bug in analytic rank; algorithms don't agree! (E=%s)"%E
@@ -2192,21 +2181,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                                           3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
                                           15552*a1*a3 + 11664*a2**2 + 46656*a4])
 
-    def watkins_data(self):
-        """
-        Return a dict of the data computed by Mark Watkins's ec
-        program applied to this elliptic curve.
-        """
-        try:
-            return self.__watins_data
-        except AttributeError:
-            try:
-                import sage.libs.ec.all
-            except ImportErrror:
-                raise NotImplementedError
-            self.__watkins_data = sage.libs.ec.all.ec(self.ainvs())
-            return self.__watkins_data
-
     def modular_degree(self, algorithm='sympow'):
         r"""
         Return the modular degree of this elliptic curve.
@@ -2217,7 +2191,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         INPUT:
            algorithm -- string:
               'sympow' -- (default) use Mark Watkin's (newer) C program sympow
-              'ec' -- use Mark Watkins's C program ec
               'magma' -- requires that MAGMA be installed (also implemented
                          by Mark Watkins)
 
@@ -2291,15 +2264,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.__modular_degree
 
         except AttributeError:
-
-            if misc.is_64_bit and algorithm == 'ec':
-                misc.verbose('64-bit computer -- switching to algorithm sympow')
-                algorithm = 'sympow'
-
-            if algorithm == 'ec':
-                v = self.watkins_data()
-                m = rings.Integer(v["Modular degree"])
-            elif algorithm == 'sympow':
+            if algorithm == 'sympow':
                 from sage.lfunctions.all import sympow
                 m = sympow.modular_degree(self)
             elif algorithm == 'magma':

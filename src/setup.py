@@ -897,7 +897,7 @@ setup(name        = 'sage',
 
                      'sage.matrix',
 #                     'sage.matrix.padics',
-
+                     'sage.media',
                      'sage.misc',
 
                      'sage.modules',

@@ -96,6 +96,8 @@ from sage.gsl.all        import *
 
 from sage.games.all      import *
 
+from sage.media.all      import *
+
 from copy import copy
 
 

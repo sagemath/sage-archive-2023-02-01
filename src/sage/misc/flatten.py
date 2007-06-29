@@ -32,11 +32,21 @@ def flatten(in_list, ltypes=(list, tuple)):
        sage: flatten([GF(5)], ltypes = (list, tuple, sage.rings.finite_field.FiniteField_prime_modn))
        [0, 1, 2, 3, 4]
 
+   Degenerate cases:
+      sage: flatten([[]])
+      []
+      sage: flatten([[[]]])
+      []
    """
    index = 0
    new_list = [x for x in in_list]
    while index < len(new_list):
-       while isinstance(new_list[index], ltypes):
-           new_list[index : index + 1] = list(new_list[index])
-       index += 1
+      while isinstance(new_list[index], ltypes):
+         v = list(new_list[index])
+         if len(v) != 0:
+            new_list[index : index + 1] = v
+         else:
+            new_list.pop(index)
+            break
+      index += 1
    return new_list

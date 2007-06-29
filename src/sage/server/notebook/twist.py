@@ -1412,6 +1412,26 @@ server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
 ############################
 # Registration page
 ############################
+import re
+re_valid_username = re.compile('[a-z|A-Z|0-9|_|\-|.]*')
+def is_valid_username(username):
+    """
+    Return True if and only if x is a valid username, i.e., contains
+    only alphabetic characters, numbers, and underscores.
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import is_valid_username
+        sage: is_valid_username('sage-devel')
+        True
+        sage: is_valid_username('sage_devel7')
+        True
+        sage: is_valid_username('a@b.c')
+        False
+        sage: is_valid_username('ab c')
+        False
+    """
+    m = re_valid_username.match(username)
+    return len(username) > 0 and m.start() == 0 and m.end() == len(username)
 
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
@@ -1424,6 +1444,8 @@ class RegistrationPage(resource.PostableResource):
                 s = ''
                 try:
                     username = request.args['username'][0]
+                    if not is_valid_username(username):
+                        s += "Usernames can only contain letters, numbers, dashes, periods and underscores."
                 except KeyError:
                     s += "You must specify a username."
                 try:

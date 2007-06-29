@@ -1,5 +1,286 @@
-CRITICAL BUGS:
-  no known critical bugs!!
+TODO for the new Twisted notebook
+
+[ ] Viewing published pages still sometimes claims they were last updated
+    "by pub", which is wrong.
+
+[ ] admin users should be able to delete worksheets, especially published ones
+
+[ ] when saving after edit mode, the status info about whether or not
+a cell has been evaluated is all set to "not evaluated".  It shouldn't be.
+
+[x] search is broken in that the typ=??? field gives "undefined".
+
+[x] rename in worksheet list view would be very useful.
+
+[x] javascript -- when reset title it should truncate without having to refresh window, i.e.,
+   javascript should do the truncation too.
+
+[x] Click rating link to see user ratings.
+
+
+[x] backward compatible
+
+[x] attachment upload
+
+[x] fix cell://
+
+[x] cross browser
+* safari os x
+* firefox os x
+* firefox windows
+* (later) IE/windows
+
+
+[x] logout doesn't work at all.
+
+[x] make cookies persistent
+
+[x] don't let two people edit a worksheet at the same time -- only edit a copy.
+  (at least give a warning now)
+
+[x] search_doc and search-src -- fix it.
+
+[] unpublish -- appears to owners.
+
+[x] bug -- using text mode can have multiple cells with the same id. Ick!
+
+[x] way to attach local text files:
+    (1) Click "upload"
+    (2) select a .py, .sage, or .spyx file.
+    (3) Then it gets listed in
+        nb.__files
+    (4) Can edit using a javascript code text editor
+    (5) It has a name and can be loaded, attached, doctested.
+
+[x] I forgot the "doctest text" display for the worksheets!
+
+[x] bug: published worksheets always say "last edited on June 22, 2007
+04:18 AM by pub" but they should give who really edited them.  The
+time maybe doesn't get updated either.
+
+[x] save from "plain text mode" should make an entry in the revisions log.
+
+[x] definitely *need* autosave!
+
+[x] marketing text: "Idea for marketing text: With the SAGE Notebook
+anyone can create, collaborate on, and publish interactive
+worksheets. In a worksheet, one can write code using SAGE and the
+different software included such as Python and evaluate it his
+code. He could make pretty pictures, calculate something new, tutor
+someone, learn about programming, and many other things."
+
+[ ] i definitely do not know how to make twisted listen on the same port
+with both https and http.  however, it is easy to make twisted listen
+on separate ports for both http and https, and allow the anonymous
+view http.
+
+
+-----------------------
+
+
+Later...
+
+[x] have an active/archived/trash/new folder thing for published worksheets
+
+[ ] if a worksheet is in the trash after x days all images are deleted...
+
+[ ] migration of old notebooks to new format
+
+[ ] implement user configuration:
+      * default system
+
+[ ] implement server configuration:
+      ban/add/delete users (where do their worksheets go?)
+
+[ ] implement worksheet configuration:
+     * system
+
+
+
+BUG FIXING:
+----------
+done * implement notebook() command as described in docs
+
+done * make sure notebook? gives docs.
+
+
+[] why not have "click to the left" of input cell toggle whether it is shown?
+
+[] move between cells should save their contents to the server if they change (?)
+
+[x] keep alive
+
+ * anonymous login can still see something sort of
+
+----------------------------
+[x] fix broken interactive docbrowser
+
+
+[x] bug: edit a worksheet you published gives a copy anyways
+
+[x] edit mode should have same header.
+
+[x] rewrite trash/active/archived to be relative to a username
+
+
+
+[x] implement worksheet collaboration.
+
+[ ] admin -- should have power to become any other user, hence change their password, etc.
+
+Here's my todo list:
+[x] way to delete published worksheets (?)
+
+[] typing notebook(...) -- if fail, should try next few ports; to
+implement, have something written to a file to indicate success, then
+check that file on exit.
+
+[x] standard notebook help screen.
+
+[x] full text search of all worksheet
+
+
+[x] make sure "pub" is not an allowed username
+
+[x] renaming worksheets
+
+[x] worksheet list
+
+[x] copy worksheet
+
+[x] full save -- when shutting down notebook server and/or once in a long while, save all worksheet.txt and conf.txt files to disk (by looping through all worksheets).
+
+[?] place where system is displayed and can be changed via a click (should list common / all options, by finding
+out which objects have an eval method?)
+
+[x] whether or not a given worksheet is read only
+
+[] make worksheet prefs be stored in a txt files instead of an sobj.
+
+[x] clicking "new" to create a new worksheet should not pop
+    up a new window
+
+[] user-saved objects: these should all be in worksheets/username/objects
+
+[] publishing objects
+
+[x] publishing worksheets: a "publish" button
+
+[] stats about the server:
+      # of processes, # worksheets running, memory usage
+
+[] page with a list of users; sort by activity, order, etc.; click to
+see all worksheets/data they have published.
+
+[x] data directory for individual worksheets; way to
+upload/download/delete from it; this is needed so worksheets can have
+pictures, etc., not computed by SAGE -- just like moin-moin's
+"attachments".
+
+[x] using a published worksheets (copying it from the published space
+to one's own).
+
+[] sharing a worksheet should optionally send an email to users being
+shared with
+
+[x] some obvious basic restyling of individual worksheet page to be
+simpler; in partiuclar, the title should be bigger, etc. -- should
+look more like google docs.
+
+[x] a save button, which saves a snapshot of the text of the worksheet
+(images aren't saved -- they are too big).  Configure how far back the
+snapshots go. Also, give easy interface to see or revert to any past
+snapshot.
+
+
+done * create new worksheet needs confirmation
+
+* carefully control the total number of Python worksheet
+  processes that can be started.   Make sure that worksheets
+  not used for a certain amount of time are stopped, and
+  that only so many can be created.  This is *critical*.
+  The public notebook breaks in a few hours without this.
+
+* A User Model Make it so each user of the notebook has an account on
+  the notebook, and can only see worksheets that are explicitly shared
+  by other users. (I.e., we need either an account and ownership model
+  or a wiki model for the notebook. Email/registration. An account
+  model makes the most sense).
+
+* Published worksheets should be rate-able
+
+* Save/Load Worksheets/Plain Mode Rewrite saving/loading of
+  worksheets, so it doesn't use pickle. Instead use the ''s text
+  encoding and the images in directories. XML, plain text format,
+  etc. Finish implementing the html/edit mode: (1) images shouldn't
+  get deleted on saving, (2) inserting new cells shouldn't be broken.
+
+* Don't lose work: If anything in a page changes, make it so trying to
+  navigate away from the page requires confirmation (like in gmail)
+
+* Worksheet Revisions. Like Google docs.
+  SAVE when -- hit a big "save" button or exit a worksheet.
+
+* Address the "jupiness" of the notebook, e.g., Justin Walker reports
+  that in Safari under OS X, "I reach the bottom of the visible page,
+  and scroll down to make the next cell visible, enter an expression,
+  and hit SHFT- Return, the page jumps back to the top."
+
+======================================================
+
+Other ideas...
+
+* Highlighting a block of text and pressing tab indents it four spaces; similarly, pressing shift-tab dedents it four spaces.
+
+* In the notebook some input cell should *always* have focus, if this is possible. I hate typing into a worksheet and having random movement happen.
+
+* Create a worksheet settings panel; use this to:
+    * Set the math software system used to evaluate cells
+    * Determine whether pressing shift-enter jumps to the next cell or stays in current one.
+    * Create a notebook settings panel:
+          o Whether or not left panel is displayed by default
+          o Whether shift enter or enter evaluates a cell (Mathematica or Maple mode)
+          o Default math software system for new worksheets.
+
+* New feature -- pdf printing; Printing needs to also allow for the
+  following: Given a single worksheet, print it by (1) saving it to a
+  latex file with embedded images, and (2) running pdflatex on the
+  result, then return the resulting pdf file and/or a tarball with the
+  images and latex. This would be very high quality, and will also be
+  something that would be easily included in latex documents. Printing
+  a notebook (=all worksheets owned by a given user) would create a
+  document with a section for each notebook.
+
+* SageTex as suggested by Sara Billey.
+
+
+* Implement some of the features of Google Notebook (http://www.google.com/notebook) -- note we were before them.
+    * Full search of all worksheets
+    * Cleaner display of worksheet list on the left
+    * Drag and drop
+
+
+
+
+
+=======================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=======================================================
+
+(very old todo list)
 
 BUGS:
    [] screen corruption and freezing on either Firefox or Safari under

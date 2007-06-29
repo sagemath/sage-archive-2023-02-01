@@ -2,7 +2,18 @@
 Creating Spaces of Modular Forms
 
 EXAMPLES:
-
+    sage: m = ModularForms(Gamma1(4),11)
+    sage: m
+    Modular Forms space of dimension 6 for Congruence Subgroup Gamma1(4) of weight 11 over Rational Field
+    sage: m.basis()
+    [
+    q - 134*q^5 + O(q^6),
+    q^2 + 80*q^5 + O(q^6),
+    q^3 + 16*q^5 + O(q^6),
+    q^4 - 4*q^5 + O(q^6),
+    1 + 4092/50521*q^2 + 472384/50521*q^3 + 4194300/50521*q^4 + O(q^6),
+    q + 1024*q^2 + 59048*q^3 + 1048576*q^4 + 9765626*q^5 + O(q^6)
+    ]
 """
 
 #########################################################################

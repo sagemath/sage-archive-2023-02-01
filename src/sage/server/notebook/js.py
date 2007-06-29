@@ -29,7 +29,9 @@ def javascript():
     s = async_lib()
     s += notebook_lib()
 
-    s = JavaScriptCompressor().getPacked(s)
+    # TODO -- disabled while debuging.
+    #s = JavaScriptCompressor().getPacked(s)
+
     return s
 
 
@@ -176,6 +178,9 @@ var update_error_delta = 1024;
 var update_normal_delta = 512;
 var cell_output_delta = update_normal_delta;
 
+var server_ping_time = 10000;  /* Is once very 10 seconds way too fast?  Is it just right?  */
+
+
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
 var current_cell = -1;       // gets set on focus / blur
 var no_async = false; //this isn't really used -- should we think about dealing with this?
@@ -198,6 +203,7 @@ var sub_introspecting = false;
 var worksheet_id=0;
 var worksheet_filename='';
 var worksheet_name='';
+var user_name='';
 
 //regular expressions used to peek into the cell input for introspection
 var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
@@ -222,6 +228,8 @@ var update_timeout = -1;
 var updating = false; var update_time = -1;
 
 var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
+
+jsMath = {Font: {Message: function () {}}}
 
 var cell_id_list; // this gets set in worksheet.py
 
@@ -269,6 +277,16 @@ try{
   os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
   os_lin=(nua.indexOf('Linux')!=-1);
 
+  if(browser_ie) {
+      alert("Using SAGE with Microsoft Internet Explorer is currently not supported.");
+  }
+
+/*  line_height = 1.2;
+  if (os_mac) {
+     line_height = 1;
+  }
+  */
+  line_height = 1.2;
   get_keyboard();
 } catch(e){}
 
@@ -446,7 +464,6 @@ function toggle_left_pane() {
     set_class('worksheet', 'worksheet');
   } else {
     set_class('left_pane', 'hidden');
-    set_class('worksheet', 'slideshow');
   }
 }
 
@@ -621,11 +638,190 @@ function click_on_object(name) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function new_worksheet() {
+    open("/new_worksheet")
+}
+
+function set_worksheet_list_checks() {
+    /* Go through and set all check boxes the same as they are in the control box */
+    var C, i, id, X;
+    C = get_element("controlbox");
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        X.checked = C.checked;
+    }
+}
+
+function worksheet_list_button(action, desc) {
+    /* For each filename listed in worksheet_filenames, look up the corresponding
+       input check box, see if it is checked, and if so, do the corresponding
+       action.
+     */
+    var i, id, X, filenames;
+    filenames = "";
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        if (X.checked) {
+            filenames = filenames + worksheet_filenames[i] + SEP;
+            X.checked = 0;
+        }
+    }
+    async_request(action, worksheet_list_button_callback, 'filenames='+filenames + '&sep='+SEP);
+}
+
+function worksheet_list_button_callback(status, response_text) {
+   if (status == 'success') {
+      if (response_text != '') {
+          alert(response_text);
+      }
+   } else {
+      alert("Failure deleting worksheet." + response_text);
+   }
+  window.location.reload(true);
+}
+
+function delete_button() {
+    worksheet_list_button("/send_to_trash", "--> trash");
+}
+
+function make_active_button() {
+    worksheet_list_button("/send_to_active", "(--> active");
+}
+
+function archive_button() {
+    worksheet_list_button("/send_to_archive", "--> archived");
+}
+
+
+function history_window() {
+    window.open ("/history",
+      "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
+
+}
+
+function copy_worksheet() {
+    window.location.replace(worksheet_command("copy"));
+}
+
+function rate_worksheet(rating) {
+    comment = get_element("rating_comment").value;
+    window.location.replace(worksheet_command("rate?rating="+rating + "&comment="+escape0(comment)));
+}
+
+function download_worksheet(base_filename) {
+    open(worksheet_command("download/" + base_filename + '.sws'));
+}
+
+function worksheet_settings() {
+    window.location.replace(worksheet_command("settings"));
+}
+
+function share_worksheet() {
+    window.location.replace(worksheet_command("share"));
+}
+
+function publish_worksheet() {
+    window.open(worksheet_command("publish"), "",
+      "menubar=1,location=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
+}
+
+function save_as(typ) {
+    open(worksheet_command('save_as') + '?typ=' +typ);
+}
+
+function edit_worksheet() {
+    window.location.replace(worksheet_command(""));
+}
+
+function save_worksheet() {
+    async_request(worksheet_command('save_snapshot'), save_worksheet_callback, null);
+}
+
+function save_worksheet_callback(status, response_text) {
+   if (status != 'success') {
+       alert("Failed to save worksheet.");
+       return;
+   }
+}
+
+function close_callback(status, response_text) {
+   if (status != 'success') {
+       alert(response_text);
+       return;
+   }
+    window.location.replace('/');
+}
+
+function save_worksheet_and_close() {
+    async_request(worksheet_command('save_snapshot'), close_callback, null);
+}
+
+function worksheet_discard() {
+    async_request(worksheet_command('revert_to_last_saved_state'), close_callback, null);
+}
+
+function rename_worksheet() {
+   var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
+   if (new_worksheet_name == null) return;
+   var T = get_element("worksheet_title");
+   var set_name;
+   if (new_worksheet_name.length >= 30) {
+       set_name = new_worksheet_name.slice(0,30) + ' ...';
+   } else {
+       set_name = new_worksheet_name;
+   }
+   T.innerHTML = set_name;
+   worksheet_name = new_worksheet_name;
+   async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
+}
+
+function entsub_ws(event, typ) {
+  if (event && event.which == 13)
+     search_worksheets(typ);
+  else
+     return true;
+}
+
+
+function search_worksheets(typ) {
+    X = get_element('search_worksheets');
+    url = '?typ=' + typ + '&search=' + escape0(X.value);
+    window.location.replace(url);
+}
+
+function go_system_select(theform, original_system) {
+   with(theform) {
+      var system = options[selectedIndex].value;
+      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+          system_select(system);
+      } else {
+          options[original_system].selected = 1;
+      }
+   }
+}
+
+function system_select(s) {
+    async_request(worksheet_command('system/'+s), null, null);
+}
+
+
+function go_data(theform) {
+   var value;
+   with(theform) {
+      value = options[selectedIndex].value;
+      if(value == "__upload_data_file__") {
+          window.location.replace(worksheet_command("upload_data"));
+      } else {
+          window.location.replace("/home/" + worksheet_filename + "/" + value);
+      }
+      options[0].selected = 1;
+   }
+}
+
 function add_worksheet(name) {
-    open("/ws/" + name)
-    /* to have this actually open in this window (not a new one), just do
-        open("/ws" + name, "_self")
-       instead */
+    open("/home/" + user_name + "/" + name)
 }
 
 function add_worksheet_callback(status,response_text) {
@@ -645,28 +841,16 @@ function add_worksheet_callback(status,response_text) {
 }
 
 function delete_worksheet(name) {
-    async_request('/delete_worksheet', delete_worksheet_callback, 'name='+name)
+    async_request('/send_to_trash', delete_worksheet_callback, 'filename='+escape0(name))
 }
 
 function delete_worksheet_callback(status, response_text) {
     if (status == "success") {
-        /* expect response_text to encode a pair consisting of
-           the HTML for the updated worksheet list and the
-           id of a worksheet to switch to in case we just
-           deleted the current worksheet. */
-        var X = response_text.split(SEP);
-        if (X.length <= 1) {
-            alert("Possible failure deleting worksheet.  " + response_text);
-        } else {
-            set_worksheet_list(X[0]);
-        }
+        window.location.replace("/?typ=trash");
+
     } else {
         alert("Possible failure deleting worksheet.");
     }
-}
-
-function show_worksheet_menu(worksheet) {
-    // not implemented
 }
 
 function set_worksheet_list(worksheets) {
@@ -803,6 +987,105 @@ function sync_active_cell_list_callback(status, response_text) {
 
 ///////////////////////////////////////////////////////////////////
 //
+// WORKSHEET list functions -- i.e., functions on a specific
+// worksheet in the list of worksheets display.
+//
+///////////////////////////////////////////////////////////////////
+
+function refresh() {
+    window.location.replace(location.href);
+}
+
+function go_option(theform) {
+   with(theform) {
+      eval(options[selectedIndex].value);
+      options[0].selected = 1;
+   }
+}
+
+function link_datafile(target_worksheet_filename, filename) {
+   open(worksheet_command("link_datafile?filename=" + escape0(filename) +
+         "&target="+escape0(target_worksheet_filename)));
+}
+
+
+function list_rename_worksheet(filename, curname) {
+   var new_name = prompt('Enter new worksheet name:', curname);
+   async_request('/home/' + filename + '/' + 'rename',
+            list_rename_worksheet_callback, 'name='+ escape0(new_name));
+}
+
+function list_rename_worksheet_callback(status, response_text) {
+   refresh();
+}
+
+
+function list_edit_worksheet(filename) {
+    window.location.replace('/home/' + filename);
+}
+
+function list_copy_worksheet(filename) {
+    async_request('/home/' + filename + '/copy', list_copy_worksheet_callback, null);
+}
+
+function list_copy_worksheet_callback(status, response_text) {
+    window.location.replace('/');
+}
+
+function list_share_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/share');
+}
+
+function list_publish_worksheet(filename) {
+   window.open('/home/' + filename + '/publish', "",
+      "menubar=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
+}
+
+function list_revisions_of_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/revisions');
+}
+
+function list_preview_worksheet(filename) {
+   window.location.replace('/home/' + filename + '/preview');
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// Tell server I am alive
+//
+///////////////////////////////////////////////////////////////////
+
+/* This pings the server every 30 seconds to announce that we are
+   still viewing this page.   If it fails, it should probably perform
+   some action to indicate that there is no server running.
+*/
+
+function server_ping_while_alive() {
+    async_request(worksheet_command('alive'), xx, null);
+}
+
+
+function xx(status, response_text) {
+    if (status == "failure") {
+        server_down();
+    } else {
+        server_up();
+    }
+    setTimeout("server_ping_while_alive();", server_ping_time);
+}
+
+function server_down() {
+   X = get_element("ping");
+   X.className = "pingdown";
+}
+
+function server_up() {
+   X = get_element("ping");
+   X.className = "ping";
+}
+
+///////////////////////////////////////////////////////////////////
+//
 // CELL functions -- for the individual cells
 //
 ///////////////////////////////////////////////////////////////////
@@ -886,7 +1169,6 @@ function refocus_cell() {
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
-    // make_cell_input_active(id);
 
     var cell = get_cell(id);
     if (cell) {
@@ -919,23 +1201,32 @@ function focus_delay(id,bottom) {
          setTimeout('cell_focus('+id+',true)', 10);
 }
 
+function number_of_rows(txt, ncols) {
+    var r;
+    r = txt.split('\n');
+    var e, i, k, nrows;
+    nrows = r.length;
+    for(i=0; i < nrows; i++) {
+        try {
+            nrows += Math.floor(r[i].length/ncols);
+        } catch(e) {
+
+        };
+    }
+    return (nrows);
+}
+
 
 function cell_input_resize(cell_input) {
-    var rows = 2;
-    //var rows = cell_input.value.split('\n').length - 1;
-    var rows = cell_input.value.split('\n').length + 1;
+    var rows = number_of_rows(cell_input.value, cell_input.cols);
     if (rows <= 1) {
-      rows = 2;
-    } else {
-      /* to avoid bottom chop off */
-      rows = rows + 2;
+      rows = 1;
     }
-    if (rows >= 30) {
-      rows = 30;
+    if (browser_saf) {
+       rows += 1;
     }
-
     try {
-        cell_input.style.height = rows + 'em'; // this sort of works in konqueror...
+        cell_input.style.height = 0.5 + rows*line_height + 'em';
     } catch(e) {}
     try{
         cell_input.rows = rows;
@@ -967,7 +1258,7 @@ function cell_input_minimize_size(cell_input) {
     }
 
     cell_input.className = 'cell_input';
-    var rows = v.split('\n').length ;
+    var rows = number_of_rows(v, cell_input.cols);
     if (rows < 1) {
       rows = 1;
     }
@@ -1091,6 +1382,11 @@ function cell_input_key_event(id, e) {
     }
 
     cell_input_resize(cell_input);
+    cell_input.focus();
+/*    if (browser_saf)   {
+        cell_input.scrollIntoView();
+    }
+    */
 
     // Will need IE version... if possible.
     if (!in_slide_mode && key_up_arrow(e)) {
@@ -1226,12 +1522,12 @@ function text_cursor_split(input) {
 }
 
 function worksheet_command(cmd) {
-    return ('/ws/' + worksheet_name + '/' + cmd);
+   return ('/home/' + worksheet_filename + '/' + cmd);
 }
 
 function evaluate_cell(id, action) {
     if(worksheet_locked) {
-        alert("This worksheet is locked.  Click on the word [locked] next to the worksheet name to unlock it.")
+        alert("This worksheet is read only.  Please make a copy or contact the owner to change it.")
         return;
     }
 
@@ -1596,7 +1892,6 @@ function slide_mode() {
     set_class('left_pane', 'hidden');
     set_class('cell_controls', 'hidden');
     set_class('slide_controls', 'slide_control_commands');
-    set_class('worksheet', 'slideshow');
     set_class('left_pane_bar', 'hidden');
 
     for(i = 0; i < cell_id_list.length ; i++) {
@@ -1728,15 +2023,46 @@ function do_insert_new_cell_before(id, new_id, new_html) {
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
 }
 
+function insert_new_cell_after(id) {
+    async_request(worksheet_command('new_cell_after'), insert_new_cell_after_callback, 'id='+id);
+}
+
+function insert_new_cell_after_callback(status, response_text) {
+    if (status == "failure") {
+        alert("Problem inserting new input cell after current input cell.\n" + response_text);
+        return ;
+    }
+    if (response_text == "locked") {
+        alert("Worksheet is locked.  Cannot insert cells.");
+        return;
+    }
+    /* Insert a new cell _after_ a cell. */
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_after(id, new_id, new_html);
+    jump_to_cell(new_id,0);
+}
+
+
 function do_insert_new_cell_after(id, new_id, new_html) {
   /* Insert a new cell with the given new_id and new_html
-     after the cell with given id. */
+     after the cell with given id.      */
+
     i = id_of_cell_delta(id,1);
     if(i == id) {
         append_new_cell(new_id,new_html);
     } else {
         do_insert_new_cell_before(i, new_id, new_html);
     }
+}
+
+
+
+
+function insert_new_cell_before(id) {
+    async_request(worksheet_command('new_cell_before'), insert_new_cell_before_callback, 'id='+id);
 }
 
 function insert_new_cell_before_callback(status, response_text) {
@@ -1755,10 +2081,6 @@ function insert_new_cell_before_callback(status, response_text) {
     var id = eval(X[2]);
     do_insert_new_cell_before(id, new_id, new_html);
     jump_to_cell(new_id,0);
-}
-
-function insert_new_cell_before(id) {
-    async_request(worksheet_command('new_cell'), insert_new_cell_before_callback, 'id='+id);
 }
 
 
@@ -1795,12 +2117,13 @@ function interrupt_callback(status, response_text) {
 }
 
 function interrupt() {
-    var link = get_element("interrupt");
+/*    var link = get_element("interrupt");
     if (link.className == "interrupt_grey") {
         return;
     }
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt"
+*/
     async_request(worksheet_command('interrupt'), interrupt_callback);
 }
 
@@ -1864,9 +2187,10 @@ function restart_sage_callback(status, response_text) {
 }
 
 function restart_sage() {
-    var link = get_element("restart_sage");
+/*    var link = get_element("restart_sage");
     link.className = "restart_sage_in_progress";
     link.innerHTML = "Restart";
+    */
     async_request(worksheet_command('restart_sage'), restart_sage_callback);
 }
 
@@ -1998,28 +2322,34 @@ function insert_cells_from_wiki_callback(status, response_text) {
 ///////////////////////////////////////////////////////////////////
 
 function history_window() {
-    history = window.open ("/history.html",
-      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1,resizable=1");
+    history = window.open ("/history",
+      "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
 }
 
 
 function doctest_window(worksheet) {
-    log = window.open ("/ws/" + worksheet+"/plain","",
-    "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
+    log = window.open ("/home/" + worksheet+"/plain","",
+    "menubar=1,scrollbars=1,width=800,height=600,toolbar=1, resizable=1");
 }
 
 
-function print_window(worksheet) {
-    log = window.open ("/ws/" + worksheet+"/print","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
+function print_worksheet(worksheet) {
+    log = window.open (worksheet_command("print"),"",
+      "menubar=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
 }
+
+function help(worksheet) {
+    log = window.open ("/help","",
+    "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
+}
+
 
 //////////////////////////////////
 // HELP
 /////////////////////////////////
 
 function show_help_window(worksheet) {
-    help = window.open ("/help.html","",
+    help = window.open ("/help","",
     "menubar=1,scrollbars=1,width=800,height=600,resizable=1, toolbar=1");
 }
 
@@ -2032,7 +2362,7 @@ function jsmath_init() {
     jsMath.Process();
     /*   jsMath.ProcessBeforeShowing(); */
     } catch(e) {
-        font_warning();
+/*        font_warning(); */
     }
 
 }

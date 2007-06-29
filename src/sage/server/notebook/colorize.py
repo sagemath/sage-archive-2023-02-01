@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
     Colorize - Python source formatter that outputs Python code in XHTML.
     This script is based on MoinMoin - The Python Source Parser.

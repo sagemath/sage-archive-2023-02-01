@@ -72,28 +72,6 @@ class DSage(object):
         self.log_level = log_level
         self.pubkey_file = pubkey_file
         self.privkey_file = privkey_file
-
-        # if server is None:
-        #     self.server = self.conf['server']
-        # else:
-        #     self.server = server
-        # if port is None:
-        #     self.port = self.conf['port']
-        # else:
-        #     self.port = port
-        # if username is None:
-        #     self.username = self.conf['username']
-        # else:
-        #     self.username = username
-        # if pubkey_file is None:
-        #     self.pubkey_file = self.conf['pubkey_file']
-        # else:
-        #     self.pubkey_file = pubkey_file
-        # if privkey_file is None:
-        #     self.privkey_file = self.conf['privkey_file']
-        # else:
-        #     self.privkey_file = privkey_file
-
         self.remoteobj = None
         self.result = None
 
@@ -110,11 +88,11 @@ class DSage(object):
                             passphrase=passphrase)
 
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -206,6 +184,7 @@ class DSage(object):
             #                    self.port,
             #                    factory,
             #                    contextFactory)
+            from gnutls.interfaces.twisted import X509Credentials
             cred = X509Credentials()
             reactor.connectTLS(self.server, self.port, factory, cred)
         else:
@@ -402,16 +381,17 @@ class BlockingDSage(DSage):
                             passphrase=passphrase)
 
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
 
         self.dsage_thread = DSageThread()
+        self.dsage_thread.setDaemon(False)
         self.dsage_thread.start()
         self.connect()
 

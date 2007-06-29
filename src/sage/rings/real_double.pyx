@@ -55,6 +55,8 @@ cdef class RealDoubleField_class(Field):
         sage: RDF == RealDoubleField()    # RDF is the shorthand
         True
     """
+    def __init__(self):
+        Field.__init__(self, self)
 
     def is_exact(self):
         return False

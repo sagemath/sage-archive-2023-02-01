@@ -16,29 +16,38 @@ from __future__ import with_statement
 ###########################################################################
 
 import os
+import shutil
 import re
 import string
 import traceback
 import time
 import crypt
+
+import bz2
+
+import re
+whitespace = re.compile('\s')  # Match any whitespace character
+non_whitespace = re.compile('\S')
+
 import pexpect
 
 from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
-from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
+from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
 import sage.server.support as support
+
+import worksheet_conf
+
+import twist
 
 from cell import Cell, TextCell
 
 INTERRUPT_TRIES = 3
-
 INITIAL_NUM_CELLS = 1
-HISTORY_MAX_OUTPUT = 92*5
-HISTORY_NCOLS = 90
 
+WARN_THRESHOLD = 100
 
-import notebook as _notebook
 
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
@@ -48,6 +57,11 @@ SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 
+##################################3
+ARCHIVED = 0
+ACTIVE   = 1
+TRASH    = 2
+
 
 # The default is for there to be one sage session for
 # each worksheet.  If this is False, then there is just
@@ -55,8 +69,8 @@ SAGE_ERROR=SC+'r'
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
-def initialized_sage():
-    S = Sage(maxread = 1)
+def initialized_sage(server, ulimit):
+    S = Sage(server=server, ulimit=ulimit, maxread = 1, python=True, verbose_start=False)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
@@ -69,189 +83,498 @@ def initialized_sage():
 
 
 _a_sage = None
-def init_sage_prestart():
+def init_sage_prestart(server, ulimit):
     global _a_sage
-    _a_sage = initialized_sage()
+    _a_sage = initialized_sage(server, ulimit)
 
-def one_prestarted_sage():
+def one_prestarted_sage(server, ulimit):
     global _a_sage
     X = _a_sage
     if multisession:
-        init_sage_prestart()
+        init_sage_prestart(server, ulimit)
     return X
 
+import notebook as _notebook
+def worksheet_filename(name, owner):
+    return owner + '/' + _notebook.clean_name(name)
+
 class Worksheet:
-    def __init__(self, name, notebook, id, system=None, passcode = ''):
-        name = ' '.join(name.split())
-        self.__id = id
-        self.__system = system
-        self.__next_id = (_notebook.MAX_WORKSHEETS) * id
-        self.__name = name
-        self.__notebook = notebook
-        self.__passcode = crypt.crypt(passcode, self.salt())
-        self.__passcrypt= True
-        dir = list(name)
-        for i in range(len(dir)):
-            if not dir[i].isalnum() and dir[i] != '_':
-                dir[i] = '_'
-        dir = ''.join(dir)
-        self.__filename = dir
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
+    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False):
+
+        # Record the basic properties of the worksheet
+        self.__system   = system
+        self.__owner         = owner
+        self.__viewers       = []
+        self.__collaborators = []
+        self.__docbrowser = docbrowser
+
+        # Initialize the cell id counter.
+        self.__next_id = 0
+
+        self.set_name(name)
+
+        # set the directory in which the worksheet files will be stored.
+        # We also add the hash of the name, since the cleaned name loses info, e.g.,
+        # it could be all _'s if all characters are funny.
+        filename = '%s/%s'%(owner, dirname)
+        self.__filename = filename
+        self.__dir = '%s/%s'%(notebook.worksheet_directory(), filename)
+
         self.clear()
+        self.save_snapshot(owner)
 
-    def clear(self):
-        self.__comp_is_running = False
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        self.__queue = []
-        self.__cells = [ ]
-        for i in range(INITIAL_NUM_CELLS):
-            self.append_new_cell()
-
-    def set_notebook(self, notebook, new_id=None):
-        self.__notebook = notebook
-        self.__dir = '%s/%s'%(notebook.worksheet_directory(), self.__filename)
-        if not new_id is None:
-            for C in self.__cells:
-                i = C.relative_id()
-                C.set_worksheet(self, new_id * _notebook.MAX_WORKSHEETS + i)
-            nid = self.__next_id  - _notebook.MAX_WORKSHEETS*self.__id
-            self.__id = new_id
-            self.__next_id = _notebook.MAX_WORKSHEETS*new_id + nid
-        else:
-            for C in self.__cells:
-                C.set_worksheet(self)
-
-    def salt(self):
+    def __cmp__(self, other):
         try:
-            return self.__salt
+            return cmp(self.filename(), other.filename())
         except AttributeError:
-            self.__salt = "%f"%time.time()
-            return self.__salt
+            return cmp(type(self), type(other))
 
-    def passcode(self):
+    def __repr__(self):
+        return str(self.__cells)
+
+    def __len__(self):
+        return len(self.__cells)
+
+    def docbrowser(self):
         try:
-            c = self.__passcrypt
+            return self.__docbrowser
         except AttributeError:
-            self.__passcrypt = False
+            return False
+
+    ##########################################################
+    # Configuration
+    ##########################################################
+    def conf(self):
         try:
-            if not self.__passcrypt:
-                self.__passcode = crypt.crypt(self.__passcode, self.salt())
-                self.__passcrypt = True
-            return self.__passcode
+            return self.__conf
         except AttributeError:
-            self.__passcode = crypt.crypt('', self.salt())
-            self.__passcrypt = True
-            return self.__passcode
+            file = '%s/conf.sobj'%self.directory()
+            if os.path.exists(file):
+                C = load(file)
+            else:
+                C = worksheet_conf.WorksheetConfiguration()
+            self.__conf = C
+            return C
+
+    ##########################################################
+    # Basic properties
+    # TODO: Need to create a worksheet configuration object
+    ##########################################################
+    def collaborators(self):
+        try:
+            return self.__collaborators
+        except AttributeError:
+            self.__collaborators = []
+            return self.__collaborators
+
+    def set_collaborators(self, v):
+        n = self.notebook()
+        U = n.users().keys()
+        L = [x.lower() for x in U]
+        owner = self.owner()
+        self.__collaborators = []
+        for x in v:
+            y = x.lower()
+            try:
+                i = L.index(y)
+                z = U[i]
+                if z != owner and not z in self.__collaborators:
+                    self.__collaborators.append(z)
+            except ValueError:
+                pass
+        self.__collaborators.sort()
+
+    def viewers(self):
+        try:
+            return self.__viewers
+        except AttributeError:
+            self.__viewers = []
+            return self.__viewers
+
+    def delete_notebook_specific_data(self):
+        self.__attached = {}
+        self.__collaborators = [self.owner()]
+        self.__viewer = []
+
+    def name(self):
+        return self.__name
+
+    def set_name(self, name):
+        if len(name.strip()) == 0:
+            name = 'Untitled'
+        self.__name = name
+
+    def set_filename_without_owner(self, nm):
+        filename = '%s/%s'%(self.owner(), nm)
+        self.set_filename(filename)
+
+    def set_filename(self, filename):
+        old_filename = self.__filename
+        self.__filename = filename
+        self.__dir = '%s/%s'%(self.notebook().worksheet_directory(), filename)
+        self.notebook().change_worksheet_key(old_filename, filename)
 
     def filename(self):
         return self.__filename
 
-    def save(self, filename=None):
-        if filename is None:
-            save(self, os.path.abspath(self.__dir + '/' + self.__filename))
-        else:
-            save(self, filename)
+    def filename_without_owner(self):
+        """
+        Return the part of the worksheet filename after the last /,
+        i.e., without any information about the owner of this
+        worksheet.
+        """
+        return os.path.split(self.__filename)[-1]
 
-    def __cmp__(self, other):
+    def directory(self):
+        return self.__dir
+
+    def data_directory(self):
+        d = self.directory() + '/data/'
+        if not os.path.exists(d):
+            os.makedirs(d)
+        return d
+
+    def attached_data_files(self):
+        D = self.data_directory()
+        if not os.path.exists(D):
+            return []
+        return os.listdir(D)
+
+    def cells_directory(self):
+        return self.directory() + '/cells/'
+
+    def notebook(self):
+        return twist.notebook
+
+    def DIR(self):
+        return self.notebook().DIR()
+
+    def system(self):
         try:
-            return cmp((self.__id, self.__name), (other.__id, other.__name))
+            return self.__system
         except AttributeError:
-            return -1
+            self.__system = 'sage'
+            return 'sage'
 
-    def computing(self):
+    def set_system(self, system='sage'):
+        self.__system = system.strip()
+
+    ##########################################################
+    # Publication
+    ##########################################################
+    def is_published(self):
+        return self.owner() == 'pub'
+
+    def worksheet_that_was_published(self):
         try:
-            return self.__comp_is_running
+            return self.__worksheet_came_from
+        except AttributeError:
+            return self
+
+    def publisher(self):
+        return self.worksheet_that_was_published().owner()
+
+    def is_publisher(self, username):
+        return self.publisher() == username
+
+    def has_published_version(self):
+        try:
+            self.published_version()
+            return True
+        except ValueError:
+            return False
+
+    def set_published_version(self, filename):
+        self.__published_version = filename
+
+    def published_version(self):
+        try:
+            filename =self.__published_version
+            try:
+                W = self.notebook().get_worksheet_with_filename(filename)
+                return W
+            except KeyError:
+                del self.__published_version
+                raise ValueError
+        except AttributeError:
+            raise ValueError, "no published version"
+
+    def set_worksheet_that_was_published(self, W):
+        if not isinstance(W, Worksheet):
+            raise TypeError, "W must be a worksheet"
+        self.__worksheet_came_from = W
+
+    def rate(self, x, comment, username):
+        r = self.ratings()
+        for i in range(len(r)):
+            if r[i][0] == username:
+                r[i] = (username, x, comment)
+                return
+        else:
+            r.append((username, x, comment))
+##         try:
+##             del self.__rating
+##         except AttributeError:
+##             pass
+
+    def is_rater(self, username):
+        try:
+            return username in [x[0] for x in self.ratings()]
+        except TypeError:
+            return False
+
+    def ratings(self):
+        try:
+            return self.__ratings
+        except AttributeError:
+            v = []
+            self.__ratings = v
+            return v
+
+    def html_ratings_info(self):
+        ratings = self.ratings()
+        lines = []
+        for z in sorted(ratings):
+            if len(z) == 2:
+                person, rating = z
+                comment = ''
+            else:
+                person, rating, comment = z
+            lines.append('<tr><td>%s</td><td align=center>%s</td><td>%s</td></tr>'%(
+                person, rating, '&nbsp;' if not comment else comment))
+        return '\n'.join(lines)
+
+    def rating(self):
+##         try:
+##             return self.__rating
+##         except AttributeError:
+            r = [x[1] for x in self.ratings()]
+            if len(r) == 0:
+                rating = -1    # means "not rated"
+            else:
+                rating = float(sum(r))/float(len(r))
+#            self.__rating = rating
+            return rating
+
+    ##########################################################
+    # Active, trash can and archive
+    ##########################################################
+    def everyone_has_deleted_this_worksheet(self):
+        for user in self.__collaborators + [self.owner()]:
+            if not self.is_trashed(user):
+                return False
+        return True
+
+    def user_view(self, user):
+        try:
+            return self.__user_view[user]
+        except AttributeError:
+            self.__user_view = {}
+        except KeyError:
+            pass
+        self.__user_view[user] = ACTIVE
+        return ACTIVE
+
+    def set_user_view(self, user, x):
+        try:
+            self.__user_view[user] = x
+        except (KeyError, AttributeError):
+            self.user_view(user)
+            self.__user_view[user] = x
+
+    def user_view_is(self, user, x):
+        return self.user_view(user) == x
+
+    def is_archived(self, user):
+        return self.user_view_is(user, ARCHIVED)
+
+    def is_active(self, user):
+        return self.user_view_is(user, ACTIVE)
+
+    def is_trashed(self, user):
+        return self.user_view_is(user, TRASH)
+
+    def move_to_archive(self, user):
+        self.set_user_view(user, ARCHIVED)
+
+    def set_active(self, user):
+        self.set_user_view(user, ACTIVE)
+
+    def move_to_trash(self, user):
+        self.set_user_view(user, TRASH)
+
+    def move_out_of_trash(self, user):
+        self.set_active(user)
+
+
+    #############
+
+    def delete_cells_directory(self):
+        dir = self.directory() + '/cells'
+        if os.path.exists(dir):
+            shutil.rmtree(dir)
+
+
+    ##########################################################
+    # Owner/viewer/user management
+    ##########################################################
+
+    def owner(self):
+        try:
+            return self.__owner
+        except AttributeError:
+            self.__owner = 'pub'
+            return 'pub'
+
+    def is_owner(self, username):
+        return self.owner() == username
+
+    def set_owner(self, owner):
+        self.__owner = owner
+        if not owner in self.__collaborators:
+            self.__collaborators.append(owner)
+
+    def user_is_only_viewer(self, user):
+        try:
+            return user in self.__viewers
         except AttributeError:
             return False
 
-    def set_not_computing(self):
-        self.__comp_is_running = False
-        self.__queue = []
+    def user_is_viewer(self, user):
+        try:
+            return user in self.__viewers or user in self.__collaborators or user == self.publisher()
+        except AttributeError:
+            return True
 
-    def plain_text(self, prompts=False):
-        """
-        Return a plain-text version of the worksheet.
+    def user_is_collaborator(self, user):
+        try:
+            return user in self.__collaborators
+        except AttributeError:
+            return True
 
-        prompts -- if True format for inclusion in docstrings.
-        """
-        s  = "#"*80 + '\n'
-        s += "# Worksheet: %s"%self.name() + '\n'
-        s += "#"*80+ '\n\n'
-        for C in self.__cells:
-            t = C.plain_text(prompts=prompts).strip('\n')
-            if t != '':
-                s += '\n' + t
-        return s
 
-    def edit_text(self, prompts=False):
-        """
-        Returns a plain-text version of the worksheet with \{\{\{\}\}\} wiki-formatting,
-        suitable for hand editing.
-        """
-        s = ''
-        for C in self.__cells:
-            t = C.edit_text(prompts=prompts).strip()
-            if t != '':
-                s += '\n\n' + t
-        return s
+    def add_viewer(self, user):
+        try:
+            if not user in self.__viewers:
+                self.__viewers.append(user)
+        except AttributeError:
+            self.__viewers = [user]
 
-    def edit_save(self, text):
-        text.replace('\r\n','\n')
-        # This is where we would save the last version in a history.
-        cells = []
-        while True:
-            plain_text = extract_text_before_first_compute_cell(text).strip()
-            if len(plain_text) > 0:
-                T = self._new_text_cell(plain_text)
-                cells.append(T)
-            try:
-                input, output, graphics, i = extract_first_compute_cell(text)
-            except EOFError:
-                cells.append(self._new_cell())  # make sure last cell is a compute cell
-                break
-            text = text[i:]
-            C = self._new_cell()
-            C.set_input_text(input)
-            C.set_output_text(output, '')
-            cells.append(C)
-        if len(cells) == 0:   # there must be at least one cell.
-            cells = [self._new_cell()]
-        self.__cells = cells
+    def add_collaborator(self, user):
+        try:
+            if not user in self.__collaborators:
+                self.__collaborators.append(user)
+        except AttributeError:
+            self.__collaborators = [user]
 
-##         lines = text.split('\n')
-##         input = ""
-##         output = ""
-##         in_cell = False
-##         in_output = False
-##         old_first = self.__cells[0].id()
-##         for line in lines:
-##             if not in_cell:
-##                 if line[:3] == '{{{':
-##                     in_cell = True
-##             elif line != '}}}':
-##                 if not in_output:
-##                     if line == '///':
-##                         in_output = True
-##                     else:
-##                         input += line+'\n'
-##                 else:
-##                     output += line+'\n'
-##             else:
-##                 C = self.new_cell_before(old_first)
-##                 C.set_input_text(input)
-##                 C.set_output_text(output,output)
-##                 C.set_cell_output_type()
-##                 input = ""
-##                 output = ""
-##                 in_cell = False
-##                 in_output = False
+    ##########################################################
+    # Searching
+    ##########################################################
+    def satisfies_search(self, search):
+        """
+        INPUT:
+            search is a string that describes a search query, i.e.,
+            a space-separated collections of words.
 
-    def input_text(self):
+        OUTPUT:
+            True if the search is satisfied by self, i.e., all
+            the words appear in the text version of self.
         """
-        Return text version of the input to the worksheet.
-        """
-        return '\n\n---\n\n'.join([C.input_text() for C in self.__cells])
+        E = self.edit_text() + \
+            ' '.join(self.collaborators()) + ' '.join(self.viewers()) + ' ' + self.publisher() + \
+            ' '.join(self.attached_data_files())
+        E = E.lower()
+        for word in search.split():
+            if not word.lower() in E:
+                return False
+        return True
+
+
+    ##########################################################
+    # Saving
+    ##########################################################
+    def save(self):
+        path = self.__dir
+        E = self.edit_text()
+        self.save_snapshot(self.owner(), E)
+        save(self.conf(), path + '/conf.sobj')
+
+    def save_snapshot(self, user, E=None):
+        self.uncache_snapshot_data()
+        path = self.snapshot_directory()
+        basename = str(int(time.time()))
+        filename = '%s/%s.bz2'%(path, basename)
+        if E is None:
+            E = self.edit_text()
+        open(filename, 'w').write(bz2.compress(E))
+        open('%s/worksheet.txt'%self.__dir, 'w').write(E)
+        try:
+            X = self.__saved_by_info
+        except AttributeError:
+            X = {}
+            self.__saved_by_info = X
+        X[basename] = user
+
+    def get_snapshot_text_filename(self, name):
+        path = self.snapshot_directory()
+        return '%s/%s'%(path, name)
+
+    def user_autosave_interval(self, username):
+        return self.notebook().user(username)['autosave_interval']
+
+    def autosave(self, username):
+        try:
+            last = self.__last_autosave
+        except AttributeError:
+            self.__last_autosave = time.time()
+            return
+        t = time.time()
+        if t - last >= self.user_autosave_interval(username):
+            self.__last_autosave = t
+            self.save_snapshot(username)
+
+    def revert_to_snapshot(self, name):
+        path = self.snapshot_directory()
+        filename = '%s/%s.txt'%(path, name)
+        E = bz2.decompress(open(filename).read())
+        self.edit_save(E)
+
+    def _saved_by_info(self, x):
+        try:
+            u = self.__saved_by_info[x]
+            return ' ago by %s'%u
+        except (KeyError,AttributeError):
+            return ' ago'
+
+    def snapshot_data(self):
+        try:
+            return self.__snapshot_data
+        except AttributeError:
+            pass
+        filenames = os.listdir(self.snapshot_directory())
+        filenames.sort()
+        t = time.time()
+        v = [(convert_seconds_to_meaningful_time_span(t - float(os.path.splitext(x)[0]))+ self._saved_by_info(x), x)  \
+             for x in filenames]
+        self.__snapshot_data = v
+        return v
+
+    def uncache_snapshot_data(self):
+        try:
+            del self.__snapshot_data
+        except AttributeError:
+            pass
+
+    def revert_to_last_saved_state(self):
+        filename = '%s/worksheet.txt'%(self.__dir)
+        E = open(filename).read()
+        self.edit_save(E)
+
+    def snapshot_directory(self):
+        path = os.path.abspath(self.__dir) + '/snapshots/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -261,13 +584,383 @@ class Worksheet:
         self.__dict__ = state
         try:
             del self.__sage
-            del self.__variables
             self.__queue = []
         except AttributeError:
             pass
 
-    def id(self):
-        return self.__id
+    ##########################################################
+    # Exporting the worksheet in plain text command-line format
+    ##########################################################
+    def plain_text(self, prompts=False, banner=True):
+        """
+        Return a plain-text version of the worksheet.
+
+        prompts -- if True format for inclusion in docstrings.
+        """
+        s = ''
+        if banner:
+            s += "#"*80 + '\n'
+            s += "# Worksheet: %s"%self.name() + '\n'
+            s += "#"*80+ '\n\n'
+
+        for C in self.__cells:
+            t = C.plain_text(prompts=prompts).strip('\n')
+            if t != '':
+                s += '\n' + t
+        return s
+
+    def input_text(self):
+        """
+        Return text version of the input to the worksheet.
+        """
+        return '\n\n---\n\n'.join([C.input_text() for C in self.__cells])
+
+    ##########################################################
+    # Editing the worksheet in plain text format (export and import)
+    ##########################################################
+    def edit_text(self):
+        """
+        Returns a plain-text version of the worksheet with \{\{\{\}\}\} wiki-formatting,
+        suitable for hand editing.
+        """
+        s = self.name() + '\n'
+        s += 'system:%s'%self.system()
+
+        for C in self.__cells:
+            t = C.edit_text().strip()
+            if t != '':
+                s += '\n\n' + t
+        return s
+
+    def edit_save(self, text, ignore_ids=False):
+        # Clear any caching.
+        try:
+            del self.__html
+        except AttributeError:
+            pass
+
+        text.replace('\r\n','\n')
+        name, i = extract_name(text)
+        self.set_name(name)
+        text = text[i:]
+
+        system, i = extract_system(text)
+        if system == "None":
+            system = "sage"
+        self.set_system(system)
+        text = text[i:]
+
+        data = []
+        while True:
+            plain_text = extract_text_before_first_compute_cell(text).strip()
+            if len(plain_text) > 0:
+                T = plain_text
+                data.append(('plain', T))
+            try:
+                meta, input, output, i = extract_first_compute_cell(text)
+                data.append(('compute', (meta,input,output)))
+            except EOFError, msg:
+                print msg
+                break
+            text = text[i:]
+
+        ids = set([x[0]['id'] for typ, x in data if typ == 'compute' and  x[0].has_key('id')])
+        used_ids = set([])
+
+        cells = []
+        for typ, T in data:
+            if typ == 'plain':
+                if len(T) > 0:
+                    id = next_available_id(ids)
+                    ids.add(id)
+                    cells.append(self._new_text_cell(T, id=id))
+                    used_ids.add(id)
+            elif typ == 'compute':
+                meta, input, output = T
+                if not ignore_ids and meta.has_key('id'):
+                    id = meta['id']
+                    if id in used_ids:
+                        # In this case don't reuse, since ids must be unique.
+                        id = next_available_id(ids)
+                        ids.add(id)
+                    html = True
+                else:
+                    id = next_available_id(ids)
+                    ids.add(id)
+                    html = False
+                used_ids.add(id)
+                C = self.get_cell_with_id(id = id)
+                if isinstance(C, TextCell):
+                    C = self._new_cell(id)
+                C.set_input_text(input)
+                C.set_output_text(output, '')
+                if html:
+                    C.update_html_output()
+                cells.append(C)
+
+        if len(cells) == 0:   # there must be at least one cell.
+            cells = [self._new_cell()]
+
+        self.set_cell_counter()
+
+        self.__cells = cells
+
+
+    ##########################################################
+    # HTML rendering of the wholea worksheet
+    ##########################################################
+    def html(self, include_title=True, do_print=False,
+             confirm_before_leave=False, read_only=False):
+        if self.is_published():
+            try:
+                return self.__html
+            except AttributeError:
+                s = self.html_worksheet_body(do_print=True)
+                s += self.javascript_for_jsmath_rendering()
+                self.__html = s
+                return s
+
+        s = ''
+
+        s += self.html_worksheet_body(do_print=do_print)
+
+        if do_print:
+            s += self.javascript_for_jsmath_rendering()
+        else:
+            s += self.javascript_for_being_active_worksheet()
+
+        if not do_print and confirm_before_leave:
+            s += self.javascript_confirm_before_leave()
+
+        return s
+
+    def truncated_name(self, max=30):
+        name = self.name()
+        if len(name) > max:
+            name = name[:max] + ' ...'
+        return name
+
+    def html_title(self, username='guest'):
+        name = self.truncated_name()
+
+        warn = self.warn_about_other_person_editing(username, WARN_THRESHOLD)
+
+        s = ''
+        s += '<div class="worksheet_title">'
+        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
+        s += '<br>' + self.html_time_last_edited()
+        if warn and username != 'guest' and not self.is_doc_worksheet():
+            s += '&nbsp;&nbsp;<span class="pingdown">Conflict WARNING!</span>'
+        s += '</div>'
+
+        return s
+
+    def is_doc_worksheet(self):
+        try:
+            return self.__is_doc_worksheet
+        except AttributeError:
+            return False
+
+    def set_is_doc_worksheet(self, value):
+        self.__is_doc_worksheet = value
+
+    def html_save_discard_buttons(self):
+        if self.is_doc_worksheet():
+            return ''
+        return """
+        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
+        """
+
+    def html_share_publish_buttons(self, select=None):
+        #<a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
+        #<a  title="Preview this worksheet" class="usercontrol" href="preview_"><img border=0 src="/images/icon_preview.gif"> Preview</a>
+
+        if self.is_doc_worksheet():
+            return ''
+        def cls(x):
+            if x == select:
+                return "control-select"
+            else:
+                return "control"
+
+        return """
+
+        <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif"> Print</a>
+        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Use</a>
+        <a class="%s" title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit</a>
+        <a class="%s" title="View plain text version of this worksheet" class="usercontrol" href="text">Text</a>
+        <a class="%s" href="revisions" title="View changes to this worksheet over time">Revisions</a>
+        <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
+        <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
+        """%(cls('use'),cls('edit'),cls('text'),cls('revisions'),cls('share'))
+
+    def html_data_options_list(self):
+        D = self.attached_data_files()
+        x = '\n'.join(['<option value="datafile?name=%s">%s</option>'%(nm,nm) for nm in D])
+        return x
+
+    def html_file_menu(self):
+##  <option title="Save this worksheet as an HTML web page" onClick="save_as('html');">Save as HTML (zipped) </option>
+##  <option title="Save this worksheet to LaTeX format" onClick="save_as('latex');">Save as LaTeX (zipped) </option>
+##  <option title="Save this worksheet as a PDF file" onClick="save_as('pdf');">Save as PDF</option>
+##  <option title="Save this worksheet as a text file" onClick="save_as('text');">Save as Text</option>
+
+        if self.is_doc_worksheet():
+            system_select = ''
+        else:
+            system_select = self.notebook().html_system_select_form_element(self)
+
+        data = self.html_data_options_list()
+
+        return """
+<select class="worksheet"  onchange="go_option(this);">
+<option title="Select a file related function" value=""  selected=1>File...</option>
+ <option title="Create a new worksheet" value="new_worksheet();">New Worksheet</option>
+ <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download</option>
+ <option title="Print this worksheet" value="print_worksheet();">Print</optooion>
+ <option title="Rename this worksheet" value="rename_worksheet();">Rename worksheet</option>
+ <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
+ <option title="Move this worksheet to the trash" value="delete_worksheet('%s');">Delete worksheet</option>
+</select>
+
+<select class="worksheet"  onchange="go_option(this);" >
+ <option title="Select a worksheet function" value="" selected=1>Action...</option>
+ <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
+ <option title="Restart the worksheet" value="restart_sage();">Restart</option>
+ <option value="">---------------------------</option>
+ <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
+ <option title="Hide all output" value="hide_all();">Hide All</option>
+ <option title="Show all output" value="show_all();">Show All</option>
+ <option value="">---------------------------</option>
+ <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
+ <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
+ </select>
+
+<select class="worksheet" onchange="go_data(this);" >
+ <option title="Select an attached file" value="" selected=1>Data...</option>
+ <option title="Upload or create a data file in a wide range of formats" value="__upload_data_file__">Upload or create file...</option>
+ <option value="">--------------------</option>
+%s
+</select>
+
+ %s
+ """%(_notebook.clean_name(self.name()), self.filename(),
+      data, system_select)
+# <option title="Browse the data directory" value="data/">Browse data directory...</option>
+# <option title="Browse the directory of output from cells" value="cells/">Browse cell output directories...</option>
+
+# <option title="Configure this worksheet" value="worksheet_settings();">Worksheet settings</option>
+
+    def html_menu(self):
+        name = self.filename()
+
+        menu = '&nbsp;'*3 + self.html_file_menu()
+
+        filename = os.path.split(self.filename())[-1]
+        download_name = _notebook.clean_name(self.name())
+
+        menu += '  </span>'
+
+        return menu
+
+    def html_worksheet_body(self, do_print, publish=False):
+        n = len(self.__cells)
+        published = self.is_published() or publish
+
+        s = ''
+        D = self.notebook().conf()
+        ncols = D['word_wrap_cols']
+        if not published:
+            s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
+
+        for i in range(n):
+            cell = self.__cells[i]
+            s += cell.html(ncols, do_print=do_print) + '\n'
+
+        if not published:
+            s += '\n</div>\n'
+            s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
+            s += '<div class="worksheet_bottom_padding"></div>\n'
+        return s
+
+    def javascript_for_being_active_worksheet(self):
+        s =  '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
+        s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
+        return s
+
+    def javascript_for_jsmath_rendering(self):
+        return '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+
+    def javascript_confirm_before_leave(self):
+        return """<script type="text/javascript">
+            window.onbeforeunload = confirmBrowseAway;
+            function confirmBrowseAway()
+            {
+            return "Unsubmitted cells will be lost.";
+            }
+            </script>
+            """
+
+
+
+    ##########################################################
+    # Last edited
+    ##########################################################
+    def last_edited(self):
+        try:
+            return self.__last_edited[0]
+        except AttributeError:
+            t = time.time()
+            self.__last_edited = (t, self.owner())
+            return t
+
+    def last_to_edit(self):
+        try:
+            return self.__last_edited[1]
+        except AttributeError:
+            return self.owner()
+
+    def record_edit(self, user):
+        self.__last_edited = (time.time(), user)
+        self.autosave(user)
+
+    def time_since_last_edited(self):
+        return time.time() - self.last_edited()
+
+    def warn_about_other_person_editing(self,username, threshold):
+        """
+        Check to see if another user besides username was the last to
+        edited this worksheet during the last threshold seconds.  If
+        so, return True and that user name.  If not, return False.
+
+        INPUT:
+           username -- user who would like to edit this file.
+           threshold -- number of seconds, so if there was no activity on
+                   this worksheet for this many seconds, then editing is
+                   considered safe.
+        """
+        if self.time_since_last_edited() < threshold:
+            user = self.last_to_edit()
+            if user != username:
+                return True, user
+        False
+
+
+    def html_time_since_last_edited(self):
+        t = self.time_since_last_edited()
+        tm = convert_seconds_to_meaningful_time_span(t)
+        who = ' by %s'%self.last_to_edit()
+        return '<span class="lastedit">%s ago%s</span>'%(tm, who)
+
+    def html_time_last_edited(self):
+        tm = convert_time_to_string(self.last_edited())
+        who = self.last_to_edit()
+        t = '<span class="lastedit">last edited on %s by %s</span>'%(tm, who)
+        return t
+
+    ##########################################################
+    # Managing cells and groups of cells in this worksheet
+    ##########################################################
 
     def cell_id_list(self):
         return [C.id() for C in self.__cells]
@@ -338,17 +1031,55 @@ class Worksheet:
                     break
         return cells[0].id()
 
-    def directory(self):
-        if not os.path.exists(self.__dir):
-            # prevent "rm -rf" accidents.
-            os.makedirs(self.__dir)
-        return self.__dir
+    ##########################################################
+    # Managing whether computing is happening: stop, start, clear, etc.
+    ##########################################################
+    def clear(self):
+        self.__comp_is_running = False
+        self.__queue = []
+        self.__cells = [ ]
+        for i in range(INITIAL_NUM_CELLS):
+            self.append_new_cell()
 
-    def DIR(self):
-        return self.__notebook.DIR()
+    def computing(self):
+        try:
+            return self.__comp_is_running
+        except AttributeError:
+            return False
+
+    def set_not_computing(self):
+        self.__comp_is_running = False
+        self.__queue = []
 
     def quit(self):
-        self.restart_sage()
+        try:
+            S = self.__sage
+        except AttributeError:
+            # no sage running anyways!
+            return
+
+        try:
+            pid = S._expect.pid
+            #print "PID = ", pid
+            os.killpg(pid, 9)
+            os.kill(pid, 9)
+            S._expect = None
+        except AttributeError, msg:
+            print "WARNING: %s"%msg
+        except Exception, msg:
+            print msg
+            print "WARNING: Error deleting SAGE object!"
+
+        try:
+            os.kill(pid, 9)
+        except:
+            pass
+
+        del self.__sage
+
+        # We do this to avoid getting a stale SAGE that uses old code.
+        self.clear_queue()
+
 
     def next_block_id(self):
         try:
@@ -374,146 +1105,48 @@ class Worksheet:
         return True
 
     def initialize_sage(self):
-        print "Starting SAGE server for worksheet %s..."%self.name()
+        #print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
-        object_directory = os.path.abspath(self.__notebook.object_directory())
+        object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
+        self._enqueue_auto_cells()
         try:
-            cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
-            cmd += '_support_.init("%s", globals()); '%object_directory
+            cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
+            #cmd += '_support_.init("%s", globals()); '%object_directory
+            cmd += '_support_.init(None, globals()); '
             S._send(cmd)   # non blocking
         except Exception, msg:
             print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
             raise RuntimeError
-        print "Done starting"
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
         return S
 
     def sage(self):
+        if self.is_published():
+            return None
         try:
             S = self.__sage
             if not S._expect is None:
                 return S
         except AttributeError:
             pass
-        self.__sage = one_prestarted_sage()
-        verbose("Initializing SAGE.")
+        self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
+                                          ulimit = self.notebook().get_ulimit())
         os.environ['PAGER'] = 'cat'
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
         self.__next_block_id = 0
         self.initialize_sage()
         return self.__sage
-
-    def _enqueue_auto_cells(self):
-        for c in self.__cells:
-            if c.is_auto_cell():
-                self.enqueue(c)
-
-    def _new_text_cell(self, plain_text, id=None):
-        if id is None:
-            id = self.__next_id
-            self.__next_id += 1
-        return TextCell(id, plain_text, self)
-
-    def _new_cell(self, id=None):
-        if id is None:
-            id = self.__next_id
-            self.__next_id += 1
-        return Cell(id, '', '', self)
-
-    def __repr__(self):
-        return str(self.__cells)
-
-    def __len__(self):
-        return len(self.__cells)
-
-    def __getitem__(self, n):
-        try:
-            return self.__cells[n]
-        except IndexError:
-            if n >= 0:  # this should never happen -- but for robustness we cover this case.
-                for k in range(len(self.__cells),n+1):
-                    self.__cells.append(self._new_cell())
-                return self.__cells[n]
-            raise IndexError
-
-
-    def get_cell_with_id(self, id):
-        for c in self.__cells:
-            if c.id() == id:
-                return c
-        return self._new_cell(id)
-
-    def queue(self):
-        return list(self.__queue)
-
-    def queue_id_list(self):
-        return [c.id() for c in self.__queue]
-
-    def _enqueue_auto(self):
-        for c in self.__cells:
-            if c.is_auto_cell():
-                self.__queue.append(c)
-
-
-    def enqueue(self, C):
-        if not isinstance(C, Cell):
-            raise TypeError
-        if C.worksheet() != self:
-            raise ValueError, "C must be have self as worksheet."
-        # If the SAGE server hasn't started and the queue is empty,
-        # first enqueue the auto cells:
-        if len(self.__queue) == 0:
-            try:
-                self.__sage
-            except AttributeError:
-                self._enqueue_auto()
-
-        # Now enqueue the requested cell.
-        if not (C in self.__queue):
-            self.__queue.append(C)
-        self.start_next_comp()
-
-
-    def synchronize(self, s):
-        try:
-            i = (self.__synchro + 1)%65536
-        except AttributeError:
-            i = 0
-        self.__synchro = i
-        return 'print "%s%s"\n'%(SAGE_BEGIN,i) + s + '\nprint "%s%s"\n'%(SAGE_END,i)
-
-    def synchro(self):
-        try:
-            return self.__synchro
-        except AttributeError:
-            return 0
-
-    def delete_cell_input_files(self):
-        """
-        Delete all the files code_%s.py and code_%s.spyx that are created
-        when evaluating cells.  We do this when we first start the notebook
-        to get rid of clutter.
-        """
-        D = self.directory() + '/code/'
-        if os.path.exists(D):
-            for X in os.listdir(D):
-                os.unlink('%s/%s'%(D,X))
-        else:
-            os.makedirs(D)
 
     def start_next_comp(self):
         if len(self.__queue) == 0:
             return
 
         if self.__comp_is_running:
+            #self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
@@ -522,21 +1155,20 @@ class Worksheet:
             return
 
         D = C.directory()
-        V = self.known_variables()
         if not C.introspect():
             I = C.input_text().strip()
-            if I in ['restart', 'quit', 'exit'] and not I in V:
+            if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
-                if S is None: S = 'SAGE'
+                if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-            if I[:5] == '%time':
+            if I.startswith('%time'):
                 C.do_time()
-                I = I[5:].lstrip()
-            elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
+                I = after_first_word(I).lstrip()
+            elif first_word(I) == 'time':
                 C.do_time()
-                I = I[5:].lstrip()
+                I = after_first_word(I).lstrip()
         else:
             I = C.introspect()[0]
 
@@ -545,14 +1177,22 @@ class Worksheet:
         id = self.next_block_id()
 
         # prevent directory disappear problems
-        if not os.path.exists('%s/code'%self.directory()):
-            os.makedirs('%s/code'%self.directory())
-        tmp = '%s/code/%s.py'%(self.directory(), id)
-        input = 'os.chdir("%s")\n'%os.path.abspath(D)
+        dir = self.directory()
+        if not os.path.exists('%s/code'%dir):
+            os.makedirs('%s/code'%dir)
+        if not os.path.exists('%s/cells'%dir):
+            os.makedirs('%s/cells'%dir)
+        tmp = '%s/code/%s.py'%(dir, id)
+
+        absD = os.path.abspath(D)
+        input = 'os.chdir("%s")\n'%absD
+
+        # TODOss
+        os.system('chmod -R a+rw "%s"'%absD)
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
-        if I[-1:] == '?':
+        if I.endswith('?'):
             C.set_introspect(I, '')
         I = I.replace('\\\n','')
         C._before_preparse = input + I
@@ -606,27 +1246,6 @@ class Worksheet:
             self.restart_sage()
             C.set_output_text('The SAGE compute process quit (possibly SAGE crashed?).\nPlease retry your calculation.','')
 
-
-
-    def check_cell(self, id):
-        """
-        Check the status on computation of the cell with given id.
-
-        INPUT:
-            id -- an integer
-
-        OUTPUT:
-            status -- a string, either 'd' (done) or 'w' (working)
-            cell -- the cell with given id
-        """
-        cell = self.get_cell_with_id(id)
-
-        if cell in self.__queue:
-            status = 'w'
-        else:
-            status = 'd'
-        return status, cell
-
     def check_comp(self):
         if len(self.__queue) == 0:
             return 'e', None
@@ -651,6 +1270,7 @@ class Worksheet:
             out = self._process_output(out)
             if not C.introspect():
                 C.set_output_text(out, '')
+            #self._record_that_we_are_computing()
             return 'w', C
 
         # Finished a computation.
@@ -672,88 +1292,8 @@ class Worksheet:
         else:
             C.set_output_text(out, C.files_html(out), sage=self.sage())
             C.set_introspect_html('')
-            history = "Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
-            history += C.edit_text(ncols=HISTORY_NCOLS, prompts=False,
-                                    max_out=HISTORY_MAX_OUTPUT)
-            self.notebook().add_to_history(history)
 
         return 'd', C
-
-    def best_completion(self, s, word):
-        completions = s.split()
-        if len(completions) == 0:
-            return ''
-        n = len(word)
-        i = n
-        m = min([len(x) for x in completions])
-        while i <= m:
-            word = completions[0][:i]
-            for w in completions[1:]:
-                if w[:i] != word:
-                    return w[n:i-1]
-            i += 1
-        return completions[0][n:m]
-
-    def completions_html(self, id, s, cols=3):
-        if 'no completions of' in s:
-            return ''
-
-        completions = s.split()
-
-        n = len(completions)
-        l = n/cols + n%cols
-
-        if n == 1:
-            return '' # don't show a window, just replace it
-
-        rows = []
-        for r in range(0,l):
-            row = []
-            for c in range(cols):
-                try:
-                    cell = completions[r + l*c]
-                    row.append(cell)
-                except:
-                    pass
-            rows.append(row)
-        return self.__notebook.format_completions_as_html(id, rows)
-
-    def auth(self, passcode):
-        return self.passcode() == crypt.crypt(passcode, self.salt())
-
-    def _strip_synchro_from_start_of_output(self, s):
-        z = SAGE_BEGIN+str(self.synchro())
-        i = s.find(z)
-        if i == -1:
-            # did not find any synchronization info in the output stream
-            j = s.find('Traceback')
-            if j != -1:
-                # Probably there was an error; better not hide it.
-                return s[j:]
-            else:
-                # Maybe we just read too early -- supress displaying anything yet.
-                return ''
-        else:
-            return s[i+len(z):]
-
-    def _process_output(self, s):
-        s = re.sub('\x08.','',s)
-        s = self._strip_synchro_from_start_of_output(s)
-        if SAGE_ERROR in s:
-            i = s.rfind('>>>')
-            if i >= 0:
-                return s[:i-1]
-        # Remove any control codes that might have not got stripped out.
-        return s.replace(SAGE_BEGIN,'').replace(SAGE_END,'').replace(SC,'')
-
-    def is_last_id_and_previous_is_nonempty(self, id):
-        if self.__cells[-1].id() != id:
-            return False
-        if len(self.__cells) == 1:
-            return False
-        if len(self.__cells[-2].output_text(ncols=0)) == 0:
-            return False
-        return True
 
     def interrupt(self):
         """
@@ -792,37 +1332,314 @@ class Worksheet:
         """
         Restart SAGE kernel.
         """
-        print "restarting"
+        self.quit()
 
-        try:
-            S = self.__sage
-        except AttributeError:
-            # no sage running anyways!
-            return
-
-        try:
-            pid = S._expect.pid
-            os.killpg(pid, 9)
-            os.kill(pid, 9)
-            S._expect = None
-            del self.__sage
-        except AttributeError, msg:
-            print "WARNING: %s"%msg
-        except Exception, msg:
-            print msg
-            print "WARNING: Error deleting SAGE object!"
-
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
-
-        # We do this to avoid getting a stale SAGE that uses old code.
-        self.clear_queue()
-        self.__sage = initialized_sage()
+        self.__sage = initialized_sage(server = self.notebook().get_server(),
+                                       ulimit = self.notebook().get_ulimit())
         self.initialize_sage()
-        self._enqueue_auto_cells()
         self.start_next_comp()
+
+
+    def worksheet_command(self, cmd):
+        return '/home/%s/%s'%(self.filename(), cmd)
+
+    ##########################################################
+    # Idle timeout
+    ##########################################################
+    def quit_if_idle(self, timeout):
+        """
+        Quit the worksheet process if it has been "idle" for more than timeout seconds,
+        where idle is by definition that the worksheet has not reported back that it
+        is actually computing.  I.e., an ignored worksheet process (since the user closed
+        their browser) is also considered idle, even if code is running.
+        """
+        if self.time_idle() > timeout:
+            print "Quitting ignored worksheet process for '%s'."%self.name()
+            self.quit()
+
+    def time_idle(self):
+        return walltime() - self.last_compute_walltime()
+
+    def last_compute_walltime(self):
+        try:
+            return self.__last_compute_walltime
+        except AttributeError:
+            t = walltime()
+            self.__last_compute_walltime = t
+            return t
+
+    def _record_that_we_are_computing(self, username=None):
+        self.__last_compute_walltime = walltime()
+        if username:
+            self.record_edit(username)
+
+    def ping(self, username):
+        if self.is_published():
+            return
+        self._record_that_we_are_computing(username)
+
+    ##########################################################
+    # Enqueuing cells
+    ##########################################################
+    def queue(self):
+        return list(self.__queue)
+
+    def queue_id_list(self):
+        return [c.id() for c in self.__queue]
+
+    def _enqueue_auto(self):
+        for c in self.__cells:
+            if c.is_auto_cell():
+                self.__queue.append(c)
+
+
+    def enqueue(self, C, username=None):
+        #self._record_that_we_are_computing(username)
+        if not isinstance(C, Cell):
+            raise TypeError
+        if C.worksheet() != self:
+            raise ValueError, "C must be have self as worksheet."
+
+        # Now enqueue the requested cell.
+        if not (C in self.__queue):
+            self.__queue.append(C)
+        self.start_next_comp()
+
+    def _enqueue_auto_cells(self):
+        for c in self.__cells:
+            if c.is_auto_cell():
+                self.enqueue(c)
+
+    def set_cell_counter(self):
+        self.__next_id = 1 + max([C.id() for C in self.__cells])
+
+    def _new_text_cell(self, plain_text, id=None):
+        if id is None:
+            id = self.__next_id
+            self.__next_id += 1
+        return TextCell(id, plain_text, self)
+
+    def _new_cell(self, id=None):
+        if id is None:
+            id = self.__next_id
+            self.__next_id += 1
+        return Cell(id, '', '', self)
+
+    def append(self, L):
+        self.__cells.append(L)
+
+    ##########################################################
+    # Accessing existing cells
+    ##########################################################
+    def __getitem__(self, n):
+        try:
+            return self.__cells[n]
+        except IndexError:
+            if n >= 0:  # this should never happen -- but for robustness we cover this case.
+                for k in range(len(self.__cells),n+1):
+                    self.__cells.append(self._new_cell())
+                return self.__cells[n]
+            raise IndexError
+
+    def get_cell_with_id(self, id):
+        for c in self.__cells:
+            if c.id() == id:
+                return c
+        return self._new_cell(id)
+
+    def synchronize(self, s):
+        try:
+            i = (self.__synchro + 1)%65536
+        except AttributeError:
+            i = 0
+        self.__synchro = i
+        return 'print "%s%s"\n'%(SAGE_BEGIN,i) + s + '\nprint "%s%s"\n'%(SAGE_END,i)
+
+    def synchro(self):
+        try:
+            return self.__synchro
+        except AttributeError:
+            return 0
+
+    def delete_cell_input_files(self):
+        """
+        Delete all the files code_%s.py and code_%s.spyx that are created
+        when evaluating cells.  We do this when we first start the notebook
+        to get rid of clutter.
+        """
+        D = self.directory() + '/code/'
+        if os.path.exists(D):
+            for X in os.listdir(D):
+                os.unlink('%s/%s'%(D,X))
+        else:
+            os.makedirs(D)
+
+    def check_cell(self, id):
+        """
+        Check the status on computation of the cell with given id.
+
+        INPUT:
+            id -- an integer
+
+        OUTPUT:
+            status -- a string, either 'd' (done) or 'w' (working)
+            cell -- the cell with given id
+        """
+        cell = self.get_cell_with_id(id)
+
+        if cell in self.__queue:
+            status = 'w'
+        else:
+            status = 'd'
+        return status, cell
+
+    def is_last_id_and_previous_is_nonempty(self, id):
+        if self.__cells[-1].id() != id:
+            return False
+        if len(self.__cells) == 1:
+            return False
+        if len(self.__cells[-2].output_text(ncols=0)) == 0:
+            return False
+        return True
+
+
+    ##########################################################
+    # (Tab) Completions
+    ##########################################################
+    def best_completion(self, s, word):
+        completions = s.split()
+        if len(completions) == 0:
+            return ''
+        n = len(word)
+        i = n
+        m = min([len(x) for x in completions])
+        while i <= m:
+            word = completions[0][:i]
+            for w in completions[1:]:
+                if w[:i] != word:
+                    return w[n:i-1]
+            i += 1
+        return completions[0][n:m]
+
+    def completions_html(self, id, s, cols=3):
+        if 'no completions of' in s:
+            return ''
+
+        completions = s.split()
+
+        n = len(completions)
+        l = n/cols + n%cols
+
+        if n == 1:
+            return '' # don't show a window, just replace it
+
+        rows = []
+        for r in range(0,l):
+            row = []
+            for c in range(cols):
+                try:
+                    cell = completions[r + l*c]
+                    row.append(cell)
+                except:
+                    pass
+            rows.append(row)
+        return format_completions_as_html(id, rows)
+
+    ##########################################################
+    # Processing of input and output to worksheet process.
+    ##########################################################
+    def preparse_input(self, input, C):
+        C.set_is_html(False)
+        introspect = C.introspect()
+        if introspect:
+            input = self.preparse_introspection_input(input, C, introspect)
+        else:
+            switched, input = self.check_for_system_switching(input, C)
+            if not switched:
+                input = self.preparse_nonswitched_input(input)
+            input += '\n'
+        return input
+
+    def preparse_introspection_input(self, input, C, introspect):
+        before_prompt, after_prompt = introspect
+        i = 0
+        while i < len(after_prompt):
+            if after_prompt[i] == '?':
+                if i < len(after_prompt)-1 and after_prompt[i+1] == '?':
+                    i += 1
+                before_prompt += after_prompt[:i+1]
+                after_prompt = after_prompt[i+1:]
+                C.set_introspect(before_prompt, after_prompt)
+                break
+            elif after_prompt[i] in ['"', "'", ' ', '\t', '\n']:
+                break
+            i += 1
+        if before_prompt.endswith('??'):
+            input = self._get_last_identifier(before_prompt[:-2])
+            input = 'print _support_.source_code("%s", globals())'%input
+        elif before_prompt.endswith('?'):
+            input = self._get_last_identifier(before_prompt[:-1])
+            input = 'print _support_.docstring("%s", globals())'%input
+        else:
+            input = self._get_last_identifier(before_prompt)
+            C._word_being_completed = input
+            input = 'print "\\n".join(_support_.completions("%s", globals()))'%(input)
+        return input
+
+    def preparse_nonswitched_input(self, input):
+        input = ignore_prompts_and_output(input).rstrip()
+        input = self.preparse(input)
+        input = self.load_any_changed_attached_files(input)
+        input = self.do_sage_extensions_preparsing(input)
+        input = input.split('\n')
+
+        # The following is all so the last line (or single lines)
+        # will implicitly print as they should, unless they are
+        # an assignment.   "display hook"  It's very complicated,
+        # but it has to be...
+        i = len(input)-1
+        if i >= 0:
+            while len(input[i]) > 0 and input[i][0] in ' \t':
+                i -= 1
+            t = '\n'.join(input[i:])
+            if not t.startswith('def '):
+                try:
+                    compile(t+'\n', '', 'single')
+                    t = t.replace("'", "\\u0027").replace('\n','\\u000a')
+                    # IMPORTANT: If you change this line, also change
+                    # the function format_exception in cell.py
+                    input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                    input = input[:i+1]
+                except SyntaxError, msg:
+                    pass
+        input = '\n'.join(input)
+        return input
+
+
+    def _strip_synchro_from_start_of_output(self, s):
+        z = SAGE_BEGIN+str(self.synchro())
+        i = s.find(z)
+        if i == -1:
+            # did not find any synchronization info in the output stream
+            j = s.find('Traceback')
+            if j != -1:
+                # Probably there was an error; better not hide it.
+                return s[j:]
+            else:
+                # Maybe we just read too early -- supress displaying anything yet.
+                return ''
+        else:
+            return s[i+len(z):]
+
+    def _process_output(self, s):
+        s = re.sub('\x08.','',s)
+        s = self._strip_synchro_from_start_of_output(s)
+        if SAGE_ERROR in s:
+            i = s.rfind('>>>')
+            if i >= 0:
+                return s[:i-1]
+        # Remove any control codes that might have not got stripped out.
+        return s.replace(SAGE_BEGIN,'').replace(SAGE_END,'').replace(SC,'')
 
     def postprocess_output(self, out, C):
         i = out.find('\r\n')
@@ -872,6 +1689,9 @@ class Worksheet:
                           ignore_prompts=False)
         return s
 
+    ##########################################################
+    # Loading and attaching files
+    ##########################################################
     def load_any_changed_attached_files(self, s):
         """
         Modify s by prepending any necessary load commands
@@ -932,8 +1752,8 @@ class Worksheet:
             else:
                 if len(filename) > 0 and filename[0] != '/':
                     filename = '%s/%s'%(self.DIR(), filename)
-                if filename[-3:] != '.py' and filename[-5:] != '.sage' and \
-                   filename[-5:] != '.sobj' and not os.path.exists(filename):
+                if not filename.endswith('.py') and not filename.endswith('.sage') and \
+                       not filename.endswith('.sobj') and not os.path.exists(filename):
                     if os.path.exists(filename + '.sage'):
                         filename = filename + '.sage'
                     elif os.path.exists(filename + '.py'):
@@ -943,25 +1763,40 @@ class Worksheet:
             a.append(filename)
         return a
 
+    def load_path(self):
+        D = self.cells_directory()
+        return [self.directory() + '/data/'] + [D + x for x in os.listdir(D)]
+
+    def hunt_file(self, filename):
+        if not os.path.exists(filename):
+            fn = os.path.split(filename)[-1]
+            for D in self.load_path():
+                t = D + '/' + fn
+                if os.path.exists(t):
+                    filename = t
+                    break
+                if os.path.exists(t + '.sobj'):
+                    filename = t + '.sobj'
+                    break
+        return os.path.abspath(filename)
+
     def _load_file(self, filename, files_seen_so_far, this_file):
-        if filename[-5:] == '.sobj':
-            i = filename.rfind('/')
-            if i != -1:
-                name = filename[i+1:-5]
-            else:
-                name = filename[:-5]
+        if filename.endswith('.sobj'):
+            name = os.path.splitext(filename)[0]
+            name = os.path.split(name)[-1]
             return '%s = load("%s");'%(name, filename)
 
         if filename in files_seen_so_far:
             t = "print 'WARNING: Not loading %s -- would create recursive load'"%filename
+
         try:
             F = open(filename).read()
         except IOError:
             return "print 'Error loading %s -- file not found'"%filename
         else:
-            if filename[-3:] == '.py':
+            if filename.endswith('.py'):
                 t = F
-            elif filename[-5:] == '.sage':
+            elif filename.endswith('.sage'):
                 t = self.preparse(F)
             else:
                 t = "print 'Loading of file \"%s\" has type not implemented.'"%filename
@@ -979,15 +1814,17 @@ class Worksheet:
     def do_sage_extensions_preparsing(self, s, files_seen_so_far=[], this_file=''):
         u = []
         for t in s.split('\n'):
-            if t[:5] == 'load ':
+            if t.startswith('load '):
                 z = ''
-                for filename in self._normalized_filenames(t[5:]):
+                for filename in self._normalized_filenames(after_first_word(t)):
+                    filename = self.hunt_file(filename)
                     z += self._load_file(filename, files_seen_so_far, this_file) + '\n'
                 t = z
 
-            elif t[:7] == 'attach ':
+            elif t.startswith('attach '):
                 z = ''
-                for filename in self._normalized_filenames(t[7:]):
+                for filename in self._normalized_filenames(after_first_word(t)):
+                    filename = self.hunt_file(filename)
                     if not os.path.exists(filename):
                         z += "print 'Error attaching %s -- file not found'\n"%filename
                     else:
@@ -995,42 +1832,38 @@ class Worksheet:
                         z += self._load_file(filename, files_seen_so_far, this_file) + '\n'
                 t = z
 
-            elif t[:7]  == 'detach ':
-                for filename in self._normalized_filenames(t[7:]):
+            elif t.startswith('detach '):
+                filename = self.hunt_file(filename)
+                for filename in self._normalized_filenames(after_first_word(t)):
                     self.detach(filename)
                 t = ''
 
-            elif t[:12] in ['save_session', 'load_session']:
-                F = t[12:].strip().strip('(').strip(')').strip("'").strip('"').split(',')[0]
+            elif t.startswith('save_session') or t.startswith('load_session'):
+                F = after_first_word(t).strip().strip('(').strip(')').strip("'").strip('"').split(',')[0]
                 if len(F) == 0:
                     filename = self.__filename
                 else:
                     filename = F
-                if t[:4] == 'save':
+                filename = self.hunt_file(filename)
+                if t.startswith('save'):
                     t = '_support_.save_session("%s")'%filename
                 else:
                     t = 'load_session(locals(), "%s")'%filename
 
-            elif t[:5] == 'save ':
-                t = self._save_objects(t[5:])
+            elif t.startswith('save '):
+                t = self._save_objects(after_first_word(t))
 
             u.append(t)
 
         return '\n'.join(u)
 
-    def system(self):
-        try:
-            return self.__system
-        except AttributeError:
-            self.__system = None
-            return None
-
-    def set_system(self, system=None):
-        self.__system = system
-
     def _eval_cmd(self, system, cmd):
         cmd = cmd.replace("'", "\\u0027")
         return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
+
+    ##########################################################
+    # Parsing the %sagex, %jsmath, %python, etc., extension.
+    ##########################################################
 
     def sagex_import(self, cmd, C):
         # Choice: Can use either C.relative_id() or self.next_block_id().
@@ -1054,28 +1887,28 @@ class Worksheet:
         z = s
         s = s.lstrip()
         S = self.system()
-        if not (S is None):
-            if s[:5] != '%sage':
-                return True, self._eval_cmd(self.__system, s)
-            else:
-                s = s[5:].lstrip()
+        if S != 'sage':
+            if s.startswith('%sage'):
+                s = after_first_word(s).lstrip()
                 z = s
+            else:
+                return True, self._eval_cmd(S, s)
 
         if len(s) == 0 or s[0] != '%':
             return False, z
-        if s[:5] == '%hide':
-            t = s[5:].lstrip()
+        if s.startswith('%hide'):
+            t = after_first_word(s).lstrip()
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:12] == '%save_server':
+        if s.startswith('%save_server'):
             self.notebook().save()
-            t = s[12:].lstrip()
+            t = after_first_word(s).lstrip()
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Sagex code.
-            return True, self.sagex_import(s[6:].lstrip(), C)
+        if s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Sagex code.
+            return True, self.sagex_import(after_first_word(s).lstrip(), C)
 
         i = s.find('\n')
         if i == -1:
@@ -1093,118 +1926,9 @@ class Worksheet:
             C.set_is_html(True)
         return True, cmd
 
-    def preparse_input(self, input, C):
-        C.set_is_html(False)
-        introspect = C.introspect()
-        if introspect:
-            before_prompt, after_prompt = introspect
-            i = 0
-            while i < len(after_prompt):
-                if after_prompt[i] == '?':
-                    if i < len(after_prompt)-1 and after_prompt[i+1] == '?':
-                        i += 1
-                    before_prompt += after_prompt[:i+1]
-                    after_prompt = after_prompt[i+1:]
-                    C.set_introspect(before_prompt, after_prompt)
-                    break
-                elif after_prompt[i] in ['"', "'", ' ', '\t', '\n']:
-                    break
-                i += 1
-            if before_prompt[-2:] == '??':
-                input = self._get_last_identifier(before_prompt[:-2])
-                input = 'print _support_.source_code("%s", globals())'%input
-            elif before_prompt[-1:] == '?':
-                input = self._get_last_identifier(before_prompt[:-1])
-                input = 'print _support_.docstring("%s", globals())'%input
-            else:
-                input = self._get_last_identifier(before_prompt)
-                C._word_being_completed = input
-                input = 'print "\\n".join(_support_.completions("%s", globals()))'%(input)
-
-        else:
-            switched, input = self.check_for_system_switching(input, C)
-
-            if not switched:
-                input = ignore_prompts_and_output(input).rstrip()
-                input = self.preparse(input)
-                input = self.load_any_changed_attached_files(input)
-                input = self.do_sage_extensions_preparsing(input)
-                input = input.split('\n')
-
-                # The following is all so the last line (or single lines)
-                # will implicitly print as they should, unless they are
-                # an assignment.   "display hook"  It's very complicated,
-                # but it has to be...
-                i = len(input)-1
-                if i >= 0:
-                    while len(input[i]) > 0 and input[i][0] in ' \t':
-                        i -= 1
-                    t = '\n'.join(input[i:])
-                    if t[:4] != 'def ':
-                        try:
-                            compile(t+'\n', '', 'single')
-                            t = t.replace("'", "\\u0027").replace('\n','\\u000a')
-                            # IMPORTANT: If you change this line, also change
-                            # the function format_exception in cell.py
-                            input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
-                            input = input[:i+1]
-                        except SyntaxError, msg:
-                            pass
-                input = '\n'.join(input)
-
-            input += '\n'
-
-        #print input
-        return input
-
-    def notebook(self):
-        return self.__notebook
-
-    def name(self):
-        return self.__name
-
-    def set_name(self, name):
-        self.__name = name
-
-    def append(self, L):
-        self.__cells.append(L)
-
-    def known_variables(self):
-        try:
-            return self.__variables
-        except AttributeError:
-            return []
-
-    def variables(self, with_types=True):
-        try:
-            self.__sage
-        except AttributeError:
-            try:
-                del self.__variables
-            except AttributeError:
-                pass
-            return []
-        try:
-            v = self.__variables
-        except AttributeError:
-            return []
-        if with_types:
-            return v
-        else:
-            return [x.split('-')[0] for x in v]
-
-    def variables_html(self):
-        s = ''
-        div = '<div class="variable_name">'
-        for v in self.variables():
-            try:
-                name, typ = v.split('-')
-            except ValueError:
-                name = v; typ = ''
-            if name:
-                s += div + '<span class="varname">%s</span>&nbsp;<span class="vartype">(%s)</span></div>'%(name, typ)
-        return s
-
+    ##########################################################
+    # List of attached files.
+    ##########################################################
     def attached_html(self):
         s = ''
         div = '<div class="attached_filename" onClick="inspect_attached_file(\'%s\')">'
@@ -1216,71 +1940,9 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
-    def html(self, include_title=True, do_print=False,
-             authorized=False, confirm_before_leave=False):
-        n = len(self.__cells)
-        s = ''
-        if include_title:
-            if self.computing():
-                interrupt_class = "interrupt"
-            else:
-                interrupt_class = "interrupt_grey"
-            S = self.system()
-            if not (S is None):
-                system = ' (%s mode)'%S
-            else:
-                system =''
-            if not authorized:
-                lock_text = '&nbsp;&nbsp;<span id="worksheet_lock" class="locked" onClick="unlock_worksheet()">[locked]</span>'
-            else:
-                lock_text = ''
-
-            vbar = '<span class="vbar"></span>'
-
-            menu  = '  <span class="worksheet_control_commands">'
-            menu += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-            menu += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' +vbar
-            menu += '    <a class="plain_text" href="edit">Edit</a>' + vbar
-            menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
-            menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
-            menu += '    <a class="hide" onClick="hide_all()">Hide</a>/<a class="hide" onClick="show_all()">Show</a>' + vbar
-            menu += '    <a class="slide_mode" onClick="slide_mode()">Focus</a>' + vbar
-            menu += '    <a class="download_sws" href="download">Download</a>' + vbar
-            menu += '    <a class="delete" href="delete">Delete</a>'
-            menu += '  </span>'
-
-            s += '<div class="worksheet_title">'
-            s += '%s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
-
-        D = self.__notebook.defaults()
-        ncols = D['word_wrap_cols']
-        s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
-        for i in range(n):
-            cell = self.__cells[i]
-            s += cell.html(ncols,do_print=do_print) + '\n'
-
-        s += '\n</div>\n'
-        s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
-        s += '<div class="worksheet_bottom_padding"></div>\n'
-
-        if not do_print:
-            s += '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
-            s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
-        else:
-            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
-
-        if not do_print and confirm_before_leave:
-            s += """<script type="text/javascript">
-            window.onbeforeunload = confirmBrowseAway;
-            function confirmBrowseAway()
-            {
-            return "Unsubmitted cells will be lost.";
-            }
-            </script>
-            """
-        return s
-
+    ##########################################################
+    # Showing and hiding all cells
+    ##########################################################
     def show_all(self):
         for C in self.__cells:
             try:
@@ -1308,7 +1970,7 @@ def ignore_prompts_and_output(s):
     do_strip = False
     for I in t:
         I2 = I.lstrip()
-        if I2[:5] == 'sage:' or I2[:3] == '>>>':
+        if I2.startswith('sage:') or I2.startswith('>>>'):
             do_strip = True
             break
     if not do_strip:
@@ -1316,12 +1978,12 @@ def ignore_prompts_and_output(s):
     s = ''
     for I in t:
         I2 = I.lstrip()
-        if I2[:5] == 'sage:':
-            s += I2[5:].lstrip() + '\n'
-        elif I2[:3] == '>>>':
-            s += I2[3:].lstrip() + '\n'
-        elif I2[:3] == '...':
-            s += I2[3:] + '\n'
+        if I2.startswith('sage:'):
+            s += after_first_word(I2).lstrip() + '\n'
+        elif I2.startswith('>>>'):
+            s += after_first_word(I2).lstrip() + '\n'
+        elif I2.startswith('...'):
+            s += after_first_word(I2) + '\n'
     return s
 
 
@@ -1340,32 +2002,190 @@ def extract_first_compute_cell(text):
     INPUT:
         a block of wiki-like marked up text
     OUTPUT:
+        meta -- meta information about the cell (as a dictionary)
         input -- string, the input text
         output -- string, the output text
-        graphics -- string, text that describes any embedded graphics
         end -- integer, first position after }}} in text.
     """
     # Find the input block
     i = text.find('{{{')
     if i == -1:
         raise EOFError
-    j = text.find('\n}}}')
-    if j <= i:
-        j = len(text)
-    k = text.find('\n///')
-    if k == -1 or k > j:
-        input = text[i+3:j]
-        output = ''
-        graphics = ''
+    j = text[i:].find('\n')
+    if j == -1:
+        raise EOFError
+    k = text[i:].find('|')
+    if k != -1 and k < j:
+        try:
+            meta = dictify(text[i+3:i+k])
+        except TypeError:
+            meta = {}
+        i += k + 1
     else:
-        input = text[i+3:k].strip()
-        # Find the graphics block, if there is one.
-        l = text[k+4:].find('\n///')
-        if l != -1 and l+k+4 < j:
-            graphics = text[l+k+4+3:j]
-        else:
-            graphics = ''
-            l = j
-        output = text[k+4:l].strip()
-    return input.strip(), output, graphics, j+4
+        meta = {}
+        i += 3
 
+    j = text[i:].find('\n}}}')
+    if j == -1:
+        j = len(text)
+    else:
+        j += i
+    k = text[i:].find('\n///')
+    if k == -1 or k+i > j:
+        input = text[i:j]
+        output = ''
+    else:
+        input = text[i:i+k].strip()
+        output = text[i+k+4:j].strip()
+
+    return meta, input.strip(), output, j+4
+
+def after_first_word(s):
+    """
+    Return everything after the first whitespace in the string s.
+    Returns the empty string if there is nothing after the
+    first whitespace.
+
+    INPUT:
+        s -- string
+    OUTPUT:
+        a string
+    """
+    i = whitespace.search(s)
+    if i is None:
+        return ''
+    return s[i.start()+1:]
+
+def first_word(s):
+    i = whitespace.search(s)
+    if i is None:
+        return s
+    return s[:i.start()]
+
+
+
+def format_completions_as_html(cell_id, completions):
+    if len(completions) == 0:
+        return ''
+    lists = []
+
+    # compute the width of each column
+    column_width = []
+    for i in range(len(completions[0])):
+        column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
+
+    for i in range(len(completions)):
+        row = completions[i]
+        for j in range(len(row)):
+            if len(lists) <= j:
+                lists.append([])
+            cell = """
+<li id='completion%s_%s_%s' class='completion_menu_two'>
+<a onClick='do_replacement(%s, "%s"); return false;'
+   onMouseOver='this.focus(); select_replacement(%s,%s);'
+>%s</a>
+</li>"""%(cell_id, i, j, cell_id, row[j], i,j,
+         row[j])
+         #row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
+
+            lists[j].append(cell)
+
+    grid = "<ul class='completion_menu_one'>"
+    for L in lists:
+        s = "\n   ".join(L)
+        grid += "\n <li class='completion_menu_one'>\n  <ul class='completion_menu_two'>\n%s\n  </ul>\n </li>"%s
+
+    return grid + "\n</ul>"
+
+
+def extract_name(text):
+    # The first line is the title
+    i = non_whitespace.search(text)
+    if i is None:
+        name = 'Untitled'
+        n = 0
+    else:
+        i = i.start()
+        j = text[i:].find('\n')
+        if j != -1:
+            name = text[i:i+j]
+            n = j+1
+        else:
+            name = text[i:]
+            n = len(text)-1
+    return name.strip(), n
+
+def extract_system(text):
+    # If the first line is "system: ..." , then it is the system.  Otherwise the system is SAGE.
+    i = non_whitespace.search(text)
+    if i is None:
+        return 'sage', 0
+    else:
+        i = i.start()
+        if not text[i:].startswith('system:'):
+            return 'sage', 0
+        j = text[i:].find('\n')
+        if j != -1:
+            system = text[i:i+j][7:].strip()
+            n = j+1
+        else:
+            system = text[i:][7:].strip()
+            n = len(text)-1
+        return system, n
+
+
+def dictify(s):
+    """
+    INPUT:
+        s -- a string like 'in=5, out=7'
+    OUTPUT:
+        dict -- such as {'in':5, 'out':7}
+    """
+    w = []
+    try:
+        for v in s.split(','):
+            a, b = v.strip().split('=')
+            try:
+                b = eval(b)
+            except:
+                pass
+            w.append([a, b])
+    except ValueError:
+        return {}
+    return dict(w)
+
+
+def next_available_id(v):
+    """
+    Return smallest nonnegative integer not in v.
+    """
+    i = 0
+    while i in v:
+        i += 1
+    return i
+
+
+def convert_seconds_to_meaningful_time_span(t):
+    if t < 60:
+        s = int(t)
+        if s == 1:
+            return "1 second"
+        return "%d seconds"%s
+    if t < 3600:
+        m = int(t/60)
+        if m == 1:
+            return "1 minute"
+        return "%d minutes"%m
+    if t < 3600*24:
+        h = int(t/3600)
+        if h == 1:
+            return "1 hour"
+        return "%d hours"%h
+    d = int(t/(3600*24))
+    if d == 1:
+        return "1 day"
+    return "%d days"%d
+
+
+def convert_time_to_string(t):
+    return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))

@@ -23,6 +23,8 @@ one would write a function that takes a input some post variables
 and serves a request depending on those post vars.
 """
 
+assert False, "The server.py file should not be imported!!"
+
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -251,6 +253,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         cell = W.get_cell_with_id(id)
+
         #TB: this tends to obliterate long cells -- if the user doesn't submit between
         #introspecting and closing the browser; there's a lot of potential to lose a
         #large amount of work without warning.  I personally would not expect hitting

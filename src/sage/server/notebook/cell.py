@@ -34,6 +34,7 @@ re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 import os, shutil
 
 from   sage.misc.misc import word_wrap
+from   sage.misc.html import math_parse
 
 import notebook
 
@@ -50,12 +51,8 @@ class TextCell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
         if not id is None:
             self.__id = id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
 
     def html(self, ncols, do_print=False, do_math_parse=True):
         """
@@ -67,13 +64,13 @@ class TextCell(Cell_generic):
         if do_math_parse:
             # Do dollar sign math parsing
             t = math_parse(t)
-        s = '<font size=+1>%s</font>'%t
+        s = '<div><font size=+1>%s</font></div>'%t
         return s
 
     def plain_text(self, prompts=False):
         return self.__text
 
-    def edit_text(self, prompts=False):
+    def edit_text(self):
         return self.__text
 
     def id(self):
@@ -98,7 +95,6 @@ class Cell(Cell_generic):
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
-        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
         self.__version = 0
 
     def set_cell_output_type(self, typ='wrap'):
@@ -113,16 +109,14 @@ class Cell(Cell_generic):
 
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
-        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
         if not id is None:
             self.set_id(id)
+
+    def update_html_output(self):
         self.__out_html = self.files_html()
 
     def id(self):
         return self.__id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
 
     def set_id(self, id):
         self.__id = int(id)
@@ -130,36 +124,45 @@ class Cell(Cell_generic):
     def worksheet(self):
         return self.__worksheet
 
-    def worksheet_name(self):
-        return self.__worksheet.name()
+    def worksheet_filename(self):
+        return self.__worksheet.filename()
 
     def notebook(self):
         return self.__worksheet.notebook()
 
     def directory(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        return self.__dir
+        dir = self._directory_name()
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
+    def _directory_name(self):
+        return '%s/cells/%s'%(self.__worksheet.directory(), self.id())
+
 
     def __cmp__(self, right):
         return cmp(self.id(), right.id())
 
     def __del__(self):
-        if os.path.exists(self.__dir):
-            shutil.rmtree(self.__dir, ignore_errors=True)
+        dir = self._directory_name()
+        if os.path.exists(dir):
+            shutil.rmtree(dir, ignore_errors=True)
 
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
+    def word_wrap_cols(self):
+        try:
+            return self.notebook().conf()['word_wrap_cols']
+        except AttributeError:
+            return 70
+
     def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
-            ncols = self.notebook().defaults()['word_wrap_cols']
+            ncols = self.word_wrap_cols()
         s = ''
 
         input_lines = self.__in
-        #if input_lines[:1] == '%':
-        #    pr = '%s> '%(input_lines.split()[0])[1:]
-        #else:
         pr = 'sage: '
 
         if prompts:
@@ -182,7 +185,6 @@ class Cell(Cell_generic):
                 for v in input_lines:
                     if len(v) == 0:
                         pass
-                    #    s += '<BLANKLINE>\n'
                     elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
                         s += '...   ' + v + '\n'
@@ -228,7 +230,7 @@ class Cell(Cell_generic):
 
     def edit_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        return '{{{\n%s\n}}}'%s
+        return '{{{id=%s|\n%s\n}}}'%(self.id(), s)
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -283,10 +285,13 @@ class Cell(Cell_generic):
             del self._html_cache
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
+            url = ""
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()
                 open(file,"w").write(output)
-                html+="<br><a href='/%s' target='_new' class='file_link'>full_output.txt</a>"%file
+                url = "<a href='%s/full_output.txt' class='file_link'>full_output.txt</a>"%(
+                    self.url_to_self())
+                html+="<br>" + url
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
                 output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
@@ -326,7 +331,7 @@ class Cell(Cell_generic):
 
     def process_cell_urls(self, x):
         end = '?%d"'%self.version()
-        begin = '"%s/'%self.directory()
+        begin = self.url_to_self()
         for s in re_cell.findall(x) + re_cell_2.findall(x):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
@@ -395,16 +400,17 @@ class Cell(Cell_generic):
     def set_introspect(self, before_prompt, after_prompt):
         self.__introspect = [before_prompt, after_prompt]
 
-    def evaluate(self, introspect=False, time=False):
+    def evaluate(self, introspect=False, time=False, username=None):
         """
         INPUT:
+            username -- name of user doing the evaluation
             time -- if True return time computation takes
             introspect -- either False or a pair [before_curse, after_cursor] of strings.
         """
         self.__interrupted = False
         self.__time = time
         self.__introspect = introspect
-        self.__worksheet.enqueue(self)
+        self.__worksheet.enqueue(self, username=username)
         self.__type = 'wrap'
         dir = self.directory()
         for D in os.listdir(dir):
@@ -426,12 +432,6 @@ class Cell(Cell_generic):
     def do_time(self):
         self.__time = True
 
-    #def doc_html(self, wrap=None, div_wrap=True, do_print=False):
-     #   self.evaluate()
-        #s = self.output_text()
-      #  s = '\n\n<div class="doc_html" id="doc_html_%s">\n%s\n</div>\n'%(self.id(),self.output_text())
-       # return s
-
     def doc_html(self, wrap=None, div_wrap=True, do_print=False):
         """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
         The problem is how to get the documentation html to display nicely between the example cells.
@@ -439,7 +439,7 @@ class Cell(Cell_generic):
         """
         self.evaluate()
         if wrap is None:
-            wrap = self.notebook().defaults()['word_wrap_cols']
+            wrap = self.notebook().conf()['word_wrap_cols']
         evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         if evaluated:
             cls = 'cell_evaluated'
@@ -456,25 +456,28 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        if do_print:
+            wrap = 68
+            div_wrap = 68
         key = (wrap,div_wrap,do_print)
-        try:
-            return self._html_cache[key]
-        except KeyError:
-            pass
-        except AttributeError:
-            self._html_cache = {}
+        #try:
+        #    return self._html_cache[key]
+        #except KeyError:
+        #    pass
+        #except AttributeError:
+        #    self._html_cache = {}
 
         if self.__in.lstrip()[:8] == '%hideall':
-            self._html_cache[key] = ''
+            #self._html_cache[key] = ''
             return ''
 
         if wrap is None:
-            wrap = self.notebook().defaults()['word_wrap_cols']
+            wrap = self.notebook().conf()['word_wrap_cols']
         if self.worksheet().compute_process_has_been_started():
             evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         else:
             evaluated = False
-        if evaluated:
+        if evaluated or do_print:
             cls = 'cell_evaluated'
         else:
             cls = 'cell_not_evaluated'
@@ -483,12 +486,14 @@ class Cell(Cell_generic):
         introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
         s = html_in  + introspect + html_out
+
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
-        self._html_cache[key] = s
+        #self._html_cache[key] = s
         return s
 
-    def html_in(self, do_print=False):
+    def html_in(self, do_print=False, ncols=80):
+        s = ''
         id = self.__id
         t = self.__in.rstrip()
 
@@ -497,38 +502,60 @@ class Cell(Cell_generic):
         else:
             cls = "cell_input"
 
+##         if do_print:
+##             if 'hide' in cls:
+##                 return ''
+##             else:
+##                 s = '<pre class="cell_input">%s</pre>'%(self.__in.replace('<','&lt;'))
+##                 return s
+
+        if not do_print:
+            s += self.html_new_cell_before()
+
         if do_print:
-            if 'hide' in cls:
-                return ''
-            else:
-                s = '<pre class="shrunk">%s</pre>'%(self.__in.replace('<','&lt;'))
-                return s
+            ncols = 70
 
-        s = """<div class="insert_new_cell" id="insert_new_cell_%s"
-                   onmousedown="insert_new_cell_before(%s);">
-                 </div>
-              """%(id, id)
-
-        r = len(t.splitlines())
+        r = max(1, number_of_rows(t.strip(), ncols))
 
         s += """
-           <textarea class="%s" rows=%s cols=100000
+           <textarea class="%s" rows=%s cols=%s
               id         = 'cell_input_%s'
               onKeyPress = 'return input_keypress(%s,event);'
-              onInput   = 'cell_input_resize(this); return true;'
-              onBlur  = 'cell_blur(%s); return true;'
+              onInput    = 'cell_input_resize(this); return true;'
+              onBlur     = 'cell_blur(%s); return true;'
+              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+              %s
            >%s</textarea>
-        """%('hidden', r, id, id, id, t)
+        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 
-        s += """
-           <pre class="%s"
-              id         = 'cell_display_%s'
-              onClick  = 'cell_focus(%s, false); return false;'
-           >%s</pre>
-        """%(cls, id, id, t)
+        #s += """
+        #   <pre class="%s"
+        #      id         = 'cell_display_%s'
+        #      onClick  = 'cell_focus(%s, false); return false;'
+        #   >%s</pre>
+        #"""%(cls, id, id, t)
+
         return s
+
+    def html_new_cell_before(self):
+        return """<div class="insert_new_cell" id="insert_new_cell_%s"
+                   onmousedown="insert_new_cell_before(%s);">
+                 </div>
+              """%(self.id(), self.id())
+    def html_new_cell_after(self):
+        return """<div class="insert_new_cell" id="insert_new_cell_%s"
+                   onmousedown="insert_new_cell_after(%s);">
+                 </div>
+              """%(self.id(), self.id())
+
+    def url_to_self(self):
+        try:
+            return self.__url_to_self
+        except AttributeError:
+            self.__url_to_self = '/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
+            return self.__url_to_self
 
     def files_html(self, out=''):
         dir = self.directory()
@@ -544,13 +571,13 @@ class Cell(Cell_generic):
         for F in D:
             if 'cell://%s'%F in out:
                 continue
-            url = "/ws/%s/data/%s/%s"%(self.worksheet_name(), self.relative_id(), F)
-            if F.endswith('.png') or F.endswith('.bmp'):
+            url = "%s/%s"%(self.url_to_self(), F)
+            if F.endswith('.png') or F.endswith('.bmp') or F.endswith('.jpg'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:
-                files.append('<a target="_new" href="%s" class="file_link">%s</a>'%(url, F))
+                files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
         if len(images) == 0:
             images = ''
         else:
@@ -580,30 +607,22 @@ class Cell(Cell_generic):
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
-        out = """<span class="cell_output_%s" id="cell_output_%s">%s</span>
-                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</span>
-                 <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
-                 """%(typ, self.__id, out_wrap,
-                      typ, self.__id, out_nowrap,
+        if do_print:
+            prnt = "print_"
+        else:
+            prnt = ""
+
+        out = """<span class="cell_output_%s%s" id="cell_output_%s">%s</span>
+                 <span class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</span>
+                 <br><span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
+                 """%(prnt, typ, self.__id, out_wrap,
+                      prnt, typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
         s = top + out + '</div>'
 
-        #r = '[%s]'%self.relative_id()
-        #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-##         if do_print:
-##             btn = ""
-##         else:
-##             btn = """
-##                 <span class="hidden" id="evaluate_button_%s"><img
-##                     src="/evaluate.png"
-##                     onMouseOver="this.src='/evaluate_over.png'"
-##                     onMouseOut="this.src='/evaluate.png'"
-##                     onClick="evaluate_cell(%s,0);"></span>
-##                   """%(self.__id,self.__id)
-##        tbl = btn + """
         tbl = """
                <table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
@@ -636,49 +655,9 @@ def format_exception(s0, ncols):
 ComputeCell=Cell
 
 
-def math_parse(s):
-    r"""
-    Do the following:
-    \begin{verbatim}
-       * Replace all $ text $'s by
-          <span class='math'> text </span>
-       * Replace all $$ text $$'s by
-          <div class='math'> text </div>
-       * Replace all \$'s by $'.s  Note that in
-         the above two cases nothing is done if the $
-         is preceeded by a backslash.
-    \end{verbatim}
-    """
-    t = ''
-    while True:
-        i = s.find('$')
-        if i == -1:
-            return t + s
-        elif i > 0 and s[i-1] == '\\':
-            t += s[:i-1] + '$'
-            s = s[i+1:]
-        elif i-1 < len(s) and s[i+1] == '$':
-            typ = 'div'
-        else:
-            typ = 'span'
-        j = s[i+2:].find('$')
-        if j == -1:
-            j = len(s)
-            s += '$'
-            if typ == 'div':
-                s += '$$'
-        else:
-            j += i + 2
-        if typ == 'div':
-            txt = s[i+2:j]
-        else:
-            txt = s[i+1:j]
-        t += s[:i] + '<%s class="math">%s</%s>'%(typ,
-                      ' '.join(txt.splitlines()), typ)
-        s = s[j+1:]
-        if typ == 'div':
-            s = s[1:]
-    return t
-
-
-
+def number_of_rows(txt, ncols):
+    rows = txt.splitlines()
+    nrows = len(rows)
+    for i in range(nrows):
+        nrows += int(len(rows[i])/ncols)
+    return nrows

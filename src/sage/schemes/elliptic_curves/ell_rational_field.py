@@ -2945,7 +2945,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.ordinary_primes(97)
             [7, 13, 19, 31, 37, 43, 61, 67, 73, 79, 97]
             sage: e.supersingular_primes(3)
-            [2, 3]
+            [2]
             sage: e.supersingular_primes(2)
             [2]
             sage: e.supersingular_primes(1)
@@ -2954,7 +2954,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         v = self.aplist(max(B, 3))
         P = arith.prime_range(max(B,3)+1)
         N = self.conductor()
-        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0] + \
+        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0 and N%P[i] != 0] + \
                       [P[i] for i in range(2,len(v)) if v[i] == 0 and N%P[i] != 0]
 
     def ordinary_primes(self, B):
@@ -2972,7 +2972,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.aplist(20)
             [1, 0, 0, 0, 4, 0, 0, 0]
             sage: e.supersingular_primes(97)
-            [3, 5, 7, 13, 17, 19, 31, 41, 47, 59, 61, 73, 83, 89, 97]
+            [3, 5, 13, 17, 19, 31, 41, 47, 59, 61, 73, 83, 89, 97]
             sage: e.ordinary_primes(97)
             [2, 11, 23, 29, 37, 43, 53, 67, 71, 79]
             sage: e.ordinary_primes(3)

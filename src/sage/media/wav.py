@@ -1,6 +1,7 @@
 import wave
 from sage.plot.plot import list_plot
 from sage.structure.sage_object import SageObject
+from sage.misc.html import html
 
 class Wave(SageObject):
     """

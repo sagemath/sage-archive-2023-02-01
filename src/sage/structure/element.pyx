@@ -17,24 +17,27 @@ abstract base classes.
 SageObject
     Element
         ModuleElement
+            RingElement
+                CommutativeRingElement
+                    IntegralDomainElement
+                        DedekindDomainElement
+                            PrincipalIdealDomainElement
+                                EuclideanDomainElement
+                    FieldElement
+                        FiniteFieldElement
+                    CommutativeAlgebraElement
+                AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
+                    CommutativeAlgebra ??? (should be removed from element.pxd)
+                    Matrix
+                InfinityElement
+                    PlusInfinityElement
+                    MinusInfinityElement
             AdditiveGroupElement
+            Vector
 
         MonoidElement
             MultiplicativeGroupElement
 
-        RingElement
-            CommutativeRingElement
-                IntegralDomainElement
-                    DedekindDomainElement
-                        PrincipalIdealDomainElement
-                            EuclideanDomainElement
-            FieldElement
-                FiniteFieldElement
-            AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
-                CommutativeAlgebraElement
-            InfinityElement
-                PlusInfinityElement
-                MinusInfinityElement
 \end{verbatim}
 
 \subsection{How to Define a New Element Class}

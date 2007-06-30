@@ -220,6 +220,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             _name = self._names[i]
             _names[i] = omStrDup(_name)
 
+        # from the SINGULAR source code documentation for the rInit function
+        ##  characteristic --------------------------------------------------
+        ##  input: 0 ch=0 : Q     parameter=NULL    ffChar=FALSE   float_len (done)
+        ##         0    1 : Q(a,...)        *names         FALSE             (todo)
+        ##         0   -1 : R               NULL           FALSE  0
+        ##         0   -1 : R               NULL           FALSE  prec. >6
+        ##         0   -1 : C               *names         FALSE  prec. 0..?
+        ##         p    p : Fp              NULL           FALSE             (done)
+        ##         p   -p : Fp(a)           *names         FALSE             (done)
+        ##         q    q : GF(q=p^n)       *names         TRUE              (todo)
+
         if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
             if base_ring.characteristic() <= 2147483629:
                 characteristic = base_ring.characteristic()
@@ -236,7 +247,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             is_extension = True
 
         elif PY_TYPE_CHECK(base_ring, NumberField_generic):
-            characteristic = -1
+            characteristic = 1
             k = MPolynomialRing_libsingular(RationalField(), 1, base_ring.variable_name(), 'lex')
             minpoly = base_ring.polynomial()(k.gen())
             is_extension = True

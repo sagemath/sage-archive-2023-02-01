@@ -6136,6 +6136,13 @@ class PariError (RuntimeError):
 #              - Gonzalo Tornario
 
 cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
+    """
+    TESTS:
+        sage: v = pari.listcreate(10^9)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times.
+    """
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:

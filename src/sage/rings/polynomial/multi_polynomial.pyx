@@ -63,3 +63,4 @@ cdef class MPolynomial(CommutativeRingElement):
             return Integer(repr(self))
         else:
             raise TypeError
+

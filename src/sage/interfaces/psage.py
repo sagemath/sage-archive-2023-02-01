@@ -48,10 +48,10 @@ number = 0
 
 
 class PSage(Sage):
-    def __init__(self,  maxread=10000, script_subdirectory=None,
-                 logfile=None,  preparse=True):
-        Sage.__init__(self, maxread=maxread, script_subdirectory=script_subdirectory,
-                      logfile=logfile,  preparse=preparse)
+    def __init__(self,  **kwds):
+        if kwds.has_key('server'):
+            raise NotImplementedError, "PSage doesn't work on remote server yet."
+        Sage.__init__(self, **kwds)
         import sage.misc.misc
         T = sage.misc.misc.tmp_dir('sage_smp')
         self.__tmp_dir = T

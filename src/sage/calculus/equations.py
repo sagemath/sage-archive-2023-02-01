@@ -78,6 +78,9 @@ class SymbolicEquation(SageObject):
     def __call__(self, *args, **argv):
         return self._op(self._left(*args, **argv), self._right(*args,**argv))
 
+    def __getitem__(self, i):
+        return [self._left, self._op, self._right][i]
+
     # The maxima one is special:
     def _maxima_(self, session=None):
         if session is None:
@@ -275,6 +278,18 @@ def assume(*args):
         sage: forget()
         sage: bool(sqrt(x^2) == x)
         False
+
+    An integer constraint (todo: this needs to be made possible with
+    just the assume command!):
+        sage: from sage.calculus.calculus import maxima as calcmaxima
+        sage: calcmaxima.eval('declare(n,integer)')
+        'done'
+        sage: var('r2')
+        r2
+        sage: c = P*e^(r*n)
+        sage: d = P*(1+r2)^n
+        sage: solve(c==d,r2)
+        [r2 == (e^r - 1)]
     """
     for x in args:
         if isinstance(x, (tuple, list)):
@@ -344,7 +359,10 @@ def forget_all():
     global _assumptions
     if len(_assumptions) == 0:
         return
-    maxima._eval_line('forget(facts());')
+    try:
+        maxima._eval_line('forget(facts());')
+    except TypeError:
+        pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
     _assumptions = []
 

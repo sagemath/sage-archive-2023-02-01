@@ -53,6 +53,9 @@ class DSageServer(pb.Root):
         self.clientdb = clientdb
         self.LOG_LEVEL = log_level
 
+    def register_client_factory(self, client_factory):
+        self.client_factory = client_factory
+
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
 

@@ -79,7 +79,7 @@ class MPolynomial_element(MPolynomial):
 
     ####################
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Evaluate this multi-variate polynomial at $x$, where $x$ is
         either the tuple of values to substitute in, or one can use
@@ -105,6 +105,12 @@ class MPolynomial_element(MPolynomial):
 
         AUTHOR: David Kohel, 2005-09-27
         """
+        if len(kwds) > 0:
+            f = self.fix(**kwds)
+            if len(x) > 0:
+                return f(*x)
+            else:
+                return f
         if len(x) == 1 and isinstance(x[0], (list, tuple)):
             x = x[0]
         n = self.parent().ngens()
@@ -626,7 +632,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
         itself is not affected.  The variable,value pairs for fixing are
-        to be provided as dictionary of the form {variable:value}.
+        to be provided as a dictionary of the form {variable:value}.
 
         This is a special case of evaluating the polynomial with some of
         the variables constants and the others the original variables.

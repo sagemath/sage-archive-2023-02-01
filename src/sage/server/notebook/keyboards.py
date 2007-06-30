@@ -1,3 +1,13 @@
+"""nodoctest
+"""
+
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """
 The functions below return a block of javascript code that defines
 global variables for every key that we could think of that works in

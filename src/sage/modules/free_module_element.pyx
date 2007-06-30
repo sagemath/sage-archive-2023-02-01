@@ -62,6 +62,14 @@ Matrix vector multiply:
     sage: v = V([1,2,3])
     sage: v * A
     (2, 1, 3)
+
+TESTS:
+    sage: D = 46341
+    sage: u = 7
+    sage: R = Integers(D)
+    sage: p = matrix(R,[[84, 97, 55, 58, 51]])
+    sage: 2*p.row(0)
+    (168, 194, 110, 116, 102)
 """
 
 import operator
@@ -69,7 +77,7 @@ import operator
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 import sage.misc.misc as misc
-import sage.misc.latex as latex
+import sage.misc.latex
 
 cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
@@ -689,7 +697,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         s = '\\left('
         for a in self.list():
-            s = s + latex.latex(a) + ','
+            s = s + sage.misc.latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
@@ -724,8 +732,11 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
-        EXAMPLES:
-            sage: v = (ZZ^3).0
+        TESTS:
+            sage: V = ZZ^3
+            sage: loads(dumps(V)) == V
+            True
+            sage: v = V.0
             sage: loads(dumps(v)) == v
             True
             sage: v = (QQ['x']^3).0
@@ -816,7 +827,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = left._mul_c(<RingElement>(self._entries[i]))
+            v[i] = (<RingElement>(self._entries[i]))._rmul_c(left)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
@@ -826,7 +837,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._mul_c(right)
+            v[i] = (<RingElement>(self._entries[i]))._lmul_c(right)
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

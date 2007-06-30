@@ -77,7 +77,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         return isinstance(other, ModularSymbolsElement) and self.parent() == other.parent()
 
     def _add_(self, right):
-        return ModularSymbolsElement(self.parent(), self.element() + right.element())
+        return ModularSymbolsElement(self.parent(), self.element() + right.element(), check=False)
 
     def __cmp__(self, other):
         return self.element().__cmp__(other.element())

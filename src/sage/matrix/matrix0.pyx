@@ -1911,7 +1911,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b*c; d
             Traceback (most recent call last):
             ...
-            TypeError: Base rings must be the same.
+            TypeError: No base extension defined
             sage: d = b*c.change_ring(GF(7)); d
             [2 3]
             [6 4]

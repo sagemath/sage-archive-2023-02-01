@@ -7,6 +7,8 @@ from misc import (alarm, srange, xsrange, sxrange, getitem,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, newton_method_sizes)
 
+from flatten import flatten
+
 from remote_file import get_remote_file
 
 from attach import attach
@@ -40,6 +42,8 @@ from log import log_html, log_dvi, log_html_mathml
 from defaults import set_default_variable_name
 
 from preparser import preparse
+
+from interpreter import preparser
 
 from sage_eval import sage_eval, sageobj
 

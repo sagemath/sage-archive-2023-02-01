@@ -10,10 +10,6 @@ def my_sigint(x, n):
 def my_sigfpe(x, n):
     raise RuntimeError, "A floating point exception occured."
 
-#def my_sigterm(x, n):
-#    from sage.all import quit_sage
-#    quit_sage(verbose=True)
-
 def get_sigs():
     signal.signal(signal.SIGINT, my_sigint)
     signal.signal(signal.SIGABRT, my_sigint)

@@ -455,7 +455,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = -1/2 * t + 2/3*t^2 + -9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
-            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(\text{t}^{20})
+            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(t^{20})
         """
         if self.is_zero():
             if self.prec() is infinity:
@@ -497,9 +497,9 @@ cdef class PowerSeries(AlgebraElement):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
-                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.variable_name())
+                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.gen())
             else:
-                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.variable_name()),self._prec)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.gen()),self._prec)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh

@@ -1845,19 +1845,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 n = n * p
         return n * F.unit()
 
-    def next_prime(self):
+    def next_probable_prime(self):
+        """
+        Returns the next probable prime after self, as determined by PARI.
+
+        EXAMPLES:
+            sage: (-37).next_probable_prime()
+            2
+            sage: (100).next_probable_prime()
+            101
+            sage: (2^512).next_probable_prime()
+            13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084171
+            sage: 0.next_probable_prime()
+            2
+            sage: 126.next_probable_prime()
+            127
+            sage: 144168.next_probable_prime()
+            144169
+        """
+        return Integer( (self._pari_()+1).nextprime())
+
+    def next_prime(self, proof=True):
         r"""
-        Returns the next prime after self
+        Returns the next prime after self.
+
+        INPUT:
+            proof -- bool (default: True)
 
         EXAMPLES:
             sage: Integer(100).next_prime()
             101
+
+        Use Proof = False, which is way faster:
+            sage: b = (2^1024).next_prime(proof=False)
+
             sage: Integer(0).next_prime()
             2
             sage: Integer(1001).next_prime()
             1009
         """
-        return Integer( (self._pari_()+1).nextprime())
+        if self < 2:   # negatives are not prime.
+            return integer_ring.ZZ(2)
+        if self == 2:
+            return integer_ring.ZZ(3)
+        if not proof:
+            return Integer( (self._pari_()+1).nextprime())
+        n = self
+        if n % 2 == 0:
+            n += 1
+        else:
+            n += 2
+        while not n.is_prime():  # pari isprime is provably correct
+            n += 2
+        return integer_ring.ZZ(n)
+
 
     def additive_order(self):
         """

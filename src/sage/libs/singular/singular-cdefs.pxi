@@ -32,73 +32,13 @@ cdef extern from "stdlib.h":
 
 cdef extern from "libsingular.h":
 
-    # This is the basis ring datatype of SINGULAR
-    #
-    # Please note: This is not the SINGULAR ring, it has one pointer
-    # layer less.
-
-    ctypedef struct ring "ip_sring":
-        int  *order  # array of orderings
-        int  *block0 # starting pos
-        int  *block1 # ending pos
-        int  **wvhdl
-        int  OrdSgn
-        int  ShortOut
-        int  CanShortOut
-        char **names
-        short N
-
-    # This is the basic polynomial datatype of SINGULAR
-    #
-    # Please note: This is not the SINGULAR poly, it has one pointer
-    # layer less.
-
-    ctypedef struct poly "polyrec":
-        poly *next
-
-    ctypedef struct ideal "ip_sideal":
-        poly **m
-        long rank
-        int nrows
-        int ncols
-
-    # comment from the SINGULAR code:
-    #
-    #  'keiner (ausser obachman) darf das folgenden benutzen !!!'
-    #  in English: 'nobody (except obachman) may use the following!!!'
-    #
-    # I feel so obachman today.
-
-    ctypedef struct intvec:
-        int *(*ivGetVec)()
-        int (*rows)()
-        int (*cols)()
-
-    # oMalloc Bins
-    ctypedef struct omBin "omBin_s"
-
-    # numbers, i.e. coefficients (except modInt)
+    # all possible ring orders per block
     ctypedef struct number "snumber":
         mpz_t z
         mpz_t n
         int s
 
-    # SINGULAR Init
-    # ------------------------
-    void feInitResources(char *name)
-
-    void rChangeCurrRing(ring *r)
-    cdef ring *currRing
-    cdef omBin *rnumber_bin
-    cdef int (*pLDeg)(poly *p, int *l, ring *r)
-
-    int siInit(char *)
-
-    # OMalloc
-    void *omAlloc0(size_t size)
-    void *omAllocBin(omBin *bin)
-    char *omStrDup(char *)
-    void omFree(void *)
+    ctypedef struct napoly "polyrec"
 
     cdef enum rRingOrder_t:
         ringorder_no
@@ -122,7 +62,85 @@ cdef extern from "libsingular.h":
         ringorder_Ws
         ringorder_L
 
-    # rDefault  accepts the characteristic,  the number  of variables,
+    # This is the basis ring datatype of SINGULAR
+    # Please note: This is not the SINGULAR ring, it has one pointer
+    # layer less.
+
+    ctypedef struct ring "ip_sring":
+        int  *order  # array of orderings
+        int  *block0 # starting pos
+        int  *block1 # ending pos
+        int  **wvhdl
+        int  OrdSgn
+        int  ShortOut
+        int  CanShortOut
+        number *minpoly
+        char **names
+        char **parameter
+        ring *algring
+        short N
+        short P
+        int ch
+
+    # This is the basic polynomial datatype of SINGULAR
+
+    # Please note: This is not the SINGULAR poly, it has one pointer
+    # layer less.
+
+    ctypedef struct poly "polyrec":
+        poly *next
+
+    # This is the basic ideal/matrix datatype of SINGULAR
+
+    # Please note: This is not the SINGULAR ideal, it has one pointer
+    # layer less.
+
+    ctypedef struct ideal "ip_sideal":
+        poly **m
+        long rank
+        int nrows
+        int ncols
+
+    # comment from the SINGULAR code:
+
+    #  'keiner (ausser obachman) darf das folgenden benutzen !!!'
+    #  in English: 'nobody (except obachman) may use the following!!!'
+    #
+    # I feel so obachman today.
+
+    ctypedef struct intvec:
+        int *(*ivGetVec)()
+        int (*rows)()
+        int (*cols)()
+
+    # oMalloc Bins
+    ctypedef struct omBin "omBin_s"
+
+    # numbers, i.e. coefficients
+
+
+
+    # SINGULAR Init
+    # ------------------------
+    void feInitResources(char *name)
+
+    void rChangeCurrRing(ring *r)
+    cdef ring *currRing
+    cdef omBin *rnumber_bin
+    cdef omBin *sip_sring_bin
+    cdef int (*pLDeg)(poly *p, int *l, ring *r)
+
+    int siInit(char *)
+
+    # OMalloc
+    void *omAlloc0(size_t size)
+    void *omAllocBin(omBin *bin)
+    void *omAlloc0Bin(omBin *bin)
+    char *omStrDup(char *)
+    void omFree(void *)
+
+
+    # rDefault accepts the characteristic, the number of variables,
     # and an array of variable names.
     ring *rDefault(int char, int nvars, char **names)
 
@@ -130,58 +148,69 @@ cdef extern from "libsingular.h":
     int rChar(ring *r) # Returns the characteristic of the ring
     char* rRingVar(short i, ring *r) # Returns the name of the i-th variable of the ring r.
 
-    void rComplete(ring *r, int force)
+    # if you change anything in the ring, like the term ordering
+    # this needs to be called
     void rUnComplete(ring *r)
 
-    void rWrite(ring *r)
+    # this enables the changes done after rUnComplete
+    void rComplete(ring *r, int force)
 
-    int rRing_has_Comp(ring *r)
+    ring *rCopy0(ring *)
+
+
+    ###
 
     ### Polynomials
+    ####
+
     ### The rule of thumb is: p_XXX accepts a ring as parameter, while
     ### pXXX doesn't. It relies on currRing.
 
     ## Constructions / Destructors
     ## -------------------------------
-    poly *p_Init(ring *r)
-    void p_Delete(poly **p, ring *r)
 
+    # new empty monomial
+    poly *p_Init(ring *r)
+
+    # const polynomial from int
     poly *p_ISet(int i, ring *r)
+
+    # const polynomial from number (coefficient)
     poly *p_NSet(number *n,ring *r)
 
+    # destructor
+    void p_Delete(poly **p, ring *r)
 
+    # set the coeff n for the current list element p in r
     int p_SetCoeff(poly *p, number *n, ring *r)
+
+    # get the coeff of the current list element p in r
     number *p_GetCoeff(poly *p, ring *r)
 
+    # sets the exponent e at index v for the list element (monomial) p in r
+    # v starts counting at 1
     int p_SetExp(poly *p, int v, int e, ring *r)
+
+    # get the exponent at index v of the monomial p in r
     int p_GetExp(poly *p, int v, ring *r)
-    unsigned long p_SetComp(poly *p, unsigned long v, ring *r)
-    unsigned long p_GetComp(poly *p, ring *r)
-    poly *pTakeOutComp1(poly **, int)
 
-
-    void pLcm(poly *a, poly *b, poly *m)
-
-
+    # if SetExp is called on p, p_Setm needs to be called afterwards
+    # to finalize the change.
     void p_Setm(poly *p, ring *r)
 
+    # gets a component out of a polynomial vector
+    poly *pTakeOutComp1(poly **, int)
+
+    # copies p
     poly *p_Copy(poly *p, ring *r)
 
     # homogenizes p by multiplying certain powers of the varnum-th variable
     poly *pHomogen (poly *p, int varnum)
 
+    # returns whether a polynomial is homogenous.
     int pIsHomogeneous(poly *p)
 
-    ## IO
-    ## -------------------------------
     char *p_String(poly *p, ring *r, ring *r)
-
-    char *p_Read(char *c, poly *p, ring *r)
-    poly *pmInit(char *c, int b)
-
-    void writemon(poly *p, int ko, ring *r)
-    char *StringAppendS(char *)
-    void StringSetS(char *)
 
     ## Arithmetic
     ## -------------------------------
@@ -212,21 +241,6 @@ cdef extern from "libsingular.h":
 
     poly *pDivide(poly *,poly *)
 
-    # returns p*Coeff(m) for such monomials pm of p, for which m is
-    # divisble by pm
-    poly *pp_Mult_Coeff_mm_DivSelect(poly *p, poly *m, ring *r)
-
-    # returns merged p and q, assumes p and q have no monomials which are equal
-    poly *p_Merge_q(poly *p, poly c, ring *r)
-
-    # sorts p using bucket sort: returns sorted poly assumes that
-    # monomials of p are all different reverses it first, if revert ==
-    # TRUE, use this if input p is "almost" sorted correctly
-    poly *p_SortMerge(poly *p, ring *r, int revert)
-
-    # like SortMerge, except that p may have equal monimals
-    poly *p_SortAdd(poly *p, ring *r, int revert)
-
     # returns the i-th power of p; p will be destroyed, requires global ring
     poly *pPower(poly *p, int exp)
 
@@ -241,17 +255,18 @@ cdef extern from "libsingular.h":
     # like pDivisibleBy, except that it is assumed that a!=NULL, b!=NULL
     int p_LmDivisibleBy(poly *a, poly *b, ring *r)
 
+    # least common multiplies for MONOMIALS only, result is written to m
+    # p_Setm must be called on m afterwards.
+    void pLcm(poly *a, poly *b, poly *m)
 
-    long pDeg(poly *p, ring *r)
+    # total degree of p
     long pTotaldegree(poly *p, ring *r)
 
+    # iterates through the monomials of p
     poly *pNext(poly *p)
 
-    # pCmp: args may be NULL
-    # returns: (p2==NULL ? 1 : (p1 == NULL ? -1 : p_LmCmp(p1, p2)))
     int p_Cmp(poly *l, poly *r, ring *r)
     int p_ExpVectorEqual(poly *p, poly *m, ring *r)
-
 
     int p_IsConstant(poly *, ring *)
     int p_LmIsConstant(poly *p, ring *)
@@ -264,42 +279,39 @@ cdef extern from "libsingular.h":
     # gcd of f and g
     poly *singclap_gcd ( poly *f, poly *g )
 
+    # resultants of f and g in x
     poly *singclap_resultant ( poly *f, poly *g , poly *x)
 
+    # extended GVD
     int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb )
 
+    # polynomial division (as opposed to monomial division)
     poly *singclap_pdivide ( poly *f, poly *g )
 
-    void singclap_divide_content( poly *f )
-
+    # factorization
     ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps)
 
+    # is square free
     int singclap_isSqrFree(poly *f)
 
+    # normal form calculation of p with respect to F, Q is quotient
+    # ring.
     poly *kNF(ideal *F, ideal *Q, poly *p)
 
-    # this guy actually calculates with napoly not poly
-    #poly *singclap_alglcm(poly *f, poly *g)
+    # General Numbers
+    poly *pDiff(poly *, int)
 
-    # Numbers
-    # ---------------------------------
-
-    # General
     number *n_Init(int n, ring *r)
     void n_Delete(number **n, ring *r)
     int nInt(number *n)
     number *n_Div(number *a, number *b, ring *r)
     int n_GreaterZero(number *a, ring *r)
     int n_IsZero(number *a, ring *r)
-    number *n_Sub(number *a, number *b, ring *r)
 
+    number *n_Sub(number *a, number *b, ring *r)
     number *nInvers(number *n)
 
-    cdef long SR_INT
-    long SR_TO_INT(number *)
-    long SR_HDL(mpz_t )
-
-    # QQ
+    # Rational Numbers
     number *nlInit(int)
     number *nlInit2gmp(mpz_t i, mpz_t j)
     number *nlInit2(int i, int j)
@@ -308,10 +320,38 @@ cdef extern from "libsingular.h":
     number *nlRInit(int)
 
 
-    #
-    # Ideals
-    # -----------------------------------
+    # Algebraic Numbers
+    number *naPar(int)
+    void naPower(number *, int, number **)
+    number *naMult(number *, number *)
+    number *naAdd(number *, number *)
+    number *naCopy(number *)
+    number *naInit(int)
+    void naDelete(number **, ring*)
+    int naIsZero(number *)
+    char * naRead(char *s, number *)
+    int naIsOne(number *)
+    int naIsZero(number *)
 
+    number *napGetCoeff(napoly *z)
+    int napGetExp(napoly *, int)
+    napoly *napIter(napoly *)
+
+    # Integer Numbers
+    cdef long SR_INT
+    long SR_TO_INT(number *)
+    long SR_HDL(mpz_t )
+
+
+    ctypedef struct napoly "polyrec"
+
+    ctypedef struct lnumber "slnumber":
+        napoly *z
+        napoly *n
+        int s
+
+
+    # Ideals
     ideal *idInit(int size, int rank)
     void id_Delete(ideal **, ring *)
     ideal *fast_map(ideal *, ring *, ideal *, ring *)

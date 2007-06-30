@@ -74,6 +74,8 @@ import relation_matrix
 import space
 import subspace
 
+QQ = rings.Rational
+
 
 class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule):
     """
@@ -312,25 +314,35 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             else:
                 raise ValueError, "x (=%s) must be of length 2 or 3"%x
         # end check
+
+        N = self.level()
+        x = (x[0], x[1]%N, x[2]%N)
+        try:
+            return self.__manin_symbol[x]
+        except AttributeError:
+            self.__manin_symbol = {}
+        except KeyError:
+            pass
         y = manin_symbols.ManinSymbol(self.manin_symbols(), x)
-        return self(y)
+        z = self(y)
+        self.__manin_symbol[x] = z
+        return z
 
     def _modular_symbol_0_to_alpha(self, alpha, i=0):
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
-        QQ = rings.Rational
-        v = arith.continued_fraction_list(QQ(alpha))
-        c = [QQ(0), QQ(1)] + arith.convergents(v)
+        v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
         a = self(0)
         if self.weight() > 2:
             # TODO!!!!!  must apply action to the polynomial part
             raise NotImplementedError
         for k in range(1,len(c)):
-            u = c[k].denominator()
-            v = c[k-1].denominator()
+            u = c[k][1]
+            v = c[k-1][1]
             if k % 2 == 0:
                 v = -v
-            a += self.manin_symbol((i, u, v), check=False)
+            x = self.manin_symbol((i, u, v), check=False)
+            a += x
         return a
 
     def modular_symbol(self, x, check=True):

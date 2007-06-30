@@ -63,26 +63,6 @@ include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
 
 #####################################################
 
-ec =    Extension('sage.libs.ec.ec',
-              sources = ["sage/libs/ec/ec.pyx"] +  \
-                        ["sage/libs/ec/%s"%s for s in \
-                         ["analrank.c", "apcompute.c", "arderivs.c",
-                          "arintern.c", "arith.c", "artwists.c",
-                          "arutil.c", "checkit.c", "degphi.c",
-                          "diskio.c", "docurve.c", "dodisk.c",
-                          "equation.c", "exotic.c", "fixit.c",
-                          "iisog2.c", "iisog3.c", "isog.c", "isog2.c",
-                          "isog23.c", "isog24.c", "isog3.c", "isog5.c",
-                          "isog52.c", "isog713.c", "isogNprime.c",
-                          "isoggen.c", "isogsort.c", "isogx0.c",
-                          "isogx0branch.c", "isogx0branch1.c",
-                          "isogx0branch2.c", "isogx0branch3.c",
-                          "isogx0branch4.c", "isogx0branch5.c",
-                          "isogx0branch6.c", "isogx0getd.c",
-                          "isogx0period.c", "readit.c",
-                          "special.c", "util.c"]],
-              libraries = ["pari", "m"])
-
 hanke = Extension(name = "sage.libs.hanke.hanke",
               sources = ["sage/libs/hanke/hanke.pyx",
                          "sage/libs/hanke/wrap.cc",
@@ -173,7 +153,7 @@ linbox = Extension('sage.libs.linbox.linbox',
 
 libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
                         language="c++",
                         )
 
@@ -328,7 +308,6 @@ ext_modules = [ \
 
     #vector_rational_sparse,
 
-    ec,
     pari,
 
     mwrank,
@@ -433,7 +412,7 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
               language="c++",
               ), \
 
@@ -891,7 +870,6 @@ setup(name        = 'sage',
                      'sage.libs.linbox',
                      'sage.libs.mwrank',
                      'sage.libs.ntl',
-                     'sage.libs.ec',
                      'sage.libs.pari',
                      'sage.libs.singular',
 

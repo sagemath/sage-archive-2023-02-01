@@ -35,9 +35,6 @@ from sage.dsage.interface.dsage_interface import DSage
 from sage.dsage.dist_functions.all import *
 from sage.dsage.database.job import Job
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.client_tracker as client_tracker
-import sage.dsage.server.worker_tracker as worker_tracker
-from sage.dsage.server.hostinfo_tracker import hostinfo_list
 from sage.dsage.errors.exceptions import BadJobError, BadTypeError
 
 try:

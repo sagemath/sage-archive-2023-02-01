@@ -188,9 +188,7 @@ def do_prefilter_paste(line, continuation):
                         X = load_sagex(F)
                         __IPYTHON__.push(X)
                     else:
-                        print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%F
-                        line = ''
-                        raise IOError
+                        line = 'load("%s")'%F
                     t = os.path.getmtime(F)
                     attached[F] = t
                 except IOError:
@@ -282,8 +280,9 @@ def do_prefilter_paste(line, continuation):
             elif name[-5:] == '.spyx':
                 line = load_sagex(name)
             else:
-                raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
-                line = ''
+                line = 'load("%s")'%name
+                #raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+                #line = ''
 
     elif line[:13] == 'save_session(':
         line = 'save_session(locals(), %s'%line[13:]
@@ -339,7 +338,9 @@ def do_prefilter_paste(line, continuation):
                 raise ImportError, "File '%s' not found."%name
                 line = ''
         else:
+            #line = 'load("%s")'%name
             raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line, not continuation)
     return line
@@ -410,19 +411,44 @@ def sage_prefilter(self, block, continuation):
     return InteractiveShell._prefilter(self, block2, continuation)
 
 
+import sage.server.support
+def embedded():
+    return sage.server.support.EMBEDDED_MODE
 
-# Rebind this to be the new IPython prefilter:
-InteractiveShell.prefilter = sage_prefilter
+ipython_prefilter = InteractiveShell.prefilter
+def preparser(on=True):
+    """
+    Turn on or off the SAGE preparser.
 
-# Clean up the namespace.
-#del InteractiveShell, sage_prefilter
+    NOTE: This only works on the command line.  To turn off preparsing
+    in the notebook, switch to python mode.
+
+    INPUT:
+        on -- bool (default: True) if True turn on preparsing; if False, turn it off.
+
+    EXAMPLES:
+        sage: 2/3
+        2/3
+        sage: preparser(False)
+        sage: 2/3
+        0
+        sage: preparser(True)
+        sage: 2^3
+        8
+    """
+    if embedded():
+        print "To turn off preparsing in the notebook, swith to Python mode."
+    if on:
+        InteractiveShell.prefilter = sage_prefilter
+    else:
+        InteractiveShell.prefilter = ipython_prefilter
+
+
 import sagedoc
-
 import IPython.OInspect
 IPython.OInspect.getdoc = sagedoc.my_getdoc
 IPython.OInspect.getsource = sagedoc.my_getsource
 
-import log
 
 import __builtin__
 _prompt = 'sage'

@@ -1,3 +1,10 @@
+#############################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 """nodoctest"""
 
 sage_mode = 'cmdline'
@@ -6,6 +13,7 @@ try:
 
     from sage.all import *
     from sage.calculus.predefined import *
+    preparser(on=True)
 
 except ValueError, msg:
     import traceback
@@ -16,4 +24,9 @@ except ValueError, msg:
     raise ValueError, msg
 
 
+
+def _init_cmdline(globs):
+    from sage.misc.inline_fortran import InlineFortran
+    fortran = InlineFortran(globs)
+    globs['fortran'] = fortran
 

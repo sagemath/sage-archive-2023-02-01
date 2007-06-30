@@ -96,7 +96,7 @@ def IntegerModRing(order=0):
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
-        if x != None: return x
+        if not x is None: return x
     #if check_prime and arith.is_prime(order):
     #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
     #else:

@@ -295,7 +295,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         #
         # TODO: This breaks like crazy on 32-bit linux.
         #
-        rDelete(self._ring)
+        # rDelete(self._ring)
         #
         ##################################################
 

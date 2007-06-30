@@ -69,6 +69,7 @@ TESTS:
     sage: R = Integers(D)
     sage: p = matrix(R,[[84, 97, 55, 58, 51]])
     sage: 2*p.row(0)
+    (168, 194, 110, 116, 102)
 """
 
 import operator
@@ -76,7 +77,7 @@ import operator
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 import sage.misc.misc as misc
-import sage.misc.latex as latex
+import sage.misc.latex
 
 cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
@@ -632,7 +633,16 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Returns the inner product of self and other, with respect to
         the inner product defined on the parent of self.
 
-        EXAMPLES: todo
+        EXAMPLES:
+
+            sage: I = matrix(ZZ,3,[2,0,-1,0,2,0,-1,0,6])
+            sage: M = FreeModule(ZZ, 3, inner_product_matrix = I)
+            sage: (M.0).inner_product(M.0)
+            2
+            sage: K = M.span_of_basis([[0/2,-1/2,-1/2], [0,1/2,-1/2],[2,0,0]])
+            sage: (K.0).inner_product(K.0)
+            2
+
         """
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
@@ -641,7 +651,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return M(A.linear_combination_of_rows(self)).dot_product(right)
+            return A.linear_combination_of_rows(self).dot_product(right)
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)
@@ -696,7 +706,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         s = '\\left('
         for a in self.list():
-            s = s + latex.latex(a) + ','
+            s = s + sage.misc.latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
@@ -731,8 +741,11 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
-        EXAMPLES:
-            sage: v = (ZZ^3).0
+        TESTS:
+            sage: V = ZZ^3
+            sage: loads(dumps(V)) == V
+            True
+            sage: v = V.0
             sage: loads(dumps(v)) == v
             True
             sage: v = (QQ['x']^3).0
@@ -823,7 +836,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = left._mul_c(<RingElement>(self._entries[i]))
+            v[i] = (<RingElement>(self._entries[i]))._rmul_c(left)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
@@ -833,7 +846,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._mul_c(right)
+            v[i] = (<RingElement>(self._entries[i]))._lmul_c(right)
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

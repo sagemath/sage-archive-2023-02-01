@@ -16,6 +16,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     cdef object __singular
     cdef object __macaulay2
     cdef object __m2_set_ring_cache
+    cdef object __minpoly
     cdef ring *_ring
     cdef MPolynomial_libsingular _zero
     cdef int _cmp_c_impl(left, Parent right) except -2

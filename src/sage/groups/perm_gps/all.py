@@ -1,10 +1,10 @@
 
 import permgroup as pg
-from permgroup import (PermutationGroup, PermutationGroupElement,
-                       SymmetricGroup, AlternatingGroup,
+
+from permgroup_named import (SymmetricGroup, AlternatingGroup,
                        DihedralGroup, CyclicPermutationGroup,
                        TransitiveGroup, PGL, PSL, PSp,PSU,PGU,
-                       MathieuGroup, KleinFourGroup,Suzuki)
+                       MathieuGroup, KleinFourGroup, SuzukiGroup)
 
 from permgroup import  PermutationGroup, PermutationGroup_generic, PermutationGroup_subgroup, direct_product_permgroups
 
@@ -12,4 +12,4 @@ from permgroup_element import PermutationGroupElement,is_PermutationGroupElement
 
 from permgroup_morphism import is_PermutationGroupMorphism,PermutationGroupMap,PermutationGroupMorphism,PermutationGroupMorphism_im_gens,PermutationGroupMorphism_id
 
-from cubegroup import CubeGroup
+from cubegroup import CubeGroup, plot_cube, plot3d_cube

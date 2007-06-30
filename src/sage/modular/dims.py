@@ -600,11 +600,14 @@ def dimension_new_cusp_forms(X, k=2, p=0):
     cusp forms for the character or group X.
 
     INPUT:
-        X -- congruence subgroup or Dirichlet character
+        X -- integer, congruence subgroup or Dirichlet character
         k -- weight (integer)
         p -- 0 or a prime
 
     EXAMPLES:
+        sage: dimension_new_cusp_forms(100,2)
+        1
+
         sage: dimension_new_cusp_forms(Gamma0(100),2)
         1
         sage: dimension_new_cusp_forms(Gamma0(100),4)
@@ -629,8 +632,10 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         return dimension_new_cusp_forms_group(X,k,p)
     elif isinstance(X, dirichlet.DirichletCharacter):
         return dimension_new_cusp_forms_eps(X,k,p)
+    elif isinstance(X, (int,long,Integer)):
+        return dimension_new_cusp_forms_gamma0(X,k,p)
     else:
-        raise TypeError, "X (=%s) must be a congruence subgroup or Diirichlet character"%X
+        raise TypeError, "X (=%s) must be an integer, congruence subgroup or Diirichlet character"%X
 
 def dimension_cusp_forms(X, k=2):
     r"""

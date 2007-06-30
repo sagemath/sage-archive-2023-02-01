@@ -421,10 +421,14 @@ def load(filename, compress=True, verbose=True):
     """
 
     ## Check if filename starts with "http://" or "https://"
-    if filename.startswith("http://") or filename.startswith("https://"):
+    lower = filename.lower()
+    if lower.startswith("http://") or lower.startswith("https://"):
         from sage.misc.remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=verbose)
         tmpfile_flag = True
+    elif lower.endswith('.f') or lower.endswith('.f90'):
+        globals()['fortran'](filename)
+        return
     else:
         tmpfile_flag = False
         filename = process(filename)

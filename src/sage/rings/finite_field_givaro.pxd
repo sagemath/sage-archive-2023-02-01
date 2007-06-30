@@ -99,3 +99,5 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef FiniteField_givaroElement _new_c(self, int value)
 
+
+

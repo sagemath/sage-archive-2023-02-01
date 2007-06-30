@@ -124,7 +124,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _neg_c_impl(self):
         return self.polynomial([-x for x in self.list()])
 
-    def plot(self, xmin=0, xmax=1, *args, **kwds):
+    def plot(self, xmin=None, xmax=None, *args, **kwds):
         """
         Return a plot of this polynomial.
 
@@ -684,12 +684,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^3 + 4*x
             sage: f / (x - 1)
             x^2 + x
+
+        Be careful about coercions (this used to be broken):
+            sage: R.<x> = ZZ['x']
+            sage: f = x / Mod(2,5); f
+            3*x
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Ring of integers modulo 5
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
                 R = self.parent().base_ring()
-                x = R(right)
-                return ~x * self
+                x = R._coerce_(right)
+                return self * ~x
         except (TypeError, ValueError, ZeroDivisionError):
             pass
         return RingElement.__div__(self, right)

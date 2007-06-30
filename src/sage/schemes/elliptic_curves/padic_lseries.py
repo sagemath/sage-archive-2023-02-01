@@ -93,7 +93,9 @@ class pAdicLseries(SageObject):
         crla = parse_cremona_label(E.label())
         cr0 = Integer(crla[0]).str() + crla[1] + '1'
         E0 = EllipticCurve(cr0)
-        self._quotient_of_periods = QQ(E0.period_lattice()[0]/E.period_lattice()[0])
+        q = E0.period_lattice()[0]/E.period_lattice()[0]*E0.real_components()/E.real_components()
+        self._quotient_of_periods = QQ(gp.bestappr(q,200))
+
         self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
 
     def elliptic_curve(self):
@@ -313,7 +315,7 @@ class pAdicLseries(SageObject):
     def _c_bounds(self, n):
         raise NotImplementedError
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         raise NotImplementedError
 
     def teichmuller(self, prec):
@@ -338,11 +340,13 @@ class pAdicLseries(SageObject):
         return [Integer(0)] + \
                [a.residue(prec).lift() for a in K.teichmuller_system()]
 
-    def _e_bounds(self, n):
+    def _e_bounds(self, n, prec):
         p = self._p
-        T = (ZZ['T']).gen()
+        prec = max(2,prec)
+        R = PowerSeriesRing(ZZ,'T',prec+1)
+        T = R(R.gen(),prec +1)
         w = (1+T)**(p**n) - 1
-        return [infinity] + [valuation(w[j],p) for j in range(1,w.degree()+1)]
+        return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
     def _get_series_from_cache(self, n, prec):
         try:
@@ -422,8 +426,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
         p = self._p
+        #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
-        bounds = self._prec_bounds(n)
+        bounds = self._prec_bounds(n,prec)
         padic_prec = max(bounds[1:]) + 5
         verbose("using p-adic precision of %s"%padic_prec)
 
@@ -447,10 +452,12 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
         verbose("Now iterating over %s summands"%p_power)
         verbose_level = get_verbose()
+        count_verb = 0
         for j in range(p_power):
             s = K(0)
-            if verbose_level >= 2:
+            if verbose_level >= 2 and j/p_power*100 > count_verb + 3:
                 verbose("%.2f percent done"%(float(j)/p_power*100))
+                count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec).lift()
@@ -515,9 +522,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
         self.__c_bound = ans
         return ans
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n, prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1, prec)
         c = self._c_bound()
         return [e[j] - c for j in range(len(e))]
 
@@ -551,19 +558,17 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(4)         # takes a long time (several seconds)
     (O(3^1))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 + ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
             sage: L.alpha(2).parent()
-			Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
+            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
-
-        bounds = self._prec_bounds(n)
-        padic_prec = max(sum(bounds[1:],[])) + 5
         p = self._p
-
         prec = min(p**(n-1), prec)
+        bounds = self._prec_bounds(n,prec)
+        padic_prec = max(sum(bounds[1:],[])) + 5
         ans = self._get_series_from_cache(n, prec)
         if not ans is None:
             return ans
@@ -606,9 +611,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def is_supersingular(self):
         return True
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1,prec)
         c0 = ZZ(n+2)/2
         c1 = ZZ(n+3)/2
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
@@ -628,7 +633,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         \end{verbatim}
 
         WARNING: ** Currently the normalisation of the Frobenius is not chosen
-		correctly and hence only mod p the function satisfies the padic BSD **
+        correctly and hence only mod p the function satisfies the padic BSD **
 
         INPUT:
             n -- (default: 3) a positive integer
@@ -670,7 +675,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         with respect to the basis $\omega$, the invariant differential and $\eta=x\omega$.
         It satisfies  $phi^2 - a_p/p*phi + 1/p = 0$.
 
-		It is not clear what normalisation we use here.
+        It is not clear what normalisation we use here.
 
         EXAMPLES:
             sage: E = EllipticCurve('14a')
@@ -743,9 +748,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('53a')
             sage: L = E.padic_lseries(5)
             sage: h = L.Dp_valued_height(7)
-			sage: h(E.gens()[0])
-			(2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
-			4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
+            sage: h(E.gens()[0])
+            (2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
+            4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
         """
         E = self._E
         p = self._p
@@ -791,8 +796,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('43a')
             sage: L = E.padic_lseries(7)
             sage: L.Dp_valued_regulator(7)
-			(2*7 + 2*7^2 + 5*7^3 + 7^4 + 7^5 + 4*7^6 + 2*7^7 + O(7^8),
-			 2*7^2 + 4*7^3 + 2*7^5 + 3*7^6 + 6*7^7 + O(7^8))
+            (2*7 + 2*7^2 + 5*7^3 + 7^4 + 7^5 + 4*7^6 + 2*7^7 + O(7^8),
+             2*7^2 + 4*7^3 + 2*7^5 + 3*7^6 + 6*7^7 + O(7^8))
         """
 
         p = self._p

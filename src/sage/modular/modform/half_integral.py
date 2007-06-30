@@ -39,7 +39,7 @@ the space!}
    Let U be the subspace of S x S of elements (a,b) such that
    Theta2*a = Theta3*b.
    Then U is isomorphic to S(chi, k/2) via the map
-          (a,b) |----> a/Theta2.
+          (a,b) |----> a/Theta3.
 */
 
    require Modulus(chi) mod 16 eq 0 :
@@ -66,7 +66,7 @@ the space!}
       return [];
    end if;
    R<q> := FieldOfFractions(Parent(avec[1]));
-   return [(R!a)/(R!T2) : a in avec];
+   return [(R!a)/(R!T3) : a in avec];
 end intrinsic;
 
 /* Example:

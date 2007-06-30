@@ -61,7 +61,7 @@ def read_conf(config):
     except Exception, msg:
         pass
     try:
-        conf['delay'] = float(conf['delay'])
+        conf['poll'] = float(conf['poll'])
     except Exception, msg:
         pass
     try:

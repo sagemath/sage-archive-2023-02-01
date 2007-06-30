@@ -633,7 +633,16 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Returns the inner product of self and other, with respect to
         the inner product defined on the parent of self.
 
-        EXAMPLES: todo
+        EXAMPLES:
+
+            sage: I = matrix(ZZ,3,[2,0,-1,0,2,0,-1,0,6])
+            sage: M = FreeModule(ZZ, 3, inner_product_matrix = I)
+            sage: (M.0).inner_product(M.0)
+            2
+            sage: K = M.span_of_basis([[0/2,-1/2,-1/2], [0,1/2,-1/2],[2,0,0]])
+            sage: (K.0).inner_product(K.0)
+            2
+
         """
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
@@ -642,7 +651,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return M(A.linear_combination_of_rows(self)).dot_product(right)
+            return A.linear_combination_of_rows(self).dot_product(right)
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)

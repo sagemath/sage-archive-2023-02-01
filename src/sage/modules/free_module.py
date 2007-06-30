@@ -1154,27 +1154,27 @@ class FreeModule_generic(module.Module):
         """
         return self.__rank
 
-##     def uses_ambient_inner_product(self):
-##         """
-##         Return \code{True} if the inner product on this module is the one induced
-##         by the ambient inner product.  This is True exactly if
-##         self.set_inner_product_matrix(...) has not been called (or
-##         self.unset_inner_product_matrix() was subsequently called).
+    def uses_ambient_inner_product(self):
+        """
+        Return \code{True} if the inner product on this module is the one induced
+        by the ambient inner product.  This is True exactly if
+        self.set_inner_product_matrix(...) has not been called (or
+        self.unset_inner_product_matrix() was subsequently called).
 
-##         EXAMPLES:
-##             sage: M = FreeModule(ZZ, 2)
-##             sage: W = M.submodule([[1,2]])
-##             sage: W.uses_ambient_inner_product()
-##             True
-##             sage: W.inner_product_matrix()
-##             [5]
-##             sage: W = FreeModule(ZZ, 2, inner_product_matrix = [2])
-##             sage: W.uses_ambient_inner_product()
-##             False
-##             sage: W.inner_product_matrix()
-##             [2]
-##         """
-##         return self.__uses_ambient_inner_product
+        EXAMPLES:
+            sage: M = FreeModule(ZZ, 2)
+            sage: W = M.submodule([[1,2]])
+            sage: W.uses_ambient_inner_product()
+            True
+            sage: W.inner_product_matrix()
+            [5]
+            sage: W = FreeModule(ZZ, 2, inner_product_matrix = [2])
+            sage: W.uses_ambient_inner_product()
+            False
+            sage: W.inner_product_matrix()
+            [2]
+        """
+        return self.__uses_ambient_inner_product
 
     def zero_vector(self):
         """

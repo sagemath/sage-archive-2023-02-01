@@ -98,6 +98,7 @@ import sys
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
+include "../ext/python_list.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -207,6 +208,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             'zz'
             sage: ZZ('0x3b').str(16)
             '3b'
+            sage: ZZ( ZZ(5).digits(3) , 3)
+            5
         """
 
         # TODO: All the code below should somehow be in an external
@@ -218,6 +221,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(mpz_t y, object x)
         # Then this function becomes the one liner:
         #     mpz_init_set_sage(self.value, x)
+
+        cdef Integer tmp
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -264,6 +269,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
+
+            elif PY_TYPE_CHECK(x, list) and base > 1:
+                b = the_integer_ring(base)
+                tmp = the_integer_ring(0)
+                for i in range(len(x)):
+                    tmp += x[i]*b**i
+                mpz_set(self.value, tmp.value)
 
             else:
                 raise TypeError, "unable to coerce element to an integer"
@@ -469,6 +481,51 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1101101011101100011110001110010010100111010001101010001111111000101000000000101111000010000011
         """
         return self.str(2)
+
+    def digits(self, int base=2):
+        """
+        Return a list of digits for self in the given base in little
+        endian order.
+
+        INPUT:
+            base -- integer (default: 2)
+
+        EXAMPLE:
+            sage: 5.digits()
+            [1, 0, 1]
+            sage: 5.digits(3)
+            [2, 1]
+
+        """
+        if base < 2:
+            raise TypeError, "base must be >= 2"
+
+        cdef mpz_t mpz_value
+        cdef mpz_t mpz_base
+        cdef mpz_t mpz_res
+        cdef object l = PyList_New(0)
+        cdef Integer z
+
+        mpz_init(mpz_value)
+        mpz_init(mpz_base)
+        mpz_init(mpz_res)
+
+        mpz_set(mpz_value, self.value)
+        mpz_set_ui(mpz_base, base)
+
+
+        while mpz_cmp_si(mpz_value,0):
+            mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
+            z = PY_NEW(Integer)
+            mpz_set(z.value, mpz_res)
+            PyList_Append(l, z)
+
+        mpz_clear(mpz_value)
+        mpz_clear(mpz_res)
+        mpz_clear(mpz_base)
+
+        return l # should we return a tuple?
+
 
     def set_si(self, signed long int n):
         """

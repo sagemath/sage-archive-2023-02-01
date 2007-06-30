@@ -83,7 +83,7 @@ class TateCurve(SageObject):
 
 
     def parameter(self,prec=20):
-        """
+        r"""
         Returns the Tate parameter $q$ such that the curve is isomorphic over the algebraic closure of $\QQ_p$ to the curve
         $\QQ_p^{\times}/q^{\ZZ}$.
 

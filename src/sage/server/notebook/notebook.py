@@ -1366,7 +1366,7 @@ class Notebook(SageObject):
     def _html_head(self, worksheet_filename, username):
         if worksheet_filename is not None:
             worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            head = '\n<title>SAGE: %s</title>'%(worksheet.name())
+            head = '\n<title>%s (SAGE)</title>'%(worksheet.name())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'

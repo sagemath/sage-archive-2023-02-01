@@ -2165,7 +2165,8 @@ class GenericGraph(SageObject):
              edge_labels=False, vertex_size=200, graph_border=False,\
              vertex_colors=None, partition=None, edge_colors=None,\
              scaling_term=0.05, xmin=None, xmax=None,\
-             iterations=50, color_by_label=False):  # xmin and xmax are ignored
+             iterations=50, color_by_label=False,
+             height_function=None):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 
@@ -2192,6 +2193,8 @@ class GenericGraph(SageObject):
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges or arcs by their labels
+            height_function -- if specified, this is a function from the set of
+                vertices to a set of floating point heights
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2301,6 +2304,10 @@ class GenericGraph(SageObject):
             for i in range(num_labels):
                 edge_colors[R[i]] = edge_labels[i]
 
+        if height_function is not None:
+            for v in self.vertices():
+                pos[v][1] = float(height_function(v))
+
         G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
@@ -2317,7 +2324,8 @@ class GenericGraph(SageObject):
              edge_labels=False, vertex_size=200, graph_border=False,\
              vertex_colors=None, edge_colors=None, partition=None,\
              scaling_term=0.05, talk=False, iterations=50,\
-             color_by_label=False, **kwds):
+             color_by_label=False,
+             height_function=None, **kwds):
         """
         Shows the (di)graph.
 
@@ -2345,6 +2353,8 @@ class GenericGraph(SageObject):
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges or arcs by their labels
+            height_function -- if specified, this is a function from the set of
+                vertices to a set of floating point heights
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2400,7 +2410,8 @@ class GenericGraph(SageObject):
                   vertex_colors=vertex_colors, edge_colors=edge_colors,\
                   graph_border=graph_border, partition=partition,\
                   scaling_term=scaling_term, iterations=iterations,\
-                  color_by_label=color_by_label).show(**kwds)
+                  color_by_label=color_by_label,\
+                  height_function=height_function).show(**kwds)
 
 class Graph(GenericGraph):
     r"""

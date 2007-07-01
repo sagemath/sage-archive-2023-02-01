@@ -114,14 +114,72 @@ def finer(Pi1, Pi2):
 #
 #    def print_len(self):
 #        print type(self.length)
-#
-#cdef class OrderedPartition:
-#    cdef int length
-#    cdef int** data
-#    cdef int* sizes
-#
-#    def __new__(self, int length):
-#        print length
+
+cdef class OrderedPartition:
+    cdef public int length
+    cdef int** data
+    cdef int* sizes
+
+    def __new__(self, data):
+        cdef int i, j, k
+        if isinstance(data, (list, tuple)):
+            self.length = len(data)
+            self.data = <int **> PyMem_Malloc( self.length * sizeof(int *) )
+            self.sizes = <int *> PyMem_Malloc( self.length * sizeof(int) )
+            try:
+                for i from 0 <= i < self.length:
+                    self.sizes[i] = len(data[i])
+                    self.data[i] = <int *> PyMem_Malloc( self.sizes[i] * sizeof(int) )
+                    for j from 0 <= j < self.sizes[i]:
+                        self.data[i][j] = data[i][j]
+            except:
+                raise TypeError('Error with input data.')
+        elif isinstance(data, OrderedPartition):
+            self.length = data.length
+            self.data = <int **> PyMem_Malloc( self.length * sizeof(int *) )
+            self.sizes = <int *> PyMem_Malloc( self.length * sizeof(int) )
+            try:
+                for i from 0 <= i < self.length:
+                    self.sizes[i] = data.size(i)
+                    self.data[i] = <int *> PyMem_Malloc( self.sizes[i] * sizeof(int) )
+                    for j from 0 <= j < self.sizes[i]:
+                        self.data[i][j] = data[i][j]
+            except:
+                raise TypeError('Error with input data.')
+
+    def __dealloc__(self):
+        cdef int i, j
+        for i from 0 <= i < self.length:
+            PyMem_Free(self.data[i])
+        PyMem_Free(self.sizes)
+        PyMem_Free(self.data)
+
+    def __repr__(self):
+        s = "("
+        cdef int i, j
+        for i from 0 <= i < self.length:
+            s += "{"
+            for j from 0 <= j < self.sizes[i] - 1:
+                s += str(self.data[i][j]) + ","
+            if self.sizes[i] > 0:
+                s += str(self.data[i][self.sizes[i] - 1])
+            s += "},"
+        s = s[:-1] + ")"
+        return s
+
+    def __getitem__(self, n):
+        cdef int i
+        return [ self.data[n][i] for i from 0 <= i < self.sizes[n] ]
+
+    def is_discrete(self):
+        cdef int i
+        for i from 0 <= i < self.length:
+            if self.sizes[i] > 1:
+                return False
+        return True
+
+    def size(self, n):
+        return self.sizes[n]
 
 def vee(alpha, beta):
     """

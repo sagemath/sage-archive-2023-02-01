@@ -1054,7 +1054,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     Pi = copy(Pi)
     if proof:
         lab=True
-    cdef int k, j, i, size, h, hh, index, l, qzb, hb, hzf
+    cdef int k, j, i, size, h, hh, index, l, hb, hzf
     cdef int hzb = -389
 
     #create to and from mappings to relabel vertices

@@ -1,3 +1,5 @@
+"""nodoctest
+"""
 #####################################################################
 # Copyright (C) 2007 Alex Clemesha <clemesha@gmail.com>
 #

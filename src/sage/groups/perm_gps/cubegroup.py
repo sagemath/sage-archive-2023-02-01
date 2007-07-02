@@ -10,20 +10,38 @@ NOTATION: B denotes a clockwise quarter turn of the back face
           Products of moves are read {\it right to left}, so for example,
           R*U means move U first and then R.
 
+The "Singmaster notation":
+  * moves: U, D, R, L, F, B as in the diagram below,
+  * corners: xyz means the facet is on face x (in R,F,L,U,D,B)
+     and the clockwise rotation of the corner sends x->y->z
+  * edges: xy means the facet is on face x and a flip of the edge sends x->y.
+
+
+
+                                   +--------------+
+                                   | 1     2    3 |
+                                   | 4    up    5 |
+                                   | 6     7    8 |
+     +--------------+--------------+--------------+--------------+
+     | 9    10   11 | 17    1   19 | 25   26   27 | 33   34   35 |
+     | 12  left  13 | 20  front 21 | 28  right 29 | 36  back  37 |
+     | 14   15   16 | 22    23  24 | 30   31   32 | 38   39   40 |
+     +--------------+--------------+--------------+--------------+
+                                   | 41   42   43 |
+                                   | 44  down  45 |
+                                   | 46   47   48 |
+                                   +--------------+
+
 AUTHOR:
     - David Joyner (2006-10-21): first version
     -      "       (2007-05): changed faces, added legal and solve
-
+    -      "       (2007-06): added plotting functions
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
     Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
     Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
     Joyner, D, Adventures in Group Theory, Johns Hopkins Univ Press, 2002.
-
-TODO:
-  Implement 3D plotting (animation?) methods.
-
 
 """
 
@@ -34,9 +52,9 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, SymmetricGroup, PermutationGroup_subgroup
+from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
-from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group
@@ -49,6 +67,500 @@ import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
+from sage.plot.plot import PolygonFactory, TextFactory
+polygon = PolygonFactory()
+text = TextFactory()
+from sage.calculus.calculus import Function_sin, Function_cos
+sin = Function_sin()
+cos = Function_cos()
+pi = 3.14159265
+
+####################### predefined colors ##################
+
+red = (1,0,0)                ## F face
+green = (0,1,0)            ## R face
+blue = (0,0,1)              ## D face
+yellow = (1,1,0)           ## L face
+white = (1,1,1)             ## none
+orange = (1,1/3,0)       ## B face
+purple = (1,0,1)           ## none
+lpurple = (1,2/3,1)       ## U face
+lightblue = (0,1,1)        ## none
+lgrey = (3/4,3/4,3/4)    ## sagemath.org color
+
+#########################################################
+#written by Tom Boothby, placed in the public domain
+
+def xproj(x,y,z,r):
+  return (y*r[1] - x*r[3])*r[2]
+
+def yproj(x,y,z,r):
+  return z*r[2] - (x*r[1] + y*r[2])*r[0]
+
+def rotation_list(tilt,turn):
+    return [ sin(tilt*pi/180.0), sin(turn*pi/180.0), cos(tilt*pi/180.0), cos(turn*pi/180.0) ]
+
+def polygon_plot3d(points, tilt=30, turn=30, **kwargs):
+    """
+    Plots a polygon viewed from an angle determined by tilt, turn, and vertices
+    points.
+
+    WARNING: The ordering of the points is important to get "correct" and
+    if you add several of these plots together, the one added first is also
+    drawn first (ie, addition of Graphics objects is not commutative).
+
+    The following example produced a green-colored square with vertices
+    at the points indicated.
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.cubegroup import *
+        sage: P = polygon_plot3d([[1,3,1],[2,3,1],[2,3,2],[1,3,2],[1,3,1]],rgbcolor=green)
+    """
+    rot = rotation_list(tilt,turn)
+    points2 = [(xproj(x,y,z,rot), yproj(x,y,z,rot)) for (x,y,z) in points ]
+    return polygon(points2, **kwargs)
+
+###########################################################
+
+#############  lots of "internal" utility plot functions #########
+
+
+
+def inv_list(lst):
+    """
+    Input a list of ints 1, ..., m (in any order), outputs inverse perm.
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.cubegroup import *
+        sage: L = [2,3,1]
+        sage: inv_list(L)
+        [3, 1, 2]
+    """
+    return [lst.index(i)+1 for i in range(1,1+len(lst))]
+
+### bottom layer L, F, R, B
+
+def ldb(rgbclr):
+    #square labeled 14
+    return polygon([[-3,0],[-2,0], [-2,1], [-3,1]], rgbcolor=rgbclr)
+
+def ld(rgbclr):
+    #square labeled 15
+    return polygon([[-2,0],[-1,0], [-1,1], [-2,1]], rgbcolor=rgbclr)
+
+def lfd(rgbclr):
+    #square labeled 16
+    return polygon([[-1,0],[0,0], [0,1], [-1,1]], rgbcolor=rgbclr)
+
+def fdl(rgbclr):
+    #square labeled 22
+    return polygon([[0,0],[1,0], [1,1], [0,1]], rgbcolor=rgbclr)
+
+def fd(rgbclr):
+    #square labeled 23
+    return polygon([[1,0],[2,0], [2,1], [1,1]], rgbcolor=rgbclr)
+
+def frd(rgbclr):
+    #square labeled 24
+    return polygon([[2,0],[3,0], [3,1], [2,1]], rgbcolor=rgbclr)
+
+def rdf(rgbclr):
+    #square labeled 30
+    return polygon([[3,0],[4,0], [4,1], [3,1]], rgbcolor=rgbclr)
+
+def rd(rgbclr):
+    #square labeled 31
+    return polygon([[4,0],[5,0], [5,1], [4,1]], rgbcolor=rgbclr)
+
+def rbd(rgbclr):
+    #square labeled 32
+    return polygon([[5,0],[6,0], [6,1], [5,1]], rgbcolor=rgbclr)
+
+def bdr(rgbclr):
+    #square labeled 38
+    return polygon([[6,0],[7,0], [7,1], [6,1]], rgbcolor=rgbclr)
+
+def bd(rgbclr):
+    #square labeled 39
+    return polygon([[7,0],[8,0], [8,1], [7,1]], rgbcolor=rgbclr)
+
+def bld(rgbclr):
+    #square labeled 40
+    return polygon([[8,0],[9,0], [9,1], [8,1]], rgbcolor=rgbclr)
+
+### middle layer L,F,R, B
+
+def lb(rgbclr):
+    #square labeled 12
+    return polygon([[-3,1],[-2,1], [-2,2], [-3,2]], rgbcolor=rgbclr)
+
+def l_center(rgbclr):
+    return polygon([[-2,1],[-1,1], [-1,2], [-2,2]], rgbcolor=rgbclr)
+
+def lf(rgbclr):
+    #square labeled 13
+    return polygon([[-1,1],[0,1], [0,2], [-1,2]], rgbcolor=rgbclr)
+
+def fl(rgbclr):
+    #square labeled 20
+    return polygon([[0,1],[1,1], [1,2], [0,2]], rgbcolor=rgbclr)
+
+def f_center(rgbclr):
+    return polygon([[1,1],[2,1], [2,2], [1,2]], rgbcolor=rgbclr)
+
+def fr(rgbclr):
+    #square labeled 21
+    return polygon([[2,1],[3,1], [3,2], [2,2]], rgbcolor=rgbclr)
+
+def rf(rgbclr):
+    #square labeled 28
+    return polygon([[3,1],[4,1], [4,2], [3,2]], rgbcolor=rgbclr)
+
+def r_center(rgbclr):
+    return polygon([[4,1],[5,1], [5,2], [4,2]], rgbcolor=rgbclr)
+
+def rb(rgbclr):
+    #square labeled 29
+    return polygon([[5,1],[6,1], [6,2], [5,2]], rgbcolor=rgbclr)
+
+def br(rgbclr):
+    #square labeled 36
+    return polygon([[6,1],[7,1], [7,2], [6,2]], rgbcolor=rgbclr)
+
+def b_center(rgbclr):
+    return polygon([[7,1],[8,1], [8,2], [7,2]], rgbcolor=rgbclr)
+
+def bl(rgbclr):
+    #square labeled 37
+    return polygon([[8,1],[9,1], [9,2], [8,2]], rgbcolor=rgbclr)
+
+## top layer L, F, R, B
+
+def lbu(rgbclr):
+    #square labeled 9
+    return polygon([[-3,2],[-2,2], [-2,3], [-3,3]], rgbcolor=rgbclr)
+
+def lu(rgbclr):
+    #square labeled 10
+    return polygon([[-2,2],[-1,2], [-1,3], [-2,3]], rgbcolor=rgbclr)
+
+def luf(rgbclr):
+    #square labeled 11
+    return polygon([[-1,2],[0,2], [0,3], [-1,3]], rgbcolor=rgbclr)
+
+def flu(rgbclr):
+    #square labeled 17
+    return polygon([[0,2],[1,2], [1,3], [0,3]], rgbcolor=rgbclr)
+
+def fu(rgbclr):
+    #square labeled 18
+    return polygon([[1,2],[2,2], [2,3], [1,3]], rgbcolor=rgbclr)
+
+def fur(rgbclr):
+    #square labeled 19
+    return polygon([[2,2],[3,2], [3,3], [2,3]], rgbcolor=rgbclr)
+
+def ruf(rgbclr):
+    #square labeled 25
+    return polygon([[3,2],[4,2], [4,3], [3,3]], rgbcolor=rgbclr)
+
+def ru(rgbclr):
+    #square labeled 26
+    return polygon([[4,2],[5,2], [5,3], [4,3]], rgbcolor=rgbclr)
+
+def rub(rgbclr):
+    #square labeled 27
+    return polygon([[5,2],[6,2], [6,3], [5,3]], rgbcolor=rgbclr)
+
+def bur(rgbclr):
+    #square labeled 33
+    return polygon([[6,2],[7,2], [7,3], [6,3]], rgbcolor=rgbclr)
+
+def bu(rgbclr):
+    #square labeled 34
+    return polygon([[7,2],[8,2], [8,3], [7,3]], rgbcolor=rgbclr)
+
+def bul(rgbclr):
+    #square labeled 35
+    return polygon([[8,2],[9,2], [9,3], [8,3]], rgbcolor=rgbclr)
+
+# down face
+
+def dlf(rgbclr):
+    #square labeled 41
+    return polygon([[0,-1],[1,-1], [1,0], [0,0]], rgbcolor=rgbclr)
+
+def df(rgbclr):
+    #square labeled 42
+    return polygon([[1,-1],[2,-1], [2,0], [1,0]], rgbcolor=rgbclr)
+
+def dfr(rgbclr):
+    #square labeled 43
+    return polygon([[2,-1],[3,-1], [3,0], [2,0]], rgbcolor=rgbclr)
+
+def dl(rgbclr):
+    #square labeled 44
+    return polygon([[0,-2],[1,-2], [1,-1], [0,-1]], rgbcolor=rgbclr)
+
+def d_center(rgbclr):
+    return polygon([[1,-2],[2,-2], [2,-1], [1,-1]], rgbcolor=rgbclr)
+
+def dr(rgbclr):
+    #square labeled 45
+    return polygon([[2,-2],[3,-2], [3,-1], [2,-1]], rgbcolor=rgbclr)
+
+def dlb(rgbclr):
+    #square labeled 46
+    return polygon([[0,-3],[1,-3], [1,-2], [0,-2]], rgbcolor=rgbclr)
+
+def db(rgbclr):
+    #square labeled 47
+    return polygon([[1,-3],[2,-3], [2,-2], [1,-2]], rgbcolor=rgbclr)
+
+def drb(rgbclr):
+    #square labeled 48
+    return polygon([[2,-3],[3,-3], [3,-2], [2,-2]], rgbcolor=rgbclr)
+
+# up face
+
+def ufl(rgbclr):
+    #square labeled 6
+    return polygon([[0,3],[1,3], [1,4], [0,4]], rgbcolor=rgbclr)
+
+def uf(rgbclr):
+    #square labeled 7
+    return polygon([[1,3],[2,3], [2,4], [1,4]], rgbcolor=rgbclr)
+
+def urf(rgbclr):
+    #square labeled 8
+    return polygon([[2,3],[3,3], [3,4], [2,4]], rgbcolor=rgbclr)
+
+def ul(rgbclr):
+    #square labeled 4
+    return polygon([[0,4],[1,4], [1,5], [0,5]], rgbcolor=rgbclr)
+
+def u_center(rgbclr):
+    return polygon([[1,4],[2,4], [2,5], [1,5]], rgbcolor=rgbclr)
+
+def ur(rgbclr):
+    #square labeled 5
+    return polygon([[2,4],[3,4], [3,5], [2,5]], rgbcolor=rgbclr)
+
+def ulb(rgbclr):
+    #square labeled 1
+    return polygon([[0,6],[1,6], [1,5], [0,5]], rgbcolor=rgbclr)
+
+def ub(rgbclr):
+    #square labeled 2
+    return polygon([[1,6],[2,6], [2,5], [1,5]], rgbcolor=rgbclr)
+
+def ubr(rgbclr):
+    #square labeled 3
+    return polygon([[2,6],[3,6], [3,5], [2,5]], rgbcolor=rgbclr)
+
+####################################################
+
+def index2singmaster(facet):
+    """
+    Translates index used (eg, 43) to Singmaster facet notation (eg, fdr).
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.cubegroup import *
+        sage: index2singmaster(41)
+        'dlf'
+    """
+    if facet==1: return "ulb"
+    if facet==2: return "ub"
+    if facet==3: return "ubr"
+    if facet==4: return "ul"
+    if facet==5: return "ur"
+    if facet==6: return "ufl"
+    if facet==7: return "uf"
+    if facet==8: return "urf"
+    if facet==14: return "ldb"
+    if facet==15: return "ld"
+    if facet==16: return "lfd"
+    if facet==12: return "lb"
+    if facet==13: return "lf"
+    if facet==9: return "lbu"
+    if facet==10: return "lu"
+    if facet==11: return "luf"
+    if facet==17: return "flu"
+    if facet==18: return "fu"
+    if facet==19: return "fur"
+    if facet==20: return "fl"
+    if facet==21: return "fr"
+    if facet==22: return "fdl"
+    if facet==23: return "fd"
+    if facet==24: return "frd"
+    if facet==41: return "dlf"
+    if facet==42: return "df"
+    if facet==43: return "dfr"
+    if facet==44: return "dl"
+    if facet==45: return "dr"
+    if facet==46: return "dlb"
+    if facet==47: return "db"
+    if facet==48: return "drb"
+    if facet==33: return "bur"
+    if facet==34: return "bu"
+    if facet==35: return "bul"
+    if facet==36: return "br"
+    if facet==37: return "bl"
+    if facet==38: return "bdr"
+    if facet==39: return "bd"
+    if facet==40: return "bld"
+    if facet==25: return "ruf"
+    if facet==26: return "ru"
+    if facet==27: return "rub"
+    if facet==28: return "rf"
+    if facet==29: return "rb"
+    if facet==30: return "rdf"
+    if facet==31: return "rd"
+    if facet==32: return "rbd"
+
+def color_of_square(facet):
+    """
+    Returns the color the facet has in the solved state.
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.cubegroup import *
+        sage: color_of_square(41)
+        'blue'
+    """
+    if facet== 1: return "lpurple"
+    if facet== 2: return "lpurple"
+    if facet== 3: return "lpurple"
+    if facet== 4: return "lpurple"
+    if facet== 5: return "lpurple"
+    if facet== 6: return "lpurple"
+    if facet== 7: return "lpurple"
+    if facet== 8: return "lpurple"
+    if facet== 9: return "yellow"
+    if facet==10: return "yellow"
+    if facet==11: return "yellow"
+    if facet==12: return "yellow"
+    if facet==13: return "yellow"
+    if facet==14: return "yellow"
+    if facet==15: return "yellow"
+    if facet==16: return "yellow"
+    if facet==41: return "blue"
+    if facet==42: return "blue"
+    if facet==43: return "blue"
+    if facet==44: return "blue"
+    if facet==45: return "blue"
+    if facet==46: return "blue"
+    if facet==47: return "blue"
+    if facet==48: return "blue"
+    if facet==33: return "orange"
+    if facet==34: return "orange"
+    if facet==35: return "orange"
+    if facet==36: return "orange"
+    if facet==37: return "orange"
+    if facet==38: return "orange"
+    if facet==39: return "orange"
+    if facet==40: return "orange"
+    if facet==25: return "green"
+    if facet==26: return "green"
+    if facet==27: return "green"
+    if facet==28: return "green"
+    if facet==29: return "green"
+    if facet==30: return "green"
+    if facet==31: return "green"
+    if facet==32: return "green"
+    if facet==17: return "red"
+    if facet==18: return "red"
+    if facet==19: return "red"
+    if facet==20: return "red"
+    if facet==21: return "red"
+    if facet==22: return "red"
+    if facet==23: return "red"
+    if facet==24: return "red"
+
+def cubie_centers(label):
+    #  centers of the cubies on the F,U, R faces
+    if label == 1: return [1/2,1/2,5/2] #ulb,
+    if label == 2: return  [1/2,3/2,5/2] # ub,
+    if label == 3: return  [1/2,5/2,5/2] # ubr,
+    if label == 4: return  [3/2,1/2,5/2] # ul,
+    if label == 5: return [3/2,5/2,5/2] # ur,
+    if label == 6: return [5/2,1/2,5/2] # ufl,
+    if label == 7: return [5/2,3/2,5/2] # uf,
+    if label == 8: return [5/2,5/2,5/2] # urf
+    if label == 17: return [5/2,1/2,5/2] # flu
+    if label == 18: return [5/2,3/2,5/2] # fu
+    if label == 19: return [5/2,5/2,5/2] # fur
+    if label == 20: return [5/2,1/2,3/2] # fl
+    if label == 21: return [5/2,5/2,3/2] # fr
+    if label == 22: return [5/2,1/2,1/2] # fdl
+    if label == 23: return [5/2,3/2,1/2] # fd
+    if label == 24: return [5/2,5/2,1/2] # frd
+    if label == 25: return [5/2,5/2,5/2] #rfu,
+    if label == 26: return  [3/2,5/2,5/2] # ru,
+    if label == 27: return  [1/2,5/2,5/2] # rub
+    if label == 28: return  [5/2,5/2,3/2] # rf,
+    if label == 29: return [1/2,5/2,3/2] # rb,
+    if label == 30: return [5/2,5/2,1/2] # rdf
+    if label == 31: return [3/2,5/2,1/2] # rd,
+    if label == 32: return [1/2,5/2,1/2] #rbd,
+
+def cubie_colors(label,state0):
+    #  colors of the cubies on the F,U, R faces
+    clr_any = white
+    state = inv_list(state0)
+    if label == 1: return [clr_any, eval(color_of_square(state[1-1])), clr_any] #ulb,
+    if label == 2: return  [clr_any,eval(color_of_square(state[2-1])),clr_any] # ub,
+    if label == 3: return  [clr_any, eval(color_of_square(state[3-1])), eval(color_of_square(state[27-1]))] # ubr,
+    if label == 4: return  [clr_any, eval(color_of_square(state[4-1])), clr_any] # ul,
+    if label == 5: return [clr_any, eval(color_of_square(state[5-1])), eval(color_of_square(state[26-1]))] # ur,
+    if label == 6: return [eval(color_of_square(state[17-1])), eval(color_of_square(state[6-1])), clr_any] # ufl,
+    if label == 7: return [eval(color_of_square(state[18-1])), eval(color_of_square(state[7-1])), clr_any] # uf,
+    if label == 8: return [eval(color_of_square(state[19-1])), eval(color_of_square(state[8-1])), eval(color_of_square(state[25-1]))] # urf,
+    if label == 17: return [eval(color_of_square(state[17-1])), eval(color_of_square(state[6-1])), clr_any] # flu
+    if label == 18: return [eval(color_of_square(state[18-1])), eval(color_of_square(state[7-1])), clr_any] # fu
+    if label == 19: return [eval(color_of_square(state[19-1])), eval(color_of_square(state[8-1])), eval(color_of_square(state[25-1]))] # fur
+    if label == 20: return [eval(color_of_square(state[20-1])), clr_any, clr_any] # fl
+    if label == 21: return [eval(color_of_square(state[21-1])), clr_any, eval(color_of_square(state[28-1]))] # fr
+    if label == 22: return [eval(color_of_square(state[22-1])), clr_any, clr_any] # fdl
+    if label == 23: return [eval(color_of_square(state[23-1])), clr_any, clr_any] # fd
+    if label == 24: return [eval(color_of_square(state[24-1])), clr_any, eval(color_of_square(state[30-1]))] # frd
+    if label == 25: return [eval(color_of_square(state[19-1])),eval(color_of_square(state[8-1])),eval(color_of_square(state[25-1]))]  #rfu,
+    if label == 26: return [clr_any,eval(color_of_square(state[5-1])),eval(color_of_square(state[26-1]))] # ru,
+    if label == 27: return [clr_any,eval(color_of_square(state[3-1])),eval(color_of_square(state[27-1]))] # rub,
+    if label == 28: return [eval(color_of_square(state[21-1])),clr_any,eval(color_of_square(state[28-1]))] # rf,
+    if label == 29: return [clr_any,clr_any,eval(color_of_square(state[29-1]))] # rb,
+    if label == 30: return [eval(color_of_square(state[24-1])),clr_any,eval(color_of_square(state[30-1]))] # rdf,
+    if label == 31: return [clr_any,clr_any,eval(color_of_square(state[31-1]))] # rd,
+    if label == 32: return [clr_any,clr_any,eval(color_of_square(state[32-1]))] #rbd,
+
+def plot3d_cubie(cnt, clrs):
+    """
+    Plots the front, up and right face of a cubie centered at cnt and rgbcolors given by clrs (in the
+    order FUR).
+
+    Type P.show() to view.
+
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.cubegroup import *
+        sage: clrF = blue; clrU = red; clrR = green
+        sage: P = plot3d_cubie([1/2,1/2,1/2],[clrF,clrU,clrR])
+
+    """
+    x = cnt[0]-1/2; y = cnt[1]-1/2; z = cnt[2]-1/2
+    #ptsD = [[x+0,y+0,0+z],[x+1,y+0,0+z],[x+1,y+1,0+z],[x+0,y+1,0+z],[x+0,y+0,0+z]]
+    ptsF = [[x+1,y+0,0+z],[x+1,y+1,0+z],[x+1,y+1,1+z],[x+1,y+0,1+z],[x+1,y+0,0+z]]
+    #ptsB = [[x+0,y+0,0+z],[x+0,y+1,0+z],[x+0,y+1,1+z],[x+0,y+0,1+z],[x+0,y+0,0+z]]
+    ptsU = [[x+0,y+0,1+z],[x+1,y+0,1+z],[x+1,y+1,1+z],[x+0,y+1,1+z],[x+0,y+0,1+z]]
+    #ptsL = [[x+0,y+0,0+z],[x+1,y+0,0+z],[x+1,y+0,1+z],[x+0,y+0,1+z],[x+0,y+0,0+z]]
+    ptsR = [[x+0,y+1,0+z],[x+1,y+1,0+z],[x+1,y+1,1+z],[x+0,y+1,1+z],[x+0,y+1,0+z]]
+    PR = polygon_plot3d(ptsR,rgbcolor=clrs[2])
+    PU = polygon_plot3d(ptsU,rgbcolor=clrs[1])
+    PF = polygon_plot3d(ptsF,rgbcolor=clrs[0])
+    P = PR+PF+PU
+    P.axes(show=False)
+    return P
+
+
+####################### end of "internal" utility plot functions  #################
 
 
 class CubeGroup(PermutationGroup_generic):
@@ -60,15 +572,15 @@ class CubeGroup(PermutationGroup_generic):
 
                              +--------------+
                              |  1    2    3 |
-                             |  4  top    5 |
+                             |  4   Up    5 |
                              |  6    7    8 |
               +--------------+--------------+--------------+--------------+
               |  9   10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-              | 12  left  13 | 20 front  21 | 28 right  29 | 36  rear  37 |
+              | 12  Left  13 | 20 Front  21 | 28 Right  29 | 36  Back  37 |
               | 14   15   16 | 22   23   24 | 30   31   32 | 38   39   40 |
               +--------------+--------------+--------------+--------------+
                              | 41   42   43 |
-                             | 44 bottom 45 |
+                             | 44  Down  45 |
                              | 46   47   48 |
                              +--------------+
 
@@ -215,28 +727,23 @@ class CubeGroup(PermutationGroup_generic):
 	g = G(1)
 	fcts = self.facets()
 	for i in range(n):
-	    x = M[i][0]
 	    if len(M[i])==1:
-                if x == "R":   h = self.R()
-	        elif x == "L": h = self.L()
-	        elif x == "U": h = self.U()
-	        elif x == "D": h = self.D()
-	        elif x == "F": h = self.F()
-	        elif x == "B": h = self.B()
-	        else: h = G(1)
-	        g = g*h
-	    if len(M[i])==2:
-                if x == "R":   h = self.R()
-	        elif x == "L": h = self.L()
-	        elif x == "U": h = self.U()
-	        elif x == "D": h = self.D()
-	        elif x == "F": h = self.F()
-	        elif x == "B": h = self.B()
-	        else: h = G(1)
-	        e = M[i][1]
-		if e==1: g = g*h
-		if e==2: g = g*h*h
-		if e==3: g = g*h*h*h
+	        M[i] = [M[i][0],"1"]
+	#print M
+	for i in range(n):
+	    x = M[i][0]
+            if x == "R":   h = self.R()
+	    elif x == "L": h = self.L()
+	    elif x == "U": h = self.U()
+	    elif x == "D": h = self.D()
+	    elif x == "F": h = self.F()
+	    elif x == "B": h = self.B()
+	    else: h = G(1)
+	    e = M[i][1]
+	    if e=="1": g = g*h
+	    if e=="2": g = g*h*h
+	    if e=="3": g = g*h*h*h
+            if e=="(-1)": g = g*h*h*h
 	pos = [g(i) for i in fcts]
 	return [g,pos]
 
@@ -350,7 +857,6 @@ class CubeGroup(PermutationGroup_generic):
 
     def solve(self,state):
         """
-
         Solves the cube in the \code{state}, given as a dictionary as
         in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
         and \code{PreImagesRepresentative}.
@@ -400,3 +906,75 @@ class CubeGroup(PermutationGroup_generic):
         sol5 = sol4.replace("x5","R")
         sol6 = sol5.replace("x6","U")
         return sol6
+
+### default plot method. Goes into global namespace
+
+def plot_cube(mv,title=True):
+    """
+    Input the move mv, as a string in the Singmaster notation,
+    and output the 2-d plot of the cube in that state.
+
+    Type P.show() to display any of the plots below.
+
+    EXAMPLES:
+        sage: P = plot_cube("R^2*U^2*R^2*U^2*R^2*U^2", title = False)
+        sage: # (R^2U^2)^3  permutes 2 pairs of edges (uf,ub)(fr,br)
+        sage: P = plot_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
+        sage: # the superflip (in 20f* moves)
+        sage: P = plot_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
+        sage: # "superflip+4 spot" (in 26q* moves)
+    """
+    rubik = CubeGroup()
+    state = rubik.move(mv)[1]
+    #print state
+    str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
+    colors = [eval(p) for p in str_colors]
+    centers = u_center(lpurple)+f_center(red)+l_center(yellow)+r_center(green)+d_center(blue)+b_center(orange)
+    clrs = centers+sum(colors)
+    clrs.axes(show=False)
+    if title == True:
+        t = text('sagemath.org', (7.8,-3.5),rgbcolor=lgrey)
+        P = clrs+t
+        P.axes(show=False)
+        return P
+    return clrs
+
+####### 3d plot method. Goes into global namespace.
+
+def plot3d_cube(mv,title=True):
+    """
+    Displays F,U,R faces of the cube after the given move mv, where mv is a string in the Singmaster notation.
+    Mostly included for the purpose of drawing pictures and checking moves.
+
+    The first one below is "superflip+4 spot" (in 26q* moves) and the second one is the
+    superflip (in 20f* moves). Type show(P) to view them.
+
+    EXAMPLES:
+        sage: P = plot3d_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
+        sage: P = plot3d_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
+    """
+    rubik = CubeGroup()
+    state = rubik.move(mv)[1]
+    clr_any = white
+    shown_labels = range(1,9)+range(17,33)
+    clr = [color_of_square(state[c-1]) for c in shown_labels]
+    cubiesR = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [32,31,30,29,28,27,26,25]]
+    cubeR = sum(cubiesR)
+    cubiesU = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in range(1,9)]
+    cubeU = sum(cubiesU)
+    cubiesF = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [22,23,24,20,21]]
+    cubeF = sum(cubiesF)
+    centerR =  polygon_plot3d([[1,3,1],[2,3,1],[2,3,2],[1,3,2],[1,3,1]],rgbcolor=green)
+    centerF =  polygon_plot3d([[3,1,1],[3,2,1],[3,2,2],[3,1,2],[3,1,1]],rgbcolor=red)
+    centerU =  polygon_plot3d([[1,1,3],[1,2,3],[2,2,3],[2,1,3],[1,1,3]],rgbcolor=lpurple)
+    centers = centerF+centerR+centerU
+    P = cubeR+cubeF+cubeU+centers
+    P.axes(show=False)
+    if title == True:
+        t1 = text('Up, Front, and Right faces. '   , (-0.2,-2.5))
+        t2  = text('      sagemath.org', (0.8,-3.1),rgbcolor=lgrey)
+        t3 = text("     ",(3.5,0),rgbcolor=white)
+        P = P+t1+t2+t3
+        P.axes(show=False)
+        return P
+    return P

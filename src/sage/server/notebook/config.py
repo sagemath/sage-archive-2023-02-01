@@ -1,13 +1,13 @@
+"""nodoctest
+Customization of the Notebook
+"""
+
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-
-"""
-Customization of the Notebook
-"""
 
 #from js import JSKeyHandler
 import js

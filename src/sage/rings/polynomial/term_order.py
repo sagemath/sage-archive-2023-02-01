@@ -660,6 +660,9 @@ class TermOrder(SageObject):
             sage: TermOrder('deglex',2) + TermOrder('degrevlex(3),neglex(3)')
             deglex(2),degrevlex(3),neglex(3) term order
         """
+        if other is None:
+            return self
+
         if not isinstance(other,TermOrder):
             other = TermOrder(other)
         if self.length == 0 or other.length == 0:

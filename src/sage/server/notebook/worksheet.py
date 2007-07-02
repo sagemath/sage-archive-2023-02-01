@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 A Worksheet.
 
 A worksheet is embedded in a webpage that is served by the SAGE server.

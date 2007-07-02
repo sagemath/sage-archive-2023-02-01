@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Web Server Component of SAGE Notebook
 
 In this file the WebServer class is defined, which

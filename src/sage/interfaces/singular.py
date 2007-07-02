@@ -874,6 +874,7 @@ class SingularElement(ExpectElement):
         """
         # TODO: Refactor imports to move this to the top
         from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polydict import PolyDict,ETuple
@@ -897,6 +898,9 @@ class SingularElement(ExpectElement):
         # So e.g. ['x^3*y^3','a'] get's split to
         # [[['x','3'],['y','3']],'a']. We may do this quickly,
         # as we know what to expect.
+
+        if isinstance(R, MPolynomialRing_libsingular):
+            return R(self)
 
         singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                                    self.name(),variable_str)).split(",")

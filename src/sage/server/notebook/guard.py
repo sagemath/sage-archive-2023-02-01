@@ -1,3 +1,7 @@
+"""nodoctest
+Keep out the bad guys.
+"""
+
 #####################################################################
 # Copyright (C) 2007 Alex Clemesha <clemesha@gmail.com>
 #

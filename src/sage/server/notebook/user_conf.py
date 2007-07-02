@@ -1,3 +1,6 @@
+"""nodoctest
+"""
+
 import conf
 
 defaults = {'max_history_length':500,

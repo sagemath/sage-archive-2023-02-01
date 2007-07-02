@@ -1791,6 +1791,76 @@ class SymbolicExpression(RingElement):
         """
         return self.parent()(self._maxima_().denom())
 
+    def factor_list(self, dontfactor=[]):
+        """
+        Returns a list of the factors of self, as computed by the
+        factor command.
+
+        INPUT:
+            self -- a symbolic expression
+            dontfactor -- see docs for self.factor.
+
+        REMARK: If you already have a factored expression and just
+        want to get at the individual factors, use self._factor_list()
+        instead.
+
+        EXAMPLES:
+            sage: f = x^3-y^3
+            sage: f.factor()
+            (-(y - x))*(y^2 + x*y + x^2)
+
+        Notice that the -1 factor is separated out:
+            sage: f.factor_list()
+            [(-1, 1), (y - x, 1), (y^2 + x*y + x^2, 1)]
+
+        We factor a fairly straightforward expression:
+            sage: factor(-8*y - 4*x + z^2*(2*y + x)).factor_list()
+            [(2*y + x, 1), (z - 2, 1), (z + 2, 1)]
+
+        This function also works for quotients:
+            sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
+            sage: g = f/(36*(1 + 2*y + y^2)); g
+            (x^2*y^2 + 2*x*y^2 + y^2 - x^2 - 2*x - 1)/(36*(y^2 + 2*y + 1))
+            sage: g.factor(dontfactor=[x])
+            (x^2 + 2*x + 1)*(y - 1)/(36*(y + 1))
+            sage: g.factor_list(dontfactor=[x])
+            [(x^2 + 2*x + 1, 1), (y - 1, 1), (36, -1), (y + 1, -1)]
+
+        An example, where one of the exponents is not an integer.
+            sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)
+            sage: f.factor()
+            u^3*(2*u*v^2 - v^2 - 4*u^3)^2*(sin(x) - x)^3
+            sage: g = f.factor_list(); g
+            [(u, 3), (2*u*v^2 - v^2 - 4*u^3, 2), (sin(x) - x, 3)]
+
+        This example also illustrates that the exponents do not have
+        to be integers.
+            sage: f = x^(2*sin(x)) * (x-1)^(sqrt(2)*x); f
+            (x - 1)^(sqrt(2)*x)*x^(2*sin(x))
+            sage: f.factor_list()
+            [(x - 1, sqrt(2)*x), (x, 2*sin(x))]
+        """
+        return self.factor(dontfactor=dontfactor)._factor_list()
+
+    def _factor_list(self):
+        if isinstance(self, SymbolicArithmetic):
+            if self._operator == operator.mul:
+                left, right = self._operands
+                return left._factor_list() + right._factor_list()
+            elif self._operator == operator.pow:
+                left, right = self._operands
+                return [(left, right)]
+            elif self._operator == operator.div:
+                left, right = self._operands
+                return left._factor_list() + \
+                       [(x,-y) for x, y in right._factor_list()]
+            elif self._operator == operator.neg:
+                expr = self._operands[0]
+                v = expr._factor_list()
+                return [(SR(-1),SR(1))] + v
+        return [(self, 1)]
+
+
     ###################################################################
     # solve
     ###################################################################

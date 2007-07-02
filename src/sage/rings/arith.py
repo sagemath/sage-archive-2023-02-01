@@ -207,77 +207,6 @@ def bernoulli(n, algorithm='pari'):
     else:
         raise ValueError, "invalid choice of algorithm"
 
-def Li(x):
-    r"""
-    Return value of the function Li(x), which is by definition
-    $$
-       \int_2^{x} dt / \log(t).
-    $$
-
-    The function Li(x) is an approximation for the number
-    of primes up to $x$.  In fact, the famous Riemann
-    Hypothesis is equivalent to the statement that for
-    $x \geq 2.01$ we have
-    $$
-        |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
-    $$
-    For ``small'' $x$, $Li(x)$ is always slightly bigger than
-    $\pi(x)$.  However it is a theorem that there are (very large,
-    e.g., around $10^{316}$) values of $x$ so that $\pi(x) > Li(x)$.
-    See ``A new bound for the smallest x with $\pi(x) > li(x)$'',
-    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285--1296.
-
-    ALGORITHM: Computed numerically using PARI.
-
-    INPUT:
-        x -- a real number >= 2.
-
-    OUTPUT:
-        x -- a real double
-
-    EXAMPLES:
-        sage: pari.init_primes(10^6)   # needed to compute prime_pi(10^6)
-        sage: for n in range(1,7):
-        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
-        10        4         5.12043572467
-        100       25        29.080977804
-        1000      168       176.56449421
-        10000     1229      1245.09205212
-        100000    9592      9628.76383727
-        1000000   78498     78626.5039957
-    """
-    from real_double import RDF
-    x = RDF(x)
-    return RDF(gp('intnum(t=2,%s,1/log(t))'%x))
-
-def prime_pi(x):
-    """
-    Return the number of primes $\leq x$.
-
-    EXAMPLES:
-        sage: prime_pi(7)
-        4
-        sage: prime_pi(100)
-        25
-        sage: prime_pi(1000)
-        168
-        sage: prime_pi(100000)
-        9592
-        sage: prime_pi(0.5)
-        0
-        sage: prime_pi(-10)
-        0
-    """
-    if x < 2:
-        return integer_ring.ZZ(0)
-    try:
-        return integer_ring.ZZ(pari(x).primepi())
-    except PariError:
-        pari.init_primes(pari(x)+1)
-        return integer_ring.ZZ(pari(x).primepi())
-
-number_of_primes = prime_pi
-
 
 def factorial(n, algorithm='gmp'):
     r"""
@@ -2206,59 +2135,6 @@ def farey(v, lim):
             if lim < mediant[1]:
                 return lower
             upper = mediant
-
-def number_of_partitions(n):
-    """
-    Return the number of partitions of the integer $n$.
-
-    To compute all the partitions of $n$ use \code{partitions(n)}.
-
-    EXAMPLES:
-        sage: number_of_partitions(3)
-        3
-        sage: number_of_partitions(10)
-        42
-        sage: number_of_partitions(40)
-        37338
-        sage: number_of_partitions(100)
-        190569292
-        sage: number_of_partitions(-5)
-        0
-        sage: number_of_partitions(0)
-        1
-    """
-    ZZ = integer_ring.ZZ
-    return ZZ(pari(ZZ(n)).numbpart())
-
-def partitions(n):
-    """
-    Generator of all the partitions of the integer $n$.
-
-    To compute the number of partitions of $n$ use
-    \code{number_of_partitions(n)}.
-
-    INPUT:
-        n -- int
-
-    EXAMPLES:
-        >> partitions(3)
-        <generator object at 0xab3b3eac>
-        sage: list(partitions(3))
-        [(1, 1, 1), (1, 2), (3,)]
-
-    AUTHOR: David Eppstein, Jan Van lent, George Yoshida; Python Cookbook 2, Recipe 19.16.
-    """
-    n == integer_ring.ZZ(n)
-    # base case of the recursion: zero is the sum of the empty tuple
-    if n == 0:
-        yield ( )
-        return
-    # modify the partitions of n-1 to form the partitions of n
-    for p in partitions(n-1):
-        yield (1,) + p
-        if p and (len(p) < 2 or p[1] > p[0]):
-            yield (p[0] + 1,) + p[1:]
-
 
 
 ## def convergents_pnqn(x):

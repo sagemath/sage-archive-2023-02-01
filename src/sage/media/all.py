@@ -1,0 +1,1 @@
+from wav import Wave

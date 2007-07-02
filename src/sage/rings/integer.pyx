@@ -98,6 +98,7 @@ import sys
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
+include "../ext/python_list.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -140,6 +141,13 @@ from sage.structure.element import  bin_op
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
+
+cdef set_zero_one_elements():
+    global the_integer_ring
+    the_integer_ring._zero_element = Integer(0)
+    the_integer_ring._one_element = Integer(1)
+
+set_zero_one_elements()
 
 def is_Integer(x):
     return PY_TYPE_CHECK(x, Integer)
@@ -207,6 +215,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             'zz'
             sage: ZZ('0x3b').str(16)
             '3b'
+            sage: ZZ( ZZ(5).digits(3) , 3)
+            5
         """
 
         # TODO: All the code below should somehow be in an external
@@ -218,6 +228,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(mpz_t y, object x)
         # Then this function becomes the one liner:
         #     mpz_init_set_sage(self.value, x)
+
+        cdef Integer tmp
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -264,6 +276,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
+
+            elif PY_TYPE_CHECK(x, list) and base > 1:
+                b = the_integer_ring(base)
+                tmp = the_integer_ring(0)
+                for i in range(len(x)):
+                    tmp += x[i]*b**i
+                mpz_set(self.value, tmp.value)
 
             else:
                 raise TypeError, "unable to coerce element to an integer"
@@ -469,6 +488,85 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1101101011101100011110001110010010100111010001101010001111111000101000000000101111000010000011
         """
         return self.str(2)
+
+    def digits(self, int base=2, digits=None):
+        """
+        Return a list of digits for self in the given base in little
+        endian order.
+
+        INPUT:
+            base -- integer (default: 2)
+            digits -- optional indexable object as source for the digits
+
+        EXAMPLE:
+            sage: 5.digits()
+            [1, 0, 1]
+            sage: 5.digits(3)
+            [2, 1]
+            sage: 10.digits(16,'0123456789abcdef')
+            ['a']
+
+        """
+        if base < 2:
+            raise TypeError, "base must be >= 2"
+
+        cdef mpz_t mpz_value
+        cdef mpz_t mpz_base
+        cdef mpz_t mpz_res
+        cdef object l = PyList_New(0)
+        cdef Integer z
+        cdef size_t s
+
+        if base == 2 and digits is None:
+            s = mpz_sizeinbase(self.value, 2)
+            o = the_integer_ring._one_element
+            z = the_integer_ring._zero_element
+            for i from 0<= i < s:
+                if mpz_tstbit(self.value,i):
+                    PyList_Append(l,o)
+                else:
+                    PyList_Append(l,z)
+        else:
+            s = mpz_sizeinbase(self.value, 2)
+            if s > 256:
+                _sig_on
+            mpz_init(mpz_value)
+            mpz_init(mpz_base)
+            mpz_init(mpz_res)
+
+            mpz_set(mpz_value, self.value)
+            mpz_set_ui(mpz_base, base)
+
+            if digits:
+                while mpz_cmp_si(mpz_value,0):
+                    mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
+                    PyList_Append(l, digits[mpz_get_ui(mpz_res)])
+            else:
+                if base < 10:
+                    for e in reversed(self.str(base)):
+                        PyList_Append(l,the_integer_ring(e))
+                else:
+                    while mpz_cmp_si(mpz_value,0):
+                        # TODO: Use a divide and conquer approach
+                        # here: for base b, compute b^2, b^4, b^8,
+                        # ... (repeated squaring) until you get larger
+                        # than your number; then compute (n // b^256,
+                        # n % b ^ 256) (if b^512 > number) to split
+                        # the number in half and recurse
+                        mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
+                        z = PY_NEW(Integer)
+                        mpz_set(z.value, mpz_res)
+                        PyList_Append(l, z)
+
+            mpz_clear(mpz_value)
+            mpz_clear(mpz_res)
+            mpz_clear(mpz_base)
+
+            if s > 256:
+                _sig_off
+
+        return l # should we return a tuple?
+
 
     def set_si(self, signed long int n):
         """

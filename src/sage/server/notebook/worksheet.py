@@ -701,9 +701,11 @@ class Worksheet:
         if len(cells) == 0:   # there must be at least one cell.
             cells = [self._new_cell()]
 
+        self.__cells = cells
+
+        # This *depends* on self.__cells being set!!
         self.set_cell_counter()
 
-        self.__cells = cells
 
 
     ##########################################################

@@ -492,7 +492,7 @@ class Cell(Cell_generic):
         #self._html_cache[key] = s
         return s
 
-    def html_in(self, do_print=False, ncols=80):
+    def html_in(self, do_print=False, ncols=200):
         s = ''
         id = self.__id
         t = self.__in.rstrip()

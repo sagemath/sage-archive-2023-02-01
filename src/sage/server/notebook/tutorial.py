@@ -363,6 +363,8 @@ notebook_help = [
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',
                  'Put ?? after the object and press tab.'),
+                ('Indentation',
+                 'Highlight text and press tab to indent it all and shift-tab to unindent it all.'),
                 ('Insert New Cell',
                  'Put the mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
                 ('Delete Cell',

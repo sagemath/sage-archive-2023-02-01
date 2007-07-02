@@ -8,6 +8,7 @@ usage() {
     echo "  -h            -- print this help message"
     echo "  -notebook [options] -- start the SAGE notebook (options are"
     echo "                   the same as to the notebook command in SAGE)"
+    echo "  -inotebook [options] -- start the *insecure* SAGE notebook "
     echo "  -i [packages] -- install the given SAGE packages"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
@@ -342,6 +343,14 @@ if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    shift
    sage-cleaner &
    sage-notebook "$@"
+   exit $?
+fi
+
+if [ $1 = "-inotebook"  -o $1 = '--inotebook' ]; then
+   cd "$CUR"
+   shift
+   sage-cleaner &
+   sage-notebook-insecure "$@"
    exit $?
 fi
 

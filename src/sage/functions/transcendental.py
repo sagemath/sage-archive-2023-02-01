@@ -27,7 +27,7 @@ from sage.gsl.integration import numerical_integral
 
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
-                            ZZ)
+                            ZZ, CDF)
 
 def __prep_num(x):
     if isinstance(x, sage.rings.complex_number.ComplexNumber):
@@ -224,7 +224,27 @@ def zeta_symmetric(s):
 #   return real_field.RealField(prec).pi()
 
 
+def Ei(z):
+    """
+    Return the value of the complex exponential integral Ei(z)
+    at a complex number z.
 
+    WARNING: Calculations are done to double precision, and the output
+    is a complex double element, no matter how big the precision of
+    the input is.
+
+    EXAMPLES:
+        sage: Ei(10)
+        2492.22897624
+        sage: Ei(I)
+        0.337403922901 + 2.51687939716*I
+        sage: Ei(3+I)
+        7.823134676 + 6.09751978399*I
+
+    ALGORITHM: Uses scipy's special.exp1 function.
+    """
+    import scipy.special, math
+    return CDF(-scipy.special.exp1(-complex(z)) + complex(0,math.pi))
 
 def Li(x, eps_rel=None, err_bound=False):
     r"""

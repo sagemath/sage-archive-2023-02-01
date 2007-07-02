@@ -20,7 +20,8 @@ import bz2
 # SAGE libraries
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
-from   sage.misc.misc       import alarm, cancel_alarm, tmp_dir
+from   sage.misc.misc       import (alarm, cancel_alarm,
+                                    tmp_dir, pad_zeros)
 
 # SAGE Notebook
 import css          # style
@@ -1304,12 +1305,12 @@ class Notebook(SageObject):
             backup_dir = self.backup_directory()
             backup = backup_dir + '/nb-backup-'
             for i in range(self.number_of_backups()-1,0,-1):
-                a = padzeros(i-1); b = padzeros(i)
+                a = pad_zeros(i-1); b = pad_zeros(i)
                 try:
                     shutil.move(backup + '%s.sobj'%a, backup + '%s.sobj'%b)
                 except IOError, msg:
                     pass
-            a = '%s.sobj'%padzeros(0)
+            a = '%s.sobj'%pad_zeros(0)
             try:
                 shutil.copy(F, backup + a)
             except Exception, msg:
@@ -1962,9 +1963,6 @@ def load_notebook(dir, address=None, port=None, secure=None):
 
 def clean_name(name):
     return ''.join([x if (x.isalnum() or x == '_') else '_' for x in name])
-
-def padzeros(s):
-    return "0"*(3-len(str(s))) + str(s)
 
 def sort_worksheet_list(v, sort, reverse):
     """

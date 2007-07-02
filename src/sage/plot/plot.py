@@ -1394,8 +1394,8 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
 
             nodelist=self.__nxg.nodes()
 
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
+            xes = [self.__pos[v][0] for v in self.__pos]
+            ys = [self.__pos[v][1] for v in self.__pos]
             xmin = min(xes)
             xmax = max(xes)
             ymin = min(ys)
@@ -1410,12 +1410,12 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             dy = ymax - ymin
 
             if not pos is None:
+                from random import random
                 missing = []
-                for e in nodelist:
-                    if not e in self.__pos:
-                        missing.append(e)
-                for e in missing:
-                    from random import random
+                for v in nodelist:
+                    if not v in self.__pos:
+                        missing.append(v)
+                for v in missing:
                     self.__pos[v] = [xmin + dx*random(),ymin + dy*random()]
 
             # adjust the plot

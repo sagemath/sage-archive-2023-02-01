@@ -86,42 +86,70 @@ def finer(Pi1, Pi2):
                 return False
     return True
 
-#cdef class Cell:
-#    cdef int length
-#    cdef int* data
-#
-#    def __new__(self, int length):
-#        self.length = length
-#        self.data = <int*> PyMem_Malloc(length * sizeof(int))
-#
-#    def __dealloc__(self):
-#        PyMem_Free(self.data)
-#
-#    def set_data_from_list(self, list):
-#        cdef int j
-#        for j from 0 <= j < self.length:
-#            self.data[j] = list[j]
-#
-#    cdef set_data(self, int* data):
-#        cdef int j
-#        for j from 0 <= j < self.length:
-#            self.data[j] = data[j]
-#
-#    def print_data(self):
-#        cdef int i
-#        for i from 0 <= i < self.length:
-#            print self.data[i]
-#
-#    def print_len(self):
-#        print type(self.length)
-#
-#cdef class OrderedPartition:
-#    cdef int length
-#    cdef int** data
-#    cdef int* sizes
-#
-#    def __new__(self, int length):
-#        print length
+cdef class OrderedPartition:
+
+    def __new__(self, data):
+        cdef int i, j, k
+        cdef OrderedPartition _data
+        if isinstance(data, (list, tuple)):
+            self.length = len(data)
+            self.data = <int **> PyMem_Malloc( self.length * sizeof(int *) )
+            self.sizes = <int *> PyMem_Malloc( self.length * sizeof(int) )
+            try:
+                for i from 0 <= i < self.length:
+                    self.sizes[i] = len(data[i])
+                    self.data[i] = <int *> PyMem_Malloc( self.sizes[i] * sizeof(int) )
+                    for j from 0 <= j < self.sizes[i]:
+                        self.data[i][j] = data[i][j]
+            except:
+                raise TypeError('Error with input data.')
+        elif isinstance(data, OrderedPartition):
+            _data = data
+            self.length = _data.length
+            self.data = <int **> PyMem_Malloc( self.length * sizeof(int *) )
+            self.sizes = <int *> PyMem_Malloc( self.length * sizeof(int) )
+            for i from 0 <= i < self.length:
+                self.sizes[i] = _data.sizes[i]
+
+                #self.sizes[i] = data.size(i)
+                #self.data[i] = <int *> PyMem_Malloc( self.sizes[i] * sizeof(int) )
+                #for j from 0 <= j < self.sizes[i]:
+                #    self.data[i][j] = data[i][j]
+
+    def __dealloc__(self):
+        return
+        cdef int i, j
+        for i from 0 <= i < self.length:
+            PyMem_Free(self.data[i])
+        PyMem_Free(self.sizes)
+        PyMem_Free(self.data)
+
+    def __repr__(self):
+        s = "("
+        cdef int i, j
+        for i from 0 <= i < self.length:
+            s += "{"
+            for j from 0 <= j < self.sizes[i] - 1:
+                s += str(self.data[i][j]) + ","
+            if self.sizes[i] > 0:
+                s += str(self.data[i][self.sizes[i] - 1])
+            s += "},"
+        s = s[:-1] + ")"
+        return s
+
+    def __getitem__(self, n):
+        cdef int i
+        return [ self.data[n][i] for i from 0 <= i < self.sizes[n] ]
+
+    def is_discrete(self):
+        cdef int i
+        for i from 0 <= i < self.length:
+            if self.sizes[i] > 1:
+                return False
+        return True
+
+    cdef public int size(self, int n):
+        return self.sizes[n]
 
 def vee(alpha, beta):
     """
@@ -996,7 +1024,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     Pi = copy(Pi)
     if proof:
         lab=True
-    cdef int k, j, i, size, h, hh, index, l, qzb, hb, hzf
+    cdef int k, j, i, size, h, hh, index, l, hb, hzf
     cdef int hzb = -389
 
     #create to and from mappings to relabel vertices
@@ -1058,6 +1086,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         eta = None
 
     while not state is None:
+        if verbosity > 0:
+            print '-----'
         if verbosity > 2:
             print 'k: ' + str(k)
             print 'nu: ' + str(nu)
@@ -1072,6 +1102,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print 'hzb: ' + str(hzb)
             print 'hzf: ' + str(hzf)
             print 'qzb: ' + str(qzb)
+            print 'v: ' + str(v)
+            print 'tvh: ' + str(tvh)
+            print 'W: ' + str(W)
         if state == 1:
             if verbosity > 0: print 'state: 1'
             if verbosity > 1:
@@ -1254,10 +1287,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                     if tvh in cell:
                         index += 1
                     else: break
-                VVV = []
-                for j from 0 <= j < len(W[k]):
-                    if W[k][j] > v[k]:
-                        VVV.append(W[k][j])
+            VVV = []
+            for j from 0 <= j < len(W[k]):
+                if W[k][j] > v[k]:
+                    VVV.append(W[k][j])
             if len(VVV) != 0:
                 v[k] = min(VVV)
             else:

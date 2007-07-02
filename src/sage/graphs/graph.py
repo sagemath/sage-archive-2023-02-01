@@ -682,10 +682,18 @@ class GenericGraph(SageObject):
 
     def vertices(self):
         """
-        Return a list of the vertex keys.
+        Return a list of the vertex keys. If the graph is a graph with
+        boundary, boundary vertices are listed first.
 
         """
-        return self._nxg.nodes()
+        bdy_verts = []
+        int_verts = []
+        for v in self.vertex_iterator():
+            if v in self._boundary:
+                bdy_verts.append(v)
+            else:
+                int_verts.append(v)
+        return bdy_verts + int_verts
 
     def relabel(self, perm, inplace=True, quick=False):
         r"""
@@ -2153,10 +2161,12 @@ class GenericGraph(SageObject):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
-             vertex_size=200, graph_border=False, vertex_colors=None, partition=None,
-             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None,
-             iterations=50):  # xmin and xmax are ignored
+    def plot(self, pos=None, layout=None, vertex_labels=True,\
+             edge_labels=False, vertex_size=200, graph_border=False,\
+             vertex_colors=None, partition=None, edge_colors=None,\
+             scaling_term=0.05, xmin=None, xmax=None,\
+             iterations=50, color_by_label=False,
+             height_function=None):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 
@@ -2182,6 +2192,9 @@ class GenericGraph(SageObject):
                 1/8 won't be useful unless the nodes are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            color_by_label -- if True, color edges or arcs by their labels
+            height_function -- if specified, this is a function from the set of
+                vertices to a set of floating point heights
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2230,12 +2243,24 @@ class GenericGraph(SageObject):
         """
         from sage.plot.plot import networkx_plot, rainbow
         import networkx
-        if vertex_colors is None and not partition is None:
-            l = len(partition)
-            R = rainbow(l)
-            vertex_colors = {}
-            for i in range(l):
-                vertex_colors[R[i]] = partition[i]
+        if vertex_colors is None:
+            if partition is not None:
+                l = len(partition)
+                R = rainbow(l)
+                vertex_colors = {}
+                for i in range(l):
+                    vertex_colors[R[i]] = partition[i]
+            elif len(self._boundary) != 0:
+                vertex_colors = {}
+                bdy_verts = []
+                int_verts = []
+                for v in self.vertex_iterator():
+                    if v in self._boundary:
+                        bdy_verts.append(v)
+                    else:
+                        int_verts.append(v)
+                vertex_colors['#ffffff'] = bdy_verts
+                vertex_colors['#999999'] = int_verts
         if pos is None and layout is None:
             if not self._pos is None:
                 pos = self._pos
@@ -2256,6 +2281,33 @@ class GenericGraph(SageObject):
             for v in pos:
                 for a in range(len(pos[v])):
                     pos[v][a] = float(pos[v][a])
+
+        if color_by_label:
+            edge_labels = []
+            if self.is_directed():
+                iterator = self.arc_iterator
+            else:
+                iterator = self.edge_iterator
+            for e in iterator():
+                i = 0
+                while i < len(edge_labels):
+                    if not edge_labels[i][0][2] == a[2]:
+                        i += 1
+                    else:
+                        edge_labels[i].append(a)
+                        break
+                if i == len(edge_labels):
+                    edge_labels.append([a])
+            num_labels = len(edge_labels)
+            R = rainbow(num_labels)
+            edge_colors = {}
+            for i in range(num_labels):
+                edge_colors[R[i]] = edge_labels[i]
+
+        if height_function is not None:
+            for v in self.vertices():
+                pos[v][1] = float(height_function(v))
+
         G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
@@ -2268,9 +2320,12 @@ class GenericGraph(SageObject):
             G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, vertex_size=200,
-             graph_border=False, vertex_colors=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, iterations=50, **kwds):
+    def show(self, pos=None, layout=None, vertex_labels=True,\
+             edge_labels=False, vertex_size=200, graph_border=False,\
+             vertex_colors=None, edge_colors=None, partition=None,\
+             scaling_term=0.05, talk=False, iterations=50,\
+             color_by_label=False,
+             height_function=None, **kwds):
         """
         Shows the (di)graph.
 
@@ -2297,6 +2352,9 @@ class GenericGraph(SageObject):
             talk -- if true, prints large nodes with white backgrounds so that labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
+            color_by_label -- if True, color edges or arcs by their labels
+            height_function -- if specified, this is a function from the set of
+                vertices to a set of floating point heights
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -2347,7 +2405,13 @@ class GenericGraph(SageObject):
             vertex_size = 500
             if partition is None:
                 vertex_colors = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term, iterations=iterations).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,\
+                  edge_labels=edge_labels, vertex_size=vertex_size,\
+                  vertex_colors=vertex_colors, edge_colors=edge_colors,\
+                  graph_border=graph_border, partition=partition,\
+                  scaling_term=scaling_term, iterations=iterations,\
+                  color_by_label=color_by_label,\
+                  height_function=height_function).show(**kwds)
 
 class Graph(GenericGraph):
     r"""
@@ -2393,8 +2457,8 @@ class Graph(GenericGraph):
                 of elliptic curves, and the graph produced has each curve as a
                 vertex (it's Cremona label) and an edge E-F labelled p if and
                 only if E is congruent to F mod p
-        boundary -- a list of boundary vertices, if none, graph is considered as a 'graph
-            without boundary'
+        boundary -- a list of boundary vertices, if empty, graph is considered
+            as a 'graph without boundary'
 
     EXAMPLES:
     We illustrate the first six input formats (the other two
@@ -2470,7 +2534,7 @@ class Graph(GenericGraph):
         Graph on 6 vertices
 
     """
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -3882,7 +3946,7 @@ class Graph(GenericGraph):
             else:
                 return a
 
-    def is_isomorphic(self, other, proof=False):
+    def is_isomorphic(self, other, proof=False, verbosity=0):
         """
         Tests for isomorphism between self and other.
 
@@ -3918,8 +3982,8 @@ class Graph(GenericGraph):
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
         if proof:
-            b,a = self.canonical_label(proof=True)
-            d,c = other.canonical_label(proof=True)
+            b,a = self.canonical_label(proof=True, verbosity=verbosity)
+            d,c = other.canonical_label(proof=True, verbosity=verbosity)
             map = {}
             cc = c.items()
             for vert in self.vertices():
@@ -3933,11 +3997,11 @@ class Graph(GenericGraph):
                 return False, None
         else:
             from sage.graphs.graph_isom import search_tree
-            b = self.canonical_label()
-            d = other.canonical_label()
+            b = self.canonical_label(verbosity=verbosity)
+            d = other.canonical_label(verbosity=verbosity)
             return enum(b) == enum(d)
 
-    def canonical_label(self, partition=None, proof=False):
+    def canonical_label(self, partition=None, proof=False, verbosity=0):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
@@ -3958,10 +4022,10 @@ class Graph(GenericGraph):
         if partition is None:
             partition = [self.vertices()]
         if proof:
-            a,b,c = search_tree(self, partition, proof=True, dig=self.loops())
+            a,b,c = search_tree(self, partition, proof=True, dig=self.loops(), verbosity=verbosity)
             return b,c
         else:
-            a,b = search_tree(self, partition, dig=self.loops())
+            a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
             return b
 
 class DiGraph(GenericGraph):
@@ -4052,7 +4116,7 @@ class DiGraph(GenericGraph):
 
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -5143,7 +5207,7 @@ class DiGraph(GenericGraph):
 
     ### Automorphism and isomorphism
 
-    def automorphism_group(self, partition=None, translation=False):
+    def automorphism_group(self, partition=None, translation=False, verbosity=0):
         """
         Returns the largest subgroup of the automorphism group of the digraph
         whose orbit partition is finer than the partition given. If no
@@ -5170,9 +5234,9 @@ class DiGraph(GenericGraph):
             if partition is None:
                 partition = [self.vertices()]
             if translation:
-                a,b = search_tree(self, partition, dict=True, lab=False, dig=True)
+                a,b = search_tree(self, partition, dict=True, lab=False, dig=True, verbosity=verbosity)
             else:
-                a = search_tree(self, partition, dict=False, lab=False, dig=True)
+                a = search_tree(self, partition, dict=False, lab=False, dig=True, verbosity=verbosity)
             if len(a) != 0:
                 a = PermutationGroup([perm_group_elt(aa) for aa in a])
             else:
@@ -5182,7 +5246,7 @@ class DiGraph(GenericGraph):
             else:
                 return a
 
-    def is_isomorphic(self, other, proof=False):
+    def is_isomorphic(self, other, proof=False, verbosity=0):
         """
         Tests for isomorphism between self and other.
 
@@ -5201,8 +5265,8 @@ class DiGraph(GenericGraph):
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
         if proof:
-            b,a = self.canonical_label(proof=True)
-            d,c = other.canonical_label(proof=True)
+            b,a = self.canonical_label(proof=True, verbosity=verbosity)
+            d,c = other.canonical_label(proof=True, verbosity=verbosity)
             if enum(b) == enum(d):
                 map = {}
                 cc = c.items()
@@ -5216,11 +5280,11 @@ class DiGraph(GenericGraph):
                 return False, None
         else:
             from sage.graphs.graph_isom import search_tree
-            b = self.canonical_label()
-            d = other.canonical_label()
+            b = self.canonical_label(verbosity=verbosity)
+            d = other.canonical_label(verbosity=verbosity)
             return enum(b) == enum(d)
 
-    def canonical_label(self, partition=None, proof=False):
+    def canonical_label(self, partition=None, proof=False, verbosity=0):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
@@ -5248,10 +5312,10 @@ class DiGraph(GenericGraph):
         if partition is None:
             partition = [self.vertices()]
         if proof:
-            a,b,c = search_tree(self, partition, proof=True, dig=True)
+            a,b,c = search_tree(self, partition, proof=True, dig=True, verbosity=verbosity)
             return b,c
         else:
-            a,b = search_tree(self, partition, dig=True)
+            a,b = search_tree(self, partition, dig=True, verbosity=verbosity)
             return b
 
     ### Directed Acyclic Graphs (DAGs)
@@ -5402,6 +5466,8 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
         pos3d[v][2] = pos3d[v][2] - c[2]
         r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
     r = max(r)
+    if r == 0:
+        r = 1
     for v in verts:
         pos3d[v][0] = pos3d[v][0]/r
         pos3d[v][1] = pos3d[v][1]/r

@@ -27,7 +27,9 @@ from sage.gsl.integration import numerical_integral
 
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
-                            ZZ, CDF)
+                            ZZ, CDF, prime_range)
+
+import sage.plot.all
 
 def __prep_num(x):
     if isinstance(x, sage.rings.complex_number.ComplexNumber):
@@ -321,7 +323,7 @@ import math
 def _one_over_log(t):
     return 1/math.log(t)
 
-def prime_pi(x):
+class PrimePi:
     """
     Return the number of primes $\leq x$.
 
@@ -338,15 +340,40 @@ def prime_pi(x):
         0
         sage: prime_pi(-10)
         0
+
+    The prime_pi function also has a special plotting method, so it plots
+    quickly and perfectly as a step function.
+        sage: P = plot(prime_pi, 50,100)
     """
-    if x < 2:
-        return ZZ(0)
-    try:
-        return ZZ(pari(x).primepi())
-    except PariError:
-        pari.init_primes(pari(x)+1)
-        return ZZ(pari(x).primepi())
+    def __repr__(self):
+        return "Function that counts the number of primes up to x"
 
-number_of_primes = prime_pi
+    def __call__(self, x):
+        if x < 2:
+            return ZZ(0)
+        try:
+            return ZZ(pari(x).primepi())
+        except PariError:
+            pari.init_primes(pari(x)+1)
+            return ZZ(pari(x).primepi())
 
+    def plot(self, xmin=0, xmax=100, *args, **kwds):
+        primes = prime_range(xmin, xmax+2)
+        base = self(xmin)
+        if xmin <= 2:
+            v = [(xmin,0),(min(xmax,2),0)]
+            ymin = 0
+        else:
+            v = []
+            ymin = base
+        for i in range(len(primes)-1):
+            v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
+        P = sage.plot.all.line(v, *args, **kwds)
+        P.xmin(xmin)
+        P.xmax(xmax)
+        P.ymin(ymin)
+        P.ymax(base+len(primes))
+        return P
+#############
+prime_pi = PrimePi()
 

@@ -374,6 +374,8 @@ class PrimePi:
         P.ymin(ymin)
         P.ymax(base+len(primes))
         return P
+
 #############
 prime_pi = PrimePi()
+
 

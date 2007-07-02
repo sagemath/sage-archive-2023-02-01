@@ -2953,3 +2953,4 @@ def plot_animated_gif(G, delay=20, outfile=None, iterations=0,
     outfile = os.path.abspath(outfile)
     cmd = 'cd "%s"; convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
     os.system(cmd)
+

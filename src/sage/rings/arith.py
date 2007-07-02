@@ -486,6 +486,60 @@ def prime_range(start, stop=None, leave_pari=False):
     start = pari(int(start))
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
 
+def prime_powers(start, stop=None):
+    r"""
+    List of all positive primes powers between start and stop-1,
+    inclusive.  If the second argument is omitted, returns the primes
+    up to the first argument.
+
+    EXAMPLES:
+        sage: prime_powers(20)
+        [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
+        sage: len(prime_powers(1000))
+        194
+        sage: len(prime_range(1000))
+        168
+        sage: a = [z for z in range(95,1234) if is_prime_power(z)]
+        sage: b = prime_powers(95,1234)
+        sage: len(b)
+        194
+        sage: len(a)
+        194
+        sage: a[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: b[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: a == b
+        True
+    """
+    if stop is None:
+        start, stop = 1, int(start)
+    from math import log
+    from bisect import bisect
+    v = prime_range(stop)
+    i = bisect(v, start)
+    if start > 2:
+        if v[i] == start:
+            i -= 1
+        w = list(v[i:])
+    else:
+        w = list(v)
+    if start <= 1:
+        w.insert(0, 1)
+    log_stop = log(stop)
+    for p in v:
+        q = p*p
+        n = int(log(stop)/log(p))
+        if n <= 1:
+            break
+        for i in xrange(1,n):
+            if q >= start:
+                w.append(q)
+            q *= p
+    w.sort()
+    return w
+
+
 def primes_first_n(n, leave_pari=False):
     r"""
     Return the first $n$ primes.

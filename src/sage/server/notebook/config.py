@@ -16,7 +16,9 @@ import js
 js.keyhandler.add('request_introspections', key = "KEY_SPC",  ctrl=True)  # control space
 js.keyhandler.add('request_introspections', key = "KEY_TAB", shift=False)  # tab
 js.keyhandler.add('indent', key = "KEY_TAB", shift=False)  # tab
+js.keyhandler.add('indent2', key = "KEY_GT", shift=False)
 js.keyhandler.add('unindent', key = "KEY_TAB", shift=True)  # tab
+js.keyhandler.add('unindent2', key = "KEY_LT", shift=False)
 js.keyhandler.add('request_history',     key = "KEY_Q", ctrl=True)
 js.keyhandler.add('request_history',     key = "KEY_QQ", ctrl=True)
 js.keyhandler.add('request_log',         key = "KEY_P", ctrl=True)

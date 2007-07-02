@@ -1415,7 +1415,7 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
        return false;
-    } else if (key_unindent(e)) { //unfortunately, shift-tab needs to get caught before not-shift tab
+    } else if (key_unindent2(e) || key_unindent(e)) { //unfortunately, shift-tab needs to get caught before not-shift tab
        unindent_cell(cell_input);
        return false;
     } else if (key_request_introspections(e) && cell_input.selectionStart == cell_input.selectionEnd) {
@@ -1423,7 +1423,7 @@ function cell_input_key_event(id, e) {
        evaluate_cell(id, 2);
        focus_delay(id,true);
        return false;
-    } else if (key_indent(e)) {
+    } else if (key_indent2(e) || key_indent(e)) {
        indent_cell(cell_input);
        return false;
     } else if (key_interrupt(e)) {

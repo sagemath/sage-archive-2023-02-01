@@ -897,7 +897,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def cohomology_part(self, n, p = 0):
         """
-        Computes the p-part of the group cohomology H^n(G, F), where F = Z if p=0
+        Computes the p-part of the group cohomology $H^n(G, F)$, where F = Z if p=0
         and F = Z/pZ if p >0 is a prime. Wraps HAP's Homology function, written by
         Graham Ellis, applied to the p-Syow subgroup of G.
 
@@ -1048,7 +1048,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Returns the Moien series of a transtive permutation group.
         The function
 
-        M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)
+        $$M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)$$
 
         is sometimes called the "Molien series" of G.
         GAP's \code{MolienSeries} is associated to a character of a group G.

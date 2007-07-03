@@ -579,12 +579,16 @@ def get_permutation(eta, nu, list_perm=False):
 def term_pnest_graph(G, nu, enumer=False):
     """
     BDM's G(nu): returns the graph G, relabeled in the order found in
-    nu[last]. Assumes nu is a terminal partition nest in T(G, Pi).
+    nu[m], where m is the first index corresponding to a discrete partition.
+    Assumes nu is a terminal partition nest in T(G, Pi).
     """
     n = G.order()
     d = {}
+    m = 0
+    while not is_discrete(nu[m]):
+        m += 1
     for i in range(n):
-        d[nu[-1][i][0]] = i
+        d[nu[m][i][0]] = i
     if enumer:
         # we know that the vertex set is {0,...,n-1}...
         numbr = 0
@@ -597,7 +601,7 @@ def term_pnest_graph(G, nu, enumer=False):
                 numbr += 1<<((n-(d[i]+1))*n + n-(d[j]+1))
         return numbr
     else:
-        ord = nu[-1]
+        ord = nu[m]
         H = G.copy()
         H.relabel(d)
         return H
@@ -1105,6 +1109,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print 'v: ' + str(v)
             print 'tvh: ' + str(tvh)
             print 'W: ' + str(W)
+            print 'Lambda: ' + str(Lambda)
         if state == 1:
             if verbosity > 0: print 'state: 1'
             if verbosity > 1:
@@ -1143,7 +1148,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 if not lab:
                     state = 3
                 else:
-                    qzb = Lambda[k] - zb[k]
+                    try:
+                        qzb = Lambda[k] - zb[k]
+                    except:
+                        qzb = -1
                     if hzb == k-1 and qzb == 0: hzb = k
                     if qzb > 0: zb[k] = Lambda[k]
                     state = 3
@@ -1185,7 +1193,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             if kprime == hh: state = 13
             else:
                 l = min([l+1,L])
-                Lambda[l] = min_cell_reps(nu[hh])
+                Omega[l] = min_cell_reps(nu[hh]) # changed Lambda to Omega
                 Phi[l] = fix(nu[hh])
                 state = 12
         elif state == 7:
@@ -1545,9 +1553,9 @@ def all_labeled_digraphs_with_loops(n):
         G.add_vertices(range(n))
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
-        for i in range(m):
-            if int(b[i]):
-                G.add_arc(TE[i])
+        for j in range(m):
+            if int(b[j]):
+                G.add_arc(TE[j])
         Glist.append(G)
     return Glist
 

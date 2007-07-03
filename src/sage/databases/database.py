@@ -63,12 +63,10 @@ class GenericSQLQuery(SageObject):
     def __init__(self, database, query_string, param_tuple=None):
         """
         TEACH PEOPLE ABOUT USING '?' AND TUPLES
+        """
 
         if not isinstance(database, SQLDatabase):
             raise TypeError('%s is not a valid SQLDatabase'%database)
-        """
-        # check tuple length against num of '?'
-        #   DO
 
         self.__database__ = database
         self.__param_tuple__ = param_tuple
@@ -108,18 +106,17 @@ class SQLQuery(GenericSQLQuery):
     """
 
     def __init__(self, database, query_dict=None):
-
-        # maybe if query_dict is not, just pass through
         """
+        point out strings '"value"'
+        """
+
         if not isinstance(database, SQLDatabase):
             raise TypeError('%s is not a valid SQLDatabase'%database)
-        """
 
         self.__database__ = database
         self.__query_dict__ = query_dict
 
-        """
-        ERROR CHECKING:
+        #ERROR CHECKING:
         # Confirm query_dict matches skeleton:
         #      confirm tblname is in database:
         if self.__query_dict__['table_name'] not in self.__database__.__skeleton__:
@@ -137,7 +134,6 @@ class SQLQuery(GenericSQLQuery):
 
         # confirm operator:
         verify_operator(query_dict['dillhole'][1])
-        """
 
         # make tuple:
         if self.__query_dict__ is not None:
@@ -146,10 +142,6 @@ class SQLQuery(GenericSQLQuery):
             self.__param_tuple__ = None
 
         # make query string:
-        # TODO: put quotes around string VALUES --> 2 approaches:
-        #       (1) find type in skeleton
-        #       (2) test chars for numeric
-        # but is this necessary...?  i.e.: '"value"'
         if self.__query_dict__ is not None:
             self.__query_string__ = 'SELECT ' + self.__query_dict__['display_cols'] + \
                                     ' FROM ' + self.__query_dict__['table_name'] + \
@@ -162,6 +154,7 @@ class SQLQuery(GenericSQLQuery):
     def intersect(self, other, join_table=None, join_dict=None):
         """
         join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
+        join_table -- base table to join on
         """
 
         # Check same database
@@ -185,7 +178,7 @@ class SQLQuery(GenericSQLQuery):
         disp[0] += ',' + other.__query_string__.split(' FROM')[0].split('SELECT ')[1]+' FROM'
         new_query = ''.join(disp)
 
-        # concatenate where clause - pretty easy
+        # concatenate where clause
         new_query = re.sub(' WHERE ',' WHERE ( ',new_query)
         new_query += re.sub('^.* WHERE ',' ) AND ( ',other.__query_string__)
         q.__query_string__ = new_query + ' )'
@@ -196,7 +189,6 @@ class SQLQuery(GenericSQLQuery):
 
     def union(self, other, join_table=None, join_dict=None):
         """
-        SAME CODE AS ABOVE, WITH 'AND' INSTEAD OF 'OR'
         join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
         """
 
@@ -221,7 +213,7 @@ class SQLQuery(GenericSQLQuery):
         disp[0] += ',' + other.__query_string__.split(' FROM')[0].split('SELECT ')[1]+' FROM'
         new_query = ''.join(disp)
 
-        # concatenate where clause - pretty easy
+        # concatenate where clause
         new_query = re.sub(' WHERE ',' WHERE ( ',new_query)
         new_query += re.sub('^.* WHERE ',' ) OR ( ',other.__query_string__)
         q.__query_string__ = new_query + ' )'

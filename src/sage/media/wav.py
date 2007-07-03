@@ -6,11 +6,13 @@ AUTHORS:
     -- William Stein (2007-07-03): add more
 """
 
-import wave
+import math
 import os
+import wave
 
 from sage.plot.plot import list_plot
 from sage.structure.sage_object import SageObject
+from sage.misc.all import srange
 from sage.misc.html import html
 from sage.rings.all import RDF
 
@@ -174,14 +176,14 @@ class Wave(SageObject):
         V = RDF**npoints
         return V(self.values(npoints=npoints, channel=channel))
 
-    def plot(self, channel=0, npoints=None, plotjoined=True, **kwds):
+    def plot(self, npoints=None, channel=0, plotjoined=True, **kwds):
         """
         Plots the audio data.
 
         INPUT:
-            channel -- 0 or 1 (if stereo).  default: 0
             npoints -- number of sample points to take; if not given, draws
                        all known points.
+            channel -- 0 or 1 (if stereo).  default: 0
             plotjoined -- whether to just draw dots or draw lines between sample points
 
         OUTPUT:
@@ -192,11 +194,23 @@ class Wave(SageObject):
         values = self.values(npoints=npoints, channel = channel)
         points = zip(domain, values)
 
-        return list_plot(points, plotjoined=plotjoined, **kwds)
+        L = list_plot(points, plotjoined=plotjoined, **kwds)
+        L.xmin(0)
+        return L
 
-    def plot_raw(self, channel=0, npoints=None, plotjoined=True, **kwds):
-        if npoints == None:
-            npoints = self._nframes
+    def plot_fft(self, npoints=None, channel=0, **kwds):
+        v = self.vector(npoints=npoints)
+        w = v.fft()
+        z = [abs(x) for x in w]
+        twopi = 2*math.pi
+        data = zip(srange(0, twopi, twopi/len(z)),  z)
+        L = list_plot(data, plotjoined=True, **kwds)
+        L.xmin(0)
+        L.xmax(twopi)
+        return L
+
+    def plot_raw(self, npoints=None, channel=0, plotjoined=True, **kwds):
+        npoints = self._normalize_npoints(npoints)
         seconds = float(self._nframes) / float(self._width)
         sample_step = seconds / float(npoints)
         domain = [float(n*sample_step) / float(self._framerate) for n in xrange(npoints)]

@@ -1155,18 +1155,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         irrG = G.Irr()
         ct   = [[irrG[i+1,j+1] for j in range(n)] for i in range(n)]
 
-        # Now we have the tricky task of figuring out what common
-        # cyclotomic field to put all these cyclotomic elements in.
-        # Our trick is to compute a list of strings that begin with
-        # the order of the root of unit for each element followed by ")junk",
-        # then get rid of the junk.
-        s = str(ct).split('E(')[1:]   # with junk
-        s = [eval(x.split(')')[0]) for x in s]  # get rid of trailing junk
-
-        from sage.rings.all import lcm, CyclotomicField
-        e = lcm(s)
-
-        # Now make field and coerce all elements into it.
+        from sage.rings.all import CyclotomicField
+        e = irrG.Flat().Conductor()
         K = CyclotomicField(e)
         ct = [[K(x) for x in v] for v in ct]
 

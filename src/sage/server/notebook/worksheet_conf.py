@@ -1,3 +1,6 @@
+"""nodoctest
+"""
+
 import conf
 
 defaults = {'system':'sage',

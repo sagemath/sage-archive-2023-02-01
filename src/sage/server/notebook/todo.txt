@@ -1,5 +1,7 @@
 TODO for the new Twisted notebook
 
+[ ] we *really* need a "insert cell after" given cell command.
+
 [ ] Viewing published pages still sometimes claims they were last updated
     "by pub", which is wrong.
 

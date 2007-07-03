@@ -1,3 +1,5 @@
+"""nodoctest
+"""
 
 import crypt
 

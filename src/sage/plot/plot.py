@@ -701,7 +701,7 @@ class Graphics(SageObject):
 
         return xmin,xmax,ymin,ymax
 
-    def save(self, filename='sage.png',
+    def save(self, filename=None,
              xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
@@ -757,15 +757,6 @@ class Graphics(SageObject):
         subplot.xaxis.set_visible(False)
         subplot.yaxis.set_visible(False)
         subplot.set_frame_on(False)
-
-        ##################################################
-        # The below is a work in progress ... trying to
-        # make adding axes general and convient.
-        # possibly more work needs to be done in factoring
-        # this all out into several general functions
-        # but for now it will stay here until it is decided
-        # what is the best way to do this -Alex
-        ###################################################
 
         #add all the primitives to the subplot
         #check if there are any ContourPlot instances
@@ -2920,4 +2911,46 @@ def rainbow(n):
         elif h == 5:
             R.append(float_to_html(1.,0.,1. - r))
     return R
+
+
+
+#####################################
+def plot_animated_gif(G, delay=20, outfile=None, iterations=0,
+                      xmin=None, xmax=None, ymin=None, ymax=None, *args, **kwds):
+    """
+    Returns an animated gif composed from rendering the
+    graphics objects in the list G.
+
+    This function will only work if the Imagemagick command line tools
+    package is installed, i.e., you have the"convert" command.
+
+    INPUT:
+        G -- a list of plot objects
+        delay -- (default: 20) delay in hundredths of a second between frames
+        outfile -- file that the animated gif gets saved to
+        iterations -- integer (default: 0); number of iterations of
+                      animation.  If 0, loop forever.
+        other options -- all are passed to the save command,
+                         which is called on each input.
+
+    AUTHOR:
+        -- William Stein
+    """
+    if not outfile:
+        outfile = sage.misc.misc.graphics_filename(ext='gif')
+    if len(G) == 0:
+        raise ValueError, "G must be nonempty"
+    d = sage.misc.misc.tmp_dir()
+    if xmin is None: xmin = G[0].xmin()
+    if xmax is None: xmax = G[0].xmax()
+    if ymin is None: ymin = G[0].ymin()
+    if ymax is None: ymax = G[0].ymax()
+    for i in range(len(G)):
+        filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
+        G[i].save(filename + '.png', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, *args, **kwds)
+    if not outfile.endswith('.gif'):
+        outfile += '.gif'
+    outfile = os.path.abspath(outfile)
+    cmd = 'cd "%s"; convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
+    os.system(cmd)
 

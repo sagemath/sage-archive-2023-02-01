@@ -455,7 +455,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = -1/2 * t + 2/3*t^2 + -9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
-            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(\text{t}^{20})
+            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(t^{20})
         """
         if self.is_zero():
             if self.prec() is infinity:

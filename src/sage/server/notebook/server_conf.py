@@ -1,3 +1,6 @@
+"""nodoctest
+"""
+
 import conf
 
 defaults = {'cell_input_color':'#0000000',

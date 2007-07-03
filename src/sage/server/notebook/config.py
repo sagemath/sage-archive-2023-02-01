@@ -1,3 +1,7 @@
+"""nodoctest
+Customization of the Notebook
+"""
+
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -5,16 +9,14 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-"""
-Customization of the Notebook
-"""
-
 #from js import JSKeyHandler
 import js
 
 
 js.keyhandler.add('request_introspections', key = "KEY_SPC",  ctrl=True)  # control space
-js.keyhandler.add('request_introspections', key = "KEY_TAB")  # tab
+js.keyhandler.add('request_introspections', key = "KEY_TAB", shift=False)  # tab
+js.keyhandler.add('indent', key = "KEY_TAB", shift=False)  # tab
+js.keyhandler.add('unindent', key = "KEY_TAB", shift=True)  # tab
 js.keyhandler.add('request_history',     key = "KEY_Q", ctrl=True)
 js.keyhandler.add('request_history',     key = "KEY_QQ", ctrl=True)
 js.keyhandler.add('request_log',         key = "KEY_P", ctrl=True)

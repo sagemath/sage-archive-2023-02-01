@@ -464,6 +464,7 @@ class Pi(Constant):
 
 pi = Pi()
 
+python_complex_i = complex(0,1)
 
 class I_class(Constant):
     """
@@ -524,6 +525,9 @@ class I_class(Constant):
 
     def _complex_double_(self, C):
         return C.gen()
+
+    def __complex__(self):
+        return python_complex_i
 
     def _real_double_(self, R):
         raise TypeError

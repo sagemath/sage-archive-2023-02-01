@@ -76,7 +76,7 @@ Partitions:
   represented by a sorted list of such sets.
 
 \item Partitions of an integer, \code{partitions_list},
-  \code{number_of_partitions_list}.  An unordered partition of n is an
+  \code{number_of_partitions}.  An unordered partition of n is an
   unordered sum $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is
   represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
   order, i.e., $p1\geq p_2 ...\geq p_k$.
@@ -210,6 +210,9 @@ def bell_number(n):
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
+    INPUT:
+        n -- an integer
+
     If $n \leq 0$, returns $1$.
 
     Wraps GAP's Bell.
@@ -246,6 +249,9 @@ def bell_number(n):
 def catalan_number(n):
     r"""
     Returns the n-th Catalan number
+
+    INPUT:
+        n -- an integer
 
       Catalan numbers: The $n$-th Catalan number is given directly in terms of
       binomial coefficients by
@@ -289,6 +295,9 @@ def euler_number(n):
     """
     Returns the n-th Euler number
 
+    INPUT:
+        n -- an integer
+
     IMPLEMENTATION: Wraps Maxima's euler.
 
     EXAMPLES:
@@ -313,11 +322,12 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns then n-th Fibonacci number. The Fibonacci sequence $F_n$
-    is defined by the initial conditions $F_1=F_2=1$ and the
-    recurrence relation $F_{n+2} = F_{n+1} + F_n$. For negative $n$ we
-    define $F_n = (-1)^{n+1}F_{-n}$, which is consistent with the
-    recurrence relation.
+    Returns then n-th Fibonacci number.
+
+    The Fibonacci sequence $F_n$ is defined by the initial conditions
+    $F_1=F_2=1$ and the recurrence relation $F_{n+2} = F_{n+1} +
+    F_n$. For negative $n$ we define $F_n = (-1)^{n+1}F_{-n}$, which
+    is consistent with the recurrence relation.
 
     For negative $n$, define $F_{n} = -F_{|n|}$.
 
@@ -551,9 +561,9 @@ def lucas_number2(n,P,Q):
 
 def stirling_number1(n,k):
     """
-    Returns the n-th Stilling number $S_1(n,k)$ of the first kind (the number of
-    permutations of n points with k cycles).
-    Wraps GAP's Stirling1.
+    Returns the n-th Stilling number $S_1(n,k)$ of the first kind (the
+    number of permutations of n points with k cycles).  Wraps GAP's
+    Stirling1.
 
     EXAMPLES:
         sage: stirling_number1(3,2)
@@ -1038,6 +1048,9 @@ def partitions_list(n,k=None):
     the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
     $p1\geq p_2 ...\geq p_k$.
 
+    INPUT:
+        n -- a positive integer
+
     \code{partitions_list(n,k)} returns the list of all (unordered)
     partitions of the positive integer n into sums with k summands. If
     k is omitted then all partitions are returned.
@@ -1060,54 +1073,143 @@ def partitions_list(n,k=None):
 
     However, partitions(5) returns ``<generator object at ...>''.
     """
+    n = ZZ(n)
+    if n <= 0:
+        raise ValueError, "n (=%s) must be a positive integer"%n
     if k==None:
         ans=gap.eval("Partitions(%s)"%(n))
     else:
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-def number_of_partitions_list(n,k=None):
+def number_of_partitions(n,k=None, algorithm='gap'):
     r"""
     Returns the size of partitions_list(n,k).
 
-    Wraps GAP's NrPartitions.
+    INPUT:
+        n -- an integer
+        k -- (default: None); if specified, instead returns the
+             cardinality of the set of all (unordered) partitions of
+             the positive integer n into sums with k summands.
+        algorithm -- (default: 'gap')
+            'gap' -- use GAP
+            'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
+                      in the thousands, in which case PARI is faster. *But*
+                      PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
+                      outputs numbpart(147007)%1000 as 536, but it
+                      should be 533!.  So do not use this option.
+
+    IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
+
+    Use the function \code{partitions(n)} to return a generator over
+    all partitions of $n$.
 
     It is possible to associate with every partition of the integer n
     a conjugacy class of permutations in the symmetric group on n
     points and vice versa.  Therefore p(n) = NrPartitions(n) is the
     number of conjugacy classes of the symmetric group on n points.
 
-    \code{number_of_partitions(n)} is also available in PARI, however
-    the speed seems the same until $n$ is in the thousands (in which
-    case PARI is faster).
-
     EXAMPLES:
-        sage: number_of_partitions_list(10,2)
-        5
-        sage: number_of_partitions_list(10)
-        42
+        sage: v = list(partitions(5)); v
+        [(1, 1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 2), (1, 1, 3), (2, 3), (1, 4), (5,)]
+        sage: len(v)
+        7
+        sage: number_of_partitions(5)
+        7
+        sage: number_of_partitions(5, algorithm='pari')
+        7
 
-    A generating function for p(n) is given by the reciprocal of Euler's function:
+    The input must be a nonnegative integer or a ValueError is raised.
+        sage: number_of_partitions(-5)
+        Traceback (most recent call last):
+        ...
+        ValueError: n (=-5) must be a nonnegative integer
+
+        sage: number_of_partitions(10,2)
+        5
+        sage: number_of_partitions(10)
+        42
+        sage: number_of_partitions(3)
+        3
+        sage: number_of_partitions(10)
+        42
+        sage: number_of_partitions(3, algorithm='pari')
+        3
+        sage: number_of_partitions(10, algorithm='pari')
+        42
+        sage: number_of_partitions(40)
+        37338
+        sage: number_of_partitions(100)
+        190569292
+
+    A generating function for p(n) is given by the reciprocal of
+    Euler's function:
+
     \[
     \sum_{n=0}^\infty p(n)x^n = \prod_{k=1}^\infty \left(\frac {1}{1-x^k} \right).
     \]
-    SAGE verifies that the first several coefficients do instead agree:
+
+    We use SAGE to verify that the first several coefficients do
+    instead agree:
 
         sage: q = PowerSeriesRing(QQ, 'q', default_prec=9).gen()
         sage: prod([(1-q^k)^(-1) for k in range(1,9)])  ## partial product of
         1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + O(q^9)
-        sage: [number_of_partitions_list(k) for k in range(2,10)]
+        sage: [number_of_partitions(k) for k in range(2,10)]
         [2, 3, 5, 7, 11, 15, 22, 30]
 
     REFERENCES:
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
     """
-    if k==None:
-        ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
-    else:
-        ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
-    return ZZ(ans)
+    n = ZZ(n)
+    if n < 0:
+        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+    elif n == 0:
+        return ZZ(1)
+    if algorithm == 'gap':
+        if k==None:
+            ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
+        else:
+            ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
+        return ZZ(ans)
+    elif algorithm == 'pari':
+        if not k is None:
+            raise ValueError, "cannot specify second argument k if the algorithm is PARI"
+        return ZZ(pari(ZZ(n)).numbpart())
+    raise ValueError, "unknown algorithm '%s'"%algorithm
+
+def partitions(n):
+    r"""
+    Generator of all the partitions of the integer $n$.
+
+    INPUT:
+        n -- int
+
+    To compute the number of partitions of $n$ use
+    \code{number_of_partitions(n)}.
+
+    EXAMPLES:
+        sage.: partitions(3)
+        <generator object at 0xab3b3eac>
+        sage: list(partitions(3))
+        [(1, 1, 1), (1, 2), (3,)]
+
+
+    AUTHOR: Adapted from David Eppstein, Jan Van lent, George Yoshida;
+    Python Cookbook 2, Recipe 19.16.
+    """
+    n == ZZ(n)
+    # base case of the recursion: zero is the sum of the empty tuple
+    if n == 0:
+        yield ( )
+        return
+    # modify the partitions of n-1 to form the partitions of n
+    for p in partitions(n-1):
+        yield (1,) + p
+        if p and (len(p) < 2 or p[1] > p[0]):
+            yield (p[0] + 1,) + p[1:]
+
 
 def ferrers_diagram(pi):
     """

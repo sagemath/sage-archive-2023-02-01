@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Javascript (AJAX) Component of SAGE Notebook
 
 AUTHORS:
@@ -210,7 +210,7 @@ var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a v
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
 var one_word_pat = "([a-zA-Z_][a-zA-Z._0-9]*)";
-
+var unindent_pat = "^\\s{0,4}(.*)$";
 var whitespace_pat = "(\\s*)";
 
 try{
@@ -219,6 +219,7 @@ try{
   function_pat = new RegExp(function_pat);
   one_word_pat = new RegExp(one_word_pat);
   whitespace_pat = new RegExp(whitespace_pat);
+  unindent_pat = new RegExp(unindent_pat);
 } catch(e){}
 
 var after_cursor, before_cursor, before_replacing_word;
@@ -1414,10 +1415,16 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
        return false;
-    } else if (key_request_introspections(e)) {
+    } else if (key_unindent(e)) { //unfortunately, shift-tab needs to get caught before not-shift tab
+       unindent_cell(cell_input);
+       return false;
+    } else if (key_request_introspections(e) && cell_input.selectionStart == cell_input.selectionEnd) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
        focus_delay(id,true);
+       return false;
+    } else if (key_indent(e)) {
+       indent_cell(cell_input);
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
@@ -1519,6 +1526,40 @@ function text_cursor_split(input) {
 
     a = input.value.substr(b.length);
     return new Array(b,a);
+}
+
+function indent_cell(input) {
+    if(browser_ie) {
+    } else {
+        var start = 1+input.value.lastIndexOf("\n", input.selectionStart);
+        var a = input.value.substring(0, start);
+        var b = input.value.substring(start, input.selectionEnd);
+        var c = input.value.substring(input.selectionEnd);
+        var lines = b.split("\n");
+        for(var i = 0; i < lines.length; i++)
+            lines[i] = "    "+lines[i];
+        b = lines.join("\n");
+        input.value = a+b+c;
+        input.selectionStart = a.length;
+        input.selectionEnd = a.length + b.length;;
+    }
+}
+
+function unindent_cell(input) {
+    if(browser_ie) {
+    } else {
+        var start = 1+input.value.lastIndexOf("\n", input.selectionStart);
+        var a = input.value.substring(0, start);
+        var b = input.value.substring(start, input.selectionEnd);
+        var c = input.value.substring(input.selectionEnd);
+        var lines = b.split("\n");
+        for(var i = 0; i < lines.length; i++)
+            lines[i] = unindent_pat.exec(lines[i])[1];  //square brackets pull the captured pattern
+        b = lines.join("\n");
+        input.value = a+b+c;
+        input.selectionStart = a.length;
+        input.selectionEnd = a.length + b.length;;
+    }
 }
 
 function worksheet_command(cmd) {

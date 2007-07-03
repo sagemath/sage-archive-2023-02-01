@@ -492,7 +492,7 @@ class Cell(Cell_generic):
         #self._html_cache[key] = s
         return s
 
-    def html_in(self, do_print=False, ncols=80):
+    def html_in(self, do_print=False, ncols=200):
         s = ''
         id = self.__id
         t = self.__in.rstrip()
@@ -572,7 +572,8 @@ class Cell(Cell_generic):
             if 'cell://%s'%F in out:
                 continue
             url = "%s/%s"%(self.url_to_self(), F)
-            if F.endswith('.png') or F.endswith('.bmp') or F.endswith('.jpg'):
+            if F.endswith('.png') or F.endswith('.bmp') or \
+                   F.endswith('.jpg') or F.endswith('.gif'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)

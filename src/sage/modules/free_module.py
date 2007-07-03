@@ -393,7 +393,7 @@ class FreeModule_generic(module.Module):
             Basis matrix:
             [1 2 3]
         """
-        if self.__is_sparse:
+        if self.is_sparse():
             return self._dense_module()
         return self
 
@@ -433,7 +433,7 @@ class FreeModule_generic(module.Module):
             Basis matrix:
             [1 2 3]
         """
-        if self.__is_sparse:
+        if self.is_sparse():
             return self
         return self._sparse_module()
 
@@ -469,6 +469,36 @@ class FreeModule_generic(module.Module):
                 return w
             self.coordinates(w)
         return w
+
+    def is_submodule(self, other):
+        """
+        Copied from FreeModule_generic_pid
+        It only works partially since basis() is not implemented in general
+        Trivial cases are already useful for coercion, e.g.
+            sage: QQ(1/2) * vector(ZZ[x][y],[1,2,3,4])
+            (1/2, 1, 3/2, 2)
+            sage: vector(ZZ[x][y],[1,2,3,4]) * QQ(1/2)
+            (1/2, 1, 3/2, 2)
+        """
+        if not isinstance(other, FreeModule_generic):
+            return False
+        if self.ambient_vector_space() != other.ambient_vector_space():
+            return False
+        if other == other.ambient_vector_space():
+            return True
+        if other.rank() < self.rank():
+            return False
+        if self.base_ring() != other.base_ring():
+            try:
+                if not self.base_ring().is_subring(other.base_ring()):
+                    return False
+            except NotImplementedError:
+                return False
+        for b in self.basis():
+            if not (b in other):
+                return False
+        return True
+
 
     def _has_coerce_map_from_space(self, V):
         """
@@ -1013,7 +1043,7 @@ class FreeModule_generic(module.Module):
             sage: FreeModule(ZZ, 2, sparse=True).is_dense()
             False
         """
-        return not self.__is_sparse
+        return not self.is_sparse()
 
     def is_full(self):
         """
@@ -1124,27 +1154,27 @@ class FreeModule_generic(module.Module):
         """
         return self.__rank
 
-##     def uses_ambient_inner_product(self):
-##         """
-##         Return \code{True} if the inner product on this module is the one induced
-##         by the ambient inner product.  This is True exactly if
-##         self.set_inner_product_matrix(...) has not been called (or
-##         self.unset_inner_product_matrix() was subsequently called).
+    def uses_ambient_inner_product(self):
+        """
+        Return \code{True} if the inner product on this module is the one induced
+        by the ambient inner product.  This is True exactly if
+        self.set_inner_product_matrix(...) has not been called (or
+        self.unset_inner_product_matrix() was subsequently called).
 
-##         EXAMPLES:
-##             sage: M = FreeModule(ZZ, 2)
-##             sage: W = M.submodule([[1,2]])
-##             sage: W.uses_ambient_inner_product()
-##             True
-##             sage: W.inner_product_matrix()
-##             [5]
-##             sage: W = FreeModule(ZZ, 2, inner_product_matrix = [2])
-##             sage: W.uses_ambient_inner_product()
-##             False
-##             sage: W.inner_product_matrix()
-##             [2]
-##         """
-##         return self.__uses_ambient_inner_product
+        EXAMPLES:
+            sage: M = FreeModule(ZZ, 2)
+            sage: W = M.submodule([[1,2]])
+            sage: W.uses_ambient_inner_product()
+            True
+            sage: W.inner_product_matrix()
+            [5]
+            sage: W = FreeModule(ZZ, 2, inner_product_matrix = [2])
+            sage: W.uses_ambient_inner_product()
+            False
+            sage: W.inner_product_matrix()
+            [2]
+        """
+        return self.__uses_ambient_inner_product
 
     def zero_vector(self):
         """
@@ -3292,6 +3322,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     EXAMPLES:
         sage: M = ZZ^3
+        sage: loads(dumps(M)) == M
+        True
         sage: W = M.span_of_basis([[1,2,3],[4,5,19]]); W
         Free module of degree 3 and rank 2 over Integer Ring
         User basis matrix:

@@ -196,6 +196,7 @@ class Wave(SageObject):
 
         L = list_plot(points, plotjoined=plotjoined, **kwds)
         L.xmin(0)
+        L.xmax(domain[-1])
         return L
 
     def plot_fft(self, npoints=None, channel=0, **kwds):

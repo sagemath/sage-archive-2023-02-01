@@ -287,15 +287,20 @@ class Wave(SageObject):
         L.xmax(domain[-1])
         return L
 
-    def plot_fft(self, npoints=None, channel=0, **kwds):
+    def plot_fft(self, npoints=None, channel=0, half=True, **kwds):
         v = self.vector(npoints=npoints)
         w = v.fft()
+        if half:
+            w = w[:len(w)//2]
         z = [abs(x) for x in w]
-        twopi = 2*math.pi
-        data = zip(srange(0, twopi, twopi/len(z)),  z)
+        if half:
+            r = math.pi
+        else:
+            r = 2*math.pi
+        data = zip(srange(0, r, r/len(z)),  z)
         L = list_plot(data, plotjoined=True, **kwds)
         L.xmin(0)
-        L.xmax(twopi)
+        L.xmax(r)
         return L
 
     def plot_raw(self, npoints=None, channel=0, plotjoined=True, **kwds):

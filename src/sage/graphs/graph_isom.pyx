@@ -63,8 +63,8 @@ def finer(Pi1, Pi2):
     partition Pi1 is contained in some cell of Pi2.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import finer
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import finer
         sage: finer( [[0,1,2],[3,4,5]] , [[0,1],[2,3],[4,5]] )
         False
         sage: finer( [[0,1],[2,3],[4,5],[6,7]] , [[0,1,2,3],[4,5,6,7]] )
@@ -156,8 +156,8 @@ def vee(alpha, beta):
     Return the finest partition coarser than alpha and beta.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import vee
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import vee
         sage: vee([[0]],[[0]])
         [[0]]
         sage: vee([[0,1]], [[0,1]])
@@ -197,8 +197,8 @@ def min_cell_reps(Pi):
     from each cell, minimal in each cell.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import min_cell_reps
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import min_cell_reps
         sage: min_cell_reps( [[0,1],[2,3],[4,5],[6,7]] )
         [0, 2, 4, 6]
         sage: min_cell_reps( [[0,1,2,3],[4,5,6],[7]] )
@@ -216,8 +216,8 @@ def fix(Pi):
     fix(Pi) is the subset consisting of elements fixed by the action.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import fix
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import fix
         sage: fix( [[0],[1,2,3,4],[5,6],[7],[8]] )
         [0, 7, 8]
     """
@@ -240,8 +240,8 @@ def orbit_partition(gamma, list_perm=False):
     i \mapsto gamma[i].
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import orbit_partition
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import orbit_partition
         sage: G = graphs.PetersenGraph()
         sage: S = SymmetricGroup(10)
         sage: gamma = S('(10,1,2,3,4)(5,6,7)(8,9)')
@@ -311,8 +311,8 @@ def is_discrete(Pi):
     Returns true iff every cell in the partition Pi is of size 1.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import is_discrete
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import is_discrete
         sage: is_discrete( [ [0,1,2,3], [4], [5], [6] ] )
         False
         sage: is_discrete( [ [0], [1], [2], [3], [4], [5], [6] ] )
@@ -335,8 +335,8 @@ def is_discrete(Pi):
 #    counterexample: False, v1, v2, V1, V2.
 #
 #    EXAMPLES:
-#        sage: import sage.graphs.graph_isom_fast
-#        sage: from sage.graphs.graph_isom_fast import is_equitable
+#        sage: import sage.graphs.graph_isom
+#        sage: from sage.graphs.graph_isom import is_equitable
 #        sage: D  = graphs.DodecahedralGraph()
 #        sage: Pi1 = [[0],[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]]
 #        sage: Pi2 = [[0],[1,10,19],[11,9,18,8,3,2],[12,13,7,17,4,6],[5,14,16],[15]]
@@ -362,8 +362,8 @@ def replace_in(Pi, k, L):
     Replaces cell k of the partition Pi with the partition of that cell, L.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import replace_in
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import replace_in
         sage: replace_in([[0,1],[2,3],[4,5,6,7]], 2, [[4],[5],[6,7]] )
         [[0, 1], [2, 3], [4], [5], [6, 7]]
     """
@@ -526,8 +526,8 @@ def get_permutation(eta, nu, list_perm=False):
     L[i].
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import get_permutation
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import get_permutation
 
     The following is an example from searching the nest tree of the dodecahedron with unit partition
         sage: eta = [ [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]], [[0], [5, 14, 16], [15], [4, 6, 7, 12, 13, 17], [2, 3, 8, 9, 11, 18], [1, 10, 19]], [[0], [5], [14, 16], [15], [12, 13], [7, 17], [4, 6], [9, 11], [8, 18], [2, 3], [10], [1, 19]], [[0], [5], [14], [16], [15], [12], [13], [17], [7], [4], [6], [11], [9], [18], [8], [3], [2], [10], [19], [1]] ]
@@ -643,8 +643,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
 
     EXAMPLES:
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import search_tree, perm_group_elt
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import search_tree, perm_group_elt
         sage: from sage.graphs.graph import enum
 
         sage: G = graphs.DodecahedralGraph()
@@ -753,7 +753,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         sage: search_tree(G, Pi, lab=False)
         []
 
-        sage: from sage.graphs.graph_isom_fast import all_labeled_graphs, all_ordered_partitions
+        sage: from sage.graphs.graph_isom import all_labeled_graphs, all_ordered_partitions
 
         sage: graph2 = all_labeled_graphs(2)
         sage: part2 = all_ordered_partitions(range(2))
@@ -1431,8 +1431,8 @@ def all_labeled_graphs(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import search_tree, all_labeled_graphs
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import search_tree, all_labeled_graphs
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
@@ -1512,8 +1512,8 @@ def all_labeled_digraphs_with_loops(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom_fast
-        sage: from sage.graphs.graph_isom_fast import search_tree, all_labeled_digraphs_with_loops
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs_with_loops
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}

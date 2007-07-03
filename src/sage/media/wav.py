@@ -170,3 +170,13 @@ class Wave(SageObject):
                     bytes = self._bytes[start:stop],
                     nframes = stop - start,
                     channel_data = channels_sliced)
+
+    def write_out(self, filename):
+        wv = wave.open(filename, "wb")
+        wv.setnframes(self._nframes)
+        wv.setnchannels(self._nchannels)
+        wv.setsampwidth(self._width)
+        wv.setframerate(self._framerate)
+#        wv.setcomptype(None, "")
+        wv.writeframes(self._bytes)
+        wv.close()

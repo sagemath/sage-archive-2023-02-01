@@ -1,7 +1,18 @@
+"""
+Work with WAV files
+
+AUTHORS:
+    -- Bobby Moretti (2007-07-01): First version
+    -- William Stein (2007-07-03): add more
+"""
+
 import wave
+import os
+
 from sage.plot.plot import list_plot
 from sage.structure.sage_object import SageObject
 from sage.misc.html import html
+from sage.rings.all import RDF
 
 class Wave(SageObject):
     """
@@ -31,6 +42,7 @@ class Wave(SageObject):
     def __init__(self, data=None, **kwds):
         if data is not None:
             self._filename = data
+            self._name = os.path.split(data)[1]
             wv = wave.open(data, "rb")
             self._nchannels = wv.getnchannels()
             self._width = wv.getsampwidth()
@@ -47,10 +59,42 @@ class Wave(SageObject):
                 self._nframes = kwds['nframes']
                 self._bytes = kwds['bytes']
                 self._channel_data = kwds['channel_data']
+                self._name = kwds['name']
             except KeyError:
                 raise KeyError, "invalid input to Wave initializer"
         else:
             raise ValueError, "Must give a filename"
+
+    def save(self, filename=None):
+        """
+        Save this wave file to disk, either as a SAGE sobj or as a .wav file.
+        """
+        if filename is None:
+            filename = 'sage.wav'
+        if not filename.endswith('.wav'):
+            SageObject.save(self, filename)
+            return
+        wv = wave.open(filename, 'wb')
+        wv.setnchannels(self._nchannels)
+        wv.setsampwidth(self._width)
+        wv.setframerate(self._framerate)
+        wv.setnframes(self._nframes)
+        wv.writeframes(self._bytes)
+        wv.close()
+
+    def listen(self):
+        """
+        Listen to this wave file.
+        """
+        from sage.misc.html import html
+        i = 0
+        fname = 'sage%s.wav'%i
+        while os.path.exists(fname):
+            i += 1
+            fname = 'sage%s.wav'%i
+
+        self.save(fname)
+        return html('<a href="cell://%s">Click to listen to %s</a>'%(fname, self._name))
 
     def channel_data(self, n):
         return self._channel_data[n]
@@ -96,28 +140,56 @@ class Wave(SageObject):
 
     def _repr_(self):
         nc = self.getnchannels()
-        return "Wave file with %s channel%s of length %s seconds%s" % \
-        (nc, "" if nc == 1 else "s", self.getlength(), "" if nc == 1 else " each")
+        return "Wave file %s with %s channel%s of length %s seconds%s" % \
+        (self._name, nc, "" if nc == 1 else "s", self.getlength(), "" if nc == 1 else " each")
 
-    def plot(self, channel=0, npoints=None, plotjoined=True, **kwds):
-        """
-        Plots the audio data.
-        """
-        if npoints == None:
-            npoints = self._nframes
+    def _normalize_npoints(self, npoints):
+        return npoints if npoints else self._nframes
+
+    def domain(self, npoints=None):
+        npoints = self._normalize_npoints(npoints)
         # figure out on what intervals to sample the data
         seconds = float(self._nframes) / float(self._width)
         sample_step = seconds / float(npoints)
 
         domain = [float(n * sample_step) / float(self._framerate) for n in xrange(npoints)]
+        return domain
+
+    def values(self, npoints=None, channel=0):
+        npoints = self._normalize_npoints(npoints)
+
         # now, how many of the frames do we sample?
-        frame_skip = self._nframes / npoints
+        frame_skip = int(self._nframes / npoints)
         # the values of the function at each point in the domain
 
         values = [self.channel_data(channel)[frame_skip*i] for i in xrange(npoints)]
         # now scale the values
         scale = 1 << (8*self._width -1)
         values = [float(s) / float(scale) for s in values]
+        return values
+
+    def vector(self, npoints=None, channel=0):
+        npoints = self._normalize_npoints(npoints)
+
+        V = RDF**npoints
+        return V(self.values(npoints=npoints, channel=channel))
+
+    def plot(self, channel=0, npoints=None, plotjoined=True, **kwds):
+        """
+        Plots the audio data.
+
+        INPUT:
+            channel -- 0 or 1 (if stereo).  default: 0
+            npoints -- number of sample points to take; if not given, draws
+                       all known points.
+            plotjoined -- whether to just draw dots or draw lines between sample points
+
+        OUTPUT:
+            a plot object that can be shown.
+        """
+
+        domain = self.domain(npoints = npoints)
+        values = self.values(npoints=npoints, channel = channel)
         points = zip(domain, values)
 
         return list_plot(points, plotjoined=plotjoined, **kwds)
@@ -169,4 +241,5 @@ class Wave(SageObject):
                     framerate = self._framerate,
                     bytes = self._bytes[start:stop],
                     nframes = stop - start,
-                    channel_data = channels_sliced)
+                    channel_data = channels_sliced,
+                    name = self._name)

@@ -527,7 +527,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         G = self
         n = G.order()
-        gap.eval("G := %s"%G._gap_())
+        gap.eval("G := %s"%G._gap_().name())
         gap.eval("phi := RegularActionHomomorphism( G );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
         N = Integer(gap.eval("N := Length(gens);"))
@@ -836,9 +836,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         G = self
-        gap.eval("G := %s"%G._gap_())
-        gap.eval("N := %s"%N._gap_())
-        gap.eval(" Q := G/N;")
+        gap.eval("G := %s"%G._gap_().name())
+        gap.eval("N := %s"%N._gap_().name())
+        gap.eval("Q := G/N;")
         gap.eval("phi := RegularActionHomomorphism( Q );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
         N = Integer(gap.eval("N := Length(gens);"))

@@ -798,6 +798,7 @@ class Worksheet:
 
     def html_data_options_list(self):
         D = self.attached_data_files()
+        D.sort()
         x = '\n'.join(['<option value="datafile?name=%s">%s</option>'%(nm,nm) for nm in D])
         return x
 

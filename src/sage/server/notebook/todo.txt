@@ -1,5 +1,8 @@
 TODO for the new Twisted notebook
 
+[ ] sometimes restart doesn't seem to really work until hit
+    shift-enter a few times :-(
+
 [ ] we *really* need a "insert cell after" given cell command.
 
 [ ] Viewing published pages still sometimes claims they were last updated

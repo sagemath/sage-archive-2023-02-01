@@ -48,12 +48,44 @@ def verify_type(type):
     types = ['INTEGER','INT','BOOLEAN','REAL','STRING','BOOL']
     if type.upper() not in types:
         raise TypeError('%s is not a legal type.'%type)
+    return True
 
 def verify_operator(operator):
     binaries = ['=','<=','>=','like','<','>','<>','regexp']
     unaries = ['is null','is not null']
     if operator not in binaries and operator not in unaries:
         raise TypeError('%s is not a legal operator.'%operator)
+    return True
+
+def construct_skeleton(connection):
+    skeleton = {}
+    cur = connection.cursor()
+    exe = cur.execute("select name from sqlite_master where type='table'")
+    for table in exe.fetchall():
+        skeleton[table[0]] = {}
+        exe1 = cur.execute("pragma table_info(%s)"%table[0])
+        for column in exe1.fetchall():
+            skeleton[table[0]][column[1]] = {'sql':column[2], 'primary_key':(column[5]!=0), 'index':False}
+        exe2 = cur.execute("pragma index_list(%s)"%table[0])
+        for column in exe2.fetchall():
+            skeleton[table[0]][column[1]]['index'] = True
+    return skeleton
+
+def table_skel_to_col_list(table_dict):
+    s = ''
+    for col in table_dict:
+        s += col + ', '
+    s = s.rstrip(', ')
+    print s
+    return s
+
+def table_skel_to_attr_list(table_dict):
+    s = ''
+    for col in table_dict:
+        s += col + ' ' + table_dict[col]['sql'] + ', '
+    s = s.rstrip(', ')
+    print s
+    return s
 
 class GenericSQLQuery(SageObject):
     """
@@ -229,9 +261,9 @@ class SQLQuery(GenericSQLQuery):
         q.__param_tuple__ = self.__param_tuple__
         return q
 
-class SQLDatabase(SageObject):
+class GenericSQLDatabase(SageObject):
     """
-    Immutable Database class.
+    *Immutable* Database class.
 
     INPUT:
         filename -- where to keep the database
@@ -243,15 +275,7 @@ class SQLDatabase(SageObject):
         self.__dblocation__ = filename
         self.__connection__ = sqlite.connect(self.__dblocation__)
 
-        # construct skeleton
-        self.__skeleton__ = {}
-        cur = self.__connection__.cursor()
-        exe = cur.execute("select name from sqlite_master where type='table'")
-        for table in exe.fetchall():
-            self.__skeleton__[table[0]] = {}
-            exe1 = cur.execute("pragma table_info(%s)"%table[0])
-            for column in exe1.fetchall():
-                self.__skeleton__[table[0]][column[1]] = {'sql':column[2]}
+        self.__skeleton__ = construct_skeleton(self.__connection__)
 
     def copy(self):
         """
@@ -277,60 +301,132 @@ class SQLDatabase(SageObject):
                 s += '\n'
         return s
 
-class MutableSQLDatabase(SQLDatabase):
+class SQLDatabase(GenericSQLDatabase):
+    """
+    Dillhole and foo and piss and shit where Tom is blah and blah.
+
+    INPUT:
+        filename -- duh
+        skeleton -- a triple-indexed dictionary
+                outer key - table name
+                    inner key - column name
+                        inner inner key - one of the following:
+                primary_key - boolean, whether column has been set as primary key
+                index - boolean, whether column has been set as index
+                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                    user defined type
+
+
+    """
 
     def __init__(self, filename=None, skeleton=None):
         if filename is None:
-            tmp_filename() + '.db'
+            filename = tmp_filename() + '.db'
         elif (filename[-3:] != '.db'):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename
         self.__connection__ = sqlite.connect(self.__dblocation__)
 
         # construct skeleton (from provided database)
-        self.__skeleton__ = {}
-        cur = self.__connection__.cursor()
-        exe = cur.execute("select name from sqlite_master where type='table'")
-        for table in exe.fetchall():
-            self.__skeleton__[table[0]] = {}
-            exe1 = cur.execute("pragma table_info(%s)"%table[0])
-            for column in exe1.fetchall():
-                self.__skeleton__[table[0]][column[1]] = {'sql':column[2]}
+        self.__skeleton__ = construct_skeleton(self.__connection__)
 
-        # if skeleton argument provided, confirm existing skeleton is
-        #       provided in argument.
-        # if additional structure provided in skeleton argument, update
-        #       the database to match
-        # CODE THIS AFTER OTHER IMPLEMENTATION
-        #if skeleton is not None:
-        #    for table in self.__skeleton__:
+        # add bones from new skeleton to database,
+        # without changing existing structure
+        if skeleton is not None:
+            for table in skeleton:
+                if table not in self.__skeleton__:
+                    self.create_table(table, skeleton[table])
+                else:
+                    for column in skeleton[table]:
+                        if column not in self.__skeleton__[table]:
+                            self.create_column(table, column, skeleton[table][column])
+                        else:
+                            print "Column attributes were ignored for table %s, column %s -- column is already in table."%(table, column)
 
-
-    def create_table(self, table_name, col_dict):
+    def create_table(self, table_name, table_skeleton):
         """
-        col_dict e.g.:
-        {'col1': 'INTEGER', 'col2': 'REAL', 'col3': 'BOOLEAN'}
+
+        INPUT:
+            table_name -- deurrrrrrrrrrr
+            table_skeleton -- a double-indexed dictionary
+                outer key - column name
+                    inner key - one of the following:
+                primary_key - boolean, whether column has been set as primary key
+                index - boolean, whether column has been set as index
+                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                    user defined type
+
+        table_skeleton e.g.:
+        {'col1': {'sql':'INTEGER', 'index':False, 'primary_key':False}, ...}
+
         """
-        # check skeleton:
-        #   - table name does not already exist
 
-        # check valid types (probably in module) -- actually, made one
-        #                                           just need to call it
+        if self.__skeleton__.has_key(table_name):
+            raise ValueError("Database already has a table named %s."%table_name)
 
-        create_statement = 'create table ' + table_name + '( '
-        for col in col_dict:
-            create_statement += col + ' ' + col[0] + ', '
-        create_statement = create_statement.rsplit(', ') + ' )'
+        create_statement = 'create table ' + table_name + '('
+        for col in table_skeleton:
+            type = table_skeleton[col]['sql']
+            if verify_type(type):
+                create_statement += col + ' ' + type + ', '
+        create_statement = create_statement.rstrip(', ') + ') '
+
+        for col in table_skeleton:
+            if table_skeleton[col].has_key('index'):
+                if table_skeleton[col]['index']:
+                    create_statement += 'CREATE INDEX %s ON %s (%s) '%(col, table_name, col)
+            else:
+                table_skeleton[col]['index'] = False
+            if table_skeleton[col].has_key('primary_key'):
+                if table_skeleton[col]['primary_key']:
+                    pass # TODO: don't pass!
+            else:
+                table_skeleton[col]['primary_key'] = False
 
         cur = self.__connection__.cursor()
         exe = cur.execute(create_statement)
 
+        self.__skeleton__[table_name] = table_skeleton
+
+    def get_skeleton(self):
+        return construct_skeleton(self.__connection__)
+
+    def add_column(self, table, col_name, attr_dict, default):
         """
-        # UPDATE SKELETON -- does this work?
-        self.__skeleton__[table_name] = {}
-        for col in col_dict:
-            self.__skeleton__[table_name][col] = {'sql':col[0]}
+        Takes a while, thanks to SQLite...
+
         """
+        from copy import copy
+        d = copy(self.__skeleton__[table])
+        d[col_name] = attr_dict
+
+        original = table_skel_to_col_list(self.__skeleton__[table])
+        more = table_skel_to_col_list(d)
+        more_attr = table_skel_to_attr_list(d)
+
+        self.__connection__.execute('BEGIN TRANSACTION')
+        sss = 'create temporary table spam(%s)'%more_attr
+        print sss
+        self.__connection__.execute(sss)
+        ss = 'insert into spam select %s, NULL from %s'%(original, table)
+        print ss
+        self.__connection__.execute(ss)
+        self.__connection__.execute('drop table %s'%table)
+        self.__connection__.execute('COMMIT')
+
+
+        self.create_table(table, d)
+
+        statement  = 'BEGIN TRANSACTION;\n'
+        statement += 'insert into %s select %s from spam;\n'%(table, more)
+        statement += 'drop table spam;\n'
+        statement += 'COMMIT;\n'
+        statement += 'VACUUM;\n'
+        cur = self.__connection__.cursor()
+        exe = cur.execute(statement)
+
+    def drop_column(self, column):
+        pass
 
     def drop_table(self, table_name):
         # bad input check?
@@ -405,7 +501,5 @@ class MutableSQLDatabase(SQLDatabase):
     def vacuum(self):
         cur = self.__connection__.cursor()
         exe = cur.execute('vacuum')
-
-
 
 

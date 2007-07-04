@@ -20,6 +20,7 @@ include "singular-cdefs.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX
+    long INT_MIN
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
@@ -220,7 +221,7 @@ cdef class Conversion:
         """
         """
         cdef number *n
-        if d<INT_MAX:
+        if INT_MIN <= d <= INT_MAX:
             return nlInit(int(d))
         else:
             n = nlRInit(0)

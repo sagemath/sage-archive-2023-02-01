@@ -9,7 +9,7 @@ A WAV file may have any number of channels. Typically, they have 1
 (mono) or 2 (for stereo). The data of a WAV file is given as a
 sequence of frames. A frame consists of samples. There is one sample
 per channel, per frame. Every wav file has a sample width, or, the
-number of bits per sample. Typically these are either 8 or 16 bits.
+number of bytes per sample. Typically this is either 1 or 2 bytes.
 
 The wav module supplies more convenient access to this data. In
 particular, see the docstring for \code{Wave.channel_data()}.
@@ -73,15 +73,15 @@ class Wave(SageObject):
             wv.close()
         elif kwds:
             try:
+                self._name = kwds['name']
                 self._nchannels = kwds['nchannels']
                 self._width = kwds['width']
                 self._framerate = kwds['framerate']
                 self._nframes = kwds['nframes']
                 self._bytes = kwds['bytes']
                 self._channel_data = kwds['channel_data']
-                self._name = kwds['name']
-            except KeyError:
-                raise KeyError, "invalid input to Wave initializer"
+            except KeyError, msg:
+                raise KeyError, msg + " invalid input to Wave initializer"
         else:
             raise ValueError, "Must give a filename"
 
@@ -252,11 +252,30 @@ class Wave(SageObject):
         frame_skip = int(self._nframes / npoints)
         # the values of the function at each point in the domain
 
-        values = [self.channel_data(channel)[frame_skip*i] for i in xrange(npoints)]
+        c = self.channel_data(channel)
+        values = [c[frame_skip*i] for i in xrange(npoints)]
         # now scale the values
-        scale = 1 << (8*self._width -1)
-        values = [float(s) / float(scale) for s in values]
+        scale = float(1 << (8*self._width -1))
+        values = [float(s) / scale for s in values]
         return values
+
+    def set_values(self, values, channel=0):
+        """
+        Used internally for plotting. Get the y-values for the various points to plot.
+        """
+        c = self.channel_data(channel)
+        npoints = len(c)
+        if len(values) != npoints:
+            raise ValueError, "values (of length %s) must have length %s"%(len(values), npoints)
+
+        # unscale the values
+        scale = float(1 << (8*self._width -1))
+        values = [float(abs(s)) * scale for s in values]
+
+        # the values of the function at each point in the domain
+        c = self.channel_data(channel)
+        for i in xrange(npoints):
+            c[i] = values[i]
 
     def vector(self, npoints=None, channel=0):
         npoints = self._normalize_npoints(npoints)
@@ -336,13 +355,14 @@ class Wave(SageObject):
         return self[start:stop]
 
     def __getslice__(self, start, stop):
-        return self.__copy__(start, stop)
+        return self._copy(start, stop)
 
     # start and stop are frame numbers
-    def __copy__(self, start, stop):
+    def _copy(self, start, stop):
         start = start * self._width
         stop = stop * self._width
         channels_sliced = [self._channel_data[i][start:stop] for i in range(self._nchannels)]
+        print stop - start
 
         return Wave(nchannels = self._nchannels,
                     width = self._width,
@@ -351,3 +371,25 @@ class Wave(SageObject):
                     nframes = stop - start,
                     channel_data = channels_sliced,
                     name = self._name)
+
+    def __copy__(self):
+        return self._copy(0, self._nframes)
+
+    def convolve(self, right, channel=0):
+        """
+        NOT DONE!
+
+        Convolution of self and other, i.e., add their fft's, then
+        inverse fft back.
+        """
+        if not isinstance(right, Wave):
+            raise TypeError, "right must be a wave"
+        npoints = self._nframes
+        v = self.vector(npoints, channel=channel).fft()
+        w = right.vector(npoints, channel=channel).fft()
+        k = v + w
+        i = k.inv_fft()
+        conv = self.__copy__()
+        conv.set_values(list(i))
+        conv._name = "convolution of %s and %s"%(self._name, right._name)
+        return conv

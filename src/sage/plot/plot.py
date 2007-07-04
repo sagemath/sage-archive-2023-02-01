@@ -119,19 +119,15 @@ TODO:
        the rgbcolor.
 """
 
-#*****************************************************************************
-#  Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com> and William Stein <wstein@ucsd.edu>
-#
+############################################################################
+#  Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com> and William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-import pdb
+############################################################################
 
 from sage.structure.sage_object import SageObject
 
-## IMPORTANT: Do not import matplotlib at module scope.  It takes a
+## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingliy long time to initialize itself.  It's better if it is
 ## imported in functions, so it only gets started if it is actually
 ## going to be used.
@@ -2683,6 +2679,7 @@ class GraphicsArray(SageObject):
     def __init__(self, array):
         if not isinstance(array, (list, tuple)):
             raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+        array = list(array)
         self._glist = []
         self._rows = len(array)
         if self._rows > 0:
@@ -2911,46 +2908,4 @@ def rainbow(n):
         elif h == 5:
             R.append(float_to_html(1.,0.,1. - r))
     return R
-
-
-
-#####################################
-def plot_animated_gif(G, delay=20, outfile=None, iterations=0,
-                      xmin=None, xmax=None, ymin=None, ymax=None, *args, **kwds):
-    """
-    Returns an animated gif composed from rendering the
-    graphics objects in the list G.
-
-    This function will only work if the Imagemagick command line tools
-    package is installed, i.e., you have the"convert" command.
-
-    INPUT:
-        G -- a list of plot objects
-        delay -- (default: 20) delay in hundredths of a second between frames
-        outfile -- file that the animated gif gets saved to
-        iterations -- integer (default: 0); number of iterations of
-                      animation.  If 0, loop forever.
-        other options -- all are passed to the save command,
-                         which is called on each input.
-
-    AUTHOR:
-        -- William Stein
-    """
-    if not outfile:
-        outfile = sage.misc.misc.graphics_filename(ext='gif')
-    if len(G) == 0:
-        raise ValueError, "G must be nonempty"
-    d = sage.misc.misc.tmp_dir()
-    if xmin is None: xmin = G[0].xmin()
-    if xmax is None: xmax = G[0].xmax()
-    if ymin is None: ymin = G[0].ymin()
-    if ymax is None: ymax = G[0].ymax()
-    for i in range(len(G)):
-        filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
-        G[i].save(filename + '.png', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, *args, **kwds)
-    if not outfile.endswith('.gif'):
-        outfile += '.gif'
-    outfile = os.path.abspath(outfile)
-    cmd = 'cd "%s"; convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
-    os.system(cmd)
 

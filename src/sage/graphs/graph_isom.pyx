@@ -296,13 +296,25 @@ def sat225(Pi, n):
 
 cdef degree(int** G, v, W):
     """
-    Returns the number of edges from v to vertices in W, i.e. the degree of v
+    Returns the number of edges from vertices in W to v, i.e. the degree of v
     with respect to W. W is usually a cell in a partition, but needs only be
     a subset of the vertex set.
     """
     cdef int i = 0
     for u in W:
         if G[u][v]:
+            i += 1
+    return i
+
+cdef degree_inv(int** G, v, W):
+    """
+    Returns the number of edges from v to vertices in W, i.e. the out-degree of v
+    with respect to W. W is usually a cell in a partition, but needs only be
+    a subset of the vertex set.
+    """
+    cdef int i = 0
+    for u in W:
+        if G[v][u]:
             i += 1
     return i
 
@@ -373,7 +385,7 @@ def replace_in(Pi, k, L):
     for j in Pi[k+1:]: PiNew.append(j)
     return PiNew
 
-cdef sort_by_degree(int** G, A, B):
+cdef sort_by_degree(int** G, A, B, dig):
     """
     Assuming A and B are subsets of the vertex set of G, returns an ordered
     partition of A such that degree(x,B) < degree(y,B) iff x occurs in an
@@ -382,13 +394,26 @@ cdef sort_by_degree(int** G, A, B):
     ddict = {}
     for a in A:
         dd = degree(G, a, B)
-        if ddict.has_key(dd):
+        try:
             ddict[dd].append(a)
-        else:
+        except:
             ddict[dd] = [a]
-    return ddict.values()
+    if dig:
+        ee = []
+        for part in ddict.values():
+            edict = {}
+            for a in part:
+                dd = degree_inv(G, a, B)
+                try:
+                    edict[dd].append(a)
+                except:
+                    edict[dd] = [a]
+            ee += edict.values()
+        return ee
+    else:
+        return ddict.values()
 
-cdef refine(int** G, Pi, alpha):
+cdef refine(int** G, Pi, alpha, dig):
     """
     The key refinement procedure. Given a graph G, a partition Pi of the
     vertex set, and a collection alpha of disjoint subsets of the vertex set,
@@ -416,7 +441,7 @@ cdef refine(int** G, Pi, alpha):
         k = 0
         r = len(PiT)
         while k < r:
-            X = sort_by_degree(G, PiT[k], W)
+            X = sort_by_degree(G, PiT[k], W, dig)
             s = len(X)
             if s != 1:
                 t = 0
@@ -458,14 +483,14 @@ def comp(Pi, v):
                 L.append(vv)
         return replace_in(Pi, i, [[v], L])
 
-cdef perp(int** G, Pi, v):
+cdef perp(int** G, Pi, v, dig):
     """
     Refines the partition Pi by cutting out a vertex, then using refine,
     comparing against only that vertex.
     """
-    return refine(G, comp(Pi, v), [[v]])
+    return refine(G, comp(Pi, v), [[v]], dig)
 
-cdef partition_nest(int** G, Pi, V):
+cdef partition_nest(int** G, Pi, V, dig):
     """
     Given a sequence of vertices V = (v_1,...,v_{m-1}) of a graph G, and a
     partition Pi, the partition nest derived from G, Pi, and V is defined to
@@ -478,9 +503,9 @@ cdef partition_nest(int** G, Pi, V):
 
     C.f. 2.9 in [1].
     """
-    L = [refine(G, Pi, Pi)]
+    L = [refine(G, Pi, Pi, dig)]
     for i in range(len(V)):
-        L.append(perp(G, L[i], V[i]))
+        L.append(perp(G, L[i], V[i], dig))
     return L
 
 def first_smallest_non_trivial(Pi):
@@ -1081,6 +1106,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     e = {}
     zf = {}
     zb = {}
+    Theta = []
     output = []
     if verbosity > 1:
         t = cputime()
@@ -1094,6 +1120,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print '-----'
         if verbosity > 2:
             print 'k: ' + str(k)
+            print 'eta: ' + str(eta)
             print 'nu: ' + str(nu)
             print 'rho: ' + str(rho)
         if verbosity > 4:
@@ -1101,7 +1128,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print 'hh: ' + str(hh)
             print 'hb: ' + str(hb)
             print 'h: ' + str(h)
-            print 'eta: ' + str(eta)
             print 'zb: ' + str(zb)
             print 'hzb: ' + str(hzb)
             print 'hzf: ' + str(hzf)
@@ -1110,6 +1136,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             print 'tvh: ' + str(tvh)
             print 'W: ' + str(W)
             print 'Lambda: ' + str(Lambda)
+            print 'Theta: ' + str(Theta)
         if state == 1:
             if verbosity > 0: print 'state: 1'
             if verbosity > 1:
@@ -1122,7 +1149,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             index = 0
             l = 0
             Theta = [[i] for i from 0 <= i < n]
-            nu[1] = refine(M, Pi, Pi)
+            nu[1] = refine(M, Pi, Pi, dig)
             hh = 2
             if not dig:
                 if sat225(nu[1], n): hh = 1
@@ -1139,7 +1166,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 t = cputime(t)
                 print 'time:', t
             k += 1
-            nu[k] = perp(M, nu[k-1], v[k-1])
+            nu[k] = perp(M, nu[k-1], v[k-1], dig)
             Lambda[k] = indicator(M, Pi, nu.values(), k, n)
             if h == 0: state = 5
             else:
@@ -1559,3 +1586,44 @@ def all_labeled_digraphs_with_loops(n):
         Glist.append(G)
     return Glist
 
+def all_labeled_digraphs(n):
+    """
+    EXAMPLES:
+        sage: import sage.graphs.graph_isom
+        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs
+        sage: from sage.graphs.graph import enum
+        sage: Glist = {}
+        sage: Giso  = {}
+        sage: for n in range(1,4): # long time (~130 secs)
+        ...       Glist[n] = all_labeled_digraphs(n)
+        ...       Giso[n] = []
+        ...       for g in Glist[n]:
+        ...           a, b = search_tree(g, [range(n)], dig=True)
+        ...           inn = False
+        ...           for gi in Giso[n]:
+        ...               if enum(b) == enum(gi):
+        ...                   inn = True
+        ...           if not inn:
+        ...               Giso[n].append(b)
+        sage: for n in Giso:
+        ...       print n, len(Giso[n])
+        1 1
+        2 3
+        3 16
+    """
+    TE = []
+    for i in range(n):
+        for j in range(n):
+            if i != j: TE.append((i, j))
+    m = len(TE)
+    Glist= []
+    for i in range(2**m):
+        G = DiGraph(loops=True)
+        G.add_vertices(range(n))
+        b = Integer(i).binary()
+        b = '0'*(m-len(b)) + b
+        for j in range(m):
+            if int(b[j]):
+                G.add_arc(TE[j])
+        Glist.append(G)
+    return Glist

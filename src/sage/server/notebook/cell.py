@@ -112,8 +112,8 @@ class Cell(Cell_generic):
         if not id is None:
             self.set_id(id)
 
-    def update_html_output(self):
-        self.__out_html = self.files_html()
+    def update_html_output(self, output=''):
+        self.__out_html = self.files_html(output)
 
     def id(self):
         return self.__id
@@ -557,7 +557,7 @@ class Cell(Cell_generic):
             self.__url_to_self = '/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
             return self.__url_to_self
 
-    def files_html(self, out=''):
+    def files_html(self, out):
         dir = self.directory()
         D = os.listdir(dir)
         D.sort()

@@ -52,7 +52,8 @@ WARN_THRESHOLD = 100
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
-SC='\x01'
+#SC='\x01'
+SC="__SAGE__"
 SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
@@ -696,7 +697,7 @@ class Worksheet:
                 C.set_input_text(input)
                 C.set_output_text(output, '')
                 if html:
-                    C.update_html_output()
+                    C.update_html_output(output)
                 cells.append(C)
 
         if len(cells) == 0:   # there must be at least one cell.

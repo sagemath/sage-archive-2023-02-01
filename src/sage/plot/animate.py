@@ -12,7 +12,7 @@ We plot a circle shooting up to the right:
 
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
     ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
-    sage: a.save()
+    sage: a.save('sage.gif')
 
 """
 
@@ -95,10 +95,10 @@ class Animation(SageObject):
             ...
             sage: a
             Animation with 10 frames
-            sage: a.save()
+            sage: a.save('sage.gif')
             sage: a[3:7]
             Animation with 4 frames
-            sage: a[3:7].save()
+            sage: a[3:7].save('sage.gif')
         """
         return Animation(self.__frames.__getslice__(*args), xmin=self.__xmin,
                        xmax = self.__xmax, ymin = self.__ymin,
@@ -124,12 +124,12 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1])
-            sage: a.save()
+            sage: a.save('sage.gif')
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2])
-            sage: b.save()
-            sage: (a*b).save()
-            sage: (a+b).save()
+            sage: b.save('sage.gif')
+            sage: (a*b).save('sage.gif')
+            sage: (a+b).save('sage.gif')
         """
         if not isinstance(other, Animation):
             other = Animation(other)
@@ -165,12 +165,12 @@ class Animation(SageObject):
         We add and multiply two animations.
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
-            sage: a.save()
+            sage: a.save('sage.gif')
             sage: b = animate([circle((0,i),1,hue=0,thickness=20*i) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2], axes=False)
-            sage: b.save()
-            sage: (a*b).save()
-            sage: (a+b).save()
+            sage: b.save('sage.gif')
+            sage: (a*b).save('sage.gif')
+            sage: (a+b).save('sage.gif')
         """
         if not isinstance(other, Animation):
             other = Animation(other)
@@ -225,7 +225,7 @@ class Animation(SageObject):
             sage: a = animate(v, xmin=0, ymin=0)
             sage: a
             Animation with 4 frames
-            sage: a.save()
+            sage: a.save('sage.gif')
 
             sage: g = a.graphics_array()
             sage: g
@@ -235,7 +235,7 @@ class Animation(SageObject):
             sage: g = a.graphics_array(ncols=2)
             sage: g
             Graphics Array of size 2 x 2
-            sage: g.save()
+            sage: g.save('sage.png')
         """
         n = len(self.__frames)
         ncols = int(ncols)

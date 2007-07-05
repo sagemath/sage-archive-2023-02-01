@@ -71,21 +71,29 @@ def construct_skeleton(connection):
             skeleton[table[0]][column[1]]['index'] = True
     return skeleton
 
-def table_skel_to_col_list(table_dict):
-    s = ''
+def skel_to_col_attr_list(table_dict):
+    s = []
     for col in table_dict:
-        s += col + ', '
-    s = s.rstrip(', ')
-    print s
+        s.append((col, table_dict[col]['sql'], table_dict[col]['primary_key']))
     return s
 
-def table_skel_to_attr_list(table_dict):
-    s = ''
-    for col in table_dict:
-        s += col + ' ' + table_dict[col]['sql'] + ', '
-    s = s.rstrip(', ')
-    print s
-    return s
+def new_table_set_col_attr(connection, table_name, table_skeleton):
+    statement = ''
+    for col in table_skeleton:
+        if table_skeleton[col].has_key('index'):
+            if table_skeleton[col]['index']:
+                statement += 'CREATE INDEX %s ON %s (%s) '%(col, table_name, col)
+        else:
+            table_skeleton[col]['index'] = False
+        """
+        SHOULDN'T NEED THE FOLLOWING ANYMORE...
+        if table_skeleton[col].has_key('primary_key'):
+            if table_skeleton[col]['primary_key']:
+                pass # TODO: don't pass!
+        else:
+            table_skeleton[col]['primary_key'] = False
+        """
+    connection.execute(statement)
 
 class GenericSQLQuery(SageObject):
     """
@@ -185,6 +193,9 @@ class SQLQuery(GenericSQLQuery):
 
     def intersect(self, other, join_table=None, join_dict=None):
         """
+        TODO : Consider for a while and then fix the join problem
+               (Apply same changes to union function)
+
         join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
         join_table -- base table to join on
         """
@@ -343,8 +354,21 @@ class SQLDatabase(GenericSQLDatabase):
                         else:
                             print "Column attributes were ignored for table %s, column %s -- column is already in table."%(table, column)
 
+    def get_skeleton(self):
+        # debugging version of this function...
+        # when done debugging, should just return instance field variable.
+        return construct_skeleton(self.__connection__)
+
+    def get_cursor(self):
+        return self.__connection__.cursor()
+
+    def get_connection(self):
+        return self.__connection__
+
     def create_table(self, table_name, table_skeleton):
         """
+        MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
+        KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*.
 
         INPUT:
             table_name -- deurrrrrrrrrrr
@@ -360,7 +384,6 @@ class SQLDatabase(GenericSQLDatabase):
         {'col1': {'sql':'INTEGER', 'index':False, 'primary_key':False}, ...}
 
         """
-
         if self.__skeleton__.has_key(table_name):
             raise ValueError("Database already has a table named %s."%table_name)
 
@@ -368,133 +391,247 @@ class SQLDatabase(GenericSQLDatabase):
         for col in table_skeleton:
             type = table_skeleton[col]['sql']
             if verify_type(type):
-                create_statement += col + ' ' + type + ', '
+                if table_skeleton[col]['primary_key']:
+                    create_statement += col + ' ' + type + ' primary key, '
+                else:
+                    create_statement += col + ' ' + type + ', '
         create_statement = create_statement.rstrip(', ') + ') '
 
-        for col in table_skeleton:
-            if table_skeleton[col].has_key('index'):
-                if table_skeleton[col]['index']:
-                    create_statement += 'CREATE INDEX %s ON %s (%s) '%(col, table_name, col)
-            else:
-                table_skeleton[col]['index'] = False
-            if table_skeleton[col].has_key('primary_key'):
-                if table_skeleton[col]['primary_key']:
-                    pass # TODO: don't pass!
-            else:
-                table_skeleton[col]['primary_key'] = False
-
-        cur = self.__connection__.cursor()
-        exe = cur.execute(create_statement)
-
+        self.__connection__.execute(create_statement)
+        new_table_set_col_attr(self.__connection__, table_name, table_skeleton)
         self.__skeleton__[table_name] = table_skeleton
 
-    def get_skeleton(self):
-        return construct_skeleton(self.__connection__)
-
-    def add_column(self, table, col_name, attr_dict, default):
+    def add_column(self, table, col_name, attr_dict, default='NULL'):
         """
         Takes a while, thanks to SQLite...
 
         """
-        from copy import copy
-        d = copy(self.__skeleton__[table])
-        d[col_name] = attr_dict
+        # TODO : Check input!
 
-        original = table_skel_to_col_list(self.__skeleton__[table])
-        more = table_skel_to_col_list(d)
-        more_attr = table_skel_to_attr_list(d)
+        # Get an ordered list:
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+        # Update the skeleton:
+        self.__skeleton__[table][col_name] = attr_dict
 
-        self.__connection__.execute('BEGIN TRANSACTION')
-        sss = 'create temporary table spam(%s)'%more_attr
-        print sss
-        self.__connection__.execute(sss)
-        ss = 'insert into spam select %s, NULL from %s'%(original, table)
-        print ss
-        self.__connection__.execute(ss)
+        original = ''
+        for col in cur_list:
+            original += col[0] +', '
+        original = original.rstrip(', ')
+
+        more = original + ', ' + col_name
+        more_attr = ''
+        for col in cur_list:
+            if col[2]: # If primary key:
+                more_attr += col[0] + ' ' + col[1] + ' primary key, '
+            else:
+                more_attr += col[0] + ' ' + col[1] + ', '
+        more_attr += col_name + ' ' + attr_dict['sql']
+
+        # Silly SQLite -- we have to make a temp table to hold info...
+        self.__connection__.execute('create temporary table spam(%s)'%more_attr)
+        self.__connection__.execute('insert into spam select %s, %s from %s'%(original, default, table))
         self.__connection__.execute('drop table %s'%table)
-        self.__connection__.execute('COMMIT')
+        self.__connection__.execute('create table %s (%s)'%(table,more_attr))
 
+        # Update indices in new table
+        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
 
-        self.create_table(table, d)
+        # Now we can plop our data into the *new* table:
+        self.__connection__.execute('insert into %s select %s from spam'%(table, more))
+        self.__connection__.execute('drop table spam')
+        self.__connection__.execute('VACUUM')
 
-        statement  = 'BEGIN TRANSACTION;\n'
-        statement += 'insert into %s select %s from spam;\n'%(table, more)
-        statement += 'drop table spam;\n'
-        statement += 'COMMIT;\n'
-        statement += 'VACUUM;\n'
-        cur = self.__connection__.cursor()
-        exe = cur.execute(statement)
+    def drop_column(self, table, col_name):
+        """
+        Takes a while, thanks to SQLite...
 
-    def drop_column(self, column):
-        pass
+        """
+        # TODO : Check input!
+
+        # Update the skeleton:
+        self.__skeleton__[table].pop(col_name)
+        # Get an ordered list (without the column we're deleting):
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+
+        less = ''
+        for col in cur_list:
+            less += col[0] +', '
+        less = less.rstrip(', ')
+
+        less_attr = ''
+        less_attr = ''
+        for col in cur_list:
+            if col[2]: # If primary key:
+                less_attr += col[0] + ' ' + col[1] + ' primary key, '
+            else:
+                less_attr += col[0] + ' ' + col[1] + ', '
+        less_attr = less_attr.rstrip(', ')
+
+        # Silly SQLite -- we have to make a temp table to hold info...
+        self.__connection__.execute('create temporary table spam(%s)'%less_attr)
+        self.__connection__.execute('insert into spam select %s from %s'%(less, table))
+        self.__connection__.execute('drop table %s'%table)
+        self.__connection__.execute('create table %s (%s)'%(table,less_attr))
+
+        # Update indices in new table
+        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+
+        # Now we can plop our data into the *new* table:
+        self.__connection__.execute('insert into %s select %s from spam'%(table, less))
+        self.__connection__.execute('drop table spam')
+        self.__connection__.execute('VACUUM')
+
+    def rename_table(self, table, new_name):
+        # TODO : Check input!
+        self.__connection__.execute('alter table %s rename to %s'%(table, new_name))
+
+        # Update skeleton:
+        self.__skeleton__[new_name] = self.__skeleton__[table]
+        self.__skeleton__.pop(table)
 
     def drop_table(self, table_name):
-        # bad input check?
+        # TODO : bad input check?
 
-        cur = self.__connection__.cursor()
-        exe = cur.execute('drop table ' + table_name)
-        # UPDATE SKELETON
+        self.__connection__.execute('drop table ' + table_name)
+
+        # Update Skeleton
+        self.__skeleton__.pop(table_name)
 
     def make_index(self, col_name, table_name, unique=False):
-        # bad input check?
+        # TODO : bad input check?
         if unique:
             index_string = 'create unique index ' + col_name + ' on ' + table_name + ' (' + col_name + ')'
         else:
             index_string = 'create index ' + col_name + ' on ' + table_name + ' (' + col_name + ')'
         cur = self.__connection__.cursor()
         exe = cur.execute(index_string)
-        # UPDATE SKELETON
 
-    def drop_index(self, index_name):
-        # bad input check?
+        # Update Skeleton
+        self.__skeleton__[table_name][col_name]['index'] = True
+
+    def drop_index(self, table_name, index_name):
+        # TODO : bad input check?
 
         cur = self.__connection__.cursor()
         exe = cur.execute('drop index ' + index_name)
-        # UPDATE SKELETON
 
-    def make_primary_key(self):
-        # don't currently know how
-        pass
-        # UPDATE SKELETON
+        # Update Skeleton
+        self.__skeleton__[table_name][index_name]['index'] = False
 
-    def drop_primary_key(self):
-        # don't currently know how
-        pass
-        # UPDATE SKELETON
+    def make_primary_key(self, table, col_name):
+        """
+        WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
+        *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
+        BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
+        WELCOME.  (OR JUST SEND A PATCH...)
+
+        MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
+        KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*.
+        """
+        # TODO : Check input!
+
+        # Update the skeleton:
+        self.__skeleton__[table][col_name]['primary_key'] = True
+        # Get an ordered list (with the primary key info updated):
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+
+        new = ''
+        for col in cur_list:
+            new += col[0] +', '
+        new = new.rstrip(', ')
+
+        new_attr = ''
+        new_attr = ''
+        for col in cur_list:
+            if col[2]: # If primary key:
+                new_attr += col[0] + ' ' + col[1] + ' primary key, '
+            else:
+                new_attr += col[0] + ' ' + col[1] + ', '
+        new_attr = new_attr.rstrip(', ')
+
+        # Silly SQLite -- we have to make a temp table to hold info...
+        self.__connection__.execute('create temporary table spam(%s)'%new_attr)
+        self.__connection__.execute('insert into spam select %s from %s'%(new, table))
+        self.__connection__.execute('drop table %s'%table)
+        self.__connection__.execute('create table %s (%s)'%(table,new_attr))
+
+        # Update indices in new table
+        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+
+        # Now we can plop our data into the *new* table:
+        self.__connection__.execute('insert into %s select %s from spam'%(table, new))
+        self.__connection__.execute('drop table spam')
+        self.__connection__.execute('VACUUM')
+
+    def drop_primary_key(self, table, col_name):
+        """
+        WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
+        *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
+        BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
+        WELCOME.  (OR JUST SEND A PATCH...)
+
+        """
+        # TODO : Check input!
+
+        # Update the skeleton:
+        self.__skeleton__[table][col_name]['primary_key'] = False
+        # Get an ordered list (with the primary key info updated):
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+
+        new = ''
+        for col in cur_list:
+            new += col[0] +', '
+        new = new.rstrip(', ')
+
+        new_attr = ''
+        new_attr = ''
+        for col in cur_list:
+            if col[2]: # If primary key:
+                new_attr += col[0] + ' ' + col[1] + ' primary key, '
+            else:
+                new_attr += col[0] + ' ' + col[1] + ', '
+        new_attr = new_attr.rstrip(', ')
+
+        # Silly SQLite -- we have to make a temp table to hold info...
+        self.__connection__.execute('create temporary table spam(%s)'%new_attr)
+        self.__connection__.execute('insert into spam select %s from %s'%(new, table))
+        self.__connection__.execute('drop table %s'%table)
+        self.__connection__.execute('create table %s (%s)'%(table,new_attr))
+
+        # Update indices in new table
+        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+
+        # Now we can plop our data into the *new* table:
+        self.__connection__.execute('insert into %s select %s from spam'%(table, new))
+        self.__connection__.execute('drop table spam')
+        self.__connection__.execute('VACUUM')
 
     def add_row(self, table_name, values=None):
         """
         values should be a tuple, length and order of columns in given table
         """
-        # CHECK FOR BAD INPUT -- really, sql will throw error if user is retarded though
+        # TODO : CHECK FOR BAD INPUT -- really, sql will throw error if user is retarded though
 
         insert_string = 'insert into ' + table_name + ' values ' + str(values)
         cur = self.__connection__.cursor()
         exe = cur.execute(insert_string)
 
-
-    def drop_row(self):
+    def delete_rows(self, col_name, queryish_dict):
         """
-        possible?  probably
-        don't currently know how
+        TODO :
+        this is going to be really similar to the query string stuff.
+        we might even want to take a query as input...  This needs more
+        consideration.
+
+        delete from table_name where blah=val
         """
         pass
 
     def add_data(self):
         """
+        TODO :
         i.e.: from .sql file...
-        """
-        pass
-
-    def clear_data(self):
-        # named this on the fly... how do we actually want to do it?
-        """
-        easy to clear database (just rebuild from skeleton or use sql fcn)
-        but do we want to have another to delete structure?  kind of redundant...
-        lots of options here -- i.e. clear_data_from_table...
-        maybe just keep structure flag in drop_table?
-
-        or how about a get_skeleton function...?
+        still looking for this one...
         """
         pass
 

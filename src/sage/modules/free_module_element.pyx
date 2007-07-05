@@ -72,6 +72,7 @@ TESTS:
     (168, 194, 110, 116, 102)
 """
 
+import math
 import operator
 
 include '../ext/cdefs.pxi'
@@ -184,7 +185,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     if hasattr(arg1, '_vector_'):
         return arg1._vector_(arg0)
 
-    if sage.rings.integer.is_Integer(arg1):
+    if sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long)):
         if arg2 is None:
             arg1 = [0]*arg1
         else:
@@ -512,6 +513,45 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if c != 0:
                 e[i] = c
         return e
+
+    #############################
+    # Plotting
+    #############################
+    def plot(self, xmin=0, xmax=None, eps=1, res=None, connect=True, **kwds):
+        """
+        INPUT:
+            xmin -- (default: 0) start x position to start plotting
+            xmax -- (default: depends on eps) stop x position to stop plotting
+            eps -- (default: 1) we view this vector as defining a function
+                   at the points xmin, xmin + eps, xmin + 2*eps, ...,
+            res -- (default: all points) total number of points to include
+                   in the graph
+            connect -- (default: True) if True draws a line; otherwise draw
+                       a list of points.
+
+        EXAMPLES:
+            sage: eps=0.1
+            sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
+            sage: plot(v, eps=eps, xmax=5, hue=0).save('sage.png')
+            sage: v.plot(eps=eps, xmax=5, hue=0).save('sage.png')
+        """
+        if xmax is None:
+            xmax = xmin + eps*self.degree()
+        v = []
+        x = xmin
+        if res is None:
+            res = self.degree()
+        for i in range(0, self.degree(), int(math.ceil(self.degree()/res))):
+            y = float(self[i])
+            if x > xmax:
+                break
+            v.append((x,y))
+            x += eps
+        from sage.plot.all import line, points
+        if connect:
+            return line(v, **kwds)
+        else:
+            return points(v, **kwds)
 
     def dot_product(self, right):
         """

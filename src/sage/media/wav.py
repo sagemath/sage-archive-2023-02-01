@@ -69,7 +69,10 @@ class Wave(SageObject):
             self._framerate = wv.getframerate()
             self._nframes = wv.getnframes()
             self._bytes = wv.readframes(self._nframes)
-            self._channel_data = self._separate_channels()
+            from channels import _separate_channels
+            self._channel_data = _separate_channels(self._bytes,
+                                                   self._width,
+                                                   self._nchannels)
             wv.close()
         elif kwds:
             try:
@@ -84,6 +87,7 @@ class Wave(SageObject):
                 raise KeyError, msg + " invalid input to Wave initializer"
         else:
             raise ValueError, "Must give a filename"
+
 
     def save(self, filename='sage.wav'):
         r"""
@@ -136,30 +140,6 @@ class Wave(SageObject):
         """
         return self._channel_data[n]
 
-    def _separate_channels(self):
-        """
-        Separates the channels. This is an internal helper method for
-        precomputing some data while initializing the wav object.
-        """
-        data = self._bytes
-        l = len(data) / (self._width)
-        channel_data = [[] for i in xrange(self._nchannels)]
-        if self._width == 1:
-            # handle the one byte case
-            for n in xrange(l):
-                channel_data[n % self._nchannels].append(ord(data[n])-127)
-
-        elif self._width == 2:
-            for n in xrange(l):
-                # compute the value as an integer
-                x = ord(data[2*n]) + 256 * ord(data[2*n + 1])
-                if x > 32768:
-                    x -= 65536
-                channel_data[n % self._nchannels].append(x)
-        else:
-            raise NotImplementedError, "greater than 16-bit wavs not supported"
-
-        return channel_data
 
     def getnchannels(self):
         """
@@ -237,9 +217,9 @@ class Wave(SageObject):
         npoints = self._normalize_npoints(npoints)
         # figure out on what intervals to sample the data
         seconds = float(self._nframes) / float(self._width)
-        sample_step = seconds / float(npoints)
+        frame_duration = seconds / (float(npoints) * float(self._framerate))
 
-        domain = [float(n * sample_step) / float(self._framerate) for n in xrange(npoints)]
+        domain = [n * frame_duration for n in xrange(npoints)]
         return domain
 
     def values(self, npoints=None, channel=0):
@@ -251,12 +231,11 @@ class Wave(SageObject):
         # now, how many of the frames do we sample?
         frame_skip = int(self._nframes / npoints)
         # the values of the function at each point in the domain
+        cd = self.channel_data(channel)
 
-        c = self.channel_data(channel)
-        values = [c[frame_skip*i] for i in xrange(npoints)]
         # now scale the values
         scale = float(1 << (8*self._width -1))
-        values = [float(s) / scale for s in values]
+        values = [cd[frame_skip*i]/scale for i in xrange(npoints)]
         return values
 
     def set_values(self, values, channel=0):

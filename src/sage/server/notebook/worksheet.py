@@ -702,6 +702,8 @@ class Worksheet:
 
         if len(cells) == 0:   # there must be at least one cell.
             cells = [self._new_cell()]
+        elif isinstance(cells[-1], TextCell):
+            cells.append(self._new_cell())
 
         self.__cells = cells
 

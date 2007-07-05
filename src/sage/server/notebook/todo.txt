@@ -1,5 +1,8 @@
 TODO for the new Twisted notebook
 
+[ ] pressing shift-enter in a cell before a text area still puts
+    the new input cell in the wrong place.  (i.e., after the text)
+
 [ ] sometimes restart doesn't seem to really work until hit
     shift-enter a few times :-(
 

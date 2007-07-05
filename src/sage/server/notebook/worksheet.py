@@ -484,7 +484,8 @@ class Worksheet:
             ' '.join(self.collaborators()) + ' '.join(self.viewers()) + ' ' + self.publisher() + \
             ' '.join(self.attached_data_files())
         E = E.lower()
-        for word in search.split():
+        words = split_search_string_into_keywords(search)
+        for word in words:
             if not word.lower() in E:
                 return False
         return True
@@ -2192,3 +2193,43 @@ def convert_seconds_to_meaningful_time_span(t):
 
 def convert_time_to_string(t):
     return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
+
+
+def split_search_string_into_keywords(s):
+    """
+    The point of this function is to allow for searches like this:
+
+          "ws 7" foo bar  Modular  '"the" end'
+
+    i.e., where search terms can be in quotes and the different quote
+    types can be mixed.
+
+    INPUT:
+        s -- a string
+
+    OUTPUT:
+        list -- a list of strings
+    """
+    ans = []
+    while len(s) > 0:
+        word, i = _get_next(s, '"')
+        if i != -1:
+            ans.append(word)
+            s = s[i:]
+        word, j = _get_next(s, "'")
+        if j != -1:
+            ans.append(word)
+            s = s[j:]
+        if i == -1 and j == -1:
+            break
+    ans.extend(s.split())
+    return ans
+
+
+def _get_next(s, quote='"'):
+    i = s.find(quote)
+    if i != -1:
+        j = s[i+1:].find(quote)
+        if j != -1:
+            return s[i+1:i+1+j].strip(), i+1+j
+    return None, -1

@@ -897,7 +897,7 @@ class Notebook(SageObject):
         <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
-        """%(typ, '' if search is None else search, typ)
+        """%(typ, '' if search is None else search.replace('"',"'"), typ)
         return s
 
     def html_new_or_upload(self):

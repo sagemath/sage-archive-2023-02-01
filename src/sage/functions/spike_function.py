@@ -51,12 +51,19 @@ class SpikeFunction:
     def __call__(self, x):
         return self._eval(x)[0]
 
-    def plot_fft(self, samples=2**12, xmin=None, xmax=None,  **kwds):
+    def plot_fft_abs(self, samples=2**12, xmin=None, xmax=None,  **kwds):
         w = self.vector(samples = samples, xmin=xmin, xmax=xmax)
         xmin, xmax = self._ranges(xmin, xmax)
         z = w.fft()
         k = vector(RDF, [abs(z[i]) for i in range(int(len(z)/2))])
-        return k.plot(xmin=0, xmax=xmax, **kwds)
+        return k.plot(xmin=0, xmax=1, **kwds)
+
+    def plot_fft_arg(self, samples=2**12, xmin=None, xmax=None,  **kwds):
+        w = self.vector(samples = samples, xmin=xmin, xmax=xmax)
+        xmin, xmax = self._ranges(xmin, xmax)
+        z = w.fft()
+        k = vector(RDF, [(z[i]).arg() for i in range(int(len(z)/2))])
+        return k.plot(xmin=0, xmax=1, **kwds)
 
     def vector(self, samples=2**16, xmin=None, xmax=None):
         v = vector(RDF, samples)

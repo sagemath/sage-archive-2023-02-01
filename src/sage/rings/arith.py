@@ -2170,6 +2170,27 @@ class Moebius:
     def __repr__(self):
         return "The Moebius function"
 
+    def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the Moebius function.
+
+            INPUT:
+                xmin -- default: 0
+                xmax -- default: 50
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points (very helpful
+                        in seeing their order).
+                **kwds -- passed on
+        """
+        v = self.range(xmin, xmax + 1)
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
     def range(self, start, stop=None, step=None):
         """
         Return the the Moebius function evaluated

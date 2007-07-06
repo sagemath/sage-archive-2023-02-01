@@ -52,8 +52,8 @@ WARN_THRESHOLD = 100
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
-#SC='\x01'
-SC="__SAGE__"
+SC='\x01'
+#SC="__SAGE__"
 SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
@@ -756,7 +756,7 @@ class Worksheet:
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
         s += '<br>' + self.html_time_last_edited()
         if warn and username != 'guest' and not self.is_doc_worksheet():
-            s += '&nbsp;&nbsp;<span class="pingdown">Conflict WARNING!</span>'
+            s += '&nbsp;&nbsp;<span class="pingdown">(Someone else is viewing this worksheet)</span>'
         s += '</div>'
 
         return s

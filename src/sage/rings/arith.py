@@ -13,7 +13,7 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari, PariError
+from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
 
 import sage.rings.rational_field
 import sage.rings.rational
@@ -2120,7 +2120,7 @@ def Min(x):
         m=min(m,x[i])
     return m
 
-def moebius(n):
+class Moebius:
     r"""
     Returns the value of the Moebius function of abs(n), where n is an integer.
 
@@ -2128,10 +2128,16 @@ def moebius(n):
         $\mu(n)$ is 0 if $n$ is not square free, and otherwise equals $(-1)^r$,
         where $n$ has $r$ distinct prime factors.
 
+        For simplicity, if $n=0$ we define $\mu(n) = 0$.
+
+    IMPLEMENTATION:
+        Uses the PARI C library.
+
     INPUT:
         n -- an integer
     OUTPUT:
         0, 1, or -1
+
     EXAMPLES:
         sage: moebius(-5)
         -1
@@ -2145,14 +2151,71 @@ def moebius(n):
         1
         sage: moebius(7)
         -1
+
+        sage: moebius(0)   # potentially nonstandard!
+        0
     """
-    if n < 0:
-        n = -n
-    F = factor(n)
-    for _, e in F:
-        if e >= 2:
-            return 0
-    return (-1)**len(F)
+    def __call__(self, n):
+        if n == 0:
+            return integer.Integer(0)
+        return integer.Integer(pari(n).moebius().int_unsafe())
+    ##     if n < 0:
+    ##         n = -n
+    ##     F = factor(n)
+    ##     for _, e in F:
+    ##         if e >= 2:
+    ##             return 0
+    ##     return (-1)**len(F)
+
+    def __repr__(self):
+        return "The Moebius function"
+
+    def range(self, start, stop=None, step=None):
+        """
+        Return the the Moebius function evaluated
+        at the given range of values, i.e., the
+        image of the list range(start, stop, step)
+        under the Mobius function.
+
+        This is much faster than directly computing
+        all these values with a list comprehension.
+
+        EXAMPLES:
+            sage: v = moebius.range(-10,10); v
+            [1, 0, 0, -1, 1, -1, 0, -1, -1, 1, 0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+            sage: v == [moebius(n) for n in range(-10,10)]
+            True
+            sage: v = moebius.range(-1000, 2000, 4)
+            sage: v == [moebius(n) for n in range(-1000,2000, 4)]
+            True
+        """
+        if stop is None:
+            start, stop = 1, int(start)
+        else:
+            start = int(start)
+            stop = int(stop)
+        if step is None:
+            step = 1
+        else:
+            step = int(step)
+
+        Z = integer.Integer
+
+        if start <= 0 and 0 < stop and start % step == 0:
+            return self.range(start, 0, step) + [Z(0)] +\
+                   self.range(step, stop, step)
+
+        if step == 1:
+            v = pari('vector(%s, i, moebius(i-1+%s))'%(
+                stop-start, start))
+        else:
+            n = len(range(start, stop, step)) # stupid
+            v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
+                n, step, start))
+        w = vecsmall_to_intlist(v.Vecsmall())
+        return [Z(x) for x in w]
+
+moebius = Moebius()
 
 def farey(v, lim):
     """

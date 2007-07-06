@@ -74,9 +74,9 @@ class Texture_class(SageObject):
 
 
     def tachyon_str(self):
-        return "Texture Ambient %s Diffuse %s Specular %s Opacity %s\n" % (sum(self.ambient)/3, sum(self.diffuse)/3, sum(self.specular)/3, self.opacity) + \
-        "    Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
-        "    TexFunc 0"
+        return "    Texture Ambient %s Diffuse %s Specular %s Opacity %s\n" % (sum(self.ambient)/3, sum(self.diffuse)/3, sum(self.specular)/3, self.opacity) + \
+        "       Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
+        "       TexFunc 0"
 
     def x3d_str(self):
         return "<Appearance><Material diffuseColor='%s %s %s' shininess='%s' specularColor='%s %s %s'/></Appearance>" % \

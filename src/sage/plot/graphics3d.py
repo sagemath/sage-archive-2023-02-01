@@ -17,6 +17,9 @@ from sage.misc.functional import sqrt, atan
 from sage.functions.all import *
 from texture import *
 
+from sage.interfaces.tachyon import tachyon_rt
+
+
 default_texture = Texture()
 
 class Graphics3d_new(SageObject):
@@ -24,20 +27,22 @@ class Graphics3d_new(SageObject):
     def __add__(self, other):
         return Graphics3dGroup([self, other])
 
+    def transform(self, **kwds):
+        return TransformGroup([self], **kwds)
+
     def translate(self, *x):
         if isinstance(x[0], (tuple, list)):
             x = x[0]
-        return TransformGroup([self], trans=x)
-
+        return self.transform(trans=x)
 
     def scale(self, *x):
         if isinstance(x[0], (tuple, list)):
             x = x[0]
-        return TransformGroup([self], scale=x)
+        return self.transform(scale=x)
 
     def rotate(self, v, theta):
         vx, vy, vz = v
-        return TransformGroup([self], rot=[vx, vy, vz, theta])
+        return self.transform(rot=[vx, vy, vz, theta])
 
     def rotateX(self, theta):
         return self.rotate((1,0,0), theta)
@@ -62,6 +67,32 @@ class Graphics3d_new(SageObject):
 </X3D>
 """%(self.viewpoint().x3d_str(), self.x3d_str())
 
+    def tachyon(self):
+        return """
+begin_scene
+resolution 500 500
+
+
+           camera
+              zoom 1.0
+              aspectratio 1.0
+              antialiasing 1
+              raydepth 8
+              center  2.0 1.0 0.5
+              viewdir  -2.0 -1.0 -0.5
+              updir  0.0 0.0 1.0
+           end_camera
+
+
+        light center  4.0 3.0 2.0
+              rad 0.2
+              color  1.0 1.0 1.0
+
+
+    %s
+
+end_scene""" % self.tachyon_str(None)
+
     def viewpoint(self):
         return Viewpoint(0,0,6)
 
@@ -73,8 +104,18 @@ class Graphics3d_new(SageObject):
     def mtl_str(self):
         return "\n\n".join([t.mtl_str() for t in self.mtl_set()]) + "\n"
 
-    def mtl_set():
+    def mtl_set(self):
         return set()
+
+    def flatten(self, T=None):
+        if transform is None:
+            return self
+        else:
+            return self.transform(T=T)
+
+    def show(self):
+        tachyon_rt(self.tachyon(), "tmp.png", 0, True, '')
+
 
 class Viewpoint(Graphics3d_new):
 
@@ -90,6 +131,9 @@ class Graphics3dGroup(Graphics3d_new):
     def __init__(self, all=[]):
         self.all = all
 
+    def transform(self, **kwds):
+        return TransformGroup(self.all, **kwds)
+
     def tachyon_str(self, transform):
         return "\n".join([g.tachyon_str(transform) for g in self.all])
 
@@ -104,9 +148,21 @@ class Graphics3dGroup(Graphics3d_new):
     def mtl_set(self):
         return reduce(set.union, [g.mtl_set() for g in self.all])
 
+    def flatten(self, T=None):
+        if len(self.all) == 1:
+            return self.all[0].flatten(T)
+        all = []
+        for g in self.all:
+            g = g.flatten(T)
+            if type(g) is Graphics3dGroup:
+                all += g.all
+            else:
+                all.append(g)
+        return Graphics3dGroup(all)
+
 class TransformGroup(Graphics3dGroup):
 
-    def __init__(self, all=[], rot=None, trans=None, scale=None):
+    def __init__(self, all=[], rot=None, trans=None, scale=None, T=None):
         Graphics3dGroup.__init__(self, all)
         self._rot = rot
         self._trans = trans
@@ -115,6 +171,8 @@ class TransformGroup(Graphics3dGroup):
                 scale = scale[0]
             scale = (scale, scale, scale)
         self._scale = scale
+        if T is not None:
+            self.T = T
 
     def x3d_str(self):
         s = "<Transform"
@@ -151,6 +209,17 @@ class TransformGroup(Graphics3dGroup):
         except AttributeError:
             self.T = Transformation(self._scale, self._rot, self._trans)
             return self.T
+
+    def flatten(self):
+        all = []
+        for g in self.all:
+            g = g.flatten().transform(T=self.get_transformation())
+            if type(g) is Graphics3dGroup:
+                all += g.all
+            else:
+                all.append(g)
+        self.all = all
+
 
 class Transformation:
     def __init__(self, scale=(1,1,1),
@@ -231,7 +300,10 @@ class PrimativeObject(Graphics3d_new):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 
     def tachyon_str(self, transform):
-        return self.tachyon_geometry(transform) + self.texture.tachyon_str()
+        try:
+            return self.tachyon_geometry(transform) + "\n" + self.texture.tachyon_str()
+        except AttributeError:
+            return self.triangulation().tachyon_str(transform)
 
     def tachyon_geometry(self, transform):
         return self.triangulation().tachyon_geometry(transform)
@@ -253,8 +325,16 @@ class Light(PrimativeObject):
     def __init__(self, intensity=.3, **kwds):
         PrimativeObject.__init__(self, **kwds)
         self.intensity = intensity
+
     def x3d_geometry(self):
         return "<Light intensity='%s'/>"%("%s %s %s"%self.location, self.intensity)
+
+    def tachyon_str(self, transform):
+        return """
+    LIGHT CENTER %s %s %s
+    RAD 0.1
+    COLOR %s %s %s""" % (self.location[0], self.location[1], self.location[2],
+                         self.intensity, self.intensity, self.intensity)
 
 class Box(PrimativeObject):
     def __init__(self, *size, **kwds):
@@ -272,7 +352,7 @@ class Box(PrimativeObject):
         faces = [[(x, y, z), (-x, y, z), (-x,-y, z), ( x,-y, z)],
                  [(x, y, z), ( x, y,-z), (-x, y,-z), (-x, y, z)],
                  [(x, y, z), ( x,-y, z), ( x,-y,-z), ( x, y,-z)] ]
-        faces += [reversed([(-x,-y,-z) for x,y,z in face]) for face in faces]
+        faces += [list(reversed([(-x,-y,-z) for x,y,z in face])) for face in faces]
         return IndexFaceSet(faces)
 
 def ColorCube(size, colors):
@@ -348,9 +428,13 @@ class Sphere(PrimativeObject):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_geometry(self, transform):
-        cen = transform.transform_point((0,0,0))
-        radv = transform.transform_vector((1,0,0)) # Tachyon can't do ellipsoids, just scale uniform
-        rad = sqrt(sum([x*x for x in radv]))
+        if transform is None:
+            cen = (0,0,0)
+            rad = self.radius
+        else:
+            cen = transform.transform_point((0,0,0))
+            radv = transform.transform_vector((self.radius,0,0)) # Tachyon can't do ellipsoids, just scale uniform
+            rad = sqrt(sum([x*x for x in radv]))
         return """
 Sphere center %s %s %s
    Rad %s
@@ -406,6 +490,34 @@ class IndexFaceSet(PrimativeObject):
 </IndexedFaceSet>
 """%(coordIndex, points)
 
+    def tachyon_str(self, transform):
+        faces = self.getFaceList()
+        for face in faces:
+            if transform is not None:
+                face = [transform(p) for p in face]
+            s = """
+TRI
+    V0 %s %s %s
+    V1 %s %s %s
+    V2 %s %s %s
+                """ % (face[0][0], face[0][1], face[0][2],
+                       face[1][0], face[1][1], face[1][2],
+                       face[2][0], face[2][1], face[2][2])
+            s += "\n" + self.texture.tachyon_str()
+            if len(face) > 3:
+                for k in range(2, len(face)-1):
+                    s += """
+TRI
+    V0 %s %s %s
+    V1 %s %s %s
+    V2 %s %s %s
+                """ % (face[0][0], face[0][1], face[0][2],
+                       face[k][0], face[k][1], face[k][2],
+                       face[k+1][0], face[k+1][1], face[k+1][2])
+                    s += "\n" + self.texture.tachyon_str()
+            return s
+
+
     def obj_geometry(self, transform, point_list=None):
         if point_list is None:
             point_list = []
@@ -416,6 +528,8 @@ class IndexFaceSet(PrimativeObject):
         for face in faces:
             cur_face = "f"
             for p in face:
+                if transform is not None:
+                    p = transform(p)
                 try:
                     ix = point_index[p]
                 except KeyError:
@@ -424,8 +538,6 @@ class IndexFaceSet(PrimativeObject):
                     point_list.append(p)
                 cur_face += " %s"%(ix+1)
             face_list.append(cur_face)
-        if transform is not None:
-            point_list = [transform(p) for p in point_list]
         s = "\n".join(["v %s %s %s"%(p[0], p[1], p[2]) for p in point_list[start_index:]])
         s += "\n"
         s += "\n".join(face_list)

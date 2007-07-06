@@ -1,5 +1,5 @@
 r"""
-3D Graphics objects and plotting, esp. for integration with x3d
+3D Graphics objects and plotting.
 
 AUTHOR:
     -- Robert Bradshaw
@@ -7,12 +7,17 @@ AUTHOR:
 TODO:
    -- integrate tachyon
 """
+from random import randint
+
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan
 from sage.functions.all import *
+from texture import *
+
+default_texture = Texture()
 
 class Graphics3d_new(SageObject):
 
@@ -65,6 +70,12 @@ class Graphics3d_new(SageObject):
         f.write(self.x3d())
         f.close()
 
+    def mtl_str(self):
+        return "\n\n".join([t.mtl_str() for t in self.mtl_set()]) + "\n"
+
+    def mtl_set():
+        return set()
+
 class Viewpoint(Graphics3d_new):
 
     def __init__(self, *x):
@@ -84,6 +95,14 @@ class Graphics3dGroup(Graphics3d_new):
 
     def x3d_str(self):
         return "\n".join([g.x3d_str() for g in self.all])
+
+    def obj_str(self, transform, point_list=None):
+        if point_list is None:
+            point_list = []
+        return "\n\n".join([g.obj_str(transform, point_list) for g in self.all]) + "\n"
+
+    def mtl_set(self):
+        return reduce(set.union, [g.mtl_set() for g in self.all])
 
 class TransformGroup(Graphics3dGroup):
 
@@ -111,8 +130,20 @@ class TransformGroup(Graphics3dGroup):
         return s
 
     def tachyon_str(self, transform):
-        composite_transform = self.get_transformation() * transform
+        if transform is None:
+            composite_transform = self.get_transformation()
+        else:
+            composite_transform = self.get_transformation() * transform
         return "\n".join([g.tachyon_str(composite_transform) for g in self.all])
+
+    def obj_str(self, transform, point_list=None):
+        if point_list is None:
+            point_list = []
+        if transform is None:
+            composite_transform = self.get_transformation()
+        else:
+            composite_transform = self.get_transformation() * transform
+        return "\n\n".join([g.obj_str(composite_transform, point_list) for g in self.all])
 
     def get_transformation(self):
         try:
@@ -183,28 +214,40 @@ class Transformation:
         T.matrix = self.matrix * other.matrix
         return T
 
+    def __call__(self, p):
+        res = self.matrix * vector(RDF, [p[0], p[1], p[2], 1])
+        return tuple(res[:3])
 
 class PrimativeObject(Graphics3d_new):
     def __init__(self, **kwds):
         try:
-            self.color = kwds['color']
+            self.texture = kwds['texture']
+            if not isinstance(self.texture, Texture_class):
+                self.texture = Texture(self.texture)
         except KeyError:
-            self.color = [1,0,0]
+            self.texture = default_texture
 
     def x3d_str(self):
-        return "<Shape>" + self.x3d_geometry() + self.x3d_appearance() + "</Shape>\n"
-
-    def x3d_appearance(self):
-        return "<Appearance><Material diffuseColor='%s %s %s' shininess='0.1' specularColor='0.7 0.7 0.7'/></Appearance>"%(self.color[0], self.color[1], self.color[2])
+        return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 
     def tachyon_str(self, transform):
-        return self.tachyon_geometry(transform) + self.tachyon_appearance()
+        return self.tachyon_geometry(transform) + self.texture.tachyon_str()
 
-    def tachyon_appearance(self):
-        return """
-   Texture Ambient 0.2 Diffuse 0.8 Specular 0.0 Opacity 1.0
-      Color 1.0 0.0 0.0
-      TexFunc 0"""
+    def tachyon_geometry(self, transform):
+        return self.triangulation().tachyon_geometry(transform)
+
+    def obj_str(self, transform, point_list=None):
+        if point_list is None:
+            point_list = []
+        return "g obj%s\n\nusemtl "%randint(0,10000000) + self.texture.id + "\n" + self.obj_geometry(transform, point_list)
+
+    def obj_geometry(self, transform, point_list=None):
+        if point_list is None:
+            point_list = []
+        return self.triangulation().obj_geometry(transform, point_list)
+
+    def mtl_set(self):
+        return set([self.texture])
 
 class Light(PrimativeObject):
     def __init__(self, intensity=.3, **kwds):
@@ -221,6 +264,28 @@ class Box(PrimativeObject):
         self.size = size
     def x3d_geometry(self):
         return "<Box size='%s %s %s'/>"%self.size
+    def triangulation(self):
+        """
+        Returns an IndexFaceSet (which may be either triangles or quadrilaterals).
+        """
+        x, y, z = self.size
+        faces = [[(x, y, z), (-x, y, z), (-x,-y, z), ( x,-y, z)],
+                 [(x, y, z), ( x, y,-z), (-x, y,-z), (-x, y, z)],
+                 [(x, y, z), ( x,-y, z), ( x,-y,-z), ( x, y,-z)] ]
+        faces += [reversed([(-x,-y,-z) for x,y,z in face]) for face in faces]
+        return IndexFaceSet(faces)
+
+def ColorCube(size, colors):
+    if not isinstance(size, (tuple, list)):
+        size = (size, size, size)
+    box = Box(size)
+    faces = box.triangulation().getFaceList()
+    if len(colors) == 3:
+        colors = colors * 2
+    all = []
+    for k in range(6):
+        all.append(IndexFaceSet([faces[k]], texture=colors[k]))
+    return Graphics3dGroup(all)
 
 class Cone(PrimativeObject):
     def __init__(self, radius, height, **kwds):
@@ -229,6 +294,16 @@ class Cone(PrimativeObject):
         self.height = height
     def x3d_geometry(self):
         return "<Cone bottomRadius='%s' height='%s'/>"%(self.radius, self.height)
+    def triangulation(self, res=30):
+        def f(u, v):
+            if u == -1:
+                return (0,0,0)
+            elif u == 1:
+                return (0,0,self.height)
+            else:
+                return (self.radius*sin(v), self.radius*cos(v), 0)
+        twoPi = RDF(2*pi)
+        return ParametricSurface(f, [-1,0,1], [twoPi*k/res for k in range(res)] + [RDF(0)])
 
 class Cylinder(PrimativeObject):
     def __init__(self, radius, height, **kwds):
@@ -250,6 +325,20 @@ FCylinder
    Rad %s
         """%(cen[0], cen[1], cen[2], axis[0], axis[1], axis[2], rad)
 
+    def triangulation(self, res=30):
+        def f(u, v):
+            if u == -2:
+                return (0, 0, -self.height)
+            elif u == -1:
+                return (self.radius*sin(v), self.radius*cos(v), -self.height)
+            elif u == 1:
+                return (self.radius*sin(v), self.radius*cos(v), self.height)
+            else: # u == 2:
+                return (0, 0, self.height)
+        twoPi = RDF(2*pi)
+        return ParametricSurface(f, [-2,-1,1,2], [twoPi*k/res for k in range(res)] + [RDF(0)])
+
+
 class Sphere(PrimativeObject):
     def __init__(self, radius, **kwds):
         PrimativeObject.__init__(self, **kwds)
@@ -267,6 +356,19 @@ Sphere center %s %s %s
    Rad %s
         """%(cen[0], cen[1], cen[2], rad)
 
+    def triangulation(self, res=30, vres=None):
+        if vres is None:
+            vres = res
+        def f(u, v):
+            if u == -10:
+                return (0, 0, -self.radius)
+            elif u == 10:
+                return (0, 0, self.radius)
+            else:
+                return (self.radius*sin(v) * cos(u), self.radius*cos(v) * cos(u), self.radius * sin(u))
+        twoPi = RDF(2*pi)
+        return ParametricSurface(f, [-10] + [twoPi*k/vres - twoPi/4 for k in range(1,vres)] + [10], [twoPi*k/res for k in range(res)] + [RDF(0)])
+
 class Text(PrimativeObject):
     def __init__(self, string, **kwds):
         PrimativeObject.__init__(self, **kwds)
@@ -276,7 +378,12 @@ class Text(PrimativeObject):
 
 class IndexFaceSet(PrimativeObject):
     def __init__(self, faces, **kwds):
-        raise NotImplementedException, "No generic IndexFaceSet"
+        PrimativeObject.__init__(self, **kwds)
+        self.faces = faces
+
+    def getFaceList(self):
+        return self.faces
+
     def x3d_geometry(self):
         faces = self.getFaceList()
         point_index = {}
@@ -299,6 +406,32 @@ class IndexFaceSet(PrimativeObject):
 </IndexedFaceSet>
 """%(coordIndex, points)
 
+    def obj_geometry(self, transform, point_list=None):
+        if point_list is None:
+            point_list = []
+        faces = self.getFaceList()
+        point_index = {}
+        face_list = []
+        start_index = len(point_list)
+        for face in faces:
+            cur_face = "f"
+            for p in face:
+                try:
+                    ix = point_index[p]
+                except KeyError:
+                    ix = len(point_list)
+                    point_index[p] = ix
+                    point_list.append(p)
+                cur_face += " %s"%(ix+1)
+            face_list.append(cur_face)
+        if transform is not None:
+            point_list = [transform(p) for p in point_list]
+        s = "\n".join(["v %s %s %s"%(p[0], p[1], p[2]) for p in point_list[start_index:]])
+        s += "\n"
+        s += "\n".join(face_list)
+        s += "\n\n"
+        return s
+
 class RectangularGridSurface(IndexFaceSet):
     def __init__(self, **kwds):
         PrimativeObject.__init__(self, **kwds)
@@ -310,7 +443,12 @@ class RectangularGridSurface(IndexFaceSet):
             line = grid[i]
             last_line = grid[i-1]
             for j in range(1, len(line)):
-                faces.append([line[j], line[j-1], last_line[j-1], last_line[j]])
+                face = [line[j], line[j-1], last_line[j-1], last_line[j]]
+                if   face[3] == face[0]: face.remove(face[0])
+                elif face[0] == face[1]: face.remove(face[1])
+                elif face[1] == face[2]: face.remove(face[2])
+                elif face[2] == face[3]: face.remove(face[3])
+                faces.append(face)
         return faces
 
 
@@ -329,8 +467,8 @@ class Torus(ParametricSurface):
 # e.g  show(sum([Torus(1,.03,20,20, color=[1, float(t/30), 0]).rotate((1,1,1),t) for t in range(30)], Sphere(.3)))
     def __init__(self, R=1, r=.3, u_divs=10, v_divs=10, **kwds):
         twoPi = RDF(2*pi)
-        urange = [twoPi*k/u_divs for k in range(u_divs+1)]
-        vrange = [twoPi*k/v_divs for k in range(v_divs+1)]
+        urange = [twoPi*k/u_divs for k in range(u_divs)] + [RDF(0)]
+        vrange = [twoPi*k/v_divs for k in range(v_divs)] + [RDF(0)]
         ParametricSurface.__init__(self, None, urange, vrange, **kwds)
         self.R = RDF(R)
         self.r = RDF(r)

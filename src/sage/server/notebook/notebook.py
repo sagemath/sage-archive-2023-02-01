@@ -884,7 +884,7 @@ class Notebook(SageObject):
         s = """
         <span class="banner">
         <table width=100%%><tr><td>
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Error connecting to the SAGE server.</span></td>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Checking for SAGE server...</span></td>
         </tr></table>
         </span>
         """

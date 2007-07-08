@@ -1274,6 +1274,21 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Predicates
     ###################################################
 
+    def is_symmetric(self):
+        """
+        Returns True if this is a symmetric matrix.
+        """
+        if self._ncols != self._nrows: return False
+        # could be bigger than an int on a 64-bit platform, this
+        #  is the type used for indexing.
+        cdef Py_ssize_t i,j
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < i:
+                if self.get_unsafe(i,j) != self.get_unsafe(j,i):
+                    return False
+        return True
+
     def is_dense(self):
         """
         Returns True if this is a dense matrix.

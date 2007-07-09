@@ -26,7 +26,7 @@ Databases.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from sqlite3 import dbapi2 as sqlite
+from sqlite3 import dbapi2 as sqlite # TODO: maybe some comment why dbapi2 instead of sqlite3?
 import os
 import re
 from sage.misc.misc import tmp_filename
@@ -49,6 +49,23 @@ def verify_type(type):
     if type.upper() not in types:
         raise TypeError('%s is not a legal type.'%type)
     return True
+
+def verify_column(col_dict):
+    """
+    Verify that a column dict is in proper format*, and return a dict with
+    default values filled in.
+
+    * {'primary_key':False, 'index':False, 'sql':'REAL'}
+
+    """
+    d = {}
+    d['primary_key'] = col_dict.get('primary_key', False)
+    d['index'] = col_dict.get('index', False)
+    if not col_dict.has_key('sql'):
+        raise ValueError("SQL type must be declared, e.g. {'sql':'REAL'}.")
+    if verify_type(col_dict['sql']):
+        d['sql'] = col_dict['sql']
+    return d
 
 def verify_operator(operator):
     binaries = ['=','<=','>=','like','<','>','<>','regexp']
@@ -85,14 +102,6 @@ def new_table_set_col_attr(connection, table_name, table_skeleton):
                 statement += 'CREATE INDEX %s ON %s (%s) '%(col, table_name, col)
         else:
             table_skeleton[col]['index'] = False
-        """
-        SHOULDN'T NEED THE FOLLOWING ANYMORE...
-        if table_skeleton[col].has_key('primary_key'):
-            if table_skeleton[col]['primary_key']:
-                pass # TODO: don't pass!
-        else:
-            table_skeleton[col]['primary_key'] = False
-        """
     connection.execute(statement)
 
 class GenericSQLQuery(SageObject):
@@ -232,6 +241,7 @@ class SQLQuery(GenericSQLQuery):
 
     def union(self, other, join_table=None, join_dict=None):
         """
+        TODO: see intersection (look up!)
         join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
         """
 
@@ -406,7 +416,12 @@ class SQLDatabase(GenericSQLDatabase):
         Takes a while, thanks to SQLite...
 
         """
-        # TODO : Check input!
+        # Check input:
+        if not self.__skeleton__.has_key(table):
+            raise ValueError("Database has no table %s."%table)
+        if self.__skeleton__[table].has_key(col_name):
+            raise ValueError("Table %s already has column %s."%(table,col_name))
+        attr_dict = verify_column(attr_dict)
 
         # Get an ordered list:
         cur_list = skel_to_col_attr_list(self.__skeleton__[table])
@@ -446,7 +461,11 @@ class SQLDatabase(GenericSQLDatabase):
         Takes a while, thanks to SQLite...
 
         """
-        # TODO : Check input!
+        # Check input:
+        if not self.__skeleton__.has_key(table):
+            raise ValueError("Database has no table %s."%table)
+        if not self.__skeleton__[table].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table,col_name))
 
         # Update the skeleton:
         self.__skeleton__[table].pop(col_name)
@@ -482,7 +501,12 @@ class SQLDatabase(GenericSQLDatabase):
         self.__connection__.execute('VACUUM')
 
     def rename_table(self, table, new_name):
-        # TODO : Check input!
+        # Check input:
+        if not self.__skeleton__.has_key(table):
+            raise ValueError("Database has no table %s."%table)
+        if self.__skeleton__.has_key(new_name):
+            raise ValueError("Database already has table %s."%new_name)
+
         self.__connection__.execute('alter table %s rename to %s'%(table, new_name))
 
         # Update skeleton:
@@ -490,7 +514,11 @@ class SQLDatabase(GenericSQLDatabase):
         self.__skeleton__.pop(table)
 
     def drop_table(self, table_name):
-        # TODO : bad input check?
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+
+        # TODO : think about things like;
+                # keep skeleton, don't-actually-do-anything
 
         self.__connection__.execute('drop table ' + table_name)
 
@@ -498,7 +526,13 @@ class SQLDatabase(GenericSQLDatabase):
         self.__skeleton__.pop(table_name)
 
     def make_index(self, col_name, table_name, unique=False):
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if not self.__skeleton__[table].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table,col_name))
+
         # TODO : bad input check?
+            # check for SQL errors? something about NULL and unique==True
         if unique:
             index_string = 'create unique index ' + col_name + ' on ' + table_name + ' (' + col_name + ')'
         else:
@@ -510,7 +544,12 @@ class SQLDatabase(GenericSQLDatabase):
         self.__skeleton__[table_name][col_name]['index'] = True
 
     def drop_index(self, table_name, index_name):
-        # TODO : bad input check?
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if not self.__skeleton__[table_name].has_key(index_name):
+            raise ValueError("Table %s has no column %s."%(table,index_name))
+        if not self.__skeleton__[table_name][index_name]['index']:
+            return # silently
 
         cur = self.__connection__.cursor()
         exe = cur.execute('drop index ' + index_name)
@@ -528,7 +567,10 @@ class SQLDatabase(GenericSQLDatabase):
         MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
         KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*.
         """
-        # TODO : Check input!
+        if not self.__skeleton__.has_key(table):
+            raise ValueError("Database has no table %s."%table)
+        if not self.__skeleton__[table].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table,col_name))
 
         # Update the skeleton:
         self.__skeleton__[table][col_name]['primary_key'] = True
@@ -570,8 +612,15 @@ class SQLDatabase(GenericSQLDatabase):
         BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
         WELCOME.  (OR JUST SEND A PATCH...)
 
+        Note: deosnt's delte colmsn jsut make not primiarey
+
         """
-        # TODO : Check input!
+        if not self.__skeleton__.has_key(table):
+            raise ValueError("Database has no table %s."%table)
+        if not self.__skeleton__[table].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table,col_name))
+        if not self.__skeleton__[table_name][index_name]['primary_key']:
+            return # silently
 
         # Update the skeleton:
         self.__skeleton__[table][col_name]['primary_key'] = False
@@ -610,11 +659,24 @@ class SQLDatabase(GenericSQLDatabase):
         """
         values should be a tuple, length and order of columns in given table
         """
-        # TODO : CHECK FOR BAD INPUT -- really, sql will throw error if user is retarded though
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+
+        # EMILY!!: Read the following:
+        # TODO : CHECK FOR BAD INPUT
+            # -- really, sql will throw error if user is retarded enough
+        # Regarding:
+            # values is a tuple of the right length (same as no of cols)
+        # the following will do this:
+    #   if len(values) != len(self.__skeleton__[table_name]):
+    #       raise ValueError("New row must have the same number (%d) of columns as table."%len(self.__skeleton__[table_name]))
+        # But then why is the dafault value None?
 
         insert_string = 'insert into ' + table_name + ' values ' + str(values)
         cur = self.__connection__.cursor()
         exe = cur.execute(insert_string)
+
+##### TODO: THINK MORE ABOUT THESE WHEN LESS ILL, IE MORE BLOOD #####
 
     def delete_rows(self, col_name, queryish_dict):
         """

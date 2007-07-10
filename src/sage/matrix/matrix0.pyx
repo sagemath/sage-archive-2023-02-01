@@ -462,6 +462,25 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError, "this must be defined in the derived type."
 
+    def _get_very_unsafe(self, i, j):
+        r"""
+        Entry access, but potentially fast since it might be without
+        bounds checking.  (I know of no cases where this is actually
+        faster.)
+
+        This function it can very easily !! SEG FAULT !! if you call
+        it with invalid input.  Use with *extreme* caution.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,2,range(4))
+            sage: a._get_very_unsafe(0,1)
+            1
+
+        If you do \code{a.\_get\_very\_unsafe(0,10)} you'll very likely crash SAGE
+        completely.
+        """
+        return self.get_unsafe(i, j)
+
     def __iter__(self):
         return matrix_misc.row_iterator(self)
 

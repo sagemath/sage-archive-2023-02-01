@@ -14,7 +14,7 @@ sage = IPython.Shell.start()
 
 sageCH = CrashHandler(sage.IP, 'SAGE', 'William Stein', \
                       'wstein@gmail.com', \
-                      'http://sage.math.washington.edu/trac', \
+                      'http://www.sagemath.org:9002/sage_trac', \
 		      'SAGE_crash_report.txt', \
                       show_crash_traceback=False)
 

@@ -152,13 +152,19 @@ sage_setup() {
 SAGE_STARTUP_COMMAND="
 import sage.misc.misc; print \
 sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
-from sage.all_cmdline import *;\
+from sage.misc.interpreter import preparser; preparser(True);\
 import sage.all_cmdline; sage.all_cmdline._init_cmdline(globals());\
+from sage.all import Integer, RealNumber;\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\
-from sage.misc.interpreter import attached_files;\
-_=sage.misc.interpreter.load_startup_file(\"$SAGE_STARTUP_FILE\");
+from sage.misc.interpreter import attached_files\
 "
+
+if [ "$SAGE_IMPORTALL" != "no" ]; then
+   SAGE_STARTUP_COMMAND="$SAGE_STARTUP_COMMAND"";from sage.all_cmdline import *"
+fi
+
+SAGE_STARTUP_COMMAND="$SAGE_STARTUP_COMMAND"";_=sage.misc.interpreter.load_startup_file(\"$SAGE_STARTUP_FILE\")"
 
 export SAGE_STARTUP_COMMAND
 

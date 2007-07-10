@@ -332,6 +332,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         p=<double *>n.data
         memcpy(self.v.data,p,self.v.size*sizeof(double))
 
+
     #############################
     # statistics
     #############################

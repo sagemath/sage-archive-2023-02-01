@@ -13,7 +13,7 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari, PariError
+from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
 
 import sage.rings.rational_field
 import sage.rings.rational
@@ -485,6 +485,60 @@ def prime_range(start, stop=None, leave_pari=False):
         return [Z(p) for p in v]     # this dominates runtime!
     start = pari(int(start))
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
+
+def prime_powers(start, stop=None):
+    r"""
+    List of all positive primes powers between start and stop-1,
+    inclusive.  If the second argument is omitted, returns the primes
+    up to the first argument.
+
+    EXAMPLES:
+        sage: prime_powers(20)
+        [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
+        sage: len(prime_powers(1000))
+        194
+        sage: len(prime_range(1000))
+        168
+        sage: a = [z for z in range(95,1234) if is_prime_power(z)]
+        sage: b = prime_powers(95,1234)
+        sage: len(b)
+        194
+        sage: len(a)
+        194
+        sage: a[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: b[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: a == b
+        True
+    """
+    if stop is None:
+        start, stop = 1, int(start)
+    from math import log
+    from bisect import bisect
+    v = prime_range(stop)
+    i = bisect(v, start)
+    if start > 2:
+        if v[i] == start:
+            i -= 1
+        w = list(v[i:])
+    else:
+        w = list(v)
+    if start <= 1:
+        w.insert(0, 1)
+    log_stop = log(stop)
+    for p in v:
+        q = p*p
+        n = int(log(stop)/log(p))
+        if n <= 1:
+            break
+        for i in xrange(1,n):
+            if q >= start:
+                w.append(q)
+            q *= p
+    w.sort()
+    return w
+
 
 def primes_first_n(n, leave_pari=False):
     r"""
@@ -2066,7 +2120,7 @@ def Min(x):
         m=min(m,x[i])
     return m
 
-def moebius(n):
+class Moebius:
     r"""
     Returns the value of the Moebius function of abs(n), where n is an integer.
 
@@ -2074,10 +2128,16 @@ def moebius(n):
         $\mu(n)$ is 0 if $n$ is not square free, and otherwise equals $(-1)^r$,
         where $n$ has $r$ distinct prime factors.
 
+        For simplicity, if $n=0$ we define $\mu(n) = 0$.
+
+    IMPLEMENTATION:
+        Uses the PARI C library.
+
     INPUT:
         n -- an integer
     OUTPUT:
         0, 1, or -1
+
     EXAMPLES:
         sage: moebius(-5)
         -1
@@ -2091,14 +2151,92 @@ def moebius(n):
         1
         sage: moebius(7)
         -1
+
+        sage: moebius(0)   # potentially nonstandard!
+        0
     """
-    if n < 0:
-        n = -n
-    F = factor(n)
-    for _, e in F:
-        if e >= 2:
-            return 0
-    return (-1)**len(F)
+    def __call__(self, n):
+        if n == 0:
+            return integer.Integer(0)
+        return integer.Integer(pari(n).moebius().int_unsafe())
+    ##     if n < 0:
+    ##         n = -n
+    ##     F = factor(n)
+    ##     for _, e in F:
+    ##         if e >= 2:
+    ##             return 0
+    ##     return (-1)**len(F)
+
+    def __repr__(self):
+        return "The Moebius function"
+
+    def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the Moebius function.
+
+            INPUT:
+                xmin -- default: 0
+                xmax -- default: 50
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points (very helpful
+                        in seeing their order).
+                **kwds -- passed on
+        """
+        v = self.range(xmin, xmax + 1)
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+    def range(self, start, stop=None, step=None):
+        """
+        Return the the Moebius function evaluated
+        at the given range of values, i.e., the
+        image of the list range(start, stop, step)
+        under the Mobius function.
+
+        This is much faster than directly computing
+        all these values with a list comprehension.
+
+        EXAMPLES:
+            sage: v = moebius.range(-10,10); v
+            [1, 0, 0, -1, 1, -1, 0, -1, -1, 1, 0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+            sage: v == [moebius(n) for n in range(-10,10)]
+            True
+            sage: v = moebius.range(-1000, 2000, 4)
+            sage: v == [moebius(n) for n in range(-1000,2000, 4)]
+            True
+        """
+        if stop is None:
+            start, stop = 1, int(start)
+        else:
+            start = int(start)
+            stop = int(stop)
+        if step is None:
+            step = 1
+        else:
+            step = int(step)
+
+        Z = integer.Integer
+
+        if start <= 0 and 0 < stop and start % step == 0:
+            return self.range(start, 0, step) + [Z(0)] +\
+                   self.range(step, stop, step)
+
+        if step == 1:
+            v = pari('vector(%s, i, moebius(i-1+%s))'%(
+                stop-start, start))
+        else:
+            n = len(range(start, stop, step)) # stupid
+            v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
+                n, step, start))
+        w = vecsmall_to_intlist(v.Vecsmall())
+        return [Z(x) for x in w]
+
+moebius = Moebius()
 
 def farey(v, lim):
     """

@@ -6,9 +6,8 @@ piecewise = Piecewise
 from transcendental import (exponential_integral_1,
                             gamma, gamma_inc, incomplete_gamma,
                             zeta, zeta_symmetric,
-                            Li,
-                            prime_pi,
-                            number_of_primes)
+                            Li, Ei,
+                            prime_pi)
 
 #from elementary import (cosine, sine, exponential,
 #                        ElementaryFunction,
@@ -42,3 +41,4 @@ from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
 
 i = I  # alias
 
+from spike_function import spike_function

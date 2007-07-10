@@ -12,7 +12,7 @@ sage_mode = 'cmdline'
 try:
 
     from sage.all import *
-    from sage.calculus.predefined import *
+    from sage.calculus.predefined import x
     preparser(on=True)
 
 except ValueError, msg:

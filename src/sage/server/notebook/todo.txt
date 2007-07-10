@@ -1,6 +1,10 @@
 TODO for the new Twisted notebook
 
-BUGS:
+[ ] pressing shift-enter in a cell before a text area still puts
+    the new input cell in the wrong place.  (i.e., after the text)
+
+[ ] sometimes restart doesn't seem to really work until hit
+    shift-enter a few times :-(
 
 [ ] On safari foo([tab] is broken.
 

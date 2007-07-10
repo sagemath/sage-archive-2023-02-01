@@ -1,1 +1,1 @@
-from wav import Wave
+from wav import Wave as wave

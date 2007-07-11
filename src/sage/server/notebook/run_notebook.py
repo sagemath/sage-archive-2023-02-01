@@ -46,7 +46,7 @@ def notebook_twisted(self,
              port        = 8000,
              address     = 'localhost',
              port_tries  = 0,
-             secure      = True,
+             secure      = False,
              reset       = False,
              accounts    = False,
 

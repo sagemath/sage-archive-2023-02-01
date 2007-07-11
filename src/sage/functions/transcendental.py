@@ -27,7 +27,9 @@ from sage.gsl.integration import numerical_integral
 
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
-                            ZZ)
+                            ZZ, CDF, prime_range)
+
+import sage.plot.all
 
 def __prep_num(x):
     if isinstance(x, sage.rings.complex_number.ComplexNumber):
@@ -224,7 +226,27 @@ def zeta_symmetric(s):
 #   return real_field.RealField(prec).pi()
 
 
+def Ei(z):
+    """
+    Return the value of the complex exponential integral Ei(z)
+    at a complex number z.
 
+    WARNING: Calculations are done to double precision, and the output
+    is a complex double element, no matter how big the precision of
+    the input is.
+
+    EXAMPLES:
+        sage: Ei(10)
+        2492.22897624
+        sage: Ei(I)
+        0.337403922901 + 2.51687939716*I
+        sage: Ei(3+I)
+        7.823134676 + 6.09751978399*I
+
+    ALGORITHM: Uses scipy's special.exp1 function.
+    """
+    import scipy.special, math
+    return CDF(-scipy.special.exp1(-complex(z)) + complex(0,math.pi))
 
 def Li(x, eps_rel=None, err_bound=False):
     r"""
@@ -301,7 +323,7 @@ import math
 def _one_over_log(t):
     return 1/math.log(t)
 
-def prime_pi(x):
+class PrimePi:
     """
     Return the number of primes $\leq x$.
 
@@ -318,15 +340,42 @@ def prime_pi(x):
         0
         sage: prime_pi(-10)
         0
-    """
-    if x < 2:
-        return ZZ(0)
-    try:
-        return ZZ(pari(x).primepi())
-    except PariError:
-        pari.init_primes(pari(x)+1)
-        return ZZ(pari(x).primepi())
 
-number_of_primes = prime_pi
+    The prime_pi function also has a special plotting method, so it plots
+    quickly and perfectly as a step function.
+        sage: P = plot(prime_pi, 50,100)
+    """
+    def __repr__(self):
+        return "Function that counts the number of primes up to x"
+
+    def __call__(self, x):
+        if x < 2:
+            return ZZ(0)
+        try:
+            return ZZ(pari(x).primepi())
+        except PariError:
+            pari.init_primes(pari(x)+1)
+            return ZZ(pari(x).primepi())
+
+    def plot(self, xmin=0, xmax=100, *args, **kwds):
+        primes = prime_range(xmin, xmax+2)
+        base = self(xmin)
+        if xmin <= 2:
+            v = [(xmin,0),(min(xmax,2),0)]
+            ymin = 0
+        else:
+            v = []
+            ymin = base
+        for i in range(len(primes)-1):
+            v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
+        P = sage.plot.all.line(v, *args, **kwds)
+        P.xmin(xmin)
+        P.xmax(xmax)
+        P.ymin(ymin)
+        P.ymax(base+len(primes))
+        return P
+
+#############
+prime_pi = PrimePi()
 
 

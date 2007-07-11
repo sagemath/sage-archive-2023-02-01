@@ -1073,6 +1073,12 @@ cdef class gen(sage.structure.element.RingElement):
         """
         return P.new_gen(gmul2n(x.g, n))
 
+    def moebius(gen x):
+        """
+        moebius(x): Moebius function of x.
+        """
+        return P.new_gen(gmu(x.g))
+
     def sign(gen x):
         """
         sign(x): Return the sign of x, where x is of type integer, real
@@ -6158,3 +6164,14 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
         raise PariError, errno
 
 
+
+def vecsmall_to_intlist(gen v):
+    """
+    INPUT:
+        v -- a gen of type Vecsmall
+    OUTPUT:
+        a Python list of Python ints
+    """
+    if typ(v.g) != t_VECSMALL:
+        raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
+    return [v.g[k+1] for k in range(glength(v.g))]

@@ -178,7 +178,7 @@ var update_error_delta = 1024;
 var update_normal_delta = 512;
 var cell_output_delta = update_normal_delta;
 
-var server_ping_time = 10000;  /* Is once very 10 seconds way too fast?  Is it just right?  */
+var server_ping_time = 30000;  /* Is once very 30 seconds way too fast?  Is it just right?  */
 
 
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server

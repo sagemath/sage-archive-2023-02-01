@@ -3054,6 +3054,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.sha_an()
             1
 
+            sage: EllipticCurve('14a4').sha_an()
+            1
+            sage: EllipticCurve('14a4').sha_an(use_database=True)
+            1
+
         The smallest conductor curve with nontrivial Sha:
             sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66b3
             sage: E.sha_an()

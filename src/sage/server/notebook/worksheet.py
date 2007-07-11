@@ -53,6 +53,7 @@ WARN_THRESHOLD = 100
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
 SC='\x01'
+#SC="__SAGE__"
 SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
@@ -484,7 +485,8 @@ class Worksheet:
             ' '.join(self.collaborators()) + ' '.join(self.viewers()) + ' ' + self.publisher() + \
             ' '.join(self.attached_data_files())
         E = E.lower()
-        for word in search.split():
+        words = split_search_string_into_keywords(search)
+        for word in words:
             if not word.lower() in E:
                 return False
         return True
@@ -695,11 +697,13 @@ class Worksheet:
                 C.set_input_text(input)
                 C.set_output_text(output, '')
                 if html:
-                    C.update_html_output()
+                    C.update_html_output(output)
                 cells.append(C)
 
         if len(cells) == 0:   # there must be at least one cell.
             cells = [self._new_cell()]
+        elif isinstance(cells[-1], TextCell):
+            cells.append(self._new_cell())
 
         self.__cells = cells
 
@@ -752,7 +756,7 @@ class Worksheet:
         s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
         s += '<br>' + self.html_time_last_edited()
         if warn and username != 'guest' and not self.is_doc_worksheet():
-            s += '&nbsp;&nbsp;<span class="pingdown">Conflict WARNING!</span>'
+            s += '&nbsp;&nbsp;<span class="pingdown">(Someone else is viewing this worksheet)</span>'
         s += '</div>'
 
         return s
@@ -798,6 +802,7 @@ class Worksheet:
 
     def html_data_options_list(self):
         D = self.attached_data_files()
+        D.sort()
         x = '\n'.join(['<option value="datafile?name=%s">%s</option>'%(nm,nm) for nm in D])
         return x
 
@@ -2191,3 +2196,43 @@ def convert_seconds_to_meaningful_time_span(t):
 
 def convert_time_to_string(t):
     return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
+
+
+def split_search_string_into_keywords(s):
+    """
+    The point of this function is to allow for searches like this:
+
+          "ws 7" foo bar  Modular  '"the" end'
+
+    i.e., where search terms can be in quotes and the different quote
+    types can be mixed.
+
+    INPUT:
+        s -- a string
+
+    OUTPUT:
+        list -- a list of strings
+    """
+    ans = []
+    while len(s) > 0:
+        word, i = _get_next(s, '"')
+        if i != -1:
+            ans.append(word)
+            s = s[i:]
+        word, j = _get_next(s, "'")
+        if j != -1:
+            ans.append(word)
+            s = s[j:]
+        if i == -1 and j == -1:
+            break
+    ans.extend(s.split())
+    return ans
+
+
+def _get_next(s, quote='"'):
+    i = s.find(quote)
+    if i != -1:
+        j = s[i+1:].find(quote)
+        if j != -1:
+            return s[i+1:i+1+j].strip(), i+1+j
+    return None, -1

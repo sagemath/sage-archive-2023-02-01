@@ -211,6 +211,7 @@ var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the 
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
 var one_word_pat = "([a-zA-Z_][a-zA-Z._0-9]*)";
 var unindent_pat = "^\\s{0,4}(.*)$";
+var uncomment_pat = "^([^\\#]*)\\#{0,1}(.*)$";  //the # doesn't need a slash for now... but let's give it one anyway
 var whitespace_pat = "(\\s*)";
 
 try{
@@ -220,6 +221,7 @@ try{
   one_word_pat = new RegExp(one_word_pat);
   whitespace_pat = new RegExp(whitespace_pat);
   unindent_pat = new RegExp(unindent_pat);
+  uncomment_pat = new RegExp(uncomment_pat);
 } catch(e){}
 
 var after_cursor, before_cursor, before_replacing_word;
@@ -1415,6 +1417,10 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
        return false;
+    } else if (key_comment(e)) {
+       return comment_cell(cell_input);
+    } else if (key_uncomment(e)) {
+       return uncomment_cell(cell_input);
     } else if (key_unindent(e)) { //unfortunately, shift-tab needs to get caught before not-shift tab
        unindent_cell(cell_input);
        return false;
@@ -1561,6 +1567,49 @@ function unindent_cell(input) {
         input.selectionEnd = a.length + b.length;;
     }
 }
+
+function comment_cell(input) {
+    if(browser_ie) {
+    } else {
+        if(input.selectionStart == input.selectionEnd) return true;
+        var start = 1+input.value.lastIndexOf("\n", input.selectionStart);
+        var a = input.value.substring(0, start);
+        var b = input.value.substring(start, input.selectionEnd);
+        var c = input.value.substring(input.selectionEnd);
+        var lines = b.split("\n");
+        for(var i = 0; i < lines.length; i++)
+            lines[i] = "#"+lines[i];
+        b = lines.join("\n");
+        input.value = a+b+c;
+        input.selectionStart = a.length;
+        input.selectionEnd = a.length + b.length;;
+    }
+    return false;
+}
+
+function uncomment_cell(input) {
+    if(browser_ie) {
+    } else {
+        if(input.selectionStart == input.selectionEnd) return true;
+        var start = 1+input.value.lastIndexOf("\n", input.selectionStart);
+        var a = input.value.substring(0, start);
+        var b = input.value.substring(start, input.selectionEnd);
+        var c = input.value.substring(input.selectionEnd);
+        var lines = b.split("\n");
+        for(var i = 0; i < lines.length; i++){
+            m = uncomment_pat.exec(lines[i]);
+            lines[i] = m[1]+m[2];
+        }
+        b = lines.join("\n");
+        input.value = a+b+c;
+        input.selectionStart = a.length;
+        input.selectionEnd = a.length + b.length;;
+    }
+    return false;
+}
+
+
+
 
 function worksheet_command(cmd) {
    return ('/home/' + worksheet_filename + '/' + cmd);

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This is used only on Darwin powerpc.
+# Pass the right flags to the right ld.
+
+/usr/bin/ld "$@" -macosx_version_min 10.4

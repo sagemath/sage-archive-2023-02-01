@@ -2453,8 +2453,8 @@ class Graph(GenericGraph):
                 string has multiple graphs, the first graph is taken)
             'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal
                 to the number of edges \{i,j\}
-            'labeled_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
-                equal to the label of the single edge \{i,j\}
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+                equal to the weight of the single edge \{i,j\}
             'incidence_matrix' -- a SAGE matrix, with one column C for each
                 edge, where if C represents \{i, j\}, C[i] is -1 and C[j] is 1
             'elliptic_curve_congruence' -- data must be an iterable container
@@ -3412,7 +3412,43 @@ class Graph(GenericGraph):
             cols.append(col)
         return matrix(cols, sparse=sparse).transpose()
 
-    def kirchhoff_matrix(self):
+    def weighted_adjacency_matrix(self, sparse=True):
+        """
+        Returns the weighted adjacency matrix of the graph. Each vertex is
+        represented by its position in the list returned by the vertices()
+        function.
+
+        EXAMPLES:
+            sage: G = Graph()
+            sage: G.add_edges([(0,1,1),(1,2,2),(0,2,3),(0,3,4)])
+            sage: M = G.weighted_adjacency_matrix(); M
+            [0 1 3 4]
+            [1 0 2 0]
+            [3 2 0 0]
+            [4 0 0 0]
+            sage: H = Graph(data=M, format='weighted_adjacency_matrix')
+            sage: H == G
+            True
+
+        """
+        if self.multiple_edges():
+            raise NotImplementedError, "Don't know how to represent weights for a multigraph."
+
+        n = len(self._nxg.adj)
+        verts = self.vertices()
+        D = {}
+        for e in self.edge_iterator():
+            i,j,l = e
+            i = verts.index(i)
+            j = verts.index(j)
+            D[(i,j)] = l
+            D[(j,i)] = l
+        from sage.matrix.constructor import matrix
+        M = matrix(D, sparse=sparse)
+        return M
+
+
+    def kirchhoff_matrix(self, weighted=False):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
@@ -3420,39 +3456,31 @@ class Graph(GenericGraph):
         degree matrix (each diagonal entry is the degree of the corresponding
         vertex), and M is the adjacency matrix.
 
+        If weighted == True, the weighted adjacency matrix is used for M, and
+        the diagonal entries are the row-sums of M.
+
         AUTHOR:
             Tom Boothby
 
         EXAMPLES:
-            sage: G = graphs.PetersenGraph()
-            sage: G.kirchhoff_matrix()
-            [ 3 -1  0  0 -1 -1  0  0  0  0]
-            [-1  3 -1  0  0  0 -1  0  0  0]
-            [ 0 -1  3 -1  0  0  0 -1  0  0]
-            [ 0  0 -1  3 -1  0  0  0 -1  0]
-            [-1  0  0 -1  3  0  0  0  0 -1]
-            [-1  0  0  0  0  3  0 -1 -1  0]
-            [ 0 -1  0  0  0  0  3  0 -1 -1]
-            [ 0  0 -1  0  0 -1  0  3  0 -1]
-            [ 0  0  0 -1  0 -1 -1  0  3  0]
-            [ 0  0  0  0 -1  0 -1 -1  0  3]
-
-            sage: G = graphs.Grid2dGraph(3,3)
+            sage: G = Graph()
+            sage: G.add_edges([(0,1,1),(1,2,2),(0,2,3),(0,3,4)])
+            sage: M = G.kirchhoff_matrix(weighted=True); M
+            [ 8 -1 -3 -4]
+            [-1  3 -2  0]
+            [-3 -2  5  0]
+            [-4  0  0  4]
             sage: M = G.kirchhoff_matrix(); M
-            [ 3  0 -1  0 -1  0  0  0 -1]
-            [ 0  3  0  0 -1  0 -1  0 -1]
-            [-1  0  2  0  0  0  0 -1  0]
-            [ 0  0  0  3  0 -1 -1  0 -1]
-            [-1 -1  0  0  2  0  0  0  0]
-            [ 0  0  0 -1  0  2  0 -1  0]
-            [ 0 -1  0 -1  0  0  2  0  0]
-            [ 0  0 -1  0  0 -1  0  3 -1]
-            [-1 -1  0 -1  0  0  0 -1  4]
-            sage: M.determinant() # long time
-            0
+            [ 3 -1 -1 -1]
+            [-1  2 -1  0]
+            [-1 -1  2  0]
+            [-1  0  0  1]
 
         """
-        M = self.am()
+        if weighted:
+            M = self.weighted_adjacency_matrix()
+        else:
+            M = self.am()
         A = list(-M)
         S = [sum(M[i]) for i in range(M.nrows())]
         for i in range(len(A)):

@@ -733,7 +733,7 @@ class GenericGraph(SageObject):
             [1 0 0]
 
         Relabeling using a SAGE permutation:
-            sage: from sage.groups.perm_gps.permgroup import SymmetricGroup
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: S = SymmetricGroup(3)
             sage: gamma = S('(3,2)')
             sage: G.relabel(gamma)
@@ -2120,7 +2120,7 @@ class GenericGraph(SageObject):
             sage: Z = graphs.CompleteGraph(2)
             sage: D = Z.disjunctive_product(Z); D
             Graph on 4 vertices
-            sage: L.plot().save('sage.png')
+            sage: D.plot().save('sage.png')
 
             sage: C = graphs.CycleGraph(5)
             sage: D = C.disjunctive_product(Z); D
@@ -3987,6 +3987,7 @@ class Graph(GenericGraph):
         None.
 
         EXAMPLES:
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: D = graphs.DodecahedralGraph()
             sage: E = D.copy()
             sage: gamma = SymmetricGroup(20).random_element()

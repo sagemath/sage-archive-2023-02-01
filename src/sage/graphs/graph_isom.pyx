@@ -576,7 +576,7 @@ def get_permutation(eta, nu, list_perm=False):
                     break
         return gamma
     else:
-        from sage.groups.perm_gps.permgroup import SymmetricGroup
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         S = SymmetricGroup(n)
         gamma = []
         for i in range(len(b)):
@@ -1441,7 +1441,7 @@ def perm_group_elt(lperm):
     returns the corresponding PermutationGroupElement where
     we take 0 = n.
     """
-    from sage.groups.perm_gps.permgroup import SymmetricGroup
+    from sage.groups.perm_gps.permgroup_named import SymmetricGroup
     n = len(lperm)
     S = SymmetricGroup(n)
     Part = orbit_partition(lperm, list_perm=True)

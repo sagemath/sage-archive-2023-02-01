@@ -2478,7 +2478,7 @@ cdef class Matrix(matrix1.Matrix):
             ic = mr
             b = 1.0
 
-        b2 = b**2
+        b2 = <int>(b*b)
         fct = 255.0/b2
 
         im = gd.image((ir,ic),1)
@@ -2492,8 +2492,8 @@ cdef class Matrix(matrix1.Matrix):
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
                 v = b2
-                for _x from 0 <= _x < b:
-                    for _y from 0 <= _y < b:
+                for _x from 0 <= _x < (<int>b):
+                    for _y from 0 <= _y < (<int>b):
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 

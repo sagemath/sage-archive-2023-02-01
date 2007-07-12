@@ -409,7 +409,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             blk = 1.0
             invblk = 1.0
 
-        delta = 255.0 / blk**2
+        delta = <int>(255.0 / blk*blk)
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))

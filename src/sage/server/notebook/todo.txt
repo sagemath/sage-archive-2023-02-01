@@ -6,6 +6,22 @@ TODO for the new Twisted notebook
 [ ] sometimes restart doesn't seem to really work until hit
     shift-enter a few times :-(
 
+[ ] On safari foo([tab] is broken.
+
+[ ] Sorting published worksheets by owner is broken (I think it is not sorting by
+    publisher, since they are all technically owned by the pub user).
+
+
+Ideas:
+
+[ ] On safari foo([tab] is broken.
+
+[ ] Sorting published worksheets by owner is broken (I think it is not sorting by
+    publisher, since they are all technically owned by the pub user).
+
+
+Ideas:
+
 [ ] we *really* need a "insert cell after" given cell command.
 
 [ ] Viewing published pages still sometimes claims they were last updated

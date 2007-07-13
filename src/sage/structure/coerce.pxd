@@ -25,7 +25,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
     cdef discover_action_c(self, R, S, op)
 
 cdef class LeftModuleAction(Action):
-    pass
+    cdef Morphism connecting
 
 cdef class RightModuleAction(Action):
-    pass
+    cdef Morphism connecting

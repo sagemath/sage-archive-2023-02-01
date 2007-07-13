@@ -66,7 +66,7 @@ is then not well defined.
     sage: oo * 0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'The Unsigned Infinity Ring' and 'The Unsigned Infinity Ring'
+    TypeError: unsupported operand parent(s) for '*': 'The Unsigned Infinity Ring' and 'Integer Ring'
     sage: oo/oo
     Traceback (most recent call last):
     ...
@@ -578,7 +578,7 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
             return -self
         if other > 0:
             return self
-        raise TypeError, "cannot multiply infinity by zero"
+        raise SignError, "cannot multiply infinity by zero"
 
     def _sub_(self, other):
         if isinstance(other, PlusInfinity):

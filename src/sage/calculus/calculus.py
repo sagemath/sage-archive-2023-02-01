@@ -2940,7 +2940,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         try:
             return self.__zero_element
         except AttributeError:
-            z = CallableSymbolicExpression(SR.zero_element(), self._args)
+            z = CallableSymbolicExpression(self, SR.zero_element())
             self.__zero_element = z
             return z
 

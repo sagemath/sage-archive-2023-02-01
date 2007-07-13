@@ -1164,10 +1164,12 @@ cdef class RingElement(ModuleElement):
 
     # The default behavior for scalars is just to coerce into the parent ring.
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        return self._mul_c(<RingElement>(self._parent._coerce_c(right)))
+        raise NotImplementedError
+#        return self._mul_c(<RingElement>(self._parent._coerce_c(right)))
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        return (<RingElement>(self._parent._coerce_c(left)))._mul_c(self)
+        raise NotImplementedError
+#        return (<RingElement>(self._parent._coerce_c(left)))._mul_c(self)
 
     def __mul__(self, right):
         """
@@ -1185,6 +1187,9 @@ cdef class RingElement(ModuleElement):
         if not (PY_TYPE_CHECK(self, Element) and PY_TYPE_CHECK(right, Element)):
             # one of self or right is not even an Element.
             return coercion_model.bin_op_c(self, right, operator.mul)
+
+        # Always do this
+        return coercion_model.bin_op_c(self, right, operator.mul)
 
         # Now we can assume both self and right are of a class that derives
         # from Element (so they have a parent).  If one is a ModuleElement,
@@ -1223,6 +1228,9 @@ cdef class RingElement(ModuleElement):
         DO NOT OVERRIDE THIS FUNCTION.
         See extensive documentation at the top of element.pyx.
         """
+#        print "called _mul_c on '%r' '%r'" % (self, right)
+#        import traceback
+#        traceback.print_stack()
         if HAS_DICTIONARY(self):   # fast check
             return self._mul_(right)
         else:

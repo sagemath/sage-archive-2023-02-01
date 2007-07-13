@@ -172,7 +172,6 @@ cdef class Parent(sage_object.SageObject):
             if R is S:
                 return mor
             else:
-                print "R = ", R
                 connecting = R.coerce_map_from_c(S)
                 if connecting is not None:
                     return mor * connecting
@@ -218,7 +217,6 @@ cdef class Parent(sage_object.SageObject):
         from sage.categories.homset import Hom
         from coerce import LeftModuleAction, RightModuleAction
         cdef Parent R
-        print self._action_list
         for action in self._action_list:
             if PY_TYPE_CHECK(action, Action):
                 if self_on_left:
@@ -230,10 +228,12 @@ cdef class Parent(sage_object.SageObject):
             elif op is operator.mul:
                 try:
                     R = action
+                    _register_pair(x,y) # to kill circular recursion
                     if self_on_left:
                         action = LeftModuleAction(S, self) # self is acted on from right
                     else:
                         action = RightModuleAction(S, self) # self is acted on from left
+                    _unregister_pair(x,y)
                     i = self._action_list.index(R)
                     self._action_list[i] = action
                 except TypeError:
@@ -243,7 +243,6 @@ cdef class Parent(sage_object.SageObject):
             if R is S:
                 return action
             else:
-                print "R = ", R
                 connecting = R.coerce_map_from_c(S) # S -> R
                 if connecting is not None:
                     if self_on_left:
@@ -636,9 +635,12 @@ class EltPair:
         self.y = y
     def __eq__(self, other):
         return type(self.x) is type(other.x) and self.x == other.x and type(self.y) is type(other.y) and self.y == other.y
+    def __repr__(self):
+        return "%r (%r), %r (%r)" % (self.x, type(self.x), self.y, type(self.y))
 
 cdef bint _register_pair(x, y) except -1:
     both = EltPair(x,y)
+#    print _coerce_test_list, " + ", both
     if both in _coerce_test_list:
         print _coerce_test_list
         print both

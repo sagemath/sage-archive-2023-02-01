@@ -194,22 +194,19 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 return op(x,y)
             action = self.action_maps_c(xp, yp, op)
             if action is not None:
+#                print "found action", action
                 return (<Action>action)._call_c(x, y)
 
         try:
             xy = self.canonical_coercion_c(x,y)
             return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
-
         except TypeError:
             pass
 
         if op is operator.mul:
-            if isinstance(x, (str, list, tuple)):
-                # __mul__ overridden with special meaning for sequences
-                if y == int(y):
-                    return x * int(y)
 
-            # TODO: roll into actions (here now so doctests pass)
+            # elements may also act on non-elements
+            # (e.g. sequences or parents)
             try:
                 return x._l_action(y)
             except (AttributeError, TypeError):
@@ -354,17 +351,23 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         if PY_TYPE_CHECK(R, Parent):
             action = (<Parent>R).get_action_c(S, op, True)
             if action is not None:
+#                print "found", action
                 return action
 
         if PY_TYPE_CHECK(S, Parent):
             action = (<Parent>S).get_action_c(R, op, False)
             if action is not None:
+#                print "found", action
                 return action
 
             if op is operator.div:
                 action = (<Parent>S).get_action_c(R, operator.mul, False)
                 if action is not None:
-                    return ~action
+#                    print "found", action
+                    try:
+                        return ~action
+                    except TypeError:
+                        pass
 
 
 from sage.structure.element cimport Element # workaround SageX bug
@@ -385,21 +388,28 @@ cdef class RAction(Action):
 
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
+        # this may be wasteful, but rings are
+        # implemented with the assumptoin that
+        # _rmul_ is given an element of the basering
+        if G is not S.base():
+            self.connecting = S.base().coerce_map_from(G)
         # TODO: detect this better
         cdef ModuleElement a
         cdef RingElement g
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
-        g = rand_elt(G)
-        a = rand_elt(S)
+        g = G._an_element()
+        if self.connecting is not None:
+            g = self.connecting._call_c(g)
+        a = S._an_element()
         res = a._rmul_c(g) # g * a
-        print g, a, res
         if parent_c(res) is not S:
-            print "G", G, "S", S, "res", parent_c(res)
             raise TypeError
         Action.__init__(self, G, S, True, operator.mul)
 
     cdef Element _call_c_impl(self, Element g, Element a):
-        return (<ModuleElement>a)._lmul_c(g)  # a * g
+        if self.connecting is not None:
+            g = self.connecting._call_c(g)
+        return (<ModuleElement>a)._rmul_c(g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"
@@ -407,52 +417,26 @@ cdef class LeftModuleAction(Action):
 
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
+        # this may be wasteful, but rings are
+        # implemented with the assumptoin that
+        # _rmul_ is given an element of the basering
+        if G is not S.base():
+            self.connecting = S.base().coerce_map_from(G)
         # TODO: detect this better
         cdef ModuleElement a
         cdef RingElement g
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
-        g = rand_elt(G)
-        a = rand_elt(S)
-        print "a", a, "g", g
+        g = G._an_element()
+        a = S._an_element()
         res = a._lmul_c(g) # a * g
         if parent_c(res) is not S:
-            print "G", G, "S", S, "res", parent_c(res)
             raise TypeError
         Action.__init__(self, G, S, False, operator.mul)
 
     cdef Element _call_c_impl(self, Element a, Element g):
-        print "a", a, "g", g
+        if self.connecting is not None:
+            g = self.connecting._call_c(g)
         return (<ModuleElement>a)._lmul_c(g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"
-
-
-def rand_elt(R):
-    """
-    Want to return something sufficiently generic that __call__()
-    won't work in general (as _lmul_ and _rmul_ are to liberal).
-    """
-    try:
-        z = R.random_element()
-        if z not in ZZ:
-            return z
-    except:
-        pass
-    try:
-        from sage.functions.constants import pi
-        return R(pi)
-    except:
-        pass
-    try:
-        from sage.rings.integer_ring import ZZ
-        return R.gen()*ZZ.random_element()
-    except:
-        pass
-    try:
-        from sage.rings.integer_ring import ZZ
-        return R(ZZ.random_element())
-    except:
-        pass
-    print R, z
-    raise TypeError

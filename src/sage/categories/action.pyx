@@ -129,8 +129,15 @@ cdef class InverseAction(Action):
     An action whose acts as the inverse of the given action.
     """
     def __init__(self, Action action):
-        Action.__init__(action._G, action._S, action._is_left)
-        self._action = action
+        G = action._G
+        try:
+            from sage.groups.group import Group
+            if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
+                Action.__init__(self, G, action._S, action._is_left)
+                self._action = action
+        except AttributeError:
+            pass
+        raise TypeError, "No inverse defined for %r." % action
 
     cdef Element _call_c(self, a, b):
         if self._action._is_left:

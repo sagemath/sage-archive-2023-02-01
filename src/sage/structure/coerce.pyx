@@ -232,9 +232,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         cdef Element x_elt, y_elt
         coercions = self.coercion_maps_c(xp, yp)
         if coercions is not None:
-            # Unsafe access for speed
-            x_map = <object>PyTuple_GET_ITEM(coercions, 0)
-            y_map = <object>PyTuple_GET_ITEM(coercions, 1)
+            x_map, y_map = coercions
             if x_map is not None:
                 x_elt = (<Morphism>x_map)._call_c(x)
             else:
@@ -350,29 +348,40 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
         return None
 
+
     cdef discover_action_c(self, R, S, op):
-        return None # for now
-        if op is operator.mul:
-            try:
-                return LeftModuleAction(R, S)
-            except TypeError:
-                pass
 
-            try:
-                return RightModuleAction(S, R)
-            except TypeError:
-                pass
+        if PY_TYPE_CHECK(R, Parent):
+            action = (<Parent>R).get_action_c(S, op, True)
+            if action is not None:
+                return action
 
-        elif op is operator.div:
-            try:
-                return ~RightModuleAction(S, R)
-            except TypeError:
-                pass
+        if PY_TYPE_CHECK(S, Parent):
+            action = (<Parent>S).get_action_c(R, op, False)
+            if action is not None:
+                return action
 
+            if op is operator.div:
+                action = (<Parent>S).get_action_c(R, operator.mul, False)
+                if action is not None:
+                    return ~action
 
 
 from sage.structure.element cimport Element # workaround SageX bug
 
+cdef class LAction(Action):
+    """Action calls _l_action_ of the actor."""
+    def __init__(self, G, S):
+        Action.__init__(self, G, S, True, operator.mul)
+    cdef Element _call_c_impl(self, Element g, Element a):
+        return g._lmul_(a)  # a * g
+
+cdef class RAction(Action):
+    """Action calls _r_action_ of the actor."""
+    def __init__(self, G, S):
+        Action.__init__(self, G, S, False, operator.mul)
+    cdef Element _call_c_impl(self, Element a, Element g):
+        return g._rmul_(a)  # g * a
 
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
@@ -385,11 +394,16 @@ cdef class LeftModuleAction(Action):
         res = a._rmul_c(g) # g * a
         print g, a, res
         if parent_c(res) is not S:
+            print "G", G, "S", S, "res", parent_c(res)
             raise TypeError
-        Action.__init__(self, G, S, 1)
+        Action.__init__(self, G, S, True, operator.mul)
 
     cdef Element _call_c_impl(self, Element g, Element a):
-        return (<ModuleElement>a)._rmul_c(g)
+        return (<ModuleElement>a)._lmul_c(g)  # a * g
+
+    def _repr_name_(self):
+        return "scalar multiplication"
+
 
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
@@ -399,13 +413,19 @@ cdef class RightModuleAction(Action):
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
         g = rand_elt(G)
         a = rand_elt(S)
+        print "a", a, "g", g
         res = a._lmul_c(g) # a * g
         if parent_c(res) is not S:
+            print "G", G, "S", S, "res", parent_c(res)
             raise TypeError
-        Action.__init__(self, G, S, 0)
+        Action.__init__(self, G, S, False, operator.mul)
 
     cdef Element _call_c_impl(self, Element a, Element g):
-        return (<ModuleElement>a)._lmul_c(g)
+        print "a", a, "g", g
+        return (<ModuleElement>a)._lmul_c(g)  # a * g
+
+    def _repr_name_(self):
+        return "scalar multiplication"
 
 
 def rand_elt(R):
@@ -434,4 +454,5 @@ def rand_elt(R):
         return R(ZZ.random_element())
     except:
         pass
+    print R, z
     raise TypeError

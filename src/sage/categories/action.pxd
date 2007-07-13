@@ -6,6 +6,7 @@ cdef class Action(Functor):
     cdef _G
     cdef _S
     cdef bint _is_left
+    cdef _op
     cdef Element _call_c(self, a, b)
     cdef Element _call_c_impl(self, Element a, Element b)
 

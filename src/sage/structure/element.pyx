@@ -1164,10 +1164,10 @@ cdef class RingElement(ModuleElement):
 
     # The default behavior for scalars is just to coerce into the parent ring.
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        return self._mul_c(<RingElement>(self._parent(right)))
+        return self._mul_c(<RingElement>(self._parent._coerce_c(right)))
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        return (<RingElement>(self._parent)(left))._mul_c(self)
+        return (<RingElement>(self._parent._coerce_c(left)))._mul_c(self)
 
     def __mul__(self, right):
         """

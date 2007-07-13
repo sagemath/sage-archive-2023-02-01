@@ -34,9 +34,15 @@ import sage.structure.element
 
 include "../ext/stdsage.pxi"
 
+def LeftAction(G, S, op=None):
+    return Action(G, S, 1, op)
+
+def RightAction(G, S, op=None):
+    return Action(G, S, 0, op)
+
 cdef class Action(Functor):
 
-    def __init__(self, G, S, bint is_left = 1):
+    def __init__(self, G, S, bint is_left = 1, op=None):
         from category_types import Groupoid
         Functor.__init__(self, Groupoid(G), S.category())
         self._G = G
@@ -91,7 +97,10 @@ cdef class Action(Functor):
 
     def __repr__(self):
         side = "Left" if self._is_left else "Right"
-        return "%s action of %r on %r"%(side, self._G, self._S)
+        return "%s %s by %r on %r"%(side, self._repr_name_(), self._G, self._S)
+
+    def _repr_name_(self):
+        return "action"
 
     def actor(self):
         return self._G
@@ -99,15 +108,18 @@ cdef class Action(Functor):
     def codomain(self):
         return self._S
 
+    def domain(self):
+        return self.codomain()
+
     def left_domain(self):
         if self._is_left:
             return self._G
         else:
-            return self._S
+            return self.domain()
 
     def right_domain(self):
         if self._is_left:
-            return self._S
+            return self.domain()
         else:
             return self._G
 
@@ -144,12 +156,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
             right = right_precomposition._domain
         if action._is_left:
-            G = left
-            S = right
+            Action.__init__(left, action._S, 1)
         else:
-            G = right
-            S = left
-        Action.__init__(G, S, action._is_left)
+            Action.__init__(right, action._S, 0)
         self._action = action
         self._left_precomposition = left_precomposition
         self._right_precomposition = right_precomposition
@@ -160,6 +169,14 @@ cdef class PrecomposedAction(Action):
         if self._right_precomposition is not None:
             b = self._right_precomposition._call_c(b)
         return self._action._call_c(a, b)
+
+    def domain(self):
+        if self._is_left and self._right_precomposition is not None:
+            return self._right_precomposition.domain()
+        elif not self._is_left and self._left_precomposition is not None:
+            return self._left_precomposition.domain()
+        else:
+            return self.codomain()
 
 
 cdef class ActionEndomorphism(Morphism):

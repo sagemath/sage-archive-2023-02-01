@@ -18,8 +18,8 @@ cdef class Parent(sage_object.SageObject):
     cdef _coerce_from_hash
 
     # List consisting of Actions (either by or on self)
-    # and Parents for which _rmul_ and/or _lmul_ do the
-    # correct thing.
+    # and Parents for which self._rmul_ and/or self._lmul_
+    # do the correct thing.
     # Initalized at ring creation.
     cdef _action_list
     # Hashtable of everything we've (possibliy recursively) discovered so far.

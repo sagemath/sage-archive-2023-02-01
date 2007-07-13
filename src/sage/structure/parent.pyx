@@ -18,6 +18,7 @@ SageObject
 ###############################################################################
 
 cimport sage_object
+import operator
 
 include '../ext/python_object.pxi'
 include '../ext/python_bool.pxi'
@@ -114,7 +115,6 @@ cdef class Parent(sage_object.SageObject):
             return x2 == x
         except TypeError:
             return False
-        return True
 
 
     #################################################################################
@@ -130,10 +130,10 @@ cdef class Parent(sage_object.SageObject):
             return Hom(self, self).identity()
         elif S == self:
             from sage.categories.homset import Hom
-            from sage.categories.morphism import FormalCoercionMorphism
-            return FormalCoercionMorphism(Hom(S, self))
+            from sage.categories.morphism import CallMorphism
+            return CallMorphism(Hom(S, self))
         try:
-            if self._coerce_from_hash is None:
+            if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
                 self.init_coerce()
             return self._coerce_from_hash[S]
         except KeyError:
@@ -166,20 +166,18 @@ cdef class Parent(sage_object.SageObject):
                 R = mor.domain()
             else:
                 R = mor
-                mor = None
+                mor = sage.categories.morphism.CallMorphism(Hom(R, self))
+                i = self._coerce_from_list.index(R)
+                self._coerce_from_list[i] = mor # cache in case we need it again
             if R is S:
-                connecting = S # can't let it be None
+                return mor
             else:
                 print "R = ", R
                 connecting = R.coerce_map_from_c(S)
-            if connecting is not None:
-                if mor is None:
-                    i = self._coerce_from_list.index(R)
-                    mor = sage.categories.morphism.CallMorphism(Hom(R, self))
-                    self._coerce_from_list[i] = mor # in case we need it again
-                return mor if connecting is S else mor * connecting
+                if connecting is not None:
+                    return mor * connecting
 
-        # Piggyback of the old code for now
+        # Piggyback off the old code for now
         # WARNING: when working on this, make sure circular dependancies aren't introduced!
         if self.has_coerce_map_from_c(S):
             if isinstance(S, type):
@@ -188,9 +186,13 @@ cdef class Parent(sage_object.SageObject):
         else:
             return None
 
+    def get_action(self, S, op=operator.mul, self_on_left=True):
+        return self.get_action_c(S, op, self_on_left)
 
     cdef get_action_c(self, S, op, bint self_on_left):
         try:
+            if self._action_hash is None: # this is because parent.__init__() does not always get called
+                self.init_coerce()
             return self._action_hash[S, op, self_on_left]
         except KeyError:
             pass
@@ -205,8 +207,101 @@ cdef class Parent(sage_object.SageObject):
             self._action_hash[S, op, self_on_left] = action
         return action
 
+    def get_action_impl(self, S, op, self_on_left):
+        return self.get_action_c_impl(S, op, self_on_left)
+
     cdef get_action_c_impl(self, S, op, bint self_on_left):
-        pass
+        # G acts on S, G -> G', R -> S => G' acts on R (?)
+        import sage.categories.morphism
+        from sage.categories.action import Action, PrecomposedAction
+        from sage.categories.morphism import Morphism
+        from sage.categories.homset import Hom
+        from coerce import LeftModuleAction, RightModuleAction
+        cdef Parent R
+        print self._action_list
+        for action in self._action_list:
+            if PY_TYPE_CHECK(action, Action):
+                if self_on_left:
+                    if action.left() is not self: continue
+                    R = action.right()
+                else:
+                    if action.right() is not self: continue
+                    R = action.left()
+            elif op is operator.mul:
+                try:
+                    R = action
+                    if self_on_left:
+                        action = LeftModuleAction(S, self) # self is acted on from right
+                    else:
+                        action = RightModuleAction(S, self) # self is acted on from left
+                    i = self._action_list.index(R)
+                    self._action_list[i] = action
+                except TypeError:
+                    continue
+            else:
+                continue # only try mul if not specified
+            if R is S:
+                return action
+            else:
+                print "R = ", R
+                connecting = R.coerce_map_from_c(S) # S -> R
+                if connecting is not None:
+                    if self_on_left:
+                        return PrecomposedAction(action, None, connecting)
+                    else:
+                        return PrecomposedAction(action, connecting, None)
+
+
+        if op is operator.mul and PY_TYPE_CHECK(S, Parent):
+            from coerce import LeftModuleAction, RightModuleAction, LAction, RAction
+            # Actors define _laction_ and _raction_
+            # Acted-on elements define _lmul_ and _rmul_
+
+            # TODO: if _xmul_/_x_action_ code does stuff like
+            # if self == 0:
+            #    return self
+            # then _an_element_c() == 0 could be very bad.
+            #
+            #
+            x = self._an_element_c()
+            y = (<Parent>S)._an_element_c()
+            if self_on_left:
+                # The default _xmul_ for ring elements is coerce-and-multiply.
+                # This is better handled through the coercion model rather
+                # than via an action.
+                try:
+                    _register_pair(x,y)
+                    z = x._lmul_(y)
+                    _unregister_pair(x,y)
+                    return RightModuleAction(S, self)
+                except (NotImplementedError, TypeError, AttributeError):
+                    _unregister_pair(x,y)
+
+                try:
+                    _register_pair(x,y)
+                    z = x._l_action_(y)
+                    _unregister_pair(x,y)
+                    return LAction(self, S)
+                except (NotImplementedError, TypeError, AttributeError):
+                    _unregister_pair(x,y)
+
+            else:
+                try:
+                    _register_pair(x,y)
+                    z = x._rmul_(y)
+                    _unregister_pair(x,y)
+                    return LeftModuleAction(S, self)
+                except (NotImplementedError, TypeError, AttributeError):
+                    _unregister_pair(x,y)
+
+                try:
+                    _register_pair(x,y)
+                    z = x._r_action_(y)
+                    _unregister_pair(x,y)
+                    return RAction(self, S)
+                except (NotImplementedError, TypeError, AttributeError):
+                    _unregister_pair(x,y)
+
 
 
     #################################################################################
@@ -529,3 +624,30 @@ class Set_PythonType(Set_generic):
             import sage.rings.infinity
             return sage.rings.infinity.infinity
 
+
+# These functions are to guerentee that user defined _lmul_, _rmul_, _l_action_, _r_action_ do
+# not in turn call __mul__ on their arguments, leading to an infinite loop.
+
+cdef object _coerce_test_list = []
+
+class EltPair:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __eq__(self, other):
+        return type(self.x) is type(other.x) and self.x == other.x and type(self.y) is type(other.y) and self.y == other.y
+
+cdef bint _register_pair(x, y) except -1:
+    both = EltPair(x,y)
+    if both in _coerce_test_list:
+        print _coerce_test_list
+        print both
+        raise RuntimeError, "Infinite loop in multiplication of %s (parent %s) and %s (parent %s)!" % (x, x.parent(), y, y.parent())
+    _coerce_test_list.append(both)
+    return 0
+
+cdef void _unregister_pair(x, y):
+    try:
+        _coerce_test_list.remove(EltPair(x,y))
+    except ValueError:
+        pass

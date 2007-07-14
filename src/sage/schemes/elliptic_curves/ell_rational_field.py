@@ -2183,15 +2183,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return EllipticCurve_field.weierstrass_model(F)
 
     def integral_weierstrass_model(self):
-        """
+        r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('17a1')
+            sage: E.integral_weierstrass_model()
+            Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         F = self.minimal_model()
         a0, a1, a2, a3, a4 = F.ainvs()
-        return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
-                                          54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
-                                          3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
-                                          15552*a1*a3 + 11664*a2**2 + 46656*a4])
+        A = -27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3
+        B = 54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
+            3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
+            15552*a1*a3 + 11664*a2**2 + 46656*a4
+        while arith.valuation(A,2)>3 and arith.valuation(B,2)>5:
+            A = A/Integer(2**4)
+            B = B/Integer(2**6)
+        while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
+            A = A/Integer(3**4)
+            B = B/Integer(3**6)
+        return constructor.EllipticCurve([A,B])
 
     def watkins_data(self):
         """
@@ -3350,7 +3362,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 shan1 = 0   # this should conjecturally only happen when the rank is 0
             verbose("the two values for Sha : %s"%[shan0,shan1])
 
-            # check consistency (the first two are only here to avoid a bud in the p-adic L-series
+            # check consistency (the first two are only here to avoid a bug in the p-adic L-series
             # (namely the coefficients of zero-relative precision are treated as zero)
             if shan0 != 0 and shan1 != 0 and (shan0 - shan1 != 0 and shan0 + shan1 != 0):
                 raise RuntimeError, "There must be a bug in the supersingular routines for the p-adic BSD."

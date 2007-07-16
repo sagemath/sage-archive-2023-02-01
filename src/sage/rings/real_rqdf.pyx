@@ -158,7 +158,7 @@ cdef class RealQuadDoubleField_class(Field):
         return False
 
     cdef _an_element_c_impl(self):  # override this in SageX
-        return self(0)
+        return self(1.23)
 
     def _latex_(self):
         return "\\R"

@@ -474,6 +474,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         Q = self.polynomial(0)
         X = self.parent().gen()
         while R.degree() >= B.degree():
+            aaa = (R.leading_coefficient()/B.leading_coefficient())
+            bbb = X**(R.degree()-B.degree())
             S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
             Q += S
             R -= S*B

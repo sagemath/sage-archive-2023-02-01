@@ -418,7 +418,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
-            raise TypeError, "no base extension defined"
+            raise TypeError, "no valid base extension defined"
 
     def change_ring(self, R):
         """

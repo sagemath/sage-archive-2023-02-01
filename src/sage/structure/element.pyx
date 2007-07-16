@@ -451,6 +451,21 @@ cdef class Element(sage_object.SageObject):
                 r = cmp(type(left), type(right))
                 if r == 0:
                     r = -1
+                # Often things are compared against 0 (or 1), even when there
+                # is not a cannonical coercion ZZ -> other
+                # Things should implement and/or use __nonzero__ and is_one()
+                # but we can't do that here as that calls this.
+                # The old coercion model would declare a coercion if 0 went in.
+                # (Though would fail with a TypeError for other values, thus
+                # contaminating the _has_coerce_map_from cache.)
+                from sage.rings.integer import Integer
+                try:
+                    if PY_TYPE_CHECK(left, Element) and isinstance(right, (int, float, Integer)) and not right:
+                        r = cmp(left, (<Element>left)._parent(right))
+                    elif PY_TYPE_CHECK(right, Element) and isinstance(left, (int, float, Integer)) and not left:
+                        r = cmp((<Element>right)._parent(left), right)
+                except TypeError:
+                    pass
         else:
             if HAS_DICTIONARY(left):   # fast check
                 r = left.__cmp__(right)

@@ -251,18 +251,66 @@ class Homset(ParentWithBase, Set_generic):
     def __call__(self, x, y=None):
         """
         Construct a morphism in this homset from x if possible.
+
+        EXAMPLES:
+            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
+            sage: phi = Hom(SymmetricGroup(5), SymmetricGroup(6)).natural_map()
+            sage: phi
+            Coercion morphism:
+              From: SymmetricGroup(5)
+              To:   SymmetricGroup(6)
+            sage: H(phi)
+            Composite morphism:
+              From: SymmetricGroup(4)
+              To:   SymmetricGroup(7)
+              Defn:   Composite morphism:
+                      From: SymmetricGroup(4)
+                      To:   SymmetricGroup(6)
+                      Defn:   Coercion morphism:
+                              From: SymmetricGroup(4)
+                              To:   SymmetricGroup(5)
+                            then
+                              Coercion morphism:
+                              From: SymmetricGroup(5)
+                              To:   SymmetricGroup(6)
+                    then
+                      Coercion morphism:
+                      From: SymmetricGroup(6)
+                      To:   SymmetricGroup(7)
+
+        AUTHOR:
+            -- Robert Bradshaw
         """
-        if x in self:
-            return x
+        if isinstance(x, morphism.Morphism):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                x._set_parent(self) # needed due to non-uniqueness of homsets
+                return x
+            else:
+                if x.domain() != self.domain():
+                    mor = x.domain().coerce_map_from(self.domain())
+                    if mor is None:
+                        raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
+                    x = x * mor
+                if x.codomain() != self.codomain():
+                    mor = self.codomain().coerce_map_from(x.codomain())
+                    if mor is None:
+                        raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
+                    x = mor * x
+                return x
         raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
 
     def __cmp__(self, other):
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
-        if self.__domain == other.__domain and self.__codomain == other.__codomain \
-               and self.__category == other.__category:
-            return 0
-        return cmp(self.__domain, other.__domain)
+        if self.__domain == other.__domain:
+            if self.__codomain == other.__codomain:
+                if self.__category == other.__category:
+                    return 0
+                else: return cmp(self.__category, other.__category)
+            else: return cmp(self.__codomain, other.__codomain)
+        else: return cmp(self.__domain, other.__domain)
 
     def __contains__(self, x):
         try:

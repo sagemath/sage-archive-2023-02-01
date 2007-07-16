@@ -442,7 +442,15 @@ class FreeModule_generic(module.Module):
         return A.span(self.basis())
 
     def _an_element_impl(self):
-        return self.zero_vector()
+        try:
+            return self([k+2 for k in range(self.__rank)])
+        except:
+            pass
+        try:
+            return self.gen(0)
+        except:
+            pass
+        return self(0)
 
     def element_class(self):
         try:
@@ -523,8 +531,7 @@ class FreeModule_generic(module.Module):
             sage: R.gen(0) + 2*R.gen(1) in V
             False
 
-            sage: Q = QQ
-            sage: w = Q('1/2')*(R.gen(0) + R.gen(1))
+            sage: w = (1/2)*(R.gen(0) + R.gen(1))
             sage: w
             (1/2, 1/2, 0)
             sage: w.parent()
@@ -1362,7 +1369,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         try:
             C = [self.coordinates(b) for b in other.basis()]
         except ArithmeticError:
-            raise ArithmeticError, "other must be contained in the vector space spanned by self."
+            raise
+#            raise ArithmeticError, "other must be contained in the vector space spanned by self."
 
         if other.rank() < self.rank():
             return sage.rings.infinity.infinity

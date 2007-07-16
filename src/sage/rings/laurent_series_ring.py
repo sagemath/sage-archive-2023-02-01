@@ -100,6 +100,17 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ParentWithGens.__init__(self, base_ring, name)
         self.__sparse = sparse
 
+    def base_extend(self, R):
+        """
+        Returns the laurent series ring over R in the same variable as
+        self, assuming there is a canonical coerce map from the base
+        ring of self to R.
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return self.change_ring(R)
+        else:
+            raise TypeError, "no valid base extension defined"
+
     def change_ring(self, R):
         return LaurentSeriesRing(R, self.variable_name(), sparse=self.__sparse)
 
@@ -145,9 +156,22 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         Rings that canonically coerce to this power series ring R:
 
            * R itself
+           * Any laurent series ring in the same variable whose base ring canonically coerces to
+             the base ring of R.
            * Any ring that canonically coerces to the power series ring over the base ring of R.
            * Any ring that canonically coerces to the base ring of R
         """
+        try:
+            P = x.parent()
+            if is_LaurentSeriesRing(P):
+                if P.variable_name() == self.variable_name():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of power series rings"
+        except AttributeError:
+            pass
+
         return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
     def __cmp__(self, other):

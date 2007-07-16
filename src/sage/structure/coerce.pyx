@@ -192,9 +192,8 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             yp = parent_c(y)
             if xp is yp:
                 return op(x,y)
-            action = self.action_maps_c(xp, yp, op)
+            action = self.get_action_c(xp, yp, op)
             if action is not None:
-#                print "found action", action
                 return (<Action>action)._call_c(x, y)
 
         try:
@@ -301,10 +300,10 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 self._coercion_maps[R,S] = self._coercion_maps[S,R] = None
             return homs
 
-    def action_maps(self, R, S, op):
-        return self.action_maps_c(R, S, op)
+    def get_action(self, R, S, op):
+        return self.get_action_c(R, S, op)
 
-    cdef action_maps_c(self, R, S, op):
+    cdef get_action_c(self, R, S, op):
         try:
             return self._action_maps[R,S,op]
         except KeyError:
@@ -332,10 +331,10 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         # Try base extending to left and right
         # TODO: This is simple and ambiguous, add sophistication
         if PY_TYPE_CHECK(R, ParentWithBase) and PY_TYPE_CHECK(S, Parent):
-            if (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
-                Z = R.base_extend(S) # should there be a base-extension morphism?
-            elif (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
+            if (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
                 Z = S.base_extend(R)
+            elif (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
+                Z = R.base_extend(S) # should there be a base-extension morphism?
             else:
                 Z = None
             if Z is not None:
@@ -389,26 +388,30 @@ cdef class RAction(Action):
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
         # this may be wasteful, but rings are
-        # implemented with the assumptoin that
+        # implemented with the assumption that
         # _rmul_ is given an element of the basering
-        if G is not S.base():
+        if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
+            if self.connecting is None:
+                if G.has_coerce_map_from(S.base()):
+                    self.extended_base = S.base_extend(G)
+
         # TODO: detect this better
-        cdef ModuleElement a
-        cdef RingElement g
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
-        g = G._an_element()
-        if self.connecting is not None:
-            g = self.connecting._call_c(g)
-        a = S._an_element()
-        res = a._rmul_c(g) # g * a
-        if parent_c(res) is not S:
+        cdef RingElement g = G._an_element()
+        cdef ModuleElement a = S._an_element()
+        res = self._call_c(g, a)
+
+        if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
+
         Action.__init__(self, G, S, True, operator.mul)
 
     cdef Element _call_c_impl(self, Element g, Element a):
         if self.connecting is not None:
             g = self.connecting._call_c(g)
+        if self.extended_base is not None:
+            a = self.extended_base(a)
         return (<ModuleElement>a)._rmul_c(g)  # a * g
 
     def _repr_name_(self):
@@ -420,22 +423,28 @@ cdef class RightModuleAction(Action):
         # this may be wasteful, but rings are
         # implemented with the assumptoin that
         # _rmul_ is given an element of the basering
-        if G is not S.base():
+        if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
+            if self.connecting is None:
+                if G.has_coerce_map_from(S.base()):
+                    self.extended_base = S.base_extend(G)
+
         # TODO: detect this better
-        cdef ModuleElement a
-        cdef RingElement g
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
-        g = G._an_element()
-        a = S._an_element()
-        res = a._lmul_c(g) # a * g
-        if parent_c(res) is not S:
+        cdef RingElement g = G._an_element()
+        cdef ModuleElement a = S._an_element()
+        res = self._call_c(a, g)
+
+        if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
+
         Action.__init__(self, G, S, False, operator.mul)
 
     cdef Element _call_c_impl(self, Element a, Element g):
         if self.connecting is not None:
             g = self.connecting._call_c(g)
+        if self.extended_base is not None:
+            a = self.extended_base(a)
         return (<ModuleElement>a)._lmul_c(g)  # a * g
 
     def _repr_name_(self):

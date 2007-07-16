@@ -292,7 +292,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
-        elif d < 4 and self._compiled is None:
+        elif 1 or d < 4 and self._compiled is None:
             while i >= 0:
                 result = result * a + self[i]
                 i -= 1
@@ -2322,7 +2322,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return self
         v = [c * a for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
@@ -2331,7 +2331,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return self
         v = [a * c for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 

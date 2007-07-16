@@ -29,6 +29,15 @@ import homset
 include "../ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
+def make_morphism(_class, parent, _dict, _slots):
+    # from element.pyx
+    cdef Morphism mor = _class.__new__(_class)
+    mor._set_parent(parent)
+    mor._update_slots(_slots)
+    if HAS_DICTIONARY(mor):
+        mor.__dict__ = _dict
+    return mor
+
 def is_Morphism(x):
     return isinstance(x, Morphism)
 
@@ -39,6 +48,22 @@ cdef class Morphism(Element):
         Element.__init__(self, parent)
         self._domain = parent.domain()
         self._codomain = parent.codomain()
+
+    cdef _update_slots(self, _slots):
+        self._domain = _slots['_domain']
+        self._codomain = _slots['_codomain']
+
+    cdef _extra_slots(self, _slots):
+        _slots['_domain'] = self._domain
+        _slots['_codomain'] = self._codomain
+        return _slots
+
+    def __reduce__(self):
+        if HAS_DICTIONARY(self):
+            _dict = self.__dict__
+        else:
+            _dict = {}
+        return make_morphism, (self.__class__, self._parent, _dict, self._extra_slots({}))
 
     def _repr_type(self):
         return "Generic"
@@ -175,6 +200,13 @@ cdef class FormalCompositeMorphism(Morphism):
         Morphism.__init__(self, parent)
         self.__first = first
         self.__second = second
+
+    cdef _update_slots(self, _slots):
+        self.__first = _slots['__first']
+        self.__second = _slots['__second']
+
+    cdef _extra_slots(self, _slots):
+        return Morphism._extra_slots(self, {'__first': self.__first, '__second': self.__second})
 
     cdef Element _call_c_impl(self, Element x):
         return self.__second(self.__first(x))

@@ -304,6 +304,9 @@ class RationalField(_uniq, field.Field):
         """
         return infinity.infinity
 
+    def _an_element_impl(self):
+        return sage.rings.rational.Rational((1,2))
+
     def random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
         EXAMPLES:

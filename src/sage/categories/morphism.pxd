@@ -6,7 +6,10 @@ cdef class Morphism(Element):
     cdef Parent _codomain
 
 # TODO: remove this requirement when we better understand pickling
-    cdef __dict__
+#    cdef __dict__
+
+    cdef _update_slots(self, _dict)
+    cdef _extra_slots(self, _dict)
 
     # these methods assume x is an element of domain, and returns an element with parent codomain
     cdef Element _call_c(self, x)

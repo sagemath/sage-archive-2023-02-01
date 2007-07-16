@@ -129,6 +129,7 @@ cdef class Parent(sage_object.SageObject):
             from sage.categories.homset import Hom
             return Hom(self, self).identity()
         elif S == self:
+            # non-unique parents
             from sage.categories.homset import Hom
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(S, self))
@@ -264,44 +265,47 @@ cdef class Parent(sage_object.SageObject):
             #
             x = self._an_element_c()
             y = (<Parent>S)._an_element_c()
+#            print "looking action ", x, y
+
+            _register_pair(x,y) # this is to avoid possible infinite loops
             if self_on_left:
-                # The default _xmul_ for ring elements is coerce-and-multiply.
-                # This is better handled through the coercion model rather
-                # than via an action.
                 try:
-                    _register_pair(x,y)
-                    z = x._lmul_(y)
+#                    print "RightModuleAction"
+                    action = RightModuleAction(S, self) # this will test _lmul_
                     _unregister_pair(x,y)
-                    return RightModuleAction(S, self)
-                except (NotImplementedError, TypeError, AttributeError):
-                    _unregister_pair(x,y)
+#                    print "got", action
+                    return action
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
 
                 try:
-                    _register_pair(x,y)
+#                    print "LAction"
                     z = x._l_action_(y)
                     _unregister_pair(x,y)
                     return LAction(self, S)
-                except (NotImplementedError, TypeError, AttributeError):
-                    _unregister_pair(x,y)
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
 
             else:
                 try:
-                    _register_pair(x,y)
-                    z = x._rmul_(y)
+#                    print "LeftModuleAction"
+                    action = LeftModuleAction(S, self) # this will test _rmul_
                     _unregister_pair(x,y)
-                    return LeftModuleAction(S, self)
-                except (NotImplementedError, TypeError, AttributeError):
-                    _unregister_pair(x,y)
+#                    print "got", action
+                    return action
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
 
                 try:
-                    _register_pair(x,y)
+#                    print "RAction"
                     z = x._r_action_(y)
                     _unregister_pair(x,y)
                     return RAction(self, S)
-                except (NotImplementedError, TypeError, AttributeError):
-                    _unregister_pair(x,y)
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
 
-
+            _unregister_pair(x,y)
+#            print "found nothing"
 
     #################################################################################
     # Coercion support functionality
@@ -416,7 +420,7 @@ cdef class Parent(sage_object.SageObject):
 
     def _an_element_impl(self):     # override this in Python
         r"""
-        Implementation of a function that returns an element (often 0)
+        Implementation of a function that returns an element (often non-trivial)
         of a parent object.  Every parent object should implement it,
         unless the default implementation works.
 
@@ -427,15 +431,26 @@ cdef class Parent(sage_object.SageObject):
 
     cdef _an_element_c_impl(self):  # override this in SageX
         """
-        Returns an element of self.  It doesn't matter which.
+        Returns an element of self. Want it in sufficent generality
+        that poorly-written functions won't work when they're not
+        supposed to. This is cached so doesn't have to be super fast.
         """
         try:
-            return self(0)
-        except TypeError:
+            return self.gen(0)
+        except:
+            pass
+
+        try:
+            return self.gen()
+        except:
+            pass
+
+        for x in ['_an_element_', 'pi', 1.2, 2, 1, 0]:
             try:
-                return self(1)
-            except TypeError:
+                return self(x)
+            except (TypeError, NameError, NotImplementedError):
                 pass
+
         raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
 
     def _an_element(self):        # do not override this (call from Python)
@@ -642,9 +657,10 @@ cdef bint _register_pair(x, y) except -1:
     both = EltPair(x,y)
 #    print _coerce_test_list, " + ", both
     if both in _coerce_test_list:
-        print _coerce_test_list
-        print both
-        raise RuntimeError, "Infinite loop in multiplication of %s (parent %s) and %s (parent %s)!" % (x, x.parent(), y, y.parent())
+#        print "Uh oh..."
+#        print _coerce_test_list
+#        print both
+        raise NotImplementedError, "Infinite loop in multiplication of %s (parent %s) and %s (parent %s)!" % (x, x.parent(), y, y.parent())
     _coerce_test_list.append(both)
     return 0
 

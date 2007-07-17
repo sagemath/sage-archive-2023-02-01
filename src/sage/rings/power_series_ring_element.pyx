@@ -1408,7 +1408,7 @@ cdef class PowerSeries_poly(PowerSeries):
         if PY_TYPE_CHECK(f, Element):
             if (<Element>f)._parent is R:
                 pass
-            elif (<Element>f)._parent is R.base_ring():
+            elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
             elif PY_TYPE_CHECK(f, PowerSeries_poly):
                 prec = (<PowerSeries_poly>f)._prec

@@ -347,26 +347,26 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
     cdef discover_action_c(self, R, S, op):
 
-        if PY_TYPE_CHECK(R, Parent):
-            action = (<Parent>R).get_action_c(S, op, True)
-            if action is not None:
-#                print "found", action
-                return action
-
         if PY_TYPE_CHECK(S, Parent):
             action = (<Parent>S).get_action_c(R, op, False)
             if action is not None:
 #                print "found", action
                 return action
 
-            if op is operator.div:
-                action = (<Parent>S).get_action_c(R, operator.mul, False)
-                if action is not None:
+        if PY_TYPE_CHECK(R, Parent):
+            action = (<Parent>R).get_action_c(S, op, True)
+            if action is not None:
+#                print "found", action
+                return action
+
+        if op is operator.div and PY_TYPE_CHECK(S, Parent):
+            action = (<Parent>S).get_action_c(R, operator.mul, False)
+            if action is not None:
 #                    print "found", action
-                    try:
-                        return ~action
-                    except TypeError:
-                        pass
+                try:
+                    return ~action
+                except TypeError:
+                    pass
 
 
 from sage.structure.element cimport Element # workaround SageX bug

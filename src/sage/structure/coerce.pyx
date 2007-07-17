@@ -393,7 +393,11 @@ cdef class LeftModuleAction(Action):
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
-                if G.has_coerce_map_from(S.base()):
+                if G.has_coerce_map_from(S.base()) \
+                        and not G.has_coerce_map_from(S) \
+                        and not S.has_coerce_map_from(G):
+                    # e.g. Q acts on Z[x] after base-extending to Q[x]
+                    # TODO, this is probably to liberal, but SAGE depends on this behavior
                     self.extended_base = S.base_extend(G)
 
         # TODO: detect this better
@@ -426,7 +430,9 @@ cdef class RightModuleAction(Action):
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
-                if G.has_coerce_map_from(S.base()):
+                if G.has_coerce_map_from(S.base()) \
+                        and not G.has_coerce_map_from(S) \
+                        and not S.has_coerce_map_from(G):
                     self.extended_base = S.base_extend(G)
 
         # TODO: detect this better

@@ -1186,6 +1186,12 @@ cdef make_ZZX(ntl_c_ZZX* x):
     return y
 
 def make_new_ZZX(v=[]):
+    cdef Py_ssize_t i
+    if PY_TYPE_CHECK(v, list):
+        for i from 0 <= i < len(v):
+            x = v[i]
+            if not PY_TYPE_CHECK(x, Integer) and not PY_TYPE_CHECK(x, int):
+                v[i] = Integer(x)
     s = str(v).replace(',',' ')
     cdef ntl_ZZX z
     z = ntl_ZZX()
@@ -2210,6 +2216,13 @@ cdef make_ZZ_pX(ZZ_pX* x):
     return y
 
 def make_new_ZZ_pX(v=[]):
+    from sage.rings.integer_mod import IntegerMod_abstract
+    cdef Py_ssize_t i
+    if PY_TYPE_CHECK(v, list):
+        for i from 0 <= i < len(v):
+            x = v[i]
+            if not PY_TYPE_CHECK(x, IntegerMod_abstract) and not PY_TYPE_CHECK(x, Integer) and not PY_TYPE_CHECK(x, int):
+                v[i] = Integer(x)
     s = str(v).replace(',',' ').replace('L','')
     cdef ntl_ZZ_pX z
     z = ntl_ZZ_pX()

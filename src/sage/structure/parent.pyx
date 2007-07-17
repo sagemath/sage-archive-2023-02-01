@@ -254,7 +254,7 @@ cdef class Parent(sage_object.SageObject):
 
         if op is operator.mul and PY_TYPE_CHECK(S, Parent):
             from coerce import LeftModuleAction, RightModuleAction, LAction, RAction
-            # Actors define _laction_ and _raction_
+            # Actors define _l_action_ and _r_action_
             # Acted-on elements define _lmul_ and _rmul_
 
             # TODO: if _xmul_/_x_action_ code does stuff like

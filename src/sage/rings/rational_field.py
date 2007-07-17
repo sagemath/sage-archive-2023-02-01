@@ -94,7 +94,6 @@ class RationalField(_uniq, field.Field):
             sage: a + 1
             393/374
         """
-    def __init__(self):
         ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
@@ -173,6 +172,19 @@ class RationalField(_uniq, field.Field):
         if isinstance(x, sage.rings.rational.Rational):
             return x
         return sage.rings.rational.Rational(x, base)
+
+    def construction(self):
+        from sage.categories.pushout import FractionField
+        import integer_ring
+        return FractionField(), integer_ring.ZZ
+
+    def completion(self, p, prec, extras = {}):
+        if p == infinity.Infinity:
+            from sage.rings.real_mpfr import RealField
+            return RealField(prec, **extras) # TODO: handle RDF/RQDF/rounding via extras, probably via an extra utility function
+        else:
+            from sage.rings.padics.factory import Qp
+            return Qp(p, prec, **extras)
 
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer,

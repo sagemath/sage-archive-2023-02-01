@@ -307,6 +307,13 @@ cdef class Parent(sage_object.SageObject):
             _unregister_pair(x,y)
 #            print "found nothing"
 
+    def construction(self):
+        """
+        Returns a pair (functor, parent) such that functor(parent) return self.
+        If this ring does not have a functorial construction, return None.
+        """
+        return None
+
     #################################################################################
     # Coercion support functionality
     #################################################################################

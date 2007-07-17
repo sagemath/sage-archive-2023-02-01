@@ -172,3 +172,26 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         """
         from sage.rings.padics.factory import Zp
         return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect a given prime.
+
+        Also preserves other information that makes this field unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLE:
+            sage: K = Qp(17, 8, print_mode='val-unit')
+            sage: c, L = K.construction(); L
+            Rational Field
+            sage: c(L)
+            17-adic Field with capped relative precision 8
+            sage: K == c(L)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(self.prime(),
+                                  self.precision_cap(),
+                                  {'print_mode':self.print_mode(), 'type':'capped-rel', 'names':self._names}),
+                sage.rings.rational_field.QQ)

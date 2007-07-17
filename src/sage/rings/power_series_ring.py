@@ -296,6 +296,22 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self(v) * (self.gen(0)**f.Valuation())
         return self.__power_series_class(self, f, prec, check=check)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the univariate polynomial ring with respect to the indeterminate
+        (to a given precision).
+
+        EXAMPLE:
+            sage: R = PowerSeriesRing(ZZ, 'x')
+            sage: c, S = R.construction(); S
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return CompletionFunctor(self._names[0], self.default_prec()),  self._poly_ring()
+
     def _coerce_impl(self, x):
         """
         Return canonical coercion of x into self.
@@ -617,15 +633,12 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-    pass
-
-class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is defined since
-        the base ring is a field.
+        this is an integral domain.
 
-        This fraction field is just the Laurent series ring over the base field.
+        This fraction field is just the Laurent series ring over the fraction field of the base ring.
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(GF(7))
@@ -634,8 +647,10 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
             sage: Frac(R)
             Laurent Series Ring in t over Finite Field of size 7
         """
-        return self.laurent_series_ring()
+        return self.base_extend(self.base_ring().fraction_field()).laurent_series_ring()
 
+class PowerSeriesRing_over_field(PowerSeriesRing_domain):
+      pass
 
 def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
     return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)

@@ -71,6 +71,7 @@ if [ $1 = '-f' ]; then
    FORCE=1
    shift
 fi
+export FORCE
 
 DELETE_TMP=1
 if [ $1 = '-s' -o $1 = '-m' ]; then

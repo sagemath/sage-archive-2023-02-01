@@ -2470,6 +2470,7 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         other options -- passed to plot.
 
     EXAMPLE:
+        sage: t = var('t')
         sage: G = parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
         sage: G.save('sage.png')
     """

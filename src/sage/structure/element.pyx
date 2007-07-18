@@ -1228,6 +1228,8 @@ cdef class RingElement(ModuleElement):
 
             (scalar * vector)
 
+            sage: x, y = var('x, y')
+
             sage: parent(ZZ(1)*vector(ZZ,[1,2]))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: parent(QQ(1)*vector(ZZ,[1,2]))
@@ -1686,6 +1688,8 @@ cdef class Vector(ModuleElement):
 
             (vector * vector)
 
+            sage: x, y = var('x, y')
+
             sage: parent(vector(ZZ,[1,2])*vector(ZZ,[1,2]))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: parent(vector(ZZ,[1,2])*vector(QQ,[1,2]))
@@ -1929,6 +1933,8 @@ cdef class Matrix(AlgebraElement):
         TEST CASES:
 
             (matrix * matrix)
+
+            sage: x, y = var('x, y')
 
             sage: parent(matrix(ZZ,2,2,[1,2,3,4])*matrix(ZZ,2,2,[1,2,3,4]))
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
@@ -2582,6 +2588,7 @@ cdef bin_op_c(x, y, op):
 
     TEST CASES:
 
+        sage: x, y = var('x, y')
         sage: parent(ZZ[x](x) / ZZ(2))
         Univariate Polynomial Ring in x over Rational Field
         sage: parent(QQ(1/2)+ZZ[x](x))

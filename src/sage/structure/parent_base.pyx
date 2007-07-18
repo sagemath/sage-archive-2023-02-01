@@ -81,6 +81,7 @@ cdef class ParentWithBase(parent.Parent):
 
         TEST CASES:
 
+        sage: x, y, z, t, r,s = var('x,y,z,t,r,s')
         sage: ZZ.base_extend_canonical(QQ)
         Rational Field
         sage: ZZ[x].base_extend_canonical(QQ)

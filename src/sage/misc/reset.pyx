@@ -45,16 +45,19 @@ def restore(vars=None):
         Rational Field
         sage: x
         10
-        sage: restore('x  y')
+        sage: y = var('y')
+        sage: restore('x y')
         sage: x
         x
         sage: y
-        y
+        Traceback (most recent call last):
+        ...
+        NameError: name 'y' is not defined
         sage: x = 10; y = 15/3; QQ='red'
         sage: ww = 15
         sage: restore()
-        sage: x,y,QQ,ww
-        (x, y, Rational Field, 15)
+        sage: x, QQ, ww
+        (x, Rational Field, 15)
         sage: restore('ww')
         sage: ww
         Traceback (most recent call last):

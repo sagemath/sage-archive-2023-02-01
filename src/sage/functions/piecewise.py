@@ -535,13 +535,13 @@ class PiecewisePolynomial:
         Returns the function piece used to evaluate self at x0.
 
         EXAMPLES:
-            sage: f1 = z
-            sage: f2 = 1-x
-            sage: f3 = exp(y)
-            sage: f4 = sin(2*t)
+            sage: f1(z) = z
+            sage: f2(x) = 1-x
+            sage: f3(y) = exp(y)
+            sage: f4(t) = sin(2*t)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f.which_function(3/2)
-            1 - x
+            x |--> 1 - x
         """
         n = self.length()
         endpts = self.end_points()
@@ -1245,12 +1245,14 @@ class PiecewisePolynomial:
         and that the left-most endpoint of the domain is 0.
 
         EXAMPLES:
+            sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
             sage: f.laplace(x, s)
             -e^(-s)/s - (e^(-s)/s^2) + (s + 1)*e^(-2*s)/s^2 + 1/s
             sage: f.laplace(x, w)
             -e^(-w)/w - (e^(-w)/w^2) + (w + 1)*e^(-2*w)/w^2 + 1/w
 
+            sage: y, t = var('y, t')
             sage: f = Piecewise([[(1,2), 1-y]])
             sage: f.laplace(y, t)
             (t + 1)*e^(-2*t)/t^2 - (e^(-t)/t^2)

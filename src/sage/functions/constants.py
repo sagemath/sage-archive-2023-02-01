@@ -361,9 +361,9 @@ class Constant(Function):
         """
         EXAMPLES:
             sage: solve(pi == 2*x)
-            [x == (pi/2)]
+            [x == pi/2]
             sage: solve(cos(x^2) == pi)
-            [x == (-sqrt(acos(pi))), x == sqrt(acos(pi))]
+            [x == -sqrt(acos(pi)), x == sqrt(acos(pi))]
         """
         return self._ser().__eq__(right)
 

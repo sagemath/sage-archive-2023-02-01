@@ -180,8 +180,8 @@ class RationalField(_uniq, field.Field):
 
     def completion(self, p, prec, extras = {}):
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import RealField
-            return RealField(prec, **extras) # TODO: handle RDF/RQDF/rounding via extras, probably via an extra utility function
+            from sage.rings.real_mpfr import create_RealField
+            return create_RealField(prec, **extras)
         else:
             from sage.rings.padics.factory import Qp
             return Qp(p, prec, **extras)

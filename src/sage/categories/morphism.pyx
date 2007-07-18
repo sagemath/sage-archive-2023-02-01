@@ -179,7 +179,7 @@ cdef class IdentityMorphism(Morphism):
     cdef Element _call_c(self, x):
         return x
 
-    def __mull__(left, right):
+    def __mul__(left, right):
         if not isinstance(right, Morphism):
             raise TypeError, "right (=%s) must be a morphism to multiply it by %s"%(right, left)
         if not isinstance(left, Morphism):

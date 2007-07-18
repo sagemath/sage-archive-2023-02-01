@@ -84,7 +84,7 @@ CC = complex_field.ComplexField()
 import real_mpfr
 RR = real_mpfr.RealField()
 
-from real_double import RealDoubleElement
+from real_double import RealDoubleElement, RDF
 
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
 # are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
@@ -99,6 +99,7 @@ PREC = 28
 from random import random
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.categories.morphism cimport Morphism
 
 def is_ComplexDoubleField(x):
     return PY_TYPE_CHECK(x, ComplexDoubleField_class)
@@ -241,6 +242,14 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                 return ComplexDoubleElement(x, 0)
         else:
             return ComplexDoubleElement(x, im)
+
+    cdef coerce_map_from_c(self, S):
+        from integer_ring import ZZ
+        from rational_field import QQ
+        import real_mpfr
+        if S in [ZZ, QQ, RDF] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
+            return FloatToCDF(S)
+        return sage.rings.ring.Field.coerce_map_from_c(self, S)
 
     cdef _coerce_c_impl(self, x):
         """
@@ -1474,6 +1483,15 @@ cdef class ComplexDoubleElement(FieldElement):
         R = PolynomialRing(ZZ ,'x')
         return R(list(reversed(eval(str(f.Vec())))))
 
+
+cdef class FloatToCDF(Morphism):
+    def __init__(self, R):
+        from sage.categories.homset import Hom
+        Morphism.__init__(self, Hom(R, CDF))
+    cdef Element _call_c_impl(self, Element x):
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        z._complex = gsl_complex_rect(PyFloat_AsDouble(x), 0)
+        return z
 
 #####################################################
 # Create new ComplexDoubleElement from a

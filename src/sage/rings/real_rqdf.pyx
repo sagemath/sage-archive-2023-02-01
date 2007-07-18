@@ -243,6 +243,26 @@ cdef class RealQuadDoubleField_class(Field):
         """
         return [self.gen()]
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$.
+
+        Also preserves other information that makes this field unique
+        (i.e. the Real Quad Double Field).
+
+        EXAMPLES:
+            sage: c, S = RQDF.construction(); S
+            Rational Field
+            sage: RQDF == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  212,
+                                  {'type': 'RQDF'}),
+               sage.rings.rational_field.QQ)
+
     cdef _coerce_c_impl(self, x):
         """
         Canonical coercion of x to the real quad double field.

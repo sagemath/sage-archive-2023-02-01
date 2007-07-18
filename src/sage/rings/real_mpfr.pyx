@@ -70,9 +70,9 @@ from rational import Rational
 from rational cimport Rational
 
 from real_double cimport RealDoubleElement
-from real_double import is_RealDoubleElement
+from real_double import is_RealDoubleElement, RDF
 
-from real_rqdf import QuadDoubleElement
+from real_rqdf import QuadDoubleElement, RQDF
 
 import sage.rings.complex_field
 import sage.rings.rational_field
@@ -2696,6 +2696,18 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
+
+# here because this imports the other two real fields
+def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
+    if type == "RDF":
+        return RDF
+    elif type == "RQDF":
+        return RQDF
+    elif type == "Interval":
+        from real_mpfi import RealIntervalField
+        return RealIntervalField(prec, sci_not)
+    else:
+        return RealField(prec, sci_not, rnd)
 
 
 def is_RealField(x):

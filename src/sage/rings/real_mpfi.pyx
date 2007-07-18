@@ -377,6 +377,28 @@ cdef class RealIntervalField(sage.rings.ring.Field):
             x = (x,y)
         return RealIntervalFieldElement(self, x, base)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$,
+        and the note that this is an interval field.
+
+        Also preserves other information that makes this field unique
+        (e.g. precision, print mode).
+
+        EXAMPLES:
+            sage: R = RealIntervalField(123)
+            sage: c, S = R.construction(); S
+            Rational Field
+            sage: R == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  self.prec(),
+                                  {'sci_not': self.scientific_notation(), 'type': 'Interval'}),
+               sage.rings.rational_field.QQ)
+
     cdef _coerce_c_impl(self, x):
         """
         Canonical coercion of x to this mpfi real field.

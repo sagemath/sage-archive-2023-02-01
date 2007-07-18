@@ -723,9 +723,12 @@ class SymbolicExpression(RingElement):
         return long(int(self))
 
     def numerical_approx(self, prec=53):
-        """
+        r"""
         Return a numerical approximation of self as either a real or
         complex number.
+
+        NOTE: You can use \code{foo.n()} as a shortcut for
+        \code{foo.numerical_approx()}.
 
         INPUT:
             prec -- integer (default: 53): the number of bits of precision
@@ -737,6 +740,12 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: cos(3).numerical_approx()
             -0.989992496600445
+
+        Use the n() shortcut:
+            sage: cos(3).n()
+            -0.989992496600445
+
+        Higher precision:
             sage: cos(3).numerical_approx(200)
             -0.98999249660044545727157279473126130239367909661558832881409
             sage: (i + 1).numerical_approx(32)
@@ -755,6 +764,8 @@ class SymbolicExpression(RingElement):
             approx = self._complex_mpfr_field_(ComplexField(prec))
 
         return approx
+
+    n = numerical_approx
 
     def _mpfr_(self, field):
         raise TypeError

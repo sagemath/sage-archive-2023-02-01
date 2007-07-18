@@ -3158,9 +3158,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return Sha
 
     def sha_an_padic(self, p, prec=0):
-        """
+        r"""
         Returns the conjectural order of Sha(E), according to the
-        p-adic analogue of the BSD conjecture.
+        $p$-adic analogue of the BSD conjecture.
 
         INPUT:
             p -- a prime > 3
@@ -3168,11 +3168,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             p-adic L-Series
 
         OUTPUT:
-            p-adic number -- that conjecturally equals #Sha(E)(p) or -#Sha(E)(p)
+            p-adic number -- that conjecturally equals $\#Sha(E)(p)$ or $-\#Sha(E)(p)$.
 
         NOTE:
             If prec is set to zero (default) then the precision is set so that
-            at least the first p-adic digit of conjectural #Sha(E)(p) is
+            at least the first p-adic digit of conjectural $\#Sha(E)(p)$ is
             determined.
 
         BUG:
@@ -3342,8 +3342,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
     def sha_p_primary_bound(self, p):
-        """
-        Returns an upper bound of #Sha(E)(p).
+        r"""
+        Returns an upper bound of $\#Sha(E)(p)$.
 
         INPUT:
             p -- a prime > 3
@@ -3352,7 +3352,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             integer -- power of p that bounds #Sha(E)(p) from above
 
         NOTE:
-            The result is a proven upper bound on the order of #Sha(E)(p).
+            The result is a proven upper bound on the order of $Sha(E)(p)$.
             So in particular it proves it finiteness even if the rank of
             the curve is larger than 1. Note also that this bound is sharp
             if one assumes the main conjecture of Iwasawa theory of

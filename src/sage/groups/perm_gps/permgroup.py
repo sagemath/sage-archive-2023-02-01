@@ -897,9 +897,9 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def cohomology_part(self, n, p = 0):
         """
-        Computes the p-part of the group cohomology H^n(G, F), where F = Z if p=0
-        and F = Z/pZ if p >0 is a prime. Wraps HAP's Homology function, written by
-        Graham Ellis, applied to the p-Syow subgroup of G.
+        Computes the p-part of the group cohomology $H^n(G, F)$, where $F = Z$ if $p=0$
+        and $F = Z/pZ$ if $p >0$ is a prime. Wraps HAP's Homology function, written by
+        Graham Ellis, applied to the $p$-Sylow subgroup of $G$.
 
         REQUIRES:
             GAP package HAP (in gap_packages-*.spkg).
@@ -931,9 +931,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         return AbelianGroup(len(L),L)
 
     def homology(self, n, p = 0):
-        """
-        Computes the group homology H_n(G, F), where F = Z if p=0
-        and F = Z/pZ if p >0 is a prime. Wraps HAP's GroupHomology
+        r"""
+        Computes the group homology $H_n(G, F)$, where $F = Z$ if $p=0$
+        and $F = Z/pZ$ if $p >0$ is a prime. Wraps HAP's GroupHomology
         function, written by Graham Ellis.
 
         REQUIRES:
@@ -976,10 +976,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         return AbelianGroup(len(L),L)
 
     def homology_part(self, n, p = 0):
-        """
-        Computes the p-part of the group homology H_n(G, F), where F = Z if p=0
-        and F = Z/pZ if p >0 is a prime. Wraps HAP's Homology function, written by
-        Graham Ellis, applied to the p-Syow subgroup of G.
+        r"""
+        Computes the $p$-part of the group homology $H_n(G, F)$, where $F = Z$ if $p=0$
+        and $F = Z/pZ$ if $p >0$ is a prime. Wraps HAP's Homology function, written by
+        Graham Ellis, applied to the $p$-Sylow subgroup of $G$.
 
         REQUIRES:
             GAP package HAP (in gap_packages-*.spkg).
@@ -1044,12 +1044,12 @@ class PermutationGroup_generic(group.FiniteGroup):
         return FF(nn)/FF(dd)
 
     def molien_series(self):
-        """
+        r"""
         Returns the Moien series of a transtive permutation group.
         The function
-
+        $$
         M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)
-
+        $$
         is sometimes called the "Molien series" of G.
         GAP's \code{MolienSeries} is associated to a character of a group G.
         How are these related? A group G, given as a permutation
@@ -1422,7 +1422,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         return ans.bool()
 
     def is_polycyclic(self):
-        """
+        r"""
         Return True if this group is polycyclic. A group is polycyclic if it has a subnormal series
         with cyclic factors. (For finite groups this is the same as if the group is solvable - see
         \code{is_solvable})].)

@@ -859,6 +859,7 @@ cdef class ComplexDoubleElement(FieldElement):
             -1.0 + 1.22460635382e-16*I
 
         We raise to symbolic powers:
+        sage: x, n = var('x, n')
             sage: CDF(1.2)^x
             1.20000000000000^x
             sage: CDF(1.2)^(x^n + n^x)

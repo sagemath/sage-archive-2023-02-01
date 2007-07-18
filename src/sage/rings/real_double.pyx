@@ -867,6 +867,7 @@ cdef class RealDoubleElement(FieldElement):
             1.29711148178
 
         Symbolic examples:
+            sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
             -2.30000000000000^(y^3 + sin(x) + x)
             sage: RDF('-2.3')^x

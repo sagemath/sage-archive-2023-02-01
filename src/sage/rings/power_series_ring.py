@@ -633,12 +633,15 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
+      pass
+
+class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is defined since
-        this is an integral domain.
+        this is over a field.
 
-        This fraction field is just the Laurent series ring over the fraction field of the base ring.
+        This fraction field is just the Laurent series ring over the base field.
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(GF(7))
@@ -647,10 +650,7 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDo
             sage: Frac(R)
             Laurent Series Ring in t over Finite Field of size 7
         """
-        return self.base_extend(self.base_ring().fraction_field()).laurent_series_ring()
-
-class PowerSeriesRing_over_field(PowerSeriesRing_domain):
-      pass
+        return self.laurent_series_ring()
 
 def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
     return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)

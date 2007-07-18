@@ -240,13 +240,6 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
     def __init__(self, base_ring, name=None, sparse=False):
         LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)
 
-    def fraction_field(self):
-        try:
-            return self.__fraction_field
-        except AttributeError:
-            self.__fraction_field = LaurentSeriesRing(self.base_ring().fraction_field(), name)
-            return self.__fraction_field
-
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
     def __init__(self, base_ring, name=None, sparse=False):
         LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)

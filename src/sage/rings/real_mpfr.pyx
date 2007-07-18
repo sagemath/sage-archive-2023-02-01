@@ -2029,6 +2029,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1.0842022e-19 + 1.0000000*I   # 64-bit
 
         We raise a real number to a symbolic object:
+            sage: x, y = var('x,y')
             sage: 1.5^x
             1.50000000000000^x
             sage: -2.3^(x+y^3+sin(x))

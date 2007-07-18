@@ -1872,6 +1872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1.00000000000000*I, 1.00000000000000]
 
         A purely symbolic roots example:
+            sage: X = var('X')
             sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
             X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
             sage: print f.roots()

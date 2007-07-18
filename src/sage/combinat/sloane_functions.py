@@ -99,6 +99,8 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
 import sage.calculus.all as calculus
+from sage.functions.transcendental import prime_pi
+
 Integer = ZZ
 
 class SloaneSequence(SageObject):
@@ -2301,7 +2303,7 @@ class A000720(SloaneSequence):
         return "pi(n), the number of primes <= n. Sometimes called PrimePi(n)"
 
     def _eval(self, n):
-        return arith.prime_pi(n)
+        return prime_pi(n)
 
 class A064553(SloaneSequence):
     r"""
@@ -2339,7 +2341,7 @@ class A064553(SloaneSequence):
         return "a(1) = 1, a(prime(i)) = i+1 for i > 0 and a(u*v) = a(u)*a(v) for u,v > 0"
 
     def _eval(self, n):
-        return prod([(arith.prime_pi(p)+1)**e for p,e in arith.factor(n)])
+        return prod([(prime_pi(p)+1)**e for p,e in arith.factor(n)])
 
 
 

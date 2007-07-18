@@ -3,8 +3,8 @@ Further Examples.
 
 Compute the Christoffel symbol.
 
-    sage: var('r theta phi')
-    (r, theta, phi)
+    sage: var('r t theta phi')
+    (r, t, theta, phi)
     sage: m = matrix(SR, [[(1-1/r),0,0,0],[0,-(1-1/r)^(-1),0,0],[0,0,-r^2,0],[0,0,0,-r^2*(sin(theta))^2]])
     sage: print m
     [        1 - (1/r)                 0                 0                 0]
@@ -83,6 +83,8 @@ Restoring variables after they have been turned into functions:
 MATHEMATICA:
 Some examples of integration and differentiation taken from some
 Mathematica docs:
+    sage: var('x n a')
+    (x, n, a)
     sage: diff(x^n, x)
     n*x^(n - 1)
     sage: diff(x^2 * log(x+a), x)
@@ -123,7 +125,9 @@ Mathematica docs:
     sage: integrate(1/(x^3+1), x, 0, 1)
     (6*log(2) + sqrt(3)*pi)/18 + sqrt(3)*pi/18
 
-    sage: forget(); assume(c > 0)
+    sage: forget()
+    sage: c = var('c')
+    sage: assume(c > 0)
     sage: integrate(exp(-c*x^2), x, -oo, oo)
     sqrt(pi)/sqrt(c)
     sage: forget()
@@ -167,12 +171,17 @@ Maple documentation:
     sage: diff(f(x,y), x, y) - diff(f(x,y), y, x)
     0
     sage: g = function('g')
+    sage: var('x y z')
+    (x, y, z)
     sage: diff(g(x,y,z), x,z,z)
     diff(g(x, y, z), x, 1, z, 2)
     sage: integrate(sin(x), x)
     -cos(x)
     sage: integrate(sin(x), x, 0, pi)
     2
+
+    sage: var('a b')
+    (a, b)
     sage: assume(b-a>0)      # annoying -- maple doesn't require this...
     sage: print integrate(sin(x), x, a, b)
                                     cos(a) - cos(b)

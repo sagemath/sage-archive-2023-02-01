@@ -52,7 +52,7 @@ AUTHORS:
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, UNAME
 from sage.structure.element import RingElement
 
 
@@ -73,7 +73,7 @@ class Lisp(Expect):
                         prompt = '\[[0-9]+\]> ',
 
                         # This is the command that starts up your program
-                        command = "clisp -I --silent -on-error abort",
+                        command = "clisp --silent -on-error abort",
 
                         maxread = maxread,
                         server=server,
@@ -110,12 +110,15 @@ class Lisp(Expect):
                 try:
                     s = self.__in_seq + 1
                     pr = '\[%s\]>'%s
-                    #M = self._eval_line(L, wait_for_prompt=pr)
                     M = self._eval_line(L, wait_for_prompt=self._prompt)
-                    i = M.rfind('[C\x1b[C\n')
-                    if i != -1:
-                        M = M[i+len('[C\x1b[C\n'):]
-                    x.append(M)
+                    if UNAME == 'Darwin':
+                        phrase = L
+                    else:
+                        phrase = '[C\x1b[C\n'
+                    i = M.rfind(phrase)
+                    if i > 1:
+                        M = M[i+len(phrase):]
+                    x.append(M.strip())
                     self.__in_seq = s
                 except KeyboardInterrupt:
                     self._keyboard_interrupt()

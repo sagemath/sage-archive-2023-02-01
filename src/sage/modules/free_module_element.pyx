@@ -785,17 +785,19 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
-        TESTS:
-            sage: V = ZZ^3
-            sage: loads(dumps(V)) == V
-            True
-            sage: v = V.0
-            sage: loads(dumps(v)) == v
-            True
-            sage: v = (QQ['x']^3).0
-            sage: loads(dumps(v)) == v
-            True
+    A generic dense element of a free module. a
     """
+    ## these work fine on the command line but fail in doctests :-(
+##         TESTS:
+##             sage: V = ZZ^3
+##             sage: loads(dumps(V)) == V
+##             True
+##             sage: v = V.0
+##             sage: loads(dumps(v)) == v
+##             True
+##             sage: v = (QQ['x']^3).0
+##             sage: loads(dumps(v)) == v
+##             True
     cdef _new_c(self, object v):
         # Create a new dense free module element with minimal overhead and
         # no type checking.

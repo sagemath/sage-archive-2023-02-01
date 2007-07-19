@@ -3056,7 +3056,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             sage: EllipticCurve('14a4').sha_an()
             1
-            sage: EllipticCurve('14a4').sha_an(use_database=True)
+            sage: EllipticCurve('14a4').sha_an(use_database=True)  # optional -- requires large Cremona database package
             1
 
         The smallest conductor curve with nontrivial Sha:
@@ -3379,6 +3379,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return S
 
 
+    def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
+        M = self.isogeny_class()[1]
+        return Integer(misc.prod([x for x in M[0] if x], 1))
 
     def L_ratio(self):
         r"""
@@ -3439,7 +3442,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.__lratio
 
         # Even root number.  Decide if L(E,1) = 0.  If E is a modular
-        # *optimal* quotient of J_0(N) elliptic curve, we know that T *
+        # *OPTIMAL* quotient of J_0(N) elliptic curve, we know that T *
         # L(E,1)/omega is an integer n, where T is the order of the
         # image of the rational torsion point (0)-(oo) in E(Q), and
         # omega is the least real Neron period.  (This is proved in my
@@ -3456,9 +3459,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         #
         # Since in general E need not be optimal, we have to choose
         # eps = Omega_E/(8*t*B), where t is the exponent of E(Q)_tor,
-        # and B is a bound on the degree of any isogeny.   A liberal
-        # bound on the degrees of cyclic N-isogenies is 200, by Mazur's
-        # "Rational Isogenies of Prime Degree" paper, so we take B=200.
+        # and is a multiple of the degree of an isogeny between E
+        # and the optimal curve.
         #
         # NOTES: We *do* have to worry about the Manin constant, since
         # we are using the Neron model to compute omega, not the
@@ -3471,11 +3473,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # be a divisible by an arbitrary power of that prime, except
         # that Edixhoven claims the primes that appear are <= 7.
 
-        t = self.torsion_subgroup().exponent()
+        t = self.torsion_subgroup().order()
         omega = self.period_lattice()[0]
-        C = 8*200*t
+        d = self._multiple_of_degree_of_isogeny_to_optimal_curve()
+        C = 8*d*t
         eps = omega / C
-        #   coercion of 10**(-15) to our real field is needed to make unambiguous comparison
+        # coercion of 10**(-15) to our real field is needed to
+        # make unambiguous comparison
         if eps < R(10**(-15)):  # liberal bound on precision of float
             raise RuntimeError, "Insufficient machine precision (=%s) for computation."%eps
         sqrtN = 2*int(sqrt(self.conductor()))

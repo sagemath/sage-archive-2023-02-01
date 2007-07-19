@@ -58,6 +58,7 @@ AUTHOR:
 			      isomorphism_type_info_simple_group.
                               moved all the "named" groups to a new file.
     - Nick Alexander (2007-07): move is_isomorphic to isomorphism_to, add from_gap_list
+    - William Stein (2007-07): put is_isomorphic back (and make it better)
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -1324,9 +1325,16 @@ class PermutationGroup_generic(group.FiniteGroup):
         t = self._gap_().IsElementaryAbelian()
         return t.bool()
 
-    def isomorphism_to(self,right,mode=None):
+    def isomorphism_to(self,right):
         """
         Return an isomorphism self to right if the groups are isomorphic, otherwise None.
+
+        INPUT:
+            self -- this group
+            right -- a permutation group
+
+        OUTPUT:
+            None or a morphism of permutation groups.
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
@@ -1338,6 +1346,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.isomorphism_to(H) # random
             Homomorphism : Permutation Group with generators [(1,2,3), (2,3)] --> Permutation Group with generators [(1,2,4), (1,4)]
         """
+        if not isinstance(right, PermutationGroup_generic):
+            raise TypeError, "right must be a permutation group"
         G = self._gap_init_()
         H = right._gap_init_()
         gap.eval("x:=IsomorphismGroups( %s, %s )"%(G,H))
@@ -1351,6 +1361,34 @@ class PermutationGroup_generic(group.FiniteGroup):
         dsts = from_gap_list(right, dst)
         from permgroup_morphism import PermutationGroupMorphism_im_gens
         return PermutationGroupMorphism_im_gens(self, right, srcs, dsts)
+
+    def is_isomorphic(self, right):
+        """
+        Return True if the groups are isomorphic. If mode="verbose" then
+        an isomorphism is printed.
+
+        INPUT:
+            self -- this group
+            right -- a permutation group
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: v = ['(1,2,3)(4,5)', '(1,2,3,4,5)']
+            sage: G = PermutationGroup(v)
+            sage: H = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: G.is_isomorphic(H)
+            False
+            sage: G.is_isomorphic(G)
+            True
+            sage: G.is_isomorphic(PermutationGroup(list(reversed(v))))
+            True
+        """
+        if not isinstance(right, PermutationGroup_generic):
+            raise TypeError, "right must be a permutation group"
+        G = self._gap_init_()
+        H = right._gap_init_()
+        return gap.eval("IsomorphismGroups( %s, %s )"%(G,H)) != "fail"
 
     def is_monomial(self):
         """

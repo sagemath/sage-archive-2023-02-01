@@ -195,8 +195,8 @@ class Animation(SageObject):
             sage: d = a.png()
             sage: d                   # random
             '/home/was/.sage/temp/ubuntu/20951/dir_3'
-            sage: os.listdir(d)
-            ['00000002.png', '00000001.png', '00000000.png', '00000003.png']
+            sage: v = os.listdir(d); v.sort(); v
+            ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
         try:
             return self.__png_dir

@@ -83,7 +83,7 @@ def setup_server(template=None):
                 'locality': None,
                 'state': 'Washington',
                 'country': 'US',
-                'cn': 'SAGE User',
+                'cn': socket.gethostname(),
                 'uid': 'sage_user',
                 'dn_oid': None,
                 'serial': str(random.randint(1,2**31)),

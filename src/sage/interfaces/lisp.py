@@ -52,7 +52,7 @@ AUTHORS:
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose, UNAME
+from sage.misc.misc import verbose
 from sage.structure.element import RingElement
 
 
@@ -111,10 +111,7 @@ class Lisp(Expect):
                     s = self.__in_seq + 1
                     pr = '\[%s\]>'%s
                     M = self._eval_line(L, wait_for_prompt=self._prompt)
-                    if UNAME == 'Darwin':
-                        phrase = L
-                    else:
-                        phrase = '[C\x1b[C\n'
+                    phrase = L    #phrase = '[C\x1b[C\n'
                     i = M.rfind(phrase)
                     if i > 1:
                         M = M[i+len(phrase):]

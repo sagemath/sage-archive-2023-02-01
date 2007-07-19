@@ -3362,7 +3362,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e = EllipticCurve('858k2')
             sage: e.sha_p_primary_bound(3)           # long time
             0
-            sage: e.sha_p_primary_bound(7)
+            sage: e.sha_p_primary_bound(7)           # long time
             2
         """
 

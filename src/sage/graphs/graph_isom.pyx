@@ -1605,8 +1605,8 @@ def all_labeled_digraphs(n):
         ...                   inn = True
         ...           if not inn:
         ...               Giso[n].append(b)
-        sage: for n in Giso:
-        ...       print n, len(Giso[n])
+        sage: for n in Giso:          # long time
+        ...       print n, len(Giso[n])   # long time
         1 1
         2 3
         3 16

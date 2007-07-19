@@ -170,11 +170,17 @@ import sage.modules.module as module
 import sage.modules.free_module_element as fme
 #from sage.databases.lincodes import linear_code_bound
 from sage.interfaces.all import gap
+
+# TODO -- import *'s SUCK -- this must all be fixed and made explicit!!
 from sage.misc.preparser import *
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_field import *
-from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.perm_gps.permgroup import *
+
+from sage.matrix.matrix_space import MatrixSpace
+
+from sage.rings.arith import GCD, rising_factorial, binomial
+
+from sage.groups.all import SymmetricGroup
 from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod, add
 from sage.misc.functional import log
@@ -490,7 +496,6 @@ class LinearCode(module.Module):
             sage: Clist[5]; Clist[5] in C
             (1, 0, 1, 0, 1, 0, 1)
             True
-
         """
         n = self.length()
         k = self.dimension()

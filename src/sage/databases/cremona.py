@@ -562,7 +562,10 @@ class LargeCremonaDatabase(sage.databases.db.Database):
                 K.remove(m)
                 m = max(K)
             self['largest_conductor'] = m
-            self.commit()
+            try:
+                self.commit()  # caching -- but only if possible
+            except RuntimeError:
+                pass
             return m
 
     def smallest_conductor(self):

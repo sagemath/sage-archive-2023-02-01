@@ -4252,16 +4252,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
         A rank two example:
-            sage: EllipticCurve('389a').padic_height_pairing_matrix(5,10)
+            sage: e =EllipticCurve('389a')
+            sage: e._set_gens([e(-1, 1), e(1,0)])  # avoid platform dependent gens
+            sage: e.padic_height_pairing_matrix(5,10)
             [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^9)                   4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)]
             [                  4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)                     5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^6 + O(5^9)]
 
         An anomalous rank 3 example:
-            sage: E = EllipticCurve("5077a")
-            sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,4)   # somewhat random precision depending on architecture.
-            [1 + 2*5 + 5^3 + O(5^4)           5^2 + O(5^4)       1 + 3*5 + O(5^2)]
-            [          5^2 + O(5^4)         1 + 5 + O(5^4)       3 + 4*5 + O(5^2)]
-            [      1 + 3*5 + O(5^2)       3 + 4*5 + O(5^2)                 O(5^2)]
+            sage: e = EllipticCurve("5077a")
+            sage: e._set_gens([e(-1,3), e(2,0), e(4,6)])
+            sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,4)
+            [                1 + 5 + O(5^4)               1 + 4*5 + O(5^2)                   2*5 + O(5^3)]
+            [              1 + 4*5 + O(5^2)       2 + 5^2 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4)]
+            [                  2*5 + O(5^3)     3 + 4*5^2 + 4*5^3 + O(5^4) 4 + 5 + 3*5^2 + 3*5^3 + O(5^4)]
         """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)

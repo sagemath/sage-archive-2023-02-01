@@ -1496,9 +1496,9 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: C.binomial_moment(2)
             0
-            sage: C.binomial_moment(3)
+            sage: C.binomial_moment(3)    # long time
             4
-            sage: C.binomial_moment(4)
+            sage: C.binomial_moment(4)    # long time
             35
 
         WARNING: This is slow.

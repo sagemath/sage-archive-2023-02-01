@@ -1,2 +1,2 @@
 """nodoctests"""
-version='sage-2.7.alpha8'; date='2007-07-19'
+version='2.7.alpha9'; date='2007-07-19'

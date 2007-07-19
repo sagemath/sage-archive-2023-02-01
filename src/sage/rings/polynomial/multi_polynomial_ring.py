@@ -110,18 +110,25 @@ class MPolynomialRing_macaulay2_repr:
             R._check_valid()
             return R
         except (AttributeError, ValueError):
-            if self.base_ring().is_prime_field():
-                if self.characteristic() == 0:
-                    base_str = "QQ"
-                else:
-                    base_str = "ZZ/" + str(self.characteristic())
-            elif is_IntegerRing(self.base_ring()):
-                base_str = "ZZ"
-            else:
-                raise TypeError, "no conversion of to a Macaulay2 ring defined"
+            base_str = self._macaulay2_base_str()
             self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
                                               self.term_order().macaulay2_str())
         return self.__macaulay2
+
+    def _macaulay2_base_str(self):
+        if self.base_ring().is_prime_field():
+            if self.characteristic() == 0:
+                return "QQ"
+            else:
+                return "ZZ/" + str(self.characteristic())
+        elif is_IntegerRing(self.base_ring()):
+            return "ZZ"
+        else:
+            raise TypeError, "no conversion of to a Macaulay2 ring defined"
+
+    def _macaulay2_set_ring(self, macaulay2):
+        macaulay2.ring(self._macaulay2_base_str(), str(self.gens()), \
+                       self.term_order().macaulay2_str())
 
     def is_exact(self):
         return self.base_ring().is_exact()

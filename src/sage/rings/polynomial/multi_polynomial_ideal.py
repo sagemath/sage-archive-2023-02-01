@@ -40,7 +40,7 @@ benchmark and test ideal.
     45
 
 We compute in a quotient of a polynomial ring over Z/17*Z:
-    sage: R.<x,y> = PolynomialRing(ZZ, 2)
+    sage: R.<x,y> = ZZ[]
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))                 # optional -- requires Macaulay2
     sage: S                                                     # optional
     Quotient of Polynomial Ring in x, y over Integer Ring by the ideal (x^2 + y^2, 17)
@@ -834,19 +834,25 @@ class MPolynomialIdeal_macaulay2_repr:
         """
         if macaulay2 is None: macaulay2 = macaulay2_default
         try:
-            self.ring()._macaulay2_(macaulay2)
-            I = self.__macaulay2
-            if not (I.parent() is macaulay2):
-                raise ValueError
+            I = self.__macaulay2[macaulay2]
             I._check_valid()
             return I
-        except (AttributeError, ValueError):
-            self.ring()._macaulay2_(macaulay2)
-            gens = [str(x) for x in self.gens()]
-            if len(gens) == 0:
-                gens = ['0']
-            self.__macaulay2 = macaulay2.ideal(gens)
-        return self.__macaulay2
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__macaulay2 = {}
+        except ValueError:
+            pass
+
+        R = self.ring()
+        R._macaulay2_set_ring(macaulay2)
+
+        gens = [repr(x) for x in self.gens()]
+        if len(gens) == 0:
+            gens = ['0']
+        z = macaulay2.ideal(gens)
+        self.__macaulay2[macaulay2] = z
+        return z
 
     def _macaulay2_groebner_basis(self):
         r"""
@@ -889,16 +895,17 @@ class MPolynomialIdeal_macaulay2_repr:
             return B
 
     def _reduce_using_macaulay2(self, f):
+        """
+        EXAMPLES:
+            sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
+            sage: I = ideal(x*y-z^2, y^2-w^2)
+            sage: I._reduce_using_macaulay2(x*y-z^2 + y^2)    # optional
+            w^2
+        """
         I = self._macaulay2_()
         M2 = I.parent()
+        k = M2('(%r) %% %s'%(f, I.name()))
         R = self.ring()
-        g = M2(R(f))
-        try:
-            k = M2('%s %% %s'%(g.name(), I.name()))
-        except TypeError:
-            # This is OK, since f is in the right ring -- type error
-            # just means it's in base ring (e.g., a constant)
-            return f
         return R(k)
 
 

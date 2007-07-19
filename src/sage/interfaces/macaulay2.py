@@ -325,9 +325,12 @@ class Macaulay2Element(ExpectElement):
         Quotient of division of self by other.  This is denoted //.
 
         EXAMPLE:
-            sage: R = PolynomialRing(GF(7), 2, 'xy')   # optional
-            sage: x, y = R.gens()                      # optional
-            sage: f = (x^3 + 2*y^2*x)^7; print f       # optional
+            sage: R.<x,y> = GF(7)[]
+
+        Now make the M2 version of R, so we can coerce elements of R to M2:
+            sage: macaulay2(R)                              # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: f = (x^3 + 2*y^2*x)^7; print f
             x^21 + 2*x^7*y^14
             sage: h = macaulay2(f); print h            # optional
              21     7 14
@@ -336,11 +339,9 @@ class Macaulay2Element(ExpectElement):
             sage: h1 = macaulay2(f1)                   # optional
             sage: f2 = (x^3 + 2*y*x)                   # optional
             sage: h2 = macaulay2(f2)                   # optional
-            sage: h % [h1,h2]                          # optional
-            -8193/4096*x*y
             sage: u = h // [h1,h2]                     # optional
             sage: u[0].str(), u[1].str()               # optional
-             ('x^19-2*x^18*y+4*x^17*y^2-8*x^16*y^3+16*x^15*y^4-32*x^14*y^5+64*x^13*y^6-128*x^12*y^7+256*x^11*y^8-512*x^10*y^9+1024*x^9*y^10-2048*x^8*y^11+4096*x^7*y^12-8192*x^6*y^13+16386*x^5*y^14-32772*x^4*y^15+65544*x^3*y^16-131088*x^2*y^17+131088*x*y^17-65544*x*y^16+32772*x*y^15-16386*x*y^14+8193*x*y^13-8193/2*x*y^12+8193/4*x*y^11-8193/8*x*y^10+8193/16*x*y^9-8193/32*x*y^8+8193/64*x*y^7-8193/128*x*y^6+8193/256*x*y^5-8193/512*x*y^4+8193/1024*x*y^3-8193/2048*x*y^2+8193/4096*x*y-8193/8192*x-262176*y^18+131088*y^17-65544*y^16+32772*y^15-16386*y^14+8193*y^13-8193/2*y^12+8193/4*y^11-8193/8*y^10+8193/16*y^9-8193/32*y^8+8193/64*y^7-8193/128*y^6+8193/256*y^5-8193/512*y^4+8193/1024*y^3-8193/2048*y^2+8193/4096*y', '262176*y^18-131088*y^17+65544*y^16-32772*y^15+16386*y^14-8193*y^13+8193/2*y^12-8193/4*y^11+8193/8*y^10-8193/16*y^9+8193/32*y^8-8193/64*y^7+8193/128*y^6-8193/256*y^5+8193/512*y^4-8193/1024*y^3+8193/2048*y^2-8193/4096*y+8193/8192')
+            ('x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17+2*y^18-3*x*y^16-y^17-2*x*y^15-3*y^16+x*y^14-2*y^15+3*x*y^13+y^14+2*x*y^12+3*y^13-x*y^11+2*y^12-3*x*y^10-y^11-2*x*y^9-3*y^10+x*y^8-2*y^9+3*x*y^7+y^8+2*x*y^6+3*y^7-x*y^5+2*y^6-3*x*y^4-y^5-2*x*y^3-3*y^4+x*y^2-2*y^3+3*x*y+y^2+2*x+3*y', '-2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2')
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2]) # optional
             True
         """
@@ -356,19 +357,22 @@ class Macaulay2Element(ExpectElement):
         Remainder of division of self by other.  This is denoted %.
 
         EXAMPLE:
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'])   # optional
-            sage: x, y = R.gens()                           # optional
+            sage: R.<x,y> = GF(7)[]
+
+        Now make the M2 version of R, so we can coerce elements of R to M2:
+            sage: macaulay2(R)                              # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
             x^21 + 2*x^7*y^14
-            sage: h= f._macaulay2_(); print h               # optional
+            sage: h = macaulay2(f); print h                 # optional
              21     7 14
             x   + 2x y
             sage: f1 = (x^2 + 2*y*x)                        # optional
-            sage: h1 = f1._macaulay2_()                     # optional
+            sage: h1 = macaulay2(f1)                        # optional
             sage: f2 = (x^3 + 2*y*x)                        # optional
-            sage: h2 = f2._macaulay2_()                     # optional
+            sage: h2 = macaulay2(f2)                        # optional
             sage: h % [h1,h2]                               # optional
-            -8193/4096*x*y
+            -3*x*y
             sage: u = h // [h1,h2]                          # optional
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])    # optional
             True
@@ -376,8 +380,9 @@ class Macaulay2Element(ExpectElement):
         if isinstance(x, (list, tuple)):
             y = self.parent(x)
             return self.parent().new('%s %% matrix{%s}'%(self.name(), y.name()))
-        else:
-            return self.parent().new('%s %% %s'%(self.name(), x.name()))
+        if not isinstance(x, Macaulay2Element):
+            x = self.parent(x)
+        return self.parent().new('%s %% %s'%(self.name(), x.name()))
 
     def __nonzero__(self):
         P = self.parent()

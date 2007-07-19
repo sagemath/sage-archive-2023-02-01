@@ -527,6 +527,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # SymbolicVariable
             return element._polynomial_(self)
 
+        if is_Macaulay2Element(element):
+            return self(repr(element))
+
         # now try calling the base ring's __call__ methods
         element = self.base_ring()(element)
         _p = p_NSet(co.sa2si(element,_ring), _ring)
@@ -1759,25 +1762,41 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         Return corresponding Macaulay2 polynomial.
 
+        WARNING: Two identical rings are not canonically isomorphic in
+        M2, so we require the user to explicitly set the ring, since
+        there is no way to know if the ring has been set or not, and
+        setting it twice screws everything up.
+
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             x^21 + 2*x^7*y^14
+
+        Always call the Macaulay2 ring conversion on the parent polynomial
+        ring before converting a copy of elements to Macaulay2:
+            sage: macaulay2(R)                      # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: h = f._macaulay2_(); h            # optional
-             21     7 14
-            x   + 2x y
+            x^21+2*x^7*y^14
+            sage: k = (x+y)._macaulay2_()           # optional
+            sage: k + h                             # optional
+            x^21+2*x^7*y^14+x+y
             sage: R(h)                              # optional
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
         try:
-            if self.__macaulay2.parent() is macaulay2:
-                return self.__macaulay2
-        except AttributeError:
+            if self.__macaulay2[macaulay2].parent() is macaulay2:
+                return self.__macaulay2[macaulay2]
+        except (TypeError, AttributeError):
+            self.__macaulay2 = {}
+        except KeyError:
             pass
-        self.parent()._macaulay2_set_ring(macaulay2)
-        return macaulay2(repr(self))
+        #self.parent()._macaulay2_set_ring(macaulay2)
+        z = macaulay2(repr(self))
+        self.__macaulay2[macaulay2] = z
+        return z
 
     def _repr_with_changed_varnames(self, varnames):
         """

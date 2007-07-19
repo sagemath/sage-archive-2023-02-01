@@ -244,14 +244,16 @@ class MPolynomial_macaulay2_repr:
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
+            sage: R.<x,y> = GF(7)[]
+            sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
+            sage: macaulay2(R)                      # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: h = f._macaulay2_(); print h      # optional
              21     7 14
             x   + 2x y
             sage: R(h)                              # optional
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """

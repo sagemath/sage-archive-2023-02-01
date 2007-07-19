@@ -3680,7 +3680,7 @@ class Graph(GenericGraph):
     ### Visualization
 
     def write_to_eps(self, filename, iterations=50):
-        """
+        r"""
         Writes a plot of the graph to filename in eps format.
 
         It is relatively simple to include this file in a latex document:
@@ -3690,10 +3690,11 @@ class Graph(GenericGraph):
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
 
-        \usepackage{graphics} must appear before the beginning of the document,
-        and \includegraphics {filename.eps} will include it in your latex doc.
-        Note: you cannot use pdflatex to print the resulting document, use
-        TeX and Ghostscript or something similar instead.
+        \code{\\usepackage{graphics}} must appear before the beginning
+        of the document, and \code{\\includegraphics {filename.eps}}
+        will include it in your latex doc.  Note: you cannot use
+        pdflatex to print the resulting document, use TeX and
+        Ghostscript or something similar instead.
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()

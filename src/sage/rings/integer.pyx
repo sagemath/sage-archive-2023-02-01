@@ -783,6 +783,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^(sin(x) - cos(x))
             sage: f(3)
             2^(sin(3) - cos(3))
+
+        A symbolic sum:
+            sage: x,y,z = var('x,y,z')
             sage: 2^(x+y+z)
             2^(z + y + x)
             sage: 2^(1/2)

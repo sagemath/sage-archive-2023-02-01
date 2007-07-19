@@ -1,6 +1,26 @@
-#########################################################################################
+############################################################################
 # Factory function for making polynomial rings
-#########################################################################################
+############################################################################
+
+#################################################################
+#
+#   SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#
+######################################################################
+
 
 from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
@@ -120,15 +140,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: y^2 + y
         y^2 + y
 
-    Often the quotes are not needed, because of predefined symbolic variables:
-        sage: R = GF(9,a)[x]
-        sage: R
-        Univariate Polynomial Ring in x over Finite Field in a of size 3^2
-
-
-    In fact, since the diamond brackets on the left determine the variable name, you can omit the
-    variable from the square brackets:
-        sage: R.<zz> = QQ[ ]; R
+    In fact, since the diamond brackets on the left determine the
+    variable name, you can omit the variable from the square brackets:
+        sage: R.<zz> = QQ[]; R
         Univariate Polynomial Ring in zz over Rational Field
         sage: (zz + 1)^2
         zz^2 + 2*zz + 1

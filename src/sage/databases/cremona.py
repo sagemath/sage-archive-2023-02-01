@@ -449,7 +449,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         try:
             F.db_extra = v[_map['allbsd']][id]
-        except KeyError:
+        except KeyError, msg:
             pass
         return F
 
@@ -544,8 +544,13 @@ class LargeCremonaDatabase(sage.databases.db.Database):
     def largest_conductor(self):
         """
         The largest conductor for which the database is complete.
+
         OUTPUT:
             int -- largest conductor
+
+        EXAMPLES:
+            sage: CremonaDatabase().largest_conductor()   # random -- depends on size of installed database
+            9999
         """
         try:
             return sage.databases.db.Database.__getitem__(self, 'largest_conductor')
@@ -567,6 +572,10 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         OUTPUT:
             int -- smallest conductor
+
+        EXAMPLES:
+            sage: CremonaDatabase().smallest_conductor()
+            1
         """
         return 1
 
@@ -577,6 +586,11 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         OUTPUT:
             int -- smallest cond
             int -- largest
+
+
+        EXAMPLES:
+            sage: CremonaDatabase().conductor_range()     # random -- depends on database installed
+            (1, 9999)
         """
         return 1, self.largest_conductor()
 
@@ -594,7 +608,6 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             i -- int or str
         OUTPUT:
             int
-
 
         EXAMPLES:
             sage: c = CremonaDatabase()

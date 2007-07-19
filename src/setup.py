@@ -593,7 +593,9 @@ ext_modules = [ \
               libraries = ['gmp']
               ), \
 
-
+    Extension('sage.graphs.graph_isom',
+              ['sage/graphs/graph_isom.pyx']
+              ), \
 
     ]
 

@@ -11,7 +11,7 @@ TESTS:
 
 """
 
-#*****************************************************************************
+#################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
@@ -27,7 +27,9 @@ TESTS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#
+######################################################################
+
 import sage.rings.finite_field
 import sage.rings.number_field as number_field
 
@@ -127,6 +129,8 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
+
+            sage: w = var('w')
             sage: R.<x,y> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: R._singular_()
             //   characteristic : 0
@@ -347,6 +351,8 @@ class Polynomial_singular_repr:
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
             (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
+
+            sage: w = var('w')
             sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
             sage: a = r.base_ring().0
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
@@ -386,6 +392,7 @@ class Polynomial_singular_repr:
             sage: f.diff(y)
             0
 
+            sage: w = var('w')
             sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
             sage: a=R.base_ring().0
             sage: f = x^3*y^2 + y^2 + a*x + 2

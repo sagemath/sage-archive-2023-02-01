@@ -1017,6 +1017,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
         Next we factor a polynomial over a number field.
+            sage: p = var('p')
             sage: K.<s> = NumberField(p^3-2)
             sage: KXY.<x,y> = K[]
             sage: factor(x^3 - 2*y^3)

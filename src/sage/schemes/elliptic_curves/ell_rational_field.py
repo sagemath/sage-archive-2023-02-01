@@ -3352,7 +3352,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             integer -- power of p that bounds #Sha(E)(p) from above
 
         NOTE:
-            The result is a proven upper bound on the order of #Sha(E)(p).
+            The result is a proven upper bound on the order of $Sha(E)(p)$.
             So in particular it proves it finiteness even if the rank of
             the curve is larger than 1. Note also that this bound is sharp
             if one assumes the main conjecture of Iwasawa theory of

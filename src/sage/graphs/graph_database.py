@@ -459,7 +459,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         print "<html>"
@@ -736,7 +736,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         print "<html>"
@@ -1039,7 +1039,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         cells = len(properties)
@@ -1303,7 +1303,7 @@ class GraphDatabase():
             ...
             sage: len(g)
             1
-            sage.: g[0].show(layout='circular',figsize=[2,2],node_size=0,graph_border=True)
+            sage.: g[0].show(layout='circular',figsize=[2,2],vertex_size=0,graph_border=True)
             sage: g = graphs_query.get_list(degree_sequence=433211)
             sage: graphs_list.to_graph6(g)
             'E@NW\nEAMw\n'

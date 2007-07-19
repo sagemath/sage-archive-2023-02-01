@@ -19,7 +19,6 @@ import bz2
 
 # SAGE libraries
 from   sage.structure.sage_object import SageObject, load
-from   sage.misc.viewer     import browser
 from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros)
 
@@ -39,10 +38,6 @@ SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'mac
 JSMATH = True
 
 vbar = '<span class="vbar"></span>'
-
-def open_page(address, port):
-    cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
-    os.system(cmd)
 
 class Notebook(SageObject):
     def __init__(self,

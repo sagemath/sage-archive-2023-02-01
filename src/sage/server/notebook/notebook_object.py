@@ -43,6 +43,7 @@ class NotebookObject:
                           nb.set_accounts(True)
                           nb.add_user("username", "password", "email@place", "user")
                           nb.save()
+        open_viewer -- (default: True) whether to pop up a web browser
 
     \begin{verbatim}
     EXAMPLES:

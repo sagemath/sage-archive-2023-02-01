@@ -20,10 +20,12 @@ import getpass
 ##########################################################
 
 from sage.misc.misc import DOT_SAGE
-from   sage.server.misc import print_open_msg
+from   sage.server.misc import print_open_msg, find_next_available_port, open_page
 import os, shutil, socket
 
 import notebook
+
+PAUSE = 3
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 
@@ -45,13 +47,15 @@ def notebook_twisted(self,
              directory   = 'sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             port_tries  = 0,
+             port_tries  = 50,
              secure      = False,
              reset       = False,
              accounts    = False,
 
              server_pool = None,
-             ulimit      = None):
+             ulimit      = None,
+
+             open_viewer = True):
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
@@ -173,14 +177,18 @@ s.setServiceParent(application)
         if e == 256:
             raise socket.error
 
+    if address != 'localhost':
+        if not secure:
+            print "*"*70
+            print "WARNING: Insecure notebook server listening on external address."
+            print "Unless you are running this via ssh port forwarding, you are"
+            print "**crazy**!  You should run the notebook with the option secure=True."
+            print "*"*70
 
-    for i in range(int(port_tries)+1):
-        try:
-            run(port + i)
-        except socket.error:
-            print "Port %s might already be in use."%(port+i) #  Trying next port..."%port
-        else:
-            break
+    port = find_next_available_port(port, port_tries)
+    if open_viewer:
+        open_page(address, port, secure, pause=PAUSE)
+    run(port)
 
     return True
 
@@ -191,22 +199,5 @@ s.setServiceParent(application)
 
 
 
-
-
 #######
-
-##     if address != 'localhost':
-##         if not secure:
-##             print "*"*70
-##             print "WARNING: Insecure notebook server listening on external address."
-##             print "Unless you are running this via ssh port forwarding, you are"
-##             print "**crazy**!  You should run the notebook with the option secure=True."
-##             print "*"*70
-
-##         if secure and not server_pool:
-##             print "*"*70
-##             print "You are running an ecrypted secure server, but without an external"
-##             print "server pool of worksheet users.  This is a bad idea, since anybody"
-##             print "can trivially ** kill ** your server at any time."
-##             print "*"*70
 

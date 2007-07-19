@@ -4261,7 +4261,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         An anomalous rank 3 example:
             sage: e = EllipticCurve("5077a")
             sage: e._set_gens([e(-1,3), e(2,0), e(4,6)])
-            sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,4)
+            sage: e.padic_height_pairing_matrix(5,4)
             [                1 + 5 + O(5^4)               1 + 4*5 + O(5^2)                   2*5 + O(5^3)]
             [              1 + 4*5 + O(5^2)       2 + 5^2 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4)]
             [                  2*5 + O(5^3)     3 + 4*5^2 + 4*5^3 + O(5^4) 4 + 5 + 3*5^2 + 3*5^3 + O(5^4)]

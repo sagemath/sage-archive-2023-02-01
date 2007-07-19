@@ -555,14 +555,17 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         try:
             return sage.databases.db.Database.__getitem__(self, 'largest_conductor')
         except KeyError:
-            print "Computing largest conductor."
+            #print "Computing largest conductor."
             K = [k for k in self.keys() if isinstance(k, (int,long))]
             m = max(K)
             while len(self.allcurves(m).keys()) == 0:
                 K.remove(m)
                 m = max(K)
             self['largest_conductor'] = m
-            self.commit()
+            try:
+                self.commit()  # caching -- but only if possible
+            except RuntimeError:
+                pass
             return m
 
     def smallest_conductor(self):

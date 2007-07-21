@@ -502,7 +502,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
 
     if exact_form is not None:
         x = exact_form.parent().gen(0)
-        y = exact_form.parent().base_ring().gen(0)
+        y = exact_form.parent()(exact_form.parent().base_ring().gen(0))
 
     try:
         three_j_plus_5 = 5 - base_ring(6*offset)
@@ -608,6 +608,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     if exact_form is not None:
         x = exact_form.parent().gen(0)
         y = exact_form.parent().base_ring().gen(0)
+#        y = exact_form.parent()(exact_form.parent().base_ring().gen(0))
 
     for i in range(len(coeffs)-1, offset, -1):
         j = 2*(i-offset) - 2
@@ -684,7 +685,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
 
     if exact_form is not None:
         x = exact_form.parent().gen(0)
-        y = exact_form.parent().base_ring().gen(0)
+        y = exact_form.parent()(exact_form.parent().base_ring().gen(0))
         exact_form += Q.base_ring()(a[2] / 3) * y
 
     a[2] = 0

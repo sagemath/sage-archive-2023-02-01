@@ -8,6 +8,9 @@ TESTS:
     sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
     sage: R == loads(dumps(R))
     True
+    sage: P.<a,b> = PolynomialRing(GF(7), 2)
+    sage: f = (a^3 + 2*b^2*a)^7; f
+    a^21 + 2*a^7*b^14
 
 """
 
@@ -297,7 +300,7 @@ class Polynomial_singular_repr:
 
             sage: R.<x> = PolynomialRing(GF(7))
             sage: f = (x^3 + 2*x^2*x)^7
-	    sage: f
+            sage: f
             3*x^21
             sage: h = f._singular_(); h
             3*x^21

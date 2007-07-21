@@ -312,6 +312,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return self.change_ring(R)
         raise TypeError, "no base extension defined"
 
+    def construction(self):
+        from sage.categories.pushout import MatrixFunctor
+        return MatrixFunctor(self.__nrows, self.__ncols), self.base_ring()
+
     def _coerce_impl(self, x):
         """
         EXAMPLES:

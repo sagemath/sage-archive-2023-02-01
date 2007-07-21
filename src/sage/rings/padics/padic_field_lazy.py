@@ -173,6 +173,29 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
         raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect a given prime.
+
+        Also preserves other information that makes this field unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLE:
+            sage: K = Qp(17, 8, type='lazy')
+            sage: c, L = K.construction(); L
+            Rational Field
+            sage: c(L)
+            Lazy 17-adic Field
+            sage: K == c(L)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(self.prime(),
+                                  self.precision_cap(),
+                                  {'print_mode':self.print_mode(), 'type':'lazy', 'names':self._names, 'halt': self.halting_parameter()}),
+                sage.rings.rational_field.QQ)
+
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer, Rational)):
             return True

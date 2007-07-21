@@ -94,7 +94,6 @@ class RationalField(_uniq, field.Field):
             sage: a + 1
             393/374
         """
-    def __init__(self):
         ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
@@ -174,11 +173,34 @@ class RationalField(_uniq, field.Field):
             return x
         return sage.rings.rational.Rational(x, base)
 
+    def construction(self):
+        from sage.categories.pushout import FractionField
+        import integer_ring
+        return FractionField(), integer_ring.ZZ
+
+    def completion(self, p, prec, extras = {}):
+        if p == infinity.Infinity:
+            from sage.rings.real_mpfr import create_RealField
+            return create_RealField(prec, **extras)
+        else:
+            from sage.rings.padics.factory import Qp
+            return Qp(p, prec, **extras)
+
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
+
+    def coerce_map_from_impl(self, S):
+        global ZZ
+        if ZZ is None:
+            import integer_ring
+            ZZ = integer_ring.ZZ
+        if S is ZZ:
+            return sage.rings.rational.Z_to_Q()
+        else:
+            return field.Field.coerce_map_from_impl(self, S)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -293,6 +315,9 @@ class RationalField(_uniq, field.Field):
             +Infinity
         """
         return infinity.infinity
+
+    def _an_element_impl(self):
+        return sage.rings.rational.Rational((1,2))
 
     def random_element(self, num_bound=None, den_bound=None, distribution=None):
         """

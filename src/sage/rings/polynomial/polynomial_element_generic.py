@@ -474,6 +474,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         Q = self.polynomial(0)
         X = self.parent().gen()
         while R.degree() >= B.degree():
+            aaa = (R.leading_coefficient()/B.leading_coefficient())
+            bbb = X**(R.degree()-B.degree())
             S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
             Q += S
             R -= S*B
@@ -1150,10 +1152,16 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         return self.parent()(self.__poly * right.__poly, construct=True)
 
     def _lmul_(self, right):
-        return self.parent()(ZZX([right]) * self.__poly, construct=True)
+        try:
+            return self.parent()(ZZX([right]) * self.__poly, construct=True)
+        except RuntimeError, msg:
+            raise TypeError, msg
 
     def _rmul_(self, left):
-        return self.parent()(ZZX([left]) * self.__poly, construct=True)
+        try:
+            return self.parent()(ZZX([left]) * self.__poly, construct=True)
+        except RuntimeError, msg:
+            raise TypeError, msg
 
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
@@ -1680,14 +1688,18 @@ class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly * right.__poly, construct=True)
 
     def _rmul_(self, c):
-        self._ntl_set_modulus()
-        return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+        try:
+            self._ntl_set_modulus()
+            return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+        except RuntimeError, msg: # should this realy be a TypeError
+            raise TypeError, msg
 
     def _lmul_(self, c):
-        self._ntl_set_modulus()
-        return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
-
-
+        try:
+            self._ntl_set_modulus()
+            return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+        except RuntimeError, msg: # should this realy be a TypeError
+            raise TypeError, msg
 
     def quo_rem(self, right):
         """

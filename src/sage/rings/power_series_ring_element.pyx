@@ -87,7 +87,6 @@ import sage.misc.misc
 import ring_element
 import arith
 import sage.misc.latex
-import sage.structure.coerce
 import rational_field, integer_ring
 from integer import Integer
 from integer_mod_ring import IntegerModRing
@@ -1409,7 +1408,7 @@ cdef class PowerSeries_poly(PowerSeries):
         if PY_TYPE_CHECK(f, Element):
             if (<Element>f)._parent is R:
                 pass
-            elif (<Element>f)._parent is R.base_ring():
+            elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
             elif PY_TYPE_CHECK(f, PowerSeries_poly):
                 prec = (<PowerSeries_poly>f)._prec
@@ -1654,11 +1653,11 @@ cdef class PowerSeries_poly(PowerSeries):
                                          prec,
                                          check=True)  # check, since truncation may be needed
 
-    def _rmul_(self, c):
-        return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+        return PowerSeries_poly(self._parent, self.__f._rmul_c(c), self._prec, check=False)
 
-    def _lmul_(self, c):
-        return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+        return PowerSeries_poly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
 
 
     def __floordiv__(self, denom):

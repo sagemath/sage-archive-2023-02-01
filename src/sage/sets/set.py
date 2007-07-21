@@ -2,9 +2,9 @@
 Sets
 
 AUTHORS:
-    -- Mike Hansen (2007-3-25) -- added differences and symmetric differences; fixed operators
     -- William Stein (2005) -- first version
     -- William Stein (2006-02-16) -- large number of documentation and examples; improved code
+    -- Mike Hansen (2007-3-25) -- added differences and symmetric differences; fixed operators
 """
 
 #*****************************************************************************
@@ -23,8 +23,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.parent import Parent
-import sage.categories.all
+from sage.structure.parent import Parent, Set_generic
 from sage.misc.latex import latex
 import sage.rings.infinity
 
@@ -125,24 +124,6 @@ def is_Set(x):
         True
     """
     return isinstance(x, Set_generic)
-
-class Set_generic(Parent):
-    """
-    Abstract base class for sets.
-    """
-    def category(self):
-        """
-        The category that this set belongs to, which is the category
-        of all sets.
-
-        EXAMPLES:
-            sage: Set(QQ).category()
-            Category of sets
-        """
-        return sage.categories.all.Sets()
-
-    def object(self):
-        return self
 
 class Set_object(Set_generic):
     r"""

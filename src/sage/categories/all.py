@@ -1,4 +1,6 @@
-from category import   (is_Category,
+from category import    is_Category
+
+from category_types import(
                         Elements,
                         Sequences,
                         Objects,
@@ -6,6 +8,7 @@ from category import   (is_Category,
                         GSets,
                         Semigroups,
                         Monoids,
+                        Groupoid,
                         Groups,
                         AbelianSemigroups,
                         AbelianMonoids,

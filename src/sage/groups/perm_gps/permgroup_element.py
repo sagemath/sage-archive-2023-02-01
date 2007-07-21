@@ -56,8 +56,6 @@ from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
-import sage.structure.coerce as coerce
-
 import operator
 
 from sage.rings.integer import Integer

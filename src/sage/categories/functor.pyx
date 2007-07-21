@@ -4,6 +4,7 @@ Functors
 AUTHORS:
     - David Kohel and William Stein
     - David Joyner (2005-12-17): examples
+    - Robert Bradshaw (2007-06-23): Pyrexify
 """
 
 #*****************************************************************************
@@ -23,9 +24,8 @@ AUTHORS:
 #*****************************************************************************
 
 import category
-from sage.structure.sage_object import SageObject
 
-class Functor(SageObject):
+cdef class Functor(SageObject):
     """
     EXAMPLES:
         sage: rings  = Rings()
@@ -105,7 +105,7 @@ class ForgetfulFunctor_generic(Functor):
         return -1
 
 
-class IdentityFunctor(ForgetfulFunctor_generic):
+class IdentityFunctor_generic(ForgetfulFunctor_generic):
     def __init__(self, C):
         ForgetfulFunctor_generic.__init__(self, C, C)
 
@@ -129,7 +129,8 @@ class IdentityFunctor(ForgetfulFunctor_generic):
             raise TypeError, "x (=%s) must be in the category %s"%(x,self.domain())
         return x
 
-from category import category_hierarchy
+def IdentityFunctor(C):
+    return IdentityFunctor_generic(C)
 
 def ForgetfulFunctor(domain, codomain):
     """
@@ -142,6 +143,7 @@ def ForgetfulFunctor(domain, codomain):
         sage: F
         The forgetful functor from Rings to AbelianGroups
     """
+    from category_types import category_hierarchy
     if domain == codomain:
         return IdentityFunctor(domain, codomain)
     if not domain.is_subcategory(codomain):

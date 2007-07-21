@@ -10,6 +10,10 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
+    # TODO: If all elements have ParentWithBase, this makes
+    #       Parent rather redundant, as one can't even construct
+    #       elements with parent Parent.
+    #       On the other hand, many parents don't have a "base."
     cdef ParentWithBase _parent
     cdef _richcmp_c_impl(left, Element right, int op)
     cdef int _cmp_c_impl(left, Element right) except -2
@@ -139,4 +143,10 @@ cdef class Matrix(AlgebraElement):
     cdef bint is_dense_c(self)
 
 
+
+
+cdef class CoercionModel:
+    cdef canonical_coercion_c(self, x, y)
+    cdef canonical_base_coercion_c(self, Element x, Element y)
+    cdef bin_op_c(self, x, y, op)
 

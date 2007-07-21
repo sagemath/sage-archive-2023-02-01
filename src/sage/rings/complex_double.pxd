@@ -5,8 +5,6 @@ cimport sage.structure.element
 cimport sage.rings.ring
 cimport sage.libs.pari.gen
 
-import sage.structure.coerce
-
 import sage.structure.element
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, ModuleElement

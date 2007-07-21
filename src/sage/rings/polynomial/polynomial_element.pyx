@@ -155,7 +155,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError, "plotting of polynomials over %s not implemented"%R
 
-    def _lmul_(self, left):
+    cdef ModuleElement _lmul_c_impl(self, RingElement left):
         """
         Multiply self on the left by a scalar.
 
@@ -174,7 +174,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(0)
         return self.parent()(left) * self
 
-    def _rmul_(self, right):
+    cdef ModuleElement _rmul_c_impl(self, RingElement right):
         """
         Multiply self on the right by a scalar.
 
@@ -717,8 +717,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
-            v = [0]*right + [1]
-            return self.parent()(v, check=True)
+            R = self.parent().base_ring()
+            v = [R(0)]*right + [R(1)]
+            return self.parent()(v, check=False)
         return sage.rings.arith.generic_power(self, right, self.parent()(1))
 
     def _pow(self, right):
@@ -2405,21 +2406,25 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
-    def _rmul_(self, c):
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [c * a for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    def _lmul_(self, c):
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [a * c for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 

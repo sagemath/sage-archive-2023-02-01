@@ -1,0 +1,13 @@
+PACKAGE: gfan, a software package written by Anders Nedergaard Jensen
+
+
+MAINTAINER:
+   -- William Stein
+
+Download the package from
+
+    http://home.imf.au.dk/ajensen/software/gfan/gfan.html
+
+then remove the doc, homepage, and examples subdirectories,
+which take up most of the space.
+

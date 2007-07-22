@@ -1,0 +1,32 @@
+#!/bin/sh
+
+cd src/
+
+rm -f "$SAGE_LOCAL/bin/gfan*"
+
+$MAKE
+
+if [ $? -ne 0 ]; then
+   echo "Error building gfan"
+   exit 1
+fi
+
+if [ ! -f gfan ]; then
+   echo "gfan executable not found."
+   exit 1
+fi
+
+$CP gfan "$SAGE_LOCAL/bin/"
+
+if [ ! -f "$SAGE_LOCAL/bin/gfan" ]; then
+   echo "gfan executable not copied"
+   exit 1
+fi
+
+cd "$SAGE_LOCAL/bin/"
+./gfan installlinks
+
+if [ ! -f "$SAGE_LOCAL/bin/gfan_buchberger" ]; then
+   echo "gfan links not created correctly"
+   exit 1
+fi

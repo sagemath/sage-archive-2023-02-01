@@ -1,0 +1,5 @@
+MAINTAINER:
+    -- William Stein
+
+I obtained the package from http://gforge.inria.fr/projects/ecm/
+

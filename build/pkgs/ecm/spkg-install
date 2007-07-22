@@ -1,0 +1,28 @@
+#!/bin/sh
+
+CXXFLAGS="$CXXFLAGS -fPIC"; export CXXFLAGS
+CFLAGS="$CFLAGS -fPIC"; export CFLAGS
+
+cd src
+
+./configure --with-gmp=$SAGE_LOCAL  --prefix=$SAGE_LOCAL
+
+if [ $? -ne 0 ]; then
+    echo "There was a problem configuring GMP ECM."
+    exit 1
+fi
+
+$MAKE
+
+if [ $? -ne 0 ]; then
+    echo "There was a problem building GMP ECM."
+    exit 1
+fi
+
+
+$MAKE install
+
+if [ $? -ne 0 ]; then
+    echo "There was a problem installing GMP ECM (though it appears to have built fine)."
+    exit 1
+fi

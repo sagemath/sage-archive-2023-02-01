@@ -1,0 +1,113 @@
+#!/bin/sh
+
+CUR=`pwd`
+
+$CP patches/configure linbox/
+$CP patches/install-sh linbox/
+$CP patches/mkinstalldirs linbox/
+
+cd linbox/
+
+CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -L\"$SAGE_LOCAL/lib\""
+CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -L\"$SAGE_LOCAL/lib\""
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+
+export CFLAGS
+export CXXFLAGS
+export CPPFLAGS
+
+if [ "$LINBOX_BLAS" != "" ]; then
+
+    echo "Using environment variable LINBOX_BLAS "$LINBOX_BLAS""
+
+elif [ $UNAME = "Darwin" -a -f "/usr/lib/libcblas.dylib" ]; then
+
+    LINBOX_BLAS=/usr/lib/libcblas.dylib
+
+elif [ $UNAME = "Linux" -a -f "/usr/lib/libcblas.so" ]; then
+
+    echo "Linux cblas"
+
+    LINBOX_BLAS=/usr/lib/libcblas.so
+
+elif [ $UNAME = "Linux" -a -f "/usr/lib/libcblas.so.3" ]; then
+
+    echo "Linux cblas"
+
+    LINBOX_BLAS=/usr/lib/libcblas.so.3
+
+else
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "using frickin' slow GSL C-blas"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+    echo "WARNING WARNING"
+
+    if [ $UNAME = "Darwin" ]; then
+        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.dylib
+    elif [ $UNAME = "Linux" ]; then
+        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.so
+    else
+        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.a
+    fi
+
+fi
+
+./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" --enable-optimization --with-blas="$LINBOX_BLAS"
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring linbox"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "Error building linbox"
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "Error installing linbox"
+    exit 1
+fi
+
+cd "$CUR"/patches
+cp -r gmp++/* "$SAGE_LOCAL"/include/gmp++/
+if [ $? -ne 0 ]; then
+    echo "Error overwriting linbox's gmp++"
+    exit 1
+fi
+
+
+# For some stupid reason gmp-integers.h was removed.
+cp "$CUR"/patches/gmp-integers.h "$SAGE_LOCAL"/include/linbox/field/
+
+#
+# Build the C Wrapper
+#
+
+cd "$CUR"/linbox_wrap
+
+./configure --prefix="$SAGE_LOCAL" --with-blas="$LINBOX_BLAS"
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring linboxwrap"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "Error building linboxwrap"
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "Error installing linboxwrap"
+    exit 1
+fi
+

@@ -1,0 +1,10 @@
+1. Modified charpoly.h and commentator.C
+
+2. Added linboxwrap (malb)
+
+3. Change the line in configure so tuning doesn't take like 30 minutes
+   and crash the host computer!
+
+       size_t n=300, nmax=3000, prec=512, nbest=0, count=0;
+
+

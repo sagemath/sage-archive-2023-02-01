@@ -21,6 +21,8 @@ AUTHOR:
                         (2007-06-07--09): NetworkX function wrapping
     -- Michael W. Hansen (2007-06-09): Topological sort generation
     -- Emily Kirkman, Robert L. Miller SAGE Days 4: Finished wrapping NetworkX
+    -- Emily Kirkman (2007-07-21): Genus (including circular planar, all
+        embeddings and all planar embeddings), all paths, interior paths
 
 TUTORIAL:
 

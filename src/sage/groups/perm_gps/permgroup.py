@@ -1049,7 +1049,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Returns the Moien series of a transtive permutation group.
         The function
         $$
-        $$M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)$$
+        M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)
         $$
         is sometimes called the "Molien series" of G.
         GAP's \code{MolienSeries} is associated to a character of a group G.

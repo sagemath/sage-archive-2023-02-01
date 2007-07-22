@@ -1,0 +1,41 @@
+#!/bin/sh
+
+cd src/
+
+unset MAKE  # this can break things
+
+check_error() {
+    if [ $? -ne 0 ]; then
+	echo "***********************************************************"
+        echo $1
+	echo "***********************************************************"
+        exit 1
+    fi
+}
+
+# The extra --with-clisp option should work if the SAGE install
+# directory moves, so the correct clisp runtime environment
+# is selected.   Unfortunately, it fails in the install at the end after build
+# because of a weird bug in the config scripts (i.e., probably
+# nobody has tried this before :-( ).
+#./configure --prefix=$SAGE_LOCAL --with-clisp="clisp -B\"$SAGE_ROOT/local/lib/clisp\""
+
+./configure --prefix=$SAGE_LOCAL
+
+check_error "Failed to configure Maxima."
+
+if [ `uname` = "Darwin" ]; then
+   echo "Now building maxima; this takes a few minutes"
+   echo "Since we're using OS X and there is a very weird"
+   echo "bug with buffered output while building maxima,"
+   echo "you will not be able to see the output of the build"
+   echo "as it occurs.  Don't worry, the build process did"
+   echo "not hang."
+   make > output.log
+else
+   make
+fi
+check_error "Failed to make Maxima."
+
+make install
+check_error "Failed to install Maxima."

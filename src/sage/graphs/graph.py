@@ -3623,7 +3623,6 @@ class Graph(GenericGraph):
             faces = len(t)
             if faces > max_faces:
                 max_faces = faces
-        print max_faces
         return (2-verts+edges-max_faces)/2
 
     def interior_paths(self, start, end):

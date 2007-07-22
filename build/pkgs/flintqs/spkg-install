@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd fastlibnt
+cd src
 
 if [ `uname -m` = "x86_64" ]; then
     $CP makefile.opteron makefile

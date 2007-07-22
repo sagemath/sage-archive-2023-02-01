@@ -24,6 +24,7 @@ if [ ! -f "$SAGE_LOCAL/bin/gfan" ]; then
 fi
 
 cd "$SAGE_LOCAL/bin/"
+rm gfan_*
 ./gfan installlinks
 
 if [ ! -f "$SAGE_LOCAL/bin/gfan_buchberger" ]; then

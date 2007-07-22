@@ -1,0 +1,23 @@
+This is a stripped-down version of GAP.  The databases, which are arch
+independent, are in a separate package and doc and tests are removed.
+
+PACKAGE MAINTAINERS: William Stein, Martin Albrecht, and David Joyner
+
+** IMPORTANT **:
+   When you update this package, be sure to put the guava package
+   in the package directory!!
+
+DELETED:
+   doc -- some of documentation:
+ rm *.bbl *.aux *.dvi *.idx *.ilg *.l* *.m* *.pdf *.toc  *.blg *.ind
+ rm */*.bbl */*.aux */*.dvi */*.idx */*.ilg */*.l* */*.m* */*.pdf */*.ind */*.toc */*.blg
+
+   tst -- tests
+   bin -- some BIG windows programs, which we don't need since GAP
+          is only going to be used via expect
+
+DATABASES (separated out):
+   small -- small group's database; will distribute separately.
+   pkg/tomlib -- just contains the "Table of Marks"; distribute separately.
+   prim
+   trans

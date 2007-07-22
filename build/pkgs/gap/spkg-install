@@ -1,0 +1,103 @@
+#!/bin/sh
+
+###########################################
+## GAP
+###########################################
+
+TARGET="gap-4.4.9"  #NOTE: Be sure to also update patches/gap*
+
+
+# If we're on an Itanium Linux box, we overwite configure.out with a slightly
+# modified version.  The modified version has all -O2's replaced by -O0.
+# See http://www.gap-system.org/Faq/Hardware-OS/hardware-os8.html
+
+# On the San Diego Super computer `uname -p` is unknown, but
+# uname -a includes ia64 in the output.  So this is a better
+# detection method.
+if [ `uname` = "Linux" ]; then
+   uname -a |grep ia64
+   if [ $? = 0 -o `uname -p` = "ia64" ]; then
+       cp patches/ia64-configure.out src/cnf/configure.out
+       echo "The file configure.out was patched for SAGE!" > cnf/configure.out.README
+   fi
+fi
+
+
+
+build()
+{
+    CUR=`pwd`
+    INSTALL_DIR=$SAGE_LOCAL/lib/$TARGET
+    rm -rf $INSTALL_DIR
+    if [ $? -ne 0 ]; then
+        echo "Couldn't remove old dir."
+        exit 1
+    fi
+
+    cd src
+    ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC" CXX="$CXX"
+
+    if [ $? -ne 0 ]; then
+        echo "Configuration of GAP failed."
+        exit 1
+    fi
+
+    # On a Windows machine the gap build creates a file "gap.exe",
+    # but no file named "gap".  This breaks the build, since it
+    # then tries to strip gap, but can't since the file is missing!
+    if [ $UNAME = "CYGWIN" ]; then
+        $MKDIR bin
+        $MKDIR bin/i686-pc-cygwin-gcc
+        cd bin/i686-pc-cygwin-gcc
+        $TOUCH gap.exe
+        $LN -s gap.exe gap
+        cd ../..
+    fi
+
+    echo "Building and installing $TARGET"
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo "Error building gap."
+        exit 1
+    fi
+
+    $MKDIR $INSTALL_DIR
+    $CP -r * $INSTALL_DIR
+
+    cd "$SAGE_LOCAL/bin"
+    $RM -f gap
+    if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then
+       echo "Error building GAP."
+       exit 1
+    fi
+    $LN -sf "../lib/$TARGET/bin/gap.sh" gap
+
+    cd $CUR
+    if [ $UNAME = "CYGWIN" ]; then
+        $CP patches/gap_cygwin "$SAGE_LOCAL"/bin/gap
+    else
+        $CP patches/gap "$SAGE_LOCAL"/bin/gap
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "Error copying customized gap startup script."
+        exit 1
+    fi
+
+    # We do not do this anymore, since it is (1) bad as it changes
+    # files outside the scope of the build, and (2) not useful,
+    # because now the workspace gets generated automatically
+    # in .sage.
+    ## echo "Running SAGE and resetting the GAP workspace."
+    ## echo "gap_reset_workspace()" | sage
+}
+
+build
+
+if [ $? -eq 0 ]; then
+    exit 0
+else
+    echo "Something went wrong when building GAP."
+    exit 1
+fi
+

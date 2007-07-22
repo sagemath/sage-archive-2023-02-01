@@ -1,0 +1,2 @@
+* Be sure to update the files in sage/* when you create a new version
+  of this package!

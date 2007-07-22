@@ -1,0 +1,43 @@
+Making a new release of matplotlib is going to be fricken' hard, since
+it's getting very patched for SAGE.  We need to make an hg repo for
+the .py files, and use a merge system.
+
+----------
+
+The following modifications are all in the sage subdirectory.
+They are copied in during the build process.
+
+* I replaced setupext.py by a version that adds
+  some SAGE-specific paths so the build doesn't
+  fail (since SAGE includes certain libs that
+  matplotlib depends on).
+
+* I setup the setup.py file so *no* GUI front-ends
+  are built.    This is because on test systems the
+  install breaks sometimes when trying to build a GUI, e.g.,
+  matplotlib thinks it can build that gui component but
+  it really can't.
+
+* Replace all instances of Point with MPL_Point in
+
+     src/_transforms.h and src/_transforms.cpp
+
+  This is because mwrank also defines a class called Point, and
+  in Python 2.5, the matploblib Point destructor gets called
+  for mwrank points, which causes nasty crashes.
+
+* Replace lib/matplotlib/transform.py with a custom
+  version that imports MPL_Point as Point.
+
+* Replace lib/matplotlib/ticker.py with a version that
+  comments out line 271:
+        #self._powerlimits = rcParams['axes.formatter.limits']
+  Also, changed some weird code around line 368:
+        self.orderOfMagnitude = oom
+##         if oom <= self._powerlimits[0]:
+##             self.orderOfMagnitude = oom
+##         elif oom >= self._powerlimits[1]:
+##             self.orderOfMagnitude = oom
+##         else:
+##             self.orderOfMagnitude = 0
+

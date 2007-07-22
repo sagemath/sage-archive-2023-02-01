@@ -1,0 +1,28 @@
+#!/bin/sh
+
+
+# Used patched versions.  See SAGE.txt for why and what.
+$CP patches/setupext.py src
+$CP patches/setup.py src
+$CP patches/_transforms* src/src
+$CP patches/transforms.py src/lib/matplotlib/
+$CP patches/ticker.py src/lib/matplotlib/
+$CP patches/lib_matplotlib__init__.py src/lib/matplotlib/__init__.py
+
+cd src
+
+# Now build
+python setup.py build
+
+if [ $? -ne 0 ]; then
+   echo "Error building matplotlib package."
+   exit 1
+fi
+
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/matplotlib
+
+# Finally install
+python setup.py install
+
+
+

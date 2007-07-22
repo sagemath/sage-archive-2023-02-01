@@ -1,0 +1,6 @@
+http://www.gnu.org/software/gsl/
+
+ftp://mirrors.kernel.org/gnu/gsl/
+
+We currently make no changes to the standard GSL distribution.
+

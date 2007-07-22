@@ -1,0 +1,21 @@
+#!/bin/sh
+
+cd src/
+
+./configure --prefix="$SAGE_LOCAL" --enable-shared
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring GSL"
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building GSL"
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing GSL"
+fi

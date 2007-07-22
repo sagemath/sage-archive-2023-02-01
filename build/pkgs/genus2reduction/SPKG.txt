@@ -1,0 +1,6 @@
+MAINTAINER:
+    William Stein
+
+This is the home of genus2reduction, so there isn't an auxiliary download
+cite for updates.  If building this breaks because PARI changes, this is
+the place to fix it.

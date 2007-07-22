@@ -1,3 +1,7 @@
 MAINTAINERS:
     -- Josh Kantor
     -- William Stein
+
+
+This package is just to eliminate flex as a dependency, which is reasonable
+since it is trivial to build.

@@ -1,0 +1,7 @@
+1. Deleted (large) ps and pdf files from doc directory:
+       rm doc/*.ps doc/*.pdf
+2. Remove the examples directories:
+       rm -rf example*
+3. Remove mathlink stuff:
+       rm -rf src-mathlink*
+4.

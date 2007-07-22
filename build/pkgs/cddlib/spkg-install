@@ -1,0 +1,30 @@
+#!/bin/sh
+
+cp patches/allfaces.c src/src/
+
+cd src/
+
+# This is needed for cddlib-094b, which fails
+# to find the gmp headers otherwise.
+CFLAGS="-I $SAGE_LOCAL/include $CFLAGS"
+export CFLAGS
+
+./configure --prefix=$SAGE_LOCAL
+
+if [ $? -ne 0 ]; then
+   echo "Error configuring cddlib"
+   exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+   echo "Error building cddlib"
+   exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+   echo "Error installing cddlib"
+   exit 1
+fi
+

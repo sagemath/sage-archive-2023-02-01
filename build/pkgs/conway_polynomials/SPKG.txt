@@ -1,0 +1,13 @@
+The file conway_table.py.bz2 is used to generate the conway polynomial
+database as follows:
+
+ 1) cd to SAGE_ROOT/data/conway_polynomials
+ 2) Delete the file conway_polynomials
+ 3) Make sure conway_table.py is not there and that
+    conway_table.py.bz2 is there (and has all relevant data)
+ 4) Start SAGE:
+      sage: cp = ConwayPolynomials(read_only=False)
+      sage: cp._init()
+      sage: quit
+
+Your data should now be in the database.

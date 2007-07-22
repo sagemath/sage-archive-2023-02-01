@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -rf $SAGE_DATA/conway_polynomials
+cp -r src/conway_polynomials $SAGE_DATA/conway_polynomials

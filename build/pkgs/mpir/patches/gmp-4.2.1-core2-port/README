@@ -1,0 +1,159 @@
+This is a patch to solve two problems:
+
+1.  It makes gmp run faster on Intel Core2 CPUs (i.e. Woodcrest, Conroe,
+    and friends) under Linux
+
+2.  It makes gmp work (and run fast) under Mac OS X on Core2 CPU
+    machines (e.g. Mac Pro)
+
+As an added bonus, it actually gives a little speed up to gmp on AMD64
+machines as well.
+
+
+To Install on a 64 bit Intel Mac (e.g. Mac Pro)
+-------------------------------------------------------
+1. Download gmp-4.2.1-core2-port.tar.gz
+
+
+2. Uncompress and untar it.  Let's say that it's in the directory
+~/gmp-4.2.1-core2-port
+
+
+3.  Download GMP version 4.2.1
+
+
+4.  Uncompress and untar GMP.  Let's say that it's in the directory
+~/gmp-4.2.1
+
+
+5.  Change into the gmp-4.2.1-core2-port directory and run the install
+script (if you want to see what it's doing, just read it... it's a
+very simple script).
+
+    > cd ~/gmp-4.2.1-core2-port
+    > ./install_gmp_4.2.1_core2_patch.sh ~/gmp-4.2.1
+
+
+6.  Configure gmp for a 64 bit Intel Mac as such:
+
+   > cd ~/gmp-4.2.1
+   > ./configure --build=x86_64-apple-darwin CFLAGS="-m64 -fast"
+
+(You can, of course, add whatever other config options you want.  Be
+sure to use the CFLAGS environmental variable given above on the
+command line.  Otherwise, the CFLAGS setting that configure generates
+by default will give you compilation problems.)
+
+7.  Build it!  Execute the following:
+
+   > make
+
+
+8.  Check it!  Execute the following:
+
+   > make check
+
+
+9.  Install it.
+
+   > sudo make install
+
+
+
+
+To Install on a Linux machine.
+-------------------------------------------------------
+1. Download gmp-4.2.1-core2-port.tar.gz
+
+
+2. Uncompress and untar it.  Let's say that it's in the directory
+~/gmp-4.2.1-core2-port
+
+
+3.  Download GMP version 4.2.1
+
+
+4.  Uncompress and untar GMP.  Let's say that it's in the directory
+~/gmp-4.2.1
+
+
+5.  Change into the gmp-4.2.1-core2-port directory and run the install
+script (if you want to see what it's doing, just read it... it's a
+very simple script).
+
+    > cd ~/gmp-4.2.1-core2-port
+    > ./install_gmp_4.2.1_core2_patch.sh ~/gmp-4.2.1
+
+
+6.  Configure gmp as normal.
+
+   > cd ~/gmp-4.2.1
+   > ./configure
+
+(You can, of course, add whatever other config options you want.)
+
+
+7.  Build it!  Execute the following:
+
+   > make
+
+
+8.  Check it!  Execute the following:
+
+   > make check
+
+
+9.  Install it.
+
+   > sudo make install
+
+
+
+
+
+
+NOTES:
+
+1. Wow!  The GMP code base is really well organized!  It was very easy
+for me to find out exactly what files needed changing.  Nice work guys!!
+
+2. In amd64call.asm all I changed was to make the addressing relative to
+the rip register rather than absolute.  The Apple 64bit ABI doesn't support
+absolute addressing.  Since Linux can use either addressing mode, it
+makes sense to use position independent code... it's more portable and
+there's no real performance difference.
+
+3. In add_n and sub_n I re-wrote the code to accomidate the Woodcrest
+nuances.  Mainly, I unrolled the main loop and I got rid of the "inc"
+instruction (which causes a false dependency on the flag register and
+thus stalls the pipeline).  Of course, this also meant that I had to
+save the carry flag between loop iterations using the "lahf" and
+"sahf" instructions.  These instructions are available on the Mac Pro
+using the Apple assembler, but because some early x86_64 CPUs didn't
+support those instructins, the GNU assembler doesn't allow those
+mnemonics on 64bit machines (even when the CPU will support it).  So,
+my assembly code includes some m4 code which calls the shell script
+"lahf_sahf_test.sh" which determines if the lahf and sahf instructions
+are available on the CPU.  If so, then it includes some hand assembled
+bytes to get around GNU as limitations.  Otherwise, it falls back to
+using "setc" and "bt" which are slower.
+
+4.  On my 2.66 GHz Mac Pro, I was able to get a GMPbench score of 8263.
+
+5.  You'll notice a Makefile and a bunch of extraneous files.  These are
+used for testing the code outside of the GMP source tree.  The Makefile
+will produce a file called mpn_test which just runs the routines through
+a bunch of speed and correctness tests and compares them against the
+original GMP 4.2.1 assembly files.
+
+6.  On Mac OS X I haven't found a nice way yet to build dynamic
+libraries.  The biggest obstical is that the Apple "libtool" and the
+GNU "libtool" have incompatible syntax.  My guess is that in the near
+future the GNU libtool will support the Apple libtool for creating
+dynamic shared libraries.  For the mean time, I'll be content with
+static libraries.  If you find a simple solution please let me know.
+
+Jason Worth Martin
+Asst. Prof. of Mathematics
+James Madison Univ.
+martinjw@jmu.edu

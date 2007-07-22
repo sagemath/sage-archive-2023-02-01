@@ -1,0 +1,46 @@
+Changes made from standard distro:
+
+  * configure-sage-cygwin
+
+  * Patch: Applied the gmp_add_nc.patch to fix a bug in the build
+    process that is a show stopper under PowerPC OS X.  (This
+    bug was introduced in gmp-4.2.1.)
+
+  * During the build process one of the following patches may be applied automatically:
+
+          * The Intel Core 2 Duo 64-bit patch of Jason Martin:
+                    http://www.math.jmu.edu/~martin/
+
+          * Gaudry's speedups for AMD 64:
+                    http://www.loria.fr/~gaudry/mpn_AMD64/
+
+============================
+
+NOTE: When upgrading GMP, don't forget to update the spkg-install
+script for polymake.
+
+============================
+
+LOG
+
+------------------------
+
+2006-02-19:
+   Joe Weening completely rewrote the spkg-install file.
+
+--------------------
+
+(Submitted by Wilson Cheung)
+   The following is really a gmp-4.1.4 "bug" when compiled under
+   Solaris 10, and not a problem with sage itself.  In the section of
+   gmp's "configure" that determines which valid values for "ABI" are
+   available for each OS, it only checks up to Solaris 2.9.
+
+   On Solaris 10, it thinks that "ABI=64" value is invalid since it
+   just falls through to the default ABI choice of "standard".  This
+   problem may already be fixed in GMP 4.1.5 development code or newer
+   (haven't checked).
+
+---------------------
+
+2006-01-18 -- Wilson modified the sunos section of spkg-install.

@@ -43,7 +43,8 @@ def HeilbronnCremonaList(int p):
     """
     The Heilbronn matrices of determinant p, as defined by Cremona.
     """
-    cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q, f
+    cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q
+    cdef float f
     cdef object ans
 
     if p == 2:
@@ -237,7 +238,8 @@ cdef class HeilbronnCremona(Heilbronn):
         return "The Cremona-Heilbronn matrices of determinant %s"%self.p
 
     def _initialize_list(self):
-        cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q, f, n, p
+        cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q, n, p
+        cdef float f
         cdef list *L
         list_init(&self.list)
         L = &self.list

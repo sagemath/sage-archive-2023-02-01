@@ -48,8 +48,16 @@ def init(object_directory=None, globs={}):
     sage.misc.latex.EMBEDDED_MODE = True
     sage.misc.pager.EMBEDDED_MODE = True
 
+    setup_systems(globs)
+
     # Turn on latex print mode by default.
     #sage.misc.latex.lprint()
+
+
+def setup_systems(globs):
+    from sage.misc.inline_fortran import InlineFortran
+    fortran = InlineFortran(globs)
+    globs['fortran'] = fortran
 
 
 ######################################################################
@@ -95,16 +103,14 @@ def completions(s, globs, format=False, width=90, system="None"):
                 else:
                     v = [obj + '.'+x for x in D if x[:n] == method]
             except Exception, msg:
-                print msg
                 v = []
         v = list(set(v))   # make uniq
         v.sort()
     except Exception, msg:
-        print msg
         v = []
     if format:
         if len(v) == 0:
-            return "no completions of %s"%s
+            return "No completions of '%s' currently defined"%s
         else:
             return tabulate(v, width)
     return v

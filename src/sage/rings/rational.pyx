@@ -114,6 +114,14 @@ cdef Rational_sub_(Rational self, Rational other):
 cdef object the_rational_ring
 the_rational_ring = sage.rings.rational_field.Q
 
+# make sure zero/one elements are set
+cdef set_zero_one_elements():
+    global the_rational_ring
+    the_rational_ring._zero_element = Rational(0)
+    the_rational_ring._one_element = Rational(1)
+
+set_zero_one_elements()
+
 cdef class Rational(sage.structure.element.FieldElement):
     """
     A Rational number.
@@ -930,6 +938,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             2^I/3^I
             sage: (2/3)^sqrt(2)
             2^sqrt(2)/3^sqrt(2)
+            sage: x,y,z,n = var('x,y,z,n')
             sage: (2/3)^(x^n + y^n + z^n)
             3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
             sage: (-7/11)^(tan(x)+exp(x))

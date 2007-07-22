@@ -106,7 +106,7 @@ class MPolynomial_element(MPolynomial):
         AUTHOR: David Kohel, 2005-09-27
         """
         if len(kwds) > 0:
-            f = self.fix(**kwds)
+            f = self.subs(**kwds)
             if len(x) > 0:
                 return f(*x)
             else:
@@ -244,14 +244,16 @@ class MPolynomial_macaulay2_repr:
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
+            sage: R.<x,y> = GF(7)[]
+            sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
+            sage: macaulay2(R)                      # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: h = f._macaulay2_(); print h      # optional
              21     7 14
             x   + 2x y
             sage: R(h)                              # optional
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
@@ -627,7 +629,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def is_monomial(self):
         return len(self.element().dict().keys()) == 1
 
-    def fix(self, fixed=None, **kw):
+    def subs(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
@@ -649,7 +651,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
-            sage: f.fix({x:5})
+            sage: f.subs({x:5})
             25*y^2 + y + 30
         """
         variables = list(self.parent().gens())
@@ -712,7 +714,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.is_univariate()
             True
@@ -724,7 +726,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             ngens = len(mons[0]) # number of generators
         except:
-            return True        # zero
+            return True # zero
 
         found = -1
         for mon in mons:
@@ -757,7 +759,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             Traceback (most recent call last):
             ...
             TypeError: polynomial must involve at most one variable
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305
@@ -811,7 +813,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
             [x, y]
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.variables()
             [y]
@@ -842,7 +844,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.nvariables ()
             2
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.nvariables ()
             1
@@ -1017,6 +1019,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
         Next we factor a polynomial over a number field.
+            sage: p = var('p')
             sage: K.<s> = NumberField(p^3-2)
             sage: KXY.<x,y> = K[]
             sage: factor(x^3 - 2*y^3)

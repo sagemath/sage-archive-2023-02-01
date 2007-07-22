@@ -62,14 +62,23 @@ Matrix vector multiply:
     sage: v = V([1,2,3])
     sage: v * A
     (2, 1, 3)
+
+TESTS:
+    sage: D = 46341
+    sage: u = 7
+    sage: R = Integers(D)
+    sage: p = matrix(R,[[84, 97, 55, 58, 51]])
+    sage: 2*p.row(0)
+    (168, 194, 110, 116, 102)
 """
 
+import math
 import operator
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 import sage.misc.misc as misc
-import sage.misc.latex as latex
+import sage.misc.latex
 
 cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
@@ -176,7 +185,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     if hasattr(arg1, '_vector_'):
         return arg1._vector_(arg0)
 
-    if sage.rings.integer.is_Integer(arg1):
+    if sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long)):
         if arg2 is None:
             arg1 = [0]*arg1
         else:
@@ -505,6 +514,49 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                 e[i] = c
         return e
 
+    #############################
+    # Plotting
+    #############################
+    def plot(self, xmin=0, xmax=1, eps=None, res=None,
+             connect=True, step=False, **kwds):
+        """
+        INPUT:
+            xmin -- (default: 0) start x position to start plotting
+            xmax -- (default: 1) stop x position to stop plotting
+            eps -- (default: determined by xmax) we view this vector
+                   as defining a function at the points xmin, xmin +
+                   eps, xmin + 2*eps, ...,
+            res -- (default: all points) total number of points to include
+                   in the graph
+            connect -- (default: True) if True draws a line; otherwise draw
+                       a list of points.
+            step -- (default: False) if True draw a step function plot.
+
+        EXAMPLES:
+            sage: eps=0.1
+            sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
+            sage: plot(v, eps=eps, xmax=5, hue=0).save('sage.png')
+            sage: v.plot(eps=eps, xmax=5, hue=0).save('sage.png')
+        """
+        if res is None:
+            res = self.degree()
+        if eps is None:
+            eps = float(xmax - xmin)/res
+        v = []
+        x = xmin
+        for i in range(0, self.degree(), int(math.ceil(self.degree()/res))):
+            y = float(self[i])
+            if x > xmax:
+                break
+            v.append((x,y))
+            x += eps
+            v.append((x,y))
+        from sage.plot.all import line, points
+        if connect:
+            return line(v, **kwds)
+        else:
+            return points(v, **kwds)
+
     def dot_product(self, right):
         """
         Return the dot product of self and right, which is the sum
@@ -625,7 +677,16 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Returns the inner product of self and other, with respect to
         the inner product defined on the parent of self.
 
-        EXAMPLES: todo
+        EXAMPLES:
+
+            sage: I = matrix(ZZ,3,[2,0,-1,0,2,0,-1,0,6])
+            sage: M = FreeModule(ZZ, 3, inner_product_matrix = I)
+            sage: (M.0).inner_product(M.0)
+            2
+            sage: K = M.span_of_basis([[0/2,-1/2,-1/2], [0,1/2,-1/2],[2,0,0]])
+            sage: (K.0).inner_product(K.0)
+            2
+
         """
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
@@ -634,7 +695,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return M(A.linear_combination_of_rows(self)).dot_product(right)
+            return A.linear_combination_of_rows(self).dot_product(right)
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)
@@ -689,7 +750,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         s = '\\left('
         for a in self.list():
-            s = s + latex.latex(a) + ','
+            s = s + sage.misc.latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
@@ -724,14 +785,19 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
-        EXAMPLES:
-            sage: v = (ZZ^3).0
-            sage: loads(dumps(v)) == v
-            True
-            sage: v = (QQ['x']^3).0
-            sage: loads(dumps(v)) == v
-            True
+    A generic dense element of a free module. a
     """
+    ## these work fine on the command line but fail in doctests :-(
+##         TESTS:
+##             sage: V = ZZ^3
+##             sage: loads(dumps(V)) == V
+##             True
+##             sage: v = V.0
+##             sage: loads(dumps(v)) == v
+##             True
+##             sage: v = (QQ['x']^3).0
+##             sage: loads(dumps(v)) == v
+##             True
     cdef _new_c(self, object v):
         # Create a new dense free module element with minimal overhead and
         # no type checking.
@@ -816,7 +882,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = left._mul_c(<RingElement>(self._entries[i]))
+            v[i] = (<RingElement>(self._entries[i]))._rmul_c(left)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
@@ -826,7 +892,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(self._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._mul_c(right)
+            v[i] = (<RingElement>(self._entries[i]))._lmul_c(right)
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

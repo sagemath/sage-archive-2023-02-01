@@ -533,6 +533,18 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E([-1,0])
             sage: P.order()
             2
+            sage: k.<a> = GF(5^5)
+            sage: E = EllipticCurve(k,[2,4]); E
+            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
+            sage: P = E(3*a^4 + 3*a , 2*a + 1 )
+            sage: P.order()
+            3227
+
+        ALGORITHM: uses PARI's \code{ellzppointorder} if base ring is prime
+        or baby-step-giant-step algorithm as presented in
+
+          Washington, Lawrence C.; 'Elliptic Curves: Number Theory and
+          Cryptography', Boca Raton 2003
         """
         try:
             return self.__order
@@ -545,19 +557,75 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if K.is_prime():
             e = E._gp()
             self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
+            return self.__order
         else:
-            if not disable_warning:
-                print "WARNING -- using naive point order finding over finite field!"
-            # TODO: This is very very naive!!  -- should use baby-step giant step; maybe in mwrank
-            #      note that this is *not* implemented in PARI!
             P = self
-            n = 1
-            while not P.is_zero():
-                n += 1
-                P += self
-            self.__order = rings.Integer(n)
-        return self.__order
+            E = P.curve()
+            k = E.base_ring()
+            q = k.order()
 
+            if q < 256: # TODO: check this heuristc
+                n = 1
+                while not P.is_zero():
+                    n += 1
+                    P += self
+                self.__order = rings.Integer(n)
+                return self.__order
+
+            # 1. Compute Q = (q+1)P
+            Q = (q+1) * P
+
+            # 2. Choos an integer m with m > q^{1/4}. Compute and store the
+            # points jP for j = 0,1,2,...,m
+
+            m = rings.Integer((q**rings.RR(0.25)).floor() + 1) #
+
+            l = dict()
+            X = E(0)
+            for j in range(0,m+1):
+                l[X] = j
+                X = P + X
+
+            # 3. Compute the points Q + k(2mP) for k = -m, -(m+1), ..., m
+            # until there is a match Q + k(2mP) = +- jP with a point or its
+            # negative on the list
+
+            twomP = (2*m*P)
+            for k in range(-m,m+1):
+                W =  Q + k*twomP
+                if W in l:
+                    # 4a. Conclude that (q + 1 + 2mk - j)P = oo. Let M = q + 1 + 2mk - j
+                    M = q + 1 + 2*m*k - l[W]
+                    break
+                elif -W in l:
+                    # 4b. Conclude that (q + 1 + 2mk + j)P = oo. Let M = q + 1 + 2mk + j
+                    M = q + 1 + 2*m*k + l[-W]
+                    break
+
+            # 5. Factor M. let p1,...,pr be the distinct prime factors of M.
+            while True:
+                N = M
+                plist = [ p for p,n in M.factor()]
+                for p in plist:
+                    # 6. Compute (M/pi)P for i = 1...r. If (M/pi)P =
+                    # oo for some i, replace M with M/pi and go back
+                    # to step (4). If (M/pi)P != oo for all i then M
+                    # is the order of the point P.
+                    if (int(M/p) * P).is_zero():
+                        M = M/p
+                        break
+                if N == M:
+                    self.__order = rings.Integer(M)
+                    return self.__order
+
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+        """
+        E = self.curve()._magma_().name()
+        x,y = map(lambda x: x._magma_().name(), self.xy())
+        return "%s![%s,%s]"%(E,x,y)
 
 def make_point(X, v):
     # TODO: Unpickled parents with base sometimes have thier base set to None.

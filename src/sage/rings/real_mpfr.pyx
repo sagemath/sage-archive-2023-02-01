@@ -859,7 +859,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             # 1-2 binary digits being wrong due to rounding coming from
             # representating numbers in binary.
 
-            reqdigits = ((<RealField>self._parent).__prec - 1) * 0.3010299956
+            reqdigits = <int>(((<RealField>self._parent).__prec - 1) * 0.3010299956)
             if reqdigits <= 1: reqdigits = 2
 
         _sig_on
@@ -1477,6 +1477,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if not mpfr_number_p(self.value):
             raise ValueError, 'Calling exact_rational() on infinity or NaN'
 
+        if mpfr_sgn(self.value) == 0:
+            return Rational(0)
+
         exponent = mpfr_get_z_exp(mantissa.value, self.value)
 
         return Rational(mantissa) * Integer(2) ** exponent
@@ -1601,7 +1604,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         from real_mpfi import RealIntervalField
 
-        cdef mp_rnd_t rnd = (<RealField>self._parent).rnd
+        cdef mpfr_rnd_t rnd = (<RealField>self._parent).rnd
         cdef int prec = (<RealField>self._parent).__prec
 
         cdef RealNumber low, high
@@ -2026,6 +2029,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1.0842022e-19 + 1.0000000*I   # 64-bit
 
         We raise a real number to a symbolic object:
+            sage: x, y = var('x,y')
             sage: 1.5^x
             1.50000000000000^x
             sage: -2.3^(x+y^3+sin(x))

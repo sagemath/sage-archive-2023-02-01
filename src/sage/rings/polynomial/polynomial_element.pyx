@@ -124,7 +124,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _neg_c_impl(self):
         return self.polynomial([-x for x in self.list()])
 
-    def plot(self, xmin=0, xmax=1, *args, **kwds):
+    def plot(self, xmin=None, xmax=None, *args, **kwds):
         """
         Return a plot of this polynomial.
 
@@ -684,12 +684,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^3 + 4*x
             sage: f / (x - 1)
             x^2 + x
+
+        Be careful about coercions (this used to be broken):
+            sage: R.<x> = ZZ['x']
+            sage: f = x / Mod(2,5); f
+            3*x
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Ring of integers modulo 5
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
                 R = self.parent().base_ring()
-                x = R(right)
-                return ~x * self
+                x = R._coerce_(right)
+                return self * ~x
         except (TypeError, ValueError, ZeroDivisionError):
             pass
         return RingElement.__div__(self, right)
@@ -1865,6 +1872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1.00000000000000*I, 1.00000000000000]
 
         A purely symbolic roots example:
+            sage: X = var('X')
             sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
             X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
             sage: print f.roots()

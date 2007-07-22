@@ -389,7 +389,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
             # make sure the '=' sign is on its own, reprsenting assignment
             eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
-            if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
+            if eq+1 < len(line) and (line[eq-1] in eq_chars or line[eq+1] in eq_chars):
                 i += 1
                 continue
 
@@ -567,9 +567,9 @@ def preparse_file(contents, attached={}, magic=True,
                 import interpreter
                 L = interpreter.load_sagex(name_load)
             else:
-                print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
-                L = ''
-                continue
+                #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
+                L = 'load("%s")'%name_load
+
         M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
         F.append(M)
         i += 1

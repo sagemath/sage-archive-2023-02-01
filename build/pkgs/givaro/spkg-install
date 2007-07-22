@@ -1,0 +1,26 @@
+#!/bin/sh
+
+cd src
+
+CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
+CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
+export CFLAGS
+export CXXFLAGS
+
+./configure --prefix=$SAGE_LOCAL --with-gmp="$SAGE_LOCAL/" --enable-shared
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring givaro"
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo "Error building givaro"
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo "Error installing givaro"
+    exit 1
+fi

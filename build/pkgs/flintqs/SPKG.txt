@@ -1,0 +1,14 @@
+This is William Hart's GPL'd highly optimized multi-polynomial
+quadratic sieve for integer factorization:
+
+       http://www.friedspace.com/QS/
+
+See also http://www.maths.warwick.ac.uk/~masfaw/preprint.html
+See also the svn server:
+ https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/
+
+To get a new version:
+
+svn export https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/ fastlibnt
+
+

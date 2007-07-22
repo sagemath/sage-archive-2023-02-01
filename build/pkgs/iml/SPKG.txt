@@ -1,0 +1,18 @@
+AUTHORS:
+   -- William Stein (2007-02-14)
+
+Get it from
+  http://www.cs.uwaterloo.ca/~z4chen/iml.html
+
+1. I had to put the built version of src/repl in that directory, since on OS X it won't build.
+   It's basically empty, so this seems safe.
+
+2. I had to src/config/install-sh executable.
+
+3. I had to create src/cblas.h since on many systems it isn't installed anywhere!?
+   I just used gsl_cblas.h for this purpose, which seems to work fine.
+
+4. Modified some of the examples, and made build scripts that work.
+
+5. *IMPORTANT*: Change lift to iml_lift in padiclift.* and nonsingsolve.*, since otherwise
+   on OSX you'll have horrible weird conflict problems.

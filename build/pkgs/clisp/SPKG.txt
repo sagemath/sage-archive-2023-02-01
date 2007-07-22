@@ -1,0 +1,127 @@
+Here is how to make a new clisp package for SAGE:
+
+1. Download clisp from
+   http://ftp.gnu.org/pub/gnu/clisp/release/
+
+2. Put SAGE.txt spkg-dist spkg-install and sage from the old
+   clisp spkg into the new extracted directory.
+
+3. Possibly modify src/makemake.in (see the SAGE lines in the
+   current version for Itanium!!)
+
+4. Type
+     ./spkg-dist
+   in the new extracted directory.
+
+
+==============================================================
+SOME NOTES:
+
+* Made some changes to src/makemake.in so it would build on
+  IA-64 linux without crashing.
+
+0. The clisp path is hardcoded into the binary.  Strangely, this *does*
+not affect maxima, though it means maxima won't build unless clisp was
+built in place.  So one can't upgrade maxima without rebuilding clisp.
+Hence whenever the maxima package is upgraded make sure to always upgrade
+clisp.
+
+Also there is an OPTIon to run clisp that avoids this hardcoding issue,
+which we use.
+
+1.  I replaced some documentation files by empty ones to save space:
+
+cd doc
+echo "" > impnotes.html
+echo "" > mop-spec.pdf
+echo "" > mop.xml
+echo "" > impbody.xml
+echo "" > impext.xml
+echo "" > clhs-ent.xml
+echo "" > impbyte.xml
+echo "" > impent.xml
+
+ Go to
+         http://clisp.cons.org/
+
+ for complete documentation.
+
+Same remarks for src/ChangeLog:
+
+ cd src
+ echo "">ChangeLog
+
+2. I removed the ffcall directory which is quite large and only needed
+for the foriegn function interface, which we don't need for SAGE/Maxima.
+
+3. I removed the tests directory.
+
+-----------------------
+
+4. In order to build Clisp on Cygwin, I had to do the following:
+    1. add --ignore-absence-of-libsigsegv to the ./configure options of spkg-install for clisp
+    2. go into src/unix.d and make the following modification near the end of the file:  (this was only for version 2.40 -- not needed for 2.41)
+    /* Interpretation of FILETIME structure: */
+    #ifdef UNIX_CYGWIN32
+      #define WIN32_LEAN_AND_MEAN
+      #include <windows.h>
+      extern long time_t_from_filetime (const FILETIME * ptr);
+      extern void time_t_to_filetime (time_t time_in, FILETIME * out);
+
+      /* FIX BY GEZ */
+      #if defined(UNIX_CYGWIN32)
+        #ifdef WIN32
+          #undef WIN32
+        #endif
+      #endif
+      /* /FIX BY GEZ */
+    #endif
+
+windows.h defines WIN32 and that causes several items to be used in both UNIX and WIN32 forms later on.
+
+-----------------
+
+NOTE. I had included libsigsegv, but couldn't get it to build on OS X
+      (the included config file seems way out of date...).
+
+==================================================
+
+Here's a Solaris-related note from Wilson Cheung:
+
+Note that the only reason lisp is needed for SAGE is in order
+to build maxima.
+
+> Regarding clisp/maxima -- this shouldn't be too hard, in that
+> > another option is to use a different lisp interpreter, if clisp
+> > won't compile.   E.g., gcl might work.  Or maybe there is a
+> > pre-compiled clisp for Solaris, or even a maxima?
+
+Alright, I tinkered some more with sage 0.10.3 today...commented out
+the clisp section in spkg/install and maxima actually did find the
+already-installed system installation of gcl 2.5.3 but said it needed
+to be rebuilt with "--enable-ansi".
+
+So I upgraded the system installation of gcl to the newer gcl 2.6.7
+version and added the "--enable-ansi" flag and now sage builds
+maxima OK.
+
+
+  > ./sage
+  --------------------------------------------------------
+  | SAGE Version 0.10.3, Build Date: 2006-01-20-2305     |
+  | Distributed under the GNU General Public License V2  |
+  | For help type <object>?, <object>??, %magic, or help |
+  --------------------------------------------------------
+
+  sage: 5+5
+   _1 = 10
+  sage: !maxima
+  Maxima 5.9.2 http://maxima.sourceforge.net
+  Using Lisp GNU Common Lisp (GCL) GCL 2.6.7 (aka GCL)
+  Distributed under the GNU Public License. See the file COPYING.
+  Dedicated to the memory of William Schelter.
+  This is a development version of Maxima. The function bug_report()
+  provides bug reporting information.
+  (%i1) 5+5;
+
+  (%o1)                                 10

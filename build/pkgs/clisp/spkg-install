@@ -1,0 +1,91 @@
+#!/bin/sh
+
+CUR=`pwd`
+
+cd src/
+
+#patch -p0 < $CUR/patches/2.41-linux-headers.patch
+#if [ $? -ne 0 ]; then
+#   echo "Error applying patches."
+#fi
+
+unset CPPFLAGS   # do this; since otherwise build will fail if CPPFLAGS was set
+
+./configure --disable-mmap --with-readline="$SAGE_LOCAL" --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv --without-libintl
+
+#if [ $UNAME = "CYGWIN" ]; then
+    # This is a hack to get around a bug in the build process under Cygwin.
+    # 2006-04-24.  (But who cares now, since we no longer support cygwin)
+#    cp "$CUR"/patches/calls.c modules/syscalls/
+#fi
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring clisp"
+    exit 1
+fi
+
+cd src
+
+./makemake --without-dynamic-ffi --disable-mmap --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv > Makefile
+
+if [ $? -ne 0 ]; then
+    echo "Error creating makefile"
+    exit 1
+fi
+
+make config.lisp
+
+if [ $? -ne 0 ]; then
+    echo "Error making config.lisp"
+    exit 1
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Silly permissions error with first make of clisp."
+    echo "Do a 'make' again, since second 'make' works."
+
+#    ./makemake --without-dynamic-ffi --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv > Makefile
+#    if [ `uname` = Darwin -a `uname -p` = i386 ]; then
+        # Modify the produced Makefile so it works on OS X i386.  This will presumably
+        # not be necessary for clisp's after 2.38... -- William Stein, 2006-04-06
+#        python ../modify_makefile_for_i386_osx.py
+#        if [ $? -ne 0 ]; then
+#           echo "Error modifying makefile for OS X i386"
+#           exit 1
+#	fi
+#    fi
+#    make config.lisp
+
+    make
+
+    if [ $? -ne 0 ]; then
+        echo "Error building clisp."
+        exit 1
+    fi
+fi
+
+
+make install
+
+if [ $? -ne 0 -o ! -f "$SAGE_LOCAL/bin/clisp" ]; then
+    echo "Something went wrong -- the clisp executable was not installed."
+    echo "If you already have clisp, you can type touch spkg/installed/clisp-2.38"
+    echo "(or whatever the current version is) from SAGE_ROOT, and continue the"
+    echo "install.  This tells SAGE that you already have clisp-2.38 installed."
+    echo "Clisp is only used by the Maxima component of SAGE."
+    exit 1
+fi
+
+# Create a script that can be run from anywhere as long as SAGE_ROOT
+# is defined. Added 2006-07-10 by William Stein.
+cd "$SAGE_LOCAL/bin/"
+rm -f lisp
+echo '#!/bin/sh' > lisp
+echo '"$SAGE_ROOT/local/bin/clisp" -B "$SAGE_ROOT/local/lib/clisp"' >> lisp
+chmod +x lisp
+
+
+
+

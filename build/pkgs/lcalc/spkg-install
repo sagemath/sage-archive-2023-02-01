@@ -1,0 +1,49 @@
+#!/bin/sh
+
+cd src
+
+CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated -static-libgcc"
+export CFLAGS
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    cp patches/Lcommandline_elliptic.cc src/src/
+fi
+
+cd src
+
+echo "Building Rubinstein's lcalc program using $CXX..."
+
+success() {
+    if [ $? -ne 0 ]; then
+        echo "Error building lcalc '$1'"
+        exit 1
+    fi
+}
+
+export DEFINES=""
+cp Makefile.sage Makefile
+make lcalc
+success 'plain'
+
+echo "Now striping"
+strip lcalc*
+
+echo "Now copying over binary"
+cp lcalc* "$SAGE_LOCAL"/bin
+success 'install'
+
+
+## export DEFINES="-D USE_LONG_DOUBLE"
+## make lcalc
+## success 'long double'
+## strip lcalc
+## mv lcalc "$SAGE_LOCAL"/bin/lcalc_ld
+## success 'install lcalc_ld'
+
+## export DEFINES="-D USE_MPFR"
+## make lcalc
+## success 'lcalc_mpfr'
+## strip lcalc
+## mv lcalc "$SAGE_LOCAL"/bin/lcalc_mpfr
+## success 'install lcalc_mpfr'
+

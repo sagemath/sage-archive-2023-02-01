@@ -1,0 +1,29 @@
+* 20070105 -- modified Lcommandline_elliptic.cc to work with Cygwin
+  by defining a certain macro.   *** carry this change over when
+  updating the package *** and of course backport it upstream.
+
+* New version from Mike R. on 2006-12-05.
+
+* I replaced the included Makefile with my own, since I'm only interested
+  in building lcalc and not the library.  Also, since I'm not doing
+  development on lcalc, the dependencies aren't needed in order
+  to minimize build time.
+
+
+* 2006-09-15: Fix to spkg-install suggested by Kate Minola:
+In lcalc-2006.03.05/spkg-install there is
+: CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated"
+:
+: cd src
+:
+: echo "Building Rubinstein's lcalc program using $CXX..."
+:
+: make lcalc
+but since the environment variable CFLAGS is never exported, the subshell
+entered with 'make lcalc' does not pick up the new CFLAGS.  You need to
+add
+  export CFLAGS
+after the new definition of CLAGS.
+
+* Kate Minola:
+  Added -static-libgcc

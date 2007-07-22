@@ -1,0 +1,23 @@
+#!/bin/sh
+
+
+# Used patched versions.  See SAGE.txt for why and what.
+$CP patches/_gdmodule.c src/
+
+$CP patches/Setup.py src/
+
+# Now build and install.
+cd src/
+python Setup.py build
+
+if [ $? -ne 0 ]; then
+    echo "Failure to build gdmodule"
+    exit 1
+fi
+
+python Setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Failure to install gdmodule"
+    exit 1
+fi

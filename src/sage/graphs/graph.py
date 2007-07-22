@@ -3449,7 +3449,6 @@ class Graph(GenericGraph):
         M = matrix(D, sparse=sparse)
         return M
 
-
     def kirchhoff_matrix(self, weighted=False):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
@@ -3488,6 +3487,104 @@ class Graph(GenericGraph):
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
+
+    def is_circular_planar(self, ordered=True):
+        """
+        It is assumed that graph has nonempty boundary.
+        """
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator, nice_copy
+        from sage.graphs.graph_genus1 import trace_faces
+
+        graph = nice_copy(self)
+        boundary = graph.get_boundary()
+
+        extra = 0
+        while graph.has_vertex(extra):
+            extra=extra+1
+        graph.add_vertex(extra)
+
+        for node in boundary:
+            graph.add_edge(node,extra)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            if node != extra:
+                part.append(graph.neighbors(node))
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            p.append(boundary)
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            num = len(t)
+            if num > max_faces:
+                max_faces = num
+        genus = (2 - verts + edges - max_faces)/2
+        if genus == 0: return True
+        else: return False
+
+    def genus(self):
+
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator, nice_copy
+        from sage.graphs.graph_genus1 import trace_faces
+
+        graph = nice_copy(self)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            part.append(graph.neighbors(node))
+
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            faces = len(t)
+            if faces > max_faces:
+                max_faces = faces
+        return (2-verts+edges-max_faces)/2
+
+    def interior_paths(self, start, end):
+        """
+        This is the wrapper that causes us to look only
+        at interior paths between boundary nodes.
+        (Also note that start and end do not necessarily
+        have to be boundary nodes).
+
+        AUTHOR: Emily Kirkman
+        """
+        H = self.copy()
+        for node in self.get_boundary():
+            if (node != start and node != end):
+                H.delete_vertex(node)
+        return H.all_paths(start, end)
+
+    def all_paths(self, start, end):
+        """
+        This function is the main call for finding all
+        paths between a pair of vertices (start, end) in
+        a graph G.  It will return a list of paths ( and
+        paths are also of type list).
+
+        AUTHOR: Emily Kirkman
+        """
+        all_paths = []
+        paths_helper(start, end, self, all_paths)
+        return all_paths
 
     def __bit_vector(self):
         vertices = self.vertices()
@@ -5574,6 +5671,29 @@ def enum(graph, quick=False):
         enumeration += 1 << ((n-(i+1))*n + n-(j+1))
     return ZZ(enumeration)
 
+def paths_helper(start, end, G, all_paths, p=None):
+    """
+    The recursive helper for path finding calls.
 
+    AUTHOR: Emily Kirkman
+    """
+
+    if p is None:
+        # ONLY ONCE
+        p = [start]
+
+    plist = []
+    # At each node, fill list of spawning paths (i.e. all neighbors)
+    for i in range(len(G[p[-1]])):
+        if G[p[-1]][i] not in p:
+            plist.append(p + [G[p[-1]][i]])
+
+    # If path completes, add to list
+    if (p[-1] == end):
+        all_paths.append(p)
+
+    # Recursion: (look at all neighbors of all neighbors)
+    for p in plist:
+        paths_helper(start, end, G, all_paths, p)
 
 

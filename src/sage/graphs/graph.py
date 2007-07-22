@@ -3502,6 +3502,9 @@ class Graph(GenericGraph):
              -- The current version relies on computing the genus of a
                 slightly modified graph so it is time-expensive and not
                 reasonable to use for graphs with > 12 vertices.
+             -- Also since the current version relies on computing the
+                genus, it is necessary that the graph be connected in
+                order to use Euler's formula.
 
         INPUT:
             ordered -- whether or not to consider the order of the boundary
@@ -3529,6 +3532,8 @@ class Graph(GenericGraph):
             sage: K23.is_circular_planar(ordered=False)
             True
         """
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.rings.infinity import Infinity
         from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
         from sage.graphs.graph_genus1 import trace_faces, nice_copy
@@ -3577,6 +3582,9 @@ class Graph(GenericGraph):
         surface is the number of handles it has.  The genus of a graph
         is the minimal genus of the surface it can be embedded into.
 
+        Note -- This function uses Euler's formula and thus it is
+                necessary to consider only connected graphs.
+
         EXAMPLES:
             sage: (graphs.PetersenGraph()).genus()
             1
@@ -3589,7 +3597,8 @@ class Graph(GenericGraph):
             sage: K33.genus()
             1
         """
-
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.rings.infinity import Infinity
         from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
         from sage.graphs.graph_genus1 import trace_faces, nice_copy
@@ -3614,6 +3623,7 @@ class Graph(GenericGraph):
             faces = len(t)
             if faces > max_faces:
                 max_faces = faces
+        print max_faces
         return (2-verts+edges-max_faces)/2
 
     def interior_paths(self, start, end):

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rm -rf "$SAGE_DATA"/graphs
+
+cp -r graphs "$SAGE_DATA"/

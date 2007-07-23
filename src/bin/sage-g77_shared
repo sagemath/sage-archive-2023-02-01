@@ -1,9 +1,9 @@
 #!/bin/sh
 
 if [ $UNAME = "Darwin" ]; then
-    g77 -bundle -undefined dynamic_lookup $@
+    g95 -v -bundle -undefined dynamic_lookup $@
 else
-    g77 -shared $@
+    g95 -shared $@
 fi
 
-echo $?
+exit $?

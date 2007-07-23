@@ -21,6 +21,8 @@ AUTHOR:
                         (2007-06-07--09): NetworkX function wrapping
     -- Michael W. Hansen (2007-06-09): Topological sort generation
     -- Emily Kirkman, Robert L. Miller SAGE Days 4: Finished wrapping NetworkX
+    -- Emily Kirkman (2007-07-21): Genus (including circular planar, all
+        embeddings and all planar embeddings), all paths, interior paths
 
 TUTORIAL:
 
@@ -3447,7 +3449,6 @@ class Graph(GenericGraph):
         M = matrix(D, sparse=sparse)
         return M
 
-
     def kirchhoff_matrix(self, weighted=False):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
@@ -3486,6 +3487,256 @@ class Graph(GenericGraph):
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
+
+    def is_circular_planar(self, ordered=True):
+        """
+        Returns True if a graph with boundary is circular planar, and
+        False otherwise.  A graph (with nonempty boundary) is circular
+        planar if it has a planar embedding in which all boundary nodes
+        can be drawn in order on a disc boundary, with all the interior
+        nodes drawn inside the disc.
+
+        Note -- This function assumes that the graph has nonempty
+                boundary.  (Circular Planarity has no definition for
+                graphs without boundary).
+             -- The current version relies on computing the genus of a
+                slightly modified graph so it is time-expensive and not
+                reasonable to use for graphs with > 12 vertices.
+             -- Also since the current version relies on computing the
+                genus, it is necessary that the graph be connected in
+                order to use Euler's formula.
+
+        INPUT:
+            ordered -- whether or not to consider the order of the boundary
+                       (set ordered=False to see if there is any possible
+                       boundary order that will satisfy circular planarity)
+
+        EXAMPLES:
+            sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
+            sage: g439.set_boundary([1,2,3,4])
+            sage.: g439.show(figsize=[2,2], vertex_labels=True, vertex_size=175)
+            sage: g439.is_circular_planar()
+            False
+            sage: g439.set_boundary([1,2,3])
+            sage: g439.is_circular_planar()
+            True
+
+        Order matters:
+            sage: K23 = graphs.CompleteBipartiteGraph(2,3)
+            sage: K23.set_boundary([0,1,2,3])
+            sage: K23.is_circular_planar()
+            False
+            sage: K23.set_boundary([0,2,1,3]) # Diff Order!
+            sage: K23.is_circular_planar()
+            True
+            sage: K23.is_circular_planar(ordered=False)
+            True
+        """
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.graphs.graph_genus1 import trace_faces, nice_copy
+
+        graph = nice_copy(self)
+        boundary = graph.get_boundary()
+
+        extra = 0
+        while graph.has_vertex(extra):
+            extra=extra+1
+        graph.add_vertex(extra)
+
+        for node in boundary:
+            graph.add_edge(node,extra)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            if node != extra:
+                part.append(graph.neighbors(node))
+        if not ordered:
+            part.append(graph.neighbors(extra))
+
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            if ordered:
+                p.append(boundary)
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            num = len(t)
+            if num > max_faces:
+                max_faces = num
+        genus = (2 - verts + edges - max_faces)/2
+        if genus == 0: return True
+        else: return False
+
+    def genus(self):
+        """
+        Returns the minimal genus of the graph.  The genus of a compact
+        surface is the number of handles it has.  The genus of a graph
+        is the minimal genus of the surface it can be embedded into.
+
+        Note -- This function uses Euler's formula and thus it is
+                necessary to consider only connected graphs.
+
+        EXAMPLES:
+            sage: (graphs.PetersenGraph()).genus()
+            1
+            sage: (graphs.CubeGraph(3)).genus()
+            0
+            sage: K23 = graphs.CompleteBipartiteGraph(2,3)
+            sage: K23.genus()
+            0
+            sage: K33 = graphs.CompleteBipartiteGraph(3,3)
+            sage: K33.genus()
+            1
+        """
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.graphs.graph_genus1 import trace_faces, nice_copy
+
+        graph = nice_copy(self)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            part.append(graph.neighbors(node))
+
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            faces = len(t)
+            if faces > max_faces:
+                max_faces = faces
+        return (2-verts+edges-max_faces)/2
+
+    def interior_paths(self, start, end):
+        """
+        Returns an exhaustive list of paths (also lists) through
+        only interior nodes from vertex start to vertex end in the
+        graph.
+
+        Note -- start and end do not necessarily have to be boundary
+                nodes.
+
+        INPUT:
+            start -- the vertex of the graph to search for paths from
+            end -- the vertex of the graph to search for paths to
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = eg1.copy()
+            sage: eg2.set_boundary([0,1,3])
+            sage: eg2.interior_paths(0,6)
+            [[0, 2, 4, 5, 6]]
+            sage: eg2.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg3 = graphs.PetersenGraph()
+            sage: eg3.set_boundary([0,1,2,3,4])
+            sage: eg3.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+            sage: eg3.interior_paths(1,4)
+            [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
+        """
+        H = self.copy()
+        for node in self.get_boundary():
+            if (node != start and node != end):
+                H.delete_vertex(node)
+        return H.all_paths(start, end)
+
+    def all_paths(self, start, end):
+        """
+        Returns a list of all paths (also lists) between a pair of
+        vertices (start, end) in the graph.
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = graphs.PetersenGraph()
+            sage: eg2.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+        """
+        all_paths = []
+        paths_helper(start, end, self, all_paths)
+        return all_paths
 
     def __bit_vector(self):
         vertices = self.vertices()
@@ -5572,6 +5823,37 @@ def enum(graph, quick=False):
         enumeration += 1 << ((n-(i+1))*n + n-(j+1))
     return ZZ(enumeration)
 
+def paths_helper(start, end, G, all_paths, p=None):
+    """
+    The recursive helper for path finding calls.  (i.e.: all_paths
+    and interior_paths).  Spawns potential path for each unvisited
+    neighbor of current node and appends all succesful paths to
+    one list.  (Note that paths themselves are lists of vertices).
 
+    INPUT:
+        start -- the node to start path search at
+        end -- the node to find a path to
+        all_paths -- the list (should initially be empty) to append
+                     all successful paths to
+        p -- the current path to update (via appending a vertex)
+    """
+
+    if p is None:
+        # ONLY ONCE
+        p = [start]
+
+    plist = []
+    # At each node, fill list of spawning paths (i.e. all neighbors)
+    for i in range(len(G[p[-1]])):
+        if G[p[-1]][i] not in p:
+            plist.append(p + [G[p[-1]][i]])
+
+    # If path completes, add to list
+    if (p[-1] == end):
+        all_paths.append(p)
+
+    # Recursion: (look at all neighbors of all neighbors)
+    for p in plist:
+        paths_helper(start, end, G, all_paths, p)
 
 

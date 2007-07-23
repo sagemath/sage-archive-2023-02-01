@@ -1677,8 +1677,8 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         else:
             raise ZeroDivisionError, "Element not invertible"
 
-    def is_zero(self):
-        return self._f.is_zero()
+    def __nonzero__(self):
+        return not not self._f
 
     def __eq__(self, other):
         if not isinstance(other, SpecialHyperellipticQuotientElement):

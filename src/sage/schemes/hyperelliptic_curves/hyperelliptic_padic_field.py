@@ -169,7 +169,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
         prof("done")
-        print prof
+#        print prof
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
     coleman_integrals_on_basis_hyperelliptic = coleman_integrals_on_basis

@@ -1246,7 +1246,7 @@ cdef class RingElement(ModuleElement):
 
         AUTHOR:
 
-            Gonzalo Tornaria (2007-06-25) - write test cases and fix them
+            Gonzalo Tornaria (2007-06-25) - write base-extending test cases and fix them
 
         TEST CASES:
 
@@ -1286,19 +1286,19 @@ cdef class RingElement(ModuleElement):
             sage: parent(ZZ[x](1)*vector(ZZ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(ZZ[x](1)*vector(QQ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
             sage: parent(QQ[x](1)*vector(ZZ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(QQ[x](1)*vector(QQ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
             (scalar * matrix)
 
@@ -1334,19 +1334,19 @@ cdef class RingElement(ModuleElement):
             sage: parent(ZZ[x](1)*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(ZZ[x](1)*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
             sage: parent(QQ[x](1)*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(QQ[x](1)*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
         """
         global coercion_model

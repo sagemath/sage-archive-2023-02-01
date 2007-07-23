@@ -193,6 +193,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             if xp is yp:
                 return op(x,y)
             action = self.get_action_c(xp, yp, op)
+#            print "found action", action
             if action is not None:
                 return (<Action>action)._call_c(x, y)
 
@@ -332,12 +333,14 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         # Try base extending to left and right
         # TODO: This is simple and ambiguous, add sophistication
         if PY_TYPE_CHECK(R, ParentWithBase) and PY_TYPE_CHECK(S, Parent):
-            if (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
-                Z = S.base_extend(R)
-            elif (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
-                Z = R.base_extend(S) # should there be a base-extension morphism?
-            else:
-                Z = None
+            Z = (<ParentWithBase>R).base_extend_canonical_sym(S)
+#            if (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
+#                Z = S.base_extend(R)
+#            elif (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
+#                Z = R.base_extend(S) # should there be a base-extension morphism?
+#            else:
+#                Z = None
+#            print "Z =", Z
             if Z is not None:
                 from sage.categories.homset import Hom
                 # Can I trust always __call__() to do the right thing in this case?
@@ -363,14 +366,14 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         if op is operator.div:
             if PY_TYPE_CHECK(S, Parent):
                 action = (<Parent>S).get_action_c(R, operator.mul, False)
-                if action is not None:
+                if action is not None and action.actor() is S:
                     try:
                         return ~action
                     except TypeError:
                         pass
             if PY_TYPE_CHECK(R, Parent):
                 action = (<Parent>R).get_action_c(S, operator.mul, True)
-                if action is not None:
+                if action is not None and action.actor() is S:
                     try:
                         return ~action
                     except TypeError:
@@ -401,12 +404,18 @@ cdef class LeftModuleAction(Action):
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
-                if G.has_coerce_map_from(S.base()) \
-                        and not G.has_coerce_map_from(S) \
-                        and not S.has_coerce_map_from(G):
-                    # e.g. Q acts on Z[x] after base-extending to Q[x]
-                    # TODO, this is probably to liberal, but SAGE depends on this behavior
-                    self.extended_base = S.base_extend(G)
+                if not G.has_coerce_map_from(S) and not S.has_coerce_map_from(G):
+                    Z = G.base_extend_canonical_sym(S.base())
+                    if Z is not None:
+                        try:
+                            G.base_extend_canonical_sym(S)
+                        except TypeError, err:
+                            if err.message == "Ambiguous base extension": # TODO: detect this better
+                                raise
+                        self.connecting = Z.coerce_map_from(G)
+                        self.extended_base = S.base_extend(Z)
+                else:
+                    raise TypeError, "actor must be coercable into the basering"
 
         # TODO: detect this better
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
@@ -433,15 +442,23 @@ cdef class LeftModuleAction(Action):
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
         # this may be wasteful, but rings are
-        # implemented with the assumptoin that
+        # implemented with the assumption that
         # _rmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
-                if G.has_coerce_map_from(S.base()) \
-                        and not G.has_coerce_map_from(S) \
-                        and not S.has_coerce_map_from(G):
-                    self.extended_base = S.base_extend(G)
+                if not G.has_coerce_map_from(S) and not S.has_coerce_map_from(G):
+                    Z = G.base_extend_canonical_sym(S.base())
+                    if Z is not None:
+                        try:
+                            G.base_extend_canonical_sym(S)
+                        except TypeError, err:
+                            if err.message == "Ambiguous base extension": # TODO: detect this better
+                                raise
+                        self.connecting = Z.coerce_map_from(G)
+                        self.extended_base = S.base_extend(Z)
+                else:
+                    raise TypeError, "actor must be coercable into the basering"
 
         # TODO: detect this better
         # if this is bad it will raise a type error in the subsequent lines, which we propagate

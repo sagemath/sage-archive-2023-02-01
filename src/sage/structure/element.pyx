@@ -1232,7 +1232,7 @@ cdef class RingElement(ModuleElement):
 
     # The default behavior for scalars is just to coerce into the parent ring.
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        raise NotImplementedError
+        raise NotImplementedError, "parents %s %s %s" % (parent_c(self), parent_c(right), parent_c(self) is parent_c(right))
 #        return self._mul_c(<RingElement>(self._parent._coerce_c(right)))
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
@@ -1553,7 +1553,10 @@ cdef class RingElement(ModuleElement):
         try:
             return self._parent.fraction_field()(self, right)
         except AttributeError:
-            raise TypeError, arith_error_message(self, right, operator.div)
+            if not right:
+                raise ZeroDivisionError, "Cannot divide by zero"
+            else:
+                raise TypeError, arith_error_message(self, right, operator.div)
 
     def _div_(RingElement self, RingElement right):
         """

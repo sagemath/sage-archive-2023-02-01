@@ -135,14 +135,27 @@ cdef class InverseAction(Action):
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
                 Action.__init__(self, G, action._S, action._is_left)
                 self._action = action
-        except AttributeError:
+                return
+            elif G.is_ring() and action._S.base_ring() is not action._S:
+                G = G.fraction_field()
+                S = action._S.base_extend(G)
+                Action.__init__(self, G, S, action._is_left)
+                self._action = action
+                if S is not action._S:
+                    self._S_precomposition = S.coerce_map_from(action._S)
+                return
+        except (AttributeError, NotImplementedError):
             pass
         raise TypeError, "No inverse defined for %r." % action
 
     cdef Element _call_c(self, a, b):
         if self._action._is_left:
+            if self._S_precomposition is not None:
+                b = self._S_precomposition(b)
             return self._action._call_c(~a, b)
         else:
+            if self._S_precomposition is not None:
+                a = self._S_precomposition(a)
             return self._action._call_c(a, ~b)
 
     def __invert__(self):

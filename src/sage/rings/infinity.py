@@ -55,7 +55,7 @@ not well defined.
     sage: oo/0
     Traceback (most recent call last):
     ...
-    ZeroDivisionError: Rational division by zero
+    ZeroDivisionError: Cannot divide by zero
 
 What happened above is that 0 is canonically coerced to
 "a number less than infinity" in the unsigned infinity ring, and the quotient

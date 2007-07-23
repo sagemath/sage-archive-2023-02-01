@@ -200,6 +200,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             xy = self.canonical_coercion_c(x,y)
             return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
         except TypeError:
+#            raise
             pass
 
         if op is operator.mul:
@@ -359,14 +360,21 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 #                print "found", action
                 return action
 
-        if op is operator.div and PY_TYPE_CHECK(S, Parent):
-            action = (<Parent>S).get_action_c(R, operator.mul, False)
-            if action is not None:
-#                    print "found", action
-                try:
-                    return ~action
-                except TypeError:
-                    pass
+        if op is operator.div:
+            if PY_TYPE_CHECK(S, Parent):
+                action = (<Parent>S).get_action_c(R, operator.mul, False)
+                if action is not None:
+                    try:
+                        return ~action
+                    except TypeError:
+                        pass
+            if PY_TYPE_CHECK(R, Parent):
+                action = (<Parent>R).get_action_c(S, operator.mul, True)
+                if action is not None:
+                    try:
+                        return ~action
+                    except TypeError:
+                        pass
 
 
 from sage.structure.element cimport Element # workaround SageX bug

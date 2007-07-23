@@ -872,23 +872,17 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return left._new_c(v)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        # This is basically a fast Python/C version of
-        #    [left*x for x in self.list()]
-        cdef Py_ssize_t i, n
-        n = PyList_Size(self._entries)
-        v = [None]*n
-        for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._rmul_c(left)
+        if left._parent is self._parent._base:
+            v = [left._mul_c(<RingElement>x) for x in self._entries]
+        else:
+            v = [left * x for x in v]
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        # This is basically a very fast Python/C version of
-        #    [x*right for x in self.list()]
-        cdef Py_ssize_t i, n
-        n = PyList_Size(self._entries)
-        v = [None]*n
-        for i from 0 <= i < n:
-            v[i] = (<RingElement>(self._entries[i]))._lmul_c(right)
+        if right._parent is self._parent._base:
+            v = [(<RingElement>x)._mul_c(right) for x in self._entries]
+        else:
+            v = [x * right for x in v]
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

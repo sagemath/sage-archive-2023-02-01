@@ -13,6 +13,7 @@ cdef class Action(Functor):
 
 cdef class InverseAction(Action):
     cdef Action _action
+    cdef Morphism _S_precomposition
 
 cdef class PrecomposedAction(Action):
     cdef Action _action

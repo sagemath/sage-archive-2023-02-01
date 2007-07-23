@@ -12,6 +12,12 @@ AUTHORS:
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
     -- Martin Albrecht: improved singular coercions (restructed class hierarchy) and added
                         ETuples
+
+EXAMPLES:
+We verify Lagrange's four squares identity:
+    sage: R.<a0,a1,a2,a3,b0,b1,b2,b3> = ZZ[]
+    sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
+    True
 """
 
 #*****************************************************************************
@@ -73,7 +79,7 @@ class MPolynomial_element(MPolynomial):
 
     ####################
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Evaluate this multi-variate polynomial at $x$, where $x$ is
         either the tuple of values to substitute in, or one can use
@@ -99,6 +105,12 @@ class MPolynomial_element(MPolynomial):
 
         AUTHOR: David Kohel, 2005-09-27
         """
+        if len(kwds) > 0:
+            f = self.subs(**kwds)
+            if len(x) > 0:
+                return f(*x)
+            else:
+                return f
         if len(x) == 1 and isinstance(x[0], (list, tuple)):
             x = x[0]
         n = self.parent().ngens()
@@ -118,20 +130,7 @@ class MPolynomial_element(MPolynomial):
     def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
-        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
-        accepted.
-
-        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
-        the left-most nonzero entry is positive.
-
-        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
-        the right-most nonzero entry is positive.
-
-        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
-
-        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        right-most nonzero entry of $a -b \in Z^n$ is negative.
+        self.parent().
 
         EXAMPLES:
              sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
@@ -245,14 +244,16 @@ class MPolynomial_macaulay2_repr:
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
-            2*x^7*y^14 + x^21
-            sage: h = f._macaulay2_(); h            # optional
+            sage: R.<x,y> = GF(7)[]
+            sage: f = (x^3 + 2*y^2*x)^7; f
+            x^21 + 2*x^7*y^14
+            sage: macaulay2(R)                      # optional
+            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: h = f._macaulay2_(); print h      # optional
              21     7 14
             x   + 2x y
             sage: R(h)                              # optional
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
@@ -628,12 +629,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def is_monomial(self):
         return len(self.element().dict().keys()) == 1
 
-    def fix(self, fixed=None, **kw):
+    def subs(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
         itself is not affected.  The variable,value pairs for fixing are
-        to be provided as dictionary of the form {variable:value}.
+        to be provided as a dictionary of the form {variable:value}.
 
         This is a special case of evaluating the polynomial with some of
         the variables constants and the others the original variables.
@@ -650,7 +651,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
-            sage: f.fix({x:5})
+            sage: f.subs({x:5})
             25*y^2 + y + 30
         """
         variables = list(self.parent().gens())
@@ -713,7 +714,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.is_univariate()
             True
@@ -725,7 +726,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             ngens = len(mons[0]) # number of generators
         except:
-            return True        # zero
+            return True # zero
 
         found = -1
         for mon in mons:
@@ -758,7 +759,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             Traceback (most recent call last):
             ...
             TypeError: polynomial must involve at most one variable
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305
@@ -812,7 +813,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
             [x, y]
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.variables()
             [y]
@@ -843,7 +844,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.nvariables ()
             2
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.nvariables ()
             1
@@ -1018,6 +1019,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
         Next we factor a polynomial over a number field.
+            sage: p = var('p')
             sage: K.<s> = NumberField(p^3-2)
             sage: KXY.<x,y> = K[]
             sage: factor(x^3 - 2*y^3)

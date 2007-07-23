@@ -53,9 +53,9 @@ cdef extern from "givaro/givgfq.h":
         int (* axpy)(int r, int a, int b, int c)
         int (* axmy)(int r, int a, int b, int c)
         int (* amxy)(int r, int a, int b, int c)
-        int (* isZero)(int e)
-        int (* isOne)(int e)
-        int (* isunit)(int e)
+        bint (* isZero)(int e)
+        bint (* isOne)(int e)
+        bint (* isunit)(int e)
 
     GivaroGfq *gfq_factorypk "new GFqDom<int>" (unsigned int p, unsigned int k)
     # SAGE specific method, not found upstream
@@ -98,4 +98,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef FiniteField_givaroElement _new_c(self, int value)
+
+
 

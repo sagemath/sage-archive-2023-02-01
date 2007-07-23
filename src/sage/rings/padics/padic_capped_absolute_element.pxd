@@ -22,10 +22,6 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef pAdicCappedAbsoluteElement _new_c(self)
     cdef RingElement _invert_c_impl(self)
     cdef ModuleElement _neg_c_impl(self)
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
-    cdef RingElement _div_c_impl(self, RingElement right)
-    cdef RingElement _mul_c_impl(self, RingElement right)
     cdef pAdicCappedAbsoluteElement _lshift_c(pAdicCappedAbsoluteElement self, long shift)
     cdef pAdicCappedAbsoluteElement _rshift_c(pAdicCappedAbsoluteElement self, long shift)
     cdef Integer lift_c(pAdicCappedAbsoluteElement self)
@@ -33,4 +29,3 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef pAdicCappedAbsoluteElement unit_part_c(pAdicCappedAbsoluteElement self)
     cdef unsigned long valuation_c(self)
     cdef val_unit_c(self)
-    cdef long _hash(self) except -1

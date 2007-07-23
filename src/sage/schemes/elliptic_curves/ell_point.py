@@ -39,6 +39,8 @@ Arithmetic with a point over an extension of a finite field:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.element import AdditiveGroupElement, RingElement
+
 import sage.plot.all as plot
 
 from sage.rings.padics.factory import Qp
@@ -47,8 +49,13 @@ import ell_generic
 import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+
+from sage.structure.sequence  import Sequence
 from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
-                                           SchemeMorphism_abelian_variety_coordinates_field)
+                                           SchemeMorphism_abelian_variety_coordinates_field,
+                                           is_SchemeMorphism, SchemeMorphism_coordinates)
+
+import sage.schemes.generic.scheme as scheme
 
 oo = rings.infinity       # infinity
 
@@ -64,7 +71,7 @@ class EllipticCurvePoint(SchemeMorphism_projective_coordinates_ring):
                 return -1
         return SchemePoint_projective_abelian_scheme.__cmp__(self, other)
 
-class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field):
+class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_variety_coordinates_field):
     """
     A point on an elliptic curve over a field.  The point has coordinates
     in the base field.
@@ -101,6 +108,78 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         sage: loads(T.dumps()) == T
         True
     """
+
+    def __reduce__(self):
+        return make_point, (self.curve(), self._coords)
+
+    def __init__(self, curve, v, check=True):
+        X = curve.point_homset()
+        AdditiveGroupElement.__init__(self, X)
+        if check:
+            # mostly from  SchemeMorphism_projective_coordinates_field
+            d = X.codomain().ambient_space().ngens()
+            if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
+                v = list(v)
+            if not isinstance(v,(list,tuple)):
+                raise TypeError, \
+                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
+            if len(v) != d and len(v) != d-1:
+                raise TypeError, "v (=%s) must have %s components"%(v, d)
+            #v = Sequence(v, X.base_ring())
+            v = Sequence(v, X.value_ring())
+            if len(v) == d-1:     # very common special case
+                v.append(1)
+
+            n = len(v)
+            all_zero = True
+            for i in range(n):
+                if v[n-1-i]:
+                    all_zero = False
+                    c = v[n-1-i]
+                    if c == 1:
+                        break
+                    for j in range(n-i):
+                        v[j] /= c
+                    break
+            if all_zero:
+                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
+
+            X.codomain()._check_satisfies_equations(v)
+
+        self._coords = v
+
+
+    def _repr_(self):
+        return self.codomain().ambient_space()._repr_generic_point(self._coords)
+
+    def _latex_(self):
+        return self.codomain().ambient_space()._latex_generic_point(self._coords)
+
+    def __getitem__(self, n):
+        return self._coords[n]
+
+    def __list__(self):
+        return list(self._coords)
+
+    def __tuple__(self):
+        return self._coords
+
+    def __cmp__(self, other):
+        if not isinstance(other, EllipticCurvePoint_field):
+            try:
+                other = self.codomain().ambient_space()(other)
+            except TypeError:
+                return -1
+        return cmp(self._coords, other._coords)
+
+    def scheme(self):
+        return self.codomain()
+
+    def domain(self):
+        return self.parent().domain()
+
+    def codomain(self):
+        return self.parent().codomain()
 
     def order(self):
         """
@@ -223,9 +302,15 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             return E(0) # point at infinity
 
         if x1 == x2 and y1 == y2:
-            m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
+            try:
+                m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
+            except ZeroDivisionError:
+                raise ZeroDivisionError, "Inverse of %s does not exist"%(2*y1 + a1*x1 + a3)
         else:
-            m = (y1-y2)/(x1-x2)
+            try:
+                m = (y1-y2)/(x1-x2)
+            except ZeroDivisionError:
+                raise ZeroDivisionError, "Inverse of %s does not exist"%(x1-x2)
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
@@ -448,6 +533,18 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E([-1,0])
             sage: P.order()
             2
+            sage: k.<a> = GF(5^5)
+            sage: E = EllipticCurve(k,[2,4]); E
+            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
+            sage: P = E(3*a^4 + 3*a , 2*a + 1 )
+            sage: P.order()
+            3227
+
+        ALGORITHM: uses PARI's \code{ellzppointorder} if base ring is prime
+        or baby-step-giant-step algorithm as presented in
+
+          Washington, Lawrence C.; 'Elliptic Curves: Number Theory and
+          Cryptography', Boca Raton 2003
         """
         try:
             return self.__order
@@ -460,19 +557,87 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if K.is_prime():
             e = E._gp()
             self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
+            return self.__order
         else:
-            if not disable_warning:
-                print "WARNING -- using naive point order finding over finite field!"
-            # TODO: This is very very naive!!  -- should use baby-step giant step; maybe in mwrank
-            #      note that this is *not* implemented in PARI!
             P = self
-            n = 1
-            while not P.is_zero():
-                n += 1
-                P += self
-            self.__order = rings.Integer(n)
-        return self.__order
+            E = P.curve()
+            k = E.base_ring()
+            q = k.order()
 
+            if q < 256: # TODO: check this heuristc
+                n = 1
+                while not P.is_zero():
+                    n += 1
+                    P += self
+                self.__order = rings.Integer(n)
+                return self.__order
 
+            # 1. Compute Q = (q+1)P
+            Q = (q+1) * P
 
+            # 2. Choos an integer m with m > q^{1/4}. Compute and store the
+            # points jP for j = 0,1,2,...,m
 
+            m = rings.Integer((q**rings.RR(0.25)).floor() + 1) #
+
+            l = dict()
+            X = E(0)
+            for j in range(0,m+1):
+                l[X] = j
+                X = P + X
+
+            # 3. Compute the points Q + k(2mP) for k = -m, -(m+1), ..., m
+            # until there is a match Q + k(2mP) = +- jP with a point or its
+            # negative on the list
+
+            twomP = (2*m*P)
+            for k in range(-m,m+1):
+                W =  Q + k*twomP
+                if W in l:
+                    # 4a. Conclude that (q + 1 + 2mk - j)P = oo. Let M = q + 1 + 2mk - j
+                    M = q + 1 + 2*m*k - l[W]
+                    break
+                elif -W in l:
+                    # 4b. Conclude that (q + 1 + 2mk + j)P = oo. Let M = q + 1 + 2mk + j
+                    M = q + 1 + 2*m*k + l[-W]
+                    break
+
+            # 5. Factor M. let p1,...,pr be the distinct prime factors of M.
+            while True:
+                N = M
+                plist = [ p for p,n in M.factor()]
+                for p in plist:
+                    # 6. Compute (M/pi)P for i = 1...r. If (M/pi)P =
+                    # oo for some i, replace M with M/pi and go back
+                    # to step (4). If (M/pi)P != oo for all i then M
+                    # is the order of the point P.
+                    if (int(M/p) * P).is_zero():
+                        M = M/p
+                        break
+                if N == M:
+                    self.__order = rings.Integer(M)
+                    return self.__order
+
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+        """
+        E = self.curve()._magma_().name()
+        x,y = map(lambda x: x._magma_().name(), self.xy())
+        return "%s![%s,%s]"%(E,x,y)
+
+def make_point(X, v):
+    # TODO: Unpickled parents with base sometimes have thier base set to None.
+    # This causes a segfault in the module arithmatic architecture.
+    #
+    # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
+    # sage: H0 = loads(dumps(H))
+    # sage: H.base_ring(), H0.base_ring()
+    # (Integer Ring, None)
+    #
+    # It looks like there's generic code to do this, but it's been commented out.
+    #
+    # Here we create a new (equivalent) parent manually.
+    del X._Scheme__ring_point_homset
+    return EllipticCurvePoint_field(X, v)

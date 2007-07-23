@@ -15,9 +15,9 @@ def var(s):
     global namespace.
 
     EXAMPLES:
-    We define three variables:
-        sage: var('xx yy zz')
-        (xx, yy, zz)
+    We define some symbolic variables:
+        sage: var('n xx yy zz')
+        (n, xx, yy, zz)
 
     Then we make an algebraic expression out of them.
         sage: f = xx^n + yy^n + zz^n; f
@@ -80,6 +80,7 @@ def function(s, *args):
         supersin(x)
 
     We can immediately use supersin in symbolic expressions:
+        sage: y, z, A = var('y z A')
         sage: supersin(y+z) + A^3
         A^3 + supersin(z + y)
 
@@ -107,5 +108,35 @@ def function(s, *args):
     else:
         G[repr(v)] = v
     return v
+
+
+def clear_vars():
+    """
+    Delete all 1-letter symbolic variables that are predefined at
+    startup of SAGE.  Any one-letter global variables that are not
+    symbolic variables are not cleared.
+
+    EXAMPLES:
+        sage: var('x y z')
+        (x, y, z)
+        sage: (x+y)^z
+        (y + x)^z
+        sage: k = 15
+        sage: clear_vars()
+        sage: (x+y)^z
+        Traceback (most recent call last):
+        ...
+        NameError: name 'x' is not defined
+        sage: expand((e + i)^2)
+        2*e*I + e^2 - 1
+        sage: k
+        15
+    """
+    G = globals()
+    from sage.calculus.calculus import SymbolicVariable
+    for i in range(65,65+26) + range(97,97+26):
+        if G.has_key(chr(i)) and isinstance(G[chr(i)], SymbolicVariable):
+           del G[chr(i)]
+
 
 

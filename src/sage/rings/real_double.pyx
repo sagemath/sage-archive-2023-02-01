@@ -43,7 +43,7 @@ import sage.rings.rational
 from sage.rings.integer cimport Integer
 
 def is_RealDoubleField(x):
-    return bool(PY_TYPE_CHECK(x, RealDoubleField_class))
+    return PY_TYPE_CHECK(x, RealDoubleField_class)
 
 cdef class RealDoubleField_class(Field):
     """
@@ -55,6 +55,8 @@ cdef class RealDoubleField_class(Field):
         sage: RDF == RealDoubleField()    # RDF is the shorthand
         True
     """
+    def __init__(self):
+        Field.__init__(self, self)
 
     def is_exact(self):
         return False
@@ -410,6 +412,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF(0)/RDF(0); a.str()
             'nan'
         """
+        cdef int v
         if gsl_isnan(self._value):
             return "nan"
         else:
@@ -702,16 +705,16 @@ cdef class RealDoubleElement(FieldElement):
     ###########################################
 
     def is_NaN(self):
-        return bool(gsl_isnan(self._value))
+        return gsl_isnan(self._value)
 
     def is_positive_infinity(self):
-        return bool(gsl_isinf(self._value) > 0)
+        return gsl_isinf(self._value) > 0
 
     def is_negative_infinity(self):
-        return bool(gsl_isinf(self._value) < 0)
+        return gsl_isinf(self._value) < 0
 
     def is_infinity(self):
-        return bool(gsl_isinf(self._value))
+        return gsl_isinf(self._value)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -790,7 +793,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-4).is_square()
             False
         """
-        return bool(self._value >= 0)
+        return self._value >= 0
 
     def cube_root(self):
         """
@@ -864,6 +867,7 @@ cdef class RealDoubleElement(FieldElement):
             1.29711148178
 
         Symbolic examples:
+            sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
             -2.30000000000000^(y^3 + sin(x) + x)
             sage: RDF('-2.3')^x
@@ -1360,7 +1364,7 @@ def RealDoubleField():
 
 
 def is_RealDoubleElement(x):
-    return bool(PY_TYPE_CHECK(x, RealDoubleElement))
+    return PY_TYPE_CHECK(x, RealDoubleElement)
 
 
 

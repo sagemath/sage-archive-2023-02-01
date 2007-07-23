@@ -7,8 +7,6 @@ import sage.libs.ntl.all  as ntl
 pmem_malloc()
 
 
-import sage.libs.ec.all as ec
-
 from sage.libs.pari.all   import pari, pari_gen, allocatemem, PariError
 
 from sage.libs.mwrank.all  import (mwrank_EllipticCurve, mwrank_MordellWeil,

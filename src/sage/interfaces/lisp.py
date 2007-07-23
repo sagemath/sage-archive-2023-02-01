@@ -4,7 +4,7 @@ Lisp Interface
 EXAMPLES:
     sage: lisp.eval('(* 4 5)')
     '20'
-    sage: a = lisp('3'); b = lisp('5')
+    sage: a = lisp(3); b = lisp(5)
     sage: a + b
     8
     sage: a * b
@@ -22,8 +22,21 @@ EXAMPLES:
     sage: lisp.eval('(+ %s %s)'%(a.name(), b.name()))
     '8'
 
+One can define functions and the interface supports object-oriented
+notation for calling them:
+    sage: lisp.eval('(defun factorial (n) (if (= n 1) 1 (* n (factorial (- n 1)))))')
+    'FACTORIAL'
+    sage: lisp('(factorial 10)')
+    3628800
+    sage: lisp(10).factorial()
+    3628800
+    sage: a = lisp(17)
+    sage: a.factorial()
+    355687428096000
+
 AUTHORS:
-    -- William Stein (template)
+    -- William Stein (first version)
+    -- William Stein (2007-06-20): significant improvements.
 """
 
 ##########################################################################
@@ -36,9 +49,13 @@ AUTHORS:
 #
 ##########################################################################
 
+import random
+
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, UNAME, is_64bit
 from sage.structure.element import RingElement
+
+is_64bit_linux = is_64bit() and UNAME == "Linux"
 
 class Lisp(Expect):
     def __init__(self, stacksize=10000000,   # 10MB
@@ -57,7 +74,7 @@ class Lisp(Expect):
                         prompt = '\[[0-9]+\]> ',
 
                         # This is the command that starts up your program
-                        command = "clisp -I --silent -on-error abort",
+                        command = "clisp --silent -on-error abort",
 
                         maxread = maxread,
                         server=server,
@@ -84,15 +101,25 @@ class Lisp(Expect):
         self.__in_seq = 1
 
     def eval(self, code, strip=True):
+        self._synchronize()
         code = str(code)
         code = code.strip()
+        code = code.replace('\n',' ')
         x = []
         for L in code.split('\n'):
             if L != '':
                 try:
                     s = self.__in_seq + 1
                     pr = '\[%s\]>'%s
-                    x.append(self._eval_line(L, wait_for_prompt=pr))
+                    M = self._eval_line(L, wait_for_prompt=self._prompt)
+                    if is_64bit_linux:
+                        phrase = '[C\x1b[C\n'
+                    else:
+                        phrase = L
+                    i = M.rfind(phrase)
+                    if i > 1:
+                        M = M[i+len(phrase):]
+                    x.append(M.strip())
                     self.__in_seq = s
                 except KeyboardInterrupt:
                     self._keyboard_interrupt()
@@ -109,9 +136,25 @@ class Lisp(Expect):
         if '***' in out:
             raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
 
+    def get(self, var):
+        out = self.eval(var).lstrip().lstrip(var).lstrip()
+        return out
+
     def _start(self, *args, **kwds):
         Expect._start(self, *args, **kwds)
         self.__in_seq = 1
+
+    def _synchronize(self):
+        E = self._expect
+        if E is None:
+            self._start()
+            E = self._expect
+        r = random.randrange(2147483647)
+        s = str(r+1)
+        cmd = "(+ 1 %s)\n"%r
+        E.sendline(cmd)
+        E.expect(s)
+        E.expect(self._prompt)
 
     def _repr_(self):
         return 'Lisp Interpreter'

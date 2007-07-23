@@ -33,6 +33,7 @@ An iterated example:
 
 We compute with power series over the symbolic ring.
     sage: K.<t> = PowerSeriesRing(SR, 5)
+    sage: a, b, c = var('a,b,c')
     sage: f = a + b*t + c*t^2 + O(t^3)
     sage: f*f
     a^2 + ((b + a)^2 - b^2 - a^2)*t + ((c + b + a)^2 - (c + b)^2 - (b + a)^2 + 2*b^2)*t^2 + O(t^3)

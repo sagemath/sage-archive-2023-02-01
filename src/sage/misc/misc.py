@@ -64,15 +64,6 @@ if ' ' in DOT_SAGE:
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
 
-SPYX_TMP = '%s/spyx/%s'%(DOT_SAGE, HOSTNAME)
-
-if not os.path.exists(SPYX_TMP):
-    try:
-        os.makedirs(SPYX_TMP)
-    except OSError, msg:
-        print msg
-        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
-
 SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):
     try:
@@ -81,8 +72,10 @@ if not os.path.exists(SAGE_TMP):
         print msg
         raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
-SAGE_DATA = '%s/data'%SAGE_ROOT
-SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT
+SAGE_DATA = '%s/data/'%SAGE_ROOT
+SAGE_EXTCODE = '%s/data/extcode/'%SAGE_ROOT
+SPYX_TMP = '%s/spyx/'%SAGE_TMP
+
 
 def delete_tmpfiles():
     # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!
@@ -1059,7 +1052,7 @@ set_trace = pdb.set_trace
 # temporary directory
 #################################################################
 
-def tmp_dir(name):
+def tmp_dir(name='dir'):
     r"""
     Create and return a temporary directory in \code{\$HOME/.sage/temp/hostname/pid/}
     """
@@ -1101,15 +1094,15 @@ def tmp_filename(name='tmp'):
             break
     return tmp
 
-def graphics_filename():
+def graphics_filename(ext='png'):
     """
     Return the next available canonical filename for a plot/graphics
     file.
     """
     i = 0
-    while os.path.exists('sage%d.png'%i):
+    while os.path.exists('sage%d.%s'%(i,ext)):
         i += 1
-    filename = 'sage%d.png'%i
+    filename = 'sage%d.%s'%(i,ext)
     return filename
 
 #################################################################
@@ -1215,4 +1208,20 @@ def branch_current_hg_notice(branch):
     return notice + branch
 
 
+
+def pad_zeros(s, size=3):
+    """
+    EXAMPLES:
+        sage: pad_zeros(100)
+        '100'
+        sage: pad_zeros(10)
+        '010'
+        sage: pad_zeros(10, 5)
+        '00010'
+        sage: pad_zeros(389, 5)
+        '00389'
+        sage: pad_zeros(389, 10)
+        '0000000389'
+    """
+    return "0"*(size-len(str(s))) + str(s)
 

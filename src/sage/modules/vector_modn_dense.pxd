@@ -1,6 +1,5 @@
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
-    mod_int MOD_INT_OVERFLOW
 
 cimport free_module_element
 import  free_module_element

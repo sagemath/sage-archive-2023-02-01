@@ -1,3 +1,5 @@
+"""nodoctest
+"""
 ##############################################################################
 #
 #  DSAGE: Distributed SAGE
@@ -20,16 +22,14 @@
 import os
 from sage.dsage.dsage import dsage
 from sage.dsage.dist_functions.all import *
+from sage.dsage.misc.constants import DSAGE_DIR
 
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-
-def DSage(server='localhost', port=8081, username=os.getenv('USER'),
+def DSage(server='localhost', port=8081,
+          username=os.getenv('USER'),
           pubkey_file=os.path.join(DSAGE_DIR,'dsage_key.pub'),
           privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
-          log_file = 'stdout',
-          log_level = 0,
-          ssl = True):
-
+          log_level=0,
+          ssl=True):
       """
       This object represents a connection to the distributed SAGE server.
 
@@ -37,9 +37,8 @@ def DSage(server='localhost', port=8081, username=os.getenv('USER'),
       server -- str (Default: 'localhost')
       port -- int (Default: 8081)
       username -- str
-      pubkey_file -- str (Default: None)
-      privkey_file -- str (Default: None)
-      log_file -- str (Default: stdout)
+      pubkey_file -- str (Default: ~/.sage/dsage/dsage_key.pub)
+      privkey_file -- str (Default: ~/.sage/dsage/dsage_key)
       log_level -- int (Default: 0)
       ssl -- int (Default: 1)
 
@@ -50,7 +49,5 @@ def DSage(server='localhost', port=8081, username=os.getenv('USER'),
                            username=username,
                            pubkey_file=pubkey_file,
                            privkey_file=privkey_file,
-                           log_file = log_file,
-                           log_level = log_level,
-                           ssl = ssl)
+                           ssl=ssl)
 

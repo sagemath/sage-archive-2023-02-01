@@ -224,5 +224,5 @@ cdef class MatrixWindow:
         self.set_to(echelon.matrix_window())
         return echelon.pivots()
 
-    cdef int element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
         return self._matrix.get_unsafe(i+self._row, j+self._col) == self._zero

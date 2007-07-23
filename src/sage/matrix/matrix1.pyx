@@ -99,9 +99,7 @@ cdef class Matrix(matrix0.Matrix):
        EXAMPLES:
            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
            sage: g = mathematica(A); g                                   # optional
-                             4    5    3
-            {{1}, {2}, {3}, {-}, {-}, {-}, {7}, {8}, {9}}
-                             3    3    2
+           {{1}, {2}, {3}, {4/3}, {5/3}, {3/2}, {7}, {8}, {9}}
        """
        cdef Py_ssize_t i, j
        v = []
@@ -738,6 +736,16 @@ cdef class Matrix(matrix0.Matrix):
                 k = k + 1
             r = r + 1
         return A
+
+    def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                        Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        if nrows == -1:
+            nrows = self._nrows - row
+        if ncols == -1:
+            ncols = self._ncols - col
+        return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
+
+
 
     ####################################################################################
     # Change of representation between dense and sparse.

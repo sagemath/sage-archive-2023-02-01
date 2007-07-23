@@ -16,7 +16,6 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-import ConfigParser
 import os
 import random
 import base64
@@ -37,8 +36,6 @@ from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.errors.exceptions import AuthenticationError
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 TEST_PUB_KEY = """ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAusOUk3wZof9orc7YuKZP/wxog2uAU5BsagK4lkHgdfBc+ZR3s+Rk+k6prvuNuUXIfn2A+UkPa0xmjtQnMlqClrZXXMHhDV8iXto/vM1BopF+Ja1Y+pCK2vRRZVsZsdzL7XqyVc+kstsgKWrrguNCMIuEyc37wcsgdd1PxPmuB8Mwm3YZmNRV6yEq8Qq3IprZHfBl5S6htmwTXt4VEzvJgX1PJBLg4BauJtLxeEzYgMLY4VG3buJ2VDwlqwVPO/oVZwK3uXifXtxVx6VJO4pKUBdDSyjudPQTHxogos+8scaClx0XMh0eM7xw92j4SpA+mtzXnAKM4CqCSFH3w+/LbQ== yqiang@six
 """
@@ -87,8 +84,8 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))
         self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(
+                                      self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.r = reactor.listenTCP(0, self.client_factory)
@@ -103,11 +100,11 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.private_key = keys.getPrivateKeyObject(
                             data=TEST_PRIV_KEY)
         self.public_key = keys.getPublicKeyObject(self.public_key_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -143,12 +140,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-
-        d = factory.login(None, None)
-        d.addErrback(lambda f: self.assertEquals(TypeError,
-                                                 f.check(TypeError)))
-
-        return d
+        self.assertRaises(TypeError, factory.login, None, None)
 
     def testBadLogin2(self):
         factory = PBClientFactory()
@@ -156,7 +148,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                              self.port,
                                             factory)
         bad_creds = credentials.SSHPrivateKey('bad username',
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -174,7 +166,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                              self.port,
                                              factory)
         bad_creds = credentials.SSHPrivateKey(self.username,
-                                              self.alg_name,
+                                              self.algorithm,
                                               None,
                                               self.data,
                                               self.signature)

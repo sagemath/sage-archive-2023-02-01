@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Test the notebook to analyze how it is behaving
 after making some changes to it.
 

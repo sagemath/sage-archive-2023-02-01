@@ -31,6 +31,7 @@ AUTHORS:
 import operator
 
 include "../../ext/stdsage.pxi"
+include '../../ext/interrupt.pxi'
 
 import sage.rings.field_element
 import sage.rings.infinity
@@ -363,9 +364,58 @@ cdef class NumberFieldElement(FieldElement):
             return sage.rings.arith.generic_power(x, right, one=self.parent()(1))
         return sage.rings.arith.generic_power(self, right, one=self.parent()(1))
 
+    def is_square(self):
+        return len(self.sqrt(all=True)) > 0
+
+    def sqrt(self, all=False):
+        """
+        Returns the square root of this number in the given number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 3)
+            sage: K(3).sqrt()
+            a
+            sage: K(3).sqrt(all=True)
+            [a, -a]
+            sage: K(a^10).sqrt()
+            9*a
+            sage: K(49).sqrt()
+            7
+            sage: K(1+a).sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3
+            sage: K(0).sqrt()
+            0
+            sage: K((7+a)^2).sqrt(all=True)
+            [a + 7, -a - 7]
+
+            sage: K.<a> = CyclotomicField(7)
+            sage: a.sqrt()
+            a^4
+
+            sage: K.<a> = NumberField(x^5 - x + 1)
+            sage: (a^4 + a^2 - 3*a + 2).sqrt()
+            a^3 - a^2
+
+        ALGORITHM:
+            Use Pari to factor $x^2$ - \code{self} in K.
+
+        """
+        # For now, use pari's factoring abilities
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self._parent, 't')
+        f = R([-self, 0, 1])
+        roots = f.roots()
+        if all:
+            return [r[0] for r in roots]
+        elif len(roots) > 0:
+            return roots[0][0]
+        else:
+            raise ValueError, "%s not a square in %s"%(self, self._parent)
+
     cdef void _reduce_c_(self):
         """
-            Pull out common factors from the numerator and denominator!
+        Pull out common factors from the numerator and denominator!
         """
         cdef ntl_c_ZZ gcd
         cdef ntl_c_ZZ t1
@@ -412,17 +462,36 @@ cdef class NumberFieldElement(FieldElement):
             sage: C.<zeta12>=CyclotomicField(12)
             sage: zeta12*zeta12^11
             1
+            sage: G.<a> = NumberField(x^3 + 2/3*x + 1)
+            sage: a^3
+            -2/3*a - 1
+            sage: a^3+a
+            1/3*a - 1
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
-        x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
-        MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
-        x._reduce_c_()
-        return x
+        # an ugly hack fix for the fact that MulMod doesn't handle non-monic polynomials
+        # I expect that PARI will win out over NTL for reasons of speed and things like this
+        # that will be the elegant fix
+        if ZZX_is_monic( &parent_num ):
+            x = self._new()
+            _sig_on
+            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+            MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+            _sig_off
+            x._reduce_c_()
+            return x
+        else:
+            return self.parent()(self._pari_()*right._pari_())
+            #  Hmm, this next bit is not so straight-forward as I thought it should be
+            # I'll get back to this when I benchmark
+#            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
+#            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+#                PseudoRem_ZZX(x.__numerator, x.__numerator, parent_num)
+#                mul_ZZ(x.__denominator, x.__denominator, parent_den)
 
         #NOTES: In LiDIA, they build a multiplication table for the
         #number field, so it's not necessary to reduce modulo the
@@ -433,29 +502,53 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
-        Returns the product of self and other as elements of a number field.
+        Returns the quotient of self and other as elements of a number field.
 
         EXAMPLES:
             sage: C.<I>=CyclotomicField(4)
             sage: 1/I
             -I
+            sage: I/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Number field element division by zero
+
+            sage: G.<a> = NumberField(x^3 + 2/3*x + 1)
+            sage: a/a
+            1
+            sage: 1/a
+            -a^2 - 2/3
+            sage: a/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Number field element division by zero
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         cdef ntl_c_ZZX inv_num
         cdef ntl_c_ZZ inv_den
-        _right._invert_c_(&inv_num, &inv_den)
-        x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, inv_den)
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
+        if not _right:
+            raise ZeroDivisionError, "Number field element division by zero"
         self._parent_poly_c_( &parent_num, &parent_den )
-        MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
-        x._reduce_c_()
-        return x
+        if ZZX_is_monic( &parent_num ):
+            _right._invert_c_(&inv_num, &inv_den)
+            x = self._new()
+            _sig_on
+            mul_ZZ(x.__denominator, self.__denominator, inv_den)
+            MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+            _sig_off
+            x._reduce_c_()
+            return x
+        else:
+            return self.parent()(self._pari_()/right._pari_())
 
     def __floordiv__(self, other):
         return self / other
+
+    def __nonzero__(self):
+        return not IsZero_ZZX(self.__numerator)
 
     cdef ModuleElement _neg_c_impl(self):
         cdef NumberFieldElement x
@@ -780,15 +873,29 @@ cdef class NumberFieldElement(FieldElement):
             sage: b^2 - (22+a)
             0
         """
-        # The minimal polynomial is square-free and
-        # divisible by same irreducible factors as
-        # the characteristic polynomial.
-        # TODO: factoring to find the square-free part is idiotic.
-        # Instead use a GCD algorithm!
-        f = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, str(var))(1)
-        for g, _ in self.charpoly(var).factor():
-            f *= g
-        return f
+        return self.charpoly(var).radical() # square free part of charpoly
+
+    def is_integral(self):
+        r"""
+        Determine if a number is in the ring of integers
+        of this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: a.is_integral()
+            True
+            sage: t = (1+a)/2
+            sage: t.is_integral()
+            True
+            sage: t.minpoly()
+            x^2 - x + 6
+            sage: t = a/2
+            sage: t.is_integral()
+            False
+            sage: t.minpoly()
+            x^2 + 23/4
+        """
+        return all([a in ZZ for a in self.minpoly()])
 
     def matrix(self):
         r"""

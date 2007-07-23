@@ -61,12 +61,13 @@ We solve an equation and a system of two equations:
 
     sage: eqn = mathematica('3x + 5 == 14')
     sage: eqn
-             5 + 3 x == 14
+    5 + 3*x == 14
     sage: eqn.Solve('x')
     {{x -> 3}}
     sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')
     sage: print sys
-    {x^2 - 3*y == 3, 2*x - y == 1}
+               2
+             {x  - 3 y == 3, 2 x - y == 1}
     sage: sys.Solve('{x, y}')
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
@@ -86,8 +87,7 @@ The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: m = mathematica
     sage: eq1 = m('x^2 - 3y == 3')
     sage: eq2 = m('2x - y == 1')
-    sage: v = m([eq1, eq2])
-    sage: print v
+    sage: v = m([eq1, eq2]); v
     {x^2 - 3*y == 3, 2*x - y == 1}
     sage: v.Solve(['x', 'y'])
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
@@ -107,7 +107,7 @@ interpreter.
 We find the $x$ such that $e^x - 3x = 0$.
     sage: e = mathematica('Exp[x] - 3x == 0')
     sage: e.FindRoot(['x', 2])
-             {x -> 1.51213}
+    {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces:
     sage: gp('solve(x=1,2,exp(x)-3*x)')
@@ -118,10 +118,10 @@ Next we find the minimimum of a polynomial using the two
 different ways of accessing Mathematica:
 
     sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')
-    {0.6151, {x -> 2.57735}}
+    {0.6150998205402516, {x -> 2.5773502699629733}}
     sage: f = mathematica('x^3 - 6x^2 + 11x - 5')
     sage: f.FindMinimum(['x', 3])
-    {0.6151, {x -> 2.57735}}
+    {0.6150998205402516, {x -> 2.5773502699629733}}
 
 
 \subsubsection{Polynomial and Integer Factorization}
@@ -133,18 +133,18 @@ We factor a polynomial of degree 200 over the integers.
     sage: f
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100
     sage: g = mathematica(str(f))
-    sage: g
+    sage: print g
                                2       100       101    200
              100 + 315 x - 85 x  + 25 x    + 12 x    + x
-    sage: str(g)
-    '100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200'
-    sage: g.Factor()
+    sage: g
+    100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200
+    sage: print g.Factor()
                           100               100
              (20 - 5 x + x   ) (5 + 17 x + x   )
 
 We can also factor a multivariate polynomial:
     sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')
-    sage: f.Factor()
+    sage: print f.Factor()
               3                  2    3
              x  (x - y) (-2 x + x  + y )
 
@@ -188,7 +188,7 @@ examples test saving and loading to strings.
     sage: loads(dumps(x)) == x
     True
     sage: n = x.N(50)
-    sage: n
+    sage: print n
                   1.5707963267948966192313216916397514420985846996876
     sage: loads(dumps(n)) == n
     True

@@ -380,17 +380,16 @@ class Singular(Expect):
         (Not actually done right now since it causes too many
         problems.)
         """
-        # problem with kill is that if variable
-        # isn't defined still in this session, get
-        # a nasty error; setting to zero basically
-        # just as good.
+        try:
+            self.eval('kill %s;'%var)
+        except RuntimeError:
+            pass
+        # Reusing vars causes problems, because of strong typing.
+        # If you run the multi_polynomial_ideal.py doctest you'll see this.
+        ##self._available_vars.append(var)
 
-        #self.eval('kill %s;'%var)
-
-        # Reusing vars causes problems:
-        #self._available_vars.append(var)
-
-        #self.eval('def %s=0;'%var)
+        #Could be an alternative to killing, if that is a problem...
+        ##self.eval('def %s=0;'%var)
 
     def _create(self, value, type='def'):
         name = self._next_var_name()
@@ -875,6 +874,7 @@ class SingularElement(ExpectElement):
         """
         # TODO: Refactor imports to move this to the top
         from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polydict import PolyDict,ETuple
@@ -898,6 +898,9 @@ class SingularElement(ExpectElement):
         # So e.g. ['x^3*y^3','a'] get's split to
         # [[['x','3'],['y','3']],'a']. We may do this quickly,
         # as we know what to expect.
+
+        if isinstance(R, MPolynomialRing_libsingular):
+            return R(self)
 
         singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                                    self.name(),variable_str)).split(",")

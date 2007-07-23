@@ -256,9 +256,9 @@ from functions import Function_gen, Function_arith, Function, FunctionRing_class
 import sage.calculus.calculus
 
 class Constant(Function):
-    def __init__(self, conversions={}):
+    def __init__(self, conversions={}, parent=sage.calculus.calculus.SR):
         self._conversions = conversions
-        RingElement.__init__(self, sage.calculus.calculus.SR)
+        RingElement.__init__(self, parent)
 
     # The maxima one is special:
     def _maxima_(self, session=None):
@@ -351,6 +351,32 @@ class Constant(Function):
         """
         return False
 
+    def __lt__(self, right):
+        return self._ser().__lt__(right)
+
+    def __le__(self, right):
+        return self._ser().__le__(right)
+
+    def __eq__(self, right):
+        """
+        EXAMPLES:
+            sage: solve(pi == 2*x)
+            [x == pi/2]
+            sage: solve(cos(x^2) == pi)
+            [x == -sqrt(acos(pi)), x == sqrt(acos(pi))]
+        """
+        return self._ser().__eq__(right)
+
+    def __ne__(self, right):
+        return self._ser().__ne__(right)
+
+    def __ge__(self, right):
+        return self._ser().__ge__(right)
+
+    def __gt__(self, right):
+        return self._ser().__gt__(right)
+
+
 
 class Constant_gen(Constant, Function_gen):
     def __init__(self, x):
@@ -416,7 +442,7 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
-    def _real_double_(self,R):
+    def _real_double_(self, R):
         return R.pi()
 
     def _real_rqdf_(self, R):
@@ -438,6 +464,7 @@ class Pi(Constant):
 
 pi = Pi()
 
+python_complex_i = complex(0,1)
 
 class I_class(Constant):
     """
@@ -498,6 +525,9 @@ class I_class(Constant):
 
     def _complex_double_(self, C):
         return C.gen()
+
+    def __complex__(self):
+        return python_complex_i
 
     def _real_double_(self, R):
         raise TypeError
@@ -829,8 +859,8 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
-             2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289    # 32-bit
-             2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
+        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
+        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
     """
     def __init__(self):
         Constant.__init__(self,
@@ -1052,4 +1082,8 @@ class Brun(Constant):
 	return 1.9021605831040
 
 brun=Brun()
+
+
+
+
 

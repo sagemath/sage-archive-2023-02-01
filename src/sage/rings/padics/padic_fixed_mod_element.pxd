@@ -21,13 +21,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift)
     cdef pAdicFixedModElement _rshift_c(pAdicFixedModElement self, long shift)
     cdef ModuleElement _neg_c_impl(self)
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
-    cdef RingElement _mul_c_impl(self, RingElement right)
-    cdef RingElement _div_c_impl(self, RingElement right)
     cdef Integer lift_c(pAdicFixedModElement self)
     cdef object teichmuller_list(pAdicFixedModElement self)
     cdef pAdicFixedModElement unit_part_c(pAdicFixedModElement self)
     cdef unsigned long valuation_c(self)
     cdef val_unit_c(self)
-    cdef long _hash(self) except -1

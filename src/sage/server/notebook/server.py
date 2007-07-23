@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Web Server Component of SAGE Notebook
 
 In this file the WebServer class is defined, which
@@ -22,6 +22,8 @@ If, for example, one wanted to extend POST functionality,
 one would write a function that takes a input some post variables
 and serves a request depending on those post vars.
 """
+
+assert False, "The server.py file should not be imported!!"
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -87,6 +89,18 @@ last_save_time = time.time()
 SAGE_ROOT = os.environ['SAGE_ROOT']
 
 static_images = ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png', 'sagelogo.png']
+
+def safe_path(path):
+    """
+    Return a safe version of the given path, i.e., a relative path with no ..'s.
+    The idea is to make it so the server can't just easily return arbitrary files
+    that it has access to.   Of course, right now in SAGE one can execute a command
+    in a cell that uses os.system to look at anything.  But in the future the
+    subcommands will be run in a sandbox themselves, so protecting the server
+    is still relevant.
+    """
+    return path.lstrip('/').replace('..','dotdot_not_allowed')
+
 
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -204,7 +218,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = C['id']
         input_text = C['input']
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
-        #input_text = input_text.replace("%2B",'+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -226,6 +239,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.wfile.write(str(cell.next_id()) + SEP + 'no_new_cell' + SEP + str(id))
 
+
     def introspect(self):
         C = self.get_postvars()
         id = C['id']
@@ -239,6 +253,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         cell = W.get_cell_with_id(id)
+
         #TB: this tends to obliterate long cells -- if the user doesn't submit between
         #introspecting and closing the browser; there's a lot of potential to lose a
         #large amount of work without warning.  I personally would not expect hitting
@@ -344,8 +359,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         continously request the evaluation of this function
         to serve two purposes:
         1) To see if the long calculation is done, or
-        2) To interupt the long running calculation.
-
+        2) To interrupt the long running calculation.
         """
         C = self.get_postvars()
         worksheet_id = C['worksheet_id']
@@ -488,7 +502,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if i == -1:
             return self.file_not_found(path)
         filename = path[i+1:]
-        file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
+        file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,safe_path(filename))).read()
         file = file.replace('<','&lt;')
         s = """
 <html>
@@ -536,7 +550,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         If no doc-browser has been opened/created, one is started.
         The doc-browser is an instance of a special worksheet; each
         page of documentation requested is formated into a worksheet
-        which replaces the doc-browsers previous worksheet.
+        which replaces the doc-browser's previous worksheet.
         """
         path_split = path.split('?')
         full_path = path_split[1]
@@ -549,8 +563,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         #  file
         # file_name is the name of the file requested
         doc_path = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
-        print doc_path
-        file = open(doc_path + full_path + file_name,'r')
+        file = open(doc_path + '/' + safe_path(full_path + file_name),'r')
         doc_page_html = file.read()
         file.close()
         docProcessStart = time.time()
@@ -631,47 +644,17 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
 
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
-        W = notebook.get_worksheet_with_filename(filename)
-        t = W.plain_text(prompts = prompts)
-        t = t.replace('<','&lt;')
-        s = '<head>\n'
-        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<pre>' + t + '</pre>'
-        s += '</body>\n'
+        s = notebook.plain_text_worksheet_html(worksheet_id = filename, prompts=prompt)
         self.wfile.write(s)
 
     def html_worksheet(self, filename, do_print=False):
         self.send_head()
-        W = notebook.get_worksheet_with_filename(filename)
-        s = '<head>\n'
-        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
-        if do_print:
-            s += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
-        s += '<script type="text/javascript" src="/__main__.js"></script>\n'
-        s += '<link rel=stylesheet href="/__main__.css">\n'
-        s += '</head>\n'
-        s += '<body>\n'
-        s += W.html(include_title=False, do_print=do_print)
-        if do_print:
-            s += '<script type="text/javascript">jsMath.Process();</script>\n'
-        s += '\n</body>\n'
+        s = notebook.worksheet_html(filename, do_print = do_print)
         self.wfile.write(s)
 
     def input_history_text(self):
         self.send_head()
-        t = notebook.history_text()
-        t = t.replace('<','&lt;')
-        s = '<head>\n'
-        s += '<title>SAGE Input History</title>\n'
-        s += '</head>\n'
-        s += '<body>\n'
-        s += '<pre>' + t + '</pre>\n'
-        s += '<a name="bottom"></a>\n'
-        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
-        s += '</body>\n'
-        self.wfile.write(s)
+        self.wfile.write(notebook.history_html())
 
     def help_window(self):
         self.send_head()
@@ -705,7 +688,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         self.send_response(200)
         self.send_header("Content-type", 'application/sage')
         self.end_headers()
-        binfile = open('%s/%s.sws'%(notebook.directory(), filename), 'rb').read()
+        binfile = open('%s/%s.sws'%(notebook.directory(), safe_path(filename)), 'rb').read()
         f = StringIO()
         f.write(binfile)
         f.seek(0)
@@ -727,16 +710,14 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
 
         If the path matches none of the strings,
         then a '200 File Not Found' error is return.
-
-        This function could be cleaned up?
         """
         compressed = False
         path = self.path.replace('%20',' ')
-        if path[-5:] == '.sobj':
+        if path.endswith('.sobj'):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
-            path = path[1:]
-        if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
+            path = safe_path(path)
+        if path.endswith('.html') and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
                 self.input_history_text()
@@ -760,7 +741,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.wfile.write(self.robots())
             return
 
-        elif path[-4:] == '.sws':
+        elif path.endswith('.sws'):
 
             worksheet_filename = path[:-4]
             self.download_worksheet(worksheet_filename)
@@ -915,14 +896,10 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                 return
             self.path = self.path[:i]
 
-        #verbose(self.path)
-        if self.path[-4:] in ['.eps', '.pdf', '.png', '.bmp', '.svg', '.tex', \
-                              '.dvi', '.log', '.css',\
-                              '.txt', '.ico', '.sws'] or \
-               self.path[-2:] in ['.c'] or \
-               self.path[-5:] in ['.sobj', '.html'] or \
-               self.path[-3:] in ['.ps', '.js'] or \
-               ('/jsmath/' in self.path and self.path[-3] == '.js'):
+
+
+        if has_valid_file_extension(self.path) or \
+               ('/jsmath/' in self.path and self.path.endswith('.js')):
             try:
                 return self.get_file()
             except:
@@ -1076,6 +1053,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self._images = {}
             return self.image(filename)
         except KeyError:
+	    filename = safe_path(filename)
             self._images[filename] = open(SAGE_EXTCODE +
                   '/notebook/images/' + filename, 'rb').read()
             return self._images[filename]
@@ -1164,3 +1142,17 @@ def gzip_compress(data, compresslevel=9):
     io.seek(0)
     return io.read()
 
+
+
+
+VALID_EXTENSIONS = ['eps', 'pdf', 'png', 'bmp', 'svg', 'tex',
+                    'dvi', 'log', 'css',
+                    'txt', 'ico', 'sws',
+                    'c', 'sobj', 'html',
+                    'ps', 'js', 'hg', 'patch']
+
+def has_valid_file_extension(path):
+    for ext in VALID_EXTENSIONS:
+        if path.endswith('.' + ext):
+            return True
+    return False

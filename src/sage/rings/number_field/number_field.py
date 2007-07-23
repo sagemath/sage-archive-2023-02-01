@@ -101,7 +101,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
     EXAMPLES: Constructing a relative number field
         sage: K.<a> = NumberField(x^2 - 2)
         sage: R.<t> = K[]
-        sage: L = K.extension(t^3+t+a, b); L
+        sage: L = K.extension(t^3+t+a, 'b'); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
         sage: L.absolute_field()
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
@@ -217,6 +217,7 @@ class NumberField_generic(field.Field):
     def __reduce__(self):
         """
         TESTS:
+            sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L = loads(dumps(K))
             sage: print L
@@ -514,6 +515,7 @@ class NumberField_generic(field.Field):
         We create another extension.
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1
+            sage: y = var('y')
             sage: m.<b> = k.extension(y^2 + 1); m
             Extension by y^2 + 1 of the Number Field in a with defining polynomial x^2 + 1
             sage: b.minpoly()
@@ -531,7 +533,7 @@ class NumberField_generic(field.Field):
             name = name[0]
         if name is None:
             raise TypeError, "the variable name must be specified."
-        return NumberField_extension(self, poly, repr(name))
+        return NumberField_extension(self, poly, str(name))
 
     def factor_integer(self, n):
         r"""
@@ -924,6 +926,7 @@ class NumberField_extension(NumberField_generic):
     def __reduce__(self):
         """
         TESTS:
+            sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L.<z> = K.extension(Z^3 + 2)
             sage: L = loads(dumps(K))
@@ -1028,6 +1031,19 @@ class NumberField_extension(NumberField_generic):
         """
         Return root of defining polynomial, which is a generator of
         the relative number field over the base.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2+1); k
+            Number Field in a with defining polynomial x^2 + 1
+            sage: y = polygen(k)
+            sage: m.<b> = k.extension(y^2+3); m
+            Extension by x^2 + 3 of the Number Field in a with defining polynomial x^2 + 1
+            sage: c = m.gen_relative(); c
+            1/4*b^3 + 5/2*b
+            sage: c^2 + 3
+            0
+            sage: m.gen()
+            b
         """
         try:
             return self.__gen_relative
@@ -1035,13 +1051,6 @@ class NumberField_extension(NumberField_generic):
             rnf = self.pari_rnf()
             f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
             self.__gen_relative = number_field_element.NumberFieldElement(self, f)
-            return self.__gen_relative
-
-            if self.__polynomial != None:
-                X = self.__polynomial.parent().gen()
-            else:
-                X = PolynomialRing(rational_field.RationalField()).gen()
-            self.__gen_relative = number_field_element.NumberFieldElement(self, X)
             return self.__gen_relative
 
     def pari_polynomial(self):

@@ -16,11 +16,12 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-from   sage.structure.sequence import _combinations, Sequence
-from   sage.misc.misc import verbose, get_verbose, graphics_filename
-from   sage.rings.number_field.all import is_NumberField
-from   sage.rings.integer_ring import ZZ
-from   sage.rings.rational_field import QQ
+from sage.structure.sequence import _combinations, Sequence
+from sage.structure.element import is_Vector
+from sage.misc.misc import verbose, get_verbose, graphics_filename
+from sage.rings.number_field.all import is_NumberField
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 import sage.modules.free_module
 import matrix_space
@@ -30,6 +31,106 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
+    def _backslash_(self, B):
+        return self.solve_right(B)
+
+    def solve_right(self, B):
+        r"""
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        INPUT:
+            B -- a matrix or vector
+
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
+            sage: b = vector(QQ,[1,2,3])
+            sage: x = A \\ b; x
+            (-13/12, 23/12, -7/12)
+            sage: A * x
+            (1, 2, 3)
+
+        We illustrate left associativity, etc., of the backslash operator.
+            sage: A = matrix(QQ, 2, [1,2,3,4])
+            sage: A \ A
+            [1 0]
+            [0 1]
+            sage: A \ A \ A
+            [1 2]
+            [3 4]
+            sage: A.parent()(1) \ A
+            [1 2]
+            [3 4]
+            sage: A \ (A \ A)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: X = A \ (A - 2); X
+            [ 5 -2]
+            [-3  2]
+            sage: A * X
+            [-1  2]
+            [ 3  2]
+
+        Solving over a polynomial ring:
+            sage: x = polygen(QQ, 'x')
+            sage: A = matrix(2, [x,2*x,-5*x^2+1,3])
+            sage: v = vector([3,4*x - 2])
+            sage: X = A \ v
+            sage: X
+            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            sage: A * X == v
+            True
+
+        Solving a system over the p-adics:
+            sage: k = Qp(5,4)
+            sage: a = matrix(k, 3, [1,7,3,2,5,4,1,1,2]); a
+            [    1 + O(5^4) 2 + 5 + O(5^4)     3 + O(5^4)]
+            [    2 + O(5^4)     5 + O(5^5)     4 + O(5^4)]
+            [    1 + O(5^4)     1 + O(5^4)     2 + O(5^4)]
+            sage: v = vector(k, 3, [1,2,3])
+            sage: x = a \ v; x
+            (4 + 5 + 5^2 + 3*5^3 + O(5^4), 2 + 5 + 3*5^2 + 5^3 + O(5^4), 1 + 5 + O(5^4))
+            sage: a * x == v
+            True
+        """
+        if not self.is_square():
+            raise NotImplementedError, "input matrix must be square"
+
+        K = self.base_ring()
+        if not K.is_integral_domain():
+            raise TypeError, "base ring must be an integral domain"
+        if not K.is_field():
+            K = K.fraction_field()
+            self = self.change_ring(K)
+
+        if self.rank() != self.nrows():
+            raise ValueError, "input matrix must have full rank but it doesn't"
+
+        matrix = True
+        if is_Vector(B):
+            matrix = False
+            C = self.matrix_space(self.nrows(), 1)(B.list())
+        else:
+            C = B
+
+        D = self.augment(C).echelon_form()
+        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
+
+
+
     def prod_of_row_sums(self, cols):
         r"""
         Calculate the product of all row sums of a submatrix of $A$ for a
@@ -1399,7 +1500,7 @@ cdef class Matrix(matrix1.Matrix):
                 if m > 1 and not is_diagonalizable:
                     B = B**m
                 W = B.kernel()
-                E.append((W, bool(m==1)))
+                E.append((W, m==1))
                 continue
 
             # General case, i.e., deg(g) > 1:
@@ -1434,7 +1535,7 @@ cdef class Matrix(matrix1.Matrix):
                 if W.rank() == m * g.degree():
                     t = verbose('now computing row space', level=2, caller_name='generic spin decomp')
                     W.echelonize()
-                    E.append((W.row_space(), bool(m==1)))
+                    E.append((W.row_space(), m==1))
                     verbose('computed row space', level=2,t=t, caller_name='generic spin decomp')
                     break
                 else:
@@ -1470,9 +1571,9 @@ cdef class Matrix(matrix1.Matrix):
                               self.base_ring(), self.nrows(), sparse=self.is_sparse())
             m = F[0][1]
             if dual:
-                return decomp_seq([(V, bool(m==1))]), decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)]), decomp_seq([(V, m==1)])
             else:
-                return decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)])
         F.sort()
         for g, m in f.factor():
             t = verbose('decomposition -- Computing g(self) for an irreducible factor g of degree %s'%g.degree(),level=2)
@@ -1484,10 +1585,10 @@ cdef class Matrix(matrix1.Matrix):
                 B = B ** m
                 verbose('done powering',t2)
             t = verbose('decomposition -- done computing g(self)', level=2, t=t)
-            E.append((B.kernel(), bool(m==1)))
+            E.append((B.kernel(), m==1))
             t = verbose('decomposition -- time to compute kernel', level=2, t=t)
             if dual:
-                Edual.append((B.transpose().kernel(), bool(m==1)))
+                Edual.append((B.transpose().kernel(), m==1))
                 verbose('decomposition -- time to compute dual kernel', level=2, t=t)
         if dual:
             return E, Edual
@@ -2225,8 +2326,223 @@ cdef class Matrix(matrix1.Matrix):
         import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
+        if ncols == -1:
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def subdivide(self, row_lines=None, col_lines=None):
+        """
+        Divides self into logical submatrices which can then be
+        queried and extracted. If a subdivision already exists,
+        this method forgets the previous subdivision and flushes
+        the cache.
+
+        INPUT:
+            row_lines -- None, an integer, or a list of integers
+            col_lines -- None, an integer, or a list of integers
+
+        OUTPUT:
+            changes self
+
+        NOTE:
+            One may also pass a tuple into the first argument which will
+            be interpreted as (row_lines, col_lines)
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, prime_range(100))
+            sage: M.subdivide(2,3); M
+            [ 2  3  5| 7 11]
+            [13 17 19|23 29]
+            [--------+-----]
+            [31 37 41|43 47]
+            [53 59 61|67 71]
+            [73 79 83|89 97]
+            sage: M.subdivision(0,0)
+            [ 2  3  5]
+            [13 17 19]
+            sage: M.subdivision(1,0)
+            [31 37 41]
+            [53 59 61]
+            [73 79 83]
+            sage: M.subdivision_entry(1,0,0,0)
+            31
+            sage: M.get_subdivisions()
+            ([2], [3])
+            sage: M.subdivide(None, [1,3]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [73|79 83|89 97]
+
+        Degenerate cases work too.
+            sage: M.subdivide([2,5], [0,1,3]); M
+            [| 2| 3  5| 7 11]
+            [|13|17 19|23 29]
+            [+--+-----+-----]
+            [|31|37 41|43 47]
+            [|53|59 61|67 71]
+            [|73|79 83|89 97]
+            [+--+-----+-----]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(0,1)
+            [ 2]
+            [13]
+            sage: M.subdivide([2,2,3], [0,0,1,1]); M
+            [|| 2|| 3  5  7 11]
+            [||13||17 19 23 29]
+            [++--++-----------]
+            [++--++-----------]
+            [||31||37 41 43 47]
+            [++--++-----------]
+            [||53||59 61 67 71]
+            [||73||79 83 89 97]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(2,4)
+            [37 41 43 47]
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-06-14)
+        """
+
+        self.check_mutability()
+        if col_lines is None and row_lines is not None and isinstance(row_lines, tuple):
+            tmp = row_lines
+            row_lines, col_lines = tmp
+        if row_lines is None:
+            row_lines = []
+        elif not isinstance(row_lines, list):
+            row_lines = [row_lines]
+        if col_lines is None:
+            col_lines = []
+        elif not isinstance(col_lines, list):
+            col_lines = [col_lines]
+        row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
+        col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
+        if self.subdivisions is not None:
+            self.clear_cache()
+        self.subdivisions = (row_lines, col_lines)
+
+    def subdivision(self, i, j):
+        """
+        Returns in immutable copy of the (i,j)th submatrix of self,
+        according to a previously set subdivision.
+
+        Before a subdivision is set, the only valid arguments are
+        (0,0) which returns self.
+
+        EXAMPLE:
+            sage: M = matrix(3, 4, range(12))
+            sage: M.subdivide(1,2); M
+            [ 0  1| 2  3]
+            [-----+-----]
+            [ 4  5| 6  7]
+            [ 8  9|10 11]
+            sage: M.subdivision(0,0)
+            [0 1]
+            sage: M.subdivision(0,1)
+            [2 3]
+            sage: M.subdivision(1,0)
+            [4 5]
+            [8 9]
+
+        It handles size-zero subdivisions as well.
+            sage: M = matrix(3, 4, range(12))
+            sage: M.subdivide([0],[0,2,2,4]); M
+            [+-----++-----+]
+            [| 0  1|| 2  3|]
+            [| 4  5|| 6  7|]
+            [| 8  9||10 11|]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(1,1)
+            [0 1]
+            [4 5]
+            [8 9]
+            sage: M.subdivision(1,2)
+            []
+            sage: M.subdivision(1,0)
+            []
+            sage: M.subdivision(0,1)
+            []
+        """
+        if self.subdivisions is None:
+            self.subdivisions = ([0, self._nrows], [0, self._ncols])
+        key = "subdivision %s %s"%(i,j)
+        sd = self.fetch(key)
+        if sd is None:
+            sd = self.submatrix(self.subdivisions[0][i], self.subdivisions[1][j],
+                                self.subdivisions[0][i+1]-self.subdivisions[0][i], self.subdivisions[1][j+1]-self.subdivisions[1][j])
+            sd.set_immutable()
+            self.cache(key, sd)
+        return sd
+
+    def subdivision_entry(self, i, j, x, y):
+        """
+        Returns the x,y entry of the i,j submatrix of self.
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, range(25))
+            sage: M.subdivide(3,3); M
+            [ 0  1  2| 3  4]
+            [ 5  6  7| 8  9]
+            [10 11 12|13 14]
+            [--------+-----]
+            [15 16 17|18 19]
+            [20 21 22|23 24]
+            sage: M.subdivision_entry(0,0,1,2)
+            7
+            sage: M.subdivision(0,0)[1,2]
+            7
+            sage: M.subdivision_entry(0,1,0,0)
+            3
+            sage: M.subdivision_entry(1,0,0,0)
+            15
+            sage: M.subdivision_entry(1,1,1,1)
+            24
+
+        Even though this entry exists in the matrix, the index is invalid for the submatrix.
+            sage: M.subdivision_entry(0,0,4,0)
+            Traceback (most recent call last):
+            ...
+            IndexError: Submatrix 0,0 has no entry 4,0
+        """
+        if self.subdivisions is None:
+            if not i and not j:
+                return self[x,y]
+            else:
+                raise IndexError, "No such submatrix %s, %s"%(i,j)
+        if x >= self.subdivisions[0][i+1]-self.subdivisions[0][i] or \
+           y >= self.subdivisions[1][j+1]-self.subdivisions[1][j]:
+            raise IndexError, "Submatrix %s,%s has no entry %s,%s"%(i,j, x, y)
+        return self[self.subdivisions[0][i] + x , self.subdivisions[1][j] + y]
+
+    def get_subdivisions(self):
+        """
+        Returns the current subdivision of self.
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, range(25))
+            sage: M.get_subdivisions()
+            ([], [])
+            sage: M.subdivide(2,3)
+            sage: M.get_subdivisions()
+            ([2], [3])
+            sage: N = M.parent()(1)
+            sage: N.subdivide(M.get_subdivisions()); N
+            [1 0 0|0 0]
+            [0 1 0|0 0]
+            [-----+---]
+            [0 0 1|0 0]
+            [0 0 0|1 0]
+            [0 0 0|0 1]
+        """
+        if self.subdivisions is None:
+            return ([], [])
+        else:
+            return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
     def randomize(self, density=1, *args, **kwds):
         """
@@ -2377,7 +2693,7 @@ cdef class Matrix(matrix1.Matrix):
             ic = mr
             b = 1.0
 
-        b2 = b**2
+        b2 = <int>(b*b)
         fct = 255.0/b2
 
         im = gd.image((ir,ic),1)
@@ -2391,8 +2707,8 @@ cdef class Matrix(matrix1.Matrix):
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
                 v = b2
-                for _x from 0 <= _x < b:
-                    for _y from 0 <= _y < b:
+                for _x from 0 <= _x < (<int>b):
+                    for _y from 0 <= _y < (<int>b):
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 

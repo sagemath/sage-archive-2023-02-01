@@ -41,15 +41,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         prec = self.base_ring().precision_cap()
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
-#        print Q[0]
-#        print P[0]
-#        print Q[0] - P[0]
         x = P[0]+t*(Q[0]-P[0])
-        pts = self.lift_x(x)
-        if (pts[0][1] - P[1]).valuation() > 0:
-            return pts[0]
+        pt = self.lift_x(x)
+        if pt[1][0] == P[1]:
+            return pt
         else:
-            return pts[1]
+            return -pt
 
     def tiny_integrals(self, F, P, Q):
         """
@@ -58,16 +55,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         P and Q MUST be in the same residue disk for this result to make sense.
         """
-#        print "sage-working"
         x, y, z = self.local_analytic_interpolation(P, Q)
         dt = x.derivative() / y
-#        print "x", x
-#        print "dt", dt
         integrals = []
         for f in F:
-            f = f(x,y)
-            I = (f*dt).integral()
-            integrals.append(I(1))
+            f_dt = f(x,y) * dt
+            I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree())]) # \int_0^1 f dt
+            integrals.append(I)
+#            integrals.append(f_dt.integral()(1))
         return integrals
 
     def tiny_integrals_on_basis(self, P, Q):
@@ -114,12 +109,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: (TP[0] - P[0]).valuation() > 0, (TP[1] - P[1]).valuation() > 0
             (True, True)
         """
-        x = padic_teichmuller(P[0])
-        pts = self.lift_x(x)
-        if (pts[0][1] - P[1]).valuation() > 0:
-            return pts[0]
+        K = P[0].parent()
+        x = K.teichmuller(P[0])
+        pt = self.lift_x(x)
+        p = K.prime()
+        if (pt[1] - P[1]).valuation() > 0:
+            return pt
         else:
-            return pts[1]
+            return -pt
 
     def coleman_integrals_on_basis(self, P, Q):
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
@@ -147,15 +144,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             M_frob, forms = self._frob_calc
         except AttributeError:
             M_frob, forms = self._frob_calc = monsky_washnitzer.matrix_of_frobenius_hyperelliptic(self)
+            prof("changing rings")
+            # another hack due to slow padics
+            forms = [f.change_ring(self.base_ring()) for f in forms]
+            self._frob_calc = (M_frob, forms)
 
         prof("eval f")
-        # another hack due to slow padics
-        R = forms[0].base_ring()
-        try:
-            L = [f(R(TP[0]), R(TP[1])) - f(R(TQ[0]), R(TQ[1])) for f in forms]
-        except ValueError:
-            forms = [f.change_ring(self.base_ring()) for f in forms]
-            L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
+        L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
         b = 2*V(L)
 #        print "b =", b
 
@@ -184,6 +179,26 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         return MW.invariant_differential()
 
     def coleman_integral(self, w, P, Q):
+        """
+        Example of Leprevost from Kiran Kedlaya
+        The first two should be zero as $(P-Q) = 30(P-Q)$ in the Jacobian
+        and $dx/y$ and $x dx/y$ are holomorphic.
+
+        sage: K = pAdicField(11, 6)
+        sage: x = polygen(K)
+        sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
+        sage: P = C(-1, 1); P1 = C(-1, -1)
+        sage: Q = C(0, 1/4); Q1 = C(0, -1/4)
+        sage: x, y = C.monsky_washnitzer_gens()
+        sage: w = C.invariant_differential()
+        sage: w.coleman_integral(P, Q)
+        O(11^6)
+        sage: C.coleman_integral(x*w, P, Q)
+        O(11^6)
+        sage: C.coleman_integral(x^2*w, P, Q)
+        3*11 + 2*11^2 + 7*11^3 + 2*11^4 + 10*11^5 + O(11^6)
+        """
+        # TODO: implement jacobians and show the relationship directly
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self, QQ)
         MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
@@ -192,23 +207,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         basis_values = self.coleman_integrals_on_basis(P, Q)
         dim = len(basis_values)
         return f(P[0], P[1]) - f(Q[0], Q[1]) + sum([vec[i] * basis_values[i] for i in range(dim)]) # this is just a dot product...
-
-
-
-# TODO: add this to new padics (if it isn't there in the new version already).
-def padic_teichmuller(a):
-    K = a.parent()
-    p = K.prime()
-    p_less_1_inverse = ~K(p-1)
-    one = K(1)
-    x = K(ZZ(a) % p)
-    if x == 0:
-        return x
-    for _ in range(ceil(log(K.precision_cap(),2))):
-        x = ((p-2)*x + x**(2-p)) * p_less_1_inverse
-    return x
-
-
 
 
 

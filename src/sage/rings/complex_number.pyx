@@ -37,7 +37,7 @@ def set_global_complex_round_mode(n):
 #from sage.databases.odlyzko import zeta_zeroes
 
 def is_ComplexNumber(x):
-    return bool(isinstance(x, ComplexNumber))
+    return isinstance(x, ComplexNumber)
 
 cdef class ComplexNumber(sage.structure.element.FieldElement):
     """
@@ -142,6 +142,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if len(s) == 0:
             s = "0"
         return s
+
+    def _latex_(self):
+        import re
+        s = self.str().replace('*I', 'i')
+        return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
     def _pari_(self):
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())

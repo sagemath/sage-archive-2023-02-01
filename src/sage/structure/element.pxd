@@ -18,6 +18,10 @@ cdef class Element(sage_object.SageObject):
     cdef _set_parent_c(self, ParentWithBase parent)
     cdef base_extend_c(self, ParentWithBase R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, ParentWithBase R)  # OK to override, but do NOT call
+    cdef base_extend_recursive_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_extend_canonical_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_extend_canonical_sym_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_base_extend_canonical_sym_c(self, ParentWithBase R) # DO NOT OVERRIDE
     cdef _rich_to_bool(self, int op, int r)
 
 
@@ -115,8 +119,8 @@ cdef class Vector(ModuleElement):
     cdef Vector _vector_times_vector_c(Vector left, Vector right)     # do *NOT* override, but OK to call directly
     cdef Vector _vector_times_vector_c_impl(Vector left, Vector right)  # OK to override, but do *NOT* call directly
 
-    cdef int is_sparse_c(self)
-    cdef int is_dense_c(self)
+    cdef bint is_sparse_c(self)
+    cdef bint is_dense_c(self)
 
 
 cdef class Matrix(AlgebraElement):
@@ -131,8 +135,8 @@ cdef class Matrix(AlgebraElement):
     cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right)    # OK to override, but do *NOT* call directly
     cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)                  # OK to override, but do *NOT* call directly
 
-    cdef int is_sparse_c(self)
-    cdef int is_dense_c(self)
+    cdef bint is_sparse_c(self)
+    cdef bint is_dense_c(self)
 
 
 

@@ -195,7 +195,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         gsl_matrix_set(self._matrix,i,j,z)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        return sage.rings.real_double.RDF(gsl_matrix_get(self._matrix,i,j))
+        return RealDoubleElement(gsl_matrix_get(self._matrix,i,j))
 
 
     ########################################################################
@@ -536,12 +536,12 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             ValueError: self must be square
         """
         if self._nrows == 0 or self._ncols == 0:
-            return sage.rings.real_double.RDF(1)
+            return RealDoubleElement(1)
         if not self.is_square():
             raise ValueError, "self must be square"
         if self.fetch('LU_valid')!=True:
             self._c_compute_LU()
-        return gsl_linalg_LU_det(self._LU, self._signum)
+        return RealDoubleElement(gsl_linalg_LU_det(self._LU, self._signum))
 
     def log_determinant(self):
         """
@@ -564,10 +564,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             0.0
         """
         if self._nrows == 0 or self._ncols == 0:
-            return sage.rings.real_double.RDF(0)
+            return RealDoubleElement(0)
         if self.fetch('LU_valid')!=True:
             self._c_compute_LU()
-        return sage.rings.real_double.RDF(gsl_linalg_LU_lndet(self._LU))
+        return RealDoubleElement(gsl_linalg_LU_lndet(self._LU))
 
     def transpose(self):
         """

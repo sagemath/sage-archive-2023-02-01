@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 from twisted.spread import pb
@@ -23,13 +24,13 @@ banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 from zope.interface import implements
 from twisted.cred import portal, credentials
 from twisted.cred.credentials import ISSHPrivateKey
+from twisted.cred.credentials import IAnonymous
 from twisted.cred.credentials import Anonymous
 from twisted.spread.interfaces import IJellyable
 from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
 
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.worker_tracker as worker_tracker
 from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
@@ -52,14 +53,9 @@ class WorkerPBServerFactory(pb.PBServerFactory):
         """
 
         broker.notifyOnDisconnect(self.clientConnectionLost)
-        worker_tracker.add((broker,
-                            broker.transport.getPeer().host,
-                            broker.transport.getPeer().port))
 
     def clientConnectionLost(self):
-        for broker, host, port in worker_tracker.worker_list:
-            if broker.transport.disconnected:
-                worker_tracker.remove((broker, host, port))
+        pass
 
 class PBClientFactory(pb.PBClientFactory):
     """
@@ -80,14 +76,16 @@ class PBClientFactory(pb.PBClientFactory):
                           mind)
 
             return d
-        else:
+        elif IAnonymous.providedBy(creds):
             d = self.getRootObject()
             d.addCallback(self._cbAnonymousLogin, mind)
             return d
+        else:
+            raise TypeError('Invalid credentials.')
 
-    def _cbSendUsername(self, root, username, alg_name, blob, sig_data,
+    def _cbSendUsername(self, root, username, algorithm, blob, sig_data,
                         signature, mind):
-        d = root.callRemote("login", username, alg_name, blob, sig_data,
+        d = root.callRemote("login", username, algorithm, blob, sig_data,
                                 signature, mind)
         return d
 
@@ -101,9 +99,9 @@ class _SSHKeyPortalRoot(pb._PortalRoot):
         return _SSHKeyPortalWrapper(self.portal, broker)
 
 class _SSHKeyPortalWrapper(pb._PortalWrapper):
-    def remote_login(self, username, alg_name, blob, data, signature, mind):
+    def remote_login(self, username, algorithm, blob, data, signature, mind):
         pubkey_cred = credentials.SSHPrivateKey(username,
-                                                alg_name,
+                                                algorithm,
                                                 blob,
                                                 data,
                                                 signature)
@@ -226,7 +224,8 @@ class AnonymousMonitorPerspective(DefaultPerspective):
 
         return self.DSageServer.job_failed(job_id, traceback)
 
-    def perspective_job_done(self, job_id, output, result, completed):
+    def perspective_job_done(self, job_id, output, result, completed,
+                             cpu_time):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
             log.msg('Bad job_id passed to perspective_job_done')
             log.msg('job_id: %s' % (job_id))
@@ -237,13 +236,8 @@ class AnonymousMonitorPerspective(DefaultPerspective):
             uuid = self.mind[1]['uuid']
             self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.job_done(job_id, output, result, completed)
-
-    def perspective_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            raise BadTypeError()
-
-        return self.DSageServer.submit_host_info(hostinfo)
+        return self.DSageServer.job_done(job_id, output, result, completed,
+                                         cpu_time)
 
 class MonitorPerspective(AnonymousMonitorPerspective):
     """
@@ -305,7 +299,8 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_jobs_by_username(self, username, active=True):
         if not (isinstance(username, str)):
-            log.msg('Bad username [%s] passed to perspective_get_jobs_by_username' % (username))
+            log.msg('Bad username [%s] passed to ' +
+                    'perspective_get_jobs_by_username' % (username))
             raise BadTypeError()
 
         jobs = self.DSageServer.get_jobs_by_username(username, active)
@@ -314,14 +309,16 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_result_by_id(self, job_id):
         if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to perspective_get_job_result_by_id' % (job_id))
+            log.msg('Bad job_id [%s] passed to' +
+                    'perspective_get_job_result_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_result_by_id(job_id)
 
     def perspective_get_job_output_by_id(self, job_id):
         if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to get_job_output_by_id' % (job_id))
+            log.msg('Bad job_id [%s] passed to ' +
+                    'get_job_output_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_output_by_id(job_id)
@@ -362,11 +359,6 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_worker_count(self):
         return self.DSageServer.get_worker_count()
-
-    def perspective_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            raise BadTypeError()
-        return self.DSageServer.submit_host_info(hostinfo)
 
     def perspective_get_killed_jobs_list(self):
         return self.DSageServer.get_killed_jobs_list()
@@ -418,7 +410,12 @@ class Realm(object):
             raise ValueError('Too many connections for user %s' % avatarID)
 
         avatar.attached(avatar, mind)
-        log.msg('(%s, %s) connected' % (avatarID, kind))
+
+        if kind == 'monitor':
+            log.msg('(%s, %s) id: %s connected' % (avatarID, kind,
+                                                   mind[1]['uuid']))
+        else:
+            log.msg('(%s, %s) connected' % (avatarID, kind))
 
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)

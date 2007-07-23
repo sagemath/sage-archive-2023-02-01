@@ -459,7 +459,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         print "<html>"
@@ -736,7 +736,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         print "<html>"
@@ -1039,7 +1039,7 @@ class GraphDatabase():
             g = graph.Graph('%s'%graph6)
             # The following line is time consuming and should not stay:
             graph6list.append(g.graph6_string())
-            p = g.plot(layout=layout, node_size=30, vertex_labels=False, graph_border=False)
+            p = g.plot(layout=layout, vertex_size=30, vertex_labels=False, graph_border=False)
             p.save('%s.png'%i, figsize=[1,1])
 
         cells = len(properties)
@@ -1303,7 +1303,7 @@ class GraphDatabase():
             ...
             sage: len(g)
             1
-            sage.: g[0].show(layout='circular',figsize=[2,2],node_size=0,graph_border=True)
+            sage.: g[0].show(layout='circular',figsize=[2,2],vertex_size=0,graph_border=True)
             sage: g = graphs_query.get_list(degree_sequence=433211)
             sage: graphs_list.to_graph6(g)
             'E@NW\nEAMw\n'
@@ -1332,13 +1332,13 @@ class GraphDatabase():
             F@LAG
             sage: (Graph('FJ?GW')).is_isomorphic(Graph('F@LAG'))
             True
-            sage: g = graphs_query.get_list(query="select graph_data.graph6 \
+            sage.: g = graphs_query.get_list(query="select graph_data.graph6 \
             ...             from graph_data inner join misc on \
             ...             misc.graph_id=graph_data.graph_id where \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
             ...
             sage.: graphs_list.show_graphs(g)
-            sage: graphs_list.to_graph6(g)
+            sage.: graphs_list.to_graph6(g)
             'E~~w\nFJ\\zw\nFJ\\~w\nFJ^~w\nFJ~~w\nFN~~w\nF^~~w\nF~~~w\n'
         """
         if ( query is None ):

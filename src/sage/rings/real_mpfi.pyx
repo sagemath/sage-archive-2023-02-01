@@ -602,7 +602,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
             status -- (bool --) optional flag
         """
         if status is None:
-            return bool(self.sci_not)
+            return self.sci_not
         else:
             self.sci_not = status
 
@@ -1621,7 +1621,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     ###########################################
 
     def is_NaN(self):
-        return bool(mpfi_nan_p(self.value))
+        return mpfi_nan_p(self.value)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1783,22 +1783,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         rt = right
 
         if op == 0: #<
-            return PyBool_FromLong(mpfr_less_p(&lt.value.right, &rt.value.left))
+            return mpfr_less_p(&lt.value.right, &rt.value.left)
         elif op == 2: #==
             # a == b iff a<=b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
-            return PyBool_FromLong(mpfr_lessequal_p(&lt.value.right, &rt.value.left)) \
-                and PyBool_FromLong(mpfr_lessequal_p(&rt.value.right, &lt.value.left))
+            return mpfr_lessequal_p(&lt.value.right, &rt.value.left) \
+                and mpfr_lessequal_p(&rt.value.right, &lt.value.left)
         elif op == 4: #>
-            return PyBool_FromLong(mpfr_less_p(&rt.value.right, &lt.value.left))
+            return mpfr_less_p(&rt.value.right, &lt.value.left)
         elif op == 1: #<=
-            return PyBool_FromLong(mpfr_lessequal_p(&lt.value.right, &rt.value.left))
+            return mpfr_lessequal_p(&lt.value.right, &rt.value.left)
         elif op == 3: #!=
-            return PyBool_FromLong(mpfr_less_p(&lt.value.right, &rt.value.left)) \
-                or PyBool_FromLong(mpfr_less_p(&rt.value.right, &lt.value.left))
+            return mpfr_less_p(&lt.value.right, &rt.value.left) \
+                or mpfr_less_p(&rt.value.right, &lt.value.left)
         elif op == 5: #>=
-            return PyBool_FromLong(mpfr_lessequal_p(&rt.value.right, &lt.value.left))
+            return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
     def __cmp__(left, right):
         """
@@ -1875,13 +1875,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         cdef RealNumber other_rn
         if PY_TYPE_CHECK(other, RealIntervalFieldElement):
             other_intv = other
-            return bool(mpfi_is_inside(other_intv.value, self.value))
+            return mpfi_is_inside(other_intv.value, self.value)
         elif PY_TYPE_CHECK(other, RealNumber):
             other_rn = other
-            return bool(mpfi_is_inside_fr(<mpfr_t> other_rn.value, self.value))
+            return mpfi_is_inside_fr(<mpfr_t> other_rn.value, self.value)
         try:
             other_intv = self._parent(other)
-            return bool(mpfi_is_inside(other_intv.value, self.value))
+            return mpfi_is_inside(other_intv.value, self.value)
         except TypeError, msg:
             return False
 

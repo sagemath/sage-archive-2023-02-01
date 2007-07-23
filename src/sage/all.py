@@ -42,15 +42,20 @@ if sys.version_info[:2] < (2, 5):
 from random              import *
 from time                import sleep
 
-from sage.interfaces.get_sigs import get_sigs
-get_sigs()
-
 from sage.rings.memory import pmem_malloc
 pmem_malloc()
+
+import sage.ext.sig
+sage.ext.sig.get_bad_sigs()
+from sage.interfaces.get_sigs import get_sigs
+get_sigs()
 
 from sage.misc.all       import *         # takes a while
 
 from sage.libs.all       import *
+
+get_sigs()
+
 from sage.rings.all      import *
 from sage.matrix.all     import *
 
@@ -90,6 +95,8 @@ from sage.quadratic_forms.all import *
 from sage.gsl.all        import *
 
 from sage.games.all      import *
+
+from sage.media.all      import *
 
 from copy import copy
 
@@ -136,9 +143,6 @@ false = False
 oo = infinity
 #x = PolynomialRing(QQ,'x').gen()
 
-# grab signal handling back from PARI or other C libraries
-get_sigs()
-
 from sage.misc.copying import license
 copying = license
 copyright = license
@@ -152,15 +156,16 @@ copyright = license
 
 
 
-def save_session(state, name='default_session', verbose=False):
-    """
-    Save all variables defined during this session (that can be saved)
-    to the given filename.  The variables will be saved to a dictionary,
-    which can be loaded using load(name).
+def save_session(state, name='sage_session', verbose=False):
+    r"""
+    Save all variables that can be saved wto the given filename.  The
+    variables will be saved to a dictionary, which can be loaded using
+    load(name) or load_session.
 
-    From the interpreter use \code{save_session(name)} (i.e., ignore
-    that state argument).
+    From the interpreter use \code{save_session(name)} (i.e., you may
+    ignore that state argument).
     """
+    import cPickle
     S = set(show_identifiers(state))
     D = {}
     for k, x in state.items():
@@ -168,18 +173,18 @@ def save_session(state, name='default_session', verbose=False):
             if k in S:
                 if type(x) == type(save_session):
                     raise TypeError, '%s is a function'%k
-                _ = loads(dumps(x))
+                _ = cPickle.loads(cPickle.dumps(x, protocol=2))
                 if verbose:
                     print "Saving %s"%k
                 D[k] = x
-        except (IOError, TypeError), msg:
+        except Exception, msg:
             if verbose:
                 print "Not saving %s: %s"%(k, msg)
             pass
     save(D, name)
 
-def load_session(state, name='default_session', verbose=True):
-    """
+def load_session(state, name='sage_session', verbose=False):
+    r"""
     Load a saved session.
 
     From the interpreter use \code{load_session(name)} (i.e., ignore
@@ -188,7 +193,8 @@ def load_session(state, name='default_session', verbose=True):
     This merges in all variables from a previously saved session.  It
     does not clear out the variables in the current sessions, unless
     they are overwritten.  You can thus merge multiple sessions, and
-    don't loose all your current work when you use this command.
+    don't necessarily loose all your current work when you use this
+    command.
     """
     D = load(name)
     for k, x in D.items():
@@ -210,7 +216,9 @@ def show_identifiers(state):
 iglob = set(['quit_sage', 'InteractiveShell', \
              'Out', 'In', 'help', 'view_all', \
              'os', 'iglob', 'variables', '__', '_dh', "_ii", '_i2',
-             '_i1', '_iii', '_i', '_ih', '___', '_oh', '_', '__nonzero__', '__IP']).union(set(globals().keys()))
+             '_i1', '_iii', '_i', '_ih', '___', '_oh', '_', '__nonzero__', '__IP'])
+
+#.union(set(globals().keys()))
 
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
@@ -283,7 +291,6 @@ InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-from catalogue.all import new
+#from catalogue.all import new
 
-import sage.ext.sig
-sage.ext.sig.get_bad_sigs()
+

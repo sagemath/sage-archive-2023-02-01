@@ -45,16 +45,19 @@ def restore(vars=None):
         Rational Field
         sage: x
         10
-        sage: restore('x  y')
+        sage: y = var('y')
+        sage: restore('x y')
         sage: x
         x
         sage: y
-        y
+        Traceback (most recent call last):
+        ...
+        NameError: name 'y' is not defined
         sage: x = 10; y = 15/3; QQ='red'
         sage: ww = 15
         sage: restore()
-        sage: x,y,QQ,ww
-        (x, y, Rational Field, 15)
+        sage: x, QQ, ww
+        (x, Rational Field, 15)
         sage: restore('ww')
         sage: ww
         Traceback (most recent call last):
@@ -62,8 +65,20 @@ def restore(vars=None):
         NameError: name 'ww' is not defined
     """
     G = globals()  # this is the reason the code must be in SageX.
-    import sage.all
-    D = sage.all.__dict__
+    if not G.has_key('sage_mode'):
+        import sage.all
+        D = sage.all.__dict__
+    else:
+        mode = G['sage_mode']
+        if mode == 'cmdline':
+            import sage.all_cmdline
+            D = sage.all_cmdline.__dict__
+        elif mode == 'notebook':
+            import sage.all_notebook
+            D = sage.all_notebook.__dict__
+        else:
+            import sage.all
+            D = sage.all.__dict__
     _restore(G, D, vars)
     import sage.calculus.calculus
     _restore(sage.calculus.calculus.syms_cur, sage.calculus.calculus.syms_default, vars)

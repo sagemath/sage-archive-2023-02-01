@@ -11,7 +11,7 @@ TESTS:
 
 """
 
-#*****************************************************************************
+#################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
@@ -27,7 +27,9 @@ TESTS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#
+######################################################################
+
 import sage.rings.finite_field
 import sage.rings.number_field as number_field
 
@@ -127,6 +129,8 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
+
+            sage: w = var('w')
             sage: R.<x,y> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: R._singular_()
             //   characteristic : 0
@@ -346,7 +350,9 @@ class Polynomial_singular_repr:
             sage: a = r.base_ring().0
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
-            (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + a^5*x^4
+            (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
+
+            sage: w = var('w')
             sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
             sage: a = r.base_ring().0
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
@@ -386,6 +392,7 @@ class Polynomial_singular_repr:
             sage: f.diff(y)
             0
 
+            sage: w = var('w')
             sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
             sage: a=R.base_ring().0
             sage: f = x^3*y^2 + y^2 + a*x + 2
@@ -398,112 +405,40 @@ class Polynomial_singular_repr:
         df = self._singular_(have_ring=have_ring).diff(variable._singular_(have_ring=have_ring))
         return df.sage_poly(self.parent())
 
-##     def lt(self, have_ring=False):
-##         """
-##         Returns the leading (or initial) term of a polynomial
-##         with respect to the monomial ordering.
 
-##         INPUT:
-##             have_ring -- see self.singular_() (default: False)
+    def resultant(self, other, variable=None):
+        """
+        computes the resultant of self and the first argument with
+        respect to the variable given as the second argument.
 
-##         OUTPUT:
-##             multivariate polynomial representing the lead term of self i.e.,
-##             self.lc()*self.lm()
+        If a second argument is not provide the first variable of
+        self.parent() is chosen.
 
-##         ALGORITHM: Singular
+        INPUT:
+            other -- polynomial in self.parent()
+            variable -- optional variable (of type polynomial) in self.parent() (default: None)
 
-##         EXAMPLES:
-##             sage: r=MPolynomialRing(GF(2**8),2,'x')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
-##             sage: f.lt()
-##             (a^2 + a)*x0^2
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
 
-##             sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
-##             sage: f.lt()
-##             (a^4 + a^3 + a)*x1^3
+        TESTS:
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ,2,order='degrevlex')
+            sage: a = x+y
+            sage: b = x^3-y^3
+            sage: c = a.resultant(b); c
+            -2*y^3
+            sage: d = a.resultant(b,y); d
+            2*x^3
 
-##         """
-##         try:
-##             return self.__lt
-##         except AttributeError:
-##             self.__lt = self._singular_(have_ring=have_ring).lead().sage_poly(self.parent())
-##             return self.__lt
-
-##     def lm(self, have_ring=False):
-##         """
-##         Returns the leading monomial of a multivariate polynomial as a
-##         multivariate polynomial whose coefficient is one.
-
-##         INPUT:
-##             have_ring -- see self.singular_() (default: False)
-
-##         OUTPUT:
-##             multivariate polynomial representing the lead monomial of self
-
-##         ALGORITHM: Singular
-
-##         EXAMPLES:
-##             sage: r=MPolynomialRing(GF(2**8),2,'x')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
-##             sage: f.lm()
-##             x0^2
-
-##             sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
-##             sage: f.lm()
-##             x1^3
-##         """
-##         try:
-##             return self.__lm
-##         except AttributeError:
-##             self.__lm = self._singular_(have_ring=have_ring).leadmonom().sage_poly(self.parent())
-##             return self.__lm
-
-##     def lc(self, have_ring=False):
-##         """
-##         Returns the leading (or initial) coefficient of a polynomial
-##         with respect to the monomial ordering.
-
-##         INPUT:
-##             have_ring -- see self.singular_() (default: False)
-
-##         OUTPUT:
-##             multivariate polynomial representing the lead coefficent of self
-
-##         ALGORITHM: Singular
-
-##         EXAMPLES:
-##             sage: r=MPolynomialRing(GF(2**8),2,'x')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
-##             sage: f.lc()
-##             a^2 + a
-
-##             sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
-##             sage: x,y=r.gens()
-##             sage: k=r.base_ring()
-##             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
-##             sage: f.lc()
-##             a^4 + a^3 + a
-
-##             sage: R.<x,y,z> = PolynomialRing(QQ,3)
-##             sage: f = (-1/3)*(1+x+y+z)
-##             sage: (f^3).lc()
-##             -1/27
-##         """
-##         try:
-##             return self.__lc
-##         except AttributeError:
-##             c = self._singular_(have_ring=have_ring).leadcoef().sage_poly(self.parent())
-##             self.__lc = self.base_ring()(c.constant_coefficient())
-##             return self.__lc
+        """
+        if variable is None:
+            variable = self.parent().gen(0)
+        rt = self._singular_().resultant(other._singular_(), variable._singular_())
+        return rt.sage_poly(self.parent())

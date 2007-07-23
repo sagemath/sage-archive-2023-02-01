@@ -35,6 +35,7 @@ from   sage.structure.element    cimport ModuleElement, Element, RingElement, Ve
 from   sage.structure.mutability cimport Mutability
 
 from sage.rings.ring cimport CommutativeRing
+from sage.rings.ring import is_Ring
 
 import sage.modules.free_module
 
@@ -419,7 +420,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_immutable()
             True
         """
-        return bool(self._mutability._is_immutable)
+        return self._mutability._is_immutable
 
     def is_mutable(self):
         """
@@ -436,7 +437,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_mutable()
             False
         """
-        return bool(self._mutability.is_mutable())
+        return self._mutability.is_mutable()
 
     ###########################################################
     # Entry access
@@ -460,6 +461,25 @@ cdef class Matrix(sage.structure.element.Matrix):
         This is fast since it is a cdef function and there is no bounds checking.
         """
         raise NotImplementedError, "this must be defined in the derived type."
+
+##     def _get_very_unsafe(self, i, j):
+##         r"""
+##         Entry access, but potentially fast since it might be without
+##         bounds checking.  (I know of no cases where this is actually
+##         faster.)
+
+##         This function it can very easily !! SEG FAULT !! if you call
+##         it with invalid input.  Use with *extreme* caution.
+
+##         EXAMPLES:
+##             sage: a = matrix(ZZ,2,range(4))
+##             sage: a._get_very_unsafe(0,1)
+##             1
+
+##         If you do \code{a.\_get\_very\_unsafe(0,10)} you'll very likely crash SAGE
+##         completely.
+##         """
+##         return self.get_unsafe(i, j)
 
     def __iter__(self):
         return matrix_misc.row_iterator(self)
@@ -660,6 +680,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             TypeError: matrix has denominators so can't change to ZZ.
         """
+        if not is_Ring(ring):
+            raise TypeError, "ring must be a ring"
+
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self
@@ -711,6 +734,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         if nr == 0 or nc == 0:
             return "[]"
 
+        row_divs, col_divs = self.get_subdivisions()
+
         # compute column widths
         S = []
         for x in self.list():
@@ -724,11 +749,25 @@ cdef class Matrix(sage.structure.element.Matrix):
         rows = []
         m = 0
 
+        left_bracket = "["
+        right_bracket = "]"
+        while nc in col_divs:
+            right_bracket = "|" + right_bracket
+            col_divs.remove(nc)
+        while 0 in col_divs:
+            left_bracket += "|"
+            col_divs.remove(0)
+        line = '+'.join(['-'*((width+1)*(b-a)-1) for a,b in zip([0] + col_divs, col_divs + [nc])])
+        hline = (left_bracket + line + right_bracket).replace('|', '+')
+
         # compute rows
         for r from 0 <= r < nr:
+            rows += [hline] * row_divs.count(r)
             s = ""
             for c from 0 <= c < nc:
-                if c == nc - 1:
+                if c+1 in col_divs:
+                    sep = "|"*col_divs.count(c+1)
+                elif c == nc - 1:
                     sep=""
                 else:
                     sep=" "
@@ -737,13 +776,11 @@ cdef class Matrix(sage.structure.element.Matrix):
                     m = max(m, len(entry))
                 entry = " "*(width-len(entry)) + entry
                 s = s + entry + sep
-            rows.append(s)
+            rows.append(left_bracket + s + right_bracket)
 
-        # Put brackets around in a single string
-        tmp = []
-        for row in rows:
-            tmp.append("[%s]"%row)
-        s = "\n".join(tmp)
+        rows += [hline] * row_divs.count(nr)
+
+        s = "\n".join(rows)
         #self.cache('repr',s)
         return s
 
@@ -797,24 +834,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         if nr == 0 or nc == 0:
             return "()"
 
-        # compute column widths
-        S = []
-        for x in self.list():
-            S.append(str(x))
-
-        tmp = []
-        for x in S:
-            tmp.append(len(x))
-
-        width = max(tmp)
-
         S = self.list()
         rows = []
         m = 0
 
+        row_divs, col_divs = self.get_subdivisions()
+
         # compute rows
         latex = sage.misc.latex.latex
         for r from 0 <= r < nr:
+#            if r in row_divs:
+#                rows.append("\\hline")*row_divs.count(r) # jsmath doesn't understand?
             s = ""
             for c from 0 <= c < nc:
                 if c == nc-1:
@@ -826,13 +856,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     m = max(m, len(entry))
                 s = s + entry + sep
             rows.append(s)
+#        if nr in row_divs
+#            rows.append("\\hline")*row_divs.count(nr)
 
         # Put brackets around in a single string
         tmp = []
         for row in rows:
-            tmp.append("%s"%row)
+            tmp.append(str(row))
         s = "\\\\\n".join(tmp)
-        return "\\left(\\begin{array}{%s}\n"%('r'*nc) + s + "\n\\end{array}\\right)"
+
+        tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
+        format = '|'.join(tmp)
+
+        return "\\left(\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right)"
 
 
 
@@ -1283,7 +1319,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,2,range(4),sparse=True).is_dense()
             False
         """
-        return bool(self.is_dense_c())
+        return self.is_dense_c()
 
     def is_sparse(self):
         """
@@ -1298,7 +1334,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,2,range(4),sparse=True).is_sparse()
             True
         """
-        return bool(self.is_sparse_c())
+        return self.is_sparse_c()
 
     def is_square(self):
         """
@@ -1311,7 +1347,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(QQ,2,3,range(6)).is_square()
             False
         """
-        return bool(self._nrows == self._ncols)
+        return self._nrows == self._ncols
 
     def is_invertible(self):
         r"""
@@ -1907,7 +1943,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b*c; d
             Traceback (most recent call last):
             ...
-            TypeError: Base rings must be the same.
+            TypeError: No base extension defined
             sage: d = b*c.change_ring(GF(7)); d
             [2 3]
             [6 4]
@@ -2018,7 +2054,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             return self._multiply_classical(right)
 
-    cdef int _will_use_strassen(self, Matrix right) except -2:
+    cdef bint _will_use_strassen(self, Matrix right) except -2:
         """
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
@@ -2035,7 +2071,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             return 1
         return 0
 
-    cdef int _will_use_strassen_echelon(self) except -2:
+    cdef bint _will_use_strassen_echelon(self) except -2:
         """
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
@@ -2147,6 +2183,9 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Comparison
     ###################################################
+    def __hash__(self):
+        return self._hash()
+
     cdef long _hash(self) except -1:
         raise NotImplementedError
 

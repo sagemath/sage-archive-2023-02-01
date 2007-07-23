@@ -188,6 +188,8 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
 ## [[1318, 'Generalized pentagonal numbers: n(3n-1)/2, n=0, +- 1, +- 2,....', [0, 1, 2, 5, 7, 12, 15, 22, 26, 35, 40, 51, 57, 70, 77, 92, 100, 117, 126, 145, 155, 176, 187, 210, 222, 247, 260, 287, 301, 330, 345, 376, 392, 425, 442, 477, 495, 532, 551, 590, 610, 651, 672, 715, 737, 782, 805, 852, 876, 925, 950, 1001, 1027, 1080, 1107, 1162, 1190, 1247, 1276, 1335]]]
 ## }}}
 
+from sage.rings.all import Integer
+
 def delta_qexp(prec=10, var='q'):
     """
     Return the q-expansion of Delta as a power series with
@@ -208,24 +210,36 @@ def delta_qexp(prec=10, var='q'):
         Traceback (most recent call last):
         ...
         ValueError: prec must be positive
+
+    AUTHORS:
+        -- William Stein: original code
+        -- David Harvey (2007-05): sped up first squaring step
     """
     if prec <= 0:
         raise ValueError, "prec must be positive"
     v = [0] * prec
-    stop = int((-1+math.sqrt(1+8*prec))/2.0)
-    for n in range(stop+1):
-        k = 2*n+1
-        if n % 2 != 0:
-            k = -k
-        try:
-            v[n*(n+1)//2] = k
-        except IndexError:
-            break
 
+    # Let F = \sum_{n >= 0} (-1)^n (2n+1) q^(floor(n(n+1)/2)).
+    # Then delta is F^8.
+
+    # First compute F^2 directly by naive polynomial multiplication,
+    # since F is very sparse.
+
+    stop = int((-1+math.sqrt(1+8*prec))/2.0)
+    # make list of index/value pairs for the sparse poly
+    values = [(n*(n+1)//2, ((-2*n-1) if (n & 1) else (2*n+1))) \
+              for n in range(stop+1)]
+
+    for (i1, v1) in values:
+        for (i2, v2) in values:
+            try:
+                v[i1 + i2] += v1 * v2
+            except IndexError:
+                break
+
+    # then use NTL to compute the remaining fourth power
     f = ntl.ZZX(v)
     t = verbose('made series')
-    f = (f*f).truncate(prec)
-    t = verbose('squared (1 of 3)', t)
     f = (f*f).truncate(prec)
     t = verbose('squared (2 of 3)', t)
     f = (f*f).truncate(prec)

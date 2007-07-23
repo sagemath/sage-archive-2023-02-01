@@ -32,7 +32,7 @@ ai = arith_llong()
 # Hard coded because currently matrix_modn_dense is implemented using C ints
 # which are always 32-bit.   Once this gets firxed, i.e., there is a better
 # matrix_modn class, then this can change.
-MAX_MODULUS = 46340
+MAX_MODULUS = 46341
 
 # TODO: have one global instance for sharing, copy for MutableMultiModularBasis
 cdef class MultiModularBasis_base:

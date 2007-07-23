@@ -90,11 +90,11 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.private_key = keys.getPrivateKeyObject(
                             data=TEST_PRIV_KEY)
         self.public_key = keys.getPublicKeyObject(self.public_key_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -201,11 +201,11 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         self.private_key = keys.getPrivateKeyObject(
                             data=TEST_PRIV_KEY)
         self.public_key = keys.getPublicKeyObject(self.public_key_str)
-        self.alg_name = 'rsa'
+        self.algorithm = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.alg_name,
+                                               self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
@@ -254,7 +254,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
 
     def testremote_job_done(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"
@@ -266,10 +267,12 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         return d
 
     def _job_done(self, remoteobj, jdict):
+        import time
         job_id = jdict['job_id']
         result = jdict['result']
         d = remoteobj.callRemote('job_done', job_id,
-                                 'Nothing.', result, False)
+                                 'Nothing.', result, False,
+                                 time.time() - time.time())
         d.addCallback(self._done_job)
 
         return d

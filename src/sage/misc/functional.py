@@ -427,6 +427,8 @@ def integral(x, *args, **kwds):
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
         sage: integral(sin(x),x)
         -cos(x)
+
+        sage: y = var('y')
         sage: integral(sin(x),y)
         sin(x)*y
         sage: integral(sin(x), x, 0, pi/2)

@@ -31,9 +31,6 @@ cdef class Ring(ParentWithGens):
     """
     Generic ring class.
     """
-    def __init__(self):
-        pass
-
     def __call__(self, x):
         """
         Coerce x into the ring.
@@ -264,6 +261,28 @@ cdef class Ring(ParentWithGens):
             self._zero_element = x
             return x
         return self._zero_element
+
+    def one_element(self):
+        """
+        Return the one element of this ring (cached), if it exists.
+
+        EXAMPLES:
+            sage: ZZ.one_element()
+            1
+            sage: QQ.one_element()
+            1
+            sage: QQ['x'].one_element()
+            1
+
+        The result is cached:
+            sage: ZZ.one_element() is ZZ.one_element()
+            True
+        """
+        if self._one_element is None:
+            x = self(1)
+            self._one_element = x
+            return x
+        return self._one_element
 
     def is_atomic_repr(self):
         """
@@ -851,7 +870,7 @@ def is_Field(x):
         sage: is_Field(5)
         False
     """
-    return bool(isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field()))
+    return isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field())
 
 cdef class Field(PrincipalIdealDomain):
     """
@@ -1343,6 +1362,6 @@ def is_Ring(x):
         sage: is_Ring(ZZ)
         True
     """
-    return bool(isinstance(x, Ring))
+    return isinstance(x, Ring)
 
 

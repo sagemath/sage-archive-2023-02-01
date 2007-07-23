@@ -1,28 +1,164 @@
 r"""
-Graph Database
+Graph Database Module
 
 INFO:
 
-    This class interfaces with the sqlite database graphs.db.  The database
-    contains all unlabeled graphs with 7 or fewer nodes.  This class will
-    also interface with the optional database package containing all
-    unlabeled graphs with 8 or fewer nodes.  The database(s) consists of
-    five tables: aut_grp, degrees, graph_data, misc and spectrum.  graph_data
-    will be searched automatically for any query, and the other tables will
-    be searched as necessary.  (Display functions require that all tables
-    be searched).
+    This module implements classes (GraphDatabase, GraphQuery, GenericGraphQuery)
+    for interfacing with the sqlite database graphs.db.
+
+    The GraphDatabase class interfaces with the sqlite database graphs.db.
+    It is an immutable database that inherits from SQLDatabase (see
+    sage.databases.database.py).  The display functions and get_list create
+    their own queries, but it is also possible to query the database by
+    constructing either a GenericSQLQuery or a SQLQuery.
+
+    The database contains all unlabeled graphs with 7 or fewer nodes.
+    This class will also interface with the optional database package
+    containing all unlabeled graphs with 8 or fewer nodes.
+    The database(s) consists of five tables, and has the structure given
+    by the skeleton:
+    \begin{verbatim}
+    {'aut_grp': {'aut_grp_size': {'index': True,
+                                    'primary_key': False,
+                                    'sql': 'INTEGER'},
+                  'edge_transitive': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'BOOLEAN'},
+                  'graph_id': {'index': False,
+                                'primary_key': False,
+                                'sql': 'INTEGER'},
+                  'num_fixed_points': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'INTEGER'},
+                  'num_orbits': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'INTEGER'},
+                  'vertex_transitive': {'index': True,
+                                         'primary_key': False,
+                                         'sql': 'BOOLEAN'}},
+     'degrees': {'average_degree': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'REAL'},
+                  'degree_sequence': {'index': False,
+                                       'primary_key': False,
+                                       'sql': 'INTEGER'},
+                  'degrees_sd': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'REAL'},
+                  'graph_id': {'index': False,
+                                'primary_key': False,
+                                'sql': 'INTEGER'},
+                  'max_degree': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'INTEGER'},
+                  'min_degree': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'INTEGER'},
+                  'regular': {'index': True,
+                               'primary_key': False,
+                               'sql': 'BOOLEAN'}},
+     'graph_data': {'complement_graph6': {'index': True,
+                                            'primary_key': False,
+                                            'sql': 'TEXT'},
+                     'eulerian': {'index': True,
+                                   'primary_key': False,
+                                   'sql': 'BOOLEAN'},
+                     'graph6': {'index': True,
+                                 'primary_key': False,
+                                 'sql': 'TEXT'},
+                     'graph_id': {'index': True,
+                                   'primary_key': False,
+                                   'sql': 'INTEGER'},
+                     'lovasz_number': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'REAL'},
+                     'num_cycles': {'index': True,
+                                     'primary_key': False,
+                                     'sql': 'INTEGER'},
+                     'num_edges': {'index': True,
+                                    'primary_key': False,
+                                    'sql': 'INTEGER'},
+                     'num_hamiltonian_cycles': {'index': True,
+                                                 'primary_key': False,
+                                                 'sql': 'INTEGER'},
+                     'num_vertices': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'INTEGER'},
+                     'perfect': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'BOOLEAN'},
+                     'planar': {'index': True,
+                                 'primary_key': False,
+                                 'sql': 'BOOLEAN'}},
+     'misc': {'clique_number': {'index': True,
+                                  'primary_key': False,
+                                  'sql': 'INTEGER'},
+               'diameter': {'index': True,
+                             'primary_key': False,
+                             'sql': 'INTEGER'},
+               'edge_connectivity': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'BOOLEAN'},
+               'girth': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+               'graph_id': {'index': False,
+                             'primary_key': False,
+                             'sql': 'INTEGER'},
+               'independence_number': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'INTEGER'},
+               'induced_subgraphs': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'TEXT'},
+               'min_vertex_cover_size': {'index': True,
+                                          'primary_key': False,
+                                          'sql': 'INTEGER'},
+               'num_components': {'index': True,
+                                   'primary_key': False,
+                                   'sql': 'INTEGER'},
+               'num_cut_vertices': {'index': True,
+                                     'primary_key': False,
+                                     'sql': 'INTEGER'},
+               'num_spanning_trees': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'INTEGER'},
+               'radius': {'index': True,
+                           'primary_key': False,
+                           'sql': 'INTEGER'},
+               'vertex_connectivity': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'BOOLEAN'}},
+     'spectrum': {'eigenvalues_sd': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'REAL'},
+                   'energy': {'index': True,
+                               'primary_key': False,
+                               'sql': 'REAL'},
+                   'graph_id': {'index': False,
+                                 'primary_key': False,
+                                 'sql': 'INTEGER'},
+                   'max_eigenvalue': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'REAL'},
+                   'min_eigenvalue': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'REAL'},
+                   'spectrum': {'index': False,
+                                 'primary_key': False,
+                                 'sql': 'TEXT'}}}
+    \end{verbatim}
+
+    The automatically generated queries will search graph_data
+    automatically, and the other tables will be searched as necessary.
+    (Display functions require that all tablesbe searched).
 
 USE:
-
-    To see a list of all functions, type "graphs_query." and then press the
-    tab key.  All functions take the search parameters as arguments.
-
     The tables are associated by the unique primary key graph_id (int).
 
-    For any of the functions, the query parameter allows the user to input
-    the sqlite call directly as a string.  Otherwise, the user can enter
-    the individual parameters and the sqlite call will be generated by the
-    function.
+    For the query generating functions (display functions and get_list),
+    the query parameter allows the user to input any GenericSQLQuery
+    associated with this database.  Otherwise, the user can enter
+    the individual parameters and the sqlite call will be generated by
+    the function.
 
     The properties currently used as search parameters are:
     \begin{verbatim}
@@ -74,20 +210,23 @@ USE:
 
 VISUALIZATION:
 
-    There are currently three options for displaying the results of a
-    query.  Each of these functions displays an image of the graph and
-    it's graph6 string in a results table.
+    Beyond the typical show function, there are three options for displaying
+    the results of a query.  When running the notebook, each of these functions
+    displays an image of the graph and it's (canonical label) graph6 string
+    in an html results table.
 
     \begin{verbatim}
         - display_all (displays all the database properties in the results
           table).
         - display_tables (displays all the properties in the database tables
-          listed by the user).
+          that are listed by the user).
         - display_properties (displays all the individual properties
           specified by the user).
     \end{verbatim}
 
 AUTHORS:
+    -- Emily A. Kirkman (2007-07-23): inherits GenericSQLDatabase, also added
+                                    classes: GraphQuery and GenericGraphQuery
     -- Emily A. Kirkman (2007-05-11): initial sqlite version
     -- Emily A. Kirkman (2007-02-13): initial version (non-sqlite)
 
@@ -127,14 +266,64 @@ def regexp(expr, item):
 
 class GenericGraphQuery(GenericSQLQuery):
     """
+    A query for a GraphDatabase.
+
+    INPUT:
+        database -- the GraphDatabase instance to query
+        query_string -- a string representing the SQL query
+        param_tuple -- a tuple of strings - what to replace question marks in
+                query_string with (optional, but a good idea)
+
+    NOTE:
+        This query class is generally intended for developers and more
+        advanced users.  It allows you to execute any query, and so may be
+        considered unsafe...
+
+        See GraphDatabase class docstrings or enter:
+
+        sage: G = GraphDatabase()
+        sage.: G.get_skeleton()
+
+        to see the underlying structure of the database.  Also see
+        GenericSQLQuery in sage.databases.database for more info and a tutorial.
+
+        A piece of advice about '?' and param_tuple:
+        It is generally considered safer to query with a '?' in place of
+        each value parameter, and using a second argument (a tuple of strings)
+        in a call to the sqlite database.  Successful use of the param_tuple
+        argument is exemplified:
+
+        sage: G = GraphDatabase()
+        sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+        sage: param = (22,5)
+        sage: Q = GenericSQLQuery(G,q,param)
+        sage: Q.show()
+        graph_id             graph6               num_vertices         num_edges
+        --------------------------------------------------------------------------------
+        18                   D??                  5                    0
+        19                   D?C                  5                    1
+        20                   D?K                  5                    2
+        21                   D@O                  5                    2
+        22                   D?[                  5                    3
+
     """
     def __init__(self, database, query_string, param_tuple=None):
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         GenericSQLQuery.__init__(self,database,query_string,param_tuple)
 
-    def show(self, max_field_size=20, html_table=False, picture=False):
+    def show(self, max_field_size=20, html_table=False, with_picture=False):
         """
+        Displays the results of a query in table format.
+
+        INPUT:
+            max_field_size -- width of fields in command prompt version
+            html_table -- whether or not to draw table in html format
+            with_picture -- whether or not to display results with a picture
+                of the graph
+
+        EXAMPLES:
+        TODO
         """
         if picture:
             from sage.plot.plot import plot
@@ -186,6 +375,150 @@ class GenericGraphQuery(GenericSQLQuery):
 
 class GraphQuery(SQLQuery):
     """
+    A query for an instance of GraphDatabase.  This class nicely wraps
+    the SQLQuery class located in sage.databases.database.py to make the
+    query constraints intuitive and with as many predefinitions as posible.
+    (i.e.: since it has to be a GraphDatabase, we already know the table
+    structure and types; and since it is immutable, we can treat these as
+    a guarantee).
+
+    NOTE:
+        SQLQuery functions are available for GraphQuery.
+
+    TUTORIAL:
+    TODO
+
+    INPUT:
+        database -- the instance of GraphDatabase to apply query to
+        query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
+        layout -- (String) The layout option for the graph image.  Options include:
+                           'circular' -- plots the graph with vertices evenly
+                                         distributed on a circle
+                           'spring' -- uses the traditional spring layout
+        aut_grp_size -- (Integer) The desired size of the automorphism group.
+                        (List) Format: [<String>,<Integer>] WHERE the first
+                                       entry represents an inequality:
+                                       '=','>','<','>=','<='
+        average_degree -- (Real) The desired average degree.
+                          (List) Format: [<String>,<Real>] WHERE the first
+                                         entry represents an inequality:
+                                         '=','>','<','>=','<='
+        clique_number -- (Integer) The desired clique number.
+                         (List) Format: [<String>,<Integer>] WHERE the first
+                                        entry represents an inequality:
+                                        '=','>','<','>=','<='
+        complement_graph6 -- (String) A graph6 string isomorphic to the
+                                      desired complement graph.
+                             (List) A list of graph6 strings.  Will search
+                                    for graphs with complement isomorphic to
+                                    any string in the list.
+        degree_sequence -- (Integer) The desired sequence of degrees.
+                                     (Ordered highest to lowest).
+        degrees_sd -- (Real) The desired standard deviation of degrees.
+                      (List) Format: [<String>,<Real>] WHERE the first
+                                     entry represents an inequality:
+                                     '=','>','<','>=','<='
+        diameter -- (Real) The desired diameter.
+                    (List) Format: [<String>,<Real>] WHERE the first
+                                    entry represents an inequality:
+                                    '=','>','<','>=','<='
+        edge_connectivity -- (Integer) The desired edge connectivity.
+                             (List) Format: [<String>,<Integer>] WHERE the first
+                                    entry represents an inequality:
+                                    '=','>','<','>=','<='
+        edge_transitive -- (Boolean)
+        eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
+                          (List) Format: [<String>,<Real>] WHERE the first
+                                 entry represents an inequality:
+                                 '=','>','<','>=','<='
+        energy -- (Real) The desired energy.
+                  (List) Format: [<String>,<Real>] WHERE the first entry
+                                 represents an inequality: '=','>','<','>=','<='
+        eulerian -- (Boolean)
+        girth -- (Integer) The desired girth.
+                 (List) Format: [<String>,<Integer>] WHERE the first entry
+                                represents an inequality: '=','>','<','>=','<='
+        graph6 -- (String) A graph6 string isomorphic to the desired graph.
+                  (List) A list of graph6 strings.  Will search for graphs
+                         isomorphic to any string in the list.
+        independence_number -- (Integer) The desired independence number.
+                               (List) Format: [<String>,<Integer>] WHERE the
+                               first entry represents an inequality:
+                               '=','>','<','>=','<='
+        induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
+                             (List) Format options:
+                                    1. ['one_of',<String>,...,<String>]
+                                       Will search for graphs containing a subgraph
+                                       isomorphic to any of the graph6 strings in
+                                       the list.
+                                    2. ['all_of',<String>,...,<String>]
+                                       Will search for graphs containing a subgraph
+                                       isomorphic to each of the graph6 strings in
+                                       the list.
+        lovasz_number -- (Real) The desired lovasz number.
+                         (List) Format: [<String>,<Real>] WHERE the first entry
+                                represents an inequality: '=','>','<','>=','<='
+        max_degree -- (Integer) The desired maximum degree.
+                      (List) Format: [<String>,<Integer>] WHERE the first entry
+                             represents an inequality: '=','>','<','>=','<='
+        max_eigenvalue -- (Real) The desired maximum eigenvalue.
+                          (List) Format: [<String>,<Real>] WHERE the first entry
+                                 represents an inequality: '=','>','<','>=','<='
+        min_degree -- (Integer) The desired minimum degree.
+                      (List) Format: [<String>,<Integer>] WHERE the first entry
+                             represents an inequality: '=','>','<','>=','<='
+        min_eigenvalue -- (Real) The desired minimum eigenvalue.
+                          (List) Format: [<String>,<Real>] WHERE the first entry
+                                 represents an inequality: '=','>','<','>=','<='
+        min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
+                                 (List) Format: [<String>,<Integer>] WHERE the
+                                        first entry represents an inequality:
+                                        '=','>','<','>=','<='
+        num_components -- (Integer) The desired number of components.
+                          (List) Format: [<String>,<Integer>] WHERE the first
+                                 entry represents an inequality:
+                                 '=','>','<','>=','<='
+        num_cut_vertices -- (Integer) The desired number of cut vertices.
+                            (List) Format: [<String>,<Integer>] WHERE the first
+                                 entry represents an inequality:
+                                 '=','>','<','>=','<='
+        num_cycles -- (Integer) The desired number of cycles.
+                      (List) Format: [<String>,<Integer>] WHERE the first entry
+                             represents an inequality: '=','>','<','>=','<='
+        num_edges -- (Integer) The desired number of edges.
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
+                            represents an inequality: '=','>','<','>=','<='
+        num_fixed_points -- (Integer) The desired number of fixed points.
+                            (List) Format: [<String>,<Integer>] WHERE the first
+                                   entry represents an inequality:
+                                   '=','>','<','>=','<='
+        num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
+                                  (List) Format: [<String>,<Integer>] WHERE the first
+                                         entry represents an inequality:
+                                         '=','>','<','>=','<='
+        num_orbits -- (Integer) The desired number of orbits.
+                      (List) Format: [<String>,<Integer>] WHERE the first entry
+                             represents an inequality: '=','>','<','>=','<='
+        num_spanning_trees -- (Integer) The desired number of spanning trees.
+                              (List) Format: [<String>,<Integer>] WHERE the first
+                                     entry represents an inequality:
+                                     '=','>','<','>=','<='
+        num_vertices -- (Integer) The desired number of vertices.
+                        (List) Format: [<String>,<Integer>] WHERE the first entry
+                        represents an inequality: '=','>','<','>=','<='
+        perfect -- (Boolean)
+        planar -- (Boolean)
+        radius -- (Integer) The desired radius.
+                  (List) Format: [<String>,<Integer>] WHERE the first entry represents
+                         an inequality: '=','>','<','>=','<='
+        regular -- (Boolean)
+        spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
+                             delimited by ', ' and rounded to 6 decimal places).
+        vertex_connectivity -- (Integer) The desired vertex connectivity.
+                               (List) Format: [<String>,<Integer>] WHERE the first
+                                      entry represents an inequality:
+                                      '=','>','<','>=','<='
+        vertex_transitive -- (Boolean)
     """
     def __init__(self, database, graph6=None, num_vertices=None, \
                     num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, \
@@ -214,90 +547,234 @@ class GraphDatabase(GenericSQLDatabase):
     r"""
     Graph Database
 
-    This class interfaces with the sqlite database graphs.db.  The database
-    contains all unlabeled graphs with 7 or fewer nodes.  This class will
-    also interface with the optional database package containing all
-    unlabeled graphs with 8 or fewer nodes.  The database(s) consists of
-    five tables: aut_grp, degrees, graph_data, misc and spectrum.  graph_data
-    will be searched automatically for any query, and the other tables will
-    be searched as necessary.  (Display functions require that all tables
-    be searched).
+    INFO:
 
-    To see a list of all functions, type "graphs_query." and then press the
-    tab key.  All functions take the search parameters as arguments.
+        This class interfaces with the sqlite database graphs.db.  It is an
+        immutable database that inherits from SQLDatabase (see
+        sage.databases.database.py).  The display functions and get_list create
+        their own queries, but it is also possible to query the database by
+        constructing either a GenericSQLQuery or a SQLQuery.
 
-    The tables are associated by the unique primary key graph_id (int).
+        The database contains all unlabeled graphs with 7 or fewer nodes.
+        This class will also interface with the optional database package
+        containing all unlabeled graphs with 8 or fewer nodes.
+        The database(s) consists of five tables, and has the structure given
+        by the skeleton:
+        \begin{verbatim}
+        {'aut_grp': {'aut_grp_size': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'INTEGER'},
+                      'edge_transitive': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'BOOLEAN'},
+                      'graph_id': {'index': False,
+                                    'primary_key': False,
+                                    'sql': 'INTEGER'},
+                      'num_fixed_points': {'index': True,
+                                            'primary_key': False,
+                                            'sql': 'INTEGER'},
+                      'num_orbits': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'INTEGER'},
+                      'vertex_transitive': {'index': True,
+                                             'primary_key': False,
+                                             'sql': 'BOOLEAN'}},
+         'degrees': {'average_degree': {'index': True,
+                                          'primary_key': False,
+                                          'sql': 'REAL'},
+                      'degree_sequence': {'index': False,
+                                           'primary_key': False,
+                                           'sql': 'INTEGER'},
+                      'degrees_sd': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'REAL'},
+                      'graph_id': {'index': False,
+                                    'primary_key': False,
+                                    'sql': 'INTEGER'},
+                      'max_degree': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'INTEGER'},
+                      'min_degree': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'INTEGER'},
+                      'regular': {'index': True,
+                                   'primary_key': False,
+                                   'sql': 'BOOLEAN'}},
+         'graph_data': {'complement_graph6': {'index': True,
+                                                'primary_key': False,
+                                                'sql': 'TEXT'},
+                         'eulerian': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'BOOLEAN'},
+                         'graph6': {'index': True,
+                                     'primary_key': False,
+                                     'sql': 'TEXT'},
+                         'graph_id': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'INTEGER'},
+                         'lovasz_number': {'index': True,
+                                            'primary_key': False,
+                                            'sql': 'REAL'},
+                         'num_cycles': {'index': True,
+                                         'primary_key': False,
+                                         'sql': 'INTEGER'},
+                         'num_edges': {'index': True,
+                                        'primary_key': False,
+                                        'sql': 'INTEGER'},
+                         'num_hamiltonian_cycles': {'index': True,
+                                                     'primary_key': False,
+                                                     'sql': 'INTEGER'},
+                         'num_vertices': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'INTEGER'},
+                         'perfect': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'BOOLEAN'},
+                         'planar': {'index': True,
+                                     'primary_key': False,
+                                     'sql': 'BOOLEAN'}},
+         'misc': {'clique_number': {'index': True,
+                                      'primary_key': False,
+                                      'sql': 'INTEGER'},
+                   'diameter': {'index': True,
+                                 'primary_key': False,
+                                 'sql': 'INTEGER'},
+                   'edge_connectivity': {'index': True,
+                                          'primary_key': False,
+                                          'sql': 'BOOLEAN'},
+                   'girth': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                   'graph_id': {'index': False,
+                                 'primary_key': False,
+                                 'sql': 'INTEGER'},
+                   'independence_number': {'index': True,
+                                            'primary_key': False,
+                                            'sql': 'INTEGER'},
+                   'induced_subgraphs': {'index': True,
+                                          'primary_key': False,
+                                          'sql': 'TEXT'},
+                   'min_vertex_cover_size': {'index': True,
+                                              'primary_key': False,
+                                              'sql': 'INTEGER'},
+                   'num_components': {'index': True,
+                                       'primary_key': False,
+                                       'sql': 'INTEGER'},
+                   'num_cut_vertices': {'index': True,
+                                         'primary_key': False,
+                                         'sql': 'INTEGER'},
+                   'num_spanning_trees': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'INTEGER'},
+                   'radius': {'index': True,
+                               'primary_key': False,
+                               'sql': 'INTEGER'},
+                   'vertex_connectivity': {'index': True,
+                                            'primary_key': False,
+                                            'sql': 'BOOLEAN'}},
+         'spectrum': {'eigenvalues_sd': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'REAL'},
+                       'energy': {'index': True,
+                                   'primary_key': False,
+                                   'sql': 'REAL'},
+                       'graph_id': {'index': False,
+                                     'primary_key': False,
+                                     'sql': 'INTEGER'},
+                       'max_eigenvalue': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'REAL'},
+                       'min_eigenvalue': {'index': True,
+                                           'primary_key': False,
+                                           'sql': 'REAL'},
+                       'spectrum': {'index': False,
+                                     'primary_key': False,
+                                     'sql': 'TEXT'}}}
+        \end{verbatim}
 
-    For any of the functions, the query parameter allows the user to input
-    the sqlite call directly as a string.  Otherwise, the user can enter
-    the individual parameters and the sqlite call will be generated by the
-    function.
+        The automatically generated queries will search graph_data
+        automatically, and the other tables will be searched as necessary.
+        (Display functions require that all tablesbe searched).
 
-    The properties currently used as search parameters are:
-    \begin{verbatim}
-        Table: aut_grp
-            - aut_grp_size (The size of the automorphism group - Integer)
-            - edge_transitive (Boolean)
-            - num_fixed_points (Integer)
-            - num_orbits (Integer)
-            - vertex_transitive (Boolean)
-        Table: degrees
-            - average_degree (Real)
-            - degree_sequence (Integer)
-            - degrees_sd (Standard Deviation of degrees - Real)
-            - max_degree (Integer)
-            - min_degree (Integer)
-            - regular (Boolean)
-        Table: graph_data
-            - complement_graph6 (graph6 canonical label of the complement
-              graph - String)
-            - eulerian (Boolean)
-            - graph6 (canonical label - String)
-            - lovasz_number (Real)
-            - num_cycles (Integer)
-            - num_edges (Integer)
-            - num_hamiltonian_cycles (Integer)
-            - num_vertices (Integer)
-            - perfect (Boolean)
-            - planar (Boolean)
-        Table: misc
-            - clique_number (Integer)
-            - diameter (Real)
-            - edge_connectivity (Integer)
-            - girth (Integer)
-            - independence_number (Integer)
-            - induced_subgraphs (canonical label, use regexp - String)
-            - min_vertex_cover_size (Integer)
-            - num_components (Integer)
-            - num_cut_vertices (Integer)
-            - num_spanning_trees (Integer)
-            - radius (Real)
-            - vertex_connectivity (Integer)
-        Table: spectrum
-            - eigenvalues_sd (Standard Deviation of eigenvalues - Real)
-            - energy (Real)
-            - max_eigenvalue (Real)
-            - min_eigenvalue (Real)
-            - spectrum (String)
-    \end{verbatim}
+    USE:
+        The tables are associated by the unique primary key graph_id (int).
 
-    There are currently three options for displaying the results of a
-    query.  Each of these functions displays an image of the graph and
-    it's graph6 string in a results table.
+        For the query generating functions (display functions and get_list),
+        the query parameter allows the user to input any GenericSQLQuery
+        associated with this database.  Otherwise, the user can enter
+        the individual parameters and the sqlite call will be generated by
+        the function.
 
-    \begin{verbatim}
-        - display_all (displays all the database properties in the results
-          table).
-        - display_tables (displays all the properties in the database tables
-          listed by the user).
-        - display_properties (displays all the individual properties
-          specified by the user).
-    \end{verbatim}
+        The properties currently used as search parameters are:
+        \begin{verbatim}
+            Table: aut_grp
+                - aut_grp_size (The size of the automorphism group - Integer)
+                - edge_transitive (Boolean)
+                - num_fixed_points (Integer)
+                - num_orbits (Integer)
+                - vertex_transitive (Boolean)
+            Table: degrees
+                - average_degree (Real)
+                - degree_sequence (Integer)
+                - degrees_sd (Standard Deviation of degrees - Real)
+                - max_degree (Integer)
+                - min_degree (Integer)
+                - regular (Boolean)
+            Table: graph_data
+                - complement_graph6 (graph6 canonical label of the complement
+                  graph - String)
+                - eulerian (Boolean)
+                - graph6 (canonical label - String)
+                - lovasz_number (Real)
+                - num_cycles (Integer)
+                - num_edges (Integer)
+                - num_hamiltonian_cycles (Integer)
+                - num_vertices (Integer)
+                - perfect (Boolean)
+                - planar (Boolean)
+            Table: misc
+                - clique_number (Integer)
+                - diameter (Real)
+                - edge_connectivity (Integer)
+                - girth (Integer)
+                - independence_number (Integer)
+                - induced_subgraphs (canonical label, use regexp - String)
+                - min_vertex_cover_size (Integer)
+                - num_components (Integer)
+                - num_cut_vertices (Integer)
+                - num_spanning_trees (Integer)
+                - radius (Real)
+                - vertex_connectivity (Integer)
+            Table: spectrum
+                - eigenvalues_sd (Standard Deviation of eigenvalues - Real)
+                - energy (Real)
+                - max_eigenvalue (Real)
+                - min_eigenvalue (Real)
+                - spectrum (String)
+        \end{verbatim}
+
+    VISUALIZATION:
+
+        Beyond the typical show function, there are three options for displaying
+        the results of a query.  When running the notebook, each of these functions
+        displays an image of the graph and it's (canonical label) graph6 string
+        in an html results table.
+
+        \begin{verbatim}
+            - display_all (displays all the database properties in the results
+              table).
+            - display_tables (displays all the properties in the database tables
+              that are listed by the user).
+            - display_properties (displays all the individual properties
+              specified by the user).
+        \end{verbatim}
+
+    REFERENCES:
+        -- Data provided by Jason Grout (Brigham Young University).
+           [Online] Available: http://math.byu.edu/~grout/graphs/
+
     """
 
     def __init__(self):
         GenericSQLDatabase.__init__(self,dblocation)
-        self.__connection__.create_function("regexp", 2, regexp)
 
     def display_all(self, query=None, layout='circular', graph6=None, num_vertices=None, \
                     num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, \
@@ -317,9 +794,7 @@ class GraphDatabase(GenericSQLDatabase):
         properties and an image for each graph.
 
         INPUT:
-            query -- (String) A sqlite query for graphs.db (See examples below).
-                              The query string currently must lower case and begin with:
-                              'SELECT graph_data.graph6'
+            query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
             layout -- (String) The layout option for the graph image.  Options include:
                                'circular' -- plots the graph with vertices evenly
                                              distributed on a circle
@@ -450,6 +925,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
+        TODO
         The basics:
             sage.: graphs_query.display_all(num_vertices=5,lovasz_number=3.0,\
             ...                             girth=4,radius=2,diameter=3)
@@ -600,9 +1076,7 @@ class GraphDatabase(GenericSQLDatabase):
         properties FROM the specified database tables and an image for each graph.
 
         INPUT:
-            query -- (String) A sqlite query for graphs.db (See examples below).
-                              The query string currently must lower case and begin with:
-                              'SELECT graph_data.graph6'
+            query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
             tables -- (List) A list of strings with the exact name (as the
                              database tables) of the tables of properties to
                              display with the results.  Database table names are:
@@ -737,6 +1211,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
+        TODO
         The basics:
             sage.: graphs_query.display_tables(tables=['graph_data','misc'], num_vertices=5,\
             ...                             lovasz_number=3.0, girth=4, radius=2, diameter=3)
@@ -907,9 +1382,7 @@ class GraphDatabase(GenericSQLDatabase):
         properties and an image for each graph.
 
         INPUT:
-            query -- (String) A sqlite query for graphs.db (See examples below).
-                              The query string currently must lower case and begin with:
-                              'SELECT graph_data.graph6'
+            query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
             properties -- (List) A list of strings that are the exact name (as
                                  the following parameters) of the properties to
                                  display with the results.
@@ -1043,6 +1516,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
+        TODO
         The basics:
             sage.: graphs_query.display_properties(properties=['num_vertices','lovasz_number',\
             ...                             'girth','radius','diameter'], num_vertices=5,\
@@ -1240,9 +1714,7 @@ class GraphDatabase(GenericSQLDatabase):
         Returns a list of SAGE graphs according to provided parameters.
 
         INPUT:
-            query -- (String) A sqlite query for graphs.db (See examples below).
-                              The query string currently must lower case and begin with:
-                              'SELECT graph_data.graph6'
+            query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
             aut_grp_size -- (Integer) The desired size of the automorphism group.
                             (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
@@ -1369,6 +1841,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
+        TODO
             sage: g = graphs_query.get_list(num_vertices=5,lovasz_number=3.0,\
             ...                         girth=4,radius=2,diameter=3)
             ...
@@ -1452,9 +1925,7 @@ class GraphDatabase(GenericSQLDatabase):
         fewer vertices that meet the provided search parameters.
 
         INPUT:
-            query -- (String) A sqlite query for graphs.db (See examples below).
-                              The query string currently must lower case and begin with:
-                              'SELECT graph_data.graph6'
+            query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
             aut_grp_size -- (Integer) The desired size of the automorphism group.
                             (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
@@ -1581,6 +2052,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
+        TODO
             sage: graphs_query.number_of()
             1252
             sage: g = graphs_query.get_list(num_vertices=5,lovasz_number=3.0,\

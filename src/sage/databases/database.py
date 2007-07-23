@@ -1,12 +1,10 @@
 """
 TODO:
-1 - query_dict checking for intersect and union
-2 - If you look at the docstrings for SQLDatabase.add_column(), you might
-notice that there is no way to now set the values in the new column, without
-deleting all the rows. Maybe this is a SQLite thing...
+1.b - DOUBLE CHECK query_dict checking for intersect and union
+2. more eg's on union and intersect (compl)
 3 - Fix Notebook EMBEDDED_MODE stuff
 
-Databases.
+Relational (sqlite) Databases.
 
             skeleton -- a triple-indexed dictionary
                 outer key - table name
@@ -24,6 +22,7 @@ Databases.
 FUTURE TODOs (Ignore for now):
     - order by clause in query strings
     - delete from query containing joins
+    - add data by column
 """
 
 ################################################################################
@@ -129,7 +128,24 @@ class GenericSQLQuery(SageObject):
         advanced users. It allows you to execute any query, and so may be
         considered unsafe...
 
-    TODO -  TEACH PEOPLE ABOUT USING '?' AND TUPLES
+    A piece of advice about '?' and param_tuple:
+    It is generally considered safer to query with a '?' in place of
+    each value parameter, and using a second argument (a tuple of strings)
+    in a call to the sqlite database.  Successful use of the param_tuple
+    argument is exemplified:
+
+        sage: G = GraphDatabase()
+        sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+        sage: param = (22,5)
+        sage: Q = GenericSQLQuery(G,q,param)
+        sage: Q.show()
+        graph_id             graph6               num_vertices         num_edges
+        --------------------------------------------------------------------------------
+        18                   D??                  5                    0
+        19                   D?C                  5                    1
+        20                   D?K                  5                    2
+        21                   D@O                  5                    2
+        22                   D?[                  5                    3
 
     TUTORIAL:
     The SQLDatabase class is for interactively building databases intended for
@@ -276,7 +292,7 @@ class GenericSQLQuery(SageObject):
 
     def __repr__(self):
         s = "Query for sql database: "
-        s += self.__database__ + "\n"
+        s += self.__database__.__dblocation__ + "\n"
         s += "Query string: "
         s += self.__query_string__ + "\n"
         s += "Parameter tuple: "
@@ -287,14 +303,35 @@ class GenericSQLQuery(SageObject):
         """
         Returns a copy of the database, whose underlying file is also a copy
         of the original file.
-
         """
         return GenericSQLQuery(self.__database__, self.__query_string__, self.__param_tuple__)
 
     def run_query(self):
         """
-        TODO - documentation
+        Runs the query by executing the __query_string__.  Returns
 
+        EXAMPLES:
+            sage: G = GraphDatabase()sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)sage: Q = GenericSQLQuery(G,q,param)sage: Q.run_query()
+            [(18, u'D??', 5, 0),
+             (19, u'D?C', 5, 1),
+             (20, u'D?K', 5, 2),
+             (21, u'D@O', 5, 2),
+             (22, u'D?[', 5, 3)]
+
+            sage: R = SQLQuery(G,{'table_name':'graph_data', 'display_cols':'graph6', 'expression':['num_vertices','=',4]})
+            sage: R.run_query()
+            [(u'C?',),
+             (u'C@',),
+             (u'CB',),
+             (u'CK',),
+             (u'CF',),
+             (u'CJ',),
+             (u'CL',),
+             (u'CN',),
+             (u'C]',),
+             (u'C^',),
+             (u'C~',)]
         """
         try:
             #tup = str(self.__param_tuple__).rstrip(')') + ',)'
@@ -381,7 +418,7 @@ class SQLQuery(GenericSQLQuery):
         database -- a SQLDatabase or GenericSQLDatabase object
         query_dict -- a dictionary specifying the query itself. The format is:
 
-    {'table_name': 'tblname', 'display_cols': 'col1, col2, col3', 'expression':[col, operator, value]}
+    {'table_name': 'tblname', 'display_cols': ['col1', 'col2', 'col3'], 'expression':[col, operator, value]}
 
     NOTE:
         Every SQL type we are using is ultimately represented as a string, so
@@ -478,8 +515,8 @@ class SQLQuery(GenericSQLQuery):
     We can then query the database-- let's ask for all the graphs on four
     vertices with three edges. We do so by creating two queries and asking for
     rows that satisfy them both:
-        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['vertices','=',4]})
-        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['edges','=',3]})
+        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
+        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
         sage: Q = Q.intersect(Q2)
         sage: Q.run_query()
         [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
@@ -528,7 +565,7 @@ class SQLQuery(GenericSQLQuery):
         if query_dict is not None:
             if not database.__skeleton__.has_key(query_dict['table_name']):
                 raise ValueError("Database has no table %s."%query_dict['table_name'])
-            for column in [a.strip() for a in query_dict['display_cols'].split(',')]:
+            for column in query_dict['display_cols']:
                 if not database.__skeleton__[query_dict['table_name']].has_key(column):
                     raise ValueError("Table has no column %s."%column)
             if not database.__skeleton__[query_dict['table_name']].has_key(query_dict['expression'][0]):
@@ -551,8 +588,10 @@ class SQLQuery(GenericSQLQuery):
 
         # make query string:
         if self.__query_dict__ is not None:
-            self.__query_string__ = 'SELECT ' + self.__query_dict__['table_name'] + \
-                                    '.' + self.__query_dict__['display_cols'] + \
+            # display cols:
+            for i in range(len(self.__query_dict__['display_cols'])):
+                self.__query_dict__['display_cols'][i] = self.__query_dict__['table_name'] + '.'+ self.__query_dict__['display_cols'][i]
+            self.__query_string__ = 'SELECT ' + ', '.join(self.__query_dict__['display_cols']) + \
                                     ' FROM ' + self.__query_dict__['table_name'] + \
                                     ' WHERE ' + self.__query_dict__['table_name'] + '.' + \
                                     self.__query_dict__['expression'][0] + ' ' + \
@@ -565,14 +604,28 @@ class SQLQuery(GenericSQLQuery):
         Returns a copy of itself.
 
         """
-        return SQLQuery(self.__database__, self.__query_dict__)
+        d = SQLQuery(self.__database__)
+        d.__query_string__ = self.__query_string__
+        return d
 
     def intersect(self, other, join_table=None, join_dict=None):
         """
-        TODO - better documentation
+        Returns a new SQLQuery that is the intersection of self and other.
+        join_table and join_dict can be None iff the two queries only search
+        one table in the database.  All display columns will be concatenated in
+        order: self display cols + other display cols.
 
-        join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
-        join_table -- base table to join on
+        INPUT:
+            other -- the SQLQuery to intersect with
+            join_table -- base table to join on (This table should have at least
+                one column in each table to join on).
+            join_dict -- a dictionary that represents the join structure for the
+                new query.  (Must include a mapping for all tables, including
+                those previously joined in either query).  Structure is given
+                by:
+                    {'join_table1': ('corr_base_col1', 'col1'), 'join_table2': ('corr_base_col2', 'col2')}
+                where join_table1 is to be joined with join_table on
+                    join_table.corr_base_col1 = join_table1.col1
 
         EXAMPLES:
             sage: DB = SQLDatabase()
@@ -583,18 +636,23 @@ class SQLQuery(GenericSQLQuery):
             sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
             sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
             sage: s = q.intersect(r, 'simon', {'lucy':('a1','a1')})
-            sage: s.__query_string__
-            'SELECT lucy.b2,simon.a1 FROM simon INNER JOIN lucy ON simon.a1=lucy.a1 WHERE ( lucy.a1 = ? ) AND ( simon.b2 <= ? )'
             sage: s.run_query()
             [(1, 1), (4, 1)]
         """
 
-        # TODO : Check same database for all joins (i.e.: join_table1 and join_table2 are in same database)
+        if self.__database__ != other.__database__:
+            raise TypeError('Queries %s and %s must be attached to the same database.'%(self, other))
+        if join_table is None or join_dict is None:
+            pattern = ' JOIN '
+            if re.search(pattern,self.__query_string__) or re.search(pattern,other.__query_string__):
+                raise TypeError('Input queries have joins but join parameters are NoneType.')
+            s = ((self.__query_string__).upper()).split('FROM ')
+            o = ((other.__query_string__).upper()).split('FROM ')
+            s = s[1].split(' WHERE ')
+            o = o[1].split(' WHERE ')
+            if s != o:
+                raise ValueError('Input queries query different tables but join parameters are NoneType')
 
-        # TODO : SOME CHECKING - (1) if more than one table (AT ALL INVOLVED WHATSOEVER), both join args must not be None
-        #                        (2) also, check in with (database) skeleton for possible bad input
-        #                        (3) and compare old query strings to confirm all previous
-        #                           tables are included - (otherwise Error)
         q = self.copy()
 
         # inner join clause
@@ -622,15 +680,61 @@ class SQLQuery(GenericSQLQuery):
 
     def union(self, other, join_table=None, join_dict=None):
         """
-        join_dict -- {join_table1: (corr_base_col1, col1), join_table2: (corr_base_col2, col2)}
+        Returns a new SQLQuery that is the union of self and other.
+        join_table and join_dict can be None iff the two queries only search
+        one table in the database.  All display columns will be concatenated in
+        order: self display cols + other display cols.
+
+        INPUT:
+            other -- the SQLQuery to union with
+            join_table -- base table to join on (This table should have at least
+                one column in each table to join on).
+            join_dict -- a dictionary that represents the join structure for the
+                new query.  (Must include a mapping for all tables, including
+                those previously joined in either query).  Structure is given
+                by:
+                    {'join_table1': ('corr_base_col1', 'col1'), 'join_table2': ('corr_base_col2', 'col2')}
+                where join_table1 is to be joined with join_table on
+                    join_table.corr_base_col1 = join_table1.col1
+
+        EXAMPLES:
+            sage: DB = SQLDatabase()sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})sage: DB.add_data('simon', [(0,5),(1,4)])
+            sage: DB.add_data('lucy', [(1,1),(1,4)])
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
+            sage: s = q.union(r, 'simon', {'lucy':('a1','a1')})
+            sage: s.__query_string__
+            'SELECT lucy.b2,simon.a1 FROM simon INNER JOIN lucy ON simon.a1=lucy.a1 WHERE ( lucy.a1 = ? ) OR ( simon.b2 <= ? )'
+
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_data('simon', [(0,5),(1,4)])
+            sage: DB.add_data('lucy', [(1,1),(1,4)])
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
+            sage: s = q.union(r, 'simon', {'lucy':('a1','a1')})
+            sage: s.run_query()[(1, 1), (4, 1)]
+            sage: s.show()
+            b2                   a1
+            ----------------------------------------
+            1                    1
+            4                    1
         """
 
-        # TODO : Check same database for all joins (i.e.: join_table1 and join_table2 are in same database)
+        if self.__database__ != other.__database__:
+            raise TypeError('Queries %s and %s must be attached to the same database.'%(self, other))
+        if join_table is None or join_dict is None:
+            pattern = ' JOIN '
+            if re.search(pattern,self.__query_string__) or re.search(pattern,other.__query_string__):
+                raise TypeError('Input queries have joins but join parameters are NoneType.')
+            s = ((self.__query_string__).upper()).split('FROM ')
+            o = ((other.__query_string__).upper()).split('FROM ')
+            s = s[1].split(' WHERE ')
+            o = o[1].split(' WHERE ')
+            if s != o:
+                raise ValueError('Input queries query different tables but join parameters are NoneType')
 
-        # TODO : SOME CHECKING - (1) if more than one table, both join args must not be None
-        #                    (2) also, check in with skeleton for possible bad input
-        #                    (3) and compare old query strings to confirm all previous
-        #                           tables are included - (otherwise Error)
         q = self.copy()
 
         # inner join clause
@@ -640,7 +744,7 @@ class SQLQuery(GenericSQLQuery):
                 joins += ' INNER JOIN ' + table + ' ON ' + join_table + \
                          '.' + join_dict[table][0] + '=' + table + '.' + \
                          join_dict[table][1] + ' '
-            q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM' + joins + 'WHERE ', self.__query_string__)
+            q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + joins + 'WHERE ', self.__query_string__)
 
         # concatenate display cols
         disp = q.__query_string__.split(' FROM')
@@ -811,6 +915,7 @@ class GenericSQLDatabase(SageObject):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename
         self.__connection__ = sqlite.connect(self.__dblocation__)
+        self.__connection__.create_function("regexp", 2, regexp)
 
         self.__skeleton__ = construct_skeleton(self.__connection__)
 
@@ -830,17 +935,69 @@ class GenericSQLDatabase(SageObject):
         Returns an instance of SQLDatabase that points to a copy database,
         and allows modification.
 
-        TODO - figure out the following:
-            sage.: GDB = GraphDatabase()
-            sage.: GDBcopy = GDB.copy()
-            <barf>
+        EXAMPLES:
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True},'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384),(4,1,978932)],['id','a1','b2'])
+            sage: d = DB.copy()
+
+            sage: d.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
+            1                    3                    384
+            1                    4                    978932
+
+            sage: DB.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
+            1                    3                    384
+            1                    4                    978932
+
+            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'id,a1,b2', 'expression':['id','>=',3]})
+            sage: DB.delete_rows(Q)
+            sage: DB.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
+
+            sage: d.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
+            1                    3                    384
+            1                    4                    978932
 
         """
         from copy import copy
         # copy .db file
         new_loc = tmp_filename() + '.db'
         os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
-        D = SQLDatabase(filename=new_loc, skeleton=copy(self.__skeleton__))
+
+        D = SQLDatabase(filename=new_loc)
+        for table in D.__skeleton__:
+            # Get an ordered list:
+            cur_list = skel_to_col_attr_list(D.__skeleton__[table])
+
+            new = ''
+            for col in cur_list:
+                new += str(col[0]) +', '
+            new = new.rstrip(', ')
+
+            data = ((self.__connection__).execute('SELECT %s from %s'%(new,table))).fetchall()
+            new = new.split(', ')
+
+            # Fill data in new table
+            D.add_rows(table_name=table,rows=data,entry_order=new)
         return D
 
     def save(self, filename):
@@ -878,7 +1035,6 @@ class GenericSQLDatabase(SageObject):
             17
             18
             19
-
 
         """
         try:
@@ -1259,6 +1415,7 @@ class SQLDatabase(GenericSQLDatabase):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename
         self.__connection__ = sqlite.connect(self.__dblocation__)
+        self.__connection__.create_function("regexp", 2, regexp)
 
         # construct skeleton (from provided database)
         self.__skeleton__ = construct_skeleton(self.__connection__)
@@ -2044,33 +2201,47 @@ class SQLDatabase(GenericSQLDatabase):
 
     def delete_rows(self, query):
         """
-        TODO - documentation
+        Uses a SQLQuery instance to modify (delete rows from) the
+        database.  Note that this function will not allow deletion via a
+        GenericSQLQuery (a method for more advanced users) in order to
+        prevent an accidental disaster (ommitting a where clause or using '*').
 
-        DOCSTRING COMMENTS:
-        - Query must have no join statements (you can only delete from one table at a time)
-            (This might be an interesting TODO later, ie: another function that
-            creates multiple delete statements from a query with joins...  I don't think
-            it's really necessary at this time though.
-        - Use a query instance to modify your database.
-        - Note that you cannot use a GenericSQLQuery.  (NO RESPONSIBILITY)
-        - If you would like to remove all data that satisfies a query,
-            enter that query as a parameter in the delete_rows function.
-        - Recommended use: have some kind of primary key column that you
-            use as a parameter in the query
-        - Be careful, test your query first.
-        - (Examples of this)
-        - Also note that this database must be the database that the
-            query is associated with (test that?)
+        SQLQuery must have no join statements.  (As of now, you can only
+        delete from one table at a time -- ideas and patches are welcome).
+
+        To remove all data that satisfies a SQLQuery, send the query as an
+        argument to delete_rows.  Be careful, test your query first.
+
+        Recommended use:  have some kind of row identification primary
+        key column that you use as a parameter in the query.  (See example
+        below).
+
+        INPUT:
+            query -- a SQLQuery (Delete the rows returned when query is
+                run).
 
         EXAMPLES:
-            sage: DB = SQLDatabase()
-            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
-            sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
-            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'expression':['b2','=', 0]})
-            sage: DB.delete_rows(p)
-            sage: cur = DB.get_cursor()
-            sage: (cur.execute('select * from simon')).fetchall()
-            [(1, 1), (1, 2)
+            sage: DB = SQLDatabase()sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True},'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384),(4,1,978932)],['id','a1','b2'])sage: DB.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
+            1                    3                    384
+            1                    4                    978932
+            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'id,a1,b2', 'expression':['id','>=',3]})sage: Q.show()
+            id                   a1                   b2
+            ------------------------------------------------------------
+            3                    1                    384
+            4                    1                    978932
+            sage: DB.delete_rows(Q)
+            sage: DB.show('lucy')
+            a1                   id                   b2
+            ------------------------------------------------------------
+            1                    0                    1
+            1                    1                    4
+            0                    2                    7
 
         """
         # Check query is associated with this database

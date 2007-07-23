@@ -25,7 +25,7 @@ import os, shutil, socket
 
 import notebook
 
-PAUSE = 3
+PAUSE = 7
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 

@@ -45,7 +45,7 @@ def find_next_available_port(start, max_tries=100, verbose=True):
     raise RuntimeError, "no available port."
 
 
-def open_page(address, port, secure, pause=2):
+def open_page(address, port, secure, pause=6):
     if secure:
         rsrc = 'https'
     else:

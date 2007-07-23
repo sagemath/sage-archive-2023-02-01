@@ -491,7 +491,7 @@ ext_modules = [ \
     Extension('sage.schemes.hyperelliptic_curves.frobenius',
                  sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
                             'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
-                 libraries = ['ntl', 'stdc++'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 

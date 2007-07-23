@@ -2453,7 +2453,7 @@ cdef class Matrix(matrix1.Matrix):
         import gd
         import os
 
-        cdef int x, y, _x, _y, v, b2
+        cdef int x, y, _x, _y, v, bi
         cdef int ir,ic
         cdef float b, fct
 
@@ -2478,8 +2478,8 @@ cdef class Matrix(matrix1.Matrix):
             ic = mr
             b = 1.0
 
-        b2 = <int>(b*b)
-        fct = 255.0/b2
+        fct = 255.0/(b*b)
+        bi = <int>b
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))
@@ -2491,13 +2491,12 @@ cdef class Matrix(matrix1.Matrix):
 
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
-                v = b2
-                for _x from 0 <= _x < (<int>b):
-                    for _y from 0 <= _y < (<int>b):
+                for _x from 0 <= _x < bi:
+                    for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 
-                v = int(v*fct)
+                v = int(b*b*fct)
                 val = colorExact((v,v,v))
                 setPixel((y,x), val)
 

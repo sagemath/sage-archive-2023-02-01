@@ -153,9 +153,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         # another hack due to slow padics
         R = forms[0].base_ring()
         try:
+            prof("eval f %s"%R)
             L = [f(R(TP[0]), R(TP[1])) - f(R(TQ[0]), R(TQ[1])) for f in forms]
         except ValueError:
+            prof("changing rings")
             forms = [f.change_ring(self.base_ring()) for f in forms]
+            prof("eval f %s"%self.base_ring())
             L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
         b = 2*V(L)
 #        print "b =", b
@@ -167,7 +170,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
         prof("done")
-#        print prof
+        print prof
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
     coleman_integrals_on_basis_hyperelliptic = coleman_integrals_on_basis

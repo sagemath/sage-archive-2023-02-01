@@ -1,0 +1,41 @@
+5.4.1.p1 is an artificial increment to force a rebuild.
+
+
+I had to create some extra lines for the Makefile in
+order to build a dynamic library.    The trickiest
+was the one for OS X.
+
+It's *crucial* that NTL be built as a dynamic library; otherwise
+SAGE loads multiple huge copies of NTL, and the code, e.g., to
+set the modulus only sets the modulus for *it's* local copy
+of ntl.  Perhaps I should put all my pyrex ntl code together
+into one module so building dynamic isn't necessary...?
+
+---------
+
+Some notes about finding the ntl bug:
+
+  (1) The NTL build failed to correctly create a "libntl.dylib"
+      dynamic library for NTL, and instead made only a "libntl.a"
+      library.  This didn't result in a sufficiently strong error
+      message to halt the SAGE build process.
+
+  (2) When SAGE built the NTL modules it linked in a completely
+      separate copy of libntl with each module.  This didn't result
+      in errors, because libntl.a was successfully built.
+
+  (3) The SAGE code for setting the NTL modulus is in a different
+      Python module than the code for creating polynomials over finite
+      fields.  When SAGE ran it thus had, in some sense, several copies
+      of the NTL library in memory at once.  The set modulus function
+      changed one copy while the the "make a polynomial" function
+      changed another.  The result was the bug we saw.
+
+
+---------
+
+On Solaris I have to use
+
+libntl.so: $(OBJ)
+	$(CXX) -G -h  -o libntl.so $(OBJ)
+

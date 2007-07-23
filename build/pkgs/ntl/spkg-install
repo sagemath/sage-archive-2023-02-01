@@ -1,0 +1,134 @@
+#!/bin/sh
+
+################################################################
+#
+#  NTL sage install script
+#
+#  Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  AUTHORS: William Stein (original version)
+#           David Kirkby (2005-12-13); <david.kirkby@onetel.net>
+#
+################################################################
+
+CUR=`pwd`
+
+cd src/
+
+do_make()
+{
+    $MAKE $1
+    if [ $? -ne 0 ]; then
+        echo "Failed building $1 of NTL"
+        exit 1
+    fi
+}
+
+do_tune()
+{
+    if [ $UNAME = "SunOS" ]; then
+        return
+    fi
+    do_make setup1
+    do_make setup2
+    do_make setup3
+    do_make setup4
+}
+
+build()
+{
+     if [ "$SAGE_LOCAL" = "" ]; then
+         echo "SAGE_LOCAL environment variable must be set."
+         exit 1
+     fi
+
+     cd src
+
+     # Run the configure script, setting CC, CXX, CFLAGS etc as need. This
+     # ensures that they get written by DoConfig into 'makefile'.
+     CFLAGS="-O2 $CFLAGS"
+     CXXFLAGS="-O2 $CXXFLAGS"
+
+     ./configure PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
+                 CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
+                 GMP_PREFIX="$SAGE_LOCAL" NTL_GMP_LIP=on NTL_STD_CXX=on
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to configure NTL build."
+        exit 1
+    fi
+
+
+
+
+    # We add some lines to the end of the NTL makefile so we
+    # can create a shared library.
+    cat makefile "$CUR"/patches/ntl_makefile > makefile.1
+    mv makefile.1 makefile
+
+    echo "Building and install NTL"
+
+    # Do performance tuning steps.
+    do_tune
+
+    # allow for an error -- this tries to build an .so; if it fails that's OK, since we
+    # just try building the appropriate other library (below).
+    $MAKE lib
+    if [ $? -ne 0 ]; then
+        echo "----------------------------------------"
+        echo "Error building libntl.so "
+        echo "----------------------------------------"
+    fi
+
+    do_make ntl.a
+    do_make install
+
+    # UNIX
+    if [ -f libntl.so ]; then
+	$CP libntl.so "$SAGE_LOCAL/lib/"
+    fi
+
+    # OS X
+    if [ $UNAME = "Darwin" ]; then
+	$MAKE libntl.dylib
+        if [ ! -f libntl.dylib ]; then
+            echo "Failed to build NTL dylib."
+            exit 1
+        fi
+        $CP libntl.dylib "$SAGE_LOCAL/lib/"
+    fi
+
+    # Cygwin
+    if [ $UNAME = "CYGWIN" ]; then
+        if [ "$CYGPKG" = "yes" ]; then
+            if [ -f /lib/libgmp.dll.a ]; then
+                $LN -s /lib/libgmp.dll.a libgmp.a
+            else
+                # Added by William Stein on 2006-02-06 so that
+                # can build even if gmp is not built locally
+                # i.e., even if using a system-wide gmp.
+                # (though it has to be in /usr/lib, which is
+                # where it is for cygwin).
+                $LN -s /usr/lib/*gmp* .
+                $LN -s libgmp.dll.a libgmp.a
+            fi
+        else
+   	    $LN -s "$SAGE_LOCAL/lib/libgmp.a" .
+        fi
+	$MAKE libntl.dll
+	$CP libntl.dll "$SAGE_LOCAL/lib/"
+	$CP libntl.dll "$SAGE_LOCAL/bin/"
+        if [ ! -f "$SAGE_LOCAL/bin/libntl.dll" ]; then
+            exit 1   # CRUCIAL that we have the dynamic link library
+        fi
+    fi
+}
+
+build
+
+if [ $? -eq 0 -a -d "$SAGE_LOCAL/include/NTL" -a -f "$SAGE_LOCAL/lib/libntl.a" ];  then
+    exit 0
+else
+    exit 1
+fi

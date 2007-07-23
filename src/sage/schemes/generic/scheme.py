@@ -76,7 +76,6 @@ class Scheme(ParentWithBase):
         """
         raise NotImplementedError
 
-
     def __call__(self, *args):
         """
         If S is a ring or scheme, return the set $X(S)$ of $S$-valued

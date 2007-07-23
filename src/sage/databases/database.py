@@ -1,20 +1,27 @@
 """
-TODO : ROBERT, I am leaving you with the following (email me
-                or come over if you need help):
- - renaming stuff to use a convention (as per your email)
- - renaming 'dillhole'
- - at this point, 2 try/catch blocks (i.e.: think of a fun error message)
+TODO
  - docstrings and e.g.'s - (there is an example in query intersection to get you going)
- - reviewing some of my changes (look for ROBERT, TODO, EXAMPLES or DONE below)
-   (also note that I threw in some examples to help you out)
- - possibly changing the add_data function to avoid max string length problem.
-   (see note in function below i.e.: bottom).
- - In query show function, put in if clause to detect if user is in command line or
-   notebook and decomment the notebook code.  (also in generic database show function)
  - There might be some nonetype errors throughout that should be easily
    found/fixed when making doctests.
  - Also, some query_dict (think, skeleton) checking on intersect and
    union hasn't been done yet.
+
+EMILY: This is a new list:
+1 - There should probably be an add_rows function, in the plural, where values
+is a list of tuples...
+2 - There is a bug at the bottom of the file I'm not exactly sure how to
+handle. I think a try/except clause, but to do that we need to know what is
+causing this behavior, and what effects it has, so we can undo them in the
+except part.
+3 - We need to figure out how temp files are handled, and if there is a way to
+delete the database file as soon as the variable gets deallocated, if it is a
+temp database file.
+4 - If you look at the docstrings for SQLDatabase.add_column(), you might
+notice that there is no way to now set the values in the new column, without
+deleting all the rows. Maybe this is a SQLite thing...
+5 - Documentation for index and primary key stuff.
+6 - As far as try/except things, I only think we should add them in at this
+point if there is something bad SQL is doing before it fails (see add_data).
 
 Databases.
 
@@ -49,6 +56,7 @@ import os
 import re
 from sage.misc.misc import tmp_filename
 from sage.structure.sage_object import SageObject
+from sage.server.support import EMBEDDED_MODE
 
 def regexp(expr, item):
     """
@@ -124,11 +132,15 @@ def new_table_set_col_attr(connection, table_name, table_skeleton):
 
 class GenericSQLQuery(SageObject):
     """
+    Emily - documentation
+
     ABSOLUTELY NO RESPONSIBILITY FOR THIS!!!
     """
 
     def __init__(self, database, query_string, param_tuple=None):
         """
+        Emily - documentation
+
         TEACH PEOPLE ABOUT USING '?' AND TUPLES
         """
 
@@ -138,9 +150,6 @@ class GenericSQLQuery(SageObject):
         self.__database__ = database
         self.__param_tuple__ = param_tuple
         self.__query_string__ = query_string
-
-    def copy(self):
-        return GenericSQLQuery(self.__database__, self.__query_string__, self.__param_tuple__)
 
     def __repr__(self):
         """
@@ -157,7 +166,18 @@ class GenericSQLQuery(SageObject):
         s += str(self.__param_tuple__) + "\n"
         return s
 
+    def copy(self):
+        """
+        Emily - documentation
+
+        """
+        return GenericSQLQuery(self.__database__, self.__query_string__, self.__param_tuple__)
+
     def run_query(self):
+        """
+        Emily - documentation
+
+        """
         try:
             #tup = str(self.__param_tuple__).rstrip(')') + ',)'
             cur = self.__database__.__connection__.cursor()
@@ -176,18 +196,17 @@ class GenericSQLQuery(SageObject):
 
     def show(self, max_field_size=20):
         """
-        ROBERT - Check this out!
-        TODO : (Robert) - you knew of a way to tell whether SAGE
-                was running in the notebook or at command line.
-                Could you decomment the notebook version and throw
-                in that if clause?  --ek
+        Displays the result of the query in table format.
 
-        EXAMPLES:
+        INPUT:
+            max_field_size -- how wide each field can be
+
+        EXAMPLE:
             sage: DB = SQLDatabase()
             sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'dillhole':['b2','<=', 6]})
-            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'dillhole':['b2','<=', 6]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
+            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'expression':['b2','<=', 6]})
             sage: s = p.intersect(r)
             sage: s.show()
             b2                   a1
@@ -195,6 +214,7 @@ class GenericSQLQuery(SageObject):
             0                    0
             1                    1
             2                    1
+
         """
         try:
             #tup = str(self.__param_tuple__).rstrip(')') + ',)'
@@ -210,46 +230,44 @@ class GenericSQLQuery(SageObject):
         except:
             raise RuntimeError('Failure to fetch query.')
 
-        # Command Prompt Version
-        for des in cur.description:
-            print des[0].ljust(max_field_size),
-        print # new line
-        print '-' * max_field_size * len(cur.description)
-        field_indices = range(len(cur.description))
-        for row in cur:
-            for index in field_indices:
-                field_val = str(row[index])
-                print field_val.ljust(max_field_size) ,
-            print # new line
-
-        # Notebook Version (Decomment below) - also, we
-        #     could put in arguments for html keywords so the user
-        #     has some control over the display
-        """
-        print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
-        for des in cur.description:
-            print '<td bgcolor=white align=center> ' + des[0] + ' </td>'
-        print '</tr>'
-        field_indices = range(len(cur.description))
-        for row in cur:
-            print '<tr>'
-            for index in field_indices:
-                print '<td bgcolor=white align=center> ' + str(row[index]) + ' </td>'
+        if EMBEDDED_MODE:
+            # Notebook Version
+            print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
+            for des in cur.description:
+                print '<td bgcolor=white align=center> ' + des[0] + ' </td>'
             print '</tr>'
-        print '</table></html>'
-        """
+            field_indices = range(len(cur.description))
+            for row in cur:
+                print '<tr>'
+                for index in field_indices:
+                    print '<td bgcolor=white align=center> ' + str(row[index]) + ' </td>'
+                print '</tr>'
+            print '</table></html>'
+        else:
+            # Command Prompt Version
+            for des in cur.description:
+                print des[0].ljust(max_field_size),
+            print # new line
+            print '-' * max_field_size * len(cur.description)
+            field_indices = range(len(cur.description))
+            for row in cur:
+                for index in field_indices:
+                    field_val = str(row[index])
+                    print field_val.ljust(max_field_size) ,
+                print # new line
 
 class SQLQuery(GenericSQLQuery):
     """
-    query_dict := {'table_name': 'tblname', 'display_cols': 'col1, col2, col3', 'dillhole':[col, operator, value]}
+    EMILY - documentation
+
+    query_dict := {'table_name': 'tblname', 'display_cols': 'col1, col2, col3', 'expression':[col, operator, value]}
+
+    point out strings '"value"'
+
     """
 
     def __init__(self, database, query_dict=None):
-        """
-        point out strings '"value"'
-        """
-
-        if not isinstance(database, SQLDatabase):
+        if not isinstance(database, GenericSQLDatabase):
             raise TypeError('%s is not a valid SQLDatabase'%database)
 
         self.__database__ = database
@@ -259,14 +277,14 @@ class SQLQuery(GenericSQLQuery):
         # 1. Confirm query_dict matches skeleton:
         # 2. confirm tblname is in database:
         # 3. confirm display_cols in tblname:
-        # 4. confirm col (from dillhole is in tblname):
+        # 4. confirm col (from expression is in tblname):
 
         # confirm operator:
-        verify_operator(query_dict['dillhole'][1])
+        verify_operator(query_dict['expression'][1])
 
         # make tuple:
         if self.__query_dict__ is not None:
-            self.__param_tuple__ = (self.__query_dict__['dillhole'][2],)
+            self.__param_tuple__ = (self.__query_dict__['expression'][2],)
         else:
             self.__param_tuple__ = None
 
@@ -276,8 +294,8 @@ class SQLQuery(GenericSQLQuery):
                                     '.' + self.__query_dict__['display_cols'] + \
                                     ' FROM ' + self.__query_dict__['table_name'] + \
                                     ' WHERE ' + self.__query_dict__['table_name'] + '.' + \
-                                    self.__query_dict__['dillhole'][0] + ' ' + \
-                                    self.__query_dict__['dillhole'][1] + ' ?'
+                                    self.__query_dict__['expression'][0] + ' ' + \
+                                    self.__query_dict__['expression'][1] + ' ?'
         else:
             self.__query_string__ = None
 
@@ -295,8 +313,8 @@ class SQLQuery(GenericSQLQuery):
             sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon', [(0,5),(1,4)])
             sage: DB.add_data('lucy', [(1,1),(1,4)])
-            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'dillhole':['a1','=',1]})
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'dillhole':['b2','<=', 6]})
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
             sage: s = q.intersect(r, 'simon', {'lucy':('a1','a1')})
             sage: s.__query_string__
             'SELECT lucy.b2,simon.a1 FROM simon INNER JOIN lucy ON simon.a1=lucy.a1 WHERE ( lucy.a1 = ? ) AND ( simon.b2 <= ? )'
@@ -306,9 +324,9 @@ class SQLQuery(GenericSQLQuery):
 
         # TODO : Check same database for all joins (i.e.: join_table1 and join_table2 are in same database)
 
-        # TODO : SOME CHECKING - (1) if more than one table, both join args must not be None
-        #                    (2) also, check in with skeleton for possible bad input
-        #                    (3) and compare old query strings to confirm all previous
+        # TODO : SOME CHECKING - (1) if more than one table (AT ALL INVOLVED WHATSOEVER), both join args must not be None
+        #                        (2) also, check in with (database) skeleton for possible bad input
+        #    NOT ROBERT-         (3) and compare old query strings to confirm all previous
         #                           tables are included - (otherwise Error)
         q = self.copy()
 
@@ -383,7 +401,11 @@ class GenericSQLDatabase(SageObject):
     *Immutable* Database class.
 
     INPUT:
-        filename -- where to keep the database
+        filename -- where to load the database from
+
+    TODO:
+        once the tutorial is finished in SQLDatabase, copy it here
+
     """
     def __init__(self, filename):
 
@@ -393,73 +415,6 @@ class GenericSQLDatabase(SageObject):
         self.__connection__ = sqlite.connect(self.__dblocation__)
 
         self.__skeleton__ = construct_skeleton(self.__connection__)
-
-    def copy(self):
-        """
-        Returns an instance of Database with default mutable=True.
-        """
-        # copy .db file
-        new_loc = tmp_filename() + '.db'
-        os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
-        D = SQLDatabase(filename=new_loc, skeleton=copy(self.__skeleton__))
-        return D
-
-    def save(self, filename):
-        """
-        ROBERT : Read the following e.g.'s carefully.  You might want to
-                change them before distributing (i.e. os.system('rm '+save_loc))
-                But this should be a good intro to a bunch of functionality.
-                (I mostly put it in for you).
-
-                It covers creating a mutable db, saving it and opening it as
-                an immutable db.  Then it shows modification and the new
-                awesome show method.
-                (This is my most recent example - the show method is probably
-                    better than getting a cursor each time for the doctests so
-                    I wanted to put it in since I typically did that the other
-                    way -- i.e.: delete_rows method examples).
-        EXAMPLES:
-            sage: from sage.databases.db import DB_HOME
-            sage: save_loc = DB_HOME + 'simon.db'
-            sage: DB = SQLDatabase()
-            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
-            sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
-            sage: DB.save(save_loc)
-            sage: immut = GenericSQLDatabase(save_loc)
-            sage: immut.show('simon')
-            a1                   b2
-            ----------------------------------------
-            0                    0
-            1                    1
-            1                    2
-            sage: DB.show('simon')
-            a1                   b2
-            ----------------------------------------
-            0                    0
-            1                    1
-            1                    2
-            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'dillhole':['b2','>', 0]})
-            sage: DB.delete_rows(p)
-            sage: DB.show('simon')
-            a1                   b2
-            ----------------------------------------
-            0                    0
-            sage: immut.show('simon')
-            a1                   b2
-            ----------------------------------------
-            0                    0
-            1                    1
-            1                    2
-            sage: import os
-            sage: os.system('rm ' + save_loc)
-        """
-        try:
-            self.__connection__.execute('commit')
-        except:
-            # Not sure why this throws an exception - but without it,
-            #       the changes are not committed so it is necessary.
-            pass
-        os.system('cp ' + self.__dblocation__ + ' ' + filename)
 
     def __repr__(self):
         s = ''
@@ -472,14 +427,77 @@ class GenericSQLDatabase(SageObject):
                 s += '\n'
         return s
 
+    def copy(self):
+        """
+        Returns an instance of SQLDatabase that points to a copy database,
+        and allows modification.
+
+        TODO - examples (once there are immutable databases to start from)
+        """
+        # copy .db file
+        new_loc = tmp_filename() + '.db'
+        os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
+        D = SQLDatabase(filename=new_loc, skeleton=copy(self.__skeleton__))
+        return D
+
+    def save(self, filename):
+        """
+        Save the database to the specified location.
+
+        TODO - figure out bug regarding saving then loading, and use something
+        similar to the example in the tutorial for an example here.
+
+        """
+        try:
+            self.__connection__.execute('commit')
+        except:
+            # Not sure why this throws an exception - but without it,
+            #       the changes are not committed so it is necessary.
+            pass
+        os.system('cp ' + self.__dblocation__ + ' ' + filename)
+
+    def get_skeleton(self, check=False):
+        """
+        Returns a dictionary representing the hierarchical structure of the
+        database, in the following format.
+
+            skeleton -- a triple-indexed dictionary
+                outer key - table name
+                    inner key - column name
+                        inner inner key - one of the following:
+                primary_key - boolean, whether column has been set as primary key
+                index - boolean, whether column has been set as index
+                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                    user defined type
+
+        For example,
+        {'table1':{'col1':{'primary_key':False, 'index':True, 'sql':'REAL'}}}
+
+        INPUT:
+            check -- if True, checks to make sure the database's actual structure
+            matches the skeleton on record.
+            EMILY - currently this throws an obnoxious exception, for debugging
+            purposes. What do you think this should do, ultimately?
+
+        EXAMPLES:
+            EMILY - this would be good to do for, say, the graph database, since
+            it has nontrivial structure... but to do that, it would be best if
+            said database were implemented directly as a GenericSQLDatabase, so
+            the example doesn't have people digging around in ext/db...
+
+        """
+        if check:
+            d = construct_skeleton(self.__connection__)
+            if d == self.__skeleton__:
+                return d
+            else:
+                raise RuntimeError("BAD BAD BAD BAD BAD BAD : skeleton structure is out of whack!")
+        else:
+            return self.__skeleton__
+
     def show(self, table_name, max_field_size=20):
         """
-        show and entire table from the database
-
-        TODO ROBERT:
-            - same as the show function in query: throw in if clause and decomment
-            - also, do you know of any quick fix for the truncated output issue in
-                notebook?
+        Show an entire table from the database.
 
         EXAMPLES:
             sage: DB = SQLDatabase()
@@ -498,41 +516,40 @@ class GenericSQLDatabase(SageObject):
         except:
             raise RuntimeError('Failure to fetch data.')
 
-        # Command Prompt Version
-        for des in cur.description:
-            print des[0].ljust(max_field_size),
-        print # new line
-        print '-' * max_field_size * len(cur.description)
-        field_indices = range(len(cur.description))
-        for row in cur:
-            for index in field_indices:
-                field_val = str(row[index])
-                print field_val.ljust(max_field_size) ,
-            print # new line
-
-        # Notebook Version (Decomment below) - also, we
-        #     could put in arguments for html keywords so the user
-        #     has some control over the display
-        """
-        print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
-        for des in cur.description:
-            print '<td bgcolor=white align=center> ' + des[0] + ' </td>'
-        print '</tr>'
-        field_indices = range(len(cur.description))
-        for row in cur:
-            print '<tr>'
-            for index in field_indices:
-                print '<td bgcolor=white align=center> ' + str(row[index]) + ' </td>'
+        if EMBEDDED_MODE:
+            # Notebook Version
+            print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
+            for des in cur.description:
+                print '<td bgcolor=white align=center> ' + des[0] + ' </td>'
             print '</tr>'
-        print '</table></html>'
-        """
+            field_indices = range(len(cur.description))
+            for row in cur:
+                print '<tr>'
+                for index in field_indices:
+                    print '<td bgcolor=white align=center> ' + str(row[index]) + ' </td>'
+                print '</tr>'
+            print '</table></html>'
+
+        else:
+            # Command Prompt Version
+            for des in cur.description:
+                print des[0].ljust(max_field_size),
+            print # new line
+            print '-' * max_field_size * len(cur.description)
+            field_indices = range(len(cur.description))
+            for row in cur:
+                for index in field_indices:
+                    field_val = str(row[index])
+                    print field_val.ljust(max_field_size) ,
+                print # new line
+
 
 class SQLDatabase(GenericSQLDatabase):
-    """
-    Dillhole and foo and piss and shit where Tom is blah and blah.
+    r"""
+    A SQL Database object corresponding to a database file.
 
     INPUT:
-        filename -- duh
+        filename -- a string
         skeleton -- a triple-indexed dictionary
                 outer key - table name
                     inner key - column name
@@ -542,6 +559,115 @@ class SQLDatabase(GenericSQLDatabase):
                 sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
+    TUTORIAL:
+    The SQLDatabase class is for interactively building databases intended for
+    queries. This may sound redundant, but it is important. If you want a
+    database intended for quick lookup of entries in very large tables, much
+    like a hash table (such as a Python dictionary), a SQLDatabase may not be
+    what you are looking for. The strength of SQLDatabases is in queries,
+    searches through the database with complicated criteria.
+
+    The class GenericSQLDatabase is for developers to provide a static
+    database. The class does not support modification, and is meant to be a
+    base class for specific classes of databases, such as the graph database.
+
+    TODO - mention where this database is, if it is implemented
+
+    For example, we create a new database for storing isomorphism classes of
+    simple graphs:
+        sage: D = SQLDatabase()
+
+    In order to generate representatives for the classes, we will import a
+    function which generates all labeled graphs (noting that this is not the
+    optimal way):
+        sage: from sage.graphs.graph_isom import all_labeled_graphs
+
+    We will need a table in the database in which to store the graphs, and we
+    specify its structure with a Python dictionary, each of whose keys is the
+    name of a column:
+        sage: table_skeleton = {
+        ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+        ... 'vertices':{'sql':'INTEGER'},
+        ... 'edges':{'sql':'INTEGER'}
+        ... }
+
+    Then we create the table:
+        sage: D.create_table('simon', table_skeleton)
+        sage: D.show('simon')
+        edges                graph6               vertices
+        ------------------------------------------------------------
+
+    Now that we have the table, we will begin to populate the table with
+    rows. First, add the graph on zero vertices.
+        sage: G = Graph()
+        sage: D.add_row('simon',(0, G.graph6_string(), 0))
+        sage: D.show('simon')
+        edges                graph6               vertices
+        ------------------------------------------------------------
+        0                    ?                    0
+
+    Next, add the graph on one vertex.
+        sage: G.add_vertex()
+        sage: D.add_row('simon',(0, G.graph6_string(), 1))
+        sage: D.show('simon')
+        edges                graph6               vertices
+        ------------------------------------------------------------
+        0                    ?                    0
+        0                    @                    1
+
+    Say we want a database of graphs on four or less vertices:
+        sage: labels = {}
+        sage: for i in range(2, 5):
+        ...       labels[i] = []
+        ...       for g in all_labeled_graphs(i):
+        ...           g = g.canonical_label()
+        ...           if g not in labels[i]:
+        ...               labels[i].append(g)
+        ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
+        ...
+        sage: D.show('simon')
+        edges                graph6               vertices
+        ------------------------------------------------------------
+        0                    ?                    0
+        0                    @                    1
+        0                    A?                   2
+        1                    A_                   2
+        0                    B?                   3
+        1                    BG                   3
+        2                    BW                   3
+        3                    Bw                   3
+        0                    C?                   4
+        1                    C@                   4
+        2                    CB                   4
+        3                    CF                   4
+        3                    CJ                   4
+        2                    CK                   4
+        3                    CL                   4
+        4                    CN                   4
+        4                    C]                   4
+        5                    C^                   4
+        6                    C~                   4
+
+    We can then query the database-- let's ask for all the graphs on four
+    vertices with three edges. We do so by creating two queries and asking for
+    rows that satisfy them both:
+        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['vertices','=',4]})
+        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['edges','=',3]})
+        sage: Q = Q.intersect(Q2)
+        sage: Q.run_query()
+        [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
+
+    EMILY - explain the unicode strings, also explain why we get two copies of
+    the data from the query.
+
+    Of course, we can save the database to file:
+        sage: D.save('simon.db')
+
+    Now the database's hard link is to this file, and not the temporary db
+    file. For example, let's say we open the same file with another class
+    instance. We can load the file as an immutable database:
+        sage: immut = GenericSQLDatabase('simon.db)
+        EMILY - here is another bug, at the bottom.
 
     """
 
@@ -569,25 +695,28 @@ class SQLDatabase(GenericSQLDatabase):
                         else:
                             print "Column attributes were ignored for table %s, column %s -- column is already in table."%(table, column)
 
-    def get_skeleton(self):
-        # TODO (very simple):
-        # debugging version of this function...
-        # when done debugging, should just return instance field variable.
-        return construct_skeleton(self.__connection__)
-
     def get_cursor(self):
+        """
+        EMILY - documentation
+        """
         return self.__connection__.cursor()
 
     def get_connection(self):
+        """
+        EMILY - documentation
+        """
         return self.__connection__
 
     def create_table(self, table_name, table_skeleton):
         """
-        MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
-        KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*.
+        Creates a new table in the database.
+
+        To create a table, a column structure must be specified. The form for
+        this is a Python dict, for example:
+        {'col1': {'sql':'INTEGER', 'index':False, 'primary_key':False}, ...}
 
         INPUT:
-            table_name -- deurrrrrrrrrrr
+            table_name -- a string
             table_skeleton -- a double-indexed dictionary
                 outer key - column name
                     inner key - one of the following:
@@ -596,8 +725,21 @@ class SQLDatabase(GenericSQLDatabase):
                 sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
-        table_skeleton e.g.:
-        {'col1': {'sql':'INTEGER', 'index':False, 'primary_key':False}, ...}
+        EXAMPLE:
+            sage: D = SQLDatabase()
+            sage: table_skeleton = {
+            ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+            ... 'vertices':{'sql':'INTEGER'},
+            ... 'edges':{'sql':'INTEGER'}
+            ... }
+            sage: D.create_table('simon', table_skeleton)
+            sage: D.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+
+        EMILY - MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
+        KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*, since this
+        makes no sense to me.
 
         """
         if self.__skeleton__.has_key(table_name):
@@ -605,9 +747,10 @@ class SQLDatabase(GenericSQLDatabase):
 
         create_statement = 'create table ' + table_name + '('
         for col in table_skeleton:
+            table_skeleton[col] = verify_column(table_skeleton[col])
             type = table_skeleton[col]['sql']
             if verify_type(type):
-                if table_skeleton[col]['primary_key']:
+                if table_skeleton[col].has_key('primary_key') and table_skeleton[col]['primary_key']:
                     create_statement += col + ' ' + type + ' primary key, '
                 else:
                     create_statement += col + ' ' + type + ', '
@@ -617,22 +760,91 @@ class SQLDatabase(GenericSQLDatabase):
         new_table_set_col_attr(self.__connection__, table_name, table_skeleton)
         self.__skeleton__[table_name] = table_skeleton
 
-    def add_column(self, table, col_name, attr_dict, default='NULL'):
+    def add_column(self, table_name, col_name, col_dict, default='NULL'):
         """
-        Takes a while, thanks to SQLite...
+        Add a column named col_name to table table_name, whose data types are
+        described by col_dict. The format for this is:
+        {'col1':{'primary_key':False, 'index':True, 'sql':'REAL'}}
+
+        INPUT:
+            col_dict - a dictionary:
+                key - column name
+                    inner key - one of the following:
+                primary_key - boolean, whether column has been set as primary key
+                index - boolean, whether column has been set as index
+                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                    user defined type
+
+        EXAMPLES:
+            sage: MonicPolys = SQLDatabase()
+            sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
+            sage: MonicPolys.show('simon')
+            n
+            --------------------
+            sage: for n in range(20):
+            ...       MonicPolys.add_row('simon', (n,))
+            ...
+            sage: MonicPolys.add_column('simon', 'n_squared', {'sql':'INTEGER', 'index':False}, 0)
+            sage: MonicPolys.show('simon')
+            n                    n_squared
+            ----------------------------------------
+            0                    0
+            1                    0
+            2                    0
+            3                    0
+            4                    0
+            5                    0
+            6                    0
+            7                    0
+            8                    0
+            9                    0
+            10                   0
+            11                   0
+            12                   0
+            13                   0
+            14                   0
+            15                   0
+            16                   0
+            17                   0
+            18                   0
+            19                   0
+            sage: MonicPolys.drop_column('simon', 'n_squared')
+            sage: MonicPolys.show('simon')
+            n
+            --------------------
+            0
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+            10
+            11
+            12
+            13
+            14
+            15
+            16
+            17
+            18
+            19
 
         """
         # Check input:
-        if not self.__skeleton__.has_key(table):
-            raise ValueError("Database has no table %s."%table)
-        if self.__skeleton__[table].has_key(col_name):
-            raise ValueError("Table %s already has column %s."%(table,col_name))
-        attr_dict = verify_column(attr_dict)
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if self.__skeleton__[table_name].has_key(col_name):
+            raise ValueError("Table %s already has column %s."%(table_name,col_name))
+        col_dict = verify_column(col_dict)
 
         # Get an ordered list:
-        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table_name])
         # Update the skeleton:
-        self.__skeleton__[table][col_name] = attr_dict
+        self.__skeleton__[table_name][col_name] = col_dict
 
         original = ''
         for col in cur_list:
@@ -646,11 +858,7 @@ class SQLDatabase(GenericSQLDatabase):
                 more_attr += col[0] + ' ' + col[1] + ' primary key, '
             else:
                 more_attr += col[0] + ' ' + col[1] + ', '
-        more_attr += col_name + ' ' + attr_dict['sql']
-
-        # ROBERT: Look at the new fun way to do this...
-        #       executescript runs a begin transaction and commit so this
-        #       should speed things up for even large amounts of data
+        more_attr += col_name + ' ' + col_dict['sql']
 
         # Silly SQLite -- we have to make a temp table to hold info...
         self.__connection__.executescript("""
@@ -658,34 +866,92 @@ class SQLDatabase(GenericSQLDatabase):
             insert into spam select %s, %s from %s;
             drop table %s;
             create table %s (%s);
-            """%(more_attr, original, default, table, table, table, more_attr))
+            """%(more_attr, original, default, table_name, table_name, table_name, more_attr))
 
         # Update indices in new table
-        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+        new_table_set_col_attr(self.__connection__, table_name, self.__skeleton__[table_name])
 
         # Now we can plop our data into the *new* table:
         self.__connection__.executescript("""
             insert into %s select %s from spam;
             drop table spam;
-            """%(table, more))
+            """%(table_name, more))
 
         self.vacuum()
 
-    def drop_column(self, table, col_name):
+    def drop_column(self, table_name, col_name):
         """
-        Takes a while, thanks to SQLite...
+        Drop the column col_name from table table_name.
+
+        EXAMPLES:
+            sage: MonicPolys = SQLDatabase()
+            sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
+            sage: MonicPolys.show('simon')
+            n
+            --------------------
+            sage: for n in range(20):
+            ...       MonicPolys.add_row('simon', (n,))
+            ...
+            sage: MonicPolys.add_column('simon', 'n_squared', {'sql':'INTEGER', 'index':False}, 0)
+            sage: MonicPolys.show('simon')
+            n                    n_squared
+            ----------------------------------------
+            0                    0
+            1                    0
+            2                    0
+            3                    0
+            4                    0
+            5                    0
+            6                    0
+            7                    0
+            8                    0
+            9                    0
+            10                   0
+            11                   0
+            12                   0
+            13                   0
+            14                   0
+            15                   0
+            16                   0
+            17                   0
+            18                   0
+            19                   0
+            sage: MonicPolys.drop_column('simon', 'n_squared')
+            sage: MonicPolys.show('simon')
+            n
+            --------------------
+            0
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+            10
+            11
+            12
+            13
+            14
+            15
+            16
+            17
+            18
+            19
 
         """
         # Check input:
-        if not self.__skeleton__.has_key(table):
-            raise ValueError("Database has no table %s."%table)
-        if not self.__skeleton__[table].has_key(col_name):
-            raise ValueError("Table %s has no column %s."%(table,col_name))
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if not self.__skeleton__[table_name].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table_name,col_name))
 
         # Update the skeleton:
-        self.__skeleton__[table].pop(col_name)
+        self.__skeleton__[table_name].pop(col_name)
         # Get an ordered list (without the column we're deleting):
-        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table_name])
 
         less = ''
         for col in cur_list:
@@ -707,39 +973,71 @@ class SQLDatabase(GenericSQLDatabase):
             insert into spam select %s from %s;
             drop table %s;
             create table %s (%s);
-            """%(less_attr, less, table, table, table, less_attr))
+            """%(less_attr, less, table_name, table_name, table_name, less_attr))
         # Update indices in new table
-        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+        new_table_set_col_attr(self.__connection__, table_name, self.__skeleton__[table_name])
 
         # Now we can plop our data into the *new* table:
         self.__connection__.executescript("""
             insert into %s select %s from spam;
             drop table spam;
-            """%(table, less))
+            """%(table_name, less))
 
         self.vacuum()
 
-    def rename_table(self, table, new_name):
+    def rename_table(self, table_name, new_name):
+        """
+        Renames the table table_name to new_name.
+
+        EXAMPLE:
+            sage: D = SQLDatabase()
+            sage: D.create_table('simon',{'col1':{'sql':'INTEGER'}})
+            sage: D.show('simon')
+            col1
+            --------------------
+            sage: D.rename_table('simon', 'lucy')
+            sage: D.show('simon')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Failure to fetch data.
+
+            sage: D.show('lucy')
+            col1
+            --------------------
+
+        """
         # Check input:
-        if not self.__skeleton__.has_key(table):
-            raise ValueError("Database has no table %s."%table)
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
         if self.__skeleton__.has_key(new_name):
             raise ValueError("Database already has table %s."%new_name)
 
-        self.__connection__.execute('alter table %s rename to %s'%(table, new_name))
+        self.__connection__.execute('alter table %s rename to %s'%(table_name, new_name))
 
         # Update skeleton:
-        self.__skeleton__[new_name] = self.__skeleton__[table]
-        self.__skeleton__.pop(table)
+        self.__skeleton__[new_name] = self.__skeleton__[table_name]
+        self.__skeleton__.pop(table_name)
 
     def drop_table(self, table_name):
+        """
+        Delete table table_name from database.
+
+        INPUT:
+            table_name -- a string
+
+        EXAMPLE:
+            sage: D = SQLDatabase()
+            sage: D.create_table('simon',{'col1':{'sql':'INTEGER'}})
+            sage: D.show('simon')
+            col1
+            --------------------
+            sage: D.drop_table('simon')
+            sage: D.get_skeleton()
+            {}
+
+        """
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
-
-        # (This TODO is DONE): think about things like;
-                # keep skeleton, don't-actually-do-anything
-        # DONE : handled by creating new function
-                # drop_data_from_table (see below)
 
         self.__connection__.execute('drop table ' + table_name)
 
@@ -748,17 +1046,35 @@ class SQLDatabase(GenericSQLDatabase):
 
     def drop_data_from_table(self, table_name):
         """
-        skeleton stays same but all data disappears...
+        Removes all data from table_name, except for the structure of the
+        columns.
+
+        EXAMPLE:
+            sage: D = SQLDatabase()
+            sage: D.create_table('simon',{'col1':{'sql':'INTEGER'}})
+            sage: D.add_row('simon',(9,))
+            sage: D.show('simon')
+            col1
+            --------------------
+            9
+            sage: D.drop_data_from_table('simon')
+            sage: D.show('simon')
+            col1
+            --------------------
+
         """
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
         self.__connection__.execute('delete from ' + table_name)
 
     def make_index(self, col_name, table_name, unique=False):
+        """
+        EMILY - documentation
+        """
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table].has_key(col_name):
-            raise ValueError("Table %s has no column %s."%(table,col_name))
+        if not self.__skeleton__[table_name].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table_name,col_name))
 
         # TODO : bad input check?
             # check for SQL errors? something about NULL and unique==True
@@ -775,6 +1091,9 @@ class SQLDatabase(GenericSQLDatabase):
         self.__skeleton__[table_name][col_name]['index'] = True
 
     def drop_index(self, table_name, index_name):
+        """
+        EMILY - documentation
+        """
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
         if not self.__skeleton__[table_name].has_key(index_name):
@@ -788,8 +1107,10 @@ class SQLDatabase(GenericSQLDatabase):
         # Update Skeleton
         self.__skeleton__[table_name][index_name]['index'] = False
 
-    def make_primary_key(self, table, col_name):
+    def make_primary_key(self, table_name, col_name):
         """
+        EMILY - documentation
+
         WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
         *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
         BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
@@ -798,15 +1119,15 @@ class SQLDatabase(GenericSQLDatabase):
         MAKE NOTE IN DOCS THAT TO GET AN AUTO-INCREMENTING PRIMARY
         KEY, YOU MUST USE THE FULL WORD *INTEGER* INSTEAD OF *INT*.
         """
-        if not self.__skeleton__.has_key(table):
-            raise ValueError("Database has no table %s."%table)
-        if not self.__skeleton__[table].has_key(col_name):
-            raise ValueError("Table %s has no column %s."%(table,col_name))
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if not self.__skeleton__[table_name].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table_name,col_name))
 
         # Update the skeleton:
-        self.__skeleton__[table][col_name]['primary_key'] = True
+        self.__skeleton__[table_name][col_name]['primary_key'] = True
         # Get an ordered list (with the primary key info updated):
-        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table_name])
 
         new = ''
         for col in cur_list:
@@ -828,20 +1149,22 @@ class SQLDatabase(GenericSQLDatabase):
             insert into spam select %s from %s;
             drop table %s;
             create table %s (%s);
-            """%(new_attr, new, table, table, table,new_attr))
+            """%(new_attr, new, table_name, table_name, table_name,new_attr))
 
         # Update indices in new table
-        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+        new_table_set_col_attr(self.__connection__, table_name, self.__skeleton__[table_name])
 
         # Now we can plop our data into the *new* table:
         self.__connection__.executescript("""
             insert into %s select %s from spam;
             drop table spam;
-            """%(table, new))
+            """%(table_name, new))
         self.vacuum()
 
-    def drop_primary_key(self, table, col_name):
+    def drop_primary_key(self, table_name, col_name):
         """
+        EMILY - documentation
+
         WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
         *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
         BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
@@ -850,17 +1173,17 @@ class SQLDatabase(GenericSQLDatabase):
         Note: deosnt's delte colmsn jsut make not primiarey
 
         """
-        if not self.__skeleton__.has_key(table):
-            raise ValueError("Database has no table %s."%table)
-        if not self.__skeleton__[table].has_key(col_name):
-            raise ValueError("Table %s has no column %s."%(table,col_name))
+        if not self.__skeleton__.has_key(table_name):
+            raise ValueError("Database has no table %s."%table_name)
+        if not self.__skeleton__[table_name].has_key(col_name):
+            raise ValueError("Table %s has no column %s."%(table_name,col_name))
         if not self.__skeleton__[table_name][index_name]['primary_key']:
             return # silently
 
         # Update the skeleton:
-        self.__skeleton__[table][col_name]['primary_key'] = False
+        self.__skeleton__[table_name][col_name]['primary_key'] = False
         # Get an ordered list (with the primary key info updated):
-        cur_list = skel_to_col_attr_list(self.__skeleton__[table])
+        cur_list = skel_to_col_attr_list(self.__skeleton__[table_name])
 
         new = ''
         for col in cur_list:
@@ -882,24 +1205,30 @@ class SQLDatabase(GenericSQLDatabase):
             insert into spam select %s from %s;
             drop table %s;
             create table %s (%s);
-            """%(new_attr, new, table, table, table, new_attr))
+            """%(new_attr, new, table_name, table_name, table_name, new_attr))
 
         # Update indices in new table
-        new_table_set_col_attr(self.__connection__, table, self.__skeleton__[table])
+        new_table_set_col_attr(self.__connection__, table_name, self.__skeleton__[table_name])
 
         # Now we can plop our data into the *new* table:
         self.__connection__.executescript("""
             insert into %s select %s from spam;
             drop table spam;
-            """%(table, new))
+            """%(table_name, new))
         self.vacuum()
 
     def add_row(self, table_name, values):
         """
-        values should be a tuple, length and order of columns in given table
+        Add the row described by values to the table table_name. Values should
+        be a tuple, of same length and order as columns in given table.
+
+        NOTE: If values is of length one, be sure to specify that it is a tuple
+        of length one, by using a comma, e.g.:
+            sage: values = (6,)
 
         EXAMPLES:
-            sage: DB = SQLDatabase()sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_row('simon',(0,1))
             sage: cur = DB.get_cursor()
             sage: (cur.execute('select * from simon')).fetchall()
@@ -907,13 +1236,6 @@ class SQLDatabase(GenericSQLDatabase):
         """
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
-
-        # ROBERT!!: Read the following:  (I decommented some, and changed the default
-        #           value because it should not have been None)
-        # TODO : CHECK FOR BAD INPUT
-        #  -- I would throw in a try/catch block here...
-            # -- really, sql will throw error if user is retarded enough
-
         # values is a tuple of the right length (same as no of cols)
         if len(values) != len(self.__skeleton__[table_name]):
             raise ValueError("New row must have the same number (%d) of columns as table."%len(self.__skeleton__[table_name]))
@@ -931,6 +1253,8 @@ class SQLDatabase(GenericSQLDatabase):
 
     def delete_rows(self, query):
         """
+        EMILY - documentation
+
         DOCSTRING COMMENTS:
         - Query must have no join statements (you can only delete from one table at a time)
             (This might be an interesting TODO later, ie: another function that
@@ -946,14 +1270,12 @@ class SQLDatabase(GenericSQLDatabase):
         - (Examples of this)
         - Also note that this database must be the database that the
             query is associated with (test that?)
-        ROBERT : I haven't tested this... if if doesn't work, then it is probably the
-            param_tuple thing...  send me an email if it's not working
 
         EXAMPLES:
             sage: DB = SQLDatabase()
             sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
-            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'dillhole':['b2','=', 0]})
+            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'expression':['b2','=', 0]})
             sage: DB.delete_rows(p)
             sage: cur = DB.get_cursor()
             sage: (cur.execute('select * from simon')).fetchall()
@@ -968,7 +1290,7 @@ class SQLDatabase(GenericSQLDatabase):
             raise TypeError('%s is not a valid SQLQuery'%query)
         if query.__database__ is not self:
             raise ValueError('%s is not associated to this database.'%query)
-        if (query.__query_string__).__contains__(' JOIN '):
+        if (query.__query_string__).find(' JOIN ') != -1:
             raise ValueError('%s is not a valid query.  Can only delete from one table at a time.'%query)
 
         delete_statement = re.sub('SELECT .* FROM', 'DELETE FROM', query.__query_string__)
@@ -994,12 +1316,9 @@ class SQLDatabase(GenericSQLDatabase):
             entry_order --  an ordered list or tuple
                             overrides normal order with user defined order
 
-        ROBERT: should we do a try/catch
-            or check each type?  Probably, try/catch (faster than checking all).
-            That would make three then.  TODO.
-        ROBERT: I'm a little worried about max string length in python.  Could you
-            look into a way around that particular error?  i.e.: writing to and then
-            reading from a temporary file or something... (instead of string *script*)
+        EMILY - I'm not sure we even need a try/except thing here. What I'm
+        wondering is this: are there any changes to the database if SQL doesn't
+        like one of the inputs? This is the only reason to do something like that.
 
         EXAMPLES:
             sage: DB = SQLDatabase()
@@ -1029,6 +1348,90 @@ class SQLDatabase(GenericSQLDatabase):
             self.__connection__.executemany("INSERT INTO " + table_name + " VALUES " + quest, strows)
 
     def vacuum(self):
+        """
+        EMILY - documentation
+        """
         self.__connection__.execute('vacuum')
 
 
+#################################################
+
+"""
+
+sage: MonicPolys = SQLDatabase()
+sage: MonicPolys.create_table('nums', {'n':{'sql':'INTEGER', 'index':True}})
+sage: MonicPolys.add_column('nums', 'n^2', {'sql':'INTEGER', 'index':False})
+Traceback (most recent call last):
+...
+OperationalError: unrecognized token: "^"
+
+sage: MonicPolys.add_column('nums', 'n2', {'sql':'INTEGER', 'index':False})
+Traceback (most recent call last):
+...
+OperationalError: unrecognized token: "^"
+
+
+"""
+
+#################################################
+
+"""
+
+sage: D.save('simon.db')
+sage: E = SQLDatabase('simon.db')
+---------------------------------------------------------------------------
+<type 'exceptions.KeyError'>              Traceback (most recent call last)
+
+/Volumes/HOME/robert/sage-2.7/<ipython console> in <module>()
+
+/Users/robert/sage-2.7/local/lib/python2.5/site-packages/sage/databases/database.py in __init__(self, filename, skeleton)
+    641
+    642         # construct skeleton (from provided database)
+--> 643         self.__skeleton__ = construct_skeleton(self.__connection__)
+    644
+    645         # add bones from new skeleton to database,
+
+/Users/robert/sage-2.7/local/lib/python2.5/site-packages/sage/databases/database.py in construct_skeleton(connection)
+    109         exe2 = cur.execute("pragma index_list(%s)"%table[0])
+    110         for column in exe2.fetchall():
+--> 111             skeleton[table[0]][column[1]]['index'] = True
+    112     return skeleton
+    113
+
+<type 'exceptions.KeyError'>: u'sqlite_autoindex_graphs_1'
+
+EMILY - This happens when I start a new copy of sage and try to load the same file. I'm not
+sure what this means, so I don't know what to do. The D in question is the D from the tutorial
+for the SQLDatabase class.
+
+"""
+
+################################################
+
+"""
+
+sage: D.save('simon.db')
+sage: immut = GenericSQLDatabase('simon.db')
+---------------------------------------------------------------------------
+<type 'exceptions.KeyError'>              Traceback (most recent call last)
+
+/Volumes/HOME/robert/sage-2.7/<ipython console> in <module>()
+
+/Users/robert/sage-2.7/local/lib/python2.5/site-packages/sage/databases/database.py in __init__(self, filename)
+    391         self.__connection__ = sqlite.connect(self.__dblocation__)
+    392
+--> 393         self.__skeleton__ = construct_skeleton(self.__connection__)
+    394
+    395     def copy(self):
+
+/Users/robert/sage-2.7/local/lib/python2.5/site-packages/sage/databases/database.py in construct_skeleton(connection)
+    111         exe2 = cur.execute("pragma index_list(%s)"%table[0])
+    112         for column in exe2.fetchall():
+--> 113             skeleton[table[0]][column[1]]['index'] = True
+    114     return skeleton
+    115
+
+<type 'exceptions.KeyError'>: u'sqlite_autoindex_simon_1'
+
+
+"""

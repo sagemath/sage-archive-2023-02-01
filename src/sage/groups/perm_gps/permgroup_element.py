@@ -62,8 +62,6 @@ from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
 
-import permgroup_named
-
 def is_PermutationGroupElement(x):
     return isinstance(x, PermutationGroupElement)
 

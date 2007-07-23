@@ -1504,11 +1504,13 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                          # rho
             # if we are not searching for a canonical label, there is nothing
             # to do here
-            if (not lab) or (qzb < 0): state = 6; continue
+            if (not lab) or (qzb < 0):
+                state = 6; continue
 
             # if Lambda[k] > zb[k] or nu is shorter than rho, then we have
             # found an improvement for rho
-            if (qzb > 0) or (k < k_rho): state = 9; continue
+            if (qzb > 0) or (k < k_rho):
+                state = 9; continue
 
             # if G(nu) > G(rho), goto 9
             # if G(nu) < G(rho), goto 6
@@ -1516,8 +1518,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             m1 = _nu._enumerate_graph_from_discrete(M, n)
             m2 = _rho._enumerate_graph_from_discrete(M, n)
 
-            if m1 > m2: state = 9; continue
-            if m1 < m2: state = 6; continue
+            if m1 > m2:
+                state = 9; continue
+            if m1 < m2:
+                state = 6; continue
 
             _rho._get_permutation_from(_nu, _gamma)
             if verbosity > 3:

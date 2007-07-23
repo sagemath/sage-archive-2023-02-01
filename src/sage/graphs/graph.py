@@ -693,7 +693,7 @@ class GenericGraph(SageObject):
                 bdy_verts.append(v)
             else:
                 int_verts.append(v)
-        return bdy_verts + int_verts
+        return bdy_verts + sorted(int_verts)
 
     def relabel(self, perm, inplace=True, quick=False):
         r"""

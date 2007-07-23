@@ -18,11 +18,11 @@ PLAT = _LINUX
 #  selected.  Define LOADER and LOADOPTS to refer to the loader and
 #  desired load options for your machine.
 #
-FORTRAN  = g95 -fPIC
+FORTRAN  = sage_fortran -fPIC
 #OPTS     = -funroll-all-loops -O3
 DRVOPTS  = $(OPTS)
 NOOPT    =
-LOADER   = g95
+LOADER   = sage_fortran
 LOADOPTS =
 #
 # Timer for the SECOND and DSECND routines

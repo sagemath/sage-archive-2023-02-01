@@ -108,6 +108,7 @@ import graph
 import re
 from sqlite3 import dbapi2 as sqlite
 import os
+from sage.databases.database import GenericSQLDatabase, GenericSQLQuery, SQLQuery
 
 from sage.databases.db import DB_HOME
 dblocation = DB_HOME + '/graphs/graphs.db'
@@ -124,7 +125,92 @@ def regexp(expr, item):
     r = re.compile(expr)
     return r.match(item) is not None
 
-class GraphDatabase():
+class GenericGraphQuery(GenericSQLQuery):
+    """
+    """
+    def __init__(self, database, query_string, param_tuple=None):
+        if not isinstance(database, GraphDatabase):
+            raise TypeError('%s is not a valid GraphDatabase'%database)
+        GenericSQLQuery.__init__(self,database,query_string,param_tuple)
+
+    def show(self, max_field_size=20, html_table=False, picture=False):
+        """
+        """
+        if picture:
+            from sage.plot.plot import plot
+
+            s = (self.__query_string__).lower()
+            s = re.sub('select ','select graph_data.graph6,',s)
+            s = re.sub(' from .* where ', ' from graph_data inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where ',s)
+
+            try:
+                cur = self.__database__.__connection__.cursor()
+                if self.__param_tuple__ is not None:
+                    tup = []
+                    # make it a tuple of strings:
+                    for i in range (len(self.__param_tuple__)):
+                        tup.append(str(self.__param_tuple__[i]))
+                    cur.execute(s, tuple(tup))
+                else:
+                    cur.execute(s)
+                b = cur.fetchall()
+            except:
+                raise RuntimeError('Failure to fetch query.')
+
+            # Picture drawn here
+            graph6list = []
+            for i in range (len(b)):
+                graph6 = str(b[i][0])
+                g = graph.Graph('%s'%graph6)
+                graph6list.append(g.graph6_string())
+                p = g.plot(layout='circular', vertex_size=30, vertex_labels=False, graph_border=False)
+                p.save('%s.png'%i, figsize=[1,1])
+
+            print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
+            print '<td bgcolor=white align=center> Picture </td>'
+            for des in cur.description[1:]:
+                print '<td bgcolor=white align=center> ' + des[0] + ' </td>'
+            print '</tr>'
+            field_indices = range(len(cur.description))
+            count = 0
+            for row in b:
+                print '<tr><td bgcolor=white align=center><img src="cell://%d.png"></td>'%count
+                for index in field_indices[1:]:
+                    print '<td bgcolor=white align=center> ' + str(row[index]) + ' </td>'
+                print '</tr>'
+                count += 1
+            print '</table></html>'
+
+        else:
+            GenericSQLQuery.show(self, max_field_size, html_table)
+
+class GraphQuery(SQLQuery):
+    """
+    """
+    def __init__(self, database, graph6=None, num_vertices=None, \
+                    num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, \
+                    eulerian=None, planar=None, perfect=None, lovasz_number=None, \
+                    complement_graph6=None, aut_grp_size=None, num_orbits=None, \
+                    num_fixed_points=None, vertex_transitive=None, edge_transitive=None, \
+                    degree_sequence=None, min_degree=None, max_degree=None, \
+                    average_degree=None, degrees_sd=None, regular=None, \
+                    vertex_connectivity=None, edge_connectivity=None, num_components=None, \
+                    girth=None, radius=None, diameter=None, clique_number=None, \
+                    independence_number=None, num_cut_vertices=None, \
+                    min_vertex_cover_size=None, num_spanning_trees=None, \
+                    induced_subgraphs=None, spectrum=None, min_eigenvalue=None, \
+                    max_eigenvalue=None, eigenvalues_sd=None, energy=None):
+
+        SQLQuery.__init__(self,database)
+
+        query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+        query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+        query = re.sub('FROM graph_data WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+        query = re.sub('SELECT graph_data.graph6','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+
+        self.__query_string__ = query
+
+class GraphDatabase(GenericSQLDatabase):
     r"""
     Graph Database
 
@@ -209,54 +295,9 @@ class GraphDatabase():
     \end{verbatim}
     """
 
-    def cursor(self, query=None, with_regexp=False):
-        r"""
-        Allows the user to interact directly with the database by establishing
-        a connection and creating a cursor (i.e.: pysqlite).
-
-        Will return a list containing the results (unformatted) of the query.
-
-        See class docstrings for information about the structure of graphs.db.
-
-        INPUT:
-            query -- (String) Any sqlite call pertaining to graphs.db (see
-                              examples below).
-            with_regexp -- (Boolean) True to define the sqlite function regexp
-                                          (for querying with regular expressions).
-                                     False otherwise.
-
-        EXAMPLES:
-            sage: b = graphs_query.cursor(query='select * from graph_data where num_vertices=5',with_regexp=False)
-            sage: len(b) == graphs_query.number_of(num_vertices=5)
-            True
-            sage: b[5]
-            (23, u'D@K', 5, 3, 1, 0, 1, 1, 1, 3.0, u'DF{')
-            sage: b = graphs_query.cursor(query="select graph6 from graph_data \
-            ...                 inner join misc on graph_data.graph_id=misc.graph_id \
-            ...                 where induced_subgraphs regexp '.*A_.*'", with_regexp=True)
-            ...
-            sage: len(b)
-            1245
-            sage: b = graphs_query.cursor(query='select * from graph_data \
-            ...                 inner join misc on misc.graph_id=graph_data.graph_id \
-            ...                 inner join aut_grp on aut_grp.graph_id=graph_data.graph_id \
-            ...                 inner join degrees on degrees.graph_id=graph_data.graph_id \
-            ...                 inner join spectrum on \
-            ...                 spectrum.graph_id=graph_data.graph_id',with_regexp=False)
-            ...
-            sage: len(b)
-            1252
-            sage: graphs_query.cursor(query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
-            ...             and num_edges>3')
-            [(u'CN',), (u'C]',), (u'C^',), (u'C~',)]
-        """
-        con = sqlite.connect(dblocation)
-        if ( with_regexp ): con.create_function("regexp", 2, regexp)
-        cur = con.cursor()
-        a = cur.execute(query)
-        b = a.fetchall()
-        return b
+    def __init__(self):
+        GenericSQLDatabase.__init__(self,dblocation)
+        self.__connection__.create_function("regexp", 2, regexp)
 
     def display_all(self, query=None, layout='circular', graph6=None, num_vertices=None, \
                     num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, \
@@ -278,21 +319,21 @@ class GraphDatabase():
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
-                              'select graph_data.graph6'
+                              'SELECT graph_data.graph6'
             layout -- (String) The layout option for the graph image.  Options include:
                                'circular' -- plots the graph with vertices evenly
                                              distributed on a circle
                                'spring' -- uses the traditional spring layout
             aut_grp_size -- (Integer) The desired size of the automorphism group.
-                            (List) Format: [<String>,<Integer>] where the first
+                            (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
                                            '=','>','<','>=','<='
             average_degree -- (Real) The desired average degree.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             clique_number -- (Integer) The desired clique number.
-                             (List) Format: [<String>,<Integer>] where the first
+                             (List) Format: [<String>,<Integer>] WHERE the first
                                             entry represents an inequality:
                                             '=','>','<','>=','<='
             complement_graph6 -- (String) A graph6 string isomorphic to the
@@ -303,34 +344,34 @@ class GraphDatabase():
             degree_sequence -- (Integer) The desired sequence of degrees.
                                          (Ordered highest to lowest).
             degrees_sd -- (Real) The desired standard deviation of degrees.
-                          (List) Format: [<String>,<Real>] where the first
+                          (List) Format: [<String>,<Real>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             diameter -- (Real) The desired diameter.
-                        (List) Format: [<String>,<Real>] where the first
+                        (List) Format: [<String>,<Real>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_connectivity -- (Integer) The desired edge connectivity.
-                                 (List) Format: [<String>,<Integer>] where the first
+                                 (List) Format: [<String>,<Integer>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_transitive -- (Boolean)
             eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             energy -- (Real) The desired energy.
-                      (List) Format: [<String>,<Real>] where the first entry
+                      (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             eulerian -- (Boolean)
             girth -- (Integer) The desired girth.
-                     (List) Format: [<String>,<Integer>] where the first entry
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             graph6 -- (String) A graph6 string isomorphic to the desired graph.
                       (List) A list of graph6 strings.  Will search for graphs
                              isomorphic to any string in the list.
             independence_number -- (Integer) The desired independence number.
-                                   (List) Format: [<String>,<Integer>] where the
+                                   (List) Format: [<String>,<Integer>] WHERE the
                                    first entry represents an inequality:
                                    '=','>','<','>=','<='
             induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
@@ -344,66 +385,66 @@ class GraphDatabase():
                                            isomorphic to each of the graph6 strings in
                                            the list.
             lovasz_number -- (Real) The desired lovasz number.
-                             (List) Format: [<String>,<Real>] where the first entry
+                             (List) Format: [<String>,<Real>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             max_degree -- (Integer) The desired maximum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             max_eigenvalue -- (Real) The desired maximum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_degree -- (Integer) The desired minimum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             min_eigenvalue -- (Real) The desired minimum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
-                                     (List) Format: [<String>,<Integer>] where the
+                                     (List) Format: [<String>,<Integer>] WHERE the
                                             first entry represents an inequality:
                                             '=','>','<','>=','<='
             num_components -- (Integer) The desired number of components.
-                              (List) Format: [<String>,<Integer>] where the first
+                              (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cut_vertices -- (Integer) The desired number of cut vertices.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cycles -- (Integer) The desired number of cycles.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_edges -- (Integer) The desired number of edges.
-                         (List) Format: [<String>,<Integer>] where the first entry
+                         (List) Format: [<String>,<Integer>] WHERE the first entry
                                 represents an inequality: '=','>','<','>=','<='
             num_fixed_points -- (Integer) The desired number of fixed points.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                        entry represents an inequality:
                                        '=','>','<','>=','<='
             num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
-                                      (List) Format: [<String>,<Integer>] where the first
+                                      (List) Format: [<String>,<Integer>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             num_orbits -- (Integer) The desired number of orbits.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_spanning_trees -- (Integer) The desired number of spanning trees.
-                                  (List) Format: [<String>,<Integer>] where the first
+                                  (List) Format: [<String>,<Integer>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             num_vertices -- (Integer) The desired number of vertices.
-                            (List) Format: [<String>,<Integer>] where the first entry
+                            (List) Format: [<String>,<Integer>] WHERE the first entry
                             represents an inequality: '=','>','<','>=','<='
             perfect -- (Boolean)
             planar -- (Boolean)
             radius -- (Integer) The desired radius.
-                      (List) Format: [<String>,<Integer>] where the first entry represents
+                      (List) Format: [<String>,<Integer>] WHERE the first entry represents
                              an inequality: '=','>','<','>=','<='
             regular -- (Boolean)
             spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
                                  delimited by ', ' and rounded to 6 decimal places).
             vertex_connectivity -- (Integer) The desired vertex connectivity.
-                                   (List) Format: [<String>,<Integer>] where the first
+                                   (List) Format: [<String>,<Integer>] WHERE the first
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
@@ -426,32 +467,42 @@ class GraphDatabase():
 
         The query string:
             sage.: graphs_query.display_all(layout='spring', \
-            ...             query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
+            ...             query='SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
-            sage.: graphs_query.display_all(query='select graph_data.graph6 from graph_data \
-            ...             inner join degrees on graph_data.graph_id=degrees.graph_id \
-            ...             where num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
+            sage.: graphs_query.display_all(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
+            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
             ...             and num_cycles<=2')
-            sage.: graphs_query.display_all(query="select graph_data.graph6 \
-            ...             from graph_data inner join misc on \
-            ...             misc.graph_id=graph_data.graph_id where \
+            sage.: graphs_query.display_all(query="SELECT graph_data.graph6 \
+            ...             FROM graph_data INNER JOIN misc on \
+            ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
         """
         from sage.plot.plot import plot
 
         if ( query is None):
-            query = self.__query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        query = re.sub('inner join .* where','inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('from graph_data where','from graph_data inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('select graph_data.graph6','select graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+            param = None
+            query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM graph_data WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT graph_data.graph6','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        else:
+            # Deal only with the string:
+            query = query.__query_string__
+            param = query.__param_tuple__
 
-        # Now run query
-        con = sqlite.connect(dblocation)
-        con.create_function("regexp", 2, regexp)
-        cur = con.cursor()
-        a = cur.execute(query)
-        b = a.fetchall()
+        cur = (self.__connection__).cursor()
+        if param is None:
+            a = cur.execute(query)
+            b = a.fetchall()
+        else:
+            tup = []
+            # make it a tuple of strings:
+            for i in range (len(param)):
+                tup.append(str(param[i]))
+            exe = cur.execute(query, tuple(tup))
+            b = exe.fetchall()
 
         graph6list = []
         for i in range (len(b)):
@@ -546,12 +597,12 @@ class GraphDatabase():
                         max_eigenvalue=None, eigenvalues_sd=None, energy=None):
         r"""
         Displays the results of a query in a table, including all stored
-        properties from the specified database tables and an image for each graph.
+        properties FROM the specified database tables and an image for each graph.
 
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
-                              'select graph_data.graph6'
+                              'SELECT graph_data.graph6'
             tables -- (List) A list of strings with the exact name (as the
                              database tables) of the tables of properties to
                              display with the results.  Database table names are:
@@ -561,15 +612,15 @@ class GraphDatabase():
                                              distributed on a circle
                                'spring' -- uses the traditional spring layout
             aut_grp_size -- (Integer) The desired size of the automorphism group.
-                            (List) Format: [<String>,<Integer>] where the first
+                            (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
                                            '=','>','<','>=','<='
             average_degree -- (Real) The desired average degree.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             clique_number -- (Integer) The desired clique number.
-                             (List) Format: [<String>,<Integer>] where the first
+                             (List) Format: [<String>,<Integer>] WHERE the first
                                             entry represents an inequality:
                                             '=','>','<','>=','<='
             complement_graph6 -- (String) A graph6 string isomorphic to the
@@ -580,34 +631,34 @@ class GraphDatabase():
             degree_sequence -- (Integer) The desired sequence of degrees.
                                          (Ordered highest to lowest).
             degrees_sd -- (Real) The desired standard deviation of degrees.
-                          (List) Format: [<String>,<Real>] where the first
+                          (List) Format: [<String>,<Real>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             diameter -- (Real) The desired diameter.
-                        (List) Format: [<String>,<Real>] where the first
+                        (List) Format: [<String>,<Real>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_connectivity -- (Integer) The desired edge connectivity.
-                                 (List) Format: [<String>,<Integer>] where the first
+                                 (List) Format: [<String>,<Integer>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_transitive -- (Boolean)
             eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             energy -- (Real) The desired energy.
-                      (List) Format: [<String>,<Real>] where the first entry
+                      (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             eulerian -- (Boolean)
             girth -- (Integer) The desired girth.
-                     (List) Format: [<String>,<Integer>] where the first entry
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             graph6 -- (String) A graph6 string isomorphic to the desired graph.
                       (List) A list of graph6 strings.  Will search for graphs
                              isomorphic to any string in the list.
             independence_number -- (Integer) The desired independence number.
-                                   (List) Format: [<String>,<Integer>] where the
+                                   (List) Format: [<String>,<Integer>] WHERE the
                                    first entry represents an inequality:
                                    '=','>','<','>=','<='
             induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
@@ -621,66 +672,66 @@ class GraphDatabase():
                                            isomorphic to each of the graph6 strings in
                                            the list.
             lovasz_number -- (Real) The desired lovasz number.
-                             (List) Format: [<String>,<Real>] where the first entry
+                             (List) Format: [<String>,<Real>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             max_degree -- (Integer) The desired maximum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             max_eigenvalue -- (Real) The desired maximum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_degree -- (Integer) The desired minimum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             min_eigenvalue -- (Real) The desired minimum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
-                                     (List) Format: [<String>,<Integer>] where the
+                                     (List) Format: [<String>,<Integer>] WHERE the
                                             first entry represents an inequality:
                                             '=','>','<','>=','<='
             num_components -- (Integer) The desired number of components.
-                              (List) Format: [<String>,<Integer>] where the first
+                              (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cut_vertices -- (Integer) The desired number of cut vertices.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cycles -- (Integer) The desired number of cycles.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_edges -- (Integer) The desired number of edges.
-                         (List) Format: [<String>,<Integer>] where the first entry
+                         (List) Format: [<String>,<Integer>] WHERE the first entry
                                 represents an inequality: '=','>','<','>=','<='
             num_fixed_points -- (Integer) The desired number of fixed points.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                        entry represents an inequality:
                                        '=','>','<','>=','<='
             num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
-                                      (List) Format: [<String>,<Integer>] where the first
+                                      (List) Format: [<String>,<Integer>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             num_orbits -- (Integer) The desired number of orbits.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_spanning_trees -- (Integer) The desired number of spanning trees.
-                                  (List) Format: [<String>,<Integer>] where the first
+                                  (List) Format: [<String>,<Integer>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             num_vertices -- (Integer) The desired number of vertices.
-                            (List) Format: [<String>,<Integer>] where the first entry
+                            (List) Format: [<String>,<Integer>] WHERE the first entry
                             represents an inequality: '=','>','<','>=','<='
             perfect -- (Boolean)
             planar -- (Boolean)
             radius -- (Integer) The desired radius.
-                      (List) Format: [<String>,<Integer>] where the first entry represents
+                      (List) Format: [<String>,<Integer>] WHERE the first entry represents
                              an inequality: '=','>','<','>=','<='
             regular -- (Boolean)
             spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
                                  delimited by ', ' and rounded to 6 decimal places).
             vertex_connectivity -- (Integer) The desired vertex connectivity.
-                                   (List) Format: [<String>,<Integer>] where the first
+                                   (List) Format: [<String>,<Integer>] WHERE the first
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
@@ -702,33 +753,43 @@ class GraphDatabase():
 
         The query string:
             sage.: graphs_query.display_tables(tables=['graph_data'], layout='spring', \
-            ...             query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
+            ...             query='SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
-            sage.: graphs_query.display_tables(query='select graph_data.graph6 from graph_data \
-            ...             inner join degrees on graph_data.graph_id=degrees.graph_id \
-            ...             where num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
+            sage.: graphs_query.display_tables(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
+            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
             ...             and num_cycles<=2', tables=['graph_data','degrees'])
-            sage.: graphs_query.display_tables(query="select graph_data.graph6 \
-            ...             from graph_data inner join misc on \
-            ...             misc.graph_id=graph_data.graph_id where \
+            sage.: graphs_query.display_tables(query="SELECT graph_data.graph6 \
+            ...             FROM graph_data INNER JOIN misc on \
+            ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'", \
             ...             tables=['graph_data','misc','spectrum','degrees','aut_grp'])
         """
         from sage.plot.plot import plot
 
-        if ( query is None ):
-            query = self.__query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        query = re.sub('inner join .* where','inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('from graph_data where','from graph_data inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('select graph_data.graph6','select graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        if ( query is None):
+            param = None
+            query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM graph_data WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT graph_data.graph6','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        else:
+            # Deal only with the string:
+            query = query.__query_string__
+            param = query.__param_tuple__
 
-        # Now run query
-        con = sqlite.connect(dblocation)
-        con.create_function("regexp", 2, regexp)
-        cur = con.cursor()
-        a = cur.execute(query)
-        b = a.fetchall()
+        cur = (self.__connection__).cursor()
+        if param is None:
+            a = cur.execute(query)
+            b = a.fetchall()
+        else:
+            tup = []
+            # make it a tuple of strings:
+            for i in range (len(param)):
+                tup.append(str(param[i]))
+            exe = cur.execute(query, tuple(tup))
+            b = exe.fetchall()
 
         graph6list = []
         for i in range (len(b)):
@@ -848,7 +909,7 @@ class GraphDatabase():
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
-                              'select graph_data.graph6'
+                              'SELECT graph_data.graph6'
             properties -- (List) A list of strings that are the exact name (as
                                  the following parameters) of the properties to
                                  display with the results.
@@ -857,15 +918,15 @@ class GraphDatabase():
                                              distributed on a circle
                                'spring' -- uses the traditional spring layout
             aut_grp_size -- (Integer) The desired size of the automorphism group.
-                            (List) Format: [<String>,<Integer>] where the first
+                            (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
                                            '=','>','<','>=','<='
             average_degree -- (Real) The desired average degree.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             clique_number -- (Integer) The desired clique number.
-                             (List) Format: [<String>,<Integer>] where the first
+                             (List) Format: [<String>,<Integer>] WHERE the first
                                             entry represents an inequality:
                                             '=','>','<','>=','<='
             complement_graph6 -- (String) A graph6 string isomorphic to the
@@ -876,34 +937,34 @@ class GraphDatabase():
             degree_sequence -- (Integer) The desired sequence of degrees.
                                          (Ordered highest to lowest).
             degrees_sd -- (Real) The desired standard deviation of degrees.
-                          (List) Format: [<String>,<Real>] where the first
+                          (List) Format: [<String>,<Real>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             diameter -- (Real) The desired diameter.
-                        (List) Format: [<String>,<Real>] where the first
+                        (List) Format: [<String>,<Real>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_connectivity -- (Integer) The desired edge connectivity.
-                                 (List) Format: [<String>,<Integer>] where the first
+                                 (List) Format: [<String>,<Integer>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_transitive -- (Boolean)
             eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             energy -- (Real) The desired energy.
-                      (List) Format: [<String>,<Real>] where the first entry
+                      (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             eulerian -- (Boolean)
             girth -- (Integer) The desired girth.
-                     (List) Format: [<String>,<Integer>] where the first entry
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             graph6 -- (String) A graph6 string isomorphic to the desired graph.
                       (List) A list of graph6 strings.  Will search for graphs
                              isomorphic to any string in the list.
             independence_number -- (Integer) The desired independence number.
-                                   (List) Format: [<String>,<Integer>] where the
+                                   (List) Format: [<String>,<Integer>] WHERE the
                                    first entry represents an inequality:
                                    '=','>','<','>=','<='
             induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
@@ -917,66 +978,66 @@ class GraphDatabase():
                                            isomorphic to each of the graph6 strings in
                                            the list.
             lovasz_number -- (Real) The desired lovasz number.
-                             (List) Format: [<String>,<Real>] where the first entry
+                             (List) Format: [<String>,<Real>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             max_degree -- (Integer) The desired maximum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             max_eigenvalue -- (Real) The desired maximum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_degree -- (Integer) The desired minimum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             min_eigenvalue -- (Real) The desired minimum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
-                                     (List) Format: [<String>,<Integer>] where the
+                                     (List) Format: [<String>,<Integer>] WHERE the
                                             first entry represents an inequality:
                                             '=','>','<','>=','<='
             num_components -- (Integer) The desired number of components.
-                              (List) Format: [<String>,<Integer>] where the first
+                              (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cut_vertices -- (Integer) The desired number of cut vertices.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cycles -- (Integer) The desired number of cycles.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_edges -- (Integer) The desired number of edges.
-                         (List) Format: [<String>,<Integer>] where the first entry
+                         (List) Format: [<String>,<Integer>] WHERE the first entry
                                 represents an inequality: '=','>','<','>=','<='
             num_fixed_points -- (Integer) The desired number of fixed points.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                        entry represents an inequality:
                                        '=','>','<','>=','<='
             num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
-                                      (List) Format: [<String>,<Integer>] where the first
+                                      (List) Format: [<String>,<Integer>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             num_orbits -- (Integer) The desired number of orbits.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_spanning_trees -- (Integer) The desired number of spanning trees.
-                                  (List) Format: [<String>,<Integer>] where the first
+                                  (List) Format: [<String>,<Integer>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             num_vertices -- (Integer) The desired number of vertices.
-                            (List) Format: [<String>,<Integer>] where the first entry
+                            (List) Format: [<String>,<Integer>] WHERE the first entry
                             represents an inequality: '=','>','<','>=','<='
             perfect -- (Boolean)
             planar -- (Boolean)
             radius -- (Integer) The desired radius.
-                      (List) Format: [<String>,<Integer>] where the first entry represents
+                      (List) Format: [<String>,<Integer>] WHERE the first entry represents
                              an inequality: '=','>','<','>=','<='
             regular -- (Boolean)
             spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
                                  delimited by ', ' and rounded to 6 decimal places).
             vertex_connectivity -- (Integer) The desired vertex connectivity.
-                                   (List) Format: [<String>,<Integer>] where the first
+                                   (List) Format: [<String>,<Integer>] WHERE the first
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
@@ -1005,33 +1066,43 @@ class GraphDatabase():
             sage.: graphs_query.display_properties(properties=['eulerian','perfect','planar','regular',\
             ...             'edge_transitive','vertex_transitive','num_cycles','degree_sequence',\
             ...             'induced_subgraphs','num_vertices','max_degree'], layout='spring', \
-            ...             query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
+            ...             query='SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
-            sage.: graphs_query.display_properties(query='select graph_data.graph6 from graph_data \
-            ...             inner join degrees on graph_data.graph_id=degrees.graph_id \
-            ...             where num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
+            sage.: graphs_query.display_properties(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
+            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
             ...             and num_cycles<=2', properties=['clique_number','independence_number'])
-            sage.: graphs_query.display_properties(query="select graph_data.graph6 \
-            ...             from graph_data inner join misc on \
-            ...             misc.graph_id=graph_data.graph_id where \
+            sage.: graphs_query.display_properties(query="SELECT graph_data.graph6 \
+            ...             FROM graph_data INNER JOIN misc on \
+            ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'", \
             ...             properties=['induced_subgraphs'])
         """
         from sage.plot.plot import plot
 
-        if ( query is None ):
-            query = self.__query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        query = re.sub('inner join .* where','inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('from graph_data where','from graph_data inner join aut_grp on aut_grp.graph_id=graph_data.graph_id inner join degrees on degrees.graph_id=graph_data.graph_id inner join misc on misc.graph_id=graph_data.graph_id inner join spectrum on spectrum.graph_id=graph_data.graph_id where',query)
-        query = re.sub('select graph_data.graph6','select graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        if ( query is None):
+            param = None
+            query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM graph_data WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT graph_data.graph6','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        else:
+            # Deal only with the string:
+            query = query.__query_string__
+            param = query.__param_tuple__
 
-        # Now run query
-        con = sqlite.connect(dblocation)
-        con.create_function("regexp", 2, regexp)
-        cur = con.cursor()
-        a = cur.execute(query)
-        b = a.fetchall()
+        cur = (self.__connection__).cursor()
+        if param is None:
+            a = cur.execute(query)
+            b = a.fetchall()
+        else:
+            tup = []
+            # make it a tuple of strings:
+            for i in range (len(param)):
+                tup.append(str(param[i]))
+            exe = cur.execute(query, tuple(tup))
+            b = exe.fetchall()
 
         graph6list = []
         for i in range (len(b)):
@@ -1171,17 +1242,17 @@ class GraphDatabase():
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
-                              'select graph_data.graph6'
+                              'SELECT graph_data.graph6'
             aut_grp_size -- (Integer) The desired size of the automorphism group.
-                            (List) Format: [<String>,<Integer>] where the first
+                            (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
                                            '=','>','<','>=','<='
             average_degree -- (Real) The desired average degree.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             clique_number -- (Integer) The desired clique number.
-                             (List) Format: [<String>,<Integer>] where the first
+                             (List) Format: [<String>,<Integer>] WHERE the first
                                             entry represents an inequality:
                                             '=','>','<','>=','<='
             complement_graph6 -- (String) A graph6 string isomorphic to the
@@ -1192,34 +1263,34 @@ class GraphDatabase():
             degree_sequence -- (Integer) The desired sequence of degrees.
                                          (Ordered highest to lowest).
             degrees_sd -- (Real) The desired standard deviation of degrees.
-                          (List) Format: [<String>,<Real>] where the first
+                          (List) Format: [<String>,<Real>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             diameter -- (Real) The desired diameter.
-                        (List) Format: [<String>,<Real>] where the first
+                        (List) Format: [<String>,<Real>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_connectivity -- (Integer) The desired edge connectivity.
-                                 (List) Format: [<String>,<Integer>] where the first
+                                 (List) Format: [<String>,<Integer>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_transitive -- (Boolean)
             eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             energy -- (Real) The desired energy.
-                      (List) Format: [<String>,<Real>] where the first entry
+                      (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             eulerian -- (Boolean)
             girth -- (Integer) The desired girth.
-                     (List) Format: [<String>,<Integer>] where the first entry
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             graph6 -- (String) A graph6 string isomorphic to the desired graph.
                       (List) A list of graph6 strings.  Will search for graphs
                              isomorphic to any string in the list.
             independence_number -- (Integer) The desired independence number.
-                                   (List) Format: [<String>,<Integer>] where the
+                                   (List) Format: [<String>,<Integer>] WHERE the
                                    first entry represents an inequality:
                                    '=','>','<','>=','<='
             induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
@@ -1233,66 +1304,66 @@ class GraphDatabase():
                                            isomorphic to each of the graph6 strings in
                                            the list.
             lovasz_number -- (Real) The desired lovasz number.
-                             (List) Format: [<String>,<Real>] where the first entry
+                             (List) Format: [<String>,<Real>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             max_degree -- (Integer) The desired maximum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             max_eigenvalue -- (Real) The desired maximum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_degree -- (Integer) The desired minimum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             min_eigenvalue -- (Real) The desired minimum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
-                                     (List) Format: [<String>,<Integer>] where the
+                                     (List) Format: [<String>,<Integer>] WHERE the
                                             first entry represents an inequality:
                                             '=','>','<','>=','<='
             num_components -- (Integer) The desired number of components.
-                              (List) Format: [<String>,<Integer>] where the first
+                              (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cut_vertices -- (Integer) The desired number of cut vertices.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cycles -- (Integer) The desired number of cycles.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_edges -- (Integer) The desired number of edges.
-                         (List) Format: [<String>,<Integer>] where the first entry
+                         (List) Format: [<String>,<Integer>] WHERE the first entry
                                 represents an inequality: '=','>','<','>=','<='
             num_fixed_points -- (Integer) The desired number of fixed points.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                        entry represents an inequality:
                                        '=','>','<','>=','<='
             num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
-                                      (List) Format: [<String>,<Integer>] where the first
+                                      (List) Format: [<String>,<Integer>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             num_orbits -- (Integer) The desired number of orbits.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_spanning_trees -- (Integer) The desired number of spanning trees.
-                                  (List) Format: [<String>,<Integer>] where the first
+                                  (List) Format: [<String>,<Integer>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             num_vertices -- (Integer) The desired number of vertices.
-                            (List) Format: [<String>,<Integer>] where the first entry
+                            (List) Format: [<String>,<Integer>] WHERE the first entry
                             represents an inequality: '=','>','<','>=','<='
             perfect -- (Boolean)
             planar -- (Boolean)
             radius -- (Integer) The desired radius.
-                      (List) Format: [<String>,<Integer>] where the first entry represents
+                      (List) Format: [<String>,<Integer>] WHERE the first entry represents
                              an inequality: '=','>','<','>=','<='
             regular -- (Boolean)
             spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
                                  delimited by ', ' and rounded to 6 decimal places).
             vertex_connectivity -- (Integer) The desired vertex connectivity.
-                                   (List) Format: [<String>,<Integer>] where the first
+                                   (List) Format: [<String>,<Integer>] WHERE the first
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
@@ -1315,15 +1386,15 @@ class GraphDatabase():
             True
             sage: g = graphs_query.get_list(num_hamiltonian_cycles=2,regular=True,perfect=False)
             sage.: graphs_list.show_graphs(g)
-            sage: g = graphs_query.get_list(query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
+            sage: g = graphs_query.get_list(query='SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
             ...
             sage: graphs_list.to_graph6(g)
             'CN\nC]\nC^\nC~\n'
-            sage: g = graphs_query.get_list(query='select graph_data.graph6 from graph_data \
-            ...             inner join degrees on graph_data.graph_id=degrees.graph_id \
-            ...             where num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
+            sage: g = graphs_query.get_list(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
+            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
             ...             and num_cycles<=2')
             ...
             sage: for i in range(len(g)):
@@ -1332,9 +1403,9 @@ class GraphDatabase():
             F@LAG
             sage: (Graph('FJ?GW')).is_isomorphic(Graph('F@LAG'))
             True
-            sage.: g = graphs_query.get_list(query="select graph_data.graph6 \
-            ...             from graph_data inner join misc on \
-            ...             misc.graph_id=graph_data.graph_id where \
+            sage.: g = graphs_query.get_list(query="SELECT graph_data.graph6 \
+            ...             FROM graph_data INNER JOIN misc on \
+            ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
             ...
             sage.: graphs_list.show_graphs(g)
@@ -1342,12 +1413,23 @@ class GraphDatabase():
             'E~~w\nFJ\\zw\nFJ\\~w\nFJ^~w\nFJ~~w\nFN~~w\nF^~~w\nF~~~w\n'
         """
         if ( query is None ):
-            query = self.__query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        con = sqlite.connect(dblocation)
-        con.create_function("regexp", 2, regexp)
-        cur = con.cursor()
-        a = cur.execute(query)
-        b = a.fetchall()
+            param = None
+            query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+        else:
+            query = query.__query_string__
+            param = query.__param_tuple__
+
+        cur = (self.__connection__).cursor()
+        if param is None:
+            a = cur.execute(query)
+            b = a.fetchall()
+        else:
+            tup = []
+            # make it a tuple of strings:
+            for i in range (len(param)):
+                tup.append(str(param[i]))
+            exe = cur.execute(query, tuple(tup))
+            b = exe.fetchall()
 
         glist = []
         for i in range (len(b)):
@@ -1372,17 +1454,17 @@ class GraphDatabase():
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
-                              'select graph_data.graph6'
+                              'SELECT graph_data.graph6'
             aut_grp_size -- (Integer) The desired size of the automorphism group.
-                            (List) Format: [<String>,<Integer>] where the first
+                            (List) Format: [<String>,<Integer>] WHERE the first
                                            entry represents an inequality:
                                            '=','>','<','>=','<='
             average_degree -- (Real) The desired average degree.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             clique_number -- (Integer) The desired clique number.
-                             (List) Format: [<String>,<Integer>] where the first
+                             (List) Format: [<String>,<Integer>] WHERE the first
                                             entry represents an inequality:
                                             '=','>','<','>=','<='
             complement_graph6 -- (String) A graph6 string isomorphic to the
@@ -1393,34 +1475,34 @@ class GraphDatabase():
             degree_sequence -- (Integer) The desired sequence of degrees.
                                          (Ordered highest to lowest).
             degrees_sd -- (Real) The desired standard deviation of degrees.
-                          (List) Format: [<String>,<Real>] where the first
+                          (List) Format: [<String>,<Real>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             diameter -- (Real) The desired diameter.
-                        (List) Format: [<String>,<Real>] where the first
+                        (List) Format: [<String>,<Real>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_connectivity -- (Integer) The desired edge connectivity.
-                                 (List) Format: [<String>,<Integer>] where the first
+                                 (List) Format: [<String>,<Integer>] WHERE the first
                                         entry represents an inequality:
                                         '=','>','<','>=','<='
             edge_transitive -- (Boolean)
             eigenvalues_sd -- (Real) The desired standard deviation of eigenvalues.
-                              (List) Format: [<String>,<Real>] where the first
+                              (List) Format: [<String>,<Real>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             energy -- (Real) The desired energy.
-                      (List) Format: [<String>,<Real>] where the first entry
+                      (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             eulerian -- (Boolean)
             girth -- (Integer) The desired girth.
-                     (List) Format: [<String>,<Integer>] where the first entry
+                     (List) Format: [<String>,<Integer>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             graph6 -- (String) A graph6 string isomorphic to the desired graph.
                       (List) A list of graph6 strings.  Will search for graphs
                              isomorphic to any string in the list.
             independence_number -- (Integer) The desired independence number.
-                                   (List) Format: [<String>,<Integer>] where the
+                                   (List) Format: [<String>,<Integer>] WHERE the
                                    first entry represents an inequality:
                                    '=','>','<','>=','<='
             induced_subgraphs -- (String) graph6 string isomorphic to desired subgraph.
@@ -1434,66 +1516,66 @@ class GraphDatabase():
                                            isomorphic to each of the graph6 strings in
                                            the list.
             lovasz_number -- (Real) The desired lovasz number.
-                             (List) Format: [<String>,<Real>] where the first entry
+                             (List) Format: [<String>,<Real>] WHERE the first entry
                                     represents an inequality: '=','>','<','>=','<='
             max_degree -- (Integer) The desired maximum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             max_eigenvalue -- (Real) The desired maximum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_degree -- (Integer) The desired minimum degree.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             min_eigenvalue -- (Real) The desired minimum eigenvalue.
-                              (List) Format: [<String>,<Real>] where the first entry
+                              (List) Format: [<String>,<Real>] WHERE the first entry
                                      represents an inequality: '=','>','<','>=','<='
             min_vertex_cover_size -- (Integer) The desired minimum vertex cover size.
-                                     (List) Format: [<String>,<Integer>] where the
+                                     (List) Format: [<String>,<Integer>] WHERE the
                                             first entry represents an inequality:
                                             '=','>','<','>=','<='
             num_components -- (Integer) The desired number of components.
-                              (List) Format: [<String>,<Integer>] where the first
+                              (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cut_vertices -- (Integer) The desired number of cut vertices.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                      entry represents an inequality:
                                      '=','>','<','>=','<='
             num_cycles -- (Integer) The desired number of cycles.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_edges -- (Integer) The desired number of edges.
-                         (List) Format: [<String>,<Integer>] where the first entry
+                         (List) Format: [<String>,<Integer>] WHERE the first entry
                                 represents an inequality: '=','>','<','>=','<='
             num_fixed_points -- (Integer) The desired number of fixed points.
-                                (List) Format: [<String>,<Integer>] where the first
+                                (List) Format: [<String>,<Integer>] WHERE the first
                                        entry represents an inequality:
                                        '=','>','<','>=','<='
             num_hamiltonian_cycles -- (Integer) The desired number of hamiltonian cycles.
-                                      (List) Format: [<String>,<Integer>] where the first
+                                      (List) Format: [<String>,<Integer>] WHERE the first
                                              entry represents an inequality:
                                              '=','>','<','>=','<='
             num_orbits -- (Integer) The desired number of orbits.
-                          (List) Format: [<String>,<Integer>] where the first entry
+                          (List) Format: [<String>,<Integer>] WHERE the first entry
                                  represents an inequality: '=','>','<','>=','<='
             num_spanning_trees -- (Integer) The desired number of spanning trees.
-                                  (List) Format: [<String>,<Integer>] where the first
+                                  (List) Format: [<String>,<Integer>] WHERE the first
                                          entry represents an inequality:
                                          '=','>','<','>=','<='
             num_vertices -- (Integer) The desired number of vertices.
-                            (List) Format: [<String>,<Integer>] where the first entry
+                            (List) Format: [<String>,<Integer>] WHERE the first entry
                             represents an inequality: '=','>','<','>=','<='
             perfect -- (Boolean)
             planar -- (Boolean)
             radius -- (Integer) The desired radius.
-                      (List) Format: [<String>,<Integer>] where the first entry represents
+                      (List) Format: [<String>,<Integer>] WHERE the first entry represents
                              an inequality: '=','>','<','>=','<='
             regular -- (Boolean)
             spectrum -- (String) The desired spectrum.  (Ordered highest to lowest,
                                  delimited by ', ' and rounded to 6 decimal places).
             vertex_connectivity -- (Integer) The desired vertex connectivity.
-                                   (List) Format: [<String>,<Integer>] where the first
+                                   (List) Format: [<String>,<Integer>] WHERE the first
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
@@ -1527,13 +1609,13 @@ class GraphDatabase():
             2
             sage: graphs_query.number_of(num_hamiltonian_cycles=2,regular=True,perfect=False)
             2
-            sage: graphs_query.number_of(query='select graph_data.graph6 \
-            ...             from graph_data where num_vertices<=4 \
+            sage: graphs_query.number_of(query='SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
             4
-            sage: graphs_query.number_of(query='select graph_data.graph6 from graph_data \
-            ...             inner join degrees on graph_data.graph_id=degrees.graph_id \
-            ...             where num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
+            sage: graphs_query.number_of(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
+            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
             ...             and num_cycles<=2')
             9
             sage: graphs_query.number_of(num_vertices=7,num_cycles=['>',2])
@@ -1544,7 +1626,7 @@ class GraphDatabase():
             sage: d = graphs_query.number_of(num_hamiltonian_cycles=['>',40])
             sage: a-d == c-b
             True
-            sage: q = 'select graph_data.graph6 from graph_data where \
+            sage: q = 'SELECT graph_data.graph6 FROM graph_data WHERE \
             ...                      num_hamiltonian_cycles=2 or '
             ...
             sage: for i in range(40)[3:]:
@@ -1552,293 +1634,290 @@ class GraphDatabase():
             ...
             sage: q += 'num_hamiltonian_cycles=40'
             sage: long = graphs_query.number_of(query=q)
-            sage: short = graphs_query.number_of(query='select graph_data.graph6 \
-            ...                      from graph_data where num_hamiltonian_cycles>=2 \
+            sage: short = graphs_query.number_of(query='SELECT graph_data.graph6 \
+            ...                      FROM graph_data WHERE num_hamiltonian_cycles>=2 \
             ...                      and num_hamiltonian_cycles<=40')
             ...
             sage: long == short == a-d
             True
-            sage: graphs_query.number_of(query="select graph_data.graph6 \
-            ...             from graph_data inner join misc on \
-            ...             misc.graph_id=graph_data.graph_id where \
+            sage: graphs_query.number_of(query="SELECT graph_data.graph6 \
+            ...             FROM graph_data INNER JOIN misc on \
+            ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
             8
         """
         glist = self.get_list(query=query, graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
         return len(glist)
 
-    def __query_string__(self, graph6=None, num_vertices=None, num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, eulerian=None, planar=None, perfect=None, lovasz_number=None, complement_graph6=None, aut_grp_size=None, num_orbits=None, num_fixed_points=None, vertex_transitive=None, edge_transitive=None, degree_sequence=None, min_degree=None, max_degree=None, average_degree=None, degrees_sd=None, regular=None, vertex_connectivity=None, edge_connectivity=None, num_components=None, girth=None, radius=None, diameter=None, clique_number=None, independence_number=None, num_cut_vertices=None, min_vertex_cover_size=None, num_spanning_trees=None, induced_subgraphs=None, spectrum=None, min_eigenvalue=None, max_eigenvalue=None, eigenvalues_sd=None, energy=None):
-        """
-        Creates the query string for sqlite database.  Will query graph_data automatically,
-        and any other tables as necessary.
+def __query_string__(graph6=None, num_vertices=None, num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, eulerian=None, planar=None, perfect=None, lovasz_number=None, complement_graph6=None, aut_grp_size=None, num_orbits=None, num_fixed_points=None, vertex_transitive=None, edge_transitive=None, degree_sequence=None, min_degree=None, max_degree=None, average_degree=None, degrees_sd=None, regular=None, vertex_connectivity=None, edge_connectivity=None, num_components=None, girth=None, radius=None, diameter=None, clique_number=None, independence_number=None, num_cut_vertices=None, min_vertex_cover_size=None, num_spanning_trees=None, induced_subgraphs=None, spectrum=None, min_eigenvalue=None, max_eigenvalue=None, eigenvalues_sd=None, energy=None):
+    """
+    Creates the query string for sqlite database.  Will query graph_data automatically,
+    and any other tables as necessary.
 
-        Applies parameters specified in get_list, number_of and display functions.
-        """
-        query = 'select graph_data.graph6 from graph_data where graph_data.graph_id=graph_data.graph_id and'
-        if ( aut_grp_size != None or num_orbits != None or num_fixed_points != None or vertex_transitive != None or edge_transitive != None ):
-            query = self.__aut_grp_string__(query=query, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive)
-        if ( degree_sequence != None or min_degree != None or max_degree != None or average_degree != None or degrees_sd != None or regular != None ):
-            query = self.__degrees_string__(query=query, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular)
-        if ( vertex_connectivity != None or edge_connectivity != None or num_components != None or girth != None or radius != None or diameter != None or clique_number != None or independence_number != None or num_cut_vertices != None or min_vertex_cover_size != None or num_spanning_trees != None or induced_subgraphs != None ):
-            query = self.__misc_string__(query=query, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, subgraph=induced_subgraphs)
-        if ( spectrum != None or min_eigenvalue != None or max_eigenvalue != None or eigenvalues_sd != None or energy != None ):
-            query = self.__spectrum_string__(query=query, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        if ( graph6 != None ):
-            if (str(type(graph6)) == "<type 'list'>"):
-                # only one_of
-                for i in range (len(graph6)):
-                    graph6[i] = ((graph.Graph(graph6[i])).canonical_label()).graph6_string()
+    Applies parameters specified in get_list, number_of and display functions.
+    """
+    query = 'SELECT graph_data.graph6 FROM graph_data WHERE graph_data.graph_id=graph_data.graph_id and'
+    if ( aut_grp_size != None or num_orbits != None or num_fixed_points != None or vertex_transitive != None or edge_transitive != None ):
+        query = __aut_grp_string__(query=query, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive)
+    if ( degree_sequence != None or min_degree != None or max_degree != None or average_degree != None or degrees_sd != None or regular != None ):
+        query = __degrees_string__(query=query, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular)
+    if ( vertex_connectivity != None or edge_connectivity != None or num_components != None or girth != None or radius != None or diameter != None or clique_number != None or independence_number != None or num_cut_vertices != None or min_vertex_cover_size != None or num_spanning_trees != None or induced_subgraphs != None ):
+        query = __misc_string__(query=query, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, subgraph=induced_subgraphs)
+    if ( spectrum != None or min_eigenvalue != None or max_eigenvalue != None or eigenvalues_sd != None or energy != None ):
+        query = __spectrum_string__(query=query, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
+    if ( graph6 != None ):
+        if (str(type(graph6)) == "<type 'list'>"):
+            # only one_of
+            for i in range (len(graph6)):
+                graph6[i] = ((graph.Graph(graph6[i])).canonical_label()).graph6_string()
+            query += ' ('
+            for i in range (len(graph6)-1):
+                query += "graph_data.graph6='%s' or "%graph6[i]
+            query += "graph_data.graph6='%s') and"%graph6[len(graph6)-1]
+        else:
+            graph6 = ((graph.Graph(graph6)).canonical_label()).graph6_string()
+            query += " graph_data.graph6='%s' and"%graph6
+    if ( num_vertices != None ):
+        if (str(type(num_vertices)) == "<type 'list'>"):
+            query += ' graph_data.num_vertices%s%d and'%(num_vertices[0], num_vertices[1])
+        else:
+            query += ' graph_data.num_vertices=%d and'%num_vertices
+    if ( num_edges != None ):
+        if (str(type(num_edges)) == "<type 'list'>"):
+            query += ' graph_data.num_edges%s%d and'%(num_edges[0], num_edges[1])
+        else:
+            query += ' graph_data.num_edges=%d and'%num_edges
+    if ( num_cycles != None ):
+        if (str(type(num_cycles)) == "<type 'list'>"):
+            query += ' graph_data.num_cycles%s%d and'%(num_cycles[0], num_cycles[1])
+        else:
+            query += ' graph_data.num_cycles=%d and'%num_cycles
+    if ( num_hamiltonian_cycles != None ):
+        if (str(type(num_hamiltonian_cycles)) == "<type 'list'>"):
+            query += ' graph_data.num_hamiltonian_cycles%s%d and'%(num_hamiltonian_cycles[0], num_hamiltonian_cycles[1])
+        else:
+            query += ' graph_data.num_hamiltonian_cycles=%d and'%num_hamiltonian_cycles
+    if ( eulerian != None ):
+        query += ' graph_data.eulerian=%d and'%eulerian
+    if ( planar != None ):
+        query += ' graph_data.planar=%d and'%planar
+    if ( perfect != None ):
+        query += ' graph_data.perfect=%d and'%perfect
+    if ( lovasz_number != None ):
+        if (str(type(lovasz_number)) == "<type 'list'>"):
+            query += ' graph_data.lovasz_number%s%d and'%(lovasz_number[0], lovasz_number[1])
+        else:
+            query += ' graph_data.lovasz_number=%d and'%lovasz_number
+    if ( complement_graph6 != None ):
+        if (str(type(complement_graph6)) == "<type 'list'>"):
+            # only one_of
+            for i in range (len(complement_graph6)):
+                complement_graph6[i] = ((graph.Graph(complement_graph6[i])).canonical_label()).graph6_string()
+            query += ' ('
+            for i in range (len(complement_graph6)-1):
+                query += "graph_data.complement_graph6='%s' or "%complement_graph6[i]
+            query += "graph_data.complement_graph6='%s') and"%complement_graph6[len(complement_graph6)-1]
+        else:
+            complement_graph6 = ((graph.Graph(complement_graph6)).canonical_label()).graph6_string()
+            query += " graph_data.complement_graph6='%s' and"%complement_graph6
+
+    clean_query = re.sub(' and$','',query)
+    return clean_query
+
+def __aut_grp_string__(query=None, aut_grp_size=None, num_orbits=None, num_fixed_points=None, vertex_transitive=None, edge_transitive=None):
+    """
+    Appends necessary info to query string to search for graphs with
+    properties specified in the aut_grp database table.
+
+    Applies parameters specified in get_list, number_of and display functions.
+    """
+    r = query.split('WHERE',1)
+    s = 'INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE'
+    query = s.join(r)
+
+    if ( aut_grp_size is not None ):
+        if (str(type(aut_grp_size)) == "<type 'list'>"):
+            query += ' aut_grp.aut_grp_size%s%d and'%(aut_grp_size[0], aut_grp_size[1])
+        else:
+            query += ' aut_grp.aut_grp_size=%d and'%aut_grp_size
+    if ( num_orbits is not None ):
+        if (str(type(num_orbits)) == "<type 'list'>"):
+            query += ' aut_grp.num_orbits%s%d and'%(num_orbits[0], num_orbits[1])
+        else:
+            query += ' aut_grp.num_orbits=%d and'%num_orbits
+    if ( num_fixed_points is not None ):
+        if (str(type(num_fixed_points)) == "<type 'list'>"):
+            query += ' aut_grp.num_fixed_points%s%d and'%(num_fixed_points[0], num_fixed_points[1])
+        else:
+            query += ' aut_grp.num_fixed_points=%d and'%num_fixed_points
+    if ( vertex_transitive is not None ):
+        query += ' aut_grp.vertex_transitive=%d and'%vertex_transitive
+    if ( edge_transitive is not None ):
+        query += ' aut_grp.edge_transitive=%d and'%edge_transitive
+
+    return query
+
+def __degrees_string__(query=None, degree_sequence=None, min_degree=None, max_degree=None, average_degree=None, degrees_sd=None, regular=None):
+    """
+    Appends necessary info to query string to search for graphs with
+    properties specified in the degrees database table.
+
+    Applies parameters specified in get_list, number_of and display functions.
+    """
+    r = query.split('WHERE',1)
+    s = 'INNER JOIN degrees on degrees.graph_id=graph_data.graph_id WHERE'
+    query = s.join(r)
+
+    if ( degree_sequence is not None ):
+        query += ' degrees.degree_sequence=%d and'%degree_sequence
+    if ( min_degree is not None ):
+        if (str(type(min_degree)) == "<type 'list'>"):
+            query += ' degrees.min_degree%s%d and'%(min_degree[0], min_degree[1])
+        else:
+            query += ' degrees.min_degree=%d and'%min_degree
+    if ( max_degree is not None ):
+        if (str(type(max_degree)) == "<type 'list'>"):
+            query += ' degrees.max_degree%s%d and'%(max_degree[0], max_degree[1])
+        else:
+            query += ' degrees.max_degree=%d and'%max_degree
+    if ( average_degree is not None ):
+        if (str(type(average_degree)) == "<type 'list'>"):
+            query += ' degrees.average_degree%s%s and'%(average_degree[0], average_degree[1])
+        else:
+            query += ' degrees.average_degree=%s and'%average_degree
+    if ( degrees_sd is not None ):
+        if (str(type(degrees_sd)) == "<type 'list'>"):
+            query += ' degrees.degrees_sd%s%s and'%(degrees_sd[0], degrees_sd[1])
+        else:
+            query += ' degrees.degrees_sd=%s and'%degrees_sd
+    if ( regular is not None ):
+        query += ' degrees.regular=%d and'%regular
+
+    return query
+
+def __misc_string__(query=None, vertex_connectivity=None, edge_connectivity=None, num_components=None, girth=None, radius=None, diameter=None, clique_number=None, independence_number=None, num_cut_vertices=None, min_vertex_cover_size=None, num_spanning_trees=None, subgraph=None):
+    """
+    Appends necessary info to query string to search for graphs with
+    properties specified in the misc database table.
+
+    Applies parameters specified in get_list, number_of and display functions.
+    """
+    r = query.split('WHERE',1)
+    s = 'INNER JOIN misc on misc.graph_id=graph_data.graph_id WHERE'
+    query = s.join(r)
+
+    if (subgraph is not None):
+        from sage.misc.multireplace import multiple_replace
+        clean = {'[': '[[]', ']': '[]]', '?': '[?]', '{': '[{]', '}': '[}]', '^': '[^]', '|': '[|]'}
+        if (str(type(subgraph)) == "<type 'list'>"):
+            for i in range (len(subgraph))[1:]:
+                subgraph[i] = ((graph.Graph(subgraph[i])).canonical_label()).graph6_string()
+                subgraph[i] = multiple_replace(clean,subgraph[i])
+                subgraph[i] = subgraph[i].replace('\\',"\\\\")
+            if (subgraph[0] == 'one_of'):
                 query += ' ('
-                for i in range (len(graph6)-1):
-                    query += "graph_data.graph6='%s' or "%graph6[i]
-                query += "graph_data.graph6='%s') and"%graph6[len(graph6)-1]
-            else:
-                graph6 = ((graph.Graph(graph6)).canonical_label()).graph6_string()
-                query += " graph_data.graph6='%s' and"%graph6
-        if ( num_vertices != None ):
-            if (str(type(num_vertices)) == "<type 'list'>"):
-                query += ' graph_data.num_vertices%s%d and'%(num_vertices[0], num_vertices[1])
-            else:
-                query += ' graph_data.num_vertices=%d and'%num_vertices
-        if ( num_edges != None ):
-            if (str(type(num_edges)) == "<type 'list'>"):
-                query += ' graph_data.num_edges%s%d and'%(num_edges[0], num_edges[1])
-            else:
-                query += ' graph_data.num_edges=%d and'%num_edges
-        if ( num_cycles != None ):
-            if (str(type(num_cycles)) == "<type 'list'>"):
-                query += ' graph_data.num_cycles%s%d and'%(num_cycles[0], num_cycles[1])
-            else:
-                query += ' graph_data.num_cycles=%d and'%num_cycles
-        if ( num_hamiltonian_cycles != None ):
-            if (str(type(num_hamiltonian_cycles)) == "<type 'list'>"):
-                query += ' graph_data.num_hamiltonian_cycles%s%d and'%(num_hamiltonian_cycles[0], num_hamiltonian_cycles[1])
-            else:
-                query += ' graph_data.num_hamiltonian_cycles=%d and'%num_hamiltonian_cycles
-        if ( eulerian != None ):
-            query += ' graph_data.eulerian=%d and'%eulerian
-        if ( planar != None ):
-            query += ' graph_data.planar=%d and'%planar
-        if ( perfect != None ):
-            query += ' graph_data.perfect=%d and'%perfect
-        if ( lovasz_number != None ):
-            if (str(type(lovasz_number)) == "<type 'list'>"):
-                query += ' graph_data.lovasz_number%s%d and'%(lovasz_number[0], lovasz_number[1])
-            else:
-                query += ' graph_data.lovasz_number=%d and'%lovasz_number
-        if ( complement_graph6 != None ):
-            if (str(type(complement_graph6)) == "<type 'list'>"):
-                # only one_of
-                for i in range (len(complement_graph6)):
-                    complement_graph6[i] = ((graph.Graph(complement_graph6[i])).canonical_label()).graph6_string()
-                query += ' ('
-                for i in range (len(complement_graph6)-1):
-                    query += "graph_data.complement_graph6='%s' or "%complement_graph6[i]
-                query += "graph_data.complement_graph6='%s') and"%complement_graph6[len(complement_graph6)-1]
-            else:
-                complement_graph6 = ((graph.Graph(complement_graph6)).canonical_label()).graph6_string()
-                query += " graph_data.complement_graph6='%s' and"%complement_graph6
-
-        clean_query = re.sub(' and$','',query)
-        return clean_query
-
-    def __aut_grp_string__(self, query=None, aut_grp_size=None, num_orbits=None, num_fixed_points=None, vertex_transitive=None, edge_transitive=None):
-        """
-        Appends necessary info to query string to search for graphs with
-        properties specified in the aut_grp database table.
-
-        Applies parameters specified in get_list, number_of and display functions.
-        """
-        r = query.split('where',1)
-        s = 'inner join aut_grp on aut_grp.graph_id=graph_data.graph_id where'
-        query = s.join(r)
-
-        if ( aut_grp_size is not None ):
-            if (str(type(aut_grp_size)) == "<type 'list'>"):
-                query += ' aut_grp.aut_grp_size%s%d and'%(aut_grp_size[0], aut_grp_size[1])
-            else:
-                query += ' aut_grp.aut_grp_size=%d and'%aut_grp_size
-        if ( num_orbits is not None ):
-            if (str(type(num_orbits)) == "<type 'list'>"):
-                query += ' aut_grp.num_orbits%s%d and'%(num_orbits[0], num_orbits[1])
-            else:
-                query += ' aut_grp.num_orbits=%d and'%num_orbits
-        if ( num_fixed_points is not None ):
-            if (str(type(num_fixed_points)) == "<type 'list'>"):
-                query += ' aut_grp.num_fixed_points%s%d and'%(num_fixed_points[0], num_fixed_points[1])
-            else:
-                query += ' aut_grp.num_fixed_points=%d and'%num_fixed_points
-        if ( vertex_transitive is not None ):
-            query += ' aut_grp.vertex_transitive=%d and'%vertex_transitive
-        if ( edge_transitive is not None ):
-            query += ' aut_grp.edge_transitive=%d and'%edge_transitive
-
-        return query
-
-    def __degrees_string__(self, query=None, degree_sequence=None, min_degree=None, max_degree=None, average_degree=None, degrees_sd=None, regular=None):
-        """
-        Appends necessary info to query string to search for graphs with
-        properties specified in the degrees database table.
-
-        Applies parameters specified in get_list, number_of and display functions.
-        """
-        r = query.split('where',1)
-        s = 'inner join degrees on degrees.graph_id=graph_data.graph_id where'
-        query = s.join(r)
-
-        if ( degree_sequence is not None ):
-            query += ' degrees.degree_sequence=%d and'%degree_sequence
-        if ( min_degree is not None ):
-            if (str(type(min_degree)) == "<type 'list'>"):
-                query += ' degrees.min_degree%s%d and'%(min_degree[0], min_degree[1])
-            else:
-                query += ' degrees.min_degree=%d and'%min_degree
-        if ( max_degree is not None ):
-            if (str(type(max_degree)) == "<type 'list'>"):
-                query += ' degrees.max_degree%s%d and'%(max_degree[0], max_degree[1])
-            else:
-                query += ' degrees.max_degree=%d and'%max_degree
-        if ( average_degree is not None ):
-            if (str(type(average_degree)) == "<type 'list'>"):
-                query += ' degrees.average_degree%s%s and'%(average_degree[0], average_degree[1])
-            else:
-                query += ' degrees.average_degree=%s and'%average_degree
-        if ( degrees_sd is not None ):
-            if (str(type(degrees_sd)) == "<type 'list'>"):
-                query += ' degrees.degrees_sd%s%s and'%(degrees_sd[0], degrees_sd[1])
-            else:
-                query += ' degrees.degrees_sd=%s and'%degrees_sd
-        if ( regular is not None ):
-            query += ' degrees.regular=%d and'%regular
-
-        return query
-
-    def __misc_string__(self, query=None, vertex_connectivity=None, edge_connectivity=None, num_components=None, girth=None, radius=None, diameter=None, clique_number=None, independence_number=None, num_cut_vertices=None, min_vertex_cover_size=None, num_spanning_trees=None, subgraph=None):
-        """
-        Appends necessary info to query string to search for graphs with
-        properties specified in the misc database table.
-
-        Applies parameters specified in get_list, number_of and display functions.
-        """
-        r = query.split('where',1)
-        s = 'inner join misc on misc.graph_id=graph_data.graph_id where'
-        query = s.join(r)
-
-        if (subgraph is not None):
-            from sage.misc.multireplace import multiple_replace
-            clean = {'[': '[[]', ']': '[]]', '?': '[?]', '{': '[{]', '}': '[}]', '^': '[^]', '|': '[|]'}
-            if (str(type(subgraph)) == "<type 'list'>"):
+                for i in range (len(subgraph)-1)[1:]:
+                    query += "misc.induced_subgraphs regexp '.*%s.*' or "%subgraph[i]
+                query += "misc.induced_subgraphs regexp '.*%s.*') and"%subgraph[len(subgraph)-1]
+            elif (subgraph[0] == 'all_of'):
                 for i in range (len(subgraph))[1:]:
-                    subgraph[i] = ((graph.Graph(subgraph[i])).canonical_label()).graph6_string()
-                    subgraph[i] = multiple_replace(clean,subgraph[i])
-                    subgraph[i] = subgraph[i].replace('\\',"\\\\")
-                if (subgraph[0] == 'one_of'):
-                    query += ' ('
-                    for i in range (len(subgraph)-1)[1:]:
-                        query += "misc.induced_subgraphs regexp '.*%s.*' or "%subgraph[i]
-                    query += "misc.induced_subgraphs regexp '.*%s.*') and"%subgraph[len(subgraph)-1]
-                elif (subgraph[0] == 'all_of'):
-                    for i in range (len(subgraph))[1:]:
-                        query += " misc.induced_subgraphs regexp '.*%s.*' and"%subgraph[i]
-            else:
-                subgraph = ((graph.Graph(subgraph)).canonical_label()).graph6_string()
-                subgraph = multiple_replace(clean,subgraph)
-                subgraph = subgraph.replace('\\',"\\\\")
-                query += " misc.induced_subgraphs regexp '.*%s.*' and"%subgraph
+                    query += " misc.induced_subgraphs regexp '.*%s.*' and"%subgraph[i]
+        else:
+            subgraph = ((graph.Graph(subgraph)).canonical_label()).graph6_string()
+            subgraph = multiple_replace(clean,subgraph)
+            subgraph = subgraph.replace('\\',"\\\\")
+            query += " misc.induced_subgraphs regexp '.*%s.*' and"%subgraph
 
-        if (vertex_connectivity is not None):
-            if (str(type(vertex_connectivity)) == "<type 'list'>"):
-                query += ' misc.vertex_connectivity%s%d and'%(vertex_connectivity[0], vertex_connectivity[1])
-            else:
-                query += ' misc.vertex_connectivity=%d and'%vertex_connectivity
-        if (edge_connectivity is not None):
-            if (str(type(edge_connectivity)) == "<type 'list'>"):
-                query += ' misc.edge_connectivity%s%d and'%(edge_connectivity[0], edge_connectivity[1])
-            else:
-                query += ' misc.edge_connectivity=%d and'%edge_connectivity
-        if (num_components is not None):
-            if (str(type(num_components)) == "<type 'list'>"):
-                query += ' misc.num_components%s%d and'%(num_components[0], num_components[1])
-            else:
-                query += ' misc.num_components=%d and'%num_components
-        if (girth is not None):
-            if (str(type(girth)) == "<type 'list'>"):
-                query += ' misc.girth%s%d and'%(girth[0], girth[1])
-            else:
-                query += ' misc.girth=%d and'%girth
-        if (radius is not None):
-            if (str(type(radius)) == "<type 'list'>"):
-                query += ' misc.radius%s%d and'%(radius[0], radius[1])
-            else:
-                query += ' misc.radius=%d and'%radius
-        if (diameter is not None):
-            if (str(type(diameter)) == "<type 'list'>"):
-                query += ' misc.diameter%s%d and'%(diameter[0], diameter[1])
-            else:
-                query += ' misc.diameter=%d and'%diameter
-        if (clique_number is not None):
-            if (str(type(clique_number)) == "<type 'list'>"):
-                query += ' misc.clique_number%s%d and'%(clique_number[0], clique_number[1])
-            else:
-                query += ' misc.clique_number=%d and'%clique_number
-        if (independence_number is not None):
-            if (str(type(independence_number)) == "<type 'list'>"):
-                query += ' misc.independence_number%s%d and'%(independence_number[0], independence_number[1])
-            else:
-                query += ' misc.independence_number=%d and'%independence_number
-        if (num_cut_vertices is not None):
-            if (str(type(num_cut_vertices)) == "<type 'list'>"):
-                query += ' misc.num_cut_vertices%s%d and'%(num_cut_vertices[0], num_cut_vertices[1])
-            else:
-                query += ' misc.num_cut_vertices=%d and'%num_cut_vertices
-        if (min_vertex_cover_size is not None):
-            if (str(type(min_vertex_cover_size)) == "<type 'list'>"):
-                query += ' misc.min_vertex_cover_size%s%d and'%(min_vertex_cover_size[0], min_vertex_cover_size[1])
-            else:
-                query += ' misc.min_vertex_cover_size=%d and'%min_vertex_cover_size
-        if (num_spanning_trees is not None):
-            if (str(type(num_spanning_trees)) == "<type 'list'>"):
-                query += ' misc.num_spanning_trees%s%d and'%(num_spanning_trees[0], num_spanning_trees[1])
-            else:
-                query += ' misc.num_spanning_trees=%d and'%num_spanning_trees
+    if (vertex_connectivity is not None):
+        if (str(type(vertex_connectivity)) == "<type 'list'>"):
+            query += ' misc.vertex_connectivity%s%d and'%(vertex_connectivity[0], vertex_connectivity[1])
+        else:
+            query += ' misc.vertex_connectivity=%d and'%vertex_connectivity
+    if (edge_connectivity is not None):
+        if (str(type(edge_connectivity)) == "<type 'list'>"):
+            query += ' misc.edge_connectivity%s%d and'%(edge_connectivity[0], edge_connectivity[1])
+        else:
+            query += ' misc.edge_connectivity=%d and'%edge_connectivity
+    if (num_components is not None):
+        if (str(type(num_components)) == "<type 'list'>"):
+            query += ' misc.num_components%s%d and'%(num_components[0], num_components[1])
+        else:
+            query += ' misc.num_components=%d and'%num_components
+    if (girth is not None):
+        if (str(type(girth)) == "<type 'list'>"):
+            query += ' misc.girth%s%d and'%(girth[0], girth[1])
+        else:
+            query += ' misc.girth=%d and'%girth
+    if (radius is not None):
+        if (str(type(radius)) == "<type 'list'>"):
+            query += ' misc.radius%s%d and'%(radius[0], radius[1])
+        else:
+            query += ' misc.radius=%d and'%radius
+    if (diameter is not None):
+        if (str(type(diameter)) == "<type 'list'>"):
+            query += ' misc.diameter%s%d and'%(diameter[0], diameter[1])
+        else:
+            query += ' misc.diameter=%d and'%diameter
+    if (clique_number is not None):
+        if (str(type(clique_number)) == "<type 'list'>"):
+            query += ' misc.clique_number%s%d and'%(clique_number[0], clique_number[1])
+        else:
+            query += ' misc.clique_number=%d and'%clique_number
+    if (independence_number is not None):
+        if (str(type(independence_number)) == "<type 'list'>"):
+            query += ' misc.independence_number%s%d and'%(independence_number[0], independence_number[1])
+        else:
+            query += ' misc.independence_number=%d and'%independence_number
+    if (num_cut_vertices is not None):
+        if (str(type(num_cut_vertices)) == "<type 'list'>"):
+            query += ' misc.num_cut_vertices%s%d and'%(num_cut_vertices[0], num_cut_vertices[1])
+        else:
+            query += ' misc.num_cut_vertices=%d and'%num_cut_vertices
+    if (min_vertex_cover_size is not None):
+        if (str(type(min_vertex_cover_size)) == "<type 'list'>"):
+            query += ' misc.min_vertex_cover_size%s%d and'%(min_vertex_cover_size[0], min_vertex_cover_size[1])
+        else:
+            query += ' misc.min_vertex_cover_size=%d and'%min_vertex_cover_size
+    if (num_spanning_trees is not None):
+        if (str(type(num_spanning_trees)) == "<type 'list'>"):
+            query += ' misc.num_spanning_trees%s%d and'%(num_spanning_trees[0], num_spanning_trees[1])
+        else:
+            query += ' misc.num_spanning_trees=%d and'%num_spanning_trees
 
-        return query
+    return query
 
-    def __spectrum_string__(self, query=None, spectrum=None, min_eigenvalue=None, max_eigenvalue=None, eigenvalues_sd=None, energy=None):
-        """
-        Appends necessary info to query string to search for graphs with
-        properties specified in the spectrum database table.
+def __spectrum_string__(query=None, spectrum=None, min_eigenvalue=None, max_eigenvalue=None, eigenvalues_sd=None, energy=None):
+    """
+    Appends necessary info to query string to search for graphs with
+    properties specified in the spectrum database table.
 
-        Applies parameters specified in get_list, number_of and display functions.
-        """
-        r = query.split('where',1)
-        s = 'inner join spectrum on spectrum.graph_id=graph_data.graph_id where'
-        query = s.join(r)
+    Applies parameters specified in get_list, number_of and display functions.
+    """
+    r = query.split('WHERE',1)
+    s = 'INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE'
+    query = s.join(r)
 
-        if ( spectrum is not None ):
-            query += ' spectrum.spectrum=%s and'%spectrum
-        if ( min_eigenvalue is not None ):
-            if (str(type(min_eigenvalue)) == "<type 'list'>"):
-                query += ' spectrum.min_eigenvalue%s%s and'%(min_eigenvalue[0], min_eigenvalue[1])
-            else:
-                query += ' spectrum.min_eigenvalue=%s and'%min_eigenvalue
-        if ( max_eigenvalue is not None ):
-            if (str(type(max_eigenvalue)) == "<type 'list'>"):
-                query += ' spectrum.max_eigenvalue%s%s and'%(max_eigenvalue[0], max_eigenvalue[1])
-            else:
-                query += ' spectrum.max_eigenvalue=%s and'%max_eigenvalue
-        if ( eigenvalues_sd is not None ):
-            if (str(type(eigenvalues_sd)) == "<type 'list'>"):
-                query += ' spectrum.eigenvalues_sd%s%s and'%(eigenvalues_sd[0], eigenvalues_sd[1])
-            else:
-                query += ' spectrum.eigenvalues_sd=%s and'%eigenvalues_sd
-        if ( energy is not None ):
-            if (str(type(energy)) == "<type 'list'>"):
-                query += ' spectrum.energy%s%s and'%(energy[0], energy[1])
-            else:
-                query += ' spectrum.energy=%s and'%energy
+    if ( spectrum is not None ):
+        query += ' spectrum.spectrum=%s and'%spectrum
+    if ( min_eigenvalue is not None ):
+        if (str(type(min_eigenvalue)) == "<type 'list'>"):
+            query += ' spectrum.min_eigenvalue%s%s and'%(min_eigenvalue[0], min_eigenvalue[1])
+        else:
+            query += ' spectrum.min_eigenvalue=%s and'%min_eigenvalue
+    if ( max_eigenvalue is not None ):
+        if (str(type(max_eigenvalue)) == "<type 'list'>"):
+            query += ' spectrum.max_eigenvalue%s%s and'%(max_eigenvalue[0], max_eigenvalue[1])
+        else:
+            query += ' spectrum.max_eigenvalue=%s and'%max_eigenvalue
+    if ( eigenvalues_sd is not None ):
+        if (str(type(eigenvalues_sd)) == "<type 'list'>"):
+            query += ' spectrum.eigenvalues_sd%s%s and'%(eigenvalues_sd[0], eigenvalues_sd[1])
+        else:
+            query += ' spectrum.eigenvalues_sd=%s and'%eigenvalues_sd
+    if ( energy is not None ):
+        if (str(type(energy)) == "<type 'list'>"):
+            query += ' spectrum.energy%s%s and'%(energy[0], energy[1])
+        else:
+            query += ' spectrum.energy=%s and'%energy
 
-        return query
-
-# easy tab access
-graphs_query = GraphDatabase()
+    return query

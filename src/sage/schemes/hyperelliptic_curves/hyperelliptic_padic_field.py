@@ -40,12 +40,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         prec = self.base_ring().precision_cap()
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
-#        print Q[0]
-#        print P[0]
-#        print Q[0] - P[0]
         x = P[0]+t*(Q[0]-P[0])
         pt = self.lift_x(x)
-        if (pt[1] - P[1]).valuation() > 0:
+        if pt[1][0] == P[1]:
             return pt
         else:
             return -pt
@@ -57,16 +54,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         P and Q MUST be in the same residue disk for this result to make sense.
         """
-#        print "sage-working"
         x, y, z = self.local_analytic_interpolation(P, Q)
         dt = x.derivative() / y
-#        print "x", x
-#        print "dt", dt
         integrals = []
         for f in F:
-            f = f(x,y)
-            I = (f*dt).integral()
-            integrals.append(I(1))
+            f_dt = f(x,y) * dt
+            I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree())]) # \int_0^1 f dt
+            integrals.append(I)
+#            integrals.append(f_dt.integral()(1))
         return integrals
 
     def tiny_integrals_on_basis(self, P, Q):
@@ -116,6 +111,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         K = P[0].parent()
         x = K.teichmuller(P[0])
         pt = self.lift_x(x)
+        p = K.prime()
         if (pt[1] - P[1]).valuation() > 0:
             return pt
         else:

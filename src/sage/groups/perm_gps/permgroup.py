@@ -1050,7 +1050,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Returns the Moien series of a transtive permutation group.
         The function
         $$
-        $$M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)$$
+        M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)
         $$
         is sometimes called the "Molien series" of G.
         GAP's \code{MolienSeries} is associated to a character of a group G.
@@ -1377,9 +1377,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         if not isinstance(right, PermutationGroup_generic):
             raise TypeError, "right must be a permutation group"
-        G = self._gap_init_()
-        H = right._gap_init_()
-        return gap.eval("IsomorphismGroups( %s, %s )"%(G,H)) != "fail"
+        G = self._gap_()
+        H = right._gap_()
+        return gap.eval("IsomorphismGroups( %s, %s )"%(G.name(),H.name())) != "fail"
 
     def is_monomial(self):
         """

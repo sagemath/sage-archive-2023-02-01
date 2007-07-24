@@ -1,8 +1,4 @@
 """
-TODO:
-1.b - DOUBLE CHECK query_dict checking for intersect and union
-2. more eg's on union and intersect (compl)
-
 Relational (sqlite) Databases.
 
             skeleton -- a triple-indexed dictionary
@@ -18,11 +14,11 @@ Relational (sqlite) Databases.
         column:
         {'table1':{'col1':{'primary_key':False, 'index':True, 'sql':'REAL'}}}
 
-FUTURE TODOs (Ignore for now):
-    - order by clause in query strings
-    - delete from query containing joins
-    - add data by column
 """
+#FUTURE TODOs (Ignore for now):
+#    - order by clause in query strings
+#    - delete from query containing joins
+#    - add data by column
 
 ################################################################################
 #           Copyright (C) 2007 Emily A. Kirkman
@@ -31,7 +27,7 @@ FUTURE TODOs (Ignore for now):
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from sqlite3 import dbapi2 as sqlite
+from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 import os
 import re
 from sage.misc.misc import tmp_filename
@@ -310,7 +306,8 @@ class GenericSQLQuery(SageObject):
 
     def run_query(self):
         """
-        Runs the query by executing the __query_string__.  Returns
+        Runs the query by executing the __query_string__.  Returns the results
+        of the query in a list.
 
         EXAMPLES:
             sage: G = GraphDatabase()
@@ -646,6 +643,11 @@ class SQLQuery(GenericSQLQuery):
             sage: s = q.intersect(r, 'simon', {'lucy':('a1','a1')})
             sage: s.run_query()
             [(1, 1), (4, 1)]
+            sage: s = q.intersect(r)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input queries query different tables but join parameters are NoneType
+
         """
 
         if self.__database__ != other.__database__:
@@ -732,6 +734,12 @@ class SQLQuery(GenericSQLQuery):
             ----------------------------------------
             1                    1
             4                    1
+            sage: s = q.union(r)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input queries query different tables but join parameters are NoneType
+
+
         """
 
         if self.__database__ != other.__database__:
@@ -773,6 +781,30 @@ class SQLQuery(GenericSQLQuery):
         return q
 
     def complement(self):
+        """
+        Returns a new SQLQuery that is the complement of self.
+
+        EXAMPLE:
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_data('simon', [(0,5),(1,4)])
+            sage: DB.show('simon')
+            a1                   b2
+            ----------------------------------------
+            0                    5
+            1                    4
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 6]})
+            sage: r.show()
+            a1
+            --------------------
+            0
+            1
+            sage: s = r.complement()
+            sage: s.show()
+            a1
+            --------------------
+
+        """
         q = SQLQuery(self.__database__)
         q.__query_string__ = re.sub(' WHERE ',' WHERE NOT ( ',self.__query_string__)
         q.__query_string__ += ' )'

@@ -1,0 +1,61 @@
+#!/bin/sh
+
+cd src/
+
+./Configure
+
+if [ $? -ne 0 ]; then
+   echo "Error configuring sympow"
+   exit 1
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+   echo "Error building sympow"
+   echo "Trying again without possibility of using assembler"
+   NO_ASSEMBLER="true"
+   export NO_ASSEMBLER
+   ./Configure
+   make
+fi
+
+if [ $? -ne 0 ]; then
+   echo "Error building sympow (even without assembler)"
+   exit 1
+fi
+
+if [ ! -f sympow ]; then
+   echo "sympow executable missing"
+   exit 1
+fi
+
+TARGET="$SAGE_LOCAL/lib/sympow"
+
+if [ -d "$TARGET" ]; then
+    rm -rf "$TARGET"
+fi
+mkdir "$TARGET"
+
+mv datafiles "$TARGET/"
+
+if [ ! -d "$TARGET/datafiles" ]; then
+   echo "Error installing sympow datafiles."
+   exit 1
+fi
+
+cp sympow *.gp new_data "$TARGET/"
+
+if [ ! -f "$TARGET/sympow" ]; then
+   echo "sympow executable didn't copy correctly"
+   exit 1
+fi
+
+SCRIPT="$SAGE_LOCAL/bin/sympow"
+
+echo "#!/bin/sh" > $SCRIPT
+echo "cd \$SAGE_LOCAL/lib/sympow" >> $SCRIPT
+echo "./sympow \$*" >> $SCRIPT
+chmod +x $SCRIPT
+
+exit 0

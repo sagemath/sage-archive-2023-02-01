@@ -650,7 +650,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(4)
-            (4 + 4*5^2 + O(5^4) + (1 + O(5))*T + (4 + O(5))*T^2 + (1 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + (1 + O(5))*T^4+ O(T^5))
+	    (4 + 4*5^2 + O(5^4) + (1 + O(5))*T + (4 + O(5))*T^2 + (1 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5), O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + (3 + O(5))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p
@@ -686,13 +686,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
         EXAMPLES:
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: phi = L.geometric_frob_on_Dp(5)
+            sage: phi = L.frobenius(5)
             sage: phi
-            [ 3 + 4*5 + 3*5^2 + 4*5^3 + O(5^4) 2*5^-1 + 1 + 3*5 + 3*5^3 + O(5^4)]
-            [     2 + 4*5 + 5^2 + 5^4 + O(5^5)            2 + 5^2 + 5^4 + O(5^5)]
+            [                  2 + 5^2 + 5^4 + O(5^5)    3*5^-1 + 3 + 5 + 4*5^2 + 5^3 + O(5^4)]
+            [      3 + 3*5^2 + 4*5^3 + 3*5^4 + O(5^5) 3 + 4*5 + 3*5^2 + 4*5^3 + 3*5^4 + O(5^5)]
             sage: -phi^2
-            [5^-1 + O(5^4)        O(5^3)]
-            [       O(5^4) 5^-1 + O(5^4)]
+            [5^-1 + O(5^4)        O(5^4)]
+            [       O(5^5) 5^-1 + O(5^4)]
         """
         E = self._E
         p = self._p
@@ -807,6 +807,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.bernardi_sigma_function(5) # Todo: some sort of consistency check!?
+            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 - 4364831/5225472*z^10 + 2172371753/955514880*z^11 - 17875714529/6897623040*z^12 + 2839176621047/1605264998400*z^13 + 32012675789849/10042939146240*z^14 - 367444910151047/89894839910400*z^15 + 973773806885959/241030539509760*z^16 - 33997971208432501/17259809262796800*z^17 - 10331978660756704339/842918229599846400*z^18 + 18601407947897364480389/950670294194847744000*z^19 - 118837570440101901119321/8071784966648129126400*z^20 + O(z^21)
         """
         E = self._E
         p = self._p
@@ -901,6 +902,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('43a')
             sage: L = E.padic_lseries(7)
             sage: L.Dp_valued_regulator(7)
+            (2*7 + 2*7^3 + 2*7^4 + 5*7^5 + 6*7^6 + 2*7^7 + O(7^8), 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 2*7^7 + O(7^8))
         """
 
         p = self._p

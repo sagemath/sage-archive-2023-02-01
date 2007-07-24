@@ -53,7 +53,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLES:
             sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
             sage: b = vector(QQ,[1,2,3])
-            sage: x = A \\ b; x
+            sage: x = A \ b; x
             (-13/12, 23/12, -7/12)
             sage: A * x
             (1, 2, 3)

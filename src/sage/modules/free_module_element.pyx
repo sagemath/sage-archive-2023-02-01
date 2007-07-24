@@ -488,7 +488,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return cmp(left.list(copy=False), right.list(copy=False))
 
     cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
-         raise TypeError
+        raise TypeError
 
     def degree(self):
         return self._degree

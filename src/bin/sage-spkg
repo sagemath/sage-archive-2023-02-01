@@ -250,6 +250,22 @@ if [ $? -eq 0 ]; then
    echo "SAGE VERSION: `grep SAGE $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
    echo "Successfully installed $PKG_NAME"
 
+   if [ "$SAGE_CHECK" != "" -a -f spkg-test ]; then
+       # this doesn't work at all yet.
+       echo "Running the test suite."
+       chmod +x spkg-test
+       ./spkg-test
+       if [ $? -ne 0 ]; then
+           echo "*************************************"
+           echo "Error testing package ** $PKG_NAME **"
+           echo "*************************************"
+           echo "TEST SUITE: failed" >> "$PKG_NAME"
+           exit 1
+       fi
+       echo "TEST SUITE: passed" >> "$PKG_NAME"
+   fi
+
+
    # Delete the temporary build directory if required.
    if [ $DELETE_TMP -eq 1 ]; then
        echo "Now cleaning up tmp files."
@@ -277,10 +293,13 @@ else
    exit 1
 fi
 
+
 echo "Making SAGE/Python scripts relocatable..."
 
 cd "$SAGE_LOCAL"/bin
 ./sage-make_relative
+
+
 
 # It's OK if they above fails -- in fact it will until Python
 # itself gets installed. That's fine.

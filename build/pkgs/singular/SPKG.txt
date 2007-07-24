@@ -1,0 +1,42 @@
+* 20070506 Martin Albrecht <malb@informatik.uni-bremen.de>
+ + build script improvements
+ + changes to libsingular.h
+
+* 20070326 Martin Albrecht <malb@informatik.uni-bremen.de>
+ + rewrote spkg-install
+ + added first alpha of libsingular.so
+ + removed stand-alone libfactory
+
+* 20070105 William Stein
+ + included Singular/Singular.rc.in which was missing for some
+   reason and is needed by the cygwin build.
+
+* 20060825 Martin Albrecht <malb@informatik.uni-bremen.de>
+ + removed hannes-sprueche.txt (not funny anyway)
+ + removed ntl subdirectory (we ship NTL already)
+ + removed modules subdirectory (not needed)
+ + removed Tst subdirectory (not needed)
+ + wrote (very simple) spkg-install from scratch
+
+* 20060831 William Stein and Justin Walker -- fine tuning
+  for OS X.
+
+* 20060831 William Stein -- put a lot of the workarounds from the previous
+   Singular spkg-install script in here, since they are in fact needed
+   in order for Singular to work after you type, e.g., make clean, or if
+   you move the install directory.
+
+* Martin Albrecht -- add fix to libcf:
+Yes, It's a (new?) bug in libcf I've fixed just yesterday but got no word from
+the Singular people yet. They free a char ptr they are not supposed to free
+if I understand the ostrstring docs correctly. I've attached the
+one-line-fixed int_poly.cc which belongs in the factory subdirectory of
+Singular.
+
+ * Martin Albrecht -- 2006-09-17:
+This looks to me as if I didn't remove all references to boost:
+/usr/include/boost/dynamic_bitset/dynamic_bitset.hpp:1098: error: exception
+I've attached an updated configure.in and configure (created with autoconf
+2.60) with Boost checks disabled which should fix the problem. These belong
+in the Singular subdirectory:
+   singular-3-0-2-2006-09-09/Singular

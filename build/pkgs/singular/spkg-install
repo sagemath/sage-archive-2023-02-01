@@ -1,0 +1,243 @@
+#!/bin/sh
+
+###########################################
+## Singular
+###########################################
+
+# Apply patches
+cp patches/assert.h src/factory/
+
+# Build
+
+cd src/
+
+unset TMPDIR  # see track ticket #48 -- do this to avoid subtle bug that Rob Gross found in build process
+
+DEBUG=0
+
+which flex
+
+if [ $? -ne 0 ]; then
+    echo "You must have flex installed in order to build Singular."
+    exit 1
+fi
+
+which bison
+
+if [ $? -ne 0 ]; then
+    echo "You must have bison installed in order to build Singular."
+    exit 1
+fi
+
+# since parallel make breaks the singular build
+MAKE="make"
+export MAKE
+
+# disable the (mysterious?!) dynamic kernel, except on Linux
+if [ "$UNAME" = "Linux" ]; then
+     DYNAMIC_KERNEL=""
+else
+     DYNAMIC_KERNEL="--without-dynamic-kernel"
+fi
+
+if [ "$UNAME" = "Darwin" ]; then
+     MACOSX_DEPLOYMENT_TARGET=10.4
+     export MACOSX_DEPLOYMENT_TARGET
+fi
+
+# we are building everything fPIC, this might impose a slight performance hit,
+# need to evaluate:
+
+if [ "$DEBUG" = "1" ]; then
+  ENABLE_DEBUG="--enable-debug"
+  CXXFLAGS="$CXXFLAGS -ggdb"
+  CFLAGS="$CFLAGS -ggdb"
+else
+  ENABLE_DEBUG="--disable-debug"
+fi
+
+CXXFLAGS="$CXXFLAGS -fPIC -O3"; export CXXFLAGS
+CFLAGS="$CFLAGS -fPIC -O3"; export CFLAGS
+
+distclean()
+{
+     make distclean
+     rm $SAGE_LOCAL/bin/Singular*
+     find . -name *.dl_o -exec rm \{\} \;
+     find . -name *.o -exec rm \{\} \;
+     find . -name *.og -exec rm \{\} \;
+     find . -name *.so -exec rm \{\} \;
+     find . -name *.a -exec rm \{\} \;
+}
+
+config()
+{
+    ./configure --prefix="$SAGE_LOCAL" \
+                --exec-prefix="$SAGE_LOCAL" \
+                --bindir="$SAGE_LOCAL"/bin \
+                --libdir="$SAGE_LOCAL"/lib \
+                --libexecdir="$SAGE_LOCAL"/lib \
+                --with-apint=gmp \
+                --with-gmp="$SAGE_LOCAL" \
+                --with-ntl="$SAGE_LOCAL" \
+	        --without-MP \
+                --enable-gmp="$SAGE_LOCAL" \
+                --enable-Singular \
+		--enable-factory \
+		--enable-libfac \
+                --enable-IntegerProgramming \
+                --disable-doc  \
+                "$DYNAMIC_KERNEL" \
+		"$ENABLE_DEBUG"
+}
+
+build()
+{
+    CUR=`pwd`
+
+    distclean
+
+    rm -f $SAGE_LOCAL/include/factory.h
+    rm -f $SAGE_LOCAL/include/factoryconf.h
+
+    config
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to configure Singular."
+        exit 1
+    fi
+
+    make
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to build Singular."
+        exit 1
+    fi
+
+    # For some reason the permissions are set for the user to read only
+    # for singular's library.  This causes problems on multi-user system
+    # install.
+    cd $CUR
+    $CHMOD a+r Singular/LIB/*
+
+    # Singular's make install is "fake" -- it just makes a symlink
+    # to code built in the build directory. A subsequent make clean will
+    # destroy what you think you've installed.
+
+    cd "$SAGE_LOCAL"
+    if [ -d LIB -a ! -h LIB ]; then
+        echo "skipping since filenames not case sensitive."
+    else
+        $RM -f LIB
+        $LN -sf lib LIB
+    fi
+    cd $CUR
+
+    make install-nolns
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to install Singular."
+        exit 1
+    fi
+
+    cd $CUR
+
+
+    make libsingular
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to build Singular."
+        exit 1
+    fi
+
+    make install-libsingular
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to install libsingular."
+        exit 1
+    fi
+
+    # The Singular build annoyingly puts an absolute link to the Singular
+    # script in $SAGE_LOCAL/bin/.  So we delete it and make it relative.
+    cd $SAGE_LOCAL/bin
+    $RM -f Singular singular
+
+    if [ -f Singular-3-0-1 ]; then
+        $RM -f Singular-3-0-1   # remove previous version of Singular.
+    fi
+
+    # The singular executable is called somewhat randomly depending
+    # on platform.  Also, making a symlink doesn't work, since on
+    # Windows XP symlinks are sometimes (?) forced to be absolute,
+    # so this would break relocatability.
+    # (In any case, "ln -s Singular-* Singular" in Cygwin makes an
+    #  absolute symlink.  Somehow the gap symlink is relative though...)
+    /bin/ls Singular-*
+    if [ $? -ne 0 ]; then
+        echo "The Singular binary was not installed in $SAGE_ROOT/local/bin/ as it should have been."
+        exit 1
+    fi
+
+    echo "#!/bin/sh" > Singular
+    echo "`/bin/ls Singular-* | tail -1` \$*" >> Singular
+    $CHMOD +x Singular
+
+    # Lower case version is convenient.
+    $CP -f Singular singular
+
+    # Factory: build the standalone factory as well
+    cd $CUR/factory
+    make distclean
+    config
+    if [ $? -ne 0 ]; then
+        echo "Error configuring the standalone factory."
+        exit 1
+    fi
+
+    make
+    if [ $? -ne 0 ]; then
+        echo "Error building the standalone factory."
+        exit 1
+    fi
+
+    make install
+    if [ $? -ne 0 ]; then
+        echo "Error installing the standalone factory."
+        exit 1
+    fi
+
+    $CP factoryconf.h "$SAGE_LOCAL"/include/
+    if [ $? -ne 0 ]; then
+        echo "Error copying factory/factoryconf.h to include directory."
+    fi
+
+    # Libfac
+    cd $CUR/libfac
+    make distclean
+    config
+    if [ $? -ne 0 ]; then
+        echo "Error configuring libfac."
+        exit 1
+    fi
+
+    make
+    if [ $? -ne 0 ]; then
+        echo "Error building libfac."
+        exit 1
+    fi
+
+    make install
+    if [ $? -ne 0 ]; then
+        echo "Error installing libfac."
+        exit 1
+    fi
+
+
+}
+
+build
+
+if [ $? -ne 0 ]; then
+    echo "Error somewhere building Singular."
+    exit 1
+fi

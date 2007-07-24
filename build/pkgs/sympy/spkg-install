@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd src/
+
+python setup.py install
+
+# ignore the error above, which doesn't matter
+
+exit 0

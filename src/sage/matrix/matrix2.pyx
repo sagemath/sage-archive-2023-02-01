@@ -34,6 +34,22 @@ cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
         return self.solve_right(B)
 
+    def subs(self, in_dict=None, **kwds):
+        """
+        EXAMPLES:
+            sage: var('a,b,d,e')
+            (a, b, d, e)
+            sage: m = matrix([[a,b], [d,e]])
+            sage: m.substitute(a=1)
+            [1 b]
+            [d e]
+            sage: m.subs(a=b, b=d)
+            [b d]
+            [d e]
+        """
+        v = [a.subs(in_dict, **kwds) for a in self.list()]
+        return self.new_matrix(self.nrows(), self.ncols(), v)
+
     def solve_right(self, B):
         r"""
         If self is a matrix $A$, then this function returns a vector

@@ -1,0 +1,64 @@
+Here is how to build a new version of the PARI SAGE spkg:
+
+  1) Get the latest stable source code from
+           http://pari.math.u-bordeaux.fr/download.html
+     (NOTE -- just like last time, at some point the devel version will be
+              the way to go, since that's where all the bug fixes are.
+        The PARI stable/devel model is complicated.)
+
+  2) Copy these files into the above tarball's extracted directory:
+          sage (a directory)
+          spkg-dist
+          spkg-install
+          SAGE.txt (this file)
+
+  3) Type ./spkg-dist in the above directory.
+
+  4) Add any relevant remarks to SAGE.txt.
+
+  5) Test the new spkg, which will be created in
+     the directory:
+          sage -f pari-2.3.1.spkg
+
+
+-----------------------------------
+
+* 2007-03-04: included Pablo De Napoli (denapo@gmail.com)'s
+   improvement so PARI will build on systems with runpath support.
+   See sage/runpath.txt for details.
+
+* 2006-09-28: (William Stein and Justin Walker)
+  Modified PARI build scripts so that they build the
+  PARI *shared* library even under OS X, and on OS X intel
+  they build the x86/gmp kernel.
+
+
+* I took the standard PARI tarball, but ran the script spkg-dist on it
+  to create this directory.  This script does various things to some
+  of the PARI files to make them work better with SAGE, the most
+  important being to replace calls to exit() with calls to abort().
+
+* Also, I placed a directory "sage" in this directory with some files
+  needed by spkg-install.
+
+* This changed removed -- 09/28/2006
+#* I changed a line of config/Makefile.SH to
+#      DLLDFLAGS  = $DLLDFLAGS -mimpure-text
+
+
+* Put the extra galois groups data files in the data/galdata subdirectory,
+  so PARI can compute Galois groups up to bigger degree.
+
+-------------------------
+
+Note from David Kirby that could be relevant to building on Solaris:
+
+9) Since pari is using -xarch=native, which implies -xarch=v8plusa on
+my box, but I set -xarch=v8plus (without the last a), this probably
+means there will be different types of object files and so they may
+not link together.  Ick.  Feel free to tell me how to modify the
+configure script.
+
+I got around it by setting CFLAGS -xarch=v8plus myself, so they were
+all the same. But it is not right. I have not looked at pari to see
+exactly where it says native, but I would expact a grep to find it.

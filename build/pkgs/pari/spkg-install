@@ -1,0 +1,149 @@
+#!/bin/sh
+###########################################
+## PARI
+###########################################
+
+TOP=`pwd`
+
+cd src
+
+cp "$TOP"/patches/get_dlld config/
+
+# This is needed or there are weird locale problems involving rpath
+# with building SAGE.
+LC_ALL=C
+export LC_ALL
+LANG=C
+export LANG
+
+build()
+{
+    CUR=`pwd`
+
+    # On my systems PARI does *not* build correctly with these set! (and they are
+    # set by sage-env).  It builds, but doesn't run.  Something about missing _start
+    # symbol.
+    unset LD
+    unset AR
+    unset AS
+
+    if [ "$PARI_EXTRA_OPTS" = "" ]; then
+        PARI_EXTRA_OPTS=" --graphic=none "
+    fi
+
+    ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR - configure PARI with readline and gmp failed."
+        exit 1
+    fi
+
+    if [ ! -f Makefile ]; then
+        echo "Unable to configure PARI."
+        exit 1
+    fi
+
+    echo "Building and install PARI"
+    if [ "$UNAME" = "CYGWIN" ]; then
+        # There are weird bugs in PARI's build process on Windows XP
+        # under Cygwin.
+        # Passing in this extra flag gets around the bug.
+        $MAKE GMPINCLUDE=-I$SAGE_LOCAL/include EXTRADLLDFLAGS=-lgmp gp
+    else
+        $MAKE gp
+    fi
+
+    if [ $? -ne 0 ]; then
+         echo "Error building GP"
+         exit 1
+    fi
+
+    $CP -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
+    $MAKE install-lib-sta
+
+    if [ $? -ne 0 ]; then
+         echo "Error installing PARI static library"
+         exit 1
+    fi
+
+    # Instead of "make install" we do the following, to avoid building
+    # the PARI documentation (which requires latex; or more precisely,
+    # *hangs* under a default cygwin with latex, since some fonts are missing).
+    cd `config/objdir`
+    $MAKE install-include
+
+    if [ $? -ne 0 ]; then
+         echo "Error installing PARI include files"
+         exit 1
+    fi
+
+    $CP -f libpari* $SAGE_LOCAL/lib/
+    cd "$CUR"
+
+    # On CYGWIN, need the dll for PARI to be in the same
+    # directory as the gp binary, or it doesn't find it.
+    # Note that just using a symlink doesn't work.
+    if [ $UNAME = "CYGWIN" ]; then
+	 CUR="`pwd`"
+         cd "$SAGE_LOCAL"/bin/
+         $CP -f "$SAGE_LOCAL"/lib/*pari*.dll .
+         cd "$CUR"
+    fi
+
+    # The following is a hack to get the library installed correctly
+    # on OS X.
+    if [ $UNAME = "Darwin" ]; then
+	echo "MAC OS X hack -- delete and reinstall libpari.a"
+	$RM -f Odarwin-ppc/*lib*
+	$MAKE install-lib-sta
+
+        if [ $? -ne 0 ]; then
+            echo "Error RE-installing PARI static libraries (os x trick)"
+            exit 1
+        fi
+
+        cd `config/objdir`
+        $CP -f libpari* $SAGE_LOCAL/lib
+        cd "$CUR"
+
+        # Also another patch since paripriv.h won't compile right on OSX
+        # when used by client SAGE code.  So we replace it by a slightly
+        # modified version.
+	$CP -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
+    fi
+
+    # PARI doesn't set PIC correctly on Solaris, so we do this.
+    if [ `uname` == "SunOS" ]; then
+       CFLAGS=$CFLAGS" -fPIC"
+       export CFLAGS
+    fi
+
+
+    echo "Installing extra Galois groups data."
+    make install-data
+    if [ $? -ne 0 ]; then
+        echo "Error installing extra galois groups data."
+        exit 1
+    fi
+}
+
+build
+
+if [  $? -ne 0  ];  then
+    echo "Error building PARI."
+    exit 1
+fi
+
+if [ $UNAME="Darwin" -a -f $SAGE_LOCAL/lib/libpari.dylib ];  then
+    exit 0
+fi
+
+if [ -f $SAGE_LOCAL/lib/libpari.so ];  then
+    exit 0
+fi
+
+if [  $? -ne 0  ];  then
+    echo "Error building PARI."
+    exit 1
+fi
+

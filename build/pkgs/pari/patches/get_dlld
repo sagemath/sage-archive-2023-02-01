@@ -1,0 +1,114 @@
+# Exported variables
+_dlld_list='DL_DFLT_NAME DLLD DLLDFLAGS EXTRADLLDFLAGS DLSUFFIX soname sodest'
+
+# Which suffix for Dynamic Lib?
+# Some linkers (SunOS 4) need minor and major lib version numbers.
+# Some others (SunOS 5) need a link from a .so
+# Some others (HPUX 09) do not want version numbers.
+DLSUFFIX=so
+soname=.$soname_num
+do_dll=yes
+case "$osname" in
+  gnu*|aix|osf1|solaris|linux|freebsd)
+    case $pari_release_verbose in
+      *STABLE*)      sodest=.$version.$patch;; # released version
+      *DEVELOPMENT*) sodest=.$patch.0.0;;      # unstable version
+    esac ;;
+  sunos) sodest=.$VersionMajor$VersionMinor.$patch
+         soname=$sodest;;
+  hpux) soname= ; sodest= ; DLSUFFIX=sl;;
+  irix) soname= ; sodest= ;;
+  os2|cygwin)soname= ; sodest= ; DLSUFFIX=dll ;;
+  darwin)soname= ; sodest= ; DLSUFFIX=dylib;;
+  *) do_dll=no ;;
+esac
+
+# dlopen(NULL) should return a handle to the running process.
+# On FreeBSD 2.2.5 (Y. Uchikawa) and Cygwin, this does not work.
+case "$osname" in
+  freebsd|cygwin) DL_DFLT_NAME="\\\"\$(LIBPARI_DYN)\\\"" ;;
+  *) DL_DFLT_NAME=NULL ;;
+esac
+
+# if DLLD is defined at this point, respect it, even if do_dll=no
+if test $do_dll = yes -a -z "$DLLD"; then
+  if test -n "$__gnuc__" -o "$osname"=solaris; then
+    DLLD="$CC"
+  else
+    DLLD=$ld # don't take risks
+  fi
+fi
+
+GNUdlld=
+DLLDisGCC=
+if test -n "$DLLD"; then
+# Which Dynamic Lib Linker?
+  if test "$fastread" != yes; then
+    echo $n ..."Which linker for building dynamic libs? $c"
+    dflt="$DLLD"; rep=; . ./myread
+    DLLD=$ans
+  fi
+
+  if test "$DLLD" = "$CC" -a -n "$__gnuc__"; then
+    DLLDisGCC=yes;
+    GNUdlld=$GNULDused
+  else
+    case "$DLLD" in
+      *ld) if ($DLLD -v 2>&1 | grep GNU > /dev/null); then GNUdlld=yes; fi;;
+    esac
+  fi
+
+# Which Flags for Dynamic Lib Linker ?
+  DLLDFLAGS=
+  if test -n "$GNUdlld"; then
+    DLLDFLAGS="-shared -soname=\$(LIBPARI_SONAME)"
+  else # DLLD != GNU ld
+    case "$osname" in
+      aix)     DLLDFLAGS='-r' ;;
+      darwin)  DLLD=gcc; DLLDFLAGS='-flat_namespace -undefined suppress' ;;
+      freebsd) DLLDFLAGS='-Bshareable -x' ;;
+      hpux)    DLLDFLAGS='-b' ;;
+      irix)    DLLDFLAGS='-shared -elf -no_unresolved -all' ;;
+      osf1)    DLLDFLAGS='-shared' ;;
+      solaris) DLLDFLAGS="-G -h \$(LIBPARI_SONAME)" ;;
+      sunos)   DLLDFLAGS='-assert nodefinitions' ;;
+      os2)     ;; # see below
+      *)         DLLD=;;
+    esac
+  fi
+
+  if test -n "$DLLDFLAGS"; then
+    DLLDFLAGS=`./ldflags "$DLLDisGCC" "$DLLDFLAGS"`
+  fi
+  case "$osname" in
+    os2) DLLDFLAGS="$CFLAGS -Zdll" ;; # assume DLLD = gcc
+    cygwin) DLLDFLAGS="-Wl,--out-implib=\$(LIBPARI_SO)\$(_A),--export-all-symbols";;
+  esac
+  if test -n "$DLLDisGCC"; then
+    case "$arch" in
+      sparc*) extra='-mimpure-text';;
+      *) extra=;;
+    esac
+
+    if test "$osname" = darwin; then
+        DLLDFLAGS="-dynamiclib $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
+    else
+        DLLDFLAGS="-shared $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
+    fi
+  fi
+  case "$osname" in
+    osf1|freebsd|linux|sunos|solaris) EXTRADLLDFLAGS='-lc ${LIBS}';;
+  esac
+
+  if test "$fastread" != yes; then
+    echo $n ..."Which flags for linker? $c"
+    dflt=$DLLDFLAGS; rep=; . ./myread
+    DLLDFLAGS=$ans
+  fi
+fi
+
+if test -z "$DLLD"; then
+  echo "No Dynamic Lib"
+else
+  echo "Dynamic Lib linker is  $DLLD  $DLLDFLAGS"
+fi

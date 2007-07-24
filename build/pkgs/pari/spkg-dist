@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import os, sys, time
+
+def cmd(x):
+    print x
+    if os.system(x):
+        print "(Failed.)"
+
+DIR = os.path.split(os.path.abspath(os.curdir))[1]
+if os.path.exists(DIR):
+    cmd('rm -rf "%s"*'%DIR)
+
+os.makedirs('../tmp_%s'%DIR)
+cmd("cp -r * ../tmp_%s"%DIR)
+cmd('mv ../tmp_%s %s'%(DIR,DIR))
+
+cmd("cd %s && make clean"%DIR)
+
+cmd("cd %s && rm -rf Odos Olinux-i686 gp"%DIR)
+
+# Now modify init.c so we abort instead of exiting, so that
+# SAGE can catch errors that PARI raises.
+print "Modifying init.c for SAGE usage"
+
+init_c = "%s/src/language/init.c"%DIR
+init = open(init_c).read()
+i = init.find('fprintferr("  ***   Error in the PARI system.')
+init = init[:i] + "\n\tabort();\n\t" + init[i:]
+i = init.find('msg="unknown signal";')
+init = init[:i] + "\n\tabort();\n\t" + init[i:]
+open(init_c,'w').write(init)
+
+print "Modifying  src/kernel/gmp/mp.c"
+mp_file = "%s/src/kernel/gmp/mp.c"%DIR
+mp = open(mp_file).read()
+mp = mp.replace('mp_set_memory_functions', 'return 0; mp_set_memory_functions')
+open(mp_file,'w').write(mp)
+
+#print "Modifying  src/language/init.c"
+#file = "%s/src/language/init.c"%DIR
+#f = open(file).read()
+#f = f.replace()
+#open(mp_file,'w').write(mp)
+
+print "Making spkg"
+cmd("sage -pkg %s"%DIR)
+
+
+

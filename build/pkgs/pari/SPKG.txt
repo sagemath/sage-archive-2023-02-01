@@ -10,11 +10,8 @@ Here is how to build a new version of the PARI SAGE spkg:
 
   3) Type ./spkg-dist in the above directory.
 
-  4) Add any relevant remarks to SPKG.txt.
-
-  5) Test the new spkg, which will be created in
-     the directory:
-          sage -f pari-2.3.1.spkg
+  4) Extract the file galdata.tgz from http://pari.math.u-bordeaux.fr/download.html
+     in the directory pari-*/src/
 
 
 -----------------------------------

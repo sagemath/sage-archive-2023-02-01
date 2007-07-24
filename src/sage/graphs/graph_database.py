@@ -312,7 +312,7 @@ class GenericGraphQuery(GenericSQLQuery):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         GenericSQLQuery.__init__(self,database,query_string,param_tuple)
 
-    def show(self, max_field_size=20, html_table=False, with_picture=False):
+    def show(self, max_field_size=20, html_table=False, with_picture=None):
         """
         Displays the results of a query in table format.
 
@@ -325,7 +325,10 @@ class GenericGraphQuery(GenericSQLQuery):
         EXAMPLES:
         TODO
         """
-        if picture:
+        if with_picture is None:
+            from sage.server.support import EMBEDDED_MODE
+            with_picture = EMBEDDED_MODE
+        if with_picture:
             from sage.plot.plot import plot
 
             s = (self.__query_string__).lower()

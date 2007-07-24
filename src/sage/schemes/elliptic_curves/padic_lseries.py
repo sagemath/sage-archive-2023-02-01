@@ -749,8 +749,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         xt = eh.x(prec=p**prec + 3)
         et = xt*om
         # c_(p^k) = cs[k] d...
-        cs = [om[p^k-1] for k in range(0,prec+1)]
-        ds = [et[p^k-1] for k in range(0,prec+1)]
+        cs = [om[p**k-1] for k in range(0,prec+1)]
+        ds = [et[p**k-1] for k in range(0,prec+1)]
         delta = 0
         dpr = 0
         gamma = 0
@@ -771,7 +771,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                     if l == 0:
                         verbose("not uniquely determined at step k=%s"%k)
                     else:
-                        ainv = eq[0].inverse_mod(p^l)
+                        ainv = eq[0].inverse_mod(p**l)
                         delta = delta - eq[2]*ainv*p**dpr
                         dpr = dpr + l
                         delta = delta % p**dpr
@@ -794,7 +794,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         c = -gamma
         d = E.ap(p) - a
         b = (-1/p+a*d)/c
-        phi = matrix([[a,b],[c,d]])
+        phi = matrix.matrix([[a,b],[c,d]])
         return phi
 
 

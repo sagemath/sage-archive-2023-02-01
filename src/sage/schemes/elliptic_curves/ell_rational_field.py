@@ -836,11 +836,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on the
-        Weierstrass model of self.
+        2-Selmer group, and a list of independent points on
+        some mysterious model of the curve.
 
         \note{The points are not translated back to self only because
-        I haven't written code to do this yet.}
+        nobody has written code to do this yet.  Implement it and send
+        a patch.}
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -856,7 +857,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on the Weierstrass model
+            list    -- list of independent points on some (myserious!!) model for the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -870,13 +871,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 108 : 1)])
+            (1, 1, [(0 : 4 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
             (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(9 : 459 : 1), (153/4 : 189/8 : 1), (100 : 620 : 1)])
+            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
 
 
         In this example Simon's program does not find any points, though
@@ -890,7 +891,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: E.simon_two_descent()
-            (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
+            (4, 4, [(935/49 : 400/343 : 1), (-1 : 136 : 1), (23 : 16 : 1), (-41 : 16 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: E.simon_two_descent()        # random output
             (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
@@ -4570,7 +4571,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5)
             4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^19)
             sage: E.padic_regulator(3,5)
-            (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^6))
+            (2*3 + O(3^3), 2*3^2 + O(3^4))
 
         A torsion point in both the good and supersingular cases:
             sage: E = EllipticCurve('11a')

@@ -890,10 +890,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         \url{http://tom.womack.net/maths/conductors.htm}
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
-            sage: E.simon_two_descent()
+            sage: E.simon_two_descent()        # random points in output
             (4, 4, [(935/49 : 400/343 : 1), (-1 : 136 : 1), (23 : 16 : 1), (-41 : 16 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: E.simon_two_descent()        # random output
+            sage: E.simon_two_descent()        # random points in output
             (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s

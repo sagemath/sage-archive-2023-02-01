@@ -1,0 +1,75 @@
+#!/bin/sh
+###########################################
+## Python
+###########################################
+
+# PATCH
+
+cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
+
+# Program around weird bug in build process:
+#      Apparently if you have this:
+#         export DISTUTILS_DEBUG=1
+#      in your environment variables, the build craps out.  No idea why this is.
+#       -- Yi Qiang
+
+unset DISTUTILS_DEBUG
+
+
+cd src
+
+touch Include/*
+
+# WE do *not* use $MAKE, since e.g., "make -j10" does *not*
+# work for building Python.
+MAKE="make"
+export MAKE
+
+patch()
+{
+    # The following patch for fixing broken readline behavior on
+    # Itanium Linux definitely does *not* work on anything else.
+    if [ `uname -p` = "ia64" -a `uname` = "Linux" ]; then
+	cp sage/readline.c Modules/readline.c
+    fi
+}
+
+build()
+{
+    # do *not* put --enable-shared here!  this breaks building
+    # shared extension modules, at least in Python 2.5.
+    rm -f "$SAGE_LOCAL"/lib/libpython*
+
+    ./configure --prefix="$SAGE_LOCAL"
+
+    if [ $? -ne 0 ]; then
+        echo "Error configuring Python."
+        exit 1
+    fi
+
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo "Error building Python."
+        exit 1
+    fi
+
+    $MAKE -i install        # the "-i" is crucial, esp., in the case of a major upgrade
+    if [ $? -ne 0 ]; then
+        echo "Error installing Python."
+        exit 1
+    fi
+}
+
+patch
+
+build
+
+cd $SAGE_LOCAL/lib
+rm -rf python python2.4
+ln -s python2.5 python
+
+if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ];  then
+    exit 0
+else
+    exit 1
+fi

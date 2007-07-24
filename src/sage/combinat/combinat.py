@@ -942,6 +942,21 @@ def permutations_iterator(mset,n=None):
     Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
 
+    Note-- This function considers repeated elements as different entries,
+    so for example:
+        sage: from sage.combinat.combinat import permutations, permutations_iterator
+        sage: mset = [1,2,2]
+        sage: permutations(mset)
+        [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
+        sage: for p in permutations_iterator(mset): print p
+        [1, 2, 2]
+        [1, 2, 2]
+        [2, 1, 2]
+        [2, 2, 1]
+        [2, 1, 2]
+        [2, 2, 1]
+
+
     EXAMPLES:
         sage: X = permutations_iterator(range(3),2)
         sage: [x for x in X]
@@ -962,7 +977,8 @@ def permutations_iterator(mset,n=None):
 def number_of_permutations(mset):
     """
     Returns the size of permutations(mset).
-    Wraps GAP's NrPermutationsList.
+
+    AUTHOR: Robert L. Miller
 
     EXAMPLES:
         sage: mset = [1,1,2,2,2]
@@ -970,8 +986,67 @@ def number_of_permutations(mset):
         10
 
     """
-    ans=gap.eval("NrPermutationsList(%s)"%mset)
-    return ZZ(ans)
+    from sage.rings.arith import factorial, prod
+    m = len(mset)
+    n = []
+    seen = []
+    for element in mset:
+        try:
+            n[seen.index(element)] += 1
+        except:
+            n.append(1)
+            seen.append(element)
+    return factorial(m)/prod([factorial(k) for k in n])
+
+def cyclic_permutations(mset):
+    """
+    Returns a list of all cyclic permutations of mset. Treats mset as a list,
+    not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    return list(cyclic_permutations_iterator(mset))
+
+def cyclic_permutations_iterator(mset):
+    """
+    Iterates over all cyclic permutations of mset in cycle notation. Treats
+    mset as a list, not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    if len(mset) > 2:
+        for perm in permutations_iterator(mset[1:]):
+            yield [mset[0]] + perm
+    else:
+        yield mset
 
 #### partitions
 
@@ -1210,6 +1285,77 @@ def partitions(n):
         if p and (len(p) < 2 or p[1] > p[0]):
             yield (p[0] + 1,) + p[1:]
 
+def cyclic_permutations_of_partition(partition):
+    """
+    Returns all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    return list(cyclic_permutations_of_partition_iterator(partition))
+
+def cyclic_permutations_of_partition_iterator(partition):
+    """
+    Iterates over all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    if len(partition) == 1:
+        for i in cyclic_permutations_iterator(partition[0]):
+            yield [i]
+    else:
+        for right in cyclic_permutations_of_partition_iterator(partition[1:]):
+            for perm in cyclic_permutations_iterator(partition[0]):
+                yield [perm] + right
 
 def ferrers_diagram(pi):
     """

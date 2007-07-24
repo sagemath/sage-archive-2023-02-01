@@ -23,6 +23,7 @@ pull
 \.BAK$
 \.fig$
 \.png$
+\.eps$
 \.gif$
 \.cpp$
 \.c$

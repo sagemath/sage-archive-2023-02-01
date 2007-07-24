@@ -222,7 +222,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         or raise a TypeError.
         """
         for f in self.defining_polynomials():
-            if f(v) != 0:
+            if f(v):
                 self._error_bad_coords(v)
 
     def base_extend(self, R):

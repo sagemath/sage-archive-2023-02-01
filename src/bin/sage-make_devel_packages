@@ -31,6 +31,16 @@ cd $DESTINATION
 DESTINATION=`pwd`
 PKG=$DESTINATION
 
+# REMOVE OLD PACKAGES
+
+rm doc-*.spkg
+rm examples-*.spkg
+rm extcode-*.spkg
+rm sage-*.spkg
+rm sage_c_lib-*.spkg
+rm sage_scripts-*.spkg
+
+
 # NEW DOCUMENTATION PACKAGE
 if [ -d $SAGE_ROOT/devel/doc-main ]; then
    cd $SAGE_ROOT/devel/doc-main

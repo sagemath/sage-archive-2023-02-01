@@ -1,5 +1,11 @@
 #!/bin/sh
 
+
+if [ "`uname`" = "Darwin" -a "`uname -p`" = "i386" ]; then
+    echo "No need to build blas on OSX Intel."
+    exit 0
+fi
+
 cd src
 
 sage_fortran -c -fPIC *.f

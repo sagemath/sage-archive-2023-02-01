@@ -1,0 +1,8 @@
+* Get it from http://hep.itp.tuwien.ac.at/~kreuzer/CY/CYpalp.html
+
+---------
+
+This program is GPL'd: " The data on this web page have been computed
+with code that mostly became part of a package of C programs, called
+PALP.  It is freely available under the GNU licence terms.  All rights
+are reserved by M. Kreuzer and H. Skarke. "

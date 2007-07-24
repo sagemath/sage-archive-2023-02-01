@@ -1,0 +1,17 @@
+#!/bin/sh
+
+cd src
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building PALP."
+    exit 1
+fi
+
+$CP poly.x class.x cws.x nef.x "$SAGE_LOCAL"/bin/
+
+if [ $? -ne 0 ]; then
+    echo "Error installing PALP."
+    exit 1
+fi

@@ -1,0 +1,6 @@
+NOTE -- pexpect-2.1 is shockingly slow for SAGE (especially in the notebook)
+        and I can't figure out why.  So we're sticking with pexpect-2.0
+        for now (which works fine for us).
+
+ -- put a try/except around __del__, to get rid of lots of pointless
+    warning messages.

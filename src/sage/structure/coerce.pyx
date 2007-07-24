@@ -364,16 +364,21 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 return action
 
         if op is operator.div:
+            try:
+                K = S.fraction_field()
+            except AttributeError:
+                K = S
+
             if PY_TYPE_CHECK(S, Parent):
-                action = (<Parent>S).get_action_c(R, operator.mul, False)
-                if action is not None and action.actor() is S:
+                action = (<Parent>K).get_action_c(R, operator.mul, False)
+                if action is not None and action.actor() is K:
                     try:
                         return ~action
                     except TypeError:
                         pass
             if PY_TYPE_CHECK(R, Parent):
-                action = (<Parent>R).get_action_c(S, operator.mul, True)
-                if action is not None and action.actor() is S:
+                action = (<Parent>R).get_action_c(K, operator.mul, True)
+                if action is not None and action.actor() is K:
                     try:
                         return ~action
                     except TypeError:
@@ -444,6 +449,8 @@ cdef class RightModuleAction(Action):
         # this may be wasteful, but rings are
         # implemented with the assumption that
         # _rmul_ is given an element of the basering
+#        print "G", G
+#        print "S", S
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:

@@ -324,7 +324,7 @@ cdef class ParentWithBase(parent.Parent):
         """
         cdef ParentWithBase self_b
         self_b = self._base
-        if self_b is self:
+        if self_b is self or self_b is None:
             return None
         try:
             if X.has_coerce_map_from(self_b):

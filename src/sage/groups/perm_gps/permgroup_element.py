@@ -221,7 +221,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         else:
             self.__gap = str(g)
         if parent is None:
-            parent = permgroup_named.SymmetricGroup(self._gap_().LargestMovedPoint())
+            parent = SymmetricGroup(self._gap_().LargestMovedPoint())
         element.Element.__init__(self, parent)
 
     def _gap_init_(self):

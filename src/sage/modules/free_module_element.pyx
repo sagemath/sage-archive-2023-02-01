@@ -872,17 +872,23 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return left._new_c(v)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        """
+        EXAMPLES:
+            sage: V = ZZ['x']^5
+            sage: 5 * V.0
+            (5, 0, 0, 0, 0)
+        """
         if left._parent is self._parent._base:
             v = [left._mul_c(<RingElement>x) for x in self._entries]
         else:
-            v = [left * x for x in v]
+            v = [left * x for x in self._entries]
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         if right._parent is self._parent._base:
             v = [(<RingElement>x)._mul_c(right) for x in self._entries]
         else:
-            v = [x * right for x in v]
+            v = [x * right for x in self._entries]
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):

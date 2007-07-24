@@ -13,10 +13,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element   import AdditiveGroupElement, RingElement
+from sage.structure.element   import AdditiveGroupElement, RingElement, Element
 from sage.structure.sequence  import Sequence
 
 from sage.categories.morphism import Morphism
+from sage.categories.homset   import Homset
 
 from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
 
@@ -30,12 +31,64 @@ def is_SchemeMorphism(f):
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
-class SchemeMorphism(Morphism):
+
+class PyMorphism(Element):
+    # Double inheritance from both Morphism and AdditiveGroupElement seems to mess up the ModuleElement pyrex vtab, which is really bad!
+    def __init__(self, parent):
+        if not isinstance(parent, Homset):
+            raise TypeError, "parent (=%s) must be a Homspace"%parent
+        Element.__init__(self, parent)
+        self._domain = parent.domain()
+        self._codomain = parent.codomain()
+
+    def _repr_type(self):
+        return "Generic"
+
+    def _repr_defn(self):
+        return ""
+
+    def _repr_(self):
+        if self.is_endomorphism():
+            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+        else:
+            s = "%s morphism:"%self._repr_type()
+            s += "\n  From: %s"%self.domain()
+            s += "\n  To:   %s"%self.codomain()
+        d = self._repr_defn()
+        if d != '':
+            s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
+        return s
+
+    def domain(self):
+        return self._domain
+
+    def codomain(self):
+        return self.parent().codomain()
+
+    def category(self):
+        return self.parent().category()
+
+    def is_endomorphism(self):
+        return self.parent().is_endomorphism_set()
+
+    def _composition_(self, right, homset):
+        return FormalCompositeMorphism(homset, right, self)
+
+    def __pow__(self, n, dummy):
+        if not self.is_endomorphism():
+            raise TypeError, "self must be an endomorphism."
+        # todo -- what about the case n=0 -- need to specify the identity map somehow.
+        import sage.rings.arith as arith
+        return arith.generic_power(self, n)
+
+
+
+class SchemeMorphism(PyMorphism):
     """
     A scheme morphism
     """
     def __init__(self, parent):
-	Morphism.__init__(self, parent)
+        PyMorphism.__init__(self, parent)
 
     def _repr_type(self):
         return "Scheme"
@@ -148,7 +201,7 @@ class SchemeMorphism_spec(SchemeMorphism):
           Defn: x |--> 7
     """
     def __init__(self, parent, phi, check=True):
-	Morphism.__init__(self, parent)
+        SchemeMorphism.__init__(self, parent)
         if check:
             if not is_RingHomomorphism(phi):
                 raise TypeError, "phi (=%s) must be a ring homomorphism"%phi
@@ -158,7 +211,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             if phi.codomain() != parent.domain().coordinate_ring():
                 raise TypeError, "phi (=%s) must have codomain %s"%(phi,
                                                  parent.domain().coordinate_ring())
-	self.__ring_homomorphism = phi
+        self.__ring_homomorphism = phi
 
     def __call__(self, P):
         if not is_SchemeTopologicalPoint(P) and P in self.domain():

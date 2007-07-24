@@ -37,10 +37,9 @@ cdef inline bint have_same_base(Element x, Element y):
 cdef inline parent_c(x):
     if PY_TYPE_CHECK(x,Element):
         return (<Element>x)._parent
-    try:
-        # TODO: should the _parent attribute be moved up the tree?
+    elif hasattr(x, 'parent'):
         return x.parent()
-    except AttributeError:
+    else:
         return <object>PY_TYPE(x)
 
 def parent(x):

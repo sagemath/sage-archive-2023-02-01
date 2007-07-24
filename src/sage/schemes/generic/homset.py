@@ -272,9 +272,9 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
         if len(v) == 1:
             v = v[0]
         X = self.codomain()
-        if hasattr(X, 'AttributeError'):
+        try:
             return X._point_class(X, v)
-        else:
+        except AttributeError:  # should be very rare
             return morphism.SchemeMorphism_projective_coordinates_field(self, v)
 
     def points(self, B=0):

@@ -193,7 +193,6 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             if xp is yp:
                 return op(x,y)
             action = self.get_action_c(xp, yp, op)
-#            print "found action", action
             if action is not None:
                 return (<Action>action)._call_c(x, y)
 
@@ -334,13 +333,6 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         # TODO: This is simple and ambiguous, add sophistication
         if PY_TYPE_CHECK(R, ParentWithBase) and PY_TYPE_CHECK(S, Parent):
             Z = (<ParentWithBase>R).base_extend_canonical_sym(S)
-#            if (<Parent>R).coerce_map_from_c((<ParentWithBase>S)._base) is not None:
-#                Z = S.base_extend(R)
-#            elif (<Parent>S).coerce_map_from_c((<ParentWithBase>R)._base) is not None:
-#                Z = R.base_extend(S) # should there be a base-extension morphism?
-#            else:
-#                Z = None
-#            print "Z =", Z
             if Z is not None:
                 from sage.categories.homset import Hom
                 # Can I trust always __call__() to do the right thing in this case?
@@ -449,8 +441,6 @@ cdef class RightModuleAction(Action):
         # this may be wasteful, but rings are
         # implemented with the assumption that
         # _rmul_ is given an element of the basering
-#        print "G", G
-#        print "S", S
         if G is not S.base() and S.base() is not S:
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:

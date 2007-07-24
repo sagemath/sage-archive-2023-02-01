@@ -88,6 +88,21 @@ class FormalSums_generic(Module):
         if R.has_coerce_map_from(self.base_ring()):
             return FormalSums(R)
 
+    def base_extend_canonical_sym(self, R):
+        return FormalSum(self.base_ring().base_extend_canonical_sym(R))
+
+    def get_action_impl(self, other, op, self_is_left):
+        import operator
+        from sage.structure.coerce import LeftModuleAction, RightModuleAction
+        if op is operator.mul:
+            if self_is_left:
+                return RightModuleAction(other, self.base_extend(other))
+            else:
+                return LeftModuleAction(other, self.base_extend(other))
+
+    def _an_element_impl(self):
+        return FormalSum([(self.base_ring()._an_element(), 1)], check=False, reduce=False, parent=self)
+
 import weakref
 cache = {}
 def FormalSums(R):

@@ -1,0 +1,32 @@
+#!/bin/sh
+
+cd src/
+
+unset AR
+
+
+# The -fPIC is needed otherwise builing libpng fails later
+# (at least on a Debian 64-bit opteron).
+
+CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
+export CFLAGS
+
+./configure --shared --prefix=$SAGE_LOCAL
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring zlib"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "Error building zlib"
+    echo "This may not be fatal"
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "Error installing zlib"
+    exit 1
+fi
+

@@ -356,25 +356,34 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 return action
 
         if op is operator.div:
-            try:
-                K = S.fraction_field()
-            except AttributeError:
+            # Division on right is the same acting on right by inverse, if it is so defined.
+            # To return such an action, we need to verify that it would be an action for the mul
+            # operator, but the action must be over a parent containing inverse elements.
+            from sage.rings.ring import is_Ring
+            if is_Ring(S):
+                try:
+                    K = S.fraction_field()
+                except TypeError:
+                    K = None
+            else:
                 K = S
 
-            if PY_TYPE_CHECK(S, Parent):
-                action = (<Parent>K).get_action_c(R, operator.mul, False)
-                if action is not None and action.actor() is K:
-                    try:
-                        return ~action
-                    except TypeError:
-                        pass
-            if PY_TYPE_CHECK(R, Parent):
-                action = (<Parent>R).get_action_c(K, operator.mul, True)
-                if action is not None and action.actor() is K:
-                    try:
-                        return ~action
-                    except TypeError:
-                        pass
+            if K is not None:
+                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, operator.mul, False) is not None:
+                    action = (<Parent>K).get_action_c(R, operator.mul, False)
+                    if action is not None and action.actor() is K:
+                        try:
+                            return ~action
+                        except TypeError:
+                            pass
+
+                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, operator.mul, True) is not None:
+                    action = (<Parent>R).get_action_c(K, operator.mul, True)
+                    if action is not None and action.actor() is K:
+                        try:
+                            return ~action
+                        except TypeError:
+                            pass
 
 
 from sage.structure.element cimport Element # workaround SageX bug

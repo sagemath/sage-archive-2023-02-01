@@ -2,6 +2,8 @@
 
 import os, sys, time
 
+os.chdir('src/')
+
 def cmd(x):
     print x
     if os.system(x):
@@ -37,14 +39,6 @@ mp = open(mp_file).read()
 mp = mp.replace('mp_set_memory_functions', 'return 0; mp_set_memory_functions')
 open(mp_file,'w').write(mp)
 
-#print "Modifying  src/language/init.c"
-#file = "%s/src/language/init.c"%DIR
-#f = open(file).read()
-#f = f.replace()
-#open(mp_file,'w').write(mp)
-
-print "Making spkg"
-cmd("sage -pkg %s"%DIR)
 
 
 

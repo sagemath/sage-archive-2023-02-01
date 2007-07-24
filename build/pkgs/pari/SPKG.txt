@@ -6,15 +6,11 @@ Here is how to build a new version of the PARI SAGE spkg:
               the way to go, since that's where all the bug fixes are.
         The PARI stable/devel model is complicated.)
 
-  2) Copy these files into the above tarball's extracted directory:
-          sage (a directory)
-          spkg-dist
-          spkg-install
-          SAGE.txt (this file)
+  2) Extract the above code and make it the directory src in the current directory.
 
   3) Type ./spkg-dist in the above directory.
 
-  4) Add any relevant remarks to SAGE.txt.
+  4) Add any relevant remarks to SPKG.txt.
 
   5) Test the new spkg, which will be created in
      the directory:

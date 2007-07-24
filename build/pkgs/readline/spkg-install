@@ -3,6 +3,8 @@
 ## Readline 5.2
 ###########################################
 
+cd src/
+
 build()
 {
     ./configure --prefix=$SAGE_LOCAL

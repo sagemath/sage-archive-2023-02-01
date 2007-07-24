@@ -1,2 +1,2 @@
-Deleted the doc directory from the standard distro, since it took tons of space;
+Deleted some files from the doc directory from the standard distro, since it took tons of space;
 didn't delete anything else.

@@ -76,7 +76,6 @@ class Scheme(ParentWithBase):
         """
         raise NotImplementedError
 
-
     def __call__(self, *args):
         """
         If S is a ring or scheme, return the set $X(S)$ of $S$-valued
@@ -90,17 +89,17 @@ class Scheme(ParentWithBase):
             sage: A(QQ)
             Set of Rational Points of Affine Space of dimension 2 over Rational Field
             sage: A(RR)
-            Set of Rational Points over Real Field with 53 bits of precision of Affine
+            Set of Rational Points of Affine Space of dimension 2 over Real Field with 53 bits of precision
+
             Space of dimension 2 over Rational Field
             sage: R.<x> = PolynomialRing(QQ)
             sage: A(NumberField(x^2+1, 'a'))
-            Set of Rational Points over Number Field in a with defining polynomial x^2 + 1
-            of Affine Space of dimension 2 over Rational Field
+            Set of Rational Points of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 + 1
             sage: A(GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: There must be a natural map S --> R, but S = Rational Field and
-            R = Finite Field of size 7
+            ValueError: No natural map from the base ring (=Rational Field) to S (=Finite Field of size 7)
+
 
         We create some points:
             sage: A(QQ)([1,0])

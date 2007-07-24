@@ -106,7 +106,7 @@ class MPolynomial_element(MPolynomial):
         AUTHOR: David Kohel, 2005-09-27
         """
         if len(kwds) > 0:
-            f = self.fix(**kwds)
+            f = self.subs(**kwds)
             if len(x) > 0:
                 return f(*x)
             else:
@@ -629,7 +629,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def is_monomial(self):
         return len(self.element().dict().keys()) == 1
 
-    def fix(self, fixed=None, **kw):
+    def subs(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
@@ -651,7 +651,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
-            sage: f.fix({x:5})
+            sage: f.subs({x:5})
             25*y^2 + y + 30
         """
         variables = list(self.parent().gens())
@@ -714,7 +714,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.is_univariate()
             True
@@ -726,7 +726,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             ngens = len(mons[0]) # number of generators
         except:
-            return True        # zero
+            return True # zero
 
         found = -1
         for mon in mons:
@@ -759,7 +759,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             Traceback (most recent call last):
             ...
             TypeError: polynomial must involve at most one variable
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305
@@ -813,7 +813,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
             [x, y]
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.variables()
             [y]
@@ -844,7 +844,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.nvariables ()
             2
-            sage: g = f.fix({x:10}); g
+            sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.nvariables ()
             1

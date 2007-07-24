@@ -20,8 +20,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef bint _normalized
     cdef void set_exact_zero(pAdicCappedRelativeElement self)
     cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
+    cdef void set_zero(pAdicCappedRelativeElement self, absprec)
     cdef void set_precs(pAdicCappedRelativeElement self, long relprec)
     cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
+    cdef void set(pAdicCappedRelativeElement self, long ordp, Integer unit, long relprec)
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef void _normalize(pAdicCappedRelativeElement self)
     cdef ModuleElement _neg_c_impl(self)

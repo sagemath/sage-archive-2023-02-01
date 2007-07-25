@@ -146,7 +146,8 @@ TUTORIAL:
             sage: S.density()
             1/2
 
-            sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
+            sage: G = GraphDatabase()
+            sage: L = G.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
         3. Labels
@@ -188,6 +189,7 @@ TUTORIAL:
 
         and hit tab.
 
+            sage: graphs_query = GraphDatabase()
             sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
@@ -4176,6 +4178,7 @@ class Graph(GenericGraph):
         currently only act on positive integers).
 
         EXAMPLES:
+            sage: graphs_query = GraphDatabase()
             sage: L = graphs_query.get_list(num_vertices=4)
             sage.: graphs_list.show_graphs(L)
             sage: for g in L:

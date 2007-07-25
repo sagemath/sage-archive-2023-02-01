@@ -25,7 +25,7 @@ import os, shutil, socket
 
 import notebook
 
-PAUSE = 3
+PAUSE = 7
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 
@@ -186,8 +186,10 @@ s.setServiceParent(application)
             print "*"*70
 
     port = find_next_available_port(port, port_tries)
+    #if open_viewer:
+    #    open_page(address, port, secure, pause=PAUSE)
     if open_viewer:
-        open_page(address, port, secure, pause=PAUSE)
+        "Open viewer automatically isn't fully implemented.  You have to manually open your web browser to the above URL."
     run(port)
 
     return True

@@ -1,5 +1,5 @@
-from sage.structure.element cimport AlgebraElement
+from sage.structure.element cimport AlgebraElement, ModuleElement
 
 cdef class LaurentSeries(AlgebraElement):
-    cdef object __u
+    cdef ModuleElement __u
     cdef long __n

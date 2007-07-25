@@ -338,7 +338,10 @@ class SymbolicExpressionRing_class(CommutativeRing):
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x) or is_MPolynomial(x):
-            return SymbolicPolynomial(x)
+            if x.base_ring() != self:  # would want coercion to go the other way
+                return SymbolicPolynomial(x)
+            else:
+                raise TypeError, "Basering is Symbolic Ring, please coerce in the other direction."
         elif isinstance(x, (RealNumber,
                             RealDoubleElement,
                             RealIntervalFieldElement,
@@ -372,7 +375,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return Integer(0)
 
     def _an_element_impl(self):
-        return zero_constant
+        return SymbolicVariable('_generic_variable_name_')
 
     def is_field(self):
         return True
@@ -3102,12 +3105,12 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         try:
             return self.__zero_element
         except AttributeError:
-            z = CallableSymbolicExpression(SR.zero_element(), self._args)
+            z = CallableSymbolicExpression(self, SR.zero_element())
             self.__zero_element = z
             return z
 
     def _an_element_impl(self):
-        return self.zero_element()
+        return CallableSymbolicExpression(self, SR._an_element())
 
 
 _cfr_cache = {}

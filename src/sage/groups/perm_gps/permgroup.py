@@ -88,6 +88,7 @@ import sage.groups.group as group
 
 from sage.rings.all      import RationalField, Integer
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
 from sage.rings.arith import factor
@@ -464,7 +465,7 @@ class PermutationGroup_generic(group.FiniteGroup):
                 raise RuntimeError, "(It might be necessary to install the database_gap optional SAGE package, if you haven't already.)\n%s"%s
             self.__gens = tuple([PermutationGroupElement(gens[n],
                                     self, check = False) for n in \
-                                 range(1, Integer(gens.Length())+1)])
+                                 range(1, int(gens.Length())+1)])
             return self.__gens
 
     def gens_small(self):
@@ -528,11 +529,11 @@ class PermutationGroup_generic(group.FiniteGroup):
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         G = self
         n = G.order()
-        gap.eval("G := %s"%G._gap_())
-        gap.eval("phi := RegularActionHomomorphism( G );")
-        gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
-        N = Integer(gap.eval("N := Length(gens);"))
-        gens = [PermutationGroupElement(gap.eval("gens[%s];"%i)) for i in range(1,N+1)]
+        phi = G._gap_().RegularActionHomomorphism()
+        gens = phi.Image().GeneratorsOfGroup()
+        N = Integer(gens.Length())
+        nm = gens.name()
+        gens = [PermutationGroupElement(gap.eval("%s[%s];"%(nm, i))) for i in range(1,N+1)]
         H = PermutationGroup(gens)
         nH = H.order()
         R,vars = PolynomialRing(RationalField(),names,nH).objgens()
@@ -837,9 +838,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         G = self
-        gap.eval("G := %s"%G._gap_())
-        gap.eval("N := %s"%N._gap_())
-        gap.eval(" Q := G/N;")
+        gap.eval("G := %s"%G._gap_().name())
+        gap.eval("N := %s"%N._gap_().name())
+        gap.eval("Q := G/N;")
         gap.eval("phi := RegularActionHomomorphism( Q );")
         gap.eval("gens := GeneratorsOfGroup( Image( phi ));")
         N = Integer(gap.eval("N := Length(gens);"))
@@ -1156,18 +1157,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         irrG = G.Irr()
         ct   = [[irrG[i+1,j+1] for j in range(n)] for i in range(n)]
 
-        # Now we have the tricky task of figuring out what common
-        # cyclotomic field to put all these cyclotomic elements in.
-        # Our trick is to compute a list of strings that begin with
-        # the order of the root of unit for each element followed by ")junk",
-        # then get rid of the junk.
-        s = str(ct).split('E(')[1:]   # with junk
-        s = [eval(x.split(')')[0]) for x in s]  # get rid of trailing junk
-
-        from sage.rings.all import lcm, CyclotomicField
-        e = lcm(s)
-
-        # Now make field and coerce all elements into it.
+        from sage.rings.all import CyclotomicField
+        e = irrG.Flat().Conductor()
         K = CyclotomicField(e)
         ct = [[K(x) for x in v] for v in ct]
 
@@ -1386,9 +1377,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         if not isinstance(right, PermutationGroup_generic):
             raise TypeError, "right must be a permutation group"
-        G = self._gap_init_()
-        H = right._gap_init_()
-        return gap.eval("IsomorphismGroups( %s, %s )"%(G,H)) != "fail"
+        G = self._gap_()
+        H = right._gap_()
+        return gap.eval("IsomorphismGroups( %s, %s )"%(G.name(),H.name())) != "fail"
 
     def is_monomial(self):
         """

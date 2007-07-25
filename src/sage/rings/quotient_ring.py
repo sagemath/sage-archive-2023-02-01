@@ -291,7 +291,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.cover_ring().ngens()
 
     def gen(self, i=0):
-        return quotient_ring_element.QuotientRingElement(self, self.__R.gen(i))
+        return self(self.__R.gen(i))
 
 
     def _singular_(self, singular=singular_default):

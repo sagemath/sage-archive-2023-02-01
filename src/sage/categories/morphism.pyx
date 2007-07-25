@@ -4,6 +4,7 @@ Morphisms
 AUTHORS:
     -- William Stein: initial version
     -- David Joyner (12-17-2005): added examples
+    -- Robert Bradshaw (2007-06-25) Pyrexification
 """
 
 #*****************************************************************************
@@ -25,18 +26,44 @@ import operator
 
 import homset
 
-import sage.rings.arith as arith
+include "../ext/stdsage.pxi"
+from sage.structure.element cimport Element
 
-from sage.structure.element import Element
+def make_morphism(_class, parent, _dict, _slots):
+    # from element.pyx
+    cdef Morphism mor = _class.__new__(_class)
+    mor._set_parent(parent)
+    mor._update_slots(_slots)
+    if HAS_DICTIONARY(mor):
+        mor.__dict__ = _dict
+    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
 
-class Morphism(Element):
-    def __init__(self, parent):
+cdef class Morphism(Element):
+    def __init__(Morphism self, parent):
         if not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
         Element.__init__(self, parent)
+        self._domain = parent.domain()
+        self._codomain = parent.codomain()
+
+    cdef _update_slots(self, _slots):
+        self._domain = _slots['_domain']
+        self._codomain = _slots['_codomain']
+
+    cdef _extra_slots(self, _slots):
+        _slots['_domain'] = self._domain
+        _slots['_codomain'] = self._codomain
+        return _slots
+
+    def __reduce__(self):
+        if HAS_DICTIONARY(self):
+            _dict = self.__dict__
+        else:
+            _dict = {}
+        return make_morphism, (self.__class__, self._parent, _dict, self._extra_slots({}))
 
     def _repr_type(self):
         return "Generic"
@@ -57,7 +84,7 @@ class Morphism(Element):
         return s
 
     def domain(self):
-        return self.parent().domain()
+        return self._domain
 
     def codomain(self):
         return self.parent().codomain()
@@ -72,13 +99,23 @@ class Morphism(Element):
         raise NotImplementedError
 
     def __call__(self, x):
-        try:
-            y = self.domain()(x)
-        except TypeError:
-            raise TypeError, "%s must be coercible into %s"%(x,self.domain())
-        return self._call_(y)
+        if not PY_TYPE_CHECK(x, Element) or (<Element>x)._parent is not self._domain:
+            try:
+                x = self._domain(x)
+            except TypeError:
+                raise TypeError, "%s must be coercible into %s"%(x,self._domain)
+        return self._call_c(x)
 
     def _call_(self, x):
+        return self._call_c_impl(x)
+
+    cdef Element _call_c(self, x):
+        if HAS_DICTIONARY(self):
+            return self._call_(x)
+        else:
+            return self._call_c_impl(x)
+
+    cdef Element _call_c_impl(self, Element x):
         raise NotImplementedError
 
     def __mul__(self, right):
@@ -102,13 +139,14 @@ class Morphism(Element):
     def _composition_(self, right, homset):
         return FormalCompositeMorphism(homset, right, self)
 
-    def __pow__(self, n):
+    def __pow__(self, n, dummy):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
+        import sage.rings.arith as arith
         return arith.generic_power(self, n)
 
-class FormalCoercionMorphism(Morphism):
+cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         if not self.codomain().has_coerce_map_from(self.domain()):
@@ -117,16 +155,60 @@ class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    def _call_(self, x):
-        return self.codomain()._coerce_(self.domain()._coerce_(x))
+    cdef Element _call_c(self, x):
+        return self._codomain._coerce_(x)
 
-class FormalCompositeMorphism(Morphism):
+cdef class CallMorphism(Morphism):
+
+    def _repr_type(self):
+        return "Call"
+
+    cdef Element _call_c(self, x):
+        return self._codomain(x)
+
+cdef class IdentityMorphism(Morphism):
+
+    def __init__(self, parent):
+        if not isinstance(parent, homset.Homset):
+            parent = homset.Hom(parent, parent)
+        Morphism.__init__(self, parent)
+
+    def _repr_type(self):
+        return "Identity"
+
+    cdef Element _call_c(self, x):
+        return x
+
+    def __mul__(left, right):
+        if not isinstance(right, Morphism):
+            raise TypeError, "right (=%s) must be a morphism to multiply it by %s"%(right, left)
+        if not isinstance(left, Morphism):
+            raise TypeError, "left (=%s) must be a morphism to multiply it by %s"%(left, right)
+        if right.codomain() != left.domain():
+            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(left, right)
+        if isinstance(left, IdentityMorphism):
+            return right
+        else:
+            return left
+
+    def __pow__(self, n, dummy):
+        return self
+
+
+cdef class FormalCompositeMorphism(Morphism):
     def __init__(self, parent, first, second):
         Morphism.__init__(self, parent)
         self.__first = first
         self.__second = second
 
-    def _call_(self, x):
+    cdef _update_slots(self, _slots):
+        self.__first = _slots['__first']
+        self.__second = _slots['__second']
+
+    cdef _extra_slots(self, _slots):
+        return Morphism._extra_slots(self, {'__first': self.__first, '__second': self.__second})
+
+    cdef Element _call_c_impl(self, Element x):
         return self.__second(self.__first(x))
 
     def _repr_type(self):

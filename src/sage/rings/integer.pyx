@@ -681,7 +681,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def _r_action(self, s):
-        if isinstance(s, (str, list)):
+        if isinstance(s, (str, list, tuple)):
             return s*int(self)
         raise TypeError
 

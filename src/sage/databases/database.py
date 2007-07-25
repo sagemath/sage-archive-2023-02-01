@@ -972,7 +972,7 @@ class GenericSQLDatabase(SageObject):
             for column in self.__skeleton__[table]:
                 s += '   column ' + column + ': '
                 for data in self.__skeleton__[table][column]:
-                    s += data + ': ' + self.__skeleton__[table][column][data] + '; '
+                    s += data + ': ' + str(self.__skeleton__[table][column][data]) + '; '
                 s += '\n'
         return s
 

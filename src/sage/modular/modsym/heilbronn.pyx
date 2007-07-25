@@ -44,7 +44,6 @@ def HeilbronnCremonaList(int p):
     The Heilbronn matrices of determinant p, as defined by Cremona.
     """
     cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q
-    cdef float f
     cdef object ans
 
     if p == 2:
@@ -63,8 +62,7 @@ def HeilbronnCremonaList(int p):
         x1=p; x2=-r; y1=0; y2=1; a=-p; b=r; c=0; x3=0; y3=0; q=0
         ans.append([x1,x2,y1,y2])
         while b:
-            f = roundf(<float>a / <float> b)
-            q = <int> f
+            q = <int>roundf(<float>a / <float> b)
             c = a - b*q
             a = -b
             b = c
@@ -239,7 +237,6 @@ cdef class HeilbronnCremona(Heilbronn):
 
     def _initialize_list(self):
         cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q, n, p
-        cdef float f
         cdef list *L
         list_init(&self.list)
         L = &self.list
@@ -264,8 +261,7 @@ cdef class HeilbronnCremona(Heilbronn):
             x1=p; x2=-r; y1=0; y2=1; a=-p; b=r; c=0; x3=0; y3=0; q=0
             list_append4(L, x1,x2,y1,y2)
             while b:
-                f = roundf(<float>a / <float> b)
-                q = <int> f
+                q = <int>roundf(<float>a / <float> b)
                 c = a - b*q
                 a = -b
                 b = c

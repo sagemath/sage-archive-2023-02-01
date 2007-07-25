@@ -20,6 +20,17 @@ class InlineFortran:
         return self.eval(*args, **kwds)
 
     def eval(self,x):
+        """
+        sage: from sage.misc.inline_fortran import InlineFortran
+        sage: s = open(os.environ['SAGE_ROOT'] + '/examples/fortran/FIB1.F').read()
+        sage: test_fortran = InlineFortran(globals())
+        sage: test_fortran(s)
+        sage: import numpy
+        sage: n = numpy.array(range(10),dtype=float)
+        sage: fib(n,int(10))
+        sage: n
+        array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
+        """
         if len(x.splitlines()) == 1 and os.path.exists(x):
             filename = x
             x = open(x).read()

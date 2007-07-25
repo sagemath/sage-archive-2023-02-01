@@ -1306,7 +1306,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             if x.parent() is self:
                 return x
             elif x.parent() == self:
-                return DirichletCharacter(self, x.__values_on_gens)
+                return DirichletCharacter(self, x.values_on_gens())
             return self._coerce_in_dirichlet_character(x)
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 

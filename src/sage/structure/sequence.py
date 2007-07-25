@@ -204,12 +204,12 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                 import sage.categories.all
                 universe = sage.categories.all.Objects()
             else:
-                import sage.structure.coerce
+                import sage.structure.element as coerce
                 y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
                 for i in range(len(x)-1):
                     try:
-                        x[i], x[i+1] = sage.structure.coerce.canonical_coercion(x[i],x[i+1])
+                        x[i], x[i+1] = coerce.canonical_coercion(x[i],x[i+1])
                     except TypeError:
                         import sage.categories.all
                         universe = sage.categories.all.Objects()
@@ -217,7 +217,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                         check = False  # no point
                         break
                 if universe is None:   # no type errors raised.
-                    universe = sage.structure.coerce.parent(x[len(x)-1])
+                    universe = coerce.parent(x[len(x)-1])
                 #universe = sage.structure.coerce.parent(x[0])
         self.__universe = universe
         if check:

@@ -222,7 +222,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         or raise a TypeError.
         """
         for f in self.defining_polynomials():
-            if f(v) != 0:
+            if f(v) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
+                            # because of p-adic base rings.
                 self._error_bad_coords(v)
 
     def base_extend(self, R):

@@ -82,7 +82,15 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         Returns True if this group is finite.
         """
-        return bool(self.order() != infinity)
+        return self.order() != infinity
+
+    def is_multiplicative(self):
+        """
+        Returns True if the group operation is given by * (rather than +).
+
+        Override for additive groups.
+        """
+        return True
 
     def __hash__(self):
         return hash(self.__repr__())

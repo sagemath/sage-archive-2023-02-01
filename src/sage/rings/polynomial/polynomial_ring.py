@@ -191,6 +191,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             return C(self, x, check, is_gen, construct=construct, absprec = absprec)
 
+    def construction(self):
+        from sage.categories.pushout import PolynomialFunctor
+        return PolynomialFunctor(self._names), self.base_ring()
+
     def _coerce_impl(self, x):
         """
         Return the canonical coercion of x to this polynomial ring, if one is
@@ -766,6 +770,13 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):
         PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
+
+    def completion(self, p, prec=20, extras=None):
+        if str(p) == self._names[0]:
+            from sage.rings.power_series_ring import PowerSeriesRing_domain
+            return PowerSeriesRing_domain(self.base_ring(), self._names[0], prec)
+        else:
+            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,

@@ -398,6 +398,15 @@ ext_modules = [ \
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx']), \
 
+    Extension('sage.categories.morphism',
+              sources = ['sage/categories/morphism.pyx']), \
+
+    Extension('sage.categories.functor',
+              sources = ['sage/categories/functor.pyx']), \
+
+    Extension('sage.categories.action',
+              sources = ['sage/categories/action.pyx']), \
+
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']), \
 
@@ -491,7 +500,7 @@ ext_modules = [ \
     Extension('sage.schemes.hyperelliptic_curves.frobenius',
                  sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
                             'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
-                 libraries = ['ntl', 'stdc++'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 

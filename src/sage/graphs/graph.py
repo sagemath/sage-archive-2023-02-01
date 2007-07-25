@@ -21,6 +21,8 @@ AUTHOR:
                         (2007-06-07--09): NetworkX function wrapping
     -- Michael W. Hansen (2007-06-09): Topological sort generation
     -- Emily Kirkman, Robert L. Miller SAGE Days 4: Finished wrapping NetworkX
+    -- Emily Kirkman (2007-07-21): Genus (including circular planar, all
+        embeddings and all planar embeddings), all paths, interior paths
 
 TUTORIAL:
 
@@ -693,7 +695,7 @@ class GenericGraph(SageObject):
                 bdy_verts.append(v)
             else:
                 int_verts.append(v)
-        return bdy_verts + int_verts
+        return bdy_verts + sorted(int_verts)
 
     def relabel(self, perm, inplace=True, quick=False):
         r"""
@@ -3338,22 +3340,22 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: G = graphs.CubeGraph(4)
             sage: G.adjacency_matrix()
-            [0 1 0 0 0 1 0 1 0 1 0 0 0 0 0 0]
-            [1 0 0 0 1 0 1 0 1 0 0 0 0 0 0 0]
-            [0 0 0 1 0 1 0 1 0 0 0 0 0 0 0 1]
-            [0 0 1 0 1 0 1 0 0 0 0 0 0 0 1 0]
-            [0 1 0 1 0 1 0 0 0 0 0 0 0 1 0 0]
-            [1 0 1 0 1 0 0 0 0 0 0 0 1 0 0 0]
-            [0 1 0 1 0 0 0 1 0 0 0 1 0 0 0 0]
-            [1 0 1 0 0 0 1 0 0 0 1 0 0 0 0 0]
-            [0 1 0 0 0 0 0 0 0 1 0 1 0 1 0 0]
-            [1 0 0 0 0 0 0 0 1 0 1 0 1 0 0 0]
-            [0 0 0 0 0 0 0 1 0 1 0 1 0 0 0 1]
-            [0 0 0 0 0 0 1 0 1 0 1 0 0 0 1 0]
-            [0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 1]
-            [0 0 0 0 1 0 0 0 1 0 0 0 1 0 1 0]
-            [0 0 0 1 0 0 0 0 0 0 0 1 0 1 0 1]
-            [0 0 1 0 0 0 0 0 0 0 1 0 1 0 1 0]
+            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
+            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
+            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
+            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
+            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
+            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
 
         """
         n = len(self._nxg.adj)
@@ -3387,14 +3389,14 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: G = graphs.CubeGraph(3)
             sage: G.incidence_matrix()
+            [ 0  1  0  0  0  0  1 -1  0  0  0  0]
+            [ 0  0  0  1  0 -1 -1  0  0  0  0  0]
             [-1 -1 -1  0  0  0  0  0  0  0  0  0]
             [ 1  0  0 -1 -1  0  0  0  0  0  0  0]
-            [ 0  0  0  1  0 -1 -1  0  0  0  0  0]
-            [ 0  1  0  0  0  0  1 -1  0  0  0  0]
-            [ 0  0  0  0  1  0  0  0 -1 -1  0  0]
-            [ 0  0  1  0  0  0  0  0  0  1 -1  0]
             [ 0  0  0  0  0  0  0  1  0  0  1 -1]
             [ 0  0  0  0  0  1  0  0  1  0  0  1]
+            [ 0  0  1  0  0  0  0  0  0  1 -1  0]
+            [ 0  0  0  0  1  0  0  0 -1 -1  0  0]
 
         """
         from sage.matrix.constructor import matrix
@@ -3447,7 +3449,6 @@ class Graph(GenericGraph):
         M = matrix(D, sparse=sparse)
         return M
 
-
     def kirchhoff_matrix(self, weighted=False):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
@@ -3486,6 +3487,256 @@ class Graph(GenericGraph):
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
+
+    def is_circular_planar(self, ordered=True):
+        """
+        Returns True if a graph with boundary is circular planar, and
+        False otherwise.  A graph (with nonempty boundary) is circular
+        planar if it has a planar embedding in which all boundary nodes
+        can be drawn in order on a disc boundary, with all the interior
+        nodes drawn inside the disc.
+
+        Note -- This function assumes that the graph has nonempty
+                boundary.  (Circular Planarity has no definition for
+                graphs without boundary).
+             -- The current version relies on computing the genus of a
+                slightly modified graph so it is time-expensive and not
+                reasonable to use for graphs with > 12 vertices.
+             -- Also since the current version relies on computing the
+                genus, it is necessary that the graph be connected in
+                order to use Euler's formula.
+
+        INPUT:
+            ordered -- whether or not to consider the order of the boundary
+                       (set ordered=False to see if there is any possible
+                       boundary order that will satisfy circular planarity)
+
+        EXAMPLES:
+            sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
+            sage: g439.set_boundary([1,2,3,4])
+            sage.: g439.show(figsize=[2,2], vertex_labels=True, vertex_size=175)
+            sage: g439.is_circular_planar()
+            False
+            sage: g439.set_boundary([1,2,3])
+            sage: g439.is_circular_planar()
+            True
+
+        Order matters:
+            sage: K23 = graphs.CompleteBipartiteGraph(2,3)
+            sage: K23.set_boundary([0,1,2,3])
+            sage: K23.is_circular_planar()
+            False
+            sage: K23.set_boundary([0,2,1,3]) # Diff Order!
+            sage: K23.is_circular_planar()
+            True
+            sage: K23.is_circular_planar(ordered=False)
+            True
+        """
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.graphs.graph_genus1 import trace_faces, nice_copy
+
+        graph = nice_copy(self)
+        boundary = graph.get_boundary()
+
+        extra = 0
+        while graph.has_vertex(extra):
+            extra=extra+1
+        graph.add_vertex(extra)
+
+        for node in boundary:
+            graph.add_edge(node,extra)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            if node != extra:
+                part.append(graph.neighbors(node))
+        if not ordered:
+            part.append(graph.neighbors(extra))
+
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            if ordered:
+                p.append(boundary)
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            num = len(t)
+            if num > max_faces:
+                max_faces = num
+        genus = (2 - verts + edges - max_faces)/2
+        if genus == 0: return True
+        else: return False
+
+    def genus(self):
+        """
+        Returns the minimal genus of the graph.  The genus of a compact
+        surface is the number of handles it has.  The genus of a graph
+        is the minimal genus of the surface it can be embedded into.
+
+        Note -- This function uses Euler's formula and thus it is
+                necessary to consider only connected graphs.
+
+        EXAMPLES:
+            sage: (graphs.PetersenGraph()).genus()
+            1
+            sage: (graphs.CubeGraph(3)).genus()
+            0
+            sage: K23 = graphs.CompleteBipartiteGraph(2,3)
+            sage: K23.genus()
+            0
+            sage: K33 = graphs.CompleteBipartiteGraph(3,3)
+            sage: K33.genus()
+            1
+        """
+        if not self.is_connected():
+            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
+        from sage.rings.infinity import Infinity
+        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.graphs.graph_genus1 import trace_faces, nice_copy
+
+        graph = nice_copy(self)
+
+        verts = len(graph.vertices())
+        edges = len(graph.edges())
+
+        # Construct a list of all rotation systems for graph
+        part = []
+        for node in graph.vertices():
+            part.append(graph.neighbors(node))
+
+        all_perms = []
+        for p in cyclic_permutations_of_partition_iterator(part):
+            all_perms.append(p)
+
+        max_faces = -Infinity
+        for p in all_perms:
+            t = trace_faces(graph, p)
+            faces = len(t)
+            if faces > max_faces:
+                max_faces = faces
+        return (2-verts+edges-max_faces)/2
+
+    def interior_paths(self, start, end):
+        """
+        Returns an exhaustive list of paths (also lists) through
+        only interior nodes from vertex start to vertex end in the
+        graph.
+
+        Note -- start and end do not necessarily have to be boundary
+                nodes.
+
+        INPUT:
+            start -- the vertex of the graph to search for paths from
+            end -- the vertex of the graph to search for paths to
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = eg1.copy()
+            sage: eg2.set_boundary([0,1,3])
+            sage: eg2.interior_paths(0,6)
+            [[0, 2, 4, 5, 6]]
+            sage: eg2.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg3 = graphs.PetersenGraph()
+            sage: eg3.set_boundary([0,1,2,3,4])
+            sage: eg3.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+            sage: eg3.interior_paths(1,4)
+            [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
+        """
+        H = self.copy()
+        for node in self.get_boundary():
+            if (node != start and node != end):
+                H.delete_vertex(node)
+        return H.all_paths(start, end)
+
+    def all_paths(self, start, end):
+        """
+        Returns a list of all paths (also lists) between a pair of
+        vertices (start, end) in the graph.
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = graphs.PetersenGraph()
+            sage: eg2.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+        """
+        all_paths = []
+        paths_helper(start, end, self, all_paths)
+        return all_paths
 
     def __bit_vector(self):
         vertices = self.vertices()
@@ -3946,7 +4197,7 @@ class Graph(GenericGraph):
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
             sage: M.determinant()
-            712483534798848
+            -712483534798848
             sage: G.order()
             384
 
@@ -5328,15 +5579,15 @@ class DiGraph(GenericGraph):
             sage: DP = P.to_directed()
             sage: DP.canonical_label().adjacency_matrix()
             [0 0 0 0 0 0 0 1 1 1]
-            [0 0 0 0 1 0 1 0 1 0]
-            [0 0 0 1 0 0 1 0 0 1]
-            [0 0 1 0 0 1 0 0 1 0]
-            [0 1 0 0 0 1 0 0 0 1]
+            [0 0 0 0 1 0 1 0 0 1]
+            [0 0 0 1 0 0 1 0 1 0]
+            [0 0 1 0 0 1 0 0 0 1]
+            [0 1 0 0 0 1 0 0 1 0]
             [0 0 0 1 1 0 0 1 0 0]
             [0 1 1 0 0 0 0 1 0 0]
             [1 0 0 0 0 1 1 0 0 0]
-            [1 1 0 1 0 0 0 0 0 0]
             [1 0 1 0 1 0 0 0 0 0]
+            [1 1 0 1 0 0 0 0 0 0]
 
 
         """
@@ -5547,13 +5798,13 @@ def enum(graph, quick=False):
         sage: enum(graphs.FlowerSnark())
         645682215283153372602620320081348424178216159521280462146968720908564261127120716040952785862033320307812724373694972050
         sage: enum(graphs.CubeGraph(3))
-        6100215452666565930
+        7535809024060107030
         sage: enum(graphs.CubeGraph(4))
-        31323620658472264895128471376615338141839885567113523525061169966087480352810
+        47267715876236163882872165742917649077474356975346093231312192918052414226710
         sage: enum(graphs.CubeGraph(5))
-        56178607138625465573345383656463935701397275938329921399526324254684498525419117323217491887221387354861371989089284563861938014744765036177184164647909535771592043875566488828479926184925998575521710064024379281086266290501476331004707336065735087197243607743454550839234461575558930808225081956823877550090
+        73383767099440499978977371110767635000712632058761917166935299414577892531740903317276163088753429176806392542119313927407270916017052236205784763916564139194844709702330411308151107850749347729631684377105917135158882718579653914986774438564026130776549642103326266773293337981002726861228331644217045614870
         sage: enum(graphs.CubeGraph(6))
-        326371529575427670669464238352101792094951995779243649057093680285386836778990822785629081437462007462172136739360216635272989566397063628275237333830290699547744159752476973755505018594972566284771946715901992334775564039636016154597991986233778356987078903014361835460025413303996224858662237588027497025918927773843696364591732103396707501795072057243344934529936711761097527992728782989691631553026180148169817692734910487070747842470495807910198844854395760744998405767420459371010853556720360106317018641801426434924432581636124098971895118996222274389301315349604982951123912064743865540437112291326630674780489999966853075919418865342288080591185687773907958969994946251550738883641209218895538302542467783555412842784641272215426718406548615852119731241895157120923727145201968011104296341986981476957506504881443153478096541541979344838466666125740942737467652895262953068807052825091565753903293986696476057305915151904068785187138739772945549458536843961327405795357506174484599018050509008860510218641137912558770294063176256950306181851162364078941368690851230620321950109095412674676207403596511865820791876904583083905201524354951549014070360944192907835240428450774461600896985187941668314928549093564736937169846530
+        426330773284506488918634734865759041919956843959533319933690768247529558188799395712215446423075008058591366298704228052382156035290705594805355797326008656345430976382884644704793815838747426479646427610678507924554229761217219227470873068998288136471101733055146437055591054200049489396547818542127638584078729984152123059286362563567564461701218389382825275571923027468257894398406386537450007469620559809790444332966965101712836129760203217607202553686523550484118794498888998087405724741434040120926560135219397307574002437217860019320176154290286982859306143571386395302492049075037862488404582194490395200617034630435370849810881764417871098062828471680512013766342500009882083287831864769598280796427782079253352467753414067084099529009749310841716158019483591570426310985975244360481910644650705334099521468011318423160985507943967440420335063304346970852155833601505006094802527630580485975440894441077533686879443347828349415299434860114778542645481417844030011732317840312124857577317624806403294574388054782407793941193395139576232216820471248926353033028753066607315177945805410490322510890417889986155290813751020615454150372673790818813879164226820716569511273513116613734799963972530877463950648401174889762511716630
 
     """
     enumeration = 0
@@ -5572,6 +5823,37 @@ def enum(graph, quick=False):
         enumeration += 1 << ((n-(i+1))*n + n-(j+1))
     return ZZ(enumeration)
 
+def paths_helper(start, end, G, all_paths, p=None):
+    """
+    The recursive helper for path finding calls.  (i.e.: all_paths
+    and interior_paths).  Spawns potential path for each unvisited
+    neighbor of current node and appends all succesful paths to
+    one list.  (Note that paths themselves are lists of vertices).
 
+    INPUT:
+        start -- the node to start path search at
+        end -- the node to find a path to
+        all_paths -- the list (should initially be empty) to append
+                     all successful paths to
+        p -- the current path to update (via appending a vertex)
+    """
+
+    if p is None:
+        # ONLY ONCE
+        p = [start]
+
+    plist = []
+    # At each node, fill list of spawning paths (i.e. all neighbors)
+    for i in range(len(G[p[-1]])):
+        if G[p[-1]][i] not in p:
+            plist.append(p + [G[p[-1]][i]])
+
+    # If path completes, add to list
+    if (p[-1] == end):
+        all_paths.append(p)
+
+    # Recursion: (look at all neighbors of all neighbors)
+    for p in plist:
+        paths_helper(start, end, G, all_paths, p)
 
 

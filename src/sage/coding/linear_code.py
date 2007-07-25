@@ -340,7 +340,7 @@ def best_known_linear_code(n,k,F):
     This does not require an internet connection.
 
     EXAMPLES:
-        sage: best_known_linear_code(10,5,GF(2))
+        sage: best_known_linear_code(10,5,GF(2))    # long time
         'a linear [10,5,4]2..4 shortened code'
 
     This means that best possible binary linear code of length 10 and dimension 5
@@ -601,7 +601,7 @@ class LinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.minimum_distance()
             3
-            sage: C=RandomLinearCode(10,5,GF(4,'a'))
+            sage: C = RandomLinearCode(10,5,GF(4,'a'))
             sage: C.gen_mat()                ## random
 	    [    1     0     0     0     0 x + 1     1     0     0     0]
 	    [x + 1     1     0     1     0 x + 1     1     1     0     0]
@@ -949,15 +949,15 @@ class LinearCode(module.Module):
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
-            sage: G = C.permutation_automorphism_group()
-            sage: p = G("(1,6,3,5)(2,7,4,8)")
-            sage: Cp = C.permuted_code(p)
+            sage: G = C.permutation_automorphism_group()     # long time
+            sage: p = G("(1,6,3,5)(2,7,4,8)")                # long time
+            sage: Cp = C.permuted_code(p)                    # long time
             sage: C.gen_mat()
             [1 1 0 1 0 0 0 1]
             [0 1 1 0 1 0 0 1]
             [0 0 1 1 0 1 0 1]
             [0 0 0 1 1 0 1 1]
-            sage: Cp.gen_mat()
+            sage: Cp.gen_mat()                               # long time
             [0 1 0 0 0 1 1 1]
             [1 1 0 0 1 0 1 0]
             [0 1 1 0 1 0 0 1]
@@ -968,7 +968,7 @@ class LinearCode(module.Module):
              . . 1 . 1 1 1 .
              . . . 1 1 . 1 1
             ()
-            sage: Cs2,p2 = Cp.standard_form(mode="verbose"); p2
+            sage: Cs2,p2 = Cp.standard_form(mode="verbose"); p2   # long time
              1 . . . 1 1 . 1
              . 1 . . . 1 1 1
              . . 1 . 1 1 1 .

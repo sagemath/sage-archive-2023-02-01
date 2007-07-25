@@ -155,7 +155,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError, "plotting of polynomials over %s not implemented"%R
 
-    def _lmul_(self, left):
+    cdef ModuleElement _lmul_c_impl(self, RingElement left):
         """
         Multiply self on the left by a scalar.
 
@@ -174,7 +174,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(0)
         return self.parent()(left) * self
 
-    def _rmul_(self, right):
+    cdef ModuleElement _rmul_c_impl(self, RingElement right):
         """
         Multiply self on the right by a scalar.
 
@@ -540,7 +540,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: f * (x^2 + 1) % (x^5 + x + 1)
-            -5.55111512313e-17*x^3 - 5.55111512313e-17*x^2 - 5.55111512313e-17*x + 1.0
+            5.55111512313e-17*x^3 + 1.66533453694e-16*x^2 + 5.55111512313e-17*x + 1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.142857142857
             sage: f * (x^3 - x + 1) % (x - 2)
@@ -596,7 +596,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     M[i+j, j+n] = m[i]
             v = vector(R, [R(1)] + [R(0)]*(2*n-2)) # the constant polynomial 1
             if M.is_invertible():
-                x = ~M*v # there has to be a better way to solve
+                x = M.solve_right(v) # there has to be a better way to solve
                 return a.parent()(list(x)[0:n])
             else:
                 raise ValueError, "Impossible inverse modulo"
@@ -717,8 +717,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
-            v = [0]*right + [1]
-            return self.parent()(v, check=True)
+            R = self.parent().base_ring()
+            v = [R(0)]*right + [R(1)]
+            return self.parent()(v, check=False)
         return sage.rings.arith.generic_power(self, right, self.parent()(1))
 
     def _pow(self, right):
@@ -1169,8 +1170,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.polynomial([n*coeffs[n] for n from 1 <= n <= degree])
 
     def integral(self):
+        cdef Py_ssize_t n, degree = self.degree()
+        if degree < 0:
+            return self.parent()(0)
         try:
-            return self.polynomial([0] + [self[n]/(n+1) for n in xrange(0,self.degree()+1)])
+            coeffs = self.list()
+            return self.polynomial([0, coeffs[0]] + [coeffs[n]/(n+1) for n from 1 <= n <= degree])
         except TypeError:
             raise ArithmeticError, "coefficients of integral cannot be coerced into the base ring"
 
@@ -2102,13 +2107,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __rshift__(self, k):
         return self.shift(-k)
 
-
-    def truncate(self, n):
+    def truncate(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
-        return self.parent()(self[:int(n)], check=False)
+        return self._parent(self[:n], check=False)
 
     def radical(self):
         """
@@ -2405,25 +2409,29 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
-    def _rmul_(self, c):
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [c * a for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    def _lmul_(self, c):
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [a * c for a in self.__coeffs]
         res = self._parent(v, check=0)
-        if v[len(v)-1].is_zero():
+        if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a new copy of the list of the underlying
         elements of self.
@@ -2435,7 +2443,10 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.list()
             [1, 9, 12, 8]
         """
-        return list(self.__coeffs)
+        if copy:
+            return list(self.__coeffs)
+        else:
+            return self.__coeffs
 
     def degree(self):
         """
@@ -2479,6 +2490,13 @@ cdef class Polynomial_generic_dense(Polynomial):
                 return self.polynomial([])
             else:
                 return self.polynomial(self.__coeffs[-int(n):], check=False)
+
+    def truncate(self, long n):
+        r"""
+        Returns the polynomial of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        return self._parent(self.__coeffs[:n], check=False)
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)

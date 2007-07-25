@@ -203,22 +203,27 @@ from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 
+import expnums
+
 ######### combinatorial sequences
 
-def bell_number(n):
+def bell_number(n, algorithm='sage'):
     r"""
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
     INPUT:
         n -- an integer
+        algorithm -- 'sage': use N. Alexander's custom implementation in SAGE
+                     'gap': use Gap's Bell command (slow)
 
     If $n \leq 0$, returns $1$.
 
-    Wraps GAP's Bell.
 
     EXAMPLES:
         sage: bell_number(10)
+        115975
+        sage: bell_number(10, algorithm='gap')
         115975
         sage: bell_number(2)
         2
@@ -230,9 +235,22 @@ def bell_number(n):
         Traceback (most recent call last):
         ...
         TypeError: no coercion of this rational to integer
+
+    To compute all Bell numbers up to n, use expnums:
+        sage: expnums(10,1)
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+        sage: [bell_number(n) for n in range(10)]
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
     """
-    ans=gap.eval("Bell(%s)"%ZZ(n))
-    return eval(ans)
+    n = ZZ(n)
+    if n <= 0:
+        return ZZ(1)
+    if algorithm == 'sage':
+        return expnums.expnums(n+1,1)[-1]
+    elif algorithm == 'gap':
+        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
+    else:
+        raise ValueError, "unknown algorithm '%s'"%algorithm
 
 ## def bernoulli_number(n):
 ##     r"""

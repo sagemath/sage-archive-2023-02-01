@@ -312,7 +312,7 @@ class GenericGraphQuery(GenericSQLQuery):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         GenericSQLQuery.__init__(self,database,query_string,param_tuple)
 
-    def show(self, max_field_size=20, html_table=False, with_picture=None):
+    def show(self, max_field_size=20, html_table=False, with_picture=False):
         """
         Displays the results of a query in table format.
 
@@ -325,10 +325,7 @@ class GenericGraphQuery(GenericSQLQuery):
         EXAMPLES:
         TODO
         """
-        if with_picture is None:
-            from sage.server.support import EMBEDDED_MODE
-            with_picture = EMBEDDED_MODE
-        if with_picture:
+        if picture:
             from sage.plot.plot import plot
 
             s = (self.__query_string__).lower()
@@ -523,7 +520,7 @@ class GraphQuery(SQLQuery):
                                       '=','>','<','>=','<='
         vertex_transitive -- (Boolean)
     """
-    def __init__(self, database, graph6=None, num_vertices=None, \
+    def __init__(self, database, display=['graph6'], graph6=None, num_vertices=None, \
                     num_edges=None, num_cycles=None, num_hamiltonian_cycles=None, \
                     eulerian=None, planar=None, perfect=None, lovasz_number=None, \
                     complement_graph6=None, aut_grp_size=None, num_orbits=None, \
@@ -539,10 +536,54 @@ class GraphQuery(SQLQuery):
 
         SQLQuery.__init__(self,database)
 
+        # need multiple replace
+        from sage.misc.multireplace import multiple_replace
+        with_table = {'aut_grp_size': 'aut_grp.aut_grp_size',
+             'average_degree': 'degrees.average_degree',
+             'clique_number': 'misc.clique_number',
+             'complement_graph6': 'graph_data.complement_graph6',
+             'degree_sequence': 'degrees.degree_sequence',
+             'degrees_sd': 'degrees.degrees_sd',
+             'diameter': 'misc.diameter',
+             'edge_connectivity': 'misc.edge_connectivity',
+             'edge_transitive': 'aut_grp.edge_transitive',
+             'eigenvalues_sd': 'spectrum.eigenvalues_sd',
+             'energy': 'spectrum.energy',
+             'eulerian': 'graph_data.eulerian',
+             'girth': 'misc.girth',
+             'graph6': 'graph_data.graph6',
+             'independence_number': 'misc.independence_number',
+             'induced_subgraphs': 'misc.induced_subgraphs',
+             'lovasz_number': 'graph_data.lovasz_number',
+             'max_degree': 'degrees.max_degree',
+             'max_eigenvalue': 'spectrum.max_eigenvalue',
+             'min_degree': 'degrees.min_degree',
+             'min_eigenvalue': 'spectrum.min_eigenvalue',
+             'min_vertex_cover_size': 'misc.min_vertex_cover_size',
+             'num_components': 'misc.num_components',
+             'num_cut_vertices': 'misc.num_cut_vertices',
+             'num_cycles': 'graph_data.num_cycles',
+             'num_edges': 'graph_data.num_edges',
+             'num_fixed_points': 'aut_grp.num_fixed_points',
+             'num_hamiltonian_cycles': 'graph_data.num_hamiltonian_cycles',
+             'num_orbits': 'aut_grp.num_orbits',
+             'num_spanning_trees': 'misc.num_spanning_trees',
+             'num_vertices': 'graph_data.num_vertices',
+             'perfect': 'graph_data.perfect',
+             'planar': 'graph_data.planar',
+             'radius': 'misc.radius',
+             'regular': 'degrees.regular',
+             'spectrum': 'spectrum.spectrum',
+             'vertex_connectivity': 'misc.vertex_connectivity',
+             'vertex_transitive': 'aut_grp.vertex_transitive'}
+
+        # TODO : BEING SILLY HERE...
+        for i in range(len(display)):
+            display[i] = multiple_replace(with_table,'%s'%display[i])
+
         query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
-        query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
-        query = re.sub('FROM graph_data WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
-        query = re.sub('SELECT graph_data.graph6','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs',query)
+        print query
+        query = re.sub('SELECT graph_data.graph6','SELECT %s'%(', '.join(display)),query )
 
         self.__query_string__ = query
 

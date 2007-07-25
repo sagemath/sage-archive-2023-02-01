@@ -2,6 +2,7 @@
 TODO:
 1.b - DOUBLE CHECK query_dict checking for intersect and union
 2. more eg's on union and intersect (compl)
+3 - Fix Notebook EMBEDDED_MODE stuff
 
 Relational (sqlite) Databases.
 
@@ -36,7 +37,7 @@ import os
 import re
 from sage.misc.misc import tmp_filename
 from sage.structure.sage_object import SageObject
-import sage.server.support
+from sage.server.support import EMBEDDED_MODE
 
 def regexp(expr, item):
     """
@@ -185,9 +186,7 @@ class GenericSQLQuery(SageObject):
     Now that we have the table, we will begin to populate the table with
     rows. First, add the graph on zero vertices.
         sage: G = Graph()
-
         sage: D.add_row('simon',(0, G.graph6_string(), 0))
-
         sage: D.show('simon')
         edges                graph6               vertices
         ------------------------------------------------------------
@@ -238,8 +237,8 @@ class GenericSQLQuery(SageObject):
     We can then query the database-- let's ask for all the graphs on four
     vertices with three edges. We do so by creating two queries and asking for
     rows that satisfy them both:
-        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
-        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
+        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['vertices','=',4]})
+        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['edges','=',3]})
         sage: Q = Q.intersect(Q2)
         sage: Q.run_query()
         [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
@@ -277,10 +276,9 @@ class GenericSQLQuery(SageObject):
         5                    C^                   4
         6                    C~                   4
         sage: E.drop_table('simon')
-        Traceback (most recent call last):
+        Traceback (most recent call last)
         ...
         AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-
 
     """
 
@@ -313,18 +311,15 @@ class GenericSQLQuery(SageObject):
         Runs the query by executing the __query_string__.  Returns
 
         EXAMPLES:
-            sage: G = GraphDatabase()
-            sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
-            sage: param = (22,5)
-            sage: Q = GenericSQLQuery(G,q,param)
-            sage: Q.run_query()
+            sage: G = GraphDatabase()sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)sage: Q = GenericSQLQuery(G,q,param)sage: Q.run_query()
             [(18, u'D??', 5, 0),
              (19, u'D?C', 5, 1),
              (20, u'D?K', 5, 2),
              (21, u'D@O', 5, 2),
              (22, u'D?[', 5, 3)]
 
-            sage: R = SQLQuery(G,{'table_name':'graph_data', 'display_cols':['graph6'], 'expression':['num_vertices','=',4]})
+            sage: R = SQLQuery(G,{'table_name':'graph_data', 'display_cols':'graph6', 'expression':['num_vertices','=',4]})
             sage: R.run_query()
             [(u'C?',),
              (u'C@',),
@@ -365,8 +360,8 @@ class GenericSQLQuery(SageObject):
             sage: DB = SQLDatabase()
             sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 6]})
-            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':['b2'], 'expression':['b2','<=', 6]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
+            sage: p = SQLQuery(DB, {'table_name':'simon', 'display_cols':'b2', 'expression':['b2','<=', 6]})
             sage: s = p.intersect(r)
             sage: s.show()
             b2                   a1
@@ -389,7 +384,6 @@ class GenericSQLQuery(SageObject):
         except:
             raise RuntimeError('Failure to fetch query.')
 
-        from sage.server.support import EMBEDDED_MODE
         if EMBEDDED_MODE or html_table:
             # Notebook Version
             print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
@@ -470,9 +464,7 @@ class SQLQuery(GenericSQLQuery):
     Now that we have the table, we will begin to populate the table with
     rows. First, add the graph on zero vertices.
         sage: G = Graph()
-
         sage: D.add_row('simon',(0, G.graph6_string(), 0))
-
         sage: D.show('simon')
         edges                graph6               vertices
         ------------------------------------------------------------
@@ -562,10 +554,10 @@ class SQLQuery(GenericSQLQuery):
         5                    C^                   4
         6                    C~                   4
         sage: E.drop_table('simon')
-        Traceback (most recent call last):
+        Traceback (most recent call last)
         ...
         AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-
+        sage:
 
     """
 
@@ -641,8 +633,8 @@ class SQLQuery(GenericSQLQuery):
             sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon', [(0,5),(1,4)])
             sage: DB.add_data('lucy', [(1,1),(1,4)])
-            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['b2'], 'expression':['a1','=',1]})
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 6]})
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
             sage: s = q.intersect(r, 'simon', {'lucy':('a1','a1')})
             sage: s.run_query()
             [(1, 1), (4, 1)]
@@ -658,7 +650,7 @@ class SQLQuery(GenericSQLQuery):
             o = ((other.__query_string__).upper()).split('FROM ')
             s = s[1].split(' WHERE ')
             o = o[1].split(' WHERE ')
-            if s[0] != o[0]:
+            if s != o:
                 raise ValueError('Input queries query different tables but join parameters are NoneType')
 
         q = self.copy()
@@ -706,13 +698,10 @@ class SQLQuery(GenericSQLQuery):
                     join_table.corr_base_col1 = join_table1.col1
 
         EXAMPLES:
-            sage: DB = SQLDatabase()
-            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
-            sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
-            sage: DB.add_data('simon', [(0,5),(1,4)])
+            sage: DB = SQLDatabase()sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})sage: DB.add_data('simon', [(0,5),(1,4)])
             sage: DB.add_data('lucy', [(1,1),(1,4)])
-            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['b2'], 'expression':['a1','=',1]})
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 6]})
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
             sage: s = q.union(r, 'simon', {'lucy':('a1','a1')})
             sage: s.__query_string__
             'SELECT lucy.b2,simon.a1 FROM simon INNER JOIN lucy ON simon.a1=lucy.a1 WHERE ( lucy.a1 = ? ) OR ( simon.b2 <= ? )'
@@ -722,11 +711,10 @@ class SQLQuery(GenericSQLQuery):
             sage: DB.create_table('lucy',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
             sage: DB.add_data('simon', [(0,5),(1,4)])
             sage: DB.add_data('lucy', [(1,1),(1,4)])
-            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['b2'], 'expression':['a1','=',1]})
-            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 6]})
+            sage: q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'b2', 'expression':['a1','=',1]})
+            sage: r = SQLQuery(DB, {'table_name':'simon', 'display_cols':'a1', 'expression':['b2','<=', 6]})
             sage: s = q.union(r, 'simon', {'lucy':('a1','a1')})
-            sage: s.run_query()
-            [(1, 1), (4, 1)]
+            sage: s.run_query()[(1, 1), (4, 1)]
             sage: s.show()
             b2                   a1
             ----------------------------------------
@@ -744,7 +732,7 @@ class SQLQuery(GenericSQLQuery):
             o = ((other.__query_string__).upper()).split('FROM ')
             s = s[1].split(' WHERE ')
             o = o[1].split(' WHERE ')
-            if s[0] != o[0]:
+            if s != o:
                 raise ValueError('Input queries query different tables but join parameters are NoneType')
 
         q = self.copy()
@@ -825,9 +813,7 @@ class GenericSQLDatabase(SageObject):
     Now that we have the table, we will begin to populate the table with
     rows. First, add the graph on zero vertices.
         sage: G = Graph()
-
         sage: D.add_row('simon',(0, G.graph6_string(), 0))
-
         sage: D.show('simon')
         edges                graph6               vertices
         ------------------------------------------------------------
@@ -878,8 +864,8 @@ class GenericSQLDatabase(SageObject):
     We can then query the database-- let's ask for all the graphs on four
     vertices with three edges. We do so by creating two queries and asking for
     rows that satisfy them both:
-        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
-        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
+        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['vertices','=',4]})
+        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['edges','=',3]})
         sage: Q = Q.intersect(Q2)
         sage: Q.run_query()
         [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
@@ -917,10 +903,10 @@ class GenericSQLDatabase(SageObject):
         5                    C^                   4
         6                    C~                   4
         sage: E.drop_table('simon')
-        Traceback (most recent call last):
+        Traceback (most recent call last)
         ...
         AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-
+        sage:
 
     """
     def __init__(self, filename):
@@ -973,7 +959,7 @@ class GenericSQLDatabase(SageObject):
             1                    3                    384
             1                    4                    978932
 
-            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['id','a1','b2'], 'expression':['id','>=',3]})
+            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'id,a1,b2', 'expression':['id','>=',3]})
             sage: DB.delete_rows(Q)
             sage: DB.show('lucy')
             a1                   id                   b2
@@ -1243,7 +1229,6 @@ class GenericSQLDatabase(SageObject):
         except:
             raise RuntimeError('Failure to fetch data.')
 
-        from sage.server.support import EMBEDDED_MODE
         if EMBEDDED_MODE or html_table:
             # Notebook Version
             print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
@@ -1326,9 +1311,7 @@ class SQLDatabase(GenericSQLDatabase):
     Now that we have the table, we will begin to populate the table with
     rows. First, add the graph on zero vertices.
         sage: G = Graph()
-
         sage: D.add_row('simon',(0, G.graph6_string(), 0))
-
         sage: D.show('simon')
         edges                graph6               vertices
         ------------------------------------------------------------
@@ -1379,8 +1362,8 @@ class SQLDatabase(GenericSQLDatabase):
     We can then query the database-- let's ask for all the graphs on four
     vertices with three edges. We do so by creating two queries and asking for
     rows that satisfy them both:
-        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
-        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
+        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['vertices','=',4]})
+        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':'graph6', 'expression':['edges','=',3]})
         sage: Q = Q.intersect(Q2)
         sage: Q.run_query()
         [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
@@ -1418,10 +1401,10 @@ class SQLDatabase(GenericSQLDatabase):
         5                    C^                   4
         6                    C~                   4
         sage: E.drop_table('simon')
-        Traceback (most recent call last):
+        Traceback (most recent call last)
         ...
         AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-
+        sage:
 
     """
 
@@ -1884,14 +1867,17 @@ class SQLDatabase(GenericSQLDatabase):
             361                  19
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
 
         """
         if not self.__skeleton__.has_key(table_name):
@@ -1945,14 +1931,17 @@ class SQLDatabase(GenericSQLDatabase):
             361                  19
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
 
         """
         if not self.__skeleton__.has_key(table_name):
@@ -2012,14 +2001,17 @@ class SQLDatabase(GenericSQLDatabase):
             361                  19
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
 
         """
 
@@ -2113,14 +2105,17 @@ class SQLDatabase(GenericSQLDatabase):
             361                  19
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': True, 'primary_key': True, 'sql': 'INTEGER'}}}
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True, 'primary_key': False, 'sql': 'INTEGER'},
+                       'n2': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
 
         """
         #WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
@@ -2156,7 +2151,7 @@ class SQLDatabase(GenericSQLDatabase):
 
         # Silly SQLite -- we have to make a temp table to hold info...
         self.__connection__.executescript("""
-            create temporary table spam(%s);
+            'create temporary table spam(%s);
             insert into spam select %s from %s;
             drop table %s;
             create table %s (%s);
@@ -2226,10 +2221,8 @@ class SQLDatabase(GenericSQLDatabase):
                 run).
 
         EXAMPLES:
-            sage: DB = SQLDatabase()
-            sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True},'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
-            sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384),(4,1,978932)],['id','a1','b2'])
-            sage: DB.show('lucy')
+            sage: DB = SQLDatabase()sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True},'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384),(4,1,978932)],['id','a1','b2'])sage: DB.show('lucy')
             a1                   id                   b2
             ------------------------------------------------------------
             1                    0                    1
@@ -2237,8 +2230,7 @@ class SQLDatabase(GenericSQLDatabase):
             0                    2                    7
             1                    3                    384
             1                    4                    978932
-            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['id','a1','b2'], 'expression':['id','>=',3]})
-            sage: Q.show()
+            sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':'id,a1,b2', 'expression':['id','>=',3]})sage: Q.show()
             id                   a1                   b2
             ------------------------------------------------------------
             3                    1                    384
@@ -2341,3 +2333,4 @@ class SQLDatabase(GenericSQLDatabase):
 
         """
         self.__connection__.execute('vacuum')
+                                 

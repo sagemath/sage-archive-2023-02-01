@@ -585,13 +585,13 @@ class GraphQuery(SQLQuery):
 
         query = __query_string__(graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
         a = ', '.join(display)
-        if (re.search(' aut_grp.', a) and re.search('INNER JOIN aut_grp', query)):
+        if (re.search(' aut_grp.', a) and not re.search('INNER JOIN aut_grp', query)):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN aut_grp on graph_data.graph_id=aut_grp.graph_id ', query)
-        if (re.search(' degrees.', a) and re.search('INNER JOIN degrees', query)):
+        if (re.search(' degrees.', a) and not re.search('INNER JOIN degrees', query)):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN degrees on graph_data.graph_id=degrees.graph_id ', query)
-        if (re.search(' spectrum.', a) and re.search('INNER JOIN spectrum', query)):
+        if (re.search(' spectrum.', a) and not re.search('INNER JOIN spectrum', query)):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN spectrum on graph_data.graph_id=spectrum.graph_id ', query)
-        if (re.search(' misc.', a) and re.search('INNER JOIN misc', query)):
+        if (re.search(' misc.', a) and not re.search('INNER JOIN misc', query)):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN misc on graph_data.graph_id=misc.graph_id ', query)
         query = re.sub('SELECT graph_data.graph6','SELECT %s'%a, query )
 
@@ -600,17 +600,26 @@ class GraphQuery(SQLQuery):
     def intersect(self, other):
         """
         """
+        from sage.sets.set import Set
         q = self.copy()
 
         # inner join clause
-
-        if join_dict is not None:
-            joins = join_table
-            for table in join_dict:
-                joins += ' INNER JOIN ' + table + ' ON ' + join_table + \
-                         '.' + join_dict[table][0] + '=' + table + '.' + \
-                         join_dict[table][1] + ' '
-            q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + joins + 'WHERE ', self.__query_string__)
+        s = ((self.__query_string__).lower()).split(' inner join ')
+        o = ((other.__query_string__).lower()).split(' inner join ')
+        if len(s) > 1:
+            r = s[-1].split(' where ')
+            s[-1] = r[0]
+        if len(o) > 1:
+            r = o[-1].split(' where ')
+            o[-1] = r[0]
+        joins = Set([])
+        for i in range (1,len(s)):
+            joins = joins.union(Set([s[i]]))
+        for i in range (1,len(o)):
+            joins = joins.union(Set([o[i]]))
+        joins = list(joins)
+        join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + join_string + 'WHERE ', q.__query_string__)
 
         # concatenate display cols
         disp = q.__query_string__.split(' FROM')
@@ -622,13 +631,51 @@ class GraphQuery(SQLQuery):
         new_query += re.sub('^.* WHERE ',' ) AND ( ',other.__query_string__)
         q.__query_string__ = new_query + ' )'
 
-        q.__param_tuple__ = self.__param_tuple__ + other.__param_tuple__
-
         return q
 
     def union(self, other):
         """
         """
+        from sage.sets.set import Set
+        q = self.copy()
+
+        # inner join clause
+        s = ((self.__query_string__).lower()).split(' inner join ')
+        o = ((other.__query_string__).lower()).split(' inner join ')
+        if len(s) > 1:
+            r = s[-1].split(' where ')
+            s[-1] = r[0]
+        if len(o) > 1:
+            r = o[-1].split(' where ')
+            o[-1] = r[0]
+        joins = Set([])
+        for i in range (1,len(s)):
+            joins = joins.union(Set([s[i]]))
+        for i in range (1,len(o)):
+            joins = joins.union(Set([o[i]]))
+        joins = list(joins)
+        join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + join_string + 'WHERE ', q.__query_string__)
+
+        # concatenate display cols
+        disp = q.__query_string__.split(' FROM')
+        disp[0] += ',' + other.__query_string__.split(' FROM')[0].split('SELECT ')[1]+' FROM'
+        new_query = ''.join(disp)
+
+        # concatenate where clause
+        new_query = re.sub(' WHERE ',' WHERE ( ',new_query)
+        new_query += re.sub('^.* WHERE ',' ) OR ( ',other.__query_string__)
+        q.__query_string__ = new_query + ' )'
+
+        return q
+
+    def complement(self):
+        """
+        """
+        q = GraphQuery(self.__database__)
+        q.__query_string__ = re.sub(' WHERE ',' WHERE NOT ( ',self.__query_string__)
+        q.__query_string__ += ' )'
+        return q
 
 class GraphDatabase(GenericSQLDatabase):
     r"""

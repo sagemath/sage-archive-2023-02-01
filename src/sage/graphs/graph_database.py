@@ -323,7 +323,66 @@ class GenericGraphQuery(GenericSQLQuery):
                 of the graph
 
         EXAMPLES:
-        TODO
+            sage: G = GraphDatabase()
+            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q.show()
+            graph6               num_vertices         aut_grp_size
+            ------------------------------------------------------------
+            C@                   4                    4
+            C^                   4                    4
+
+            sage: R = GraphQuery(G, num_vertices=4, display=['graph6','num_vertices','degree_sequence'])
+            sage: R.show()
+            graph6               num_vertices         degree_sequence
+            ------------------------------------------------------------
+            C?                   4                    0
+            C@                   4                    1100
+            CB                   4                    2110
+            CK                   4                    1111
+            CF                   4                    3111
+            CJ                   4                    2220
+            CL                   4                    2211
+            CN                   4                    3221
+            C]                   4                    2222
+            C^                   4                    3322
+            C~                   4                    3333
+
+        Show the pictures (in notebook mode only):
+            sage: S = GraphQuery(G, num_vertices=4, display=['graph6','aut_grp_size'])
+            sage.: S.show()
+
+        Note that pictures can be turned off:
+            sage.: S.show(with_picture=False)
+
+        Show your own query:
+            sage: (GenericGraphQuery(G, 'select degree_sequence from degrees where max_degree=2 and min_degree >= 1')).show()
+            degree_sequence
+            --------------------
+            211
+            222
+            2211
+            2222
+            21111
+            22211
+            22211
+            22222
+            221111
+            221111
+            222211
+            222211
+            222211
+            222222
+            222222
+            2111111
+            2221111
+            2221111
+            2221111
+            2222211
+            2222211
+            2222211
+            2222211
+            2222222
+            2222222
         """
         if with_picture is None:
             from sage.server.support import EMBEDDED_MODE
@@ -376,7 +435,7 @@ class GenericGraphQuery(GenericSQLQuery):
         else:
             GenericSQLQuery.show(self, max_field_size, html_table)
 
-class GraphQuery(SQLQuery):
+class GraphQuery(SQLQuery, GenericGraphQuery):
     """
     A query for an instance of GraphDatabase.  This class nicely wraps
     the SQLQuery class located in sage.databases.database.py to make the
@@ -388,12 +447,8 @@ class GraphQuery(SQLQuery):
     NOTE:
         SQLQuery functions are available for GraphQuery.
 
-    TUTORIAL:
-    TODO
-
     INPUT:
         database -- the instance of GraphDatabase to apply query to
-        query -- (GenericSQLQuery) A sqlite query for graphs.db (See examples below).
         layout -- (String) The layout option for the graph image.  Options include:
                            'circular' -- plots the graph with vertices evenly
                                          distributed on a circle
@@ -539,7 +594,6 @@ class GraphQuery(SQLQuery):
 
         SQLQuery.__init__(self,database)
 
-        # need multiple replace
         from sage.misc.multireplace import multiple_replace
         with_table = {'aut_grp_size': 'aut_grp.aut_grp_size',
              'average_degree': 'degrees.average_degree',
@@ -593,12 +647,48 @@ class GraphQuery(SQLQuery):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN spectrum on graph_data.graph_id=spectrum.graph_id ', query)
         if (re.search(' misc.', a) and not re.search('INNER JOIN misc', query)):
             query = re.sub(' FROM graph_data ', ' FROM graph_data INNER JOIN misc on graph_data.graph_id=misc.graph_id ', query)
-        query = re.sub('SELECT graph_data.graph6','SELECT %s'%a, query )
+
+        query = re.sub('SELECT .* FROM ',' SELECT %s FROM '%a,query)
+        while (query.find('graph_data.graph_data') != -1):
+            query = re.sub('graph_data.graph_data','graph_data', query)
 
         self.__query_string__ = query
 
     def intersect(self, other):
         """
+        Returns a GraphQuery that is the intersection of two input
+        GraphQuery instances: self and other.
+
+        Display columns are concatenated in order: self, other.
+
+        INPUT:
+            other -- a GraphQuery to intersect with self.
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q.get_query_string()
+            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE graph_data.graph_id=graph_data.graph_id and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4'
+            sage: R = GraphQuery(G, num_vertices=4, display=['graph6','num_vertices','degree_sequence'])
+            sage: R.get_query_string()
+            ' SELECT graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM graph_data INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=4'
+            sage: T = Q.intersect(R)
+            sage: T.get_query_string()
+            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size,graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM  graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE ( graph_data.graph_id=graph_data.graph_id and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4 ) AND ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=4 )'
+
+            sage: G = GraphDatabase()
+            sage: more_than_one = GraphQuery(G, num_vertices=['>',1])
+            sage: three = GraphQuery(G, num_vertices=3)
+            sage: intersection = more_than_one.intersect(three)
+            sage: intersection.get_query_string()
+            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices>1 ) AND ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=3 )'
+            sage: intersection.show()
+            graph6               graph6
+            ----------------------------------------
+            B?                   B?
+            BG                   BG
+            BW                   BW
+            Bw                   Bw
         """
         from sage.sets.set import Set
         q = self.copy()
@@ -618,7 +708,10 @@ class GraphQuery(SQLQuery):
         for i in range (1,len(o)):
             joins = joins.union(Set([o[i]]))
         joins = list(joins)
-        join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        if len(joins) > 0:
+            join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        else:
+            join_string = 'graph_data '
         q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + join_string + 'WHERE ', q.__query_string__)
 
         # concatenate display cols
@@ -635,6 +728,25 @@ class GraphQuery(SQLQuery):
 
     def union(self, other):
         """
+        Returns a GraphQuery that is the intersection of two input
+        GraphQuery instances: self and other.
+
+        Display columns are concatenated in order: self, other.
+
+        INPUT:
+            other -- A GraphQuery to union with self
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: more_than_one = GraphQuery(G, num_vertices=['>',1])
+            sage: three = GraphQuery(G, num_vertices=3)
+            sage: union = more_than_one.union(three)
+            sage: union.get_query_string()
+            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices>1 ) OR ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=3 )'
+            sage: len(union.run_query())
+            1251
+            sage: len(more_than_one.run_query())
+            1251
         """
         from sage.sets.set import Set
         q = self.copy()
@@ -654,7 +766,10 @@ class GraphQuery(SQLQuery):
         for i in range (1,len(o)):
             joins = joins.union(Set([o[i]]))
         joins = list(joins)
-        join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        if len(joins) > 0:
+            join_string = ' graph_data INNER JOIN ' + ' INNER JOIN '.join(joins) + ' '
+        else:
+            join_string = 'graph_data '
         q.__query_string__ = re.sub(' FROM .* WHERE ', ' FROM ' + join_string + 'WHERE ', q.__query_string__)
 
         # concatenate display cols
@@ -671,6 +786,63 @@ class GraphQuery(SQLQuery):
 
     def complement(self):
         """
+        Returns a GraphQuery that is the complement of self.
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: more_than_one = GraphQuery(G, num_vertices=['>',1], display=['graph6','num_vertices','num_edges'])
+            sage: one = more_than_one.complement()
+            sage: one.show()
+            graph6               num_vertices         num_edges
+            ------------------------------------------------------------
+            @                    1                    0
+
+        Let's explore a combination of these logical statements:
+            sage: G = GraphDatabase()
+            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q.show()
+            graph6               num_vertices         aut_grp_size
+            ------------------------------------------------------------
+            C@                   4                    4
+            C^                   4                    4
+
+            sage: R = GraphQuery(G, num_vertices=4, display=['graph6','num_vertices','degree_sequence'])
+            sage: R.show()
+            graph6               num_vertices         degree_sequence
+            ------------------------------------------------------------
+            C?                   4                    0
+            C@                   4                    1100
+            CB                   4                    2110
+            CK                   4                    1111
+            CF                   4                    3111
+            CJ                   4                    2220
+            CL                   4                    2211
+            CN                   4                    3221
+            C]                   4                    2222
+            C^                   4                    3322
+            C~                   4                    3333
+
+            sage: T = Q.intersect(R)
+            sage: T.show()
+            graph6               num_vertices         aut_grp_size         graph6               num_vertices         degree_sequence
+            ------------------------------------------------------------------------------------------------------------------------
+            C@                   4                    4                    C@                   4                    1100
+            C^                   4                    4                    C^                   4                    3322
+
+            sage: U = Q.complement()
+            sage: V = U.intersect(R)
+            sage: V.show()
+            graph6               num_vertices         aut_grp_size         graph6               num_vertices         degree_sequence
+            ------------------------------------------------------------------------------------------------------------------------
+            C?                   4                    24                   C?                   4                    0
+            CB                   4                    2                    CB                   4                    2110
+            CK                   4                    8                    CK                   4                    1111
+            CF                   4                    6                    CF                   4                    3111
+            CJ                   4                    6                    CJ                   4                    2220
+            CL                   4                    2                    CL                   4                    2211
+            CN                   4                    2                    CN                   4                    3221
+            C]                   4                    8                    C]                   4                    2222
+            C~                   4                    24                   C~                   4                    3333
         """
         q = GraphQuery(self.__database__)
         q.__query_string__ = re.sub(' WHERE ',' WHERE NOT ( ',self.__query_string__)
@@ -1059,35 +1231,34 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
-        TODO
         The basics:
-            sage.: graphs_query.display_all(num_vertices=5,lovasz_number=3.0,\
+            sage: G = GraphDatabase()
+            sage.: G.display_all(num_vertices=5,lovasz_number=3.0,\
             ...                             girth=4,radius=2,diameter=3)
-            sage.: graphs_query.display_all(layout='spring',num_hamiltonian_cycles=2,\
+            sage.: G.display_all(layout='spring',num_hamiltonian_cycles=2,\
             ...                             regular=True,perfect=False)
-            sage.: graphs_query.display_all(layout='spring',degree_sequence=433211)
+            sage.: G.display_all(layout='spring',degree_sequence=433211)
 
         Compare results:
             sage: (Graph('EAMw')).is_isomorphic(Graph('E@NW'))
             False
 
         Using Inequalities:
-            sage.: graphs_query.display_all(layout='circular', min_eigenvalue=['=',-1], \
+            sage.: G.display_all(layout='circular', min_eigenvalue=['=',-1], \
             ...                             eigenvalues_sd=['<=',1], energy=['>',5])
 
-        The query string:
-            sage.: graphs_query.display_all(layout='spring', \
-            ...             query='SELECT graph_data.graph6 \
+        The query argument:
+            sage: Q = GenericGraphQuery(G, 'SELECT graph_data.graph6 \
             ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
-            sage.: graphs_query.display_all(query='SELECT graph_data.graph6 FROM graph_data \
-            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
-            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
-            ...             and num_cycles<=2')
-            sage.: graphs_query.display_all(query="SELECT graph_data.graph6 \
+            sage.: G.display_all(layout='spring', query=Q)
+            sage: R = GraphQuery(G, eulerian=1, regular=0, planar=1, num_cycles=['<=',1])
+            sage.: G.display_all(query=R)
+            sage: S = GenericGraphQuery(G, "SELECT graph_data.graph6 \
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
+            sage.: G.display_all(query=S)
         """
         from sage.plot.plot import plot
 
@@ -1345,34 +1516,37 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
-        TODO
         The basics:
-            sage.: graphs_query.display_tables(tables=['graph_data','misc'], num_vertices=5,\
+            sage: G = GraphDatabase()
+            sage.: G.display_tables(tables=['graph_data','misc'], num_vertices=5,\
             ...                             lovasz_number=3.0, girth=4, radius=2, diameter=3)
-            sage.: graphs_query.display_tables(tables=['degrees','spectrum','aut_grp','misc'], \
+            sage.: G.display_tables(tables=['degrees','spectrum','aut_grp','misc'], \
             ...                             layout='spring', num_hamiltonian_cycles=2,\
             ...                             regular=True, perfect=False)
-            sage.: graphs_query.display_tables(tables=['degrees'],layout='spring',\
+            sage.: G.display_tables(tables=['degrees'],layout='spring',\
             ...                                degree_sequence=433211)
 
         Using Inequalities:
-            sage.: graphs_query.display_tables(tables=['spectrum'], layout='circular', \
+            sage.: G.display_tables(tables=['spectrum'], layout='circular', \
             ...                             min_eigenvalue=['=',-1], eigenvalues_sd=['<=',1], \
             ...                             energy=['>',5])
 
-        The query string:
-            sage.: graphs_query.display_tables(tables=['graph_data'], layout='spring', \
-            ...             query='SELECT graph_data.graph6 \
+        The query parameter:
+            sage: Q = GenericGraphQuery(G, 'SELECT graph_data.graph6 \
             ...             FROM graph_data WHERE num_vertices<=4 \
             ...             and num_edges>3')
-            sage.: graphs_query.display_tables(query='SELECT graph_data.graph6 FROM graph_data \
+            sage.: G.display_tables(tables=['graph_data'], layout='spring', \
+            ...             query=Q)
+            sage: R = GenericGraphQuery(G, 'SELECT graph_data.graph6 FROM graph_data \
             ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
             ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
-            ...             and num_cycles<=2', tables=['graph_data','degrees'])
-            sage.: graphs_query.display_tables(query="SELECT graph_data.graph6 \
+            ...             and num_cycles<=2')
+            sage.: G.display_tables(query=R, tables=['graph_data','degrees'])
+            sage: S = GenericGraphQuery(G, "SELECT graph_data.graph6 \
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
-            ...             misc.induced_subgraphs regexp '.*E~~w.*'", \
+            ...             misc.induced_subgraphs regexp '.*E~~w.*'")
+            sage.: G.display_tables(query=S, \
             ...             tables=['graph_data','misc','spectrum','degrees','aut_grp'])
         """
         from sage.plot.plot import plot
@@ -1650,8 +1824,8 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
-        TODO
         The basics:
+            sage: graphs_query = GraphDatabase()
             sage.: graphs_query.display_properties(properties=['num_vertices','lovasz_number',\
             ...                             'girth','radius','diameter'], num_vertices=5,\
             ...                             lovasz_number=3.0, girth=4, radius=2, diameter=3)
@@ -1670,21 +1844,24 @@ class GraphDatabase(GenericSQLDatabase):
             ...                             min_eigenvalue=['=',-1], eigenvalues_sd=['<=',1], \
             ...                             energy=['>',5])
 
-        The query string:
+        The query argument:
+            sage: Q = GenericGraphQuery(graphs_query, 'SELECT graph_data.graph6 \
+            ...             FROM graph_data WHERE num_vertices<=4 \
+            ...             and num_edges>3')
             sage.: graphs_query.display_properties(properties=['eulerian','perfect','planar','regular',\
             ...             'edge_transitive','vertex_transitive','num_cycles','degree_sequence',\
             ...             'induced_subgraphs','num_vertices','max_degree'], layout='spring', \
-            ...             query='SELECT graph_data.graph6 \
-            ...             FROM graph_data WHERE num_vertices<=4 \
-            ...             and num_edges>3')
-            sage.: graphs_query.display_properties(query='SELECT graph_data.graph6 FROM graph_data \
+            ...             query=Q)
+            sage: R = GenericGraphQuery(graphs_query, 'SELECT graph_data.graph6 FROM graph_data \
             ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
             ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
-            ...             and num_cycles<=2', properties=['clique_number','independence_number'])
-            sage.: graphs_query.display_properties(query="SELECT graph_data.graph6 \
+            ...             and num_cycles<=2')
+            sage.: graphs_query.display_properties(query=R, properties=['clique_number','independence_number'])
+            sage: S = GenericGraphQuery(graphs_query, "SELECT graph_data.graph6 \
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
-            ...             misc.induced_subgraphs regexp '.*E~~w.*'", \
+            ...             misc.induced_subgraphs regexp '.*E~~w.*'")
+            sage.: graphs_query.display_properties(query=S, \
             ...             properties=['induced_subgraphs'])
         """
         from sage.plot.plot import plot
@@ -1975,49 +2152,25 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
-        TODO
-            sage: g = graphs_query.get_list(num_vertices=5,lovasz_number=3.0,\
+            sage: G = GraphDatabase()
+            sage: lis = G.get_list(num_vertices=5,lovasz_number=3.0,\
             ...                         girth=4,radius=2,diameter=3)
             ...
-            sage: len(g)
+            sage: len(lis)
             1
-            sage.: g[0].show(layout='circular',figsize=[2,2],vertex_size=0,graph_border=True)
-            sage: g = graphs_query.get_list(degree_sequence=433211)
-            sage: graphs_list.to_graph6(g)
+            sage.: lis[0].show(layout='circular',figsize=[2,2],vertex_size=0,graph_border=True)
+            sage: lis = G.get_list(degree_sequence=433211)
+            sage: graphs_list.to_graph6(lis)
             'E@NW\nEAMw\n'
-            sage: g = graphs_query.get_list(min_eigenvalue=['=',-1], \
+            sage: lis = G.get_list(min_eigenvalue=['=',-1], \
             ...              eigenvalues_sd=['<=',1], energy=['>',5])
             ...
-            sage: len(g) == graphs_query.number_of(min_eigenvalue=['=',-1], \
+            sage: len(lis) == G.number_of(min_eigenvalue=['=',-1], \
             ...              eigenvalues_sd=['<=',1], energy=['>',5])
             True
-            sage: g = graphs_query.get_list(num_hamiltonian_cycles=2,regular=True,perfect=False)
-            sage.: graphs_list.show_graphs(g)
-            sage: g = graphs_query.get_list(query='SELECT graph_data.graph6 \
-            ...             FROM graph_data WHERE num_vertices<=4 \
-            ...             and num_edges>3')
-            ...
-            sage: graphs_list.to_graph6(g)
-            'CN\nC]\nC^\nC~\n'
-            sage: g = graphs_query.get_list(query='SELECT graph_data.graph6 FROM graph_data \
-            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
-            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
-            ...             and num_cycles<=2')
-            ...
-            sage: for i in range(len(g)):
-            ...    if (g[i].is_isomorphic(Graph('FJ?GW'))):
-            ...        print g[i].graph6_string()
-            F@LAG
-            sage: (Graph('FJ?GW')).is_isomorphic(Graph('F@LAG'))
-            True
-            sage.: g = graphs_query.get_list(query="SELECT graph_data.graph6 \
-            ...             FROM graph_data INNER JOIN misc on \
-            ...             misc.graph_id=graph_data.graph_id WHERE \
-            ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            ...
-            sage.: graphs_list.show_graphs(g)
-            sage.: graphs_list.to_graph6(g)
-            'E~~w\nFJ\\zw\nFJ\\~w\nFJ^~w\nFJ~~w\nFN~~w\nF^~~w\nF~~~w\n'
+            sage: lis = G.get_list(num_hamiltonian_cycles=2,regular=True,perfect=False)
+            sage.: graphs_list.show_graphs(lis)
+
         """
         if ( query is None ):
             param = None
@@ -2186,7 +2339,7 @@ class GraphDatabase(GenericSQLDatabase):
             vertex_transitive -- (Boolean)
 
         EXAMPLES:
-        TODO
+            sage: graphs_query = GraphDatabase()
             sage: graphs_query.number_of()
             1252
             sage: g = graphs_query.get_list(num_vertices=5,lovasz_number=3.0,\
@@ -2215,15 +2368,6 @@ class GraphDatabase(GenericSQLDatabase):
             2
             sage: graphs_query.number_of(num_hamiltonian_cycles=2,regular=True,perfect=False)
             2
-            sage: graphs_query.number_of(query='SELECT graph_data.graph6 \
-            ...             FROM graph_data WHERE num_vertices<=4 \
-            ...             and num_edges>3')
-            4
-            sage: graphs_query.number_of(query='SELECT graph_data.graph6 FROM graph_data \
-            ...             INNER JOIN degrees on graph_data.graph_id=degrees.graph_id \
-            ...             WHERE num_vertices>6 and eulerian=1 and regular=0 and planar=1 \
-            ...             and num_cycles<=2')
-            9
             sage: graphs_query.number_of(num_vertices=7,num_cycles=['>',2])
             913
             sage: a = graphs_query.number_of(num_hamiltonian_cycles=['>=',2])
@@ -2232,25 +2376,7 @@ class GraphDatabase(GenericSQLDatabase):
             sage: d = graphs_query.number_of(num_hamiltonian_cycles=['>',40])
             sage: a-d == c-b
             True
-            sage: q = 'SELECT graph_data.graph6 FROM graph_data WHERE \
-            ...                      num_hamiltonian_cycles=2 or '
-            ...
-            sage: for i in range(40)[3:]:
-            ...    q += 'num_hamiltonian_cycles=%d or '%i
-            ...
-            sage: q += 'num_hamiltonian_cycles=40'
-            sage: long = graphs_query.number_of(query=q)
-            sage: short = graphs_query.number_of(query='SELECT graph_data.graph6 \
-            ...                      FROM graph_data WHERE num_hamiltonian_cycles>=2 \
-            ...                      and num_hamiltonian_cycles<=40')
-            ...
-            sage: long == short == a-d
-            True
-            sage: graphs_query.number_of(query="SELECT graph_data.graph6 \
-            ...             FROM graph_data INNER JOIN misc on \
-            ...             misc.graph_id=graph_data.graph_id WHERE \
-            ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            8
+
         """
         glist = self.get_list(query=query, graph6=graph6, num_vertices=num_vertices, num_edges=num_edges, num_cycles=num_cycles, num_hamiltonian_cycles=num_hamiltonian_cycles, eulerian=eulerian, planar=planar, perfect=perfect, lovasz_number=lovasz_number, complement_graph6=complement_graph6, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive, degree_sequence=degree_sequence, min_degree=min_degree, max_degree=max_degree, average_degree=average_degree, degrees_sd=degrees_sd, regular=regular, vertex_connectivity=vertex_connectivity, edge_connectivity=edge_connectivity, num_components=num_components, girth=girth, radius=radius, diameter=diameter, clique_number=clique_number, independence_number=independence_number, num_cut_vertices=num_cut_vertices, min_vertex_cover_size=min_vertex_cover_size, num_spanning_trees=num_spanning_trees, induced_subgraphs=induced_subgraphs, spectrum=spectrum, min_eigenvalue=min_eigenvalue, max_eigenvalue=max_eigenvalue, eigenvalues_sd=eigenvalues_sd, energy=energy)
         return len(glist)

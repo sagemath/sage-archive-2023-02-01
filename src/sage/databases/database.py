@@ -297,6 +297,13 @@ class GenericSQLQuery(SageObject):
         s += str(self.__param_tuple__) + "\n"
         return s
 
+    def get_query_string(self):
+        """
+        Returns a copy of the query string.
+        """
+        from copy import copy
+        return copy(self.__query_string__)
+
     def copy(self):
         """
         Returns a copy of the database, whose underlying file is also a copy

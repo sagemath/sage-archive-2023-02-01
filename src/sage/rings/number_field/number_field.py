@@ -473,15 +473,26 @@ class NumberField_generic(field.Field):
             v (optional) -- list of element of this number field
         OUTPUT:
             Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<t> = NumberField(x^3 + x^2 - 2*x + 8)
+            sage: K.disc()
+            -503
+            sage: K.disc([1, t, t^2])
+            -2012
+            sage: K.disc([1/7, (1/5)*t, (1/3)*t^2])
+            -2012/11025
+            sage: (5*7*3)^2
+            11025
         """
         if v == None:
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = ZZ(str(self.pari_nf()[2]))
+                self.__disc = QQ(str(self.pari_nf()[2]))
                 return self.__disc
         else:
-            return Q(self.trace_pairing(v).det())
+            return QQ(self.trace_pairing(v).det())
 
     disc = discriminant
 

@@ -94,6 +94,13 @@ class BruhatInterval():
                     for node_above in node.__up_connected__:
                         self.__graph__.add_arc(node.__permutation__, node_above.__permutation__)
 
+    def is_self_dual(self):
+        """
+        Returns true if the interval is self-dual, false if not
+        """
+        reverse=self.__graph__.reverse()
+        return self.__graph__.is_isomorphic(reverse)
+
     def _sub_interval_add_below(self, sub_interval, to_add, height, added_by):
         """
         A recursive helper function for generating sub intervals.  (Should
@@ -195,6 +202,23 @@ class BruhatInterval():
 
         return g.is_isomorphic(h)
 
+    def show_graph(self, labels=False):
+        """
+        Shows the graph nicely (i.e.: with nodes of same height drawn at
+        same height).
+
+        INPUT:
+            labels -- whether or not to display node labels (permutations)
+
+        EXAMPLES:
+            sage: b = BruhatSn(4)
+            sage.: b.show_graph()
+            sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
+            sage.: b_sub.show_graph()
+        """
+        heights=height_unknown(self.__graph__)
+        self.__graph__.show(heights=heights, vertex_size=10, vertex_labels=labels)
+
 class BruhatSn(BruhatInterval):
     """
     Class BruhatSn.
@@ -281,22 +305,6 @@ class BruhatSn(BruhatInterval):
                         w = tuple([permutation[self._swapitch(i,j,k)] for k in range(0,permutation_length)])
                         self._add_above(w, height+1, max_height, new_node)
 
-    def show_graph(self, labels=False):
-        """
-        Shows the graph nicely (i.e.: with nodes of same height drawn at
-        same height).
-
-        INPUT:
-            labels -- whether or not to display node labels (permutations)
-
-        EXAMPLES:
-            sage: b = BruhatSn(4)
-            sage.: b.show_graph()
-            sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
-            sage.: b_sub.show_graph()
-        """
-        heights=height_unknown(self.__graph__)
-        self.__graph__.show(heights=heights, vertex_size=10, vertex_labels=labels)
 
 def height_unknown(G):
     """
@@ -324,4 +332,5 @@ def recurse_unknown(G, i, v, h, seen=None):
         if b not in seen:
             h = recurse_unknown(G, i+1, b, h, seen)
     return h
+
 

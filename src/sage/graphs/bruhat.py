@@ -55,9 +55,9 @@ class BruhatInterval():
 
     EXAMPLES:
         sage: b = BruhatSn(4)
-        sage.: (b.get_graph()).show()
+        sage.: b.show_graph()
         sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
-        sage.: (b_sub.get_graph()).show()
+        sage.: b_sub.show_graph()
     """
     def __init__(self, end_height, start_height=None):
         if start_height is None:
@@ -145,9 +145,9 @@ class BruhatInterval():
 
         EXAMPLES:
             sage: b = BruhatSn(4)
-            sage.: (b.get_graph()).show()
+            sage.: b.show_graph()
             sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
-            sage.: (b_sub.get_graph()).show()
+            sage.: b_sub.show_graph()
         """
         sub_interval=BruhatInterval(height)
 
@@ -174,9 +174,9 @@ class BruhatInterval():
 
         EXAMPLES:
             sage: b = BruhatSn(4)
-            sage: b.__graph__.show()
+            sage.: b.show_graph()
             sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
-            sage: b_sub.__graph__.show()
+            sage.: b.show_graph()
             sage: b.is_isomorphic(b_sub)
             False
             sage: a1 = b.sub_interval_from_id((2,3,1,4),2)
@@ -288,6 +288,12 @@ class BruhatSn(BruhatInterval):
 
         INPUT:
             labels -- whether or not to display node labels (permutations)
+
+        EXAMPLES:
+            sage: b = BruhatSn(4)
+            sage.: b.show_graph()
+            sage: b_sub = b.sub_interval_from_id((4,2,3,1),5)
+            sage.: b_sub.show_graph()
         """
         heights=height_unknown(self.__graph__)
         self.__graph__.show(heights=heights, vertex_size=10, vertex_labels=labels)

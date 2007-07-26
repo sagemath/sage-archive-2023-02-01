@@ -56,15 +56,11 @@ from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
-import sage.structure.coerce as coerce
-
 import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
-
-import permgroup_named
 
 def is_PermutationGroupElement(x):
     return isinstance(x, PermutationGroupElement)
@@ -225,7 +221,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         else:
             self.__gap = str(g)
         if parent is None:
-            parent = permgroup_named.SymmetricGroup(self._gap_().LargestMovedPoint())
+            parent = SymmetricGroup(self._gap_().LargestMovedPoint())
         element.Element.__init__(self, parent)
 
     def _gap_init_(self):

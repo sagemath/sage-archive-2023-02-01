@@ -850,7 +850,7 @@ cdef class FiniteField_givaro(FiniteField):
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
 
     cdef polynomial_ring_c(self, variable_name):
-        if self._polynomial_ring is None:
+        if self._polynomial_ring is None or variable_name is not None:
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
             if variable_name is None:
                 # todo: is this cache necessary?

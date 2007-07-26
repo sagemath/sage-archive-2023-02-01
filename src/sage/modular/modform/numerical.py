@@ -161,13 +161,13 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(37)
-            sage: n._easy_vector()
+            sage: n._easy_vector()                 # slightly random output
             (1.0, 1.0, 0)
             sage: n = numerical_eigenforms(43)
-            sage: n._easy_vector()
+            sage: n._easy_vector()                 # slightly random output
             (1.0, 0, 1.0, 0)
             sage: n = numerical_eigenforms(125)
-            sage: n._easy_vector()
+            sage: n._easy_vector()                 # slightly random output
             (0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         try:

@@ -1,1 +1,1 @@
-sage -hg pull http://sage.math.washington.edu/sage/hg/sage-main
+sage -hg pull http://www.sagemath.org/sage/hg/sage-main

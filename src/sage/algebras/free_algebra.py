@@ -306,6 +306,20 @@ class FreeAlgebra_generic(Algebra):
         # any ring that coerces to the base ring of this free algebra.
         return self._coerce_try(x, [self.base_ring()])
 
+    def coerce_map_from(self, S):
+        if R is self.__monoid:
+            return True
+
+        # polynomial rings in the same variable over any base that coerces in:
+        if is_FreeAlgebra(R):
+            if R.variable_names() == self.variable_names():
+                if self.has_coerce_map_from(R.base_ring()):
+                    return True
+                else:
+                    return False
+
+        return Algebra.coerce_map_from(self, S)
+
     def gen(self,i):
         """
         The i-th generator of the algebra.

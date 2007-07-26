@@ -59,7 +59,6 @@ import  sage.structure.element
 
 import sage.misc.misc as misc
 
-import sage.structure.coerce
 import operator
 
 from sage.libs.pari.gen import PariInstance, gen
@@ -71,11 +70,12 @@ from rational import Rational
 from rational cimport Rational
 
 from real_double cimport RealDoubleElement
-from real_double import is_RealDoubleElement
+from real_double import is_RealDoubleElement, RDF
 
-from real_rqdf import QuadDoubleElement
+from real_rqdf import QuadDoubleElement, RQDF
 
 import sage.rings.complex_field
+import sage.rings.rational_field
 
 import sage.rings.infinity
 
@@ -283,6 +283,27 @@ cdef class RealField(sage.rings.ring.Field):
             True
         """
         return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$.
+
+        Also preserves other information that makes this field unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLES:
+            sage: R = RealField(100, rnd='RNDU')
+            sage: c, S = R.construction(); S
+            Rational Field
+            sage: R == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  self.prec(),
+                                  {'sci_not': self.scientific_notation(), 'rnd': self.rounding_mode()}),
+               sage.rings.rational_field.QQ)
 
     def gen(self, i=0):
         if i == 0:
@@ -2679,6 +2700,18 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
+
+# here because this imports the other two real fields
+def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
+    if type == "RDF":
+        return RDF
+    elif type == "RQDF":
+        return RQDF
+    elif type == "Interval":
+        from real_mpfi import RealIntervalField
+        return RealIntervalField(prec, sci_not)
+    else:
+        return RealField(prec, sci_not, rnd)
 
 
 def is_RealField(x):

@@ -20,6 +20,9 @@ include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 
+cdef long maxint
+from sys import maxint
+
 cimport sage.rings.padics.padic_generic_element
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
@@ -34,6 +37,7 @@ import sage.rings.integer_mod
 import sage.rings.integer
 import sage.rings.rational
 
+cdef object infinity
 from sage.rings.infinity import infinity
 from sage.rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
@@ -163,7 +167,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                absprec = min(x.padicprec(parent.prime()), absprec)
+                absprec = Integer(min(x.padicprec(parent.prime()), absprec))
                 x = x.lift()
             if x.type() == "t_INT":
                 x = Integer(x)
@@ -181,13 +185,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         cdef mpz_t modulus
         cdef Integer tmp
         cdef unsigned long k
+        cdef long ordp_c
+        cdef long absprec_c = maxint if absprec is infinity else mpz_get_si((<Integer>absprec).value)
+        cdef long relprec_c = relprec
+
         if sage.rings.integer_mod.is_IntegerMod(x):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.prime_pow.prime.value)
             if mpz_cmp_ui(modulus, 1) == 0:
                 tmp = PY_NEW(Integer)
                 mpz_set_ui(tmp.value, k)
-                absprec = min(tmp, absprec)
+                absprec = Integer(min(tmp, absprec))
                 x = x.lift()
                 mpz_clear(modulus)
             else:
@@ -213,19 +221,19 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self.set_from_Integers(ordp, unit, relprec)
             #print "now 3"
         elif isinstance(x, Rational):
-            ordp, unit = x.val_unit(parent.prime())
-            if ordp >= absprec:
-                if absprec is infinity:
-                    self.set_exact_zero()
+            if not x:
+                self.set_zero(absprec)
+            else:
+                ordp_c, unit = x.val_unit(self.prime_pow.prime)
+                if ordp_c >= absprec_c:
+                    self.set_zero(absprec)
                 else:
-                    self.set_inexact_zero(mpz_get_si((<Integer>absprec).value))
-                return
-            if self.prime_pow.in_field == 0 and ordp < 0:
-                raise ValueError, "p divides the denominator"
-            # todo: make the following faster
-            relprec = min(relprec, absprec - ordp)
-            unit = Mod(unit, parent.prime_pow(relprec)).lift()
-            self.set_from_Integers(ordp, unit, relprec)
+                    if not self.prime_pow.in_field and ordp_c < 0:
+                        raise ValueError, "p divides the denominator"
+                    if relprec_c > absprec_c - ordp_c:
+                        relprec_c = absprec_c - ordp_c
+                    unit = unit.numerator() * unit.denominator().inverse_mod(self.prime_pow.dense_list_Integer[relprec_c])
+                    self.set(ordp_c, unit, relprec_c)
         else:
             raise TypeError, "cannot create a p-adic out of %s"%(type(x))
         if self.ordp < 0 and self.prime_pow.in_field == 0:
@@ -241,12 +249,28 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.ordp = absprec
         self._normalized = 1
 
+    cdef void set_zero(pAdicCappedRelativeElement self, absprec):
+        if absprec is infinity:
+            mpz_set_si(self.unit, -1)
+        else:
+            mpz_set_ui(self.unit, 0)
+            self.ordp = mpz_get_si((<Integer>absprec).value)
+        self._normalized = 1
+
+
     cdef void set_precs(pAdicCappedRelativeElement self, long relprec):
         self.relprec = relprec
 
     cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec):
         self.set_precs(mpz_get_ui(relprec.value))
         self.ordp = mpz_get_si(ordp.value)
+        mpz_set(self.unit, unit.value)
+        if mpz_sgn(self.unit) == -1 or mpz_cmp(self.unit, self.prime_pow.dense_list[self.relprec]) >= 0:
+            mpz_mod(self.unit, self.unit, self.prime_pow.dense_list[self.relprec])
+
+    cdef void set(pAdicCappedRelativeElement self, long ordp, Integer unit, long relprec):
+        self.relprec = relprec
+        self.ordp = ordp
         mpz_set(self.unit, unit.value)
         if mpz_sgn(self.unit) == -1 or mpz_cmp(self.unit, self.prime_pow.dense_list[self.relprec]) >= 0:
             mpz_mod(self.unit, self.unit, self.prime_pow.dense_list[self.relprec])
@@ -810,6 +834,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             else:
                 return True
         return self.ordp >= mpz_get_si((<Integer>absprec).value)
+
+    def __nonzero__(self):
+        return mpz_sgn(self.unit) > 0
 
     def is_equal_to(self, right, absprec=None):
         r"""

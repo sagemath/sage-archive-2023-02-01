@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Lisp Interface
 
 EXAMPLES:

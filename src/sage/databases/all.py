@@ -58,7 +58,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from database import SQLQuery, GenericSQLQuery, GenericSQLDatabase, SQLDatabase
 
 from conway import ConwayPolynomials
 

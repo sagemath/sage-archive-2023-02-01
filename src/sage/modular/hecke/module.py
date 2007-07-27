@@ -185,6 +185,16 @@ class HeckeModule_generic(sage.modules.module.Module):
     def is_zero(self):
         """
         Return True if this Hecke module has dimension 0.
+
+        EXAMPLES:
+            sage: ModularSymbols(11).is_zero()
+            False
+            sage: ModularSymbols(11).old_submodule().is_zero()
+            True
+            sage: CuspForms(10).is_zero()
+            True
+            sage: CuspForms(1,12).is_zero()
+            False
         """
         return self.dimension() == 0
 
@@ -192,6 +202,13 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         Return True if this space is invariant under all Hecke
         operators.
+
+        Since self is guaranteed to be an anemic Hecke module, the
+        significance of this function is that it also ensures invariance
+        under Hecke operators of index that divide the level.
+
+        EXAMPLES:
+
         """
         try:
             return self._is_full_hecke_module
@@ -212,11 +229,30 @@ class HeckeModule_generic(sage.modules.module.Module):
     def is_hecke_invariant(self, n):
         """
         Return True if self is invariant under the Hecke operator $T_n$.
+
+        Since self is guaranteed to be an anemic Hecke module it is
+        only interesting to call this function when $n$ is not coprime
+        to the level.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(22).cuspidal_subspace()
+            sage: M.is_hecke_invariant(2)
+            True
+
+        We use check=False to create a nasty ``module'' that is not invariant under $T_2$:
+            sage: S = M.submodule(M.free_module().span([M.0.list()]), check=False); S
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
+            sage: S.is_hecke_invariant(2)
+            False
+            sage: [n for n in range(1,12) if S.is_hecke_invariant(n)]
+            [1, 3, 5, 7, 9, 11]
         """
         if arith.gcd(n, self.level()) == 1:
             return True
+        if self.is_ambient():
+            return True
         try:
-            self.hecke_operator(n)
+            self.hecke_operator(n).matrix()
         except ArithmeticError:
             return False
         return True
@@ -324,6 +360,38 @@ class HeckeModule_free_module(HeckeModule_generic):
             raise ArithmeticError, "x must be in the ambient Hecke module."
         v = self.dual_eigenvector(name=name)
         return v.dot_product(x.element())
+
+    def _is_hecke_equivariant_free_module(self, submodule):
+        """
+        Returns True if the given free submodule of the ambient free module
+        is invariant under all Hecke operators.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11); V = M.free_module()
+            sage: M._is_hecke_equivariant_free_module(V.span([V.0]))
+            False
+            sage: M._is_hecke_equivariant_free_module(V)
+            True
+            sage: M._is_hecke_equivariant_free_module(M.cuspidal_submodule().free_module())
+            True
+
+        We do the same as above, but with a modular forms space:
+            sage: M = ModularForms(11); V = M.free_module()
+            sage: M._is_hecke_equivariant_free_module(V.span([V.0 + V.1]))
+            False
+            sage: M._is_hecke_equivariant_free_module(V)
+            True
+            sage: M._is_hecke_equivariant_free_module(M.cuspidal_submodule().free_module())
+            True
+        """
+        misc.verbose("Determining if free module is Hecke equivariant.")
+        bound = self.hecke_bound()
+        for p in arith.primes(bound+1):
+            try:
+                self.T(p).matrix().restrict(submodule, check=True)
+            except ArithmeticError:
+                return False
+        return True
 
     def _set_factor_number(self, i):
         self.__factor_number = i
@@ -499,7 +567,7 @@ class HeckeModule_free_module(HeckeModule_generic):
                 for i in range(len(X)):
                     W, is_irred = X[i]
                     if is_irred:
-                        A = self.submodule(W)
+                        A = self.submodule(W, check=False)
                         if compute_dual:
                             if X[i][1] != is_irred:
                                 raise RuntimeError, "Unable to compute compatible dual decomposition."
@@ -516,9 +584,9 @@ class HeckeModule_free_module(HeckeModule_generic):
         #end while
         for i in range(len(U)):
             if compute_dual:
-                A = self.submodule(U[i], Udual[i])
+                A = self.submodule(U[i], Udual[i], check=False)
             else:
-                A = self.submodule(U[i])
+                A = self.submodule(U[i], check=False)
             D.append(A)
         for A in D:
             if anemic:
@@ -971,9 +1039,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         Return the zero submodule of self.
 
         EXAMPLES:
-
+            sage: ModularSymbols(11,4).zero_submodule()
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 6 for Gamma_0(11) of weight 4 with sign 0 over Rational Field
+            sage: CuspForms(11,4).zero_submodule()
+            Modular Forms subspace of dimension 0 of Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
         """
-        return self.submodule(self.free_module().zero_submodule())
+        return self.submodule(self.free_module().zero_submodule(), check=False)
 
 
 def dict_set(v, n, key, val):

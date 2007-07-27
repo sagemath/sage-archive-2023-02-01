@@ -2395,8 +2395,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     raise TypeError, "keys do not match self's parent"
                 _p = pSubst(_p, mi, (<MPolynomial_libsingular>parent._coerce_c(v))._poly)
 
+        gd = parent.gens_dict()
         for m,v in kw.iteritems():
-            m = parent(m)
+            m = gd[m]
             for i from 0 < i <= _ring.N:
                 if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
                     mi = i

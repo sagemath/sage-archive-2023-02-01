@@ -184,7 +184,7 @@ class HeckeModule_generic(sage.modules.module.Module):
 
     def is_zero(self):
         """
-        Return True if this modular symbols space has dimension 0.
+        Return True if this Hecke module has dimension 0.
         """
         return self.dimension() == 0
 
@@ -317,12 +317,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         T = self.hecke_operator(n)
         return T.apply_sparse(self.gen(i))
 
-    def _element_eigenvalue(self, x):
+    def _element_eigenvalue(self, x, name='alpha'):
         if not element.is_HeckeModuleElement(x):
             raise TypeError, "x must be a Hecke module element."
         if not x in self.ambient_hecke_module():
             raise ArithmeticError, "x must be in the ambient Hecke module."
-        v = self.dual_eigenvector()
+        v = self.dual_eigenvector(name=name)
         return v.dot_product(x.element())
 
     def _set_factor_number(self, i):
@@ -540,7 +540,7 @@ class HeckeModule_free_module(HeckeModule_generic):
     def degree(self):
         return self.free_module().degree()
 
-    def dual_eigenvector(self):
+    def dual_eigenvector(self, name='alpha'):
         """
         Return an eigenvector for the Hecke operators acting on the
         linear dual of this space.  This eigenvector will have entries
@@ -549,11 +549,14 @@ class HeckeModule_free_module(HeckeModule_generic):
 
         INPUT:
             The input space must be simple.
+            name -- print name of generator for eigenvalue field.
 
         OUTPUT:
             A vector with entries possibly in an extension of the base
             ring.  This vector is an eigenvector for all Hecke operators
             acting via their transpose.
+
+        EXAMPLES:
 
         NOTES:
             (1) The answer is cached so subsequent calls always return
@@ -569,9 +572,11 @@ class HeckeModule_free_module(HeckeModule_generic):
             functionals.
         """
         try:
-            return self.__dual_eigenvector
-        except AttributeError:
+            return self.__dual_eigenvector[name]
+        except KeyError:
             pass
+        except AttributeError:
+            self.__dual_eigenvector = {}
 
         if not self.is_simple():
             raise ArithmeticError, "self must be simple"
@@ -592,8 +597,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = f.degree()
         if n > 1:
             R = f.parent()
-            K = R.quotient(f, 'alpha')    # Let K be the quotient R/(f),
-                                          # with generator printed "alpha".
+            K = R.quotient(f, name)    # Let K be the quotient R/(f),
+                                       # with generator printed name
             alpha = K.gen()
             beta = ~alpha   # multiplicative inverse of alpha
             c = [-f[0]*beta]
@@ -631,8 +636,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         alpha = w_lift.dot_product(self._eigen_nonzero_element().element())
         w_lift = w_lift * (~alpha)
 
-        self.__dual_eigenvector = w_lift
-        return self.__dual_eigenvector
+        self.__dual_eigenvector[name] = w_lift
+        return w_lift
 
     def dual_hecke_matrix(self, n):
         """
@@ -649,10 +654,27 @@ class HeckeModule_free_module(HeckeModule_generic):
             self._dual_hecke_matrices[n] = T
         return self._dual_hecke_matrices[n]
 
-    def eigenvalue(self, n):
+    def eigenvalue(self, n, name='alpha'):
         """
         Assuming that self is a simple space, return the eigenvalue of
         the $n$th Hecke operator on self.
+
+        INPUT:
+            n -- index of Hecke operator
+            name -- print representation of generator of eigenvalue field
+
+        EXAMPLES:
+            sage: A = ModularSymbols(125,sign=1).new_subspace()[0]
+            sage: A.eigenvalue(7)
+            -3
+            sage: A.eigenvalue(3)
+            -alpha - 2
+            sage: A.eigenvalue(3,'w')
+            -w - 2
+            sage: A.eigenvalue(3,'z').charpoly('x')
+            x^2 + 3*x + 1
+            sage: A.hecke_polynomial(3)
+            x^2 + 3*x + 1
 
         NOTES:
         (1) In fact there are $d$ systems of eigenvalues associated to
@@ -671,7 +693,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             raise ArithmeticError, "self must be simple"
         n = int(n)
         try:
-            return self.__eigenvalues[n]
+            return self.__eigenvalues[n][name]
         except AttributeError:
             self.__eigenvalues = {}
         except KeyError:
@@ -679,21 +701,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         if n <= 0:
             raise IndexError, "n must be a positive integer"
 
-        ## This was removed so that every element in
-        ## the return of system_of_eigenvalues had the same
-        ## parent. This was done below, so I just added the
-        ## n==1 case to the below if stmt.
-        ## -- Craig Citro, 07 Aug 06
-        ##
-##        if n == 1:
-##            a1 = self.base_ring()(1)
-##            self.__eigenvalues[1] = a1
-##            return a1
+        ev = self.__eigenvalues
 
         if (arith.is_prime(n) or n==1):
             Tn_e = self._eigen_nonzero_element(n)
-            an = self._element_eigenvalue(Tn_e)
-            self.__eigenvalues[n] = an
+            an = self._element_eigenvalue(Tn_e, name=name)
+            dict_set(ev, n, name, an)
             return an
 
         # Now use the Hecke eigenvalue recurrence, since arithmetic in
@@ -706,26 +719,26 @@ class HeckeModule_free_module(HeckeModule_generic):
         for p, r in F:
             (p, r) = (int(p), int(r))
             pow = p**r
-            if not self.__eigenvalues.has_key(pow):
+            if not (ev.has_key(pow) and ev[pow].has_key(name)):
                 # TODO: Optimization -- do something much more intelligent in case character is not defined.
                 # For example, compute it using diamond operators <d>
                 eps = self.character()
                 if eps is None:
                     Tn_e = self._eigen_nonzero_element(pow)
-                    self.__eigenvalues[pow] = self._element_eigenvalue(Tn_e)
+                    dict_set(ev, pow, name, self._element_eigenvalue(Tn_e))
                 else:
                     # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
-                    apr1 = self.eigenvalue(pow//p)
-                    ap = self.eigenvalue(p)
+                    apr1 = self.eigenvalue(pow//p, name=name)
+                    ap = self.eigenvalue(p, name=name)
                     k = self.weight()
-                    apr2 = self.eigenvalue(pow//(p*p))
+                    apr2 = self.eigenvalue(pow//(p*p), name=name)
                     apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
-                    self.__eigenvalues[pow] = apow
-            if prod == None:
-                prod = self.__eigenvalues[pow]
+                    dict_set(ev, pow, name, apow)
+            if prod is None:
+                prod = ev[pow][name]
             else:
-                prod *= self.__eigenvalues[pow]
-        self.__eigenvalues[n] = prod
+                prod *= ev[pow][name]
+        dict_set(ev, n, name, prod)
         return prod
 
     def factor_number(self):
@@ -887,11 +900,15 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__projection = pi
             return self.__projection
 
-    def system_of_eigenvalues(self, n):
+    def system_of_eigenvalues(self, n, name='alpha'):
         r"""
         Assuming that self is a simple space of modular symbols, return
         the eigenvalues $[a_1, \ldots, a_nmax]$ of the Hecke operators
         on self.  See \code{self.eigenvalue(n)} for more details.
+
+        INPUT:
+             n -- number of eigenvalues
+             alpha -- name of generate for eigenvalue field
 
         EXAMPLES:
         We compute eigenvalues for newforms of level 62.
@@ -900,7 +917,6 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]  # random output
 
             [[1, 1, 0], [1, -1, -alpha - 1]]
-
 
         Next we define a function that does the above:
             sage: def b(N,k=2):
@@ -921,15 +937,22 @@ class HeckeModule_free_module(HeckeModule_generic):
             [1, alpha, -2*alpha - 1, -alpha - 1, 2*alpha, alpha - 2, 2*alpha + 2, -2*alpha - 1, 2, -2*alpha + 2]
             sage: v[0].parent()
             Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^2 + x - 1
+
+        This example illustrates setting the print name of the eigenvalue field.
+            sage: A = ModularSymbols(125,sign=1).new_subspace()[0]
+            sage: A.system_of_eigenvalues(10)
+            [1, alpha, -alpha - 2, -alpha - 1, 0, -alpha - 1, -3, -2*alpha - 1, 3*alpha + 2, 0]
+            sage: A.system_of_eigenvalues(10,'x')
+            [1, x, -x - 2, -x - 1, 0, -x - 1, -3, -2*x - 1, 3*x + 2, 0]
         """
-        return [self.eigenvalue(m) for m in range(1,n+1)]
+        return [self.eigenvalue(m, name=name) for m in range(1,n+1)]
 
     def weight(self):
         """
-        Returns the weight of this modular symbols space.
+        Returns the weight of this Hecke module.
 
         INPUT:
-           ModularSymbols self -- an arbitrary space of modular symbols
+           self -- an arbitrary Hecke module
 
         OUTPUT:
            int -- the weight
@@ -946,7 +969,16 @@ class HeckeModule_free_module(HeckeModule_generic):
     def zero_submodule(self):
         """
         Return the zero submodule of self.
+
+        EXAMPLES:
+
         """
         return self.submodule(self.free_module().zero_submodule())
 
+
+def dict_set(v, n, key, val):
+    if v.has_key(n):
+        v[n][key] = val
+    else:
+        v[n] = {key:val}
 

@@ -2,12 +2,12 @@
 
 CUR=`pwd`
 
+# Apply two patches needed for gentoo (they are pre-applied to those two files)
+cp patches/lispbibl.d src/src/
+cp patches/unix.d   src/src/
+
 cd src/
 
-#patch -p0 < $CUR/patches/2.41-linux-headers.patch
-#if [ $? -ne 0 ]; then
-#   echo "Error applying patches."
-#fi
 
 unset CPPFLAGS   # do this; since otherwise build will fail if CPPFLAGS was set
 

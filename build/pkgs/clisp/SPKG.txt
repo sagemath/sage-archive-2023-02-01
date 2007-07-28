@@ -9,6 +9,9 @@ Here is how to make a new clisp package for SAGE:
 3. Possibly modify src/makemake.in (see the SAGE lines in the
    current version for Itanium!!)
 
+4. Apply 2.41-linux-headers.patch which is needed for Gentoo; this
+   modifies src/src/lispbibl.d and src/src/unix.d to fix some header issues.
+
 4. Type
      ./spkg-dist
    in the new extracted directory.

@@ -29,9 +29,13 @@ import sage.misc.latex
 import sage.server.support
 import sage.interfaces.expect
 
+
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
+
 import sage.rings.real_mpfr
+import sage.rings.complex_field
+import sage.rings.integer
 
 import __builtin__
 
@@ -656,6 +660,49 @@ def numerator(x):
     if isinstance(x, (int, long)):
         return x
     return x.numerator()
+
+def numerical_approx(x, prec=None, digits=None):
+    """
+    Return a numerical approximation of x with at least prec bits of
+    precision.
+
+    NOTE: N is an alias for numerical_approx.
+
+    INPUT:
+        x -- an object that has a numerical_approx method, or can
+             be coerced into a real or complex field
+        prec -- an integer (bits of precision)
+        digits -- an integer  (digits of precision)
+
+    If neither the prec or digits are specified, the default
+    is 53 bits of precision.
+
+    EXAMPLES:
+        sage: numerical_approx(pi, 10)
+        3.1
+        sage: numerical_approx(pi, digits=10)
+        3.141592654
+        sage: numerical_approx(pi^2 + e, digits=20)
+        12.587886229548403854
+        sage: N(pi^2 + e)
+        12.5878862295484
+        sage: N(pi^2 + e, digits=50)
+        12.5878862295484038541947784712288136330709465009407
+    """
+    if prec is None:
+        if digits is None:
+            prec = 53
+        else:
+            prec = int(digits * 3.4) + 2
+    try:
+        return x.numerical_approx(prec)
+    except AttributeError:
+        try:
+            return sage.rings.real_mpfr.RealField(prec)(x)
+        except TypeError:
+            return sage.rings.complex_field.ComplexField(prec)(x)
+
+N = numerical_approx
 
 def objgens(x):
     """

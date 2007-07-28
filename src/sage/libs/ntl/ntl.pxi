@@ -1,5 +1,5 @@
-cdef extern object (make_ZZ(ntl_c_ZZ (*)))
-cdef extern object (make_ZZ_p(ZZ_p (*)))
-cdef extern object (make_GF2X(GF2X (*)))
 cdef extern object (make_GF2E(GF2E (*)))
 cdef extern object (make_GF2EX(GF2EX (*)))
+cdef extern object (make_GF2X(GF2X (*)))
+cdef extern object (make_ZZ(ntl_c_ZZ (*)))
+cdef extern object (make_ZZ_p(ZZ_p (*)))

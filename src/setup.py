@@ -630,8 +630,8 @@ for m in ext_modules:
 
 
 ######################################################################
-# CODE for generating C/C++ code from Pyrex and doing dependency
-# checking, etc.  In theory distutils would run Pyrex, but I don't
+# CODE for generating C/C++ code from Cython and doing dependency
+# checking, etc.  In theory distutils would run Cython, but I don't
 # trust it at all, and it won't have the more sophisticated dependency
 # checking that we need.
 ######################################################################
@@ -651,10 +651,10 @@ def is_older(file1, file2):
     return False
 
 
-def need_to_pyrex(filename, outfile):
+def need_to_cython(filename, outfile):
     """
     INPUT:
-        filename -- The name of a pyrex file in the SAGE source tree.
+        filename -- The name of a cython file in the SAGE source tree.
         outfile -- The name of the corresponding c or cpp file in the build directory.
 
     OUTPUT:
@@ -687,7 +687,7 @@ def need_to_pyrex(filename, outfile):
         # Also, the cimport can be both have no dots (current directory) or absolute.
         # The multiple imports with parens, e.g.,
         #        import (a.b.c.d, e.f.g)
-        # of Python are not allowed in Pyrex.
+        # of Python are not allowed in Cython.
         # In both cases, the module name is the second word if we split on whitespace.
         try:
             A = A.strip().split()[1]
@@ -739,47 +739,13 @@ def need_to_pyrex(filename, outfile):
     # We do not have to rebuild.
     return False
 
-def process_pyrexembed_file(f, m):
-    # This is a pyrexembed file, so process accordingly.
-    dir, base = os.path.split(f[:-5])
-    tmp = '%s/.tmp_pyrexembed'%dir
-    if os.path.exists(tmp) and not os.path.isdir(tmp):
-        print "Please delete file '%s' in %s"%(tmp, dir)
-        sys.exit(1)
-    if not os.path.exists(tmp):
-        os.makedirs(tmp)
-    pyxe_file = "%s/%s.pyxe"%(tmp, base)
-
-    # The following files will be produced by pyrexembed.
-    cpp_file = "%s/%s_embed.cpp"%(dir, base)
-    c_file = "%s/%s.c"%(dir, base)
-    pyx_file = "%s/%s.pyx"%(dir,base)
-    pyx_embed_file = "%s/%s.pyx"%(tmp, base)
-    h_file = "%s/%s_embed.h"%(tmp, base)
-    if is_older(f, pyx_file) or is_older(f, cpp_file) or is_older(f, h_file):
-        os.system('cp -p %s %s'%(f, pyxe_file))
-        os.system('cp -p %s/*.pxi %s'%(dir, tmp))
-        os.system('cp -p %s/*.pxd %s'%(dir, tmp))
-        os.system('cp -p %s/*.h %s'%(dir, tmp))
-        cmd = "pyrexembed %s"%pyxe_file
-        print cmd
-        ret = os.system(cmd)
-        if ret != 0:
-            print "sage: Error running pyrexembed."
-            sys.exit(1)
-        process_pyrex_file(pyx_embed_file, m)
-        cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
-        print cmd
-        os.system(cmd)
-    return [cpp_file, c_file]
-
-def process_pyrex_file(f, m):
+def process_cython_file(f, m):
     """
     INPUT:
         f -- file name
         m -- Extension module description (i.e., object of type Extension).
     """
-    # This is a pyrex file, so process accordingly.
+    # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
     if is_older(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
@@ -788,22 +754,22 @@ def process_pyrex_file(f, m):
     if m.language == 'c++':
         outfile += 'pp'
 
-    if need_to_pyrex(f, outfile):
-        cmd = "pyrexc --embed-positions -I%s %s"%(os.getcwd(), f)
+    if need_to_cython(f, outfile):
+        cmd = "cython --embed-positions -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "sage: Error running pyrexc."
+            print "sage: Error running cython."
             sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
-        # (I don't know how to tell Pyrex to do this automatically.)
+        # (I don't know how to tell Cython to do this automatically.)
         if m.language == 'c++':
             os.system('mv %s.c %s'%(f[:-4], outfile))
     return [outfile]
 
 
-def pyrex(ext_modules):
+def cython(ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
 #        m.extra_link_args += extra_link_args
@@ -811,19 +777,16 @@ def pyrex(ext_modules):
         for i in range(len(m.sources)):
             f = m.sources[i]
             s = open(f).read()
-            if f[-5:] == '.pyxe':# and s.find("#embed") != -1 and s.find('#}embed') != -1:
-                new_sources = process_pyrexembed_file(f, m)
-            elif f[-4:] == ".pyx":
-                new_sources += process_pyrex_file(f, m)
+            if f[-4:] == ".pyx":
+                new_sources += process_cython_file(f, m)
             else:
                 new_sources.append(f)
         m.sources = new_sources
 
 
 
-
 if not sdist:
-    pyrex(ext_modules)
+    cython(ext_modules)
 
 setup(name        = 'sage',
 
@@ -837,7 +800,7 @@ setup(name        = 'sage',
 
       author_email= 'wstein@gmail.com',
 
-      url         = 'http://modular.math.washington.edu/sage',
+      url         = 'http://www.sagemath.org',
 
       packages    = ['sage',
 

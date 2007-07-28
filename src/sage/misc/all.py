@@ -48,9 +48,10 @@ from interpreter import preparser
 
 from sage_eval import sage_eval, sageobj
 
-from sagex import sagex_lambda
-from sagex_c import sagex
-pyrex = sagex # synonym
+from cython import cython_lambda
+from cython_c import cython
+pyrex = cython # synonym -- for now
+sagex = cython # synonym -- for now
 
 from persist import save, load, dumps, loads, db, db_save
 

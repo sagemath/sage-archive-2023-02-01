@@ -5,7 +5,7 @@ import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
 
-## Choose cblas library -- note -- make sure to update sage/misc/sagex.py
+## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
@@ -445,8 +445,8 @@ ext_modules = [ \
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
 
-    Extension('sage.misc.sagex_c',
-              sources = ['sage/misc/sagex_c.pyx']), \
+    Extension('sage.misc.cython_c',
+              sources = ['sage/misc/cython_c.pyx']), \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],

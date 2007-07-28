@@ -565,7 +565,7 @@ def preparse_file(contents, attached={}, magic=True,
                     continue
             elif name_load[-5:] == '.spyx':
                 import interpreter
-                L = interpreter.load_sagex(name_load)
+                L = interpreter.load_cython(name_load)
             else:
                 #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
                 L = 'load("%s")'%name_load

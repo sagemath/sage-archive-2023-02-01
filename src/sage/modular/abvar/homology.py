@@ -129,10 +129,14 @@ class Homology_abvar(Homology):
         """
         return self.__abvar.dimension() * 2
 
-    def submodule(self, U):
+    def submodule(self, U, check=True):
         r"""
-        Return the submodule of this homology group given by U, which should
+        Return the submodule of this homology group given by $U$, which should
         be a submodule of the free module associated to this homology group.
+
+        INPUT:
+            U -- submodule of ambient free module
+            check -- currently ignored.
 
         NOTE: We do not check that U is invariant under all Hecke operators.
 

@@ -29,13 +29,16 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
     """
     A submodule of an ambient space of modular forms.
     """
-    def __init__(self, ambient_module, submodule):
+    def __init__(self, ambient_module, submodule, dual=None, check=False):
         """
             ambient_module -- ModularFormsSpace
             submodule -- a submodule of the ambient space.
+            dual_module -- (default: None) ignored
+            check -- (default: False) whether to check that the
+                     submodule is Hecke equivariant
         """
         A = ambient_module
-        sage.modular.hecke.submodule.HeckeSubmodule.__init__(self, A, submodule)
+        sage.modular.hecke.submodule.HeckeSubmodule.__init__(self, A, submodule, check=check)
         space.ModularFormsSpace.__init__(self, A.group(), A.weight(),
                                          A.character(), A.base_ring())
 
@@ -53,6 +56,7 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
         return [A._q_expansion(element = f.element(), prec=prec) for f in self.basis()]
 
 
+# TODO
 class ModularFormsSubmoduleWithBasis(ModularFormsSubmodule):
     pass
 

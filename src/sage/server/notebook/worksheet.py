@@ -1869,10 +1869,10 @@ class Worksheet:
         return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
 
     ##########################################################
-    # Parsing the %sagex, %jsmath, %python, etc., extension.
+    # Parsing the %cython, %jsmath, %python, etc., extension.
     ##########################################################
 
-    def sagex_import(self, cmd, C):
+    def cython_import(self, cmd, C):
         # Choice: Can use either C.relative_id() or self.next_block_id().
         # C.relative_id() has the advantage that block evals are cached, i.e.,
         # no need to recompile.  On the other hand tracebacks don't work if
@@ -1883,7 +1883,7 @@ class Worksheet:
         spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
-        s  = '_support_.sagex_import_all("%s", globals())'%spyx
+        s  = '_support_.cython_import_all("%s", globals())'%spyx
         return s
 
     def check_for_system_switching(self, s, C):
@@ -1914,8 +1914,8 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Sagex code.
-            return True, self.sagex_import(after_first_word(s).lstrip(), C)
+        if s.startswith("%cython") or s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Cython code.
+            return True, self.cython_import(after_first_word(s).lstrip(), C)
 
         i = s.find('\n')
         if i == -1:

@@ -126,7 +126,7 @@ directory are named
 See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
 
 \begin{verbatim}
-New matrices types can only be implemented in SageX.
+New matrices types can only be implemented in Cython.
 
 *********** LEVEL 1  **********
 NON-OPTIONAL

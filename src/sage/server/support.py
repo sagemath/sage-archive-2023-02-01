@@ -256,24 +256,24 @@ def syseval(system, cmd):
 
 
 ######################################################################
-# Sagex
+# Cython
 ######################################################################
-import sage.misc.sagex
+import sage.misc.cython
 import sys
 import __builtin__
 
-def sagex_import(filename, verbose=False, compile_message=False,
+def cython_import(filename, verbose=False, compile_message=False,
                  use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains sagex code
+        filename -- name of a file that contains cython code
 
     OUTPUT:
-        module -- the module that contains the compiled sagex code.
+        module -- the module that contains the compiled cython code.
 
     Raises an ImportError exception if anything goes wrong.
     """
-    name, build_dir = sage.misc.sagex.sagex(filename, verbose=verbose,
+    name, build_dir = sage.misc.cython.cython(filename, verbose=verbose,
                                             compile_message=compile_message,
                                             use_cache=use_cache,
                                             create_local_c_file=create_local_c_file)
@@ -281,19 +281,19 @@ def sagex_import(filename, verbose=False, compile_message=False,
     return __builtin__.__import__(name)
 
 
-def sagex_import_all(filename, globals, verbose=False, compile_message=False,
+def cython_import_all(filename, globals, verbose=False, compile_message=False,
                      use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains sagex code
+        filename -- name of a file that contains cython code
 
     OUTPUT:
-        changes globals using the attributes of the Sagex module
+        changes globals using the attributes of the Cython module
         that do not begin with an underscore.
 
     Raises an ImportError exception if anything goes wrong.
     """
-    m = sagex_import(filename, verbose=verbose, compile_message=compile_message,
+    m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,
                      create_local_c_file=create_local_c_file)
     for k, x in m.__dict__.iteritems():

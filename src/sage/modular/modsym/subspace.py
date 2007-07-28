@@ -42,32 +42,26 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
     ################################
     # Special Methods
     ################################
-    def __init__(self, ambient_hecke_module, submodule, dual_free_module=None, check=True):
-        #self.__reduce = (ambient_hecke_module, submodule, dual_free_module, False)
+    def __init__(self, ambient_hecke_module, submodule, dual_free_module=None, check=False):
+        """
+        INPUT:
+            ambient_hecke_module -- the ambient space of modular
+                      symbols in which we're constructing a submodule
+            submodule -- the underlying free module of the submodule
+            dual_free_module -- underlying free module of the dual of
+                      the submodule (optional)
+            check -- (default: False) whether to check that the
+                     submodule is invariant under all Hecke operators T_p.
+        """
         self.__ambient_hecke_module = ambient_hecke_module
         A = ambient_hecke_module
         sage.modular.modsym.space.ModularSymbolsSpace.__init__(self, A.group(), A.weight(), \
                                            A.character(), A.sign(), A.base_ring())
-        hecke.HeckeSubmodule.__init__(self, A, submodule, dual_free_module = dual_free_module)
-
-    #def __reduce__(self):
-    #    return self.__class__, self.__reduce, self.__dict__
+        hecke.HeckeSubmodule.__init__(self, A, submodule, dual_free_module = dual_free_module, check=check)
 
     def _repr_(self):
         return "Modular Symbols subspace of dimension %s of %s"%(
                     self.rank(), self.ambient_module())
-
-##     def __cmp__(self, other):
-##         if isinstance(other, ModularSymbolsSubspace):
-##             return cmp((self.__ambient_hecke_module, self.free_module()),
-##                        (other.__ambient_hecke_module, other.free_module()))
-##         if not isinstance(other, sage.modular.modsym.space.ModularSymbolsSpace):
-##             return cmp(type(self), type(other))
-##         c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
-##         if c:
-##             return c
-##         return cmp(self.free_module(), other.free_module())
-
 
     ################################
     # Public functions

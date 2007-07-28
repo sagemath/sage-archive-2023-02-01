@@ -1508,6 +1508,7 @@ class Notebook(SageObject):
         head, body = self.html_worksheet_page_template(worksheet, username, 'View plain text', select="text")
 
         t = worksheet.plain_text(prompts=True, banner=False)
+        t = t.replace('<','&lt;')
         body += """
         <pre class="plaintext" id="cell_intext" name="textfield">%s
         </pre>

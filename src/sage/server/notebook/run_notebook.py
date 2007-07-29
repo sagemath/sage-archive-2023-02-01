@@ -20,12 +20,10 @@ import getpass
 ##########################################################
 
 from sage.misc.misc import DOT_SAGE
-from   sage.server.misc import print_open_msg, find_next_available_port, open_page
+from   sage.server.misc import print_open_msg, find_next_available_port
 import os, shutil, socket
 
 import notebook
-
-PAUSE = 7
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 
@@ -114,6 +112,12 @@ def notebook_twisted(self,
 
         notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
                 address, port, secure)
+
+        if open_viewer:
+            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s)"%(address, port, secure)
+        else:
+            open_page = ''
+
         config = open(conf, 'w')
         config.write("""
 ####################################################################
@@ -161,8 +165,9 @@ from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
+%s
 s.setServiceParent(application)
-"""%(notebook_opts, not secure, os.path.abspath(directory), strport))
+"""%(notebook_opts, not secure, os.path.abspath(directory), strport, open_page))
 
 
         config.close()

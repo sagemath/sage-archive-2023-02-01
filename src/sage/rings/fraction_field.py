@@ -216,6 +216,10 @@ class FractionField_generic(field.Field):
             self.__is_exact = r
         return r
 
+    def construction(self):
+        from sage.categories.pushout import FractionField
+        return FractionField(), self.ring()
+
     def _coerce_impl(self, x):
         """
         Return the canonical coercion of x into this fraction field, or raise a TypeError.

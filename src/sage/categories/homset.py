@@ -26,7 +26,7 @@ import weakref
 
 import category
 import morphism
-from sage.sets.set import Set_generic
+from sage.structure.parent import Set_generic
 from sage.structure.parent_base import ParentWithBase
 
 _cache = {}
@@ -54,6 +54,7 @@ def Hom(X, Y, cat=None):
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
     """
+    import category_types
     global _cache
     key = (X,Y,cat)
     if _cache.has_key(key):
@@ -76,7 +77,34 @@ def Hom(X, Y, cat=None):
                 raise ValueError, "No unambiguous category found for Hom from %s to %s."%(X,Y)
             cat = cat_X
         else:
-            raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
+            # try hard to find a suitable base category
+            subcats_X = category_types.category_hierarchy[cat_X.__class__]
+            subcats_Y = category_types.category_hierarchy[cat_Y.__class__]
+            cats = set(subcats_X).intersection(set(subcats_Y))
+            params = tuple(set(cat_X._parameters()).intersection(cat_Y._parameters()))
+
+            cat = None
+            size = -1
+
+            for c in cats:
+                if len(category_types.category_hierarchy[c]) > size:
+                    try:
+                        cat = c(*params)
+                        size = len(category_types.category_hierarchy[c])
+                    except TypeError:
+                        pass
+
+            if cat is None:
+                for c in cats:
+                    if len(category_types.category_hierarchy[c]) > size:
+                        try:
+                            cat = c()
+                            size = len(category_types.category_hierarchy[c])
+                        except TypeError:
+                            pass
+
+            if cat is None:
+                raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
 
     elif isinstance(cat, category.Category):
         if not isinstance(cat, category.Category):
@@ -94,22 +122,22 @@ def Hom(X, Y, cat=None):
     #X = cat(X); Y = cat(Y)
 
     # construct H
-    if cat._is_subclass(category.HeckeModules):
+    if cat._is_subclass(category_types.HeckeModules):
 
         from sage.modular.hecke.homspace import HeckeModuleHomspace
         H = HeckeModuleHomspace(X, Y)
 
-    elif cat._is_subclass(category.FreeModules):
+    elif cat._is_subclass(category_types.FreeModules):
 
         from sage.modules.free_module_homspace import FreeModuleHomspace
         H = FreeModuleHomspace(X, Y, cat)
 
-    elif cat._is_subclass(category.Rings):
+    elif cat._is_subclass(category_types.Rings):
 
         from sage.rings.homset import RingHomset
         H = RingHomset(X, Y)
 
-    elif cat._is_subclass(category.Schemes) or cat._is_subclass(category.Schemes_over_base):
+    elif cat._is_subclass(category_types.Schemes) or cat._is_subclass(category_types.Schemes_over_base):
 
         from sage.schemes.generic.homset import SchemeHomset
         H = SchemeHomset(X, Y)
@@ -187,7 +215,10 @@ def end(X, f):
     """
     return End(X)(f)
 
-class Homset(Set_generic):
+# We have to use ParentWithBase here, otherwise
+# we can't create elements of this Homset as
+# Element._parent has been changed to ParentWithBase.
+class Homset(ParentWithBase, Set_generic):
     """
     The class for collections of morphisms in a category.
 
@@ -220,18 +251,66 @@ class Homset(Set_generic):
     def __call__(self, x, y=None):
         """
         Construct a morphism in this homset from x if possible.
+
+        EXAMPLES:
+            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
+            sage: phi = Hom(SymmetricGroup(5), SymmetricGroup(6)).natural_map()
+            sage: phi
+            Coercion morphism:
+              From: SymmetricGroup(5)
+              To:   SymmetricGroup(6)
+            sage: H(phi)
+            Composite morphism:
+              From: SymmetricGroup(4)
+              To:   SymmetricGroup(7)
+              Defn:   Composite morphism:
+                      From: SymmetricGroup(4)
+                      To:   SymmetricGroup(6)
+                      Defn:   Coercion morphism:
+                              From: SymmetricGroup(4)
+                              To:   SymmetricGroup(5)
+                            then
+                              Coercion morphism:
+                              From: SymmetricGroup(5)
+                              To:   SymmetricGroup(6)
+                    then
+                      Coercion morphism:
+                      From: SymmetricGroup(6)
+                      To:   SymmetricGroup(7)
+
+        AUTHOR:
+            -- Robert Bradshaw
         """
-        if x in self:
-            return x
+        if isinstance(x, morphism.Morphism):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                x._set_parent(self) # needed due to non-uniqueness of homsets
+                return x
+            else:
+                if x.domain() != self.domain():
+                    mor = x.domain().coerce_map_from(self.domain())
+                    if mor is None:
+                        raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
+                    x = x * mor
+                if x.codomain() != self.codomain():
+                    mor = self.codomain().coerce_map_from(x.codomain())
+                    if mor is None:
+                        raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
+                    x = mor * x
+                return x
         raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
 
     def __cmp__(self, other):
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
-        if self.__domain == other.__domain and self.__codomain == other.__codomain \
-               and self.__category == other.__category:
-            return 0
-        return cmp(self.__domain, other.__domain)
+        if self.__domain == other.__domain:
+            if self.__codomain == other.__codomain:
+                if self.__category == other.__category:
+                    return 0
+                else: return cmp(self.__category, other.__category)
+            else: return cmp(self.__codomain, other.__codomain)
+        else: return cmp(self.__domain, other.__domain)
 
     def __contains__(self, x):
         try:
@@ -242,6 +321,12 @@ class Homset(Set_generic):
 
     def natural_map(self):
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
+
+    def identity(self):
+        if self.is_endomorphism_set():
+            return morphism.IdentityMorphism(self)
+        else:
+            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
 
     def domain(self):
         return self.__domain
@@ -263,7 +348,8 @@ class Homset(Set_generic):
         """
         return Homset(self.__codomain, self.__domain, self.__category)
 
-class HomsetWithBase(ParentWithBase, Homset):
+# class HomsetWithBase(ParentWithBase, Homset): # redundant, see above
+class HomsetWithBase(Homset):
     def __init__(self, X, Y, cat=None, check=True, base=None):
         Homset.__init__(self, X, Y, cat, check)
         if base is None:

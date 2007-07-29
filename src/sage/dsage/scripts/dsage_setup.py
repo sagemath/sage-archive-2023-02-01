@@ -18,6 +18,8 @@
 ############################################################################
 
 import os
+import random
+import socket
 import ConfigParser
 import subprocess
 import sys
@@ -27,6 +29,8 @@ from sage.dsage.misc.constants import DELIMITER as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.config import check_dsage_dir
 from sage.dsage.__version__ import version
+
+from sage.misc.viewer import cmd_exists
 
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
@@ -51,86 +55,99 @@ def get_config(type):
         config.add_section('db_log')
     return config
 
-def setup_client():
+def setup_client(testing=False):
     check_dsage_dir()
-    # Get ConfigParser object
-    # config = get_config('client')
-    #
-    # config.set('auth', 'username', os.getenv('USER'))
-    # config.set('general', 'server', 'localhost')
-    # config.set('general', 'port', 8081)
-    # config.set('ssl', 'ssl', 1)
-    # config.set('log', 'log_file', 'stdout')
-    # config.set('log', 'log_level', '0')
+    key_file = os.path.join(DSAGE_DIR, 'dsage_key')
+    if testing:
+        cmd = ["ssh-keygen", "-q", "-trsa", "-P ''", "-f%s" % key_file]
+        return
+
     print DELIMITER
     print "Generating public/private key pair for authentication..."
     print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
     print "Just hit enter when prompted for a passphrase"
     print DELIMITER
-    key_file = os.path.join(DSAGE_DIR, 'dsage_key')
     cmd = ["ssh-keygen", "-q", "-trsa", "-f%s" % key_file]
     p = subprocess.call(cmd)
     print "\n"
-    # conf_file = os.path.join(DSAGE_DIR, 'client.conf')
-    # config.set('auth', 'privkey_file', key_file)
-    # config.set('auth', 'pubkey_file', key_file + '.pub')
-    # config.write(open(conf_file, 'w'))
     print "Client configuration finished.\n"
 
 def setup_worker():
     check_dsage_dir()
-    # config = get_config('worker')
-    # LOG_FILE = os.path.join(DSAGE_DIR, 'worker.log')
-    # config.set('general', 'server', 'localhost')
-    # config.set('general', 'port', 8081)
-    # config.set('general', 'priority', 20)
-    # config.set('general', 'workers', 2)
-    # config.set('uuid', 'id', '')
-    # config.set('ssl', 'ssl', 1)
-    # config.set('log', 'log_file', LOG_FILE)
-    # config.set('log', 'log_level', '0')
-    # config.set('general', 'delay', '5')
-    # config.set('general', 'anonymous', False)
-    # conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
-    # config.write(open(conf_file, 'w'))
     print "Worker configuration finished.\n"
 
-def setup_server():
+def setup_server(template=None):
     check_dsage_dir()
-    # config = get_config('server')
-    # LOG_FILE = os.path.join(DSAGE_DIR, 'server.log')
-    # config.set('server', 'client_port', 8081)
-    # config.set('ssl', 'ssl', 1)
-    # config.set('server_log', 'log_file', LOG_FILE)
-    # config.set('server_log', 'log_level', '0')
-    # config.set('db_log', 'log_file', LOG_FILE)
-    # config.set('db_log', 'log_level', '0')
-    # config.set('auth', 'pubkey_database', os.path.join(DB_DIR, 'dsage.db'))
-    # config.set('db', 'db_file', os.path.join(DB_DIR, 'dsage.db'))
-    # config.set('db', 'prune_in_days', 7)
-    # config.set('db', 'stale_in_days', 365)
-    # config.set('db', 'job_failure_threshold', 2)
-    # config.set('ssl', 'privkey_file', os.path.join(DSAGE_DIR, 'cacert.pem'))
-    # config.set('ssl', 'cert_file', os.path.join(DSAGE_DIR, 'pubcert.pem'))
-    # config.set('general', 'stats_file', 'gauge.xml')
+    template_dict = {'organization': 'SAGE (at %s)'%(socket.gethostname()),
+                'unit': '389',
+                'locality': None,
+                'state': 'Washington',
+                'country': 'US',
+                'cn': socket.gethostname(),
+                'uid': 'sage_user',
+                'dn_oid': None,
+                'serial': str(random.randint(1,2**31)),
+                'dns_name': None,
+                'crl_dist_points': None,
+                'ip_address': None,
+                'expiration_days': 10000,
+                'email': 'sage@sagemath.org',
+                'ca': None,
+                'tls_www_client': None,
+                'tls_www_server': True,
+                'signing_key': True,
+                'encryption_key': True,
+                }
 
+    if isinstance(template, dict):
+        template_dict.update(template)
+
+    s = ""
+    for key, val in template_dict.iteritems():
+        if val is None:
+            continue
+        if val == True:
+            w = ''
+        elif isinstance(val, list):
+            w = ' '.join(['"%s"'%x for x in val])
+        else:
+            w = '"%s"'%val
+        s += '%s = %s \n'%(key, w)
+
+    template_file = os.path.join(DSAGE_DIR, 'cert.cfg')
+    f = open(template_file, 'w')
+    f.write(s)
+    f.close()
+    # Disable certificate generation -- not used right now anyways
     privkey_file = os.path.join(DSAGE_DIR, 'cacert.pem')
     pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
     print DELIMITER
     print "Generating SSL certificate for server..."
-    cmd = ['openssl genrsa > %s' % privkey_file]
-    subprocess.call(cmd, shell=True)
-    cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
-           1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
-                    privkey_file, pubkey_file)]
+    if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
+        # We use openssl by default if it exists, since it is *vastly*
+        # faster on Linux.
+        cmd = ['openssl genrsa > %s' % privkey_file]
+        print "Using openssl to generate key"
+        print cmd[0]
+        subprocess.call(cmd, shell=True)
+    else:
+        cmd = ['certtool --generate-privkey --outfile %s' % privkey_file]
+        print "Using certtool to generate key"
+        print cmd[0]
+        # cmd = ['openssl genrsa > %s' % privkey_file]
+        subprocess.call(cmd, shell=True)
+
+    # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
+    #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
+    #                 privkey_file, pubkey_file)]
+    cmd = ['certtool --generate-self-signed --template %s --load-privkey %s \
+           --outfile %s' % (template_file, privkey_file, pubkey_file)]
     subprocess.call(cmd, shell=True)
     print DELIMITER
     os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)
 
     # conf_file = os.path.join(DSAGE_DIR, 'server.conf')
     # config.write(open(conf_file, 'w'))
-
-    print "Server configuration finished.\n\n"
 
     # add default user
     from twisted.conch.ssh import keys
@@ -156,10 +173,12 @@ def setup_server():
         else:
             print 'User %s already exists.' % (username)
 
-def setup():
+    print "Server configuration finished.\n\n"
+
+def setup(template=None):
     setup_client()
     setup_worker()
-    setup_server()
+    setup_server(template=template)
     print "Configuration finished.."
 
 if __name__ == '__main__':

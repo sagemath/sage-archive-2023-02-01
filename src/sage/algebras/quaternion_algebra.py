@@ -53,11 +53,11 @@ def sign(x):
         return 0
 
 def fundamental_discriminant(D):
-	"""
-	Return the discriminant of the quadratic extension K=Q(\sqrt{D}), i.e.
-	an integer d congruent to either 0 or 1, mod 4, and such that, at most,
+    """
+    Return the discriminant of the quadratic extension K=Q(\sqrt{D}), i.e.
+    an integer d congruent to either 0 or 1, mod 4, and such that, at most,
     the only square dividing it is 4.
-	"""
+    """
     D = Integer(D)
     D = D.square_free_part()
     if D%4 == 1:
@@ -65,9 +65,9 @@ def fundamental_discriminant(D):
     return 4*D
 
 def ramified_primes(a,b):
-	"""
-	Return a list of the finite primes ramifying in Q(a,b)
-	"""
+    """
+    Return a list of the finite primes ramifying in Q(a,b)
+    """
     a = Integer(a); b = Integer(b)
     if a.is_square() or b.is_square() or (a+b).is_square():
         return [ ]

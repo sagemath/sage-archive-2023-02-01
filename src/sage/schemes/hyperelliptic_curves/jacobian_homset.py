@@ -26,7 +26,7 @@ EXAMPLES:
 #*****************************************************************************
 
 import sage.schemes.generic.spec as spec
-from sage.rings.all import is_Polynomial, PolynomialRing, ZZ
+from sage.rings.all import is_Polynomial, PolynomialRing, Integer, ZZ
 from sage.schemes.generic.homset import SchemeHomset_generic
 from sage.schemes.generic.morphism import is_SchemeMorphism
 #from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
@@ -64,7 +64,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             sage: P = C(0,1,1)
             sage: J = C.jacobian()
             sage: Q = J(QQ)(P)
-            sage: for i in range(6): Q*i
+            sage: for i in range(6): i*Q
             (1)
             (u, v + -1)
             (u^2, v + u - 1)
@@ -72,19 +72,22 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             (u, v + 1)
             (1)
         """
-        if P == 0:
+        if isinstance(P,(int,long,Integer)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
             return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
+        elif isinstance(P,(list,tuple)):
+            if len(P) == 1 and P[0] == 0:
+                R = PolynomialRing(self.value_ring(), 'x')
+                return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
+            elif len(P) == 2:
+	        P1 = P[0]; P2 = P[1]
+		if is_Polynomial(P1) and is_Polynomial(P2):
+                    return JacobianMorphism_divisor_class_field(self, tuple(P))
+                if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
+                    return self(P1) - self(P2)
+            raise TypeError, "Argument P (= %s) must have length 2."%P
         elif isinstance(P,JacobianMorphism_divisor_class_field) and self == P.parent():
             return P
-        elif isinstance(P,(list,tuple)):
-            if len(P) != 2:
-                raise TypeError, "Argument P (= %s) must have length 2"%P
-            P1 = P[0]; P2 = P[1]
-            if is_Polynomial(P1) and is_Polynomial(P2):
-                return JacobianMorphism_divisor_class_field(self, P)
-            if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
-                return self(P1) - self(P2)
         elif is_SchemeMorphism(P):
             x0 = P[0]; y0 = P[1]
             R, x = PolynomialRing(self.value_ring(), 'x').objgen()

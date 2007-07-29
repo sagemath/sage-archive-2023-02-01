@@ -1850,7 +1850,7 @@ class AlgebraicRealNumberRoot(AlgebraicRealNumberDescr):
         # about 2^{-2^31}, and then hit floating-point underflow); avoiding
         # this case here means we don't have to worry about iterating too
         # many times later
-        if coeffs[0] == zero and zero in interval:
+        if coeffs[0].is_zero() and zero in interval:
             return zero
 
         dcoeffs = [c.interval_fast(field) for c in dp.list()]

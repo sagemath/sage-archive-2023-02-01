@@ -98,6 +98,7 @@ import sys
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
+include "../ext/python_list.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -140,6 +141,13 @@ from sage.structure.element import  bin_op
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
+
+cdef set_zero_one_elements():
+    global the_integer_ring
+    the_integer_ring._zero_element = Integer(0)
+    the_integer_ring._one_element = Integer(1)
+
+set_zero_one_elements()
 
 def is_Integer(x):
     return PY_TYPE_CHECK(x, Integer)
@@ -207,6 +215,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             'zz'
             sage: ZZ('0x3b').str(16)
             '3b'
+            sage: ZZ( ZZ(5).digits(3) , 3)
+            5
         """
 
         # TODO: All the code below should somehow be in an external
@@ -218,6 +228,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(mpz_t y, object x)
         # Then this function becomes the one liner:
         #     mpz_init_set_sage(self.value, x)
+
+        cdef Integer tmp
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -264,6 +276,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
+
+            elif PY_TYPE_CHECK(x, list) and base > 1:
+                b = the_integer_ring(base)
+                tmp = the_integer_ring(0)
+                for i in range(len(x)):
+                    tmp += x[i]*b**i
+                mpz_set(self.value, tmp.value)
 
             else:
                 raise TypeError, "unable to coerce element to an integer"
@@ -470,6 +489,85 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str(2)
 
+    def digits(self, int base=2, digits=None):
+        """
+        Return a list of digits for self in the given base in little
+        endian order.
+
+        INPUT:
+            base -- integer (default: 2)
+            digits -- optional indexable object as source for the digits
+
+        EXAMPLE:
+            sage: 5.digits()
+            [1, 0, 1]
+            sage: 5.digits(3)
+            [2, 1]
+            sage: 10.digits(16,'0123456789abcdef')
+            ['a']
+
+        """
+        if base < 2:
+            raise TypeError, "base must be >= 2"
+
+        cdef mpz_t mpz_value
+        cdef mpz_t mpz_base
+        cdef mpz_t mpz_res
+        cdef object l = PyList_New(0)
+        cdef Integer z
+        cdef size_t s
+
+        if base == 2 and digits is None:
+            s = mpz_sizeinbase(self.value, 2)
+            o = the_integer_ring._one_element
+            z = the_integer_ring._zero_element
+            for i from 0<= i < s:
+                if mpz_tstbit(self.value,i):
+                    PyList_Append(l,o)
+                else:
+                    PyList_Append(l,z)
+        else:
+            s = mpz_sizeinbase(self.value, 2)
+            if s > 256:
+                _sig_on
+            mpz_init(mpz_value)
+            mpz_init(mpz_base)
+            mpz_init(mpz_res)
+
+            mpz_set(mpz_value, self.value)
+            mpz_set_ui(mpz_base, base)
+
+            if digits:
+                while mpz_cmp_si(mpz_value,0):
+                    mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
+                    PyList_Append(l, digits[mpz_get_ui(mpz_res)])
+            else:
+                if base < 10:
+                    for e in reversed(self.str(base)):
+                        PyList_Append(l,the_integer_ring(e))
+                else:
+                    while mpz_cmp_si(mpz_value,0):
+                        # TODO: Use a divide and conquer approach
+                        # here: for base b, compute b^2, b^4, b^8,
+                        # ... (repeated squaring) until you get larger
+                        # than your number; then compute (n // b^256,
+                        # n % b ^ 256) (if b^512 > number) to split
+                        # the number in half and recurse
+                        mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
+                        z = PY_NEW(Integer)
+                        mpz_set(z.value, mpz_res)
+                        PyList_Append(l, z)
+
+            mpz_clear(mpz_value)
+            mpz_clear(mpz_res)
+            mpz_clear(mpz_base)
+
+            if s > 256:
+                _sig_off
+
+        return l # should we return a tuple?
+
+
     def set_si(self, signed long int n):
         """
         Coerces $n$ to a C signed integer if possible, and sets self
@@ -583,7 +681,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def _r_action(self, s):
-        if isinstance(s, (str, list)):
+        if isinstance(s, (str, list, tuple)):
             return s*int(self)
         raise TypeError
 
@@ -685,6 +783,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^(sin(x) - cos(x))
             sage: f(3)
             2^(sin(3) - cos(3))
+
+        A symbolic sum:
+            sage: x,y,z = var('x,y,z')
             sage: 2^(x+y+z)
             2^(z + y + x)
             sage: 2^(1/2)
@@ -1845,19 +1946,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 n = n * p
         return n * F.unit()
 
-    def next_prime(self):
+    def next_probable_prime(self):
+        """
+        Returns the next probable prime after self, as determined by PARI.
+
+        EXAMPLES:
+            sage: (-37).next_probable_prime()
+            2
+            sage: (100).next_probable_prime()
+            101
+            sage: (2^512).next_probable_prime()
+            13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084171
+            sage: 0.next_probable_prime()
+            2
+            sage: 126.next_probable_prime()
+            127
+            sage: 144168.next_probable_prime()
+            144169
+        """
+        return Integer( (self._pari_()+1).nextprime())
+
+    def next_prime(self, proof=True):
         r"""
-        Returns the next prime after self
+        Returns the next prime after self.
+
+        INPUT:
+            proof -- bool (default: True)
 
         EXAMPLES:
             sage: Integer(100).next_prime()
             101
+
+        Use Proof = False, which is way faster:
+            sage: b = (2^1024).next_prime(proof=False)
+
             sage: Integer(0).next_prime()
             2
             sage: Integer(1001).next_prime()
             1009
         """
-        return Integer( (self._pari_()+1).nextprime())
+        if self < 2:   # negatives are not prime.
+            return integer_ring.ZZ(2)
+        if self == 2:
+            return integer_ring.ZZ(3)
+        if not proof:
+            return Integer( (self._pari_()+1).nextprime())
+        n = self
+        if n % 2 == 0:
+            n += 1
+        else:
+            n += 2
+        while not n.is_prime():  # pari isprime is provably correct
+            n += 2
+        return integer_ring.ZZ(n)
+
 
     def additive_order(self):
         """

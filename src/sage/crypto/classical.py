@@ -13,7 +13,7 @@ Classical Cryptosystems
 from sage.monoids.string_monoid import StringMonoid_class, AlphabeticStringMonoid
 from sage.monoids.string_monoid_element import StringMonoidElement
 from sage.monoids.string_ops import strip_encoding
-from sage.groups.perm_gps.permgroup import SymmetricGroup
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from random import randint

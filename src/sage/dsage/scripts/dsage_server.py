@@ -25,7 +25,7 @@ import os
 from optparse import OptionParser
 import socket
 
-from twisted.internet import reactor, error, ssl, task
+from twisted.internet import reactor, error, task
 from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
@@ -57,11 +57,17 @@ def usage():
               'Bug reports to <yqiang@gmail.com>']
 
     parser = OptionParser(usage=''.join(usage))
+
     parser.add_option('-p', '--port',
                       dest='port',
                       type='int',
                       default=8081,
                       help='port to listen on')
+    parser.add_option('-a', '--anonymous',
+                      dest='anonymous',
+                      action='store_true',
+                      default=False,
+                      help='Allow anonymous logins to the server')
     parser.add_option('-f', '--logfile',
                       dest='logfile',
                       default=os.path.join(DSAGE_DIR, 'server.log'),
@@ -157,16 +163,6 @@ def main(options):
 
     """
 
-    # config = get_conf('server')
-    # LOG_FILE = config['log_file']
-    # LOG_LEVEL = config['log_level']
-    # SSL = get_bool(config['ssl'])
-    # SSL_PRIVKEY = config['privkey_file']
-    # SSL_CERT = config['cert_file']
-    # CLIENT_PORT = int(config['client_port'])
-    # PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
-    # STATS_FILE = config['stats_file']
-
     LOG_FILE = options.logfile
     LOG_LEVEL = options.loglevel
     SSL = options.ssl
@@ -176,24 +172,21 @@ def main(options):
     STATS_FILE = options.statsfile
     DB_FILE = options.dbfile
     FAILURE_THRESHOLD = options.job_failure_threshold
+    ALLOW_ANONYMOUS = options.anonymous
 
-    # start logging
     startLogging(LOG_FILE)
 
-    # Job database
     jobdb = JobDatabaseSQLite(db_file=DB_FILE,
                               job_failure_threshold=FAILURE_THRESHOLD,
                               log_file=LOG_FILE, log_level=LOG_LEVEL)
-    # Worker database
     monitordb = MonitorDatabase(db_file=DB_FILE,
                                 log_file=LOG_FILE, log_level=LOG_LEVEL)
-
-    # Client database
     clientdb = ClientDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, monitordb,
-                               clientdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb, clientdb,
+                               log_level=LOG_LEVEL)
+
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Credentials checker
@@ -201,17 +194,11 @@ def main(options):
 
     # HACK: unsafeTracebacks should eventually be TURNED off
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
+    dsage_server.register_client_factory(client_factory)
 
     # Create the looping call that will output the XML file for Dashboard
     tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
-    tsk1.start(5.0, now=False)
-
-    # Create the PBServerFactory for workers
-    # Use this for unauthorized workers
-    # dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
-    # worker_factory = WorkerPBServerFactory(dsage_worker)
-
-    dsage_server.client_factory = client_factory
+    tsk1.start(2.0, now=False)
 
     attempts = 0
     err_msg = "Could not find an open port after 50 attempts."
@@ -284,6 +271,8 @@ def main(options):
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
     # reactor.callWhenRunning(create_manhole)
+
+    # blocking or non-blocking
     if options.noblock:
         reactor.run(installSignalHandlers=0)
     else:

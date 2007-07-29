@@ -264,6 +264,8 @@ cdef class FiniteField_givaro(FiniteField):
             else:
                 _sig_on
                 self.objectptr = gfq_factorypk(p,k)
+                self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
+                self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
                 _sig_off
                 if cache:
                     self._array = self.gen_array()
@@ -280,6 +282,9 @@ cdef class FiniteField_givaro(FiniteField):
             _sig_on
             self.objectptr = gfq_factorypkp(p, k,cPoly)
             _sig_off
+            self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
+            self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
+
             if cache:
                 self._array = self.gen_array()
             return
@@ -641,9 +646,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: o == 1
             True
             sage: o is k.one()
-            False
+            True
         """
-        return make_FiniteField_givaroElement(self,self.objectptr.one)
+        return self._one_element
 
     def zero(FiniteField_givaro self):
         """
@@ -658,9 +663,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: o == 0
             True
             sage: o is k.zero()
-            False
+            True
         """
-        return make_FiniteField_givaroElement(self,self.objectptr.zero)
+        return self._zero_element
 
 
     def gen(FiniteField_givaro self, ignored=None):
@@ -845,7 +850,7 @@ cdef class FiniteField_givaro(FiniteField):
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
 
     cdef polynomial_ring_c(self, variable_name):
-        if self._polynomial_ring is None:
+        if self._polynomial_ring is None or variable_name is not None:
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
             if variable_name is None:
                 # todo: is this cache necessary?
@@ -1012,7 +1017,7 @@ cdef class FiniteField_givaro(FiniteField):
         """
         return str(int(e))
 
-    def _element_poly_repr(FiniteField_givaro self, FiniteField_givaroElement e):
+    def _element_poly_repr(FiniteField_givaro self, FiniteField_givaroElement e, varname = None):
         """
         Return a polynomial expression in base.gen() of self.
 
@@ -1022,7 +1027,10 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k._element_poly_repr(a^20)
             '2*a^3 + 2*a^2 + 2'
         """
-        variable = self.variable_name()
+        if varname is None:
+            variable = self.variable_name()
+        else:
+            variable = varname
 
         quo = self.log_to_int(e.element)
         b   = int(self.characteristic())
@@ -1121,7 +1129,7 @@ cdef class FiniteField_givaro(FiniteField):
             cache = 1
 
         return sage.rings.finite_field_givaro.unpickle_FiniteField_givaro, \
-               (self.order_c(),self.variable_name(),
+               (self.order_c(),(self.variable_name(),),
                 map(int,list(self.modulus())),int(self.repr),int(self._array is not None))
 
 def unpickle_FiniteField_givaro(order,variable_name,modulus,rep,cache):
@@ -1176,6 +1184,9 @@ cdef FiniteField_givaro_copy(FiniteField_givaro orig):
     copy = FiniteField_givaro(orig.characteristic()**orig.degree())
     delete(copy.objectptr)
     copy.objectptr = gfq_factorycopy(gfq_deref(orig.objectptr))
+    copy._zero_element = make_FiniteField_givaroElement(copy,copy.objectptr.zero)
+    copy._one_element = make_FiniteField_givaroElement(copy,copy.objectptr.one)
+
     return copy
 
 cdef class FiniteField_givaroElement(FiniteFieldElement):
@@ -1775,6 +1786,16 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 ##             quo = quo/b
 ##             i = i+1
 ##         return ret
+
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+
+        """
+        km = self.parent()._magma_()
+        vn = km.gen(1).name()
+        return self.parent()._element_poly_repr(self,vn)
 
     def multiplicative_order(FiniteField_givaroElement self):
         """

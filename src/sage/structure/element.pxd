@@ -10,6 +10,10 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
+    # TODO: If all elements have ParentWithBase, this makes
+    #       Parent rather redundant, as one can't even construct
+    #       elements with parent Parent.
+    #       On the other hand, many parents don't have a "base."
     cdef ParentWithBase _parent
     cdef _richcmp_c_impl(left, Element right, int op)
     cdef int _cmp_c_impl(left, Element right) except -2
@@ -18,6 +22,10 @@ cdef class Element(sage_object.SageObject):
     cdef _set_parent_c(self, ParentWithBase parent)
     cdef base_extend_c(self, ParentWithBase R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, ParentWithBase R)  # OK to override, but do NOT call
+    cdef base_extend_recursive_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_extend_canonical_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_extend_canonical_sym_c(self, ParentWithBase R) # DO NOT OVERRIDE
+    cdef base_base_extend_canonical_sym_c(self, ParentWithBase R) # DO NOT OVERRIDE
     cdef _rich_to_bool(self, int op, int r)
 
 
@@ -135,4 +143,10 @@ cdef class Matrix(AlgebraElement):
     cdef bint is_dense_c(self)
 
 
+
+
+cdef class CoercionModel:
+    cdef canonical_coercion_c(self, x, y)
+    cdef canonical_base_coercion_c(self, Element x, Element y)
+    cdef bin_op_c(self, x, y, op)
 

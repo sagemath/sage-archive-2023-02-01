@@ -18,12 +18,18 @@ Transcendental Functions
 #*****************************************************************************
 
 import  sage.libs.pari.all
-pari = sage.libs.pari.all.pari
+from sage.libs.pari.all import pari, PariError
 import sage.rings.complex_field as complex_field
 import sage.rings.real_mpfr as real_field
+import sage.rings.real_double as real_double
 import sage.rings.complex_number
+from sage.gsl.integration import numerical_integral
 
-from sage.rings.all import is_RealNumber, RealField, is_ComplexNumber, ComplexField
+from sage.rings.all import (is_RealNumber, RealField,
+                            is_ComplexNumber, ComplexField,
+                            ZZ, CDF, prime_range)
+
+import sage.plot.all
 
 def __prep_num(x):
     if isinstance(x, sage.rings.complex_number.ComplexNumber):
@@ -218,3 +224,158 @@ def zeta_symmetric(s):
 #    Return pi computed to prec bits of precision.
 #    """
 #   return real_field.RealField(prec).pi()
+
+
+def Ei(z):
+    """
+    Return the value of the complex exponential integral Ei(z)
+    at a complex number z.
+
+    WARNING: Calculations are done to double precision, and the output
+    is a complex double element, no matter how big the precision of
+    the input is.
+
+    EXAMPLES:
+        sage: Ei(10)
+        2492.22897624
+        sage: Ei(I)
+        0.337403922901 + 2.51687939716*I
+        sage: Ei(3+I)
+        7.823134676 + 6.09751978399*I
+
+    ALGORITHM: Uses scipy's special.exp1 function.
+    """
+    import scipy.special, math
+    return CDF(-scipy.special.exp1(-complex(z)) + complex(0,math.pi))
+
+def Li(x, eps_rel=None, err_bound=False):
+    r"""
+    Return value of the function Li(x) as a real double field element.
+
+    This is the function
+    $$
+       \int_2^{x} dt / \log(t).
+    $$
+
+    The function Li(x) is an approximation for the number
+    of primes up to $x$.  In fact, the famous Riemann
+    Hypothesis is equivalent to the statement that for
+    $x \geq 2.01$ we have
+    $$
+        |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
+    $$
+    For ``small'' $x$, $Li(x)$ is always slightly bigger than
+    $\pi(x)$.  However it is a theorem that there are (very large,
+    e.g., around $10^{316}$) values of $x$ so that $\pi(x) > Li(x)$.
+    See ``A new bound for the smallest x with $\pi(x) > li(x)$'',
+    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285--1296.
+
+    ALGORITHM: Computed numerically using GSL.
+
+    INPUT:
+        x -- a real number >= 2.
+
+    OUTPUT:
+        x -- a real double
+
+    EXAMPLES:
+        sage: Li(2)
+        0.0
+        sage: Li(5)
+        2.58942452992
+        sage: Li(1000)
+        176.56449421
+        sage: Li(10^5)
+        9628.76383727
+        sage: prime_pi(10^5)
+        9592
+        sage: Li(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Li only defined for x at least 2.
+
+        sage: for n in range(1,7):
+        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
+        10        4         5.12043572467
+        100       25        29.080977804
+        1000      168       176.56449421
+        10000     1229      1245.09205212
+        100000    9592      9628.76383727
+        1000000   78498     78626.5039957
+    """
+    x = float(x)
+    if x < 2:
+        raise ValueError, "Li only defined for x at least 2."
+    if eps_rel:
+        ans = numerical_integral(_one_over_log, 2, float(x),
+                             eps_rel=eps_rel)
+    else:
+        ans = numerical_integral(_one_over_log, 2, float(x))
+    if err_bound:
+        return real_double.RDF(ans[0]), ans[1]
+    else:
+        return real_double.RDF(ans[0])
+    # Old PARI version -- much much slower
+    #x = RDF(x)
+    #return RDF(gp('intnum(t=2,%s,1/log(t))'%x))
+
+import math
+def _one_over_log(t):
+    return 1/math.log(t)
+
+class PrimePi:
+    """
+    Return the number of primes $\leq x$.
+
+    EXAMPLES:
+        sage: prime_pi(7)
+        4
+        sage: prime_pi(100)
+        25
+        sage: prime_pi(1000)
+        168
+        sage: prime_pi(100000)
+        9592
+        sage: prime_pi(0.5)
+        0
+        sage: prime_pi(-10)
+        0
+
+    The prime_pi function also has a special plotting method, so it plots
+    quickly and perfectly as a step function.
+        sage: P = plot(prime_pi, 50,100)
+    """
+    def __repr__(self):
+        return "Function that counts the number of primes up to x"
+
+    def __call__(self, x):
+        if x < 2:
+            return ZZ(0)
+        try:
+            return ZZ(pari(x).primepi())
+        except PariError:
+            pari.init_primes(pari(x)+1)
+            return ZZ(pari(x).primepi())
+
+    def plot(self, xmin=0, xmax=100, *args, **kwds):
+        primes = prime_range(xmin, xmax+2)
+        base = self(xmin)
+        if xmin <= 2:
+            v = [(xmin,0),(min(xmax,2),0)]
+            ymin = 0
+        else:
+            v = []
+            ymin = base
+        for i in range(len(primes)-1):
+            v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
+        P = sage.plot.all.line(v, *args, **kwds)
+        P.xmin(xmin)
+        P.xmax(xmax)
+        P.ymin(ymin)
+        P.ymax(base+len(primes))
+        return P
+
+#############
+prime_pi = PrimePi()
+
+

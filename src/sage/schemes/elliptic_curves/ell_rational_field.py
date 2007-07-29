@@ -8,10 +8,11 @@ AUTHORS:
    -- David Harvey (2006-09): Added padic_E2, padic_sigma, padic_height,
             padic_regulator methods.
    -- David Harvey (2007-02): reworked padic-height related code
+   -- Christian Wuthrich (2007): added padic sha computation
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005,2006,2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -35,6 +36,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
+from sage.misc.all import verbose
 import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
@@ -733,10 +735,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     who note that their implementation is practical for
                     any rank and conductor $\leq 10^{10}$ in 10 minutes.
 
-                -- 'ec' -- use Watkins's program ec (this has bugs if more
-                    than a million terms of the L-series are required, i.e.,
-                    only use this for conductor up to about $10^11$).
-
                 -- 'sympow' --use Watkins's program sympow
 
                 -- 'rubinstein' -- use Rubinstein's L-function C++ program lcalc.
@@ -757,8 +755,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage.: E.analytic_rank(algorithm='ec')
-            2
             sage: E.analytic_rank(algorithm='cremona')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
@@ -767,16 +763,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional
             2
-            sage.: E.analytic_rank(algorithm='all')
+            sage: E.analytic_rank(algorithm='all')
             2
         """
-        if algorithm == 'ec' and misc.is_64_bit:
-            algorithm = 'sympow'
-
         if algorithm == 'cremona':
             return rings.Integer(gp_cremona.ellanalyticrank(self.minimal_model().a_invariants()))
-        elif algorithm == 'ec':
-            return rings.Integer(self.watkins_data()['analytic rank'])
         elif algorithm == 'rubinstein':
             from sage.lfunctions.lcalc import lcalc
             return lcalc.analytic_rank(L=self)
@@ -786,7 +777,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         elif algorithm == 'magma':
             return rings.Integer(self._magma_().AnalyticRank())
         elif algorithm == 'all':
-            S = list(set([self.analytic_rank('cremona'), self.analytic_rank('ec'),
+            S = list(set([self.analytic_rank('cremona'),
                      self.analytic_rank('rubinstein'), self.analytic_rank('sympow')]))
             if len(S) != 1:
                 raise RuntimeError, "Bug in analytic rank; algorithms don't agree! (E=%s)"%E
@@ -845,11 +836,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on the
-        Weierstrass model of self.
+        2-Selmer group, and a list of independent points on
+        some mysterious model of the curve.
 
         \note{The points are not translated back to self only because
-        I haven't written code to do this yet.}
+        nobody has written code to do this yet.  Implement it and send
+        a patch.}
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -865,7 +857,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on the Weierstrass model
+            list    -- list of independent points on some (myserious!!) model for the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -879,13 +871,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 108 : 1)])
+            (1, 1, [(0 : 4 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
             (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(9 : 459 : 1), (153/4 : 189/8 : 1), (100 : 620 : 1)])
+            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
 
 
         In this example Simon's program does not find any points, though
@@ -898,10 +890,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         \url{http://tom.womack.net/maths/conductors.htm}
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
-            sage: E.simon_two_descent()
-            (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
+            sage: E.simon_two_descent()        # random points in output
+            (4, 4, [(935/49 : 400/343 : 1), (-1 : 136 : 1), (23 : 16 : 1), (-41 : 16 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: E.simon_two_descent()        # random output
+            sage: E.simon_two_descent()        # random points in output
             (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
@@ -2182,30 +2174,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return EllipticCurve_field.weierstrass_model(F)
 
     def integral_weierstrass_model(self):
-        """
+        r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('17a1')
+            sage: E.integral_weierstrass_model()
+            Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         F = self.minimal_model()
         a0, a1, a2, a3, a4 = F.ainvs()
-        return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
-                                          54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
-                                          3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
-                                          15552*a1*a3 + 11664*a2**2 + 46656*a4])
-
-    def watkins_data(self):
-        """
-        Return a dict of the data computed by Mark Watkins's ec
-        program applied to this elliptic curve.
-        """
-        try:
-            return self.__watins_data
-        except AttributeError:
-            try:
-                import sage.libs.ec.all
-            except ImportErrror:
-                raise NotImplementedError
-            self.__watkins_data = sage.libs.ec.all.ec(self.ainvs())
-            return self.__watkins_data
+        A = -27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3
+        B = 54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
+            3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
+            15552*a1*a3 + 11664*a2**2 + 46656*a4
+        while arith.valuation(A,2)>3 and arith.valuation(B,2)>5:
+            A = A/Integer(2**4)
+            B = B/Integer(2**6)
+        while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
+            A = A/Integer(3**4)
+            B = B/Integer(3**6)
+        return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):
         r"""
@@ -2217,7 +2206,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         INPUT:
            algorithm -- string:
               'sympow' -- (default) use Mark Watkin's (newer) C program sympow
-              'ec' -- use Mark Watkins's C program ec
               'magma' -- requires that MAGMA be installed (also implemented
                          by Mark Watkins)
 
@@ -2291,15 +2279,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.__modular_degree
 
         except AttributeError:
-
-            if misc.is_64_bit and algorithm == 'ec':
-                misc.verbose('64-bit computer -- switching to algorithm sympow')
-                algorithm = 'sympow'
-
-            if algorithm == 'ec':
-                v = self.watkins_data()
-                m = rings.Integer(v["Modular degree"])
-            elif algorithm == 'sympow':
+            if algorithm == 'sympow':
                 from sage.lfunctions.all import sympow
                 m = sympow.modular_degree(self)
             elif algorithm == 'magma':
@@ -2910,8 +2890,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def is_supersingular(self, p, ell=None):
         """
-        Return True precisely when the mod-p representation attached
-        to this elliptic curve is supersingular at ell.
+        Return True precisely when p is a prime of good reduction so
+        that the mod-p representation attached to this elliptic curve
+        is supersingular at ell.
 
         INPUT:
             p -- a prime
@@ -2922,7 +2903,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if ell is None:
             ell = p
-        return not self.is_ordinary(p, ell)
+        return self.is_good(p) and not self.is_ordinary(p, ell)
 
     def supersingular_primes(self, B):
         """
@@ -2940,11 +2921,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.aplist(20)
             [0, 0, 0, -1, 0, 5, 0, -7]
             sage: e.supersingular_primes(97)
-            [2, 3, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
+            [2, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
             sage: e.ordinary_primes(97)
             [7, 13, 19, 31, 37, 43, 61, 67, 73, 79, 97]
             sage: e.supersingular_primes(3)
-            [2, 3]
+            [2]
             sage: e.supersingular_primes(2)
             [2]
             sage: e.supersingular_primes(1)
@@ -2952,8 +2933,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         v = self.aplist(max(B, 3))
         P = arith.prime_range(max(B,3)+1)
-        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0] + \
-                      [P[i] for i in range(2,len(v)) if v[i] == 0]
+        N = self.conductor()
+        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0 and N%P[i] != 0] + \
+                      [P[i] for i in range(2,len(v)) if v[i] == 0 and N%P[i] != 0]
 
     def ordinary_primes(self, B):
         """
@@ -2970,7 +2952,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.aplist(20)
             [1, 0, 0, 0, 4, 0, 0, 0]
             sage: e.supersingular_primes(97)
-            [3, 5, 7, 13, 17, 19, 31, 41, 47, 59, 61, 73, 83, 89, 97]
+            [3, 5, 13, 17, 19, 31, 41, 47, 59, 61, 73, 83, 89, 97]
             sage: e.ordinary_primes(97)
             [2, 11, 23, 29, 37, 43, 53, 67, 71, 79]
             sage: e.ordinary_primes(3)
@@ -3085,6 +3067,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.sha_an()
             1
 
+            sage: EllipticCurve('14a4').sha_an()
+            1
+            sage: EllipticCurve('14a4').sha_an(use_database=True)  # optional -- requires large Cremona database package
+            1
+
         The smallest conductor curve with nontrivial Sha:
             sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66b3
             sage: E.sha_an()
@@ -3183,46 +3170,231 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__sha_an = Sha
             return Sha
 
-    def sha_an_padic(self, p):
-        """
-        Return the power of p that divides Sha(E)(p), according to the
-        p-adic analogue of the BSD conjecture.
+    def sha_an_padic(self, p, prec=0):
+        r"""
+        Returns the conjectural order of Sha(E), according to the
+        $p$-adic analogue of the BSD conjecture.
 
         INPUT:
-            p -- a prime
+            p -- a prime > 3
+            prec (optional) -- the precision used in the computation of the
+            p-adic L-Series
 
         OUTPUT:
-            integer -- power of p that conjecturally equals #Sha(E)(p)
+            p-adic number -- that conjecturally equals $\#Sha(E)(p)$ or $-\#Sha(E)(p)$.
 
-        Note that in many cases this conjecture has been proved.
+        NOTE:
+            If prec is set to zero (default) then the precision is set so that
+            at least the first p-adic digit of conjectural $\#Sha(E)(p)$ is
+            determined.
+
+        BUG:
+            Currently for supersingular primes for curves of rank > 0, only the
+            first digit will be correct. More is hard to compute anyway.
+
+        EXAMPLES:
+
+        Good ordinary examples:
+
+            sage: EllipticCurve('11a1').sha_an_padic(5)  #rank 0
+            1 + O(5^2)
+            sage: EllipticCurve('43a1').sha_an_padic(5)  #rank 1
+            1 + O(5)
+            sage: EllipticCurve('389a1').sha_an_padic(5,4) #rank 2   (long time)
+            1 + O(5^3)
+            sage: EllipticCurve('858k2').sha_an_padic(7)  #rank 0, non trivial sha  (long time)
+            7^2 + O(7^3)
+
+        Exceptional cases:
+
+            sage: EllipticCurve('11a1').sha_an_padic(11) #rank 0
+            1 + O(11)
+            sage: EllipticCurve('123a1').sha_an_padic(41) #rank 1    (long time)
+            40 + O(41)
+            sage: EllipticCurve('817a1').sha_an_padic(43) #rank 2    (long time)
+            42 + O(43)
+
+        Supersingular cases:
+
+            sage: EllipticCurve('34a1').sha_an_padic(5) # rank 0     (long time)
+            1 + O(5^3)
+            sage.: EllipticCurve('43a1').sha_an_padic(7) # rank 1    (very long time -- not tested)
+            1 + O(7)
+            sage: EllipticCurve('1483a1').sha_an_padic(5) # rank 2   (long time)
+            1 + O(5)
         """
         try:
-            return self.__sha_an_padic[p]
+            return self.__sha_an_padic[(p,prec)]
         except AttributeError:
             self.__sha_an_padic = {}
         except KeyError:
             pass
 
-        if self.is_ordinary(p) and self.is_good(p):
-            S = self._sha_an_padic_good_ordinary(p)
-        else:
-            raise NotImplementedError, "only the good ordinary case is implemented."
-        self.__sha_an_padic[p] = S
-        return S
+        if self.has_cm():
+            raise NotImplementedError, "I don't know about curves with complex multiplication."
 
-    def _sha_an_padic_good_ordinary(self, p):
-        """
-        Return the power of p that divides Sha(E)(p), according to the
-        p-adic analogue of the BSD conjecture.
+        tam = self.tamagawa_product()
+        tors = self.torsion_order()**2
+        reg = self.padic_regulator(p)
+        r = self.rank()
+
+        #         shortcut to introduce later ::
+        #   ( also we could avoid the computation of the modular symbols altogether )
+        # if r == 0:
+        #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
+        #    sha = lstar/bsdp
+        #    sha = lstar/bsdp[0] in the supersingular case
+
+        lp = self.padic_lseries(p)
+
+        if self.is_ordinary(p):
+            K = reg.parent()
+            lg = log(K(1+p))
+
+            if (self.is_good(p) or self.ap(p) == -1):
+                eps = (1-1/lp.alpha())**2
+                # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
+                bsdp = tam * reg * eps/tors/lg**r
+            else:
+                r += 1   # exceptional zero
+                eq = self.tate_curve(p)
+                Li = eq.L_invariant()
+
+                # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
+                # this should be equal to the leading term of the p-adic L-series:
+                bsdp = tam * reg * Li/tors/lg**r
+
+
+            v = bsdp.valuation()
+            if v > 0:
+                verbose("the prime is irregular.")
+
+            # determine how much prec we need to prove at least the triviality of
+            # the p-primary part od Sha
+
+            if prec == 0:
+                n = max(v,2)
+                bounds = lp._prec_bounds(n,r+1)
+                while bounds[r] <= v:
+                    n += 1
+                    bounds = lp._prec_bounds(n,r+1)
+                verbose("set precision to %s"%n)
+            else:
+                n = max(2,prec)
+
+            not_yet_enough_prec = True
+            while not_yet_enough_prec:
+                lps = lp.series(n,prec=r+1)
+                lstar = lps[r]
+                if (lstar != 0) or (prec != 0):
+                    not_yet_enough_prec = False
+                else:
+                    n += 1
+                    verbose("increased precision to %s"%n)
+
+            shan = lstar/bsdp
+
+        elif self.is_supersingular(p):
+            K = reg[0].parent()
+            lg = log(K(1+p))
+
+
+            # according to the p-adic BSD this should be equal to the leading term of the D_p - valued
+            # L-series :
+            bsdp = tam /tors/lg**r * reg
+            # note this is an element in Q_p^2
+
+            verbose("the algebraic leading terms : %s"%bsdp)
+
+            v = [bsdp[0].valuation(),bsdp[1].valuation()]
+
+            if prec == 0:
+                n = max(min(v)+2,3)
+            else:
+                n = max(3,prec)
+
+            verbose("...computing the p-adic L-series")
+            not_yet_enough_prec = True
+            while not_yet_enough_prec:
+                lps = lp.Dp_valued_series(n,prec=r+1)
+                lstar = [lps[0][r],lps[1][r]]
+                verbose("the leading terms : %s"%lstar)
+                if (lstar[0] != 0 or lstar[1] != 0) or ( prec != 0):
+                    not_yet_enough_prec = False
+                else:
+                    n += 1
+                    verbose("increased precision to %s"%n)
+
+            verbose("...putting things together")
+            if bsdp[0] != 0:
+                shan0 = lstar[0]/bsdp[0]
+            else:
+                shan0 = 0   # this should actully never happen
+            if bsdp[1] != 0:
+                shan1 = lstar[1]/bsdp[1]
+            else:
+                shan1 = 0   # this should conjecturally only happen when the rank is 0
+            verbose("the two values for Sha : %s"%[shan0,shan1])
+
+            # check consistency (the first two are only here to avoid a bug in the p-adic L-series
+            # (namely the coefficients of zero-relative precision are treated as zero)
+            if shan0 != 0 and shan1 != 0 and (shan0 - shan1 != 0 and shan0 + shan1 != 0):
+                raise RuntimeError, "There must be a bug in the supersingular routines for the p-adic BSD."
+
+            #take the better
+            if shan1 == 0 or shan0.precision_relative() > shan1.precision_relative():
+                shan = shan0
+            else:
+                shan = shan1
+
+        else:
+            raise ValueError, "The curve has to have semi-stable reduction at p."
+
+        self.__sha_an_padic[(p,prec)] = shan
+        return shan
+
+
+    def sha_p_primary_bound(self, p):
+        r"""
+        Returns an upper bound of $\#Sha(E)(p)$.
 
         INPUT:
-            p -- a prime of good ordinary reduction for E
+            p -- a prime > 3
 
         OUTPUT:
-            integer -- power of p that conjecturally equals #Sha(E)(p)
+            integer -- power of p that bounds #Sha(E)(p) from above
+
+        NOTE:
+            The result is a proven upper bound on the order of $Sha(E)(p)$.
+            So in particular it proves it finiteness even if the rank of
+            the curve is larger than 1. Note also that this bound is sharp
+            if one assumes the main conjecture of Iwasawa theory of
+            elliptic curves (and this is known in certain cases).
+
+        EXAMPLES:
+            sage: e = EllipticCurve('858k2')
+            sage: e.sha_p_primary_bound(3)           # long time
+            0
+            sage: e.sha_p_primary_bound(7)           # long time
+            2
         """
 
+        if self.is_ordinary(p) or self.is_good(p):
+            shan = self.sha_an_padic(p,prec = 0)
+            if shan == 0:
+                raise RuntimeError, "There is a bug in sha_an_padic."
+            S = shan.valuation()
+            if not self.is_surjective(p) and not self.is_reducible(p):
+                raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try sha_an_padic for a conjectural bound."
+        else:
+            raise ValueError, "The curve has to have semi-stable reduction at p."
 
+        return S
+
+
+    def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
+        M = self.isogeny_class()[1]
+        return Integer(misc.prod([x for x in M[0] if x], 1))
 
     def L_ratio(self):
         r"""
@@ -3283,7 +3455,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.__lratio
 
         # Even root number.  Decide if L(E,1) = 0.  If E is a modular
-        # *optimal* quotient of J_0(N) elliptic curve, we know that T *
+        # *OPTIMAL* quotient of J_0(N) elliptic curve, we know that T *
         # L(E,1)/omega is an integer n, where T is the order of the
         # image of the rational torsion point (0)-(oo) in E(Q), and
         # omega is the least real Neron period.  (This is proved in my
@@ -3300,9 +3472,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         #
         # Since in general E need not be optimal, we have to choose
         # eps = Omega_E/(8*t*B), where t is the exponent of E(Q)_tor,
-        # and B is a bound on the degree of any isogeny.   A liberal
-        # bound on the degrees of cyclic N-isogenies is 200, by Mazur's
-        # "Rational Isogenies of Prime Degree" paper, so we take B=200.
+        # and is a multiple of the degree of an isogeny between E
+        # and the optimal curve.
         #
         # NOTES: We *do* have to worry about the Manin constant, since
         # we are using the Neron model to compute omega, not the
@@ -3315,11 +3486,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # be a divisible by an arbitrary power of that prime, except
         # that Edixhoven claims the primes that appear are <= 7.
 
-        t = self.torsion_subgroup().exponent()
+        t = self.torsion_subgroup().order()
         omega = self.period_lattice()[0]
-        C = 8*200*t
+        d = self._multiple_of_degree_of_isogeny_to_optimal_curve()
+        C = 8*d*t
         eps = omega / C
-        #   coercion of 10**(-15) to our real field is needed to make unambiguous comparison
+        # coercion of 10**(-15) to our real field is needed to
+        # make unambiguous comparison
         if eps < R(10**(-15)):  # liberal bound on precision of float
             raise RuntimeError, "Insufficient machine precision (=%s) for computation."%eps
         sqrtN = 2*int(sqrt(self.conductor()))
@@ -4092,16 +4265,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
         A rank two example:
-            sage: EllipticCurve('389a').padic_height_pairing_matrix(5,10)
+            sage: e =EllipticCurve('389a')
+            sage: e._set_gens([e(-1, 1), e(1,0)])  # avoid platform dependent gens
+            sage: e.padic_height_pairing_matrix(5,10)
             [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^9)                   4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)]
             [                  4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)                     5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^6 + O(5^9)]
 
         An anomalous rank 3 example:
-            sage: E = EllipticCurve("5077a")
-            sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,4)   # somewhat random precision depending on architecture.
-            [1 + 2*5 + 5^3 + O(5^4)           5^2 + O(5^4)       1 + 3*5 + O(5^2)]
-            [          5^2 + O(5^4)         1 + 5 + O(5^4)       3 + 4*5 + O(5^2)]
-            [      1 + 3*5 + O(5^2)       3 + 4*5 + O(5^2)                 O(5^2)]
+            sage: e = EllipticCurve("5077a")
+            sage: e._set_gens([e(-1,3), e(2,0), e(4,6)])
+            sage: e.padic_height_pairing_matrix(5,4)
+            [                1 + 5 + O(5^4)               1 + 4*5 + O(5^2)                   2*5 + O(5^3)]
+            [              1 + 4*5 + O(5^2)       2 + 5^2 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4)]
+            [                  2*5 + O(5^3)     3 + 4*5^2 + 4*5^3 + O(5^4) 4 + 5 + 3*5^2 + 3*5^3 + O(5^4)]
         """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
@@ -4395,7 +4571,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5)
             4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^19)
             sage: E.padic_regulator(3,5)
-            (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^6))
+            (2*3 + O(3^3), 2*3^2 + O(3^4))
 
         A torsion point in both the good and supersingular cases:
             sage: E = EllipticCurve('11a')

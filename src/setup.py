@@ -5,7 +5,7 @@ import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
 
-## Choose cblas library -- note -- make sure to update sage/misc/sagex.py
+## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
@@ -62,26 +62,6 @@ include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 #####################################################
-
-ec =    Extension('sage.libs.ec.ec',
-              sources = ["sage/libs/ec/ec.pyx"] +  \
-                        ["sage/libs/ec/%s"%s for s in \
-                         ["analrank.c", "apcompute.c", "arderivs.c",
-                          "arintern.c", "arith.c", "artwists.c",
-                          "arutil.c", "checkit.c", "degphi.c",
-                          "diskio.c", "docurve.c", "dodisk.c",
-                          "equation.c", "exotic.c", "fixit.c",
-                          "iisog2.c", "iisog3.c", "isog.c", "isog2.c",
-                          "isog23.c", "isog24.c", "isog3.c", "isog5.c",
-                          "isog52.c", "isog713.c", "isogNprime.c",
-                          "isoggen.c", "isogsort.c", "isogx0.c",
-                          "isogx0branch.c", "isogx0branch1.c",
-                          "isogx0branch2.c", "isogx0branch3.c",
-                          "isogx0branch4.c", "isogx0branch5.c",
-                          "isogx0branch6.c", "isogx0getd.c",
-                          "isogx0period.c", "readit.c",
-                          "special.c", "util.c"]],
-              libraries = ["pari", "m"])
 
 hanke = Extension(name = "sage.libs.hanke.hanke",
               sources = ["sage/libs/hanke/hanke.pyx",
@@ -173,7 +153,7 @@ linbox = Extension('sage.libs.linbox.linbox',
 
 libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
                         language="c++",
                         )
 
@@ -316,7 +296,6 @@ sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 #####################################################
 
 ext_modules = [ \
-
     free_module_element,
 
     complex_double_vector,
@@ -328,7 +307,6 @@ ext_modules = [ \
 
     #vector_rational_sparse,
 
-    ec,
     pari,
 
     mwrank,
@@ -393,6 +371,9 @@ ext_modules = [ \
 
     sagex_ds,
 
+    Extension('sage.media.channels',
+              sources = ['sage/media/channels.pyx']), \
+
     Extension('sage.ext.sig',
               sources = ['sage/ext/sig.pyx']), \
 
@@ -417,6 +398,15 @@ ext_modules = [ \
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx']), \
 
+    Extension('sage.categories.morphism',
+              sources = ['sage/categories/morphism.pyx']), \
+
+    Extension('sage.categories.functor',
+              sources = ['sage/categories/functor.pyx']), \
+
+    Extension('sage.categories.action',
+              sources = ['sage/categories/action.pyx']), \
+
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']), \
 
@@ -433,7 +423,7 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
               language="c++",
               ), \
 
@@ -455,8 +445,8 @@ ext_modules = [ \
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
 
-    Extension('sage.misc.sagex_c',
-              sources = ['sage/misc/sagex_c.pyx']), \
+    Extension('sage.misc.cython_c',
+              sources = ['sage/misc/cython_c.pyx']), \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
@@ -510,7 +500,7 @@ ext_modules = [ \
     Extension('sage.schemes.hyperelliptic_curves.frobenius',
                  sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
                             'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
-                 libraries = ['ntl', 'stdc++'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 
@@ -607,12 +597,21 @@ ext_modules = [ \
               libraries = ['gmp']
               ), \
 
+    Extension('sage.combinat.partitions',
+              ['sage/combinat/partitions.pyx',
+               'sage/combinat/partitions_c.cc'],
+              libraries = ['gmp', 'mpfr'],
+              language='c++'
+              ), \
+
     Extension('sage.graphs.graph_fast',
               ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']
               ), \
 
-
+    Extension('sage.graphs.graph_isom',
+              ['sage/graphs/graph_isom.pyx']
+              ), \
 
     ]
 
@@ -638,8 +637,8 @@ for m in ext_modules:
 
 
 ######################################################################
-# CODE for generating C/C++ code from Pyrex and doing dependency
-# checking, etc.  In theory distutils would run Pyrex, but I don't
+# CODE for generating C/C++ code from Cython and doing dependency
+# checking, etc.  In theory distutils would run Cython, but I don't
 # trust it at all, and it won't have the more sophisticated dependency
 # checking that we need.
 ######################################################################
@@ -659,10 +658,10 @@ def is_older(file1, file2):
     return False
 
 
-def need_to_pyrex(filename, outfile):
+def need_to_cython(filename, outfile):
     """
     INPUT:
-        filename -- The name of a pyrex file in the SAGE source tree.
+        filename -- The name of a cython file in the SAGE source tree.
         outfile -- The name of the corresponding c or cpp file in the build directory.
 
     OUTPUT:
@@ -695,7 +694,7 @@ def need_to_pyrex(filename, outfile):
         # Also, the cimport can be both have no dots (current directory) or absolute.
         # The multiple imports with parens, e.g.,
         #        import (a.b.c.d, e.f.g)
-        # of Python are not allowed in Pyrex.
+        # of Python are not allowed in Cython.
         # In both cases, the module name is the second word if we split on whitespace.
         try:
             A = A.strip().split()[1]
@@ -747,47 +746,13 @@ def need_to_pyrex(filename, outfile):
     # We do not have to rebuild.
     return False
 
-def process_pyrexembed_file(f, m):
-    # This is a pyrexembed file, so process accordingly.
-    dir, base = os.path.split(f[:-5])
-    tmp = '%s/.tmp_pyrexembed'%dir
-    if os.path.exists(tmp) and not os.path.isdir(tmp):
-        print "Please delete file '%s' in %s"%(tmp, dir)
-        sys.exit(1)
-    if not os.path.exists(tmp):
-        os.makedirs(tmp)
-    pyxe_file = "%s/%s.pyxe"%(tmp, base)
-
-    # The following files will be produced by pyrexembed.
-    cpp_file = "%s/%s_embed.cpp"%(dir, base)
-    c_file = "%s/%s.c"%(dir, base)
-    pyx_file = "%s/%s.pyx"%(dir,base)
-    pyx_embed_file = "%s/%s.pyx"%(tmp, base)
-    h_file = "%s/%s_embed.h"%(tmp, base)
-    if is_older(f, pyx_file) or is_older(f, cpp_file) or is_older(f, h_file):
-        os.system('cp -p %s %s'%(f, pyxe_file))
-        os.system('cp -p %s/*.pxi %s'%(dir, tmp))
-        os.system('cp -p %s/*.pxd %s'%(dir, tmp))
-        os.system('cp -p %s/*.h %s'%(dir, tmp))
-        cmd = "pyrexembed %s"%pyxe_file
-        print cmd
-        ret = os.system(cmd)
-        if ret != 0:
-            print "sage: Error running pyrexembed."
-            sys.exit(1)
-        process_pyrex_file(pyx_embed_file, m)
-        cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
-        print cmd
-        os.system(cmd)
-    return [cpp_file, c_file]
-
-def process_pyrex_file(f, m):
+def process_cython_file(f, m):
     """
     INPUT:
         f -- file name
         m -- Extension module description (i.e., object of type Extension).
     """
-    # This is a pyrex file, so process accordingly.
+    # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
     if is_older(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
@@ -796,22 +761,22 @@ def process_pyrex_file(f, m):
     if m.language == 'c++':
         outfile += 'pp'
 
-    if need_to_pyrex(f, outfile):
-        cmd = "pyrexc --embed-positions -I%s %s"%(os.getcwd(), f)
+    if need_to_cython(f, outfile):
+        cmd = "cython --embed-positions -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "sage: Error running pyrexc."
+            print "sage: Error running cython."
             sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
-        # (I don't know how to tell Pyrex to do this automatically.)
+        # (I don't know how to tell Cython to do this automatically.)
         if m.language == 'c++':
             os.system('mv %s.c %s'%(f[:-4], outfile))
     return [outfile]
 
 
-def pyrex(ext_modules):
+def cython(ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
 #        m.extra_link_args += extra_link_args
@@ -819,19 +784,16 @@ def pyrex(ext_modules):
         for i in range(len(m.sources)):
             f = m.sources[i]
             s = open(f).read()
-            if f[-5:] == '.pyxe':# and s.find("#embed") != -1 and s.find('#}embed') != -1:
-                new_sources = process_pyrexembed_file(f, m)
-            elif f[-4:] == ".pyx":
-                new_sources += process_pyrex_file(f, m)
+            if f[-4:] == ".pyx":
+                new_sources += process_cython_file(f, m)
             else:
                 new_sources.append(f)
         m.sources = new_sources
 
 
 
-
 if not sdist:
-    pyrex(ext_modules)
+    cython(ext_modules)
 
 setup(name        = 'sage',
 
@@ -845,7 +807,7 @@ setup(name        = 'sage',
 
       author_email= 'wstein@gmail.com',
 
-      url         = 'http://modular.math.washington.edu/sage',
+      url         = 'http://www.sagemath.org',
 
       packages    = ['sage',
 
@@ -891,13 +853,12 @@ setup(name        = 'sage',
                      'sage.libs.linbox',
                      'sage.libs.mwrank',
                      'sage.libs.ntl',
-                     'sage.libs.ec',
                      'sage.libs.pari',
                      'sage.libs.singular',
 
                      'sage.matrix',
 #                     'sage.matrix.padics',
-
+                     'sage.media',
                      'sage.misc',
 
                      'sage.modules',

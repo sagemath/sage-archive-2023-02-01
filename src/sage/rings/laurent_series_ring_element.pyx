@@ -143,6 +143,9 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return self.__u.is_zero()
 
+    def __nonzero__(self):
+        return not not self.__u
+
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
 
@@ -502,10 +505,10 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__n + right.__n)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return LaurentSeries(self._parent, c * self.__u, self.__n)
+        return LaurentSeries(self._parent, self.__u._rmul_c(c), self.__n)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement c):
-        return LaurentSeries(self._parent, self.__u * c, self.__n)
+        return LaurentSeries(self._parent, self.__u._lmul_c(c), self.__n)
 
     def __pow__(_self, r, dummy):
         """
@@ -559,6 +562,23 @@ cdef class LaurentSeries(AlgebraElement):
     def __rshift__(LaurentSeries self, k):
         return LaurentSeries(self._parent, self.__u, self.__n - k)
 
+    def truncate(self, long n):
+        r"""
+        Returns the laurent series of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        if n <= self.__n:
+            return LaurentSeries(self._parent, 0)
+        else:
+            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n)
+
+    def truncate_neg(self, long n):
+        r"""
+        Returns the laurent series equivalent to self except without any degree < n terms.
+
+        This is equivalent to $\code{self - self.truncate(n)}$.
+        """
+        return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
     cdef RingElement _div_c_impl(self, RingElement right_r):
         """
@@ -666,10 +686,11 @@ cdef class LaurentSeries(AlgebraElement):
             return 0
         zero = self.base_ring()(0)
 
-        if self.__n < right.__n:
-            return cmp(self.__u[0], zero)
-        elif self.__n > right.__n:
-            return cmp(zero, right.__u[0])
+        if not self and not right:
+            if self.__n < right.__n:
+                return cmp(self.__u[0], zero)
+            elif self.__n > right.__n:
+                return cmp(zero, right.__u[0])
 
         # zero pad coefficients on the left, to line them up for comparison
         cdef long n = min(self.__n, right.__n)

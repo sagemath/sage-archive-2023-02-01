@@ -35,6 +35,8 @@ def derivative(f, *args, **kwds):
         -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
 
     We differentiate a symbolic expression:
+        sage: var('a x')
+        (a, x)
         sage: f = exp(sin(a - x^2))/x
         sage: diff(f, x)
         -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - (e^(-sin(x^2 - a))/x^2)
@@ -65,10 +67,12 @@ def integral(f, *args, **kwds):
         2
 
     We integrate a symbolic function:
-        sage: f(x,y) = x*y/z + sin(z)
+        sage: f(x,y,z) = x*y/z + sin(z)
         sage: integral(f, z)
-        (x, y) |--> x*y*log(z) - cos(z)
+        (x, y, z) |--> x*y*log(z) - cos(z)
 
+        sage: var('a,b')
+        (a, b)
         sage: assume(b-a>0)
         sage: integral( sin(x), x, a, b)
         cos(a) - cos(b)
@@ -90,7 +94,7 @@ def integral(f, *args, **kwds):
         sage: f(x) = 1/(sqrt(2*pi)) * e^(-x^2/2)
         sage: P = plot(f, -4, 4, hue=0.8, thickness=2)
         sage: P.save('sage.png', ymin=0, ymax=0.4)
-        sage: numerical_integral(f, -4, 4)
+        sage: numerical_integral(f, -4, 4)                    # random output
         (0.99993665751633376, 1.1101527003413533e-14)
         sage: integrate(f, x)
         x |--> erf(x/sqrt(2))/2
@@ -106,6 +110,7 @@ def integral(f, *args, **kwds):
 
     We compute the line integral of sin(x) along the arc of the curve
     $x=y^4$ from $(1,-1)$ to $(1,1)$:
+        sage: t = var('t')
         sage: (x,y) = (t^4,t)
         sage: (dx,dy) = (diff(x,t), diff(y,t))
         sage: integral(sin(x)*dx, t,-1, 1)
@@ -140,6 +145,7 @@ def integral(f, *args, **kwds):
         integrate(1/(sqrt(2*t^4 - 3*t^2 - 2)), t, 2, 3)
 
     A double integral:
+        sage: y = var('y')
         sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)
         32/5
 
@@ -226,6 +232,8 @@ def taylor(f, v, a, n):
         n -- integer
 
     EXAMPLES:
+        sage: var('x,k,n')
+        (x, k, n)
         sage: taylor (sqrt (1 - k^2*sin(x)^2), x, 0, 6)
         1 - (k^2*x^2/2) - ((3*k^4 - 4*k^2)*x^4/24) - ((45*k^6 - 60*k^4 + 16*k^2)*x^6/720)
         sage: taylor ((x + 1)^n, x, 0, 4)
@@ -289,6 +297,8 @@ def laplace(f, t, s):
     The function that is returned maybe be viewed as a function of s.
 
     EXAMPLES:
+        sage: var('a,s,t')
+        (a, s, t)
         sage: f = exp (2*t + a) * sin(t) * t; f
         t*e^(2*t + a)*sin(t)
         sage: L = laplace(f, t, s); L
@@ -312,11 +322,12 @@ def inverse_laplace(f, t, s):
     is called \code{ilt}.
 
     EXAMPLES:
-        sage: f = t*cos(t)
+        sage: f(t) = t*cos(t)
+        sage: s = var('s')
         sage: L = laplace(f, t, s); L
-        2*s^2/(s^2 + 1)^2 - (1/(s^2 + 1))
+        t |--> 2*s^2/(s^2 + 1)^2 - (1/(s^2 + 1))
         sage: inverse_laplace(L, s, t)
-        t*cos(t)
+        t |--> t*cos(t)
         sage: print inverse_laplace(1/(s^3+1), s, t)
                            sqrt(3) t        sqrt(3) t
                        sin(---------)   cos(---------)      - t

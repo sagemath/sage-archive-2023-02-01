@@ -737,6 +737,16 @@ cdef class Matrix(matrix0.Matrix):
             r = r + 1
         return A
 
+    def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                        Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        if nrows == -1:
+            nrows = self._nrows - row
+        if ncols == -1:
+            ncols = self._ncols - col
+        return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
+
+
+
     ####################################################################################
     # Change of representation between dense and sparse.
     ####################################################################################

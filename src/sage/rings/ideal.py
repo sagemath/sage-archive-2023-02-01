@@ -77,10 +77,8 @@ def Ideal(R, gens=[], coerce=True):
         sage: i = ideal(1,t,t^2)
         sage: i
         Ideal (t, 1, t^2) of Univariate Polynomial Ring in t over Integer Ring
-        sage: i = ideal(1/2,t,t^2)
-        Traceback (most recent call last):
-        ...
-        TypeError: unable to find common ring into which all ideal generators map
+        sage: ideal(1/2,t,t^2)
+        Principal ideal (1) of Univariate Polynomial Ring in t over Rational Field
 
     TESTS:
         sage: R, x = PolynomialRing(ZZ, 'x').objgen()

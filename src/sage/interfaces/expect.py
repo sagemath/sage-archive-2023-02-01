@@ -83,21 +83,31 @@ class Expect(ParentWithBase):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None, maxread=100000,
+    def __init__(self, name, prompt, command=None, server=None,
+                 ulimit = None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_cleaner = True, path=None):
+                 do_cleaner = True, remote_cleaner = False, path=None):
 
         self.__is_remote = False
+        self.__remote_cleaner = remote_cleaner
         if command == None:
             command = name
-        if server != None:
-            command = "ssh -t %s %s"%(server, command)
+        if not server is None:
+            if ulimit:
+                command = 'ssh -t %s "PATH=%s:$PATH; export PATH; ulimit %s; %s"'%(
+                    server, SAGE_ROOT, ulimit, command)
+            else:
+                command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True
             eval_using_file_cutoff = 0  # don't allow this!
-            #print command
+            if verbose_start:
+                print "Using remote server"
+                print command
             self._server = server
+        else:
+            self._server = None
         self.__do_cleaner = do_cleaner
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
@@ -265,11 +275,11 @@ class Expect(ParentWithBase):
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
-        if self.__name in failed_to_start:
-            if alt_message:
-                raise RuntimeError, alt_message
-            else:
-                raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
+        #if self.__name in failed_to_start:
+        #    if alt_message:
+        #        raise RuntimeError, alt_message
+        #    else:
+        #        raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
 
         self._session_number += 1
         current_path = os.path.abspath('.')
@@ -291,8 +301,11 @@ class Expect(ParentWithBase):
             print "Starting %s"%cmd.split()[0]
 
         try:
+            if self.__remote_cleaner and self._server:
+                c = 'ssh %s "nohup sage -cleaner"  &'%self._server
+                os.system(c)
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
-            if self._do_cleaner() and not self.__is_remote:
+            if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
@@ -354,7 +367,7 @@ class Expect(ParentWithBase):
         """
         raise NotImplementedError
 
-    def quit(self, verbose=False):
+    def quit(self, verbose=False, timeout=0.25):
         """
         EXAMPLES:
             sage: a = maxima('y')
@@ -376,7 +389,7 @@ class Expect(ParentWithBase):
             print "Exiting spawned %s process."%self
         try:
             E.sendline(self._quit_string())
-            self._so_far(wait=0.25)
+            self._so_far(wait=timeout)
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
         except (RuntimeError, OSError), msg:
@@ -468,7 +481,7 @@ class Expect(ParentWithBase):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def interrupt(self, tries=20, timeout=0.3):
+    def interrupt(self, tries=20, timeout=0.3, quit_on_fail=True):
         E = self._expect
         if E is None:
             return True
@@ -488,7 +501,7 @@ class Expect(ParentWithBase):
             pass
         if success:
             pass
-        else:
+        elif quit_on_fail:
             self.quit()
         return success
 

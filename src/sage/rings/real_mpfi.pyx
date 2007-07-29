@@ -134,7 +134,6 @@ cimport real_mpfr
 from real_mpfr cimport RealField, RealNumber
 import real_mpfr
 
-import sage.structure.coerce
 import operator
 
 from integer import Integer
@@ -377,6 +376,28 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         if not y is None:
             x = (x,y)
         return RealIntervalFieldElement(self, x, base)
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$,
+        and the note that this is an interval field.
+
+        Also preserves other information that makes this field unique
+        (e.g. precision, print mode).
+
+        EXAMPLES:
+            sage: R = RealIntervalField(123)
+            sage: c, S = R.construction(); S
+            Rational Field
+            sage: R == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  self.prec(),
+                                  {'sci_not': self.scientific_notation(), 'type': 'Interval'}),
+               sage.rings.rational_field.QQ)
 
     cdef _coerce_c_impl(self, x):
         """
@@ -1308,7 +1329,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int,long, Integer)):
             return x._lshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.lshift)
+        return sage.structure.element.bin_op(x, y, operator.lshift)
 
     def _rshift_(RealIntervalFieldElement self, n):
         if n > sys.maxint:
@@ -1330,7 +1351,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if isinstance(x, RealIntervalFieldElement) and \
                isinstance(y, (int,long,Integer)):
             return x._rshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.rshift)
+        return sage.structure.element.bin_op(x, y, operator.rshift)
 
     def multiplicative_order(self):
         if self == 1:

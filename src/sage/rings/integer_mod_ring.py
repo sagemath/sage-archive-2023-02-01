@@ -96,7 +96,7 @@ def IntegerModRing(order=0):
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
-        if x != None: return x
+        if not x is None: return x
     #if check_prime and arith.is_prime(order):
     #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
     #else:
@@ -212,6 +212,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             cache = order < 500
         if cache:
             self._precompute_table()
+
+        self._zero_element = integer_mod.IntegerMod(self, 0)
+        self._one_element = integer_mod.IntegerMod(self, 1)
 
     def krull_dimension(self):
         return integer.Integer(0)

@@ -16,12 +16,12 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-from   sage.structure.sequence import _combinations, Sequence
-from   sage.structure.element import is_Vector
-from   sage.misc.misc import verbose, get_verbose, graphics_filename
-from   sage.rings.number_field.all import is_NumberField
-from   sage.rings.integer_ring import ZZ
-from   sage.rings.rational_field import QQ
+from sage.structure.sequence import _combinations, Sequence
+from sage.structure.element import is_Vector
+from sage.misc.misc import verbose, get_verbose, graphics_filename
+from sage.rings.number_field.all import is_NumberField
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 import sage.modules.free_module
 import matrix_space
@@ -33,6 +33,22 @@ from random import randint
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
         return self.solve_right(B)
+
+    def subs(self, in_dict=None, **kwds):
+        """
+        EXAMPLES:
+            sage: var('a,b,d,e')
+            (a, b, d, e)
+            sage: m = matrix([[a,b], [d,e]])
+            sage: m.substitute(a=1)
+            [1 b]
+            [d e]
+            sage: m.subs(a=b, b=d)
+            [b d]
+            [d e]
+        """
+        v = [a.subs(in_dict, **kwds) for a in self.list()]
+        return self.new_matrix(self.nrows(), self.ncols(), v)
 
     def solve_right(self, B):
         r"""
@@ -1298,10 +1314,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: m = Matrix(Integers(5),2,2,[2,2,2,2]);
             sage: m.row_space()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Ring of integers modulo 5
+            Vector space of degree 2 and dimension 1 over Ring of integers modulo 5
             Basis matrix:
             [1 1]
-
         """
         return self.row_module(base_ring=base_ring)
 
@@ -2326,8 +2341,223 @@ cdef class Matrix(matrix1.Matrix):
         import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
+        if ncols == -1:
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def subdivide(self, row_lines=None, col_lines=None):
+        """
+        Divides self into logical submatrices which can then be
+        queried and extracted. If a subdivision already exists,
+        this method forgets the previous subdivision and flushes
+        the cache.
+
+        INPUT:
+            row_lines -- None, an integer, or a list of integers
+            col_lines -- None, an integer, or a list of integers
+
+        OUTPUT:
+            changes self
+
+        NOTE:
+            One may also pass a tuple into the first argument which will
+            be interpreted as (row_lines, col_lines)
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, prime_range(100))
+            sage: M.subdivide(2,3); M
+            [ 2  3  5| 7 11]
+            [13 17 19|23 29]
+            [--------+-----]
+            [31 37 41|43 47]
+            [53 59 61|67 71]
+            [73 79 83|89 97]
+            sage: M.subdivision(0,0)
+            [ 2  3  5]
+            [13 17 19]
+            sage: M.subdivision(1,0)
+            [31 37 41]
+            [53 59 61]
+            [73 79 83]
+            sage: M.subdivision_entry(1,0,0,0)
+            31
+            sage: M.get_subdivisions()
+            ([2], [3])
+            sage: M.subdivide(None, [1,3]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [73|79 83|89 97]
+
+        Degenerate cases work too.
+            sage: M.subdivide([2,5], [0,1,3]); M
+            [| 2| 3  5| 7 11]
+            [|13|17 19|23 29]
+            [+--+-----+-----]
+            [|31|37 41|43 47]
+            [|53|59 61|67 71]
+            [|73|79 83|89 97]
+            [+--+-----+-----]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(0,1)
+            [ 2]
+            [13]
+            sage: M.subdivide([2,2,3], [0,0,1,1]); M
+            [|| 2|| 3  5  7 11]
+            [||13||17 19 23 29]
+            [++--++-----------]
+            [++--++-----------]
+            [||31||37 41 43 47]
+            [++--++-----------]
+            [||53||59 61 67 71]
+            [||73||79 83 89 97]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(2,4)
+            [37 41 43 47]
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-06-14)
+        """
+
+        self.check_mutability()
+        if col_lines is None and row_lines is not None and isinstance(row_lines, tuple):
+            tmp = row_lines
+            row_lines, col_lines = tmp
+        if row_lines is None:
+            row_lines = []
+        elif not isinstance(row_lines, list):
+            row_lines = [row_lines]
+        if col_lines is None:
+            col_lines = []
+        elif not isinstance(col_lines, list):
+            col_lines = [col_lines]
+        row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
+        col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
+        if self.subdivisions is not None:
+            self.clear_cache()
+        self.subdivisions = (row_lines, col_lines)
+
+    def subdivision(self, i, j):
+        """
+        Returns in immutable copy of the (i,j)th submatrix of self,
+        according to a previously set subdivision.
+
+        Before a subdivision is set, the only valid arguments are
+        (0,0) which returns self.
+
+        EXAMPLE:
+            sage: M = matrix(3, 4, range(12))
+            sage: M.subdivide(1,2); M
+            [ 0  1| 2  3]
+            [-----+-----]
+            [ 4  5| 6  7]
+            [ 8  9|10 11]
+            sage: M.subdivision(0,0)
+            [0 1]
+            sage: M.subdivision(0,1)
+            [2 3]
+            sage: M.subdivision(1,0)
+            [4 5]
+            [8 9]
+
+        It handles size-zero subdivisions as well.
+            sage: M = matrix(3, 4, range(12))
+            sage: M.subdivide([0],[0,2,2,4]); M
+            [+-----++-----+]
+            [| 0  1|| 2  3|]
+            [| 4  5|| 6  7|]
+            [| 8  9||10 11|]
+            sage: M.subdivision(0,0)
+            []
+            sage: M.subdivision(1,1)
+            [0 1]
+            [4 5]
+            [8 9]
+            sage: M.subdivision(1,2)
+            []
+            sage: M.subdivision(1,0)
+            []
+            sage: M.subdivision(0,1)
+            []
+        """
+        if self.subdivisions is None:
+            self.subdivisions = ([0, self._nrows], [0, self._ncols])
+        key = "subdivision %s %s"%(i,j)
+        sd = self.fetch(key)
+        if sd is None:
+            sd = self.submatrix(self.subdivisions[0][i], self.subdivisions[1][j],
+                                self.subdivisions[0][i+1]-self.subdivisions[0][i], self.subdivisions[1][j+1]-self.subdivisions[1][j])
+            sd.set_immutable()
+            self.cache(key, sd)
+        return sd
+
+    def subdivision_entry(self, i, j, x, y):
+        """
+        Returns the x,y entry of the i,j submatrix of self.
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, range(25))
+            sage: M.subdivide(3,3); M
+            [ 0  1  2| 3  4]
+            [ 5  6  7| 8  9]
+            [10 11 12|13 14]
+            [--------+-----]
+            [15 16 17|18 19]
+            [20 21 22|23 24]
+            sage: M.subdivision_entry(0,0,1,2)
+            7
+            sage: M.subdivision(0,0)[1,2]
+            7
+            sage: M.subdivision_entry(0,1,0,0)
+            3
+            sage: M.subdivision_entry(1,0,0,0)
+            15
+            sage: M.subdivision_entry(1,1,1,1)
+            24
+
+        Even though this entry exists in the matrix, the index is invalid for the submatrix.
+            sage: M.subdivision_entry(0,0,4,0)
+            Traceback (most recent call last):
+            ...
+            IndexError: Submatrix 0,0 has no entry 4,0
+        """
+        if self.subdivisions is None:
+            if not i and not j:
+                return self[x,y]
+            else:
+                raise IndexError, "No such submatrix %s, %s"%(i,j)
+        if x >= self.subdivisions[0][i+1]-self.subdivisions[0][i] or \
+           y >= self.subdivisions[1][j+1]-self.subdivisions[1][j]:
+            raise IndexError, "Submatrix %s,%s has no entry %s,%s"%(i,j, x, y)
+        return self[self.subdivisions[0][i] + x , self.subdivisions[1][j] + y]
+
+    def get_subdivisions(self):
+        """
+        Returns the current subdivision of self.
+
+        EXAMPLES:
+            sage: M = matrix(5, 5, range(25))
+            sage: M.get_subdivisions()
+            ([], [])
+            sage: M.subdivide(2,3)
+            sage: M.get_subdivisions()
+            ([2], [3])
+            sage: N = M.parent()(1)
+            sage: N.subdivide(M.get_subdivisions()); N
+            [1 0 0|0 0]
+            [0 1 0|0 0]
+            [-----+---]
+            [0 0 1|0 0]
+            [0 0 0|1 0]
+            [0 0 0|0 1]
+        """
+        if self.subdivisions is None:
+            return ([], [])
+        else:
+            return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
     def randomize(self, density=1, *args, **kwds):
         """
@@ -2453,7 +2683,7 @@ cdef class Matrix(matrix1.Matrix):
         import gd
         import os
 
-        cdef int x, y, _x, _y, v, b2
+        cdef int x, y, _x, _y, v, bi
         cdef int ir,ic
         cdef float b, fct
 
@@ -2478,8 +2708,8 @@ cdef class Matrix(matrix1.Matrix):
             ic = mr
             b = 1.0
 
-        b2 = b**2
-        fct = 255.0/b2
+        fct = 255.0/(b*b)
+        bi = <int>b
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))
@@ -2491,13 +2721,12 @@ cdef class Matrix(matrix1.Matrix):
 
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
-                v = b2
-                for _x from 0 <= _x < b:
-                    for _y from 0 <= _y < b:
+                for _x from 0 <= _x < bi:
+                    for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 
-                v = int(v*fct)
+                v = int(b*b*fct)
                 val = colorExact((v,v,v))
                 setPixel((y,x), val)
 

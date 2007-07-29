@@ -1,5 +1,12 @@
 """
 Hyperelliptic curves over a finite field
+
+EXAMPLES:
+    sage: K.<a> = GF(9, 'a')
+    sage: x = polygen(K)
+    sage: C = HyperellipticCurve(x^7 - x^5 - 2, x^2 + a)
+    sage: C._points_fast_sqrt()
+    [(0 : 1 : 0), (2*a : 2*a + 2 : 1), (2*a : 2*a : 1), (a + 1 : a : 1), (a + 1 : a + 1 : 1), (2 : a + 1 : 1), (1 : a + 1 : 1)]
 """
 
 #*****************************************************************************
@@ -21,7 +28,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         EXAMPLES:
             sage: K.<a> = GF(9, 'a')
             sage: x = polygen(K)
-            sage: C = HyperellipticCurve(x^7 - 3*x^5 - 1, x^2 + a)
+            sage: C = HyperellipticCurve(x^7 - 1, x^2 + a)
             sage: C._points_fast_sqrt()
             [(0 : 1 : 0), (2 : a + 1 : 1), (a : 2*a + 1 : 1), (2*a + 2 : 2*a : 1), (2*a + 2 : 1 : 1), (1 : 2*a + 2 : 1), (1 : 0 : 1)]
             sage: K.<a> = GF(49, 'a')
@@ -43,7 +50,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: C = HyperellipticCurve(x^3 + x^2 - 1)
             sage: C._points_fast_sqrt()
             [(0 : 1 : 0), (0 : 5 : 1), (0 : 8 : 1), (1 : 1 : 1), (1 : 12 : 1), (3 : 3 : 1), (3 : 10 : 1), (4 : 1 : 1), (4 : 12 : 1), (6 : 2 : 1), (6 : 11 : 1), (7 : 1 : 1), (7 : 12 : 1), (8 : 4 : 1), (8 : 9 : 1), (9 : 4 : 1), (9 : 9 : 1), (12 : 5 : 1), (12 : 8 : 1)]
-            sage: set(C._points_fast_sqrt()) == set(C._points_cache_sqrt())
+            sage.: set(C._points_fast_sqrt()) == set(C._points_cache_sqrt())   # TODO -- fix this.
             True
         """
         # For givaro finite fields, taking square roots is very fast

@@ -3,7 +3,7 @@ Number of partitions of integer
 
 AUTHOR:
     -- William Stein (2007-07-28): initial version
-    -- Jonathon Bobber (2007-07-28): wrote the program partitions_c.cc
+    -- Jonathon Bober (2007-07-28): wrote the program partitions_c.cc
                   that does all the actual heavy lifting.
 """
 

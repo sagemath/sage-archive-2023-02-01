@@ -1187,7 +1187,7 @@ def number_of_partitions(n,k=None, algorithm='gap'):
              the positive integer n into sums with k summands.
         algorithm -- (default: 'gap')
             'gap' -- use GAP (VERY *slow*)
-            'bobber' -- use Jonathon Bobber's implementation (*very* fast,
+            'bober' -- use Jonathon Bober's implementation (*very* fast,
                       but new and not well tested yet).
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
@@ -1214,7 +1214,7 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         7
         sage: number_of_partitions(5, algorithm='pari')
         7
-        sage: number_of_partitions(5, algorithm='bobber')
+        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ValueError is raised.
@@ -1271,7 +1271,7 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
-    elif algorithm == 'bobber':
+    elif algorithm == 'bober':
         return partitions_ext.number_of_partitions(n)
     elif algorithm == 'pari':
         if not k is None:

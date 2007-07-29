@@ -10,6 +10,7 @@ usage() {
     echo "                   the same as to the notebook command in SAGE)"
     echo "  -inotebook [options] -- start the *insecure* SAGE notebook "
     echo "  -i [packages] -- install the given SAGE packages"
+    echo "  -min ...      -- do not populate global namespace (must be first option)"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "        options to '-t':   --verbose, --gdb, --long, --optional"
@@ -28,7 +29,7 @@ usage_advanced() {
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
-    echo "  -ba [branch]  -- switch to, rebuild all Sagex code, and run SAGE branch in devel/sage-branch"
+    echo "  -ba [branch]  -- switch to, rebuild all Cython code, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleaner      -- run the SAGE cleaner"
     echo "  -clisp [...]  -- run Common Lisp"
@@ -50,6 +51,7 @@ usage_advanced() {
     echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
     echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
     echo "  -M2 <..>      -- run SAGE's Macaulay2 with given arguments"
+    echo "  -min ...      -- do not populate global namespace (must be first option)"
     echo "  -mpl          -- run with matplotlib support (requires optional matplotlib package)"
     echo "  -mwrank <..>  -- run SAGE's mwrank with given arguments"
     echo "  -np           -- run with no output prompts (useful for making doctests)"
@@ -149,7 +151,7 @@ sage_setup() {
 #   very confused about what branch they are using.
 ########################################################
 
-SAGE_STARTUP_COMMAND="
+SAGE_STARTUP="
 import sage.misc.misc; print \
 sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
 from sage.misc.interpreter import preparser; preparser(True);\
@@ -161,11 +163,12 @@ from sage.misc.interpreter import attached_files\
 "
 
 if [ "$SAGE_IMPORTALL" != "no" ]; then
-   SAGE_STARTUP_COMMAND="$SAGE_STARTUP_COMMAND"";from sage.all_cmdline import *"
+   SAGE_STARTUP_COMMAND="$SAGE_STARTUP"";from sage.all_cmdline import *"
+else
+   SAGE_STARTUP_COMMAND="$SAGE_STARTUP"
 fi
 
 SAGE_STARTUP_COMMAND="$SAGE_STARTUP_COMMAND"";_=sage.misc.interpreter.load_startup_file(\"$SAGE_STARTUP_FILE\")"
-
 export SAGE_STARTUP_COMMAND
 
 if [ $# -gt 0 ]; then
@@ -190,6 +193,14 @@ if [ $1 = '-cleaner' ]; then
     exit $?
 fi
 
+if [ $1 = '-min' -o $1 = '--min' ]; then
+    SAGE_IMPORTALL="no"
+    export SAGE_IMPORTALL
+    shift
+    sage-sage "$@"
+    exit $?
+fi
+
 #####################################################################
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################
@@ -197,7 +208,7 @@ fi
 if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
     cd "$CUR"
     shift
-    axiom "$@"
+   axiom "$@"
     exit $?
 fi
 
@@ -607,10 +618,10 @@ if [ $1 = '-preparse' -o $1 = "--preparse" ]; then
     exit $?
 fi
 
-if [ $1 = '-pyrex' -o $1 = "--pyrex" ]; then
+if [ $1 = "-cython" -o $1 = '--cython' -o $1 = '-pyrex' -o $1 = "--pyrex" ]; then
     shift
     cd "$CUR"
-    pyrexc "$@"
+    cython "$@"
     exit $?
 fi
 

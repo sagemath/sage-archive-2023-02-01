@@ -597,6 +597,13 @@ ext_modules = [ \
               libraries = ['gmp']
               ), \
 
+    Extension('sage.combinat.partitions',
+              ['sage/combinat/partitions.pyx',
+               'sage/combinat/partitions_c.cc'],
+              libraries = ['gmp', 'mpfr'],
+              language='c++'
+              ), \
+
     Extension('sage.graphs.graph_fast',
               ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']

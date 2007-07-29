@@ -204,6 +204,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 
 import expnums
+import partitions as partitions_ext
 
 ######### combinatorial sequences
 
@@ -1185,7 +1186,9 @@ def number_of_partitions(n,k=None, algorithm='gap'):
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
         algorithm -- (default: 'gap')
-            'gap' -- use GAP
+            'gap' -- use GAP (VERY *slow*)
+            'bobber' -- use Jonathon Bobber's implementation (*very* fast,
+                      but new and not well tested yet).
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
@@ -1210,6 +1213,8 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         sage: number_of_partitions(5)
         7
         sage: number_of_partitions(5, algorithm='pari')
+        7
+        sage: number_of_partitions(5, algorithm='bobber')
         7
 
     The input must be a nonnegative integer or a ValueError is raised.
@@ -1266,6 +1271,8 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
+    elif algorithm == 'bobber':
+        return partitions_ext.number_of_partitions(n)
     elif algorithm == 'pari':
         if not k is None:
             raise ValueError, "cannot specify second argument k if the algorithm is PARI"

@@ -60,7 +60,7 @@ def notebook_twisted(self,
     conf = '%s/twistedconf.tac'%directory
 
     nb = notebook.load_notebook(directory)
-    if reset or not nb.user_exists('admin'):
+    if reset or (not nb.user_exists('admin') and not nb.user_exists('root')):  # make root still ok
         while True:
             print "Setting password for the admin user."
             passwd = getpass.getpass("Enter new password: ")

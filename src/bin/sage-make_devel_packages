@@ -17,8 +17,17 @@ SPKG_INST=$SAGE_ROOT/spkg/installed/
 export SAGE_ROOT SAGE_VERSION
 TARGET="sage-"$1
 
+# REMOVE OLD PACKAGES
+cd "$SAGE_ROOT"/spkg/standard/
+rm doc-*.spkg
+rm examples-*.spkg
+rm extcode-*.spkg
+rm sage-*.spkg
+rm sage_c_lib-*.spkg
+rm sage_scripts-*.spkg
+
 if [ $# -eq 2 ]; then
-   DESTINATION=$SAGE_ROOT/spkg/standard/
+   DESTINATION="$SAGE_ROOT"/spkg/standard/
 else
    DESTINATION=$3
 fi
@@ -27,18 +36,10 @@ if [ ! -d $DESTINATION ]; then
    mkdir $DESTINATION
 fi
 
-cd $DESTINATION
+cd "$DESTINATION"
 DESTINATION=`pwd`
 PKG=$DESTINATION
 
-# REMOVE OLD PACKAGES
-
-rm doc-*.spkg
-rm examples-*.spkg
-rm extcode-*.spkg
-rm sage-*.spkg
-rm sage_c_lib-*.spkg
-rm sage_scripts-*.spkg
 
 
 # NEW DOCUMENTATION PACKAGE

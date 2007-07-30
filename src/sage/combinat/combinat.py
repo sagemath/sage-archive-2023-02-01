@@ -1176,7 +1176,7 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-def number_of_partitions(n,k=None, algorithm='gap'):
+def number_of_partitions(n,k=None, algorithm='bober'):
     r"""
     Returns the size of partitions_list(n,k).
 
@@ -1185,10 +1185,10 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         k -- (default: None); if specified, instead returns the
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
-        algorithm -- (default: 'gap')
-            'gap' -- use GAP (VERY *slow*)
+        algorithm -- (default: 'bober')
             'bober' -- use Jonathon Bober's implementation (*very* fast,
                       but new and not well tested yet).
+            'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
@@ -1210,7 +1210,7 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         [(1, 1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 2), (1, 1, 3), (2, 3), (1, 4), (5,)]
         sage: len(v)
         7
-        sage: number_of_partitions(5)
+        sage: number_of_partitions(5, algorithm='gap')
         7
         sage: number_of_partitions(5, algorithm='pari')
         7

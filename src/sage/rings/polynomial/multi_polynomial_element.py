@@ -442,6 +442,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         return self.element().dict()
 
+##     def polynomial(self, var, base_ring=None):
+##         raise NotImplementedError
+
+
     def __getitem__(self, x):
         """
         INPUT:

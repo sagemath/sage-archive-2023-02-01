@@ -204,6 +204,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         self.__is_sparse = sparse
         self.__params = (base_ring, name, default_prec, sparse)
 
+##         if multi_polynomial_ring.is_MPolynomialRing(base_ring) or \
+##                polynomial_ring.is_PolynomialRing(base_ring):
+##             K = base_ring.base_ring()
+##             names = (name,) + K.variable_names()
+##             self.__mpoly_ring = polynomial_ring.MPolynomialRing(K, names=names)
+##             self.__power_series_class = power_series_mpoly.PowerSeries_mpoly
+
     def __reduce__(self):
         """
         TESTS:
@@ -410,7 +417,8 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
     def _poly_ring(self):
         """
-        Return the underlying polynomial ring used to represent elements of this power series ring.
+        Return the underlying polynomial ring used to represent
+        elements of this power series ring.
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(ZZ)
@@ -418,6 +426,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             Univariate Polynomial Ring in t over Integer Ring
         """
         return self.__poly_ring
+
+    def _mpoly_ring(self):
+        return self.__mpoly_ring
 
     def base_extend(self, R):
         """

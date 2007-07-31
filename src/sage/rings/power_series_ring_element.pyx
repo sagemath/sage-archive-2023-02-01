@@ -533,6 +533,8 @@ cdef class PowerSeries(AlgebraElement):
             1.0 + 5.0*A + 10.0*A^2 + 10.0*A^3 + 5.0*A^4 + O(A^5)
             sage: f.add_bigoh(3)
             1.0 + 5.0*A + 10.0*A^2 + O(A^3)
+            sage: f.add_bigoh(5)
+            1.0 + 5.0*A + 10.0*A^2 + 10.0*A^3 + 5.0*A^4 + O(A^5)
         """
         if prec is infinity or prec > self.prec():
             return self

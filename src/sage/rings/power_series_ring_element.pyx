@@ -534,7 +534,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.add_bigoh(3)
             1.0 + 5.0*A + 10.0*A^2 + O(A^3)
         """
-        if prec is infinity or prec >= self.prec():
+        if prec is infinity or prec > self.prec():
             return self
         a = self.list()
         v = [a[i] for i in range(min(prec, len(a)))]

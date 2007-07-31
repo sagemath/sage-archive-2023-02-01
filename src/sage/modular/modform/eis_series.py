@@ -46,21 +46,15 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     k = Integer(k)
     if k%2 or k < 2:
         raise ValueError, "k (=%s) must be an even positive integer"%k
-    precision = Integer(prec)
-    if precision < 0:
+    prec = int(prec)
+    if prec < 0:
         raise ValueError, "prec (=%s) must an even nonnegative integer"%prec
-    R = K[['q']]
 
     one = Integer(1)
-    val = [one] * (prec + 1)
-
-    pow = 0
-    ind = 0
-    term = 0
-
+    val = [one] * prec
     expt = k - one
 
-    for p in prime_range(1,prec+1):
+    for p in prime_range(1,prec):
 
         int_p = int(p)
 
@@ -69,18 +63,18 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
         term = mult*mult
         last = mult
 
-        while (ppow <= prec):
+        while (ppow < prec):
             ind = ppow
-            while (ind <= prec):
-                val[ind] = val[ind] * (term - one) // (last - one)
+            while (ind < prec):
+                val[ind] = (val[ind]*(term-one)).divide_knowing_divisible_by(last - one)
                 ind += ppow
             ppow *= int_p
             last = term
             term *= mult
 
-    val[0] = [-bernoulli(k) / (2*k)]
-
-    return R(val, precision)
+    val[0] = -bernoulli(k) / (2*k)
+    R = QQ[['q']]
+    return R(val, prec=prec, check=False)
 
 ######################################################################
 

@@ -30,6 +30,7 @@ usage_advanced() {
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
     echo "  -ba [branch]  -- switch to, rebuild all Cython code, and run SAGE branch in devel/sage-branch"
+    echo "  -ba-force [branch] -- same as -ba, but don't query before rebuilding"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleaner      -- run the SAGE cleaner"
     echo "  -clisp [...]  -- run Common Lisp"
@@ -417,6 +418,24 @@ if [ $1 = '-br' -o $1 = "--br" ]; then
 fi
 
 if [ $1 = '-ba' ]; then
+   shift
+   echo " *** WARNING *** "
+   echo " You are about to rebuild the entire SAGE library."
+   echo " This will take a significant amount of time."
+   echo -n " Do you want to proceed? [Y/N] "
+   read -e CHOICE
+   while [ $CHOICE != "Y" -a $CHOICE != "N" ]; do
+	   echo -n " Choose one of Y, N: "
+	   read -e CHOICE
+   done
+   if [ $CHOICE = 'N' ]; then
+	   exit 0
+   fi
+   sage-build -b "$@" && sage
+   exit $?
+fi
+
+if [ $1 = '-ba-force' ]; then
    shift
    sage-build -b "$@" && sage
    exit $?

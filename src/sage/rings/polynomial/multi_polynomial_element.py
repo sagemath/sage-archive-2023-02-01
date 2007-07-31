@@ -42,7 +42,7 @@ import operator
 
 import sage.rings.arith
 
-from sage.structure.element import CommutativeRingElement, Element
+from sage.structure.element import CommutativeRingElement, Element, is_Element
 
 from sage.interfaces.all import singular, macaulay2
 
@@ -441,9 +441,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         values the coefficients of this polynomial.
         """
         return self.element().dict()
-
-##     def polynomial(self, var, base_ring=None):
-##         raise NotImplementedError
 
 
     def __getitem__(self, x):

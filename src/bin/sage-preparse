@@ -59,7 +59,7 @@ def do_load_and_attach(G, file, files_before):
                    continue
                 if name[-5:] == '.sage':
                     do_preparse(name, files_before + [file])
-                    s += 'execfile("%s.py")\n'%name
+                    s += 'execfile("%s.py")\n'%name[:-5]
                 elif name[-3:] == '.py':
                     s += 'execfile("%s")\n'%name
         else:

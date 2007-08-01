@@ -170,7 +170,7 @@ mpfr_t mp_one_over_12, mp_one_over_24, mp_sqrt2, mp_sqrt3, mp_pi, half, fourth;
 mpfr_t mp_A, mp_B, mp_C, mp_D;
 mp_rnd_t round_mode = GMP_RNDN;
 
-mpfr_t tempa1, tempa2, tempf1, tempf2, temps1, temps2, tempt1, tempt2;  // temp variables for different functions, with precision set and cleared by mp_set_precision
+mpfr_t tempa1, tempa2, tempf1, tempf2, temps1, temps2, tempt1, tempt2;  // temp variables for different functions, with precision set and cleared by initialize_mpfr_variables
 mpfr_t tempc1, tempc2; // temp variable used by cospi()
 
 
@@ -329,7 +329,7 @@ double compute_remainder(unsigned int n, unsigned int N) {
 }
 
 
-void mp_set_precision(unsigned int prec) {
+void initialize_mpfr_variables(unsigned int prec) {
     //
     // Clear and initialize some "temp" variables that are used in the computation of various functions.
     //
@@ -346,21 +346,9 @@ void mp_set_precision(unsigned int prec) {
     //      in the function mp_f()
     //
     // -etc...
+    //
+    // NOTE: Calls to this function must be paired with calls to clear_mpfr_variables()
 
-    static bool init = false;
-    if(init) {
-        mpfr_clear(tempa1);
-        mpfr_clear(tempa2);
-        mpfr_clear(tempf1);
-        mpfr_clear(tempf2);
-        mpfr_clear(tempt1);
-        mpfr_clear(tempt2);
-        mpfr_clear(temps1);
-        mpfr_clear(temps2);
-
-        mpfr_clear(tempc1);
-        mpfr_clear(tempc2);
-    }
     mpfr_init2(tempa1, prec);
     mpfr_init2(tempa2, prec);
     mpfr_init2(tempf1, prec);
@@ -371,9 +359,20 @@ void mp_set_precision(unsigned int prec) {
     mpfr_init2(temps2, prec);
     mpfr_init2(tempc1, prec);
     mpfr_init2(tempc2, prec);
+}
 
+void clear_mpfr_variables() {
+    mpfr_clear(tempa1);
+    mpfr_clear(tempa2);
+    mpfr_clear(tempf1);
+    mpfr_clear(tempf2);
+    mpfr_clear(tempt1);
+    mpfr_clear(tempt2);
+    mpfr_clear(temps1);
+    mpfr_clear(temps2);
 
-    init = true;
+    mpfr_clear(tempc1);
+    mpfr_clear(tempc2);
 }
 
 
@@ -386,31 +385,14 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     //
     // Also, we precompute some extra constants that we use a lot, such as
     // sqrt2, sqrt3, pi, 1/24, 1/12, etc.
+    //
+    // NOTE: Calls to this function must be paired with calls to clear_constants()
     static bool init = false;
     mp_precision = prec;
     mp_prec_t p = mp_precision;
 
-    if(init) {
-        mpfr_clear(mp_one_over_12); mpfr_clear(mp_one_over_24); mpfr_clear(mp_sqrt2); mpfr_clear(mp_sqrt3); mpfr_clear(mp_pi);
-        mpfr_clear(mp_A); mpfr_clear(mp_B); mpfr_clear(mp_C); mpfr_clear(mp_D); mpfr_clear(half); mpfr_clear(fourth);
-
-        mpz_clear(ztemp1);
-        mpz_clear(ztemp2);
-        mpz_clear(ztemp3);
-
-        mpq_clear(qtemp1);
-        mpq_clear(qtemp2);
-        mpq_clear(qtemp3);
-    }
     mpfr_init2(mp_one_over_12,p); mpfr_init2(mp_one_over_24,p); mpfr_init2(mp_sqrt2,p); mpfr_init2(mp_sqrt3,p); mpfr_init2(mp_pi,p);
     mpfr_init2(mp_A,p); mpfr_init2(mp_B,p); mpfr_init2(mp_C,p); mpfr_init2(mp_D,p); mpfr_init2(fourth, p); mpfr_init2(half, p);
-    mpz_init(ztemp1);
-    mpz_init(ztemp2);
-    mpz_init(ztemp3);
-
-    mpq_init(qtemp1);
-    mpq_init(qtemp2);
-    mpq_init(qtemp3);
 
     init = true;
 
@@ -476,6 +458,36 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     d_C = sqrt(2) * 3.1415926535897931 * sqrt(n - 1.0/24.0) / sqrt(3);
     d_D = 2.0 * (n - 1.0/24.0) * sqrt(n - 1.0/24.0);
 
+}
+
+void clear_constants() {
+        mpfr_clear(mp_one_over_12); mpfr_clear(mp_one_over_24); mpfr_clear(mp_sqrt2); mpfr_clear(mp_sqrt3); mpfr_clear(mp_pi);
+        mpfr_clear(mp_A); mpfr_clear(mp_B); mpfr_clear(mp_C); mpfr_clear(mp_D); mpfr_clear(half); mpfr_clear(fourth);
+}
+
+void initialize_mpz_and_mpq_variables() {
+    /*
+     * We use a few mpz_t and mpq_t variables which need to be initialized
+     * before they can be used. Initialization and clearing take some
+     * time, so we initialize just once in this function, and clear in another.
+     */
+    mpz_init(ztemp1);
+    mpz_init(ztemp2);
+    mpz_init(ztemp3);
+
+    mpq_init(qtemp1);
+    mpq_init(qtemp2);
+    mpq_init(qtemp3);
+}
+
+void clear_mpz_and_mpq_variables() {
+    mpz_clear(ztemp1);
+    mpz_clear(ztemp2);
+    mpz_clear(ztemp3);
+
+    mpq_clear(qtemp1);
+    mpq_clear(qtemp2);
+    mpq_clear(qtemp3);
 }
 
 void mp_f(mpfr_t result, unsigned int k) {
@@ -889,10 +901,11 @@ void mp_t(mpfr_t result, unsigned int n) {
     mpfr_init2(result, initial_precision);                          //
     mpfr_set_ui(result, 0, round_mode);                             //
 
+    initialize_mpz_and_mpq_variables();
     initialize_constants(initial_precision, n);                     // Now that we have the precision information, we initialize some constants
                                                                     // that will be used throughout, and also
                                                                     //
-    mp_set_precision(initial_precision);                            // set the precision of the "temp" variables that are used in individual functions.
+    initialize_mpfr_variables(initial_precision);                            // set the precision of the "temp" variables that are used in individual functions.
 
     unsigned int current_precision = initial_precision;
     unsigned int new_precision;
@@ -966,7 +979,8 @@ void mp_t(mpfr_t result, unsigned int n) {
         new_precision = compute_current_precision(n,k);             // After computing one summand, check what the new precision should be.
         if(new_precision != current_precision) {                    // If the precision changes, we need to clear
             current_precision = new_precision;                      // and reinitialize all "temp" variables to
-            mp_set_precision(current_precision);                    // use lower precision.
+            clear_mpfr_variables();                                 // use lower precision.
+            initialize_mpfr_variables(current_precision);           //
             mpfr_clear(t1); mpfr_clear(t2);                         //
             mpfr_init2(t1, current_precision);                      //
             mpfr_init2(t2, current_precision);                      //
@@ -987,6 +1001,12 @@ void mp_t(mpfr_t result, unsigned int n) {
 
     mpfr_div(result, result, mp_pi, round_mode);                    // The actual result is the sum that we have computed
     mpfr_div(result, result, mp_sqrt2, round_mode);                 // divided by pi*sqrt(2).
+
+    clear_constants();
+    clear_mpz_and_mpq_variables();
+    clear_mpfr_variables();
+    mpfr_clear(t1);
+    mpfr_clear(t2);                         //
 }
 
 //  Double versions of the functions, see the above functions for documentation.
@@ -1298,5 +1318,6 @@ int part(mpz_t answer, unsigned int n){
 
     mpfr_get_z(answer, result, round_mode);
 
+    mpfr_clear(result);
     return 0;
 }

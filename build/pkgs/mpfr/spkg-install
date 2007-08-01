@@ -1,0 +1,66 @@
+#!/bin/sh
+###########################################
+## Paul Zimmerman's MPFR
+###########################################
+
+touch *  # to avoid clock skew issues
+
+build()
+{
+    EXTRA=""
+
+    if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then
+         EXTRA="--disable-static --enable-shared"
+    fi
+
+    if [ $UNAME = "CYGWIN" ]; then
+         EXTRA="--disable-static --enable-shared"
+    fi
+
+    ./configure --prefix=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL \
+                 CFLAGS="$CFLAGS $SHAREDFLAGS -O2" CXX="$CXX" \
+                 CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
+                 GMP_PREFIX="$SAGE_LOCAL" $EXTRA
+
+
+    echo "Building and install mpfr"
+    $MAKE install
+
+    # I've commented out code for building shared libraries for
+    # MPFR, since the mpfr library has global state information,
+    # and using .so could introduce subtle bugs.
+
+##################
+
+#    if [ $UNAME = "Darwin" ]; then
+#        # don't bother with shared library for Darwin...
+#	echo "Skipping building shared library for Darwin (todo -- maybe we should build them?)"
+#    else
+#        # We also want a shared object library, which is
+#        # not built by default by MPFR.
+#        # TODO: I'm assuming we're using GCC here, which is potentially a
+#        # problem, e.g., if using itanium with special intel compiler?
+#        # But if this fails it doesn't really matter -- we don't *need*
+#        # an .so file; it's just better
+#        gcc -fPIC --shared -o libmpfr.so *.o -L$SAGE_LOCAL/lib -lgmp
+#        if [ $? -ne 0 ]; then
+#            echo "Skipping build of .so file for mpfr."
+#        else
+#            cp libmpfr.so $SAGE_LOCAL/lib/
+#        fi
+#   fi
+
+}
+
+cd src
+
+build
+
+if [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
+    exit 0
+else
+    echo "An error occured while building mpfr."
+    exit 1
+fi
+
+

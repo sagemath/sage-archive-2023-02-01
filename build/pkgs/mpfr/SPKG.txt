@@ -1,0 +1,80 @@
+2006-11-29:
+
+Just took the standard distribution from
+
+http://www.mpfr.org/mpfr-current/
+
+
+
+
+This is now out of date.
+------------------------------------------------
+HOW TO MAKE the -2.2.0 PACKAGE:
+
+* applied cummulative patches as of the date of the file:
+
+wget http://www.mpfr.org/mpfr-current/patches
+
+The webpage says download it into the top of mpfr-2.2.0 tree and use
+"GNU patch" to patch it:
+
+patch -N -Z -p1 < patches
+
+Then update the configure script:
+
+   autoconf < configure.in > configure
+
+CHANGELONG:
+2006-10-15:
+   Fix from Mike Rubinstein:
+In sage-1.4/spkg/build/mpfr-20060930/spkg-install
+there are a couple of options given to ./configure that are specific to
+NTL and don't seem to have anything to do with mpfr, namely:
+NTL_GMP_LIP=on NTL_STD_CXX=on
+
+
+-----------------------------------------
+OLD NOTES:
+
+If the SAGE mpfr install fails with a libtool message, this is probably
+because you have an old autoconf or aclocal.  You want something like
+
+was@form:~/s/spkg/standard/mpfr-2005-12-13$ aclocal --version
+aclocal (GNU automake) 1.9.5
+was@form:~/s/spkg/standard/mpfr-2005-12-13$ automake --version
+automake (GNU automake) 1.9.5
+
+On Debian-ish systems, the way to upgrade is to run:
+
+  apt-get install automake1.9
+  update-alternatives --config automake
+
+and select automake-1.9 from the menu which follows.
+Now even the newest mpfr works.
+
+------------------
+If you don't want to (or can't) upgrade, the following might allow you
+to finish the SAGE install.  I'd still like to know about the problem,
+though:
+
+From the sage-0.9.24 directory:
+
+  1) Get the old mpfr package:
+
+      http://modular.ucsd.edu/tmp/mpfr-2005-09-17.spkg
+
+  2) Type "tar jxf mpfr-2005-09-17.spkg"
+  3) Type "source local/bin/sage-env" to setup your environment for building sage
+  4) Type "cd mpfr-2005-09-17"
+  5) Type "./spkg-install" to build and install mpfr.
+
+If 5 does not give the same error as before that tells us the
+problem is related to the build scripts for the new version
+of mpfr or to the configure command line.
+If 5 succeeds, type (or whatever the current mpfr version is, as
+determined by the filename in spkg/standard/.)
+        touch spkg/installed/mpfr-2005-12-13
+from the sage-0.9.24 directory so the SAGE build process will know MPFR
+has been successfully built.  Then type "make" to continue the install
+where you left off.
+

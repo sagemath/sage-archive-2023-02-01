@@ -1,5 +1,5 @@
 /*      Author:     Jonathan Bober
- *      Version:    .3
+ *      Version:    .4
  *
  *      This program computes p(n), the number of integer partitions of n, using Rademacher's
  *      formula. (See Hans Rademacher, On the Partition Function p(n),
@@ -40,11 +40,7 @@
  *      Some clever tricks are used in the computation of s(h,k), and perhaps at least
  *      some of these are due to Apostol. (I don't know a reference for this.)
  *
- *      TODO: fix memory leaks
- *          -- All mpfr_t, mpq_t, and mpz_t variables should be cleared before the function
- *             mp_t(n) returns, but currently this is not done. This doesn't really matter
- *             when this is a standalone program, but will matter if this is called as
- *             a library function from another program.
+ *      TODO:
  *
  *          -- Search source code for other TODO comments.
  *
@@ -91,6 +87,7 @@
 
 
 #include <stdio.h>
+#include <cfloat>
 
 #include <cmath>
 
@@ -115,12 +112,25 @@ const bool debugt = false;
 using std::cout;
 using std::endl;
 
-const unsigned int min_prec = 53;
-const unsigned int min_precision = 53;
+const unsigned int min_precision = DBL_MANT_DIG;
+const unsigned int double_precision = DBL_MANT_DIG;
+const unsigned int long_double_precision = LDBL_MANT_DIG;
+
+//const unsigned int level_two_precision = long_double_precision; // qd_real precision
+const unsigned int level_two_precision = 200; // qd_real precision
+const unsigned int level_three_precision = 128;
+const unsigned int level_four_precision = long_double_precision;
+//const unsigned int level_two_precision = double_precision;
+const unsigned int level_five_precision = double_precision;
+
+const long double ld_pi = 3.141592653589793238462643L;
+const double d_pi = ld_pi;
 
 bool test(bool longtest = false);
 
 void cospi (mpfr_t res, mpfr_t x);
+
+
 
 
 // The following function can be useful for debugging in come circumstances, but should not be used for anything else
@@ -168,6 +178,8 @@ mpq_t qtemp1, qtemp2, qtemp3;
 
 mpfr_t mp_one_over_12, mp_one_over_24, mp_sqrt2, mp_sqrt3, mp_pi, half, fourth;
 mpfr_t mp_A, mp_B, mp_C, mp_D;
+
+
 mp_rnd_t round_mode = GMP_RNDN;
 
 mpfr_t tempa1, tempa2, tempf1, tempf2, temps1, temps2, tempt1, tempt2;  // temp variables for different functions, with precision set and cleared by initialize_mpfr_variables
@@ -199,11 +211,18 @@ double compute_remainder(unsigned int n, unsigned int N);   // Gives an upper bo
 //low precision (double) versions of the functions:
 
 double d_A, d_B, d_C, d_D;
+long double ld_A, ld_B, ld_C, ld_D;
+
 
 double d_f(unsigned int k);
 double d_s(unsigned int h,unsigned int q);
 double d_a(unsigned int n, unsigned int k);
 double d_t(unsigned int n, unsigned int N);
+
+long double ld_f(unsigned int k);
+long double ld_s(unsigned int h,unsigned int q);
+long double ld_a(unsigned int n, unsigned int k);
+long double ld_t(unsigned int n, unsigned int N);
 
 unsigned int compute_initial_precision(unsigned int n) {
     // We just want to know how many bits we will need to
@@ -399,12 +418,15 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_set_ui(mp_one_over_12, 1, round_mode);                             // mp_one_over_12 = 1/12
     mpfr_div_ui(mp_one_over_12, mp_one_over_12, 12, round_mode);            //
 
+
     mpfr_set_ui(mp_one_over_24, 1, round_mode);                             // mp_one_over_24 = 1/24
     mpfr_div_ui(mp_one_over_24, mp_one_over_24, 24, round_mode);            //
+
 
     mpfr_set_ui(half, 1, round_mode);                                       //
     mpfr_div_ui(half, half, 2, round_mode);                                    // half = 1/2
     mpfr_div_ui(fourth, half, 2, round_mode);                                  // fourth = 1/4
+
 
     mpfr_t n_minus;                                                         //
     mpfr_init2(n_minus, p);                                                 //
@@ -420,6 +442,7 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_sqrt_ui(mp_sqrt3, 3, round_mode);                                  // mp_sqrt3 = sqrt(3)
     mpfr_const_pi(mp_pi, round_mode);                                       // mp_pi = pi
 
+
     //mp_A = sqrt(2) * 3.1415926535897931 * sqrt(n - 1.0/24.0);---------------
                                                                             //
     mpfr_set(mp_A, mp_sqrt2, round_mode);                                   // mp_A = sqrt(2)
@@ -427,11 +450,19 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_mul(mp_A, mp_A, sqrt_n_minus, round_mode);                         // mp_A = sqrt(2) * pi * sqrt(n - 1/24)
     //------------------------------------------------------------------------
 
+    //cout << "mp_A = ";
+    //mpfr_out_str(stdout, 10, 0, mp_A, round_mode);
+    //cout << endl;
+
     //mp_B = 2.0 * sqrt(3) * (n - 1.0/24.0);----------------------------------
     mpfr_set_ui(mp_B, 2, round_mode);                                       // mp_A = 2
     mpfr_mul(mp_B, mp_B, mp_sqrt3, round_mode);                             // mp_A = 2*sqrt(3)
     mpfr_mul(mp_B, mp_B, n_minus, round_mode);                              // mp_A = 2*sqrt(3)*(n-1/24)
     //------------------------------------------------------------------------
+
+    //cout << "mp_B = ";
+    //mpfr_out_str(stdout, 10, 0, mp_B, round_mode);
+    //cout << endl;
 
     //mp_C = sqrt(2) * pi * sqrt(n - 1.0/24.0) / sqrt(3);---------------------
     mpfr_set(mp_C, mp_sqrt2, round_mode);                                   // mp_C = sqrt(2)
@@ -440,12 +471,19 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_div(mp_C, mp_C, mp_sqrt3, round_mode);                             // mp_C = sqrt(2) * pi * sqrt(n - 1/24) / sqrt3
     //------------------------------------------------------------------------
 
+    //cout << "mp_C = ";
+    //mpfr_out_str(stdout, 10, 0, mp_C, round_mode);
+    //cout << endl;
+
     //mp_D = 2.0 * (n - 1.0/24.0) * sqrt(n - 1.0/24.0);-----------------------
     mpfr_set_ui(mp_D, 2, round_mode);                                       // mp_D = 2
     mpfr_mul(mp_D, mp_D, n_minus, round_mode);                              // mp_D = 2 * (n - 1/24)
     mpfr_mul(mp_D, mp_D, sqrt_n_minus, round_mode);                         // mp_D = 2 * (n - 1/24) * sqrt(n - 1/24)
     //------------------------------------------------------------------------
 
+    //cout << "mp_D = ";
+    //mpfr_out_str(stdout, 10, 0, mp_D, round_mode);
+    //cout << endl;
 
     mpfr_clear(n_minus);
     mpfr_clear(sqrt_n_minus);
@@ -453,10 +491,15 @@ void initialize_constants(unsigned int prec, unsigned int n) {
 
     // some double precision versions of the above values
 
-    d_A = sqrt(2) * 3.1415926535897931 * sqrt(n - 1.0/24.0);
+    d_A = sqrt(2) * d_pi * sqrt(n - 1.0/24.0);
     d_B = 2.0 * sqrt(3) * (n - 1.0/24.0);
-    d_C = sqrt(2) * 3.1415926535897931 * sqrt(n - 1.0/24.0) / sqrt(3);
+    d_C = sqrt(2) * d_pi * sqrt(n - 1.0/24.0) / sqrt(3);
     d_D = 2.0 * (n - 1.0/24.0) * sqrt(n - 1.0/24.0);
+
+    ld_A = sqrtl(2) * d_pi * sqrtl(n - 1.0L/24.0L);
+    ld_B = 2.0L * sqrtl(3) * (n - 1.0/24.0);
+    ld_C = sqrt(2) * d_pi * sqrtl(n - 1.0L/24.0L) / sqrtl(3);
+    ld_D = 2.0L * (n - 1.0L/24.0L) * sqrtl(n - 1.0L/24.0L);
 
 }
 
@@ -906,7 +949,7 @@ void mp_t(mpfr_t result, unsigned int n) {
                                                                     // that will be used throughout, and also
                                                                     //
     initialize_mpfr_variables(initial_precision);                            // set the precision of the "temp" variables that are used in individual functions.
-
+//
     unsigned int current_precision = initial_precision;
     unsigned int new_precision;
 
@@ -921,19 +964,7 @@ void mp_t(mpfr_t result, unsigned int n) {
     // that only involves doubles.
 
     unsigned int k = 1;                                             // (k holds the index of the summand that we are computing.)
-    for(k = 1; current_precision > min_precision; k++) {            //
-    /*
-        new_precision = compute_current_precision(n,k);             // After computing one summand, check what the new precision should be.
-        if(new_precision != current_precision) {                    // If the precision changes, we need to clear
-            current_precision = new_precision;                      // and reinitialize all "temp" variables to
-            mp_set_precision(current_precision);                    // use lower precision.
-            mpfr_clear(t1); mpfr_clear(t2);                         //
-            mpfr_init2(t1, current_precision);                      //
-            mpfr_init2(t2, current_precision);                      //
-        }
-
-        continue;
-    */
+    for(k = 1; current_precision > level_four_precision; k++) {            //
         mpfr_sqrt_ui(t1, k, round_mode);                            // t1 = sqrt(k)
                                                                     //
         mp_a(t2, n, k);                                             // t2 = A_k(n)
@@ -949,7 +980,7 @@ void mp_t(mpfr_t result, unsigned int n) {
         mp_f(t2, k);                                                // t2 = f_k(n)
 
         if(debugf) {
-            cout << "f(" << k <<  ") = ";
+            cout << "f(" << n << "," << k <<  ") = ";
             mpfr_out_str(stdout, 10, 0, t2, round_mode);
             cout << endl;
         }
@@ -987,17 +1018,41 @@ void mp_t(mpfr_t result, unsigned int n) {
         }
     }
 
-    double result2 = 0;                                             // (result2 will hold the result of the "tail end"
+
+    mpfr_clear(t1); mpfr_clear(t2);
+
+    mpfr_init2(t1, 200);
+    mpfr_init2(t2, 200);
+
+
+    long double tail_result_1 = 0;
+
+    for( ; current_precision > level_five_precision; k++) {        // (don't change k -- it is already the right value)
+        tail_result_1 += sqrtl(k) * ld_a(n,k) * ld_f(k);            //
+        current_precision = compute_current_precision(n,k);         // The only reason that we compute the new precision
+                                                                    // now is so that we know when we can change to using just doubles.
+                                                                    // (There should be a 'long double' version of the compute_current_precision function.
+    }
+
+
+    double tail_result_2 = 0;                                       // (tail_result_2 will hold the result of the "tail end"
                                                                     // computation using doubles.)
 
     for( ; remainder > .5; k++) {                                   // (don't change k -- it is already the right value)
-        result2 += sqrt(k) * d_a(n,k) * d_f(k);                     //
+        tail_result_2 += sqrt(k) * d_a(n,k) * d_f(k);                     //
         remainder = compute_remainder(n,k);                         // Now we start computing the size of the remainder. Once
                                                                     // it is small enough, we know that we have the answer.
     }
 
-    mpfr_set_d(t1, result2, round_mode);                            //
-    mpfr_add(result, result, t1, round_mode);                       // We add together the main result and the tail end.
+    mpfr_set_d(t1, tail_result_2, round_mode);                      //
+    mpfr_add(result, result, t1, round_mode);                       // We add together the main result and the tail ends'
+
+    mpfr_set_ld(t1, tail_result_1, round_mode);
+    mpfr_add(result, result, t1, round_mode);
+
+    //cout << tail_result_0_str << endl;
+    //mpfr_out_str(stdout, 10, 0, t1, round_mode);
+    //cout << endl;
 
     mpfr_div(result, result, mp_pi, round_mode);                    // The actual result is the sum that we have computed
     mpfr_div(result, result, mp_sqrt2, round_mode);                 // divided by pi*sqrt(2).
@@ -1012,7 +1067,11 @@ void mp_t(mpfr_t result, unsigned int n) {
 //  Double versions of the functions, see the above functions for documentation.
 
 double d_f(unsigned int k) {
-    return 3.1415926535897931 * sqrt(2) * cosh(d_A/(sqrt(3)*k))/(d_B*k) - sinh(d_C/k)/d_D;
+    return  3.141592653589793238462643 * sqrt(2) * cosh(d_A/(sqrt(3)*k))/(d_B*k) - sinh(d_C/k)/d_D;
+}
+
+long double ld_f(unsigned int k) {
+    return  3.141592653589793238462643 * sqrtl(2) * coshl(ld_A/(sqrtl(3)*k))/(ld_B*k) - sinhl(ld_C/k)/ld_D;
 }
 
 double d_s(unsigned int h,unsigned int k) {
@@ -1063,6 +1122,56 @@ double d_s(unsigned int h,unsigned int k) {
     return result;
 }
 
+long double ld_s(unsigned int h,unsigned int k) {
+    if(k < 3) {
+        return 0.0;
+    }
+
+    long double result, R1, R2, temp1, temp2;
+    unsigned int n, r1, r2, temp3 = 0;
+
+    if(h == 1) {
+        long double K;
+        K = k;
+        result = (K-1)*(K-2)/(12*K);
+        return result;
+    }
+
+    result = 0;
+    R1 = k;
+    R2 = h;
+
+    r1 = k;
+    r2 = h;
+
+    n = 0;
+    while(r1 && r2) {
+        temp1 = (R1*R1 + R2*R2 + 1.0L)/(R1 * R2);
+        if(n % 2 == 0){
+            result += temp1;
+        }
+        else {
+            result -= temp1;
+        }
+        temp3 = r1 % r2;
+        r1 = r2;
+        r2 = temp3;
+        R1 = r1;
+        R2 = r2;
+        n++;
+    }
+
+    result = result * 1.0L/12.0L;
+
+    if(n % 2 == 1) {
+        result = result - .25L;
+    }
+
+    return result;
+}
+
+
+
 double d_a(unsigned int n, unsigned int k) {
     double result;
     result = 0;
@@ -1081,6 +1190,28 @@ double d_a(unsigned int n, unsigned int k) {
     }
     return result;
 }
+
+long double ld_a(unsigned int n, unsigned int k) {
+    long double result;
+    result = 0;
+
+    if (k == 1) {
+        return 1.0;
+    }
+
+    unsigned int h = 0;
+    for(h = 1; h < k+1; h++) {
+        if(GCD(h,k) == 1) {
+        //    cout << "s(" << h << "," << k << ") = " << d_s(h,k) << endl;
+        //    cout << "s(" << h << "," << k << ") = " << d_s(h,k) << endl;
+            result += cosl( ld_pi * ( ld_s(h,k) - (2.0L * h * n)/(long double)(k)) );
+        }
+    }
+    return result;
+}
+
+
+
 
 long GCD(long a, long b)
 {
@@ -1217,6 +1348,7 @@ int main(int argc, char *argv[]){
     if(argc > 1)
         n = atoi(argv[1]);
     else {
+
         cout << test() << endl;
         return 0;
     }

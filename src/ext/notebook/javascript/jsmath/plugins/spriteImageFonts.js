@@ -170,7 +170,7 @@ if (!jsMath.Box) {jsMath.Box = {}}
 if (!jsMath.Img) {jsMath.Img = {}}
 
   /*
-   *  Called by the exta-font definition files to add an image font
+   *  Called by the extra-font definition files to add an image font
    *  into the mix (save offset data and image size)
    */
   jsMath.Img.AddFont = function (size,def) {
@@ -235,7 +235,7 @@ if (!jsMath.Browser) {jsMath.Browser = {}}
       this.operaImageFonts = 1;
       jsMath.Box.IMG = jsMath.Box.IMG_opera;
     } else if (jsMath.browser == 'MSIE') {
-      if (navigator.platform == 'MacPPC') {
+      if (jsMath.platform == 'mac') {
         this.msieImgFontBBoxFix = '<span style="display:none">x</span>'
       } else {
         jsMath.Parser.prototype.oldTypeset = jsMath.Parser.prototype.Typeset;
@@ -250,6 +250,14 @@ if (!jsMath.Browser) {jsMath.Browser = {}}
     jsMath.version += "-sp1.0";
   };
 
+if (!jsMath.Setup) {jsMath.Setup = {}}
+  jsMath.Setup.Fonts = function () {
+    for (var i = 0; i < jsMath.TeX.fam.length; i++) {
+      var name = jsMath.TeX.fam[i];
+      if (name) {this.EncodeFont(name)}
+    }
+    jsMath.Img.Init();
+  };
 
 if (!jsMath.Parser) {jsMath.Parser = {}}
 if (!jsMath.Parser.prototype) {jsMath.Parser.prototype = {}}

@@ -43,7 +43,7 @@ while (!window.jsMath && !showWarning) {
     //
     if (pageDomain.match(/\..*\./) &&
         (navigator.appName != 'Microsoft Internet Explorer' ||
-         navigator.platform != 'MacPPC' || !navigator.userProfile || !document.all)) {
+         !navigator.platform.match(/Mac/) || !navigator.userProfile || !document.all)) {
       try {
         document.domain = pageDomain.replace(/^[^.]*\./,'');
         showWarning = 0;

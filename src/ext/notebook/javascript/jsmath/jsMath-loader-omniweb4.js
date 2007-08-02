@@ -26,7 +26,7 @@
  *  limitations under the License.
  */
 
-if (window.jsMathAutoload) {
+if (window.jsMath.Autoload) {
   jsMath.Autoload.Script.endLoad();
 } else {
   if (!window.phase2) {

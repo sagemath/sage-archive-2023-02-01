@@ -285,5 +285,6 @@ jsMath.Extension.MathChar("msbm10",{
 });
 
 jsMath.Macro('Bbb','{\\msbm #1}',1);
+jsMath.Macro('mathbb','{\\msbm #1}',1);
 jsMath.Extension.Font('msbm');
 jsMath.Extension.Font('msam');

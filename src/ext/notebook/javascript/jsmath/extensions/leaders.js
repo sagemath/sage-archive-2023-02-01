@@ -83,10 +83,14 @@ jsMath.Add(jsMath.Box,{
 jsMath.Package(jsMath.Parser,{
 
   macros: {
-    overbrace:       ['HandleLeaders','downbrace',1],
-    underbrace:      ['HandleLeaders','upbrace',1,1],
-    overrightarrow:  ['HandleLeaders','rightarrow'],
-    overleftarrow:   ['HandleLeaders','leftarrow']
+    overbrace:           ['HandleLeaders','downbrace',1],
+    underbrace:          ['HandleLeaders','upbrace',1,1,-.05],
+    overrightarrow:      ['HandleLeaders','rightarrow',],
+    underrightarrow:     ['HandleLeaders','rightarrow',null,1,-.2],
+    overleftarrow:       ['HandleLeaders','leftarrow'],
+    underleftarrow:      ['HandleLeaders','leftarrow',null,1,-.2],
+    overleftrightarrow:  ['HandleLeaders','leftrightarrow'],
+    underleftrightarrow: ['HandleLeaders','leftrightarrow',null,1,-.2]
   },
 
   /*
@@ -96,7 +100,8 @@ jsMath.Package(jsMath.Parser,{
     downbrace:  {left: [3,0x7A], lmid: [3,0x7D], rmid: [3,0x7C], right: [3,0x7B]},
     upbrace:    {left: [3,0x7C], lmid: [3,0x7B], rmid: [3,0x7A], right: [3,0x7D]},
     leftarrow:  {left: [2,0x20], rep:   [2,0x00]},
-    rightarrow: {rep:  [2,0x00], right: [2,0x21]}
+    rightarrow: {rep:  [2,0x00], right: [2,0x21]},
+    leftrightarrow: {left: [2,0x20], rep: [2, 0x00], right: [2,0x21]}
   },
 
   /*
@@ -106,11 +111,11 @@ jsMath.Package(jsMath.Parser,{
     var box = this.ProcessArg(this.cmd+name); if (this.error) return;
     box = jsMath.Box.Set(box,'D',this.mlist.data.size).Remeasured();
     var leader = jsMath.Box.Leaders(box.w,this.leaders[data[0]]);
-    if (data[2]) {leader.y = -leader.h - box.d}
-            else {leader.y = box.h + Math.max(0,leader.d)}
+    if (data[2]) {leader.y = -leader.h-box.d+(data[3]||0)}
+            else {leader.y = box.h + Math.max(0,leader.d)+(data[3]||0)}
     box.x = -(leader.w + box.w)/2;
     var space = jsMath.Box.Space((leader.w-box.w)/2);
-    box = jsMath.mItem.Atom(data[1]? 'op': 'inner',
+    box = jsMath.mItem.Atom(data[1]? 'op': 'ord',
       jsMath.Box.SetList([leader,box,space],'T',this.mlist.data.size));
     box.limits = (data[1]? 1: 0);
     this.mlist.Add(box);

@@ -34,7 +34,8 @@ jsMath.Add(jsMath.mList.prototype.Atomize,{
    */
   choice: function (style,mitem,i,mlist) {
     if (style.charAt(style.length-1) == "'") {style = style.slice(0,style.length-1)}
-    var nlist = []; var M = mitem[style]; if (!M) {M = {type: 'mlist', mlist: []}}
+    var nlist = []; var M = mitem[style];
+    if (!M) {M = {type: 'mlist', mlist: {mlist: []}}}
     if (M.type == 'mlist') {
       M = M.mlist.mlist;
       for (var k = 0; k < i; k++) {nlist[k] = mlist[k]}

@@ -31,11 +31,12 @@ jsMath.Package(jsMath.Parser,{
 
   macros: {
     newcommand: 'NewCommand',
+    newenvironment: 'NewEnvironment',
     def: 'MacroDef'
   },
 
   /*
-   *  Implement \newcommand[n]{\name}{...}
+   *  Implement \newcommand{\name}[n]{...}
    */
   NewCommand: function (name) {
     var cs = this.trimSpaces(this.GetArgument(this.cmd+name)); if (this.error) return;
@@ -46,6 +47,19 @@ jsMath.Package(jsMath.Parser,{
     if (!cs.match(/^(.|[a-z]+)$/)) {this.Error("Illegal control sequence name for "+this.cmd+name); return}
     if (n != null && !n.match(/^[0-9]+$/)) {this.Error("Illegal number of parameters specified in "+this.cmd+name); return}
     jsMath.Parser.prototype.macros[cs] = ['Macro',def,n];
+  },
+
+  /*
+   *  Implement \newenvironment{name}[n]{begincmd}{endcmd}
+   */
+  NewEnvironment: function (name) {
+    var env = this.trimSpaces(this.GetArgument(this.cmd+name)); if (this.error) return;
+    var n = this.trimSpaces(this.GetBrackets(this.cmd+name)); if (this.error) return;
+    var bdef = this.GetArgument(this.cmd+name); if (this.error) return;
+    var edef = this.GetArgument(this.cmd+name); if (this.error) return;
+    if (n == '') {n = null}
+    if (n != null && !n.match(/^[0-9]+$/)) {this.Error("Illegal number of parameters specified in "+this.cmd+name); return}
+    jsMath.Parser.prototype.environments[env] = ['Environment',bdef,edef,n];
   },
 
   /*
@@ -117,6 +131,24 @@ jsMath.Package(jsMath.Parser,{
   },
 
   /*
+   *  Process a user-defined environment
+   */
+  Environment: function (name,data) {
+    var bdef = data[0]; var edef = data[1]; var n = data[2];
+    if (n) {
+      var args = [];
+      for (var i = 0; i < n; i++) {
+        args[args.length] = this.GetArgument(this.cmd+"begin{"+name+"}"); if (this.error) return;
+      }
+      bdef = this.SubstituteArgs(args,bdef);
+    }
+    var text = this.GetEnd(name); if (this.error) return;
+    text = this.AddArgs(this.AddArgs(bdef,text),edef);
+    this.string = this.AddArgs(text,this.string.slice(this.i));
+    this.i = 0;
+  },
+
+  /*
    *  Find a single parameter delimited by a trailing template
    */
   GetParameter: function (name,param) {
@@ -148,4 +180,26 @@ jsMath.Package(jsMath.Parser,{
     return 1;
   }
 
+});
+
+/*
+ *  Define a jsMath.Environment() command similar to the
+ *  jsMath.Macro() command.
+ *
+ *  Usage:  jsMath.Environment(name,begin,end[,n])
+ *
+ *  where "name" is the name of the environment, "begin" is the
+ *  text that replaces the \begin{name} and "end" is the text that
+ *  replaces the \end{name}.  If "n" is provided, it is the number
+ *  of parameters that the \begin{name} accepts, and these are
+ *  used to replace #1, #2, etc within the "begin" text.
+ */
+
+jsMath.Add(jsMath,{
+  Environment: function (name) {
+    var environments = jsMath.Parser.prototype.environments;
+    environments[name] = ['Environment'];
+    for (var i = 1; i < arguments.length; i++)
+      {environments[name][environments[name].length] = arguments[i]}
+  }
 });

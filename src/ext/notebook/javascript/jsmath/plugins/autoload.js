@@ -9,18 +9,16 @@
  *
  *  You can control the items to look for via the variables
  *
- *      jsMath.Autoload.findMathElements
  *      jsMath.Autoload.findTeXstrings
  *      jsMath.Autoload.findLaTeXstrings
  *      jsMath.Autoload.findCustomStrings
  *      jsMath.Autoload.findCustomSettings
  *
- *  which control whether to look for SPAN and DIV elements of class
- *  "math", TeX strings that will be converted by jsMath.ConvertTeX(), or
- *  LaTeX strings that will be converted by jsMath.ConvertLaTeX().  By
- *  default, the first is true and the second and third are false.  The
- *  findCustomStrings can be used to specify your own delimiters for
- *  in-line and display mathematics, e.g
+ *  which control whether to look for TeX strings that will be converted
+ *  by jsMath.ConvertTeX(), or LaTeX strings that will be converted by
+ *  jsMath.ConvertLaTeX().  By default, the first is true and the second
+ *  and third are false.  The findCustomStrings can be used to specify your
+ *  own delimiters for in-line and display mathematics, e.g.
  *
  *      jsMath.Autoload.findCustomStrings = [
  *         '[math],'[/math]',          // start and end in-line math
@@ -223,8 +221,9 @@ jsMath.Add(jsMath.Autoload,{
    */
   Check: function () {
     if (this.checked) return; this.checked = 1;
-    if (this.findTeXstrings || this.findLaTeXstrings ||
-        this.findCustomStrings || this.findCustomSettings) {
+    if ((this.findTeXstrings || this.findLaTeXstrings ||
+         this.findCustomStrings || this.findCustomSettings) &&
+         (!jsMath.tex2math || !jsMath.tex2math.loaded)) {
       this.Script.tex2math = 1;
       this.Script.Load('plugins/tex2math.js');
     } else {
@@ -245,28 +244,19 @@ jsMath.Add(jsMath.Autoload,{
    *  needs to be tagged for jsMath, and load jsMath if it is needed
    */
   Check2: function () {
-    this.Script.tex2math = 0;
-    this.needsJsMath = 0; if (this.checkElement == null) {this.checkElement = null}
-    if (this.findMathElements) {
-      this.needsJsMath = this.areMathElements(this.checkElement);
-    }
-    jsMath.tex2math.callback = this.tex2mathCallback;
-    if (this.findTeXstrings && !this.needsJsMath) {
-      jsMath.tex2math.ConvertTeX(this.checkElement);
-    }
-    if (this.findLaTeXstrings && !this.needsJsMath) {
-      jsMath.tex2math.ConvertLaTeX(this.checkElement);
-    }
-    if (this.findCustomSettings && !this.needsJsMath) {
-      jsMath.tex2math.Convert(this.checkElement,this.findCustomSettings);
-    }
-    if (this.findCustomStrings && !this.needsJsMath) {
+    this.Script.tex2math = 0; this.needsJsMath = 0;
+    if (this.checkElement == null) {this.checkElement = null}
+
+    if (this.findTeXstrings)     {jsMath.tex2math.ConvertTeX(this.checkElement)}
+    if (this.findLaTeXstrings)   {jsMath.tex2math.ConvertLaTeX(this.checkElement)}
+    if (this.findCustomSettings) {jsMath.tex2math.Convert(this.checkElement,this.findCustomSettings)}
+    if (this.findCustomStrings)  {
       var s = this.findCustomStrings;
       jsMath.tex2math.CustomSearch(s[0],s[1],s[2],s[3]);
       jsMath.tex2math.ConvertCustom(this.checkElement);
     }
-    jsMath.tex2math.callback = null;
 
+    this.needsJsMath = this.areMathElements(this.checkElement);
     if (this.needsJsMath) {
       this.LoadJsMath();
     } else {
@@ -279,7 +269,7 @@ jsMath.Add(jsMath.Autoload,{
       jsMath.CustomSearch = function () {};
       jsMath.Macro = function () {};
       jsMath.Synchronize = function (code,data) {
-        if (typeof(code) != 'string') {code(data)} else {eval(code)}
+        if (typeof(code) == 'string') {eval(code)} else {code(data)}
       };
       jsMath.Autoload.Script.RunStack(); // perform pending commands
       jsMath.Autoload.setMessage();
@@ -296,29 +286,9 @@ jsMath.Add(jsMath.Autoload,{
   },
 
   /*
-   *  jsMath.Autoload.Run() can be called to perform the
-   *  tex2math calls given by the Autoload parameters.
+   *  jsMath.Autoload.Run() is now longer needed
    */
-  Run: function (data) {
-    if (jsMath.loaded) {this.Autorun(data)}
-                  else {this.Script.Push('Autorun',[data])}
-  },
-
-  Autorun: function (element) {
-    if (!element) {element = this.checkElement}
-    if (this.findTeXstrings) {jsMath.ConvertTeX(element)}
-    if (this.findLaTeXstrings) {jsMath.ConvertLaTeX(element)}
-    if (this.findCustomSettings) {
-      jsMath.Synchronize(function () {
-        jsMath.tex2math.Convert(element,jsMath.Autoload.findCustomSettings);
-      });
-    }
-    if (this.findCustomStrings) {
-      var s = this.findCustomStrings;
-      jsMath.CustomSearch(s[0],s[1],s[2],s[3]);
-      jsMath.ConvertCustom(element);
-    }
-  },
+  Run: function (data) {},
 
   /*
    *  Look to see if there are SPAN or DIV elements of class "math".
@@ -360,12 +330,12 @@ jsMath.Add(jsMath.Autoload,{
     var fonts = jsMath.Autoload.loadFonts;
     if (fonts) {
       if (typeof(fonts) != 'object') {fonts = [fonts]}
-      for (var i in fonts) {jsMath.Font.Load(fonts[i])}
+      for (var i = 0; i < fonts.length; i++) {jsMath.Font.Load(fonts[i])}
     }
     var files = jsMath.Autoload.loadFiles;
     if (files) {
       if (typeof(files) != 'object') {files = [files]}
-      for (var i in files) {jsMath.Setup.Script(files[i])}
+      for (var i = 0; i < files.length; i++) {jsMath.Setup.Script(files[i])}
     }
     jsMath.Synchronize(function () {jsMath.Autoload.Script.RunStack()});
     jsMath.Autoload.setMessage();
@@ -380,7 +350,7 @@ jsMath.Add(jsMath.Autoload,{
       if (!document.body.hasChildNodes) {document.body.appendChild(this.div)}
         else {document.body.insertBefore(this.div,document.body.firstChild)}
       var style = {
-        position:'absolute', bottom:'1px', left:'2px',
+        position:'fixed', bottom:'1px', left:'2px',
         backgroundColor:'#E6E6E6', border:'solid 1px #959595',
         margin:'0px', padding:'1px 8px', zIndex:102,
         color:'black', fontSize:'75%', width:'auto'
@@ -405,8 +375,7 @@ jsMath.Add(jsMath.Autoload,{
     ConvertCustom: function (data) {jsMath.Autoload.Script.Push('ConvertCustom',[data])},
     CustomSearch: function (d1,d2,d3,d4) {jsMath.Autoload.Script.Push('CustomSearch',[d1,d2,d3,d4])},
     Synchronize: function (data) {jsMath.Autoload.Script.Push('Synchronize',[data])},
-    Macro: function (cs,def,params) {jsMath.Autoload.Script.Push('Macro',[cs,def,params])},
-    Autorun: function (data) {jsMath.Autoload.Autorun(data)}
+    Macro: function (cs,def,params) {jsMath.Autoload.Script.Push('Macro',[cs,def,params])}
   },
 
   InitStubs: function () {jsMath.Add(jsMath,jsMath.Autoload.stubs)}
@@ -417,7 +386,6 @@ jsMath.Add(jsMath.Autoload,{
  *  Initialize
  */
 
-if (jsMath.Autoload.findMathElements == null) {jsMath.Autoload.findMathElements = 1}
 if (jsMath.Autoload.findTeXstrings == null)   {jsMath.Autoload.findTeXstrings = 0}
 if (jsMath.Autoload.findLaTeXstrings == null) {jsMath.Autoload.findLaTeXstrings = 0}
 

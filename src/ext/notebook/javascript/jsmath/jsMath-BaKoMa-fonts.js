@@ -8,7 +8,7 @@
  *
  *  ---------------------------------------------------------------------
  *
- *  Copyright 2004-2006 by Davide P. Cervone
+ *  Copyright 2004-2007 by Davide P. Cervone
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@
  *  to correspond to the their encoding.
  */
 
-if (jsMath.browser == "Mozilla" && navigator.platform != "MacPPC") {
+if (jsMath.browser == "Mozilla" && jsMath.platform != "mac") {
 
   /*
    *  Mozilla/PC
@@ -254,7 +254,7 @@ if (jsMath.browser == "Mozilla" && navigator.platform != "MacPPC") {
   switch (jsMath.browser) {
 
     case "MSIE":
-      if (navigator.platform == "Win32") {
+      if (jsMath.platform == "pc") {
         /*
          *  MSIE/PC
          */
@@ -359,7 +359,7 @@ if (jsMath.browser == "Mozilla" && navigator.platform != "MacPPC") {
       break;
 
     case "Mozilla":
-      if (navigator.platform == "MacPPC") {
+      if (jsMath.platform == "mac") {
         /*
          *  Mozilla/Mac
          */

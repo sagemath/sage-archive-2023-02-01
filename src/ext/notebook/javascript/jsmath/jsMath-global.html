@@ -359,7 +359,7 @@ var jsMath = {
     this.domain = '';
     // MSIE/Mac can't do domain changes, so don't bother trying
     if (navigator.appName == 'Microsoft Internet Explorer' &&
-        navigator.platform == 'MacPPC' && navigator.userProfile != null) return;
+        !navigator.platform.match(/Mac/) && navigator.userProfile != null) return;
     if (this.src == '') {
       if (window == parent) return;
       var oldDomain = document.domain;

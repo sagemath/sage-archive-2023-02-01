@@ -9,7 +9,7 @@
  |
  | ---------------------------------------------------------------------
  |
- | Copyright 2004-2006 by Davide P. Cervone
+ | Copyright 2004-2007 by Davide P. Cervone
  |
  | Licensed under the Apache License, Version 2.0 (the "License");
  | you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ while (!window.jsMath && !showWarning) {
     //
     if (pageDomain.match(/\..*\./) &&
         (navigator.appName != 'Microsoft Internet Explorer' ||
-         navigator.platform != 'MacPPC' || !navigator.userProfile || !document.all)) {
+         !navigator.platform.match(/Mac/) || !navigator.userProfile || !document.all)) {
       try {
         document.domain = pageDomain.replace(/^[^.]*\./,'');
         showWarning = 0;
@@ -128,6 +128,12 @@ jsMath.Add(jsMath.Controls,{
 
     this.panel.style.display = "block";
     this.openMain = 0;
+
+    if (jsMath.Browser.msieMoveButtonHack) {
+      this.panel.style.left = "0px";
+      this.panel.style.top = "0px";
+      jsMath.Controls.MoveButton();
+    }
   },
 
   Options: function () {
@@ -178,6 +184,12 @@ jsMath.Add(jsMath.Controls,{
     }
 
     this.panel.style.display = "block";
+
+    if (jsMath.Browser.msieMoveButtonHack) {
+      this.panel.style.left = "0px";
+      this.panel.style.top = "0px";
+      jsMath.Controls.MoveButton();
+    }
   },
 
   GetPanel: function (name) {
@@ -252,14 +264,15 @@ jsMath.Add(jsMath.Controls,{
 <tr valign="middle"><td align="center">
 <table border="0" cellspacing="0" cellpadding="0">
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/users/quickstart.html">Quick Start</a></td></tr>
+<tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/users/fonts.html">Missing Fonts</a></td></tr>
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/users/printing.html">Printing Issues</a></td></tr>
 <tr><td height="5"></td></tr>
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath">Home Page</a></td></tr>
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/users/">Documentation</a></td></tr>
-<tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/download/jsMath-fonts.html">Download Fonts</a></td></tr>
+<tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="https://sourceforge.net/forum/?group_id=172663">User Community</a></td></tr>
 <tr><td height="5"></td></tr>
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/bugs.html">Known Bugs</a></td></tr>
-<tr><td class="infoLink" align="left">&#8226; <a id="jsMath__mailto" href="mailto:dpvc@union.edu?subject=jsMath Bug Report">Report a  Bug</a></td></tr>
+<tr><td class="infoLink" align="left">&#8226; <a id="jsMath__mailto" href="mailto:dpvc@union.edu?subject=jsMath Bug Report">Report a Bug</a></td></tr>
 <tr><td height="5"></td></tr>
 <tr><td class="infoLink" align="left">&#8226; <a target="_blank" href="http://www.math.union.edu/locate/jsMath/jsMath/COPYING.txt">License</a></td></tr>
 </table>

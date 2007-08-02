@@ -175,7 +175,7 @@ jsMath.Img.UpdateTeXFonts({
     '122': {c: 'z', a:0, ic: 0.044, krn: {'127': 0.0556}}
   },
   cmsy10: {
-    '0': {c:'&#8211;', a:.1}
+    '0': {c:'&#x2212;', a:.1}
   },
   cmti10: {
     '33': {c: '!', lig: {'96': 60}},
@@ -347,7 +347,7 @@ jsMath.Img.UpdateTeXFonts({
 });
 
 
-if (jsMath.browser == 'MSIE' && navigator.platform == 'MacPPC') {
+if (jsMath.browser == 'MSIE' && jsMath.platform == 'mac') {
   jsMath.Setup.Styles({
     '.typeset .math':       'font-style: normal',
     '.typeset .typeset':    'font-style: normal',

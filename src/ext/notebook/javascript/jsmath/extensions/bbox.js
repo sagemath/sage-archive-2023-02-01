@@ -74,8 +74,8 @@ jsMath.Package(jsMath.Parser,{
       for (var i in parts) {
         if (parts[i].match(/^\s*([-+]?(\.\d+|\d+(\.\d*)?))(pt|em|ex|mu|px)\s*$/))
           {pad = this.ParseDimen(parts[i],'',0,1)}
-          else if (parts[i].match(/:/)) {style = parts[i]}
-          else {color = parts[i]}
+        else if (parts[i].match(/:/)) {style = parts[i]}
+        else {color = parts[i]}
       }
     }
     var box = jsMath.Box.Set(arg,this.mlist.data.style,this.mlist.data.size,1).Remeasured();

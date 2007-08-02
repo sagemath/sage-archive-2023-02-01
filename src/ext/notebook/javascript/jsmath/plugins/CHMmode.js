@@ -10,7 +10,7 @@
  *
  *  ---------------------------------------------------------------------
  *
- *  Copyright 2006 by Davide P. Cervone
+ *  Copyright 2006-2007 by Davide P. Cervone
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -75,22 +75,9 @@ if (window.location.protocol == "mk:") {
     jsMath.Controls.Close = function () {this.oldClose(); this.panel = null}
     jsMath.Element("options").style.display = "none";
     jsMath.Controls.Main();
-    jsMath.window.onscroll = function () {jsMath.Controls.MoveButton()}
-  }
-
-  /*
-   *  Since MSIE doesn't handle position:float, we need to have the
-   *  window repositioned every time the window scrolls.  We do that
-   *  by hiding then showing the window, which apparently causes MSIE
-   *  to recompute its location
-   */
-  jsMath.Controls.MoveButton = function () {
-    if (!this.button) {this.button = jsMath.Element("button")}
-    this.button.style.visibility = "hidden";
-    this.button.style.visibility = "visible";
-    if (this.panel) {
-      this.panel.style.visibility = "hidden";
-      this.panel.style.visibility = "visible";
+    if (!jsMath.Browser.IE7 || jsMath.Browser.quirks) {
+      jsMath.window.attachEvent("onscroll",jsMath.Controls.MoveButton);
+      if (jsMath.Browser.IE7) jsMath.window.attachEvent("onresize",jsMath.Controls.MoveButton);
     }
   }
 

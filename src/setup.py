@@ -913,6 +913,7 @@ setup(name        = 'sage',
                      'sage.structure',
 
                      'sage.dsage',
+                     'sage.dsage.tests',
                      'sage.dsage.database',
                      'sage.dsage.database.tests',
                      'sage.dsage.server',

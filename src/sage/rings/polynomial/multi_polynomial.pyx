@@ -115,17 +115,17 @@ cdef class MPolynomial(CommutativeRingElement):
 
         d = self.degree(var)
         B = ring.base_ring()
-        w = dict([(delete(e, ind), val) for e, val in self.dict().iteritems() if not e[ind]])
+        w = dict([(remove_from_tuple(e, ind), val) for e, val in self.dict().iteritems() if not e[ind]])
         v = [B(w)]  # coefficients that don't involve var
         z = var
         for i in range(1,d+1):
             c = self.coefficient(z).dict()
-            w = dict([(delete(e, ind), val) for e, val in c.iteritems()])
+            w = dict([(remove_from_tuple(e, ind), val) for e, val in c.iteritems()])
             v.append(B(w))
             z *= var
         return ring(v)
 
-cdef delete(e, int ind):
+cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]
     return tuple(w)

@@ -1,5 +1,5 @@
 /* emacs edit mode for this file is -*- C -*- */
-/* $Id: assert.h,v 1.6 1997/09/29 06:56:27 schmidt Exp $ */
+/* $Id: assert.h,v 1.7 2006/11/13 14:15:04 Singular Exp $ */
 
 /* This is for compatibility with standard assert.h */
 #if defined (NDEBUG) && ! defined (NOASSERT)
@@ -28,8 +28,16 @@
 #undef PVIRT_CHARCC
 /* }}} */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 /* {{{ permanent macro definitions */
 #ifndef __GNUC__
@@ -116,7 +124,6 @@
 #define PVIRT_CHARCC(msg) = 0
 #endif /* NOASSERT */
 /* }}} */
-
 
 /* SAGE hack: This is *critically* needed to compile on some systems
    for which the logic above is broken.   Obviously it defeates the

@@ -7,6 +7,15 @@
 # Apply patches
 cp patches/assert.h src/factory/
 
+cp patches/Makefile.in src/Makefile.in
+cp patches/omalloc.Makefile.in src/omalloc/Makefile.in
+cp patches/kernel.Makefile.in src/kernel/Makefile.in
+cp patches/Singular.Makefile.in src/Singular/Makefile.in
+
+cp patches/tesths.cc src/Singular/
+cp patches/libsingular.h src/Singular/
+
+
 # Build
 
 cd src/

@@ -1,3 +1,7 @@
+* 20070802 Martin Albrecht <malb@informatik.uni-bremen.de>
+ + new upstream release (3-0-3)
+ + adapted new spkg structure (all changes in patches subdirectory)
+
 * 20070506 Martin Albrecht <malb@informatik.uni-bremen.de>
  + build script improvements
  + changes to libsingular.h

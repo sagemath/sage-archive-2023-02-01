@@ -31,7 +31,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
             sage: R.<t> = S[[]]
             sage: f = 3 - x*t^3 + O(t^5)
             sage: f(1)
-            ??
+            2
         """
         if len(kwds) == 0 and len(args) == 1:
             R = self.parent()._mpoly_ring()

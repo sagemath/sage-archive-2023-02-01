@@ -151,14 +151,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             self.__magma = R
             return R
 
-    def var_dict(self):
-        """
-        Return dictionary of paris varname:var of the variables
-        of this multivariate polynomial ring.
-        """
-        return dict([(str(g),g) for g in self.gens()])
-
-
     def is_finite(self):
         if self.ngens() == 0:
             return self.base_ring().is_finite()

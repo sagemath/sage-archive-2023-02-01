@@ -886,7 +886,7 @@ class MPolynomialIdeal_macaulay2_repr:
             i = G.rfind('{{')
             j = G.rfind('}}')
             G = G[i+2:j].split(',')
-            L = self.ring().var_dict()
+            L = self.ring().gens_dict()
             B = [sage_eval(f, L) for f in G]
             B = Sequence(B, self.ring(), check=False)
             B.sort()

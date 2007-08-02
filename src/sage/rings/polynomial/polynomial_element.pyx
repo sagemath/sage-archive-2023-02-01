@@ -1181,10 +1181,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
     def dict(self):
+        """
+        Return a sparse dictionary representation of this univariate polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + -1/7*x + 13
+            sage: f.dict()
+            {0: 13, 1: -1/7, 3: 1}
+        """
         X = {}
         Y = self.list()
         for i in xrange(len(Y)):
-            X[i] = Y[i]
+            c = Y[i]
+            if c:
+                X[i] = c
         return X
 
     def factor(self):
@@ -1953,26 +1964,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
         +Infinity
         """
         cdef int k
-        if self.is_zero():
+
+        if not self:
             return infinity
-        if p == infinity:
+
+        if p is infinity:
             return -self.degree()
+
         if p is None:
-            p = self.parent().gen()
+            for k from 0 <= k <= self.degree():
+                if self[k]:
+                    return ZZ(k)
+
         if not isinstance(p, Polynomial) or not p.parent() is self.parent():
             raise TypeError, "The polynomial, p, must have the same parent as self."
-        if p is None or p == self.parent().gen():
-            for i in xrange(self.degree()+1):
-                if self[i] != 0:
-                    return ZZ(i)
-        else:
-            if p.degree() == 0:
-                raise ArithmeticError, "The polynomial, p, must have positive degree."
-            k = 0
-            while self % p == 0:
-                k = k + 1
-                self = self.__floordiv__(p)
-            return sage.rings.integer.Integer(k)
+
+        if p.degree() == 0:
+            raise ArithmeticError, "The polynomial, p, must have positive degree."
+        k = 0
+        while self % p == 0:
+            k = k + 1
+            self = self.__floordiv__(p)
+        return sage.rings.integer.Integer(k)
         raise RuntimeError, "bug in computing valuation of polynomial"
 
     def ord(self, p=None):

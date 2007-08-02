@@ -87,6 +87,23 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return  [ d[i] for i in degs ]
 
+    def truncate(self, var, n):
+        """
+        Returns a new multivariate polynomial obtained from self by
+        deleting all terms that involve the given variable to a power
+        at least n.
+        """
+        cdef int ind
+        R = self.parent()
+        G = R.gens()
+        Z = list(G)
+        try:
+            ind = Z.index(var)
+        except ValueError:
+            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+        d = self.dict()
+        return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
+
     def polynomial(self, var):
         """
         Let var be one of the variables of the parent of self.  This
@@ -134,6 +151,8 @@ cdef class MPolynomial(CommutativeRingElement):
         # Make polynomial ring over all variables except var.
         S = R.base_ring()[tuple(other_vars)]
         ring = S[var]
+        if not self:
+            return ring(0)
 
         d = self.degree(var)
         B = ring.base_ring()
@@ -151,3 +170,4 @@ cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]
     return tuple(w)
+

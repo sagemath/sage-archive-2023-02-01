@@ -1,3 +1,5 @@
+# NOT ready to be used -- possibly should be deleted.
+
 include "../ext/stdsage.pxi"
 
 from power_series_ring_element cimport PowerSeries
@@ -7,6 +9,8 @@ import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
+from polynomial.all import is_MPolynomialRing
+import power_series_poly
 
 cdef class PowerSeries_mpoly(PowerSeries):
 
@@ -19,10 +23,53 @@ cdef class PowerSeries_mpoly(PowerSeries):
             sage: loads(f.dumps()) == f
             True
         """
-        R = parent._mpoly_ring()
-        if PY_TYPE_CHECK(f, Element):
-            if (<Element>f)._parent is R:
-                pass
+        S = parent._mpoly_ring()
+        if PY_TYPE_CHECK(f, Element) and (<Element>f)._parent is S:
+            #if check and not (prec is infinity):
+            #    self.__f = f.truncate(S.gens()[-1], prec)
+            #    self._truncated = 1
+            #else:
+            self.__f = f
+        else:
+            # We use the generic code, since the coercion rules can be
+            # very complicated.  This is non-optimal, but much easier
+            # to maintain.
+            g = power_series_poly.PowerSeries_poly(parent, f=f,
+                                      prec=prec, check=check).polynomial()
+
+            # Now g is a polynomial in the indeterminate over the base
+            # ring.  We have to construct a multivariate polynomial
+            # from g in S efficiently.
+
+            # Let d be the dictionary that will represent this object
+            # that we're creating.  We compute d explicitly below.
+
+            v = g.list()
+            # Take each of the coefficients of g, make into a polydict,
+            # and then create corresponding entries of d.
+            B = parent.base_ring()
+            i = S.ngens() - 1
+
+            # We divide the computation of d into 2 cases in order to
+            # avoid having an if statement in the inner loop of a
+            # doubly-nested for loop.
+            d = {}
+            if is_MPolynomialRing(B):
+                for i in range(len(v)):
+                    for n, c in v[i].dict().iteritems():
+                        d[tuple(n) + (i,)] = c
+            else:
+                for i in range(len(v)):
+                    for n, c in v[i].dict().iteritems():
+                        d[(n,i)] = c
+
+            self.__f = S(d)
+
+        PowerSeries.__init__(self, parent, prec, is_gen)
+
+    def __reduce__(self):
+        # do *not* delete old versions.
+        return make_powerseries_mpoly_v0, (self._parent, self.__f, self._prec, self.__is_gen)
 
     def __call__(self, *args, **kwds):
         """
@@ -39,27 +86,94 @@ cdef class PowerSeries_mpoly(PowerSeries):
         else:
             return self.__f(*args, **kwds)
 
+    def do_truncation(self):
+        if self._truncated:
+            return
+        S = self.parent()._mpoly_ring()
+        self.__f = self.__f.truncate(S.gens()[-1], self._prec)
+        self._truncated = 1
+
+    def _repr_(self):
+        if not self._truncated:
+            self.do_truncation()
+        return PowerSeries._repr_(self)
+
     def list(self):
         if self.__list is None:
-            R = self.parent().base_ring()
-            self.__list = self.__f.list(dense=True, ring=R)
+            self.__list = self.polynomial().list()
         return self.__list
-
-##         x = parent._mpoly_ring().gen(0)
-##         d = self.__f.degree(x)
-##         v = [R(0)]*(d+1)
-##         for i from 0 <= i <= d:
-##             v[i] =
-
-##         return self.__list
 
     def polynomial(self):
         if self.__poly is None:
-            R = self.parent()._poly_ring()
-            self.__poly = R(self.list())
+            S = self.parent()._mpoly_ring()
+            self.__poly = self.__f.polynomial(S.gens()[-1])
         return self.__poly
 
+    def _mpoly(self):
+        return self.__f
+
+    cdef RingElement _mul_c_impl(self, RingElement right_r):
+        """
+        Return the product of two power series.
+        """
+        prec = self._mul_prec(right_r)
+        return PowerSeries_mpoly(self._parent,
+                                 self.__f * (<PowerSeries_mpoly>right_r).__f,
+                                 prec = prec,
+                                 check =True)
 
 
-def make_powerseries_poly_v0(parent,  f, prec, is_gen):
+    def __iter__(self):
+        """
+        Return an interator over the coefficients of this power series.
+        """
+        return iter(self.__f)
+
+    def __neg__(self):
+        """
+        Return the negative of this power series.
+        """
+        return PowerSeries_mpoly(self._parent, -self.__f,
+                                         self._prec, check=False)
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
+        """
+        EXAMPLES:
+        """
+        cdef PowerSeries_mpoly right = <PowerSeries_mpoly>right_m
+        return PowerSeries_mpoly(self._parent, self.__f + right.__f, \
+                                         self.common_prec_c(right), check=True)
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
+        """
+        Return difference of two power series.
+
+        EXAMPLES:
+        """
+        cdef PowerSeries_mpoly right = <PowerSeries_mpoly>right_m
+        return PowerSeries_mpoly(self._parent, self.__f - right.__f, \
+                                         self.common_prec_c(right), check=True)
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+        return PowerSeries_mpoly(self._parent, self.__f._rmul_c(c), self._prec, check=False)
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+        return PowerSeries_mpoly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
+
+    def __pow__(self_t, r, dummy):  # TODO -- too much code duplication with power_series_poly.pyx?
+        cdef PowerSeries_mpoly self = self_t
+        cdef int right = r
+        if right != r:
+            raise ValueError, "exponent must be an integer"
+        if right < 0:
+            return (~self)**(-right)
+        if right == 0:
+            return self._parent(1)
+        if self.__is_gen:
+            return PowerSeries_mpoly(self._parent, self.__f**right, check=False)
+        if self.is_zero():
+            return self
+        return arith.generic_power(self, right, self._parent(1))
+
+def make_powerseries_mpoly_v0(parent,  f, prec, is_gen):
     return PowerSeries_mpoly(parent, f, prec, 0, is_gen)

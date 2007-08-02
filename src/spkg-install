@@ -50,7 +50,10 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     # We also delete the build directory, since it could contain
     # old .py files we don't want anymore.
-    rm -rf build
+    # Do a copy, link, etc., later.  This is bad because it means
+    # that a failed build yields a broken sage.  Fix that problem first.
+    #rm -rf build
+
 
     "$SAGE_ROOT/sage" -b main
     if [ $? -ne 0 ]; then

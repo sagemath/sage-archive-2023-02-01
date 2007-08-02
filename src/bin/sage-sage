@@ -422,13 +422,13 @@ if [ $1 = '-ba' ]; then
    echo " *** WARNING *** "
    echo " You are about to rebuild the entire SAGE library."
    echo " This will take a significant amount of time."
-   echo -n " Do you want to proceed? [Y/N] "
-   read -e CHOICE
-   while [ $CHOICE != "Y" -a $CHOICE != "N" ]; do
-	   echo -n " Choose one of Y, N: "
-	   read -e CHOICE
+   echo -n " Do you want to proceed? [y/n] "
+   read CHOICE
+   while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do
+	   echo -n " Choose one of y, n: "
+	   read CHOICE
    done
-   if [ $CHOICE = 'N' ]; then
+   if [ $CHOICE = 'n' ]; then
 	   exit 0
    fi
    sage-build -b "$@" && sage

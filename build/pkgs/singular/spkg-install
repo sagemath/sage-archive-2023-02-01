@@ -4,17 +4,26 @@
 ## Singular
 ###########################################
 
-# Apply patches
+# work-around patch
 cp patches/assert.h src/factory/
 
+# modified buildscript nolns and libSINGULAR patches
 cp patches/Makefile.in src/Makefile.in
-cp patches/omalloc.Makefile.in src/omalloc/Makefile.in
+cp patches/factory.GNUmakefile.in src/factory/GNUmakefile.in
+cp patches/IntegerProgramming.Makefile.in src/IntegerProgramming/Makefile.in
 cp patches/kernel.Makefile.in src/kernel/Makefile.in
+cp patches/libfac.Makefile.in src/libfac/Makefile.in
+cp patches/omalloc.Makefile.in src/omalloc/Makefile.in
 cp patches/Singular.Makefile.in src/Singular/Makefile.in
 
+# libSINGULAR patches
 cp patches/tesths.cc src/Singular/
 cp patches/libsingular.h src/Singular/
+cp patches/longrat.cc src/kernel/
+cp patches/longrat.h src/kernel/
 
+# bugfix patches
+cp patches/cf_factor.cc src/factory/
 
 # Build
 

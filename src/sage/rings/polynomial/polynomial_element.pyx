@@ -2131,37 +2131,55 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def norm(self, p):
         r"""
-        Return the \code{p^th} norm of this polynomial
+        Return the $p$-norm of this polynomial.
+
+        DEFINITION: For integer $p$, the $p$-norm of a polynomial is
+        the $p$th root of the sum of the $p$th powers of the absolute
+        values of the coefficients of the polynomial.
+
         INPUT:
-           p -- the degree of the norm
+           p -- (positive integer or +infinity) the degree of
+                the norm
 
         EXAMPLES:
-            sage: R=RR['x'] ; x = R.0
-            sage: f = x^6 + x^2 + -x^4 -x^3
-            sage: f.norm(2) == 2.0
-            True
+            sage: R.<x> =RR[]
+            sage: f = x^6 + x^2 + -x^4 - 2*x^3
+            sage: f.norm(2)
+            2.64575131106459
+            sage: N(sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2))
+            2.64575131106459
 
             sage: f.norm(1)
-            4.00000000000000
+            5.00000000000000
             sage: f.norm(infinity)
-            1.00000000000000
+            2.00000000000000
 
             sage: f.norm(-1)
             Traceback (most recent call last):
             ...
             ValueError: The degree of the norm must be positive
 
+        TESTS:
+            sage: R.<x> = RR[]
+            sage: f = x^6 + x^2 + -x^4 -x^3
+            sage: f.norm(int(2))
+            2.00000000000000
+
         AUTHOR:
             -- didier deshommes
+            -- William Stein: fix bugs, add definition, etc.
         """
         if p <= 0 :
             raise ValueError, "The degree of the norm must be positive"
-        coeffs = self.coeffs()
-        if 1 == p:
-            return RR(sum([abs(i**p) for i in coeffs]))
 
-        if p is infinity:
+        coeffs = self.coeffs()
+        if p == infinity:
             return RR(max([abs(i) for i in coeffs]))
+
+        p = sage.rings.integer.Integer(p)  # because we'll do 1/p below.
+
+        if p == 1:
+            return RR(sum([abs(i) for i in coeffs]))
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 

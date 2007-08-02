@@ -179,8 +179,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise TypeError,"Unable to coerce string"
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
-        elif is_MagmaElement(x):
-            x = list(x.Eltseq())
         elif isinstance(x, FractionFieldElement):
             if x.denominator().is_unit():
                 x = x.numerator() * x.denominator().inverse_of_unit()

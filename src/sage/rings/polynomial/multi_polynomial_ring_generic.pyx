@@ -276,7 +276,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         sage: R.random_element(3) # random
         2*y*z + 2*x + 2*y
 
-        sage:  R = MPolynomialRing(RR, 'x,y',2 );
+        sage: R.<x,y> = MPolynomialRing(RR)
         sage: R.random_element(2) # random
         -0.645358174399450*x*y + 0.572655401740132*x + 0.197478565033010
 

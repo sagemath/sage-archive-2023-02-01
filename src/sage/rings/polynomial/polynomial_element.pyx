@@ -2129,6 +2129,59 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self // self.gcd(self.derivative())
 
+    def norm(self, p):
+        r"""
+        Return the $p$-norm of this polynomial.
+
+        DEFINITION: For integer $p$, the $p$-norm of a polynomial is
+        the $p$th root of the sum of the $p$th powers of the absolute
+        values of the coefficients of the polynomial.
+
+        INPUT:
+           p -- (positive integer or +infinity) the degree of
+                the norm
+
+        EXAMPLES:
+            sage: R.<x> =RR[]
+            sage: f = x^6 + x^2 + -x^4 - 2*x^3
+            sage: f.norm(2)
+            2.64575131106459
+            sage: N(sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2))
+            2.64575131106459
+
+            sage: f.norm(1)
+            5.00000000000000
+            sage: f.norm(infinity)
+            2.00000000000000
+
+            sage: f.norm(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The degree of the norm must be positive
+
+        TESTS:
+            sage: R.<x> = RR[]
+            sage: f = x^6 + x^2 + -x^4 -x^3
+            sage: f.norm(int(2))
+            2.00000000000000
+
+        AUTHOR:
+            -- didier deshommes
+            -- William Stein: fix bugs, add definition, etc.
+        """
+        if p <= 0 :
+            raise ValueError, "The degree of the norm must be positive"
+
+        coeffs = self.coeffs()
+        if p == infinity:
+            return RR(max([abs(i) for i in coeffs]))
+
+        p = sage.rings.integer.Integer(p)  # because we'll do 1/p below.
+
+        if p == 1:
+            return RR(sum([abs(i) for i in coeffs]))
+
+        return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
 # ----------------- inner functions -------------
 # Sagex can't handle function definitions inside other function
@@ -2184,8 +2237,6 @@ cdef do_karatsuba(left, right):
     t1 = zeros + _karatsuba_dif(do_karatsuba(_karatsuba_sum(a,b),_karatsuba_sum(c,d)),_karatsuba_sum(ac,bd))
     t0 = bd
     return _karatsuba_sum(t0,_karatsuba_sum(t1,t2))
-
-
 
 cdef class Polynomial_generic_dense(Polynomial):
     """
@@ -2497,6 +2548,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         modulo $x^n$.
         """
         return self._parent(self.__coeffs[:n], check=False)
+
+
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)

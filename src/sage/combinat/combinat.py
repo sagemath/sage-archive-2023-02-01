@@ -1176,7 +1176,7 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-def number_of_partitions(n,k=None, algorithm='bober'):
+def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
 
@@ -1185,7 +1185,7 @@ def number_of_partitions(n,k=None, algorithm='bober'):
         k -- (default: None); if specified, instead returns the
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
-        algorithm -- (default: 'bober')
+        algorithm -- (default: 'default')
             'bober' -- use Jonathon Bober's implementation (*very* fast,
                       but new and not well tested yet).
             'gap' -- use GAP (VERY *slow*)
@@ -1194,6 +1194,8 @@ def number_of_partitions(n,k=None, algorithm='bober'):
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
                       outputs numbpart(147007)%1000 as 536, but it
                       should be 533!.  So do not use this option.
+            'default' -- 'bober' when k is not specified; otherwise
+                      use 'gap'.
 
     IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
@@ -1265,13 +1267,17 @@ def number_of_partitions(n,k=None, algorithm='bober'):
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    if algorithm == 'gap':
+    if algorithm == 'gap' or (not k is None and algorithm=='default'):
         if k==None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
-    elif algorithm == 'bober':
+    if not k is None:
+        raise ValueError, "only the GAP algorithm works if k is specified."
+    if algorithm == 'default' and k is None:
+        return partitions_ext.number_of_partitions(n)
+    elif algorithm == 'bober' and k is None:
         return partitions_ext.number_of_partitions(n)
     elif algorithm == 'pari':
         if not k is None:

@@ -456,6 +456,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
+        cdef unsigned int pos
         rChangeCurrRing(_ring)
 
         # try to coerce first
@@ -522,6 +523,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return new_MP(self, _p)
+
+        if PY_TYPE_CHECK(element, dict):
+            _p = p_ISet(0, _ring)
+            K = self.base_ring()
+            for (m,c) in element.iteritems():
+                try:
+                    c = K(c)
+                except TypeError, msg:
+                    p_Delete(&_p, _ring)
+                    raise TypeError, msg
+                mon = p_Init(_ring)
+                p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
+                if len(m) != self.ngens():
+                    raise TypeError, "tuple key must have same length as ngens"
+                for pos from 0 <= pos < len(m):
+                    if m[pos]:
+                        p_SetExp(mon, pos+1, m[pos], _ring)
+                p_Setm(mon, _ring)
+                _p = p_Add_q(_p, mon, _ring)
+            return new_MP(self, _p)
 
         if hasattr(element,'_polynomial_'):
             # SymbolicVariable
@@ -3362,6 +3383,40 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
         return new_MP(self._parent, rt)
+
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of this polynomial in a list.
+        The order the coefficients appear in depends on the ordering used
+        on self's parent.
+
+        EXAMPLES:
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='revlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [1, 23, 6]
+
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
+        AUTHOR:
+            -- didier deshommes
+        """
+        cdef poly *p
+        cdef ring *r
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
+        base = (<MPolynomialRing_libsingular>self._parent)._base
+        p = self._poly
+        coeffs = list()
+        while p:
+            coeffs.append(co.si2sa(p_GetCoeff(p, r), r, base))
+            p = pNext(p)
+        return coeffs
+
+
 
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """

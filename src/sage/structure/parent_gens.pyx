@@ -317,6 +317,10 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             names = normalize_names(self.ngens(), names)
         if not (self._names is None) and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
+        if isinstance(names, str):
+            names = (names, )  # make it a tuple
+        elif not PY_TYPE_CHECK(names, tuple):
+            raise TypeError, "names must be a tuple of strings"
         self._names = names
 
     def inject_variables(self, scope=None, verbose=True):

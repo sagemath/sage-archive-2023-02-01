@@ -93,9 +93,15 @@ class RationalField(_uniq, field.Field):
             1/374
             sage: a + 1
             393/374
+
+        TESTS:
+            sage: QQ.variable_name()
+            x
+            sage: QQ.variable_names()
+            ('x',)
         """
         ParentWithGens.__init__(self, self)
-        self._assign_names(('x'),normalize=False)
+        self._assign_names(('x',),normalize=False)
 
     def __hash__(self):
         return -11115808

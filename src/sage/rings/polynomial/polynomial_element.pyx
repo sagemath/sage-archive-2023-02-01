@@ -2129,6 +2129,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self // self.gcd(self.derivative())
 
+    def norm(self, p):
+        r"""
+        Return the \code{p^th} norm of this polynomial
+        INPUT:
+           p -- the degree of the norm
+
+        EXAMPLES:
+            sage: R=RR['x'] ; x = R.0
+            sage: f = x^6 + x^2 + -x^4 -x^3
+            sage: f.norm(2) == 2.0
+            True
+
+            sage: f.norm(1)
+            4.00000000000000
+            sage: f.norm(infinity)
+            1.00000000000000
+
+            sage: f.norm(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The degree of the norm must be positive
+
+        AUTHOR:
+            -- didier deshommes
+        """
+        if p <= 0 :
+            raise ValueError, "The degree of the norm must be positive"
+        coeffs = self.coeffs()
+        if 1 == p:
+            return RR(sum([abs(i**p) for i in coeffs]))
+
+        if p is infinity:
+            return RR(max([abs(i) for i in coeffs]))
+
+        return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
 # ----------------- inner functions -------------
 # Sagex can't handle function definitions inside other function
@@ -2184,8 +2219,6 @@ cdef do_karatsuba(left, right):
     t1 = zeros + _karatsuba_dif(do_karatsuba(_karatsuba_sum(a,b),_karatsuba_sum(c,d)),_karatsuba_sum(ac,bd))
     t0 = bd
     return _karatsuba_sum(t0,_karatsuba_sum(t1,t2))
-
-
 
 cdef class Polynomial_generic_dense(Polynomial):
     """
@@ -2497,6 +2530,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         modulo $x^n$.
         """
         return self._parent(self.__coeffs[:n], check=False)
+
+
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)

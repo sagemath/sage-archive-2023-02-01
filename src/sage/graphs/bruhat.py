@@ -305,6 +305,225 @@ class BruhatSn(BruhatInterval):
                         w = tuple([permutation[self._swapitch(i,j,k)] for k in range(0,permutation_length)])
                         self._add_above(w, height+1, max_height, new_node)
 
+class IntervalClass:
+    def __init__(self, interval, first_occurrence):
+        self.__representative_interval__=interval
+
+        #check if self-dual
+        self.__self_dual__=self.__representative_interval__.is_self_dual()
+
+        # find sub intervals
+        self.__sub_intervals__=[]
+        height_of_children=len (interval.__nodes__) -2
+        for child in interval.__nodes__[height_of_children]:
+            self.__sub_intervals__.append(interval.sub_interval_from_id(child.__permutation__, height_of_children))
+
+        # add first occurrence, get invariants
+        self.__perm_classes__=[]
+        self.add_occurrence(first_occurrence)
+        self.__disarray__=self.__perm_classes__[0].get_disarray()
+        self.__atomic_number__=self.__perm_classes__[0].get_atomic_number()
+        self.__interlock__=self.__perm_classes__[0].get_interlock()
+        self.__skip_pattern__=self.__perm_classes__[0].get_skip_pattern()
+
+    def is_member(self,other_interval):
+        return other_interval.is_isomorphic(self.__representative_interval__)
+
+    def add_occurrence(self,end_perm):
+        class_exists=False
+        for pc in self.__perm_classes__:
+            if (pc.is_member(end_perm)):
+                pc.add_occurrence(end_perm)
+                class_exists=True
+                break
+
+        if (class_exists==False):
+            newClass=PermutationClass(end_perm)
+            self.__perm_classes__.append(newClass)
+
+
+    def __str__(self):
+        str=""
+        str+="Self-dual: "
+        if (self.__self_dual__==True):
+            str+="True\n"
+        else:
+            str+="False\n"
+        str+="Disarray:%i" %(self.__disarray__) +"\n"
+        str+="Atomic Number:%i" %(self.__atomic_number__) +"\n"
+        str+="Interlock:%i" %(self.__interlock__) +"\n"
+        str+="Skip Pattern:" + (self.__skip_pattern__.__str__()) + "\n"
+        str+="Permutation Classes:\n"
+        for pc in self.__perm_classes__:
+            str+= "\n"+pc.__str__()
+        return str
+
+class IntervalOccurrence:
+    def __init__(self, perm):
+        self.__end_perm__=perm
+        self.__perm_length__=len(perm)
+
+class SkipPattern:
+    def __init__(self,perm_blocks):
+        self.__blocks__=[]
+
+        for x in perm_blocks:
+            pattern=""
+            for i in range(len(x.__perm__)):
+                if (x.__perm__[i])==i+1:
+                    pattern+="X"
+                else:
+                    pattern+="_"
+            split=pattern.split('X')
+            gen_pattern=""
+            for i in range(1, len(split)):
+                gen_pattern+="X"
+                if (i!=len(split)-1):
+                    gen_pattern+="%i" %(len(split[i]))
+
+            if gen_pattern!="":
+                self.__blocks__.append(gen_pattern)
+
+    def is_equal(self, other):
+        if len(other.__blocks__)!=len(self.__blocks__):
+            return False
+
+        used=[]
+        for i in range(len(other.__blocks__)):
+            used[i]=False
+
+        for i in range(len(self.__blocks__)):
+            matched=False
+            for j in range(len(other.__blocks__)):
+                if used[j]==True:
+                    continue
+                elif self.__blocks__[i]==other.__blocks__[j]:
+                    used[j]=True
+                    matched=True
+                    break
+                if matched==False:
+                    return False
+        return True
+
+    def __str__(self):
+        str=""
+        for x in self.__blocks__:
+            str+="{"+x+"}"
+        if str=="":
+            return "_"
+        return str
+
+class PermutationBlock:
+    def __init__(self, perm_block):
+        self.__perm__=perm_block[:]
+        self.__cycles__=cycles_from_permutation(self.__perm__)
+        self.__generators__=generators_from_permutation(self.__perm__)
+
+    def is_equal(self,other_perm):
+        return self.__perm__==other_perm
+
+    def get_skip_pattern(self):
+        return SkipPattern(self.__perm__)
+
+    def get_cycle_str(self):
+        str=""
+        for cycle in self.__cycles__:
+            str+="("
+            for x in cycle:
+                str+="%i " %(x)
+            str=str[:len(str)-1]+")"
+        return str
+
+    def get_perm_str(self):
+        str="["
+        for x in self.__perm__:
+            str+="%i " %(x)
+        str=str[:len(str)-1]+"]"
+        return str
+
+    def get_generator_str(self):
+        return self.__generators__
+
+class PermutationClass:
+    def __init__(self, perm):
+        self.__perm_blocks__=[]
+        blocks=blocks_from_permutation(perm)
+        for block in blocks:
+            new_pb=PermutationBlock(block)
+            self.__perm_blocks__.append(new_pb)
+
+        self.__occurrences__=[]
+        self.add_occurrence(perm)
+
+    def is_member(self,other_perm):
+        blocks=blocks_from_permutation(other_perm)
+        if (len(blocks)!=len(self.__perm_blocks__)):
+            return False
+        used=[]
+        for block in blocks:
+            used.append(False)
+
+        for i in range(0,len(self.__perm_blocks__)):
+            matched=False
+            for j in range(0,len(blocks)):
+                if (used[j]==False):
+                    if(self.__perm_blocks__[i].is_equal(blocks[j])):
+                        matched=True
+                        used[j]=True
+                        break
+            if (matched==False):
+                return False
+
+        return True
+
+    def get_disarray(self):
+        disarray=0
+        for block in self.__perm_blocks__:
+            perm=block.__perm__
+            for x in range(1,len(perm)+1):
+                for i in range(0, len(perm)):
+                    if (x==perm[i]):
+                        disarray+=abs((i+1)-x)
+                        break
+        return disarray
+
+    def get_atomic_number(self):
+        atomic=0
+        for block in self.__perm_blocks__:
+            block_atomic=0
+            for cycle in block.__cycles__:
+                block_atomic+=len(cycle)
+            atomic+=block_atomic-1
+        return atomic
+
+    def get_interlock(self):
+        interlock=0
+        for block in self.__perm_blocks__:
+            interlock+=len(block.__cycles__)-1
+        return interlock
+
+    def add_occurrence(self,perm):
+        occurrence=IntervalOccurrence(perm)
+        self.__occurrences__.append(occurrence)
+
+    def get_skip_pattern(self):
+        pattern=SkipPattern(self.__perm_blocks__)
+
+        return pattern
+
+    def __str__(self):
+        str=""
+        for block in self.__perm_blocks__:
+            str+=block.get_perm_str()
+        str+=" = "
+        for block in self.__perm_blocks__:
+            str+="{"
+            str+=block.get_cycle_str()
+            str+="}"
+        str+=" = "
+        for block in self.__perm_blocks__:
+            str+="{"+block.get_generator_str()+"}"
+        return str
 
 def height_unknown(G):
     """

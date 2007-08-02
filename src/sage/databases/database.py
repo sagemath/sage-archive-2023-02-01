@@ -47,7 +47,7 @@ def regexp(expr, item):
     return r.match(item) is not None
 
 def verify_type(type):
-    types = ['INTEGER','INT','BOOLEAN','REAL','TEXT','BOOL']
+    types = ['INTEGER','INT','BOOLEAN','REAL','TEXT','BOOL','BLOB']
     if type.upper() not in types:
         raise TypeError('%s is not a legal type.'%type)
     return True

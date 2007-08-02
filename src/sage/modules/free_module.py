@@ -375,13 +375,13 @@ class FreeModule_generic(module.Module):
             Sparse vector space of dimension 3 over Rational Field
             sage: S.dense_module()
             Vector space of dimension 3 over Rational Field
-            sage: M.sparse_module() is S
+            sage: M.sparse_module() == S
             True
-            sage: S.dense_module() is M
+            sage: S.dense_module() == M
             True
-            sage: M.dense_module() is M
+            sage: M.dense_module() == M
             True
-            sage: S.sparse_module() is S
+            sage: S.sparse_module() == S
             True
 
         Next we create a subspace:

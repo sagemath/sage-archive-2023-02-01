@@ -1,5 +1,5 @@
-import graph
-import bruhat
+from graph import DiGraph, Graph
+from bruhat import *
 from sqlite3 import dbapi2 as sqlite
 import os
 import re
@@ -7,8 +7,9 @@ from sage.databases.database import GenericSQLDatabase, SQLDatabase
 from sage.databases.db import DB_HOME
 dblocation = DB_HOME + '/graphs/bruhat.db'
 
-class BruhatDatabase(GenericSQLDatabase):
+class BruhatDatabase(SQLDatabase):
     """
+    Currently Mutable... BAD!
     """
 
     def __init__(self):
@@ -24,9 +25,16 @@ class BruhatDatabase(GenericSQLDatabase):
         TODO : This function is *unsafe* and should not remain in a released
         copy of sage.  (For development only).
         """
-        db = self.copy()
-        data_harvest(db,start_height,end_height)
-        return db
+        from copy import copy
+        from sage.misc.misc import tmp_filename
+        # copy .db file
+        new_loc = tmp_filename() + '.db'
+        os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
+        D = BruhatDatabase()
+        D.__dblocation__ = new_loc
+        D.__connection__ = sqlite.connect(self.__dblocation__)
+        data_harvest(D,start_height,end_height)
+        return D
 
     def commit_changes(self,db):
         """
@@ -61,7 +69,10 @@ class BruhatDatabase(GenericSQLDatabase):
 
                 # get pictures
                 for i in range (len(b)):
-                    p = load(str(b[i][0]))
+                    props = str(b[i][0])
+                    g = DiGraph(eval(props))
+                    G = g.to_undirected()
+                    p = G.plot(heights=height_unknown(g), vertex_labels=False, vertex_size=5)
                     p.save('%s.png'%i, figsize=[2,2])
 
                 print '<html><table bgcolor=lightgrey cellpadding=0><tr>'
@@ -88,6 +99,257 @@ class BruhatDatabase(GenericSQLDatabase):
                 GenericSQLDatabase.show(self, table_name, max_field_size, html_table)
         else:
             GenericSQLDatabase.show(self, table_name, max_field_size, html_table)
+
+
+# ***********************************************************
+# Helper Classes
+# ***********************************************************
+class IntervalClass:
+    def __init__(self, interval, first_occurrence):
+        self.__representative_interval__=interval
+
+        #check if self-dual
+        self.__self_dual__=self.__representative_interval__.is_self_dual()
+
+        # find sub intervals
+        self.__sub_intervals__=[]
+        height_of_children=len (interval.__nodes__) -2
+        for child in interval.__nodes__[height_of_children]:
+            self.__sub_intervals__.append(interval.sub_interval_from_id(child.__permutation__, height_of_children))
+
+        # add first occurrence, get invariants
+        self.__perm_classes__=[]
+        self.add_occurrence(first_occurrence)
+        self.__disarray__=self.__perm_classes__[0].get_disarray()
+        self.__atomic_number__=self.__perm_classes__[0].get_atomic_number()
+        self.__interlock__=self.__perm_classes__[0].get_interlock()
+        self.__skip_pattern__=self.__perm_classes__[0].get_skip_pattern()
+
+    def is_member(self,other_interval):
+        return other_interval.is_isomorphic(self.__representative_interval__)
+
+    def add_occurrence(self,end_perm):
+        class_exists=False
+        for pc in self.__perm_classes__:
+            if (pc.is_member(end_perm)):
+                pc.add_occurrence(end_perm)
+                class_exists=True
+                break
+
+        if (class_exists==False):
+            newClass=PermutationClass(end_perm)
+            self.__perm_classes__.append(newClass)
+
+
+    def __str__(self):
+        str=""
+        str+="Self-dual: "
+        if (self.__self_dual__==True):
+            str+="True\n"
+        else:
+            str+="False\n"
+        str+="Disarray:%i" %(self.__disarray__) +"\n"
+        str+="Atomic Number:%i" %(self.__atomic_number__) +"\n"
+        str+="Interlock:%i" %(self.__interlock__) +"\n"
+        str+="Skip Pattern:" + (self.__skip_pattern__.__str__()) + "\n"
+        str+="Permutation Classes:\n"
+        for pc in self.__perm_classes__:
+            str+= "\n"+pc.__str__()
+        return str
+
+class IntervalOccurrence:
+    def __init__(self, perm):
+        self.__end_perm__=perm
+        self.__perm_length__=len(perm)
+
+class SkipPattern:
+    def __init__(self,perm_blocks):
+        self.__blocks__=[]
+
+        for x in perm_blocks:
+            pattern=""
+            for i in range(len(x.__perm__)):
+                if (x.__perm__[i])==i+1:
+                    pattern+="X"
+                else:
+                    pattern+="_"
+            split=pattern.split('X')
+            gen_pattern=""
+            for i in range(1, len(split)):
+                gen_pattern+="X"
+                if (i!=len(split)-1):
+                    gen_pattern+="%i" %(len(split[i]))
+
+            if gen_pattern!="":
+                self.__blocks__.append(gen_pattern)
+
+    def is_equal(self, other):
+        if len(other.__blocks__)!=len(self.__blocks__):
+            return False
+
+        used=[]
+        for i in range(len(other.__blocks__)):
+            used[i]=False
+
+        for i in range(len(self.__blocks__)):
+            matched=False
+            for j in range(len(other.__blocks__)):
+                if used[j]==True:
+                    continue
+                elif self.__blocks__[i]==other.__blocks__[j]:
+                    used[j]=True
+                    matched=True
+                    break
+                if matched==False:
+                    return False
+        return True
+
+    def __str__(self):
+        str=""
+        for x in self.__blocks__:
+            str+="{"+x+"}"
+        if str=="":
+            return "_"
+        return str
+
+class PermutationBlock:
+    def __init__(self, perm_block):
+        self.__perm__=perm_block[:]
+        self.__cycles__=cycles_from_permutation(self.__perm__)
+        self.__generators__=generators_from_permutation(self.__perm__)
+
+    def is_equal(self,other_perm):
+        return self.__perm__==other_perm
+
+    def get_skip_pattern(self):
+        return SkipPattern(self.__perm__)
+
+    def get_cycle_str(self):
+        str=""
+        for cycle in self.__cycles__:
+            str+="("
+            for x in cycle:
+                str+="%i " %(x)
+            str=str[:len(str)-1]+")"
+        return str
+
+    def get_perm_str(self):
+        str="["
+        for x in self.__perm__:
+            str+="%i " %(x)
+        str=str[:len(str)-1]+"]"
+        return str
+
+    def get_generator_str(self):
+        return self.__generators__
+
+class PermutationClass:
+    def __init__(self, perm):
+        self.__perm_blocks__=[]
+        blocks=blocks_from_permutation(perm)
+        for block in blocks:
+            new_pb=PermutationBlock(block)
+            self.__perm_blocks__.append(new_pb)
+
+        self.__occurrences__=[]
+        self.add_occurrence(perm)
+
+    def is_member(self,other_perm):
+        blocks=blocks_from_permutation(other_perm)
+        if (len(blocks)!=len(self.__perm_blocks__)):
+            return False
+        used=[]
+        for block in blocks:
+            used.append(False)
+
+        for i in range(0,len(self.__perm_blocks__)):
+            matched=False
+            for j in range(0,len(blocks)):
+                if (used[j]==False):
+                    if(self.__perm_blocks__[i].is_equal(blocks[j])):
+                        matched=True
+                        used[j]=True
+                        break
+            if (matched==False):
+                return False
+
+        return True
+
+    def get_disarray(self):
+        disarray=0
+        for block in self.__perm_blocks__:
+            perm=block.__perm__
+            for x in range(1,len(perm)+1):
+                for i in range(0, len(perm)):
+                    if (x==perm[i]):
+                        disarray+=abs((i+1)-x)
+                        break
+        return disarray
+
+    def get_atomic_number(self):
+        atomic=0
+        for block in self.__perm_blocks__:
+            block_atomic=0
+            for cycle in block.__cycles__:
+                block_atomic+=len(cycle)
+            atomic+=block_atomic-1
+        return atomic
+
+    def get_interlock(self):
+        interlock=0
+        for block in self.__perm_blocks__:
+            interlock+=len(block.__cycles__)-1
+        return interlock
+
+    def add_occurrence(self,perm):
+        occurrence=IntervalOccurrence(perm)
+        self.__occurrences__.append(occurrence)
+
+    def get_skip_pattern(self):
+        pattern=SkipPattern(self.__perm_blocks__)
+
+        return pattern
+
+    def __str__(self):
+        str=""
+        for block in self.__perm_blocks__:
+            str+=block.get_perm_str()
+        str+=" = "
+        for block in self.__perm_blocks__:
+            str+="{"
+            str+=block.get_cycle_str()
+            str+="}"
+        str+=" = "
+        for block in self.__perm_blocks__:
+            str+="{"+block.get_generator_str()+"}"
+        return str
+
+def height_unknown(G):
+    """
+    Helper function to determine height for plotting.
+    """
+    h = {}
+    for v in G:
+        if G.in_degree(v) == 0:
+            break
+    i = 0
+    h = recurse_unknown(G, i, v, h)
+    return h
+
+def recurse_unknown(G, i, v, h, seen=None):
+    """
+    Helper function to determine height for plotting.
+    """
+    if seen is None: seen = []
+    seen.append(v)
+    try:
+        h[i].append(v)
+    except:
+        h[i] = [v]
+    for a, b, _ in G.outgoing_arc_iterator(v):
+        if b not in seen:
+            h = recurse_unknown(G, i+1, b, h, seen)
+    return h
 
 ## MODULE
 
@@ -159,12 +421,12 @@ def get_immediately_above_set(w):
     for i in range(length_w):
         for j in range(i+1, length_w):
             if (w[i]<w[j]):
-                works=true
+                works=True
                 for k in range(i+1, j):
                     if (w[k]>w[i] and w[k]<w[j]):
-                        works=false
+                        works=False
                         break
-                if (works==true):
+                if (works==True):
                     above=w[:]
                     above[i]=w[j]
                     above[j]=w[i]
@@ -242,7 +504,7 @@ def get_poly_string(poly,var):
 R_cache={}
 def R_poly(u, v):
     hash=u.__str__()+";"+v.__str__()
-    if (R_cache.has_key(hash)==true):
+    if (R_cache.has_key(hash)==True):
         return R_cache[hash]
 
     if (leq(u,v)!=True):
@@ -265,7 +527,7 @@ def R_poly(u, v):
 P_cache={}
 def P_poly(x, w):
     hash=x.__str__()+";"+w.__str__()
-    if (P_cache.has_key(hash)==true):
+    if (P_cache.has_key(hash)==True):
         return P_cache[hash]
 
     if (leq(x,w)==False):
@@ -365,7 +627,7 @@ def cycles_from_permutation(perm):
             continue
         i=cur_index
         cur_cycle=[]
-        while true:
+        while True:
             cur_cycle.append(i+1)
             already_seen.append(i)
             i=perm[i]-1
@@ -381,8 +643,8 @@ def generators_from_permutation(perm):
     cur_perm=[]
     for x in perm:
         cur_perm.append(x)
-    while true:
-        still_going=false
+    while True:
+        still_going=False
         for i in range(0, len(cur_perm)-1):
             if (cur_perm[i]>cur_perm[i+1]):
                 swap_var=cur_perm[i]
@@ -390,9 +652,9 @@ def generators_from_permutation(perm):
                 cur_perm[i+1]=swap_var
                 str="s_%i " %(i+1)
                 generators=str+generators
-                still_going=true
+                still_going=True
                 break
-        if (still_going==false):
+        if (still_going==False):
             # We're at the base permutation
             break
     generators=generators[:len(generators)-1] #remove extra space at end
@@ -437,16 +699,16 @@ def get_interval_classes_at_height(height):
 # ***********************************************************
 
 def add_interval_class_to_database(database, x, height, index, height_below): #height_below are the interval classes of the height below
-    id=real("%i.%i" %(height,index+1))
-    picture = dblocation + '/images/img%d_%d.sobj'%(height, index+1)
+    id=float("%d.%d" %(height,index+1))
+    # picture = dblocation + '/images/img%d_%d.sobj'%(height, index+1)
     # create picture and save it to that location:
     g = x.__representative_interval__.get_graph()
-    G = g.to_undirected()
-    p = G.plot(heights=height_unknown(g), vertex_labels=False, vertex_size=5)
-    p.save(picture, figsize=[2,2])
+    picture = g._nxg.adj
+    #p = G.plot(heights=height_unknown(g), vertex_labels=False, vertex_size=5)
+    #p.save(picture, figsize=[2,2])
 
     row = [picture, id, get_string_of_BruhatInterval(x.__representative_interval__), x.__self_dual__,get_KL_poly(x.__representative_interval__), x.__atomic_number__, x.__disarray__, x.__skip_pattern__.__str__(), x.__interlock__]
-
+    print id
     subinterval_str=""
     for subinterval in x.__sub_intervals__:
         for i in range(len(height_below)):

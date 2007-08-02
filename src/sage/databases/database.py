@@ -7,7 +7,7 @@ Relational (sqlite) Databases.
                         inner inner key - one of the following:
                 primary_key - boolean, whether column has been set as primary key
                 index - boolean, whether column has been set as index
-                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
         An example skeleton of a database with one table, that table with one
@@ -167,7 +167,7 @@ class GenericSQLQuery(SageObject):
     specify its structure with a Python dictionary, each of whose keys is the
     name of a column:
         sage: table_skeleton = {
-        ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+        ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
         ... 'vertices':{'sql':'INTEGER'},
         ... 'edges':{'sql':'INTEGER'}
         ... }
@@ -460,7 +460,7 @@ class SQLQuery(GenericSQLQuery):
     specify its structure with a Python dictionary, each of whose keys is the
     name of a column:
         sage: table_skeleton = {
-        ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+        ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
         ... 'vertices':{'sql':'INTEGER'},
         ... 'edges':{'sql':'INTEGER'}
         ... }
@@ -850,7 +850,7 @@ class GenericSQLDatabase(SageObject):
     specify its structure with a Python dictionary, each of whose keys is the
     name of a column:
         sage: table_skeleton = {
-        ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+        ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
         ... 'vertices':{'sql':'INTEGER'},
         ... 'edges':{'sql':'INTEGER'}
         ... }
@@ -1035,7 +1035,6 @@ class GenericSQLDatabase(SageObject):
         # copy .db file
         new_loc = tmp_filename() + '.db'
         os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
-
         D = SQLDatabase(filename=new_loc)
         for table in D.__skeleton__:
             # Get an ordered list:
@@ -1052,7 +1051,6 @@ class GenericSQLDatabase(SageObject):
             # Fill data in new table
             D.add_rows(table_name=table,rows=data,entry_order=new)
         return D
-
     def save(self, filename):
         """
         Save the database to the specified location.
@@ -1109,7 +1107,7 @@ class GenericSQLDatabase(SageObject):
                         inner inner key - one of the following:
                 primary_key - boolean, whether column has been set as primary key
                 index - boolean, whether column has been set as index
-                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
         For example,
@@ -1323,7 +1321,7 @@ class SQLDatabase(GenericSQLDatabase):
                         inner inner key - one of the following:
                 primary_key - boolean, whether column has been set as primary key
                 index - boolean, whether column has been set as index
-                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
     TUTORIAL:
@@ -1351,7 +1349,7 @@ class SQLDatabase(GenericSQLDatabase):
     specify its structure with a Python dictionary, each of whose keys is the
     name of a column:
         sage: table_skeleton = {
-        ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+        ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
         ... 'vertices':{'sql':'INTEGER'},
         ... 'edges':{'sql':'INTEGER'}
         ... }
@@ -1528,13 +1526,13 @@ class SQLDatabase(GenericSQLDatabase):
                     inner key - one of the following:
                 primary_key - boolean, whether column has been set as primary key
                 index - boolean, whether column has been set as index
-                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
         EXAMPLE:
             sage: D = SQLDatabase()
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'STRING', 'index':True, 'primary_key':True},
+            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
             ... 'vertices':{'sql':'INTEGER'},
             ... 'edges':{'sql':'INTEGER'}
             ... }
@@ -1580,7 +1578,7 @@ class SQLDatabase(GenericSQLDatabase):
                     inner key - one of the following:
                 primary_key - boolean, whether column has been set as primary key
                 index - boolean, whether column has been set as index
-                sql - one of 'STRING', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
                     user defined type
 
         EXAMPLES:

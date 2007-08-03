@@ -152,6 +152,8 @@ class Expect(ParentWithBase):
             return False, E.before
         except pexpect.EOF, msg:
             return True, E.before
+        except Exception, msg:   # weird major problem!
+            return True, E.before
         return True, E.before
 
     def _send(self, cmd):

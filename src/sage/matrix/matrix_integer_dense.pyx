@@ -1644,7 +1644,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M._initialized = True
         return M
 
-    def _invert_iml(self, use_nullspace=False):
+    def _invert_iml(self, use_nullspace=False, check_invertible=True):
         """
         Invert this matrix using IML.  The output matrix is an integer
         matrix and a denominator.
@@ -1655,6 +1655,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                      algorithm, which is slower, but doesn't require
                      checking that the matrix is invertible as a
                      precondition.
+           check_invertible -- (default: True) whether to check that
+                     the matrix is invertible.
 
         OUTPUT: A, d such that A*self = d
            A -- a matrix over ZZ
@@ -1691,7 +1693,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             verbose("finished computing inverse using IML", time)
             return B, d
         else:
-            if self.rank() != self._nrows:
+            if check_invertible and self.rank() != self._nrows:
                 raise ZeroDivisionError, "input matrix must be nonsingular"
             return self._solve_iml(P.identity_matrix(), right=True)
 

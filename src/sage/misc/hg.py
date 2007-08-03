@@ -365,7 +365,10 @@ class HG:
             options -- string
         """
         if isinstance(files, str):
-            files = [files]
+            if ' ' in files:
+                files = files.split()
+            else:
+                files = [files]
         for file in files:
             print "Adding file %s"%file
             self('add %s "%s"'%(options, file))
@@ -825,6 +828,9 @@ class HG:
             raise RuntimeError, "You're using the SAGE notebook, so you *must* explicitly specify the comment in the commit command."
         if diff:
             self.diff(files)
+
+        if isinstance(files, (list, tuple)):
+            files = ' '.join([str(x) for x in files])
 
         if comment:
             self('commit %s -m "%s" %s '%(options, comment, files))

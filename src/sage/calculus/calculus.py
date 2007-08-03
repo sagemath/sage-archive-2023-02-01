@@ -1002,8 +1002,7 @@ class SymbolicExpression(RingElement):
             sage: g.polynomial(QQ).list()
             [-5, 0, 6]
             sage: g.polynomial(QQ).dict()
-            {0: -5, 1: 0, 2: 6}
-
+            {0: -5, 2: 6}
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)

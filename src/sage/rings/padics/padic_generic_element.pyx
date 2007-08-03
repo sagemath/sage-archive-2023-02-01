@@ -94,6 +94,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 else:
                     return 1
 
+    def _pari_(self):
+        return pari(self._pari_init_())
+
+    def _pari_init_(self):
+        return self.lift().str() + "+ O(" + self.parent().prime().str() + "^" + self.precision_absolute().str() + ")"
+
     def __floordiv__(self, right):
         if self.parent().is_field():
             return self / right

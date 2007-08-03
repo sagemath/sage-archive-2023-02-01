@@ -49,6 +49,9 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     prec = int(prec)
     if prec < 0:
         raise ValueError, "prec (=%s) must an even nonnegative integer"%prec
+    if (prec == 0):
+        R = QQ[['q']]
+        return R(0).add_bigoh(0)
 
     one = Integer(1)
     val = [one] * prec

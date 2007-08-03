@@ -10,6 +10,8 @@ from constructor import ModularForms, CuspForms, EisensteinForms
 
 from eis_series import eisenstein_series_qexp
 
+from half_integral import theta2_qexp, theta3_qexp
+
 from j_invariant import j_invariant_qexp
 
 from vm_basis import victor_miller_basis, delta_qexp

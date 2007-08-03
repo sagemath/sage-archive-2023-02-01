@@ -96,7 +96,7 @@ class RationalField(_uniq, field.Field):
 
         TESTS:
             sage: QQ.variable_name()
-            x
+            'x'
             sage: QQ.variable_names()
             ('x',)
         """

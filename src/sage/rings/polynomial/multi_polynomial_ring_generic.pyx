@@ -252,7 +252,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return unpickle_MPolynomialRing_generic_v1,(base_ring, n, names, order)
 
 
-    def random_element(self, degree, terms=5, *args, **kwds):
+    def random_element(self, degree=2, terms=5, *args, **kwds):
         r"""
         Return a random polynomial in this polynomial ring.
 
@@ -264,7 +264,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 and with \code{term} terms in it.
 
         EXAMPLES:
-
+            sage: [QQ['x,y'].random_element() for _ in range(5)]
+            [-1/14*x*y + 1/2*x, x*y + x - y + 1, 3*x*y + x - 1/2, 1/3*x*y - 5*x + 1/2*y + 7/6, 2*x*y + 1/2*x + 1]
             sage: R = MPolynomialRing(ZZ, 'x,y',2 );
             sage: R.random_element(2)          # random
             -1*x*y + x + 15*y - 2

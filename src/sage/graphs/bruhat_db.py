@@ -4,50 +4,37 @@ from sqlite3 import dbapi2 as sqlite
 import os
 import re
 from sage.databases.database import GenericSQLDatabase, SQLDatabase
-from sage.databases.db import DB_HOME
-dblocation = DB_HOME + '/graphs/bruhat.db'
 
 class BruhatDatabase(SQLDatabase):
     """
-    Currently Mutable... BAD!
+    Creates a mutable instance of a BruhatDatabase.
     """
 
-    def __init__(self):
-        GenericSQLDatabase.__init__(self,dblocation)
+    def __init__(self, filename):
+        SQLDatabase.__init__(self, filename)
+        interval_table_dict = {'class_id':{'sql':'REAL', 'index':True, 'primary_key':True}, \
+                        'picture':{'sql':'TEXT'}, \
+                        'kl_poly':{'sql':'TEXT'}, \
+                        'rep_interval':{'sql':'TEXT', 'index':True}, \
+                        'skip_pattern':{'sql':'TEXT', 'index':True}, \
+                        'atomic_number':{'sql':'INTEGER', 'index':True}, \
+                        'disarray':{'sql':'INTEGER', 'index':True}, \
+                        'interlock':{'sql':'INTEGER', 'index':True}, \
+                        'self_dual':{'sql':'BOOLEAN', 'index':True},\
+                        'id_subintervals':{'sql': 'TEXT','index':True}}
+        permutation_table_dict ={'blocks':{'sql':'TEXT', 'index':'True', 'primary_key':False},\
+                         'class_belongs_to':{'sql':'REAL', 'index':'True'}}
+        self.create_table('interval_classes', interval_table_dict)
+        self.create_table('permutation_classes', permutation_table_dict)
 
-    def harvest_data(self, start_height, end_height):
+    def commit_changes(self,list_of_tuples):
         """
-        Returns a (mutable) copy of the database with rows added to all tables,
-        reflecting the data obtained in the height range.
-
-        Returns a SQLDatabase.
-
-        TODO : This function is *unsafe* and should not remain in a released
-        copy of sage.  (For development only).
         """
-        from copy import copy
-        from sage.misc.misc import tmp_filename
-        # copy .db file
-        new_loc = tmp_filename() + '.db'
-        os.system('cp '+ self.__dblocation__ + ' ' + new_loc)
-        D = BruhatDatabase()
-        D.__dblocation__ = new_loc
-        D.__connection__ = sqlite.connect(self.__dblocation__)
-        data_harvest(D,start_height,end_height)
-        return D
-
-    def commit_changes(self,db):
-        """
-        Assigns a copy of the database (with possibly additional data)
-        to the location of BruhatDatabase.
-
-        i.e.: Overwrites self with db in location.
-
-        TODO : There is no reason for this function once harvest_data is
-        removed.  Note:  This is here to break down the steps in case there is
-        a failure in harvest_data
-        """
-        db.save(dblocation)
+        intervals = list_of_tuples[0]
+        perms = list_of_tuples[1]
+        self.add_rows('interval_classes', intervals, \
+                     ['picture','class_id','rep_interval','self_dual','kl_poly','atomic_number','disarray','skip_pattern','interlock','id_subintervals'])
+        self.add_rows('permutation_classes', perms, ['blocks','class_belongs_to'])
 
     def show(self, table_name, max_field_size=20, html_table=False, with_picture=None):
         if table_name is 'interval_classes':
@@ -698,17 +685,13 @@ def get_interval_classes_at_height(height):
 # Database Modification:
 # ***********************************************************
 
-def add_interval_class_to_database(database, x, height, index, height_below): #height_below are the interval classes of the height below
+def get_tuples_for_database(x, height, index, height_below): #height_below are the interval classes of the height below
+    both_tables_list = []
     id=float("%d.%d" %(height,index+1))
-    # picture = dblocation + '/images/img%d_%d.sobj'%(height, index+1)
-    # create picture and save it to that location:
     g = x.__representative_interval__.get_graph()
     picture = g._nxg.adj
-    #p = G.plot(heights=height_unknown(g), vertex_labels=False, vertex_size=5)
-    #p.save(picture, figsize=[2,2])
 
     row = [picture, id, get_string_of_BruhatInterval(x.__representative_interval__), x.__self_dual__,get_KL_poly(x.__representative_interval__), x.__atomic_number__, x.__disarray__, x.__skip_pattern__.__str__(), x.__interlock__]
-    print id
     subinterval_str=""
     for subinterval in x.__sub_intervals__:
         for i in range(len(height_below)):
@@ -718,8 +701,9 @@ def add_interval_class_to_database(database, x, height, index, height_below): #h
     subinterval_str=subinterval_str[:-1] # remove last comma
     row.append(subinterval_str)
 
-    database.add_rows('interval_classes', [tuple(row)], \
-                     ['picture','class_id','rep_interval','self_dual','kl_poly','atomic_number','disarray','skip_pattern','interlock','id_subintervals'])
+    #database.add_rows('interval_classes', [tuple(row)], \
+    #                 ['picture','class_id','rep_interval','self_dual','kl_poly','atomic_number','disarray','skip_pattern','interlock','id_subintervals'])
+    both_tables_list.append([tuple(row)])
 
     permRows=[]
     for pc in x.__perm_classes__:
@@ -729,22 +713,15 @@ def add_interval_class_to_database(database, x, height, index, height_below): #h
 
         row=tuple([strBlocks, id])
         permRows.append(row)
-    database.add_rows('permutation_classes', permRows, ['blocks','class_belongs_to'])
+    #database.add_rows('permutation_classes', permRows, ['blocks','class_belongs_to'])
+    both_tables_list.append(permRows)
+    return both_tables_list
 
-def data_harvest(database, start_height, end_height): #adds information to database and returns a list of interval classes at heights
-    interval_classes_at_heights={}
-    cur_height=start_height
-    while cur_height <= end_height:
-        interval_classes_at_heights[cur_height]=get_interval_classes_at_height(cur_height)
+def harvest_data(height): #adds information to database and returns a list of interval classes at heights
+    interval_classes_at_height = get_interval_classes_at_height(height)
+    for class_index in range(0, len(interval_classes_at_height)):
+        height_classes_below=[]
+        list_of_tuples = get_tuples_for_database(interval_classes_at_height[class_index], height, \
+                                       class_index, height_classes_below)
 
-        for class_index in range(0, len(interval_classes_at_heights[cur_height])):
-            if cur_height!=start_height:
-                height_classes_below=interval_classes_at_heights[cur_height-1]
-            else:
-                height_classes_below=[]
-            add_interval_class_to_database(database, interval_classes_at_heights[cur_height][class_index], cur_height, \
-                                           class_index, height_classes_below)
-
-        cur_height+=1
-
-    return interval_classes_at_heights
+    return list_of_tuples

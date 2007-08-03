@@ -11,7 +11,7 @@ AUTHOR:
                         (2007-02-07): graph6 and sparse6 formats, matrix input
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
-        graph6 helper functions in SageX
+        graph6 helper functions in Cython
                         SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon
                         (2007-02-25): display a partition
                         (2007-02-28): associate arbitrary objects to vertices,

@@ -616,6 +616,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              Basis matrix:
              [1 1]
 
+             sage: A2 = matrix(GF(2),2,[1,0,0,1])
+             sage: A2.kernel()
+             Vector space of degree 2 and dimension 0 over Finite Field of size 2
+             Basis matrix:
+             []
+
         ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
                    LinBox.
 
@@ -623,6 +629,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of Four Russians'. Cryptography
                      E-Print Archive (http://eprint.iacr.org/2006/251.pdf), 2006.
         """
+        if self._nrows == 0 or self._ncols == 0:
+            self.cache('in_echelon_form',True)
+            self.cache('rank', 0)
+            self.cache('pivots', [])
+            return self
         cdef int k, n
 
         x = self.fetch('in_echelon_form')

@@ -203,22 +203,28 @@ from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 
+import expnums
+import partitions as partitions_ext
+
 ######### combinatorial sequences
 
-def bell_number(n):
+def bell_number(n, algorithm='sage'):
     r"""
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
     INPUT:
         n -- an integer
+        algorithm -- 'sage': use N. Alexander's custom implementation in SAGE
+                     'gap': use Gap's Bell command (slow)
 
     If $n \leq 0$, returns $1$.
 
-    Wraps GAP's Bell.
 
     EXAMPLES:
         sage: bell_number(10)
+        115975
+        sage: bell_number(10, algorithm='gap')
         115975
         sage: bell_number(2)
         2
@@ -230,9 +236,22 @@ def bell_number(n):
         Traceback (most recent call last):
         ...
         TypeError: no coercion of this rational to integer
+
+    To compute all Bell numbers up to n, use expnums:
+        sage: expnums(10,1)
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+        sage: [bell_number(n) for n in range(10)]
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
     """
-    ans=gap.eval("Bell(%s)"%ZZ(n))
-    return eval(ans)
+    n = ZZ(n)
+    if n <= 0:
+        return ZZ(1)
+    if algorithm == 'sage':
+        return expnums.expnums(n+1,1)[-1]
+    elif algorithm == 'gap':
+        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
+    else:
+        raise ValueError, "unknown algorithm '%s'"%algorithm
 
 ## def bernoulli_number(n):
 ##     r"""
@@ -1157,7 +1176,7 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-def number_of_partitions(n,k=None, algorithm='gap'):
+def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
 
@@ -1166,13 +1185,17 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         k -- (default: None); if specified, instead returns the
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
-        algorithm -- (default: 'gap')
-            'gap' -- use GAP
+        algorithm -- (default: 'default')
+            'bober' -- use Jonathon Bober's implementation (*very* fast,
+                      but new and not well tested yet).
+            'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
                       outputs numbpart(147007)%1000 as 536, but it
                       should be 533!.  So do not use this option.
+            'default' -- 'bober' when k is not specified; otherwise
+                      use 'gap'.
 
     IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
@@ -1189,9 +1212,11 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         [(1, 1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 2), (1, 1, 3), (2, 3), (1, 4), (5,)]
         sage: len(v)
         7
-        sage: number_of_partitions(5)
+        sage: number_of_partitions(5, algorithm='gap')
         7
         sage: number_of_partitions(5, algorithm='pari')
+        7
+        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ValueError is raised.
@@ -1242,12 +1267,18 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    if algorithm == 'gap':
+    if algorithm == 'gap' or (not k is None and algorithm=='default'):
         if k==None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
+    if not k is None:
+        raise ValueError, "only the GAP algorithm works if k is specified."
+    if algorithm == 'default' and k is None:
+        return partitions_ext.number_of_partitions(n)
+    elif algorithm == 'bober' and k is None:
+        return partitions_ext.number_of_partitions(n)
     elif algorithm == 'pari':
         if not k is None:
             raise ValueError, "cannot specify second argument k if the algorithm is PARI"

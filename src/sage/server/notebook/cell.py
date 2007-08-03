@@ -497,7 +497,7 @@ class Cell(Cell_generic):
         id = self.__id
         t = self.__in.rstrip()
 
-        if t.lstrip()[:5] == '%hide':
+        if t.lstrip().startswith('%hide'):
             cls = "cell_input_hide"
         else:
             cls = "cell_input"
@@ -517,16 +517,17 @@ class Cell(Cell_generic):
 
         r = max(1, number_of_rows(t.strip(), ncols))
 
-        s += """
-           <textarea class="%s" rows=%s cols=%s
-              id         = 'cell_input_%s'
-              onKeyPress = 'return input_keypress(%s,event);'
-              onInput    = 'cell_input_resize(this); return true;'
-              onBlur     = 'cell_blur(%s); return true;'
-              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
-              %s
-           >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
+        if not do_print:
+            s += """
+               <textarea class="%s" rows=%s cols=%s
+                  id         = 'cell_input_%s'
+                  onKeyPress = 'return input_keypress(%s,event);'
+                  onInput    = 'cell_input_resize(this); return true;'
+                  onBlur     = 'cell_blur(%s); return true;'
+                  onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+                  %s
+               >%s</textarea>
+            """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 

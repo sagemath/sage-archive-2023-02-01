@@ -1,11 +1,11 @@
 import sage.misc.misc
 import sage.server.support
 
-def sagex(code,
+def cython(code,
           verbose=False, compile_message=False,
           make_c_file_nice=False, use_cache=False):
     """
-    Given a block of SAGEX (SAGE's variant of Pyrex) code (as a text
+    Given a block of CYTHON (SAGE's variant of Pyrex) code (as a text
     string), this function compiles it using your C compiler, and
     includes it into the global scope of the module that called this
     function.
@@ -13,7 +13,7 @@ def sagex(code,
     WARNING: Only use this from Python code, not from extension code,
     since from extension code you would change the global scope (i.e.,
     of the SAGE interpreter). And it would be stupid, since you're
-    already writing SageX!
+    already writing Cython!
 
     Also, never use this in the standard SAGE library.  Any code that
     uses this can only run on a system that has a C compiler
@@ -29,7 +29,7 @@ def sagex(code,
     """
     tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
     open(tmpfile,'w').write(code)
-    sage.server.support.sagex_import_all(tmpfile, globals(),
+    sage.server.support.cython_import_all(tmpfile, globals(),
                                          verbose=verbose, compile_message=compile_message,
                                          use_cache=use_cache,
                                          create_local_c_file=False)

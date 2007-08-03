@@ -42,6 +42,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             raise TypeError, "submodule must be a free module"
         if not submodule.is_submodule(ambient.free_module()):
             raise ValueError, "submodule must be a submodule of the ambient free module"
+
+        if check:
+            if not ambient._is_hecke_equivariant_free_module(submodule):
+                raise ValueError, "The submodule must be invariant under all Hecke operators."
+
         self.__ambient = ambient
         self.__submodule = submodule
         module.HeckeModule_free_module.__init__(self,
@@ -67,7 +72,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             return other
         # Neither is ambient
         M = self.free_module() + other.free_module()
-        return self.ambient().submodule(M)
+        return self.ambient().submodule(M, check=False)
 
     def __call__(self, x, check=True):
         """
@@ -189,7 +194,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
                 break
 
         if V.rank() + self.rank() == A.rank():
-            C = A.submodule(V)
+            C = A.submodule(V, check=False)
             self.__complement = C
             return C
         else:
@@ -322,7 +327,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         # Neither is ambient
         V = self.free_module().intersection(other.free_module())
         M = self.ambient_hecke_module()
-        return M.submodule(V)
+        return M.submodule(V, check=False)
 
     def is_ambient(self):
         return self.free_module() == self.ambient_hecke_module().free_module()
@@ -457,11 +462,15 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         """
         Construct a submodule of self from the embedded free module M.
         """
-        if not sage.modules.all.is_FreeModule(M):
-            raise TypeError, "M (=%s) must be a free module"%M
-
-        if not M.is_submodule(self.free_module()):
-            raise TypeError, "M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module())
+        if check:
+            if not sage.modules.all.is_FreeModule(M):
+                V = self.ambient_module().free_module()
+                if isinstance(M, (list,tuple)):
+                    M = V.span([V(x.element()) for x in M])
+                else:
+                    M = V.span(M)
+            if not M.is_submodule(self.free_module()):
+                raise TypeError, "M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module())
 
         return self.ambient().submodule(M, Mdual, check=check)
 
@@ -470,6 +479,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         INPUT:
             V -- submodule of ambient free module of the same rank as the
                  rank of self.
+            check -- whether to check that V is Hecke equivariant.
+
         OUTPUT:
             Hecke submodule of self
         """
@@ -488,5 +499,5 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             M_E = E.matrix()
             A = M_Vdual * M_E
             Vdual = A.row_space()
-        return self.ambient_hecke_module().submodule(V, Vdual)
+        return self.ambient_hecke_module().submodule(V, Vdual, check=check)
 

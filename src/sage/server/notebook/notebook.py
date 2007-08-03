@@ -106,7 +106,7 @@ class Notebook(SageObject):
         self.add_user('pub', '', '', account_type='user', force=True)
         self.add_user('_sage_', '', '', account_type='user', force=True)
         self.add_user('guest', '', '', account_type='guest', force=True)
-        self.add_user('root', passwd, '', account_type='admin', force=True)
+        self.add_user('admin', passwd, '', account_type='admin', force=True)
 
     def user_exists(self, username):
         return username in self.users()
@@ -124,7 +124,29 @@ class Notebook(SageObject):
         try:
             return self.users()[username]
         except KeyError:
+            if username in ['pub', '_sage_']:
+                self.add_user(username, '', '', account_type='user', force=True)
+                return self.users()[username]
+            elif username == 'admin':
+                self.add_user(username, '', '', account_type='user', force=True)
+                return self.users()[username]
+            elif username == 'guest':
+                self.add_user('guest', '', '', account_type='guest', force=True)
+                return self.users()[username]
             raise KeyError, "no user '%s'"%username
+
+    def create_user_with_same_password(self, user, other_user):
+        """
+        INPUT:
+           user -- a string
+           other_user -- a string
+        OUTPUT:
+           creates the given user and makes their password the
+           same as for other_user.
+        """
+        U = self.user(user)
+        passwd = U.password()
+        U.set_hashed_password(passwd)
 
     def user_is_admin(self, user):
         return self.user(user).is_admin()
@@ -879,7 +901,7 @@ class Notebook(SageObject):
         s = """
         <span class="banner">
         <table width=100%%><tr><td>
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Checking for SAGE server...</span></td>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Searching for SAGE server...</span></td>
         </tr></table>
         </span>
         """
@@ -1508,6 +1530,7 @@ class Notebook(SageObject):
         head, body = self.html_worksheet_page_template(worksheet, username, 'View plain text', select="text")
 
         t = worksheet.plain_text(prompts=True, banner=False)
+        t = t.replace('<','&lt;')
         body += """
         <pre class="plaintext" id="cell_intext" name="textfield">%s
         </pre>
@@ -1985,3 +2008,6 @@ def sort_worksheet_list(v, sort, reverse):
     else:
         raise ValueError, "invalid sort key '%s'"%sort
     v.sort(cmp = f, reverse=reverse)
+
+
+

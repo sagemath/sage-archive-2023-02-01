@@ -78,12 +78,12 @@ def setup_worker():
 
 def setup_server(template=None):
     check_dsage_dir()
-    template_dict = {'organization': 'SAGE (at %s)'%(socket.gethostname()),
+    template_dict = {'organization': 'SAGE (at %s)'%(socket.getfqdn()),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
                 'country': 'US',
-                'cn': socket.gethostname(),
+                'cn': socket.getfqdn(),
                 'uid': 'sage_user',
                 'dn_oid': None,
                 'serial': str(random.randint(1,2**31)),

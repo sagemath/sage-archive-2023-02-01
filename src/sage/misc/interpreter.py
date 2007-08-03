@@ -108,7 +108,7 @@ from IPython.iplib import InteractiveShell
 import preparser_ipython
 from preparser import preparse_file
 
-import sagex
+import cython
 
 #import signal
 #def sig(x,n):
@@ -185,7 +185,7 @@ def do_prefilter_paste(line, continuation):
                     elif F[-5:] == '.sage':
                         _ip.magic('run -i "%s"'%process_file(F))
                     elif F[-5:] == '.spyx':
-                        X = load_sagex(F)
+                        X = load_cython(F)
                         __IPYTHON__.push(X)
                     else:
                         line = 'load("%s")'%F
@@ -278,7 +278,7 @@ def do_prefilter_paste(line, continuation):
                     raise ImportError, "Error loading '%s'"%name
                     line = ""
             elif name[-5:] == '.spyx':
-                line = load_sagex(name)
+                line = load_cython(name)
             else:
                 line = 'load("%s")'%name
                 #raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
@@ -332,7 +332,7 @@ def do_prefilter_paste(line, continuation):
                 raise ImportError, "File '%s' not found."%name
         elif name[-5:] == '.spyx':
             try:
-                line = load_sagex(name)
+                line = load_cython(name)
                 attached[name] = os.path.getmtime(name)
             except IOError, OSError:
                 raise ImportError, "File '%s' not found."%name
@@ -345,12 +345,12 @@ def do_prefilter_paste(line, continuation):
         line = preparser_ipython.preparse_ipython(line, not continuation)
     return line
 
-def load_sagex(name):
+def load_cython(name):
     cur = os.path.abspath(os.curdir)
     try:
-        mod, dir  = sagex.sagex(name, compile_message=True, use_cache=True)
+        mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError), msg:
-        print "Error compiling sagex file:\n%s"%msg
+        print "Error compiling cython file:\n%s"%msg
         return ''
     import sys
     sys.path.append(dir)

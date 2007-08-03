@@ -948,11 +948,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         return self.factorization()
 
-    def hecke_bound(self):
-        # TODO
-        misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
-        return 2*self.sturm_bound() + 10
-
     def is_cuspidal(self):
         try:
             return self.__is_cuspidal
@@ -1041,9 +1036,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         V = S.kernel()
         if compute_dual:
             Vdual = S.transpose().kernel()
-            M = self.submodule(V, Vdual)
+            M = self.submodule(V, Vdual, check=False)
         else:
-            M = self.submodule(V)
+            M = self.submodule(V, check=False)
         M._set_sign(sign)
         return M
 
@@ -1062,6 +1057,37 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self.__star_involution
 
     def submodule(self, M, dual_free_module=None, check=True):
+        """
+        Return the submdoule of M with given generators or free module.
+
+        INPUT:
+            M -- a submodule of the ambient free module or generators for a submodule
+            dual_free_module (optional) -- this may be useful to speed up certain calculations; it
+                             is the corresponding submodule of the ambient dual module
+            check -- bool (optional: default -- True); if True, actually check that M
+                     is a module, which means it is invariant under all Hecke operators.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11)
+            sage: M.submodule([M.0])
+            Traceback (most recent call last):
+            ...
+            ValueError: The submodule must be invariant under all Hecke operators.
+            sage: M.eisenstein_submodule().basis()
+            ((1,0) - 1/5*(1,9),)
+            sage: M.basis()
+            ((1,0), (1,8), (1,9))
+            sage: M.submodule([M.0 - 1/5*M.2])
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+
+        NOTE: It would make more sense to only check that M is
+             invariant under the Hecke operators with index coprime to
+             the level.  Unfortunately, I do not know a reasonable
+             algorithm for determining whether a module is invariant
+             under just the anemic Hecke algebra, since I do not know
+             an analogue of the Sturm bound for the anemic Hecke
+             algebra.  -- William Stein, 2007-07-27
+        """
         if check:
             if not free_module.is_FreeModule(M):
                 V = self.free_module()
@@ -1069,8 +1095,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                     M = V.span([V(x.element()) for x in M])
                 else:
                     M = V.span(M)
-            elif not M.is_submodule(self.free_module()):
-                raise ArithmeticError, "M must be a submodule of the free module of self."
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
 
     ######################################################################

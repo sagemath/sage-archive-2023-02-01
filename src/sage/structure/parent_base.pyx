@@ -48,6 +48,12 @@ cdef class ParentWithBase(parent.Parent):
         parent.Parent.__init__(self, coerce_from=coerce_from, actions=actions, embeddings=embeddings)
         self._base = base
 
+    cdef _coerce_c_impl(self,x):
+       if not self._base is self:
+           return self._coerce_try(x,(self._base))
+       else:
+           raise TypeError, "No canonical coercion found."
+
 ##     def x__reduce__(self):
 ##         if HAS_DICTIONARY(self):
 ##             _dict = self.__dict__

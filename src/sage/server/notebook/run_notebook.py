@@ -20,12 +20,10 @@ import getpass
 ##########################################################
 
 from sage.misc.misc import DOT_SAGE
-from   sage.server.misc import print_open_msg, find_next_available_port, open_page
+from   sage.server.misc import print_open_msg, find_next_available_port
 import os, shutil, socket
 
 import notebook
-
-PAUSE = 7
 
 conf_path       = os.path.join(DOT_SAGE, 'notebook')
 
@@ -62,26 +60,21 @@ def notebook_twisted(self,
     conf = '%s/twistedconf.tac'%directory
 
     nb = notebook.load_notebook(directory)
-    if reset or not nb.user_exists('root'):
-        while True:
-            print "Setting password for the root user."
-            passwd = getpass.getpass("Enter new password: ")
-            passwd2 = getpass.getpass("Retype new password: ")
-            if passwd != passwd2:
-                print "Sorry, passwords do not match."
-            else:
-                break
+    if reset:
+        passwd = get_admin_passwd()
         if reset:
-            nb.user('root').set_password(passwd)
-            print "Password changed for user 'root'."
+            nb.user('admin').set_password(passwd)
+            print "Password changed for user 'admin'."
         else:
             nb.create_default_users(passwd)
-            print "User root created with the password you specified."
+            print "User admin created with the password you specified."
             print "\n\n"
             print "*"*70
             print "\n"
             if secure:
-                print "Login to the SAGE notebook as root with the password you specified above."
+                print "Login to the SAGE notebook as admin with the password you specified above."
+    elif nb.user_exists('root') and not nb.user_exists('admin'):
+        s = nb.create_user_with_same_password('admin', 'root')
 
 
     if not server_pool is None:
@@ -115,6 +108,12 @@ def notebook_twisted(self,
 
         notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
                 address, port, secure)
+
+        if open_viewer:
+            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s)"%(address, port, secure)
+        else:
+            open_page = ''
+
         config = open(conf, 'w')
         config.write("""
 ####################################################################
@@ -162,8 +161,9 @@ from twisted.web2 import channel
 from twisted.application import service, strports
 application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
+%s
 s.setServiceParent(application)
-"""%(notebook_opts, not secure, os.path.abspath(directory), strport))
+"""%(notebook_opts, not secure, os.path.abspath(directory), strport, open_page))
 
 
         config.close()
@@ -171,7 +171,7 @@ s.setServiceParent(application)
         ## Start up twisted
         print_open_msg(address, port, secure=secure)
         if secure:
-            print "There is a root account.  If you do not remember the password,"
+            print "There is an admin account.  If you do not remember the password,"
             print "quit the notebook and type notebook(reset=True)."
         e = os.system('sage -twistd --pidfile="%s"/twistd.pd -ny "%s"/twistedconf.tac'%(directory, directory))
         if e == 256:
@@ -199,7 +199,17 @@ s.setServiceParent(application)
 
 
 
-
-
 #######
+
+
+
+def get_admin_passwd():
+    while True:
+        print "Setting password for the admin user."
+        passwd = getpass.getpass("Enter new password: ")
+        passwd2 = getpass.getpass("Retype new password: ")
+        if passwd != passwd2:
+            print "Sorry, passwords do not match."
+        else:
+            return passwd
 

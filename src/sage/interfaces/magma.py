@@ -677,6 +677,9 @@ class MagmaElement(ExpectElement):
         P = self._check_valid()
         return int(P.eval('#%s'%self.name()))
 
+    def _polynomial_(self, R):
+        return R(list(self.Eltseq()))
+
     def _latex_(self):
         r"""
         Return latex representation of self.

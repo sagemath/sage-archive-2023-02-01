@@ -733,16 +733,18 @@ class SymbolicExpression(RingElement):
         """
         return long(int(self))
 
-    def numerical_approx(self, prec=53):
+    def numerical_approx(self, prec=None, digits=None):
         r"""
         Return a numerical approximation of self as either a real or
-        complex number.
+        complex number with at least the requested number of bits or
+        digits of precision.
 
         NOTE: You can use \code{foo.n()} as a shortcut for
         \code{foo.numerical_approx()}.
 
         INPUT:
-            prec -- integer (default: 53): the number of bits of precision
+            prec -- an integer: the number of bits of precision
+            digits -- an integer: digits of precision
 
         OUTPUT:
             A RealNumber or ComplexNumber approximation of self with
@@ -759,13 +761,20 @@ class SymbolicExpression(RingElement):
         Higher precision:
             sage: cos(3).numerical_approx(200)
             -0.98999249660044545727157279473126130239367909661558832881409
+            sage: numerical_approx(cos(3), digits=10)
+            -0.9899924966
             sage: (i + 1).numerical_approx(32)
             1.00000000 + 1.00000000*I
             sage: (pi + e + sqrt(2)).numerical_approx(100)
             7.2740880444219335226246195788
         """
+        if prec is None:
+            if digits is None:
+                prec = 53
+            else:
+                prec = int(digits * 3.4) + 2
+
         # make sure the field is of the right precision
-        prec = Integer(prec)
         field = RealField(prec)
 
         try:
@@ -993,8 +1002,7 @@ class SymbolicExpression(RingElement):
             sage: g.polynomial(QQ).list()
             [-5, 0, 6]
             sage: g.polynomial(QQ).dict()
-            {0: -5, 1: 0, 2: 6}
-
+            {0: -5, 2: 6}
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)

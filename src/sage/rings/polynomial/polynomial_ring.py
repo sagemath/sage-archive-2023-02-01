@@ -160,12 +160,15 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
-        C = self.__polynomial_class
-        if isinstance(x, C) and x.parent() is self:
-            return x
-        elif is_Element(x) and x.parent() == self.base_ring():
-            return self([x])
-        elif is_SingularElement(x) and self._has_singular:
+        if is_Element(x):
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self.base_ring():
+                return self([x])
+        if hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
+        if is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
@@ -177,15 +180,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        elif hasattr(x, '_polynomial_'):
-            return x._polynomial_(self)
-        elif is_MagmaElement(x):
-            x = list(x.Eltseq())
         elif isinstance(x, FractionFieldElement):
             if x.denominator().is_unit():
                 x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 raise TypeError, "denominator must be a unit"
+        C = self.__polynomial_class
         if absprec is None:
             return C(self, x, check, is_gen, construct=construct)
         else:
@@ -560,7 +560,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return 1
 
-    def random_element(self, degree, *args, **kwds):
+    def random_element(self, degree=2, *args, **kwds):
         """
         Return a random polynomial.
 

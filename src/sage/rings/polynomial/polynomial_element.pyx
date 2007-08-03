@@ -717,8 +717,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
-            R = self.parent().base_ring()
-            v = [R(0)]*right + [R(1)]
+            P = self.parent()
+            R = P.base_ring()
+            if P.is_sparse():
+                v = {right:R(1)}
+            else:
+                v = [R(0)]*right + [R(1)]
             return self.parent()(v, check=False)
         return sage.rings.arith.generic_power(self, right, self.parent()(1))
 

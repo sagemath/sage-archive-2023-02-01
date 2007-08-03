@@ -374,7 +374,7 @@ cdef class Parent(sage_object.SageObject):
             try:
                 y = R._coerce_(x)
                 return self(y)
-            except TypeError, msg:
+            except (TypeError, AttributeError), msg:
                 pass
         raise TypeError, "no canonical coercion of element into self"
 

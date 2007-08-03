@@ -53,8 +53,8 @@ def sign(x):
         return 0
 
 def fundamental_discriminant(D):
-    """
-    Return the discriminant of the quadratic extension K=Q(\sqrt{D}), i.e.
+    r"""
+    Return the discriminant of the quadratic extension $K=Q(\sqrt{D})$, i.e.
     an integer d congruent to either 0 or 1, mod 4, and such that, at most,
     the only square dividing it is 4.
     """
@@ -297,7 +297,7 @@ def QuaternionAlgebraWithDiscriminants(D1, D2, T, names=['i','j','k'], M=2):
         A quaternion algebra.
 
     EXAMPLES:
-        sage: A = QuaternionAlgebraWithDiscriminants(-7,-47,1, names=['i','j','k'])
+        sage: A = QuaternionAlgebraWithDiscriminants(-7,-47,1, names=('i','j','k'))
         sage: print A
         Quaternion algebra with generators (i, j, k) over Rational Field
         sage: i, j, k = A.gens()

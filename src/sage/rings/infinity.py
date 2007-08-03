@@ -124,6 +124,11 @@ TESTS:
     sage: P(2) == loads(dumps(P(2)))
     True
 
+The following is assumed in a lot of code (i.e., "is" is used
+for testing whether something is infinity), so make sure it
+is satisfied:
+    sage: loads(dumps(infinity)) is infinity
+    True
 
 """
 

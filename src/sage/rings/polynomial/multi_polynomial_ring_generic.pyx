@@ -4,6 +4,9 @@ from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
 from term_order import TermOrder
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polydict import PolyDict
+import multi_polynomial_element
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -239,6 +242,59 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         order = self.term_order()
 
         return unpickle_MPolynomialRing_generic_v1,(base_ring, n, names, order)
+
+
+    def random_element(self, degree=2, terms=5, *args, **kwds):
+        r"""
+        Return a random polynomial in this polynomial ring.
+
+        INPUT:
+            degree -- maximum total degree of resulting polynomial
+            terms  -- maximum number of terms to generate
+
+        OUTPUT: a random polynomial of total degree \code{degree}
+                and with \code{term} terms in it.
+
+        EXAMPLES:
+            sage: [QQ['x,y'].random_element() for _ in range(5)]
+            [-1/14*x*y + 1/2*x, x*y + x - y + 1, 3*x*y + x - 1/2, 1/3*x*y - 5*x + 1/2*y + 7/6, 2*x*y + 1/2*x + 1]
+            sage: R = MPolynomialRing(ZZ, 'x,y',2 );
+            sage: R.random_element(2)          # random
+            -1*x*y + x + 15*y - 2
+            sage: R.random_element(12)         # random
+            x^4*y^5 + x^3*y^5 + 6*x^2*y^2 - x^2
+            sage: R.random_element(12,3)       # random
+            -3*x^4*y^2 - x^5 - x^4*y
+            sage: R.random_element(3)          # random
+            2*y*z + 2*x + 2*y
+
+            sage: R.<x,y> = MPolynomialRing(RR)
+            sage: R.random_element(2)          # random
+            -0.645358174399450*x*y + 0.572655401740132*x + 0.197478565033010
+
+            sage: R.random_element(41)         # random
+            -4*x^6*y^4*z^4*a^6*b^3*c^6*d^5 + 1/2*x^4*y^3*z^5*a^4*c^5*d^6 - 5*x^3*z^3*a^6*b^4*c*d^5 + 10*x^2*y*z^5*a^4*b^2*c^3*d^4 - 5*x^3*y^5*z*b^2*c^5*d
+
+        AUTHOR:
+            -- didier deshommes
+        """
+        # General strategy:
+        # generate n-tuples of numbers with each element in the tuple
+        # not greater than  (degree/n) so that the degree
+        # (ie, the sum of the elements in the tuple) does not exceed
+        # their total degree
+
+        n = self.__ngens         # length of the n-tuple
+        max_deg = int(degree/n)  # max degree for each term
+        R = self.base_ring()
+
+        # restrict exponents to positive integers only
+        exponents = [ tuple([ZZ.random_element(0,max_deg+1) for _ in range(n)])
+                       for _ in range(terms) ]
+        coeffs = [R.random_element(*args,**kwds) for _ in range(terms)]
+
+        d = dict( zip(tuple(exponents), coeffs) )
+        return self(multi_polynomial_element.MPolynomial_polydict(self, PolyDict(d)))
 
 
 ####################

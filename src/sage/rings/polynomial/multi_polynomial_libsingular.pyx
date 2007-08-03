@@ -3392,6 +3392,40 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
         return new_MP(self._parent, rt)
 
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of this polynomial in a list.
+        The order the coefficients appear in depends on the ordering used
+        on self's parent.
+
+        EXAMPLES:
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='revlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [1, 23, 6]
+
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
+        AUTHOR:
+            -- didier deshommes
+        """
+        cdef poly *p
+        cdef ring *r
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
+        base = (<MPolynomialRing_libsingular>self._parent)._base
+        p = self._poly
+        coeffs = list()
+        while p:
+            coeffs.append(co.si2sa(p_GetCoeff(p, r), r, base))
+            p = pNext(p)
+        return coeffs
+
+
+
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """
     Deserialize a MPolynomial_libsingular object

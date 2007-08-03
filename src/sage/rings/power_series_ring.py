@@ -78,7 +78,9 @@ TESTS:
 """
 
 import weakref
+import power_series_poly
 import power_series_ring_element
+
 import polynomial.polynomial_ring as polynomial_ring
 import laurent_series_ring
 import commutative_ring
@@ -94,6 +96,7 @@ from sage.interfaces.magma import MagmaElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens
+
 
 _cache = {}
 
@@ -196,10 +199,17 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         ParentWithGens.__init__(self, base_ring, name)
         Nonexact.__init__(self, default_prec)
         self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name, sparse=sparse)
-        self.__power_series_class = power_series_ring_element.PowerSeries_poly
+        self.__power_series_class = power_series_poly.PowerSeries_poly
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
         self.__is_sparse = sparse
         self.__params = (base_ring, name, default_prec, sparse)
+
+##         if multi_polynomial_ring.is_MPolynomialRing(base_ring) or \
+##                polynomial_ring.is_PolynomialRing(base_ring):
+##             K = base_ring.base_ring()
+##             names = (name,) + K.variable_names()
+##             self.__mpoly_ring = polynomial_ring.MPolynomialRing(K, names=names)
+##             self.__power_series_class = power_series_mpoly.PowerSeries_mpoly
 
     def __reduce__(self):
         """
@@ -407,7 +417,8 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
     def _poly_ring(self):
         """
-        Return the underlying polynomial ring used to represent elements of this power series ring.
+        Return the underlying polynomial ring used to represent
+        elements of this power series ring.
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(ZZ)
@@ -415,6 +426,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             Univariate Polynomial Ring in t over Integer Ring
         """
         return self.__poly_ring
+
+    def _mpoly_ring(self):
+        return self.__mpoly_ring
 
     def base_extend(self, R):
         """

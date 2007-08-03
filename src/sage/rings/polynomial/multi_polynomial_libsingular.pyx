@@ -456,6 +456,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
+        cdef unsigned int pos
         rChangeCurrRing(_ring)
 
         # try to coerce first
@@ -522,6 +523,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return new_MP(self, _p)
+
+        if PY_TYPE_CHECK(element, dict):
+            _p = p_ISet(0, _ring)
+            K = self.base_ring()
+            for (m,c) in element.iteritems():
+                try:
+                    c = K(c)
+                except TypeError, msg:
+                    p_Delete(&_p, _ring)
+                    raise TypeError, msg
+                mon = p_Init(_ring)
+                p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
+                if len(m) != self.ngens():
+                    raise TypeError, "tuple key must have same length as ngens"
+                for pos from 0 <= pos < len(m):
+                    if m[pos]:
+                        p_SetExp(mon, pos+1, m[pos], _ring)
+                p_Setm(mon, _ring)
+                _p = p_Add_q(_p, mon, _ring)
+            return new_MP(self, _p)
 
         if hasattr(element,'_polynomial_'):
             # SymbolicVariable

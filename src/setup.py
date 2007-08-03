@@ -514,6 +514,12 @@ ext_modules = [ \
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 
+    Extension('sage.rings.power_series_poly',
+              sources = ['sage/rings/power_series_poly.pyx']), \
+
+    Extension('sage.rings.power_series_mpoly',
+              sources = ['sage/rings/power_series_mpoly.pyx']), \
+
     Extension('sage.rings.laurent_series_ring_element',
               sources = ['sage/rings/laurent_series_ring_element.pyx']), \
 

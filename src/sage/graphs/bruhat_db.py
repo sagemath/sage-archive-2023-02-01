@@ -16,25 +16,22 @@ class BruhatDatabase(SQLDatabase):
                         'picture':{'sql':'TEXT'}, \
                         'kl_poly':{'sql':'TEXT'}, \
                         'rep_interval':{'sql':'TEXT', 'index':True}, \
-                        'skip_pattern':{'sql':'TEXT', 'index':True}, \
-                        'atomic_number':{'sql':'INTEGER', 'index':True}, \
-                        'disarray':{'sql':'INTEGER', 'index':True}, \
-                        'interlock':{'sql':'INTEGER', 'index':True}, \
                         'self_dual':{'sql':'BOOLEAN', 'index':True},\
                         'id_subintervals':{'sql': 'TEXT','index':True}}
-        permutation_table_dict ={'blocks':{'sql':'TEXT', 'index':'True', 'primary_key':False},\
+        permutation_table_dict ={'permutation':{'sql':'TEXT', 'index':'True', 'primary_key':False},\
                          'class_belongs_to':{'sql':'REAL', 'index':'True'}}
         self.create_table('interval_classes', interval_table_dict)
-        self.create_table('permutation_classes', permutation_table_dict)
+        self.create_table('permutations', permutation_table_dict)
 
     def commit_changes(self,list_of_tuples):
         """
         """
-        intervals = list_of_tuples[0]
-        perms = list_of_tuples[1]
-        self.add_rows('interval_classes', intervals, \
-                     ['picture','class_id','rep_interval','self_dual','kl_poly','atomic_number','disarray','skip_pattern','interlock','id_subintervals'])
-        self.add_rows('permutation_classes', perms, ['blocks','class_belongs_to'])
+        for i in range (len(list_of_tuples)):
+            intervals = list_of_tuples[i][0] #even
+            perms = list_of_tuples[i][1] #odd
+            self.add_rows('interval_classes', intervals, \
+                     ['picture','class_id','rep_interval','self_dual','kl_poly','id_subintervals'])
+            self.add_rows('permutations', perms, ['permutation','class_belongs_to'])
 
     def show(self, table_name, max_field_size=20, html_table=False, with_picture=None):
         if table_name is 'interval_classes':
@@ -45,7 +42,7 @@ class BruhatDatabase(SQLDatabase):
                 from sage.plot.plot import plot
                 from sage.structure.sage_object import load
 
-                s = 'select picture, class_id, rep_interval, self_dual, kl_poly, atomic_number, skip_pattern, disarray, interlock, id_subintervals from interval_classes'
+                s = 'select picture, class_id, rep_interval, self_dual, kl_poly, id_subintervals from interval_classes'
 
                 try:
                     cur = self.__connection__.cursor()
@@ -66,20 +63,16 @@ class BruhatDatabase(SQLDatabase):
                 for i in range (len(b)):
                     print '<td bgcolor=white align=center rowspan="5"><img src="cell://%d.png"></td>'%i
                     print '<td bgcolor=white align=left> Class Id: %s </td>'%str(b[i][1])
-                    print '<td bgcolor=white align=left> Atomic Number: %s </td>'%str(b[i][5])
                     print '</tr><tr>'
                     print '<td bgcolor=white align=left> Representative: %s </td>'%str(b[i][2])
-                    print '<td bgcolor=white align=left> Skip Pattern: %s </td>'%str(b[i][6])
                     print '</tr><tr>'
                     print '<td bgcolor=white align=left> Self-Dual: %s </td>'%str(b[i][3])
-                    print '<td bgcolor=white align=left> Disarray: %s </td>'%str(b[i][7])
                     print '</tr><tr>'
                     print '<td bgcolor=white align=left> K-L Poly: %s </td>'%str(b[i][4])
-                    print '<td bgcolor=white align=left> Interlock: %s </td>'%str(b[i][8])
                     print '</tr><tr>'
-                    print '<td bgcolor=white align=left colspan="2"> Subintervals from Identity: %s </td>'%str(b[i][9])
+                    print '<td bgcolor=white align=left> Subintervals from Identity: %s </td>'%str(b[i][5])
                     print '</tr><tr>'
-                    if ( i != len(b)-1 ): print '<tr><td bgcolor=lightblue colspan="3" height="3"></td></tr>'
+                    if ( i != len(b)-1 ): print '<tr><td bgcolor=lightblue colspan="2" height="3"></td></tr>'
                 print '</table></html>'
 
             else:
@@ -105,27 +98,18 @@ class IntervalClass:
             self.__sub_intervals__.append(interval.sub_interval_from_id(child.__permutation__, height_of_children))
 
         # add first occurrence, get invariants
-        self.__perm_classes__=[]
+        self.__occurrences__=[]
         self.add_occurrence(first_occurrence)
-        self.__disarray__=self.__perm_classes__[0].get_disarray()
-        self.__atomic_number__=self.__perm_classes__[0].get_atomic_number()
-        self.__interlock__=self.__perm_classes__[0].get_interlock()
-        self.__skip_pattern__=self.__perm_classes__[0].get_skip_pattern()
+        self.__disarray__=0
+        self.__atomic_number__=0
+        self.__interlock__=0
+        self.__skip_pattern__='_'
 
     def is_member(self,other_interval):
         return other_interval.is_isomorphic(self.__representative_interval__)
 
     def add_occurrence(self,end_perm):
-        class_exists=False
-        for pc in self.__perm_classes__:
-            if (pc.is_member(end_perm)):
-                pc.add_occurrence(end_perm)
-                class_exists=True
-                break
-
-        if (class_exists==False):
-            newClass=PermutationClass(end_perm)
-            self.__perm_classes__.append(newClass)
+        self.__occurrences__.append(IntervalOccurrence(end_perm))
 
 
     def __str__(self):
@@ -147,169 +131,7 @@ class IntervalClass:
 class IntervalOccurrence:
     def __init__(self, perm):
         self.__end_perm__=perm
-        self.__perm_length__=len(perm)
 
-class SkipPattern:
-    def __init__(self,perm_blocks):
-        self.__blocks__=[]
-
-        for x in perm_blocks:
-            pattern=""
-            for i in range(len(x.__perm__)):
-                if (x.__perm__[i])==i+1:
-                    pattern+="X"
-                else:
-                    pattern+="_"
-            split=pattern.split('X')
-            gen_pattern=""
-            for i in range(1, len(split)):
-                gen_pattern+="X"
-                if (i!=len(split)-1):
-                    gen_pattern+="%i" %(len(split[i]))
-
-            if gen_pattern!="":
-                self.__blocks__.append(gen_pattern)
-
-    def is_equal(self, other):
-        if len(other.__blocks__)!=len(self.__blocks__):
-            return False
-
-        used=[]
-        for i in range(len(other.__blocks__)):
-            used[i]=False
-
-        for i in range(len(self.__blocks__)):
-            matched=False
-            for j in range(len(other.__blocks__)):
-                if used[j]==True:
-                    continue
-                elif self.__blocks__[i]==other.__blocks__[j]:
-                    used[j]=True
-                    matched=True
-                    break
-                if matched==False:
-                    return False
-        return True
-
-    def __str__(self):
-        str=""
-        for x in self.__blocks__:
-            str+="{"+x+"}"
-        if str=="":
-            return "_"
-        return str
-
-class PermutationBlock:
-    def __init__(self, perm_block):
-        self.__perm__=perm_block[:]
-        self.__cycles__=cycles_from_permutation(self.__perm__)
-        self.__generators__=generators_from_permutation(self.__perm__)
-
-    def is_equal(self,other_perm):
-        return self.__perm__==other_perm
-
-    def get_skip_pattern(self):
-        return SkipPattern(self.__perm__)
-
-    def get_cycle_str(self):
-        str=""
-        for cycle in self.__cycles__:
-            str+="("
-            for x in cycle:
-                str+="%i " %(x)
-            str=str[:len(str)-1]+")"
-        return str
-
-    def get_perm_str(self):
-        str="["
-        for x in self.__perm__:
-            str+="%i " %(x)
-        str=str[:len(str)-1]+"]"
-        return str
-
-    def get_generator_str(self):
-        return self.__generators__
-
-class PermutationClass:
-    def __init__(self, perm):
-        self.__perm_blocks__=[]
-        blocks=blocks_from_permutation(perm)
-        for block in blocks:
-            new_pb=PermutationBlock(block)
-            self.__perm_blocks__.append(new_pb)
-
-        self.__occurrences__=[]
-        self.add_occurrence(perm)
-
-    def is_member(self,other_perm):
-        blocks=blocks_from_permutation(other_perm)
-        if (len(blocks)!=len(self.__perm_blocks__)):
-            return False
-        used=[]
-        for block in blocks:
-            used.append(False)
-
-        for i in range(0,len(self.__perm_blocks__)):
-            matched=False
-            for j in range(0,len(blocks)):
-                if (used[j]==False):
-                    if(self.__perm_blocks__[i].is_equal(blocks[j])):
-                        matched=True
-                        used[j]=True
-                        break
-            if (matched==False):
-                return False
-
-        return True
-
-    def get_disarray(self):
-        disarray=0
-        for block in self.__perm_blocks__:
-            perm=block.__perm__
-            for x in range(1,len(perm)+1):
-                for i in range(0, len(perm)):
-                    if (x==perm[i]):
-                        disarray+=abs((i+1)-x)
-                        break
-        return disarray
-
-    def get_atomic_number(self):
-        atomic=0
-        for block in self.__perm_blocks__:
-            block_atomic=0
-            for cycle in block.__cycles__:
-                block_atomic+=len(cycle)
-            atomic+=block_atomic-1
-        return atomic
-
-    def get_interlock(self):
-        interlock=0
-        for block in self.__perm_blocks__:
-            interlock+=len(block.__cycles__)-1
-        return interlock
-
-    def add_occurrence(self,perm):
-        occurrence=IntervalOccurrence(perm)
-        self.__occurrences__.append(occurrence)
-
-    def get_skip_pattern(self):
-        pattern=SkipPattern(self.__perm_blocks__)
-
-        return pattern
-
-    def __str__(self):
-        str=""
-        for block in self.__perm_blocks__:
-            str+=block.get_perm_str()
-        str+=" = "
-        for block in self.__perm_blocks__:
-            str+="{"
-            str+=block.get_cycle_str()
-            str+="}"
-        str+=" = "
-        for block in self.__perm_blocks__:
-            str+="{"+block.get_generator_str()+"}"
-        return str
 
 def height_unknown(G):
     """
@@ -385,7 +207,6 @@ def get_first_descent(w): # returns first member of descent set of w
             return [i, i+1]
     return []
 
-
 def get_descent_set(w): # returns descent set of w
     word_length=len(w)
     descent_set=[]
@@ -458,6 +279,11 @@ def mult_poly(a, b):
                 c[key]=a[x]*b[y]
     return c
 
+def get_KL_poly(interval):
+    bot = list(interval.__nodes__[0][0].__permutation__)
+    top = list(interval.__nodes__[-1][0].__permutation__)
+    return get_poly_string(P_poly(bot,top))
+
 def add_poly(a,b):
     c={}
     for x in a:
@@ -472,26 +298,19 @@ def add_poly(a,b):
             c[x]=b[x]
     return c
 
-def display_poly(poly, var):
-    str=""
+def get_poly_string(poly):
+    from sage.calculus.var import var
+    q=var('q')
+    p=q-q
     for x in poly:
         if (poly[x]!=0):
-            str+="%.1f*%s^%.1f + " %(poly[x],var,x)
-    str=str[:-3]
-    print str
-
-def get_poly_string(poly,var):
-    str=""
-    for x in poly:
-        if (poly[x]!=0):
-            str+="%.1f*%s^%.1f + " %(poly[x],var,x)
-    str=str[:-3]
-    return str
+            p+=poly[x]*(q**x)
+    return str(p.expand())
 
 R_cache={}
 def R_poly(u, v):
-    hash=u.__str__()+";"+v.__str__()
-    if (R_cache.has_key(hash)==True):
+    hash=str(u)+","+str(v)
+    if (R_cache.has_key(hash)):
         return R_cache[hash]
 
     if (leq(u,v)!=True):
@@ -508,13 +327,28 @@ def R_poly(u, v):
             R= R_poly(new_u, new_v)
         else:
             R= add_poly(mult_poly({1:1},R_poly(new_u,new_v)), mult_poly({0:-1,1:1},R_poly(u,new_v)))
+
     R_cache[hash]=R
     return R
 
+def D_invol(poly):
+    D={}
+    for x in poly:
+        D[-x]=poly[x]
+    return D
+
+def get_P_from_sum(poly, l_x, l_w):
+    P={}
+    for x in poly:
+        if (x<=0):
+            new_key=x+((l_w-l_x)/2.0)
+            P[new_key]=-poly[x]
+    return P
+
 P_cache={}
 def P_poly(x, w):
-    hash=x.__str__()+";"+w.__str__()
-    if (P_cache.has_key(hash)==True):
+    hash=str(x)+","+str(w)
+    if (P_cache.has_key(hash)):
         return P_cache[hash]
 
     if (leq(x,w)==False):
@@ -531,38 +365,18 @@ def P_poly(x, w):
         for level in inbetween:
             for y in level:
                  l_y=l(y)
-                 term1= {0:(-1)^(l_y-l_x)}
+                 term1= {0:(-1)**(l_y-l_x)}
                  #print term1
-                 term2={((-l_x + 2*l_y -l_w)/2): 1}
+                 term2={((-l_x + 2*l_y -l_w)/2.0): 1}
                  term3=D_invol(R_poly(x,y))
                  term4=P_poly(y,w)
                  total=mult_poly(mult_poly(term1,term2),mult_poly(term3,term4))
                  sum=add_poly(sum,total)
 
         P=get_P_from_sum(sum,l_x,l_w)
-       # print P
+
     P_cache[hash]=P
     return P
-
-def D_invol(poly):
-    D={}
-    for x in poly:
-        D[-x]=poly[x]
-    return D
-
-def get_P_from_sum(poly, l_x, l_w):
-    P={}
-    for x in poly:
-        if (x<=0):
-            new_key=x+((l_w-l_x)/2)
-            P[new_key]=-poly[x]
-    return P
-
-def get_KL_poly(interval):
-    bot = list(interval.__nodes__[0][0].__permutation__)
-    top = list(interval.__nodes__[-1][0].__permutation__)
-    return get_poly_string(P_poly(bot,top),'q')
-
 
 # ***********************************************************
 # Classify Interval and Permutation Classes
@@ -691,37 +505,34 @@ def get_tuples_for_database(x, height, index, height_below): #height_below are t
     g = x.__representative_interval__.get_graph()
     picture = g._nxg.adj
 
-    row = [picture, id, get_string_of_BruhatInterval(x.__representative_interval__), x.__self_dual__,get_KL_poly(x.__representative_interval__), x.__atomic_number__, x.__disarray__, x.__skip_pattern__.__str__(), x.__interlock__]
-    subinterval_str=""
+    row = [picture, id, get_string_of_BruhatInterval(x.__representative_interval__), x.__self_dual__,get_KL_poly(x.__representative_interval__)]
+    subinterval_str="(Run after fetching data.)"
+    """
     for subinterval in x.__sub_intervals__:
         for i in range(len(height_below)):
             if (height_below[i].is_member(subinterval)):
                 if not re.search('%d.%d,'%(height-1,i+1),subinterval_str):
                     subinterval_str+="%i.%i," %(height-1, i+1)
     subinterval_str=subinterval_str[:-1] # remove last comma
+    """
     row.append(subinterval_str)
 
-    #database.add_rows('interval_classes', [tuple(row)], \
-    #                 ['picture','class_id','rep_interval','self_dual','kl_poly','atomic_number','disarray','skip_pattern','interlock','id_subintervals'])
     both_tables_list.append([tuple(row)])
 
     permRows=[]
-    for pc in x.__perm_classes__:
-        strBlocks=""
-        for block in pc.__perm_blocks__:
-            strBlocks+=block.get_perm_str()
-
-        row=tuple([strBlocks, id])
+    for occurrence in x.__occurrences__:
+        row=tuple([occurrence.__end_perm__, id])
         permRows.append(row)
-    #database.add_rows('permutation_classes', permRows, ['blocks','class_belongs_to'])
     both_tables_list.append(permRows)
     return both_tables_list
 
 def harvest_data(height): #adds information to database and returns a list of interval classes at heights
+
     interval_classes_at_height = get_interval_classes_at_height(height)
+    list_of_list_of_tuples = []
     for class_index in range(0, len(interval_classes_at_height)):
         height_classes_below=[]
-        list_of_tuples = get_tuples_for_database(interval_classes_at_height[class_index], height, \
-                                       class_index, height_classes_below)
+        list_of_list_of_tuples.append(get_tuples_for_database(interval_classes_at_height[class_index], height, \
+                                       class_index, height_classes_below))
 
-    return list_of_tuples
+    return list_of_list_of_tuples

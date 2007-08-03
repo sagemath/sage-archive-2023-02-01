@@ -238,23 +238,11 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
             19*w^10 + 323*w^11 + O(w^12)
         """
-        cdef PowerSeries_poly right = <PowerSeries_poly>right_r
-        sp = self._prec
-        rp = right._prec
-        if is_Infinite(sp):
-            if is_Infinite(rp):
-                prec = infinity
-            else:
-                prec = rp + self.valuation()
-        else:  # sp != infinity
-            if is_Infinite(rp):
-                prec = sp + right.valuation()
-            else:
-                prec = min(rp + self.valuation(), sp + right.valuation())
+        prec = self._mul_prec(right_r)
         return PowerSeries_poly(self._parent,
-                                         self.__f * right.__f,
-                                         prec,
-                                         check=True)  # check, since truncation may be needed
+                                self.__f * (<PowerSeries_poly>right_r).__f,
+                                prec = prec,
+                                check = True)  # check, since truncation may be needed
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
         return PowerSeries_poly(self._parent, self.__f._rmul_c(c), self._prec, check=False)

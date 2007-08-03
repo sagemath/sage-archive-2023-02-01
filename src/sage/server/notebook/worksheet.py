@@ -1401,7 +1401,7 @@ class Worksheet:
 
 
     def enqueue(self, C, username=None):
-        #self._record_that_we_are_computing(username)
+        self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:

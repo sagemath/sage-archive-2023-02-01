@@ -574,10 +574,6 @@ cdef class Ring(ParentWithGens):
 
         ALGORITHM:
              -- uses numpy's randint.
-
-        EXAMPLES:
-            sage: [QQ['x,y'].random_element() for _ in range(5)]
-            [-2, -2, 0, -1, -1]
         """
         return self(randint(-bound,bound))
 

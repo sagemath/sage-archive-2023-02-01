@@ -64,6 +64,45 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise TypeError
 
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of this polynomial in a list.
+        The order the coefficients appear in depends on the ordering
+        used on self's parent.
+
+        EXAMPLES:
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='revlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [1, 23, 6]
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
+        AUTHOR:
+            -- didier deshommes
+        """
+        degs = self.exponents()
+        d = self.dict()
+        return  [ d[i] for i in degs ]
+
+    def truncate(self, var, n):
+        """
+        Returns a new multivariate polynomial obtained from self by
+        deleting all terms that involve the given variable to a power
+        at least n.
+        """
+        cdef int ind
+        R = self.parent()
+        G = R.gens()
+        Z = list(G)
+        try:
+            ind = Z.index(var)
+        except ValueError:
+            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+        d = self.dict()
+        return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
 
     def polynomial(self, var):
         """
@@ -112,20 +151,23 @@ cdef class MPolynomial(CommutativeRingElement):
         # Make polynomial ring over all variables except var.
         S = R.base_ring()[tuple(other_vars)]
         ring = S[var]
+        if not self:
+            return ring(0)
 
         d = self.degree(var)
         B = ring.base_ring()
-        w = dict([(delete(e, ind), val) for e, val in self.dict().iteritems() if not e[ind]])
+        w = dict([(remove_from_tuple(e, ind), val) for e, val in self.dict().iteritems() if not e[ind]])
         v = [B(w)]  # coefficients that don't involve var
         z = var
         for i in range(1,d+1):
             c = self.coefficient(z).dict()
-            w = dict([(delete(e, ind), val) for e, val in c.iteritems()])
+            w = dict([(remove_from_tuple(e, ind), val) for e, val in c.iteritems()])
             v.append(B(w))
             z *= var
         return ring(v)
 
-cdef delete(e, int ind):
+cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]
     return tuple(w)
+

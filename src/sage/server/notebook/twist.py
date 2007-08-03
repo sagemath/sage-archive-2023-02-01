@@ -503,7 +503,8 @@ class Worksheet_cells(WorksheetResource, resource.Resource):
 
 class Worksheet_alive(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        self.worksheet.ping(self.username)
+        #self.worksheet.ping(self.username)
+        self.worksheet.ping(username=None)  # None so doesn't save a revision
         return http.Response(stream = '')
 
 ########################################################

@@ -556,6 +556,7 @@ class RectangularGridSurface(IndexFaceSet):
             last_line = grid[i-1]
             for j in range(1, len(line)):
                 face = [line[j], line[j-1], last_line[j-1], last_line[j]]
+                # remove extra vertex of degenerate quads.
                 if   face[3] == face[0]: face.remove(face[0])
                 elif face[0] == face[1]: face.remove(face[1])
                 elif face[1] == face[2]: face.remove(face[2])

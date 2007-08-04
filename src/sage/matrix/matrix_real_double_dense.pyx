@@ -92,7 +92,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         sage: p,e = m.eigen()
 
-    the result of eigen is a pair p,e . p is a list
+    the result of eigen is a pair p,e, where p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors
 
     To solve a linear system Ax = b
@@ -379,22 +379,57 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         return P, L, U
 
+    def eigenspaces(self, var='a'):
+        r"""
+        Return a list of pairs (e, V) where e runs through all complex
+        eigenvalues of this matrix, and V is the corresponding
+        eigenspace (always a 1-dimensional complex vector space).
+
+        OUTPUT:
+            list -- of eigenvalues
+            list -- of 1-dimensional CDF vector spaces
+
+        EXAMPLES:
+            sage: m = matrix(RDF, 3, range(9)); m
+            [0.0 1.0 2.0]
+            [3.0 4.0 5.0]
+            [6.0 7.0 8.0]
+            sage: e, v = m.eigenspaces()
+            sage: e
+            [13.3484692283, -1.34846922835, -9.96461975961e-16]
+            sage: v
+            [Vector space of degree 3 and dimension 1 over Real Double Field
+            Basis matrix:
+            [          1.0 1.28989794856 1.57979589711], Vector space of degree 3 and dimension 1 over Real Double Field
+            Basis matrix:
+            [            1.0  0.310102051443 -0.379795897113], Vector space of degree 3 and dimension 1 over Real Double Field
+            Basis matrix:
+            [ 1.0 -2.0  1.0]]
+            sage: (v[0].0) * m
+            (13.3484692283, 17.218163074, 21.0878569197)
+            sage: e[0] * v[0].0
+            (13.3484692283, 17.218163074, 21.0878569197)
+        """
+        e, v = self.eigen()
+        return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
 
     def eigen(self):
         """
-        Computes the eigenvalues and eigenvectors of this matrix:
+        Computes the eigenvalues and eigenvectors of this matrix acting
+        *from the right*.
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as an RDF matrix whose columns are the eigenvectors.
+             corresponding eigenvectors -- as an RDF matrix whose columns are
+                           the eigenvectors.
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
             sage: m.eigen()           # random-ish platform-dependent output (low order digits)
-            ([13.3484692283, -1.34846922835, -6.43047746712e-16],
- 	     [-0.164763817282 -0.799699663112  0.408248290464]
-	     [-0.505774475901 -0.104205787719 -0.816496580928]
-	     [-0.846785134519  0.591288087674  0.408248290464])
+            ([13.3484692283, -1.34846922835, -9.96461975961e-16],
+             [-0.440242867236 -0.897878732262  0.408248290464]
+            [-0.567868371314 -0.278434036822 -0.816496580928]
+            [-0.695493875393  0.341010658618  0.408248290464])
 
         IMPLEMENTATION:
             Uses numpy.
@@ -405,30 +440,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             return [], self
 
         import numpy
-        v_,m_=numpy.linalg.eig(self.numpy())
+        v_, m_ = numpy.linalg.eig(numpy.transpose(self.numpy()))
         return ([sage.rings.complex_double.CDF(x) for x in v_],matrix(m_))
-##         import_array() #This must be called before using the numpy C/api or you will get segfault
-##         cdef Matrix_real_double_dense _M,_result_matrix
-##         _M=self
-##         cdef int dims[2]
-##         cdef int i
-##         cdef object temp
-##         cdef double *p
-##         cdef ndarray _n,_m
-##         dims[0] = _M._matrix.size1
-##         dims[1] = _M._matrix.size2
-##         temp = PyArray_FromDims(2, dims, 12)
-##         _n = temp
-##         _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
-##         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
-##         import numpy
-##         v,_m = numpy.linalg.eig(_n)
-##         parent = self.matrix_space(self._nrows,self._ncols)
-##         _result_matrix = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-##         p = <double *> _m.data
-##         for i from 0<=i<_M._matrix.size1*_M._matrix.size2:
-##             _result_matrix._matrix.data[i] = p[i]
-##         return ([sage.rings.complex_double.CDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
 
     def solve_left_LU(self, b):
         """

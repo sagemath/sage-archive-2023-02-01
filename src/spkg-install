@@ -31,6 +31,21 @@ if [ ! -f "$DEVEL/sage-main"/.hg/00changelog.i ]; then
    mv "$DEVEL/sage-main" "$DEVEL/old/sage-bad_delete_me"
 fi
 
+cd "$DEVEL/sage-main/c_lib"
+
+INCLUDES="-I$SAGE_LOCAL/include/ -I$SAGE_LOCAL/include/python2.5/ -I$SAGE_LOCAL/include/NTL/"
+
+CFLAGS="$CFLAGS -fPIC $INCLUDES"
+CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES"
+CPPFLAGS="$INCLUDES"
+export CFLAGS
+export CXXFLAGS
+export CPPFLAGS
+
+./configure --prefix=$SAGE_LOCAL
+
+
+
 if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
     #hg pull "$SAGE_SERVER"/hg/sage-main

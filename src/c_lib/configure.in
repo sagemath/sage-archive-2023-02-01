@@ -1,0 +1,21 @@
+AC_INIT(libcsage,0.0.1)
+AC_CONFIG_SRCDIR(src/interrupt.c)
+AM_INIT_AUTOMAKE
+
+AC_PROG_LIBTOOL
+
+AC_PROG_INSTALL
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+AC_PROG_MAKE_SET
+
+AC_HEADER_STDC
+
+AC_CHECK_HEADERS(setjmp.h Python.h signal.h NTL/ZZ.h,,AC_MSG_ERROR[
+required header file missing])
+
+AC_CHECK_FUNCS(signal,,AC_MSG_ERROR([
+required standard library function missing]))
+
+AC_OUTPUT(Makefile)

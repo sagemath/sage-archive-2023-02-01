@@ -61,6 +61,12 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
 include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
+
+#### Build the c_lib first
+if os.system( "cd c_lib && make install" ) != 0:
+    print "    ERROR: The c_lib did not build successfully."
+    sys.exit(1)
+
 #####################################################
 
 hanke = Extension(name = "sage.libs.hanke.hanke",

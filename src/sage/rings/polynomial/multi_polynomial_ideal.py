@@ -984,7 +984,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdhilb')
-            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 5*b^2 - b - 3*c^2 + c, a + 2*b + 2*c - 1]
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdfglm')
@@ -996,9 +996,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger')
-            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, a + 2*b + 2*c - 1,
-             7/125*b + 42/25*c^3 - 79/125*c^2 + 3/125*c, a^2 - a + 2*b^2 + 2*c^2,
-             -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
+            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, -7/125*b - 42/25*c^3 + 79/125*c^2 - 3/125*c,
+            a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger2')

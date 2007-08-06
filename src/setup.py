@@ -680,37 +680,30 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def need_to_cython(filename, outfile):
+def check_dependencies( filename, outfile ):
     """
     INPUT:
-        filename -- The name of a cython file in the SAGE source tree.
-        outfile -- The name of the corresponding c or cpp file in the build directory.
+        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
+        outfile -- The output file for which we are determining out-of-date-ness
 
     OUTPUT:
         bool -- whether or not outfile must be regenerated.
     """
-    if is_older(filename, outfile):   # outfile is older than filename
-        return True
-    base =  os.path.splitext(filename)[0]
-    pxd = base+'.pxd'
-    if is_older(pxd, outfile):   # outfile is older than pxd file (if it exists)
-        return True
 
-    ## comment this out to turn on dependency checking!
-    # return False
+    if is_older(filename, outfile):
+        print "\nBuilding %s because it depends on %s."%(outfile, filename)
+        return True
 
     # Now we look inside the file to see what it cimports or include.
     # If any of these files are newer than outfile, we rebuild
     # outfile.
     S = open(filename).readlines()
-    if os.path.exists(pxd):
-        S += open(pxd).readlines()
     # Take the lines that begin with cimport (it won't hurt to
     # have extra lines)
     C = [x.strip() for x in S if 'cimport' in x]
     for A in C:
         # Deduce the full module name.
-        # The only allowed forms of cimport are:
+        # The only allowed forms of cimport/include are:
         #        cimport a.b.c.d
         #        from a.b.c.d cimport e
         # Also, the cimport can be both have no dots (current directory) or absolute.
@@ -725,6 +718,9 @@ def need_to_cython(filename, outfile):
             # be in a comment or something)
             continue
 
+        if A[0] == '"':
+            A = A[1:-1]
+
         # Now convert A to a filename, e.g., a/b/c/d
         #
         if '.' in A:
@@ -732,11 +728,10 @@ def need_to_cython(filename, outfile):
             A = A.replace('.','/') + '.pxd'
         else:
             # It is a relative cimport.
-            A =  os.path.split(base)[0] + '/' + A + '.pxd'
+            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A) and is_older(A, outfile):
-            print "\nRegenerating %s because it depends on %s."%(outfile, A)
+        if os.path.exists(A) and check_dependencies(A, outfile):
             return True # yep we must rebuild
 
     # OK, next we move on to include pxi files.
@@ -759,14 +754,35 @@ def need_to_cython(filename, outfile):
         # and strip off the last part of the path and stick
         # A onto it to get the filename of the pxi file relative
         # where setup.py is being run.
+        R = A # save the relative filename in case it is absolute
         A = os.path.split(filename)[0] + '/' + A
+        if not os.path.exists(A):
+            # A is an "absolute" path -- that is, absolute to the base of the sage tree
+            A = R # restore
         # Finally, check to see if filename is older than A
-        if os.path.exists(A) and is_older(A, outfile):
-            print "\nBuilding %s because it depends on %s."%(outfile, A)
+        if os.path.exists(A) and check_dependencies(A, outfile):
             return True
 
-    # We do not have to rebuild.
-    return False
+
+def need_to_cython(filename, outfile):
+    """
+    INPUT:
+        filename -- The name of a cython file in the SAGE source tree.
+        outfile -- The name of the corresponding c or cpp file in the build directory.
+
+    OUTPUT:
+        bool -- whether or not outfile must be regenerated.
+    """
+
+    base =  os.path.splitext(filename)[0]
+    pxd = base+'.pxd'
+
+    if check_dependencies(filename, outfile):
+        return True
+    elif os.path.exists(pxd) and check_dependencies(pxd, outfile):
+        return True
+    else:
+        return False
 
 def process_cython_file(f, m):
     """

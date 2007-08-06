@@ -24,6 +24,7 @@ cp patches/longrat.h src/kernel/
 
 # bugfix patches
 cp patches/cf_factor.cc src/factory/
+cp patches/Singular.grammar.y src/Singular/grammar.y
 
 # Build
 
@@ -180,8 +181,8 @@ build()
     cd $SAGE_LOCAL/bin
     $RM -f Singular singular
 
-    if [ -f Singular-3-0-1 ]; then
-        $RM -f Singular-3-0-1   # remove previous version of Singular.
+    if [ -f Singular-3-0-2 ]; then
+        $RM -f Singular-3-0-2   # remove previous version of Singular.
     fi
 
     # The singular executable is called somewhat randomly depending

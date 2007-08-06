@@ -785,7 +785,7 @@ def process_cython_file(f, m):
 
     if need_to_cython(f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        cmd = "cython --embed-positions -I%s -o%s %s"%(os.getcwd(), outfile, f)
+        cmd = "cython --embed-positions -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

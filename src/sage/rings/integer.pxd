@@ -8,7 +8,7 @@ from sage.structure.element cimport EuclideanDomainElement, RingElement, ModuleE
 cdef class Integer(EuclideanDomainElement):
     cdef mpz_t value
 
-    cdef void _to_ZZ(self, ntl_c_ZZ *z)
+    cdef void _to_ZZ(self, ZZ_c *z)
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
     #cdef object _pari

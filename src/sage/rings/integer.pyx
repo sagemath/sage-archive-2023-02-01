@@ -639,7 +639,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    cdef void _to_ZZ(self, ntl_c_ZZ *z):
+    cdef void _to_ZZ(self, ZZ_c *z):
         _sig_on
         mpz_to_ZZ(z, &self.value)
         _sig_off

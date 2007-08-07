@@ -118,7 +118,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         sage.rings.field_element.FieldElement.__init__(self, parent)
 
-        cdef ntl_c_ZZ coeff
+        cdef ZZ_c coeff
         if isinstance(f, (int, long, Integer_sage)):
             # set it up and exit immediately
             # fast pathway
@@ -188,8 +188,8 @@ cdef class NumberFieldElement(FieldElement):
         x = PY_NEW(NumberFieldElement)
         x._parent = <ParentWithBase>new_parent
         x.__denominator = self.__denominator
-        cdef ntl_c_ZZX result
-        cdef ntl_c_ZZ tmp
+        cdef ZZX_c result
+        cdef ZZ_c tmp
         cdef int i
         cdef int rel = _rel
         cdef ntl_ZZX _num
@@ -417,9 +417,9 @@ cdef class NumberFieldElement(FieldElement):
         """
         Pull out common factors from the numerator and denominator!
         """
-        cdef ntl_c_ZZ gcd
-        cdef ntl_c_ZZ t1
-        cdef ntl_c_ZZX t2
+        cdef ZZ_c gcd
+        cdef ZZ_c t1
+        cdef ZZX_c t2
         content(t1, self.__numerator)
         GCD_ZZ(gcd, t1, self.__denominator)
         if sign(gcd) != sign(self.__denominator):
@@ -435,7 +435,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement _right = right
         x = self._new()
         mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-        cdef ntl_c_ZZX t1, t2
+        cdef ZZX_c t1, t2
         mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
         mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
         add_ZZX(x.__numerator, t1, t2)
@@ -447,7 +447,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement _right = right
         x = self._new()
         mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-        cdef ntl_c_ZZX t1, t2
+        cdef ZZX_c t1, t2
         mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
         mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
         sub_ZZX(x.__numerator, t1, t2)
@@ -470,8 +470,8 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
-        cdef ntl_c_ZZ parent_den
-        cdef ntl_c_ZZX parent_num
+        cdef ZZ_c parent_den
+        cdef ZZX_c parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
         # an ugly hack fix for the fact that MulMod doesn't handle non-monic polynomials
         # I expect that PARI will win out over NTL for reasons of speed and things like this
@@ -525,10 +525,10 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
-        cdef ntl_c_ZZX inv_num
-        cdef ntl_c_ZZ inv_den
-        cdef ntl_c_ZZ parent_den
-        cdef ntl_c_ZZX parent_num
+        cdef ZZX_c inv_num
+        cdef ZZ_c inv_den
+        cdef ZZ_c parent_den
+        cdef ZZX_c parent_num
         if not _right:
             raise ZeroDivisionError, "Number field element division by zero"
         self._parent_poly_c_( &parent_num, &parent_den )
@@ -573,9 +573,9 @@ cdef class NumberFieldElement(FieldElement):
     def __long__(self):
         return long(self.polynomial())
 
-    cdef void _parent_poly_c_(self, ntl_c_ZZX *num, ntl_c_ZZ *den):
+    cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
         cdef long i
-        cdef ntl_c_ZZ coeff
+        cdef ZZ_c coeff
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
@@ -594,7 +594,7 @@ cdef class NumberFieldElement(FieldElement):
             num[0] = _num.x[0]
             den[0] = _den.x[0]
 
-    cdef void _invert_c_(self, ntl_c_ZZX *num, ntl_c_ZZ *den):
+    cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
         """
         Computes the numerator and denominator of the multiplicative inverse of this element.
 
@@ -608,12 +608,12 @@ cdef class NumberFieldElement(FieldElement):
             I'd love to, but since we are dealing with c-types, I can't at this level.
             Check __invert__ for doc-tests that rely on this functionality.
         """
-        cdef ntl_c_ZZ parent_den
-        cdef ntl_c_ZZX parent_num
+        cdef ZZ_c parent_den
+        cdef ZZX_c parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
 
-        cdef ntl_c_ZZX t # unneeded except to be there
-        cdef ntl_c_ZZX a, b
+        cdef ZZX_c t # unneeded except to be there
+        cdef ZZX_c a, b
         mul_ZZX_ZZ( a, self.__numerator, parent_den )
         mul_ZZX_ZZ( b, parent_num, self.__denominator )
         XGCD_ZZX( den[0], num[0],  t, a, b, 1 )

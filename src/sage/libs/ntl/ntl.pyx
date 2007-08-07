@@ -96,7 +96,7 @@ cdef class ntl_ZZ:
         return make_ZZ(ZZ_pow(self.x, e))
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
-        self.x = <ntl_c_ZZ*> y
+        self.x = <ZZ_c*> y
 
     cdef int get_as_int(ntl_ZZ self):
         r"""
@@ -169,7 +169,7 @@ cdef class ntl_ZZ:
     # todo: add wrapper for int_to_ZZ in wrap.cc?
 
 
-cdef public make_ZZ(ntl_c_ZZ* x):
+cdef public make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     _sig_off
     y = ntl_ZZ()
@@ -450,7 +450,7 @@ cdef class ntl_ZZX:
         """
         _sig_on
         cdef int divisible
-        cdef ntl_c_ZZX* q
+        cdef ZZX_c* q
         q = ZZX_div(self.x, other.x, &divisible)
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
@@ -488,7 +488,7 @@ cdef class ntl_ZZX:
            sage: q*g + r == f
            True
         """
-        cdef ntl_c_ZZX *r, *q
+        cdef ZZX_c *r, *q
         _sig_on
         ZZX_quo_rem(self.x, other.x, &r, &q)
         return (make_ZZX(q), make_ZZX(r))
@@ -696,7 +696,7 @@ cdef class ntl_ZZX:
             sage: g.pseudo_quo_rem(f)
             ([-1 3], [2])
         """
-        cdef ntl_c_ZZX *r, *q
+        cdef ZZX_c *r, *q
         _sig_on
         ZZX_pseudo_quo_rem(self.x, other.x, &r, &q)
         return (make_ZZX(q), make_ZZX(r))
@@ -750,8 +750,8 @@ cdef class ntl_ZZX:
             sage: f.xgcd(g)
             (169, [-13], [13])
         """
-        cdef ntl_c_ZZX *s, *t
-        cdef ntl_c_ZZ *r
+        cdef ZZX_c *s, *t
+        cdef ZZ_c *r
         _sig_on
         ZZX_xgcd(self.x, other.x, &r, &s, &t, proof)
         return (make_ZZ(r), make_ZZX(s), make_ZZX(t))
@@ -1162,7 +1162,7 @@ cdef class ntl_ZZX:
             sage: f.square_free_decomposition()
             [([0 1], 1), ([1 1], 2)]
         """
-        cdef ntl_c_ZZX** v
+        cdef ZZX_c** v
         cdef long* e
         cdef long i, n
         _sig_on
@@ -1176,9 +1176,9 @@ cdef class ntl_ZZX:
         return F
 
     cdef set(self, void* x):  # only used internally for initialization; assumes self.x not set yet!
-        self.x = <ntl_c_ZZX*>x
+        self.x = <ZZX_c*>x
 
-cdef make_ZZX(ntl_c_ZZX* x):
+cdef make_ZZX(ZZX_c* x):
     cdef ntl_ZZX y
     _sig_off
     y = ntl_ZZX()
@@ -1205,20 +1205,20 @@ zero_ZZX = make_new_ZZX()
 
 ##############################################################################
 #
-# ZZ_p: integers modulo p
+# ZZ_p_c: integers modulo p
 #
 ##############################################################################
 cdef class ntl_ZZ_p:
     r"""
-    The \class{ZZ_p} class is used to represent integers modulo $p$.
+    The \class{ZZ_p_c} class is used to represent integers modulo $p$.
     The modulus $p$ may be any positive integer, not necessarily prime.
 
-    Objects of the class \class{ZZ_p} are represented as a \code{ZZ} in the
+    Objects of the class \class{ZZ_p_c} are represented as a \code{ZZ} in the
     range $0, \ldots, p-1$.
 
     An executing program maintains a "current modulus", which is set to p
     with ntl_ZZ_p.init(p).  The current modulus should be initialized before
-    any ZZ_p objects are created.
+    any ZZ_p_c objects are created.
 
     The modulus may be changed, and a mechanism is provided for saving and
     restoring a modulus (see classes ZZ_pBak and ZZ_pContext below).
@@ -1284,7 +1284,7 @@ cdef class ntl_ZZ_p:
         return make_ZZ_p(ZZ_p_pow(self.x, e))
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
-        self.x = <ZZ_p*> y
+        self.x = <ZZ_p_c*> y
 
     cdef int get_as_int(ntl_ZZ_p self):
         r"""
@@ -1332,7 +1332,7 @@ cdef class ntl_ZZ_p:
     # todo: add wrapper for int_to_ZZ_p in wrap.cc?
 
 
-cdef public make_ZZ_p(ZZ_p* x):
+cdef public make_ZZ_p(ZZ_p_c* x):
     cdef ntl_ZZ_p y
     _sig_off
     y = ntl_ZZ_p()
@@ -1349,7 +1349,7 @@ def make_new_ZZ_p(x='0'):
     return n
 
 def set_ZZ_p_modulus(ntl_ZZ p):
-    ntl_ZZ_set_modulus(<ntl_c_ZZ*>p.x)
+    ntl_ZZ_set_modulus(<ZZ_c*>p.x)
 
 
 def ntl_ZZ_p_random():
@@ -1361,13 +1361,13 @@ def ntl_ZZ_p_random():
 
 ##############################################################################
 #
-# ZZ_pX  -- polynomials over the integers modulo p
+# ZZ_pX_c  -- polynomials over the integers modulo p
 #
 ##############################################################################
 
 cdef class ntl_ZZ_pX:
     r"""
-    The class \class{ZZ_pX} implements polynomial arithmetic modulo $p$.
+    The class \class{ZZ_pX_c} implements polynomial arithmetic modulo $p$.
 
     Polynomial arithmetic is implemented using the FFT, combined with
     the Chinese Remainder Theorem.  A more detailed description of the
@@ -1413,7 +1413,7 @@ cdef class ntl_ZZ_pX:
         return make_ZZ_pX(ZZ_pX_copy(self.x))
 
     cdef set(self, void* x):  # only used internally for initialization; assumes self.x not set yet!
-        self.x = <ZZ_pX*>x
+        self.x = <ZZ_pX_c*>x
 
     def __setitem__(self, long i, a):
         if i < 0:
@@ -1527,7 +1527,7 @@ cdef class ntl_ZZ_pX:
         """
         _sig_on
         cdef int divisible
-        cdef ZZ_pX* q
+        cdef ZZ_pX_c* q
         q = ZZ_pX_div(self.x, other.x, &divisible)
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
@@ -1567,7 +1567,7 @@ cdef class ntl_ZZ_pX:
             sage: q*g + r == f
             True
         """
-        cdef ZZ_pX *r, *q
+        cdef ZZ_pX_c *r, *q
         _sig_on
         ZZ_pX_quo_rem(self.x, other.x, &r, &q)
         return (make_ZZ_pX(q), make_ZZ_pX(r))
@@ -1766,7 +1766,7 @@ cdef class ntl_ZZ_pX:
             sage: f.xgcd(g)
             ([1], [13], [4])
             """
-        cdef ZZ_pX *s, *t, *r
+        cdef ZZ_pX_c *s, *t, *r
         _sig_on
         if plain:
             ZZ_pX_plain_xgcd(&r, &s, &t, self.x, other.x)
@@ -1881,7 +1881,7 @@ cdef class ntl_ZZ_pX:
         return make_ZZ_pX(ZZ_pX_derivative(self.x))
 
     def factor(self, verbose=False):
-        cdef ZZ_pX** v
+        cdef ZZ_pX_c** v
         cdef long* e
         cdef long i, n
         _sig_on
@@ -1899,7 +1899,7 @@ cdef class ntl_ZZ_pX:
         Assumes that input is monic, and has deg(f) distinct roots.
         Returns the list of roots.
         """
-        cdef ZZ_p** v
+        cdef ZZ_p_c** v
         cdef long i, n
         _sig_on
         ZZ_pX_linear_roots(&v, &n, self.x)
@@ -2205,10 +2205,10 @@ cdef class ntl_ZZ_pX:
         _sig_off
 
 
-## TODO: NTL's ZZ_pX has minpolys of linear recurrence sequences!!!
+## TODO: NTL's ZZ_pX_c has minpolys of linear recurrence sequences!!!
 
 
-cdef make_ZZ_pX(ZZ_pX* x):
+cdef make_ZZ_pX(ZZ_pX_c* x):
     cdef ntl_ZZ_pX y
     _sig_off
     y = ntl_ZZ_pX()
@@ -2241,7 +2241,7 @@ def make_new_ZZ_pX(v=[]):
 cdef class ntl_mat_ZZ:
     # see ntl.pxd for data members
     r"""
-    The \class{mat_ZZ} class implements arithmetic with matrices over $\Z$.
+    The \class{mat_ZZ_c} class implements arithmetic with matrices over $\Z$.
     """
     def __init__(self, nrows=0,  ncols=0, v=None):
         if nrows == _INIT:
@@ -2259,7 +2259,7 @@ cdef class ntl_mat_ZZ:
             for i from 0 <= i < nrows:
                 for j from 0 <= j < ncols:
                     tmp = make_new_ZZ(v[i*ncols+j])
-                    mat_ZZ_setitem(self.x, i, j, <ntl_c_ZZ*> tmp.x)
+                    mat_ZZ_setitem(self.x, i, j, <ZZ_c*> tmp.x)
 
 
     def __reduce__(self):
@@ -2319,7 +2319,7 @@ cdef class ntl_mat_ZZ:
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
             raise IndexError, "array index out of range"
         _sig_on
-        mat_ZZ_setitem(self.x, i, j, <ntl_c_ZZ*> y.x)
+        mat_ZZ_setitem(self.x, i, j, <ZZ_c*> y.x)
         _sig_off
 
     def __getitem__(self, ij):
@@ -2385,7 +2385,7 @@ cdef class ntl_mat_ZZ:
         else:
             _D = ntl_ZZ(D)
         _sig_on
-        return make_mat_ZZ(mat_ZZ_HNF(self.x, <ntl_c_ZZ*>_D.x))
+        return make_mat_ZZ(mat_ZZ_HNF(self.x, <ZZ_c*>_D.x))
 
     def charpoly(self):
         return make_ZZX(mat_ZZ_charpoly(self.x));
@@ -2467,8 +2467,8 @@ cdef class ntl_mat_ZZ:
         WARNING: This method modifies self. So after applying this method your matrix
         will be a vector of vectors.
         """
-        cdef ntl_c_ZZ *det2
-        cdef mat_ZZ *U
+        cdef ZZ_c *det2
+        cdef mat_ZZ_c *U
         if return_U:
             _sig_on
             U = new_mat_ZZ(self.nrows(),self.ncols())
@@ -2481,7 +2481,7 @@ cdef class ntl_mat_ZZ:
             _sig_off
             return rank,make_ZZ(det2)
 
-cdef make_mat_ZZ(mat_ZZ* x):
+cdef make_mat_ZZ(mat_ZZ_c* x):
     cdef ntl_mat_ZZ y
     _sig_off
     y = ntl_mat_ZZ(_INIT)
@@ -2501,7 +2501,7 @@ cdef make_mat_ZZ(mat_ZZ* x):
 #
 ##############################################################################
 
-__have_GF2X_hex_repr = False # hex representation of GF2X
+__have_GF2X_hex_repr = False # hex representation of GF2X_c
 
 
 cdef class ntl_GF2X:
@@ -2641,7 +2641,7 @@ cdef class ntl_GF2X:
         an appropriate ring is generated.
 
         INPUT:
-            self  -- GF2X element
+            self  -- GF2X_c element
             R     -- PolynomialRing over GF(2)
             cache -- optional NTL to SAGE cache (dict)
 
@@ -2663,9 +2663,9 @@ cdef class ntl_GF2X:
         return R(self.list())
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.gf2x_x not set yet!
-        self.gf2x_x = <GF2X*> y
+        self.gf2x_x = <GF2X_c*> y
 
-cdef public make_GF2X(GF2X* x):
+cdef public make_GF2X(GF2X_c* x):
     cdef ntl_GF2X y
     _sig_off
     y = ntl_GF2X()
@@ -2752,7 +2752,7 @@ def make_new_GF2X(x=[]):
 
 def GF2X_hex_repr(have_hex=None):
     """
-    Represent GF2X and GF2E elements in the more compact
+    Represent GF2X_c and GF2E_c elements in the more compact
     hexadecimal form to the user.
 
     If no parameter is provided the currently set value will be
@@ -2779,7 +2779,7 @@ def ntl_GF2E_modulus(p=None):
     The input is either ntl.GF2X or is tried to be converted to a
     ntl.GF2X element.
 
-    If no parameter p is given: Yields copy of the current GF2E
+    If no parameter p is given: Yields copy of the current GF2E_c
     modulus.
 
     INPUT:
@@ -2807,12 +2807,12 @@ def ntl_GF2E_modulus(p=None):
     if(elem.degree()<1):
         raise "DegreeToSmall"
 
-    ntl_GF2E_set_modulus(<GF2X*>elem.gf2x_x)
+    ntl_GF2E_set_modulus(<GF2X_c*>elem.gf2x_x)
     __have_GF2E_modulus=True
 
 def ntl_GF2E_modulus_degree():
     """
-    Returns deg(modulus) for GF2E elements
+    Returns deg(modulus) for GF2E_c elements
     """
     if __have_GF2E_modulus:
         return GF2E_degree()
@@ -2835,7 +2835,7 @@ def ntl_GF2E_sage(names='a'):
 
 def ntl_GF2E_random():
     """
-    Returns a random element from GF2E modulo the current modulus.
+    Returns a random element from GF2E_c modulo the current modulus.
     """
     _sig_on
     return make_GF2E(GF2E_random());
@@ -2847,7 +2847,7 @@ __have_GF2E_modulus = False
 
 cdef class ntl_GF2E(ntl_GF2X):
     r"""
-    The \\class{GF2E} represents a finite extension field over GF(2) using NTL.
+    The \\class{GF2E_c} represents a finite extension field over GF(2) using NTL.
     Elements are represented as polynomials over GF(2) modulo \\code{ntl.GF2E_modulus()}.
 
     This modulus must be set using \\code{ ntl.GF2E_modulus(p) } and is unique for
@@ -2952,7 +2952,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         will be constructed if none is provided.
 
         INPUT:
-            self  -- \class{GF2E} element
+            self  -- \class{GF2E_c} element
             k     -- optional GF(2**deg)
             cache -- optional NTL to SAGE conversion dictionary
 
@@ -3001,9 +3001,9 @@ cdef class ntl_GF2E(ntl_GF2X):
 
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.gf2e_x not set yet!
-        self.gf2e_x = <GF2E*> y
+        self.gf2e_x = <GF2E_c*> y
 
-cdef public make_GF2E(GF2E* x):
+cdef public make_GF2E(GF2E_c* x):
     cdef ntl_GF2E y
     _sig_off
     y = ntl_GF2E()
@@ -3111,9 +3111,9 @@ cdef class ntl_GF2EX:
         return make_GF2EX(GF2EX_pow(self.x, e))
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
-        self.x = <GF2EX*> y
+        self.x = <GF2EX_c*> y
 
-cdef public make_GF2EX(GF2EX* x):
+cdef public make_GF2EX(GF2EX_c* x):
     cdef ntl_GF2EX y
     _sig_off
     y = ntl_GF2EX()
@@ -3143,7 +3143,7 @@ def make_new_GF2EX(x='[]'):
 
 cdef class ntl_mat_GF2E:
     r"""
-    The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
+    The \class{mat_GF2E_c} class implements arithmetic with matrices over $GF(2**x)$.
     """
     def __init__(self, nrows=0, ncols=0, v=None):
         """
@@ -3193,7 +3193,7 @@ cdef class ntl_mat_GF2E:
                         tmp=make_new_GF2E(elem)
                     else:
                         tmp=elem
-                    mat_GF2E_setitem(self.x, i, j, <GF2E*> tmp.gf2e_x)
+                    mat_GF2E_setitem(self.x, i, j, <GF2E_c*> tmp.gf2e_x)
             _sig_off
 
     def __reduce__(self):
@@ -3266,7 +3266,7 @@ cdef class ntl_mat_GF2E:
 
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
             raise IndexError, "array index out of range"
-        mat_GF2E_setitem(self.x, i, j, <GF2E*> y.gf2e_x)
+        mat_GF2E_setitem(self.x, i, j, <GF2E_c*> y.gf2e_x)
 
     def __getitem__(self, ij):
         cdef int i, j
@@ -3340,7 +3340,7 @@ cdef class ntl_mat_GF2E:
         of this element.
 
         INPUT:
-            self  -- \class{mat_GF2E} element
+            self  -- \class{mat_GF2E_c} element
             k     -- optional GF(2**deg)
             cache -- optional NTL to SAGE conversion dictionary
 
@@ -3366,7 +3366,7 @@ cdef class ntl_mat_GF2E:
         _sig_on
         return make_mat_GF2E(mat_GF2E_transpose(self.x))
 
-cdef make_mat_GF2E(mat_GF2E* x):
+cdef make_mat_GF2E(mat_GF2E_c* x):
     cdef ntl_mat_GF2E y
     _sig_off
     y = ntl_mat_GF2E(_INIT)

@@ -425,6 +425,43 @@ class MPolynomialIdeal_singular_repr:
                                              check=False, immutable=True)
         return self.__groebner_basis
 
+    def _groebner_basis_using_libsingular(self, algorithm="std"):
+        """
+        Return a Groebner basis of this ideal. If a groebner basis for
+        this ideal has been calculated before the cached Groebner
+        basis is returned regardless of the requested algorithm.
+
+        ALGORITHM: Uses libSINGULAR.
+
+        INPUT:
+            algorithm -- 'std'      - Buchberger's algorithm
+                         'slimgb'   - SlimGB algorithm
+
+        EXAMPLES:
+
+        We compute a Groebner basis of 'cyclic 4' relative to
+        lexicographic ordering.
+
+            sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
+            sage: I = sage.rings.ideal.Cyclic(R,4); I
+            Ideal (a + b + c + d, a*b + a*d + b*c + c*d, a*b*c + a*b*d + a*c*d + b*c*d, a*b*c*d - 1) of Polynomial Ring in a, b, c, d over Rational Field
+            sage: I._groebner_basis_using_libsingular()
+            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d, b*d^4 - b + d^5 - d, b*c - b*d^5 + c^2*d^4 + c*d - d^6 - d^2, b^2 + 2*b*d + d^2, a + b + c + d]
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
+
+        try:
+            return self.__groebner_basis
+        except AttributeError:
+            if algorithm=="std":
+                S = std_libsingular(self)
+            elif algorithm=="slimgb":
+                S = slimgb_libsingular(self)
+            else:
+                raise TypeError, "algorithm '%s' unknown"%algorithm
+            self.__groebner_basis = S
+        return self.__groebner_basis
+
     def _singular_groebner_basis(self):
         try:
             S = self.__singular_groebner_basis
@@ -1039,6 +1076,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return self._groebner_basis_using_singular("groebner")
         elif algorithm.startswith('singular:'):
             return self._groebner_basis_using_singular(algorithm[9:])
+        elif algorithm.startswith('libsingular:'):
+            return self._groebner_basis_using_libsingular(algorithm[len('libsingular:'):])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':

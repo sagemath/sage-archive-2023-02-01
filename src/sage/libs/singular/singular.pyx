@@ -68,7 +68,6 @@ cdef class Conversion:
         ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
         ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
         ##  Using immediates as pointers and dereferencing them gives address errors.
-
         nom = nlGetNom(n, _ring)
         mpz_init(nom_z)
 

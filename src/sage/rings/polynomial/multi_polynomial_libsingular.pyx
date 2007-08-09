@@ -1512,11 +1512,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         _ring = (<MPolynomialRing_libsingular>left._parent)._ring
 
+        if(_ring != currRing): rChangeCurrRing(_ring)
+
         _l = p_Copy(left._poly, _ring)
         _r = p_Copy((<MPolynomial_libsingular>right)._poly, _ring)
 
-        if(_ring != currRing): rChangeCurrRing(_ring)
         _p= p_Add_q(_l, _r, _ring)
+
+        p_Normalize(_p,_ring)
 
         return new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
@@ -2486,7 +2489,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.constant_coefficient()
             0
         """
-
         cdef poly *p = self._poly
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
         if p == NULL:
@@ -2724,7 +2726,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 
         if self._poly == NULL:
-            return (<MPolynomialRing_libsingular>self._parent)._zero_element
+            return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 

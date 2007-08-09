@@ -2,7 +2,6 @@
 PKG-INFO
 push
 pull
-\.h$
 \.hi$
 \.o$
 \.o\.cmd$
@@ -26,7 +25,6 @@ pull
 \.eps$
 \.gif$
 \.cpp$
-\.c$
 \.orig$
 (^|/)vssver\.scc$
 \.sw.$
@@ -58,6 +56,7 @@ pull
 ^new($|/)
 ^commit($|/)
 ^export($|/)
+^sage/.*\.c$
 ^sage/ext/arith.c$
 ^sage/ext/arith_gmp.c$
 ^sage/ext/coerce.c$
@@ -93,3 +92,9 @@ pull
 ^sage/libs/linbox/finite_field_givaro.cpp
 ^sage/rings/finite_field_givaro.cpp
 version.py
+^c_lib/.deps/.*\.Plo$
+^c_lib/Makefile$
+^c_lib/autom4te.cache/.*$
+^c_lib/config.log$
+^c_lib/config.status$
+^c_lib/libtool$

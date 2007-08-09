@@ -14,6 +14,7 @@
 #include "singular/clapsing.h"
 #include "singular/fast_maps.h"
 #include "singular/kstd1.h"
+#include "singular/tgb.h"
 
 int siInit(char *);
 

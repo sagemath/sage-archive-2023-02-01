@@ -194,12 +194,6 @@ class BruhatInterval():
         g = self.__graph__
         h = other.__graph__
 
-        # TODO : When NICE is updated, remove the following 4 lines:
-        if g.size() != h.size():
-            return False
-        if g.order() != h.order():
-            return False
-
         return g.is_isomorphic(h)
 
     def show_graph(self, labels=False):

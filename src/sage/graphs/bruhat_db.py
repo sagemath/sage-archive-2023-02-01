@@ -124,7 +124,7 @@ class IntervalClass:
         str+="Interlock:%i" %(self.__interlock__) +"\n"
         str+="Skip Pattern:" + (self.__skip_pattern__.__str__()) + "\n"
         str+="Permutation Classes:\n"
-        for pc in self.__perm_classes__:
+        for pc in self.__perm_classes__: # __perm_classes__???
             str+= "\n"+pc.__str__()
         return str
 
@@ -499,7 +499,8 @@ def get_interval_classes_at_height(height):
 # Database Modification:
 # ***********************************************************
 
-def get_tuples_for_database(x, height, index, height_below): #height_below are the interval classes of the height below
+def get_tuples_for_database(x, height, index, height_below):
+    #height_below are the interval classes of the height below
     both_tables_list = []
     id=float("%d.%d" %(height,index+1))
     g = x.__representative_interval__.get_graph()

@@ -2088,8 +2088,8 @@ class GenericGraph(SageObject):
                 for j in range(i):
                     u,v = verts[i]
                     w,x = verts[j]
-                    if (self.has_arc(u, w) and v == x) or\
-                       (other.has_arc(v, x) and u == w) or\
+                    if (self.has_arc(u, w) and v == x) or \
+                       (other.has_arc(v, x) and u == w) or \
                        (self.has_arc(u, w) and other.has_arc(v, x)):
                         D.add_arc((u,v), (w,x))
             return D
@@ -2104,8 +2104,8 @@ class GenericGraph(SageObject):
                 for j in range(i):
                     u,v = verts[i]
                     w,x = verts[j]
-                    if (self.has_edge(u, w) and v == x) or\
-                       (other.has_edge(v, x) and u == w) or\
+                    if (self.has_edge(u, w) and v == x) or \
+                       (other.has_edge(v, x) and u == w) or \
                        (self.has_edge(u, w) and other.has_edge(v, x)):
                         G.add_edge((u,v), (w,x))
             return G
@@ -2165,10 +2165,10 @@ class GenericGraph(SageObject):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True,\
-             edge_labels=False, vertex_size=200, graph_border=False,\
-             vertex_colors=None, partition=None, edge_colors=None,\
-             scaling_term=0.05, iterations=50,\
+    def plot(self, pos=None, layout=None, vertex_labels=True,
+             edge_labels=False, vertex_size=200, graph_border=False,
+             vertex_colors=None, partition=None, edge_colors=None,
+             scaling_term=0.05, iterations=50,
              color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
@@ -2285,7 +2285,7 @@ class GenericGraph(SageObject):
             for height in heights:
                 num_xes = len(heights[height])
                 if num_xes == 0: continue
-                j = (mmax - num_xes)/2
+                j = (mmax - num_xes)/2.0
                 for k in range(num_xes):
                     pos[heights[height][k]] = [ dist * (j+k+1), height ]
         if pos is None:
@@ -2329,10 +2329,10 @@ class GenericGraph(SageObject):
             G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True,\
-             edge_labels=False, vertex_size=200, graph_border=False,\
-             vertex_colors=None, edge_colors=None, partition=None,\
-             scaling_term=0.05, talk=False, iterations=50,\
+    def show(self, pos=None, layout=None, vertex_labels=True,
+             edge_labels=False, vertex_size=200, graph_border=False,
+             vertex_colors=None, edge_colors=None, partition=None,
+             scaling_term=0.05, talk=False, iterations=50,
              color_by_label=False, heights=None, **kwds):
         """
         Shows the (di)graph.
@@ -2413,12 +2413,12 @@ class GenericGraph(SageObject):
             vertex_size = 500
             if partition is None:
                 vertex_colors = {'#FFFFFF':self.vertices()}
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,\
-                  edge_labels=edge_labels, vertex_size=vertex_size,\
-                  vertex_colors=vertex_colors, edge_colors=edge_colors,\
-                  graph_border=graph_border, partition=partition,\
-                  scaling_term=scaling_term, iterations=iterations,\
-                  color_by_label=color_by_label,\
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,
+                  edge_labels=edge_labels, vertex_size=vertex_size,
+                  vertex_colors=vertex_colors, edge_colors=edge_colors,
+                  graph_border=graph_border, partition=partition,
+                  scaling_term=scaling_term, iterations=iterations,
+                  color_by_label=color_by_label,
                   heights=heights).show(**kwds)
 
 class Graph(GenericGraph):
@@ -2572,7 +2572,7 @@ class Graph(GenericGraph):
                 self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
         if format == 'graph6':
             if not isinstance(data, str):
-                raise ValueError, 'If input format is graph6, then data must be a string'
+                raise ValueError, 'If input format is graph6, then data must be a string.'
             n = data.find('\n')
             if n == -1:
                 n = len(data)
@@ -4431,6 +4431,8 @@ class DiGraph(GenericGraph):
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
             elif isinstance(data, networkx.XDiGraph):
                 self._nxg = data
+            elif isinstance(data, str):
+                format = 'dig6'
             else:
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
         if format == 'adjacency_matrix':
@@ -4486,6 +4488,24 @@ class DiGraph(GenericGraph):
                     else:
                         e.append((k[1],k[0]))
                 self._nxg.add_edges_from(e)
+        elif format == 'dig6':
+            if not isinstance(data, str):
+                raise ValueError, 'If input format is dig6, then data must be a string.'
+            n = data.find('\n')
+            if n == -1:
+                n = len(data)
+            s = data[:n]
+            n, s = graph_fast.N_inverse(s)
+            m = graph_fast.D_inverse(s, n)
+            d = {}
+            k = 0
+            for i in range(n):
+                d[i] = {}
+                for j in range(n):
+                    if m[k] == '1':
+                        d[i][j] = None
+                    k += 1
+            self._nxg = networkx.XDiGraph(d)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
         self._pos = pos
@@ -5375,10 +5395,10 @@ class DiGraph(GenericGraph):
             i += 1
             TT.texture('arc_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
             for u,v,l in arc_colors[color]:
-                TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
+                TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),
                               (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc_color_%d'%i)
-                TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
-                               0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
+                TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],
+                               0.25*pos3d[u][1] + 0.75*pos3d[v][1],
                                0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
                               (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc_color_%d'%i)
         return TT
@@ -5633,6 +5653,44 @@ class DiGraph(GenericGraph):
         else:
             a,b = search_tree(self, partition, dig=True, verbosity=verbosity)
             return b
+
+    ### DIG6 format
+
+    def __bit_vector(self):
+        vertices = self.vertices()
+        n = len(vertices)
+        ns = n*n
+        bit_vector = set()
+        for e,f,g in self.arc_iterator():
+            c = vertices.index(e)
+            d = vertices.index(f)
+            p = c*n + d
+            bit_vector.add(p)
+        bit_vector = sorted(bit_vector)
+        s = []
+        j = 0
+        for i in bit_vector:
+            s.append( '0'*(i - j) + '1' )
+            j = i + 1
+        s = "".join(s)
+        s += '0'*(ns-len(s))
+        return s
+
+    def dig6_string(self):
+        """
+        Returns the dig6 representation of the digraph as an ASCII string.
+        Valid for single (no multiple edges) digraphs on 0 to 262143 vertices.
+
+        EXAMPLE: TODO
+
+        """
+        n = self.order()
+        if n > 262143:
+            raise ValueError, 'dig6 format supports graphs on 0 to 262143 vertices only.'
+        elif self.multiple_arcs():
+            raise ValueError, 'dig6 format does not support multiple edges.'
+        else:
+            return graph_fast.N(n) + graph_fast.R(self.__bit_vector())
 
     ### Directed Acyclic Graphs (DAGs)
 

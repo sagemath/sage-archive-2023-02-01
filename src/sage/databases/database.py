@@ -2209,7 +2209,7 @@ class SQLDatabase(GenericSQLDatabase):
             """%(table_name, new))
         self.vacuum()
 
-    def add_row(self, table_name, values):
+    def add_row(self, table_name, values, entry_order=None):
         """
         Add the row described by values to the table table_name. Values should
         be a tuple, of same length and order as columns in given table.
@@ -2227,19 +2227,7 @@ class SQLDatabase(GenericSQLDatabase):
             [(0, 1)]
 
         """
-        if not self.__skeleton__.has_key(table_name):
-            raise ValueError("Database has no table %s."%table_name)
-        # values is a tuple of the right length (same as no of cols)
-        if len(values) != len(self.__skeleton__[table_name]):
-            raise ValueError("New row must have the same number (%d) of columns as table."%len(self.__skeleton__[table_name]))
-        tup = []
-        quest = "("
-        for i in range (len(values)):
-            tup.append(str(values[i]))
-            quest += '?, '
-        quest = quest.rstrip(', ') + ')'
-        insert_string = 'INSERT INTO ' + table_name + ' VALUES ' + quest
-        self.__connection__.execute(insert_string, tuple(tup))
+        self.add_data(table_name, [values], entry_order)
 
     def delete_rows(self, query):
         """
@@ -2378,3 +2366,15 @@ class SQLDatabase(GenericSQLDatabase):
 
         """
         self.__connection__.execute('vacuum')
+
+    def commit(self):
+        """
+        Commits changes to file.
+
+        """
+        try:
+            self.__connection__.execute('commit')
+        except:
+            # Not sure why this throws an exception - but without it,
+            #       the changes are not committed so it is necessary.
+            pass

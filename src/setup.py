@@ -61,9 +61,36 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
 include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
+def is_older(file1, file2):
+    """
+    Return True if either file2 does not exist or is older than file1.
+
+    If file1 does not exist, always return False.
+    """
+    if not os.path.exists(file1):
+        return False
+    if not os.path.exists(file2):
+        return True
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
+        return True
+    return False
+
+def is_src_file( f ):
+    ext = os.path.splitext( f )[1]
+    return ext == ".h" or ext == ".c" or ext == ".cc"
+
+def needs_c_lib_build():
+    lib = '../../local/lib/libcsage.so'
+    files = os.listdir( 'c_lib/src' )
+    src_files = ['c_lib/src/' + f for f in files if is_src_file( f )]
+    src_files += ['c_lib/configure', 'c_lib/Makefile']
+    for f in src_files:
+        if is_older( f, lib ):
+            return True
+    return False
 
 #### Build the c_lib first
-if os.system( "cd c_lib && make install" ) != 0:
+if needs_c_lib_build() and os.system( "cd c_lib && make install" ) != 0:
     print "    ERROR: The c_lib did not build successfully."
     sys.exit(1)
 
@@ -463,8 +490,7 @@ ext_modules = [ \
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
     Extension('sage.rings.integer',
-              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
-                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.integer_ring',
@@ -531,8 +557,7 @@ ext_modules = [ \
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx',
                          'sage/ext/arith.pyx', \
-                         'sage/rings/integer.pyx', \
-                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+                         'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.sparse_poly',
@@ -655,21 +680,6 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def is_older(file1, file2):
-    """
-    Return True if either file2 does not exist or is older than file1.
-
-    If file1 does not exist, always return False.
-    """
-    if not os.path.exists(file1):
-        return False
-    if not os.path.exists(file2):
-        return True
-    if os.path.getmtime(file2) < os.path.getmtime(file1):
-        return True
-    return False
-
-
 def need_to_cython(filename, outfile):
     """
     INPUT:
@@ -774,17 +784,13 @@ def process_cython_file(f, m):
         outfile += 'pp'
 
     if need_to_cython(f, outfile):
-        cmd = "cython --embed-positions -I%s %s"%(os.getcwd(), f)
+        # Insert the -o parameter to specify the output file (particularly for c++)
+        cmd = "cython --embed-positions -I%s -o%s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
             print "sage: Error running cython."
             sys.exit(1)
-        # If the language for the extension is C++,
-        # then move the resulting output file to have the correct extension.
-        # (I don't know how to tell Cython to do this automatically.)
-        if m.language == 'c++':
-            os.system('mv %s.c %s'%(f[:-4], outfile))
     return [outfile]
 
 
@@ -795,7 +801,7 @@ def cython(ext_modules):
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
-            s = open(f).read()
+#            s = open(f).read()
             if f[-4:] == ".pyx":
                 new_sources += process_cython_file(f, m)
             else:

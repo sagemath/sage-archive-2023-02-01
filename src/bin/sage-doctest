@@ -74,7 +74,6 @@ def comment_modifier(s):
             return RANDOM
         if L.find("=") == -1 and L.find("print") == -1:
             return RANDOM
-        print 3
     return NONE
 
 def preparse_line_with_prompt(L):

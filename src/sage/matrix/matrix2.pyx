@@ -1919,8 +1919,8 @@ cdef class Matrix(matrix1.Matrix):
 
         WARNING: Uses a somewhat naive algorithm (simply factors the
         characteristic polynomial and computes kernels directly over
-        the extension field).  TODO: Implement the better algorithm
-        that is in dual_eigenvector in sage/hecke/module.py.
+        the extension field).  TODO: Maybe implement the better
+        algorithm that is in dual_eigenvector in sage/modular/hecke/module.py.
 
         EXAMPLES:
         We compute the eigenspaces of the matrix of the Hecke operator

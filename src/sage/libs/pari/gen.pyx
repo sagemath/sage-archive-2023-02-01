@@ -4722,6 +4722,27 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(B)
         return self.new_gen(qfrep0(self.g,t0,flag))
 
+    def matsolve(self, B):
+        """
+        matsolve(B): Solve the linear system Mx=B for an invertible matrix M
+
+        matsolve(B) uses gaussian elimination to solve Mx=B, where M is
+        invertible and B is a column vector.
+
+        The corresponding pari library routine is gauss. The gp-interface
+        name matsolve has been given preference here.
+
+        INPUT:
+            B -- a column vector of the same dimension as the square matrix self
+
+        EXAMPLES:
+            sage: pari('[1,1;1,-1]').matsolve(pari('[1;0]'))
+            [1/2; 1/2]
+        """
+        _sig_on
+        t0GEN(B)
+        return self.new_gen(gauss(self.g,t0))
+
     def matker(self, long flag=0):
         """
         Return a basis of the kernel of this matrix.

@@ -7,5 +7,5 @@
 
        size_t n=300, nmax=2000, prec=512, nbest=0, count=0;
 
-4. Change a line in linbox/interfaces/Makefile.in that required maple headers
-   no matter what.
+4. Change a line in linbox/Makefile.in so we don't build interfaces
+   (which requires Maple, etc., -- way too many requirements).

@@ -702,17 +702,25 @@ class MPolynomialIdeal_singular_repr:
         using interred for this purpose. Though the manual doesn't
         mention it.}
         """
-        s = self._singular_().parent()
-        o = s.option("get")
-        s.option("redSB")
-        s.option("redTail")
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+
         R = self.ring()
-        ret = []
-        for f in self._singular_().interred():
-            f = R(f)
-            ret.append(f/f.lc()) # lead coeffs are not reduced by interred
-        ret = Sequence( ret, R, check=False, immutable=True)
-        s.option("set",o)
+
+        if isinstance(R,MPolynomialRing_libsingular):
+            return interred_libsingular(self)
+        else:
+            s = self._singular_().parent()
+            o = s.option("get")
+            s.option("redSB")
+            s.option("redTail")
+            ret = []
+            for f in self._singular_().interred():
+                f = R(f)
+                ret.append(f/f.lc()) # lead coeffs are not reduced by interred
+            ret = Sequence( ret, R, check=False, immutable=True)
+            s.option("set",o)
+
         return ret
 
     def basis_is_groebner(self):

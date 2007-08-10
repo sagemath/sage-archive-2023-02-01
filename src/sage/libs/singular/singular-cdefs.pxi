@@ -367,4 +367,5 @@ cdef extern from "libsingular.h":
     void idSkipZeroes (ideal *ide)
     long idRankFreeModule(ideal *m, ring *r)
     ideal *kStd(ideal *i, ideal *q, tHomog h, intvec *w)
+    ideal *kInterRed(ideal *i, ideal *q)
     ideal *t_rep_gb(ring *r,ideal *arg_I, int syz_comp, int F4_mode)

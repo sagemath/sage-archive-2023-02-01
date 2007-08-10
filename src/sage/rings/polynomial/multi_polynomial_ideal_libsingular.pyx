@@ -147,7 +147,6 @@ def slimgb_libsingular(I):
         I -- a SAGE ideal
     """
 
-    cdef int bIsSCA = 0
     cdef tHomog hom=testHomog
     cdef ideal *i
     cdef ring *r
@@ -165,6 +164,42 @@ def slimgb_libsingular(I):
         raise TypeError
 
     result = t_rep_gb(r, i, i.rank, 0)
+
+    id_Delete(&i,r)
+
+    res = singular_ideal_to_sage_sequence(result,r,I.ring())
+
+    id_Delete(&result,r)
+    return res
+
+
+def interred_libsingular(I):
+    """
+    SINGULAR's interred() command.
+
+    INPUT:
+        I -- a SAGE ideal
+    """
+    cdef ideal *i
+    cdef ideal *result
+    cdef ring *r
+    cdef number *n
+    cdef poly *p
+    cdef int j
+
+    i = sage_ideal_to_singular_ideal(I)
+    r = currRing
+
+    result = kInterRed(i,NULL)
+
+    # divide head by coefficents
+    for j from 0 <= j < IDELEMS(result):
+        p = result.m[j]
+        n = p_GetCoeff(p,r)
+        n = nInvers(n)
+        result.m[j] = pp_Mult_nn(p, n, r)
+        p_Delete(&p,r)
+        n_Delete(&n,r)
 
     id_Delete(&i,r)
 

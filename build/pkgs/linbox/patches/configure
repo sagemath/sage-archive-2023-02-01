@@ -2299,8 +2299,9 @@ ac_config_headers="$ac_config_headers config.h"
 
 ac_config_commands="$ac_config_commands default-1"
 
+#AX_PREFIX_CONFIG_H(linbox-config.h, __LINBOX)
 
-ac_config_commands="$ac_config_commands linbox-config.h"
+ac_config_commands="$ac_config_commands linbox/linbox-config.h"
 
 
 { echo "$as_me:$LINENO: checking whether to enable maintainer-specific portions of Makefiles" >&5
@@ -2328,7 +2329,8 @@ fi
 
 
 # Give a sane default for CFLAGS and CXXFLAGS
-DEFAULT_CFLAGS="-O2 -Wall"
+# The sane thing is to define the flags differenly in tests, examples, interfaces, etc.  -bds
+#DEFAULT_CFLAGS="-O2 -Wall"
 
 CFLAGS=${CFLAGS:-$DEFAULT_CFLAGS}
 CXXFLAGS=${CXXFLAGS:-$DEFAULT_CFLAGS}
@@ -5030,7 +5032,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5033 "configure"' > conftest.$ac_ext
+  echo '#line 5035 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6998,11 +7000,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7001: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7003: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7005: \$? = $ac_status" >&5
+   echo "$as_me:7007: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7266,11 +7268,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7269: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7271: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7273: \$? = $ac_status" >&5
+   echo "$as_me:7275: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7370,11 +7372,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7373: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7375: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7377: \$? = $ac_status" >&5
+   echo "$as_me:7379: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9811,7 +9813,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9814 "configure"
+#line 9816 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9911,7 +9913,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9914 "configure"
+#line 9916 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12279,11 +12281,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12282: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12284: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12286: \$? = $ac_status" >&5
+   echo "$as_me:12288: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12383,11 +12385,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12386: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12388: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12390: \$? = $ac_status" >&5
+   echo "$as_me:12392: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13944,11 +13946,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13947: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13949: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13951: \$? = $ac_status" >&5
+   echo "$as_me:13953: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14048,11 +14050,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14051: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14053: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14055: \$? = $ac_status" >&5
+   echo "$as_me:14057: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16267,11 +16269,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16270: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16272: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16274: \$? = $ac_status" >&5
+   echo "$as_me:16276: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16535,11 +16537,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16538: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16540: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16542: \$? = $ac_status" >&5
+   echo "$as_me:16544: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16639,11 +16641,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16642: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16644: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16646: \$? = $ac_status" >&5
+   echo "$as_me:16648: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -23847,6 +23849,19 @@ if test -n "$BLAS_VAL"; then
 				ATLAS_LIBS="-lcblas -llapack"
 			fi
 			BLAS_LIBS="-L${BLAS_VAL} $ATLAS_LIBS"
+                elif test -r "$BLAS_VAL/include/mkl_cblas.h"; then
+			case `./config.guess` in
+				i686-*linux-gnu)
+					MKL_ARCH=32;
+					;;
+				x86_64-*-linux-gnu)
+					MKL_ARCH=em64t;
+					;;
+				*)
+					echo "Sorry unsupported arch, please complain in linbox-use discussion group";
+					;;
+			esac
+                        BLAS_LIBS="-L${BLAS_VAL}/lib/${MKL_ARCH}/ -lmkl_lapack64 -lmkl -lvml -lguide"
 		fi
 	else
 		BLAS_LIBS="$BLAS_VAL"
@@ -24345,13 +24360,16 @@ rm -f core conftest.err conftest.$ac_objext \
 			CBLAS="no"
 			CBLAS_FLAG=""
 
-			if test -r "$BLAS_HOME/lib/libblas.a"; then
+			if test -r "$BLAS_HOME/lib64/libblas.a" && test -r "$BLAS_HOME/lib64/liblapack.a" ; then
+				BLAS_LIBS="-L${BLAS_HOME}/lib64 -llapack -lblas"
+			elif test -r "$BLAS_HOME/lib/libblas.a" && test -r "$BLAS_HOME/lib/liblapack.a" ; then
+				BLAS_LIBS="-L${BLAS_HOME}/lib -llapack -lblas"
+			elif test -r "$BLAS_HOME/lib/libblas.a"; then
 				if test "x$BLAS_HOME" = "x/usr" -o "x$BLAS_HOME" = "/usr/local" ; then
  					BLAS_LIBS="-lblas"
 				else
 					BLAS_LIBS="-L${BLAS_HOME}/lib  -lblas"
 				fi
-
 			elif test -r "$BLAS_HOME/libblas.a"; then
 				BLAS_LIBS="-L${BLAS_HOME} -lblas"
 			fi
@@ -24563,7 +24581,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define __LINBOX_CONFIGURATION
-	 #define HAVE_DGETRF 1
+	 #define __LINBOX_HAVE_DGETRF 1
        	 #include "linbox/config-blas.h"
 	 int main () {  double a[4] = {1.,2.,3.,4.};
 			int ipiv[2];
@@ -24622,8 +24640,162 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_DGETRF 1
 _ACEOF
 
-		{ echo "$as_me:$LINENO: checking for dgetri" >&5
+	else
+		{ echo "$as_me:$LINENO: result: disabling" >&5
+echo "${ECHO_T}disabling" >&6; }
+		#AC_DEFINE(HAVE_DGETRF,0,[Define if dgetrf is available])
+	fi
+
+	{ echo "$as_me:$LINENO: checking for dtrtri" >&5
+echo $ECHO_N "checking for dtrtri... $ECHO_C" >&6; }
+	if test "$cross_compiling" = yes; then
+
+	break
+
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#define __LINBOX_CONFIGURATION
+	 #define __LINBOX_HAVE_DTRTRI
+       	 #include "linbox/config-blas.h"
+	 int main () {  double a[4] = {1.,2.,3.,4.};
+			int ipiv[2];
+			clapack_dtrtri(CblasRowMajor,CblasUpper,CblasNonUnit,2, a, 2);
+			if ( (a[0]!=1.) && (a[1]!=-0.5) && (a[2]!=0.) && (a[3]!=0.25))
+				return -1;
+			else
+				return 0;
+		      }
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+	dtrtri_found="yes"
+	break
+
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+
+	dtrtri_problem="$problem"
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+
+	if test "x$dtrtri_found" = "xyes"; then
+		{ echo "$as_me:$LINENO: result: found" >&5
+echo "${ECHO_T}found" >&6; }
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DTRTRI 1
+_ACEOF
+
+	else
+		{ echo "$as_me:$LINENO: result: disabling" >&5
+echo "${ECHO_T}disabling" >&6; }
+	fi
+
+
+	{ echo "$as_me:$LINENO: checking for dgetri" >&5
 echo $ECHO_N "checking for dgetri... $ECHO_C" >&6; }
+	if test "$cross_compiling" = yes; then
+
+	break
+
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#define __LINBOX_CONFIGURATION
+	 #define __LINBOX_HAVE_DGETRF 1
+	 #define __LINBOX_HAVE_DGETRI 1
+       	 #include "linbox/config-blas.h"
+	 int main () {  double a[4] = {2.,0.5,4.,1.};
+			int ipiv[2] = {2,2};
+			clapack_dgetri(CblasRowMajor, 2, a, 2, ipiv);
+			if ( (a[0]!=-2.) && (a[1]!=1.) && (a[2]!=1.5) && (a[3]!=-0.5))
+				return -1;
+			else
+				return 0;
+		      }
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+	dgetri_found="yes"
+	break
+
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+
+	dgetri_problem="autoimplement"
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+
+	if test "x$dgetri_problem" = "xautoimplement" -a "x$dtrtri_found" = "xyes"; then
+		{ echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+		{ echo "$as_me:$LINENO: checking for autoimplementation of dgetri" >&5
+echo $ECHO_N "checking for autoimplementation of dgetri... $ECHO_C" >&6; }
 		if test "$cross_compiling" = yes; then
 
 		break
@@ -24636,14 +24808,12 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define __LINBOX_CONFIGURATION
-		 #define HAVE_DGETRF 1
-		 #define HAVE_DGETRI 1
-       		 #include "linbox/config-blas.h"
-		 int main () {  double a[4] = {1.,2.,3.,4.};
-				int ipiv[2];
-				clapack_dgetrf(CblasRowMajor, 2, 2, a, 2, ipiv);
-				if ( (a[0]!=2.) && (a[1]!=0.5) && (a[2]!=4.) && (a[3]!=1.))
-					return -1;
+		 #define __LINBOX_AUTOIMPLEMENT_DGETRI
+		 #define __LINBOX_HAVE_DGETRI
+		 #define __LINBOX_HAVE_DTRTRI
+	 	 #include "linbox/config-blas.h"
+		 int main () {  double a[4] = {2.,0.5,4.,1.};
+				int ipiv[2] = {2,2};
 				clapack_dgetri(CblasRowMajor, 2, a, 2, ipiv);
 				if ( (a[0]!=-2.) && (a[1]!=1.) && (a[2]!=1.5) && (a[3]!=-0.5))
 					return -1;
@@ -24683,87 +24853,15 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
 
-		dgetri_problem="autoimplement"
+		dgetri_problem="$problem"
 
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 
-		if test "x$dgetri_problem" = "xautoimplement"; then
-			{ echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-			{ echo "$as_me:$LINENO: checking for autoimplementation of dgetri" >&5
-echo $ECHO_N "checking for autoimplementation of dgetri... $ECHO_C" >&6; }
-			if test "$cross_compiling" = yes; then
-
-			break
-
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#define __LINBOX_CONFIGURATION
-			 #define __LINBOX_AUTOIMPLEMENT_DGETRI
-			 #define HAVE_DGETRF 1
-			 #define HAVE_DGETRI 1
-	       		 #include "linbox/config-blas.h"
-			 int main () {  double a[4] = {1.,2.,3.,4.};
-					int ipiv[2];
-					clapack_dgetrf(CblasRowMajor, 2, 2, a, 2, ipiv);
-					if ( (a[0]!=2.) && (a[1]!=0.5) && (a[2]!=4.) && (a[3]!=1.))
-						return -1;
-					clapack_dgetri(CblasRowMajor, 2, a, 2, ipiv);
-					if ( (a[0]!=-2.) && (a[1]!=1.) && (a[2]!=1.5) && (a[3]!=-0.5))
-						return -1;
-					else
-						return 0;
-				      }
-
-_ACEOF
-rm -f conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-
-			dgetri_found="yes"
-			break
-
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-( exit $ac_status )
-
-			dgetri_problem="$problem"
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-
-
-			if test "x$dgetri_found" = "xyes"; then
-				{ echo "$as_me:$LINENO: result: working" >&5
+		if test "x$dgetri_found" = "xyes"; then
+			{ echo "$as_me:$LINENO: result: working" >&5
 echo "${ECHO_T}working" >&6; }
 
 cat >>confdefs.h <<\_ACEOF
@@ -24775,31 +24873,18 @@ cat >>confdefs.h <<\_ACEOF
 #define AUTOIMPLEMENT_DGETRI
 _ACEOF
 
-			else
-				{ echo "$as_me:$LINENO: result: disabling" >&5
-echo "${ECHO_T}disabling" >&6; }
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_DGETRI 0
-_ACEOF
-
-			fi
-
 		else
-			{ echo "$as_me:$LINENO: result: working" >&5
+			{ echo "$as_me:$LINENO: result: disabling" >&5
+echo "${ECHO_T}disabling" >&6; }
+			#AC_DEFINE(HAVE_DGETRI,0,[Define if dgetri is available])
+		fi
+
+	else
+		{ echo "$as_me:$LINENO: result: working" >&5
 echo "${ECHO_T}working" >&6; }
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_DGETRI 1
-_ACEOF
-
-		fi
-	else
-		{ echo "$as_me:$LINENO: result: disabling" >&5
-echo "${ECHO_T}disabling" >&6; }
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_DGETRF 0
 _ACEOF
 
 	fi
@@ -25054,7 +25139,7 @@ if test "x$HAVE_BLAS" = "xyes" ;then
 echo $ECHO_N "checking best threshold for Strassen-Winograd matrix multiplication... $ECHO_C" >&6; }
 
 
-CXXFLAGS="${BACKUP_CXXFLAGS} -I`pwd` ${BLAS_CFLAGS} ${GMP_CFLAGS}  ${GIVARO_CFLAGS} ${CBLAS_FLAG}"
+CXXFLAGS="${BACKUP_CXXFLAGS} -I`pwd` -I`pwd`/linbox ${BLAS_CFLAGS} ${GMP_CFLAGS}  ${GIVARO_CFLAGS} ${CBLAS_FLAG}"
 LIBS="${BACKUP_LIBS} ${BLAS_LIBS} ${GMP_LIBS}"
 
 
@@ -25062,7 +25147,7 @@ echo   " #define __LINBOX_INT8  $LINBOX_INT8
 	 #define __LINBOX_INT16 $LINBOX_INT16
 	 #define __LINBOX_INT32 $LINBOX_INT32
 	 #define __LINBOX_INT64 $LINBOX_INT64
-" > linbox-config.h
+" > linbox/linbox-config.h
 
 
 if test "$cross_compiling" = yes; then
@@ -25071,7 +25156,7 @@ if test "$cross_compiling" = yes; then
 echo "${ECHO_T}cross compilation" >&6; }
 	strassen_opti="no"
 	break
-	\rm -f linbox-config,h 2>&1 > /dev/null
+	\rm -f linbox/linbox-config,h 2>&1 > /dev/null
 
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -25084,7 +25169,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 		#include <iostream>
 		#include <fstream>
 		#define __LINBOX_CONFIGURATION
-		#define _LINBOX_CONFIG_H
+		#define _LINBOX_LINBOX_CONFIG_H
 		#include <linbox/config-blas.h>
 		#include <linbox/field/modular-double.h>
 		#include <linbox/fflas/fflas.h>
@@ -25094,7 +25179,8 @@ cat >>conftest.$ac_ext <<_ACEOF
 		int main () {
 
 		  Modular<double> F(17);
-		  size_t n=200, nmax=1500, prec=256, nbest=0, count=0;
+size_t n=300, nmax=1500, prec=512, nbest=0, count=0;
+		  /*size_t n=300, nmax=5000, prec=512, nbest=0, count=0; */
 		  LinBox::Timer chrono;
 		  double basetime, time;
 		  bool bound=false;
@@ -25235,7 +25321,7 @@ else
 
 { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-\rm -r linbox-config.h  2>&1 > /dev/null
+\rm -f linbox/linbox-config.h  2>&1 > /dev/null
 
 fi
 
@@ -25362,8 +25448,9 @@ fi
 
 
 
-CXXFLAGS="${GMP_CFLAGS} ${NTL_CFLAGS} ${GIVARO_CFLAGS} ${SACLIB_CFLAGS} ${CXXFLAGS}"
-
+# this is bogus so far as I can tell.  -bds
+#CXXFLAGS="${GMP_CFLAGS} ${NTL_CFLAGS} ${GIVARO_CFLAGS} ${SACLIB_CFLAGS} ${CXXFLAGS}"
+#AC_SUBST(CXXFLAGS)
 
 ac_config_files="$ac_config_files Makefile linbox-config examples/Makefile examples/fields/Makefile examples/Readme-make gmp++/Makefile doc/Makefile linbox/Makefile linbox/algorithms/Makefile linbox/fflas/Makefile linbox/ffpack/Makefile linbox/blackbox/Makefile linbox/element/Makefile linbox/field/Makefile linbox/matrix/Makefile linbox/randiter/Makefile linbox/ring/Makefile linbox/solutions/Makefile linbox/switch/Makefile linbox/util/Makefile linbox/util/gmp++/Makefile linbox/util/formats/Makefile linbox/vector/Makefile tests/Makefile tests/data/Makefile interfaces/Makefile interfaces/driver/Makefile interfaces/maple/Makefile interfaces/kaapi/Makefile macros/Makefile"
 
@@ -25919,7 +26006,7 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
-    "linbox-config.h") CONFIG_COMMANDS="$CONFIG_COMMANDS linbox-config.h" ;;
+    "linbox/linbox-config.h") CONFIG_COMMANDS="$CONFIG_COMMANDS linbox/linbox-config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "linbox-config") CONFIG_FILES="$CONFIG_FILES linbox-config" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
@@ -26582,7 +26669,7 @@ echo "$as_me: executing $ac_file commands" >&6;}
 
   case $ac_file$ac_mode in
     "default-1":C) test -z "$CONFIG_HEADERS" || echo timestamp > stamp-h ;;
-    "linbox-config.h":C) ac_prefix_conf_OUT=`echo linbox-config.h`
+    "linbox/linbox-config.h":C) ac_prefix_conf_OUT=`echo linbox/linbox-config.h`
 ac_prefix_conf_DEF=`echo _$ac_prefix_conf_OUT | sed -e "y:abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:" -e "s/[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]/_/g"`
 ac_prefix_conf_PKG=`echo __LINBOX`
 ac_prefix_conf_LOW=`echo _$ac_prefix_conf_PKG | sed -e "y:ABCDEFGHIJKLMNOPQRSTUVWXYZ-:abcdefghijklmnopqrstuvwxyz_:"`

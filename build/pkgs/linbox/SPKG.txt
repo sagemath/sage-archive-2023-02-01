@@ -5,6 +5,7 @@
 3. Change the line in configure so tuning doesn't take like 30 minutes
    and crash the host computer!
 
-       size_t n=300, nmax=3000, prec=512, nbest=0, count=0;
+       size_t n=300, nmax=2000, prec=512, nbest=0, count=0;
 
-
+4. Change a line in linbox/interfaces/Makefile.in that required maple headers
+   no matter what.

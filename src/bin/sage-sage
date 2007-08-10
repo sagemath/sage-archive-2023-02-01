@@ -84,7 +84,7 @@ usage_advanced() {
 . $SAGE_ROOT/local/bin/sage-env   1>/dev/null 2>/dev/null
 
 if [ $? -ne 0 ]; then
-   echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact wstein@gmail.com."
+   echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
 fi
 
 # SAGE startup script passes some funny options, which are

@@ -281,9 +281,9 @@ if [ $? -eq 0 ]; then
 else
 
    echo "sage: An error occured while installing $PKG_NAME"
-   echo "Please email William Stein <wstein@gmail.com> explaining the"
-   echo "problem and send him the relevant part of"
-   echo "of $SAGE_ROOT/install.log.  Don't send the whole thing."
+   echo "Please email sage-devel http://groups.google.com/group/sage-devel"
+   echo "explaining the problem and send the relevant part of"
+   echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
    echo "If you want to try to fix the problem, yourself *don't* just cd to"
    echo "`pwd` and type 'make'."
    echo "Instead (using bash) type \"source local/bin/sage-env\" from the directory"

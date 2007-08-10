@@ -681,8 +681,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def _r_action(self, s):
+        """
+        EXAMPLES:
+            sage: 8 * [0]
+            [0, 0, 0, 0, 0, 0, 0, 0]
+            sage: 8 * 'hi'
+            'hihihihihihihihi'
+        """
         if isinstance(s, (str, list, tuple)):
             return s*int(self)
+        raise TypeError
+
+    def _l_action(self, s):
+        """
+        EXAMPLES:
+            sage: [0] * 8
+            [0, 0, 0, 0, 0, 0, 0, 0]
+            sage: 'hi' * 8
+            'hihihihihihihihi'
+        """
+        if isinstance(s, (str, list, tuple)):
+            return int(self)*s
         raise TypeError
 
     cdef RingElement _mul_c_impl(self, RingElement right):

@@ -2302,13 +2302,13 @@ class GenericGraph(SageObject):
             for e in iterator():
                 i = 0
                 while i < len(edge_labels):
-                    if not edge_labels[i][0][2] == a[2]:
+                    if not edge_labels[i][0][2] == e[2]:
                         i += 1
                     else:
-                        edge_labels[i].append(a)
+                        edge_labels[i].append(e)
                         break
                 if i == len(edge_labels):
-                    edge_labels.append([a])
+                    edge_labels.append([e])
             num_labels = len(edge_labels)
             R = rainbow(num_labels)
             edge_colors = {}

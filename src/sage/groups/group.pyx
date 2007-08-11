@@ -117,7 +117,6 @@ cdef class AbelianGroup(Group):
         """
         return True
 
-
 cdef class FiniteGroup(Group):
     """
     Generic finite group.
@@ -128,19 +127,25 @@ cdef class FiniteGroup(Group):
         """
         return True
 
-    def cayley_graph(self):
+    def cayley_graph(self, label=False):
+        """
+        Computes the cayley graph
+        """
         from sage.graphs.graph import DiGraph
         arrows = {}
-        for g in self:
-            for s in self.gens():
-                gs = g*s
-                if not gs == g:
+        for x in self:
+            for g,i in zip(self.gens(), xrange(len(self.gens()))):
+                # cache the multiplication
+                xg = x*g
+                if not xg == x:
                     try:
-                        _ = arrows[g]
+                        _ = arrows[x]
                     except KeyError:
-                        arrows[g] = {}
+                        arrows[x] = {}
 
-                    arrows[g][gs] = s
+                    arrows[x][xg] = g
+
+        from sage.groups.cayley_plot import plot
 
         return DiGraph(arrows)
 

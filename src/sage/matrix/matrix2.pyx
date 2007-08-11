@@ -1990,7 +1990,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: a = matrix(ZZ,3,range(9))
             sage: v = a.eigenspaces()
         """
-        x = self.fetch('eigenvectors')
+        x = self.fetch('eigenspaces')
         if not x is None:
             return x
 
@@ -2017,7 +2017,7 @@ cdef class Matrix(matrix1.Matrix):
             i = i + 1
             V.append((alpha, W.basis()))
         V = Sequence(V, cr=True)
-        self.cache('eigenvectors', V)
+        self.cache('eigenspaces', V)
         return V
 
 

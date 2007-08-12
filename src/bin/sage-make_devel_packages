@@ -120,7 +120,7 @@ if [ -d "$SAGE_ROOT"/devel/c_lib ]; then
    hg status
    hg commit
    if [ $? -ne 0 ]; then
-       echo "Error building the extcode package"
+       echo "Error building the sage_c_lib package"
        exit 1
    fi
    NAME=sage_c_lib-$SAGE_VERSION

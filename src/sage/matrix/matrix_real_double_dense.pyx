@@ -90,7 +90,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     To compute eigenvalues the use the function eigen
 
-        sage: p,e = m.eigen()
+        sage: p,e = m.eigen_left()
 
     the result of eigen is a pair p,e, where p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors
@@ -394,13 +394,14 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
-            sage: e, v = m.eigenspaces(); e
+            sage: e, v = m.eigenspaces()
+            sage: e      # random low order bits
             [13.3484692283, -1.34846922835, -9.96461975961e-16]
             sage: a = (v[0].0) * m; b = e[0] * v[0].0
-            sage: a.change_ring(CDF) - b
+            sage: a.change_ring(CDF) - b         # random -- very small numbers
             (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
         """
-        e, v = self.eigen()
+        e, v = self.eigen_left()
         return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
 
     def eigen_left(self):

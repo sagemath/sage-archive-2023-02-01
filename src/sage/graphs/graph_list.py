@@ -324,6 +324,7 @@ def show_graphs(list, **kwds):
         sage.: graphs_list.show_graphs(glist)
 
     Here's an example where more than one graphics array is used:
+        sage: graphs_query = GraphDatabase()
         sage: g = graphs_query.get_list(num_vertices=5)
         sage: len(g)
         34

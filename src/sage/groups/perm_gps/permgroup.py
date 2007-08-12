@@ -198,6 +198,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             else:
                 # gens is a Gap object that represents a list of generators for a group
                 if gens.Length()>0:
+                    # COMMENT: I'm suspicious.  Maybe
+                    # gens.name() would be better here? -- William Stein
                     self.__gap = 'Group(%s)'%gens
                 else:
                     self.__gap = 'Group(())'

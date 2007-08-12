@@ -41,7 +41,7 @@ class User:
         else:
             self.__password = crypt.crypt(password, SALT)
 
-    def set_hased_password(self, password):
+    def set_hashed_password(self, password):
         self.__password = password
 
 

@@ -23,6 +23,8 @@ AUTHOR:
     -- Emily Kirkman, Robert L. Miller SAGE Days 4: Finished wrapping NetworkX
     -- Emily Kirkman (2007-07-21): Genus (including circular planar, all
         embeddings and all planar embeddings), all paths, interior paths
+    -- Bobby Moretti (2007-08-12): fixed up plotting of graphs with
+       edge colors differentiated by label
 
 TUTORIAL:
 
@@ -2162,6 +2164,33 @@ class GenericGraph(SageObject):
             return G
 
     ### Visualization
+    def _color_by_label(self, format='hex'):
+        """
+        Logic for coloring by label (factored out from plot() for use
+        in 3d plots, etc)
+        """
+        from sage.plot.plot import rainbow
+        edge_labels = []
+        if self.is_directed():
+            iterator = self.arc_iterator
+        else:
+            iterator = self.edge_iterator
+        for e in iterator():
+            i = 0
+            while i < len(edge_labels):
+                if not edge_labels[i][0][2] == e[2]:
+                    i += 1
+                else:
+                    edge_labels[i].append(e)
+                    break
+            if i == len(edge_labels):
+                edge_labels.append([e])
+        num_labels = len(edge_labels)
+        r = rainbow(num_labels, format=format)
+        edge_colors = {}
+        for i in range(num_labels):
+            edge_colors[r[i]] = edge_labels[i]
+        return edge_colors
 
     def plot(self, pos=None, layout=None, vertex_labels=True,\
              edge_labels=False, vertex_size=200, graph_border=False,\
@@ -2242,7 +2271,7 @@ class GenericGraph(SageObject):
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).save('sage.png')
 
         """
-        from sage.plot.plot import networkx_plot, rainbow
+        from sage.plot.plot import networkx_plot
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2294,26 +2323,7 @@ class GenericGraph(SageObject):
                     pos[v][a] = float(pos[v][a])
 
         if color_by_label:
-            edge_labels = []
-            if self.is_directed():
-                iterator = self.arc_iterator
-            else:
-                iterator = self.edge_iterator
-            for e in iterator():
-                i = 0
-                while i < len(edge_labels):
-                    if not edge_labels[i][0][2] == e[2]:
-                        i += 1
-                    else:
-                        edge_labels[i].append(e)
-                        break
-                if i == len(edge_labels):
-                    edge_labels.append([e])
-            num_labels = len(edge_labels)
-            R = rainbow(num_labels)
-            edge_colors = {}
-            for i in range(num_labels):
-                edge_colors[R[i]] = edge_labels[i]
+            edge_colors = self._color_by_label()
 
         G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
@@ -3987,7 +3997,7 @@ class Graph(GenericGraph):
     def plot3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
                edge_colors=None, edge_size=0.02,
-               pos3d=None, iterations=50, **kwds):
+               pos3d=None, iterations=50, color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
@@ -4029,21 +4039,29 @@ class Graph(GenericGraph):
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, iterations=iterations, **kwds)
         edges = self.edges()
+
+        if color_by_label:
+            if edge_colors is  None:
+                # do the coloring
+                edge_colors = self._color_by_label(format='rgbtuple')
+
         if edge_colors is None:
             edge_colors = { (0,0,0) : edges }
 
         i = 0
+
         for color in edge_colors:
             i += 1
             TT.texture('edge_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
             for u, v, l in edge_colors[color]:
                 TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]), (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge_color_%d'%i)
+
         return TT
 
     def show3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
                edge_colors=None, edge_size=0.02,
-               pos3d=None, iterations=50, **kwds):
+               pos3d=None, iterations=50, color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -4081,7 +4099,10 @@ class Graph(GenericGraph):
             sage: K.plot3d(edge_colors={(1,0,0):[(0,1,None)], (0,1,0):[(0,2,None)], (0,0,1):[(1,2,None)]}).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, edge_colors=edge_colors, vertex_size=vertex_size, edge_size=edge_size, iterations=iterations).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
+                    edge_colors=edge_colors, vertex_size=vertex_size,
+                    edge_size=edge_size, iterations=iterations,
+                    color_by_label=color_by_label).show(**kwds)
 
     ### Connected components
 
@@ -5309,7 +5330,8 @@ class DiGraph(GenericGraph):
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
-               arc_colors=None, pos3d=None, **kwds):
+               arc_colors=None, pos3d=None,
+               color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
@@ -5352,10 +5374,15 @@ class DiGraph(GenericGraph):
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
         arcs = self.arcs()
+        i = 0
+
+        if color_by_label:
+            if arc_colors is None:
+                arc_colors = self._color_by_label(format='rgbtuple')
+
         if arc_colors is None:
             arc_colors = { (0,0,0) : arcs }
 
-        i = 0
         for color in arc_colors:
             i += 1
             TT.texture('arc_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
@@ -5372,7 +5399,8 @@ class DiGraph(GenericGraph):
                vertex_size=0.06,
                arc_size=0.02,
                arc_size2=0.0325,
-               arc_colors=None, pos3d=None, **kwds):
+               arc_colors=None,
+               pos3d=None, color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -5411,7 +5439,11 @@ class DiGraph(GenericGraph):
             sage: P.plot3d(arc_colors=arc_colors).save('sage.png') # long time
 
         """
-        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors, vertex_size=vertex_size, arc_size=arc_size, arc_size2=arc_size2, arc_colors=arc_colors, **kwds).show()
+
+        self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
+                    vertex_size=vertex_size, arc_size=arc_size,
+                    arc_size2=arc_size2, arc_colors=arc_colors,
+                    color_by_label=color_by_label, **kwds).show()
 
     ### Connected components
 

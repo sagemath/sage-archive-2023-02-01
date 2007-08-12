@@ -20,9 +20,9 @@ import time
 import os
 
 ###???
-from sqlite3 import dbapi2 as sqlite
-import re
-from sage.databases.database import GenericSQLDatabase, SQLDatabase
+#from sqlite3 import dbapi2 as sqlite
+#import re
+#from sage.databases.database import GenericSQLDatabase
 ###???
 
 class BruhatSn(DiGraph):
@@ -83,8 +83,8 @@ class BruhatIntervalSn(DiGraph):
             raise TypeError("Start (%s) and end (%s) must have same length."\
                             %(start, end))
 
-        a = length(start)
-        b = length(end)
+        a = permutation_length(start)
+        b = permutation_length(end)
         self.max_length = max(a,b)
         self.min_length = min(a,b)
         self.length = self.max_length - self.min_length
@@ -272,7 +272,7 @@ def transpose(perm, int i, int j, int n):
             new_perm[k] = perm[k]
     return tuple(new_perm)
 
-cdef int length(w):
+cdef int permutation_length(w):
     """
     Returns the length of permutation w.
     """
@@ -324,11 +324,10 @@ class BruhatDatabase(SQLDatabase):
         if new:
             interval_classes_dict = {
             'class_label'   : {'sql':'TEXT',    'index':True,  'primary_key':True },
-# label hash is INT not INTEGER, so that SQL does not automatically increment
             'length'        : {'sql':'INTEGER', 'index':True,  'primary_key':False},
             'num_verts'     : {'sql':'INTEGER', 'index':True,  'primary_key':False},
             'num_arcs'      : {'sql':'INTEGER', 'index':True,  'primary_key':False},
-            'interval_type' : {'sql':'TEXT',    'index':True,  'primary_key':False},
+            'reverse_label' : {'sql':'TEXT',    'index':True,  'primary_key':False},
             'self_dual'     : {'sql':'BOOLEAN', 'index':True,  'primary_key':False},
             'ranks'         : {'sql':'TEXT',    'index':True,  'primary_key':False},
             'rank_symmetric': {'sql':'BOOLEAN', 'index':True,  'primary_key':False}}
@@ -355,7 +354,7 @@ class BruhatDatabase(SQLDatabase):
 
         """
         s = 'SELECT class_label FROM interval_classes WHERE class_label = '
-        s += str(label_hash) # TODO
+        s += str(label_hash)
         b = self.__connection__.execute(s).fetchall()
         return len(b) > 0
 
@@ -366,6 +365,18 @@ class BruhatDatabase(SQLDatabase):
         """
         s = 'SELECT permutation FROM permutations WHERE permutation = "'
         s += str(perm).replace(' ', '') + '"'
+        b = self.__connection__.execute(s).fetchall()
+        return len(b) > 0
+
+    def has_interval(self, start, end):
+        """
+        Returns True if this permutation has been seen before.
+
+        """
+        s = 'SELECT interval_label FROM intervals WHERE start = '
+        s += '"' + str(start).replace(' ', '') + '"'
+        s += 'AND end = '
+        s += '"' + str(end).replace(' ', '') + '"'
         b = self.__connection__.execute(s).fetchall()
         return len(b) > 0
 
@@ -391,20 +402,35 @@ class BruhatDatabase(SQLDatabase):
         l = self.__connection__.execute(s).fetchall()
         return [a[0] for a in l]
 
-    def id_hashes_with_len_order_size(self, length, order, size):
+    def has_identity_label(self, label):
         """
-        Returns a list of canonical hashes that match the invariants.
+        Returns true if label has a representative starting at the identity.
 
         """
-        s = 'SELECT class_label FROM interval_classes WHERE '
-        s += 'length = %s AND num_verts = %s AND num_arcs = %s'\
-             %(length, order, size)
-        s += ' AND interval_type = "id"'
+        s = 'SELECT start FROM intervals WHERE interval_label = "%s"'%label
         l = self.__connection__.execute(s).fetchall()
-        return [a[0] for a in l]
+        for entry in l:
+            start = eval(entry[0])
+            if start == tuple(range(1,len(start)+1)):
+                return True
+        return False
+
+    def has_symmetric_label(self, label):
+        """
+        Returns true if label has a representative S_n.
+
+        """
+        s = 'SELECT start, end FROM intervals WHERE interval_label = "%s"'%label
+        l = self.__connection__.execute(s).fetchall()
+        for entry in l:
+            start = eval(entry[0])
+            end = eval(entry[1])
+            if start == tuple(range(1,len(start)+1)) and end == tuple(range(len(start),0,-1)):
+                return True
+        return False
 
     def commit_interval_class(self, label_hash, length, order, size,
-                              interval_type, self_dual, ranks):
+                              reverse_label, self_dual, ranks):
         """
         Records a row into the interval_classes table.
 
@@ -413,11 +439,8 @@ class BruhatDatabase(SQLDatabase):
             length -- int
             order -- int, number of vertices
             size -- int, number of arcs
-            interval_type -- string
-                Sn
-                Identity
-                Antidentity (we know b/c dual will be identity interval)
-                Other
+            reverse_label -- either None ( if self-dual )
+                             or dig6 for dual
             self_dual -- bool
             ranks -- list of ranks: ranks[i] is the number of vertices of
                     length i
@@ -438,13 +461,15 @@ class BruhatDatabase(SQLDatabase):
             symmetric = 'f'
         if self_dual:
             self_dual = 't'
+            reverse_label = ''
         else:
             self_dual = 'f'
         self.add_row( 'interval_classes',
-                      (label_hash, length, order, size, interval_type,
+                      (label_hash, length, order, size, reverse_label,
                        self_dual, str(ranks).replace(' ', ''), symmetric),
                       ('class_label', 'length', 'num_verts', 'num_arcs',
-                       'interval_type', 'self_dual', 'ranks', 'rank_symmetric') )
+                       'reverse_label', 'self_dual', 'ranks', 'rank_symmetric') )
+        self.commit()
 
     def commit_interval(self, label_hash, start, end):
         """
@@ -460,6 +485,7 @@ class BruhatDatabase(SQLDatabase):
                       (label_hash, str(start).replace(' ', ''),
                        str(end).replace(' ', '')),
                       ('interval_label', 'start', 'end') )
+        self.commit()
 
     def commit_permutation(self, permutation, disarray, skip, interlock,
                            block_notation):
@@ -479,6 +505,7 @@ class BruhatDatabase(SQLDatabase):
                        interlock, block_notation),
                       ('permutation', 'disarray', 'skip', 'interlock',
                        'block_not') )
+        self.commit()
 
     def publish_classes(self, directory):
         directory += '/'
@@ -486,7 +513,7 @@ class BruhatDatabase(SQLDatabase):
             os.mkdir(directory)
         except:
             pass
-        s = 'select class_label, length, num_verts, num_arcs, interval_type, self_dual, ranks, rank_symmetric from interval_classes'
+        s = 'select class_label, length, num_verts, num_arcs, reverse_label, self_dual, ranks, rank_symmetric from interval_classes'
         try:
             cur = self.__connection__.cursor()
             cur.execute(s)
@@ -499,7 +526,7 @@ class BruhatDatabase(SQLDatabase):
         for interval_class in classes:
             output = ''
             i += 1
-            label, length, order, size, type, dual, ranks, sym = interval_class
+            label, length, order, size, reverse_label, dual, ranks, sym = interval_class
             s = 'select start, end from intervals where interval_label = "%s"'%label
             try:
                 cur = self.__connection__.cursor()
@@ -509,7 +536,7 @@ class BruhatDatabase(SQLDatabase):
                 raise RuntimeError('Failure to fetch query.')
             start_rep = eval(intervals[0][0])
             end_rep = eval(intervals[0][1])
-            G = BruhatIntervalSn(start_rep, end_rep)
+            G = BruhatIntervalSn(start_rep, end_rep, check=False)
             p = G.plot()
             p.save(directory + '%s.png'%i, figsize=[2,2])
             output += '\n    <tr>\n        <td bgcolor=white align=center rowspan=7>'
@@ -525,10 +552,14 @@ class BruhatDatabase(SQLDatabase):
             output += '\n    <tr>'
             output += '\n        <td bgcolor=white align=right> Type of interval: \n        </td>'
             output += '\n        <td bgcolor=white align=left> '
-            if type == 'sn': output += 'Symmetric group'
-            elif type == 'id': output += 'Identity interval'
-            elif type == 'ai': output += 'Antidentity interval'
-            else: output += 'Interior interval'
+            if self.has_symmetric_label(label):
+                output += 'Symmetric group'
+            elif self.has_identity_label(label):
+                output += 'Identity interval'
+            elif self.has_identity_label(reverse_label):
+                output += 'Antidentity interval'
+            else:
+                output += 'Interior interval'
             output += '\n        </td>\n    </tr>'
             output += '\n    <tr>'
             output += '\n        <td bgcolor=white align=right> Self dual: \n        </td>'
@@ -602,12 +633,10 @@ class BruhatDatabase(SQLDatabase):
         f.close()
 
     def self_dual_permutations(self):
-        pass
+        pass # TODO
 
     def rank_symmetric_permutations(self):
-        pass
-
-##############################################################################
+        pass # TODO
 
 class DistributedBruhatIntervals(DistributedFunction):
     """
@@ -620,13 +649,28 @@ class DistributedBruhatIntervals(DistributedFunction):
 
     """
     def __init__(self, dsage, database, name='BruhatIntervals',
-                 logfile='log.txt', max_length=5, local_length=6):
+                 logfile='log.txt', max_length=3, local_length=1,
+                 publish=False, pubdir=None):
         DistributedFunction.__init__(self, dsage)
+        self.done = False
         self.max_len = max_length
-        self.loc_len = local_length
+        self.loc_len = min(local_length, max_length)
         self.cur_len = 1
         self.n = 2
-        self.local_jobs = {}
+
+        if publish and pubdir is None:
+            raise ValueError("No publication directory specified.")
+
+        self.publish = publish
+        self.pubdir = pubdir
+
+        self.perm_job_num = 0
+        self.int_job_num = 0
+        self.class_job_num = 0
+        self.perm_jobs = []
+        self.int_jobs = []
+        self.class_jobs = []
+
         self.db = database
         self.name = name
         self.logfile = logfile
@@ -647,126 +691,149 @@ class DistributedBruhatIntervals(DistributedFunction):
         self.find_new_jobs()
         DistributedFunction.restore(self, new_dsage)
 
+    def check_permutation(self, perm):
+        if not self.db.has_permutation(perm):
+            if perm not in self.perm_jobs:
+                self.setup_permutation(perm)
+
+    def check_interval(self, start, end):
+        if not self.db.has_interval(start, end):
+            if (start,end) not in self.int_jobs:
+                self.setup_interval(start, end)
+
+    def check_class(self, start, end, label, order, size, length):
+        print 'check class called', start, end,
+        if label not in self.db.hashes_with_len_order_size(length, order, size):
+            print 'in if'
+            if label not in self.class_jobs:
+                self.setup_class(start, end, label, order, size, length)
+
+    def setup_permutation(self, perm):
+        if permutation_length(perm) <= self.loc_len:
+            perm_result = analyze_permutation(perm)
+            self.process_permutation_result(perm_result, True)
+        else:
+            jobstring  = 'from sage.graphs.bruhat_sn import analyze_permutation\n'
+            jobstring += 'perm = %s\n'%str(perm).replace(' ', '')
+            jobstring += 'DSAGE_RESULT = analyze_permutation(perm)\n'
+            job = Job(code=jobstring, name='perm_%s'%self.perm_job_num)
+            self.perm_job_num += 1
+            self.perm_jobs.append(perm)
+            self.outstanding_jobs.append(job)
+
+    def setup_interval(self, start, end):
+        if permutation_length(end) - permutation_length(start) <= self.loc_len:
+            interval_result = analyze_interval(start, end)
+            self.process_interval_result(interval_result, True)
+        else:
+            jobstring  = 'from sage.graphs.bruhat_sn import analyze_interval\n'
+            jobstring += 'start = %s\n'%str(start).replace(' ', '')
+            jobstring += 'end = %s\n'%str(end).replace(' ', '')
+            jobstring += 'DSAGE_RESULT = analyze_interval(start, end)\n'
+            job = Job(code=jobstring, name='interval_%s'%self.int_job_num)
+            self.int_job_num += 1
+            self.int_jobs.append( (start,end) )
+            self.outstanding_jobs.append(job)
+
+    def setup_class(self, start, end, label, order, size, length):
+        print 'setup class called'
+        if permutation_length(end) - permutation_length(start) <= self.loc_len:
+            class_result = analyze_interval_class(start, end, label, order, size, length)
+            self.process_class_result(class_result, True)
+        else:
+            jobstring  = 'from sage.graphs.bruhat_sn import analyze_interval_class\n'
+            jobstring += 'start = %s\n'%str(start).replace(' ', '')
+            jobstring += 'end = %s\n'%str(end).replace(' ', '')
+            jobstring += 'label = "%s"\n'%label
+            jobstring += 'order = "%s"\n'%order
+            jobstring += 'size = "%s"\n'%size
+            jobstring += 'length = "%s"\n'%length
+            jobstring += 'DSAGE_RESULT = analyze_interval_class(start, end, label, order, size, length)\n'
+            job = Job(code=jobstring, name='class_%s'%self.class_job_num)
+            self.class_job_num += 1
+            self.class_jobs.append(label)
+            self.outstanding_jobs.append(job)
+
+    def process_result(self, job):
+        print 'process result', job.result[0]
+        if job.result[0] == 'permutation':
+            self.process_permutation_result(job.result, False)
+        elif job.result[0] == 'interval':
+            self.process_interval_result(job.result, False)
+        elif job.result[0] == 'class':
+            self.process_interval_class_result(job.result, False)
+        else:
+            raise ValueError("Returned job has an unknown computation type.")
+        if len(self.perm_jobs) == 0 and len(self.int_jobs) == 0:
+            self.find_new_jobs()
+            self.submit_jobs()
+
+    def process_permutation_result(self, result, local):
+        _, label_hash, perm, disarray, skip, interlock, block_not, length, order, size = result
+        print 'processing permutation', perm
+        self.db.commit_permutation(perm, disarray, skip, interlock, block_not)
+        self.db.commit_interval(label_hash, tuple(range(1,len(perm)+1)), perm)
+        if not local: self.perm_jobs.remove(perm)
+        self.check_class(tuple(range(1,len(perm)+1)), perm, label_hash, order, size, length)
+
+    def process_interval_result(self, result, local):
+        _, label_hash, start, end, length, order, size = result
+        print 'processing interval', start, end
+        self.db.commit_interval(label_hash, start, end)
+        if not local: self.int_jobs.remove( (start,end) )
+        self.check_class(start, end, label_hash, order, size, length)
+
+    def process_class_result(self, result, local):
+        print 'processing interval class'
+        _, label_hash, length, num_verts, num_arcs, reverse_label, self_dual, ranks = result
+        self.db.commit_interval_class(label_hash, length, num_verts, num_arcs, reverse_label, self_dual, ranks)
+        if not local: self.class_jobs.remove(label_hash)
+
     def find_new_jobs(self):
+        """
+        Called at the beginning of the computation, and again every time the
+        distributed function runs out of intervals to process.
+
+        """
         self.log.write('%s - Finding New Jobs\n'%time.asctime())
         self.log.flush()
-        if self.cur_len < self.loc_len:
-            # take care of locally, too small for dsage
-            compute_locally_up_to_length(self.db, self.n, self.cur_len, self.loc_len)
-        #else:
-            # create jobs
+        if self.done:
+            return
+        while self.cur_len <= self.loc_len:
+            while self.n <= self.cur_len + 1:
+                self.process_permutations_at_length()
+                self.n += 1
+            self.cur_len += 1
+            self.n = 2
+            while self.cur_len > (self.n*(self.n-1))/2:
+                self.n += 1
 
-def compute_locally_up_to_length(db, n, cur_len, max_len):
-    while cur_len <= max_len:
-        while n <= cur_len + 1:
-            S = BruhatSn(n, max_len, label=True)
-            for perm in S:
-                if perm != S.identity:
-                    compute_id_interval_locally(S, perm, db, cur_len)
-            n += 1
-        cur_len += 1
-        # with this new cur_len, compute the minimum n needed to search.
-        # if S_n is too small, there is no point. also n >= 2.
-        n = 2
-        while cur_len > (n*(n-1))/2:
-            n += 1
+        while self.n <= self.cur_len + 1:
+            self.process_permutations_at_length()
+            self.n += 1
 
-def compute_locally_up_to_n(db, n, cur_len, max_n):
-    max_len = (max_n*(max_n-1))/2
-    while cur_len <= max_len:
-        while n <= min(cur_len + 1,max_n):
-            S = BruhatSn(n, max_len, label=True)
-            for perm in S:
-                if perm != S.identity:
-                    compute_id_interval_locally(S, perm, db, cur_len)
-            n += 1
-        cur_len += 1
-        # with this new cur_len, compute the minimum n needed to search.
-        # if S_n is too small, there is no point. also n >= 2.
-        n = 2
-        while cur_len > (n*(n-1))/2:
-            n += 1
+        if self.publish:
+            self.db.publish_classes(self.pubdir)
+        self.cur_len += 1
+        self.n = 2
+        while self.cur_len > (self.n*(self.n-1))/2:
+            self.n += 1
 
-def compute_id_interval_locally(S, perm, db, cur_len):
-    """
-    Makes Robert's eyes cross.
-
-    """
-    id_interval = None
-    if not db.has_permutation(perm):
-        id_interval = S.subgraph(vertices_below(perm, S))
-        perm_result = analyze_permutation(id_interval, S.identity, perm)
-        h_hash = perm_result[1]
-        process_permutation(db, perm_result)
-    else:
-        h_hash = db.permutation_hash(perm)
-    if perm in S.lengths[cur_len]:
-        if id_interval is None:
-            id_interval = S.subgraph(vertices_below(perm, S))
-        num_verts = id_interval.order()
-        num_arcs = id_interval.size()
-        hashes = db.hashes_with_len_order_size(cur_len, num_verts, num_arcs)
-        if h_hash not in hashes:
-            id_hashes = db.id_hashes_with_len_order_size(cur_len, num_verts, num_arcs)
-            eq_class_result = analyze_interval_class(S.identity, perm, h_hash, num_verts, num_arcs, cur_len, id_hashes)
-            process_interval_class(db, eq_class_result)
-        for v in id_interval:
-            if v != S.identity and v != perm:
-                interval_result = analyze_interval(v, perm)
-                label_hash, length, order, size = process_interval(db, interval_result)
-                hashes = db.hashes_with_len_order_size(length, order, size)
-                if label_hash not in hashes:
-                    id_hashes = db.id_hashes_with_len_order_size(length, order, size)
-                    eq_class_result = analyze_interval_class(v, perm, label_hash, order, size, length, id_hashes)
-                    process_interval_class(db, eq_class_result)
-
-def analyze_interval_class(start, end, label_hash, order, size, length, id_hashes):
-    cdef int i, n = len(start)
-    H = BruhatIntervalSn(start, end)
-    HR = H.reverse()
-    HRC = HR.canonical_label()
-    HRCH = HRC.dig6_string()
-    self_dual = (HRCH == label_hash)
-    ranks = []
-    for i from 0 <= i <= H.max_length:
-        try:
-            ranks.append(len(H.lengths[i]))
-        except:
-            ranks.append(0)
-    if tuple(range(1,n+1)) == start:
-        if tuple(range(n,0,-1)) == end:
-            type = 'sn'
+    def process_permutations_at_length(self):
+        if self.cur_len > self.max_len:
+            self.done = True
         else:
-            type = 'id'
-    else:
-        HR = H.reverse()
-        if HRCH in id_hashes:
-            type = 'ai'
-        else:
-            type = 'ot'
-    return ('class', label_hash, length, order, size, type, self_dual, ranks)
+            S = BruhatSn(self.n, self.max_len)
+            for perm in S.lengths[self.cur_len]:
+                self.check_permutation(perm)
+                for v in S.subgraph(vertices_below(perm, S)):
+                    if v != S.identity and v != perm:
+                        self.check_interval(v, perm)
 
-def process_interval_class(db, result):
-    _, label_hash, length, num_verts, num_arcs, type, self_dual, ranks = result
-    # assert _ == 'class'
-    db.commit_interval_class(label_hash, length, num_verts, num_arcs, type, self_dual, ranks)
-
-def analyze_interval(start, end):
-    G = BruhatIntervalSn(start, end) # TODO: check=False
-    C = G.canonical_label()
-    label_hash = C.dig6_string()
-    return ('interval', label_hash, start, end, G.max_length - G.min_length, G.order(), G.size())
-
-def process_interval(db, interval_result):
-    _, label_hash, start, end, length, order, size = interval_result
-    # assert _ == 'interval'
-    db.commit_interval(label_hash, start, end)
-    return label_hash, length, order, size
-
-# alt: id = tuple(range(1,len(perm)+1))
-#      id_interval = BruhatIntervalSn(id, perm, label=True)
-def analyze_permutation(id_interval, start, end):
-    cdef int i, disarray
+def analyze_permutation(end):
+    cdef int i, disarray, n = len(end)
+    start = tuple( range(1,n+1) )
+    id_interval = BruhatIntervalSn(start, end, check=False)
     canonical_hash = id_interval.canonical_label().dig6_string()
     disarray = 0
     for i from 0 <= i < len(start):
@@ -775,13 +842,27 @@ def analyze_permutation(id_interval, start, end):
     interlock = interlock_from_permutation(end)
     block = blocks_from_permutation(end)
     block = str( block ).replace(' ', '')
-    return ('permutation', canonical_hash, end, disarray, skip, interlock, block )
+    return ('permutation', canonical_hash, end, disarray, skip, interlock, block, id_interval.length, id_interval.order(), id_interval.size() )
 
-def process_permutation(db, perm_result):
-    _, label_hash, perm, disarray, skip, interlock, block_not = perm_result
-    # assert _ == 'permutation'
-    db.commit_permutation(perm, disarray, skip, interlock, block_not)
-    db.commit_interval(label_hash, tuple(range(1,len(perm)+1)), perm)
+def analyze_interval(start, end):
+    G = BruhatIntervalSn(start, end, check=False)
+    C = G.canonical_label()
+    label_hash = C.dig6_string()
+    return ('interval', label_hash, start, end, G.length, G.order(), G.size())
+
+def analyze_interval_class(start, end, label_hash, order, size, length):
+    cdef int i
+    H = BruhatIntervalSn(start, end)
+    HR = H.reverse()
+    HRC = HR.canonical_label()
+    reverse_label = HRC.dig6_string()
+    self_dual = (reverse_label == label_hash)
+    if self_dual:
+        reverse_label = None
+    ranks = []
+    for i from H.min_length <= i <= H.max_length:
+        ranks.append(len(H.lengths[i]))
+    return ('class', label_hash, length, order, size, reverse_label, self_dual, ranks)
 
 def blocks_from_permutation(perm):
     perm_blocks=[]
@@ -864,6 +945,129 @@ def interlock_from_permutation(perm):
 
 
 
+
+
+
+
+
+
+
+##############################################################################
+
+#def compute_locally_up_to_length(db, n, cur_len, max_len):
+#    while cur_len <= max_len:
+#        while n <= cur_len + 1:
+#            S = BruhatSn(n, max_len)
+#            for perm in S:
+#                if perm != S.identity:
+#                    compute_id_interval_locally(S, perm, db, cur_len)
+#            n += 1
+#        cur_len += 1
+#        # with this new cur_len, compute the minimum n needed to search.
+#        # if S_n is too small, there is no point. also n >= 2.
+#        n = 2
+#        while cur_len > (n*(n-1))/2:
+#            n += 1
+#    return cur_len, n
+#
+#def compute_locally_up_to_n(db, n, cur_len, max_n):
+#    max_len = (max_n*(max_n-1))/2
+#    while cur_len <= max_len:
+#        while n <= min(cur_len + 1,max_n):
+#            S = BruhatSn(n, max_len)
+#            for perm in S:
+#                if perm != S.identity:
+#                    compute_id_interval_locally(S, perm, db, cur_len)
+#            n += 1
+#        cur_len += 1
+#        # with this new cur_len, compute the minimum n needed to search.
+#        # if S_n is too small, there is no point. also n >= 2.
+#        n = 2
+#        while cur_len > (n*(n-1))/2:
+#            n += 1
+#
+#def compute_id_interval_locally(S, perm, db, cur_len):
+#    """
+#    Makes Robert's eyes cross.
+#
+#    """
+#    if not db.has_permutation(perm):
+#        id_interval = S.subgraph(vertices_below(perm, S))
+#        perm_result = analyze_permutation(perm)
+#        h_hash = perm_result[1]
+#        process_permutation(db, perm_result)
+#    else:
+#        h_hash = db.permutation_hash(perm)
+#    if perm in S.lengths[cur_len]:
+#        id_interval = S.subgraph(vertices_below(perm, S))
+#        num_verts = id_interval.order()
+#        num_arcs = id_interval.size()
+#        hashes = db.hashes_with_len_order_size(cur_len, num_verts, num_arcs)
+#        if h_hash not in hashes:
+#            eq_class_result = analyze_interval_class(S.identity, perm, h_hash, num_verts, num_arcs, cur_len)
+#            process_interval_class(db, eq_class_result)
+#        for v in id_interval:
+#            if v != S.identity and v != perm:
+#                interval_result = analyze_interval(v, perm)
+#                label_hash, length, order, size = process_interval(db, interval_result)
+#                hashes = db.hashes_with_len_order_size(length, order, size)
+#                if label_hash not in hashes:
+#                    eq_class_result = analyze_interval_class(v, perm, label_hash, order, size, length)
+#                   process_interval_class(db, eq_class_result)
+
+#def analyze_interval_class(start, end, label_hash, order, size, length):
+#    cdef int i, n = len(start)
+#    H = BruhatIntervalSn(start, end)
+#    HR = H.reverse()
+#    HRC = HR.canonical_label()
+#    reverse_label = HRC.dig6_string()
+#    self_dual = (reverse_label == label_hash)
+#    if self_dual:
+#        reverse_label = None
+#    ranks = []
+#    for i from 0 <= i <= H.max_length:
+#        try:
+#            ranks.append(len(H.lengths[i]))
+#        except:
+#            ranks.append(0)
+#    return ('class', label_hash, length, order, size, reverse_label, self_dual, ranks)
+
+#def process_interval_class(db, result):
+#    _, label_hash, length, num_verts, num_arcs, reverse_label, self_dual, ranks = result
+#    # assert _ == 'class'
+#    db.commit_interval_class(label_hash, length, num_verts, num_arcs, reverse_label, self_dual, ranks)
+
+#def analyze_interval(start, end):
+#    G = BruhatIntervalSn(start, end) # TODO: check=False
+#    C = G.canonical_label()
+#    label_hash = C.dig6_string()
+#    return ('interval', label_hash, start, end, G.length, G.order(), G.size())
+
+#def process_interval(db, interval_result):
+#    _, label_hash, start, end, length, order, size = interval_result
+#    # assert _ == 'interval'
+#    db.commit_interval(label_hash, start, end)
+#    return label_hash, length, order, size
+
+# alt: id = tuple(range(1,len(perm)+1))
+#      id_interval = BruhatIntervalSn(id, perm)
+#def analyze_permutation(end):
+#    cdef int i, disarray
+#    canonical_hash = id_interval.canonical_label().dig6_string()
+#    disarray = 0
+#    for i from 0 <= i < len(start):
+#        disarray += abs(i + 1 - end[i])
+#    skip = skip_from_permutation(end)
+#    interlock = interlock_from_permutation(end)
+#    block = blocks_from_permutation(end)
+#    block = str( block ).replace(' ', '')
+#    return ('permutation', canonical_hash, end, disarray, skip, interlock, block )
+
+#def process_permutation(db, perm_result):
+#    _, label_hash, perm, disarray, skip, interlock, block_not = perm_result
+#    # assert _ == 'permutation'
+#    db.commit_permutation(perm, disarray, skip, interlock, block_not)
+#    db.commit_interval(label_hash, tuple(range(1,len(perm)+1)), perm)
 
 #def vertices_below(v, D, seen=None):
 #    """

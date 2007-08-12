@@ -967,7 +967,10 @@ class GenericSQLDatabase(SageObject):
         if (filename[-3:] != '.db'):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename
-        self.__connection__ = sqlite.connect(self.__dblocation__)
+        self.__connection__ = sqlite.connect(self.__dblocation__, check_same_thread=False)
+        # check_same_thread = False:
+        # this is to avoid the multiple thread problem with dsage:
+        # pysqlite does not trust multiple threads for the same connection
         self.__connection__.create_function("regexp", 2, regexp)
 
         self.__skeleton__ = construct_skeleton(self.__connection__)
@@ -1468,7 +1471,10 @@ class SQLDatabase(GenericSQLDatabase):
         elif (filename[-3:] != '.db'):
             raise ValueError('Please enter a valid database path (file name %s does not end in .db).'%filename)
         self.__dblocation__ = filename
-        self.__connection__ = sqlite.connect(self.__dblocation__)
+        self.__connection__ = sqlite.connect(self.__dblocation__, check_same_thread=False)
+        # check_same_thread = False:
+        # this is to avoid the multiple thread problem with dsage:
+        # pysqlite does not trust multiple threads for the same connection
         self.__connection__.create_function("regexp", 2, regexp)
 
         # construct skeleton (from provided database)

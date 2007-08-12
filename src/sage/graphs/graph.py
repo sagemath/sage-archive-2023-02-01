@@ -3331,6 +3331,35 @@ class Graph(GenericGraph):
         import networkx
         return networkx.closeness_centrality(self._nxg, v)
 
+    ### Spectrum
+
+    def spectrum(self, laplacian=False):
+        """
+        Returns the spectrum of the graph, the eigenvalues of the adjacency
+        matrix
+
+        INPUT:
+            laplacian -- if True, use the Laplacian matrix instead (see
+                self.kirchhoff_matrix())
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: P.spectrum()
+            [-2.0, 1.0, 3.0, 1.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0]
+            sage: P.spectrum(laplacian=True)
+            [5.0, 2.0, 1.48112136999e-16, 2.0, 5.0, 5.0, 5.0, 2.0, 2.0, 2.0]
+
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.real_double import RDF
+        if laplacian:
+            M = self.kirchhoff_matrix()
+        else:
+            M = self.am()
+        M = matrix(RDF, M.rows())
+        E = M.eigen()[0]
+        return [e.real() for e in E]
+
     ### Representations
 
     def adjacency_matrix(self, sparse=True):

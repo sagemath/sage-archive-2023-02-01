@@ -507,8 +507,13 @@ class BruhatDatabase(SQLDatabase):
             # the None is for potential sorting later...
 
         # sort outlist?
-        output = '<html><table bgcolor=lightgrey cellpadding=3 width=80% align=center>\n'
-
+        output  = '<html><table bgcolor=lightgrey cellpadding=3 width=80% align=center>\n'
+        output += '\n    <tr>\n        <td colspan=3 bgcolor=white align=center>'
+        output += '<h1>Intervals in S<sub>n</sub> under Bruhat ordering</h1>'
+        output += '<p align=right>Use <a href="http://sagemath.org"><img src="http://students.washington.edu/rlmill/sagelogo.png" alt="SAGE" border=0 align=top></a>, it\'s free!</p>'
+        output += '\n        </td>\n    </tr>\n    <tr>\n        <td colspan=3 bgcolor=white align=left>'
+        output += 'Note: Any time the phrase "in S<sub>n</sub>" is used, this means in the part of S<sub>n</sub> so far searched.'
+        output += '\n        </td>\n    </tr>'
         for nnn in range(2, max_n+1):
             output += '\n    <tr>\n        <td bgcolor=white align=left>'
             output += 'Self dual permutations in S<sub>%s</sub>:'%nnn

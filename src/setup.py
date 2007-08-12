@@ -626,6 +626,10 @@ ext_modules = [ \
               ['sage/graphs/graph_isom.pyx']
               ), \
 
+    Extension('sage.graphs.bruhat_sn',
+              ['sage/graphs/bruhat_sn.pyx']
+              ), \
+
     ]
 
 

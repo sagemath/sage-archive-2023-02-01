@@ -6,6 +6,11 @@ CUR=`pwd`
 cp patches/lispbibl.d src/src/
 cp patches/unix.d   src/src/
 
+# Apply a patch needed to prevent clisp from complaining about being run
+# without a terminal.
+cp patches/makemake.in src/src/
+cp patches/clisp-link.in src/src/
+
 cd src/
 
 

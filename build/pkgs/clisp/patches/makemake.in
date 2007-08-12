@@ -3026,7 +3026,7 @@ else
   encflags=''
 fi
 someflags=${encflags}' -norc'
-echol "RUN= ${HERE}lisp${LEXE} ${localeflags}${someflags}"
+echol "RUN= ${HERE}lisp${LEXE} -on-error appease ${localeflags}${someflags}"
 echol
 
 for f in ${LUTILS} ; do
@@ -3119,7 +3119,7 @@ if [ -n "$USE_GETTEXT" ] ; then
 else
   localeflags='-B `pwd`'
 fi
-CLISP_="${HERE_}lisp${LEXE} -M ${HERE_}lispinit.mem ${localeflags}${someflags}"
+CLISP_="${HERE_}lisp${LEXE} -on-error appease -M ${HERE_}lispinit.mem ${localeflags}${someflags}"
 
 if [ $CROSS = false ] ; then
   CHECK_DEPS="check-recompile check-fresh-line check-script check-exec-image check-tests"

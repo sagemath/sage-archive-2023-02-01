@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# patch
+cp patches/givgfq.inl src/src/kernel/zpz/
+cp patches/givgfq.h src/src/kernel/zpz/
+cp patches/givpoly1factor.h src/src/library/poly1/
+
+
 cd src
 
 CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""

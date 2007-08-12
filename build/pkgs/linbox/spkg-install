@@ -8,9 +8,9 @@ $CP patches/mkinstalldirs linbox/
 
 cd linbox/
 
-CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -L\"$SAGE_LOCAL/lib\""
-CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -L\"$SAGE_LOCAL/lib\""
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""
+CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"  -L\"$SAGE_LOCAL/lib\""
+CPPFLAGS="$CPPFLAGS  -I\"$SAGE_LOCAL/include/linbox\" -I\"$SAGE_LOCAL\"/include"
 
 export CFLAGS
 export CXXFLAGS

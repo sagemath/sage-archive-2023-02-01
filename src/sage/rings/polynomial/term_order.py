@@ -63,18 +63,18 @@ EXAMPLES:
 
 \item[Reverse lexicographic (\emph{revlex})], defined as
 
-$x^a < x^b \Leftrightarrow \exists\; 1 \le i \le n : a_n = b_n, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.$
+$x^a < x^b \Leftrightarrow \exists\; 1 \le i \le n : a_n = b_n, \ldots, a_{i+1} = b_{i+1}, a_i < b_i.$
 
 EXAMPLES:
     sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='revlex')
     sage: x > y
-    True
-    sage: x > y^2
+    False
+    sage: y > x^2
     True
     sage: x > 1
-    False
-    sage: x*y > z
     True
+    sage: x*y > z
+    False
 
 \item[Negative lexicographic (\emph{neglex})], defined as
 
@@ -136,7 +136,7 @@ EXAMPLES:
 
 \end{description}
 
-Of these, only $degrevlex$, $deglex$, and $lex$ are global orderings.
+Of these, only $degrevlex$, $deglex$, $revlex$ and $lex$ are global orderings.
 
 Additionally all these monomial orderings may be combined to product
 or block orderings, defined as:

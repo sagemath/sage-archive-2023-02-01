@@ -190,10 +190,19 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
 
 from sage.rings.all import Integer
 
-def delta_qexp(prec=10, var='q'):
+def delta_qexp(prec=10, var='q', K=ZZ):
     """
     Return the q-expansion of Delta as a power series with
-    coefficients in ZZ.
+    coefficients in K (=ZZ by default).
+
+    INPUT:
+        prec -- integer; the absolute precision of the output
+        var -- (default: 'q') variable name
+        K -- (default: ZZ) base ring of answer
+
+    OUTPUT:
+        a power series over K
+
 
     ALGORITHM:
         Compute a simple very explicit modular form whose 8th power
@@ -246,7 +255,7 @@ def delta_qexp(prec=10, var='q'):
     t = verbose('squared (3 of 3)', t)
     f = ntl.ZZX([0,1])*f
     t = verbose('shifted', t)
-    R = ZZ[[var]]
+    R = K[[var]]
     f = R(f.truncate(prec), prec, check=False)
     t = verbose('coerced', t)
     return f

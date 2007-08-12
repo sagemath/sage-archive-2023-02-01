@@ -113,7 +113,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         cdef int n
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement z
-        n = parent.rank()
+        n = parent.degree()
         cdef int length
         if self._degree == 0:
             self.v = NULL

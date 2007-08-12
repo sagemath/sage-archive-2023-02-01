@@ -58,6 +58,12 @@ With power series the behavior is the same.
     gen1
     sage: huge_power_ring(gen2)
     x
+
+TODO:
+   Rewrite valuation so it is *carried* along after any calculation,
+   so in almost all cases f.valuation() is instant.  Also, if you
+   add f and g and their valuations are the same, note that we only
+   have to look at terms at positions >= f.valuation().
 """
 
 #*****************************************************************************

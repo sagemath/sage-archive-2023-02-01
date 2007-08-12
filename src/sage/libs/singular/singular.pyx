@@ -194,27 +194,31 @@ cdef class Conversion:
 
         elem = elem._pari_().lift().lift()
 
-        a = naPar(1)
 
-        apow1 = naInit(1)
-        n1 = naInit(0)
+        if len(elem) > 1:
+            n1 = naInit(0)
+            a = naPar(1)
+            apow1 = naInit(1)
 
-        for i from 0 <= i < len(elem):
-            coeff = naInit(int(elem[i]))
+            for i from 0 <= i < len(elem):
+                coeff = naInit(int(elem[i]))
 
-            if not naIsZero(coeff):
-                n2 = naAdd( naMult(coeff, apow1),  n1)
-                naDelete(&n1, _ring);
-                n1= n2
+                if not naIsZero(coeff):
+                    n2 = naAdd( naMult(coeff, apow1),  n1)
+                    naDelete(&n1, _ring);
+                    n1= n2
 
-            apow2 = naMult(apow1, a)
+                apow2 = naMult(apow1, a)
+                naDelete(&apow1, _ring)
+                apow1 = apow2
+
+                naDelete(&coeff, _ring)
+
             naDelete(&apow1, _ring)
-            apow1 = apow2
+            naDelete(&a, _ring)
+        else:
+            n1 = naInit(int(elem))
 
-            naDelete(&coeff, _ring)
-
-        naDelete(&apow1, _ring)
-        naDelete(&a, _ring)
         return n1
 
     cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):

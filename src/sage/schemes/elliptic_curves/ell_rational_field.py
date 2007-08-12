@@ -2357,6 +2357,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: EllipticCurve('37b').torsion_subgroup()
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
+
+            sage: e = EllipticCurve([-1386747,368636886]);e
+            Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G = e.torsion_subgroup(); G
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C2 x C8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G.0
+            (1227 : 22680 : 1)
+            sage: G.1
+            (282 : 0 : 1)
+            sage: list(G)
+            [1, P1, P1^2, P1^3, P1^4, P1^5, P1^6, P1^7, P0, P0*P1, P0*P1^2, P0*P1^3, P0*P1^4, P0*P1^5, P0*P1^6, P0*P1^7]
         """
         try:
             return self.__torsion_subgroup

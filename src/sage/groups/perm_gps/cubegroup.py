@@ -804,7 +804,7 @@ class CubeGroup(PermutationGroup_generic):
         print line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
 
     def legal(self,state,mode="quiet"):
-        """
+        r"""
         Returns 1 (true) if the dictionary \code{state} (in the same format as
         returned by the faces method) represents a legal position (or state) of
         the Rubik's cube. Returns 0 (false) otherwise.
@@ -857,15 +857,17 @@ class CubeGroup(PermutationGroup_generic):
                 return 1
 
     def solve(self,state):
-        """
+        r"""
         Solves the cube in the \code{state}, given as a dictionary as
         in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
         and \code{PreImagesRepresentative}.
 
+        WARNING: This is currently evidently broken.
+
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: R_state = rubik.faces("R")
-            sage: rubik.solve(R_state)  ## time-consuming
+            sage.: rubik.solve(R_state)  # currently broken (long time)
             'R'
 
         You can also check this using \code{word_problem} method (eg, G = rubik.group();
@@ -887,7 +889,6 @@ class CubeGroup(PermutationGroup_generic):
         u = rubik.U()
         words = [b,d,f,l,r,u]
         sol = leg[1].word_problem(words, False)[0]
-        #print sol
         sol1 = sol.replace("x1","B")
         sol2 = sol1.replace("x2","D")
         sol3 = sol2.replace("x3","F")

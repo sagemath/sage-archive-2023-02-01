@@ -895,6 +895,7 @@ setup(name        = 'sage',
                      'sage.probability',
 
                      'sage.quadratic_forms',
+                     'sage.quadratic_forms.genera',
 
                      'sage.rings',
                      'sage.rings.number_field',

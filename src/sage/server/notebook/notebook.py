@@ -145,7 +145,7 @@ class Notebook(SageObject):
            same as for other_user.
         """
         U = self.user(user)
-        passwd = U.password()
+        passwd = other_user.password()
         U.set_hashed_password(passwd)
 
     def user_is_admin(self, user):

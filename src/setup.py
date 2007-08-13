@@ -155,6 +155,7 @@ libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
                         libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
                         language="c++",
+                        include_dirs=[SAGE_ROOT +'/local/include/singular']
                         )
 
 
@@ -425,7 +426,13 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
               language="c++",
-              ), \
+              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+
+    Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
+              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              language="c++",
+              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
@@ -617,6 +624,10 @@ ext_modules = [ \
 
     Extension('sage.graphs.graph_isom',
               ['sage/graphs/graph_isom.pyx']
+              ), \
+
+    Extension('sage.graphs.bruhat_sn',
+              ['sage/graphs/bruhat_sn.pyx']
               ), \
 
     ]
@@ -884,6 +895,7 @@ setup(name        = 'sage',
                      'sage.probability',
 
                      'sage.quadratic_forms',
+                     'sage.quadratic_forms.genera',
 
                      'sage.rings',
                      'sage.rings.number_field',

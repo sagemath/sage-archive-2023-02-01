@@ -154,13 +154,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             self.__magma = R
             return R
 
-    def var_dict(self):
-        """
-        Return dictionary of paris varname:var of the variables
-        of this multivariate polynomial ring.
-        """
-        return dict([(str(g),g) for g in self.gens()])
-
+    def _magma_init_(self):
+        B = self.base_ring()._magma_init_()
+        R = 'PolynomialRing(%s, %s, %s)'%(B, self.ngens(),self.term_order().magma_str())
+        return R
 
     def is_finite(self):
         if self.ngens() == 0:
@@ -299,7 +296,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # restrict exponents to positive integers only
         exponents = [ tuple([ZZ.random_element(0,max_deg+1) for _ in range(n)])
                        for _ in range(terms) ]
-        coeffs = [R.random_element(*args,**kwds) for _ in range(terms)]
+        coeffs = []
+        for _ in range(terms):
+            c = R.random_element(*args,**kwds)
+            while not c:
+                c = R.random_element(*args,**kwds)
+            coeffs.append(c) # allow only nonzero coefficients
 
         d = dict( zip(tuple(exponents), coeffs) )
         return self(multi_polynomial_element.MPolynomial_polydict(self, PolyDict(d)))

@@ -71,10 +71,10 @@ cdef class MPolynomial(CommutativeRingElement):
         used on self's parent.
 
         EXAMPLES:
-            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='revlex')
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
-            [1, 23, 6]
+            [23, 6, 1]
             sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()

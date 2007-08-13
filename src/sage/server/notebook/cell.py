@@ -489,6 +489,7 @@ class Cell(Cell_generic):
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+
         #self._html_cache[key] = s
         return s
 
@@ -517,17 +518,16 @@ class Cell(Cell_generic):
 
         r = max(1, number_of_rows(t.strip(), ncols))
 
-        if not do_print:
-            s += """
-               <textarea class="%s" rows=%s cols=%s
-                  id         = 'cell_input_%s'
-                  onKeyPress = 'return input_keypress(%s,event);'
-                  onInput    = 'cell_input_resize(this); return true;'
-                  onBlur     = 'cell_blur(%s); return true;'
-                  onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
-                  %s
-               >%s</textarea>
-            """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
+        s += """
+           <textarea class="%s" rows=%s cols=%s
+              id         = 'cell_input_%s'
+              onKeyPress = 'return input_keypress(%s,event);'
+              onInput    = 'cell_input_resize(this); return true;'
+              onBlur     = 'cell_blur(%s); return true;'
+              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+              %s
+           >%s</textarea>
+        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 

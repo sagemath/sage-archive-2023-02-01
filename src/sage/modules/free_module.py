@@ -72,6 +72,30 @@ a 1-dimension submodule.
     Echelon basis matrix:
     []
 
+We construct subspaces of real and complex double vector spaces
+and verify that the element types are correct:
+    sage: V = FreeModule(RDF, 3); V
+    Vector space of dimension 3 over Real Double Field
+    sage: V.0
+    (1.0, 0.0, 0.0)
+    sage: type(V.0)
+    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    sage: W = V.span([V.0]); W
+    Vector space of degree 3 and dimension 1 over Real Double Field
+    Basis matrix:
+    [1.0 0.0 0.0]
+    sage: type(W.0)
+    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    sage: V = FreeModule(CDF, 3); V
+    Vector space of dimension 3 over Complex Double Field
+    sage: type(V.0)
+    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+    sage: W = V.span_of_basis([CDF.0 * V.1]); W
+    Vector space of degree 3 and dimension 1 over Complex Double Field
+    User basis matrix:
+    [    0 1.0*I     0]
+    sage: type(W.0)
+    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
 """
 
 ####################################################################################
@@ -3712,7 +3736,6 @@ def basis_seq(V, w):
 class RealDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
-        self._element_class = sage.modules.real_double_vector.RealDoubleVectorSpaceElement
 
     def coordinates(self,v):
         return v
@@ -3720,7 +3743,6 @@ class RealDoubleVectorSpace_class(FreeModule_ambient_field):
 class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.complex_double.CDF,n)
-        self._element_class = sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement
 
     def coordinates(self,v):
         return v
@@ -3742,6 +3764,13 @@ def element_class(R, is_sparse):
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense
+
+    elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
+        return sage.modules.real_double_vector.RealDoubleVectorSpaceElement
+
+    elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
+        return sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement
+
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

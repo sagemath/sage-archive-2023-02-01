@@ -117,7 +117,6 @@ cdef class AbelianGroup(Group):
         """
         return True
 
-
 cdef class FiniteGroup(Group):
     """
     Generic finite group.
@@ -129,18 +128,39 @@ cdef class FiniteGroup(Group):
         return True
 
     def cayley_graph(self):
+        """
+        Returns the cayley graph for this finite group, as a SAGE
+        DiGraph object. To plot the graph with with different colors
+
+        EXAMPLES:
+            sage: D4 = DihedralGroup(4); D4
+            Dihedral group of order 8 as a permutation group
+            sage: G = D4.cayley_graph()
+
+            sage.: show(G, color_by_label=True, edge_labels=True)   # todo -- we must test this, but must not have "sage -t" popping up windows.
+
+            sage: A5 = AlternatingGroup(5); A5
+            Alternating group of order 5!/2 as a permutation group
+            sage: G = A5.cayley_graph()
+            sage.: G.show3d(color_by_label=True, arc_size=0.01, arc_size2=0.02, vertex_size=0.03)
+            sage.: G.show3d(vertex_size=0.03, arc_size=0.01, arc_size2=0.02, vertex_colors={(1,1,1):x.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time
+
+        AUTHOR:
+            -- (2007-08-10) Bobby Moretti
+        """
         from sage.graphs.graph import DiGraph
         arrows = {}
-        for g in self:
-            for s in self.gens():
-                gs = g*s
-                if not gs == g:
+        for x in self:
+            for g,i in zip(self.gens(), xrange(len(self.gens()))):
+                # cache the multiplication
+                xg = x*g
+                if not xg == x:
                     try:
-                        _ = arrows[g]
+                        _ = arrows[x]
                     except KeyError:
-                        arrows[g] = {}
+                        arrows[x] = {}
 
-                    arrows[g][gs] = s
+                    arrows[x][xg] = g
 
         return DiGraph(arrows)
 

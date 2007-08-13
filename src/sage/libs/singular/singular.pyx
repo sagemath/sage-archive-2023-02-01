@@ -68,7 +68,6 @@ cdef class Conversion:
         ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
         ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
         ##  Using immediates as pointers and dereferencing them gives address errors.
-
         nom = nlGetNom(n, _ring)
         mpz_init(nom_z)
 
@@ -109,7 +108,7 @@ cdef class Conversion:
         ret = base.objectptr.zero
 
         while z:
-            c = base.objectptr.read(c,<long>napGetCoeff(z))
+            c = base.objectptr.initi(c,<long>napGetCoeff(z))
             e = napGetExp(z,1)
             if e == 0:
                 ret = base.objectptr.add(ret, <int>c, ret)
@@ -194,27 +193,31 @@ cdef class Conversion:
 
         elem = elem._pari_().lift().lift()
 
-        a = naPar(1)
 
-        apow1 = naInit(1)
-        n1 = naInit(0)
+        if len(elem) > 1:
+            n1 = naInit(0)
+            a = naPar(1)
+            apow1 = naInit(1)
 
-        for i from 0 <= i < len(elem):
-            coeff = naInit(int(elem[i]))
+            for i from 0 <= i < len(elem):
+                coeff = naInit(int(elem[i]))
 
-            if not naIsZero(coeff):
-                n2 = naAdd( naMult(coeff, apow1),  n1)
-                naDelete(&n1, _ring);
-                n1= n2
+                if not naIsZero(coeff):
+                    n2 = naAdd( naMult(coeff, apow1),  n1)
+                    naDelete(&n1, _ring);
+                    n1= n2
 
-            apow2 = naMult(apow1, a)
+                apow2 = naMult(apow1, a)
+                naDelete(&apow1, _ring)
+                apow1 = apow2
+
+                naDelete(&coeff, _ring)
+
             naDelete(&apow1, _ring)
-            apow1 = apow2
+            naDelete(&a, _ring)
+        else:
+            n1 = naInit(int(elem))
 
-            naDelete(&coeff, _ring)
-
-        naDelete(&apow1, _ring)
-        naDelete(&a, _ring)
         return n1
 
     cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):
@@ -253,7 +256,7 @@ cdef class Conversion:
             return self.sa2si_QQ(elem, _ring)
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
-            return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.write(i, (<FiniteField_givaroElement>elem).element ), _ring )
+            return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FiniteField_givaroElement>elem).element ), _ring )
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
             return self.sa2si_GFqPari(elem, _ring)

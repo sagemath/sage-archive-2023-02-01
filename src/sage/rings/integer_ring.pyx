@@ -330,9 +330,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Notice that the right endpoint is not included:
             sage: [ZZ.random_element(-2,2) for _ in range(10)]
             [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
+
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
+        if x is not None and y is None and x <= 0:
+            raise TypeError, "x must be > 0"
+        if x is not None and y is not None and x >= y:
+            raise TypeError, "x must be < y"
         self._randomize_mpz(z.value, x, y, distribution)
         return z
 

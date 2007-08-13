@@ -48,6 +48,9 @@ from sage.libs.all import pari, pari_gen, PariError
 from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
+import sage.rings.real_double
+import sage.rings.complex_double
+
 from sage.structure.element import RingElement
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
 
@@ -717,8 +720,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
-            R = self.parent().base_ring()
-            v = [R(0)]*right + [R(1)]
+            P = self.parent()
+            R = P.base_ring()
+            if P.is_sparse():
+                v = {right:R(1)}
+            else:
+                v = [R(0)]*right + [R(1)]
             return self.parent()(v, check=False)
         return sage.rings.arith.generic_power(self, right, self.parent()(1))
 
@@ -1905,6 +1912,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
             sage: p.roots(multiplicities=False)
             [1, 5]
+
+        An example over the real double field (where root finding
+        is *very* fast, thanks to numpy):
+            sage: R.<x> = RDF[]
+            sage: f = R.cyclotomic_polynomial(5); f
+            1.0*x^4 + 1.0*x^3 + 1.0*x^2 + 1.0*x + 1.0
+            sage: f.roots()
+            [0.309016994375 + 0.951056516295*I, 0.309016994375 - 0.951056516295*I, -0.809016994375 + 0.587785252292*I, -0.809016994375 - 0.587785252292*I]
+            sage: [z^5 for z in f.roots()]   # slightly random output
+            [1.0 - 2.44921270764e-16*I, 1.0 + 2.44921270764e-16*I, 1.0 - 4.89842541529e-16*I, 1.0 + 4.89842541529e-16*I]
+
         """
         seq = []
 
@@ -1928,6 +1946,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise NotImplementedError, "root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)"
                 else:
                     return [a for a in K if not self(a)]
+            elif sage.rings.real_double.is_RealDoubleField(K):
+                import numpy
+                r = numpy.roots(numpy.array(self.list(), dtype=float))
+                CDF = sage.rings.complex_double.CDF
+                return [CDF(z) for z in r]
 
             raise NotImplementedError, "root finding for this polynomial not implemented"
         for fac in rts:

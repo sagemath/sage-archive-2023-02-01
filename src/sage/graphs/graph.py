@@ -3355,9 +3355,9 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
             sage: P.spectrum()
-            [-2.0, 1.0, 3.0, 1.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0]
-            sage: P.spectrum(laplacian=True)
-            [5.0, 2.0, 1.48112136999e-16, 2.0, 5.0, 5.0, 5.0, 2.0, 2.0, 2.0]
+	    [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
+            sage: P.spectrum(laplacian=True)   # random low-order bits (at least for first eigenvalue)
+	    [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
 
         """
         from sage.matrix.constructor import matrix
@@ -3368,7 +3368,9 @@ class Graph(GenericGraph):
             M = self.am()
         M = matrix(RDF, M.rows())
         E = M.eigen_left()[0]
-        return [e.real() for e in E]
+        v = [e.real() for e in E]
+	v.sort()
+	return v
 
     ### Representations
 

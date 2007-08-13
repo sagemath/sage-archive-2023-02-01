@@ -1193,7 +1193,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('389a').regulator()
             0.152460177943144
             sage: EllipticCurve('5077a').regulator()
-            0.417143558758384
+            0.417143558758385
             sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
             1.50434488827529
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
@@ -2357,6 +2357,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: EllipticCurve('37b').torsion_subgroup()
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
+
+            sage: e = EllipticCurve([-1386747,368636886]);e
+            Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G = e.torsion_subgroup(); G
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C2 x C8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G.0
+            (1227 : 22680 : 1)
+            sage: G.1
+            (282 : 0 : 1)
+            sage: list(G)
+            [1, P1, P1^2, P1^3, P1^4, P1^5, P1^6, P1^7, P0, P0*P1, P0*P1^2, P0*P1^3, P0*P1^4, P0*P1^5, P0*P1^6, P0*P1^7]
         """
         try:
             return self.__torsion_subgroup
@@ -3020,7 +3031,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('66b3').sha_an_numerical()
             4.00000000000000
             sage: EllipticCurve('5077a').sha_an_numerical()
-            1.00000000000000
+            0.999999999999998
 
         A rank 4 curve:
             sage: EllipticCurve([1, -1, 0, -79, 289]).sha_an_numerical()   # long time
@@ -4336,21 +4347,21 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         reduction at all primes:
             sage: E = EllipticCurve("37a")
             sage: P = E.gens()[0]; P
-             (0 : 0 : 1)
+            (0 : -1 : 1)
             sage: 19*P
-             (-59997896/67387681 : -641260644409/553185473329 : 1)
+            (-59997896/67387681 : 88075171080/553185473329 : 1)
             sage: R = Integers(625)
             sage: C = E._DivPolyContext(E, R, P)
             sage: C.triple(19)
-             (229, 34, 541)
+            (229, 170, 541)
             sage: -59997896 % 625
-             229
+            229
             sage: 67387681.sqrt()
-             8209
+            8209
             sage: -8209 % 625          # note sign is flipped
-             541
+            541
             sage: 641260644409 % 625   # sign flipped here too
-             34
+            34
 
         Test over a range of $n$ for a single curve with fairly random
         coefficients:

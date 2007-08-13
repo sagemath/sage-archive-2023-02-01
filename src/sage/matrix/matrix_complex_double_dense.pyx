@@ -346,6 +346,21 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         vals, vecs = self.__eigen_numpy()
         return vals, vecs
 
+    def eigenspaces(self, var='a'):
+        r"""
+        Return a list of pairs (e, V) where e runs through all complex
+        eigenvalues of this matrix, and V is the corresponding
+        eigenspace (always a 1-dimensional complex vector space).
+
+        OUTPUT:
+            list -- of eigenvalues
+            list -- of 1-dimensional CDF vector spaces
+
+        EXAMPLES:
+        """
+        e, v = self.eigen()
+        return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
+
     def eigen(self):
         """
         Computes the eigenvalues and eigenvectors of this matrix acting

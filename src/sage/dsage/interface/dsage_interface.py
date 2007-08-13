@@ -407,11 +407,19 @@ class BlockingDSage(DSage):
         self.factory = PBClientFactory()
 
         if self.ssl:
-            from twisted.internet import ssl
-            contextFactory = ssl.ClientContextFactory()
-            blocking_call_from_thread(reactor.connectSSL,
+            # Old, uses OpenSSL, SAGE uses GNUTLS now
+            # from twisted.internet import ssl
+            # contextFactory = ssl.ClientContextFactory()
+            # blocking_call_from_thread(reactor.connectSSL,
+            #                           self.server,
+            #                           self.port,
+            #                           factory,
+            #                           contextFactory)
+            from gnutls.interfaces.twisted import X509Credentials
+            cred = X509Credentials()
+            blocking_call_from_thread(reactor.connectTLS,
                                       self.server, self.port,
-                                      self.factory, contextFactory)
+                                      self.factory, cred)
         else:
             blocking_call_from_thread(reactor.connectTCP,
                                       self.server, self.port,

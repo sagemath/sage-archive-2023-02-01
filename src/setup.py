@@ -626,6 +626,10 @@ ext_modules = [ \
               ['sage/graphs/graph_isom.pyx']
               ), \
 
+    Extension('sage.graphs.bruhat_sn',
+              ['sage/graphs/bruhat_sn.pyx']
+              ), \
+
     ]
 
 
@@ -891,6 +895,7 @@ setup(name        = 'sage',
                      'sage.probability',
 
                      'sage.quadratic_forms',
+                     'sage.quadratic_forms.genera',
 
                      'sage.rings',
                      'sage.rings.number_field',

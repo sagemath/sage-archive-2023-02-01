@@ -1,2 +1,2 @@
 recursive-include * *.c *.h *.pyx *.pyxe *.pxd *.pxi *.cc *.txt *.tex *.i *.d 00*
-include install sage-push spkg-dist spkg-install MANIFEST.in README.txt .hgignore .hg .hg/* bundle export mercurial-howto.txt pull test_changed bundle export mercurial-howto.txt sage/matrix/padics/__init__.py
+include install sage-push spkg-dist spkg-delauto spkg-install MANIFEST.in README.txt .hgignore .hg .hg/* bundle export mercurial-howto.txt pull test_changed bundle export mercurial-howto.txt sage/matrix/padics/__init__.py

@@ -27,7 +27,7 @@ from banner import version, banner
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 SAGE_LOCAL = SAGE_ROOT + '/local/'
 
-HOSTNAME = socket.gethostname()
+HOSTNAME = socket.gethostname().replace('-','_')
 
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)

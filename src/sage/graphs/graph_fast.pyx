@@ -315,6 +315,19 @@ def R_inverse(s, n):
     m = "".join(l)
     return m[:(n*(n-1)/2)]
 
+def D_inverse(s, n):
+    """
+    A helper function for the dig6 format.
+
+    """
+    l = []
+    cdef int i
+    for i from 0 <= i < len(s):
+        a = binary(ord(s[i])-63)
+        l.append( '0'*(6-len(a)) + a )
+    m = "".join(l)
+    return m[:n*n]
+
 
 
 

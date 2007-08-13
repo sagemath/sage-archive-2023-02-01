@@ -68,7 +68,6 @@ cdef class Conversion:
         ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
         ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
         ##  Using immediates as pointers and dereferencing them gives address errors.
-
         nom = nlGetNom(n, _ring)
         mpz_init(nom_z)
 
@@ -109,7 +108,7 @@ cdef class Conversion:
         ret = base.objectptr.zero
 
         while z:
-            c = base.objectptr.read(c,<long>napGetCoeff(z))
+            c = base.objectptr.initi(c,<long>napGetCoeff(z))
             e = napGetExp(z,1)
             if e == 0:
                 ret = base.objectptr.add(ret, <int>c, ret)
@@ -257,7 +256,7 @@ cdef class Conversion:
             return self.sa2si_QQ(elem, _ring)
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
-            return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.write(i, (<FiniteField_givaroElement>elem).element ), _ring )
+            return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FiniteField_givaroElement>elem).element ), _ring )
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
             return self.sa2si_GFqPari(elem, _ring)

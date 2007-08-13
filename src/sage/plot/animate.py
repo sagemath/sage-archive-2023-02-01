@@ -11,8 +11,8 @@ EXAMPLES:
 We plot a circle shooting up to the right:
 
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
-    ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2]) # optional
-    sage: a.save('sage.gif') # optional
+    ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2]) # optional -- requires convert command
+    sage: a.save('sage.gif') # optional -- requires convert command
 
 """
 
@@ -39,7 +39,7 @@ class Animation(SageObject):
 
     EXAMPLES:
         sage: a = animate([sin(x + float(k)) for k in srange(0,4,0.3)],
-        ...                xmin=0, xmax=2*pi, figsize=[2,1]) # optional
+        ...                xmin=0, xmax=2*pi, figsize=[2,1]) # optional -- requires convert command
         sage: a # optional
         Animation with 14 frames
         sage: a[:5] # optional
@@ -80,7 +80,7 @@ class Animation(SageObject):
         Get a frame from an animation.
 
         EXAMPLES:
-            sage: a = animate([x, x^2, x^3, x^4]) # optional
+            sage: a = animate([x, x^2, x^3, x^4]) # optional -- requires convert command
             sage: a[2].save('sage.png') # optional
         """
         return self.__frames[i]
@@ -91,7 +91,7 @@ class Animation(SageObject):
 
         EXAMPLES:
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
-            ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2]) # optional
+            ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2]) # optional -- requires convert command
             ...
             sage: a # optional
             Animation with 10 frames
@@ -123,7 +123,7 @@ class Animation(SageObject):
         We add and multiply two animations.
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1]) # optional
+            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1]) # optional -- requires convert command
             sage: a.save('sage.gif') # optional
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2]) # optional
@@ -164,7 +164,7 @@ class Animation(SageObject):
         EXAMPLES:
         We add and multiply two animations.
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False) # optional
+            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False) # optional -- requires convert command
             sage: a.save('sage.gif') # optional
             sage: b = animate([circle((0,i),1,hue=0,thickness=20*i) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2], axes=False) # optional
@@ -191,7 +191,7 @@ class Animation(SageObject):
         png's of all the images in this animation.
 
         EXAMPLES:
-            sage: a = animate([plot(x^2 + n) for n in range(4)]) # optional
+            sage: a = animate([plot(x^2 + n) for n in range(4)]) # optional -- requires convert command
             sage: d = a.png() # optional
             sage: d                   # random, optional
             '/home/was/.sage/temp/ubuntu/20951/dir_3'
@@ -222,7 +222,7 @@ class Animation(SageObject):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: v = [E.change_ring(GF(p)).plot(pointsize=30) for p in [97, 101, 103, 107]]
-            sage: a = animate(v, xmin=0, ymin=0) # optional
+            sage: a = animate(v, xmin=0, ymin=0) # optional -- requires convert command
             sage: a # optional
             Animation with 4 frames
             sage: a.save('sage.gif') # optional

@@ -376,6 +376,7 @@ class AxiomElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
     def numer(self):
         P = self.parent()
         return P('numeric(%s)'%self._name)
@@ -399,14 +400,18 @@ class AxiomElement(ExpectElement):
                               'DCOS(':'cos(',
                               'DTAN(':'tan(',
                               'DSINH(':'sinh('}, s)
-        return re.search(r'"(.*)"',s).groups(0)[0]
+        r = re.search(r'"(.*)"',s)
+        if r:
+            return r.groups(0)[0]
+        else:
+            return s
 
     def __repr__(self):
-        P = self._check_valid()
-        return P.get(self._name)
+        return self.str()
 
     def __str__(self):
-        return self.str()
+        P = self._check_valid()
+        return P.get(self._name)
 
     def type(self):
         P = self._check_valid()

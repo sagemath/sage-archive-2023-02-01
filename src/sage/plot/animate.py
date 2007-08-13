@@ -192,9 +192,7 @@ class Animation(SageObject):
 
         EXAMPLES:
             sage: a = animate([plot(x^2 + n) for n in range(4)]) # optional -- requires convert command
-            sage: d = a.png() # optional
-            sage: d                   # random, optional
-            '/home/was/.sage/temp/ubuntu/20951/dir_3'
+            sage: d = a.png() # optional  -- directory where the files are
             sage: v = os.listdir(d); v.sort(); v # optional
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """

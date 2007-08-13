@@ -24,8 +24,6 @@ from functional import (diff, derivative,
 
 from var import (var, function, clear_vars)
 
-import desolvers
-
 def symbolic_expression(x):
     return SR(x)
 

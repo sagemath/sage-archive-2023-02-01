@@ -935,6 +935,15 @@ cdef class gen(sage.structure.element.RingElement):
         return t
 
     def hclassno(gen n):
+        """
+        Computes the Hurwitz-Kronecker class number of n.
+
+	EXAMPLES:
+            sage: pari(-10007).hclassno()
+            77
+            sage: pari(-3).hclassno()
+	    1/3
+        """
         _sig_on
         return P.new_gen(hclassno(n.g))
 

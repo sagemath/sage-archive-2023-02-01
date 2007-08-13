@@ -135,13 +135,15 @@ cdef class FiniteGroup(Group):
         EXAMPLES:
             sage: D4 = DihedralGroup(4); D4
             Dihedral group of order 8 as a permutation group
-            sage: show(D4.cayley_graph(), color_by_label=True, edge_labels=True)
+            sage: G = D4.cayley_graph()
+
+            sage.: show(G, color_by_label=True, edge_labels=True)   # todo -- we must test this, but must not have "sage -t" popping up windows.
 
             sage: A5 = AlternatingGroup(5); A5
             Alternating group of order 5!/2 as a permutation group
             sage: G = A5.cayley_graph()
-            sage: G.show3d(color_by_label=True, arc_size=0.01, arc_size2=0.02, vertex_size=0.03)
-            sage: G.show3d(vertex_size=0.03, arc_size=0.01, arc_size2=0.02, vertex_colors={(1,1,1):x.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time
+            sage.: G.show3d(color_by_label=True, arc_size=0.01, arc_size2=0.02, vertex_size=0.03)
+            sage.: G.show3d(vertex_size=0.03, arc_size=0.01, arc_size2=0.02, vertex_colors={(1,1,1):x.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time
 
         AUTHOR:
             -- (2007-08-10) Bobby Moretti
@@ -159,8 +161,6 @@ cdef class FiniteGroup(Group):
                         arrows[x] = {}
 
                     arrows[x][xg] = g
-
-        from sage.groups.cayley_plot import plot
 
         return DiGraph(arrows)
 

@@ -567,7 +567,7 @@ cdef class gen(sage.structure.element.RingElement):
 
 
     ###########################################
-    # comparisions
+    # comparisons
     # I had to put the call to gcmp in another
     # function since otherwise I can't trap
     # the PariError it will sometimes raise.
@@ -631,7 +631,6 @@ cdef class gen(sage.structure.element.RingElement):
 
     def copy(gen self):
         return P.new_gen(forcecopy(self.g))
-
 
     ###########################################
     # Conversion --> Python
@@ -934,6 +933,10 @@ cdef class gen(sage.structure.element.RingElement):
         t = bool(gisprime(self.g, flag) != stoi(0))
         _sig_off
         return t
+
+    def hclassno(gen n):
+        _sig_on
+        return P.new_gen(hclassno(n.g))
 
     def ispseudoprime(gen self, flag=0):
         """

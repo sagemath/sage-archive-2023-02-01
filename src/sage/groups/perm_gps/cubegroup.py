@@ -16,27 +16,28 @@ The "Singmaster notation":
      and the clockwise rotation of the corner sends x->y->z
   * edges: xy means the facet is on face x and a flip of the edge sends x->y.
 
-
-
-                        +-----------------+
-                        | 1     2      3 |
-                        | 4    up    5 |
-                        | 6     7      8 |
-     +-----------------+-----------------+--------------------+-------------------+
-     | 9    10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-     | 12  left  13 | 20  front 21 | 28  right 29 | 36  back  37 |
-     | 14   15   16 | 22    23  24 | 30   31   32 | 38   39   40 |
-     +------------------+-----------------+-------------------+-------------------+
-                        | 41   42   43 |
-                        | 44  down  45 |
-                        | 46   47   48 |
-                       +------------------+
+            sage: rubik = CubeGroup()
+            sage: rubik.display2d("")
+                         +--------------+
+                         |  1    2    3 |
+                         |  4   top   5 |
+                         |  6    7    8 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+            | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+            | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   43 |
+                         | 44 bottom 45 |
+                         | 46   47   48 |
+                         +--------------+
 
 AUTHOR:
     - David Joyner (2006-10-21): first version
     -      "       (2007-05): changed faces, added legal and solve
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
+    - Robert Miller (2007-08): editing, cleaned up display2d
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -567,28 +568,26 @@ def plot3d_cubie(cnt, clrs):
 class CubeGroup(PermutationGroup_generic):
     """
     A python class to help compute Rubik's cube group actions.
-    If G denotes the cube group then it may be regarded as a subgroup
-    of SymmetricGroup(48), where the 48 facets are labeled as follows.
-
-
-                             +--------------+
-                             |  1    2    3 |
-                             |  4   Up    5 |
-                             |  6    7    8 |
-              +--------------+--------------+--------------+--------------+
-              |  9   10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-              | 12  Left  13 | 20 Front  21 | 28 Right  29 | 36  Back  37 |
-              | 14   15   16 | 22   23   24 | 30   31   32 | 38   39   40 |
-              +--------------+--------------+--------------+--------------+
-                             | 41   42   43 |
-                             | 44  Down  45 |
-                             | 46   47   48 |
-                             +--------------+
-
-
 
     EXAMPLES:
+    If G denotes the cube group then it may be regarded as a subgroup
+    of SymmetricGroup(48), where the 48 facets are labeled as follows.
         sage: rubik = CubeGroup()
+        sage: rubik.display2d("")
+                     +--------------+
+                     |  1    2    3 |
+                     |  4   top   5 |
+                     |  6    7    8 |
+        +------------+--------------+-------------+------------+
+        |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+        | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+        | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+        +------------+--------------+-------------+------------+
+                     | 41   42   43 |
+                     | 44 bottom 45 |
+                     | 46   47   48 |
+                     +--------------+
+
         sage: rubik
         The PermutationGroup of all legal moves of the Rubik's cube.
         sage: print rubik
@@ -756,51 +755,51 @@ class CubeGroup(PermutationGroup_generic):
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: rubik.display2d("")
-                                 +--------------+
-                                 |  1    2    3 |
-                                 |  4  top    5 |
-                                 |  6    7    8 |
-                  +--------------+--------------+--------------+--------------+
-                  |  9   10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-                  | 12  left  13 | 20 front  21 | 28 right  29 | 36  rear  37 |
-                  |  14   15   16 | 22   23   24 | 30   31   32 | 38   39   40 |
-                  +--------------+--------------+--------------+--------------+
-                                 | 41   42   43 |
-                                 | 44 bottom 45 |
-                                 | 46   47   48 |
-                                 +--------------+
+                         +--------------+
+                         |  1    2    3 |
+                         |  4   top   5 |
+                         |  6    7    8 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+            | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+            | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   43 |
+                         | 44 bottom 45 |
+                         | 46   47   48 |
+                         +--------------+
 
             sage: rubik.display2d("R")
-                                 +--------------+
-                                 |  1    2    38 |
-                                 |  4  top    36 |
-                                 |  6    7    33 |
-                  +--------------+--------------+--------------+--------------+
-                  |  9   10   11 | 17   18   3 | 27   29   32 | 48   34   35 |
-                  | 12  left  13 | 20 front  5 | 26 right  31 | 45  rear  37 |
-                  |  14   15   16 | 22   23   8 | 25   28   30 | 43   39   40 |
-                  +--------------+--------------+--------------+--------------+
-                                 | 41   42   19 |
-                                 | 44 bottom 21 |
-                                 | 46   47   24 |
-                                 +--------------+
+                         +--------------+
+                         |  1    2   38 |
+                         |  4   top  36 |
+                         |  6    7   33 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18    3 | 27   29  32 | 48  34  35 |
+            | 12 left 13 | 20  front  5 | 26 right 31 | 45 rear 37 |
+            | 14  15  16 | 22   23    8 | 25   28  30 | 43  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   19 |
+                         | 44 bottom 21 |
+                         | 46   47   24 |
+                         +--------------+
 
         You can see the right face has been rotated but not the left face.
         """
         lst = self.move(mv)[1]
-        line1 = "                     +--------------+\n"
-        line2 = "                     |  %s    %s    %s |\n"%(lst[0],lst[1],lst[2])
-        line3 = "                     |  %s  top    %s |\n"%(lst[3],lst[4])
-        line4 = "                     |  %s    %s    %s |\n"%(lst[5],lst[6],lst[7])
-        line5 = "      +--------------+--------------+--------------+--------------+\n"
-        line6 = "      |  %s   %s   %s | %s   %s   %s | %s   %s   %s | %s   %s   %s |\n"%(lst[8],lst[9],lst[10],lst[16],lst[17],lst[18],lst[24],lst[25],lst[26],lst[32],lst[33],lst[34])
-        line7 = "      | %s  left  %s | %s front  %s | %s right  %s | %s  rear  %s |\n"%(lst[11],lst[12],lst[19],lst[20],lst[27],lst[28],lst[35],lst[36])
-        line8 = "      |  %s   %s   %s | %s   %s   %s | %s   %s   %s | %s   %s   %s |\n"%(lst[13],lst[14],lst[15],lst[21],lst[22],lst[23],lst[29],lst[30],lst[31],lst[37],lst[38],lst[39])
-        line9 = "      +--------------+--------------+--------------+--------------+\n"
-        line10 = "                     | %s   %s   %s |\n"%(lst[40],lst[41],lst[42])
-        line11 = "                     | %s bottom %s |\n"%(lst[43],lst[44])
-        line12 = "                     | %s   %s   %s |\n"%(lst[45],lst[46],lst[47])
-        line13 = "                     +--------------+\n"
+        line1 =  "             +--------------+\n"
+        line2 =  "             |%3d  %3d  %3d |\n"%(lst[0],lst[1],lst[2])
+        line3 =  "             |%3d   top %3d |\n"%(lst[3],lst[4])
+        line4 =  "             |%3d  %3d  %3d |\n"%(lst[5],lst[6],lst[7])
+        line5 =  "+------------+--------------+-------------+------------+\n"
+        line6 =  "|%3d %3d %3d |%3d  %3d  %3d |%3d  %3d %3d |%3d %3d %3d |\n"%(lst[8],lst[9],lst[10],lst[16],lst[17],lst[18],lst[24],lst[25],lst[26],lst[32],lst[33],lst[34])
+        line7 =  "|%3d left%3d |%3d  front%3d |%3d right%3d |%3d rear%3d |\n"%(lst[11],lst[12],lst[19],lst[20],lst[27],lst[28],lst[35],lst[36])
+        line8 =  "|%3d %3d %3d |%3d  %3d  %3d |%3d  %3d %3d |%3d %3d %3d |\n"%(lst[13],lst[14],lst[15],lst[21],lst[22],lst[23],lst[29],lst[30],lst[31],lst[37],lst[38],lst[39])
+        line9 =  "+------------+--------------+-------------+------------+\n"
+        line10 = "             |%3d  %3d  %3d |\n"%(lst[40],lst[41],lst[42])
+        line11 = "             |%3d bottom%3d |\n"%(lst[43],lst[44])
+        line12 = "             |%3d  %3d  %3d |\n"%(lst[45],lst[46],lst[47])
+        line13 = "             +--------------+\n"
         print line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
 
     def legal(self,state,mode="quiet"):
@@ -861,8 +860,6 @@ class CubeGroup(PermutationGroup_generic):
         Solves the cube in the \code{state}, given as a dictionary as
         in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
         and \code{PreImagesRepresentative}.
-
-        WARNING: This is currently evidently broken.
 
         EXAMPLES:
             sage: rubik = CubeGroup()

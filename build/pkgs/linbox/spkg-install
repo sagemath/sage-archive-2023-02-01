@@ -5,6 +5,7 @@ CUR=`pwd`
 $CP patches/configure linbox/
 $CP patches/install-sh linbox/
 $CP patches/mkinstalldirs linbox/
+$CP patches/fflas_bounds.inl linbox/linbox/fflas/
 
 cd linbox/
 
@@ -58,7 +59,14 @@ else
 
 fi
 
-./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" --enable-optimization --with-blas="$LINBOX_BLAS"
+if [ $UNAME = "SunOS" ]; then
+   OPT="--enable-optimization=false"
+   echo "Building on SunOS"
+else
+   OPT="--enable-optimization"
+fi
+
+./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" $OPS --with-blas="$LINBOX_BLAS"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring linbox"

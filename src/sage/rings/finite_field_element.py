@@ -7,6 +7,18 @@ EXAMPLES:
     sage: w = V([0,1,2])
     sage: K(1)*w
     (0, 1, 0)
+
+We do some arithmetic involving a bigger field and a Conway polynomial,
+i.e., we verify compatibility condition.
+    sage: f = conway_polynomial(2,63)
+    sage: K.<a> = GF(2**63, name='a', modulus=f)
+    sage: n = f.degree()
+    sage: m = 3;
+    sage: e = (2^n - 1) / (2^m - 1)
+    sage: c = a^e
+    sage: conway = conway_polynomial(2,m)
+    sage: conway(c) == 0
+    True
 """
 
 
@@ -59,7 +71,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         sage: loads(a.dumps()) == a
         True
     """
-    def __init__(self, parent, value):
+    def __init__(self, parent, value, check=True):
         """
         Create element of a finite field.
 
@@ -75,15 +87,33 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         self.__parent = parent
         if isinstance(value, str):
             raise TypeError, "value must not be a string"
+        if not check:
+            if not value:  # see comment below about this workaround
+                self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
+            else:
+                self.__value = value
+            return
         try:
             if isinstance(value, pari_gen):
-                if value.type()[-3:] == "MOD" :
-                    self.__value = value
-                else:
-                    try:
+                try:
+                    # In some cases we get two different versions of
+                    # the 0 element of a finite field.  This has to do
+                    # with how PARI's Mod function works -- it treats
+                    # 0 differently.  In particular, if value is a a
+                    # pari t_POLMOD that is 0, modding it simply
+                    # doesn't work correctly.  We fix this by changing
+                    # the value in the 0 case to the standard pari 0,
+                    # which works correctly.  Note -- probably all
+                    # this code should be replaced by much faster
+                    # finite field arithmetic programmed against NTL.
+                    if not value:
+                        value = pari(0)
+                    if value.type() == "t_POLMOD":
+                        self.__value = value * parent._pari_one()
+                    else:
                         self.__value = value.Mod(parent._pari_modulus())*parent._pari_one()
-                    except RuntimeError:
-                        raise TypeError, "no possible coercion implemented"
+                except RuntimeError:
+                    raise TypeError, "no possible coercion implemented"
                 return
             elif isinstance(value, FiniteField_ext_pariElement):
                 if parent != value.parent():
@@ -271,7 +301,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: a is a
             True
         """
-        return FiniteField_ext_pariElement(self.__parent, self.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value, check=False)
 
     def _pari_(self, var=None):
         """
@@ -489,18 +519,18 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             raise TypeError, "Parents of finite field elements must be equal."
 
     def _add_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value + right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value + right.__value, check=False)
 
     def _sub_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value - right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value - right.__value, check=False)
 
     def _mul_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value * right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value * right.__value, check=False)
 
     def _div_(self, right):
         if right.__value == 0:
             raise ZeroDivisionError
-        return FiniteField_ext_pariElement(self.__parent, self.__value / right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value / right.__value, check=False)
 
     def __int__(self):
         try:
@@ -531,10 +561,10 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     #    right = int(_right)
     #    if right != _right:
     #         raise ValueError
-    #    return FiniteField_ext_pariElement(self.__parent, self.__value**right)
+    #    return FiniteField_ext_pariElement(self.__parent, self.__value**right, check=False)
 
     def __neg__(self):
-        return FiniteField_ext_pariElement(self.__parent, -self.__value)
+        return FiniteField_ext_pariElement(self.__parent, -self.__value, check=False)
 
     def __pos__(self):
         return self
@@ -555,7 +585,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         if self.__value == 0:
             raise ZeroDivisionError, "Cannot invert 0"
-        return FiniteField_ext_pariElement(self.__parent, ~self.__value)
+        return FiniteField_ext_pariElement(self.__parent, ~self.__value, check=False)
 
     def lift(self):
         """

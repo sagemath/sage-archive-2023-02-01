@@ -54,7 +54,7 @@ def desolve(de,vars):
 
     EXAMPLES:
         sage: from sage.calculus.desolvers import desolve
-	sage: t = var('t')
+        sage: t = var('t')
         sage: x = function('x', t)
         sage: de = lambda y: diff(y,t) + y - 1
         sage: desolve(de(x(t)),[x,t])
@@ -69,9 +69,9 @@ def desolve(de,vars):
     de0 = de._maxima_()
     return de0.ode2(vars[0],vars[1]).rhs()._maxima_init_()
 
-def desolve_laplace2(de,vars,ics=None):
+#def desolve_laplace2(de,vars,ics=None):
     """
-    Solves an ODE using laplace transforms via maxima. Initials conditions
+    Solves an ODE using laplace transforms via maxima. Initial conditions
     are optional.
 
     INPUT:
@@ -95,20 +95,20 @@ def desolve_laplace2(de,vars,ics=None):
          #x*%e^x*(?%at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x
 
     AUTHOR: David Joyner (1st version 1-2006, 8-2007)
-    ######## this method seems reasonable but doesnt work for some reason
-    name0 = vars[0]._repr_()[0:(len(vars[0]._repr_())-2-len(str(vars[1])))]
-    name1 = str(vars[1])
-    #maxima("de:"+de+";")
-    if ics!=None:
-        ic0 = maxima("ic:"+str(vars[1])+"="+str(ics[0]))
-        d = len(ics)
-        for i in range(d-1):
-            maxima(vars[0](vars[1])).diff(vars[1],i).atvalue(ic0,ics[i+1])
-    de0 = de._maxima_()
-    #cmd = "desolve("+de+","+vars[1]+"("+vars[0]+"));"
-    #return maxima.eval(cmd)
-    return de0.desolve(vars[0]).rhs()
     """
+#    ######## this method seems reasonable but doesnt work for some reason
+#    name0 = vars[0]._repr_()[0:(len(vars[0]._repr_())-2-len(str(vars[1])))]
+#    name1 = str(vars[1])
+#    #maxima("de:"+de+";")
+#    if ics!=None:
+#        ic0 = maxima("ic:"+str(vars[1])+"="+str(ics[0]))
+#        d = len(ics)
+#        for i in range(d-1):
+#            maxima(vars[0](vars[1])).diff(vars[1],i).atvalue(ic0,ics[i+1])
+#    de0 = de._maxima_()
+#    #cmd = "desolve("+de+","+vars[1]+"("+vars[0]+"));"
+#    #return maxima.eval(cmd)
+#    return de0.desolve(vars[0]).rhs()
 
 def desolve_laplace(de,vars,ics=None):
     """

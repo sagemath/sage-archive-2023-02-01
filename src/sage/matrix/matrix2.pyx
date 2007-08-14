@@ -2067,8 +2067,9 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
 
-        Echelon form is not defined for any integral domain; you may have to explicitly
-        base extend to the fraction field, if that is what you want.
+        Echelon form is not defined for any integral domain; so sage
+        implicity base extends to the fraction field.
+
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
             sage: a.echelon_form()

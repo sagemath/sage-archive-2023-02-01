@@ -96,7 +96,7 @@ def IntegerModRing(order=0):
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
-        if x != None: return x
+        if not x is None: return x
     #if check_prime and arith.is_prime(order):
     #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
     #else:
@@ -212,6 +212,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             cache = order < 500
         if cache:
             self._precompute_table()
+
+        self._zero_element = integer_mod.IntegerMod(self, 0)
+        self._one_element = integer_mod.IntegerMod(self, 1)
 
     def krull_dimension(self):
         return integer.Integer(0)
@@ -553,16 +556,20 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self.__pari_order
 
     def __call__(self, x):
-        if sage.interfaces.all.is_GapElement(x):
-            import finite_field
-            try:
-                return finite_field.gap_to_sage(x, self)
-            except (ValueError, IndexError, TypeError), msg:
-                raise TypeError, "%s\nerror coercing to finite field"%msg
         try:
             return integer_mod.IntegerMod(self, x)
         except (NotImplementedError, PariError):
             return TypeError, "error coercing to finite field"
+        except TypeError:
+            if sage.interfaces.all.is_GapElement(x):
+                import finite_field
+                try:
+                    return finite_field.gap_to_sage(x, self)
+                except (ValueError, IndexError, TypeError), msg:
+                    raise TypeError, "%s\nerror coercing to finite field"%msg
+            else:
+                raise
+
 
     def __iter__(self):
         """

@@ -29,3 +29,6 @@ from polynomial_element import is_Polynomial
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing
 from term_order import TermOrder
 from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
+
+# Generic convolution
+from sage.rings.polynomial.convolution import convolution

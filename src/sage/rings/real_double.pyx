@@ -19,6 +19,7 @@ Also, you can instantly create a space of large dimension.
     sage: V = RDF^10000
 """
 
+include '../ext/python_float.pxi'
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
@@ -42,6 +43,8 @@ import sage.rings.rational
 
 from sage.rings.integer cimport Integer
 
+from sage.categories.morphism cimport Morphism
+
 def is_RealDoubleField(x):
     return PY_TYPE_CHECK(x, RealDoubleField_class)
 
@@ -55,6 +58,8 @@ cdef class RealDoubleField_class(Field):
         sage: RDF == RealDoubleField()    # RDF is the shorthand
         True
     """
+    def __init__(self):
+        Field.__init__(self, self)
 
     def is_exact(self):
         return False
@@ -119,6 +124,34 @@ cdef class RealDoubleField_class(Field):
         if hasattr(x, '_real_double_'):
             return x._real_double_(self)
         return RealDoubleElement(x)
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$.
+
+        Also preserves other information that makes this field unique
+        (i.e. the Real Double Field).
+
+        EXAMPLES:
+            sage: c, S = RDF.construction(); S
+            Rational Field
+            sage: RDF == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  53,
+                                  {'type': 'RDF'}),
+               sage.rings.rational_field.QQ)
+
+    cdef coerce_map_from_c(self, S):
+        from integer_ring import ZZ
+        from rational_field import QQ
+        import real_mpfr
+        if S in [ZZ, QQ] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
+            return ToRDF(S)
+        return Field.coerce_map_from_c(self, S)
 
     cdef _coerce_c_impl(self, x):
         """
@@ -865,6 +898,7 @@ cdef class RealDoubleElement(FieldElement):
             1.29711148178
 
         Symbolic examples:
+            sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
             -2.30000000000000^(y^3 + sin(x) + x)
             sage: RDF('-2.3')^x
@@ -1346,6 +1380,14 @@ cdef class RealDoubleElement(FieldElement):
         """
         return sage.rings.arith.algdep(self,n)
 
+cdef class ToRDF(Morphism):
+    def __init__(self, R):
+        from sage.categories.homset import Hom
+        Morphism.__init__(self, Hom(R, RDF))
+    cdef Element _call_c_impl(self, Element x):
+        cdef RealDoubleElement r = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        r._value = PyFloat_AsDouble(x)
+        return r
 
 #####################################################
 # unique objects

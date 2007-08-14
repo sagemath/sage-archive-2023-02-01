@@ -166,7 +166,8 @@ sage: print f.partial_fraction()
 sage: # (BUG?) Assuming  x>=y,  y>=z,  z>=x, deduce  x=z.
 sage: # Maxima doesn't agree that x==z is a conclusion...
 sage: forget()
-sage: restore('x,y,z')
+sage: var('x,y,z')
+(x, y, z)
 sage: assume(x>=y, y>=z,z>=x)
 sage: print bool(x==z)
 False
@@ -273,6 +274,8 @@ sage: print g
 
 
 sage: # (NO?) Ln((2*Sqrt(r) + 1)/Sqrt(4*r 4*Sqrt(r) 1))=0.
+sage: var('r')
+r
 sage: f = log( (2*sqrt(r) + 1) / sqrt(4*r  + 4*sqrt(r) +  1))
 sage: print f
                                   2 sqrt(r) + 1
@@ -335,6 +338,7 @@ sage: forget()
 
 sage: # (YES) Assuming Re(x)>0, Re(y)>0, deduce x^(1/n)*y^(1/n)-(x*y)^(1/n)=0.
 sage: assume(real(x) > 0, real(y) > 0)
+sage: n = var('n')
 sage: f = x^(1/n)*y^(1/n)-(x*y)^(1/n)
 sage: print f
                                        0
@@ -349,13 +353,13 @@ sage: solve(exp(x) == 1)
 
 sage: # (SOMEWHAT) Solve Tan(x)=1 and get all solutions.
 sage: solve(tan(x) == 1)
-[x == (pi/4)]
+[x == pi/4]
 
 sage: # (YES) Solve a degenerate 3x3 linear system.
 sage: # x+y+z==6,2*x+y+2*z==10,x+3*y+z==10
 sage: # First symbolically:
 sage: solve([x+y+z==6, 2*x+y+2*z==10, x+3*y+z==10], x,y,z)
-[[x == (4 - r1), y == 2, z == r1]]
+[[x == 4 - r1, y == 2, z == r1]]
 
 sage: # (YES) Invert a 2x2 symbolic matrix.
 sage: # [[a,b],[1,a*b]]
@@ -368,7 +372,8 @@ sage: print zz
 [(-1)/(a^2*b - b)    a/(a^2*b - b)]
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
-sage: restore('a,b,c,d')
+sage: var('a,b,c,d')
+(a, b, c, d)
 sage: m = matrix(SR, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
 sage: print m
     [  1   a a^2 a^3]
@@ -442,7 +447,8 @@ sage: f.integral()
 100
 
 sage: # (YES) Taylor series of 1/Sqrt(1-v^2/c^2) at v=0.
-sage: restore('v,c')
+sage: var('v,c')
+(v, c)
 sage: taylor(1/sqrt(1-v^2/c^2), v, 0, 7)
 1 + v^2/(2*c^2) + 3*v^4/(8*c^4) + 5*v^6/(16*c^6)
 
@@ -459,12 +465,12 @@ sage: f - g*h
 O(x^8)
 
 sage: # (YES) Taylor expansion of Ln(x)^a*Exp(-b*x) at x=1.
-sage: taylor(log(x)^a * exp(-b*x), x, 1, 3)
-(x - 1)^a/e^b - (((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b)) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - (((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b))
+E = EllipticCurve([1,2,3/4,7,19]); E
+(x - 1)^a/e^b - ((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - ((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b)
 
 sage: # (YES) Taylor expansion of Ln(Sin(x)/x) at x=0.
 sage: taylor(log(sin(x)/x), x, 0, 10)
--x^2/6 - (x^4/180) - (x^6/2835) - (x^8/37800) - (x^10/467775)
+-x^2/6 - x^4/180 - x^6/2835 - x^8/37800 - x^10/467775
 
 sage: # (NO) Compute n-th term of the Taylor series of Ln(Sin(x)/x) at x=0.
 sage: # need formal functions

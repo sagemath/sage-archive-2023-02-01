@@ -1,5 +1,5 @@
 r"""
-Congruence subgroups of $\SL_2(\Z)$
+Congruence subgroups of SL2(Z)
 
 \sage can compute with the congruence subgroups $\Gamma_0(N)$,
 $\Gamma_1(N)$, and $\Gamma_H(N)$.
@@ -275,7 +275,7 @@ class Gamma0(CongruenceSubgroup):
     def coset_reps(self):
         r"""
         Return representatives for the right cosets of this
-        congruence subgroup in $\SL_2(\Z)$ as a generator.
+        congruence subgroup in ${\rm SL}_2(\Z)$ as a generator.
 
         Use \code{list(self.coset_reps())} to obtain coset reps as a
         list.
@@ -288,12 +288,12 @@ class Gamma0(CongruenceSubgroup):
         r"""
         Return generators for this congruence subgroup.  These are
         computed using coset representatives, a naive algorithm
-        (Todd-Coxeter?), and generators for $\SL_2(\Z)$.
+        (Todd-Coxeter?), and generators for ${\rm SL}_2(\Z)$.
 
         ALGORITHM: Given coset representatives for a finite index
-        subgroup~$G$ of $\SL_2(\Z)$ we compute generators for~$G$ as
+        subgroup~$G$ of ${\rm SL}_2(\Z)$ we compute generators for~$G$ as
         follows.  Let $R$ be a set of coset representatives for $G$.
-        Let $S, T \in \SL_2(\Z)$ be defined by \code{0,-1,1,0]} and
+        Let $S, T \in {\rm SL}_2(\Z)$ be defined by \code{0,-1,1,0]} and
         \code{1,1,0,1}, respectively.  Define maps $s, t: R \to G$ as
         follows. If $r \in R$, then there exists a unique $r' \in R$
         such that $GrS = Gr'$. Let $s(r) = rSr'^{-1}$. Likewise, there
@@ -308,7 +308,7 @@ class Gamma0(CongruenceSubgroup):
         # 2. To compute the above maps efficiently, use right matrix
         #    multiplication and reduce bottom two entries then use dictionary.
 
-        raise NotImplemented
+        raise NotImplementedError
         D = {}
         for r in self.coset_reps():
             c,d = (r[1,0], r[1,1])
@@ -342,7 +342,7 @@ def is_SL2Z(x):
 
 class SL2Z(Gamma0):
     r"""
-    The modular group $\SL_2(\Z)$.
+    The modular group ${\rm SL}_2(\Z)$.
 
     EXAMPLES:
         sage: G = SL2Z(); G
@@ -862,7 +862,7 @@ degeneracy_coset_representatives_gamma1 = congroup_pyx.degeneracy_coset_represen
 ##     \item Compute representatives for $\Gamma_0(N/t,t)$ inside of $\Gamma_0(M)$:
 ##           COSET EQUIVALENCE:
 ##            Two right cosets represented by $[a,b;c,d]$ and
-##            $[a',b';c',d']$ of $\Gamma_0(N/t,t)$ in $\SL_2(\Z)$
+##            $[a',b';c',d']$ of $\Gamma_0(N/t,t)$ in ${\rm SL}_2(\Z)$
 ##            are equivalent if and only if
 ##            $(a,b)=(a',b')$ as points of $\P^1(\Z/t\Z)$,
 ##            i.e., $ab' \con ba' \pmod{t}$,

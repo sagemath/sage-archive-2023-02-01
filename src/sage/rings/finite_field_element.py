@@ -160,7 +160,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         a = self**(n // 2)
         return a == 1 or a == 0
 
-    def square_root(self):
+    def square_root(self, extend=False):
         """
         Return a square root of this finite field element in its
         finite field, if there is one.  Otherwise, raise a ValueError.
@@ -190,11 +190,15 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             return -g[0][0][0]
         raise ValueError, "must be a perfect square."
 
-    def sqrt(self):
+    def sqrt(self, extend=False):
         """
         See self.square_root().
+
+        INPUT:
+           extend -- ignored
+
         """
-        return self.square_root()
+        return self.square_root(extend=extend)
 
 
     def rational_reconstruction(self):
@@ -298,6 +302,16 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def _pari_init_(self):
         return str(self.__value)
+
+    def _magma_init_(self):
+        """
+        Return a string representation of self that MAGMA can
+        understand.
+
+        """
+        km = self.parent()._magma_()
+        vn = km.gen(1).name()
+        return ("%s"%(self.__value.lift().lift())).replace('a',vn)
 
     def _gap_init_(self):
         """

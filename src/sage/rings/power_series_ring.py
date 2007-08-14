@@ -33,6 +33,7 @@ An iterated example:
 
 We compute with power series over the symbolic ring.
     sage: K.<t> = PowerSeriesRing(SR, 5)
+    sage: a, b, c = var('a,b,c')
     sage: f = a + b*t + c*t^2 + O(t^3)
     sage: f*f
     a^2 + ((b + a)^2 - b^2 - a^2)*t + ((c + b + a)^2 - (c + b)^2 - (b + a)^2 + 2*b^2)*t^2 + O(t^3)
@@ -77,7 +78,12 @@ TESTS:
 """
 
 import weakref
+import power_series_poly
+import power_series_mpoly
 import power_series_ring_element
+
+from polynomial.all import (is_MPolynomialRing, is_PolynomialRing,
+                            MPolynomialRing)
 import polynomial.polynomial_ring as polynomial_ring
 import laurent_series_ring
 import commutative_ring
@@ -94,9 +100,11 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens
 
+
 _cache = {}
 
-def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None, sparse=False):
+def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None,
+                    sparse=False):
     """
     Create a power series ring.
 
@@ -182,7 +190,8 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
     """
     A power series ring.
     """
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False,
+                 use_lazy_mpoly_ring=False):
         """
         Initializes a power series ring.
 
@@ -191,14 +200,33 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             name -- name of the indeterminate
             default_prec -- the default precision
             sparse -- whether or not power series are sparse
+
+            use_lazy_mpoly_ring -- if base ring is a poly ring compute
+                    with multivariate polynomials instead of a
+                    univariate poly over the base ring.  Only use this
+                    for dense power series where you won't do too much
+                    arithmetic, but the arithmetic you do must be
+                    fast.  You must explicitly call
+                    \code{f.do_truncation()} on an element for it to
+                    truncate away higher order terms (this is called
+                    automatically before printing).
         """
         ParentWithGens.__init__(self, base_ring, name)
         Nonexact.__init__(self, default_prec)
-        self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name, sparse=sparse)
-        self.__power_series_class = power_series_ring_element.PowerSeries_poly
-        self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
+        R = polynomial_ring.PolynomialRing(base_ring, name, sparse=sparse)
+        self.__poly_ring = R
+        self.__power_series_class = power_series_poly.PowerSeries_poly
+        self.__generator = self.__power_series_class(self, R.gen(), check=True, is_gen=True)
         self.__is_sparse = sparse
         self.__params = (base_ring, name, default_prec, sparse)
+
+        if use_lazy_mpoly_ring and (is_MPolynomialRing(base_ring) or \
+                                    is_PolynomialRing(base_ring)):
+            K = base_ring
+            names = K.variable_names() + (name,)
+            self.__mpoly_ring = MPolynomialRing(K.base_ring(), names=names)
+            assert is_MPolynomialRing(self.__mpoly_ring)
+            self.__power_series_class = power_series_mpoly.PowerSeries_mpoly
 
     def __reduce__(self):
         """
@@ -296,6 +324,22 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self(v) * (self.gen(0)**f.Valuation())
         return self.__power_series_class(self, f, prec, check=check)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the univariate polynomial ring with respect to the indeterminate
+        (to a given precision).
+
+        EXAMPLE:
+            sage: R = PowerSeriesRing(ZZ, 'x')
+            sage: c, S = R.construction(); S
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return CompletionFunctor(self._names[0], self.default_prec()),  self._poly_ring()
+
     def _coerce_impl(self, x):
         """
         Return canonical coercion of x into self.
@@ -390,7 +434,8 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
     def _poly_ring(self):
         """
-        Return the underlying polynomial ring used to represent elements of this power series ring.
+        Return the underlying polynomial ring used to represent
+        elements of this power series ring.
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(ZZ)
@@ -398,6 +443,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             Univariate Polynomial Ring in t over Integer Ring
         """
         return self.__poly_ring
+
+    def _mpoly_ring(self):
+        return self.__mpoly_ring
 
     def base_extend(self, R):
         """
@@ -617,13 +665,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-    pass
+      pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is defined since
-        the base ring is a field.
+        this is over a field.
 
         This fraction field is just the Laurent series ring over the base field.
 
@@ -635,7 +683,6 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
             Laurent Series Ring in t over Finite Field of size 7
         """
         return self.laurent_series_ring()
-
 
 def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
     return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)

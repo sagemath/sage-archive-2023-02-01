@@ -83,7 +83,7 @@ class TateCurve(SageObject):
 
 
     def parameter(self,prec=20):
-        """
+        r"""
         Returns the Tate parameter $q$ such that the curve is isomorphic over the algebraic closure of $\QQ_p$ to the curve
         $\QQ_p^{\times}/q^{\ZZ}$.
 
@@ -321,16 +321,16 @@ class TateCurve(SageObject):
         EXAMPLES:
             sage: e = EllipticCurve('130a1')
             sage: eq = e.tate_curve(5)
-            sage: P = e.gens()[0]
+            sage: P = e([-6,10])
             sage: l = eq.lift(12*P, prec=10); l
-            1 + 5 + 3*5^3 + 2*5^5 + 2*5^6 + 3*5^7 + 5^9 + O(5^10)
+            1 + 4*5 + 5^3 + 5^4 + 4*5^5 + 5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)
 
         Now we map the lift l back and check that it is indeed right.
             sage: eq.parametrisation_onto_original_curve(l)
-            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 3*5^-3 + 5^-1 + 4 + 2*5^2 + 3*5^3 + 3*5^4 + 5^5 + O(5^6) : 1 + O(5^20))
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^20))
             sage: e5 = e.change_ring(Qp(5,9))
             sage: e5(12*P)
-            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 3*5^-3 + 5^-1 + 4 + 2*5^2 + 3*5^3 + 3*5^4 + 5^5 + O(5^6) : 1 + O(5^9))
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^9))
         """
         p = self._p
         R = Qp(self._p,prec)

@@ -376,7 +376,7 @@ class EisensteinSeries(ModularFormElement):
 
     def new_level(self):
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return factor(self.__t)[0][0]
+            return rings.factor(self.__t)[0][0]
         return self.L()*self.M()
 
 

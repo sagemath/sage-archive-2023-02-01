@@ -179,10 +179,10 @@ def format_search_as_html(what, r, search):
     files.sort()
     for F in files:
         if F.endswith('.html'):
-            url = '/doc_browser?/' + F.replace('/','/?')
+            url = '/doc/live/' + F
         else:
             # source code
-            url = '/src_browser?/' + F
+            url = '/src/' + F
         s += '<li><a href="%s"><tt>%s</tt></a>\n'%(url, F)
     s += '</ol>'
     s += '</font>'

@@ -176,7 +176,7 @@ MAGMA_SPEC = '%s/magma/spec'%sage.misc.misc.SAGE_EXTCODE
 
 
 class Magma(Expect):
-    """
+    r"""
     Interface to the Magma interpreter.
 
     Type \code{magma.[tab]} for a list of all the functions available
@@ -184,6 +184,10 @@ class Magma(Expect):
     help about a given function.  Type \code{magma(...)} to create
     a new Magma object, and \code{magma.eval(...)} to run a string
     using Magma (and get the result back as a string).
+
+    NOTE: If you do not own a local copy of MAGMA, try using the
+    \code{magma\_free} command instead, which uses the free demo web
+    interface to MAGMA.
 
     EXAMPLES:
 
@@ -672,6 +676,9 @@ class MagmaElement(ExpectElement):
     def __len__(self):
         P = self._check_valid()
         return int(P.eval('#%s'%self.name()))
+
+    def _polynomial_(self, R):
+        return R(list(self.Eltseq()))
 
     def _latex_(self):
         r"""

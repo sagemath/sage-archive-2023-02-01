@@ -101,7 +101,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
     EXAMPLES: Constructing a relative number field
         sage: K.<a> = NumberField(x^2 - 2)
         sage: R.<t> = K[]
-        sage: L = K.extension(t^3+t+a, b); L
+        sage: L = K.extension(t^3+t+a, 'b'); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
         sage: L.absolute_field()
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
@@ -217,6 +217,7 @@ class NumberField_generic(field.Field):
     def __reduce__(self):
         """
         TESTS:
+            sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L = loads(dumps(K))
             sage: print L
@@ -472,15 +473,26 @@ class NumberField_generic(field.Field):
             v (optional) -- list of element of this number field
         OUTPUT:
             Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<t> = NumberField(x^3 + x^2 - 2*x + 8)
+            sage: K.disc()
+            -503
+            sage: K.disc([1, t, t^2])
+            -2012
+            sage: K.disc([1/7, (1/5)*t, (1/3)*t^2])
+            -2012/11025
+            sage: (5*7*3)^2
+            11025
         """
         if v == None:
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = ZZ(str(self.pari_nf()[2]))
+                self.__disc = QQ(str(self.pari_nf()[2]))
                 return self.__disc
         else:
-            return Q(self.trace_pairing(v).det())
+            return QQ(self.trace_pairing(v).det())
 
     disc = discriminant
 
@@ -514,6 +526,7 @@ class NumberField_generic(field.Field):
         We create another extension.
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1
+            sage: y = var('y')
             sage: m.<b> = k.extension(y^2 + 1); m
             Extension by y^2 + 1 of the Number Field in a with defining polynomial x^2 + 1
             sage: b.minpoly()
@@ -924,6 +937,7 @@ class NumberField_extension(NumberField_generic):
     def __reduce__(self):
         """
         TESTS:
+            sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L.<z> = K.extension(Z^3 + 2)
             sage: L = loads(dumps(K))

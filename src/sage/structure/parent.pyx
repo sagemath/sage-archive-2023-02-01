@@ -7,6 +7,12 @@ SageObject
     Parent
         ParentWithBase
             ParentWithGens
+
+
+TESTS:
+This came up in some subtle bug once.
+    sage: gp(2) + gap(3)
+    5
 """
 
 ###############################################################################
@@ -18,6 +24,7 @@ SageObject
 ###############################################################################
 
 cimport sage_object
+import operator
 
 include '../ext/python_object.pxi'
 include '../ext/python_bool.pxi'
@@ -55,8 +62,35 @@ cdef class Parent(sage_object.SageObject):
     """
     Parents are the SAGE/mathematical analogues of container objects in computer science.
     """
-    def __init__(self):
+
+    def __init__(self, coerce_from=[], actions=[], embeddings=[]):
+        # TODO: many classes don't call this at all, but __new__ crashes SAGE
+#        if len(coerce_from) > 0:
+#            print type(self), coerce_from
+        self._coerce_from_list = list(coerce_from)
+        self._coerce_from_hash = {}
+        self._action_list = list(actions)
+        self._action_hash = {}
+
+        cdef Parent other
+        for mor in embeddings:
+            other = mor.domain()
+            print "embedding", self, " --> ", other
+            print mor
+            other.init_coerce() # TODO remove when we can
+            other._coerce_from_list.append(mor)
+
+        # old
         self._has_coerce_map_from = {}
+
+    def init_coerce(self):
+        if self._coerce_from_hash is None:
+#            print "init_coerce() for ", type(self)
+            self._coerce_from_list = []
+            self._coerce_from_hash = {}
+            self._action_list = []
+            self._action_hash = {}
+
 
     #############################################################################
     # Containment testing
@@ -87,8 +121,205 @@ cdef class Parent(sage_object.SageObject):
             return x2 == x
         except TypeError:
             return False
-        return True
 
+
+    #################################################################################
+    # New Coercion support functionality
+    #################################################################################
+
+    def coerce_map_from(self, S):
+        return self.coerce_map_from_c(S)
+
+    cdef coerce_map_from_c(self, S):
+        if S is self:
+            from sage.categories.homset import Hom
+            return Hom(self, self).identity()
+        elif S == self:
+            # non-unique parents
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import CallMorphism
+            return CallMorphism(Hom(S, self))
+        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+            self.init_coerce()
+        #try:
+        if self._coerce_from_hash.has_key(S):
+            return self._coerce_from_hash[S]
+        #except KeyError:
+        #    pass
+        if HAS_DICTIONARY(self):
+            mor = self.coerce_map_from_impl(S)
+        else:
+            mor = self.coerce_map_from_c_impl(S)
+        import sage.categories.morphism
+        if mor is True:
+            mor = sage.categories.morphism.CallMorphism(S, self)
+        elif mor is False:
+            mor = None
+        elif mor is not None and not isinstance(mor, sage.categories.morphism.Morphism):
+            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Morphism"
+        if mor is not None:
+            self._coerce_from_hash[S] = mor # TODO: if this is None, could it be non-None in the future?
+        return mor
+
+    def coerce_map_from_impl(self, S):
+        return self.coerce_map_from_c_impl(S)
+
+    cdef coerce_map_from_c_impl(self, S):
+        import sage.categories.morphism
+        from sage.categories.morphism import Morphism
+        from sage.categories.homset import Hom
+        cdef Parent R
+        for mor in self._coerce_from_list:
+            if PY_TYPE_CHECK(mor, Morphism):
+                R = mor.domain()
+            else:
+                R = mor
+                mor = sage.categories.morphism.CallMorphism(Hom(R, self))
+                i = self._coerce_from_list.index(R)
+                self._coerce_from_list[i] = mor # cache in case we need it again
+            if R is S:
+                return mor
+            else:
+                connecting = R.coerce_map_from_c(S)
+                if connecting is not None:
+                    return mor * connecting
+
+        # Piggyback off the old code for now
+        # WARNING: when working on this, make sure circular dependancies aren't introduced!
+        if self.has_coerce_map_from_c(S):
+            if isinstance(S, type):
+                S = Set_PythonType(S)
+            return sage.categories.morphism.FormalCoercionMorphism(Hom(S, self))
+        else:
+            return None
+
+    def get_action(self, S, op=operator.mul, self_on_left=True):
+        return self.get_action_c(S, op, self_on_left)
+
+    cdef get_action_c(self, S, op, bint self_on_left):
+        try:
+            if self._action_hash is None: # this is because parent.__init__() does not always get called
+                self.init_coerce()
+            return self._action_hash[S, op, self_on_left]
+        except KeyError:
+            pass
+        if HAS_DICTIONARY(self):
+            action = self.get_action_impl(S, op, self_on_left)
+        else:
+            action = self.get_action_c_impl(S, op, self_on_left)
+        if action is not None:
+            from sage.categories.action import Action
+            if not isinstance(action, Action):
+                raise TypeError, "get_action_impl must return None or an Action"
+            self._action_hash[S, op, self_on_left] = action
+        return action
+
+    def get_action_impl(self, S, op, self_on_left):
+        return self.get_action_c_impl(S, op, self_on_left)
+
+    cdef get_action_c_impl(self, S, op, bint self_on_left):
+        # G acts on S, G -> G', R -> S => G' acts on R (?)
+        import sage.categories.morphism
+        from sage.categories.action import Action, PrecomposedAction
+        from sage.categories.morphism import Morphism
+        from sage.categories.homset import Hom
+        from coerce import LeftModuleAction, RightModuleAction
+        cdef Parent R
+        for action in self._action_list:
+            if PY_TYPE_CHECK(action, Action):
+                if self_on_left:
+                    if action.left() is not self: continue
+                    R = action.right()
+                else:
+                    if action.right() is not self: continue
+                    R = action.left()
+            elif op is operator.mul:
+                try:
+                    R = action
+                    _register_pair(x,y) # to kill circular recursion
+                    if self_on_left:
+                        action = LeftModuleAction(S, self) # self is acted on from right
+                    else:
+                        action = RightModuleAction(S, self) # self is acted on from left
+                    _unregister_pair(x,y)
+                    i = self._action_list.index(R)
+                    self._action_list[i] = action
+                except TypeError:
+                    continue
+            else:
+                continue # only try mul if not specified
+            if R is S:
+                return action
+            else:
+                connecting = R.coerce_map_from_c(S) # S -> R
+                if connecting is not None:
+                    if self_on_left:
+                        return PrecomposedAction(action, None, connecting)
+                    else:
+                        return PrecomposedAction(action, connecting, None)
+
+
+        if op is operator.mul and PY_TYPE_CHECK(S, Parent):
+            from coerce import LeftModuleAction, RightModuleAction, LAction, RAction
+            # Actors define _l_action_ and _r_action_
+            # Acted-on elements define _lmul_ and _rmul_
+
+            # TODO: if _xmul_/_x_action_ code does stuff like
+            # if self == 0:
+            #    return self
+            # then _an_element_c() == 0 could be very bad.
+            #
+            #
+            x = self._an_element_c()
+            y = (<Parent>S)._an_element_c()
+#            print "looking action ", x, y
+
+            _register_pair(x,y) # this is to avoid possible infinite loops
+            if self_on_left:
+                try:
+#                    print "RightModuleAction"
+                    action = RightModuleAction(S, self) # this will test _lmul_
+                    _unregister_pair(x,y)
+#                    print "got", action
+                    return action
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
+
+                try:
+#                    print "LAction"
+                    z = x._l_action_(y)
+                    _unregister_pair(x,y)
+                    return LAction(self, S)
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
+
+            else:
+                try:
+#                    print "LeftModuleAction"
+                    action = LeftModuleAction(S, self) # this will test _rmul_
+                    _unregister_pair(x,y)
+#                    print "got", action
+                    return action
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
+
+                try:
+#                    print "RAction"
+                    z = x._r_action_(y)
+                    _unregister_pair(x,y)
+                    return RAction(self, S)
+                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                    pass
+
+            _unregister_pair(x,y)
+#            print "found nothing"
+
+    def construction(self):
+        """
+        Returns a pair (functor, parent) such that functor(parent) return self.
+        If this ring does not have a functorial construction, return None.
+        """
+        return None
 
     #################################################################################
     # Coercion support functionality
@@ -143,7 +374,7 @@ cdef class Parent(sage_object.SageObject):
             try:
                 y = R._coerce_(x)
                 return self(y)
-            except TypeError, msg:
+            except (TypeError, AttributeError), msg:
                 pass
         raise TypeError, "no canonical coercion of element into self"
 
@@ -175,10 +406,13 @@ cdef class Parent(sage_object.SageObject):
         Otherwise, return False.
         """
         try:
-            return self._has_coerce_map_from[S]
-        except KeyError:
-            pass
-        except TypeError:
+            if self._has_coerce_map_from.has_key(S):
+                return self._has_coerce_map_from[S]
+        #try:
+        #    return self._has_coerce_map_from[S]
+        #except KeyError:
+        #    pass
+        except AttributeError:
             self._has_coerce_map_from = {}
         if HAS_DICTIONARY(self):
             x = self.has_coerce_map_from_impl(S)
@@ -203,7 +437,7 @@ cdef class Parent(sage_object.SageObject):
 
     def _an_element_impl(self):     # override this in Python
         r"""
-        Implementation of a function that returns an element (often 0)
+        Implementation of a function that returns an element (often non-trivial)
         of a parent object.  Every parent object should implement it,
         unless the default implementation works.
 
@@ -214,15 +448,26 @@ cdef class Parent(sage_object.SageObject):
 
     cdef _an_element_c_impl(self):  # override this in SageX
         """
-        Returns an element of self.  It doesn't matter which.
+        Returns an element of self. Want it in sufficent generality
+        that poorly-written functions won't work when they're not
+        supposed to. This is cached so doesn't have to be super fast.
         """
         try:
-            return self(0)
-        except TypeError:
+            return self.gen(0)
+        except:
+            pass
+
+        try:
+            return self.gen()
+        except:
+            pass
+
+        for x in ['_an_element_', 'pi', 1.2, 2, 1, 0]:
             try:
-                return self(1)
-            except TypeError:
+                return self(x)
+            except (TypeError, NameError, NotImplementedError):
                 pass
+
         raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
 
     def _an_element(self):        # do not override this (call from Python)
@@ -347,3 +592,97 @@ cdef class Parent(sage_object.SageObject):
             pass
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
+
+
+    ############################################################################
+    # Set baseclass --
+    ############################################################################
+
+
+class Set_generic(Parent): # Cannot use Parent because Element._parent is ParentWithBase
+    """
+    Abstract base class for sets.
+    """
+    def category(self):
+        """
+        The category that this set belongs to, which is the category
+        of all sets.
+
+        EXAMPLES:
+            sage: Set(QQ).category()
+            Category of sets
+        """
+        import sage.categories.all
+        return sage.categories.all.Sets()
+
+    def object(self):
+        return self
+
+
+class Set_PythonType(Set_generic):
+
+    def __init__(self, theType):
+        self._type = theType
+
+    def __call__(self, x):
+        return self._type(x)
+
+    def __hash__(self):
+        return hash(self._type)
+
+    def __cmp__(self, other):
+        if isinstance(other, Set_PythonType):
+            return cmp(self._type, other._type)
+        else:
+            return cmp(self._type, other)
+
+    def __contains__(self, x):
+        return isinstance(x, self._type)
+
+    def _latex_(self):
+        return self._repr_()
+
+    def _repr_(self):
+        return "Set of Python objects of %s"%(str(self._type)[1:-1])
+
+    def object(self):
+        return self._type
+
+    def cardinality(self):
+        if self._type is bool:
+            return 2
+        else:
+            import sage.rings.infinity
+            return sage.rings.infinity.infinity
+
+
+# These functions are to guerentee that user defined _lmul_, _rmul_, _l_action_, _r_action_ do
+# not in turn call __mul__ on their arguments, leading to an infinite loop.
+
+cdef object _coerce_test_list = []
+
+class EltPair:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __eq__(self, other):
+        return type(self.x) is type(other.x) and self.x == other.x and type(self.y) is type(other.y) and self.y == other.y
+    def __repr__(self):
+        return "%r (%r), %r (%r)" % (self.x, type(self.x), self.y, type(self.y))
+
+cdef bint _register_pair(x, y) except -1:
+    both = EltPair(x,y)
+#    print _coerce_test_list, " + ", both
+    if both in _coerce_test_list:
+#        print "Uh oh..."
+#        print _coerce_test_list
+#        print both
+        raise NotImplementedError, "Infinite loop in multiplication of %s (parent %s) and %s (parent %s)!" % (x, x.parent(), y, y.parent())
+    _coerce_test_list.append(both)
+    return 0
+
+cdef void _unregister_pair(x, y):
+    try:
+        _coerce_test_list.remove(EltPair(x,y))
+    except ValueError:
+        pass

@@ -5,8 +5,6 @@ PARI Groups
 import group
 from sage.libs.all import pari, pari_gen
 
-import perm_gps.permgroup as permgroup
-
 class PariGroup(group.FiniteGroup):
     def __init__(self, x, degree=None):
         if not isinstance(x, pari_gen):
@@ -26,6 +24,7 @@ class PariGroup(group.FiniteGroup):
     def permutation_group(self):
         if self.__degree is None:
             raise NotImplementedError
-        return permgroup.TransitiveGroup(self.__degree, self.__x[2])
+        import perm_gps.permgroup_named
+        return perm_gps.permgroup_named.TransitiveGroup(self.__degree, self.__x[2])
 
     _permgroup_ = permutation_group

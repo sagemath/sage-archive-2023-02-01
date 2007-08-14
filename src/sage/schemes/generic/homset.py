@@ -217,6 +217,8 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
     """
     def __init__(self, X, S):
         R = X.base_ring()
+        if R != S:
+            X = X.base_extend(S)
         SchemeHomset_generic.__init__(self, spec.Spec(S, R), X)
 
     def _repr_(self):
@@ -269,9 +271,10 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     def __call__(self, *v):
         if len(v) == 1:
             v = v[0]
+        X = self.codomain()
         try:
-            return self.codomain()._point_class(self.codomain(), v)
-        except AttributeError:
+            return X._point_class(X, v)
+        except AttributeError:  # should be very rare
             return morphism.SchemeMorphism_projective_coordinates_field(self, v)
 
     def points(self, B=0):

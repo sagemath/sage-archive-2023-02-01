@@ -34,8 +34,8 @@ Arithmetic obeys the usual coercion rules.
 import math
 import types
 from sage.misc.misc import xsrange
-import sage.structure.coerce
 import operator
+import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 
@@ -270,7 +270,7 @@ cdef class gen(sage.structure.element.RingElement):
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mod(other)
-        return sage.structure.coerce.bin_op(self, other, operator.mod)
+        return sage.structure.element.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)
@@ -567,7 +567,7 @@ cdef class gen(sage.structure.element.RingElement):
 
 
     ###########################################
-    # comparisions
+    # comparisons
     # I had to put the call to gcmp in another
     # function since otherwise I can't trap
     # the PariError it will sometimes raise.
@@ -631,7 +631,6 @@ cdef class gen(sage.structure.element.RingElement):
 
     def copy(gen self):
         return P.new_gen(forcecopy(self.g))
-
 
     ###########################################
     # Conversion --> Python
@@ -935,6 +934,19 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return t
 
+    def hclassno(gen n):
+        """
+        Computes the Hurwitz-Kronecker class number of n.
+
+	EXAMPLES:
+            sage: pari(-10007).hclassno()
+            77
+            sage: pari(-3).hclassno()
+	    1/3
+        """
+        _sig_on
+        return P.new_gen(hclassno(n.g))
+
     def ispseudoprime(gen self, flag=0):
         """
         ispseudoprime(x, flag=0): Returns True if x is a pseudo-prime
@@ -1072,6 +1084,12 @@ cdef class gen(sage.structure.element.RingElement):
         shiftmul(x,n): Return the product of x by $2^n$.
         """
         return P.new_gen(gmul2n(x.g, n))
+
+    def moebius(gen x):
+        """
+        moebius(x): Moebius function of x.
+        """
+        return P.new_gen(gmu(x.g))
 
     def sign(gen x):
         """
@@ -4716,6 +4734,27 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(B)
         return self.new_gen(qfrep0(self.g,t0,flag))
 
+    def matsolve(self, B):
+        """
+        matsolve(B): Solve the linear system Mx=B for an invertible matrix M
+
+        matsolve(B) uses gaussian elimination to solve Mx=B, where M is
+        invertible and B is a column vector.
+
+        The corresponding pari library routine is gauss. The gp-interface
+        name matsolve has been given preference here.
+
+        INPUT:
+            B -- a column vector of the same dimension as the square matrix self
+
+        EXAMPLES:
+            sage: pari('[1,1;1,-1]').matsolve(pari('[1;0]'))
+            [1/2; 1/2]
+        """
+        _sig_on
+        t0GEN(B)
+        return self.new_gen(gauss(self.g,t0))
+
     def matker(self, long flag=0):
         """
         Return a basis of the kernel of this matrix.
@@ -4818,6 +4857,60 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return self.new_gen(mathnf0(self.g, flag))
+
+    def mathnfmod(self, d):
+        """
+        Returns the Hermite normal form if d is a multiple of the determinant
+
+        Beware that PARI's concept of a hermite normal form is an upper
+        triangular matrix with the same column space as the input matrix.
+
+        INPUT:
+            d -- multiple of the determinant of self
+
+        EXAMPLES:
+            sage: M=matrix([[1,2,3],[4,5,6],[7,8,11]])
+	    sage: d=M.det()
+	    sage: pari(M).mathnfmod(d)
+            [6, 4, 3; 0, 1, 0; 0, 0, 1]
+
+	Note that d really needs to be a multiple of the discriminant, not
+	just of the exponent of the cokernel:
+
+            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+	    sage: pari(M).mathnfmod(6)
+	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
+	    sage: pari(M).mathnfmod(12)
+	    [1, 0, 0; 0, 2, 0; 0, 0, 6]
+
+        """
+        _sig_on
+        t0GEN(d)
+        return self.new_gen(hnfmod(self.g, t0))
+
+    def mathnfmodid(self, d):
+        """
+        Returns the Hermite Normal Form of M concatenated with d*Identity
+
+        Beware that PARI's concept of a Hermite normal form is a maximal rank
+        upper triangular matrix with the same column space as the input matrix.
+
+        INPUT:
+            d -- Determines
+
+        EXAMPLES:
+            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+	    sage: pari(M).mathnfmodid(6)
+            [1, 0, 0; 0, 2, 0; 0, 0, 6]
+
+	This routine is not completely equivalent to mathnfmod:
+
+	    sage: pari(M).mathnfmod(6)
+	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
+        """
+        _sig_on
+        t0GEN(d)
+        return self.new_gen(hnfmodid(self.g, t0))
 
     def matsnf(self, flag=0):
         """
@@ -6082,11 +6175,18 @@ class PariError (RuntimeError):
 #              - Gonzalo Tornario
 
 cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
+    """
+    TESTS:
+        sage: v = pari.listcreate(10^9)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times.
+    """
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
         P.allocatemem()
-        raise RuntimeError, "The PARI stack overflowed.  It has automaticallyed been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
+        raise RuntimeError, "The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
 
         #print "Stack overflow! (%d retries so far)"%retries
         #print " enlarge the stack."
@@ -6097,3 +6197,14 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
         raise PariError, errno
 
 
+
+def vecsmall_to_intlist(gen v):
+    """
+    INPUT:
+        v -- a gen of type Vecsmall
+    OUTPUT:
+        a Python list of Python ints
+    """
+    if typ(v.g) != t_VECSMALL:
+        raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
+    return [v.g[k+1] for k in range(glength(v.g))]

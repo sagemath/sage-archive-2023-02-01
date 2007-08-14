@@ -789,7 +789,7 @@ def process_pyrex_file(f, m):
         outfile += 'pp'
 
     if need_to_pyrex(f, outfile):
-        cmd = "pyrexc --embed-positions -I%s %s"%(os.getcwd(), f)
+        cmd = "cython --embed-positions -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

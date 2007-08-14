@@ -193,7 +193,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self._names), self.base_ring()
+        return PolynomialFunctor(self.variable_name()), self.base_ring()
 
     def _coerce_impl(self, x):
         """

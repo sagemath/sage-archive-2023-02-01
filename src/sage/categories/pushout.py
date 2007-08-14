@@ -16,12 +16,28 @@ class ConstructionFunctor(Functor):
             return other * self
 
     def __cmp__(self, other):
+        """
+        Equality here means that they are mathematically equivalent, though they may have specific implementation data.
+        See the \code{merge} function.
+        """
         return cmp(type(self), type(other))
 
     def __str__(self):
         s = str(type(self))
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
+
+    def __repr__(self):
+        return str(self)
+
+    def merge(self, other):
+        if self == other:
+            return self
+        else:
+            return None
+
+    def commutes(self, other):
+        return False
 
 class CompositConstructionFunctor(ConstructionFunctor):
     def __init__(self, first, second):
@@ -54,18 +70,30 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             return self
 
 class PolynomialFunctor(ConstructionFunctor):
-    def __init__(self, vars):
+    def __init__(self, var, multi_variate=False):
         Functor.__init__(self, Rings(), Rings())
-        self.vars = vars
+        self.var = var
+        self.multi_variate = multi_variate
         self.rank = 9
     def __call__(self, R):
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
-        return PolynomialRing(R, self.vars)
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing, is_PolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        if self.multi_variate and (is_MPolynomialRing(R) or is_PolynomialRing(R)):
+            return PolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
+        else:
+            return PolynomialRing(R, self.var)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
-            c = cmp(self.vars, other.vars)
+            c = cmp(self.var, other.var)
         return c
+    def merge(self, other):
+        if self == other:
+            return PolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
+        else:
+            return None
+#    def __str__(self):
+#        return "Poly(%s)" % self.var
 
 class MatrixFunctor(ConstructionFunctor):
     def __init__(self, nrows, ncols):
@@ -115,6 +143,11 @@ class CompletionFunctor(ConstructionFunctor):
         self.rank = 7
     def __call__(self, R):
         return R.completion(self.p, self.prec, self.extras)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.p, other.p)
+        return c
 
 class QuotientFunctor(ConstructionFunctor):
     def __init__(self, I):
@@ -148,6 +181,93 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         return c
 
 def pushout(R, S):
+
+    if R == S:
+        return R
+
+    R_tower = construction_tower(R)
+    S_tower = construction_tower(S)
+    Rs = [c[1] for c in R_tower]
+    Ss = [c[1] for c in S_tower]
+
+    if R in Ss:
+        return S
+    elif S in Rs:
+        return R
+
+    if R_tower[-1][1] in Ss:
+      Rs, Ss = Ss, Rs
+      R_tower, S_tower = S_tower, R_tower
+
+#    print "Rs", Rs
+#    print "Ss", Ss
+
+    if Ss[-1] in Rs:
+        if Rs[-1] == Ss[-1]:
+            while Rs[-1] == Ss[-1]:
+                Rs.pop()
+                Z = Ss.pop()
+        else:
+            Rs = Rs[:Rs.index(Ss[-1])]
+            Z = Ss.pop()
+    elif Rs[-1].has_coerce_map_from(Ss[-1]):
+        Z = Rs[-1]
+
+    elif Ss[-1].has_coerce_map_from(Rs[-1]):
+        Z = Ss[-1]
+
+    else:
+        raise TypeError, "No common base"
+
+    # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
+    Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
+    Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
+
+    while len(Rc) > 0 or len(Sc) > 0:
+        print Z
+        if len(Sc) == 0:
+            c = Rc.pop()
+            Z = c(Z)
+        elif len(Rc) == 0:
+            c = Sc.pop()
+            Z = c(Z)
+        elif Rc[-1].rank < Sc[-1].rank:
+            c = Rc.pop()
+            Z = c(Z)
+        elif Sc[-1].rank < Rc[-1].rank:
+            c = Sc.pop()
+            Z = c(Z)
+        else:
+            if Rc[-1] == Sc[-1]:
+                cR = Rc.pop()
+                cS = Sc.pop()
+                c = cR.merge(cS)
+                if c:
+                    Z = c(Z)
+                else:
+                    raise TypeError, "Incompatable Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+            else:
+                if Rc[-1] in Sc:
+                    if Sc[-1] in Rc:
+                        raise TypeError, "Ambiguous Base Extension"
+                    else:
+                        c = Sc.pop()
+                        Z = c(Z)
+                elif Sc[-1] in Rc:
+                    c = Rc.pop();
+                    Z = c(Z)
+                elif Rc[-1].commutes(Sc[-1]):
+                    c = Rc.pop()
+                    Z = c(Z)
+                    c = Sc.pop()
+                    Z = c(Z)
+                else:
+                    raise TypeError, "Ambiguous Base Extension"
+    return Z
+
+
+
+def pushout_lattice(R, S):
     """
     Given a pair of Objects R and S, try and construct a
     reasonable object $Y$ and return maps such that

@@ -25,6 +25,32 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def is_integral_domain(self):
         return self.base_ring().is_integral_domain()
 
+    def construction(self):
+        """
+        Returns a functor F and basering R such that F(R) == self.
+
+        In the multi-variate case, R is a polynomial ring with one
+        less variable, and F knows to adjoin the variable in the
+        correct way.
+
+        EXAMPLES:
+            sage: S = ZZ['x,y']
+            sage: F, R = S.constructor(); R
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: F(R) == S
+            True
+            sage: F(R) == ZZ['x']['y']
+            False
+
+        """
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.categories.pushout import PolynomialFunctor
+        vars = self.variable_names()
+        if len(vars) == 1:
+            return PolynomialFunctor(vars[0], False), self.base_ring()
+        else:
+            return PolynomialFunctor(vars[-1], True), PolynomialRing(self.base_ring(), vars[:-1])
+
     cdef _coerce_c_impl(self, x):
         """
         Return the canonical coercion of x to this multivariate

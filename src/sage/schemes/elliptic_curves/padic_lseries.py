@@ -24,16 +24,16 @@ AUTHORS:
 
 from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.padics.factory import Qp
+from sage.rings.padics.factory import Qp, Zp
 from sage.rings.infinity import infinity
-from sage.rings.all import PowerSeriesRing, PolynomialRing, Integers
+from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
 from sage.rings.arith import valuation, binomial
 
 from sage.structure.sage_object import SageObject
 
-from sage.misc.all import verbose, denominator
+from sage.misc.all import verbose, denominator, get_verbose
 from sage.databases.cremona import parse_cremona_label
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 import sage.rings.arith as arith
@@ -93,7 +93,9 @@ class pAdicLseries(SageObject):
         crla = parse_cremona_label(E.label())
         cr0 = Integer(crla[0]).str() + crla[1] + '1'
         E0 = EllipticCurve(cr0)
-        self._quotient_of_periods = QQ(E0.period_lattice()[0]/E.period_lattice()[0])
+        q = E0.period_lattice()[0]/E.period_lattice()[0]*E0.real_components()/E.real_components()
+        self._quotient_of_periods = QQ(gp.bestappr(q,200))
+
         self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
 
     def elliptic_curve(self):
@@ -167,11 +169,18 @@ class pAdicLseries(SageObject):
             sage: L.measure(1,2, prec=9)
             1 + 4*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 4*5^8 + O(5^9)
         """
-        p = self._p
-        alpha = self.alpha(prec=prec)
-        z = 1/(alpha**n)
-        w = p**(n-1)
-        f = self._modular_symbol
+        try:
+            p, alpha, z, w, f = self.__measure_data[(n,prec)]
+        except (KeyError, AttributeError):
+            if not hasattr(self, '__measure_data'):
+                self.__measure_data = {}
+            p = self._p
+            alpha = self.alpha(prec=prec)
+            z = 1/(alpha**n)
+            w = p**(n-1)
+            f = self._modular_symbol
+            self.__measure_data[(n,prec)] = (p,alpha,z,w,f)
+
         if self._E.conductor() % p == 0:
             return z * f(a/(p*w))
         return z * f(a/(p*w)) - (z/alpha) * f(a/w)
@@ -306,7 +315,7 @@ class pAdicLseries(SageObject):
     def _c_bounds(self, n):
         raise NotImplementedError
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         raise NotImplementedError
 
     def teichmuller(self, prec):
@@ -331,11 +340,13 @@ class pAdicLseries(SageObject):
         return [Integer(0)] + \
                [a.residue(prec).lift() for a in K.teichmuller_system()]
 
-    def _e_bounds(self, n):
+    def _e_bounds(self, n, prec):
         p = self._p
-        T = (ZZ['T']).gen()
+        prec = max(2,prec)
+        R = PowerSeriesRing(ZZ,'T',prec+1)
+        T = R(R.gen(),prec +1)
         w = (1+T)**(p**n) - 1
-        return [infinity] + [valuation(w[j],p) for j in range(1,w.degree()+1)]
+        return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
     def _get_series_from_cache(self, n, prec):
         try:
@@ -415,13 +426,18 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
         p = self._p
+        #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
-        bounds = self._prec_bounds(n)
+        bounds = self._prec_bounds(n,prec)
         padic_prec = max(bounds[1:]) + 5
+        verbose("using p-adic precision of %s"%padic_prec)
+
         res_series_prec = min(p**(n-1), prec)
+        verbose("using series precision of %s"%res_series_prec)
 
         ans = self._get_series_from_cache(n, res_series_prec)
         if not ans is None:
+            verbose("found series in cache")
             return ans
 
         K = QQ
@@ -430,10 +446,18 @@ class pAdicLseriesOrdinary(pAdicLseries):
         T = R(R.gen(),res_series_prec )
         L = R(0)
         one_plus_T_factor = R(1)
-        gamma_power = 1
+        gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
-        for j in range(p**(n-1)):
+        p_power = p**(n-1)
+
+        verbose("Now iterating over %s summands"%((p-1)*p_power))
+        verbose_level = get_verbose()
+        count_verb = 0
+        for j in range(p_power):
             s = K(0)
+            if verbose_level >= 2 and j/p_power*100 > count_verb + 3:
+                verbose("%.2f percent done"%(float(j)/p_power*100))
+                count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec).lift()
@@ -498,9 +522,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
         self.__c_bound = ans
         return ans
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n, prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1, prec)
         c = self._c_bound()
         return [e[j] - c for j in range(len(e))]
 
@@ -532,23 +556,23 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(2)
             O(T^3)
             sage: L.series(4)         # takes a long time (several seconds)
-    (O(3^1))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 + ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
+            (O(3^1))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 + ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
             sage: L.alpha(2).parent()
-			Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
+            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
-
-        bounds = self._prec_bounds(n)
-        padic_prec = max(sum(bounds[1:],[])) + 5
         p = self._p
-
         prec = min(p**(n-1), prec)
+        bounds = self._prec_bounds(n,prec)
+        padic_prec = max(sum(bounds[1:],[])) + 5
+        verbose("using p-adic precision of %s"%padic_prec)
         ans = self._get_series_from_cache(n, prec)
         if not ans is None:
+            verbose("found series in cache")
             return ans
 
         alpha = self.alpha(prec=padic_prec)
@@ -560,8 +584,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
         one_plus_T_factor = R(1)
         gamma_power = 1
         teich = self.teichmuller(padic_prec)
+
+        verbose("Now iterating over %s summands"%((p-1)*p**(n-1)))
+        verbose_level = get_verbose()
+        count_verb = 0
         for j in range(p**(n-1)):
             s = K(0)
+            if verbose_level >= 2 and j/p**(n-1)*100 > count_verb + 3:
+                verbose("%.2f percent done"%(float(j)/p**(n-1)*100))
+                count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
                 s += self.measure(b, n, padic_prec)
@@ -589,9 +620,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def is_supersingular(self):
         return True
 
-    def _prec_bounds(self, n):
+    def _prec_bounds(self, n,prec):
         p = self._p
-        e = self._e_bounds(n-1)
+        e = self._e_bounds(n-1,prec)
         c0 = ZZ(n+2)/2
         c1 = ZZ(n+3)/2
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
@@ -601,17 +632,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
         r"""
         Returns a vector of two components which are p-adic power series.
         The answer v is such that
-            $$(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \eta$$
+            $$(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \varphi(\omega)$$
         as an element of the Dieudonne module $D_p(E) = H^1_{dR}(E/\QQ_p)$ where
-        $\omega$ is the invariant differential and $\eta$ is $x\cdot\omega$.
+        $\omega$ is the invariant differential and $\varphi$ is the Frobenius on $D_p(E)$.
         According to the p-adic BSD this function has a zero of order
         rank(E(Q)) and it's leading term is
         \begin{verbatim}
            +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E).
         \end{verbatim}
 
-        WARNING: ** Currently the normalisation of the Frobenius is not chosen
-		correctly and hence only mod p the function satisfies the padic BSD **
 
         INPUT:
             n -- (default: 3) a positive integer
@@ -620,8 +649,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         EXAMPLES:
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: L.Dp_valued_series(2)
-            (4 + 4*5^2 + O(5^3) + O(T^5), O(T^5))
+            sage: L.Dp_valued_series(4)
+	    (4 + 4*5^2 + O(5^4) + (1 + O(5))*T + (4 + O(5))*T^2 + (1 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5), O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + (3 + O(5))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p
@@ -632,43 +661,48 @@ class pAdicLseriesSupersingular(pAdicLseries):
         QpT , T = PowerSeriesRing(R,'T',prec).objgen()
         G = QpT([lps[n][0] for n in range(0,lps.prec())], prec)
         H = QpT([lps[n][1] for n in range(0,lps.prec())], prec)
-        #print G,H
 
         # now compute phi
-        phi =  self.geometric_frob_on_Dp()
-        phi_omega_0 = phi[0,0]
-        phi_omega_1 = phi[1,0]
-        #print phi
-        R = phi_omega_0.parent()
-        lpv = vector([G  + R(E.ap(p))*H - R(p) * phi_omega_0* H , - R(p)*phi_omega_1*H])  # this is L_p
-        #print lpv
+        phi = matrix.matrix([[0,-1/p],[1,E.ap(p)/p]])
+        lpv = vector([G  + (E.ap(p))*H  , - R(p) * H ])  # this is L_p
         eps = (1-phi)**(-2)
         resu = lpv*eps.transpose()
         return resu
 
 
-    def geometric_frob_on_Dp(self, prec=20):
+    def frobenius(self, prec=20, method = "mw"):
         r"""
         This returns a geometric Frobenius $\varphi$ on the Diedonne module $D_p(E)$
         with respect to the basis $\omega$, the invariant differential and $\eta=x\omega$.
         It satisfies  $phi^2 - a_p/p*phi + 1/p = 0$.
 
-		It is not clear what normalisation we use here.
+        INPUT:
+            prec -- (default: 20) a positive integer
+            method -- either "mw" (default) for Monsky-Washintzer
+                      or "approx" for the method describedby Bernardi and Perrin-Riou
+                      (much slower)
+
 
         EXAMPLES:
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: phi = L.geometric_frob_on_Dp(5)
+            sage: phi = L.frobenius(5)
             sage: phi
-            [ 3 + 4*5 + 3*5^2 + 4*5^3 + O(5^4) 2*5^-1 + 1 + 3*5 + 3*5^3 + O(5^4)]
-            [     2 + 4*5 + 5^2 + 5^4 + O(5^5)            2 + 5^2 + 5^4 + O(5^5)]
-            sage: phi^2 - E.ap(5)/5 * phi + 1/5
-            [O(5^4) O(5^3)]
-            [O(5^4) O(5^4)]
+            [                  2 + 5^2 + 5^4 + O(5^5)    3*5^-1 + 3 + 5 + 4*5^2 + 5^3 + O(5^4)]
+            [      3 + 3*5^2 + 4*5^3 + 3*5^4 + O(5^5) 3 + 4*5 + 3*5^2 + 4*5^3 + 3*5^4 + O(5^5)]
+            sage: -phi^2
+            [5^-1 + O(5^4)        O(5^4)]
+            [       O(5^5) 5^-1 + O(5^4)]
         """
         E = self._E
         p = self._p
-        Ew = E.weierstrass_model()
+        if method != "mw" and method !="approx":
+            raise ValueError, "Unknown method %s."%method
+        if method == "approx":
+            return self.__phi_bpr(prec=prec)
+        if p < 4 and method == "mw":
+            print "Warning: If this fails try again using method=\"approx\""
+        Ew = E.integral_weierstrass_model()
         adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
         output_ring = Qp(p, prec)
@@ -677,15 +711,91 @@ class pAdicLseriesSupersingular(pAdicLseries):
         trace = Ew.ap(p)
         fr = monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
         fr = matrix.matrix(output_ring,2,2,fr)
-        a=fr[0,0]
-        b=fr[0,1]
-        c=fr[1,0]
-        d=fr[1,1]
-        usq = (Ew.discriminant()/E.discriminant()).nth_root(6)
-        r = (4*E.a2() + E.a1())/12*usq;
-        frn = matrix.matrix([[a+c*r,(b-a*r+d*r-r**2*c)/usq],[usq*c,d-r*c]])
-        return frn**(-1)
 
+        # return a vector for pari's ellchangecurve to pass from e1 to e2
+        def isom(e1,e2):
+            if not e1.is_isomorphic(e2):
+                raise ValueError, "Curves must be isomorphic."
+            usq = (e1.discriminant()/e2.discriminant()).nth_root(6)
+            u = usq.sqrt()
+            s = (u   *  e2.a1() - e1.a1() )/ZZ(2)
+            r = (usq *  e2.a2() - e1.a2() + s**2 + e1.a1()*s)/ZZ(3)
+            t = (u**3 * e2.a3() - e1.a3() - e1.a1()*r)/ZZ(2)
+            return [u,r,s,t]
+
+        v = isom(E,Ew)
+        u = v[0]
+        r = v[1]
+
+        # change basis
+        A = matrix.matrix([[u,-r/u],[0,1/u]])
+        frn = A * fr * A**(-1)
+        return 1/p*frn
+
+
+    # returns the phi using the definition of bernardi-perrin-riou on page 232.
+
+    def __phi_bpr(self, prec=0):
+        E = self._E
+        p = self._p
+        if prec > 10:
+            print "Warning: Very large value for the precision."
+        if prec == 0:
+            prec = floor((log(10000)/log(p)))
+            verbose("prec set to %s"%prec)
+        eh = E.formal()
+        om = eh.differential(prec = p**prec+3)
+        verbose("differential computed")
+        xt = eh.x(prec=p**prec + 3)
+        et = xt*om
+        # c_(p^k) = cs[k] d...
+        cs = [om[p**k-1] for k in range(0,prec+1)]
+        ds = [et[p**k-1] for k in range(0,prec+1)]
+        delta = 0
+        dpr = 0
+        gamma = 0
+        dga = 0
+        for k in range(1,prec+1):
+            # this is the equation eq[0]*x+eq[1]*y+eq[2] == 0
+            # such that delta_ = delta + d^dpr*x ...
+            eq = [(p**dpr*cs[k]) % p**k,(-p**dga*ds[k]) % p**k , (delta*cs[k]-gamma*ds[k]-cs[k-1]) % p**k ]
+            verbose("valuations : %s"%([x.valuation(p) for x in eq]))
+            v = min([x.valuation(p) for x in eq])
+            if v == infinity:
+                verbose("no new information at step k=%s"%k)
+            else:
+                eq = [ZZ(x/p**v) for x in eq]
+                verbose("renormalised eq mod p^%s is now %s"%(k-v,eq))
+                if eq[0].valuation(p) == 0:
+                    l = min(eq[1].valuation(p),k-v)
+                    if l == 0:
+                        verbose("not uniquely determined at step k=%s"%k)
+                    else:
+                        ainv = eq[0].inverse_mod(p**l)
+                        delta = delta - eq[2]*ainv*p**dpr
+                        dpr = dpr + l
+                        delta = delta % p**dpr
+                        verbose("delta_prec increased to %s\n delta is now %s"%(dpr,delta))
+                elif eq[1].valuation(p) == 0:
+                    l = min(eq[0].valuation(p),k-v)
+                    ainv = eq[1].inverse_mod(p**l)
+                    gamma = gamma - eq[2]*ainv*p**dga
+                    dga = dga + l
+                    gamma = gamma % p**dga
+                    verbose("gamma_prec increased to %s\n gamma is now %s"%(dga,gamma))
+                else:
+                    raise RuntimeError,  "Bug: no delta or gamma can exist"
+
+        # end of approximation of delta and gamma
+        delta = Qp(p,dpr)(delta)
+        gamma = Qp(p,dga)(gamma)
+        verbose("result delta = %s\n      gamma = %s\n check : %s"%(delta,gamma, [Qp(3,k)(delta * cs[k] - gamma * ds[k] - cs[k-1]) for k in range(1,prec+1)] ))
+        a = delta
+        c = -gamma
+        d = E.ap(p) - a
+        b = (-1/p+a*d)/c
+        phi = matrix.matrix([[a,b],[c,d]])
+        return phi
 
 
     def bernardi_sigma_function(self, prec=20):
@@ -697,21 +807,25 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.bernardi_sigma_function(5) # Todo: some sort of consistency check!?
-            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^11)
+            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 - 4364831/5225472*z^10 + 2172371753/955514880*z^11 - 17875714529/6897623040*z^12 + 2839176621047/1605264998400*z^13 + 32012675789849/10042939146240*z^14 - 367444910151047/89894839910400*z^15 + 973773806885959/241030539509760*z^16 - 33997971208432501/17259809262796800*z^17 - 10331978660756704339/842918229599846400*z^18 + 18601407947897364480389/950670294194847744000*z^19 - 118837570440101901119321/8071784966648129126400*z^20 + O(z^21)
         """
         E = self._E
         p = self._p
-        wp_in_pari = gp(E).ellwp('z',prec + 5)
 
-        # transform the series from pari to sage
-        Qz , z = PowerSeriesRing(QQ,'z',prec+5).objgen()
-        # we dropped the 1/z^2
-        wp = sum([ QQ(wp_in_pari.polcoeff(k)) * z**k for k in range(1,prec + 5)])
-        minusx = (E.a1()**2+4*E.a2())/12 - wp
+        Eh = E.formal()
+        lo = Eh.log(prec + 5)
+        F = lo.reversion()
 
-        si = z * minusx.integral().integral().exp()
+        S = LaurentSeriesRing(QQ,'z')
+        z = S.gen()
+        F = F(z)
+        xofF = Eh.x(prec + 2)(F)
+        #r =  ( E.a1()**2 + 4*E.a2() ) / ZZ(12)
+        g = (1/z**2 - xofF ).power_series()
+        h = g.integral().integral()
+        sigma_of_z = z.power_series() * h.exp()
 
-        return si
+        return sigma_of_z
 
 
     def Dp_valued_height(self,prec=20):
@@ -721,14 +835,17 @@ class pAdicLseriesSupersingular(pAdicLseries):
             $$h_{\eta} \cdot \omega - h_{\omega} \cdot \eta$$
         where $h_{\eta}$ is made out of the sigma function of Bernardi and
         $h_{\omega}$ is $-log^2$.
+        The answer $v$ is given as $v[1]*omega + v[2]*eta$.
+        The coordinates of $v$ are dependent of the
+        Weierstrass equation.
 
         EXAMPLES:
             sage: E = EllipticCurve('53a')
             sage: L = E.padic_lseries(5)
             sage: h = L.Dp_valued_height(7)
-			sage: h(E.gens()[0])
-			(2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
-			4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
+            sage: h(E.gens()[0])
+            (2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
+            4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
         """
         E = self._E
         p = self._p
@@ -738,6 +855,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # we will have to do it properly with David Harvey's _DivPolyContext(E, R, Q)
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
+
+        if p < 5:
+            phi = self.frobenius(min(6,prec),method="approx")
+        else:
+            phi = self.frobenius(prec+2,method="mw")
 
         def height(P,check=True):
             if P.is_finite_order():
@@ -758,24 +880,29 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             R = Qp(p,prec)
 
-            vec = vector([R(heta),-R(homega)])
-            return vec
+            return vector([R(heta),-R(homega)])
 
         return height
 
 
 
-    def Dp_valued_regulator(self,prec=20):
+    def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
         """
         Returns the canonical $p$-adic regulator with values in the Dieudonne module $D_p(E)$
-        as defined by Perrin-Riou using the canonical $p$-adic height.
+        as defined by Perrin-Riou using the $p$-adic height with values in $D_p(E)$.
+        The result is written in the basis $\omega$, $\varphi(\omega)$, and hence the
+        coordinates of the result are independent of the chosen Weierstrass equation.
+
+        NOTE:
+            The definition here is corrected with repect to Perrin-Riou's article
+            'Arithm\'etique des courbes elliptiques \`a r\'eduction supersinguli\`ere en $p$'.
+
 
         EXAMPLES:
             sage: E = EllipticCurve('43a')
             sage: L = E.padic_lseries(7)
             sage: L.Dp_valued_regulator(7)
-			(2*7 + 2*7^2 + 5*7^3 + 7^4 + 7^5 + 4*7^6 + 2*7^7 + O(7^8),
-			 2*7^2 + 4*7^3 + 2*7^5 + 3*7^6 + 6*7^7 + O(7^8))
+            (2*7 + 2*7^3 + 2*7^4 + 5*7^5 + 6*7^6 + 2*7^7 + O(7^8), 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 2*7^7 + O(7^8))
         """
 
         p = self._p
@@ -792,8 +919,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
         #        return (hv(vec,    P+Q) - hv(vec,P)-hv(vec,Q))/2
         K = Qp(p, prec)
 
-        v1 = vector([K(0),K(1)])  # that is eta
-        v2 = vector([K(-1),K(1)])  # and this is eta-omega.
+        if v1 ==0 and v2 ==0 :
+            v1 = vector([K(0),K(1)])  # that is eta
+            v2 = vector([K(-1),K(1)])  # and this is eta-omega.
         #                      the rest should not depend on this choice
         #                      as long as it is outside Q_p * omega
 
@@ -815,11 +943,28 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             return M.determinant()
 
-        reg1 = regv(v1)
-        reg2 = regv(v2)
 
         def Dp_pairing(vec1,vec2):
-            return vec1[0]*vec2[1]-vec1[1]*vec2[0]
+            return (vec1[0]*vec2[1]-vec1[1]*vec2[0])
+
+        omega_vec = vector([K(1),K(0)])
+
+        # note the correction here with respect to Perrin-Riou's definition.
+        # only this way the result will be indep of the choice of v1 and v2.
+        reg1 = regv(v1)/Dp_pairing(omega_vec,v1)**(rk-1)
+
+        reg2 = regv(v2)/Dp_pairing(omega_vec,v2)**(rk-1)
 
 
-        return (reg1 * v2 - reg2 * v1 ) / Dp_pairing(v2,v1)
+        # the regulator in the basis omega,eta
+        reg_oe = (reg1 * v2 - reg2 * v1 ) / Dp_pairing(v2,v1)
+
+        if p < 5:
+            phi = self.frobenius(min(6,prec),method="approx")
+        else:
+            phi = self.frobenius(prec+2,method="mw")
+
+        c = phi[1,0]  # this is the 'period' [omega,phi(omega)]
+        a = phi[0,0]
+
+        return vector([reg_oe[0] - a/c*reg_oe[1],reg_oe[1]/c])

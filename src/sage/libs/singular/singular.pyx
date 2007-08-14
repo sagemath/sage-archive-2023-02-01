@@ -20,9 +20,12 @@ include "singular-cdefs.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX
+    long INT_MIN
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
+from sage.rings.finite_field import FiniteField_ext_pari
+from sage.libs.pari.all import pari
 
 cdef extern from "stdsage.h":
     ctypedef void PyObject
@@ -65,7 +68,6 @@ cdef class Conversion:
         ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
         ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
         ##  Using immediates as pointers and dereferencing them gives address errors.
-
         nom = nlGetNom(n, _ring)
         mpz_init(nom_z)
 
@@ -90,16 +92,139 @@ cdef class Conversion:
         z.set_from_mpq(_z)
         return z
 
+    cdef public FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base):
+        cdef napoly *z
+        cdef int c, e
+        cdef int a
+        cdef int ret
+
+        if naIsZero(n):
+            return base._zero_element
+        elif naIsOne(n):
+            return base._one_element
+        z = (<lnumber*>n).z
+
+        a = base.objectptr.sage_generator()
+        ret = base.objectptr.zero
+
+        while z:
+            c = base.objectptr.initi(c,<long>napGetCoeff(z))
+            e = napGetExp(z,1)
+            if e == 0:
+                ret = base.objectptr.add(ret, <int>c, ret)
+            else:
+                a = e * base.objectptr.sage_generator()
+                ret = base.objectptr.axpy(ret, <int>c, a, ret)
+            z = napIter(z)
+        return (<FiniteField_givaroElement>base._zero_element)._new_c(ret)
+
+    cdef public object si2sa_GFqPari(self, number *n, ring *_ring, object base):
+        cdef napoly *z
+        cdef int c, e
+        cdef object a
+        cdef object ret
+
+        if naIsZero(n):
+            return base._zero_element
+        elif naIsOne(n):
+            return base._one_element
+        z = (<lnumber*>n).z
+
+        a = pari("a")
+        ret = pari(int(0)).Mod(int(_ring.ch))
+
+        while z:
+            c = <long>napGetCoeff(z)
+            e = napGetExp(z,1)
+            if e == 0:
+                ret = ret + c
+            elif c != 0:
+                ret = ret  + c * a**e
+            z = napIter(z)
+        return base(ret)
+
+
+
     cdef public number *sa2si_QQ(self, Rational r, ring *_ring):
         """
         """
         return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value) )
 
+    cdef number *sa2si_GFqGivaro(self, int quo, ring *_ring):
+        """
+        """
+        #can be done much faster
+        cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+        cdef int b
+
+        rChangeCurrRing(_ring)
+        b   = - _ring.ch;
+
+        a = naPar(1)
+
+        apow1 = naInit(1)
+        n1 = naInit(0)
+
+        while quo!=0:
+            coeff = naInit(quo%b)
+
+            if not naIsZero(coeff):
+                n2 = naAdd( naMult(coeff, apow1),  n1)
+                naDelete(&n1, _ring);
+                n1= n2
+
+            apow2 = naMult(apow1, a)
+            naDelete(&apow1, _ring)
+            apow1 = apow2
+
+            quo = quo/b
+            naDelete(&coeff, _ring)
+
+        naDelete(&apow1, _ring)
+        naDelete(&a, _ring)
+        return n1
+
+    cdef number *sa2si_GFqPari(self, object elem, ring *_ring):
+        #can be done much faster
+        cdef int i
+        cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+
+        rChangeCurrRing(_ring)
+
+        elem = elem._pari_().lift().lift()
+
+
+        if len(elem) > 1:
+            n1 = naInit(0)
+            a = naPar(1)
+            apow1 = naInit(1)
+
+            for i from 0 <= i < len(elem):
+                coeff = naInit(int(elem[i]))
+
+                if not naIsZero(coeff):
+                    n2 = naAdd( naMult(coeff, apow1),  n1)
+                    naDelete(&n1, _ring);
+                    n1= n2
+
+                apow2 = naMult(apow1, a)
+                naDelete(&apow1, _ring)
+                apow1 = apow2
+
+                naDelete(&coeff, _ring)
+
+            naDelete(&apow1, _ring)
+            naDelete(&a, _ring)
+        else:
+            n1 = naInit(int(elem))
+
+        return n1
+
     cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):
         """
         """
         cdef number *n
-        if d<INT_MAX:
+        if INT_MIN <= d <= INT_MAX:
             return nlInit(int(d))
         else:
             n = nlRInit(0)
@@ -112,14 +237,29 @@ cdef class Conversion:
 
         elif PY_TYPE_CHECK(base, RationalField):
             return self.si2sa_QQ(n,_ring)
+
+        elif PY_TYPE_CHECK(base, FiniteField_givaro):
+            return self.si2sa_GFqGivaro(n, _ring, base)
+
+        elif PY_TYPE_CHECK(base, FiniteField_ext_pari):
+            return self.si2sa_GFqPari(n, _ring, base)
+
         else:
-            raise ValueError, "cannot convert SINGULAR number"
+            raise ValueError, "cannot convert from SINGULAR number"
 
     cdef public number *sa2si(self, Element elem, ring * _ring):
+        cdef int i
         if PY_TYPE_CHECK(elem._parent, FiniteField_prime_modn):
             return n_Init(int(elem),_ring)
 
         elif PY_TYPE_CHECK(elem._parent, RationalField):
             return self.sa2si_QQ(elem, _ring)
+
+        elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
+            return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FiniteField_givaroElement>elem).element ), _ring )
+
+        elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
+            return self.sa2si_GFqPari(elem, _ring)
         else:
-            raise ValueError, "cannot convert SINGULAR number"
+            raise ValueError, "cannot convert to SINGULAR number"
+

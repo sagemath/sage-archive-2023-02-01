@@ -616,7 +616,7 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
         R = parent.domain()
         pi = R.cover()  # the covering map
         if pi.domain() != phi.domain():
-            raise ValueError, "Domain of phi must equal domain of covering."
+            raise ValueError, "Domain of phi must equal domain of covering (%s != %s)."%(pi.domain(), phi.domain())
         for x in pi.kernel().gens():
             if phi(x) != 0:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."

@@ -1943,9 +1943,6 @@ cdef extern from 'pari/pari.h':
 
     GEN     padicfieldslist(GEN p, GEN m, GEN d, long flag)
 
-#cdef extern from 'pari/paridecl.h':
-#    GEN     mkintn(long n, ...);
-
 cdef extern from 'pari/paripriv.h':
 #cdef extern from 'pari/pari.h':
     struct __x:

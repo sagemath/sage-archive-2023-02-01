@@ -30,12 +30,12 @@ This system should all be mostly from the SAGE notebook.
 
 import os, shutil
 
-import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file
 from   sage.server.misc import print_open_msg
 
+import sage.server.support
 def embedded():
     return sage.server.support.EMBEDDED_MODE
 
@@ -365,7 +365,10 @@ class HG:
             options -- string
         """
         if isinstance(files, str):
-            files = [files]
+            if ' ' in files:
+                files = files.split()
+            else:
+                files = [files]
         for file in files:
             print "Adding file %s"%file
             self('add %s "%s"'%(options, file))
@@ -826,6 +829,9 @@ class HG:
         if diff:
             self.diff(files)
 
+        if isinstance(files, (list, tuple)):
+            files = ' '.join([str(x) for x in files])
+
         if comment:
             self('commit %s -m "%s" %s '%(options, comment, files))
         else:
@@ -840,7 +846,7 @@ class HG:
         """
         self('rollback')
 
-    def bundle(self, filename, options='', url=None, base=None):
+    def bundle(self, filename, options='', url=None, base=None, to=None):
         r"""
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the
@@ -889,6 +895,8 @@ class HG:
         if os.path.exists(tmpfile):
             shutil.move(tmpfile, filename)
             print 'Successfully created hg patch bundle %s'%filename
+            if not to is None:
+                os.system('scp "%s" %s'%(filename, to))
         else:
             print 'Problem creating hg patch bundle %s'%filename
 

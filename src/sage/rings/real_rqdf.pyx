@@ -82,7 +82,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.real_mpfr cimport RealNumber
 
-import sage.structure.coerce
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
@@ -159,7 +158,7 @@ cdef class RealQuadDoubleField_class(Field):
         return False
 
     cdef _an_element_c_impl(self):  # override this in SageX
-        return self(0)
+        return self(1.23)
 
     def _latex_(self):
         return "\\R"
@@ -243,6 +242,26 @@ cdef class RealQuadDoubleField_class(Field):
 
         """
         return [self.gen()]
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, completion of
+        the rational numbers with respect to the prime at $\infinity$.
+
+        Also preserves other information that makes this field unique
+        (i.e. the Real Quad Double Field).
+
+        EXAMPLES:
+            sage: c, S = RQDF.construction(); S
+            Rational Field
+            sage: RQDF == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return (CompletionFunctor(sage.rings.infinity.Infinity,
+                                  212,
+                                  {'type': 'RQDF'}),
+               sage.rings.rational_field.QQ)
 
     cdef _coerce_c_impl(self, x):
         """

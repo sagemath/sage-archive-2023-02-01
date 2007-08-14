@@ -48,7 +48,7 @@ cdef extern from "givaro/givgfq.h":
         int (* initd "init")(int res, double e)
         int (* axpyin)(int r, int a, int x)
         int (* sage_generator)() # SAGE specific method, not found upstream
-        int (* write)(int r, int p)
+        int (* convert)(int r, int p)
         int (* read)(int r, int p)
         int (* axpy)(int r, int a, int b, int c)
         int (* axmy)(int r, int a, int b, int c)
@@ -98,4 +98,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef FiniteField_givaroElement _new_c(self, int value)
+
+
 

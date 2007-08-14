@@ -124,6 +124,9 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         x = P.base_ring().gen()
         return "(%s, %s)"%(a(x), y - b(x))
 
+    def scheme(self):
+        return self.codomain()
+
     def list(self):
         return self.__polys
 
@@ -137,6 +140,17 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         else:
             D = cantor_composition(self.__polys,other.__polys,f,h,C.genus())
         return JacobianMorphism_divisor_class_field(X, D, reduce=False, check=False)
+
+    def __cmp__(self, other):
+        if not isinstance(other, JacobianMorphism_divisor_class_field):
+            try:
+                other = self.parent()(other)
+            except TypeError:
+                return -1
+        return cmp(self.__polys, other.__polys)
+
+    def __nonzero__(self):
+	return self.__polys[0] != 1
 
     def __sub__(self, other):
         return self + (-other)
@@ -161,20 +175,22 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             raise TypeError, "Argument n (= %s) must be an integer."
         X = self.parent()
         if n < 0:
-            return self * (-n)
+            return - self * (-n)
         elif n == 0:
 	    return self.parent()(0)
         elif n == 1:
             return self
-	D = self.__mul__(n//2)
+        elif n < 4:
+	    D = self
+        else:
+	    D = self.__mul__(n//2)
 	if n % 2 == 0:
 	    return D + D
 	else:
 	    return D + D + self
 
-    def __nonzero__(self):
-	return self.__polys[0] != 1
+    def _rmul_(self, n):
+        return self.__mul__(n)
 
-    def scheme(self):
-        return self.codomain()
+
 

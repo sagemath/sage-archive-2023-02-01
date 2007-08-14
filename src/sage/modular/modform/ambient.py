@@ -91,6 +91,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         return "Modular Forms space of dimension %s for %s of weight %s over %s"%(
                 self.dimension(), self.group(), self.weight(), self.base_ring())
 
+    def _submodule_class(self):
+        return submodule.ModularFormsSubmodule
+
     def change_ring(self, base_ring):
         """
         Change the base ring of this space of modular forms.

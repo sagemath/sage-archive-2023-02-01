@@ -34,7 +34,9 @@ def inject_on(verbose=True):
         sage: GF(9,'c')
         Finite Field in c of size 3^2
         sage: c^3
-		c^3
+        Traceback (most recent call last):
+        ...
+        NameError: name 'c' is not defined
         sage: inject_on(verbose=False)
         sage: GF(9,'c')
         Finite Field in c of size 3^2

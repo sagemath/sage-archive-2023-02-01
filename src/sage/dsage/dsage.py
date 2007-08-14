@@ -93,16 +93,15 @@ class DistributedSage(object):
 
     Customization:
 
-        To customize how the worker, server, or client behaves, you
-        can look for their respective conf files in DOT_SAGE/dsage.
-        The configuration file should be self explanatory.
+        See the DOT\_SAGE/dsage directory.
 
     """
 
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, workers=2, log_level=0, verbose=True):
+    def start_all(self, port=8081, workers=2, log_level=0, poll=1.0,
+                  anonymous_workers=False, verbose=True):
         """
         Start the server and worker and returns a connection to the server.
 
@@ -113,7 +112,8 @@ class DistributedSage(object):
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,
-                    blocking=False, verbose=verbose)
+                    blocking=False, poll=poll, anonymous=anonymous_workers,
+                    verbose=verbose)
 
         import time
         time.sleep(1)  # Allow the server to start completely before trying
@@ -128,6 +128,7 @@ class DistributedSage(object):
                privkey=os.path.join(DSAGE_DIR, 'cacert.pem'),
                cert=os.path.join(DSAGE_DIR, 'pubcert.pem'),
                stats_file=os.path.join(DSAGE_DIR, 'dsage.xml'),
+               anonymous_logins=False,
                verbose=True):
         r"""
         Run the Distributed SAGE server.
@@ -157,7 +158,7 @@ class DistributedSage(object):
         else:
             os.system(cmd)
 
-    def worker(self, server='localhost', port=8081, workers=2, delay=5.0,
+    def worker(self, server='localhost', port=8081, workers=2, poll=1.0,
                username=getuser(), blocking=True, ssl=True, log_level=0,
                anonymous=False, priority=20,
                privkey=os.path.join(DSAGE_DIR, 'dsage_key'),
@@ -180,22 +181,26 @@ class DistributedSage(object):
                         blocking connection.
             logfile -- only used if blocking=True; the default is
                        to log to $DOT_SAGE/dsage/worker.log
+            poll -- rate at which the worker pings the server to check for new
+                    jobs, this value will increase if the server has no jobs
         """
 
-        cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
+        cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s --poll %s -l %s -f %s ' + \
                                '--privkey=%s --pubkey=%s --priority=%s '
-        cmd = cmd % (server, port, username, workers, delay, log_level,
+        cmd = cmd % (server, port, username, workers, poll, log_level,
                      log_file, privkey, pubkey, priority)
 
         if ssl:
             cmd += ' --ssl'
+        if anonymous:
+            cmd += ' -a'
         if not blocking:
             cmd += ' --noblock'
             spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 
-    def setup(self):
+    def setup(self, template=None):
         r"""
         This is the setup utility which helps you configure dsage.
 
@@ -207,30 +212,34 @@ class DistributedSage(object):
 
         """
 
-        cmd = 'dsage_setup.py'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup
+        setup(template=template)
 
-    def setup_server(self):
+    def setup_server(self, *args):
         """
         This method runs the configuration utility for the server.
+
         """
 
-        cmd = 'dsage_setup.py server'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup_server
+        setup_server(*args)
 
     def setup_worker(self):
         """
         This method runs the configuration utility for the worker.
+
         """
-        cmd = 'dsage_setup.py worker'
-        os.system(cmd)
+
+        from sage.dsage.scripts.dsage_setup import setup_worker
+        setup_worker()
 
     def setup_client(self):
         """
         This method runs the configuration utility for the client.
+
         """
 
-        cmd = 'dsage_setup.py client'
-        os.system(cmd)
+        from sage.dsage.scripts.dsage_setup import setup_client
+        setup_client()
 
 dsage = DistributedSage()

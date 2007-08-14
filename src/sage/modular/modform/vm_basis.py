@@ -188,10 +188,21 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
 ## [[1318, 'Generalized pentagonal numbers: n(3n-1)/2, n=0, +- 1, +- 2,....', [0, 1, 2, 5, 7, 12, 15, 22, 26, 35, 40, 51, 57, 70, 77, 92, 100, 117, 126, 145, 155, 176, 187, 210, 222, 247, 260, 287, 301, 330, 345, 376, 392, 425, 442, 477, 495, 532, 551, 590, 610, 651, 672, 715, 737, 782, 805, 852, 876, 925, 950, 1001, 1027, 1080, 1107, 1162, 1190, 1247, 1276, 1335]]]
 ## }}}
 
-def delta_qexp(prec=10, var='q'):
+from sage.rings.all import Integer
+
+def delta_qexp(prec=10, var='q', K=ZZ):
     """
     Return the q-expansion of Delta as a power series with
-    coefficients in ZZ.
+    coefficients in K (=ZZ by default).
+
+    INPUT:
+        prec -- integer; the absolute precision of the output
+        var -- (default: 'q') variable name
+        K -- (default: ZZ) base ring of answer
+
+    OUTPUT:
+        a power series over K
+
 
     ALGORITHM:
         Compute a simple very explicit modular form whose 8th power
@@ -244,7 +255,7 @@ def delta_qexp(prec=10, var='q'):
     t = verbose('squared (3 of 3)', t)
     f = ntl.ZZX([0,1])*f
     t = verbose('shifted', t)
-    R = ZZ[[var]]
+    R = K[[var]]
     f = R(f.truncate(prec), prec, check=False)
     t = verbose('coerced', t)
     return f

@@ -60,7 +60,6 @@ from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_integer_dense import _lift_crt
-import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
@@ -484,14 +483,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
-
     def __invert__(self):
         """
-        OUTPUT:
-           -- the inverse of self
-
-        If self is not invertible, a ZeroDivisionError is raised.
-
         EXAMPLES:
             sage: a = matrix(QQ,3,range(9))
             sage: a^(-1)
@@ -499,8 +492,27 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
+        return self.invert()
+
+    def invert(self, check_invertible=True):
+        """
+        INPUT:
+           check_invertible -- default: True (whether to check that matrix is invertible)
+
+        OUTPUT:
+           -- the inverse of self
+
+
+        If self is not invertible, a ZeroDivisionError is raised.
+
+            sage: a = matrix(QQ,3,[1,2,5,3,2,1,1,1,1,])
+            sage: a.invert(check_invertible=False)
+            [1/2 3/2  -4]
+            [ -1  -2   7]
+            [1/2 1/2  -2]
+        """
         A, denom = self._clear_denom()
-        B, d = A._invert_iml()
+        B, d = A._invert_iml(check_invertible=check_invertible)
         return (denom/d)*B
 
     def determinant(self):

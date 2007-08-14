@@ -46,8 +46,9 @@ import integer
 
 from integer_ring import ZZ
 
-from sage.structure.element cimport RingElement, ModuleElement
+from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
+from sage.categories.morphism cimport Morphism
 
 import sage.rings.real_mpfr
 
@@ -113,6 +114,14 @@ cdef Rational_sub_(Rational self, Rational other):
 
 cdef object the_rational_ring
 the_rational_ring = sage.rings.rational_field.Q
+
+# make sure zero/one elements are set
+cdef set_zero_one_elements():
+    global the_rational_ring
+    the_rational_ring._zero_element = Rational(0)
+    the_rational_ring._one_element = Rational(1)
+
+set_zero_one_elements()
 
 cdef class Rational(sage.structure.element.FieldElement):
     """
@@ -542,18 +551,19 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self.sqrt(prec=prec, all=all)
 
     def val_unit(self, p):
-        return self._val_unit(p)
-
-    cdef _val_unit(Rational self, integer.Integer p):
         r"""
-        Returns a pair: the p-adic valuation of self, and the p-adic unit of self, as a Rational.
+        Returns a pair: the p-adic valuation of self, and the p-adic
+        unit of self, as a Rational.
 
         We do not require the p be prime, but it must be at least 2.
-        For more documentation see \code{val_unit}
+        For more documentation see \code{Integer.val_unit}
 
         AUTHOR:
             -- David Roe (4/12/07)
         """
+        return self._val_unit(p)
+
+    cdef _val_unit(Rational self, integer.Integer p):
         cdef integer.Integer v
         cdef Rational u
         if mpz_cmp_ui(p.value, 2) < 0:
@@ -930,6 +940,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             2^I/3^I
             sage: (2/3)^sqrt(2)
             2^sqrt(2)/3^sqrt(2)
+            sage: x,y,z,n = var('x,y,z,n')
             sage: (2/3)^(x^n + y^n + z^n)
             3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
             sage: (-7/11)^(tan(x)+exp(x))
@@ -1458,3 +1469,18 @@ def make_rational(s):
     r = Rational()
     r._reduce_set(s)
     return r
+
+cdef class Z_to_Q(Morphism):
+
+    def __init__(self):
+        import integer_ring
+        import rational_field
+        import sage.categories.homset
+        Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
+
+    cdef Element _call_c_impl(self, Element x):
+        cdef Rational rat
+        rat = <Rational> PY_NEW(Rational)
+        mpq_set_z(rat.value, (<integer.Integer>x).value)
+        return rat
+

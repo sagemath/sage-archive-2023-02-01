@@ -71,7 +71,7 @@ def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
     an object creation) every time we want to add a pair of doubles.
     """
 
-    G = G.networkx_graph()
+    G = G.to_undirected().networkx_graph()
     vlist = list(G) # this defines a consistant order
 
     cdef int i, j, x
@@ -289,9 +289,9 @@ def N_inverse(s):
     http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
     """
     if s[0] == chr(126): # first four bytes are N
-        a = binary(ord(s[1]) - 63)
-        b = binary(ord(s[2]) - 63)
-        c = binary(ord(s[3]) - 63)
+        a = binary(ord(s[1]) - 63).zfill(6)
+        b = binary(ord(s[2]) - 63).zfill(6)
+        c = binary(ord(s[3]) - 63).zfill(6)
         n = int(a + b + c,2)
         s = s[4:]
     else: # only first byte is N
@@ -314,6 +314,19 @@ def R_inverse(s, n):
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
     return m[:(n*(n-1)/2)]
+
+def D_inverse(s, n):
+    """
+    A helper function for the dig6 format.
+
+    """
+    l = []
+    cdef int i
+    for i from 0 <= i < len(s):
+        a = binary(ord(s[i])-63)
+        l.append( '0'*(6-len(a)) + a )
+    m = "".join(l)
+    return m[:n*n]
 
 
 

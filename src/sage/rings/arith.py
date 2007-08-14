@@ -13,7 +13,7 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari, PariError
+from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
 
 import sage.rings.rational_field
 import sage.rings.rational
@@ -206,77 +206,6 @@ def bernoulli(n, algorithm='pari'):
         return sage.rings.bernoulli.bernoulli_python(n)
     else:
         raise ValueError, "invalid choice of algorithm"
-
-def Li(x):
-    r"""
-    Return value of the function Li(x), which is by definition
-    $$
-       \int_2^{x} dt / \log(t).
-    $$
-
-    The function Li(x) is an approximation for the number
-    of primes up to $x$.  In fact, the famous Riemann
-    Hypothesis is equivalent to the statement that for
-    $x \geq 2.01$ we have
-    $$
-        |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
-    $$
-    For ``small'' $x$, $Li(x)$ is always slightly bigger than
-    $\pi(x)$.  However it is a theorem that there are (very large,
-    e.g., around $10^{316}$) values of $x$ so that $\pi(x) > Li(x)$.
-    See ``A new bound for the smallest x with $\pi(x) > li(x)$'',
-    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285--1296.
-
-    ALGORITHM: Computed numerically using PARI.
-
-    INPUT:
-        x -- a real number >= 2.
-
-    OUTPUT:
-        x -- a real double
-
-    EXAMPLES:
-        sage: pari.init_primes(10^6)   # needed to compute prime_pi(10^6)
-        sage: for n in range(1,7):
-        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
-        10        4         5.12043572467
-        100       25        29.080977804
-        1000      168       176.56449421
-        10000     1229      1245.09205212
-        100000    9592      9628.76383727
-        1000000   78498     78626.5039957
-    """
-    from real_double import RDF
-    x = RDF(x)
-    return RDF(gp('intnum(t=2,%s,1/log(t))'%x))
-
-def prime_pi(x):
-    """
-    Return the number of primes $\leq x$.
-
-    EXAMPLES:
-        sage: prime_pi(7)
-        4
-        sage: prime_pi(100)
-        25
-        sage: prime_pi(1000)
-        168
-        sage: prime_pi(100000)
-        9592
-        sage: prime_pi(0.5)
-        0
-        sage: prime_pi(-10)
-        0
-    """
-    if x < 2:
-        return integer_ring.ZZ(0)
-    try:
-        return integer_ring.ZZ(pari(x).primepi())
-    except PariError:
-        pari.init_primes(pari(x)+1)
-        return integer_ring.ZZ(pari(x).primepi())
-
-number_of_primes = prime_pi
 
 
 def factorial(n, algorithm='gmp'):
@@ -557,6 +486,60 @@ def prime_range(start, stop=None, leave_pari=False):
     start = pari(int(start))
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
 
+def prime_powers(start, stop=None):
+    r"""
+    List of all positive primes powers between start and stop-1,
+    inclusive.  If the second argument is omitted, returns the primes
+    up to the first argument.
+
+    EXAMPLES:
+        sage: prime_powers(20)
+        [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
+        sage: len(prime_powers(1000))
+        194
+        sage: len(prime_range(1000))
+        168
+        sage: a = [z for z in range(95,1234) if is_prime_power(z)]
+        sage: b = prime_powers(95,1234)
+        sage: len(b)
+        194
+        sage: len(a)
+        194
+        sage: a[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: b[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: a == b
+        True
+    """
+    if stop is None:
+        start, stop = 1, int(start)
+    from math import log
+    from bisect import bisect
+    v = prime_range(stop)
+    i = bisect(v, start)
+    if start > 2:
+        if v[i] == start:
+            i -= 1
+        w = list(v[i:])
+    else:
+        w = list(v)
+    if start <= 1:
+        w.insert(0, 1)
+    log_stop = log(stop)
+    for p in v:
+        q = p*p
+        n = int(log(stop)/log(p))
+        if n <= 1:
+            break
+        for i in xrange(1,n):
+            if q >= start:
+                w.append(q)
+            q *= p
+    w.sort()
+    return w
+
+
 def primes_first_n(n, leave_pari=False):
     r"""
     Return the first $n$ primes.
@@ -722,6 +705,25 @@ def next_prime_power(n):
         n += 1
     return n
 
+def next_probable_prime(n):
+    """
+    Returns the next probable prime after self, as determined by PARI.
+
+    INPUT:
+        n -- an integer
+
+    EXAMPLES:
+        sage: next_probable_prime(-100)
+        2
+        sage: next_probable_prime(19)
+        23
+        sage: next_probable_prime(int(999999999))
+        1000000007
+        sage: next_probable_prime(2^768)
+        1552518092300708935148979488462502555256886017116696611139052038026050952686376886330878408828646477950487730697131073206171580044114814391444287275041181139204454976020849905550265285631598444825262999193716468750892846853816058039
+    """
+    return integer_ring.ZZ(n).next_probable_prime()
+
 def next_prime(n, proof=True):
     """
     The next prime greater than the integer n.  If n is prime, then
@@ -753,20 +755,7 @@ def next_prime(n, proof=True):
         2011
     """
     n = integer_ring.ZZ(n)
-    if n < 2:   # negatives are not prime.
-        return integer_ring.ZZ(2)
-    if n == 2:
-        return integer_ring.ZZ(3)
-    if not proof:  # pari nextprime is probabilistic (according to their docs)
-        return integer_ring.ZZ((eval(str(pari(n+1).nextprime()))))
-
-    if n % 2 == 0:
-        n += 1
-    else:
-        n += 2
-    while not is_prime(n):  # pari isprime is provably correct
-        n += 2
-    return integer_ring.ZZ(n)
+    return n.next_prime(proof=proof)
 
 def previous_prime(n):
     """
@@ -2131,7 +2120,7 @@ def Min(x):
         m=min(m,x[i])
     return m
 
-def moebius(n):
+class Moebius:
     r"""
     Returns the value of the Moebius function of abs(n), where n is an integer.
 
@@ -2139,10 +2128,16 @@ def moebius(n):
         $\mu(n)$ is 0 if $n$ is not square free, and otherwise equals $(-1)^r$,
         where $n$ has $r$ distinct prime factors.
 
+        For simplicity, if $n=0$ we define $\mu(n) = 0$.
+
+    IMPLEMENTATION:
+        Uses the PARI C library.
+
     INPUT:
         n -- an integer
     OUTPUT:
         0, 1, or -1
+
     EXAMPLES:
         sage: moebius(-5)
         -1
@@ -2156,14 +2151,92 @@ def moebius(n):
         1
         sage: moebius(7)
         -1
+
+        sage: moebius(0)   # potentially nonstandard!
+        0
     """
-    if n < 0:
-        n = -n
-    F = factor(n)
-    for _, e in F:
-        if e >= 2:
-            return 0
-    return (-1)**len(F)
+    def __call__(self, n):
+        if n == 0:
+            return integer.Integer(0)
+        return integer.Integer(pari(n).moebius().int_unsafe())
+    ##     if n < 0:
+    ##         n = -n
+    ##     F = factor(n)
+    ##     for _, e in F:
+    ##         if e >= 2:
+    ##             return 0
+    ##     return (-1)**len(F)
+
+    def __repr__(self):
+        return "The Moebius function"
+
+    def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the Moebius function.
+
+            INPUT:
+                xmin -- default: 0
+                xmax -- default: 50
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points (very helpful
+                        in seeing their order).
+                **kwds -- passed on
+        """
+        v = self.range(xmin, xmax + 1)
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+    def range(self, start, stop=None, step=None):
+        """
+        Return the the Moebius function evaluated
+        at the given range of values, i.e., the
+        image of the list range(start, stop, step)
+        under the Mobius function.
+
+        This is much faster than directly computing
+        all these values with a list comprehension.
+
+        EXAMPLES:
+            sage: v = moebius.range(-10,10); v
+            [1, 0, 0, -1, 1, -1, 0, -1, -1, 1, 0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+            sage: v == [moebius(n) for n in range(-10,10)]
+            True
+            sage: v = moebius.range(-1000, 2000, 4)
+            sage: v == [moebius(n) for n in range(-1000,2000, 4)]
+            True
+        """
+        if stop is None:
+            start, stop = 1, int(start)
+        else:
+            start = int(start)
+            stop = int(stop)
+        if step is None:
+            step = 1
+        else:
+            step = int(step)
+
+        Z = integer.Integer
+
+        if start <= 0 and 0 < stop and start % step == 0:
+            return self.range(start, 0, step) + [Z(0)] +\
+                   self.range(step, stop, step)
+
+        if step == 1:
+            v = pari('vector(%s, i, moebius(i-1+%s))'%(
+                stop-start, start))
+        else:
+            n = len(range(start, stop, step)) # stupid
+            v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
+                n, step, start))
+        w = vecsmall_to_intlist(v.Vecsmall())
+        return [Z(x) for x in w]
+
+moebius = Moebius()
 
 def farey(v, lim):
     """
@@ -2201,59 +2274,6 @@ def farey(v, lim):
                 return lower
             upper = mediant
 
-def number_of_partitions(n):
-    """
-    Return the number of partitions of the integer $n$.
-
-    To compute all the partitions of $n$ use \code{partitions(n)}.
-
-    EXAMPLES:
-        sage: number_of_partitions(3)
-        3
-        sage: number_of_partitions(10)
-        42
-        sage: number_of_partitions(40)
-        37338
-        sage: number_of_partitions(100)
-        190569292
-        sage: number_of_partitions(-5)
-        0
-        sage: number_of_partitions(0)
-        1
-    """
-    ZZ = integer_ring.ZZ
-    return ZZ(pari(ZZ(n)).numbpart())
-
-def partitions(n):
-    """
-    Generator of all the partitions of the integer $n$.
-
-    To compute the number of partitions of $n$ use
-    \code{number_of_partitions(n)}.
-
-    INPUT:
-        n -- int
-
-    EXAMPLES:
-        >> partitions(3)
-        <generator object at 0xab3b3eac>
-        sage: list(partitions(3))
-        [(1, 1, 1), (1, 2), (3,)]
-
-    AUTHOR: David Eppstein, Jan Van lent, George Yoshida; Python Cookbook 2, Recipe 19.16.
-    """
-    n == integer_ring.ZZ(n)
-    # base case of the recursion: zero is the sum of the empty tuple
-    if n == 0:
-        yield ( )
-        return
-    # modify the partitions of n-1 to form the partitions of n
-    for p in partitions(n-1):
-        yield (1,) + p
-        if p and (len(p) < 2 or p[1] > p[0]):
-            yield (p[0] + 1,) + p[1:]
-
-
 
 ## def convergents_pnqn(x):
 ##     """
@@ -2274,11 +2294,9 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
     r"""
     Returns the continued fraction of x as a list.
 
-    \begin{note}
-    This may be slow since it's implemented in pure
+    \begin{note} This may be slow since it's implemented in pure
     Python for real input.  For rational number input the PARI C
-    library is used.
-    \end{note}
+    library is used.  \end{note}
 
     EXAMPLES:
         sage: continued_fraction_list(45/17)

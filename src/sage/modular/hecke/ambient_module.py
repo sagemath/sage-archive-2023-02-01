@@ -20,18 +20,20 @@ Ambient Hecke modules
 #*****************************************************************************
 
 import degenmap
-
 import module
-
 import submodule
 
 import sage.modules.all
 
 import sage.rings.all
 
+import sage.misc.misc as misc
+
 import sage.rings.arith as arith
 
 import sage.matrix.matrix_space as matrix_space
+
+import sage.modular.dims as dims
 
 def is_AmbientHeckeModule(x):
     return isinstance(x, AmbientHeckeModule)
@@ -307,7 +309,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         generate the full Hecke algebra as a module over the base ring.  Note
         that we include the $n$ with $n$ not coprime to the level.
         """
-        raise NotImplementedError
+        misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
+        return dims.sturm_bound(self.level(), self.weight()) + 2*dims.dimension_eis(self.level(), self.weight()) + 5
 
     def hecke_module_of_level(self, level):
         raise NotImplementedError
@@ -385,6 +388,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         """
         Returns True if and only if self is a submodule of V.
         """
+        if not isinstance(V, module.HeckeModule_free_module):
+            raise TypeError, "V must be a Hecke module"
         if not V.is_ambient():
             return False
         return V.ambient_space() == self
@@ -460,7 +465,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             return self
         else:
             self.__is_new[p] = False
-        ns = self.submodule(d.kernel())
+        ns = self.submodule(d.kernel(), check=False)
         ns.__is_new = {p:True}
         ns._is_full_hecke_module = True
         self.__new_submodule[p] = ns
@@ -542,7 +547,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
                 d = d.stack(M.degeneracy_map(N, q).matrix())
             #end if
         #end for
-        os = self.submodule(d.image())
+        os = self.submodule(d.image(), check=False)
         self.__is_old[p] = (os == self)
 
         os.__is_old = {p:True}
@@ -557,18 +562,28 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         """
         if check:
             if not sage.modules.all.is_FreeModule(M):
-                raise TypeError, "M must be a free module"
+                V = self.free_module()
+                if isinstance(M, (list,tuple)):
+                    M = V.span([V(x.element()) for x in M])
+                else:
+                    M = V.span(M)
             if not M.is_submodule(self.free_module()):
                 raise TypeError, "M must be a submodule of the free module associated to this module."
             if M == self.free_module():
                 return self
-        return submodule.HeckeSubmodule(self, M, Mdual, check=False)
+        return self._submodule_class()(self, M, Mdual, check=check)
+
+    def _submodule_class(self):
+        return submodule.HeckeSubmodule
 
     def submodule_from_nonembedded_module(self, V, Vdual=None, check=True):
         """
         INPUT:
             V -- submodule of ambient free module of the same rank as the
                  rank of self.
+            Vdual -- used to pass in dual submodule
+            check -- whether to check that submodule is Hecke equivariant
+
         OUTPUT:
             Hecke submodule of self
         """

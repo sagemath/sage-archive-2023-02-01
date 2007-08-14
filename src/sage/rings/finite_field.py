@@ -364,6 +364,9 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
 
+        self._zero_element = self(0)
+        self._one_element = self(1)
+
     def __cmp__(self, other):
         if not isinstance(other, FiniteField_ext_pari):
             return cmp(type(self), type(other))

@@ -47,8 +47,6 @@ from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
 
-import sage.structure.coerce as coerce
-
 def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
@@ -197,12 +195,12 @@ class PermutationGroupMorphism_im_gens:
     	if len(L) == 1:
             genss = "["+L[0]+"]"
     	if len(L)>1:
-            genss = "["+L[0]+add([","+L[i+1] for i in range(len(L)-1)])+"]"
+            genss = "["+L[0]+''.join([","+L[i+1] for i in range(len(L)-1)])+"]"
     	L = gaplist_imgs
     	if len(L) == 1:
             imgss = "["+L[0]+"]"
     	if len(L)>1:
-            imgss = "["+L[0]+add([","+L[i+1] for i in range(len(L)-1)])+"]"
+            imgss = "["+L[0]+''.join([","+L[i+1] for i in range(len(L)-1)])+"]"
     	args = str(G0)+","+str(H0)+","+genss+","+ imgss
     	phi0 = gap.eval("phi := GroupHomomorphismByImages("+args+")")
         self.gap_hom_string = "phi := GroupHomomorphismByImages("+args+")"

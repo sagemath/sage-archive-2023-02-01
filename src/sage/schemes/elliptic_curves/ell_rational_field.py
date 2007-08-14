@@ -836,11 +836,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on the
-        Weierstrass model of self.
+        2-Selmer group, and a list of independent points on
+        some mysterious model of the curve.
 
         \note{The points are not translated back to self only because
-        I haven't written code to do this yet.}
+        nobody has written code to do this yet.  Implement it and send
+        a patch.}
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -856,7 +857,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on the Weierstrass model
+            list    -- list of independent points on some (myserious!!) model for the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -870,13 +871,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 108 : 1)])
+            (1, 1, [(0 : 4 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
             (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(9 : 459 : 1), (153/4 : 189/8 : 1), (100 : 620 : 1)])
+            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
 
 
         In this example Simon's program does not find any points, though
@@ -889,10 +890,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         \url{http://tom.womack.net/maths/conductors.htm}
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
-            sage: E.simon_two_descent()
-            (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
+            sage: E.simon_two_descent()        # random points in output
+            (4, 4, [(935/49 : 400/343 : 1), (-1 : 136 : 1), (23 : 16 : 1), (-41 : 16 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: E.simon_two_descent()        # random output
+            sage: E.simon_two_descent()        # random points in output
             (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
@@ -1192,7 +1193,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('389a').regulator()
             0.152460177943144
             sage: EllipticCurve('5077a').regulator()
-            0.417143558758384
+            0.417143558758385
             sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
             1.50434488827529
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
@@ -2173,15 +2174,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return EllipticCurve_field.weierstrass_model(F)
 
     def integral_weierstrass_model(self):
-        """
+        r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('17a1')
+            sage: E.integral_weierstrass_model()
+            Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         F = self.minimal_model()
         a0, a1, a2, a3, a4 = F.ainvs()
-        return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
-                                          54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
-                                          3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
-                                          15552*a1*a3 + 11664*a2**2 + 46656*a4])
+        A = -27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3
+        B = 54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
+            3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
+            15552*a1*a3 + 11664*a2**2 + 46656*a4
+        while arith.valuation(A,2)>3 and arith.valuation(B,2)>5:
+            A = A/Integer(2**4)
+            B = B/Integer(2**6)
+        while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
+            A = A/Integer(3**4)
+            B = B/Integer(3**6)
+        return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):
         r"""
@@ -2344,6 +2357,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: EllipticCurve('37b').torsion_subgroup()
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
+
+            sage: e = EllipticCurve([-1386747,368636886]);e
+            Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G = e.torsion_subgroup(); G
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C2 x C8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            sage: G.0
+            (1227 : 22680 : 1)
+            sage: G.1
+            (282 : 0 : 1)
+            sage: list(G)
+            [1, P1, P1^2, P1^3, P1^4, P1^5, P1^6, P1^7, P0, P0*P1, P0*P1^2, P0*P1^3, P0*P1^4, P0*P1^5, P0*P1^6, P0*P1^7]
         """
         try:
             return self.__torsion_subgroup
@@ -3007,7 +3031,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('66b3').sha_an_numerical()
             4.00000000000000
             sage: EllipticCurve('5077a').sha_an_numerical()
-            1.00000000000000
+            0.999999999999998
 
         A rank 4 curve:
             sage: EllipticCurve([1, -1, 0, -79, 289]).sha_an_numerical()   # long time
@@ -3323,7 +3347,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 shan1 = 0   # this should conjecturally only happen when the rank is 0
             verbose("the two values for Sha : %s"%[shan0,shan1])
 
-            # check consistency (the first two are only here to avoid a bud in the p-adic L-series
+            # check consistency (the first two are only here to avoid a bug in the p-adic L-series
             # (namely the coefficients of zero-relative precision are treated as zero)
             if shan0 != 0 and shan1 != 0 and (shan0 - shan1 != 0 and shan0 + shan1 != 0):
                 raise RuntimeError, "There must be a bug in the supersingular routines for the p-adic BSD."
@@ -4323,21 +4347,21 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         reduction at all primes:
             sage: E = EllipticCurve("37a")
             sage: P = E.gens()[0]; P
-             (0 : 0 : 1)
+            (0 : -1 : 1)
             sage: 19*P
-             (-59997896/67387681 : -641260644409/553185473329 : 1)
+            (-59997896/67387681 : 88075171080/553185473329 : 1)
             sage: R = Integers(625)
             sage: C = E._DivPolyContext(E, R, P)
             sage: C.triple(19)
-             (229, 34, 541)
+            (229, 170, 541)
             sage: -59997896 % 625
-             229
+            229
             sage: 67387681.sqrt()
-             8209
+            8209
             sage: -8209 % 625          # note sign is flipped
-             541
+            541
             sage: 641260644409 % 625   # sign flipped here too
-             34
+            34
 
         Test over a range of $n$ for a single curve with fairly random
         coefficients:
@@ -4558,7 +4582,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5)
             4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^19)
             sage: E.padic_regulator(3,5)
-            (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^6))
+            (2*3 + O(3^3), 2*3^2 + O(3^4))
 
         A torsion point in both the good and supersingular cases:
             sage: E = EllipticCurve('11a')

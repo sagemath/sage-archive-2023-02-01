@@ -45,11 +45,12 @@ def find_next_available_port(start, max_tries=100, verbose=True):
     raise RuntimeError, "no available port."
 
 
-def open_page(address, port, secure, pause=2):
+def open_page(address, port, secure):
     if secure:
         rsrc = 'https'
     else:
         rsrc = 'http'
-    cmd = 'echo `sleep %s; %s %s://%s:%s 1>&2 >/dev/null` &'%(pause, browser(), rsrc, address, port)
+
+    cmd = 'echo `%s %s://%s:%s 1>&2 >/dev/null` &'%(browser(), rsrc, address, port)
     os.system(cmd)
 

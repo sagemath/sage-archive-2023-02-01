@@ -72,10 +72,35 @@ a 1-dimension submodule.
     Echelon basis matrix:
     []
 
+We construct subspaces of real and complex double vector spaces
+and verify that the element types are correct:
+    sage: V = FreeModule(RDF, 3); V
+    Vector space of dimension 3 over Real Double Field
+    sage: V.0
+    (1.0, 0.0, 0.0)
+    sage: type(V.0)
+    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    sage: W = V.span([V.0]); W
+    Vector space of degree 3 and dimension 1 over Real Double Field
+    Basis matrix:
+    [1.0 0.0 0.0]
+    sage: type(W.0)
+    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    sage: V = FreeModule(CDF, 3); V
+    Vector space of dimension 3 over Complex Double Field
+    sage: type(V.0)
+    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+    sage: W = V.span_of_basis([CDF.0 * V.1]); W
+    Vector space of degree 3 and dimension 1 over Complex Double Field
+    User basis matrix:
+    [    0 1.0*I     0]
+    sage: type(W.0)
+    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
 """
 
 ####################################################################################
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -359,6 +384,7 @@ class FreeModule_generic(module.Module):
         self.__degree = degree
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
+        self._gram_matrix = None
         self.element_class()
 
     def dense_module(self):
@@ -373,16 +399,16 @@ class FreeModule_generic(module.Module):
             Sparse vector space of dimension 3 over Rational Field
             sage: S.dense_module()
             Vector space of dimension 3 over Rational Field
-            sage: M.sparse_module() is S
+            sage: M.sparse_module() == S
             True
-            sage: S.dense_module() is M
+            sage: S.dense_module() == M
             True
-            sage: M.dense_module() is M
+            sage: M.dense_module() == M
             True
-            sage: S.sparse_module() is S
+            sage: S.sparse_module() == S
             True
 
-        Next we convert a subspace:
+        Next we create a subspace:
             sage: M = FreeModule(QQ,3, sparse=True)
             sage: V = M.span([ [1,2,3] ] ); V
             Sparse vector space of degree 3 and dimension 1 over Rational Field
@@ -829,7 +855,7 @@ class FreeModule_generic(module.Module):
             sage: W2.discriminant()
             6
         """
-        return self.inner_product_matrix().determinant()
+        return self.gram_matrix().determinant()
 
     def free_module(self):
         """
@@ -847,6 +873,42 @@ class FreeModule_generic(module.Module):
         if i < 0 or i >= self.rank():
             raise ValueError, "Generator %s not defined."%i
         return self.basis()[int(i)]
+
+    def gram_matrix(self):
+        """
+        Return the gram matrix associated to this free module, defined to be
+        G = B*A*B.transpose(), where A is the inner product matrix (induced from
+        the ambient space), and B the basis matrix.
+
+        EXAMPLES:
+	    sage: V = VectorSpace(QQ,4)
+	    sage: u = V([1/2,1/2,1/2,1/2])
+	    sage: v = V([0,1,1,0])
+	    sage: w = V([0,0,1,1])
+	    sage: M = span(ZZ,[u,v,w])
+	    sage: M.inner_product_matrix() == V.inner_product_matrix()
+	    True
+	    sage: L = M.submodule_with_basis([u,v,w])
+	    sage: L.inner_product_matrix() == M.inner_product_matrix()
+	    True
+	    sage: L.gram_matrix()
+	    [1 1 1]
+	    [1 2 1]
+	    [1 1 2]
+
+        """
+        if self.is_ambient():
+	    if self._inner_product_matrix is None:
+                # Not set, so inner product matrix is the identity matrix
+                self._inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(
+                    self.base_ring(), self.degree(), sparse=True)(1)
+ 	    return self._inner_product_matrix
+        else:
+	    if self._gram_matrix is None:
+	        A = self.inner_product_matrix()
+                B = self.basis_matrix()
+	        self._gram_matrix = B*A*B.transpose()
+            return self._gram_matrix
 
     def has_user_basis(self):
         """
@@ -866,7 +928,15 @@ class FreeModule_generic(module.Module):
 
     def inner_product_matrix(self):
         """
-        Return the inner product matrix associated to this free module.
+        Return the inner product matrix associated to this module. By definition this
+        is the inner product matrix of the ambient space, hence may be of degree greater
+        than the rank of the module.
+
+        N.B. The inner product does not have to be symmetric (see examples).
+
+        TODO: Differentiate the image ring of the inner product from the base ring of
+        the module and/or ambient space.  E.g. On an integral module over ZZ the inner
+        product pairing could naturally take values in ZZ, QQ, RR, or CC.
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 3)
@@ -875,23 +945,42 @@ class FreeModule_generic(module.Module):
             [0 1 0]
             [0 0 1]
 
-            sage: FreeModule(ZZ,2,inner_product_matrix=[[1,-1],[2,5]]).inner_product_matrix()
+	The inner product does not have to be symmetric or definite.
+
+            sage: N = FreeModule(ZZ,2,inner_product_matrix=[[1,-1],[2,5]])
+            sage: N.inner_product_matrix()
             [ 1 -1]
             [ 2  5]
+	    sage: u, v = N.basis()
+	    sage: u.inner_product(v)
+	    -1
+	    sage: v.inner_product(u)
+	    2
+
+	The inner product matrix is defined with respect to the ambient space.
+
+	    sage: V = QQ^3
+	    sage: u = V([1/2,1,1])
+	    sage: v = V([1,1,1/2])
+	    sage: M = span(ZZ,[u,v])
+	    sage: M.inner_product_matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+	    sage: M.inner_product_matrix() == V.inner_product_matrix()
+	    True
+	    sage: M.gram_matrix()
+	    [ 1/2 -3/4]
+	    [-3/4 13/4]
+
         """
         if self._inner_product_matrix is None:
-            # Not set, so induced by the ambient space or the identity matrix
-            # if this space is ambient.
+            # Not set, so induced by the ambient space or the identity matrix if this space is ambient.
             if isinstance(self, FreeModule_ambient):
-                M = sage.matrix.matrix_space.MatrixSpace(
-                     self.base_ring(), self.rank(), sparse=True)(1)
+                M = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree(), sparse=True)(1)
             else:
-                # TODO: probably much better way to do this using matrix multiplication!
-                A = self.ambient_vector_space()
-                I = [A(v).inner_product(A(w)) for v in self.basis() for w in self.basis()]
-                M = sage.matrix.matrix_space.MatrixSpace( \
-                      self.base_field(), self.rank(), sparse=False)(I)
-
+                V = self.ambient_vector_space()
+		M = V.inner_product_matrix()
             self._inner_product_matrix = M
         return self._inner_product_matrix
 
@@ -1172,6 +1261,10 @@ class FreeModule_generic(module.Module):
             sage: W.uses_ambient_inner_product()
             True
             sage: W.inner_product_matrix()
+            [1 0]
+            [0 1]
+
+            sage: W.gram_matrix()
             [5]
         """
         return self.__uses_ambient_inner_product
@@ -1572,7 +1665,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             [3 3 2]
 
         We create a lattice spanned by two vectors, and saturate.
-        Comptuation of discriminants shows that the index of lattice
+        Comptation of discriminants shows that the index of lattice
         in its saturation is $3$, which is a prime of congruence between
         the two generating vectors.
             sage: L = span(ZZ, [[1,2,3], [4,5,6]])
@@ -3643,7 +3736,6 @@ def basis_seq(V, w):
 class RealDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
-        self._element_class = sage.modules.real_double_vector.RealDoubleVectorSpaceElement
 
     def coordinates(self,v):
         return v
@@ -3651,7 +3743,6 @@ class RealDoubleVectorSpace_class(FreeModule_ambient_field):
 class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.complex_double.CDF,n)
-        self._element_class = sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement
 
     def coordinates(self,v):
         return v
@@ -3673,6 +3764,13 @@ def element_class(R, is_sparse):
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense
+
+    elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
+        return sage.modules.real_double_vector.RealDoubleVectorSpaceElement
+
+    elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
+        return sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement
+
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

@@ -489,6 +489,7 @@ class Cell(Cell_generic):
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+
         #self._html_cache[key] = s
         return s
 
@@ -497,7 +498,7 @@ class Cell(Cell_generic):
         id = self.__id
         t = self.__in.rstrip()
 
-        if t.lstrip()[:5] == '%hide':
+        if t.lstrip().startswith('%hide'):
             cls = "cell_input_hide"
         else:
             cls = "cell_input"

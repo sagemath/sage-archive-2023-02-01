@@ -59,6 +59,7 @@ AUTHOR:
                               moved all the "named" groups to a new file.
     - Nick Alexander (2007-07): move is_isomorphic to isomorphism_to, add from_gap_list
     - William Stein (2007-07): put is_isomorphic back (and make it better)
+    - David Joyner (2007-08): fixed bugs in composition_series, upper/lower_central_series, derived_series,
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -196,7 +197,12 @@ class PermutationGroup_generic(group.FiniteGroup):
                 self.__gap = str(gens)
             else:
                 # gens is a Gap object that represents a list of generators for a group
-                self.__gap = 'Group(%s)'%gens
+                if gens.Length()>0:
+                    # COMMENT: I'm suspicious.  Maybe
+                    # gens.name() would be better here? -- William Stein
+                    self.__gap = 'Group(%s)'%gens
+                else:
+                    self.__gap = 'Group(())'
             self.gens() # so will check that group can be defined in GAP (e.g., no missing packages, etc.)
             return
 
@@ -1050,7 +1056,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Returns the Moien series of a transtive permutation group.
         The function
         $$
-        $$M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)$$
+        M(x) = (1/|G|)\sum_{g\in G} det(1-x*g)^(-1)
         $$
         is sometimes called the "Molien series" of G.
         GAP's \code{MolienSeries} is associated to a character of a group G.
@@ -1377,9 +1383,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         if not isinstance(right, PermutationGroup_generic):
             raise TypeError, "right must be a permutation group"
-        G = self._gap_init_()
-        H = right._gap_init_()
-        return gap.eval("IsomorphismGroups( %s, %s )"%(G,H)) != "fail"
+        G = self._gap_()
+        H = right._gap_()
+        return gap.eval("IsomorphismGroups( %s, %s )"%(G.name(),H.name())) != "fail"
 
     def is_monomial(self):
         """
@@ -1543,7 +1549,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         DS = self._gap_().CompositionSeries()
         n = DS.Length()
         for i in range(1,n+1):
-            ans.append(PermutationGroup(DS[i], from_group = True))
+            ans.append(PermutationGroup(DS[i].GeneratorsOfGroup()))
         return ans
 
     def derived_series(self):
@@ -1561,7 +1567,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         DS = self._gap_().DerivedSeries()
         n = DS.Length()
         for i in range(1,n+1):
-            ans.append(PermutationGroup(DS[i], from_group = True))
+            ans.append(PermutationGroup(DS[i].GeneratorsOfGroup()))
         return ans
 
     def lower_central_series(self):
@@ -1580,7 +1586,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         DS = self._gap_().LowerCentralSeriesOfGroup()
         n = DS.Length()
         for i in range(1,n+1):
-            ans.append(PermutationGroup(DS[i], from_group = True))
+            ans.append(PermutationGroup(DS[i].GeneratorsOfGroup()))
         return ans
 
     def upper_central_series(self):
@@ -1597,7 +1603,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         DS = self._gap_().UpperCentralSeriesOfGroup()
         n = DS.Length()
         for i in range(1,n+1):
-            ans.append(PermutationGroup(DS[i], from_group = True))
+            ans.append(PermutationGroup(DS[i].GeneratorsOfGroup()))
         return ans
 
 def direct_product_permgroups(P):

@@ -7,6 +7,12 @@ SageObject
     Parent
         ParentWithBase
             ParentWithGens
+
+
+TESTS:
+This came up in some subtle bug once.
+    sage: gp(2) + gap(3)
+    5
 """
 
 ###############################################################################
@@ -133,12 +139,13 @@ cdef class Parent(sage_object.SageObject):
             from sage.categories.homset import Hom
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(S, self))
-        try:
-            if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
+        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+            self.init_coerce()
+        #try:
+        if self._coerce_from_hash.has_key(S):
             return self._coerce_from_hash[S]
-        except KeyError:
-            pass
+        #except KeyError:
+        #    pass
         if HAS_DICTIONARY(self):
             mor = self.coerce_map_from_impl(S)
         else:
@@ -367,7 +374,7 @@ cdef class Parent(sage_object.SageObject):
             try:
                 y = R._coerce_(x)
                 return self(y)
-            except TypeError, msg:
+            except (TypeError, AttributeError), msg:
                 pass
         raise TypeError, "no canonical coercion of element into self"
 
@@ -399,10 +406,13 @@ cdef class Parent(sage_object.SageObject):
         Otherwise, return False.
         """
         try:
-            return self._has_coerce_map_from[S]
-        except KeyError:
-            pass
-        except TypeError:
+            if self._has_coerce_map_from.has_key(S):
+                return self._has_coerce_map_from[S]
+        #try:
+        #    return self._has_coerce_map_from[S]
+        #except KeyError:
+        #    pass
+        except AttributeError:
             self._has_coerce_map_from = {}
         if HAS_DICTIONARY(self):
             x = self.has_coerce_map_from_impl(S)

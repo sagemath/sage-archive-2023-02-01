@@ -18,24 +18,25 @@ The "Singmaster notation":
 
 
 
-                                   +--------------+
-                                   | 1     2    3 |
-                                   | 4    up    5 |
-                                   | 6     7    8 |
-     +--------------+--------------+--------------+--------------+
-     | 9    10   11 | 17    1   19 | 25   26   27 | 33   34   35 |
+                        +-----------------+
+                        | 1     2      3 |
+                        | 4    up    5 |
+                        | 6     7      8 |
+     +-----------------+-----------------+--------------------+-------------------+
+     | 9    10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
      | 12  left  13 | 20  front 21 | 28  right 29 | 36  back  37 |
      | 14   15   16 | 22    23  24 | 30   31   32 | 38   39   40 |
-     +--------------+--------------+--------------+--------------+
-                                   | 41   42   43 |
-                                   | 44  down  45 |
-                                   | 46   47   48 |
-                                   +--------------+
+     +------------------+-----------------+-------------------+-------------------+
+                        | 41   42   43 |
+                        | 44  down  45 |
+                        | 46   47   48 |
+                       +------------------+
 
 AUTHOR:
     - David Joyner (2006-10-21): first version
     -      "       (2007-05): changed faces, added legal and solve
     -      "       (2007-06): added plotting functions
+    -      "       (2007-08): colors corrected, "solve" rewritten, and typos fixed.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -45,12 +46,12 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+#*********************************************************************************************************************************
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#*********************************************************************************************************************************
 
 from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -63,6 +64,7 @@ from sage.rings.all      import RationalField, Integer
 #from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -81,11 +83,11 @@ green = (0,1,0)            ## R face
 blue = (0,0,1)              ## D face
 yellow = (1,1,0)           ## L face
 white = (1,1,1)             ## none
-orange = (1,1/3,0)       ## B face
+orange = (1,0.6,0.3)       ## B face
 purple = (1,0,1)           ## none
-lpurple = (1,2/3,1)       ## U face
+lpurple = (1,0.63,1)       ## U face
 lightblue = (0,1,1)        ## none
-lgrey = (3/4,3/4,3/4)    ## sagemath.org color
+lgrey = (0.75,0.75,0.75)    ## sagemath.org color
 
 #########################################################
 #written by Tom Boothby, placed in the public domain
@@ -685,7 +687,7 @@ class CubeGroup(PermutationGroup_generic):
 
         Now type \code{rubik.faces("")} for the dictionary of the solved state
         and \code{rubik.faces("R*L")} for the dictionary of the state obtained
-        after making the move L followed by R.
+        after making the move R followed by L.
 
         """
         fcts = self.move(mv)[1]
@@ -802,7 +804,7 @@ class CubeGroup(PermutationGroup_generic):
         print line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
 
     def legal(self,state,mode="quiet"):
-        """
+        r"""
         Returns 1 (true) if the dictionary \code{state} (in the same format as
         returned by the faces method) represents a legal position (or state) of
         the Rubik's cube. Returns 0 (false) otherwise.
@@ -855,21 +857,17 @@ class CubeGroup(PermutationGroup_generic):
                 return 1
 
     def solve(self,state):
-        """
+        r"""
         Solves the cube in the \code{state}, given as a dictionary as
         in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
         and \code{PreImagesRepresentative}.
 
+        WARNING: This is currently evidently broken.
+
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: R_state = rubik.faces("R")
-            sage: b = rubik.B()
-            sage: d = rubik.D()
-            sage: f = rubik.F()
-            sage: l = rubik.L()
-            sage: r = rubik.R()
-            sage: u = rubik.U()
-            sage: rubik.solve(R_state)  ## time-consuming
+            sage.: rubik.solve(R_state)  # currently broken (long time)
             'R'
 
         You can also check this using \code{word_problem} method (eg, G = rubik.group();
@@ -890,14 +888,7 @@ class CubeGroup(PermutationGroup_generic):
         r = rubik.R()
         u = rubik.U()
         words = [b,d,f,l,r,u]
-        #print g,words
-        #import copy
-        from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.interfaces.all import gap
-        gap.eval("l:=One(Rationals)")
-        cmd = 'G:=Group(%s);'%words
-        phi = gap.eval(cmd+"hom:=EpimorphismFromFreeGroup(G)")
-        sol = str(gap.eval("ans:=PreImagesRepresentative(hom,%s)"%gap(g)))
+        sol = leg[1].word_problem(words, False)[0]
         sol1 = sol.replace("x1","B")
         sol2 = sol1.replace("x2","D")
         sol3 = sol2.replace("x3","F")

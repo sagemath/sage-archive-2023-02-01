@@ -98,7 +98,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         self._degree = parent.degree()
         cdef int n
         cdef int i
-        n = parent.rank()
+        n = parent.degree()
         if n == 0:
             self.v = NULL
             return
@@ -127,7 +127,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             raise MemoryError, "Error allocating memory for vector"
 
         elif length !=n:
-            raise TypeError,"user supplied bector must be same length as rank of vector space"
+            raise TypeError,"user supplied vector must be same length as rank of vector space"
 
     def __dealloc__(self):
         if self.v:

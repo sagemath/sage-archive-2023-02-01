@@ -733,6 +733,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         if nr == 0 or nc == 0:
             return "[]"
 
+        row_divs, col_divs = self.get_subdivisions()
+
         # compute column widths
         S = []
         for x in self.list():
@@ -746,11 +748,25 @@ cdef class Matrix(sage.structure.element.Matrix):
         rows = []
         m = 0
 
+        left_bracket = "["
+        right_bracket = "]"
+        while nc in col_divs:
+            right_bracket = "|" + right_bracket
+            col_divs.remove(nc)
+        while 0 in col_divs:
+            left_bracket += "|"
+            col_divs.remove(0)
+        line = '+'.join(['-'*((width+1)*(b-a)-1) for a,b in zip([0] + col_divs, col_divs + [nc])])
+        hline = (left_bracket + line + right_bracket).replace('|', '+')
+
         # compute rows
         for r from 0 <= r < nr:
+            rows += [hline] * row_divs.count(r)
             s = ""
             for c from 0 <= c < nc:
-                if c == nc - 1:
+                if c+1 in col_divs:
+                    sep = "|"*col_divs.count(c+1)
+                elif c == nc - 1:
                     sep=""
                 else:
                     sep=" "
@@ -759,13 +775,11 @@ cdef class Matrix(sage.structure.element.Matrix):
                     m = max(m, len(entry))
                 entry = " "*(width-len(entry)) + entry
                 s = s + entry + sep
-            rows.append(s)
+            rows.append(left_bracket + s + right_bracket)
 
-        # Put brackets around in a single string
-        tmp = []
-        for row in rows:
-            tmp.append("[%s]"%row)
-        s = "\n".join(tmp)
+        rows += [hline] * row_divs.count(nr)
+
+        s = "\n".join(rows)
         #self.cache('repr',s)
         return s
 
@@ -819,24 +833,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         if nr == 0 or nc == 0:
             return "()"
 
-        # compute column widths
-        S = []
-        for x in self.list():
-            S.append(str(x))
-
-        tmp = []
-        for x in S:
-            tmp.append(len(x))
-
-        width = max(tmp)
-
         S = self.list()
         rows = []
         m = 0
 
+        row_divs, col_divs = self.get_subdivisions()
+
         # compute rows
         latex = sage.misc.latex.latex
         for r from 0 <= r < nr:
+#            if r in row_divs:
+#                rows.append("\\hline")*row_divs.count(r) # jsmath doesn't understand?
             s = ""
             for c from 0 <= c < nc:
                 if c == nc-1:
@@ -848,13 +855,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     m = max(m, len(entry))
                 s = s + entry + sep
             rows.append(s)
+#        if nr in row_divs
+#            rows.append("\\hline")*row_divs.count(nr)
 
         # Put brackets around in a single string
         tmp = []
         for row in rows:
-            tmp.append("%s"%row)
+            tmp.append(str(row))
         s = "\\\\\n".join(tmp)
-        return "\\left(\\begin{array}{%s}\n"%('r'*nc) + s + "\n\\end{array}\\right)"
+
+        tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
+        format = '|'.join(tmp)
+
+        return "\\left(\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right)"
 
 
 
@@ -1291,6 +1304,21 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Predicates
     ###################################################
+
+    def is_symmetric(self):
+        """
+        Returns True if this is a symmetric matrix.
+        """
+        if self._ncols != self._nrows: return False
+        # could be bigger than an int on a 64-bit platform, this
+        #  is the type used for indexing.
+        cdef Py_ssize_t i,j
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < i:
+                if self.get_unsafe(i,j) != self.get_unsafe(j,i):
+                    return False
+        return True
 
     def is_dense(self):
         """

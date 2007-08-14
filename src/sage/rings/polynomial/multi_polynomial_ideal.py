@@ -425,6 +425,43 @@ class MPolynomialIdeal_singular_repr:
                                              check=False, immutable=True)
         return self.__groebner_basis
 
+    def _groebner_basis_using_libsingular(self, algorithm="std"):
+        """
+        Return a Groebner basis of this ideal. If a groebner basis for
+        this ideal has been calculated before the cached Groebner
+        basis is returned regardless of the requested algorithm.
+
+        ALGORITHM: Uses libSINGULAR.
+
+        INPUT:
+            algorithm -- 'std'      - Buchberger's algorithm
+                         'slimgb'   - SlimGB algorithm
+
+        EXAMPLES:
+
+        We compute a Groebner basis of 'cyclic 4' relative to
+        lexicographic ordering.
+
+            sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
+            sage: I = sage.rings.ideal.Cyclic(R,4); I
+            Ideal (a + b + c + d, a*b + a*d + b*c + c*d, a*b*c + a*b*d + a*c*d + b*c*d, a*b*c*d - 1) of Polynomial Ring in a, b, c, d over Rational Field
+            sage: I._groebner_basis_using_libsingular()
+            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d, b*d^4 - b + d^5 - d, b*c - b*d^5 + c^2*d^4 + c*d - d^6 - d^2, b^2 + 2*b*d + d^2, a + b + c + d]
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
+
+        try:
+            return self.__groebner_basis
+        except AttributeError:
+            if algorithm=="std":
+                S = std_libsingular(self)
+            elif algorithm=="slimgb":
+                S = slimgb_libsingular(self)
+            else:
+                raise TypeError, "algorithm '%s' unknown"%algorithm
+            self.__groebner_basis = S
+        return self.__groebner_basis
+
     def _singular_groebner_basis(self):
         try:
             S = self.__singular_groebner_basis
@@ -665,17 +702,25 @@ class MPolynomialIdeal_singular_repr:
         using interred for this purpose. Though the manual doesn't
         mention it.}
         """
-        s = self._singular_().parent()
-        o = s.option("get")
-        s.option("redSB")
-        s.option("redTail")
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+
         R = self.ring()
-        ret = []
-        for f in self._singular_().interred():
-            f = R(f)
-            ret.append(f/f.lc()) # lead coeffs are not reduced by interred
-        ret = Sequence( ret, R, check=False, immutable=True)
-        s.option("set",o)
+
+        if isinstance(R,MPolynomialRing_libsingular):
+            return interred_libsingular(self)
+        else:
+            s = self._singular_().parent()
+            o = s.option("get")
+            s.option("redSB")
+            s.option("redTail")
+            ret = []
+            for f in self._singular_().interred():
+                f = R(f)
+                ret.append(f/f.lc()) # lead coeffs are not reduced by interred
+            ret = Sequence( ret, R, check=False, immutable=True)
+            s.option("set",o)
+
         return ret
 
     def basis_is_groebner(self):
@@ -886,7 +931,7 @@ class MPolynomialIdeal_macaulay2_repr:
             i = G.rfind('{{')
             j = G.rfind('}}')
             G = G[i+2:j].split(',')
-            L = self.ring().var_dict()
+            L = self.ring().gens_dict()
             B = [sage_eval(f, L) for f in G]
             B = Sequence(B, self.ring(), check=False)
             B.sort()
@@ -984,7 +1029,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdhilb')
-            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 5*b^2 - b - 3*c^2 + c, a + 2*b + 2*c - 1]
+            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdfglm')
@@ -996,9 +1041,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger')
-            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, a + 2*b + 2*c - 1,
-             7/125*b + 42/25*c^3 - 79/125*c^2 + 3/125*c, a^2 - a + 2*b^2 + 2*c^2,
-             -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
+            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, -7/125*b - 42/25*c^3 + 79/125*c^2 - 3/125*c,
+            a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger2')
@@ -1040,6 +1084,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return self._groebner_basis_using_singular("groebner")
         elif algorithm.startswith('singular:'):
             return self._groebner_basis_using_singular(algorithm[9:])
+        elif algorithm.startswith('libsingular:'):
+            return self._groebner_basis_using_libsingular(algorithm[len('libsingular:'):])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':

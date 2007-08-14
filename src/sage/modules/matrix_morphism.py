@@ -180,10 +180,10 @@ class MatrixMorphism(sage.categories.all.Morphism):
         D = self.domain()
         E = self.__matrix.decomposition(is_diagonalizable=is_diagonalizable)
         if D.is_ambient():
-            return Sequence([D.submodule(V) for V, _ in E], cr=True, check=False)
+            return Sequence([D.submodule(V, check=False) for V, _ in E], cr=True, check=False)
         else:
             B = D.basis_matrix()
-            return Sequence([D.submodule((V.basis_matrix() * B).row_space()) for V, _ in E],
+            return Sequence([D.submodule((V.basis_matrix() * B).row_space(), check=False) for V, _ in E],
                             cr=True, check=False)
 
     def det(self):
@@ -209,7 +209,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
             V = B.row_space()
-        return self.domain().submodule(V)
+        return self.domain().submodule(V, check=False)
 
     def image(self):
         V = self.matrix().image()
@@ -220,7 +220,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
             V = B.row_space()
-        return self.codomain().submodule(V)
+        return self.codomain().submodule(V, check=False)
 
     def matrix(self):
         return self.__matrix

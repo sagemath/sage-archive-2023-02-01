@@ -41,6 +41,10 @@ class User:
         else:
             self.__password = crypt.crypt(password, SALT)
 
+    def set_hashed_password(self, password):
+        self.__password = password
+
+
     def password_is(self, password):
         if self.__username == "pub":
             return False

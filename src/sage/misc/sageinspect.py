@@ -1,7 +1,7 @@
 r"""nodoctest
-Inspect Python, Sage, and Sagex objects.
+Inspect Python, Sage, and Cython objects.
 
-This module extends parts of Python's inspect module to Sagex objects.
+This module extends parts of Python's inspect module to Cython objects.
 
 AUTHOR:
    -- originally taken from Fernando Perez's IPython
@@ -12,9 +12,9 @@ AUTHOR:
 EXAMPLES:
     sage: from sage.misc.sageinspect import *
 
-Test introspection of modules defined in Python and Sagex files:
+Test introspection of modules defined in Python and Cython files:
 
-    Sagex modules:
+    Cython modules:
         sage: sage_getfile(sage.rings.rational)
         '.../rational.pyx'
 
@@ -29,14 +29,14 @@ Test introspection of modules defined in Python and Sagex files:
         '.../sageinspect.py'
 
         sage: sage_getdoc(sage.misc.sageinspect).lstrip()
-        'Inspect Python, Sage, and Sagex objects...'
+        'Inspect Python, Sage, and Cython objects...'
 
         sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
-        'Inspect Python, Sage, and Sagex objects...'
+        'Inspect Python, Sage, and Cython objects...'
 
-Test introspection of classes defined in Python and Sagex files:
+Test introspection of classes defined in Python and Cython files:
 
-    Sagex classes:
+    Cython classes:
         sage: sage_getfile(sage.rings.rational.Rational)
         '.../rational.pyx'
 
@@ -56,9 +56,9 @@ Test introspection of classes defined in Python and Sagex files:
         sage: sage_getsource(sage.misc.attach.Attach)
         'class Attach:...'
 
-Test introspection of functions defined in Python and Sagex files:
+Test introspection of functions defined in Python and Cython files:
 
-    Sagex functions:
+    Cython functions:
         sage: sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
         'mr(s)'
 
@@ -111,7 +111,7 @@ File:\ (?P<FILENAME>.*?)                    # match File: then filename
 
 def _extract_embedded_position(docstring):
     r"""
-    If docstring has a Sagex embedded position, return a tuple (original_docstring, filename, line).  If not, return None.
+    If docstring has a Cython embedded position, return a tuple (original_docstring, filename, line).  If not, return None.
 
     AUTHOR:
         -- William Stein
@@ -145,7 +145,7 @@ def _extract_source(lines, lineno):
 
     return inspect.getblock(lines[lineno:])
 
-def _sage_getargspec_sagex(source):
+def _sage_getargspec_cython(source):
     r"""
     inspect.getargspec from source code.
 
@@ -178,10 +178,10 @@ def _sage_getargspec_sagex(source):
             s = arg.split('=')
             argname = s[0]
 
-            # Sagex often has type information; we split off the right most
+            # Cython often has type information; we split off the right most
             # identifier to discard this information
             argname = argname.split()[-1]
-            # Sagex often has C pointer symbols before variable names
+            # Cython often has C pointer symbols before variable names
             argname.lstrip('*')
             argnames.append(argname)
             if len(s) > 1:
@@ -197,7 +197,7 @@ def _sage_getargspec_sagex(source):
 
         return (argnames, None, None, argdefs)
     except:
-        raise ValueError, "Could not parse sagex argspec"
+        raise ValueError, "Could not parse cython argspec"
 
 def sage_getfile(obj):
     r"""
@@ -242,10 +242,10 @@ def sage_getargspec(obj):
     elif inspect.isclass(obj):
         return sage_getargspec(obj.__call__)
     else:
-        # Perhaps it is binary and defined in a Sagex file
+        # Perhaps it is binary and defined in a Cython file
         source = sage_getsource(obj, is_binary=True)
         if source:
-            return _sage_getargspec_sagex(source)
+            return _sage_getargspec_cython(source)
 
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
@@ -278,7 +278,7 @@ def sage_getdoc(obj, obj_name=''):
     r"""
     Return the docstring associated to obj as a string.
 
-    If obj is a Sagex object with an embedded position in its docstring,
+    If obj is a Cython object with an embedded position in its docstring,
     the embedded position is stripped.
 
     AUTHOR:
@@ -295,7 +295,7 @@ def sage_getdoc(obj, obj_name=''):
         return ''
     s = sage.misc.sagedoc.format(str(r))
 
-    # If there is a Sagex embedded position, it needs to be stripped
+    # If there is a Cython embedded position, it needs to be stripped
     pos = _extract_embedded_position(s)
     if pos is not None:
         s, _, _ = pos
@@ -334,7 +334,7 @@ def sage_getsourcelines(obj, is_binary=False):
         -- Extensions by Nick Alexander
     """
     # If we can handle it, we do.  This is because Python's inspect will
-    # happily dump binary for sagex extension source code.
+    # happily dump binary for cython extension source code.
     d = inspect.getdoc(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
@@ -369,7 +369,7 @@ def __internal_tests():
     Test internals of the sageinspect module.
 
     sage: from sage.misc.sageinspect import *
-    sage: from sage.misc.sageinspect import _extract_source, _extract_embedded_position, _sage_getargspec_sagex, __internal_teststring
+    sage: from sage.misc.sageinspect import _extract_source, _extract_embedded_position, _sage_getargspec_cython, __internal_teststring
 
     If docstring is None, nothing bad happens:
         sage: sage_getdoc(None)
@@ -378,11 +378,11 @@ def __internal_tests():
         sage: sage_getsource(sage)
         "...all..."
 
-    A sagex function with default arguments:
+    A cython function with default arguments:
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari')"
 
-    A sagex method without an embedded position can lead to surprising errors:
+    A cython method without an embedded position can lead to surprising errors:
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
         Traceback (most recent call last):
         ...
@@ -412,12 +412,12 @@ def __internal_tests():
                   a=2):                            # 13
             pass # EOF                             # 14
 
-    Test _sage_getargspec_sagex with multiple default arguments and a type:
-        sage: _sage_getargspec_sagex("def init(self, x=None, base=0):")
+    Test _sage_getargspec_cython with multiple default arguments and a type:
+        sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
         (['self', 'x', 'base'], None, None, ('None', '0'))
-        sage: _sage_getargspec_sagex("def __init__(self, x=None, base=0):")
+        sage: _sage_getargspec_cython("def __init__(self, x=None, base=0):")
         (['self', 'x', 'base'], None, None, ('None', '0'))
-        sage: _sage_getargspec_sagex("def __init__(self, x=None, unsigned int base=0):")
+        sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
         (['self', 'x', 'base'], None, None, ('None', '0'))
 
     Test _extract_embedded_position:

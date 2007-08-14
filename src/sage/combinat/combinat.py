@@ -203,22 +203,28 @@ from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 
+import expnums
+import partitions as partitions_ext
+
 ######### combinatorial sequences
 
-def bell_number(n):
+def bell_number(n, algorithm='sage'):
     r"""
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
     INPUT:
         n -- an integer
+        algorithm -- 'sage': use N. Alexander's custom implementation in SAGE
+                     'gap': use Gap's Bell command (slow)
 
     If $n \leq 0$, returns $1$.
 
-    Wraps GAP's Bell.
 
     EXAMPLES:
         sage: bell_number(10)
+        115975
+        sage: bell_number(10, algorithm='gap')
         115975
         sage: bell_number(2)
         2
@@ -230,9 +236,22 @@ def bell_number(n):
         Traceback (most recent call last):
         ...
         TypeError: no coercion of this rational to integer
+
+    To compute all Bell numbers up to n, use expnums:
+        sage: expnums(10,1)
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+        sage: [bell_number(n) for n in range(10)]
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
     """
-    ans=gap.eval("Bell(%s)"%ZZ(n))
-    return eval(ans)
+    n = ZZ(n)
+    if n <= 0:
+        return ZZ(1)
+    if algorithm == 'sage':
+        return expnums.expnums(n+1,1)[-1]
+    elif algorithm == 'gap':
+        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
+    else:
+        raise ValueError, "unknown algorithm '%s'"%algorithm
 
 ## def bernoulli_number(n):
 ##     r"""
@@ -942,6 +961,21 @@ def permutations_iterator(mset,n=None):
     Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
 
+    Note-- This function considers repeated elements as different entries,
+    so for example:
+        sage: from sage.combinat.combinat import permutations, permutations_iterator
+        sage: mset = [1,2,2]
+        sage: permutations(mset)
+        [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
+        sage: for p in permutations_iterator(mset): print p
+        [1, 2, 2]
+        [1, 2, 2]
+        [2, 1, 2]
+        [2, 2, 1]
+        [2, 1, 2]
+        [2, 2, 1]
+
+
     EXAMPLES:
         sage: X = permutations_iterator(range(3),2)
         sage: [x for x in X]
@@ -962,7 +996,8 @@ def permutations_iterator(mset,n=None):
 def number_of_permutations(mset):
     """
     Returns the size of permutations(mset).
-    Wraps GAP's NrPermutationsList.
+
+    AUTHOR: Robert L. Miller
 
     EXAMPLES:
         sage: mset = [1,1,2,2,2]
@@ -970,8 +1005,67 @@ def number_of_permutations(mset):
         10
 
     """
-    ans=gap.eval("NrPermutationsList(%s)"%mset)
-    return ZZ(ans)
+    from sage.rings.arith import factorial, prod
+    m = len(mset)
+    n = []
+    seen = []
+    for element in mset:
+        try:
+            n[seen.index(element)] += 1
+        except:
+            n.append(1)
+            seen.append(element)
+    return factorial(m)/prod([factorial(k) for k in n])
+
+def cyclic_permutations(mset):
+    """
+    Returns a list of all cyclic permutations of mset. Treats mset as a list,
+    not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    return list(cyclic_permutations_iterator(mset))
+
+def cyclic_permutations_iterator(mset):
+    """
+    Iterates over all cyclic permutations of mset in cycle notation. Treats
+    mset as a list, not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    if len(mset) > 2:
+        for perm in permutations_iterator(mset[1:]):
+            yield [mset[0]] + perm
+    else:
+        yield mset
 
 #### partitions
 
@@ -1082,7 +1176,7 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-def number_of_partitions(n,k=None, algorithm='gap'):
+def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
 
@@ -1091,13 +1185,17 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         k -- (default: None); if specified, instead returns the
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
-        algorithm -- (default: 'gap')
-            'gap' -- use GAP
+        algorithm -- (default: 'default')
+            'bober' -- use Jonathon Bober's implementation (*very* fast,
+                      but new and not well tested yet).
+            'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
                       outputs numbpart(147007)%1000 as 536, but it
                       should be 533!.  So do not use this option.
+            'default' -- 'bober' when k is not specified; otherwise
+                      use 'gap'.
 
     IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
@@ -1114,9 +1212,11 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         [(1, 1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 2), (1, 1, 3), (2, 3), (1, 4), (5,)]
         sage: len(v)
         7
-        sage: number_of_partitions(5)
+        sage: number_of_partitions(5, algorithm='gap')
         7
         sage: number_of_partitions(5, algorithm='pari')
+        7
+        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ValueError is raised.
@@ -1167,12 +1267,18 @@ def number_of_partitions(n,k=None, algorithm='gap'):
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    if algorithm == 'gap':
+    if algorithm == 'gap' or (not k is None and algorithm=='default'):
         if k==None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
+    if not k is None:
+        raise ValueError, "only the GAP algorithm works if k is specified."
+    if algorithm == 'default' and k is None:
+        return partitions_ext.number_of_partitions(n)
+    elif algorithm == 'bober' and k is None:
+        return partitions_ext.number_of_partitions(n)
     elif algorithm == 'pari':
         if not k is None:
             raise ValueError, "cannot specify second argument k if the algorithm is PARI"
@@ -1210,6 +1316,77 @@ def partitions(n):
         if p and (len(p) < 2 or p[1] > p[0]):
             yield (p[0] + 1,) + p[1:]
 
+def cyclic_permutations_of_partition(partition):
+    """
+    Returns all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    return list(cyclic_permutations_of_partition_iterator(partition))
+
+def cyclic_permutations_of_partition_iterator(partition):
+    """
+    Iterates over all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    if len(partition) == 1:
+        for i in cyclic_permutations_iterator(partition[0]):
+            yield [i]
+    else:
+        for right in cyclic_permutations_of_partition_iterator(partition[1:]):
+            for perm in cyclic_permutations_iterator(partition[0]):
+                yield [perm] + right
 
 def ferrers_diagram(pi):
     """

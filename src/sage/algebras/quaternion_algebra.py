@@ -35,6 +35,7 @@ from sage.rings.all import (IntegerRing, RationalField, PolynomialRing, is_Field
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module import VectorSpace
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.matrix0 import Matrix
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_quotient import FreeAlgebraQuotient
 from sage.algebras.algebra_element import AlgebraElement
@@ -52,13 +53,21 @@ def sign(x):
         return 0
 
 def fundamental_discriminant(D):
+    r"""
+    Return the discriminant of the quadratic extension $K=Q(\sqrt{D})$, i.e.
+    an integer d congruent to either 0 or 1, mod 4, and such that, at most,
+    the only square dividing it is 4.
+    """
     D = Integer(D)
     D = D.square_free_part()
-    if D%4 in (0,1):
+    if D%4 == 1:
         return D
     return 4*D
 
 def ramified_primes(a,b):
+    """
+    Return a list of the finite primes ramifying in Q(a,b)
+    """
     a = Integer(a); b = Integer(b)
     if a.is_square() or b.is_square() or (a+b).is_square():
         return [ ]
@@ -211,7 +220,9 @@ def QuaternionAlgebraWithInnerProduct(K, norms, traces, names):
     if True and K(2).is_unit():
         D = T**2 - 4*N
         try:
-            S = D.square_root()
+            S = D.sqrt()
+        except AttributeError:
+            raise ValueError, "%s is not an integer"%D
         except ArithmeticError:
             raise ValueError, "Invalid inner product input."
         assert bool
@@ -259,10 +270,9 @@ def QuaternionAlgebraWithGramMatrix(K, gram, names):
     """
     if not isinstance(gram,Matrix) or not gram.is_symmetric:
         raise AttributeError, "Argument gram (= %s) must be a symmetric matrix"%gram
-    (q0,t01,t02,t03,_,q1,t12,t13,_,_,q3,t23,_,_,_,q4) = gram.list()
-    n1 = q1/2
-    n2 = q2/2
-    n3 = q3/2
+    (q0,t01,t02,t03,t10,q1,t12,t13,t20,t21,q2,t23,t30,t31,t32,q3) = gram.list()
+    norms = [q1/2, q2/2, q3/2]
+    traces = [t10, t20, t30, t12, t12, t23]
     return QuaternionAlgebraWithInnerProduct(K,norms,traces,names=names)
 
 def QuaternionAlgebraWithDiscriminants(D1, D2, T, names=['i','j','k'], M=2):
@@ -287,7 +297,7 @@ def QuaternionAlgebraWithDiscriminants(D1, D2, T, names=['i','j','k'], M=2):
         A quaternion algebra.
 
     EXAMPLES:
-        sage: A = QuaternionAlgebraWithDiscriminants(-7,-47,1, names=['i','j','k'])
+        sage: A = QuaternionAlgebraWithDiscriminants(-7,-47,1, names=('i','j','k'))
         sage: print A
         Quaternion algebra with generators (i, j, k) over Rational Field
         sage: i, j, k = A.gens()

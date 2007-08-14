@@ -11,8 +11,8 @@ EXAMPLES:
 We plot a circle shooting up to the right:
 
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
-    ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
-    sage: a.save('sage.gif')
+    ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2]) # optional -- requires convert command
+    sage: a.save('sage.gif') # optional -- requires convert command
 
 """
 
@@ -39,13 +39,13 @@ class Animation(SageObject):
 
     EXAMPLES:
         sage: a = animate([sin(x + float(k)) for k in srange(0,4,0.3)],
-        ...                xmin=0, xmax=2*pi, figsize=[2,1])
-        sage: a
+        ...                xmin=0, xmax=2*pi, figsize=[2,1]) # optional -- requires convert command
+        sage: a # optional
         Animation with 14 frames
-        sage: a[:5]
+        sage: a[:5] # optional
         Animation with 5 frames
-        sage: a.save('one.gif')
-        sage: a[:5].save('two.gif')
+        sage: a.save('one.gif') # optional
+        sage: a[:5].save('two.gif') # optional
     """
     def __init__(self, v,
                  xmin=None, xmax=None, ymin=None, ymax=None,
@@ -80,8 +80,8 @@ class Animation(SageObject):
         Get a frame from an animation.
 
         EXAMPLES:
-            sage: a = animate([x, x^2, x^3, x^4])
-            sage: a[2].save('sage.png')
+            sage: a = animate([x, x^2, x^3, x^4]) # optional -- requires convert command
+            sage: a[2].save('sage.png') # optional
         """
         return self.__frames[i]
 
@@ -91,14 +91,14 @@ class Animation(SageObject):
 
         EXAMPLES:
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
-            ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
+            ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2]) # optional -- requires convert command
             ...
-            sage: a
+            sage: a # optional
             Animation with 10 frames
-            sage: a.save('sage.gif')
-            sage: a[3:7]
+            sage: a.save('sage.gif') # optional
+            sage: a[3:7] # optional
             Animation with 4 frames
-            sage: a[3:7].save('sage.gif')
+            sage: a[3:7].save('sage.gif') # optional
         """
         return Animation(self.__frames.__getslice__(*args), xmin=self.__xmin,
                        xmax = self.__xmax, ymin = self.__ymin,
@@ -123,13 +123,13 @@ class Animation(SageObject):
         We add and multiply two animations.
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1])
-            sage: a.save('sage.gif')
+            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1]) # optional -- requires convert command
+            sage: a.save('sage.gif') # optional
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2])
-            sage: b.save('sage.gif')
-            sage: (a*b).save('sage.gif')
-            sage: (a+b).save('sage.gif')
+            ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2]) # optional
+            sage: b.save('sage.gif') # optional
+            sage: (a*b).save('sage.gif') # optional
+            sage: (a+b).save('sage.gif') # optional
         """
         if not isinstance(other, Animation):
             other = Animation(other)
@@ -164,13 +164,13 @@ class Animation(SageObject):
         EXAMPLES:
         We add and multiply two animations.
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
-            sage: a.save('sage.gif')
+            ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False) # optional -- requires convert command
+            sage: a.save('sage.gif') # optional
             sage: b = animate([circle((0,i),1,hue=0,thickness=20*i) for i in srange(0,2,0.4)],
-            ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2], axes=False)
-            sage: b.save('sage.gif')
-            sage: (a*b).save('sage.gif')
-            sage: (a+b).save('sage.gif')
+            ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2], axes=False) # optional
+            sage: b.save('sage.gif') # optional
+            sage: (a*b).save('sage.gif') # optional
+            sage: (a+b).save('sage.gif') # optional
         """
         if not isinstance(other, Animation):
             other = Animation(other)
@@ -191,11 +191,9 @@ class Animation(SageObject):
         png's of all the images in this animation.
 
         EXAMPLES:
-            sage: a = animate([plot(x^2 + n) for n in range(4)])
-            sage: d = a.png()
-            sage: d                   # random
-            '/home/was/.sage/temp/ubuntu/20951/dir_3'
-            sage: v = os.listdir(d); v.sort(); v
+            sage: a = animate([plot(x^2 + n) for n in range(4)]) # optional -- requires convert command
+            sage: d = a.png() # optional  -- directory where the files are
+            sage: v = os.listdir(d); v.sort(); v # optional
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
         try:
@@ -222,20 +220,20 @@ class Animation(SageObject):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: v = [E.change_ring(GF(p)).plot(pointsize=30) for p in [97, 101, 103, 107]]
-            sage: a = animate(v, xmin=0, ymin=0)
-            sage: a
+            sage: a = animate(v, xmin=0, ymin=0) # optional -- requires convert command
+            sage: a # optional
             Animation with 4 frames
-            sage: a.save('sage.gif')
+            sage: a.save('sage.gif') # optional
 
-            sage: g = a.graphics_array()
-            sage: g
+            sage: g = a.graphics_array() # optional
+            sage: g # optional
             Graphics Array of size 1 x 3
-            sage: g.save(figsize=[4,1])
+            sage: g.save(figsize=[4,1]) # optional
 
-            sage: g = a.graphics_array(ncols=2)
-            sage: g
+            sage: g = a.graphics_array(ncols=2) # optional
+            sage: g # optional
             Graphics Array of size 2 x 2
-            sage: g.save('sage.png')
+            sage: g.save('sage.png')         # optional
         """
         n = len(self.__frames)
         ncols = int(ncols)

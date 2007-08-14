@@ -562,6 +562,23 @@ cdef class LaurentSeries(AlgebraElement):
     def __rshift__(LaurentSeries self, k):
         return LaurentSeries(self._parent, self.__u, self.__n - k)
 
+    def truncate(self, long n):
+        r"""
+        Returns the laurent series of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        if n <= self.__n:
+            return LaurentSeries(self._parent, 0)
+        else:
+            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n)
+
+    def truncate_neg(self, long n):
+        r"""
+        Returns the laurent series equivalent to self except without any degree < n terms.
+
+        This is equivalent to $\code{self - self.truncate(n)}$.
+        """
+        return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
     cdef RingElement _div_c_impl(self, RingElement right_r):
         """

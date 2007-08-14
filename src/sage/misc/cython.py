@@ -1,9 +1,9 @@
 """
-SageX Compiled SAGE Code
+Cython -- C-Extensions for Python
 
 AUTHORS:
-    -- William Stein, 2006-01-18
-
+    -- William Stein (2006-01-18): initial version
+    -- William Stein (2007-07-28): update from sagex to cython
 """
 
 #*****************************************************************************
@@ -116,7 +116,7 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 
 sequence_number = {}
 
-def sagex(filename, verbose=False, compile_message=False,
+def cython(filename, verbose=False, compile_message=False,
           use_cache=False, create_local_c_file=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
@@ -201,9 +201,9 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    sagex_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
+    cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err '%(build_dir, sagex_include, name)
+    cmd = 'cd %s && cython -p %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
@@ -286,7 +286,7 @@ def subtract_from_line_numbers(s, n):
 ################################################################
 # COMPILE
 ################################################################
-def sagex_lambda(vars, expr,
+def cython_lambda(vars, expr,
                  verbose=False,
                  compile_message=False,
                  use_cache=False):
@@ -312,11 +312,15 @@ def sagex_lambda(vars, expr,
         sage: f = lambda x,y: x*x + y*y + x + y + 17r*x + 3.2r
 
     We make the same Lambda function, but in a compiled form.
-        sage: g = sagex_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
+        sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
+        sage: g(2,3)
+        55.200000000000003
+        sage: g(0,0)
+        3.2000000000000002
 
     We access a global function and variable.
         sage: a = 25
-        sage: f = sagex_lambda('double x', 'sage.math.sin(x) + sage.a')
+        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')
         sage: f(10)
         24.455978889110629
         sage: a = 50
@@ -346,7 +350,7 @@ def f(%s):
 
     import sage.server.support
     d = {}
-    sage.server.support.sagex_import_all(tmpfile, d,
+    sage.server.support.cython_import_all(tmpfile, d,
                                          verbose=verbose, compile_message=compile_message,
                                          use_cache=use_cache,
                                          create_local_c_file=False)

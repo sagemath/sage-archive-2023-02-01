@@ -329,14 +329,16 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             if mor is not None:
                 return mor, None
 
-        # Try base extending to left and right
-        # TODO: This is simple and ambiguous, add sophistication
-        if PY_TYPE_CHECK(R, ParentWithBase) and PY_TYPE_CHECK(S, Parent):
-            Z = (<ParentWithBase>R).base_extend_canonical_sym(S)
-            if Z is not None:
+        # Try base extending
+        if PY_TYPE_CHECK(R, Parent) and PY_TYPE_CHECK(S, Parent):
+            from sage.categories.pushout import pushout
+            try:
+                Z = pushout(R, S)
                 from sage.categories.homset import Hom
                 # Can I trust always __call__() to do the right thing in this case?
                 return sage.categories.morphism.CallMorphism(Hom(R, Z)), sage.categories.morphism.CallMorphism(Hom(S, Z))
+            except:
+                pass
 
         return None
 
@@ -389,18 +391,18 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 from sage.structure.element cimport Element # workaround SageX bug
 
 cdef class LAction(Action):
-    """Action calls _l_action_ of the actor."""
+    """Action calls _l_action of the actor."""
     def __init__(self, G, S):
         Action.__init__(self, G, S, True, operator.mul)
     cdef Element _call_c_impl(self, Element g, Element a):
-        return g._l_action_(a)  # a * g
+        return g._l_action(a)  # a * g
 
 cdef class RAction(Action):
-    """Action calls _r_action_ of the actor."""
+    """Action calls _r_action of the actor."""
     def __init__(self, G, S):
         Action.__init__(self, G, S, False, operator.mul)
     cdef Element _call_c_impl(self, Element a, Element g):
-        return g._r_action_(a)  # g * a
+        return g._r_action(a)  # g * a
 
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
@@ -447,20 +449,18 @@ cdef class RightModuleAction(Action):
         # Objects are implemented with the assumption that
         # _lmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
+            # first we try the easy case of coercing G to the basering of S
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
-                if not G.has_coerce_map_from(S) and not S.has_coerce_map_from(G):
-                    Z = G.base_extend_canonical_sym(S.base())
-                    if Z is not None:
-                        try:
-                            G.base_extend_canonical_sym(S)
-                        except TypeError, err:
-                            if err.message == "Ambiguous base extension": # TODO: detect this better
-                                raise
-                        self.connecting = Z.coerce_map_from(G)
-                        self.extended_base = S.base_extend(Z)
+                # otherwise, we try and find a base extension
+                from sage.categories.pushout import pushout
+                # this may raise a type error, which we propagate
+                self.extended_base = pushout(G, S)
+                # make sure the pushout actually gave correct a base extension of S
+                if self.extended_base.base() != pushout(G, S.base()):
+                    raise TypeError, "Actor must be coercable into base."
                 else:
-                    raise TypeError, "actor must be coercable into the basering"
+                    self.connecting = self.extended_base.base().coerce_map_from(G)
 
         # TODO: detect this better
         # if this is bad it will raise a type error in the subsequent lines, which we propagate

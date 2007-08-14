@@ -181,7 +181,74 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         return c
 
 def pushout(R, S):
+    """
+    Given a pair of Objects R and S, try and construct a
+    reasonable object $Y$ and return maps such that
+    cannonically $R \leftarrow Y \rightarrow S$.
 
+    ALGORITHM:
+       This incorperates the idea of functors discussed SAGE Days 4.
+       Every object $R$ can be viewed as an initial object and
+       a series of functors (e.g. polynomial, quotient, extension,
+       completion, vector/matrix, etc.) Call the series of
+       increasingly-simple rings (with the associated functors)
+       the "tower" of $R$. The \code{construction} method is used to
+       create the tower.
+
+       Given two objects $R$ and $S$, try and find a common initial
+       object $Z$. If the towers of $R$ and $S$ meet, let $Z$ be their
+       join. Otherwise, see if the top of one coerces naturally into
+       the other.
+
+       Now we have an initial object and two \emph{ordered} lists of
+       functors to apply. We wish to merge these in an unambiguous order,
+       popping elements off the top of one or the other tower as we
+       apply them to $Z$.
+
+       - If the functors are distinct types, there is an absolute ordering
+           given by the rank attribute. Use this.
+       - Otherwise:
+          - If the tops are equal, we (try to) merge them.
+          - If \emph{exactly} one occurs lower in the other tower
+              we may unambiguously apply the other (hoping for a later merge).
+          - If the tops commute, we can apply either first.
+          - Otherwise fail due to ambiguity.
+
+    EXAMPLES:
+        Here our "towers" are $R = Complete_7(Frac(\Z)$ and $Frac(Poly_x(\Z))$, which give us $Frac(Poly_x(Complete_7(Frac(\Z)))$
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(Qp(7), Frac(ZZ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+
+        Note we get the same thing with
+            sage: pushout(Zp(7), Frac(QQ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+            sage: pushout(Zp(7)['x'], Frac(QQ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+
+        Note that polynomial variable ordering must be unambiguously determined.
+            sage: pushout(ZZ['x,y,z'], QQ['w,z,t'])
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous Base Extension
+            sage: pushout(ZZ['x,y,z'], QQ['w,x,z,t'])
+            Polynomial Ring in w, x, y, z, t over Rational Field
+
+        Some other examples
+            sage: pushout(Zp(7)['y'], Frac(QQ['t'])['x,y,z'])
+            Polynomial Ring in x, y, z over Fraction Field of Univariate Polynomial Ring in t over 7-adic Field with capped relative precision 20
+            sage: pushout(ZZ['x,y,z'], Frac(ZZ['x'])['y'])
+            Polynomial Ring in y, z over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: pushout(MatrixSpace(RDF, 2, 2), Frac(ZZ['x']))
+            Full MatrixSpace of 2 by 2 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Real Double Field
+            sage: pushout(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
+            Full MatrixSpace of 3 by 3 dense matrices over Power Series Ring in x over Integer Ring
+            sage: pushout(QQ['x,y'], ZZ[['x']])
+            Univariate Polynomial Ring in y over Power Series Ring in x over Rational Field
+
+    AUTHOR:
+       -- Robert Bradshaw
+    """
     if R == S:
         return R
 
@@ -199,9 +266,7 @@ def pushout(R, S):
       Rs, Ss = Ss, Rs
       R_tower, S_tower = S_tower, R_tower
 
-#    print "Rs", Rs
-#    print "Ss", Ss
-
+    # look for join
     if Ss[-1] in Rs:
         if Rs[-1] == Ss[-1]:
             while Rs[-1] == Ss[-1]:
@@ -210,6 +275,8 @@ def pushout(R, S):
         else:
             Rs = Rs[:Rs.index(Ss[-1])]
             Z = Ss.pop()
+
+    # look for coercion of tops
     elif Rs[-1].has_coerce_map_from(Ss[-1]):
         Z = Rs[-1]
 
@@ -224,13 +291,15 @@ def pushout(R, S):
     Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
 
     while len(Rc) > 0 or len(Sc) > 0:
-        print Z
+#        print Z
+        # if we are out of functors in either tower, there is no ambiguity
         if len(Sc) == 0:
             c = Rc.pop()
             Z = c(Z)
         elif len(Rc) == 0:
             c = Sc.pop()
             Z = c(Z)
+        # if one of the functors has lower rank, do it first
         elif Rc[-1].rank < Sc[-1].rank:
             c = Rc.pop()
             Z = c(Z)
@@ -238,7 +307,11 @@ def pushout(R, S):
             c = Sc.pop()
             Z = c(Z)
         else:
+            # the ranks are the same, so things are a bit tricky
             if Rc[-1] == Sc[-1]:
+                # If they are indeed the same operation, we only do it once.
+                # The \code{merge} function here takes into account non-mathematical
+                # distinctions (e.g. single vs. multivariate polynomials)
                 cR = Rc.pop()
                 cS = Sc.pop()
                 c = cR.merge(cS)
@@ -247,6 +320,10 @@ def pushout(R, S):
                 else:
                     raise TypeError, "Incompatable Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
             else:
+                # Now we look ahead to see if either top functor is
+                # applied later on in the other tower.
+                # If this is the case for exactly one of them, we unambiguously
+                # postpone that operation, but if both then we abort.
                 if Rc[-1] in Sc:
                     if Sc[-1] in Rc:
                         raise TypeError, "Ambiguous Base Extension"
@@ -256,11 +333,13 @@ def pushout(R, S):
                 elif Sc[-1] in Rc:
                     c = Rc.pop();
                     Z = c(Z)
+                # If, perchance, the two functors commute, then we may do them in any order.
                 elif Rc[-1].commutes(Sc[-1]):
                     c = Rc.pop()
                     Z = c(Z)
                     c = Sc.pop()
                     Z = c(Z)
+                # Otherwise, we cannot proceed.
                 else:
                     raise TypeError, "Ambiguous Base Extension"
     return Z
@@ -284,13 +363,13 @@ def pushout_lattice(R, S):
        See the code for a specific worked-out example.
 
     EXAMPLES:
-        sage: from sage.categories.pushout import pushout
-        sage: A, B = pushout(Qp(7), Frac(ZZ['x']))
+        sage: from sage.categories.pushout import pushout_lattice
+        sage: A, B = pushout_lattice(Qp(7), Frac(ZZ['x']))
         sage: A.codomain()
         Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
         sage: A.codomain() is B.codomain()
         True
-        sage: A, B = pushout(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
+        sage: A, B = pushout_lattice(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
         sage: B
         Identity endomorphism of Full MatrixSpace of 3 by 3 dense matrices over Power Series Ring in x over Integer Ring
 

@@ -1,0 +1,3 @@
+cimport matrix_generic_dense
+
+cdef class Matrix_mpolynomial_dense(matrix_generic_dense.Matrix_generic_dense)

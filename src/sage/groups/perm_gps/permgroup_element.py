@@ -56,11 +56,15 @@ from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
+import sage.structure.coerce as coerce
+
 import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
+
+import permgroup_named
 
 def is_PermutationGroupElement(x):
     return isinstance(x, PermutationGroupElement)
@@ -221,7 +225,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         else:
             self.__gap = str(g)
         if parent is None:
-            parent = SymmetricGroup(self._gap_().LargestMovedPoint())
+            parent = permgroup_named.SymmetricGroup(self._gap_().LargestMovedPoint())
         element.Element.__init__(self, parent)
 
     def _gap_init_(self):
@@ -525,11 +529,11 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: g2 = G.gens()[1]
             sage: h = g1^2*g2*g1
             sage: h.word_problem([g1,g2], False)
-            '(1,2,3)(4,5)^2*(3,4)^-1*(1,2,3)(4,5)'
+            ('x1^2*x2^-1*x1', '(1,2,3)(4,5)^2*(3,4)^-1*(1,2,3)(4,5)')
             sage: h.word_problem([g1,g2])
                x1^2*x2^-1*x1
                [['(1,2,3)(4,5)', 2], ['(3,4)', -1], ['(1,2,3)(4,5)', 1]]
-            '(1,2,3)(4,5)^2*(3,4)^-1*(1,2,3)(4,5)'
+            ('x1^2*x2^-1*x1', '(1,2,3)(4,5)^2*(3,4)^-1*(1,2,3)(4,5)')
         """
         import copy
         from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -565,4 +569,4 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
                     l5[i][0] = l5[i][0].replace("x"+str(j),str(words[j-1]))
             print "         ",l1
             print "         ",l5
-        return l2
+        return l1,l2

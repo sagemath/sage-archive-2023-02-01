@@ -36,7 +36,7 @@ AUTHOR:
     - David Joyner (2006-10-21): first version
     -      "       (2007-05): changed faces, added legal and solve
     -      "       (2007-06): added plotting functions
-    -      "       (2007-08): colors corrected, "solve" rewritten, and typos fixed.
+    -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -46,12 +46,12 @@ REFERENCES:
 
 """
 
-#*********************************************************************************************************************************
+#**************************************************************************************
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*********************************************************************************************************************************
+#**************************************************************************************
 
 from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -866,30 +866,26 @@ class CubeGroup(PermutationGroup_generic):
 
         EXAMPLES:
             sage: rubik = CubeGroup()
-            sage: R_state = rubik.faces("R")
-            sage.: rubik.solve(R_state)  # currently broken (long time)
-            'R'
+            sage: state = rubik.faces("R*U")
+            sage: rubik.solve(state)  # long time; *omputationally intensive* even for simple moves
+            'R*U'
 
         You can also check this using \code{word_problem} method (eg, G = rubik.group();
         g = G("(3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)");
         g.word_problem([b,d,f,l,r,u]), though the output will be less intuitive).
 
         """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.interfaces.all import gap
         rubik = self
         leg = rubik.legal(state,"verbose")
         if not(leg[0]):
             return "Illegal or syntactically incorrect state. No solution."
         G = rubik.group()
         g = leg[1]
-        b = rubik.B()
-        d = rubik.D()
-        f = rubik.F()
-        l = rubik.L()
-        r = rubik.R()
-        u = rubik.U()
-        words = [b,d,f,l,r,u]
-        sol = leg[1].word_problem(words, False)[0]
-        sol1 = sol.replace("x1","B")
+        hom = G._gap_().EpimorphismFromFreeGroup()
+        soln = hom.PreImagesRepresentative(gap(str(g)))
+        sol1 = str(soln).replace("x1","B")
         sol2 = sol1.replace("x2","D")
         sol3 = sol2.replace("x3","F")
         sol4 = sol3.replace("x4","L")

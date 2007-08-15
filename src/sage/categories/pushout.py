@@ -96,7 +96,7 @@ class PolynomialFunctor(ConstructionFunctor):
 #        return "Poly(%s)" % self.var
 
 class MatrixFunctor(ConstructionFunctor):
-    def __init__(self, nrows, ncols):
+    def __init__(self, nrows, ncols, is_sparse=False):
 #        if nrows == ncols:
 #            Functor.__init__(self, Rings(), RingModules()) # takes a basering
 #        else:
@@ -104,15 +104,64 @@ class MatrixFunctor(ConstructionFunctor):
         Functor.__init__(self, Rings(), Rings())
         self.nrows = nrows
         self.ncols = ncols
+        self.is_sparse = is_sparse
         self.rank = 10
     def __call__(self, R):
         from sage.matrix.matrix_space import MatrixSpace
-        return MatrixSpace(R, self.nrows, self.ncols)
+        return MatrixSpace(R, self.nrows, self.ncols, sparse=self.is_sparse)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
             c = cmp((self.nrows, self.ncols), (other.nrows, other.ncols))
         return c
+    def merge(self, other):
+        if self != other:
+            return None
+        else:
+            return MatrixFunctor(self.nrows, self.ncols, self.is_sparse and other.is_sparse)
+
+class VectorFunctor(ConstructionFunctor):
+    def __init__(self, n, is_sparse=False, inner_product_matrix=None):
+#        if nrows == ncols:
+#            Functor.__init__(self, Rings(), RingModules()) # takes a basering
+#        else:
+#            Functor.__init__(self, Rings(), MatrixAlgebras()) # takes a basering
+        Functor.__init__(self, Rings(), Rings())
+        self.n = n
+        self.is_sparse = is_sparse
+        self.inner_product_matrix = inner_product_matrix
+        self.rank = 10 # ranking of functor, not rank of module
+    def __call__(self, R):
+        from sage.modules.free_module import FreeModule
+        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.n, other.n)
+        return c
+    def merge(self, other):
+        if self != other:
+            return None
+        else:
+            return VectorFunctor(self.n, self.is_sparse and other.is_sparse)
+
+class SubspaceFunctor(ConstructionFunctor):
+    def __init__(self, basis):
+        self.basis = basis
+        self.rank = 11 # ranking of functor, not rank of module
+    def __call__(self, ambient):
+        return ambient.span_of_basis(self.basis)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.basis, other.basis)
+        return c
+    def merge(self, other):
+        if isinstance(other, SubspaceFunctor):
+            return SubspaceFunctor(self.basis + other.basis) # TODO: remove linear dependancies
+        else:
+            return None
+
 
 class FractionField(ConstructionFunctor):
     def __init__(self):
@@ -125,7 +174,7 @@ class LocalizationFunctor(ConstructionFunctor):
     def __init__(self, t):
         Functor.__init__(self, Rings(), Rings())
         self.t = t
-        self.rank = 6
+        self.rank = 5.5
     def __call__(self, R):
         return R.localize(t)
     def __cmp__(self, other):
@@ -153,10 +202,10 @@ class QuotientFunctor(ConstructionFunctor):
     def __init__(self, I):
         Functor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
-        self.rank = 2
+        self.rank = 6
     def __call__(self, R):
         I = self.I
-        if I.base_ring != R:
+        if I.ring() != R:
             I.base_extend(R)
         return R.quo(I)
     def __cmp__(self, other):
@@ -164,6 +213,19 @@ class QuotientFunctor(ConstructionFunctor):
         if c == 0:
             c = cmp(self.I, other.I)
         return c
+    def merge(self, other):
+        if self == other:
+            return self
+        try:
+            gcd = self.I + other.I
+        except (TypeError, NotImplementedError):
+            return None
+        if gcd.is_trivial() and not gcd.is_zero():
+            # quotient by gcd would result in the trivial ring/group/...
+            # Rather than create the zero ring, we claim they can't be merged
+            # TODO: Perhaps this should be detected at a higher level...
+            raise TypeError, "Trivial quotient intersection."
+        return QuotientFunctor(gcd)
 
 class AlgebraicExtensionFunctor(ConstructionFunctor):
     def __init__(self, poly, name, elt=None):
@@ -262,6 +324,9 @@ def pushout(R, S):
     elif S in Rs:
         return R
 
+#    print Rs
+#    print Ss
+
     if R_tower[-1][1] in Ss:
       Rs, Ss = Ss, Rs
       R_tower, S_tower = S_tower, R_tower
@@ -276,12 +341,20 @@ def pushout(R, S):
             Rs = Rs[:Rs.index(Ss[-1])]
             Z = Ss.pop()
 
-    # look for coercion of tops
-    elif Rs[-1].has_coerce_map_from(Ss[-1]):
-        Z = Rs[-1]
+    # look for topmost coercion
+    elif S.has_coerce_map_from(Rs[-1]):
+        while not Ss[-1].has_coerce_map_from(Rs[-1]):
+            Ss.pop()
+        while len(Rs) > 0 and Ss[-1].has_coerce_map_from(Rs[-1]):
+            Rs.pop()
+        Z = Ss.pop()
 
-    elif Ss[-1].has_coerce_map_from(Rs[-1]):
-        Z = Ss[-1]
+    elif R.has_coerce_map_from(Ss[-1]):
+        while not Rs[-1].has_coerce_map_from(Ss[-1]):
+            Rs.pop()
+        while len(Ss) > 0 and Rs[-1].has_coerce_map_from(Ss[-1]):
+            Ss.pop()
+        Z = Rs.pop()
 
     else:
         raise TypeError, "No common base"
@@ -307,14 +380,14 @@ def pushout(R, S):
             c = Sc.pop()
             Z = c(Z)
         else:
-            # the ranks are the same, so things are a bit tricky
+            # the ranks are the same, so things are a bit subtler
             if Rc[-1] == Sc[-1]:
                 # If they are indeed the same operation, we only do it once.
                 # The \code{merge} function here takes into account non-mathematical
                 # distinctions (e.g. single vs. multivariate polynomials)
                 cR = Rc.pop()
                 cS = Sc.pop()
-                c = cR.merge(cS)
+                c = cR.merge(cS) or cS.merge(cR)
                 if c:
                     Z = c(Z)
                 else:
@@ -339,9 +412,16 @@ def pushout(R, S):
                     Z = c(Z)
                     c = Sc.pop()
                     Z = c(Z)
-                # Otherwise, we cannot proceed.
                 else:
-                    raise TypeError, "Ambiguous Base Extension"
+                    # try and merge (default merge is failure for unequal functors)
+                    cR = Rc.pop()
+                    cS = Sc.pop()
+                    c = cR.merge(cS) or cS.merge(cR)
+                    if c is not None:
+                        Z = c(Z)
+                    else:
+                        # Otherwise, we cannot proceed.
+                        raise TypeError, "Ambiguous Base Extension"
     return Z
 
 

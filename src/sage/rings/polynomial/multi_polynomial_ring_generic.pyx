@@ -38,7 +38,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES:
             sage: S = ZZ['x,y']
-            sage: F, R = S.constructor(); R
+            sage: F, R = S.construction(); R
             Univariate Polynomial Ring in x over Integer Ring
             sage: F(R) == S
             True

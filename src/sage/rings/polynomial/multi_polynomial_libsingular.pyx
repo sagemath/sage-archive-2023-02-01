@@ -1576,6 +1576,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         n_Delete(&_n, _ring)
         return new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # all currently implemented rings are commutative
+        return self._rmul_c_impl(right)
+
     cdef RingElement  _mul_c_impl(left, RingElement right):
         """
         Multiply left and right.

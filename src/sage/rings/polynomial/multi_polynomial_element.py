@@ -187,7 +187,19 @@ class MPolynomial_element(MPolynomial):
         #return self.parent()(self.__element * right.__element)
         return self.__class__(self.parent(),self.__element * right.__element)
 
-    def __div__(self, right):
+    def _lmul_(self, a):
+        scaled = {}
+        for (m,c) in self.element().dict().iteritems():
+            scaled[m] = c*a
+        return self.parent()(scaled)
+
+    def _rmul_(self, a):
+        scaled = {}
+        for (m,c) in self.element().dict().iteritems():
+            scaled[m] = a*c
+        return self.parent()(scaled)
+
+    def _div_(self, right):
         r"""
         EXAMPLES:
             sage: R.<x,y> = QQ['x,y']
@@ -195,25 +207,24 @@ class MPolynomial_element(MPolynomial):
             sage: f.parent()
             Polynomial Ring in x, y over Rational Field
 
-        If we do the same over $\ZZ$ the result has to lie
-        in the fraction field.
+        If we do the same over $\ZZ$ the result is the same as
+        multiplying by 1/3 (i.e. base extension).
 
             sage: x,y = ZZ['x,y'].gens()
             sage: f = (x + y)/3
             sage: f.parent()
+            Polynomial Ring in x, y over Rational Field
+            sage: f = (x + y) * 1/3
+            sage: f.parent()
+            Polynomial Ring in x, y over Rational Field
+
+        But we get a true fraction field if the denominator is not in
+        the fration field of the basering.
+
+            sage: f = x/y
+            sage: f.parent()
             Fraction Field of Polynomial Ring in x, y over Integer Ring
-
         """
-        try:
-            if not isinstance(right, Element) or right.parent() != self.parent():
-                R = self.base_ring()
-                x = R(right)
-                return ~x * self
-        except (TypeError, ValueError, ZeroDivisionError):
-            pass
-        return CommutativeRingElement.__div__(self, right)
-
-    def _div_(self, right):
         return self.parent().fraction_field()(self.__element, right.__element)
 
     def __pow__(self, n):

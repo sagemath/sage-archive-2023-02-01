@@ -164,6 +164,8 @@ cdef class RealField(sage.rings.ring.Field):
     """
 
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
+        cdef RealNumber rn
+
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
             raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
@@ -177,6 +179,21 @@ cdef class RealField(sage.rings.ring.Field):
         self.rnd = n
         self.rnd_str = rnd
         ParentWithGens.__init__(self, self, tuple([]), False)
+
+        # hack, we cannot call the constructor here
+        rn = PY_NEW(RealNumber)
+        rn._parent = self
+        mpfr_init2(rn.value, self.__prec)
+        rn.init = 1
+        mpfr_set_d(rn.value, 0.0, self.rnd)
+        self._zero_element = rn
+
+        rn = PY_NEW(RealNumber)
+        rn._parent = self
+        mpfr_init2(rn.value, self.__prec)
+        rn.init = 1
+        mpfr_set_d(rn.value, 1.0, self.rnd)
+        self._one_element = rn
 
     cdef RealNumber _new(self):
         """

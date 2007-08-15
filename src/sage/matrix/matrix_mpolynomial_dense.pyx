@@ -89,6 +89,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                 algorithm = "field"
 
         if algorithm =="field":
+            algorithm = 'default'
             E = self.matrix_over_field()
         else:
             E = self.copy()
@@ -191,6 +192,10 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
             l = sorted(l)
 
+            # fix too short l vector
+            if len(l) < res.rank:
+                l = range(res.rank)
+
             # clear matrix
             for r from 0 <= r < self._nrows:
                 for c from 0 <= c < self._ncols:
@@ -245,7 +250,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         EXAMPLES:
 
             If all entries are constant, then this method performs the
-            same operations as self.echelonize().
+            same operations as self.echelon_form('field').
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(127),4)
             sage: A = Matrix(P,4,4,[-14,0,45,-55,-61,-16,0,0,0,0,25,-62,-22,0,52,0]); A
@@ -254,9 +259,9 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [  0   0  25 -62]
             [-22   0  52   0]
 
-            sage: E = A.echelon_form()
-            sage: A.row_reduce() # modifies self
-            sage: E == A
+            sage: E1 = A.echelon_form('field')
+            sage: E2 = A.echelon_form('row_reduction')
+            sage: E1 == E2
             True
 
             If no entries are constant, nothing happens:
@@ -267,7 +272,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [x0 y0]
 
             sage: B = A.copy()
-            sage: A.row_reduce() # modifies self
+            sage: A.echelonize('row_reduction') # modifies self
             sage: B == A
             True
 
@@ -285,7 +290,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                        0, 0, 0, 1, x1*y1]
             sage: A = Matrix(P,9,5,l)
             sage: B = A.copy()
-            sage: B.row_reduce(); B
+            sage: B.echelonize('row_reduction'); B
             [                 1                  0                  0                  0     x0*y0 + x1 + 1]
             [                 0                  1                  0                  0              x0*y0]
             [                 0                  0                  1                  0    x0*y0 + x0 + x1]
@@ -298,7 +303,8 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
             This is the same result SINGULAR's rowred command returns.
 
-            sage: A._singular_().rowred()._sage_(P) == B
+            sage: E = A._singular_().rowred()._sage_(P)
+            sage: E == B
             True
 
 

@@ -1,3 +1,3 @@
-cimport matrix_generic_dense
+from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 
-cdef class Matrix_mpolynomial_dense(matrix_generic_dense.Matrix_generic_dense)
+cdef class Matrix_mpolynomial_dense(Matrix_generic_dense)

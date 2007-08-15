@@ -221,8 +221,10 @@ matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
 
 
 matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
-                                 ['sage/matrix/matrix_mpolynomial_dense.pyx'])
-
+                                     ['sage/matrix/matrix_mpolynomial_dense.pyx'],
+                                     libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+                                     language="c++",
+                                     include_dirs=[SAGE_ROOT +'/local/include/singular'])
 
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])

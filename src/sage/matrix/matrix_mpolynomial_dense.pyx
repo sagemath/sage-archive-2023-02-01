@@ -8,24 +8,236 @@ Matrix_generic_dense.
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 
-##############################################################################
-#       Copyright (C) 2007  William Stein <wstein@gmail.com>
+#*****************************************************************************
+#
+#   SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
 #  The full text of the GPL is available at:
+#
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 include "sage/ext/python.pxi"
-cimport matrix_generic_dense
+include "sage/libs/singular/singular-cdefs.pxi"
 
+from sage.libs.singular.singular cimport Conversion
+
+cdef Conversion co
+co = Conversion()
+
+from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
 
-cdef class Matrix_mpolynomial_dense(matrix_generic_dense.Matrix_generic_dense):   # dense or sparse
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
+
+
+cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     """
     Dense matrix over a multivariate polynomial ring over a field.
     """
 
-    def row_reduce(self):
+    def echelon_form(self, algorithm="default", **kwds):
+        """
+        Return the echelon form of self.
+
+        INPUT:
+            algorithm -- string, which algorithm to use (default: 'default')
+                         'default' -- bareiss if possible, 'field' else
+                         'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
+                         'field' -- compute echelon form over fraction field
+                         'row_reduction' -- compute echelon form as far as possible,
+                                            only divide by constant entries
+
+        OUTPUT:
+            matrix -- The reduced row echelon form of A, as an
+            immutable matrix.  Note that self is *not* changed by this
+            command.  Use A.echelonize() to change A in place.
+
+        EXAMPLES:
+            sage: P.<x,y> = MPolynomialRing(GF(127),2)
+            sage: A = matrix(P,2,2,[1,x,1,y])
+            sage: A
+            [1 x]
+            [1 y]
+            sage: A.copy().echelon_form() # gauss-bareiss
+            [    1     y]
+            [    0 x - y]
+            sage: A.copy().echelon_form('row_reduction')
+            [     1      x]
+            [     0 -x + y]
+        """
+        x = self.fetch('echelon_form')
+        if not x is None:
+            return x
+
+        if algorithm == "default":
+            if PY_TYPE_CHECK(self.base_ring(),MPolynomialRing_libsingular):
+                algorithm = "bareiss"
+            elif self.base_ring()._can_convert_to_singular():
+                algorithm = "bareiss"
+            else:
+                algorithm = "field"
+
+        if algorithm =="field":
+            E = self.matrix_over_field()
+        else:
+            E = self.copy()
+
+        E.echelonize(algorithm=algorithm, **kwds)
+        E.set_immutable()  # so we can cache the echelon form.
+        if not algorithm == 'row_reduction':
+            # do not cache incomplete echelon form
+            self.cache('echelon_form', E)
+            self.cache('pivots', E.pivots())
+        return E
+
+    def echelonize(self, algorithm="bareiss", **kwds):
+        r"""
+        Transform self into a matrix in echelon form over the same
+        base ring as self using the Gauss-Bareiss algorithm.
+
+        INPUT:
+            algorithm -- string, which algorithm to use (default: 'bareiss')
+                   'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
+                   'row_reduction' -- compute echelon form as far as possible,
+                                      only divide by constant entries
+        EXAMPLES:
+            sage: P.<x,y> = MPolynomialRing(QQ,2)
+            sage: A = matrix(P,2,2,[1/2,x,1,3/4*y+1])
+            sage: A
+            [      1/2         x]
+            [        1 3/4*y + 1]
+            sage: B = A.copy(); B.echelonize(); B
+            [              1       3/4*y + 1]
+            [              0 x - 3/8*y - 1/2]
+            sage: B = A.copy(); B.echelonize('row_reduction'); B
+            [               1              2*x]
+            [               0 -2*x + 3/4*y + 1]
+
+
+        """
+        self.check_mutability()
+
+        if self._nrows == 0 or self._ncols == 0:
+            self.cache('in_echelon_form',True)
+            self.cache('rank', 0)
+            self.cache('pivots', [])
+            return
+
+        x = self.fetch('in_echelon_form')
+        if not x is None: return  # already known to be in echelon form
+
+        if algorithm == 'bareiss':
+            self._echelonize_gauss_bareiss()
+        elif algorithm == 'row_reduction':
+            self._echelonize_row_reduction()
+        else:
+            raise ValueError, "Unknown algorithm '%s'"%algorithm
+
+    def _echelonize_gauss_bareiss(self):
+        """
+        Transform self into a matrix in echelon form over the same
+        base ring as self.
+
+        ALGORITHM: Uses libSINGULAR or SINGULAR
+        """
+        cdef int r,c,_c
+        cdef intvec *iv = NULL
+        cdef ideal *res = NULL
+        cdef matrix *i = NULL
+        cdef ideal *ii = NULL
+        cdef R = self.base_ring()
+        cdef ring *_ring = NULL
+        cdef int *ivv = NULL
+        cdef MPolynomial_libsingular p
+
+        x = self.fetch('in_echelon_form')
+        if not x is None: return  # already known to be in echelon form
+
+        if PY_TYPE_CHECK(self.base_ring(), MPolynomialRing_libsingular):
+
+            self.check_mutability()
+            self.clear_cache()
+
+            i = mpNew(self._ncols, self._nrows)
+            _ring = (<MPolynomialRing_libsingular>R)._ring
+            rChangeCurrRing(_ring)
+
+            # we are transposing here also
+            for r from 0 <= r < self._nrows:
+                for c from 0 <= c < self._ncols:
+                    p = <MPolynomial_libsingular>self.get_unsafe(r,c)
+                    i.m[self._nrows * c + r] = p_Copy(p._poly, _ring)
+
+            ii = idMatrix2Module(i)
+
+            smCallNewBareiss(ii,0,0,res,&iv)
+
+
+            ivv = iv.ivGetVec()
+            l = []
+            for r from 0 <= r < iv.rows():
+                l.append(int(ivv[r]-1))
+
+            l = sorted(l)
+
+            # clear matrix
+            for r from 0 <= r < self._nrows:
+                for c from 0 <= c < self._ncols:
+                    self.set_unsafe(r,c,R._zero_element)
+
+            # we are transposing here also
+            for r from 0 <= r < IDELEMS(res):
+                for c from 0 <= c < res.rank:
+                    _c = l[c]
+                    p = co.new_MP(R, pTakeOutComp1(&res.m[r], c+1))
+                    self.set_unsafe(r,_c,p)
+
+            self.cache('in_echelon_form',True)
+            self.cache('rank', IDELEMS(res))
+            self.cache('pivots', tuple(l))
+
+            id_Delete(&res,_ring)
+            id_Delete(&ii, _ring)
+            delete(iv)
+
+        elif self.base_ring()._can_convert_to_singular():
+
+            self.check_mutability()
+            self.clear_cache()
+
+            E,l = self._singular_().bareiss()._sage_(self.base_ring())
+            l = sorted(l)
+
+            # clear matrix
+            for r from 0 <= r < self._nrows:
+                for c from 0 <= c < self._ncols:
+                    self.set_unsafe(r,c,R._zero_element)
+
+            for r from 0 <= r < E.nrows():
+                for c from 0 <= c < E.ncols():
+                    _c = l[c]
+                    self.set_unsafe(r,_c, E[r,c])
+
+            self.cache('in_echelon_form',True)
+            self.cache('rank', E.nrows())
+            self.cache('pivots', tuple(l))
+
+        else:
+
+            raise NotImplementedError, "only MPolynomial_libsingular supported"
+
+    def _echelonize_row_reduction(self):
         r"""
         Transform self to a matrix in row reduced form as far as this
         is possible, i.e. only perform division by constant elements.
@@ -100,8 +312,6 @@ cdef class Matrix_mpolynomial_dense(matrix_generic_dense.Matrix_generic_dense): 
 
         nr,nc = self.nrows(),self.ncols()
         F = self.base_ring().base_ring()
-        if not F.is_field():
-            raise TypeError, "row reduction only supported for polynomial rings over fields"
         cdef Matrix d = matrix(F,nr,nc)
         start_row = 0
 

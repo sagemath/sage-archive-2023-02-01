@@ -99,6 +99,8 @@ from sage.misc.latex import latex
 
 from sage.interfaces.all import macaulay2
 
+import polynomial_element
+
 
 # shared library loading
 cdef extern from "dlfcn.h":
@@ -364,6 +366,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             elif element.parent() == self:
                 # is this safe?
                 _p = p_Copy((<MPolynomial_libsingular>element)._poly, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
 
@@ -377,8 +381,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
+
+        elif isinstance(element, polynomial_element.Polynomial):
+            if self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
+            else:
+                raise TypeError, "incompatable parents"
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # base ring elements

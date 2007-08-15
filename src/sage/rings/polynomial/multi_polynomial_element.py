@@ -12,6 +12,8 @@ AUTHORS:
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
     -- Martin Albrecht: improved singular coercions (restructed class hierarchy) and added
                         ETuples
+    -- Robert Bradshaw (2007-08-14): added support for coercion of polynomials in a subset
+                        of variables (including multi-level univariate rings)
 
 EXAMPLES:
 We verify Lagrange's four squares identity:

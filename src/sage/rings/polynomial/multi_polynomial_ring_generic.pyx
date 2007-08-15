@@ -7,6 +7,7 @@ from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
 import multi_polynomial_element
+import polynomial_ring
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -63,6 +64,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             * this ring itself
             * polynomial rings in the same variables over any base ring that
               canonically coerces to the base ring of this ring
+            * polynomial rings in a subset of the variables over any base ring that
+              canonically coerces to the base ring of this ring
             * any ring that canonically coerces to the base ring of this
               polynomial ring.
 
@@ -86,12 +89,37 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 if P.variable_names() == self.variable_names():
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
+                elif self.base_ring().has_coerce_map_from(P._mpoly_base_ring(self.variable_names())):
+                    return self(x)
+
+            elif polynomial_ring.is_PolynomialRing(P):
+                if P.variable_name() in self.variable_names():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
 
         except AttributeError:
             pass
 
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.base_ring()])
+
+    def _extract_polydict(self, x):
+        """
+        Assuming other_vars is a subset of self.variable_names(),
+        convert the dict of ETuples with respect to other_vars to
+        a dict with respect to self.variable_names()
+        """
+        # This is probably horribly innefficient
+        from polydict import ETuple
+        other_vars = list(x.parent().variable_names())
+        name_mapping = [(other_vars.index(var) if var in other_vars else -1) for var in self.variable_names()]
+        K = self.base_ring()
+        D = {}
+        var_range = range(len(self.variable_names()))
+        for ix, a in x.dict().iteritems():
+            ix = ETuple([0 if name_mapping[t] == -1 else ix[name_mapping[t]] for t in var_range])
+            D[ix] = K(a)
+        return D
 
     def __richcmp__(left, right, int op):
         return (<ParentWithGens>left)._richcmp(right, op)
@@ -223,6 +251,58 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def gens(self):
         return self._gens
+
+    def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
+        r"""
+        Returns the list of variable names of this and its baserings, as if
+        it were a single multi-variate polynomial.
+
+        EXAMPLES:
+            sage: R = QQ['x,y']['z,w']
+            sage: R.variable_names_recursive()
+            ('x', 'y', 'z', 'w')
+            sage: R.variable_names_recursive(3)
+            ('y', 'z', 'w')
+
+        """
+        if depth <= 0:
+            all = ()
+        elif depth == 1:
+            all = self.variable_names()
+        else:
+            my_vars = self.variable_names()
+            try:
+               all = self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+            except AttributeError:
+                all = my_vars
+        if len(all) > depth:
+            all = all[-depth:]
+        return all
+
+    def _mpoly_base_ring(self, vars=None):
+        """
+        Returns the basering if this is viewed as a polynomial ring over vars.
+        See also MPolynomial._mpoly_dict_recursive
+        """
+        if vars is None:
+            vars = self.variable_names_recursive()
+        vars = list(vars)
+        my_vars = self.variable_names()
+        if vars == list(my_vars):
+            return self.base_ring()
+        elif not my_vars[-1] in vars:
+            return self
+        elif not set(my_vars).issubset(set(vars)):
+            while my_vars[-1] in vars:
+                my_vars.pop()
+            from polynomial_ring_constructor import PolynomialRing
+            return PolynomialRing(self.base_ring(), my_vars)
+        else:
+            try:
+                return self.base_ring()._mpoly_base_ring(vars[:vars.index(my_vars[0])])
+            except AttributeError:
+                return self.base_ring()
+
 
     def krull_dimension(self):
         return self.base_ring().krull_dimension() + self.ngens()

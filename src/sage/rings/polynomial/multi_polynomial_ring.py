@@ -91,6 +91,8 @@ import multi_polynomial_ideal
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
+import polynomial_element
+
 from sage.structure.parent_gens import ParentWithGens
 
 from multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
@@ -271,10 +273,17 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 for i, a in D.iteritems():
                     D[i] = K(a)
                 return multi_polynomial_element.MPolynomial_polydict(self, D)
+            elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
+                # If the named variables are a superset of the input, map the variables by name
+                return multi_polynomial_element.MPolynomial_polydict(self, self._extract_polydict(x))
+            elif self.base_ring().has_coerce_map_from(P):
+                # it might be in the basering (i.e. a poly ring over a poly ring)
+                c = self.base_ring()(x)
+                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             else:
-                raise TypeError
+                return multi_polynomial_element.MPolynomial_polydict(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
 
-        if isinstance(x, MPolynomial_libsingular):
+        elif isinstance(x, MPolynomial_libsingular):
             P = x.parent()
             if P == self:
                 return multi_polynomial_element.MPolynomial_polydict(self, x.dict())
@@ -288,8 +297,18 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 for i, a in D.iteritems():
                     D[i] = K(a)
                 return multi_polynomial_element.MPolynomial_polydict(self, D)
+            elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
+                # If the named variables are a superset of the input, map the variables by name
+                return multi_polynomial_element.MPolynomial_polydict(self, self._extract_polydict(x))
+            elif self.base_ring().has_coerce_map_from(P):
+                # it might be in the basering (i.e. a poly ring over a poly ring)
+                c = self.base_ring()(x)
+                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             else:
-                raise TypeError
+                return multi_polynomial_element.MPolynomial_polydict(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
+
+        elif isinstance(x, polynomial_element.Polynomial):
+            return multi_polynomial_element.MPolynomial_polydict(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
 
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_polydict(self, x)

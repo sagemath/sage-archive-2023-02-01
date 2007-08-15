@@ -67,6 +67,9 @@ def is_Polynomial(f):
 
 from polynomial_compiled cimport CompiledPolynomialFunction
 
+#from polynomial_ring_constructor import PolynomialRing
+from polydict import ETuple
+
 cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
@@ -1074,6 +1077,48 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         S = self.parent().change_ring(R)
         return S(self)
+
+    def _mpoly_dict_recursive(self, vars=None, base_ring=None):
+        """
+        Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
+        with the given variables.
+        """
+        if not self:
+            return {}
+
+        var = self.parent().variable_name()
+        if vars is None:
+            vars = self.parent().variable_names_recursive()
+        if not var in vars:
+            x = base_ring(self) if base_ring else self
+            const_ix = ETuple((0,)*len(vars))
+            return { const_ix: x }
+
+        prev_vars = vars[:list(vars).index(var)]
+        const_ix = ETuple((0,)*len(prev_vars))
+        mpolys = None
+
+        if len(prev_vars) > 0:
+            try:
+                mpolys = [a._mpoly_dict_recursive(prev_vars, base_ring) for a in self]
+            except AttributeError, msg:
+                pass
+
+        if mpolys is None:
+            if base_ring is not None and base_ring is not self.base_ring():
+                mpolys = [{const_ix:base_ring(a)} if a else {} for a in self]
+            else:
+                mpolys = [{const_ix:a} if a else {} for a in self]
+
+        D = {}
+        leftovers = (0,) * (len(vars) - len(prev_vars) - 1)
+        for k in range(len(mpolys)):
+            for i,a in mpolys[k].iteritems():
+                j = ETuple((k,) + leftovers)
+                D[i + j] = a
+
+        return D
+
 
     def __copy__(self):
         """
@@ -2322,9 +2367,15 @@ cdef class Polynomial_generic_dense(Polynomial):
         elif isinstance(x, dict):
             zero = R(0)
             n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
+            if PY_TYPE_CHECK(n, tuple): # a mpoly dict
+                n = n[0]
+                v = [zero] * (n+1)
+                for i, z in x.iteritems():
+                    v[i[0]] = z
+            else:
+                v = [zero] * (n+1)
+                for i, z in x.iteritems():
+                    v[i] = z
             x = v
         elif isinstance(x, pari_gen):
             if absprec is None:

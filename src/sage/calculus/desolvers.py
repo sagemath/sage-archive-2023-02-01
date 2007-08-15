@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 This file contains functions useful for solving differential equations
 which occur commonly in a 1st semster differential equations course.
 

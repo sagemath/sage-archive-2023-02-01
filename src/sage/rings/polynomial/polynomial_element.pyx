@@ -79,6 +79,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: type(f)
         <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
     """
+
     def __init__(self, parent, is_gen = False, construct=False):
         """
         The following examples illustrate creation of elements of
@@ -1344,7 +1345,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
               sage.rings.rational_field.is_RationalField(R):
 
             try:
-                G = list(self._pari_('x').factor())
+                G = list(self._pari_with_name('x').factor())
             except PariError:
                 raise NotImplementedError
 
@@ -1356,19 +1357,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         elif is_RealField(R):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            G = list(self._pari_('x').factor())
+            G = list(self._pari_with_name('x').factor())
 
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
             # otherwise PARI will factor over RR.
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             if self.leading_coefficient() != R.gen():
-                G = list((pari(R.gen())*self._pari_('x')).factor())
+                G = list((pari(R.gen())*self._pari_with_name('x')).factor())
             else:
-                G = self._pari_('x').factor()
+                G = self._pari_with_name('x').factor()
 
         #elif padic_field.is_pAdicField(R):
-        #    G = list(self._pari_('x').factorpadic(R.prime(), R.prec()))
+        #    G = list(self._pari_with_name('x').factorpadic(R.prime(), R.prec()))
 
         if G is None:
             raise NotImplementedError
@@ -1705,34 +1706,83 @@ cdef class Polynomial(CommutativeAlgebraElement):
     #####################################################################
     # Conversions to other systems
     #####################################################################
-    def _pari_(self, variable=None):
-        """
+    def _pari_(self):
+        r"""
         Return polynomial as a PARI object.
 
+        SAGE does not handle PARI's variable ordering requirements gracefully
+        at this time.  In practice, this means that the variable \code{x}
+        needs to be the topmost variable, as in the example.
+
         EXAMPLES:
-            sage: f = PolynomialRing(QQ, 'X')([0,1,2/3,3])
+            sage: f = QQ['x']([0,1,2/3,3])
             sage: pari(f)
-            3*X^3 + 2/3*X^2 + X
+            3*x^3 + 2/3*x^2 + x
+
+            sage: S.<a> = QQ['a']
+            sage: R.<x> = S['x']
+            sage: f = R([0, a]) + R([0, 0, 2/3])
+            sage: pari(f)
+            2/3*x^2 + a*x
+
+        TESTS:
+            Unfortunately, variable names matter:
+                sage: R.<x, y> = QQ[]
+                sage: S.<a> = R[]
+                sage: f = x^2 + a; g = y^3 + a
+                sage: pari(f)
+                Traceback (most recent call last):
+                ...
+                PariError: (8)
+
+            Stacked polynomial rings, first with a univariate ring on the bottom:
+                sage: S.<a> = QQ['a']
+                sage: R.<x> = S['x']
+                sage: pari(x^2 + 2*x)
+                x^2 + 2*x
+                sage: pari(a*x + 2*x^3)
+                2*x^3 + a*x
+
+            Stacked polynomial rings, second with a multivariate ring on the bottom:
+                sage: S.<a, b> = ZZ['a', 'b']
+                sage: R.<x> = S['x']
+                sage: pari(x^2 + 2*x)
+                x^2 + 2*x
+                sage: pari(a*x + 2*b*x^3)
+                2*b*x^3 + a*x
+
+            Stacked polynomial rings with exotic base rings:
+                sage: S.<a, b> = GF(7)['a', 'b']
+                sage: R.<x> = S['x']
+                sage: pari(x^2 + 9*x)
+                x^2 + 2*x
+                sage: pari(a*x + 9*b*x^3)
+                2*b*x^3 + a*x
+
+                sage: S.<a> = Integers(8)['a']
+                sage: R.<x> = S['x']
+                sage: pari(x^2 + 2*x)
+                Mod(1, 8)*x^2 + Mod(2, 8)*x
+                sage: pari(a*x + 10*x^3)
+                Mod(2, 8)*x^3 + (Mod(1, 8)*a)*x
         """
-        try:
-            return self.__pari
-        except AttributeError:
-            K = self.base_ring()
-            n = None
-            if is_RealField(K) or sage.rings.complex_field.is_ComplexField(K):
-                n = pari.get_real_precision()
-                pari.set_real_precision(int(K.prec()*3.5)+1)
-            v = self.list()
-            try:
-                v = [x._pari_() for x in v]
-            except AttributeError:
-                pass
-            if variable is None:
-                variable = self.parent().variable_name()
-            self.__pari = pari(v).Polrev(variable)
-            if not n is None:
-                pari.set_real_precision(n)
-            return self.__pari
+        return self._pari_with_name(self.parent().variable_name())
+
+    def _pari_with_name(self, name):
+        r"""Return polynomial as a PARI object with topmost variable \code{name}.
+
+        For internal use only.
+        """
+        K = self.base_ring()
+        oldprec = None
+        if is_RealField(K) or sage.rings.complex_field.is_ComplexField(K):
+            oldprec = pari.get_real_precision()
+            pari.set_real_precision(int(K.prec()*3.5)+1)
+        vals = [x._pari_() for x in self.list()]
+        temp = pari(vals).Polrev(name)
+        if oldprec is not None:
+            pari.set_real_precision(oldprec)
+        return temp
 
     def _pari_init_(self):
         return repr(self._pari_())
@@ -1819,23 +1869,64 @@ cdef class Polynomial(CommutativeAlgebraElement):
     ######################################################################
 
 
-    def resultant(self, other, flag=0):
-        raise NotImplementedError
+    def resultant(self, other):
+        r"""
+        Returns the resultant of self and other.
 
-        ## This should be switched to use NTL, which can apparently compute
-        ## resultants!
-        ##        void XGCD(ZZ& r, ZZX& s, ZZX& t, const ZZX& a, const ZZX& b,
-        ##          long deterministic=0);
-        ##// r = resultant of a and b; if r != 0, then computes s and t such
-        ##// that: a*s + b*t = r; otherwise s and t not affected.  if
-        ##// !deterministic, then resultant computation may use a randomized
-        ##// strategy that errs with probability no more than 2^{-80}.
-        #m = magma.Magma()
-        #cmd = "R<%s> := PolynomialRing(RationalField()); "%self.parent().variable_name() + \
-        #      "Resultant(%s, %s);"%(self,other)
-        #s = m.cmd(cmd)
-        #i = s.find("\r")
-        #return eval(s[:i])
+        INPUT:
+            other -- a polynomial
+
+        OUTPUT:
+            an element of the base ring of the polynomial ring
+
+        NOTES:
+            Implemented using PARI's \code{polresultant} function.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + x + 1;  g = x^3 - x - 1
+            sage: r = f.resultant(g); r
+            -8
+            sage: r.parent() is QQ
+            True
+
+        We can also compute resultants over univariate and
+        multivariate polynomial rings, providing that PARI's variable
+        ordering requirements are respected.  Usually, your resultants
+        will work if you always ask for them in the variable \code{x}:
+
+            sage: R.<a> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a; g = x^3 + a
+            sage: r = f.resultant(g); r
+            a^3 + a^2
+            sage: r.parent() is R
+            True
+
+            sage: R.<a, b> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a; g = x^3 + b
+            sage: r = f.resultant(g); r
+            a^3 + b^2
+            sage: r.parent() is R
+            True
+
+        Unfortunately SAGE does not handle PARI's variable ordering requirements
+        gracefully, so the following fails:
+
+            sage: R.<x, y> = QQ[]
+            sage: S.<a> = R[]
+            sage: f = x^2 + a; g = y^3 + a
+            sage: f.resultant(g)
+            Traceback (most recent call last):
+            ...
+            PariError: (8)
+        """
+        other = self.parent()._coerce_(other)
+        variable = self.parent().gen()._pari_()
+        # The 0 flag tells PARI to use exact arithmetic
+        res = self._pari_().polresultant(other._pari_(), variable, 0)
+        return self.parent().base_ring()(res)
 
     def reverse(self):
         v = list(self.list())

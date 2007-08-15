@@ -99,6 +99,7 @@ from sage.misc.latex import latex
 
 from sage.interfaces.all import macaulay2
 
+import sage.libs.pari.gen
 
 # shared library loading
 cdef extern from "dlfcn.h":
@@ -419,7 +420,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             Call supports all conversions _coerce_ supports, plus:
 
-        Coercion form strings:
+        Coercion from strings:
             sage: P.<x,y,z> = QQ[]
             sage: P('x+y + 1/4')
             x + y + 1/4
@@ -448,11 +449,18 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(a)
             x
 
+        Coercion from PARI objects:
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: P(pari('x^2 + y'))
+            x^2 + y
+            sage: P(pari('x*y'))
+            x*y
+
         If everything else fails, we try to coerce to the base ring:
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
             -1
-
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -465,7 +473,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         except TypeError:
             pass
 
-        if PY_TYPE_CHECK(element, SingularElement):
+        if PY_TYPE_CHECK(element, SingularElement) or \
+           PY_TYPE_CHECK(element, sage.libs.pari.gen.gen):
             element = str(element)
 
         if PY_TYPE_CHECK(element, basestring):

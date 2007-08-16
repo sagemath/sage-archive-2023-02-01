@@ -88,7 +88,7 @@ fi
 cd "$SAGE_LOCAL/bin/"
 rm -f lisp
 echo '#!/bin/sh' > lisp
-echo '"$SAGE_ROOT/local/bin/clisp" -B "$SAGE_ROOT/local/lib/clisp"' >> lisp
+echo '"$SAGE_ROOT/local/bin/clisp" -B "$SAGE_ROOT/local/lib/clisp" $@' >> lisp
 chmod +x lisp
 
 

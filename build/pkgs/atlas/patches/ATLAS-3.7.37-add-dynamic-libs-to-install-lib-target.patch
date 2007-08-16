@@ -1,0 +1,13 @@
+--- Make.top.orig	2007-08-16 04:23:45.000000000 +0200
++++ Make.top	2007-08-16 04:48:48.000000000 +0200
+@@ -299,4 +299,10 @@
+ 	- cp $(LIBdir)/libptcblas.a $(INSTdir)/.
+ 	- cp $(LIBdir)/libptf77blas.a $(INSTdir)/.
+ 	- chmod 0644 $(INSTdir)/libptcblas.a $(INSTdir)/libptf77blas.a
++	- cp $(LIBdir)/libatlas.so $(INSTdir)/.
++	- cp $(LIBdir)/libcblas.so $(INSTdir)/.
++	- cp $(LIBdir)/libf77blas.so $(INSTdir)/.
++	- cp $(LIBdir)/liblapack.so $(INSTdir)/.
++	- chmod 0644 $(INSTdir)/libatlas.so $(INSTdir)/liblapack.so \
++		     $(INSTdir)/libcblas.so $(INSTdir)/libcblas.so
+ 

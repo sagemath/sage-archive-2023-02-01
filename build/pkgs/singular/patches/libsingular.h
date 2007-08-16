@@ -15,6 +15,7 @@
 #include "singular/fast_maps.h"
 #include "singular/kstd1.h"
 #include "singular/tgb.h"
+#include "singular/sparsmat.h"
 
 int siInit(char *);
 

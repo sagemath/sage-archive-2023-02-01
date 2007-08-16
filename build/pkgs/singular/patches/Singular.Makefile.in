@@ -54,7 +54,7 @@ CFLAGS		= @CFLAGS@ ${PIPE}
 CXXFLAGS	= @CXXFLAGS@ ${PIPE}
 CXXTEMPLFLAGS	= @CXXTEMPLFLAGS@
 ifneq ($(SINGUNAME),ix86-Win)
-CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
+CPPFLAGS	= -I${srcdir} -I../kernel -I../omalloc @CPPFLAGS@
 else
 ## Dirs after @CPPFLAGS@ are for PySingular
 CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
@@ -67,7 +67,7 @@ LDFLAGS		= -L../kernel -lkernel @LDFLAGS@
 LDFLAGSG	= -L../kernel -lkernel-g @LDFLAGS@
 else
 ## -L/usr/local/lib -L../modules/python --> PySingular
-LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L/usr/local/lib -L../modules/python
+LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L../modules/python
 LDFLAGSG	= -L../kernel -L/bin -lkernel-g @LDFLAGS@
 endif
 LD_DYN_FLAGS	= @LD_DYN_FLAGS@
@@ -104,7 +104,7 @@ HAVE_MPSR       = @HAVE_MPSR@
 LIBSINGULAR_LIBS =-lsingfac -lntl -lreadline -lgmp -lomalloc_ndebug
 
 SO_SUFFIX = so
-LIBSINGULAR_FLAGS = -export-dynamic
+#LIBSINGULAR_FLAGS = -export-dynamic
 LIBSINGULAR_LD = $(CXX)
 
 # correct suffix for dynamic linking

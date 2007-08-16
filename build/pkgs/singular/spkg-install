@@ -4,6 +4,11 @@
 ## Singular
 ###########################################
 
+# This is necessary since the bison and flex included in SAGE-2.7.*
+# were problematic.  Someday deleting this would be fine.
+rm -f "$SAGE_LOCAL"/bin/flex "$SAGE_LOCAL"/bin/bison
+
+
 # work-around patch
 cp patches/assert.h src/factory/
 

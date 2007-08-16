@@ -1297,7 +1297,7 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
 
     return MPolynomialRing_libsingular(base_ring, len(names), names, term_order)
 
-cdef MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
+cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
     """
     Construct a new MPolynomial_libsingular element
     """
@@ -1347,6 +1347,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: f(45/2,19/3,1)
             7281167/1512
+
+            sage: f(1,2,3).parent()
+            Rational Field
 
         TESTS:
             sage: P.<x,y,z> = QQ[]
@@ -1407,7 +1410,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         id_Delete(&to_id, _ring)
         id_Delete(&from_id, _ring)
         id_Delete(&res_id, _ring)
-        return new_MP(parent, res)
+
+        if p_IsConstant(res, _ring) and all([e in parent._base for e in x]):
+            # I am sure there must be a better way to do this...
+            return parent._base(new_MP(parent, res))
+        else:
+            return new_MP(parent, res)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

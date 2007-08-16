@@ -282,6 +282,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 return x
             elif P == self:
                 return multi_polynomial_element.MPolynomial_polydict(self, x.element().dict())
+            elif self.base_ring().has_coerce_map_from(P):
+                # it might be in the basering (i.e. a poly ring over a poly ring)
+                c = self.base_ring()(x)
+                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             elif len(P.variable_names()) == len(self.variable_names()):
                 # Map the variables in some crazy way (but in order,
                 # of course).  This is here since R(blah) is supposed
@@ -295,10 +299,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
                 # If the named variables are a superset of the input, map the variables by name
                 return multi_polynomial_element.MPolynomial_polydict(self, self._extract_polydict(x))
-            elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the basering (i.e. a poly ring over a poly ring)
-                c = self.base_ring()(x)
-                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             else:
                 return multi_polynomial_element.MPolynomial_polydict(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
 
@@ -306,6 +306,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             P = x.parent()
             if P == self:
                 return multi_polynomial_element.MPolynomial_polydict(self, x.dict())
+            elif self.base_ring().has_coerce_map_from(P):
+                # it might be in the basering (i.e. a poly ring over a poly ring)
+                c = self.base_ring()(x)
+                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             elif len(P.variable_names()) == len(self.variable_names()):
                 # Map the variables in some crazy way (but in order,
                 # of course).  This is here since R(blah) is supposed
@@ -319,10 +323,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
                 # If the named variables are a superset of the input, map the variables by name
                 return multi_polynomial_element.MPolynomial_polydict(self, self._extract_polydict(x))
-            elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the basering (i.e. a poly ring over a poly ring)
-                c = self.base_ring()(x)
-                return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
             else:
                 return multi_polynomial_element.MPolynomial_polydict(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
 

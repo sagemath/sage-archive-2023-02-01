@@ -1,0 +1,45 @@
+#!/bin/sh
+
+###########################################
+## ATLAS
+###########################################
+
+config()
+{
+        mkdir ATLAS-build
+	cd ATLAS-build
+	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
+	# -Fa alg -fPIC: set flags so we can build dynamic libraries
+	# -t 0: disable threading for now.
+	../src/ATLAS/configure --prefix="$SAGE_LOCAL" \
+	-Si cputhrchk 0 -Fa alg -fPIC -t 0
+}
+
+
+build()
+{
+	# build library
+	cd $CUR/ATLAS-build
+	make
+
+	# we have plenty of time, so running a check won't hurt us.
+	make check
+
+	# and we should collect some timings
+	make time
+
+	# now build the shared libraries
+	cd lib
+	make shared cshared
+
+	# and now install
+	cd ..
+	make install
+}
+
+CUR=`pwd`
+
+config
+
+build
+

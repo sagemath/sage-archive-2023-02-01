@@ -1,9 +1,9 @@
 #!/bin/sh
 
-if [ $UNAME = "Darwin" ]; then
-    g95 -v -bundle -undefined dynamic_lookup $@
+if [ "$UNAME" = "Darwin" ]; then
+    sage_fortran -v -bundle -undefined dynamic_lookup $@
 else
-    g95 -shared $@
+    sage_fortran -shared $@
 fi
 
 exit $?

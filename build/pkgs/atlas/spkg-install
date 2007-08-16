@@ -22,12 +22,6 @@ build()
 	cd $CUR/ATLAS-build
 	make
 
-	# we have plenty of time, so running a check won't hurt us.
-	make check
-
-	# and we should collect some timings
-	make time
-
 	# now build the shared libraries
 	cd lib
 	make shared cshared

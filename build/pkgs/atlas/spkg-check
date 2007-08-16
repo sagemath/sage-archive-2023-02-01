@@ -1,0 +1,20 @@
+#!/bin/sh
+
+###########################################
+## ATLAS
+###########################################
+
+check()
+{
+	# make sure everthing build correctly
+	cd $CUR/ATLAS-build
+	make check
+
+	# and we should collect some timings
+	make time
+}
+
+CUR=`pwd`
+
+check
+

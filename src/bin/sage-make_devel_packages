@@ -43,8 +43,8 @@ PKG=$DESTINATION
 
 
 # NEW DOCUMENTATION PACKAGE
-if [ -d $SAGE_ROOT/devel/doc-main ]; then
-   cd $SAGE_ROOT/devel/doc-main
+if [ -d $SAGE_ROOT/devel/doc ]; then
+   cd $SAGE_ROOT/devel/doc
    hg diff
    hg status
    hg commit

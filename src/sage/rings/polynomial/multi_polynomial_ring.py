@@ -18,6 +18,7 @@ AUTHORS:
     -- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular rep
     -- Martin Albrecht (2007-04-20): reorganized class hierarchy to support Pyrex
               implementations
+    -- Robert Bradshaw (2007-08-15): Coercions from rings in a subset of the variables.
 
 EXAMPLES:
 
@@ -254,6 +255,24 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: (f - g).expand()
             0
 
+        It intellegently handles coercion from polynomial rings in a subset of the variables too.
+            sage: R = GF(5)['x,y,z']
+            sage: S = ZZ['y']
+            sage: R(7*S.0)
+            2*y
+            sage: T = ZZ['x,z']
+            sage: R(2*T.0 + 6*T.1 + T.0*T.1^2)
+            x*z^2 + 2*x + z
+
+            sage: R = QQ['t,x,y,z']
+            sage: S.<x> = ZZ['x']
+            sage: T.<z> = S['z']
+            sage: T
+            Univariate Polynomial Ring in z over Univariate Polynomial Ring in x over Integer Ring
+            sage: f = (x+3*z+5)^2; f
+            9*z^2 + (6*x + 30)*z + x^2 + 10*x + 25
+            sage: R(f)
+            x^2 + 6*x*z + 9*z^2 + 10*x + 30*z + 25
         """
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular
 
@@ -328,6 +347,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
+
+        elif isinstance(x, str) and x in self.variable_names():
+            return self.gen(list(self.variable_names()).index(x))
 
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()

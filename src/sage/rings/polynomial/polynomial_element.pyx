@@ -109,6 +109,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    def _dict_to_list(self, x, zero):
+          if len(x) == 0:
+              return []
+          n = max(x.keys())
+          if PY_TYPE_CHECK(n, tuple): # a mpoly dict
+              n = n[0]
+              v = [zero] * (n+1)
+              for i, z in x.iteritems():
+                  v[i[0]] = z
+          else:
+              v = [zero] * (n+1)
+              for i, z in x.iteritems():
+                  v[i] = z
+          return v
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Py_ssize_t i, min
         x = self.list()
@@ -2365,18 +2380,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         elif isinstance(x, dict):
-            zero = R(0)
-            n = max(x.keys())
-            if PY_TYPE_CHECK(n, tuple): # a mpoly dict
-                n = n[0]
-                v = [zero] * (n+1)
-                for i, z in x.iteritems():
-                    v[i[0]] = z
-            else:
-                v = [zero] * (n+1)
-                for i, z in x.iteritems():
-                    v[i] = z
-            x = v
+            x = self._dict_to_list(x, R(0))
+
         elif isinstance(x, pari_gen):
             if absprec is None:
                 x = [R(w) for w in x.Vecrev()]
@@ -2394,6 +2399,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             self.__coeffs = x
         if check:
             self.__normalize()
+
 
     def __reduce__(self):
         return make_generic_polynomial, (self._parent, self.__coeffs)

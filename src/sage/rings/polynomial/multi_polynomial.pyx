@@ -64,6 +64,13 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise TypeError
 
+    def _polynomial_(self, R):
+        var = R.variable_name()
+        if var in self._parent.variable_names():
+            return R(self.polynomial(self._parent(var)))
+        else:
+            return R([self])
+
     def coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.

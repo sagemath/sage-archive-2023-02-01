@@ -55,6 +55,19 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         else:
             return PolynomialFunctor(vars[-1], True), PolynomialRing(self.base_ring(), vars[:-1])
 
+    def completion(self, p, prec=20, extras=None):
+        try:
+            from sage.rings.power_series_ring import PowerSeriesRing
+            return PowerSeriesRing(self.remove_var(p), p, prec)
+        except ValueError:
+            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
+
+    def remove_var(self, var):
+        vars = list(self.variable_names())
+        vars.remove(str(var))
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        return PolynomialRing(self.base_ring(), vars)
+
     cdef _coerce_c_impl(self, x):
         """
         Return the canonical coercion of x to this multivariate
@@ -287,7 +300,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if vars is None:
             vars = self.variable_names_recursive()
         vars = list(vars)
-        my_vars = self.variable_names()
+        my_vars = list(self.variable_names())
         if vars == list(my_vars):
             return self.base_ring()
         elif not my_vars[-1] in vars:

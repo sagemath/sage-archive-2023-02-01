@@ -197,8 +197,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def completion(self, p, prec=20, extras=None):
         if str(p) == self._names[0]:
-            from sage.rings.power_series_ring import PowerSeriesRing_domain
-            return PowerSeriesRing_domain(self.base_ring(), self._names[0], prec)
+            from sage.rings.power_series_ring import PowerSeriesRing
+            return PowerSeriesRing(self.base_ring(), self._names[0], prec)
         else:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 

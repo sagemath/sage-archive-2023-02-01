@@ -764,9 +764,11 @@ class Notebook(SageObject):
             s += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
         s += '<link rel=stylesheet href="/css/main.css">\n'
         s += '</head>\n'
-        s += '<body>\n'
         if do_print:
+            s += '<body>\n'
             s += '<div class="worksheet_print_title">%s</div>'%W.name()
+        else:
+            s += '<body onLoad="initialize_the_notebook();">\n'
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
@@ -1765,7 +1767,7 @@ function save_worksheet_and_close() {
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html>
         <head>%s</head>
-        <body>%s</body>
+        <body onLoad="initialize_the_notebook();">%s</body>
         <script type="text/javascript">jsmath_init()</script>
         </html>
         """%(head, body)

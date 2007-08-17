@@ -196,7 +196,7 @@ cdef class RealField(sage.rings.ring.Field):
         return s
 
     def _latex_(self):
-        return "\\R"
+        return "\\mathbf{R}"
 
     def is_exact(self):
         return False

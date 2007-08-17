@@ -12,6 +12,9 @@ include "../ext/python_tuple.pxi"
 include "coerce.pxi"
 
 import operator
+import re
+import time
+
 import sage.categories.morphism
 
 cdef class CoercionModel_original(CoercionModel):
@@ -411,6 +414,254 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                             pass
 
 
+
+cdef class CoercionModel_profile(CoercionModel_cache_maps):
+    """
+    This is a subclass of CoercionModel_cache_maps that can be used
+    to inspect and profile implicit coercions.
+
+    EXAMPLE:
+        sage: from sage.structure.coerce import CoercionModel_profile
+        sage: from sage.structure.element import set_coercion_model
+        sage: coerce = CoercionModel_profile()
+        sage: set_coercion_model(coerce)
+        sage: 2 + 1/2
+        5/2
+        sage: coerce.profile() # random timings
+        1    0.00015    Integer Ring    -->    Rational Field    Rational Field
+
+    This shows that one coercion was performed, from $\Z$ to $\Q$ (with the result in $\Q$)
+    and it took 0.00015 seconds.
+
+        sage: R.<x> = ZZ[]
+        sage: coerce.flush()
+        sage: 1/2 * x + .5
+        0.500000000000000*x + 0.500000000000000
+        sage: coerce.profile()    # random timings
+        1    0.00279    *    Rational Field    A->    Univariate Polynomial Ring in x over Integer Ring    Univariate Polynomial Ring in x over Rational Field
+        1    0.00135         Univariate Polynomial Ring in x over Rational Field    <->    Real Field with 53 bits of precision    Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        10   0.00013         <type 'int'>    -->    Rational Field    Rational Field
+        6    0.00011         <type 'int'>    -->    Real Field with 53 bits of precision    Real Field with 53 bits of precision
+
+    We can read of this data that the most expensive operation was the creation
+    of the action of $\Q$ on $\Z[x]$ (whose result lies in $\Q[x]$. This has
+    been cached as illistrated below.
+
+        sage: coerce.flush()
+        sage: z = 1/2 * x + .5
+        sage: coerce.profile()     # more random timings
+        1    0.00020         Univariate Polynomial Ring in x over Rational Field    <->    Real Field with 53 bits of precision    Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        5    0.00005         <type 'int'>    -->    Rational Field    Rational Field
+        1    0.00004    *    Rational Field    A->    Univariate Polynomial Ring in x over Integer Ring    Univariate Polynomial Ring in x over Rational Field
+
+
+    NOTE:
+       - profiles are indexable and sliceable.
+       - they also have a nice latex view (with much less verbose ring descriptors), use the show(...) command.
+
+    """
+    def __init__(self, timer=time.time):
+        CoercionModel_cache_maps.__init__(self)
+        self.profiling_info = {}
+        self.timer = timer
+
+
+    cdef get_action_c(self, xp, yp, op):
+        time = self.timer()
+        action = CoercionModel_cache_maps.get_action_c(self, xp, yp, op)
+        time = self.timer() - time
+        if action is not None:
+            self._log_time(xp, yp, op, time, action)
+        return action
+
+    cdef canonical_coercion_c(self, x, y):
+        time = self.timer()
+        xy = CoercionModel_cache_maps.canonical_coercion_c(self, x, y)
+        time = self.timer() - time
+        self._log_time(parent_c(x), parent_c(y), 'coerce', time, parent_c(xy[0]))
+        return xy
+
+    cdef void _log_time(self, xp, yp, op, time, data):
+        if op == "coerce":
+            # consolidate symmetric cases
+            if data is xp:
+                xp,yp = yp,xp
+            if data is not yp and xp > yp:
+                xp,yp = yp,xp
+
+        try:
+            timing = self.profiling_info[xp, yp, op]
+        except KeyError:
+            timing = [0, 0, time, data]
+            self.profiling_info[xp, yp, op] = timing
+        timing[0] += 1
+        timing[1] += time
+
+    def flush(self):
+        self.profiling_info = {}
+
+    def profile(self, filter=None):
+
+        output = []
+        import re
+        for key, timing in self.profiling_info.iteritems():
+            xp, yp, op = key
+            explain, resp = self.analyze_bin_op(xp, yp, op, timing[3])
+            if filter is not None:
+                if not xp in filter and not yp in filter and not resp in filter:
+                    continue
+
+            item = CoercionProfileItem(xp=xp, yp=yp, op=op, total_time=timing[1], count=timing[0], discover_time=timing[2], explain=explain, resp=resp)
+            output.append(item)
+
+        output.sort(reverse=True)
+        return CoercionProfile(output)
+
+
+    def analyze_bin_op(self, xp, yp, op, data):
+        if isinstance(data, Action):
+            if data.actor() == xp:
+                explain = "Act on left"
+            else:
+                explain = "Act on right"
+            resp = data.domain()
+        else:
+            resp = data
+            if resp is xp:
+                explain = "Coerce left"
+            elif resp is yp:
+                explain = "Coerce right"
+            else:
+                explain = "Coerce both"
+        return explain, resp
+
+
+class CoercionProfile:
+
+    def __init__(self, data):
+        self.data = data
+
+    def __getitem__(self, ix):
+        return CoercionProfile([self.data[ix]])
+
+    def __getslice__(self, start, end):
+        return CoercionProfile(self.data[start:end])
+
+    def _latex_(self):
+        return r"""
+        \begin{array}{rr|l|ccccc}
+        %s
+        \end{array}
+        """ % "\\\\\n".join([row._latex_() for row in self.data])
+
+    def __repr__(self):
+        return "\n".join([repr(row) for row in self.data])
+
+
+class CoercionProfileItem:
+
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
+
+    def __cmp__(self, other):
+        return cmp(self.total_time, other.total_time)
+
+    def _latex_(self):
+        return "&".join([str(self.count),
+                         "%01.5f"%self.total_time,
+                         self.op_name(self.op),
+                         self.pretty_print_parent(self.xp),
+                         self.latex_arrow(self.explain),
+                         self.pretty_print_parent(self.yp),
+                         "|",
+                         self.pretty_print_parent(self.resp)])
+
+    def __repr__(self):
+        return "\t".join([str(self.count),
+                          "%01.5f"%self.total_time,
+                          self.op_name(self.op),
+                          str(self.xp),
+                          self.text_arrow(self.explain),
+                          str(self.yp),
+                          str(self.resp)])
+
+    def latex_arrow(self, explain):
+        if explain == "Coerce left":
+            return "\\leftarrow"
+        elif explain == "Coerce right":
+            return "\\rightarrow"
+        elif explain == "Coerce both":
+            return "\\leftrightarrow"
+        elif explain == "Act on left":
+            return "\\nearrow"
+        elif explain == "Act on right":
+            return "\\nwarrow"
+        else:
+            return "\\text{%s}" % explain
+
+    def text_arrow(self, explain):
+        if explain == "Coerce left":
+            return "<--"
+        elif explain == "Coerce right":
+            return "-->"
+        elif explain == "Coerce both":
+            return "<->"
+        elif explain == "Act on left":
+            return "A->"
+        elif explain == "Act on right":
+            return "<-A"
+        else:
+            return explain
+
+    def op_name(self, op):
+        if op == "coerce":
+            return " "
+        try:
+            return D[op.__name__]
+        except AttributeError:
+            return str(op)
+        except KeyError:
+            return op.__name__
+
+    def pretty_print_parent(self, p):
+        # Full text names can be really long, but latex doesn't have all the info
+        # Perhaps there should be another method and/or a difference between str/repr
+        # for parents.
+        if isinstance(p, type):
+            return "\\text{%s}" % re.sub(r"<.*'(.*)'>", r"\1", str(p))
+
+        # special cases
+        from sage.rings.all import RDF, RQDF, CDF
+        if p == RDF:
+            return "RDF"
+        elif p == RQDF:
+            return "RQDF"
+        elif p == CDF:
+            return "CDF"
+
+        try:
+            s = p._latex_()
+        except AttributeError:
+            s = str(p)
+        try:
+            prec = p.precision()
+            s += " \\text{(%s)}"%prec
+        except AttributeError:
+            pass
+
+        # try to non-distructively shorten latex
+        if len(s) > 50:
+            real_len = len(re.sub(r"(\\[a-zA-Z]+)|[{}]", "", s))
+            if real_len > 50:
+                s = re.sub(r"([0-9]{,3})[0-9]{5,}([0-9])", "\\1...\\2", s)
+                real_len = len(re.sub(r"(\\[a-zA-Z]+)|[{}]", "", s))
+                if real_len > 50:
+                    s = re.sub(r"([^\\]\b[^{}\\]{5,7})[^{}\\]{5,}([^{}\\]{3,})", "\\1...\\2", " "+s)
+
+        return s
+
+
+
 from sage.structure.element cimport Element # workaround SageX bug
 
 cdef class LAction(Action):
@@ -466,6 +717,11 @@ cdef class LeftModuleAction(Action):
     def _repr_name_(self):
         return "scalar multiplication"
 
+    def codomain(self):
+        if self.extended_base is not None:
+            return self.extended_base
+        return self._S
+
 
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
@@ -505,3 +761,9 @@ cdef class RightModuleAction(Action):
 
     def _repr_name_(self):
         return "scalar multiplication"
+
+    def codomain(self):
+        if self.extended_base is not None:
+            return self.extended_base
+        return self._S
+

@@ -174,7 +174,7 @@ class LocalizationFunctor(ConstructionFunctor):
     def __init__(self, t):
         Functor.__init__(self, Rings(), Rings())
         self.t = t
-        self.rank = 5.5
+        self.rank = 6
     def __call__(self, R):
         return R.localize(t)
     def __cmp__(self, other):
@@ -189,7 +189,7 @@ class CompletionFunctor(ConstructionFunctor):
         self.p = p
         self.prec = prec
         self.extras = extras
-        self.rank = 7
+        self.rank = 4
     def __call__(self, R):
         return R.completion(self.p, self.prec, self.extras)
     def __cmp__(self, other):
@@ -202,7 +202,7 @@ class QuotientFunctor(ConstructionFunctor):
     def __init__(self, I):
         Functor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
-        self.rank = 6
+        self.rank = 7
     def __call__(self, R):
         I = self.I
         if I.ring() != R:
@@ -307,8 +307,10 @@ def pushout(R, S):
             Full MatrixSpace of 3 by 3 dense matrices over Power Series Ring in x over Integer Ring
             sage: pushout(QQ['x,y'], ZZ[['x']])
             Univariate Polynomial Ring in y over Power Series Ring in x over Rational Field
+            sage: pushout(Frac(ZZ['x']), QQ[['x']])
+            Laurent Series Ring in x over Rational Field
 
-    AUTHOR:
+    AUTHORS:
        -- Robert Bradshaw
     """
     if R == S:

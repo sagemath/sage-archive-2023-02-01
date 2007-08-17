@@ -70,7 +70,11 @@ build()
     echo "Building and install NTL"
 
     # Do performance tuning steps.
-    do_tune
+    if [ `uname` = "Linux" -a `uname -m` = "ppc64" ]; then
+        echo "NTL auto tuning is broken on Linux ppc64.  Please report this to Victor Shoup.  Thanks."
+    else
+        do_tune
+    fi
 
     # allow for an error -- this tries to build an .so; if it fails that's OK, since we
     # just try building the appropriate other library (below).

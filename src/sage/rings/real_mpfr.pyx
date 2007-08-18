@@ -1150,10 +1150,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -0.000000000000000
             sage: RR(-0.5).round()
             -1.00000000000000
-
-        """
+         """
         cdef RealNumber x
-        cdef RealField R = self.parent()
         x = self._new()
         mpfr_round(x.value, self.value)
         return x

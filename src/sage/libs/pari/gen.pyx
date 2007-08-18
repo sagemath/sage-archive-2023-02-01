@@ -892,12 +892,17 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return d
 
-    def __bool__(gen self):
-        _sig_on
-        t = bool(self.g != stoi(0))
-        _sig_off
-        return t
-
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: pari('1').__nonzero__()
+            True
+            sage: pari('x').__nonzero__()
+            True
+            sage: bool(pari(0))
+            False
+        """
+        return not gcmp0(self.g)
 
 
     ###########################################

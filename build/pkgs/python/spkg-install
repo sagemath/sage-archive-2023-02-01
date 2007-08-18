@@ -7,6 +7,19 @@
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
 
+if [ $? -ne 0 ]; then
+    echo "Error patching ctypes"
+    exit 1
+fi
+
+cp patches/pkgutil.py src/Lib/pkgutil.py
+
+if [ $? -ne 0 ]; then
+    echo "Error patching pkgutil.py"
+    exit 1
+fi
+
+
 # Program around weird bug in build process:
 #      Apparently if you have this:
 #         export DISTUTILS_DEBUG=1

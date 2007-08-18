@@ -422,17 +422,17 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']
               ), \
 
-    #Extension('sage.rings.polynomial.multi_polynomial_libsingular',
-    #          sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-    #          libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
-    #          language="c++",
-    #          include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+    Extension('sage.rings.polynomial.multi_polynomial_libsingular',
+              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              language="c++",
+              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
-    #Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
-    #          sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-    #          libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
-    #          language="c++",
-    #          include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+    Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
+              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              language="c++",
+              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \

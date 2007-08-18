@@ -1137,41 +1137,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def round(self):
         """
-        Rounds self to the nearest integer.
-
-        There are 4 rounding modes. They are:
+        Rounds self to the nearest integer. The rounding
+        mode of the parent field has no effect on this
+        function.
 
         EXAMPLES:
-            RNDN -- round to nearest:
+            sage: RR(0.49).round()
+            0.000000000000000
+            sage: RR(0.5).round()
+            1.00000000000000
+            sage: RR(-0.49).round()
+            -0.000000000000000
+            sage: RR(-0.5).round()
+            -1.00000000000000
 
-            sage: R = RealField(20,False,'RNDN')
-            sage: R(22.454)
-            22.454
-            sage: R(22.491)
-            22.491
-
-            RNDZ -- round towards zero:
-            sage: R = RealField(20,False,'RNDZ')
-            sage: R(22.454)
-            22.453
-            sage: R(22.491)
-            22.490
-
-            RNDU -- round towards plus infinity:
-            sage: R = RealField(20,False,'RNDU')
-            sage: R(22.454)
-            22.455
-            sage: R(22.491)
-            22.492
-
-            RNDU -- round towards minus infinity:
-            sage: R = RealField(20,False,'RNDD')
-            sage: R(22.454)
-            22.453
-            sage: R(22.491)
-            22.490
         """
         cdef RealNumber x
+        cdef RealField R = self.parent()
         x = self._new()
         mpfr_round(x.value, self.value)
         return x

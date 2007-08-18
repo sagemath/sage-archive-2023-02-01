@@ -47,7 +47,8 @@ if [ -d $SAGE_ROOT/devel/doc ]; then
    cd $SAGE_ROOT/devel/doc
    hg diff
    hg status
-   hg commit
+   hg tag -m "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
    chmod +x scripts/spkg-dist
    scripts/spkg-dist $SAGE_VERSION
    if [ $? -ne 0 ]; then
@@ -71,7 +72,8 @@ if [ -d $SAGE_ROOT/devel/sage-main ]; then
    cd $SAGE_ROOT/devel/sage-main
    hg diff
    hg status
-   hg commit
+   hg tag -m "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
    #./sage-push
    chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
@@ -93,7 +95,9 @@ if [ -d $SAGE_ROOT/data/extcode ]; then
    cd $SAGE_ROOT/data/extcode
    hg diff
    hg status
-   hg commit
+   hg tag -m "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
+
    #./sage-push
    chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
@@ -118,7 +122,8 @@ if [ -d "$SAGE_ROOT"/devel/c_lib ]; then
    chmod +x configure
    hg diff
    hg status
-   hg commit
+   hg tag -m "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
    if [ $? -ne 0 ]; then
        echo "Error building the sage_c_lib package"
        exit 1
@@ -145,7 +150,8 @@ if [ -d $SAGE_ROOT/examples ]; then
    cd $SAGE_ROOT/examples
    hg diff
    hg status
-   hg commit
+   hg tag -m "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
    #./sage-push
    cd ..
    rm -rf examples-$SAGE_VERSION
@@ -176,7 +182,8 @@ cd $SAGE_ROOT/local/bin/
 #./sage-push
 hg diff
 hg status
-hg commit
+hg tag -m "$SAGE_VERSION"
+hg commit -m "$SAGE_VERSION"
 
 if [ $? -ne 0 ]; then
     echo "Error pushing scripts repository."

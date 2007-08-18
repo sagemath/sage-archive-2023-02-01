@@ -5382,6 +5382,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ONE = self(1)
         self.TWO = self(2)
 
+    def __dealloc__(self):
+        # TODO -- add pari free here
+        pass
+
     def __repr__(self):
         return "Interface to the PARI C library"
 

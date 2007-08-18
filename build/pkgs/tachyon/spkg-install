@@ -1,0 +1,55 @@
+#!/bin/sh
+
+cd src/
+
+CUR=`pwd`
+
+cd unix
+
+finished()
+{
+   if [ $? -ne 0 ]; then
+      echo "Error building Tachyon Ray Tracer"
+      exit 1
+   fi
+
+   cd "$CUR"
+   cp compile/*/tachyon "$SAGE_LOCAL/bin"
+   exit 0
+}
+
+if [ $UNAME = "CYGWIN" ]; then
+    make win32
+    finished
+fi
+
+if [ $UNAME = "Darwin" ]; then
+    #make macosx-thr
+    # The threaded version of the 0.98 beta doesn't work on OS X.
+    make macosx
+    finished
+fi
+
+if [ $UNAME = "Linux" ]; then
+    make linux-thr
+    if [ $? -ne 0 ]; then
+        echo "Maybe your system is 64-bit; trying again."
+        if [ `uname -m` = "ia64" ]; then
+          echo "ia64"
+          make linux-ia64-thr
+        else
+          echo "64-bit arch"
+          make linux-64-thr
+        fi
+    fi
+    finished
+fi
+
+if [ $UNAME = "SunOS" ]; then
+    make solaris-pthreads-gcc
+    #make solaris-thr
+    finished
+fi
+
+echo "Tachyon build for $UNAME not implemented (for SAGE)"
+exit 1

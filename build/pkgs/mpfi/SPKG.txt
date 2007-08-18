@@ -1,0 +1,24 @@
+This is MPFI from http://gforge.inria.fr/projects/mpfi/
+
+PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)
+
+1. I have changed two functions:
+
+First, mpfi_set_str() in mpfi/src/mpfi_io.c.
+(The original version was very wrong; I fixed off-by-one errors, fixed
+a buffer overflow, and fixed it so that it could return precise
+intervals on precisely representable inputs, instead of always making
+an interval containing two floats.)  The original version of the file
+is at mpfi/src/mpfi_io.c.ORIG
+
+Second, mpfi_diam_rel() in mpfi/src/mpfi.c: I changed line 598 from
+    if (!mpfr_cmp_ui(centre,0))
+to
+    if (mpfr_cmp_ui(centre,0))
+
+2. I (=William Stein) changed configure.ac to only build src and not tests or
+doc, since building tests on some systems fails.  Of course, it would be
+better to fix building of tests.  I put the changed version of configure.ac
+in the patches directory.  After changing it, I ran
+       autoreconf --force
+in the src directory.

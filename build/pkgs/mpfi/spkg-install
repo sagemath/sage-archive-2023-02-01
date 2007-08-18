@@ -1,0 +1,32 @@
+#!/bin/sh
+
+cp patches/config.* src/
+
+cd src
+
+# Added by Jason Martin, to avoid conflict with global libraries.
+CFLAGS="-Z "$CFLAGS
+export CFLAGS
+
+./configure --prefix="$SAGE_LOCAL" --with-gmp-incpath="$SAGE_LOCAL"/include CFLAGS="-fPIC"
+
+# Setting these explicitly on the build line breaks the
+# build on OS X.
+
+#    CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
+#    CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS"
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring mpfi"
+    exit 1
+fi
+
+echo "Building and installint mpfi"
+$MAKE install
+
+if [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfi.h ]; then
+    exit 0
+else
+    echo "An error occurred while building mpfi."
+    exit 1
+fi

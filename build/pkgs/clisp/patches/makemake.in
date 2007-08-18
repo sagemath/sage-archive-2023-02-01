@@ -1124,6 +1124,8 @@ if [ $XCC_GCC = true ] ; then
             # gcc-2.7.2 has a strength-reduction bug (fixed in gcc-2.7.2.1,
             # also fixed through the specs file of some Linux distributions).
             XCFLAGS=$XCFLAGS' -O2 -fexpensive-optimizations -fno-strength-reduce' ;;
+          4.2* )                    # SAGE -- needed on x86 Pentium with GCC-4.2.1
+            XCFLAGS=$XCFLAGS' -O0' ;;  # note that this is -O0 and *not* -O.
           2.3.[2-9]* | 2.[4-9]* | 3.* | 4.* | egcs-2.*)
             XCFLAGS=$XCFLAGS' -O2 -fexpensive-optimizations' ;;
           * )
@@ -1146,7 +1148,8 @@ if [ $XCC_GCC = true ] ; then
           2.9* | 3.* | 4.*)
             # gcc-2.95 produces incorrect code when compiling predtype
             # (function C_coerce).
-            XCFLAGS=$XCFLAGS' -O2 -fno-schedule-insns -fno-gcse' ;;
+            #XCFLAGS=$XCFLAGS' -O2 -fno-schedule-insns -fno-gcse' ;;
+            XCFLAGS=$XCFLAGS' -O0 -fno-schedule-insns -fno-gcse' ;;  # FOR SAGE
           * )
             XCFLAGS=$XCFLAGS' -O2' ;;
         esac

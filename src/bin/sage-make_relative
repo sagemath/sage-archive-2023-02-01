@@ -6,6 +6,8 @@ print "Making script relocatable"
 for F in os.listdir('.'):
     if F == 'sage-sage':
         continue
+    if not os.path.isfile(F):
+        continue
     try:
         X = open(F,'r')
     except IOError:

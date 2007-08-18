@@ -515,14 +515,11 @@ class Graphics(SageObject):
 
     def append(self, primitive):
         """
-        Append an arbitrary GraphicPrimitive to a Graphics object.
+        Append an arbitrary GraphicPrimitive to a Graphics object. Low level- only
+        appends the primitive to the objects list, that's it.
         """
         if not isinstance(primitive, GraphicPrimitive):
             raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
-        self.__xmin = min(self.__xmin, primitive.__xmin)
-        self.__xmax = max(self.__xmax, primitive.__xmax)
-        self.__ymin = min(self.__ymin, primitive.__ymin)
-        self.__ymax = max(self.__ymax, primitive.__ymax)
         self.__objects.append(primitive)
 
     def _arrow(self, xmin, ymin, xmax, ymax, options):

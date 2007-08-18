@@ -402,7 +402,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def integral_basis(self):
         """
+        Return an integral basis for this space of modular forms.
 
+        EXAMPLES:
         """
         try:
             return self.__integral_basis
@@ -416,25 +418,36 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__integral_basis = I
             return I
 
-    def _q_expansion_module(self, prec=None):
+    def _q_expansion_module(self):
+        """
+        Return module spanned by coefficients of q-expansions to
+        sufficient precision to determine elements of this space.
+
+        EXAMPLES:
+        """
         try:
             return self.__q_expansion_module
         except AttributeError:
             pass
-        if prec is None:
-            prec = int(1.2*self.dimension()) + 2
-        C = self.q_expansion_basis(prec)
-        V = self.base_ring()**prec
-        try:
-            W = V.span_of_basis([f.padded_list(prec) for f in C])
-        except AttributeError:
-            return self._q_expansion_module(self, 2*prec)
+        prec = int(1.2*self.dimension()) + 3         # +3 for luck.
+        tries = 0
+        while True:
+            C = self.q_expansion_basis(prec)
+            V = self.base_ring()**prec
+            try:
+                W = V.span_of_basis([f.padded_list(prec) for f in C])
+                break
+            except Exception:
+                prec += self.dimension()
+                tries += 1
+                if tries > 5:
+                    print "WARNING: possibly bug in _q_expansion_module for modular forms space %s"%self
         self.__q_expansion_module = W
         return W
 
     def q_expansion_basis(self, prec=None):
         """
-        The number of q-expansions returned equals the dimension.
+        Return a sequence of q-expansions for this space.
 
         INPUT:
             prec -- integer (>=0) or None
@@ -459,7 +472,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             current_prec, B = self.__q_expansion_basis
         except AttributeError:
-            current_prec, B = -1, Sequence([], cr=True)
+            (current_prec, B) = (-1, Sequence([], cr=True))
         if current_prec == prec:
             return B
         elif current_prec > prec:

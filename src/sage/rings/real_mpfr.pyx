@@ -1137,8 +1137,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def round(self):
         """
-        Rounds self to the nearest real number. There are 4
-        rounding modes. They are
+        Rounds self to the nearest integer.
+
+        There are 4 rounding modes. They are:
 
         EXAMPLES:
             RNDN -- round to nearest:

@@ -792,7 +792,7 @@ def regulator(x):
 
 def round(x, ndigits=0):
     """
-    round(number[, ndigits]) -> mpfr real number
+    round(number[, ndigits]) -> double-precision real number
 
     Round a number to a given precision in decimal digits (default 0
     digits).  This always returns a real double field element.

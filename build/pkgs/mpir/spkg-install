@@ -163,7 +163,7 @@ build()
            SAGE_CONF_OPTS="--build=none-apple-darwin --enable-shared --disable-static"
 
            # apply an OSX-specific *patch*
-           cp patches/addsub_n.c src/mpn/generic/addsub_n.c
+           cp "$CUR"/patches/addsub_n.c src/mpn/generic/addsub_n.c
        fi
        ;;
 

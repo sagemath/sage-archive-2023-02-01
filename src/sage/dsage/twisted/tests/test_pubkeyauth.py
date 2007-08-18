@@ -135,27 +135,27 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
     def _LoginConnected(self, remoteobj):
         self.assert_(isinstance(remoteobj, pb.RemoteReference))
 
-    def testBadLogin(self):
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname,
-                                             self.port,
-                                             factory)
-        self.assertRaises(TypeError, factory.login, None, None)
+    #def testBadLogin(self):
+    #    factory = PBClientFactory()
+    #    self.connection = reactor.connectTCP(self.hostname,
+    #                                         self.port,
+    #                                         factory)
+    #    self.assertRaises(TypeError, factory.login, None, None)
 
-    def testBadLogin2(self):
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname,
-                                             self.port,
-                                            factory)
-        bad_creds = credentials.SSHPrivateKey('bad username',
-                                               self.algorithm,
-                                               self.blob,
-                                               self.data,
-                                               self.signature)
-        d = factory.login(bad_creds, None)
-        d.addErrback(self._BadLoginFailure)
-
-        return d
+   # def testBadLogin2(self):
+    #    factory = PBClientFactory()
+    #    self.connection = reactor.connectTCP(self.hostname,
+    #                                         self.port,
+    #                                        factory)
+    #    bad_creds = credentials.SSHPrivateKey('bad username',
+    #                                           self.algorithm,
+    #                                           self.blob,
+    #                                           self.data,
+    #                                           self.signature)
+    #    d = factory.login(bad_creds, None)
+    #    d.addErrback(self._BadLoginFailure)
+    #
+    #    return d
 
     def _BadLoginFailure(self, failure):
         self.assertEquals(failure.type, str(AuthenticationError))

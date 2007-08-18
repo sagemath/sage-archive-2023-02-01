@@ -438,7 +438,7 @@ ext_modules = [ \
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
+              sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
 
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']), \
@@ -497,7 +497,7 @@ ext_modules = [ \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
-              libraries=['gmp']), \
+              libraries=['gmp','stdc++']), \
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],

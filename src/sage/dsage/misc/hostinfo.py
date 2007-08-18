@@ -188,6 +188,14 @@ class ClassicHostInfo(object):
                         host_info[s[0].strip()] = s[1].strip()
             host_info['cpus'] = cpus
 
+            # On Itanium /proc/cpuinfo does not have a 'model name' entry
+            # 'family' works almost as well
+            if not host_info.has_key('model name'):
+                try:
+                    host_info['model name'] = host_info['family']
+                except KeyError:
+                    host_info['model name'] = 'Unknown'
+
             uptime = open('/proc/uptime', 'r').readline().split(' ')
             host_info['uptime'] = int(float(uptime[0]))
 

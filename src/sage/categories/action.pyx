@@ -45,8 +45,8 @@ cdef class Action(Functor):
     def __init__(self, G, S, bint is_left = 1, op=None):
         from category_types import Groupoid
         Functor.__init__(self, Groupoid(G), S.category())
-        self._G = G
-        self._S = S
+        self.G = G
+        self.S = S
         self._is_left = is_left
 
     def _apply_functor(self, x):
@@ -55,17 +55,17 @@ cdef class Action(Functor):
     def __call__(self, *args):
         if len(args) == 1:
             g = args[0]
-            if g in self._G:
-                return ActionEndomorphism(self, self._G(g))
-            elif g == self._G:
-                return self._S
+            if g in self.G:
+                return ActionEndomorphism(self, self.G(g))
+            elif g == self.G:
+                return self.S
             else:
-                raise TypeError, "%s not an element of %s"%(g, self._G)
+                raise TypeError, "%s not an element of %s"%(g, self.G)
         elif len(args) == 2:
             if self._is_left:
-                return self._call_c(self._G(args[0]), self._S(args[1]))
+                return self._call_c(self.G(args[0]), self.S(args[1]))
             else:
-                return self._call_c(self._S(args[0]), self._G(args[1]))
+                return self._call_c(self.S(args[0]), self.G(args[1]))
 
     def _call_(self, a, b):
         return self._call_c_impl(a, b)
@@ -97,23 +97,23 @@ cdef class Action(Functor):
 
     def __repr__(self):
         side = "Left" if self._is_left else "Right"
-        return "%s %s by %r on %r"%(side, self._repr_name_(), self._G, self._S)
+        return "%s %s by %r on %r"%(side, self._repr_name_(), self.G, self.S)
 
     def _repr_name_(self):
         return "action"
 
     def actor(self):
-        return self._G
+        return self.G
 
     def codomain(self):
-        return self._S
+        return self.S
 
     def domain(self):
         return self.codomain()
 
     def left_domain(self):
         if self._is_left:
-            return self._G
+            return self.G
         else:
             return self.domain()
 
@@ -121,7 +121,7 @@ cdef class Action(Functor):
         if self._is_left:
             return self.domain()
         else:
-            return self._G
+            return self.G
 
 
 cdef class InverseAction(Action):
@@ -129,20 +129,20 @@ cdef class InverseAction(Action):
     An action whose acts as the inverse of the given action.
     """
     def __init__(self, Action action):
-        G = action._G
+        G = action.G
         try:
             from sage.groups.group import Group
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
-                Action.__init__(self, G, action._S, action._is_left)
+                Action.__init__(self, G, action.S, action._is_left)
                 self._action = action
                 return
-            elif G.is_ring() and action._S.base_ring() is not action._S:
+            elif G.is_ring() and action.S.base_ring() is not action.S:
                 G = G.fraction_field()
-                S = action._S.base_extend(G)
+                S = action.S.base_extend(G)
                 Action.__init__(self, G, S, action._is_left)
                 self._action = action
-                if S is not action._S:
-                    self._S_precomposition = S.coerce_map_from(action._S)
+                if S is not action.S:
+                    self.S_precomposition = S.coerce_map_from(action.S)
                 return
         except (AttributeError, NotImplementedError):
             pass
@@ -150,12 +150,12 @@ cdef class InverseAction(Action):
 
     cdef Element _call_c(self, a, b):
         if self._action._is_left:
-            if self._S_precomposition is not None:
-                b = self._S_precomposition(b)
+            if self.S_precomposition is not None:
+                b = self.S_precomposition(b)
             return self._action._call_c(~a, b)
         else:
-            if self._S_precomposition is not None:
-                a = self._S_precomposition(a)
+            if self.S_precomposition is not None:
+                a = self.S_precomposition(a)
             return self._action._call_c(a, ~b)
 
     def __invert__(self):
@@ -176,25 +176,25 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
             right = right_precomposition._domain
         if action._is_left:
-            Action.__init__(left, action._S, 1)
+            Action.__init__(left, action.S, 1)
         else:
-            Action.__init__(right, action._S, 0)
+            Action.__init__(right, action.S, 0)
         self._action = action
-        self._left_precomposition = left_precomposition
-        self._right_precomposition = right_precomposition
+        self.left_precomposition = left_precomposition
+        self.right_precomposition = right_precomposition
 
     cdef Element _call_c(self, a, b):
-        if self._left_precomposition is not None:
-            a = self._left_precomposition._call_c(a)
-        if self._right_precomposition is not None:
-            b = self._right_precomposition._call_c(b)
+        if self.left_precomposition is not None:
+            a = self.left_precomposition._call_c(a)
+        if self.right_precomposition is not None:
+            b = self.right_precomposition._call_c(b)
         return self._action._call_c(a, b)
 
     def domain(self):
-        if self._is_left and self._right_precomposition is not None:
-            return self._right_precomposition.domain()
-        elif not self._is_left and self._left_precomposition is not None:
-            return self._left_precomposition.domain()
+        if self._is_left and self.right_precomposition is not None:
+            return self.right_precomposition.domain()
+        elif not self._is_left and self.left_precomposition is not None:
+            return self.left_precomposition.domain()
         else:
             return self.codomain()
 
@@ -202,7 +202,7 @@ cdef class PrecomposedAction(Action):
 cdef class ActionEndomorphism(Morphism):
 
     def __init__(self, Action action, g):
-        Morphism.__init__(self, homset.Hom(action._S, action._S))
+        Morphism.__init__(self, homset.Hom(action.S, action.S))
         self._action = action
         self._g = g
 
@@ -213,7 +213,7 @@ cdef class ActionEndomorphism(Morphism):
             return self._action._call_c(x, self._g)
 
     def _repr_(self):
-        return "Action of %s on %s under %s."%(self._g, self._action._S, self._action)
+        return "Action of %s on %s under %s."%(self._g, self._action.S, self._action)
 
     def __mul__(left, right):
         cdef ActionEndomorphism left_c, right_c

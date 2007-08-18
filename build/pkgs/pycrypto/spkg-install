@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/bin/sh
+
+CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
+export CFLAGS
 
 cd src
 

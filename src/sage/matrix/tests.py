@@ -28,4 +28,18 @@ We test various degenerate cases of kernel computation:
     Vector space of degree 0 and dimension 0 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
     Basis matrix:
     []
+
+Division by a scalar:
+    sage: matrix(QQ, 2, 2, [1, 1, 1, 1]) / 2
+    [1/2 1/2]
+    [1/2 1/2]
+    sage: matrix(QQ, 2, 2, [1, 1, 1, 1]) / (1/2)
+    [2 2]
+    [2 2]
+    sage: matrix(QQ['x,y'], 2, 2, [1, 1, 1, 1]) / x
+    [1/x 1/x]
+    [1/x 1/x]
+    sage: matrix(CC, 2, 2, [1, 1, 1, 1]) / I
+    [-1.00000000000000*I -1.00000000000000*I]
+    [-1.00000000000000*I -1.00000000000000*I]
 """

@@ -914,17 +914,16 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
         sage: ComplexNumber(1,2.000000000000000000000)
         1.000000000000000000000 + 2.000000000000000000000*I
     """
-    base = 10
-    if s_imag == None:
+    if s_imag is None:
         s_imag = 0
     if not isinstance(s_real, str):
         s_real = str(s_real)
     if not isinstance(s_imag, str):
         s_imag = str(s_imag)
-    if base == 10:
-        bits = max(int(3.32192*len(s_real)),int(3.32192*len(s_imag)))
-    else:
-        bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
+    #if base == 10:
+    bits = max(int(3.32192*len(s_real)),int(3.32192*len(s_imag)))
+    #else:
+    #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
 
     C = complex_field.ComplexField(prec=max(bits+pad, min_prec))
 

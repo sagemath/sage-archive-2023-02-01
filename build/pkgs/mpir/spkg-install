@@ -161,6 +161,9 @@ build()
            # to missing symbols.  Make bench does work OK for GMP, but
            # for whatever reason the resulting library simply doesn't work.
            SAGE_CONF_OPTS="--build=none-apple-darwin --enable-shared --disable-static"
+
+           # apply an OSX-specific *patch*
+           cp patches/addsub_n.c src/mpn/generic/addsub_n.c
        fi
        ;;
 
@@ -198,10 +201,6 @@ build()
         # Added by William Stein 2006-05-04.
         $MAKE install
     fi
-    # Sometimes even twice isn't enough!
-    # We do it manually, which can't hurt.
-    #$CP $CUR/src/gmp.h "$SAGE_LOCAL/include/"
-    #$CP $CUR/src/gmpxx.h "$SAGE_LOCAL/include/"
 }
 
 patch

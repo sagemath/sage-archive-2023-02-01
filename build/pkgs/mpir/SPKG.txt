@@ -1,12 +1,11 @@
 Changes made from standard distro:
 
-  * configure-sage-cygwin
-
-  * Patch: Applied the gmp_add_nc.patch to fix a bug in the build
-    process that is a show stopper under PowerPC OS X.  (This
-    bug was introduced in gmp-4.2.1.)
 
   * During the build process one of the following patches may be applied automatically:
+
+          * PowerPC OS X: apply the gmp_add_nc.patch to fix a bug in the build
+            process that is a show stopper under PowerPC OS X.  (This
+            bug was introduced in gmp-6.2.1.)
 
           * The Intel Core 2 Duo 64-bit patch of Jason Martin:
                     http://www.math.jmu.edu/~martin/

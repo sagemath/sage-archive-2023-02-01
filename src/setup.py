@@ -348,7 +348,7 @@ ext_modules = [ \
      matrix_mod2_dense,
      givaro_gfq, \
 
-    # libsingular, \
+     libsingular, \
 
 ##     matrix_rational_sparse,
 

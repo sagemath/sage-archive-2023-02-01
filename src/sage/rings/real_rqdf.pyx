@@ -86,7 +86,6 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
 cdef extern from "rqdf_fix.h": pass
-cdef extern from "ieeefp.h": pass
 
 cdef qd *qd_from_mpz(mpz_t z):
     cdef double d[4]

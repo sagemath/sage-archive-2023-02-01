@@ -422,23 +422,23 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']
               ), \
 
-    Extension('sage.rings.polynomial.multi_polynomial_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
-              language="c++",
-              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+    #Extension('sage.rings.polynomial.multi_polynomial_libsingular',
+    #          sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
+    #          libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+    #          language="c++",
+    #          include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
-    Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
-              language="c++",
-              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+    #Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
+    #          sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
+    #          libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+    #          language="c++",
+    #          include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
+              sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
 
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']), \
@@ -497,7 +497,7 @@ ext_modules = [ \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
-              libraries=['gmp']), \
+              libraries=['gmp','stdc++']), \
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],

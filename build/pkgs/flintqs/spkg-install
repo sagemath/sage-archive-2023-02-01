@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp patches/lanczos.h  src/
+
 cd src
 
 if [ `uname -m` = "x86_64" ]; then

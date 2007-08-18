@@ -76,6 +76,12 @@ def EllipticCurve(x, y=None):
         Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
         sage: E.j_invariant()
         2988.97297297297
+
+    TESTS:
+        sage: R = ZZ['u', 'v']
+        sage: EllipticCurve(R, [1,1])
+        Elliptic Curve defined by y^2  = x^3 + x +1 over Polynomial Ring in u, v
+        over Integer Ring
     """
     # TODO - - implement
         #sage: E = EllipticCurve(ZZ, [0, 0,1,-1,0])

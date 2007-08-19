@@ -21,3 +21,4 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     cdef ring *_ring
     cdef int _cmp_c_impl(left, Parent right) except -2
 
+

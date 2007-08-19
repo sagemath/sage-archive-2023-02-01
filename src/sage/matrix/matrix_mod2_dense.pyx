@@ -130,7 +130,7 @@ init_m4ri()
 
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
-
+    Dense matrix over GF(2)
     """
     ########################################################################
     # LEVEL 1 functionality

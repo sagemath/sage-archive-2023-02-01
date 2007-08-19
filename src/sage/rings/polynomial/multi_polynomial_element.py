@@ -187,7 +187,17 @@ class MPolynomial_element(MPolynomial):
         #return self.parent()(self.__element * right.__element)
         return self.__class__(self.parent(),self.__element * right.__element)
 
-    def __div__(self, right):
+##     def __div__(self, right):
+##         try:
+##             if not isinstance(right, Element) or right.parent() != self.parent():
+##                 R = self.base_ring()
+##                 x = R(right)
+##                 return ~x * self
+##         except (TypeError, ValueError, ZeroDivisionError):
+##             pass
+##         return CommutativeRingElement.__div__(self, right)
+
+    def _div_(self, right):
         r"""
         EXAMPLES:
             sage: R.<x,y> = QQ['x,y']
@@ -204,16 +214,11 @@ class MPolynomial_element(MPolynomial):
             Fraction Field of Polynomial Ring in x, y over Integer Ring
 
         """
-        try:
-            if not isinstance(right, Element) or right.parent() != self.parent():
-                R = self.base_ring()
-                x = R(right)
-                return ~x * self
-        except (TypeError, ValueError, ZeroDivisionError):
-            pass
-        return CommutativeRingElement.__div__(self, right)
-
-    def _div_(self, right):
+        if right.is_constant():
+            try:
+                return ~(right.constant_coefficient()) * self
+            except TypeError:
+                pass
         return self.parent().fraction_field()(self.__element, right.__element)
 
     def __pow__(self, n):

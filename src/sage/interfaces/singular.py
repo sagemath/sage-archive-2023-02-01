@@ -995,14 +995,16 @@ class SingularElement(ExpectElement):
         """
         if self.type()=='poly':
             return self.sage_poly(R)
-        if self.type() == 'module':
+        elif self.type() == 'module':
             return self.sage_matrix(R,sparse=True)
-        if self.type() == 'matrix':
+        elif self.type() == 'matrix':
             return self.sage_matrix(R,sparse=False)
-        if self.type() == 'list':
+        elif self.type() == 'list':
             return [ f._sage_(R) for f in self ]
-
-        NotImplementedError, "Coercion of this datatype not implemented yet"
+        elif self.type() == 'intvec':
+            return tuple([sage.rings.integer.Integer(str(e)) for e in self])
+        else:
+            raise NotImplementedError, "Coercion of this datatype not implemented yet"
 
     def set_ring(self):
         self.parent().set_ring(self)

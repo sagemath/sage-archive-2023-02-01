@@ -482,7 +482,9 @@ install-nolns: all installbin-nolns installslib-nolns
 installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	${MKINSTALLDIRS} ${bindir}
 	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
-	-${INSTALL_PROGRAM} *.so ${bindir}
+	for file in *.so; do \
+	  ${INSTALL_PROGRAM} $$file ${bindir}; \
+	done
 	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
 	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
 	${INSTALL_PROGRAM} surfex ${bindir}
@@ -493,7 +495,9 @@ installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 installbin-nolns: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	${MKINSTALLDIRS} ${bindir}
 	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
-	-${INSTALL_PROGRAM} *.so ${bindir}
+	for file in *.so; do \
+	  ${INSTALL_PROGRAM} $$file ${bindir}; \
+	done
 	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
 	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
 	chmod a+x ${SINGULAR}
@@ -505,12 +509,16 @@ installslib: LIB
 
 installslib-nolns: LIB
 	${MKINSTALLDIRS} ${slibdir}
-	${INSTALL} `pwd`/LIB/*.lib ${slibdir}
+	for file in `pwd`/LIB/*.lib; do \
+	  ${INSTALL}  $$file ${slibdir}; \
+	done
 	${MKINSTALLDIRS} ${slibdir}/gftables
 	${INSTALL} `pwd`/LIB/gftables/* ${slibdir}/gftables/
 
 install-libsingular: libsingular
-	${INSTALL_PROGRAM} *.$(SO_SUFFIX) ${libdir}
+	for file in *.$(SO_SUFFIX); do \
+	  ${INSTALL_PROGRAM}  $$file ${libdir}; \
+	done
 	${INSTALL_PROGRAM} libsingular.h ${includedir}
 
 

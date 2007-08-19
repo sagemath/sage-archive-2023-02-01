@@ -568,20 +568,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     ###########################################
     # comparisons
-    # I had to put the call to gcmp in another
-    # function since otherwise I can't trap
-    # the PariError it will sometimes raise.
-    # (This might be a bug/shortcoming to SageX.)
-    # Annoyingly the _cmp method always has
-    # to be not cdef'd.
+    # I had to rewrite PARI's compare, since
+    # otherwise trapping signals and other horrible,
+    # memory-leaking and slow stuff occurs.
     ###########################################
-
-    def _cmp(gen self, gen other):
-        cdef int result
-        _sig_on
-        result = gcmp(self.g, other.g)
-        _sig_off
-        return result
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -623,11 +613,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(I) == pari(I)
             True
         """
-        try:
-            return left._cmp(right)
-        except PariError:
-            pass
-        return cmp(str(left),str(right))
+        return gcmp_sage(left.g, (<gen>right).g)
 
     def copy(gen self):
         return P.new_gen(forcecopy(self.g))
@@ -900,6 +886,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x').__nonzero__()
             True
             sage: bool(pari(0))
+            False
+            sage: a = pari('Mod(0,3)')
+            sage: a.__nonzero__()
             False
         """
         return not gcmp0(self.g)

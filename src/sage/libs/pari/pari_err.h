@@ -37,33 +37,66 @@ static void *__catcherr = NULL;
 #define _pari_sig_str(s) _sig_str(s); _pari_catch;
 #define _pari_sig_off _pari_endcatch; _sig_off;
 
+inline int strcmp_to_cmp(int f) {
+    if (f > 0) {
+      return 1;
+    } else if (f) {
+      return -1;
+    } else {
+      return 0;
+    }
+}
 
-int
+inline int
 gcmp_sage(GEN x, GEN y)
 {
   long tx = typ(x), ty = typ(y), f;
+  GEN tmp;
   pari_sp av;
 
-  if (is_intreal_t(tx))
-    { if (is_intreal_t(ty)) return mpcmp(x,y); }
-  else
-  {
-    if (tx==t_STR)
-    {
-      if (ty != t_STR) return 1;
-      f = strcmp(GSTR(x),GSTR(y));
-      return f > 0? 1
-                  : f? -1: 0;
-    }
-    if (tx != t_FRAC)
-    {
-      if (ty == t_STR) return -1;
-      return -1;
-      /* pari_err(typeer,"comparison"); */
-    }
+  if (is_intreal_t(tx) && is_intreal_t(ty)) {
+    /* Compare two numbers that can be considered as reals. */
+    return mpcmp(x,y);
   }
-  if (ty == t_STR) return -1;
-  if (!is_intreal_t(ty) && ty != t_FRAC)
-    return 1; /* pari_err(typeer,"comparison"); */
-  av=avma; y=gneg_i(y); f=gsigne(gadd(x,y)); avma=av; return f;
+
+  /***** comparing strings *****/
+  if (tx==t_STR) {
+    /* Compare two strings */
+    if (ty != t_STR)  {
+      return 1;
+    }
+
+    return strcmp_to_cmp(strcmp(GSTR(x),GSTR(y)));
+  }
+  if (ty == t_STR) /* tx is not a string */
+     return -1;
+  /***** end comparing strings *****/
+
+  /*if (!is_intreal_t(ty) && ty != t_FRAC)  */
+  /*     return 1; */
+ /* pari_err(typeer,"comparison"); */
+
+  av = avma;
+  char *c, *d;
+  c = GENtostr(x);
+  d = GENtostr(y);
+  f = strcmp_to_cmp(strcmp(c, d));
+  free(c);
+  free(d);
+  avma = av;
+  return f;
+
+  /*
+  av = avma;
+  y = gneg_i(y);
+  tmp = gadd(x,y);
+  switch(typ(tmp)) {
+     case t_INT:
+     case t_REAL:
+        return signe(tmp);
+     case t_FRAC:
+        return signe(tmp[1]);
+  }
+  avma = av;
+  */
 }

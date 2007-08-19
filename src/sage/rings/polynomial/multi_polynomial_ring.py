@@ -93,6 +93,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as 
 
 from sage.structure.parent_gens import ParentWithGens
 
+from sage.structure.element import Element
+
 from multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
 
 from polydict import ETuple
@@ -252,8 +254,17 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: (f - g).expand()
             0
 
+        Arithmetic with a constant from a base ring:
+            sage: R.<u,v> = QQ[]
+            sage: S.<x,y> = R[]
+            sage: u^3*x^2 + v*y
+            u^3*x^2 + v*y
         """
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular
+
+        if isinstance(x, Element) and x.parent() is self.base_ring():
+            # A Constant multi-polynomial
+            return self({self._zero_tuple:x})
 
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()

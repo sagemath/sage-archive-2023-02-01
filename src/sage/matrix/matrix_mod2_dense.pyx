@@ -206,13 +206,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         k = 0
         R = self.base_ring()
 
-        cdef PyObject** w
-        w = FAST_SEQ_UNSAFE(entries)
-
         for i from 0 <= i < self._nrows:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for j from 0 <= j < self._ncols:
-                writePackedCell(self._entries,i,j, int(<object> w[k]) % 2)
+                writePackedCell(self._entries,i,j, int(entries[k]) % 2)
                 k = k + 1
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.

@@ -1310,7 +1310,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: D = networkx.dodecahedral_graph()
         sage: NGP = GraphicPrimitive_NetworkXGraph(D)
         sage: g = Graphics()
-        sage: g.append(NGP)
+        sage: g._Graphics__objects.append(NGP)
         sage: g.axes(False)
         sage: g.save('sage.png')
 
@@ -1332,7 +1332,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         ...
         sage: NGP = GraphicPrimitive_NetworkXGraph(graph=P, vertex_colors=d, pos=pos_dict)
         sage: g = Graphics()
-        sage: g.append(NGP)
+        sage: g._Graphics__objects.append(NGP)
         sage: g.axes(False)
         sage: g.save('sage.png')
 
@@ -1352,7 +1352,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         ...            edge_colors[R[i]].append((u,v,l))
         sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, vertex_size=0, edge_colors=edge_colors)
         sage: G = Graphics()
-        sage: G.append(NGP)
+        sage: G._Graphics__objects.append(NGP)
         sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
         sage: G.axes(False)
         sage: G.save('sage.png')
@@ -1932,7 +1932,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g.append(GraphicPrimitive_Line(xdata, ydata, options))
+        g._Graphics__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
         try:
             g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
         except ValueError:
@@ -2077,7 +2077,7 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g.append(GraphicPrimitive_Point(xdata, ydata, options))
+        g._Graphics__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
         try:
             g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
         except ValueError:
@@ -2170,7 +2170,7 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g.append(GraphicPrimitive_Polygon(xdata, ydata, options))
+        g._Graphics__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
         try:
             g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
         except ValueError:
@@ -2591,7 +2591,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
     """
     g = Graphics()
     NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, scaling_term=scaling_term)
-    g.append(NGP)
+    g._Graphics__objects.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax
     ymin = NGP._ymin

@@ -916,10 +916,11 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
     """
     if s_imag is None:
         s_imag = 0
+
     if not isinstance(s_real, str):
-        s_real = str(s_real)
+        s_real = str(s_real).strip()
     if not isinstance(s_imag, str):
-        s_imag = str(s_imag)
+        s_imag = str(s_imag).strip()
     #if base == 10:
     bits = max(int(3.32192*len(s_real)),int(3.32192*len(s_imag)))
     #else:

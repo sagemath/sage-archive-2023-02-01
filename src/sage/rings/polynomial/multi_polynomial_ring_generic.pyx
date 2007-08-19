@@ -61,7 +61,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
 
-        except AttributeError:
+        except AttributeError, msg:
             pass
 
         # any ring that coerces to the base ring of this polynomial ring.

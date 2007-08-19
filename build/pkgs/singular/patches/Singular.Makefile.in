@@ -498,7 +498,7 @@ installbin-nolns: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
 	chmod a+x ${SINGULAR}
 	rm -f ${bindir}/${SING_EXEC}${EXEC_EXT}
-	cd ${bindir}; ${INSTALL_PROGRAM} ${SINGULAR} Singular${EXEC_EXT};
+	${INSTALL_PROGRAM} ${SINGULAR} ${bindir}/Singular${EXEC_EXT};
 
 installslib: LIB
 	test -r ${slibdir} || ${LN_S} `pwd`/LIB ${slibdir}

@@ -30,6 +30,7 @@ cp patches/longrat.h src/kernel/
 # bugfix patches
 cp patches/cf_factor.cc src/factory/
 cp patches/Singular.grammar.y src/Singular/grammar.y
+cp patches/singuname.sh src/singuname.sh
 
 # Build
 

@@ -70,6 +70,21 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         938
         sage: loads(a.dumps()) == a
         True
+
+    TESTS:
+        sage: K.<a> = GF(2^16)
+        sage: K(0).is_zero()
+        True
+        sage: (a - a).is_zero()
+        True
+        sage: a - a
+        0
+        sage: a == a
+        True
+        sage: a - a == 0
+        True
+        sage: a - a == K(0)
+        True
     """
     def __init__(self, parent, value, check=True):
         """

@@ -12,6 +12,14 @@ EXAMPLES:
     Rational Field
     sage: MS = MatrixSpace(ZZ,3,5,sparse=False); MS
     Full MatrixSpace of 3 by 5 dense matrices over Integer Ring
+
+TESTS:
+    sage: matrix(RR,2,2,sparse=True)
+    [0.000000000000000 0.000000000000000]
+    [0.000000000000000 0.000000000000000]
+    sage: matrix(GF(11),2,2,sparse=True)
+    [0 0]
+    [0 0]
 """
 
 # System imports
@@ -238,6 +246,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 1]
             [0 1]
         """
+        if entries is None:
+            entries = 0
+
         if entries == 0 and hasattr(self, '__zero_matrix'):
             return self.zero_matrix()
 

@@ -444,4 +444,8 @@ class Polynomial_singular_repr:
         if variable is None:
             variable = self.parent().gen(0)
         rt = self._singular_().resultant(other._singular_(), variable._singular_())
-        return rt.sage_poly(self.parent())
+        r = rt.sage_poly(self.parent())
+        if self.parent().ngens() <= 1 and r.degree() <= 0:
+            return self.parent().base_ring()(r[0])
+        else:
+            return r

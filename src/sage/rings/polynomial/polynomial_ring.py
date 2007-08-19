@@ -160,6 +160,42 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
+        r"""
+        Coerce \code{x} into this univariate polynomial ring, possibly non-canonically.
+
+        Stacked polynomial rings coerce into constants if possible.  First,
+        the univariate case:
+            sage: R.<x> = QQ[]
+            sage: S.<u> = R[]
+            sage: S(u + 2)
+            u + 2
+            sage: S(x + 3)
+            x + 3
+            sage: S(x + 3).degree()
+            0
+
+        Second, the multivariate case:
+            sage: R.<x,y> = QQ[]
+            sage: S.<u> = R[]
+            sage: S(x + 2*y)
+            x + 2*y
+            sage: S(x + 2*y).degree()
+            0
+            sage: S(u + 2*x)
+            u + 2*x
+            sage: S(u + 2*x).degree()
+            1
+
+        Foreign polynomial rings coerce into the highest ring; the point here
+        is that an element of T could coerce to an element of R or an element
+        of S; it is anticipated that an element of T is more likely to be "the
+        right thing" and is historically consistent.
+            sage: R.<x> = QQ[]
+            sage: S.<u> = R[]
+            sage: T.<a> = QQ[]
+            sage: S(a)
+            u
+        """
         if is_Element(x):
             P = x.parent()
             if P is self:
@@ -202,26 +238,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         The rings that canonically coerce to this polynomial ring are:
             * this ring itself
+            * any ring that canonically coerces to the base ring of this ring.
             * polynomial rings in the same variable over any base ring that
               canonically coerces to the base ring of this ring
-            * any ring that canonically coerces to the base ring of this ring.
         """
+        # handle constants that canonically coerce into self.base_ring()
+        # first, if possible
+        try:
+            y = self.base_ring()._coerce_(x)
+            return self([y])
+        except TypeError:
+            pass
+
+        # polynomial rings in the same variable over a base that canonically
+        # coerces into self.base_ring()
         try:
             P = x.parent()
-
-            # polynomial rings in the same variable over any base that coerces in:
             if is_PolynomialRing(P):
                 if P.variable_name() == self.variable_name():
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
                     else:
                         raise TypeError, "no natural map between bases of polynomial rings"
-
         except AttributeError:
             pass
-
-        # any ring that coerces to the base ring of this polynomial ring.
-        return self._coerce_try(x, [self.base_ring()])
+        raise TypeError
 
     def _magma_(self, G=None):
         """

@@ -836,8 +836,8 @@ class Worksheet:
  <option title="Restart the worksheet" value="restart_sage();">Restart</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
- <option title="Hide all output" value="hide_all();">Hide All</option>
- <option title="Show all output" value="show_all();">Show All</option>
+ <option title="Hide all output" value="hide_all();">Hide All Output</option>
+ <option title="Show all output" value="show_all();">Show All Output</option>
  <option value="">---------------------------</option>
  <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>

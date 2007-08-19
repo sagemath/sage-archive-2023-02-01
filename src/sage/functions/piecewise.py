@@ -831,12 +831,12 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum(3,1)
-            cos(2*pi*x)/pi^2 - (4*cos(pi*x)/pi^2) + 1/3
+            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum(3,pi)
-            -3*sin(2*x)/pi + sin(x)/pi - (3*cos(x)/pi) + 1/4
+            -3*sin(2*x)/pi + sin(x)/pi - 3*cos(x)/pi + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = [repr(self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -860,12 +860,12 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_cesaro(3,1)
-            cos(2*pi*x)/(3*pi^2) - (8*cos(pi*x)/(3*pi^2)) + 1/3
+            cos(2*pi*x)/(3*pi^2) - 8*cos(pi*x)/(3*pi^2) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_cesaro(3,pi)
-            -sin(2*x)/pi + 2*sin(x)/(3*pi) - (2*cos(x)/pi) + 1/4
+            -sin(2*x)/pi + 2*sin(x)/(3*pi) - 2*cos(x)/pi + 1/4
 
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
@@ -890,12 +890,12 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
-            0.500000000000000*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - (2.00000000000000*(cos(pi/3) + 1)*cos(pi*x)/pi^2) + 1/3
+            0.500000000000000*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - 2.00000000000000*(cos(pi/3) + 1)*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 0.500000000000000*(cos(pi/3) + 1)*sin(x)/pi - (1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi) + 1/4
+            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 0.500000000000000*(cos(pi/3) + 1)*sin(x)/pi - 1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = ["(1+cos(pi*%s/%s))*"%(n,N)+repr((0.5)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -920,12 +920,12 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
-            cos(2*pi*x)/pi^2 - (4*cos(pi*x)/pi^2) + 1/3
+            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_filtered(3,pi,[1,1,1])
-            -3*sin(2*x)/pi + sin(x)/pi - (3*cos(x)/pi) + 1/4
+            -3*sin(2*x)/pi + sin(x)/pi - 3*cos(x)/pi + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = [repr((F[n])*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -1248,14 +1248,14 @@ class PiecewisePolynomial:
             sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
             sage: f.laplace(x, s)
-            -e^(-s)/s - (e^(-s)/s^2) + (s + 1)*e^(-2*s)/s^2 + 1/s
+            -e^(-s)/s - e^(-s)/s^2 + (s + 1)*e^(-(2*s))/s^2 + 1/s
             sage: f.laplace(x, w)
-            -e^(-w)/w - (e^(-w)/w^2) + (w + 1)*e^(-2*w)/w^2 + 1/w
+            -e^(-w)/w - e^(-w)/w^2 + (w + 1)*e^(-(2*w))/w^2 + 1/w
 
             sage: y, t = var('y, t')
             sage: f = Piecewise([[(1,2), 1-y]])
             sage: f.laplace(y, t)
-            (t + 1)*e^(-2*t)/t^2 - (e^(-t)/t^2)
+            (t + 1)*e^(-(2*t))/t^2 - e^(-t)/t^2
         """
         x = var(x)
         s = var(s)

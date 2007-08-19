@@ -1317,6 +1317,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(T + -a, 1), (T + -40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
             sage: expand(F)
             T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+
+        Over RealDoubleField:
+            sage: x = polygen(RDF)
+            sage: f = (x-1)^3
+            sage: f.factor()
+            (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
+
+        Note that this factorization suffers from the roots function:
+            sage: f.roots()
+            [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
+
         """
 
         # PERFORMANCE NOTE:
@@ -1357,6 +1368,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif is_RealField(R):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             G = list(self._pari_('x').factor())
+
+        elif sage.rings.real_double.is_RealDoubleField(R):
+            roots = self.roots()
+            G = [[],[]]
+            real_roots = []
+            non_real_roots = []
+            for r in roots:
+                if r.imag().is_zero():
+                    for i in xrange(len(real_roots)):
+                        if real_roots[i][0] == r:
+                            real_roots[i][1] += 1
+                            r = None
+                            break
+                    if r is not None:
+                        real_roots.append([r,1])
+                else:
+                    for i in xrange(len(non_real_roots)):
+                        if non_real_roots[i][0] == r or non_real_roots[i][0] == r.conj():
+                            non_real_roots[i][1] += 1
+                            r = None
+                            break
+                    if r is not None:
+                        non_real_roots.append([r,1])
+            x = self.parent().objgen()[1]
+            for r in real_roots:
+                G[0].append( x - r[0].real() )
+                G[1].append( r[1] )
+            for z in non_real_roots:
+                a = ( z[0] + z[0].conj() ).real()
+                b = ( z[0]*(z[0].conj()) ).real()
+                G[0].append( x**2 - a*x + b )
+                G[1].append( z[1]/2 )
 
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
@@ -1902,7 +1945,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
 
         An example where the base ring doesn't have a factorization algorithm (yet).  Note
-        that this is currently done via nave enumeration, so could be very slow:
+        that this is currently done via naive enumeration, so could be very slow:
             sage: R = Integers(6)
             sage: S.<x> = R['x']
             sage: p = x^2-1
@@ -1938,6 +1981,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)
             return seq
 
+        elif sage.rings.real_double.is_RealDoubleField(K):
+            import numpy
+            r = numpy.roots(numpy.array(self.list(), dtype='double'))
+            CDF = sage.rings.complex_double.CDF
+            return [CDF(z) for z in r]
+
         try:
             rts = self.factor()
         except NotImplementedError:
@@ -1946,11 +1995,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise NotImplementedError, "root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)"
                 else:
                     return [a for a in K if not self(a)]
-            elif sage.rings.real_double.is_RealDoubleField(K):
-                import numpy
-                r = numpy.roots(numpy.array(self.list(), dtype=float))
-                CDF = sage.rings.complex_double.CDF
-                return [CDF(z) for z in r]
 
             raise NotImplementedError, "root finding for this polynomial not implemented"
         for fac in rts:

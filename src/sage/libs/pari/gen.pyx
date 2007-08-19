@@ -892,12 +892,17 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return d
 
-    def __bool__(gen self):
-        _sig_on
-        t = bool(self.g != stoi(0))
-        _sig_off
-        return t
-
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: pari('1').__nonzero__()
+            True
+            sage: pari('x').__nonzero__()
+            True
+            sage: bool(pari(0))
+            False
+        """
+        return not gcmp0(self.g)
 
 
     ###########################################
@@ -5381,6 +5386,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ZERO = self(0)    # todo: gen_0
         self.ONE = self(1)
         self.TWO = self(2)
+
+    def __dealloc__(self):
+        # TODO -- add pari free here
+        pass
 
     def __repr__(self):
         return "Interface to the PARI C library"

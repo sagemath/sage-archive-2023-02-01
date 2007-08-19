@@ -333,11 +333,20 @@ class Gap(Expect):
         #    raise TypeError, "Error executing code in GAP\nCODE:\n\t%s\nGAP ERROR:\n\t%s"%(cmd, out)
 
 
-    def get(self, var):
+    def get(self, var, use_file=False):
         """
-        Get the value of the variable var.
+        Get the string representation of the variable var.
         """
-        return self.eval('%s;'%var, newlines=False)
+        if use_file:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+            self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)
+            r = open(tmp).read()
+            r = r.strip().replace("\\\n","")
+            os.unlink(tmp)
+            return r
+        else:
+            return self.eval('%s;'%var, newlines=False)
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
@@ -584,6 +593,13 @@ class GapElement(ExpectElement):
 
     def __reduce__(self):
         return reduce_load, ()  # default is an invalid object
+
+    def str(self, use_file=False):
+        if use_file:
+            P = self._check_valid()
+            return P.get(self.name(), use_file=True)
+        else:
+            return self.__repr__()
 
     def __repr__(self):
         s = ExpectElement.__repr__(self)

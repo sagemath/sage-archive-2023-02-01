@@ -292,7 +292,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         B = self.q_expansion_basis(prec)
         f = self._q_expansion_zero()
         for i in range(len(element)):
-            if element[i] != 0:
+            if element[i]:
                 f += element[i] * B[i]
         return f
 
@@ -392,8 +392,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
     def _compute_q_expansion_basis(self, prec):
         """
         EXAMPLES:
-
-
+            sage: m = ModularForms(11,4)
+            sage: m._compute_q_expansion_basis(5)
+            [q + 3*q^3 - 6*q^4 + O(q^5), q^2 - 4*q^3 + 2*q^4 + O(q^5), 1 + O(q^5), q + 9*q^2 + 28*q^3 + 73*q^4 + O(q^5)]
         """
         S = self.cuspidal_submodule()
         E = self.eisenstein_submodule()

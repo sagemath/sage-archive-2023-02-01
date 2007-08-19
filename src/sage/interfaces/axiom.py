@@ -24,6 +24,11 @@ AUTHORS OF THIS MODULE:
              over several days during the SAGE Days 2 coding sprint.  This is
              contribution is greatly appreciated.
     -- William Stein (2006-10): misc touchup.
+    -- Bill Page (2007-08): Minor modifications to support axiom4sage-0.3
+       NOTE: The axiom4sage-0.3.spkg is based on an experimental version of
+             the FriCAS fork of the Axiom project by Waldek Hebisch that
+	     uses pre-compiled cached Lisp code to build Axiom very quickly
+	     with clisp.
 
 If the string "error" (case insensitive) occurs in the output of
 anything from axiom, a RuntimeError exception is raised.
@@ -159,7 +164,7 @@ class Axiom(Expect):
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = [')lisp (si::readline-off)'],
+                        #init_code = [')lisp (si::readline-off)'],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -170,7 +175,7 @@ class Axiom(Expect):
 
     def _start(self):
         Expect._start(self)
-        self._expect.expect(self._prompt)
+        #self._expect.expect(self._prompt)
         out = self._eval_line(')set functions compile on', reformat=False)
         out = self._eval_line(')set output length 245', reformat=False)
         out = self._eval_line(')set message autoload off', reformat=False)
@@ -371,6 +376,7 @@ class AxiomElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
     def numer(self):
         P = self.parent()
         return P('numeric(%s)'%self._name)
@@ -394,14 +400,18 @@ class AxiomElement(ExpectElement):
                               'DCOS(':'cos(',
                               'DTAN(':'tan(',
                               'DSINH(':'sinh('}, s)
-        return re.search(r'"(.*)"',s).groups(0)[0]
+        r = re.search(r'"(.*)"',s)
+        if r:
+            return r.groups(0)[0]
+        else:
+            return s
 
     def __repr__(self):
-        P = self._check_valid()
-        return P.get(self._name)
+        return self.str()
 
     def __str__(self):
-        return self.str()
+        P = self._check_valid()
+        return P.get(self._name)
 
     def type(self):
         P = self._check_valid()

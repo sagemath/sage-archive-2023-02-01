@@ -85,8 +85,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
-cdef extern from "cygwinfix.h": pass
-
+cdef extern from "rqdf_fix.h": pass
 
 cdef qd *qd_from_mpz(mpz_t z):
     cdef double d[4]

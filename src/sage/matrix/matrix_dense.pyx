@@ -64,10 +64,8 @@ cdef class Matrix_dense(matrix.Matrix):
         cdef long h
         h = 0
         n = 1
-        cdef PyObject** w
-        w = FAST_SEQ_UNSAFE(v)
         for i from 0 <= i < len(v):
-            h = h ^ (i * PyObject_Hash( <object> w[i] ))
+            h = h ^ (i * hash(v[i]))
 
         self.cache('hash', h)
         return h

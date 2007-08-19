@@ -31,7 +31,6 @@ cdef extern from "stdsage.h":
     object IS_INSTANCE(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
     bint HAS_DICTIONARY(object o)
-    PyObject** FAST_SEQ_UNSAFE(object o)
     bint PY_IS_NUMERIC(object o)
 
 

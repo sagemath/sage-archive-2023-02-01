@@ -1215,7 +1215,7 @@ class MaximaElement(ExpectElement):
             sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
              2300 + 230*I
         """
-        return sage.rings.all.ComplexNumber( CC, self.real(), self.imag() )
+        return sage.rings.all.ComplexNumber( self.real(), self.imag() )
 
     def str(self):
         P = self._check_valid()

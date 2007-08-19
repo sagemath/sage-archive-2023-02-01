@@ -330,7 +330,7 @@ class GpElement(ExpectElement):
         real = str(self.real()).replace(' E','e')
         imag = str(self.imag()).replace(' E','e')
         GP.set_real_precision(orig)
-        return sage.rings.all.ComplexNumber( CC, real, imag )
+        return sage.rings.all.ComplexNumber(real, imag )
 
     def __len__(self):
         return int(self.length())

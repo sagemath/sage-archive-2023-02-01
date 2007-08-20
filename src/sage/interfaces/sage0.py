@@ -171,10 +171,6 @@ class Sage(Expect):
                 pass
             self._expect = None
 
-            F = '%s/tmp/%s'%(os.environ['SAGE_ROOT'], pid)
-            if os.path.exists(F):
-                O = open(F).read()
-
     def _remote_tmpfile(self):
         try:
             return self.__remote_tmpfile

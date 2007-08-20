@@ -1321,11 +1321,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Over RealDoubleField:
             sage: x = polygen(RDF)
             sage: f = (x-1)^3
-            sage: f.factor()
+            sage: f.factor() # random output (unfortunately)
             (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
 
         Note that this factorization suffers from the roots function:
-            sage: f.roots()
+            sage: f.roots() # random output (unfortunately)
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
 
         """

@@ -16,7 +16,6 @@ from sage.dsage.misc.constants import DSAGE_DIR
 def spawn(cmd, verbose=True):
     """
     Spawns a process and registers it with the SAGE cleaner.
-
     """
 
     null = open('/dev/null', 'a')

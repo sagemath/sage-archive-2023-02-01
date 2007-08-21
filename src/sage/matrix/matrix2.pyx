@@ -2067,18 +2067,14 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
 
-
-        By default SAGE row reduces matrices over multivariate polynomial rings
-        over fields using the fraction free Gauss-Bareiss algorithm.
+        As the echelon form is not defined for any integral domain, we
+        compute it over the fraction field instead.
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
             sage: a.echelon_form()
-            [x y]
-            [0 0]
-
-        As the echelon form is not defined for any integral domain, we can
-        compute it over the fraction field instead.
+            [  1 y/x]
+            [  0   0]
 
             sage: b = a.change_ring(R.fraction_field())
             sage: b.echelon_form()

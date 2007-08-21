@@ -191,14 +191,24 @@ class CompletionFunctor(ConstructionFunctor):
         self.extras = extras
         self.rank = 4
     def __call__(self, R):
-        print "completion of", R
-        print "prime", self.p
         return R.completion(self.p, self.prec, self.extras)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
             c = cmp(self.p, other.p)
         return c
+    def merge(self, other):
+        if self.p == other.p:
+            if self.prec == other.prec:
+                extras = self.extras.copy()
+                extras.update(other.extras)
+                return CompletionFunctor(self.p, self.prec, extras)
+            elif self.prec < other.prec:
+                return self
+            else: # self.prec > other.prec
+                return other
+        else:
+            return None
 
 class QuotientFunctor(ConstructionFunctor):
     def __init__(self, I):
@@ -243,6 +253,16 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if c == 0:
             c = cmp(self.poly, other.poly)
         return c
+
+def BlackBoxConstructionFunctor(ConstructionFunctor):
+    def __init__(self, box):
+        self.box = box
+        self.rank = 100
+    def __call__(self, R):
+        return box(R)
+    def __cmp__(self, other):
+        return self.box == other.box
+
 
 def pushout(R, S):
     """
@@ -368,7 +388,7 @@ def pushout(R, S):
     Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
 
     while len(Rc) > 0 or len(Sc) > 0:
-        print Z
+        # print Z
         # if we are out of functors in either tower, there is no ambiguity
         if len(Sc) == 0:
             c = Rc.pop()
@@ -600,6 +620,8 @@ def construction_tower(R):
     tower = [(None, R)]
     c = R.construction()
     while c is not None:
+        if not isinstance(c, ConstructionFunctor):
+            c = BlackBoxConstructionFunctor(c)
         tower.append(c)
         R = c[1]
         c = R.construction()

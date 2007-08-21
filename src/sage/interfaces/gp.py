@@ -107,6 +107,7 @@ class Gp(Expect):
                  maxread=100000, script_subdirectory=None,
                  logfile=None,
                  server=None,
+                 server_tmpdir=None,
                  init_list_length=1024):
         Expect.__init__(self,
                         name = 'pari',
@@ -114,6 +115,7 @@ class Gp(Expect):
                         command = "gp --emacs --fast --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
+                        server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,

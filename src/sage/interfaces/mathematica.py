@@ -233,13 +233,14 @@ class Mathematica(Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None):
+    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
                         command = "math",
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         verbose_start = False,
                         logfile=logfile,

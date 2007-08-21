@@ -29,6 +29,8 @@ SAGE_LOCAL = SAGE_ROOT + '/local/'
 
 HOSTNAME = socket.gethostname().replace('-','_')
 
+LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
+
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)
 

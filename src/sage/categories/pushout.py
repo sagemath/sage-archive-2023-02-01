@@ -620,9 +620,9 @@ def construction_tower(R):
     tower = [(None, R)]
     c = R.construction()
     while c is not None:
-        if not isinstance(c, ConstructionFunctor):
-            c = BlackBoxConstructionFunctor(c)
-        tower.append(c)
-        R = c[1]
+        f, R = c
+        if not isinstance(f, ConstructionFunctor):
+            f = BlackBoxConstructionFunctor(f)
+        tower.append((f,R))
         c = R.construction()
     return tower

@@ -16,12 +16,28 @@ class ConstructionFunctor(Functor):
             return other * self
 
     def __cmp__(self, other):
+        """
+        Equality here means that they are mathematically equivalent, though they may have specific implementation data.
+        See the \code{merge} function.
+        """
         return cmp(type(self), type(other))
 
     def __str__(self):
         s = str(type(self))
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
+
+    def __repr__(self):
+        return str(self)
+
+    def merge(self, other):
+        if self == other:
+            return self
+        else:
+            return None
+
+    def commutes(self, other):
+        return False
 
 class CompositConstructionFunctor(ConstructionFunctor):
     def __init__(self, first, second):
@@ -54,21 +70,33 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             return self
 
 class PolynomialFunctor(ConstructionFunctor):
-    def __init__(self, vars):
+    def __init__(self, var, multi_variate=False):
         Functor.__init__(self, Rings(), Rings())
-        self.vars = vars
+        self.var = var
+        self.multi_variate = multi_variate
         self.rank = 9
     def __call__(self, R):
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
-        return PolynomialRing(R, self.vars)
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing, is_PolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        if self.multi_variate and (is_MPolynomialRing(R) or is_PolynomialRing(R)):
+            return PolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
+        else:
+            return PolynomialRing(R, self.var)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
-            c = cmp(self.vars, other.vars)
+            c = cmp(self.var, other.var)
         return c
+    def merge(self, other):
+        if self == other:
+            return PolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
+        else:
+            return None
+#    def __str__(self):
+#        return "Poly(%s)" % self.var
 
 class MatrixFunctor(ConstructionFunctor):
-    def __init__(self, nrows, ncols):
+    def __init__(self, nrows, ncols, is_sparse=False):
 #        if nrows == ncols:
 #            Functor.__init__(self, Rings(), RingModules()) # takes a basering
 #        else:
@@ -76,15 +104,64 @@ class MatrixFunctor(ConstructionFunctor):
         Functor.__init__(self, Rings(), Rings())
         self.nrows = nrows
         self.ncols = ncols
+        self.is_sparse = is_sparse
         self.rank = 10
     def __call__(self, R):
         from sage.matrix.matrix_space import MatrixSpace
-        return MatrixSpace(R, self.nrows, self.ncols)
+        return MatrixSpace(R, self.nrows, self.ncols, sparse=self.is_sparse)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
             c = cmp((self.nrows, self.ncols), (other.nrows, other.ncols))
         return c
+    def merge(self, other):
+        if self != other:
+            return None
+        else:
+            return MatrixFunctor(self.nrows, self.ncols, self.is_sparse and other.is_sparse)
+
+class VectorFunctor(ConstructionFunctor):
+    def __init__(self, n, is_sparse=False, inner_product_matrix=None):
+#        if nrows == ncols:
+#            Functor.__init__(self, Rings(), RingModules()) # takes a basering
+#        else:
+#            Functor.__init__(self, Rings(), MatrixAlgebras()) # takes a basering
+        Functor.__init__(self, Rings(), Rings())
+        self.n = n
+        self.is_sparse = is_sparse
+        self.inner_product_matrix = inner_product_matrix
+        self.rank = 10 # ranking of functor, not rank of module
+    def __call__(self, R):
+        from sage.modules.free_module import FreeModule
+        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.n, other.n)
+        return c
+    def merge(self, other):
+        if self != other:
+            return None
+        else:
+            return VectorFunctor(self.n, self.is_sparse and other.is_sparse)
+
+class SubspaceFunctor(ConstructionFunctor):
+    def __init__(self, basis):
+        self.basis = basis
+        self.rank = 11 # ranking of functor, not rank of module
+    def __call__(self, ambient):
+        return ambient.span_of_basis(self.basis)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.basis, other.basis)
+        return c
+    def merge(self, other):
+        if isinstance(other, SubspaceFunctor):
+            return SubspaceFunctor(self.basis + other.basis) # TODO: remove linear dependancies
+        else:
+            return None
+
 
 class FractionField(ConstructionFunctor):
     def __init__(self):
@@ -112,18 +189,35 @@ class CompletionFunctor(ConstructionFunctor):
         self.p = p
         self.prec = prec
         self.extras = extras
-        self.rank = 7
+        self.rank = 4
     def __call__(self, R):
         return R.completion(self.p, self.prec, self.extras)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.p, other.p)
+        return c
+    def merge(self, other):
+        if self.p == other.p:
+            if self.prec == other.prec:
+                extras = self.extras.copy()
+                extras.update(other.extras)
+                return CompletionFunctor(self.p, self.prec, extras)
+            elif self.prec < other.prec:
+                return self
+            else: # self.prec > other.prec
+                return other
+        else:
+            return None
 
 class QuotientFunctor(ConstructionFunctor):
     def __init__(self, I):
         Functor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
-        self.rank = 2
+        self.rank = 7
     def __call__(self, R):
         I = self.I
-        if I.base_ring != R:
+        if I.ring() != R:
             I.base_extend(R)
         return R.quo(I)
     def __cmp__(self, other):
@@ -131,6 +225,19 @@ class QuotientFunctor(ConstructionFunctor):
         if c == 0:
             c = cmp(self.I, other.I)
         return c
+    def merge(self, other):
+        if self == other:
+            return self
+        try:
+            gcd = self.I + other.I
+        except (TypeError, NotImplementedError):
+            return None
+        if gcd.is_trivial() and not gcd.is_zero():
+            # quotient by gcd would result in the trivial ring/group/...
+            # Rather than create the zero ring, we claim they can't be merged
+            # TODO: Perhaps this should be detected at a higher level...
+            raise TypeError, "Trivial quotient intersection."
+        return QuotientFunctor(gcd)
 
 class AlgebraicExtensionFunctor(ConstructionFunctor):
     def __init__(self, poly, name, elt=None):
@@ -147,7 +254,203 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             c = cmp(self.poly, other.poly)
         return c
 
+def BlackBoxConstructionFunctor(ConstructionFunctor):
+    def __init__(self, box):
+        self.box = box
+        self.rank = 100
+    def __call__(self, R):
+        return box(R)
+    def __cmp__(self, other):
+        return self.box == other.box
+
+
 def pushout(R, S):
+    """
+    Given a pair of Objects R and S, try and construct a
+    reasonable object $Y$ and return maps such that
+    cannonically $R \leftarrow Y \rightarrow S$.
+
+    ALGORITHM:
+       This incorperates the idea of functors discussed SAGE Days 4.
+       Every object $R$ can be viewed as an initial object and
+       a series of functors (e.g. polynomial, quotient, extension,
+       completion, vector/matrix, etc.) Call the series of
+       increasingly-simple rings (with the associated functors)
+       the "tower" of $R$. The \code{construction} method is used to
+       create the tower.
+
+       Given two objects $R$ and $S$, try and find a common initial
+       object $Z$. If the towers of $R$ and $S$ meet, let $Z$ be their
+       join. Otherwise, see if the top of one coerces naturally into
+       the other.
+
+       Now we have an initial object and two \emph{ordered} lists of
+       functors to apply. We wish to merge these in an unambiguous order,
+       popping elements off the top of one or the other tower as we
+       apply them to $Z$.
+
+       - If the functors are distinct types, there is an absolute ordering
+           given by the rank attribute. Use this.
+       - Otherwise:
+          - If the tops are equal, we (try to) merge them.
+          - If \emph{exactly} one occurs lower in the other tower
+              we may unambiguously apply the other (hoping for a later merge).
+          - If the tops commute, we can apply either first.
+          - Otherwise fail due to ambiguity.
+
+    EXAMPLES:
+        Here our "towers" are $R = Complete_7(Frac(\Z)$ and $Frac(Poly_x(\Z))$, which give us $Frac(Poly_x(Complete_7(Frac(\Z)))$
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(Qp(7), Frac(ZZ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+
+        Note we get the same thing with
+            sage: pushout(Zp(7), Frac(QQ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+            sage: pushout(Zp(7)['x'], Frac(QQ['x']))
+            Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
+
+        Note that polynomial variable ordering must be unambiguously determined.
+            sage: pushout(ZZ['x,y,z'], QQ['w,z,t'])
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous Base Extension
+            sage: pushout(ZZ['x,y,z'], QQ['w,x,z,t'])
+            Polynomial Ring in w, x, y, z, t over Rational Field
+
+        Some other examples
+            sage: pushout(Zp(7)['y'], Frac(QQ['t'])['x,y,z'])
+            Polynomial Ring in x, y, z over Fraction Field of Univariate Polynomial Ring in t over 7-adic Field with capped relative precision 20
+            sage: pushout(ZZ['x,y,z'], Frac(ZZ['x'])['y'])
+            Polynomial Ring in y, z over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: pushout(MatrixSpace(RDF, 2, 2), Frac(ZZ['x']))
+            Full MatrixSpace of 2 by 2 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Real Double Field
+            sage: pushout(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
+            Full MatrixSpace of 3 by 3 dense matrices over Power Series Ring in x over Integer Ring
+            sage: pushout(QQ['x,y'], ZZ[['x']])
+            Univariate Polynomial Ring in y over Power Series Ring in x over Rational Field
+            sage: pushout(Frac(ZZ['x']), QQ[['x']])
+            Laurent Series Ring in x over Rational Field
+
+    AUTHORS:
+       -- Robert Bradshaw
+    """
+    if R == S:
+        return R
+
+    R_tower = construction_tower(R)
+    S_tower = construction_tower(S)
+    Rs = [c[1] for c in R_tower]
+    Ss = [c[1] for c in S_tower]
+
+    if R in Ss:
+        return S
+    elif S in Rs:
+        return R
+
+#    print Rs
+#    print Ss
+
+    if R_tower[-1][1] in Ss:
+      Rs, Ss = Ss, Rs
+      R_tower, S_tower = S_tower, R_tower
+
+    # look for join
+    if Ss[-1] in Rs:
+        if Rs[-1] == Ss[-1]:
+            while Rs[-1] == Ss[-1]:
+                Rs.pop()
+                Z = Ss.pop()
+        else:
+            Rs = Rs[:Rs.index(Ss[-1])]
+            Z = Ss.pop()
+
+    # look for topmost coercion
+    elif S.has_coerce_map_from(Rs[-1]):
+        while not Ss[-1].has_coerce_map_from(Rs[-1]):
+            Ss.pop()
+        while len(Rs) > 0 and Ss[-1].has_coerce_map_from(Rs[-1]):
+            Rs.pop()
+        Z = Ss.pop()
+
+    elif R.has_coerce_map_from(Ss[-1]):
+        while not Rs[-1].has_coerce_map_from(Ss[-1]):
+            Rs.pop()
+        while len(Ss) > 0 and Rs[-1].has_coerce_map_from(Ss[-1]):
+            Ss.pop()
+        Z = Rs.pop()
+
+    else:
+        raise TypeError, "No common base"
+
+    # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
+    Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
+    Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
+
+    while len(Rc) > 0 or len(Sc) > 0:
+        # print Z
+        # if we are out of functors in either tower, there is no ambiguity
+        if len(Sc) == 0:
+            c = Rc.pop()
+            Z = c(Z)
+        elif len(Rc) == 0:
+            c = Sc.pop()
+            Z = c(Z)
+        # if one of the functors has lower rank, do it first
+        elif Rc[-1].rank < Sc[-1].rank:
+            c = Rc.pop()
+            Z = c(Z)
+        elif Sc[-1].rank < Rc[-1].rank:
+            c = Sc.pop()
+            Z = c(Z)
+        else:
+            # the ranks are the same, so things are a bit subtler
+            if Rc[-1] == Sc[-1]:
+                # If they are indeed the same operation, we only do it once.
+                # The \code{merge} function here takes into account non-mathematical
+                # distinctions (e.g. single vs. multivariate polynomials)
+                cR = Rc.pop()
+                cS = Sc.pop()
+                c = cR.merge(cS) or cS.merge(cR)
+                if c:
+                    Z = c(Z)
+                else:
+                    raise TypeError, "Incompatable Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+            else:
+                # Now we look ahead to see if either top functor is
+                # applied later on in the other tower.
+                # If this is the case for exactly one of them, we unambiguously
+                # postpone that operation, but if both then we abort.
+                if Rc[-1] in Sc:
+                    if Sc[-1] in Rc:
+                        raise TypeError, "Ambiguous Base Extension"
+                    else:
+                        c = Sc.pop()
+                        Z = c(Z)
+                elif Sc[-1] in Rc:
+                    c = Rc.pop();
+                    Z = c(Z)
+                # If, perchance, the two functors commute, then we may do them in any order.
+                elif Rc[-1].commutes(Sc[-1]):
+                    c = Rc.pop()
+                    Z = c(Z)
+                    c = Sc.pop()
+                    Z = c(Z)
+                else:
+                    # try and merge (default merge is failure for unequal functors)
+                    cR = Rc.pop()
+                    cS = Sc.pop()
+                    c = cR.merge(cS) or cS.merge(cR)
+                    if c is not None:
+                        Z = c(Z)
+                    else:
+                        # Otherwise, we cannot proceed.
+                        raise TypeError, "Ambiguous Base Extension"
+    return Z
+
+
+
+def pushout_lattice(R, S):
     """
     Given a pair of Objects R and S, try and construct a
     reasonable object $Y$ and return maps such that
@@ -164,13 +467,13 @@ def pushout(R, S):
        See the code for a specific worked-out example.
 
     EXAMPLES:
-        sage: from sage.categories.pushout import pushout
-        sage: A, B = pushout(Qp(7), Frac(ZZ['x']))
+        sage: from sage.categories.pushout import pushout_lattice
+        sage: A, B = pushout_lattice(Qp(7), Frac(ZZ['x']))
         sage: A.codomain()
         Fraction Field of Univariate Polynomial Ring in x over 7-adic Field with capped relative precision 20
         sage: A.codomain() is B.codomain()
         True
-        sage: A, B = pushout(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
+        sage: A, B = pushout_lattice(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
         sage: B
         Identity endomorphism of Full MatrixSpace of 3 by 3 dense matrices over Power Series Ring in x over Integer Ring
 
@@ -317,6 +620,8 @@ def construction_tower(R):
     tower = [(None, R)]
     c = R.construction()
     while c is not None:
+        if not isinstance(c, ConstructionFunctor):
+            c = BlackBoxConstructionFunctor(c)
         tower.append(c)
         R = c[1]
         c = R.construction()

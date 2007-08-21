@@ -300,7 +300,7 @@ class Polynomial_generic_sparse(Polynomial):
             [0, 17, 15, 0, 0, 13]
         """
         zero = self.base_ring()(0)
-        v = [zero for _ in xrange(self.degree()+1)]
+        v = [zero] * (self.degree()+1)
         for n, x in self.__coeffs.iteritems():
             v[n] = x
         return v
@@ -544,13 +544,9 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 x = [QQ(a) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = QQ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, QQ(0))
+
 
         elif isinstance(x, pari_gen):
             f = x.Polrev()
@@ -969,13 +965,9 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
                 x = [ZZ(a) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = ZZ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, ZZ(0))
+
 
         elif isinstance(x, ZZX_class):
             self.__poly = x.copy()
@@ -1554,13 +1546,9 @@ class Polynomial_dense_mod_n(Polynomial):
                 x = [ZZ(R(a)) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = ZZ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, R(0))
+
 
         elif isinstance(x, ZZX_class):
             self.__poly = x.copy()

@@ -149,6 +149,9 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric, sage.rings.
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Ring"%(self.prime())
 
+    def _latex_(self):
+        return "\\mathbf{Z}_{%s}" % self.prime()
+
     def integer_ring(self):
         r"""
         Returns the integer ring of self, i.e. self.

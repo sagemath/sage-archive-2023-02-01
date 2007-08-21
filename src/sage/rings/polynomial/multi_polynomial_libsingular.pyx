@@ -99,6 +99,8 @@ from sage.misc.latex import latex
 from sage.interfaces.all import macaulay2
 
 import sage.libs.pari.gen
+import polynomial_element
+
 
 # shared library loading
 cdef extern from "dlfcn.h":
@@ -364,6 +366,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             elif element.parent() == self:
                 # is this safe?
                 _p = p_Copy((<MPolynomial_libsingular>element)._poly, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
 
@@ -377,8 +381,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
+
+        elif isinstance(element, polynomial_element.Polynomial):
+            if self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
+            else:
+                raise TypeError, "incompatable parents"
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # base ring elements
@@ -1293,7 +1305,7 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
 
     return MPolynomialRing_libsingular(base_ring, len(names), names, term_order)
 
-cdef MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
+cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
     """
     Construct a new MPolynomial_libsingular element
     """
@@ -1343,6 +1355,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: f(45/2,19/3,1)
             7281167/1512
+
+            sage: f(1,2,3).parent()
+            Rational Field
 
         TESTS:
             sage: P.<x,y,z> = QQ[]
@@ -1403,7 +1418,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         id_Delete(&to_id, _ring)
         id_Delete(&from_id, _ring)
         id_Delete(&res_id, _ring)
-        return new_MP(parent, res)
+
+        if p_IsConstant(res, _ring) and all([e in parent._base for e in x]):
+            # I am sure there must be a better way to do this...
+            return parent._base(new_MP(parent, res))
+        else:
+            return new_MP(parent, res)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1584,6 +1604,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         n_Delete(&_n, _ring)
         return new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # all currently implemented rings are commutative
+        return self._rmul_c_impl(right)
+
     cdef RingElement  _mul_c_impl(left, RingElement right):
         """
         Multiply left and right.
@@ -1630,7 +1654,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x/0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError
+            ZeroDivisionError: Rational division by zero
 
         """
         cdef poly *p

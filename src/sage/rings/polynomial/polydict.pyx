@@ -639,7 +639,7 @@ cdef class ETuple:
             tpl = zip(range(len(data)),data)
             tmp = []
             for (i,v) in tpl:
-                if v!=0:
+                if v:
                     tmp.append((i,v))
             self._data = dict( tmp )
             self._length = len(data)

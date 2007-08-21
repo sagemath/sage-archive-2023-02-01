@@ -229,7 +229,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self._names), self.base_ring()
+        return PolynomialFunctor(self.variable_name()), self.base_ring()
+
+    def completion(self, p, prec=20, extras=None):
+        if str(p) == self._names[0]:
+            from sage.rings.power_series_ring import PowerSeriesRing
+            return PowerSeriesRing(self.base_ring(), self._names[0], prec)
+        else:
+            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
     def _coerce_impl(self, x):
         """
@@ -441,6 +448,48 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if isinstance(added_names, str):
             added_names = added_names.split(',')
         return PolynomialRing(self.base_ring(), names = self.variable_names() + tuple(added_names), order = order)
+
+    def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
+        r"""
+        Returns the list of variable names of this and its baserings, as if
+        it were a single multi-variate polynomial.
+
+        EXAMPLES:
+            sage: R = QQ['x']['y']['z']
+            sage: R.variable_names_recursive()
+            ('x', 'y', 'z')
+            sage: R.variable_names_recursive(2)
+            ('y', 'z')
+
+        """
+        if depth <= 0:
+            return ()
+        elif depth == 1:
+            return self.variable_names()
+        else:
+            my_vars = self.variable_names()
+            try:
+               return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+            except AttributeError:
+                return my_vars
+
+    def _mpoly_base_ring(self, vars=None):
+        """
+        Returns the basering if this is viewed as a polynomial ring over vars.
+        See also Polynomial._mpoly_dict_recursive
+        """
+        if vars is None:
+            vars = self.variable_names_recursive()
+        vars = list(vars)
+        var = self.variable_name()
+        if not var in vars:
+            return self
+        else:
+            try:
+                return self.base_ring()._mpoly_base_ring(vars[:vars.index(var)])
+            except AttributeError:
+                return self.base_ring()
+
 
     def characteristic(self):
         """
@@ -811,13 +860,6 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):
         PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
-
-    def completion(self, p, prec=20, extras=None):
-        if str(p) == self._names[0]:
-            from sage.rings.power_series_ring import PowerSeriesRing_domain
-            return PowerSeriesRing_domain(self.base_ring(), self._names[0], prec)
-        else:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,

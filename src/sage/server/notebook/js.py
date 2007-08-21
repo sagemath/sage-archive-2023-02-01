@@ -29,10 +29,8 @@ def javascript():
     s = async_lib()
     s += notebook_lib()
 
-    # TODO -- disabled while debuging.
-    #s = JavaScriptCompressor().getPacked(s)
-
     return s
+
 
 
 def async_lib():
@@ -237,13 +235,18 @@ jsMath = {Font: {Message: function () {}}}
 var cell_id_list; // this gets set in worksheet.py
 
 var input_keypress; //this gets set to a function when we set up the keyboards
+var input_keydown; //this gets set to a function when we set up the keyboards
+var debug_keypress; //this gets set to a function when we set up the keyboards
 
+var in_debug_input = false;
 var in_slide_mode = false; //whether or not we're in slideshow mode
 var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
 var original_title;
+
+var line_height=1.2;
 
 //var title_spinner = ['    ', '.   ', '..  ', '... '];
 //var title_spinner = ['[ ] ', '[.] ', '[:] ', '[.] '];
@@ -252,9 +255,6 @@ var title_spinner = ['/ ', '\\ '];
 //var title_spinner = ['[   ] ', '[.  ] ', '[.. ] ', '[...] '];
 //var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
 var title_spinner_i = 0;
-try{
-    original_title = document.title;
-} catch(e) {}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -262,67 +262,68 @@ try{
 //
 ///////////////////////////////////////////////////////////////////
 
+
+function initialize_the_notebook(){
+    try{
+        original_title = document.title;
+    } catch(e) {}
+
+    try{
+      [].indexOf || (Array.prototype.indexOf = function(v,n){
+        n = (n==null)?0:n; m = this.length;
+        for(var i = n; i < m; i++)
+          if(this[i] == v)
+             return i;
+        return -1;
+      });
+    } catch(e){}
+
+
+    try{
+      var n=navigator;
+      var nav=n.appVersion;
+      var nap=n.appName;
+      var nua=n.userAgent;
+      browser_op=(nua.indexOf('Opera')!=-1);
+      browser_saf=(nua.indexOf('Safari')!=-1);
+      browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
+      browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
+      browser_ie=((nap.indexOf('Internet Explorer') != -1)&&!browser_op);
+      browser_ie5=(browser_ie&&(nua.indexOf('MSIE 5')!=-1));
+      os_mac=(nav.indexOf('Mac')!=-1);
+      os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
+      os_lin=(nua.indexOf('Linux')!=-1);
+      show_exception(n);
+    } catch(e){
+      show_exception(e);
+    }
+
+    get_keyboard();
+}
+
+
 function true_function() {return true;}
 input_keypress = true_function;
-
-try{
-  var n=navigator;
-  var nav=n.appVersion;
-  var nan=n.appName;
-  var nua=n.userAgent;
-  browser_op=(nua.indexOf('Opera')!=-1);
-  browser_saf=(nua.indexOf('Safari')!=-1);
-  browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
-  browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
-  browser_ie=((nua.indexOf('MSIE')!=-1)&&!browser_op);
-  browser_ie5=(browser_ie&&(nua.indexOF('MSIE 5')!=-1));
-  os_mac=(nav.indexOf('Mac')!=-1);
-  os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
-  os_lin=(nua.indexOf('Linux')!=-1);
-
-  if(browser_ie) {
-      alert("Using SAGE with Microsoft Internet Explorer is currently not supported.");
-  }
-
-/*  line_height = 1.2;
-  if (os_mac) {
-     line_height = 1;
-  }
-  */
-  line_height = 1.2;
-  get_keyboard();
-} catch(e){}
-
-try{
-  [].indexOf || (Array.prototype.indexOf = function(v,n){
-    n = (n==null)?0:n; m = this.length;
-    for(var i = n; i < m; i++)
-      if(this[i] == v)
-         return i;
-    return -1;
-  });
-} catch(e){}
-
 
 function get_keyboard() {
   var b,o,warn=false;
 
   input_keypress = cell_input_key_event;
+  input_keydown = true_function;
   debug_keypress = debug_input_key_event;
 
   if(browser_op) {
     b = "o";
   } else if(browser_ie) {
     b = "i";
-    document.onkeydown = key_listen_ie;
     input_keypress = true_function;
+    input_keydown = cell_input_key_event;
     debug_keypress = true_function;
-//    warn = true;
   } else if(browser_saf) {
     b = "s";
   } else if(browser_konq) {
     b = "k";
-//    warn = true;
+    warn = true;
   } else {
     b = "m";
   }
@@ -342,11 +343,13 @@ function get_keyboard() {
   async_request('/javascript/keyboard/'+b+o, get_keyboard_callback, null);
 }
 
+
 function get_keyboard_callback(status, response_text) {
   if(status == 'success') {
     eval(response_text);
   }
 }
+
 
 function get_element(id) {
   if(document.getElementById)
@@ -468,6 +471,34 @@ function toggle_left_pane() {
   } else {
     set_class('left_pane', 'hidden');
   }
+}
+
+function show_exception(e) {
+/*    var mess = "";
+    for(var i = 0; i < e.length; i++) {
+        mess+= i+"\t"+e[i]+"\n";
+    }
+    for(var i in e) {
+        mess+= i+"\t"+e[i]+"\n";
+    }
+    alert(mess);
+/*/
+    var h = "<table>\n";
+    for(var i = 0; i < e.length; i++) {
+        h+= "<tr><td>"+i+"</td><td>"+e[i]+"</td></tr>\n";
+    }
+    for(var i in e) {
+        h+= "<tr><td>"+i+"</td><td>"+e[i]+"</td></tr>\n";
+    }
+    h+="</table>";
+    var d = document.createElement("div");
+    var n = Math.floor(Math.random()*32000);
+    d.setAttribute("id", "exception_div_"+n);
+    d.setAttribute("onClick", "parent.removeChild(this);");
+    d.innerHTML = h;
+    d.setAttribute("style", "position:absolute; z-index:1000; top:0px; left:0px;");
+    document.body.appendChild(d);
+// */
 }
 
 
@@ -1077,13 +1108,11 @@ function xx(status, response_text) {
 }
 
 function server_down() {
-   X = get_element("ping");
-   X.className = "pingdown";
+   set_class("ping", "pingdown");
 }
 
 function server_up() {
-   X = get_element("ping");
-   X.className = "ping";
+   set_class("ping", "ping");
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -1310,34 +1339,6 @@ function cell_delete(id) {
    async_request(worksheet_command('delete_cell'), cell_delete_callback, 'id='+id)
 }
 
-
-function key_listen_ie() {
-    var e = get_event(null);
-    if(current_cell != -1) {
-        k = new key_event(e);
-        if(key_shift(k) || key_ctrl(k) || key_alt(k))
-          return true;
-
-        if(!cell_input_key_event(current_cell, e)) {
-            void(0);
-            e.returnValue=false;
-            e.cancelBubble=true;
-            return false;
-        }
-        return true;
-    }
-    if(in_debug_input) {
-        if(!debug_input_key_event(e)) {
-            void(0);
-            e.returnValue=false;
-            e.cancelBubble=true;
-            return false;
-        }
-        return true;
-    }
-    return true;
-}
-
 function debug_input_key_event(e) {
     e = new key_event(e);
     debug_input = get_element('debug_input');
@@ -1507,7 +1508,9 @@ function escape0(input) {
 }
 
 function text_cursor_split(input) {
-    if(browser_ie) {
+   var b = "";
+   var a
+   if(browser_ie) {
         //for explorer, we call the
         // document.selection.createRange().duplicate()
         //to generate a selection range object which does not effect the
@@ -1516,15 +1519,12 @@ function text_cursor_split(input) {
         //a non-word character, or we've rewound past the beginning of
         //the textarea).
         var range = document.selection.createRange().duplicate();
-        var i = range.text.length;
-        while((input.value.match(range.text) || i==0)
-               && range.text.length == i) {
-            range.moveStart('character', -1);
-            i = i + 1;
+        if (range.parentElement() == input) {
+            var prerange = range.duplicate();
+            prerange.moveToElementText(input);
+            prerange.setEndPoint("endToStart", range);
+            b = prerange.text;
         }
-        if(!input.value.match(range.text))
-            range.moveStart('character', 1);
-        b = range.text;
     } else {
         b = input.value.substr(0,input.selectionEnd);
     }
@@ -1859,16 +1859,12 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
-/*
-Could this be useful?
-    source_code.match( new RegExp( "<script\\s+?type=['\"]text/javascript['\"]>([^]+?)</script>", "i" ) )
-*/
 
 function eval_script_tags(text) {
    var s = text.replaceAll('\n','');
-   var i = s.indexOf('<script>');
+   var i = s.indexOf('<'+'script>');
    while (i != -1) {
-       var j = s.indexOf('</script>');
+       var j = s.indexOf('<'+'/script>');
        var code = s.slice(8+i,j);
        try {
            window.eval(code);
@@ -1876,7 +1872,7 @@ function eval_script_tags(text) {
            alert(e);
        }
        s = s.slice(j+1);
-       i = s.indexOf('<script>');
+       i = s.indexOf('<'+'script>');
    }
 }
 
@@ -2480,6 +2476,8 @@ function is_submit(e) {
 """%keyhandler.all_tests()
     s += keyboards.get_keyboard('')
     return s
+
+
 
 
 

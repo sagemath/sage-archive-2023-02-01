@@ -65,7 +65,7 @@ cdef class RealDoubleField_class(Field):
         return False
 
     def _latex_(self):
-        return "\\R"
+        return "\\mathbf{R}"
 
     def __repr__(self):
         """

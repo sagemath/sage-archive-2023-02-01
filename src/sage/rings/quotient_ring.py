@@ -101,6 +101,10 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         self.__I = I
         sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
 
+    def construction(self):
+        from sage.categories.pushout import QuotientFunctor
+        return QuotientFunctor(self.__I), self.__R
+
     def _repr_(self):
         return "Quotient of %s by the ideal %s"%(self.cover_ring(), self.defining_ideal()._repr_short())
 

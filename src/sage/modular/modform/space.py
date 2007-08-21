@@ -1,4 +1,4 @@
-"""
+r"""
 Generic spaces of modular forms
 
 EXAMPLES (computation of base ring):
@@ -402,7 +402,67 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def integral_basis(self):
         """
+        Return an integral basis for this space of modular forms.
 
+        EXAMPLES:
+        In this example the integral and echelon bases are different.
+            sage: m = ModularForms(97,2,prec=10)
+            sage: s = m.cuspidal_subspace()
+            sage: s.integral_basis()
+            [
+            q + 2*q^7 + 4*q^8 - 2*q^9 + O(q^10),
+            q^2 + q^4 + q^7 + 3*q^8 - 3*q^9 + O(q^10),
+            q^3 + q^4 - 3*q^8 + q^9 + O(q^10),
+            2*q^4 - 2*q^8 + O(q^10),
+            q^5 - 2*q^8 + 2*q^9 + O(q^10),
+            q^6 + 2*q^7 + 5*q^8 - 5*q^9 + O(q^10),
+            3*q^7 + 6*q^8 - 4*q^9 + O(q^10)
+            ]
+            sage: s.echelon_basis()
+            [
+            q + 2/3*q^9 + O(q^10),
+            q^2 + 2*q^8 - 5/3*q^9 + O(q^10),
+            q^3 - 2*q^8 + q^9 + O(q^10),
+            q^4 - q^8 + O(q^10),
+            q^5 - 2*q^8 + 2*q^9 + O(q^10),
+            q^6 + q^8 - 7/3*q^9 + O(q^10),
+            q^7 + 2*q^8 - 4/3*q^9 + O(q^10)
+            ]
+
+        Here's another example where there is a big gap in the valuations:
+            sage: m = CuspForms(64,2)
+            sage: m.integral_basis()
+            [
+            q + O(q^6),
+            q^2 + O(q^6),
+            q^5 + O(q^6)
+            ]
+
+        TESTS:
+            sage: m = CuspForms(11*2^4,2, prec=13); m
+            Cuspidal subspace of dimension 19 of Modular Forms space of dimension 30 for Congruence Subgroup Gamma0(176) of weight 2 over Rational Field
+            sage: m.integral_basis()          # takes a long time (3 or 4 seconds)
+            [
+            q + O(q^13),
+            q^2 + O(q^13),
+            q^3 + O(q^13),
+            q^4 + O(q^13),
+            q^5 + O(q^13),
+            q^6 + O(q^13),
+            q^7 + O(q^13),
+            q^8 + O(q^13),
+            q^9 + O(q^13),
+            q^10 + O(q^13),
+            q^11 + O(q^13),
+            q^12 + O(q^13),
+            O(q^13),
+            O(q^13),
+            O(q^13),
+            O(q^13),
+            O(q^13),
+            O(q^13),
+            O(q^13)
+            ]
         """
         try:
             return self.__integral_basis
@@ -416,28 +476,36 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__integral_basis = I
             return I
 
-    def _q_expansion_module(self, prec=None):
+    def _q_expansion_module(self):
+        """
+        Return module spanned by coefficients of q-expansions to
+        sufficient precision to determine elements of this space.
+
+        EXAMPLES:
+        """
         try:
             return self.__q_expansion_module
         except AttributeError:
             pass
-        if prec is None:
-            prec = int(1.2*self.dimension()) + 2
-        C = self.q_expansion_basis(prec)
+
+        C = self.q_expansion_basis()
+        prec = C[0].prec() if (len(C) > 0) else 0
         V = self.base_ring()**prec
-        try:
-            W = V.span_of_basis([f.padded_list(prec) for f in C])
-        except AttributeError:
-            return self._q_expansion_module(self, 2*prec)
+        W = V.span_of_basis([f.padded_list(prec) for f in C])
         self.__q_expansion_module = W
         return W
 
     def q_expansion_basis(self, prec=None):
         """
-        The number of q-expansions returned equals the dimension.
+        Return a sequence of q-expansions for the basis of this space
+        computed to the given input precision.
 
         INPUT:
             prec -- integer (>=0) or None
+
+        If prec is None, the prec is computed to be *at least* large
+        enough so that each q-expansion determines the form as an
+        element of this space.
 
         EXAMPLES:
             sage: S = ModularForms(11,2).cuspidal_submodule()
@@ -452,27 +520,49 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             q^2 - 48*q^3 + 1080*q^4 + O(q^5)
             ]
         """
-        prec = self.__normalize_prec(prec)
+        if prec is None:
+            try: # don't care about precision -- just must be big enough to determine forms
+                return self.__q_expansion_basis[1]
+            except AttributeError:
+                pass
+            prec = -1  # big enough to determine forms
+        else:
+            prec = rings.Integer(self.__normalize_prec(prec))
         if prec == 0:
             z = self._q_expansion_ring()(0,prec)
-            return Sequence([z]*int(self.dimension()), cr=True)
-        try:
-            current_prec, B = self.__q_expansion_basis
-        except AttributeError:
-            current_prec, B = -1, Sequence([], cr=True)
+            return Sequence([z]*int(self.dimension()), immutable=True, cr=True)
+        elif prec != -1:
+            try:
+                current_prec, B = self.__q_expansion_basis
+                if current_prec == prec:
+                    return B
+                elif current_prec > prec:
+                    return Sequence([f.add_bigoh(prec) for f in B], immutable=True, cr=True)
+            except AttributeError:
+                pass
+
+        d = self.dimension()
+        current_prec = max(prec, int(1.2*d) + 3)         # +3 for luck.
+        if prec == -1:
+            prec = current_prec
+        tries = 0
+        while True:
+            B = self._compute_q_expansion_basis(current_prec)
+            if len(B) == d:
+                break
+            else:
+                tries += 1
+                current_prec += d
+            if tries > 5:
+                print "WARNING: possibly bug in q_expansion_basis for modular forms space %s"%self
+        B = Sequence(B, immutable=True, cr=True)
+        self.__q_expansion_basis = (current_prec, B)
         if current_prec == prec:
             return B
-        elif current_prec > prec:
-            return Sequence([f.add_bigoh(prec) for f in B], cr=True)
-        B = self._compute_q_expansion_basis(prec)
-        z = self._q_expansion_ring()(0,prec)
-        B = B + [z]*(self.dimension() - len(B))
-        B = Sequence(B, immutable=True, cr=True)
-        self.__q_expansion_basis = (prec, B)
-        return B
+        return Sequence([f.add_bigoh(prec) for f in B], immutable=True, cr=True)
 
     def _compute_q_expansion_basis(self, prec):
-        raise NotImplementedError
+        raise NotImplementedError, "this must be implemented in the derived class"
 
     def q_echelon_basis(self, prec=None):
         r"""

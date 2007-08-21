@@ -6,7 +6,7 @@ EXAMPLES:
     Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
     sage: S = M.cuspidal_submodule(); S
     Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
-    sage: S.q_expansion_basis()
+    sage: S.basis()
     [
     q - 4*q^3 - q^4 + 3*q^5 + O(q^6),
     q^2 - 2*q^3 - q^4 + 2*q^5 + O(q^6)

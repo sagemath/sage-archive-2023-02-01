@@ -24,7 +24,6 @@ from functional import (diff, derivative,
 
 from var import (var, function, clear_vars)
 
-
 def symbolic_expression(x):
     return SR(x)
 

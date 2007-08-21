@@ -147,7 +147,8 @@ class ModularFormElement(element.HeckeModuleElement):
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
-            current_prec, f = -1, 0
+            zero = self.parent()._q_expansion_ring()(0, -1)
+            current_prec, f = 0, zero
         if current_prec == prec:
             return f
         elif current_prec > prec:

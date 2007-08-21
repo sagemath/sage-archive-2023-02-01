@@ -582,7 +582,7 @@ def spherical_bessel_J(n, var):
 
     EXAMPLES:
         sage: spherical_bessel_J(2,x)
-        ((-(1 - (24/(8*x^2))))*sin(x) - (3*cos(x)/x))/x
+        (-(1 - 24/(8*x^2))*sin(x) - 3*cos(x)/x)/x
     """
     _init()
     return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -597,7 +597,7 @@ def spherical_bessel_Y(n,var):
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        (-(3*sin(x)/x - (1 - (24/(8*x^2)))*cos(x)))/x
+        -(3*sin(x)/x - (1 - 24/(8*x^2))*cos(x))/x
     """
     _init()
     return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))

@@ -21,15 +21,16 @@ class InlineFortran:
 
     def eval(self,x):
         """
-        sage: from sage.misc.inline_fortran import InlineFortran
-        sage: s = open(os.environ['SAGE_ROOT'] + '/examples/fortran/FIB1.F').read()
-        sage: test_fortran = InlineFortran(globals())
-        sage: test_fortran(s)
-        sage: import numpy
-        sage: n = numpy.array(range(10),dtype=float)
-        sage: fib(n,int(10))
-        sage: n
-        array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
+        EXAMPLES:
+            sage: from sage.misc.inline_fortran import InlineFortran
+            sage: s = open(os.environ['SAGE_ROOT'] + '/examples/fortran/FIB1.F').read()
+            sage: test_fortran = InlineFortran(globals())
+            sage: test_fortran(s)
+            sage: import numpy
+            sage: n = numpy.array(range(10),dtype=float)
+            sage: fib(n,int(10))
+            sage: n
+            array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
         """
         if len(x.splitlines()) == 1 and os.path.exists(x):
             filename = x
@@ -37,7 +38,7 @@ class InlineFortran:
             if filename.lower().endswith('.f90'):
                 x = '!f90\n' + x
         global count
-        # On linux g77_shared should be a script that runs gfortran -shared
+        # On linux g77_shared should be a script that runs sage_fortran -shared
         # On OSX it should be a script that runs gfortran -bundle -undefined dynamic_lookup
         path = os.environ['SAGE_LOCAL']+'/bin/sage-g77_shared'
         from numpy import f2py

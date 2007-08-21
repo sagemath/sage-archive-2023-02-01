@@ -16,6 +16,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 cdef class Polynomial_generic_dense(Polynomial):
     cdef object __coeffs # a python list
     cdef void __normalize(self)
+#    cdef _dict_to_list(self, x, zero)
 
 #cdef class Polynomial_generic_sparse(Polynomial):
 #    cdef object __coeffs # a python dict (for now)

@@ -1,38 +1,13 @@
 #!/usr/bin/env python
-DEVEL = False
 
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
 
-## Choose cblas library -- note -- make sure to update sage/misc/cython.py
-## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
-    BLAS=os.environ['SAGE_BLAS']
-elif os.path.exists('/usr/lib/libcblas.dylib') or \
-     os.path.exists('/usr/lib/libcblas.so'):
-    BLAS='cblas'
-elif os.path.exists('/usr/lib/libblas.dll.a'):
-    BLAS='gslcblas'
-else:
-    # This is very slow  (?), but *guaranteed* to be available.
-    BLAS='gslcblas'
-
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
 else:
     sdist = False
-
-NO_WARN = True
-
-if not os.environ.has_key('SAGE_ROOT'):
-    print "    ERROR: The environment variable SAGE_ROOT must be defined."
-    sys.exit(1)
-else:
-    SAGE_ROOT  = os.environ['SAGE_ROOT']
-    SAGE_LOCAL = SAGE_ROOT + '/local/'
-    SAGE_DEVEL = SAGE_ROOT + '/devel/'
-
 
 if not os.environ.has_key('SAGE_VERSION'):
     SAGE_VERSION=0
@@ -438,7 +413,7 @@ ext_modules = [ \
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
+              sources = ['sage/structure/sage_object.pyx']), \
 
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']), \
@@ -497,7 +472,7 @@ ext_modules = [ \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
-              libraries=['gmp','stdc++']), \
+              libraries=['gmp']), \
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],

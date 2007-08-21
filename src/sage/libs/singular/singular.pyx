@@ -31,7 +31,6 @@ cdef extern from "stdsage.h":
     ctypedef void PyObject
     object PY_NEW(object t)
     int PY_TYPE_CHECK(object o, object t)
-    PyObject** FAST_SEQ_UNSAFE(object o)
     void init_csage()
 
 cdef class Conversion:

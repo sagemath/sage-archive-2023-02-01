@@ -42,6 +42,7 @@ class Cocoa(Expect):
                  maxread=100000, script_subdirectory=None,
                  logfile=None,
                  server=None,
+                 server=None,
                  init_list_length=1024):
         Expect.__init__(self,
 
@@ -58,6 +59,7 @@ class Cocoa(Expect):
 
                         maxread = maxread,
                         server=server,
+                        server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
 
                         # If this is true, then whenever the user presses Control-C to

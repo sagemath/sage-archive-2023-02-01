@@ -537,6 +537,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
             sage: a[-1]
             (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+
+            sage: a[2.7]
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
+
         """
         cdef Py_ssize_t i, j
         cdef object x
@@ -549,12 +555,14 @@ cdef class Matrix(sage.structure.element.Matrix):
             j = <object> PyTuple_GET_ITEM(key, 1)
             self.check_bounds(i, j)
             return self.get_unsafe(i, j)
+
         elif isinstance(key, slice):
             # Slice interpretation is passed to the sequence constructed by range
             return self.matrix_from_rows(range(0, self._nrows).__getitem__(key))
+
         else:
             # If key is not a tuple, coerce to an integer and get the row.
-            return self.row(int(key))
+            return self.row(PyNumber_Index(key))
 
     def __setitem__(self, ij, x):
         """

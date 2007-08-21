@@ -63,7 +63,6 @@ cdef extern from "stdsage.h":
     ctypedef void PyObject
     object PY_NEW(object t)
     int PY_TYPE_CHECK(object o, object t)
-    PyObject** FAST_SEQ_UNSAFE(object o)
     void init_csage()
 #init_csage()
 
@@ -2026,8 +2025,7 @@ cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField
         y.element = x
         return y
     else:
-        w = FAST_SEQ_UNSAFE(parent._array)
-        return <FiniteField_givaroElement>w[x]
+        return <FiniteField_givaroElement>parent._array[x]
 
 def gap_to_givaro(x, F):
     """

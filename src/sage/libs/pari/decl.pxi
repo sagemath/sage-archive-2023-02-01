@@ -1100,6 +1100,7 @@ cdef extern from 'pari/pari.h':
     void    gaffsg(long s, GEN x)
     GEN     gclone(GEN x)
     int     gcmp(GEN x, GEN y)
+    int     gcmp_sage(GEN x, GEN y)
     int     gcmpsg(long x, GEN y)
     int     gcmp0(GEN x)
     int     gcmp1(GEN x)
@@ -1942,9 +1943,6 @@ cdef extern from 'pari/pari.h':
     GEN     wf2(GEN x, long prec)
 
     GEN     padicfieldslist(GEN p, GEN m, GEN d, long flag)
-
-#cdef extern from 'pari/paridecl.h':
-#    GEN     mkintn(long n, ...);
 
 cdef extern from 'pari/paripriv.h':
 #cdef extern from 'pari/pari.h':

@@ -203,21 +203,19 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int n
         R = self.base_ring()
 
-        cdef PyObject** w
-        w = FAST_SEQ_UNSAFE(entries)
         if coerce:
             for i from 0 <= i < self._nrows:
                 if PyErr_CheckSignals(): raise KeyboardInterrupt
                 v = self._matrix[i]
                 for j from 0 <= j < self._ncols:
-                    v[j] = R( <object> w[k])
+                    v[j] = R(entries[k])
                     k = k + 1
         else:
             for i from 0 <= i < self._nrows:
                 if PyErr_CheckSignals(): raise KeyboardInterrupt
                 v = self._matrix[i]
                 for j from 0 <= j < self._ncols:
-                    v[j] = int( <object> w[k])
+                    v[j] = int(entries[k])
                     k = k + 1
 
 

@@ -14,6 +14,17 @@ import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 
+def is_ModularFormElement(x):
+    """
+    Return True if x is a modular form.
+
+        sage: is_ModularFormElement(5)
+        False
+        sage: is_ModularFormElement(ModularForms(11).0)
+        True
+    """
+    return isinstance(x, ModularFormElement)
+
 class ModularFormElement(element.HeckeModuleElement):
     """
     An element of a space of modular forms.

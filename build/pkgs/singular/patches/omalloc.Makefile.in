@@ -202,18 +202,23 @@ install: all libomalloc_p.a
 	$(RANLIB) $(libdir)/libomalloc_ndebug.a
 	$(INSTALL_DATA) libomalloc_p.a $(libdir)
 	$(RANLIB) $(libdir)/libomalloc_p.a
-	$(INSTALL_DATA) omalloc.o omalloc_debug.o $(libdir)
-	$(INSTALL_DATA) omalloc.h omalloc.c $(includedir)
-	$(INSTALL_DATA) omlimits.h mylimits.h omalloc.c $(includedir)
+	$(INSTALL_DATA) omalloc.o  $(libdir)
+	$(INSTALL_DATA)	omalloc_debug.o $(libdir)
+	$(INSTALL_DATA) omalloc.h $(includedir)
+	$(INSTALL_DATA) omalloc.c $(includedir)
+	$(INSTALL_DATA) omlimits.h $(includedir)
+	$(INSTALL_DATA) mylimits.h $(includedir)
 
 install_min: libomalloc_ndebug.a omalloc.o
 	$(MKINSTALLDIRS) $(libdir)
 	$(MKINSTALLDIRS) $(includedir)
 	$(INSTALL_DATA) libomalloc_ndebug.a $(libdir)
 	$(RANLIB) $(libdir)/libomalloc_ndebug.a
-	$(INSTALL_DATA) omalloc.o $(libdir)
-	$(INSTALL_DATA) omalloc.h omalloc.c $(includedir)
-	$(INSTALL_DATA) omlimits.h mylimits.h omalloc.c $(includedir)
+	$(INSTALL_DATA) omalloc.o  $(libdir)
+	$(INSTALL_DATA) omalloc.h $(includedir)
+	$(INSTALL_DATA) omalloc.c $(includedir)
+	$(INSTALL_DATA) omlimits.h $(includedir)
+	$(INSTALL_DATA) mylimits.h $(includedir)
 
 uninstall:
 	rm -f $(includedir)/omalloc.h $(includedir)/omalloc.c

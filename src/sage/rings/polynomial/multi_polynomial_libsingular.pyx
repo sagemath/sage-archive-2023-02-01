@@ -81,6 +81,11 @@ from sage.misc.misc import mul
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 
+import sage.libs.pari.gen
+import polynomial_element
+
+
+# shared library loading
 cdef extern from "dlfcn.h":
     void *dlopen(char *, long)
     char *dlerror()
@@ -343,6 +348,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             elif element.parent() == self:
                 # is this safe?
                 _p = p_Copy((<MPolynomial_libsingular>element)._poly, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
 
@@ -356,8 +363,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            elif self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
             else:
                 raise TypeError, "parents do not match"
+
+        elif isinstance(element, polynomial_element.Polynomial):
+            if self.base_ring().has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
+                return self(element._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
+            else:
+                raise TypeError, "incompatable parents"
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # base ring elements
@@ -398,7 +413,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             Call supports all conversions _coerce_ supports, plus:
 
-        Coercion form strings:
+        Coercion from strings:
             sage: P.<x,y,z> = QQ[]
             sage: P('x+y + 1/4')
             x + y + 1/4
@@ -427,11 +442,18 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(a)
             x
 
+        Coercion from PARI objects:
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: P(pari('x^2 + y'))
+            x^2 + y
+            sage: P(pari('x*y'))
+            x*y
+
         If everything else fails, we try to coerce to the base ring:
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
             -1
-
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -444,7 +466,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         except TypeError:
             pass
 
-        if PY_TYPE_CHECK(element, SingularElement):
+        if PY_TYPE_CHECK(element, SingularElement) or \
+           PY_TYPE_CHECK(element, sage.libs.pari.gen.gen):
             element = str(element)
 
         if PY_TYPE_CHECK(element, basestring):
@@ -1264,6 +1287,16 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
 
     return MPolynomialRing_libsingular(base_ring, len(names), names, term_order)
 
+cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
+    """
+    Construct a new MPolynomial_libsingular element
+    """
+    cdef MPolynomial_libsingular p
+    p = PY_NEW(MPolynomial_libsingular)
+    p._parent = <ParentWithBase>parent
+    p._poly = juice
+    return p
+
 cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
     """
     A multivariate polynomial implemented using libSINGULAR.
@@ -1304,6 +1337,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: f(45/2,19/3,1)
             7281167/1512
+
+            sage: f(1,2,3).parent()
+            Rational Field
 
         TESTS:
             sage: P.<x,y,z> = QQ[]
@@ -1364,7 +1400,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         id_Delete(&to_id, _ring)
         id_Delete(&from_id, _ring)
         id_Delete(&res_id, _ring)
-        return co.new_MP(parent, res)
+
+        if p_IsConstant(res, _ring) and all([e in parent._base for e in x]):
+            # I am sure there must be a better way to do this...
+            return parent._base(co.new_MP(parent, res))
+        else:
+            return co.new_MP(parent, res)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1545,7 +1586,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         n_Delete(&_n, _ring)
         return co.new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # all currently implemented rings are commutative
+        return self._rmul_c_impl(right)
+
     cdef RingElement  _mul_c_impl(left, RingElement right):
+        # all currently implemented rings are commutative
         """
         Multiply left and right.
 
@@ -1591,7 +1637,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x/0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError
+            ZeroDivisionError: Rational division by zero
 
         """
         cdef poly *p

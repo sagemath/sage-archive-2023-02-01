@@ -1480,7 +1480,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         CommutativeAlgebra.__init__(self, R)
 
-        x = PolynomialRing(R, 'x').gen(0)
+        x = PolynomialRing(R, 'xx').gen(0)
         if is_EllipticCurve(Q):
             E = Q
             if E.a1() != 0 or E.a2() != 0:
@@ -1508,7 +1508,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
                     self._curve = HyperellipticCurve(self._Q)
 
         else:
-            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
+            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)\n(Got element of %s)" % Q.parent()
 
         self._n = degree = int(Q.degree())
 

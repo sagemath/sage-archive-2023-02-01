@@ -1268,18 +1268,18 @@ class Notebook(SageObject):
     # Accessing all worksheets with certain properties.
     ##########################################################
     def get_all_worksheets(self):
-        return list(self.__worksheets.itervalues())
+        return [x for x in self.__worksheets.itervalues() if not x.owner() in ['_sage_', 'pub']]
 
     def get_worksheets_with_collaborator(self, user):
-        if user == 'admin': return self.get_all_worksheets()
+        if self.user_is_admin(user): return self.get_all_worksheets()
         return [w for w in self.__worksheets.itervalues() if w.user_is_collaborator(user)]
 
     def get_worksheet_names_with_collaborator(self, user):
-        if user == 'admin': return [W.name() for W in self.get_all_worksheets()]
+        if self.user_is_admin(user): return [W.name() for W in self.get_all_worksheets()]
         return [W.name() for W in self.get_worksheets_with_collaborator(user)]
 
     def get_worksheets_with_viewer(self, user):
-        if user == 'admin': return self.get_all_worksheets()
+        if self.user_is_admin(user): return self.get_all_worksheets()
         return [w for w in self.__worksheets.itervalues() if w.user_is_viewer(user)]
 
     def get_worksheets_with_owner(self, owner):
@@ -1289,7 +1289,7 @@ class Notebook(SageObject):
         return [w for w in self.get_worksheets_with_owner(owner) if w.user_is_viewer(user)]
 
     def get_worksheet_names_with_viewer(self, user):
-        if user == 'admin': return [W.name() for W in self.get_all_worksheets()]
+        if self.user_is_admin(user): return [W.name() for W in self.get_all_worksheets()]
         return [W.name() for W in self.get_worksheets_with_viewer(user) if not W.docbrowser()]
 
     def get_worksheet_with_name(self, name):

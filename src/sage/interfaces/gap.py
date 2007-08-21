@@ -351,6 +351,7 @@ class Gap(Expect):
         Get the string representation of the variable var.
         """
         if use_file:
+            tmp = self._local_tmpfile()
             if os.path.exists(tmp):
                 os.unlink(tmp)
             self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)

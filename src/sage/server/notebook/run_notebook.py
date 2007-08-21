@@ -46,7 +46,7 @@ def notebook_twisted(self,
              port        = 8000,
              address     = 'localhost',
              port_tries  = 50,
-             secure      = False,
+             secure      = True,
              reset       = False,
              accounts    = False,
 
@@ -59,7 +59,21 @@ def notebook_twisted(self,
     port = int(port)
     conf = '%s/twistedconf.tac'%directory
 
+    if not secure:
+        print "WARNING: Running the notebook insecurely may be dangerous."
+        print "Make sure you know what you are doing."
+
     nb = notebook.load_notebook(directory)
+
+    if nb.user_exists('root') and not nb.user_exists('admin'):
+        # This is here only for backward compatibility with one
+        # version of the notebook.
+        s = nb.create_user_with_same_password('admin', 'root')
+        # It would be a security risk to leave an escalated account around.
+
+    if not nb.user_exists('admin'):
+        reset = True
+
     if reset:
         passwd = get_admin_passwd()
         if reset:
@@ -73,9 +87,7 @@ def notebook_twisted(self,
             print "\n"
             if secure:
                 print "Login to the SAGE notebook as admin with the password you specified above."
-    elif nb.user_exists('root') and not nb.user_exists('admin'):
-        s = nb.create_user_with_same_password('admin', 'root')
-
+        nb.del_user('root')
 
     if not server_pool is None:
         nb.set_server_pool(server_pool)
@@ -139,7 +151,7 @@ def my_sigint(x, n):
 
 signal.signal(signal.SIGINT, my_sigint)
 
-## Use Knoboo's authentication framework
+## Authentication framework (ported from Knooboo)
 from twisted.web2 import log, server, channel
 from twisted.cred import portal, checkers, credentials
 import sage.server.notebook.guard as guard
@@ -177,8 +189,7 @@ s.setServiceParent(application)
         if e == 256:
             raise socket.error
 
-    if address != 'localhost':
-        if not secure:
+    if address != 'localhost' and not secure:
             print "*"*70
             print "WARNING: Insecure notebook server listening on external address."
             print "Unless you are running this via ssh port forwarding, you are"
@@ -204,12 +215,23 @@ s.setServiceParent(application)
 
 
 def get_admin_passwd():
+    print "\n"*2
+    print "Please choose a new password for the SAGE Notebook 'admin' user."
+    print "Do _not_ choose a stupid password, since anybody who could guess your password"
+    print "and connect to your machine could access or delete your files."
+    print "NOTE: Only the md5 hash of the password you type is stored by SAGE."
+    print "You can change your password by typing notebook(reset=True)."
+    print "\n"*2
     while True:
-        print "Setting password for the admin user."
         passwd = getpass.getpass("Enter new password: ")
+        if len(passwd) < 6:
+            print "That password is way too short. Enter a password with at least 6 characters."
+            continue
         passwd2 = getpass.getpass("Retype new password: ")
         if passwd != passwd2:
             print "Sorry, passwords do not match."
         else:
-            return passwd
+            break
 
+    print "Please login to the notebook with the username 'admin' and the above password."
+    return passwd

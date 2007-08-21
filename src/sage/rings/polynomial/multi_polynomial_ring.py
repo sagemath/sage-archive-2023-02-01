@@ -179,7 +179,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
     def __call__(self, x, check=True):
         """
-        Coerce x into this multivariate polynomial ring.
+        Coerce \code{x} into this multivariate polynomial ring, possibly non-canonically.
 
         EXAMPLES:
         We create a Macaulay2 multivariate polynomial via ideal arithmetic,
@@ -254,17 +254,56 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: (f - g).expand()
             0
 
+
+
         Arithmetic with a constant from a base ring:
             sage: R.<u,v> = QQ[]
             sage: S.<x,y> = R[]
             sage: u^3*x^2 + v*y
             u^3*x^2 + v*y
-        """
-        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular
 
+        Stacked polynomial rings coerce into constants if possible.  First,
+        the univariate case:
+            sage: R.<x> = QQ[]
+            sage: S.<u,v> = R[]
+            sage: S(u + 2)
+            u + 2
+            sage: S(u + 2).degree()
+            1
+            sage: S(x + 3)
+            x + 3
+            sage: S(x + 3).degree()
+            0
+
+        Second, the multivariate case:
+            sage: R.<x,y> = QQ[]
+            sage: S.<u,v> = R[]
+            sage: S(x + 2*y)
+            x + 2*y
+            sage: S(u + 2*v)
+            u + 2*v
+
+        Foreign polynomial rings coerce into the highest ring; the point here
+        is that an element of T could coerce to an element of R or an element
+        of S; it is anticipated that an element of T is more likely to be "the
+        right thing" and is historically consistent.
+            sage: R.<x,y> = QQ[]
+            sage: S.<u,v> = R[]
+            sage: T.<a,b> = QQ[]
+            sage: S(a + b)
+            u + v
+        """
+
+        # handle constants that coerce into self.base_ring() first, if possible
         if isinstance(x, Element) and x.parent() is self.base_ring():
             # A Constant multi-polynomial
             return self({self._zero_tuple:x})
+
+        try:
+            y = self.base_ring()._coerce_(x)
+            return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:y})
+        except TypeError:
+            pass
 
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
@@ -285,6 +324,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             else:
                 raise TypeError
 
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular
         if isinstance(x, MPolynomial_libsingular):
             P = x.parent()
             if P == self:

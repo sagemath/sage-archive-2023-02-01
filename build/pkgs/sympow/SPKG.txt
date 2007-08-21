@@ -1,3 +1,26 @@
+A comment from Mark Watkins:
+
+William Stein wrote:
+> Mark (cc: sage-devel)
+> Do you have any comments on the remarks below about sympow?
+> In particular, "Otherwise, sympow would be useless on
+> anything not linux and not x86."   Given that you only use x86,
+> and are perhaps the main user of sympow... ?
+
+SYMPOW doesn't use extended precision --- exactly the opposite, it must
+turn them off if there are on! I thought that SAGE contained something
+else with Bailey's quad-doubles, for which there is the same problem
+(hacking asm-type code to bit-twiddle the FPU settings). SYMPOW should
+work fine on any system that uses 53-bit doubles. On other systems,
+it will still work for computations less than 16 or so digits (though
+the current version might die on start-up).
+
+
+
+
+
+NOTES:
+
 1. getline conflicts with a system-wide function name on
 Cygwin.  So I changed it to getline0 in a whole bunch
 of Mark's files.

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ `"$UNAME"` = "SunOS" ]; then
+  cp patches/Configure src/
+fi
+
 cd src/
 
 ./Configure

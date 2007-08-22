@@ -16,10 +16,7 @@ cd src/
 
 unset CPPFLAGS   # do this; since otherwise build will fail if CPPFLAGS was set
 
-CFLAGS="-O0"
-export CFLAGS
-
-./configure --disable-mmap --with-readline="$SAGE_LOCAL" --prefix="$SAGE_LOCAL" --with-libsigsegv-prefix="/home/kate/libsigsegv-2.4/x86-Linux-gcc-4.2.1" --without-libintl
+./configure --disable-mmap --with-readline="$SAGE_LOCAL" --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv --without-libintl
 
 #if [ $UNAME = "CYGWIN" ]; then
     # This is a hack to get around a bug in the build process under Cygwin.

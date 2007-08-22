@@ -1149,7 +1149,7 @@ if [ $XCC_GCC = true ] ; then
             # gcc-2.95 produces incorrect code when compiling predtype
             # (function C_coerce).
             #XCFLAGS=$XCFLAGS' -O2 -fno-schedule-insns -fno-gcse' ;;
-            XCFLAGS=$XCFLAGS' -O0 -fno-schedule-insns -fno-gcse' ;;  # FOR SAGE
+            XCFLAGS=$XCFLAGS' -O0' ;;  # FOR SAGE
           * )
             XCFLAGS=$XCFLAGS' -O2' ;;
         esac

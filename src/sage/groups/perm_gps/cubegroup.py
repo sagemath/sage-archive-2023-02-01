@@ -37,6 +37,7 @@ AUTHOR:
     -      "       (2007-05): changed faces, added legal and solve
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten, and typos fixed.
+    - Robert Bradshaw (2006-08): RubiksCube object.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -57,6 +58,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_gen
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
 
+from sage.structure.sage_object import SageObject
 import sage.structure.element as element
 import sage.groups.group as group
 
@@ -74,7 +76,9 @@ text = TextFactory()
 from sage.calculus.calculus import Function_sin, Function_cos
 sin = Function_sin()
 cos = Function_cos()
-pi = 3.14159265
+pi = RDF.pi()
+
+from sage.plot.graphics3d import *
 
 ####################### predefined colors ##################
 
@@ -561,6 +565,8 @@ def plot3d_cubie(cnt, clrs):
     return P
 
 
+
+
 ####################### end of "internal" utility plot functions  #################
 
 
@@ -609,10 +615,10 @@ class CubeGroup(PermutationGroup_generic):
 	self._group
 
     def __str__(self):
-	return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
+        return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
 
     def __repr__(self):
-	return "The PermutationGroup of all legal moves of the Rubik's cube."
+        return "The PermutationGroup of all legal moves of the Rubik's cube."
 
     def __call__(self,other):
     	"""
@@ -631,32 +637,32 @@ class CubeGroup(PermutationGroup_generic):
 
     def B(self):
         G = self.group()
-	g = G(self.gens()[0])
+        g = G(self.gens()[0])
         return g
 
     def D(self):
-	G = self.group()
-	g = G(self.gens()[1])
+        G = self.group()
+        g = G(self.gens()[1])
         return g
 
     def F(self):
         G = self.group()
-	g = G(self.gens()[2])
+        g = G(self.gens()[2])
         return g
 
     def L(self):
         G = self.group()
-	g = G(self.gens()[3])
+        g = G(self.gens()[3])
         return g
 
     def R(self):
         G = self.group()
-	g = G(self.gens()[4])
+        g = G(self.gens()[4])
         return g
 
     def U(self):
         G = self.group()
-	g = G(self.gens()[5])
+        g = G(self.gens()[5])
         return g
 
 
@@ -702,51 +708,51 @@ class CubeGroup(PermutationGroup_generic):
     def move(self,mv):
         r"""
         Returns the group element and the reordered list of facets, as moved by
-	the list mv (read left-to-right)
+        the list mv (read left-to-right)
 
-	INPUT: mv is a string of the form X^a*Y^b*...",
-	       where X, Y, ... are in {R,L,F,B,U,D}
-	       and a,b, ... are integers.
+        INPUT: mv is a string of the form X^a*Y^b*...",
+               where X, Y, ... are in {R,L,F,B,U,D}
+               and a,b, ... are integers.
 
-	EXAMPLES:
-            sage: rubik = CubeGroup()
-	    sage: rubik.move("")[0]
-	    ()
-	    sage: rubik.move("R")[0]
-	    (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
-	    sage: rubik.R()
-	    (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
+        EXAMPLES:
+                sage: rubik = CubeGroup()
+            sage: rubik.move("")[0]
+            ()
+            sage: rubik.move("R")[0]
+            (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
+            sage: rubik.R()
+            (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
 
-	"""
-	m = mv.split("*")
-	M = [x.split("^") for x in m]
-	#print M
-	n = len(M)
-        e = 0
-	G = self.group()
-	R,L,F,B,U,D = G.gens()
-	g = G(1)
-	fcts = self.facets()
-	for i in range(n):
-	    if len(M[i])==1:
-	        M[i] = [M[i][0],"1"]
-	#print M
-	for i in range(n):
-	    x = M[i][0]
-            if x == "R":   h = self.R()
-	    elif x == "L": h = self.L()
-	    elif x == "U": h = self.U()
-	    elif x == "D": h = self.D()
-	    elif x == "F": h = self.F()
-	    elif x == "B": h = self.B()
-	    else: h = G(1)
-	    e = M[i][1]
-	    if e=="1": g = g*h
-	    if e=="2": g = g*h*h
-	    if e=="3": g = g*h*h*h
-            if e=="(-1)": g = g*h*h*h
-	pos = [g(i) for i in fcts]
-	return [g,pos]
+        """
+        m = mv.split("*")
+        M = [x.split("^") for x in m]
+        #print M
+        n = len(M)
+            e = 0
+        G = self.group()
+        R,L,F,B,U,D = G.gens()
+        g = G(1)
+        fcts = self.facets()
+        for i in range(n):
+            if len(M[i])==1:
+                M[i] = [M[i][0],"1"]
+        #print M
+        for i in range(n):
+            x = M[i][0]
+                if x == "R":   h = self.R()
+            elif x == "L": h = self.L()
+            elif x == "U": h = self.U()
+            elif x == "D": h = self.D()
+            elif x == "F": h = self.F()
+            elif x == "B": h = self.B()
+            else: h = G(1)
+            e = M[i][1]
+            if e=="1": g = g*h
+            if e=="2": g = g*h*h
+            if e=="3": g = g*h*h*h
+                if e=="(-1)": g = g*h*h*h
+        pos = [g(i) for i in fcts]
+        return [g,pos]
 
     def display2d(self,mv):
         r"""
@@ -968,3 +974,16 @@ def plot3d_cube(mv,title=True):
         P.axes(show=False)
         return P
     return P
+
+
+
+##########################################################
+#              3d object generation
+##########################################################
+
+class RubiksCube(SageObject):
+
+    def __init__(self, facets=None, colors=[green, blue, yellow, white, orange, lpurple]):
+        self.colors = colors
+        self.facets =
+

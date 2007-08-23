@@ -1,3 +1,6 @@
+package org.sagemath.sage3d;
+
+
 import javax.swing.JPanel;
 import java.awt.*;
 
@@ -49,7 +52,7 @@ public class ObjectViewer extends JPanel {
     Transform3D t = new Transform3D();
     TransformGroup viewTransform = view.getViewPlatformTransform();
 
-    t.set(new Vector3d(0,0,5*sceneBounds.getRadius()));
+    t.set(new Vector3d(0,0,4*sceneBounds.getRadius()));
     viewTransform.setTransform(t);
 
     BranchGroup lights = new BranchGroup();
@@ -104,6 +107,7 @@ public class ObjectViewer extends JPanel {
       //in case there was a problem, print the stack out
       //ex.printStackTrace();
       System.out.println(ex);
+      System.out.println("URL: "+url);
       BranchGroup bg = new BranchGroup();
       bg.addChild(new ColorCube());
       System.out.println(bg);

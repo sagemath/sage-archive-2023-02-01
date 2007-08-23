@@ -1,3 +1,5 @@
+package org.sagemath.sage3d;
+
 import java.applet.Applet;
 import javax.swing.JApplet;
 import javax.swing.JPanel;
@@ -68,10 +70,14 @@ public class ObjectViewerApplet extends JApplet {
       JFrame frame = (JFrame)windows.get(id);
       if (frame == null) {
         frame = new JFrame(name);
-        windows.put(id, frame);
+        frame.getContentPane().setLayout(new BorderLayout());
+        //windows.put(id, frame); // does holding on to it cause things to crash?
+        frame.setSize(300,300);
+      }
+      else {
+        frame.getContentPane().removeAll();
       }
       frame.getContentPane().add(view);
-      frame.setSize(300,300);
       frame.setVisible(true);
     }
   }

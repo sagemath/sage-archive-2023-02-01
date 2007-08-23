@@ -23,6 +23,8 @@ import traceback
 import time
 import crypt
 
+import sage.misc.remote_file as remote_file
+
 import bz2
 
 import re
@@ -1775,6 +1777,8 @@ class Worksheet:
         return [self.directory() + '/data/'] + [D + x for x in os.listdir(D)]
 
     def hunt_file(self, filename):
+        if filename.lower().startswith('http://'):
+            filename = remote_file.get_remote_file(filename)
         if not os.path.exists(filename):
             fn = os.path.split(filename)[-1]
             for D in self.load_path():

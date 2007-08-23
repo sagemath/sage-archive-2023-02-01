@@ -103,6 +103,8 @@ __license__ = 'GPL'
 import os
 import log
 
+import remote_file
+
 from IPython.iplib import InteractiveShell
 
 import preparser_ipython
@@ -258,9 +260,11 @@ def do_prefilter_paste(line, continuation):
         # The -i so the file is run with the same environment,
         # e.g., including the "from sage import *"
         try:
-            name = str(eval(line[5:]))
+            name = str(eval(line[5:])).strip()
         except:
             name = str(line[5:].strip())
+        if name.lower().startswith('http://'):
+            name = remote_file.get_remote_file(name)
         if isinstance(name, str):
             if not os.path.exists(name):
                 raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .spyx extension)"%name

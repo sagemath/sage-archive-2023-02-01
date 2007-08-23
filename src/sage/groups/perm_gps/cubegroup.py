@@ -62,7 +62,7 @@ from sage.structure.sage_object import SageObject
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer
+from sage.rings.all      import RationalField, Integer, RDF
 #from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -666,7 +666,7 @@ class CubeGroup(PermutationGroup_generic):
         return g
 
 
-    def facets(self):
+    def facets(self, g=None):
         r"""
         Returns the set of facets on which the group acts. This function is a "constant".
 
@@ -678,7 +678,10 @@ class CubeGroup(PermutationGroup_generic):
         """
         fcts = [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13,14,15,16,17,18,19,20,21,22,23,24,\
           25,26,27,28,29,30,31,32,33,34,35,36, 37,38,39,40,41,42,43,44,45,46,47,48 ]
-        return fcts
+        if g is not None:
+            return [g(i) for i in fcts]
+        else:
+            return fcts
 
     def faces(self, mv):
         r"""
@@ -696,7 +699,10 @@ class CubeGroup(PermutationGroup_generic):
         after making the move R followed by L.
 
         """
-        fcts = self.move(mv)[1]
+        if isinstance(mv, str):
+            fcts = self.move(mv)[1]
+        else:
+            fcts = self.facets(mv)
         faceR = [[fcts[24],fcts[25],fcts[26]],[fcts[27],0,fcts[28]],[fcts[29],fcts[30],fcts[31]]]
         faceL = [[fcts[8],fcts[9],fcts[10]],[fcts[11],0,fcts[12]],[fcts[13],fcts[14],fcts[15]]]
         faceU = [[fcts[0],fcts[1],fcts[2]],[fcts[3],0,fcts[4]],[fcts[5],fcts[6],fcts[7]]]
@@ -728,18 +734,17 @@ class CubeGroup(PermutationGroup_generic):
         M = [x.split("^") for x in m]
         #print M
         n = len(M)
-            e = 0
+        e = 0
         G = self.group()
         R,L,F,B,U,D = G.gens()
         g = G(1)
-        fcts = self.facets()
         for i in range(n):
             if len(M[i])==1:
                 M[i] = [M[i][0],"1"]
         #print M
         for i in range(n):
             x = M[i][0]
-                if x == "R":   h = self.R()
+            if x == "R":   h = self.R()
             elif x == "L": h = self.L()
             elif x == "U": h = self.U()
             elif x == "D": h = self.D()
@@ -750,7 +755,8 @@ class CubeGroup(PermutationGroup_generic):
             if e=="1": g = g*h
             if e=="2": g = g*h*h
             if e=="3": g = g*h*h*h
-                if e=="(-1)": g = g*h*h*h
+            if e=="(-1)": g = g*h*h*h
+        fcts = self.facets()
         pos = [g(i) for i in fcts]
         return [g,pos]
 
@@ -793,7 +799,10 @@ class CubeGroup(PermutationGroup_generic):
 
         You can see the right face has been rotated but not the left face.
         """
-        lst = self.move(mv)[1]
+        if isinstance(mv, str):
+            lst = self.move(mv)[1]
+        else:
+            lst = self.facets(mv)
         line1 = "                     +--------------+\n"
         line2 = "                     |  %s    %s    %s |\n"%(lst[0],lst[1],lst[2])
         line3 = "                     |  %s  top    %s |\n"%(lst[3],lst[4])
@@ -921,7 +930,10 @@ def plot_cube(mv,title=True):
         sage: # "superflip+4 spot" (in 26q* moves)
     """
     rubik = CubeGroup()
-    state = rubik.move(mv)[1]
+    if isinstance(mv, str):
+        state = rubik.move(mv)[1]
+    else:
+        state = rubik.facets(mv)
     #print state
     str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
     colors = [eval(p) for p in str_colors]
@@ -981,9 +993,88 @@ def plot3d_cube(mv,title=True):
 #              3d object generation
 ##########################################################
 
+def cubie_faces():
+    """
+    -1,-1,-1 is left, top, front
+    """
+    faceR = [[25,26,27], [28,-3,29], [30,31,32]] # green
+    faceL = [[ 9,10,11], [12,-5,13], [14,15,16]] # orange
+    faceU = [[ 1, 2, 3], [ 4,-6, 5], [ 6, 7, 8]] # red
+    faceD = [[41,42,43], [44,-1,45], [46,47,48]] # purple
+    faceF = [[17,18,19], [20,-4,21], [22,23,24]] # yellow
+    faceB = [[33,34,35], [36,-2,37], [38,39,40]] # blue
+    cubies = {}
+    for x in [-1,0,1]:
+        for y in [-1,0,1]:
+            for z in [-1,0,1]:
+                cubies[x,y,z] = [0,0,0,0,0,0]
+
+    for i in [-1,0,1]:
+        for j in [-1,0,1]:
+            cubies[  i,  j, -1][1] = faceF[1+j][1+i]
+            cubies[  i,  j,  1][4] = faceB[1+j][1-i]
+            cubies[  i, -1,  j][0] = faceU[1+j][1+i]
+            cubies[  i,  1,  j][3] = faceD[1-j][1+i]
+            cubies[ -1,  i,  j][2] = faceL[1+i][1-j]
+            cubies[  1,  i,  j][5] = faceR[1+i][1+j]
+
+    return cubies
+
+cubie_face_list = cubie_faces()
+
+
+
 class RubiksCube(SageObject):
 
-    def __init__(self, facets=None, colors=[green, blue, yellow, white, orange, lpurple]):
+    def __init__(self, state=None, history=[], colors=[blue,yellow,red,green,orange,lpurple,'grey']):
         self.colors = colors
-        self.facets =
+        self._history = history
+        self._group = CubeGroup()
+        if state is None:
+            self._state = self._group(1)
+        else:
+            if not isinstance(state, PermutationGroupElement):
+                legal, state = self._group.legal(state, mode="gimme_group_element")
+                if not legal:
+                    raise ValueError, "Not a legal cube."
+            self._state = state
 
+    def move(self, g):
+        if not g in self._group:
+            g = self._group.move(g)[0]
+        return RubiksCube(self._state * g, self._history + [g], self.colors)
+
+    def undo(self):
+        g = self._history[-1]
+        return RubiksCube(self._state * ~g, self._history[:-1], self.colors)
+
+    def __repr__(self):
+        return self._group.display2d(self._state)
+
+
+    def plot(self):
+        return plot_cube(self._state)
+
+    def show(self):
+        self.plot().show()
+
+
+    def cubie(self, size, gap, x,y,z, colors):
+        sides = cubie_face_list[x,y,z]
+        t = 2*size+gap
+        return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
+
+    def plot3d(self):
+        while len(self.colors) < 7:
+            self.colors.append('grey')
+        side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
+        start_colors = sum([[c]*8 for c in side_colors], [])
+        facets = self._group.facets(self._state)
+        facet_colors = [start_colors[facets[i]-1] for i in range(48)]
+        all_colors = side_colors + facet_colors
+        pm = [-1,0,1]
+        C = sum([self.cubie(.15, .03, x, y, z, all_colors) for x in pm for y in pm for z in pm], Box(.01, .01, .01))
+        return C.scale([1,-1,-1]).rotateZ(1.5)
+
+    def show3d(self):
+        return self.plot3d().show()

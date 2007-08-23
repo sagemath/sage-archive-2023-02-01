@@ -1,11 +1,17 @@
 r"""
 3D Graphics objects and plotting.
 
+EXAMPLES:
+    sage: from sage.plot.graphics3d import *
+    sage: S = ColorCube(.35, ['green', 'yellow', 'blue']) + Sphere(.2, color='red').translate(.4,.4,.4)
+    sage: S.show()
+
 AUTHOR:
     -- Robert Bradshaw
 
 TODO:
-   -- integrate tachyon
+   -- finish integrating tachyon
+   -- good default lights, camera
 """
 from random import randint
 
@@ -16,6 +22,8 @@ from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan
 from sage.functions.all import *
 from texture import *
+pi = RDF.pi()
+
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -23,7 +31,6 @@ from sage.interfaces.tachyon import tachyon_rt
 default_texture = Texture()
 
 class Graphics3d_new(SageObject):
-
     def __add__(self, other):
         return Graphics3dGroup([self, other])
 
@@ -70,7 +77,7 @@ class Graphics3d_new(SageObject):
     def tachyon(self):
         return """
 begin_scene
-resolution 500 500
+resolution 400 400
 
 
            camera
@@ -78,7 +85,7 @@ resolution 500 500
               aspectratio 1.0
               antialiasing 1
               raydepth 8
-              center  2.0 1.0 0.5
+              center  2.0 1.0 0.75
               viewdir  -2.0 -1.0 -0.5
               updir  0.0 0.0 1.0
            end_camera
@@ -108,7 +115,7 @@ end_scene""" % self.tachyon_str(None)
         return set()
 
     def flatten(self, T=None):
-        if transform is None:
+        if T is None:
             return self
         else:
             return self.transform(T=T)
@@ -182,6 +189,10 @@ class TransformGroup(Graphics3dGroup):
         if T is not None:
             self.T = T
 
+    def transform(self, **kwds):
+        # TODO: flatten right here
+        return TransformGroup([self], **kwds)
+
     def x3d_str(self):
         s = "<Transform"
         if self._rot is not None:
@@ -199,7 +210,7 @@ class TransformGroup(Graphics3dGroup):
         if transform is None:
             composite_transform = self.get_transformation()
         else:
-            composite_transform = self.get_transformation() * transform
+            composite_transform = transform * self.get_transformation()
         return "\n".join([g.tachyon_str(composite_transform) for g in self.all])
 
     def obj_str(self, transform, point_list=None):
@@ -208,7 +219,7 @@ class TransformGroup(Graphics3dGroup):
         if transform is None:
             composite_transform = self.get_transformation()
         else:
-            composite_transform = self.get_transformation() * transform
+            composite_transform = transform * self.get_transformation()
         return "\n\n".join([g.obj_str(composite_transform, point_list) for g in self.all])
 
     def get_transformation(self):
@@ -218,7 +229,8 @@ class TransformGroup(Graphics3dGroup):
             self.T = Transformation(self._scale, self._rot, self._trans)
             return self.T
 
-    def flatten(self):
+    def flatten(self, T=None):
+        assert False, "broken"
         all = []
         for g in self.all:
             g = g.flatten().transform(T=self.get_transformation())
@@ -232,7 +244,8 @@ class TransformGroup(Graphics3dGroup):
 class Transformation:
     def __init__(self, scale=(1,1,1),
                        rot=None,
-                       trans=[0,0,0]):
+                       trans=[0,0,0],
+                       m=None):
 
         if scale is None:
             scale = (1,1,1)
@@ -240,8 +253,9 @@ class Transformation:
             trans = [0,0,0]
 
         # TODO: determine for sure if x3d does scale or rotation first
-        m = matrix(RDF, 3, 3,
-                  [scale[0], 0, 0, 0, scale[1], 0, 0, 0, scale[2]])
+        if m is None:
+            m = matrix(RDF, 3, 3,
+                      [scale[0], 0, 0, 0, scale[1], 0, 0, 0, scale[2]])
 
         if rot is not None:
             # rotate about v by theta

@@ -107,6 +107,7 @@ class Expect(ParentWithBase):
             self._server = server
             if server_tmpdir is None:
                 # TO DO: Why default to /tmp/? Might be better to use the expect process itself to get a tmp folder
+                print "No remote temporary directory (option server_tmpdir) specified, using /tmp/ on "+server
                 self.__remote_tmpdir = "/tmp/"
             else:
                 self.__remote_tmpdir = server_tmpdir
@@ -266,12 +267,65 @@ class Expect(ParentWithBase):
         return self._expect.pid
 
     def _install_hints(self):
-        """
+        r"""
         Hints for installing needed slave program on your computer.
 
         There are no hints by default.
         """
         return ''
+
+    def _install_hints_ssh(self):
+        r"""
+        Hints for installing passwordless authentication on your computer...
+        """
+        # Written by Paul-Olivier Dehaye 2007/08/23
+        return """
+In order for Sage (on "local") to launch a "slave" process on "remote", the following command needs to work from local's console, without the need to enter any password:
+
+       "ssh -t remote slave",
+
+where "slave" could be "math" (for text-mode Mathematica), "gap", "magma", "sage", "maple", etc.
+
+This thus requires passwordless authentication to be setup, which can be done with commands like these:
+        cd; ssh-keygen -t rsa; scp .ssh/id_rsa.pub remote:.ssh/authorized_keys2\n
+(WARNING: this would overwrite your current list of auhorized keys on "remote")
+
+In many cases, the server that can actually run "slave" is not accessible from the internet directly, but you have to hop through an intermediate trusted server, say "gate".
+If that is your case, get help with _install_hints_ssh_through_gate().
+
+"""
+
+    def _install_hints_ssh_through_gate(self):
+        r"""
+        Hints for installing passwordless authentication through a gate
+        """
+        # Written by Paul-Olivier Dehaye 2007/08/23
+        return """
+
+ We assume you would like to run a "slave" process  on a machine called "remote" from a machine running SAGE called "local". We also assume "remote" can only be accessed from "local" by ssh'ing first to "gate" (this is a fairly common setup). Sometimes, "gate" and "remote" haved a shared filesystem, and this helps a bit.
+
+  Note: You cannot just create shell scripts on "local" and "gate" that would use two successive SSH connections to "remote" in order to simulate running "slave" locally. This is because SAGE will sometimes use files (and scp)  to communicate with "remote", which shell scripts would not take care of.
+
+You need to setup:
+ * passwordless authentication to "gate" from "local"
+ * add passwordless authentication to "remote" from "local",
+   for instance by appending the file local:~/.ssh/id_rsa.pub to remote:~/.ssh/authorized_keys2 and logging in once
+      (this is only needed if "remote" and "gate" don\'t share fylesystems)
+ * add a few lines to your local:~/.ssh/ssh_config. Mine look like
+
+       Host remote_for_sage
+            ProxyCommand ssh gate nc -w 1 remote 22
+
+That's it, normally.
+The last step tells ssh that whenever an ssh connection is required to the host "remote_for_sage", it should tunnel it through "gate". Any attempt to scp-connect to "remote_for_sage" will use ssh and thus this configuration file, and properly channel those file transfers through the tunnel.
+A good test is to attempt an scp connection from the command-line of "local" to "remote_for_sage" as if no tunnel through "gate" was required. No password should be asked for the second time around.
+Finally, we created thenew name "remote_for_sage" for "remote", but this name only exists locally. this is to avoid interfering with any other program that might already ssh to "remote" in their own way.
+
+If this all works, you can then make calls like:
+sage: math = Mathematica(server="remote_for_sage")
+
+"""
+
 
     def _do_cleaner(self):
         try:

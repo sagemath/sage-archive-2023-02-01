@@ -96,10 +96,10 @@ end_scene""" % self.tachyon_str(None)
     def viewpoint(self):
         return Viewpoint(0,0,6)
 
-    def show(self, **kwds):
-        f = open("test.x3d", "w")
-        f.write(self.x3d())
-        f.close()
+#    def show(self, **kwds):
+#        f = open("test.x3d", "w")
+#        f.write(self.x3d())
+#        f.close()
 
     def mtl_str(self):
         return "\n\n".join([t.mtl_str() for t in self.mtl_set()]) + "\n"
@@ -113,8 +113,16 @@ end_scene""" % self.tachyon_str(None)
         else:
             return self.transform(T=T)
 
-    def show(self):
-        tachyon_rt(self.tachyon(), "tmp.png", 0, True, '')
+    def show(self, interactive=True, filename="shape"):
+        tachyon_rt(self.tachyon(), filename+".png", 0, True, '')
+        if interactive:
+            f = open(filename+".obj", "w")
+            f.write("mtllib %s.mtl\n" % filename)
+            f.write(self.obj_str(None))
+            f.close()
+            f = open(filename+".mtl", "w")
+            f.write(self.mtl_str())
+            f.close()
 
 
 class Viewpoint(Graphics3d_new):
@@ -294,7 +302,12 @@ class PrimativeObject(Graphics3d_new):
             if not isinstance(self.texture, Texture_class):
                 self.texture = Texture(self.texture)
         except KeyError:
-            self.texture = default_texture
+            try:
+                self.texture = kwds['color']
+                if not isinstance(self.texture, Texture_class):
+                    self.texture = Texture(self.texture)
+            except KeyError:
+                self.texture = default_texture
 
     def x3d_str(self):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"

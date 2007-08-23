@@ -577,7 +577,7 @@ class Cell(Cell_generic):
                     F.endswith('.jpg') or F.endswith('.gif'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
             elif F.endswith('.obj'):
-                files.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
+                images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
                 pass
             elif F.endswith('.svg'):

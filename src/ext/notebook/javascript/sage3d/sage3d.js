@@ -35,16 +35,15 @@ var sage3d_applet;
 
 function sage3d_init() {
   div = document.createElement("div");
-  div.style.display = "None";
-  div.inner_html = test_applet_tag;
+  div.style.visibility = "hidden";
+  div.innerHTML = test_applet_tag;
   document.body.appendChild(div);
   sage3d_applet = document.getElementById("sage3d");
 }
 
-function sage3d_show(url, cell) {
+function sage3d_show(url, cell, name) {
   if (sage3d_applet == undefined) {
     sage3d_init();
   }
-  sage3d_applet.showView(url, cell);
+  sage3d_applet.showView(url, cell, name);
 }
-

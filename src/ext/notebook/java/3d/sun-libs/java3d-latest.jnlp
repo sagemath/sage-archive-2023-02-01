@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<jnlp spec="1.0+" codebase="http://download.java.net/media/java3d/webstart/release/" >
+  <information>
+     <title>Java 3D 1.5.1</title>
+     <vendor>Sun Microsystems Inc.</vendor>
+     <homepage href="http://java3d.dev.java.net"/>
+     <description>Java 3D library</description>
+     <offline-allowed/>
+  </information>
+
+  <security>
+    <all-permissions/>
+  </security>
+
+  <resources>
+    <jar href="j3d/1.5.1/j3dcore.jar" download="eager"/>
+    <jar href="j3d/1.5.1/j3dutils.jar" download="eager"/>
+    <jar href="vecmath/1.5.1/vecmath.jar" download="eager"/>
+  </resources>
+
+  <resources os="Windows">
+    <nativelib href="j3d/1.5.1/windows-i586/j3dcore-ogl-chk_dll.jar" download="eager"/>
+    <nativelib href="j3d/1.5.1/windows-i586/j3dcore-ogl_dll.jar" download="eager"/>
+    <nativelib href="j3d/1.5.1/windows-i586/j3dcore-d3d_dll.jar" download="eager"/>
+  </resources>
+
+  <resources os="Linux" arch="i386">
+    <nativelib href="j3d/1.5.1/linux-i586/lib_j3dcore-ogl_so.jar" download="eager"/>
+  </resources>
+
+  <resources os="SunOS" arch="sparc">
+    <nativelib href="j3d/1.5.1/solaris-sparc/lib_j3dcore-ogl_so.jar" download="eager"/>
+  </resources>
+
+  <resources os="SunOS" arch="x86">
+    <nativelib href="j3d/1.5.1/solaris-x86/lib_j3dcore-ogl_so.jar" download="eager"/>
+  </resources>
+
+  <resources os="Mac OS X">
+    <property name="j3d.rend" value="jogl"/>
+    <extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-webstart-current/jogl.jnlp" />
+  </resources>
+
+  <component-desc />
+</jnlp>

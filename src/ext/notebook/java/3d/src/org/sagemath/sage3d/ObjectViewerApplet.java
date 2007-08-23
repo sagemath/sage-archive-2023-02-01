@@ -40,7 +40,7 @@ public class ObjectViewerApplet extends JApplet {
   }
 
   public void showView(String url, String id) {
-    showView(url, id, url.toString());
+    showView(url, id, url);
   }
 
   public void showView(URL url, String id) {

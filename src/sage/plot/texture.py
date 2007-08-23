@@ -29,8 +29,11 @@ def Texture(id=None, **kwds):
     if isinstance(id, dict):
         kwds = id
         id = None
-    if isinstance(id, str) and colors.has_key(id):
+    elif isinstance(id, str) and colors.has_key(id):
         kwds = {"color": id}
+        id = None
+    elif isinstance(id, tuple):
+        kwds['color'] = id
         id = None
     if id is None:
         global uniq_c

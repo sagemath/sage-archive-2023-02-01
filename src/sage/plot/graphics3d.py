@@ -125,7 +125,7 @@ end_scene""" % self.tachyon_str(None)
         if interactive:
             f = open(filename+".obj", "w")
             f.write("mtllib %s.mtl\n" % filename)
-            f.write(self.obj_str(None))
+            f.write(self.obj_str(Transform(scale=[1,-1,1]))) # switch from LH to RH coords to be consistant with tachyon rendition
             f.close()
             f = open(filename+".mtl", "w")
             f.write(self.mtl_str())

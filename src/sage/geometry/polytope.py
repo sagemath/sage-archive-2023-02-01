@@ -31,6 +31,7 @@ from sage.modules.all import VectorSpace
 from sage.structure.sage_object import SageObject
 
 import os
+from subprocess import *
 
 path = '%s/local/polymake/bin/'%os.environ['SAGE_ROOT']
 polymake_command = path + 'polymake'
@@ -110,12 +111,10 @@ class Polytope(SageObject):
         F = tmp_file
         open(F,'w').write(self.__data)
         c = '%s %s %s'%(polymake_command, F, cmd)
-        stdin, stdout, stderr = os.popen3(c)
-        stdin.close()
-        err = stderr.read()
+	polymake_processes = Popen([polymake_command, F, cmd],stdout=PIPE,stderr=PIPE)
+        ans, err = polymake_processes.communicate()
         if len(err) > 0:
             raise RuntimeError, err
-        ans = stdout.read()
         if len(ans) == 0:
             raise ValueError, "%s\nError executing polymake command %s"%(
                 err,cmd)

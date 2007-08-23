@@ -1075,6 +1075,30 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def modular_symbols(self, sign=0):
         raise NotImplementedError
 
+    def find_in_space(self, f, forms=None):
+        """
+        INPUT:
+            f -- a modular form or power series
+            forms -- a specific list of elements of this space
+
+        OUTPUT:
+            A list of numbers that give f as a linear
+            combination of the basis for this space or
+            of the given forms.
+        """
+        B = self._q_expansion_module()
+        V = B.ambient_module()
+        n = B.degree()
+        if rings.is_PowerSeries(f) and f.prec() < n:
+            raise ValueError, "you need at least %s terms of precision"%n
+        if not forms is None:
+            if not isinstance(forms, (list, tuple)):
+                raise TypeError, "forms must be a list or tuple"
+            w = [V(g.padded_list(n)) for g in forms]
+            B = V.span_of_basis(w)
+        x = V(f.padded_list(n))
+        return B.coordinates(x)
+
 
 def contains_each(V, B):
     for b in B:

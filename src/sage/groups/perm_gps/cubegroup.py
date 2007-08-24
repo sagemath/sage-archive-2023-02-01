@@ -87,7 +87,7 @@ green = (0,1,0)            ## R face
 blue = (0,0,1)              ## D face
 yellow = (1,1,0)           ## L face
 white = (1,1,1)             ## none
-orange = (1,0.6,0.3)       ## B face
+orange = (1,0.6,0.1)       ## B face
 purple = (1,0,1)           ## none
 lpurple = (1,0.5,1)       ## U face
 lightblue = (0,1,1)        ## none
@@ -1031,7 +1031,7 @@ rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()
 
 class RubiksCube(SageObject):
 
-    def __init__(self, state=None, history=[], colors=[lpurple,yellow,red,green,orange,blue,'grey']):
+    def __init__(self, state=None, history=[], colors=[lpurple,yellow,red,green,orange,blue]):
         self.colors = colors
         self._history = history
         self._group = CubeGroup()
@@ -1071,7 +1071,7 @@ class RubiksCube(SageObject):
 
     def plot3d(self):
         while len(self.colors) < 7:
-            self.colors.append('grey')
+            self.colors.append((.25,.25,.25))
         side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
         start_colors = rand_colors
         start_colors = sum([[c]*8 for c in side_colors], [])
@@ -1082,7 +1082,7 @@ class RubiksCube(SageObject):
         all_colors = side_colors + facet_colors
         pm = [-1,0,1]
         C = sum([self.cubie(.15, .03, x, y, z, all_colors) for x in pm for y in pm for z in pm], Box(.01, .01, .01))
-        return C.scale([1,-1,1]).rotateZ(1.5)
+        return C.rotateZ(-1.5) #.scale([1,-1,1]).rotateZ(1.5)
 
     def show3d(self):
         return self.plot3d().show()

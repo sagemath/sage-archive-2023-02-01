@@ -19,7 +19,7 @@ from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
-from sage.misc.functional import sqrt, atan
+from sage.misc.functional import sqrt, atan, acos
 from sage.functions.all import *
 from texture import *
 pi = RDF.pi()
@@ -95,10 +95,18 @@ resolution 400 400
               rad 0.2
               color  1.0 1.0 1.0
 
+        plane
+          center -2000 -1000 -500
+          normal -2.0 -1.0 -0.5
+          TEXTURE
+              AMBIENT 1.0 DIFFUSE 1.0 SPECULAR 1.0 OPACITY 1.0
+              COLOR 1.0 1.0 1.0
+              TEXFUNC 0
+
 
     %s
 
-end_scene""" % self.tachyon_str(None)
+end_scene""" % self.tachyon_str(Transformation(scale=[1,-1,1]))  # switch from LH to RH coords to be consistant with java rendition
 
     def viewpoint(self):
         return Viewpoint(0,0,6)
@@ -120,12 +128,12 @@ end_scene""" % self.tachyon_str(None)
         else:
             return self.transform(T=T)
 
-    def show(self, interactive=True, filename="shape"):
-        tachyon_rt(self.tachyon(), filename+".png", 0, True, '')
+    def show(self, interactive=True, filename="shape", verbosity=0):
+        tachyon_rt(self.tachyon(), filename+".png", verbosity, True, '')
         if interactive:
             f = open(filename+".obj", "w")
             f.write("mtllib %s.mtl\n" % filename)
-            f.write(self.obj_str(Transform(scale=[1,-1,1]))) # switch from LH to RH coords to be consistant with tachyon rendition
+            f.write(self.obj_str(None))
             f.close()
             f = open(filename+".mtl", "w")
             f.write(self.mtl_str())
@@ -282,6 +290,21 @@ class Transformation:
         self.matrix = m.augment(matrix(RDF, 3, 1, list(trans))) \
                        .stack(matrix(RDF, 1, 4, [0,0,0,1]))
 
+    def is_skew(self, eps=1e-5):
+        dx, dy, dz = self.matrix.submatrix(0,0,3,3).columns()
+        return abs(dx.dot_product(dy)) + abs(dx.dot_product(dz)) + abs(dy.dot_product(dz)) > eps
+
+    def is_uniform(self, eps=1e-5):
+        cols = self.matrix.submatrix(0,0,3,3).columns()
+        lens = [col.dot_product(col) for col in cols]
+        return abs(lens[0] - lens[1]) + abs(lens[0] - lens[2]) < eps
+
+    def is_uniform_on(self, basis, eps=1e-5):
+        basis = [vector(RDF, self.transform_vector(b)) for b in basis]
+        a = basis.pop()
+        len_a = a.dot_product(a)
+        return max([len_a - b.dot_product(b) for b in basis]) < eps
+
     def rotX(self, theta):
         return matrix(RDF, 3, 3, [1, 0, 0,
                                   0, cos(theta), -sin(theta),
@@ -380,7 +403,7 @@ class Box(PrimativeObject):
                  [(x, y, z), ( x, y,-z), (-x, y,-z), (-x, y, z)],
                  [(x, y, z), ( x,-y, z), ( x,-y,-z), ( x, y,-z)] ]
         faces += [list(reversed([(-x,-y,-z) for x,y,z in face])) for face in faces]
-        return IndexFaceSet(faces)
+        return IndexFaceSet(faces, texture=self.texture)
 
 def ColorCube(size, colors):
     if not isinstance(size, (tuple, list)):
@@ -410,7 +433,7 @@ class Cone(PrimativeObject):
             else:
                 return (self.radius*sin(v), self.radius*cos(v), 0)
         twoPi = RDF(2*pi)
-        return ParametricSurface(f, [-1,0,1], [twoPi*k/res for k in range(res)] + [RDF(0)])
+        return ParametricSurface(f, [-1,0,1], [twoPi*k/res for k in range(res)] + [RDF(0)], texture=self.texture)
 
 class Cylinder(PrimativeObject):
     def __init__(self, radius, height, **kwds):
@@ -421,29 +444,53 @@ class Cylinder(PrimativeObject):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
 
     def tachyon_geometry(self, transform):
-        cen = transform.transform_point((0,0,0))
-        axis = transform.transform_vector((0,self.height,0))
-        radv = transform.transform_vector((self.radius,0,0)) # Tachyon can't do sqashed, just scale uniform
-        rad = sqrt(sum([x*x for x in radv]))
+        if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])):
+            # Tachyon can't do sqashed
+            return self.triangulation().tachyon_geometry(transform)
+
+        if transform is None:
+            base = (0,0,0)
+            axis = (0,0,self.height)
+            rad = self.radius
+        else:
+            base = transform.transform_point((0,0,0))
+            axis = transform.transform_vector((0,0,self.height))
+            radv = transform.transform_vector((self.radius,0,0))
+            rad = sqrt(sum([x*x for x in radv]))
         return """
 FCylinder
-   Center %s %s %s
-   Axis %s %s %s
+   Base %s %s %s
+   Apex %s %s %s
    Rad %s
-        """%(cen[0], cen[1], cen[2], axis[0], axis[1], axis[2], rad)
+        """%(base[0], base[1], base[2], base[0]+axis[0], base[1]+axis[1], base[2]+axis[2], rad)
 
     def triangulation(self, res=30):
         def f(u, v):
             if u == -2:
-                return (0, 0, -self.height)
+                return (0, 0, 0)
             elif u == -1:
-                return (self.radius*sin(v), self.radius*cos(v), -self.height)
+                return (self.radius*sin(v), self.radius*cos(v), 0)
             elif u == 1:
                 return (self.radius*sin(v), self.radius*cos(v), self.height)
             else: # u == 2:
                 return (0, 0, self.height)
         twoPi = RDF(2*pi)
-        return ParametricSurface(f, [-2,-1,1,2], [twoPi*k/res for k in range(res)] + [RDF(0)])
+        return ParametricSurface(f, [-2,-1,1,2], [twoPi*k/res for k in range(res)] + [RDF(0)], texture=self.texture)
+
+
+def Line(start, end, radius, **kwds):
+    """
+    Create a cylindar from start to end with radius radius.
+    """
+    start = vector(RDF, start)
+    end = vector(RDF, end)
+    yaxis = vector(RDF, (0,1,0))
+    diff = end - start
+    height = sqrt(diff.dot_product(diff))
+    cyl = Cylinder(radius, height, **kwds)
+    axis = yaxis.cross_product(diff)
+    theta = -acos(yaxis.dot_product(diff)/height)
+    return cyl.rotate(axis, theta).translate(start)
 
 
 class Sphere(PrimativeObject):
@@ -455,12 +502,15 @@ class Sphere(PrimativeObject):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_geometry(self, transform):
+        if not (transform is None or transform.is_uniform()):
+            return self.triangulation().tachyon_geometry(transform)
+
         if transform is None:
             cen = (0,0,0)
             rad = self.radius
         else:
             cen = transform.transform_point((0,0,0))
-            radv = transform.transform_vector((self.radius,0,0)) # Tachyon can't do ellipsoids, just scale uniform
+            radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
         return """
 Sphere center %s %s %s
@@ -478,7 +528,7 @@ Sphere center %s %s %s
             else:
                 return (self.radius*sin(v) * cos(u), self.radius*cos(v) * cos(u), self.radius * sin(u))
         twoPi = RDF(2*pi)
-        return ParametricSurface(f, [-10] + [twoPi*k/vres - twoPi/4 for k in range(1,vres)] + [10], [twoPi*k/res for k in range(res)] + [RDF(0)])
+        return ParametricSurface(f, [-10] + [twoPi*k/vres - twoPi/4 for k in range(1,vres)] + [10], [twoPi*k/res for k in range(res)] + [RDF(0)], texture=self.texture)
 
 class Text(PrimativeObject):
     def __init__(self, string, **kwds):
@@ -519,10 +569,11 @@ class IndexFaceSet(PrimativeObject):
 
     def tachyon_str(self, transform):
         faces = self.getFaceList()
+        s = ""
         for face in faces:
             if transform is not None:
                 face = [transform(p) for p in face]
-            s = """
+            s += """
 TRI
     V0 %s %s %s
     V1 %s %s %s
@@ -542,7 +593,7 @@ TRI
                        face[k][0], face[k][1], face[k][2],
                        face[k+1][0], face[k+1][1], face[k+1][2])
                     s += "\n" + self.texture.tachyon_str()
-            return s
+        return s
 
 
     def obj_geometry(self, transform, point_list=None):

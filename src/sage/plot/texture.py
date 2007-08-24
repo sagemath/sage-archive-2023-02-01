@@ -48,16 +48,18 @@ def parse_color(info, base=None):
             except KeyError:
                 raise # TODO: parse hex?
         else:
-            return (info*base[0], info*base[1], info*base[2])
+            return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
 
 
 class Texture_class(SageObject):
 
-    def __init__(self, id, color=(.5, .5, .5), opacity=1, ambient=0.4, diffuse=0.8, specular=0, shininess=1):
+    def __init__(self, id, color=(.5, .5, .5), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1):
         self.id = id
 
         if not isinstance(color, tuple):
             color = parse_color(color)
+        else:
+            color = (float(color[0]), float(color[1]), float(color[2]))
 
         self.color = color
         self.opacity = opacity
@@ -77,7 +79,14 @@ class Texture_class(SageObject):
 
 
     def tachyon_str(self):
-        return "    Texture Ambient %s Diffuse %s Specular %s Opacity %s\n" % (sum(self.ambient)/3, sum(self.diffuse)/3, sum(self.specular)/3, self.opacity) + \
+        total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
+        if total_color == 0:
+            total_color = 1
+        return "    Texture Ambient %s Diffuse %s Specular %s Opacity %s\n" % \
+                (sum(self.ambient)/total_color,
+                 sum(self.diffuse)/total_color,
+                 sum(self.specular)/total_color,
+                 self.opacity) + \
         "       Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
         "       TexFunc 0"
 

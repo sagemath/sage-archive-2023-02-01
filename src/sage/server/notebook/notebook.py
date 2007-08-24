@@ -877,7 +877,7 @@ class Notebook(SageObject):
 
     def html_banner_and_control(self, user, entries):
         return """
-        <table width=100%%><tr><td>
+        <table width="100%%"><tr><td>
         %s
         </td><td align=right>
         %s
@@ -902,7 +902,7 @@ class Notebook(SageObject):
     def html_banner(self):
         s = """
         <span class="banner">
-        <table width=100%%><tr><td>
+        <table width="100%"><tr><td>
         <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Searching for SAGE server...</span></td>
         </tr></table>
         </span>
@@ -969,7 +969,7 @@ class Notebook(SageObject):
         s = ''
 
         s = '<br><br>'
-        s += '<table width=100% border=0 cellspacing=0 cellpadding=0>'
+        s += '<table width="100%" border=0 cellspacing=0 cellpadding=0>'
         s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
         s += '<tr  class="greybox">'
 
@@ -1024,7 +1024,7 @@ class Notebook(SageObject):
 
             return """
             <select onchange="go_option(this);" class="worksheet_edit">
-            <option value="" title="File options" selected=1>File</option>
+            <option value="" title="File options" selected>File</option>
             <option value="list_rename_worksheet('%s','%s');" title="Change the name of this worksheet.">Rename...</option>
             <option value="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
             <option value="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
@@ -1107,8 +1107,8 @@ class Notebook(SageObject):
         rows = '\n'.join(rows)
         body += """
         <hr class="usercontrol">
-<table width=100%%>
-<tr><td width=1%%></td><td width=20%%><b>Revision</b></td> <td width=20%%><b>Last Edited</b></td><td width=30%%></td>
+<table width="100%%">
+<tr><td width="1%%"></td><td width="20%%"><b>Revision</b></td> <td width="20%%"><b>Last Edited</b></td><td width="30%%"></td>
 %s
 </table>
 """%rows
@@ -1165,7 +1165,7 @@ class Notebook(SageObject):
         s = """
         %s
         <hr class="usercontrol">
-<table width=100%%>
+<table width="100%%">
 %s
         <hr class="usercontrol">
 %s
@@ -1235,7 +1235,7 @@ class Notebook(SageObject):
         X = self.get_worksheets_with_viewer(username)
         v = [x for x in X if x.is_active(username)]
         sort_worksheet_list(v, 'name', False)
-        ws_form = ['<option selected=1>select worksheet</option>'] + \
+        ws_form = ['<option selected>select worksheet</option>'] + \
                   ["""<option value='link_datafile("%s","%s")'>%s</option>"""%(
                            x.filename(), filename, x.name()) for x in v]
         ws_form = '\n'.join(ws_form)
@@ -1398,15 +1398,15 @@ class Notebook(SageObject):
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
-        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
-        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
+#        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
+#        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
         body = ''
         body += """
-<table width=100%%>
+<table width="100%%">
 <tr>
   <td align=left> %s </td>   <td align=right> %s </td>
 </tr>
@@ -1500,7 +1500,6 @@ class Notebook(SageObject):
         # stuck at the bottom of the screen. This could be replaced by a region
         # such that clicking on it creates a new cell at the bottom of the worksheet.
         body += '<br>'*15
-        body += '\n</div>\n'
         endpanespan = '</td></tr></table></span>\n'
 
 
@@ -1768,7 +1767,6 @@ function save_worksheet_and_close() {
         <html>
         <head>%s</head>
         <body onLoad="initialize_the_notebook();">%s</body>
-        <script type="text/javascript">jsmath_init()</script>
         </html>
         """%(head, body)
 
@@ -1808,7 +1806,7 @@ function save_worksheet_and_close() {
         i = SYSTEMS.index(system)
         for S in SYSTEMS:
             if S == system:
-                selected = "selected=1"
+                selected = "selected"
             else:
                 selected = ''
             options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(S, selected, S,S)
@@ -1888,7 +1886,7 @@ function save_worksheet_and_close() {
 <head>
 """
         s += '<title>%s | SAGE Source Code</title>' % filename
-        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+#        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
         s += """
 </head>
 <body>
@@ -1898,7 +1896,7 @@ function save_worksheet_and_close() {
         s += '<br><hr><br>\n'
         s += '<font size=+1><pre id="code">%s</pre></font>\n'%file
         s += '<br><hr><br>\n'
-        s += '<script src="/highlight/prettify.js" type="text/javascript"></script>\n'
+#        s += '<script src="/highlight/prettify.js" type="text/javascript"></script>\n'
         s += """<script type="text/javascript">
 function get_element(id) {
   if(document.getElementById)

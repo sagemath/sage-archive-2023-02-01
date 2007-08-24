@@ -14,6 +14,7 @@ TODO:
    -- good default lights, camera
 """
 from random import randint
+from math import atan2
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
@@ -268,19 +269,12 @@ class Transformation:
         if rot is not None:
             # rotate about v by theta
             vx, vy, vz, theta = rot
-            if vz != 0:
-                t = atan(vy/vz) + pi/2
-                m = self.rotX(t) * m
-                new_y = vy*cos(t) - vz*sin(t)
-            else:
-                t = 0
-                new_y = vy
+            t = atan2(vy,vz) + pi/2
+            m = self.rotX(t) * m
+            new_y = vy*cos(t) - vz*sin(t)
             # v = [vx, new_y, 0]
-            if new_y != 0:
-                s = atan(vx/new_y) + pi/2
-                m = self.rotZ(s) * m
-            else:
-                s = 0
+            s = atan2(vx,new_y) + pi/2
+            m = self.rotZ(s) * m
             # v = [new_x, 0, 0]
             m = self.rotX(theta) * m
             # now put back to our former reference frame
@@ -482,16 +476,18 @@ def Line(start, end, radius, **kwds):
     """
     Create a cylindar from start to end with radius radius.
     """
-    start = vector(RDF, start)
-    end = vector(RDF, end)
-    yaxis = vector(RDF, (0,1,0))
+    start = vector(RDF, start, sparse=False)
+    end = vector(RDF, end, sparse=False)
+    zaxis = vector(RDF, (0,0,1), sparse=False)
     diff = end - start
     height = sqrt(diff.dot_product(diff))
     cyl = Cylinder(radius, height, **kwds)
-    axis = yaxis.cross_product(diff)
-    theta = -acos(yaxis.dot_product(diff)/height)
-    return cyl.rotate(axis, theta).translate(start)
-
+    axis = zaxis.cross_product(diff)
+    if axis == 0:
+        return cyl
+    else:
+        theta = -acos(diff[2]/height)
+        return cyl.rotate(axis, theta).translate(start)
 
 class Sphere(PrimativeObject):
     def __init__(self, radius, **kwds):

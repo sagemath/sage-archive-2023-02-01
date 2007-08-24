@@ -52,7 +52,7 @@ public class ObjectViewer extends JPanel {
     Transform3D t = new Transform3D();
     TransformGroup viewTransform = view.getViewPlatformTransform();
 
-    t.set(new Vector3d(0,0,4*sceneBounds.getRadius()));
+    t.set(new Vector3d(0,0,3*sceneBounds.getRadius()));
     viewTransform.setTransform(t);
 
     BranchGroup lights = new BranchGroup();
@@ -80,6 +80,11 @@ public class ObjectViewer extends JPanel {
     mousezoom.setTransformGroup(tg);
     mousezoom.setSchedulingBounds(bounds);
     root.addChild(mousezoom);
+
+    Background background = new Background(1,1,1);
+    background.setApplicationBounds(bounds);
+    root.addChild(background);
+
     root.compile();
 
     univ.addBranchGraph(root);
@@ -105,8 +110,9 @@ public class ObjectViewer extends JPanel {
     }
     catch (Exception ex) {
       //in case there was a problem, print the stack out
-      //ex.printStackTrace();
-      System.out.println(ex);
+      ex.printStackTrace();
+      //System.out.println(ex);
+      add("South", new Label(ex.toString()));
       System.out.println("URL: "+url);
       BranchGroup bg = new BranchGroup();
       bg.addChild(new ColorCube());

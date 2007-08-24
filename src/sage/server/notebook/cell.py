@@ -525,10 +525,10 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+              onFocus    = 'true_function();this.className = "cell_input_active"; return true;'
               %s
            >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id, id,'readonly=1' if do_print else '', t)
+        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 

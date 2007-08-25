@@ -54,6 +54,12 @@ class ModularFormElement(element.HeckeModuleElement):
         if self.ambient_module() != other.ambient_module():
             raise ArithmeticError, "Modular forms must be in the same ambient space."
 
+    def __call__(self, x, prec=None):
+        """
+        Evaluate the q-expansion of this modular form at x.
+        """
+        return self.q_expansion(prec)(x)
+
     def _add_(self, other):
         return ModularFormElement(self.ambient_module(), self.element() + other.element())
 

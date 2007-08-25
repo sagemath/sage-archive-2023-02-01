@@ -49,6 +49,9 @@ class TextCell(Cell_generic):
         self.__text = text
         self.__worksheet = worksheet
 
+    def set_input_text(self, input_text):
+        self.__text = input_text
+
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
         if not id is None:

@@ -82,11 +82,11 @@ class SingNot:
 # This is our list
 singmaster_list = [''] + [SingNot(index2singmaster(i+1)) for i in range(48)]; singmaster_list
 
-class Optimal:
+class OptimalSolver:
     """
     Interface to Michael Reid's optimal Rubik's Cube solver.
     """
-    __cmd = "/Users/robert/Desktop/optimal/optimal.out"
+    __cmd = "optimal"
 
     def __init__(self, verbose=False, wait=True):
         self.verbose = verbose
@@ -115,6 +115,9 @@ class Optimal:
             self.child.expect('enter cube')
             self._ready = True
 
+    def __call__(self, facets):
+        return self.solve(facets)
+
     def solve(self, facets):
         """
         TODO: Let it keep searching once it found a solution?
@@ -134,6 +137,54 @@ class Optimal:
             L.append(optimal_solver_list[optimal_solver_list.index(facet)])
         return " ".join([str(f) for f in L])
 
+
+
+move_map = {
+    "LD":"L'",
+    "LU":"L",
+    "RD":"R",
+    "RU":"R'",
+    "FA":"F",
+    "FC":"F'",
+    "BA":"B'",
+    "BC":"B",
+    "UR":"U",
+    "UL":"U'",
+    "DR":"D'",
+    "DL":"D"
+}
+
+class CubexSolver:
+
+    __cmd = "cubex"
+
+    def __call__(self, facets):
+        return self.solve(facets)
+
+    def solve(self, facets):
+        s = self.format_cube(facets)
+        child = pexpect.spawn(self.__cmd+" "+s)
+        ix = child.expect(['210.*?:', '^5\d+(.*)'])
+        if ix == 0:
+            child.expect(['211', pexpect.EOF])
+            moves = child.before.strip().replace(',','').split(' ')
+            return " ".join([move_map[m] for m in reversed(moves)])
+        else:
+            s = child.after
+            while child.expect(['^5\d+', pexpect.EOF]) == 0:
+                s += child.after
+            raise ValueError, s
+
+    def format_cube(self, facets):
+        colors = sum([[i]*8 for i in range(1,7)], [])
+        facet_colors = [0] * 54
+        for i in range(48):
+            f = facets[i]-1
+            f += (f+4) // 8 # to compensate for the centers
+            facet_colors[f] = colors[i]
+        for i in range(6):
+            facet_colors[i*9+4] = i+1
+        return "".join(str(c) for c in facet_colors)
 
 
 

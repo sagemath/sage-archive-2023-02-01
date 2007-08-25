@@ -895,11 +895,14 @@ class CubeGroup(PermutationGroup_generic):
 
         """
         rubik = self
-        leg = rubik.legal(state,"verbose")
-        if not(leg[0]):
-            return "Illegal or syntactically incorrect state. No solution."
+        if isinstance(state, str):
+            leg = rubik.legal(state,"verbose")
+            if not(leg[0]):
+                return "Illegal or syntactically incorrect state. No solution."
+            g = leg[1]
+        else:
+            g = state
         G = rubik.group()
-        g = leg[1]
         b = rubik.B()
         d = rubik.D()
         f = rubik.F()
@@ -1091,3 +1094,38 @@ class RubiksCube(SageObject):
 
     def show3d(self):
         return self.plot3d().show()
+
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            return cmp(self._state, other._state)
+        else:
+            return c
+
+    def solve(self, algorithm="dietz"):
+        """
+        Algorithm must be one of :
+           dietz     - Use Eric Dietz's cubex program     (fast but lots of moves)
+           optimal   - Use Michael Reid's optimal program (may take a long time)
+           gap       - Use GAP word solution              (slow)
+
+
+        """
+
+        if algorithm == "dietz":
+            from sage.interfaces.rubik import CubexSolver
+            solver = CubexSolver()
+            return solver.solve(self.facets())
+
+        elif algorithm == "optimal":
+            # TODO: cache this, startup is expensive
+            from sage.interfaces.rubik import OptimalSolver
+            solver = OptimalSolver()
+            return solver.solve(self.facets())
+
+        elif algorithm == "gap":
+            solver = CubeGroup()
+            return solver.solve(self._state)
+
+        else:
+            raise ValueError, "Unrecognized algorithm"

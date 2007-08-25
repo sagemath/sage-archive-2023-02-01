@@ -1730,6 +1730,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def prec(self):
+        """
+        Return the precision of this polynomials.  This is
+        always infinity, since polynomials are of infinite
+        precision by definition (there is no big-oh).
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: (x^5 + x + 1).prec()
+            +Infinity
+            sage: x.prec()
+            +Infinity
+        """
+        return infinity
+
     def padded_list(self, n=None):
         """
         Return list of coefficients of self up to (but not include $q^n$).

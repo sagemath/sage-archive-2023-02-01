@@ -730,6 +730,7 @@ class CubeGroup(PermutationGroup_generic):
             (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
 
         """
+        mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "^(-1)")
         m = mv.split("*")
         M = [x.split("^") for x in m]
         #print M
@@ -998,6 +999,8 @@ def plot3d_cube(mv,title=True):
 
 def cubie_faces():
     """
+    This provides a map from the 6 faces of the 27 cubies to the 48 facets of the larger cube.
+
     -1,-1,-1 is left, top, front
     """
     faceR = [[25,26,27], [28,-3,29], [30,31,32]] # green
@@ -1056,6 +1059,8 @@ class RubiksCube(SageObject):
     def __repr__(self):
         return self._group.repr2d(self._state)
 
+    def facets(self):
+        return self._group.facets(self._state)
 
     def plot(self):
         return plot_cube(self._state)

@@ -1451,7 +1451,7 @@ function cell_input_key_event(id, e) {
        return comment_cell(cell_input);
     } else if (key_uncomment(e)) {
        return uncomment_cell(cell_input);
-    } else if (key_unindent(e)) { //unfortunately, shift-tab needs to get caught before not-shift tab
+    } else if (key_unindent(e) && cell_input.selectionStart != cell_input.selectionEnd) { //unfortunately, shift-tab needs to get caught before not-shift tab
        unindent_cell(cell_input);
        return false;
     } else if (key_request_introspections(e) && current_selection(cell_input) == "") {
@@ -1459,7 +1459,7 @@ function cell_input_key_event(id, e) {
        evaluate_cell(id, 2);
        focus_delay(id,true);
        return false;
-    } else if (key_indent(e)) {
+    } else if (key_indent(e) && cell_input.selectionStart != cell_input.selectionEnd) {
        indent_cell(cell_input);
        return false;
     } else if (key_interrupt(e)) {

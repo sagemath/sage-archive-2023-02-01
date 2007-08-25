@@ -1072,16 +1072,21 @@ class RubiksCube(SageObject):
         self.plot().show()
 
 
-    def cubie(self, size, gap, x,y,z, colors):
+    def cubie(self, size, gap, x,y,z, colors, stickers=True):
         sides = cubie_face_list[x,y,z]
         t = 2*size+gap
-        return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
+        my_colors = [colors[sides[i]+6] for i in range(6)]
+        if stickers:
+            B = Box(size, size, size, color=(.1, .1, .1))
+            S = B + B.triangulation().stickers(my_colors, size*.1, size*.01)
+            return S.translate(-t*x, -t*z, -t*y)
+        else:
+            return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
 
-    def plot3d(self):
+    def plot3d(self, stickers=True):
         while len(self.colors) < 7:
-            self.colors.append((.25,.25,.25))
+            self.colors.append((.1, .1, .1))
         side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
-        start_colors = rand_colors
         start_colors = sum([[c]*8 for c in side_colors], [])
         facets = self._group.facets(self._state)
         facet_colors = [0]*48
@@ -1089,7 +1094,7 @@ class RubiksCube(SageObject):
             facet_colors[facets[i]-1] = start_colors[i]
         all_colors = side_colors + facet_colors
         pm = [-1,0,1]
-        C = sum([self.cubie(.15, .03, x, y, z, all_colors) for x in pm for y in pm for z in pm], Box(.01, .01, .01))
+        C = sum([self.cubie(.15, .025, x, y, z, all_colors, stickers) for x in pm for y in pm for z in pm], Box(.35, .35, .35, color=self.colors[-1]))
         return C.rotateZ(-1.5) #.scale([1,-1,1]).rotateZ(1.5)
 
     def show3d(self):

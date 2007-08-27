@@ -84,7 +84,7 @@ resolution 400 400
            camera
               zoom 1.0
               aspectratio 1.0
-              antialiasing 1
+              antialiasing 3
               raydepth 8
               center  2.0 1.0 0.75
               viewdir  -2.0 -1.0 -0.5

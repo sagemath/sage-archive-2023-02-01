@@ -78,7 +78,9 @@ text = TextFactory()
 from sage.calculus.calculus import Function_sin, Function_cos
 sin = Function_sin()
 cos = Function_cos()
-pi = 3.14159265
+pi = RDF.pi()
+
+from sage.plot.graphics3d import *
 
 ####################### predefined colors ##################
 
@@ -816,7 +818,7 @@ class CubeGroup(PermutationGroup_generic):
         line11 = "             |%3d bottom%3d |\n"%(lst[43],lst[44])
         line12 = "             |%3d  %3d  %3d |\n"%(lst[45],lst[46],lst[47])
         line13 = "             +--------------+\n"
-        print line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
+        return line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
 
     def plot_cube(self,mv,title=True):
         """
@@ -835,7 +837,10 @@ class CubeGroup(PermutationGroup_generic):
             sage: # "superflip+4 spot" (in 26q* moves)
         """
         rubik = CubeGroup()
-        state = rubik.move(mv)[1]
+        if isinstance(mv, str):
+            state = rubik.move(mv)[1]
+        else:
+            state = rubik.facets(mv)
         #print state
         str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
         colors = [eval(p) for p in str_colors]
@@ -967,7 +972,7 @@ class CubeGroup(PermutationGroup_generic):
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: state = rubik.faces("R*U")
-            sage: rubik.solve(state)  # long time; *omputationally intensive* even for simple moves
+            sage: rubik.solve(state)  # long time; *computationally intensive* even for simple moves
             'R*U'
 
         You can also check this using \code{word_problem} method (eg, G = rubik.group();
@@ -978,14 +983,17 @@ class CubeGroup(PermutationGroup_generic):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
         rubik = self
-        leg = rubik.legal(state,"verbose")
-        if not(leg[0]):
-            return "Illegal or syntactically incorrect state. No solution."
         G = rubik.group()
-        g = leg[1]
+        if isinstance(state, str):
+            leg = rubik.legal(state,"verbose")
+            if not(leg[0]):
+                return "Illegal or syntactically incorrect state. No solution."
+            g = leg[1]
+        else:
+            g = state
         hom = G._gap_().EpimorphismFromFreeGroup()
         soln = hom.PreImagesRepresentative(gap(str(g)))
-        print soln
+        # print soln
         sol1 = str(soln).replace("x1","B")
         sol2 = sol1.replace("x2","D")
         sol3 = sol2.replace("x3","F")
@@ -1036,6 +1044,30 @@ rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()
 
 
 class RubiksCube(SageObject):
+    """
+    sage: C = RubiksCube().move("R U R'")
+    sage.: C.show3d()
+
+    sage: C = RubiksCube("R*L"); C
+                 +--------------+
+                 | 17    2   38 |
+                 | 20   top  36 |
+                 | 22    7   33 |
+    +------------+--------------+-------------+------------+
+    | 11  13  16 | 41   18    3 | 27   29  32 | 48  34   6 |
+    | 10 left 15 | 44  front  5 | 26 right 31 | 45 rear  4 |
+    |  9  12  14 | 46   23    8 | 25   28  30 | 43  39   1 |
+    +------------+--------------+-------------+------------+
+                 | 40   42   19 |
+                 | 37 bottom 21 |
+                 | 35   47   24 |
+                 +--------------+
+    sage.: C.show()
+    sage: C.solve(algorithm='gap')  # long time
+    'L*R'
+    sage: C == RubiksCube("L*R")
+    True
+    """
     def __init__(self, state=None, history=[], colors=[lpurple,yellow,red,green,orange,blue]):
         self.colors = colors
         self._history = history
@@ -1043,6 +1075,8 @@ class RubiksCube(SageObject):
         if state is None:
             self._state = self._group(1)
         else:
+            if isinstance(state, str):
+                state = self._group.faces(state)
             if not isinstance(state, PermutationGroupElement):
                 legal, state = self._group.legal(state, mode="gimme_group_element")
                 if not legal:
@@ -1065,7 +1099,7 @@ class RubiksCube(SageObject):
         return self._group.facets(self._state)
 
     def plot(self):
-        return plot_cube(self._state)
+        return self._group.plot_cube(self._state)
 
     def show(self):
         self.plot().show()
@@ -1083,6 +1117,13 @@ class RubiksCube(SageObject):
             return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
 
     def plot3d(self, stickers=True):
+        """
+        sage: C = RubiksCube().move("R*U")
+        sage: C.plot3d()
+        <class 'sage.plot.graphics3d.TransformGroup'>
+        sage: C.plot()
+        Graphics object consisting of 55 graphics primitives
+        """
         while len(self.colors) < 7:
             self.colors.append((.1, .1, .1))
         side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
@@ -1094,7 +1135,7 @@ class RubiksCube(SageObject):
         all_colors = side_colors + facet_colors
         pm = [-1,0,1]
         C = sum([self.cubie(.15, .025, x, y, z, all_colors, stickers) for x in pm for y in pm for z in pm], Box(.35, .35, .35, color=self.colors[-1]))
-        return C.rotateZ(-1.5) #.scale([1,-1,1]).rotateZ(1.5)
+        return C.rotateZ(1.5) #.scale([1,-1,1]).rotateZ(1.5)
 
     def show3d(self):
         return self.plot3d().show()
@@ -1111,7 +1152,7 @@ class RubiksCube(SageObject):
         Algorithm must be one of :
            dietz     - Use Eric Dietz's cubex program     (fast but lots of moves)
            optimal   - Use Michael Reid's optimal program (may take a long time)
-           gap       - Use GAP word solution              (slow)
+           gap       - Use GAP word solution              (can be slow)
 
 
         """

@@ -21,7 +21,7 @@ import os, weakref
 from expect import Expect
 
 instances={}
-def Mwrank(options="", server=None):
+def Mwrank(options="", server=None, server_tmpdir=None):
     """
     Create and return an mwrank interpreter, with given options.
 
@@ -36,7 +36,7 @@ def Mwrank(options="", server=None):
             return X
     except KeyError:
         pass
-    X = Mwrank_class(options, server=server)
+    X = Mwrank_class(options, server=server,server_tmpdir=server_tmpdir)
     instances[options] = weakref.ref(X)
     return X
 
@@ -45,7 +45,7 @@ class Mwrank_class(Expect):
     """
     Interface to the Mwrank interpreter.
     """
-    def __init__(self, options="", server=None):
+    def __init__(self, options="", server=None,server_tmpdir=None):
         """
         INPUT:
            options -- string; passed when starting mwrank.  The format is
@@ -56,6 +56,7 @@ class Mwrank_class(Expect):
                         prompt = 'Enter curve: ',
                         command = "mwrank %s"%options,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         maxread = 10000,
                         restart_on_ctrlc = True,
                         verbose_start = False)

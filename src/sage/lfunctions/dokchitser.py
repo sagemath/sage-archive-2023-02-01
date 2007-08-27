@@ -172,6 +172,9 @@ class Dokchitser(SageObject):
                    self.conductor, self.weight)
         return z
 
+    def __del__(self):
+        self.gp().quit()
+
     def gp(self):
         """
         Return the gp interpreter that is used to implement this Dokchitser L-function.

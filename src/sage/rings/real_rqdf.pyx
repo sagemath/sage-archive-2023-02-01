@@ -160,7 +160,7 @@ cdef class RealQuadDoubleField_class(Field):
         return self(1.23)
 
     def _latex_(self):
-        return "\\R"
+        return "\\mathbf{R}"
 
     def __repr__(self):
         """

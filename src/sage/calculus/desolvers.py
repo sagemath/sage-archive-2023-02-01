@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 This file contains functions useful for solving differential equations
 which occur commonly in a 1st semster differential equations course.
 
@@ -86,8 +86,9 @@ def desolve_laplace(de,vars,ics=None):
         f(x)=x*%e^x+%e^x
 
     WARNING:
-        The second SAGE command in the above example sets the values of f(0) and f'(0) in maxima, so
-        subsequent ODEs involving these variables will have these initial conditions
+        The second SAGE command in the above example sets the values
+        of f(0) and f'(0) in maxima, so subsequent ODEs involving
+        these variables will have these initial conditions
         automatically imposed.
 
     AUTHOR: David Joyner (1-2006)

@@ -92,19 +92,23 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if names is None:
-        names = str(p)
-    if type != 'lazy':
-        key = (p, prec, type, names, print_mode)
+        name = str(p)
+    elif isinstance(names, tuple):
+        name = names[0]
     else:
-        key = (p, prec, halt, names, print_mode)
+        name = str(names)
+    if type != 'lazy':
+        key = (p, prec, type, name, print_mode)
+    else:
+        key = (p, prec, halt, name, print_mode)
     if padic_field_cache.has_key(key):
         K = padic_field_cache[key]()
         if K != None:
             return K
     if (type == 'capped-rel'):
-        K = pAdicFieldCappedRelative(p, prec, print_mode, names)
+        K = pAdicFieldCappedRelative(p, prec, print_mode, name)
     elif (type == 'lazy'):
-        K = pAdicFieldLazy(p, prec, print_mode, halt, names)
+        K = pAdicFieldLazy(p, prec, print_mode, halt, name)
     else:
         raise ValueError, "type must be either 'capped-rel' or 'lazy'"
     padic_field_cache[key] = weakref.ref(K)
@@ -308,23 +312,27 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if names is None:
-        names = str(p)
-    if type != 'lazy':
-        key = (p, prec, type, names, print_mode)
+        name = str(p)
+    elif isinstance(names, tuple):
+        name = names[0]
     else:
-        key = (p, prec, halt, names, print_mode)
+        name = str(names)
+    if type != 'lazy':
+        key = (p, prec, type, name, print_mode)
+    else:
+        key = (p, prec, halt, name, print_mode)
     if padic_ring_cache.has_key(key):
         K = padic_ring_cache[key]()
         if not (K is None):
             return K
     if (type == 'capped-rel'):
-        K = pAdicRingCappedRelative(p, prec, print_mode, names)
+        K = pAdicRingCappedRelative(p, prec, print_mode, name)
     elif (type == 'fixed-mod'):
-        K = pAdicRingFixedMod(p, prec, print_mode, names)
+        K = pAdicRingFixedMod(p, prec, print_mode, name)
     elif (type == 'capped-abs'):
-        K = pAdicRingCappedAbsolute(p, prec, print_mode, names)
+        K = pAdicRingCappedAbsolute(p, prec, print_mode, name)
     elif (type == 'lazy'):
-        K = pAdicRingLazy(p, prec, print_mode, halt, names)
+        K = pAdicRingLazy(p, prec, print_mode, halt, name)
     else:
         raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
     padic_ring_cache[key] = weakref.ref(K)

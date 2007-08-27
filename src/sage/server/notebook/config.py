@@ -16,9 +16,9 @@ import js
 js.keyhandler.add('request_introspections', key = "KEY_SPC",   ctrl=True)  # control space
 js.keyhandler.add('request_introspections', key = "KEY_TAB",   shift=False)  # tab
 js.keyhandler.add('indent',                 key = "KEY_TAB",   shift=False)  # tab
-js.keyhandler.add('indent2', key = "KEY_GT", shift=False)
+js.keyhandler.add('indent',                 key = "KEY_GT",    shift=False)  # tab
 js.keyhandler.add('unindent',               key = "KEY_TAB",   shift=True)  # tab
-js.keyhandler.add('unindent2', key = "KEY_LT", shift=False)
+js.keyhandler.add('unindent',               key = "KEY_LT",    shift=False)
 js.keyhandler.add('request_history',        key = "KEY_Q",     ctrl=True)
 js.keyhandler.add('request_history',        key = "KEY_QQ",    ctrl=True)
 js.keyhandler.add('request_log',            key = "KEY_P",     ctrl=True)
@@ -35,8 +35,10 @@ js.keyhandler.add('delete_cell',            key = "KEY_BKSPC")
 js.keyhandler.add('generic_submit',         key = "KEY_ENTER")
 js.keyhandler.add('up_arrow',               key = "KEY_UP")
 js.keyhandler.add('down_arrow',             key = "KEY_DOWN")
-js.keyhandler.add('comment',                key = "KEY_HASH")
-js.keyhandler.add('uncomment',              key = "KEY_3")
+js.keyhandler.add('comment',                key = "KEY_DOT",   ctrl=True)
+js.keyhandler.add('uncomment',              key = "KEY_COMMA", ctrl=True)
+js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
+js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
 
 js.keyhandler.add('menu_left',           key = "KEY_LEFT")
 js.keyhandler.add('menu_up',             key = "KEY_UP")

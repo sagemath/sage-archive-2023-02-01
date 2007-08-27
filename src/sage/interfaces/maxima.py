@@ -345,7 +345,7 @@ import os, re, sys
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
 import random
@@ -493,13 +493,18 @@ class Maxima(Expect):
         return self._expect.before
 
     def _batch(self, str, batchload=True):
-        F = open(tmp, 'w')
+        F = open(self._local_tmpfile(), 'w')
         F.write(str)
         F.close()
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
+
         if batchload:
-            cmd = 'batchload("%s");'%tmp
+            cmd = 'batchload("%s");'%tmp_to_use
         else:
-            cmd = 'batch("%s");'%tmp
+            cmd = 'batch("%s");'%tmp_to_use
         self._sendline(cmd)
         self._expect_expr()
         out = self._before()

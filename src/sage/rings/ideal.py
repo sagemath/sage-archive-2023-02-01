@@ -224,6 +224,13 @@ class Ideal_generic(MonoidElement):
             return True
         raise NotImplementedError
 
+    def is_trivial(self):
+        if self.is_zero():
+            return True
+        elif self.is_principal():
+            return self.gen().is_unit()
+        raise NotImplementedError
+
     def category(self):
         """
         Return the category of this ideal.
@@ -330,6 +337,14 @@ class Ideal_pid(Ideal_principal):
             return f
         q, r = f.quo_rem(self.gen())
         return r
+
+    def gcd(self, other):
+        if isinstance(other, Ideal_principal):
+            return self.ring().ideal(self.gen().gcd(other.gen()))
+        elif self.gen() in other:
+            return other
+        else:
+            raise NotImplementedError
 
 class Ideal_fractional(Ideal_generic):
     def __init__(self, ring, gen):

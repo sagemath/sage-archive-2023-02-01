@@ -528,10 +528,10 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onClick    = 'get_cell(%s).className = "cell_input_active"; return true;'
+              onFocus    = 'true_function();this.className = "cell_input_active"; return true;'
               %s
            >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id, id,'readonly=1' if do_print else '', t)
+        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
 
         t = t.replace("<","&lt;")+" "
 
@@ -578,8 +578,12 @@ class Cell(Cell_generic):
                 continue
             url = "%s/%s"%(self.url_to_self(), F)
             if F.endswith('.png') or F.endswith('.bmp') or \
-                   F.endswith('.jpg') or F.endswith('.gif'):
+                    F.endswith('.jpg') or F.endswith('.gif'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
+            elif F.endswith('.obj'):
+                images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
+            elif F.endswith('.mtl') or F.endswith(".objmeta"):
+                pass
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:

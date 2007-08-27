@@ -618,6 +618,46 @@ TRI
         s += "\n\n"
         return s
 
+    def stickers(self, colors, width, hover):
+        faces = self.getFaceList()
+        all = []
+        n = len(faces); ct = len(colors)
+        for k in range(len(colors)):
+            if colors[k]:
+                all.append(self.sticker(range(k,n,ct), width, hover, texture=colors[k]))
+        return Graphics3dGroup(all)
+
+    def sticker(self, face_list, width, hover, **kwds):
+        if not isinstance(face_list, (list, tuple)):
+            face_list = (face_list,)
+        faces = self.getFaceList()
+        all = []
+        for k in face_list:
+            all.append(sticker(faces[k], width, hover))
+        return IndexFaceSet(all, **kwds)
+
+def len3d(v):
+    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+
+def sticker(face, width, hover):
+    n = len(face)
+    edges = []
+    for i in range(n):
+        edges.append(vector(RDF, [face[i-1][0] - face[i][0],
+                                  face[i-1][1] - face[i][1],
+                                  face[i-1][2] - face[i][2]]))
+    sticker = []
+    for i in range(n):
+        v = -edges[i]
+        w = edges[i-1]
+        N = v.cross_product(w)
+        lenN = len3d(N)
+        dv = v*(width*len3d(w)/lenN)
+        dw = w*(width*len3d(v)/lenN)
+        sticker.append(tuple(vector(RDF, face[i-1]) + dv + dw + N*(hover/lenN)))
+    return sticker
+
+
 class RectangularGridSurface(IndexFaceSet):
     def __init__(self, **kwds):
         PrimativeObject.__init__(self, **kwds)

@@ -60,10 +60,11 @@ from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_gen
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
 
+from sage.structure.sage_object import SageObject
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer
+from sage.rings.all      import RationalField, Integer, RDF
 #from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -661,7 +662,7 @@ class CubeGroup(PermutationGroup_generic):
         return g
 
 
-    def facets(self):
+    def facets(self, g=None):
         r"""
         Returns the set of facets on which the group acts. This function is a "constant".
 
@@ -673,7 +674,10 @@ class CubeGroup(PermutationGroup_generic):
         """
         fcts = [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13,14,15,16,17,18,19,20,21,22,23,24,\
           25,26,27,28,29,30,31,32,33,34,35,36, 37,38,39,40,41,42,43,44,45,46,47,48 ]
-        return fcts
+        if g is not None:
+            return [g(i) for i in fcts]
+        else:
+            return fcts
 
     def faces(self, mv):
         r"""
@@ -691,7 +695,10 @@ class CubeGroup(PermutationGroup_generic):
         after making the move R followed by L.
 
         """
-        fcts = self.move(mv)[1]
+        if isinstance(mv, str):
+            fcts = self.move(mv)[1]
+        else:
+            fcts = self.facets(mv)
         faceR = [[fcts[24],fcts[25],fcts[26]],[fcts[27],0,fcts[28]],[fcts[29],fcts[30],fcts[31]]]
         faceL = [[fcts[8],fcts[9],fcts[10]],[fcts[11],0,fcts[12]],[fcts[13],fcts[14],fcts[15]]]
         faceU = [[fcts[0],fcts[1],fcts[2]],[fcts[3],0,fcts[4]],[fcts[5],fcts[6],fcts[7]]]
@@ -719,6 +726,7 @@ class CubeGroup(PermutationGroup_generic):
 	    (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
 
 	"""
+	mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "^(-1)")
 	m = mv.split("*")
 	M = [x.split("^") for x in m]
 	#print M
@@ -750,6 +758,9 @@ class CubeGroup(PermutationGroup_generic):
 	return [g,pos]
 
     def display2d(self,mv):
+        print self.repr2d(mv)
+
+    def repr2d(self, mv):
         r"""
         Displays a 2d map of the Rubik's cube after the move mv has been made.
         Nothing is returned.
@@ -788,7 +799,10 @@ class CubeGroup(PermutationGroup_generic):
 
         You can see the right face has been rotated but not the left face.
         """
-        lst = self.move(mv)[1]
+        if isinstance(mv, str):
+            lst = self.move(mv)[1]
+        else:
+            lst = self.facets(mv)
         line1 =  "             +--------------+\n"
         line2 =  "             |%3d  %3d  %3d |\n"%(lst[0],lst[1],lst[2])
         line3 =  "             |%3d   top %3d |\n"%(lst[3],lst[4])
@@ -1018,12 +1032,10 @@ def cubie_faces():
 cubie_face_list = cubie_faces()
 
 
-#rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()) for _ in range(56)]
-rand_colors = [(0.1, 0.1, 0.7) for i in range(56)]
+rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()) for _ in range(56)]
 
 
-#class RubiksCube(SageObject):
-class RubiksCube():
+class RubiksCube(SageObject):
     def __init__(self, state=None, history=[], colors=[lpurple,yellow,red,green,orange,blue]):
         self.colors = colors
         self._history = history
@@ -1059,16 +1071,21 @@ class RubiksCube():
         self.plot().show()
 
 
-    def cubie(self, size, gap, x,y,z, colors):
+    def cubie(self, size, gap, x,y,z, colors, stickers=True):
         sides = cubie_face_list[x,y,z]
         t = 2*size+gap
-        return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
+        my_colors = [colors[sides[i]+6] for i in range(6)]
+        if stickers:
+            B = Box(size, size, size, color=(.1, .1, .1))
+            S = B + B.triangulation().stickers(my_colors, size*.1, size*.01)
+            return S.translate(-t*x, -t*z, -t*y)
+        else:
+            return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
 
-    def plot3d(self):
+    def plot3d(self, stickers=True):
         while len(self.colors) < 7:
-            self.colors.append((.25,.25,.25))
+            self.colors.append((.1, .1, .1))
         side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
-        start_colors = rand_colors
         start_colors = sum([[c]*8 for c in side_colors], [])
         facets = self._group.facets(self._state)
         facet_colors = [0]*48
@@ -1076,7 +1093,7 @@ class RubiksCube():
             facet_colors[facets[i]-1] = start_colors[i]
         all_colors = side_colors + facet_colors
         pm = [-1,0,1]
-        C = sum([self.cubie(.15, .03, x, y, z, all_colors) for x in pm for y in pm for z in pm], Box(.01, .01, .01))
+        C = sum([self.cubie(.15, .025, x, y, z, all_colors, stickers) for x in pm for y in pm for z in pm], Box(.35, .35, .35, color=self.colors[-1]))
         return C.rotateZ(-1.5) #.scale([1,-1,1]).rotateZ(1.5)
 
     def show3d(self):

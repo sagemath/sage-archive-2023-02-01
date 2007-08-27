@@ -441,6 +441,7 @@ function get_selection_range(input) {
 
 function set_selection_range(input, start, end) {
     if(browser_ie) {
+        input.value = input.value.replaceAll("\r\n", "\n");
         var range = document.selection.createRange();
         range.moveToElementText(input);
         range.moveStart('character', start);
@@ -1132,11 +1133,11 @@ function list_preview_worksheet(filename) {
 */
 
 function server_ping_while_alive() {
-    async_request(worksheet_command('alive'), xx, null);
+    async_request(worksheet_command('alive'), server_ping_while_alive_callback, null);
     setTimeout("server_ping_while_alive();", server_ping_time);
 }
 
-function xx(status, response_text) {
+function server_ping_while_alive_callback(status, response_text) {
     if (status == "failure") {
         server_down();
     } else {
@@ -1689,7 +1690,7 @@ function evaluate_cell_callback(status, response_text) {
 }
 
 function cell_output_set_type(id, typ, do_async) {
-    set_class('cell_div_output_' + id,    'cell_output_' + typ)
+    set_class('cell_div_output_' + id,    'cell_div_output_' + typ)
     set_class('cell_output_' + id,        'cell_output_' + typ)
     set_class('cell_output_nowrap_' + id, 'cell_output_nowrap_' + typ)
     set_class('cell_output_html_' + id,   'cell_output_html_' + typ)
@@ -1702,12 +1703,12 @@ function cell_output_set_type(id, typ, do_async) {
 function cycle_cell_output_type(id) {
     var cell_div = get_element('cell_div_output_' + id);
 
-    if (cell_div.className == 'cell_output_hidden' || cell_div.className=='cell_output_running') {
+    if (cell_div.className == 'cell_div_output_hidden' || cell_div.className=='cell_div_output_running') {
         cell_output_set_type(id, 'wrap');
         return;
     }
 
-    if (cell_div.className == 'cell_output_wrap') {
+    if (cell_div.className == 'cell_div_output_wrap') {
         cell_output_set_type(id, 'nowrap');
     } else {
         cell_output_set_type(id, 'hidden');

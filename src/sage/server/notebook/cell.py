@@ -525,7 +525,7 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onFocus    = 'true_function();this.className = "cell_input_active"; return true;'
+              onFocus    = 'this.className = "cell_input_active"; return true;'
               %s
            >%s</textarea>
         """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
@@ -603,9 +603,9 @@ class Cell(Cell_generic):
         typ = self.cell_output_type()
 
         if self.computing():
-            cls = "cell_output_running"
+            cls = "cell_div_output_running"
         else:
-            cls = 'cell_output_' + typ
+            cls = 'cell_div_output_' + typ
 
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
@@ -615,9 +615,9 @@ class Cell(Cell_generic):
         else:
             prnt = ""
 
-        out = """<span class="cell_output_%s%s" id="cell_output_%s">%s</span>
-                 <span class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</span>
-                 <br><span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
+        out = """<div class="cell_output_%s%s" id="cell_output_%s">%s</div>
+                 <div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>
+                 <br><div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>
                  """%(prnt, typ, self.__id, out_wrap,
                       prnt, typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
@@ -652,6 +652,7 @@ def format_exception(s0, ncols):
     else:
         s = s.replace("exec compile(ur'","")
         s = s.replace("' + '\\n', '', 'single')", "")
+    s = s.replace('<', '&lt;');
     t = '<html><font color="#990099">' + s + '</font></html>'
     return t
 

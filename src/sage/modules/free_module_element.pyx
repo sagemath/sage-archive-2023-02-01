@@ -597,6 +597,36 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sum += l[i] * r[i]
         return sum
 
+    def cross_product(self, right):
+        """
+        Return the cross product of self and right, which is only
+        defined for vectors of length 3.
+
+        This product is performed under the assumption that the basis
+        vectors are orthonormal.
+
+        EXAMPLES:
+            sage: v = vector([1,2,3]); w = vector([0,5,-9])
+            sage: v.cross_product(v)
+            (0, 0, 0)
+            sage: u = v.cross_product(w); u
+            (-33, 9, 5)
+            sage: u.dot_product(v)
+            0
+            sage: u.dot_product(w)
+            0
+        """
+        if not PY_TYPE_CHECK(right, FreeModuleElement):
+            raise TypeError, "right must be a free module element"
+        r = right.list(copy=False)
+        l = self.list(copy=False)
+        if len(r) != 3 or len(l) != 3:
+            raise ArithmeticError, "Cross product only defined for vectors of length three, not (%s and %s)"%(len(l),len(r))
+        return vector([l[1]*r[2] - l[2]*r[1],
+                       l[2]*r[0] - l[0]*r[2],
+                       l[0]*r[1] - l[1]*r[0]])
+
+
     def pairwise_product(self, right):
         """
         Return the dot product of self and right, which is a vector of

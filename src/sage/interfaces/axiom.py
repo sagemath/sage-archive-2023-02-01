@@ -128,7 +128,7 @@ control-C.
 
 import os, re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
@@ -150,7 +150,7 @@ class Axiom(Expect):
     """
     Interface to the Axiom interpreter.
     """
-    def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    def __init__(self, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         """
         Create an instance of the Axiom interpreter.
         """
@@ -162,6 +162,8 @@ class Axiom(Expect):
                         command = "axiom -nox -noclef",
                         maxread = 10,
                         script_subdirectory = script_subdirectory,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         #init_code = [')lisp (si::readline-off)'],
@@ -181,16 +183,21 @@ class Axiom(Expect):
         out = self._eval_line(')set message autoload off', reformat=False)
         #self._expect.expect(self._prompt)
 
-    def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
-        F.write(line)
-        F.close()
-        if self._expect is None:
-            self._start()
+    def _read_in_file_command(self,filename):
         # For some reason this trivial comp
         # keeps certain random freezes from occuring.  Do not remove this.
         # The space before the \n is also important.
-        self._expect.sendline(')read "%s"\n'%tmp)
+        return ')read "%s"\n'%filename
+
+    def _eval_line_using_file(self, line):
+        F = open(self._local_tmpfile(), 'w')
+        F.write(line+'\n')
+        F.close()
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
+        self._expect.sendline(self._read_in_file_command(tmp_to_use))
         self._expect.expect(self._prompt)
         return ''
 
@@ -215,7 +222,7 @@ class Axiom(Expect):
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
                             len(line) > self.__eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
+            return self._eval_line_using_file(line)
         try:
             E = self._expect
             # debug

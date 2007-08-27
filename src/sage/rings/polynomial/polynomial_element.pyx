@@ -1730,6 +1730,60 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def prec(self):
+        """
+        Return the precision of this polynomials.  This is
+        always infinity, since polynomials are of infinite
+        precision by definition (there is no big-oh).
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: (x^5 + x + 1).prec()
+            +Infinity
+            sage: x.prec()
+            +Infinity
+        """
+        return infinity
+
+    def padded_list(self, n=None):
+        """
+        Return list of coefficients of self up to (but not include $q^n$).
+
+        Includes 0's in the list on the right so that the list has
+        length $n$.
+
+        INPUT:
+            n -- (default: None); if given, an integer that is at least 0
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: f = 1 + x^3 + 23*x^5
+            sage: f.padded_list()
+            [1, 0, 0, 1, 0, 23]
+            sage: f.padded_list(10)
+            [1, 0, 0, 1, 0, 23, 0, 0, 0, 0]
+            sage: len(f.padded_list(10))
+            10
+            sage: f.padded_list(3)
+            [1, 0, 0]
+            sage: f.padded_list(0)
+            []
+            sage: f.padded_list(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be at least 0
+        """
+        v = self.list()
+        if n is None:
+            return v
+        if n < 0:
+            raise ValueError, "n must be at least 0"
+        if len(v) < n:
+            z = self._parent.base_ring()(0)
+            return v + [z]*(n - len(v))
+        else:
+            return v[:int(n)]
+
     def coeffs(self):
         r"""
         Returns \code{self.list()}.

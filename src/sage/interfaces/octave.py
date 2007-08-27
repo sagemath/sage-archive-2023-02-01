@@ -129,13 +129,14 @@ class Octave(Expect):
         sage: octave.eval("c")                                 # optional random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None):
+    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'octave',
                         prompt = '>',
                         command = "octave --no-line-editing --silent",
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -191,19 +192,21 @@ class Octave(Expect):
         self.eval("format none;")
         #self.eval('save_header_format_string="";')
 
-    def get_via_file(self, var_name):
-        t = self._temp_file(var_name)
-        self.eval('save -text "%s" %s'%(t,var_name))
-        r = open(t).read()
-        os.unlink(t)
-        return r
+#    pdehaye/20070819: This is no obsolete, see Expect._get_tmpfile_from_server and Expect._send_tmpfile_to_server
 
-    def set_via_file(self, var_name, x):
-        t = self._temp_file(var_name)
-        open(t,'w').write(x)
-        print 'load "%s" %s'%(t, var_name)
-        self.eval('load "%s" %s'%(t, var_name))
-        #os.unlink(t)
+#    def get_via_file(self, var_name):
+#        t = self._temp_file(var_name)
+#        self.eval('save -text "%s" %s'%(t,var_name))
+#        r = open(t).read()
+#        os.unlink(t)
+#        return r
+
+#    def set_via_file(self, var_name, x):
+#        t = self._temp_file(var_name)
+#        open(t,'w').write(x)
+#        print 'load "%s" %s'%(t, var_name)
+#        self.eval('load "%s" %s'%(t, var_name))
+#        #os.unlink(t)
 
     def set(self, var, value):
         """

@@ -630,6 +630,12 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+
+    Extension('sage.plot.3d,graphics3d',
+              ['sage/plot/3d/graphics3d.pyx']
+              ), \
+
+
     ]
 
 

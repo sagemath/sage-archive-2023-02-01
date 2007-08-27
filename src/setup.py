@@ -631,8 +631,14 @@ ext_modules = [ \
               ), \
 
 
-    Extension('sage.plot.3d,graphics3d',
-              ['sage/plot/3d/graphics3d.pyx']
+    Extension('sage.plot.plot3d.base',
+              ['sage/plot/plot3d/base.pyx']
+              ), \
+    Extension('sage.plot.plot3d.transform',
+              ['sage/plot/plot3d/transform.pyx']
+              ), \
+    Extension('sage.plot.plot3d,index_face_set',
+              ['sage/plot/plot3d/index_face_set.pyx']
               ), \
 
 

@@ -16,11 +16,7 @@ TODO:
 from random import randint
 from math import atan2
 
-from sage.structure.sage_object import SageObject
 
-
-from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan, acos
 #from sage.functions.all import *
@@ -34,7 +30,7 @@ from sage.interfaces.tachyon import tachyon_rt
 default_texture = Texture()
 
 
-class Graphics3d_new(SageObject):
+cdef class Graphics3d_new(SageObject):
 
 
     def __add__(self, other):
@@ -261,7 +257,7 @@ class Viewpoint(Graphics3d_new):
 
 
 
-class PrimativeObject(Graphics3d_new):
+cdef class PrimativeObject(Graphics3d_new):
     def __init__(self, **kwds):
         try:
             self.texture = kwds['texture']

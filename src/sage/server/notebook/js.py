@@ -1402,9 +1402,12 @@ function cell_input_key_event(id, e) {
     }
     */
 
+    var selection_range = get_selection_range(cell_input);
+    var selection_is_empty = (selection_range[0] == selection_range[1]);
+
     // Will need IE version... if possible.
-    if (!in_slide_mode && key_up_arrow(e)) {
-        var before = text_cursor_split(cell_input)[0];
+    if (!in_slide_mode && key_up_arrow(e) && selection_is_empty) {
+        var before = cell_input.value.substring(0,selection_range[0])
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
             jump_to_cell(id,-1, true);
@@ -1412,8 +1415,8 @@ function cell_input_key_event(id, e) {
         } else {
             return true;
         }
-    } else if (!in_slide_mode && key_down_arrow(e)) {
-        var after = text_cursor_split(cell_input)[1];
+    } else if (!in_slide_mode && key_down_arrow(e) && selection_is_empty) {
+        var after = cell_input.value.substring(selection_range[0])
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {
             jump_to_cell(id,1);
@@ -1428,19 +1431,19 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
        return false;
-    } else if (key_comment(e)) {
+    } else if (key_comment(e) && !selection_is_empty) {
        return comment_cell(cell_input);
-    } else if (key_uncomment(e)) {
+    } else if (key_uncomment(e) && !selection_is_empty) {
        return uncomment_cell(cell_input);
-    } else if (key_unindent(e) && cell_input.selectionStart != cell_input.selectionEnd) { //unfortunately, shift-tab needs to get caught before not-shift tab
+    } else if (key_unindent(e) && !selection_is_empty) { //unfortunately, shift-tab needs to get caught before not-shift tab
        unindent_cell(cell_input);
        return false;
-    } else if (key_request_introspections(e) && current_selection(cell_input) == "") {
+    } else if (key_request_introspections(e) && selection_is_empty) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
        focus_delay(id,true);
        return false;
-    } else if (key_indent(e) && cell_input.selectionStart != cell_input.selectionEnd) {
+    } else if (key_indent(e) && !selection_is_empty) {
        indent_cell(cell_input);
        return false;
     } else if (key_interrupt(e)) {

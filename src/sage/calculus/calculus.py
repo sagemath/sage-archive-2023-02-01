@@ -475,7 +475,7 @@ class SymbolicExpression(RingElement):
 
         Use onscreen=False to get the 2d string:
              sage: f.display2d(onscreen=False)
-             '\t\t\t\t\t 3\r\n\t\t\t\t    y + x\r\n         \t\t\t ------------\r\n\t\t\t\t    2\r\n\t\t\t\t 3 y  + x + 1'
+             '                                         3\r\n                                    y + x\r\n                                 ------------\r\n                                    2\r\n                                 3 y  + x + 1'
 
         ASCII art is really helps for the following integral:
             sage: f = integral(sin(x^2)); f

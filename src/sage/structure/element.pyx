@@ -376,6 +376,23 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
+    def N(self, prec=None, digits=None):
+        """
+        Return a numerical approximation of x with at least prec bits of
+        precision.
+
+        EXAMPLES:
+            sage: (2/3).N()
+            0.666666666666667
+            sage: a = 2/3
+            sage: pi.N(digits=10)
+            3.141592654
+            sage: pi.N(prec=20)   # 20 bits
+            3.1416
+        """
+        import sage.misc.functional
+        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
+
     def substitute(self,in_dict=None,**kwds):
         """
         This is an alias for self.subs().

@@ -55,7 +55,6 @@ include "../../libs/singular/singular-cdefs.pxi"
 
 from sage.structure.parent_base cimport ParentWithBase
 
-from sage.libs.singular.singular import Conversion
 from sage.libs.singular.singular cimport Conversion
 
 cdef Conversion co
@@ -65,7 +64,6 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 from sage.structure.sequence import Sequence
-
 
 cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     """
@@ -81,12 +79,11 @@ cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     cdef MPolynomial_libsingular p
 
     l = []
+
     for j from 0 <= j < IDELEMS(i):
-        # we should use new_MP here be can't
-        p = PY_NEW(MPolynomial_libsingular)
-        p._parent = <ParentWithBase>parent
-        p._poly = p_Copy(i.m[j], r)
+        p = co.new_MP(parent, p_Copy(i.m[j], r))
         l.append( p )
+
     return Sequence(l, check=False, immutable=True)
 
 cdef ideal *sage_ideal_to_singular_ideal(I):
@@ -105,6 +102,7 @@ cdef ideal *sage_ideal_to_singular_ideal(I):
 
     if not PY_TYPE_CHECK(R,MPolynomialRing_libsingular):
         raise TypeError, "ring must be of type MPolynomialRing_libsingular"
+
     r = (<MPolynomialRing_libsingular>R)._ring
     rChangeCurrRing(r);
 

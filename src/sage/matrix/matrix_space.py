@@ -12,6 +12,14 @@ EXAMPLES:
     Rational Field
     sage: MS = MatrixSpace(ZZ,3,5,sparse=False); MS
     Full MatrixSpace of 3 by 5 dense matrices over Integer Ring
+
+TESTS:
+    sage: matrix(RR,2,2,sparse=True)
+    [0.000000000000000 0.000000000000000]
+    [0.000000000000000 0.000000000000000]
+    sage: matrix(GF(11),2,2,sparse=True)
+    [0 0]
+    [0 0]
 """
 
 # System imports
@@ -34,6 +42,8 @@ import matrix_integer_sparse
 
 import matrix_rational_dense
 import matrix_rational_sparse
+
+import matrix_mpolynomial_dense
 
 #import padics.matrix_padic_capped_relative_dense
 
@@ -62,6 +72,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.integer_mod_ring
+import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
@@ -238,6 +249,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 1]
             [0 1]
         """
+        if entries is None:
+            entries = 0
+
         if entries == 0 and hasattr(self, '__zero_matrix'):
             return self.zero_matrix()
 
@@ -423,6 +437,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
+            elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring().is_field():
+                return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
             # the default

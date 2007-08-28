@@ -846,7 +846,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             g = self.polynomial()  # in QQ[x]
             f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            return R( (g._pari_('x').Mod(f)).charpoly() )
+            return R( (g._pari_().Mod(f)).charpoly() )
 
 ## This might be useful for computing relative charpoly.
 ## BUT -- currently I don't even know how to view elements

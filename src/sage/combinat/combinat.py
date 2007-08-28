@@ -1069,7 +1069,7 @@ def cyclic_permutations_iterator(mset):
 
 #### partitions
 
-def partitions_set(S,k=None):
+def partitions_set(S,k=None, use_file=True):
     r"""
     An {\it unordered partition} of a set $S$ is a set of pairwise disjoint
     nonempty subsets with union $S$ and is represented by a sorted
@@ -1088,6 +1088,9 @@ def partitions_set(S,k=None):
     this function does *not* do what you expect.  A proper function
     should be written! (TODO!)
 
+    WARNING: This function is inefficient.  The runtime is dominated
+    by parsing the output from GAP.
+
     Wraps GAP's PartitionsSet.
 
     EXAMPLES:
@@ -1104,10 +1107,10 @@ def partitions_set(S,k=None):
     REFERENCES:
        http://en.wikipedia.org/wiki/Partition_of_a_set
     """
-    if k==None:
-        ans=gap.eval("PartitionsSet(%s)"%S)
+    if k is None:
+        ans=gap("PartitionsSet(%s)"%S).str(use_file=use_file)
     else:
-        ans=gap.eval("PartitionsSet(%s,%s)"%(S,k))
+        ans=gap("PartitionsSet(%s,%s)"%(S,k)).str(use_file=use_file)
     return eval(ans)
 
 def number_of_partitions_set(S,k):

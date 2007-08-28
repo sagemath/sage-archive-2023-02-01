@@ -2721,6 +2721,9 @@ def generic_power(a, n, one=None):
         sage: a = generic_power(F(1), 2)
         sage: a.parent() is F
         True
+
+        sage: generic_power(int(5), 0)
+        1
     """
 
     return generic_power_c(a,n,one)

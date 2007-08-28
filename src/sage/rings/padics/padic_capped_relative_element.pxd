@@ -9,6 +9,9 @@ from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleE
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
+cimport sage.rings.rational
+from sage.rings.rational cimport Rational
+
 cimport sage.rings.padics.pow_computer
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
@@ -22,10 +25,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
     cdef void set_zero(pAdicCappedRelativeElement self, absprec)
     cdef void set_precs(pAdicCappedRelativeElement self, long relprec)
-    cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
     cdef void set(pAdicCappedRelativeElement self, long ordp, Integer unit, long relprec)
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef void _normalize(pAdicCappedRelativeElement self)
+    cdef int _set_from_Integer( pAdicCappedRelativeElement self, parent, Integer x, absprec, relprec) except -1
+    cdef int _set_from_Rational( pAdicCappedRelativeElement self, parent, Rational x, absprec, relprec) except -1
+    cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
     cdef ModuleElement _neg_c_impl(self)
     cdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift)

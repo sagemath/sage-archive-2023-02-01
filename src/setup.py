@@ -637,7 +637,7 @@ ext_modules = [ \
     Extension('sage.plot.plot3d.transform',
               ['sage/plot/plot3d/transform.pyx']
               ), \
-    Extension('sage.plot.plot3d,index_face_set',
+    Extension('sage.plot.plot3d.index_face_set',
               ['sage/plot/plot3d/index_face_set.pyx']
               ), \
 
@@ -903,6 +903,7 @@ setup(name        = 'sage',
 
                      'sage.plot',
                      'sage.plot.mpl3d',
+                     'sage.plot.plot3d',
 
                      'sage.probability',
 

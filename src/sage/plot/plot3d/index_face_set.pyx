@@ -1,3 +1,6 @@
+include "../../ext/stdsage.pxi"
+
+
 from math import sin, cos, sqrt
 
 from sage.rings.real_double import RDF
@@ -5,99 +8,127 @@ from sage.rings.real_double import RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
-from sage.plot.plot3d.base import Graphics3dGroup, PrimativeObject
-from sage.plot.plot3d.base cimport PrimativeObject
+from sage.plot.plot3d.base import Graphics3dGroup
+
 
 
 cdef class IndexFaceSet(PrimativeObject):
-    def __init__(self, faces, **kwds):
-        PrimativeObject.__init__(self, **kwds)
-        self.faces = faces
 
-    def getFaceList(self):
-        return self.faces
+    def __init__(self, faces, point_list=None, **kwds):
+        PrimativeObject.__init__(self, **kwds)
+
+        if point_list is None:
+            face_list = faces
+            faces = []
+            point_list = []
+            point_index = {}
+            for face in face_list:
+                iface = []
+                for p in face:
+                    try:
+                        ix = point_index[p]
+                    except KeyError:
+                        ix = len(point_list)
+                        point_index[p] = ix
+                        point_list.append(p)
+                    iface.append(ix)
+                faces.append(iface)
+
+        cdef Py_ssize_t i
+        cdef Py_ssize_t index_len = len(faces)
+        for i from 0 <= i < len(faces):
+            index_len += len(faces[i])
+
+        self.vcount = len(point_list)
+        self.fcount = len(faces)
+
+        self.vs = <point_c *> sage_malloc(sizeof(point_c) * self.vcount)
+        self._faces = <face_c *> sage_malloc(sizeof(face_c) * self.fcount)
+        self.face_indices = <int *> sage_malloc(sizeof(int) * index_len)
+        if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
+            raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
+
+        for i from 0 <= i < self.vcount:
+            self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
+
+        print faces
+        cdef int cur_pt = 0
+        for i from 0 <= i < self.fcount:
+            self._faces[i].n = len(faces[i])
+            self._faces[i].vertices = &self.face_indices[cur_pt]
+            for ix in faces[i]:
+                self.face_indices[cur_pt] = ix
+                cur_pt += 1
+
+    def __dealloc__(self):
+        if self.vs: sage_free(self.vs)
+        if self._faces: sage_free(self._faces)
+        if self.face_indices: sage_free(self.face_indices)
+
+    def index_faces(self):
+        cdef Py_ssize_t i, j
+        return [[self._faces[i].vertices[j] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
+
+    def faces(self):
+        points = self.vertices()
+        cdef Py_ssize_t i, j
+        return [[points[self._faces[i].vertices[j]] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
+
+    def vertices(self):
+        cdef Py_ssize_t i
+        return [(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
 
     def x3d_geometry(self):
-        faces = self.getFaceList()
-        point_index = {}
-        point_list = []
-        coordIndex = ""
-        for face in faces:
-            for p in face:
-                try:
-                    ix = point_index[p]
-                except KeyError:
-                    ix = len(point_list)
-                    point_index[p] = ix
-                    point_list.append(p)
-                coordIndex += ",%s"%ix
-            coordIndex += ",-1"
-        points = ",".join(["%s %s %s"%p for p in point_list])
+        cdef Py_ssize_t i
+        points = ",".join(["%s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount])
+        coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
+                                            for j from 0 <= j < self._faces[i].n])
+                                  for i from 0 <= i < self.fcount])
         return """
-<IndexedFaceSet coordIndex='%s'>
+<IndexedFaceSet coordIndex='%s,-1'>
   <Coordinate point='%s'/>
 </IndexedFaceSet>
 """%(coordIndex, points)
 
     def tachyon_str(self, transform):
-        faces = self.getFaceList()
-        s = ""
+        faces = self.faces()
+        lines = []
+        texture_str = "\n"+self.texture.tachyon_str()
         for face in faces:
             if transform is not None:
                 face = [transform(p) for p in face]
-            s += """
+            lines.append("""
 TRI
     V0 %s %s %s
     V1 %s %s %s
     V2 %s %s %s
                 """ % (face[0][0], face[0][1], face[0][2],
                        face[1][0], face[1][1], face[1][2],
-                       face[2][0], face[2][1], face[2][2])
-            s += "\n" + self.texture.tachyon_str()
+                       face[2][0], face[2][1], face[2][2]))
+            lines.append(texture_str)
             if len(face) > 3:
                 for k in range(2, len(face)-1):
-                    s += """
+                    lines.append("""
 TRI
     V0 %s %s %s
     V1 %s %s %s
     V2 %s %s %s
                 """ % (face[0][0], face[0][1], face[0][2],
                        face[k][0], face[k][1], face[k][2],
-                       face[k+1][0], face[k+1][1], face[k+1][2])
-                    s += "\n" + self.texture.tachyon_str()
-        return s
+                       face[k+1][0], face[k+1][1], face[k+1][2]))
+                    lines.append(texture_str)
+        return "".join(lines)
 
 
-    def obj_geometry(self, transform, point_list=None):
-        if point_list is None:
-            point_list = []
-        faces = self.getFaceList()
-        point_index = {}
-        face_list = []
-        start_index = len(point_list)
-        for face in faces:
-            cur_face = "f"
-            for p in face:
-                if transform is not None:
-                    p = transform(p)
-                try:
-                    ix = point_index[p]
-                except KeyError:
-                    ix = len(point_list)
-                    point_index[p] = ix
-                    point_list.append(p)
-                cur_face += " %s"%(ix+1)
-            face_list.append(cur_face)
-        s = "\n".join(["v %s %s %s"%(p[0], p[1], p[2]) for p in point_list[start_index:]])
-        s += "\n"
-        s += "\n".join(face_list)
-        s += "\n\n"
-        return s
+    def obj_geometry(self, transform, point_offset=0):
+
+        points = ["%s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
+        faces = [" ".join([str(self._faces[i].vertices[j]) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
+        return "%s\n\n%s\n\n" % ("v\n".join(points), "f\n".join(faces))
 
     def stickers(self, colors, width, hover):
-        faces = self.getFaceList()
         all = []
-        n = len(faces); ct = len(colors)
+        n = self.fcount; ct = len(colors)
         for k in range(len(colors)):
             if colors[k]:
                 all.append(self.sticker(range(k,n,ct), width, hover, texture=colors[k]))
@@ -112,13 +143,40 @@ TRI
             all.append(sticker(faces[k], width, hover))
         return IndexFaceSet(all, **kwds)
 
+
+cdef class FaceIter:
+    def __init__(self, face_set):
+        self.set = face_set
+        self.i = 0
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.i >= self.set.fcount:
+            raise StopIteration
+        else:
+            return [self.set._faces[self.i].vertices[j] for j from 0 <= j < self.set._faces[self.i].n]
+            self.i += 1
+
+cdef class VertexIter:
+    def __init__(self, face_set):
+        self.set = face_set
+        self.i = 0
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.i >= self.set.vcount:
+            raise StopIteration
+        else:
+            return (self.set.vs[self.i].x, self.set.vs[self.i].y, self.set.vs[self.i].z)
+            self.i += 1
+
 def len3d(v):
     return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
 
 def sticker(face, width, hover):
     n = len(face)
     edges = []
-    for i in range(n):
+    for i from 0 <= i < n:
         edges.append(vector(RDF, [face[i-1][0] - face[i][0],
                                   face[i-1][1] - face[i][1],
                                   face[i-1][2] - face[i][2]]))

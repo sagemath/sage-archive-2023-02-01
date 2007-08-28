@@ -14,6 +14,12 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 cdef class IndexFaceSet(PrimativeObject):
 
+    def __new__(self, faces, point_list=None, enclosde=False, **kwds):
+        self.vs = <point_c *>NULL
+        self.face_indices = <int *>NULL
+        self._faces = <face_c *>NULL
+
+
     def __init__(self, faces, point_list=None, enclosed=False, **kwds):
         PrimativeObject.__init__(self, **kwds)
 
@@ -44,7 +50,7 @@ cdef class IndexFaceSet(PrimativeObject):
         self.vcount = len(point_list)
         self.fcount = len(faces)
 
-        self.alloc(self.vcount, self.fcount, index_len)
+        self.realloc(self.vcount, self.fcount, index_len)
 
         for i from 0 <= i < self.vcount:
             self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
@@ -57,13 +63,19 @@ cdef class IndexFaceSet(PrimativeObject):
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1
 
-    cdef alloc(self, vcount, fcount, icount):
-        if self.vs: sage_free(self.vs)
-        self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
-        if self._faces: sage_free(self._faces)
-        self._faces = <face_c *> sage_malloc(sizeof(face_c) * fcount)
-        if self.face_indices: sage_free(self.face_indices)
-        self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
+    cdef realloc(self, vcount, fcount, icount):
+        if self.vs:
+            self.vs = <point_c *> sage_realloc(self.vs, sizeof(point_c) * vcount)
+        else:
+            self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
+        if self._faces:
+            self._faces = <face_c *> sage_realloc(self._faces, sizeof(face_c) * fcount)
+        else:
+            self._faces = <face_c *> sage_malloc(sizeof(face_c) * fcount)
+        if self.face_indices:
+            self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
+        else:
+            self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
         if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
             raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
 
@@ -134,8 +146,10 @@ TRI
 
 
     def obj_geometry(self, transform, point_offset=0):
-
-        points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
+        if transform is None:
+            points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
+        else:
+            points = ["v %s %s %s"%transform(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
         faces = [" ".join([str(self._faces[i].vertices[j]+1) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
         if not self.enclosed:
             faces += [" ".join([str(self._faces[i].vertices[j]+1) for j from self._faces[i].n > j >= 0]) for i from 0 <= i < self.fcount]

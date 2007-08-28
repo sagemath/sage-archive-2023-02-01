@@ -643,6 +643,9 @@ ext_modules = [ \
     Extension('sage.plot.plot3d.parametric_surface',
               ['sage/plot/plot3d/parametric_surface.pyx']
               ), \
+    Extension('sage.plot.plot3d.shapes',
+              ['sage/plot/plot3d/shapes.pyx']
+              ), \
 
 
     ]

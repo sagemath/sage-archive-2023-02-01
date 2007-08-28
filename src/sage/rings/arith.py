@@ -1111,17 +1111,32 @@ def __GCD_list(v):
 
 def xgcd(a, b):
     """
-    Returns triple of integers (g,s,t) such that g = s*a+t*b =
-    gcd(a,b).
+    Returns triple (g,s,t) such that g = s*a+t*b = gcd(a,b).
 
+    INPUT:
+        a, b -- integers or univariate polynomials (or any type
+                with an xgcd method).
+    OUTPUT:
+        g, s, t -- such that g = s*a + t*b
+
+    EXAMPLES:
         sage: xgcd(56, 44)
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
+        sage: xgcd(5/1, 7/1)
+        (1, 3, -2)
+        sage: x = polygen(QQ)
+        sage: xgcd(x^3 - 1, x^2 - 1)
+        (x - 1, 1, -x)
     """
-    if not isinstance(a, RingElement):
+    try:
+        return a.xgcd(b)
+    except AttributeError:
+        pass
+    if not isinstance(a, sage.rings.integer.Integer):
         a = integer_ring.ZZ(a)
-    return a.xgcd(b)
+    return a.xgcd(integer_ring.ZZ(b))
 
 XGCD = xgcd
 

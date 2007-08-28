@@ -219,6 +219,13 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
                                    ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
+
+matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
+                                     ['sage/matrix/matrix_mpolynomial_dense.pyx'],
+                                     libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+                                     language="c++",
+                                     include_dirs=[SAGE_ROOT +'/local/include/singular'])
+
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
 
@@ -346,6 +353,8 @@ ext_modules = [ \
      matrix_modn_dense,
      matrix_modn_sparse,
      matrix_mod2_dense,
+     matrix_mpolynomial_dense, \
+
      givaro_gfq, \
 
      libsingular, \
@@ -354,6 +363,7 @@ ext_modules = [ \
 
 ##     matrix_cyclo_dense,
 ##     matrix_cyclo_sparse,
+
 
     dwt,
 
@@ -438,7 +448,7 @@ ext_modules = [ \
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
+              sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
 
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']), \
@@ -497,7 +507,7 @@ ext_modules = [ \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
-              libraries=['gmp']), \
+              libraries=['gmp','stdc++']), \
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],

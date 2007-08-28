@@ -2703,6 +2703,11 @@ def xgcd(x,y):
 ######################
 
 def generic_power(a,nn):
+    """
+    INPUT:
+        sage: generic_power(int(5), 0)
+        1
+    """
     n = int(nn)
 
     if n != nn:

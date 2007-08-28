@@ -45,7 +45,7 @@ class MySystem(Expect):
                  init_list_length=1024):
         Expect.__init__(self,
 
-                        # The capitalized versionof this is used for printing.
+                        # The capitalized version of this is used for printing.
                         name = 'mysystem',
 
                         # This is regexp of the input prompt.  If you can change
@@ -57,7 +57,10 @@ class MySystem(Expect):
                         command = "mysystem",
 
                         maxread = maxread,
+
                         server=server,
+                        server_tmpdir=server_tmpdir,
+
                         script_subdirectory = script_subdirectory,
 
                         # If this is true, then whenever the user presses Control-C to
@@ -173,6 +176,7 @@ def reduce_load_MySystem():
 
 import os
 def mysystem_console():
+    # This will only spawn local processes
     os.system('mysystem')
 
 

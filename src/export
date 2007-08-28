@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
+rm -rf */.doctest* */*/.doctest* */*/*/.doctest* */*/*/*/.doctest* */*/*/*/*/.doctest*  */*/*/*/*/*/.doctest*
 
 hg diff
 

@@ -551,18 +551,19 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self.sqrt(prec=prec, all=all)
 
     def val_unit(self, p):
-        return self._val_unit(p)
-
-    cdef _val_unit(Rational self, integer.Integer p):
         r"""
-        Returns a pair: the p-adic valuation of self, and the p-adic unit of self, as a Rational.
+        Returns a pair: the p-adic valuation of self, and the p-adic
+        unit of self, as a Rational.
 
         We do not require the p be prime, but it must be at least 2.
-        For more documentation see \code{val_unit}
+        For more documentation see \code{Integer.val_unit}
 
         AUTHOR:
             -- David Roe (4/12/07)
         """
+        return self._val_unit(p)
+
+    cdef _val_unit(Rational self, integer.Integer p):
         cdef integer.Integer v
         cdef Rational u
         if mpz_cmp_ui(p.value, 2) < 0:

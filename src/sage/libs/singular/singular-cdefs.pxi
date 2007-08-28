@@ -3,47 +3,60 @@ C level declarations of symbols in the SINGULAR libary.
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
-NOTE: our ring, poly etc. types are not the Singular ring, poly,
-etc. types. They are deferences. So a Singular ring is a ring* here.
+NOTE: our ring, poly etc. types are not the SINGULAR ring, poly,
+etc. types. They are deferences. So a SINGULAR ring is a ring pointer
+here.
 
 """
-include "../../ext/cdefs.pxi"
-
-cdef extern from "stdsage.h":
-    ctypedef void PyObject
-
-    # Global tuple -- useful optimization
-    void init_global_empty_tuple()
-    object PY_NEW(object t)
-    void* PY_TYPE(object o)
-    int PY_TYPE_CHECK(object o, object t)
-    object IS_INSTANCE(object o, object t)
-
-
-# Shared Library Loading,
-cdef extern from "dlfcn.h":
-    void *dlopen(char *, long)
-    char *dlerror()
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef extern from "stdlib.h":
-    void *calloc(size_t nmemb, size_t size)
-    void free(void *ptr)
     void delete "delete" (void *ptr)
 
 cdef extern from "libsingular.h":
 
-    # all possible ring orders per block
+    #
+    # STRUCTS
+    #
+
+    # rational numbers
+
     ctypedef struct number "snumber":
         mpz_t z
         mpz_t n
         int s
 
+    # finite extension field elements
+
     ctypedef struct napoly "polyrec"
 
-    cdef enum tHomog:
-        isNotHomog
-        isHomog
-        testHomog
+    # algebraic numbers
+
+    ctypedef struct lnumber "slnumber":
+        napoly *z
+        napoly *n
+        int s
+
+    # rings
+
+    ctypedef struct ring "ip_sring":
+        int  *order  # array of orderings
+        int  *block0 # starting pos
+        int  *block1 # ending pos
+        int  **wvhdl # weight vectors
+        int  OrdSgn  # 1 for polynomial rings
+        int  ShortOut # control printing
+        int  CanShortOut # control printing capabilities
+        number *minpoly # minpoly for base extension field
+        char **names # variable names
+        char **parameter # parameter names
+        ring *algring # base extension field
+        short N # number of variables
+        short P # number of parameters
+        int ch # charactersitic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+
+    # available ring orders
 
     cdef enum rRingOrder_t:
         ringorder_no
@@ -67,305 +80,532 @@ cdef extern from "libsingular.h":
         ringorder_Ws
         ringorder_L
 
-    # This is the basis ring datatype of SINGULAR
-    # Please note: This is not the SINGULAR ring, it has one pointer
-    # layer less.
-
-    ctypedef struct ring "ip_sring":
-        int  *order  # array of orderings
-        int  *block0 # starting pos
-        int  *block1 # ending pos
-        int  **wvhdl
-        int  OrdSgn
-        int  ShortOut
-        int  CanShortOut
-        number *minpoly
-        char **names
-        char **parameter
-        ring *algring
-        short N
-        short P
-        int ch
-
-    # This is the basic polynomial datatype of SINGULAR
-
-    # Please note: This is not the SINGULAR poly, it has one pointer
-    # layer less.
+    # polynomials
 
     ctypedef struct poly "polyrec":
         poly *next
 
-    # This is the basic ideal/matrix datatype of SINGULAR
 
-    # Please note: This is not the SINGULAR ideal, it has one pointer
-    # layer less.
+    # groebner basis options
+
+    cdef enum tHomog:
+        isNotHomog
+        isHomog
+        testHomog
+
+    # ideals
 
     ctypedef struct ideal "ip_sideal":
-        poly **m
-        long rank
-        int nrows
-        int ncols
+        poly **m # gens array
+        long rank # rank of module, 1 for ideals
+        int nrows # always 1
+        int ncols # number of gens
 
-    # comment from the SINGULAR code:
+    # dense matrices
 
-    #  'keiner (ausser obachman) darf das folgenden benutzen !!!'
-    #  in English: 'nobody (except obachman) may use the following!!!'
-    #
-    # I feel so obachman today.
+    ctypedef struct matrix "ip_smatrix":
+        poly **m # gens array
+        long rank # rank of module, 1 for normal matrices
+        int nrows # number of rows
+        int ncols # number of columns
+
+    # integer vectors
 
     ctypedef struct intvec:
-        int *(*ivGetVec)()
+        int *(*ivGetVec)() # this is internal actually
         int (*rows)()
         int (*cols)()
 
-    # oMalloc Bins
+    # omalloc bins
+
     ctypedef struct omBin "omBin_s"
 
+    #
+    # GLOBAL VARIABLES
+    #
 
-    # SINGULAR Init
-    # ------------------------
-    void feInitResources(char *name)
+    # current ring
 
-    void rChangeCurrRing(ring *r)
     cdef ring *currRing
+
+    # omalloc bin for numbers
+
     cdef omBin *rnumber_bin
+
+    # omalloc bin for rings
+
     cdef omBin *sip_sring_bin
-    cdef int (*pLDeg)(poly *p, int *l, ring *r)
+
+    # integer conversion constant
+
+    cdef long SR_INT
+
+
+    #
+    # FUNCTIONS
+    #
+
+    # singular init
 
     int siInit(char *)
 
-    # OMalloc
+    # external resource init
+
+    void feInitResources(char *name)
+
+
+
+
+    # calloc
+
     void *omAlloc0(size_t size)
+
+    # typed malloc from bin
+
     void *omAllocBin(omBin *bin)
+
+    # typed calloc from bin
+
     void *omAlloc0Bin(omBin *bin)
+
+    # strdup
+
     char *omStrDup(char *)
+
+    # free
+
     void omFree(void *)
 
 
-    # rDefault accepts the characteristic, the number of variables,
-    # and an array of variable names.
+
+
+    # construct ring with characteristic, number of vars and names
+
     ring *rDefault(int char, int nvars, char **names)
 
-    void rDelete(ring *r) # Destructor
-    int rChar(ring *r) # Returns the characteristic of the ring
-    char* rRingVar(short i, ring *r) # Returns the name of the i-th variable of the ring r.
+    # ring destructor
 
-    # if you change anything in the ring, like the term ordering
-    # this needs to be called
+    void rDelete(ring *r)
+
+    # return characteristic of r
+
+    int rChar(ring *r)
+
+    # return name of the i-th variable of ring r
+
+    char* rRingVar(short i, ring *r)
+
+    # before changing a ring struct, call this
+
     void rUnComplete(ring *r)
 
-    # this enables the changes done after rUnComplete
+    # after changing a ring struct, call thi
+
     void rComplete(ring *r, int force)
+
+    # deep copy of ring
 
     ring *rCopy0(ring *)
 
+    # change current ring to r
 
-    ###
+    void rChangeCurrRing(ring *r)
 
-    ### Polynomials
-    ####
 
-    ### The rule of thumb is: p_XXX accepts a ring as parameter, while
-    ### pXXX doesn't. It relies on currRing.
 
-    ## Constructions / Destructors
-    ## -------------------------------
 
-    # new empty monomial
+    # return new empty monomial
+
     poly *p_Init(ring *r)
 
-    # const polynomial from int
+    # return constant polynomial from int
+
     poly *p_ISet(int i, ring *r)
 
-    # const polynomial from number (coefficient)
+    # return constant polynomial from number
+
     poly *p_NSet(number *n,ring *r)
 
-    # destructor
+    # destructor for polynomials
+
     void p_Delete(poly **p, ring *r)
 
-    # set the coeff n for the current list element p in r
+    # set the coefficient n for the current list element p in r
+
     int p_SetCoeff(poly *p, number *n, ring *r)
 
-    # get the coeff of the current list element p in r
+    # get the coefficient of the current list element p in r
+
     number *p_GetCoeff(poly *p, ring *r)
 
-    # sets the exponent e at index v for the list element (monomial) p in r
-    # v starts counting at 1
+    # set the exponent e at index v for the monomial p, v starts at 1
+
     int p_SetExp(poly *p, int v, int e, ring *r)
 
-    # get the exponent at index v of the monomial p in r
+    # get the exponent at index v of the monomial p in r, v starts at 1
+
     int p_GetExp(poly *p, int v, ring *r)
 
-    # if SetExp is called on p, p_Setm needs to be called afterwards
-    # to finalize the change.
+    # if SetExp is called on p, p_Setm needs to be called afterwards to finalize the change.
+
     void p_Setm(poly *p, ring *r)
 
     # gets a component out of a polynomial vector
+
     poly *pTakeOutComp1(poly **, int)
 
-    # copies p
+    # deep copy p
+
     poly *p_Copy(poly *p, ring *r)
 
     # homogenizes p by multiplying certain powers of the varnum-th variable
+
     poly *pHomogen (poly *p, int varnum)
 
-    # returns whether a polynomial is homogenous.
+    # return whether a polynomial is homogenous
+
     int pIsHomogeneous(poly *p)
+
+    # return string representation of p
 
     char *p_String(poly *p, ring *r, ring *r)
 
+    # normalize p, needed e.g. for polynomials over the rationals
+
     void p_Normalize(poly *p, ring *r)
 
-    ## Arithmetic
-    ## -------------------------------
+    # return -p, p is destroyed
 
-    # returns -p, p is destroyed
     poly *p_Neg(poly *p, ring *r)
 
-    # returns p*n, p is const (i.e. copied)
+    # return p*n, p is const (i.e. copied)
+
     poly *pp_Mult_nn(poly *p, number *n, ring *r)
 
-    # returns p*m, does neither destroy p nor m
+    # return p*m, does neither destroy p nor m
+
     poly *pp_Mult_mm(poly *p, poly *m, ring *r)
 
-    # returns p+q, destroys p and q
+    # return p+q, destroys p and q
+
     poly *p_Add_q(poly *p, poly *q, ring *r)
 
     # return p - m*q, destroys p; const: q,m
+
     poly *p_Minus_mm_Mult_qq(poly *p, poly *m, poly *q, ring *r)
 
-    # returns p + m*q destroys p, const: q, m
+    # return p + m*q destroys p, const: q, m
+
     poly *p_Plus_mm_Mult_qq(poly *p, poly *m, poly *q, ring *r)
 
-    # returns p*q, does neither destroy p nor q
+    # return p*q, does neither destroy p nor q
     poly *pp_Mult_qq(poly *p, poly *q, ring *r)
 
-    # returns p*q, destroys p and q
+    # return p*q, destroys p and q
     poly *p_Mult_q(poly *p, poly *q, ring *r)
 
-    poly *pDivide(poly *,poly *)
+    # divide monomial p by monomial q, p,q const
 
-    # returns the i-th power of p; p will be destroyed, requires global ring
+    poly *pDivide(poly *p,poly *q)
+
+    # return the i-th power of p; p destroyed, requires global ring
+
     poly *pPower(poly *p, int exp)
 
-    # returns newly allocated copy of Lm(p), coef is copied,
-    # next=NULL, p might be NULL
+    # return new copy of lm(p), coefficient copied, next=NULL, p may be NULL
+
     poly *p_Head(poly *p, ring *r)
 
-    # returns TRUE, if leading monom of a divides leading monom of b
-    # i.e., if there exists a expvector c > 0, s.t. b = a + c;
+    # return TRUE, if leading monom of a divides leading monom of b
+    # i.e., if there exists a expvector c > 0, s.t. b = a + c
+
     int p_DivisibleBy(poly *a, poly *b, ring *r)
 
     # like pDivisibleBy, except that it is assumed that a!=NULL, b!=NULL
+
     int p_LmDivisibleBy(poly *a, poly *b, ring *r)
 
-    # least common multiplies for MONOMIALS only, result is written to m
+    # least common multiplies for monomials only, result is written to m
     # p_Setm must be called on m afterwards.
+
     void pLcm(poly *a, poly *b, poly *m)
 
     # total degree of p
+
     long pTotaldegree(poly *p, ring *r)
 
-    # iterates through the monomials of p
+    # iterate through the monomials of p
+
     poly *pNext(poly *p)
 
+    # compare l and r
+
     int p_Cmp(poly *l, poly *r, ring *r)
+
+    # compare exponent vectors only
+
     int p_ExpVectorEqual(poly *p, poly *m, ring *r)
 
-    int p_IsConstant(poly *, ring *)
-    int p_LmIsConstant(poly *p, ring *)
-    int p_IsUnit(poly *, ring *)
+    # TRUE if poly is constant
 
-    poly *pSubst(poly *, int varidx, poly *value)
+    int p_IsConstant(poly *, ring *)
+
+    # like p_IsConstant but p must be !=NULL
+
+    int p_LmIsConstant(poly *p, ring *)
+
+    # TRUE if poly is unit
+
+    int p_IsUnit(poly *p, ring *r)
+
+    # substitute value for variable given by varidx in poly
+
+    poly *pSubst(poly *p, int varidx, poly *value)
+
+    # inverse of poly, if possible
 
     poly *pInvers(int n, poly *, intvec *)
 
     # gcd of f and g
+
     poly *singclap_gcd ( poly *f, poly *g )
 
-    # resultants of f and g in x
+    # resultant of f and g in x
+
     poly *singclap_resultant ( poly *f, poly *g , poly *x)
 
-    # extended GVD
+    # extended gcd of f and g
+
     int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb )
 
-    # polynomial division (as opposed to monomial division)
+    # full polynomial division (as opposed to monomial division)
+
     poly *singclap_pdivide ( poly *f, poly *g )
 
     # factorization
+
     ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps)
 
-    # is square free
-    int singclap_isSqrFree(poly *f)
+    # TRUE if p is square free
+    int singclap_isSqrFree(poly *p)
 
-    # normal form calculation of p with respect to F, Q is quotient
+    # normal form calculation of p with respect to i, q is quotient
     # ring.
-    poly *kNF(ideal *F, ideal *Q, poly *p)
 
-    # General Numbers
-    poly *pDiff(poly *, int)
+    poly *kNF(ideal *i, ideal *q, poly *p)
+
+    # derive p with respect to i-th variable
+
+    poly *pDiff(poly *p, int i)
+
+    # return total degree of p
+
+    int (*pLDeg)(poly *p, int *l, ring *r)
+
+    # TRUE if p is a vector
+
+    int pIsVector(poly *p)
+
+    # return current component level
+
+    int pGetComp(poly *p)
+
+
+
+
+    # general number constructor
 
     number *n_Init(int n, ring *r)
+
+    # general number destructor
+
     void n_Delete(number **n, ring *r)
+
+    # return int representation of number n
+
     int nInt(number *n)
+
+    # general number division
+
     number *n_Div(number *a, number *b, ring *r)
+
+    # compare general number with zero
+
     int n_GreaterZero(number *a, ring *r)
+
+    # TRUE if a == 0
+
     int n_IsZero(number *a, ring *r)
 
+    # general number subtraction
+
     number *n_Sub(number *a, number *b, ring *r)
+
+    # general number inversion
+
     number *nInvers(number *n)
 
-    # Rational Numbers
+
+
+
+    # rational number from int
+
     number *nlInit(int)
-    number *nlInit2gmp(mpz_t i, mpz_t j)
-    number *nlInit2(int i, int j)
-    number *nlGetNom(number *n, ring *r)
-    number *nlGetDenom(number *n, ring *r)
+
+    # rational number from int
+
     number *nlRInit(int)
 
+    # rational number from numerator and denominator
 
-    # Algebraic Numbers
-    number *naPar(int)
+    number *nlInit2gmp(mpz_t n, mpz_t d)
+
+    # rational number from numerator and denominator
+
+    number *nlInit2(int i, int j)
+
+    # get numerator
+
+    number *nlGetNom(number *n, ring *r)
+
+    # get denominator
+
+    number *nlGetDenom(number *n, ring *r)
+
+
+
+
+    # i-th algebraic number paraemeter
+
+    number *naPar(int i)
+
+    # algebraic number power
+
     void naPower(number *, int, number **)
+
+    # algebraic number multiplication
+
     number *naMult(number *, number *)
+
+    # algebraic number addition
+
     number *naAdd(number *, number *)
+
+    # deep copy of algebraic number
+
     number *naCopy(number *)
+
+    # algebraic number from int
+
     number *naInit(int)
+
+    # algebraic number destructor
+
     void naDelete(number **, ring*)
+
+    # algebraic number comparison with zero
+
     int naIsZero(number *)
-    char * naRead(char *s, number *)
+
+    # algebraic number comparison with one
+
     int naIsOne(number *)
-    int naIsZero(number *)
+
+    # get current coefficent
 
     number *napGetCoeff(napoly *z)
-    int napGetExp(napoly *, int)
+
+    # get exponent of i-th variable
+
+    int napGetExp(napoly *, int i)
+
+    # loop through algebraic number
+
     napoly *napIter(napoly *)
 
-    # Integer Numbers
-    cdef long SR_INT
+
+
+
+    # number to integer handle
+
     long SR_TO_INT(number *)
+
+    # mpz_t to integer handle
+
     long SR_HDL(mpz_t )
 
 
-    ctypedef struct napoly "polyrec"
-
-    ctypedef struct lnumber "slnumber":
-        napoly *z
-        napoly *n
-        int s
 
 
-    # Ideals
+    # ideal constructor
+
     ideal *idInit(int size, int rank)
+
+    # ideal destructor
+
     void id_Delete(ideal **, ring *)
-    ideal *fast_map(ideal *, ring *, ideal *, ring *)
+
+    # mappinf from ideal i1 in r1 by i2 to r2
+
+    ideal *fast_map(ideal *i1, ring *r1, ideal *i2, ring *r2)
+
+    # lifting
+
     ideal *idLift(ideal *mod, ideal *submod, ideal **rest, int goodShape, int isSB, int divide)
-    void idShow(ideal *i)
+
+    # number of generators of ideal
+
     int IDELEMS(ideal *i)
 
+    # remove zero entries
 
     void idSkipZeroes (ideal *ide)
+
+    # rank of free module for m
+
     long idRankFreeModule(ideal *m, ring *r)
+
+    # buchberger's algorithm
+
     ideal *kStd(ideal *i, ideal *q, tHomog h, intvec *w)
-    ideal *kInterRed(ideal *i, ideal *q)
+
+    # slimgb algorithm
+
     ideal *t_rep_gb(ring *r,ideal *arg_I, int syz_comp, int F4_mode)
+
+    # interreduction
+
+    ideal *kInterRed(ideal *i, ideal *q)
+
+    # TRUE if ideal is module
+
+    int idIsModule(ideal *m, ring *r)
+
+    # convert module to matrix
+
+    matrix *idModule2Matrix(ideal *i)
+
+    # convert matrix to module
+
+    ideal * idMatrix2Module(matrix *m)
+
+    # dense matrix constructor
+
+    matrix *mpNew(int i, int j)
+
+    # gauss-bareiss algorithm
+
+    void smCallNewBareiss(ideal *, int, int, ideal *, intvec**)
+
+    # get element at row i and column j
+
+    poly *MATELEM(matrix *, int i, int j)
+
+    # number columns of matrix
+
+    int MATCOLS(matrix *)
+
+    # number for rows of matrix
+
+    int MATROWS(matrix *)
+

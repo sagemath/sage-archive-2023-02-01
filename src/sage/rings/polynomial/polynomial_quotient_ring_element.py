@@ -91,6 +91,9 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
     def _im_gens_(self, codomain, im_gens):
         return self._polynomial._im_gens_(codomain, im_gens)
 
+    def __hash__(self):
+        return self._polynomial.__hash__()
+
     def __reduce__(self):
         """
         EXAMPLES:
@@ -450,6 +453,9 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             x^2 - 3
         """
         return self._polynomial
+
+    def __iter__(self):
+        return iter(self.list())
 
     def list(self):
         """

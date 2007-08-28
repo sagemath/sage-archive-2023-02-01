@@ -24,6 +24,11 @@ AUTHORS OF THIS MODULE:
              over several days during the SAGE Days 2 coding sprint.  This is
              contribution is greatly appreciated.
     -- William Stein (2006-10): misc touchup.
+    -- Bill Page (2007-08): Minor modifications to support axiom4sage-0.3
+       NOTE: The axiom4sage-0.3.spkg is based on an experimental version of
+             the FriCAS fork of the Axiom project by Waldek Hebisch that
+	     uses pre-compiled cached Lisp code to build Axiom very quickly
+	     with clisp.
 
 If the string "error" (case insensitive) occurs in the output of
 anything from axiom, a RuntimeError exception is raised.
@@ -123,7 +128,7 @@ control-C.
 
 import os, re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
@@ -145,7 +150,7 @@ class Axiom(Expect):
     """
     Interface to the Axiom interpreter.
     """
-    def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    def __init__(self, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         """
         Create an instance of the Axiom interpreter.
         """
@@ -157,9 +162,11 @@ class Axiom(Expect):
                         command = "axiom -nox -noclef",
                         maxread = 10,
                         script_subdirectory = script_subdirectory,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = [')lisp (si::readline-off)'],
+                        #init_code = [')lisp (si::readline-off)'],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -170,22 +177,27 @@ class Axiom(Expect):
 
     def _start(self):
         Expect._start(self)
-        self._expect.expect(self._prompt)
+        #self._expect.expect(self._prompt)
         out = self._eval_line(')set functions compile on', reformat=False)
         out = self._eval_line(')set output length 245', reformat=False)
         out = self._eval_line(')set message autoload off', reformat=False)
         #self._expect.expect(self._prompt)
 
-    def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
-        F.write(line)
-        F.close()
-        if self._expect is None:
-            self._start()
+    def _read_in_file_command(self,filename):
         # For some reason this trivial comp
         # keeps certain random freezes from occuring.  Do not remove this.
         # The space before the \n is also important.
-        self._expect.sendline(')read "%s"\n'%tmp)
+        return ')read "%s"\n'%filename
+
+    def _eval_line_using_file(self, line):
+        F = open(self._local_tmpfile(), 'w')
+        F.write(line+'\n')
+        F.close()
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
+        self._expect.sendline(self._read_in_file_command(tmp_to_use))
         self._expect.expect(self._prompt)
         return ''
 
@@ -210,7 +222,7 @@ class Axiom(Expect):
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
                             len(line) > self.__eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
+            return self._eval_line_using_file(line)
         try:
             E = self._expect
             # debug
@@ -371,6 +383,7 @@ class AxiomElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
     def numer(self):
         P = self.parent()
         return P('numeric(%s)'%self._name)
@@ -394,14 +407,18 @@ class AxiomElement(ExpectElement):
                               'DCOS(':'cos(',
                               'DTAN(':'tan(',
                               'DSINH(':'sinh('}, s)
-        return re.search(r'"(.*)"',s).groups(0)[0]
+        r = re.search(r'"(.*)"',s)
+        if r:
+            return r.groups(0)[0]
+        else:
+            return s
 
     def __repr__(self):
-        P = self._check_valid()
-        return P.get(self._name)
+        return self.str()
 
     def __str__(self):
-        return self.str()
+        P = self._check_valid()
+        return P.get(self._name)
 
     def type(self):
         P = self._check_valid()

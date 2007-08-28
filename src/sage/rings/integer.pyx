@@ -102,6 +102,7 @@ include "../ext/python_list.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
+    cdef mpz_get_pyintlong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
 
@@ -312,7 +313,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: v[Integer(2):Integer(4)]
             [3, 4]
         """
-        return int(mpz_get_pylong(self.value))
+        return mpz_get_pyintlong(self.value)
 
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
@@ -1201,7 +1202,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def __int__(self):
-        return int(mpz_get_pylong(self.value))
+        return mpz_get_pyintlong(self.value)
 
     def __long__(self):
         return mpz_get_pylong(self.value)

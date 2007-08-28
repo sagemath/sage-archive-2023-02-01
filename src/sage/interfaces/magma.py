@@ -199,7 +199,7 @@ class Magma(Expect):
 
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
-                 logfile=None, server=None, user_config=False):
+                 logfile=None, server=None, server_tmpdir=None, user_config=False):
         """
         INPUT:
             maxread -- affects buffering
@@ -221,6 +221,7 @@ class Magma(Expect):
                         command = command,
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = True,
                         logfile = logfile,

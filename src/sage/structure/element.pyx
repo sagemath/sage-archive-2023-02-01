@@ -164,6 +164,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 import operator
+import sys
 
 from sage.structure.parent      cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
@@ -1064,40 +1065,7 @@ cdef class MonoidElement(Element):
         if n != nn:
             raise NotImplementedError, "non-integral exponents not supported"
 
-        a = self
-        if n < 0:
-            n = -n
-            a = ~self
-
-        if n < 4:
-            # These cases will probably be called often
-            # and don't benifit from the code below
-            cn = n
-            if cn == 0:
-                return (<Element>a)._parent(1)
-            elif cn == 1:
-                return a
-            elif cn == 2:
-                return a*a
-            elif cn == 3:
-                return a*a*a
-
-        # One multiplication can be saved by starting with
-        # the smallest power needed rather than with 1
-        apow = a
-        while n&1 == 0:
-            apow = apow*apow
-            n = n >> 1
-        power = apow
-        n = n >> 1
-
-        while n != 0:
-            apow = apow*apow
-            if n&1 != 0: power = power*apow
-            n = n >> 1
-
-        return power
-
+        return generic_power_c(self,n)
 
 def is_AdditiveGroupElement(x):
     """
@@ -1122,43 +1090,38 @@ cdef class AdditiveGroupElement(ModuleElement):
         return self._lmul_c_impl(left)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        cdef int m
-        try:
-            m = int(right)  # a little worrisome.
-            if m<0:
-                return (-self)*(-m)
-            if m==1:
-                return self
-            P = self.scheme()(0)
-            if m==0:
-                return P
-            power = P
-            i = 0
-            apow2 = self
-            while ((m>>i) > 0):
-                if((m>>i) & 1):
-                    power = power + apow2
-                apow2 = apow2 + apow2
-                i = i + 1
-            return power
-        except OverflowError:
-            m0 = int(right)
-            if m0<0:
-                return (-self)*(-m0)
-            if m0==1:
-                return self
-            P = self.scheme()(0)
-            if m0==0:
-                return P
-            power = P
-            i = 0
-            apow2 = self
-            while ((m0>>i) > 0):
-                if((m0>>i) & 1):
-                    power = power + apow2
-                apow2 = apow2 + apow2
-                i = i + 1
-            return power
+        m = int(right)  # a little worrisome, let's check if we got the right answer.
+        if m != right:
+            raise NotImplementedError, "non-integral exponents not supported"
+        if m<0:
+            a = -self
+            m = -m
+        else:
+            a = self
+        if m==0:
+            return self.scheme()(0)
+        elif m==1:
+            return a
+        elif m==2:
+            return a+a
+        elif m==3:
+            return a+a+a
+
+        # One addition can be saved by starting with
+        # the smallest power needed rather than with 1
+        while m&1 == 0:
+            a = a+a
+            m = m >> 1
+        power = a
+        m = m >> 1
+
+        while m != 0:
+            a = a+a
+            if m&1 != 0:
+                power = power+a
+            m = m >> 1
+
+        return power
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1473,43 +1436,7 @@ cdef class RingElement(ModuleElement):
         if n != m:
             raise ValueError, "n must be an integer"
 
-        if n < 0:
-            n = -n
-            a = ~self
-        else:
-            a = self
-
-        if n < 4:
-            # These cases will probably be called often
-            # and don't benifit from the code below
-            cn = n
-            if cn == 0:
-                if PY_TYPE_CHECK(a, Element):
-                    return (<Element>a)._parent(1)
-                else:
-                    return (<Element>m)._parent(a)**m
-            elif cn == 1:
-                return a
-            elif cn == 2:
-                return a*a
-            elif cn == 3:
-                return a*a*a
-
-        # One multiplication can be saved by starting with
-        # the smallest power needed rather than with 1
-        apow = a
-        while n&1 == 0:
-            apow = apow*apow
-            n = n >> 1
-        power = apow
-        n = n >> 1
-
-        while n != 0:
-            apow = apow*apow
-            if n&1 != 0: power = power*apow
-            n = n >> 1
-
-        return power
+        return generic_power_c(self,n)
 
 
     ##################################
@@ -2775,34 +2702,30 @@ def xgcd(x,y):
 
 ######################
 
-def generic_power(m, dummy):
-    return generic_power_c(m, dummy)
+def generic_power(a,nn):
+    n = int(nn)
 
-# TODO: does this code actually get used anywhere?
-cdef generic_power_c(m, dummy):
-    cdef int cn
+    if n != nn:
+        raise NotImplementedError, "non-integral exponents not supported"
 
-    n = int(m)
-    if n != m:
-        raise ValueError, "n must be an integer"
+    return generic_power_c(a,n)
 
+
+cdef generic_power_c(a, n):
     if n < 0:
         n = -n
-        a = ~m
-    else:
-        a = m
+        a = ~a
 
     if n < 4:
         # These cases will probably be called often
-        # and don't benifit from the code below
-        cn = n
-        if cn == 0:
+        # and don't benefit from the code below
+        if n == 0:
             return (<Element>a)._parent(1)
-        elif cn == 1:
+        elif n == 1:
             return a
-        elif cn == 2:
+        elif n == 2:
             return a*a
-        elif cn == 3:
+        elif n == 3:
             return a*a*a
 
     # One multiplication can be saved by starting with

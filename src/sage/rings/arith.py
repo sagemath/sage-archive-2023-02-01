@@ -1232,30 +1232,7 @@ def generic_power(a, m, one=1):
     """
     if bool(a == one):
         return a
-    if m < 0:
-        a = ~a
-        m = -m
-    if m == 0:
-        return one
-    _m = int(m)
-    if _m != m:
-        raise ValueError, "exponent must be an integer"
-    else:
-        m = _m
-    power = None
-    i = 0
-    apow2 = a
-    while (m>>i) > 0:
-        if (m>>i) & 1:
-            if power is None:
-                power = apow2
-            else:
-                power *= apow2
-        apow2 *= apow2
-        i += 1
-    if power is None:
-        return one
-    return power
+    return sage.structure.element.generic_power(a,m)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):

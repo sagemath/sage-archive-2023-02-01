@@ -640,6 +640,9 @@ ext_modules = [ \
     Extension('sage.plot.plot3d.index_face_set',
               ['sage/plot/plot3d/index_face_set.pyx']
               ), \
+    Extension('sage.plot.plot3d.parametric_surface',
+              ['sage/plot/plot3d/parametric_surface.pyx']
+              ), \
 
 
     ]

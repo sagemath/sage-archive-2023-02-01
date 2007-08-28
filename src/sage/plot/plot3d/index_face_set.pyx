@@ -14,8 +14,10 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 cdef class IndexFaceSet(PrimativeObject):
 
-    def __init__(self, faces, point_list=None, **kwds):
+    def __init__(self, faces, point_list=None, enclosed=False, **kwds):
         PrimativeObject.__init__(self, **kwds)
+
+        self.enclosed = enclosed
 
         if point_list is None:
             face_list = faces
@@ -42,16 +44,11 @@ cdef class IndexFaceSet(PrimativeObject):
         self.vcount = len(point_list)
         self.fcount = len(faces)
 
-        self.vs = <point_c *> sage_malloc(sizeof(point_c) * self.vcount)
-        self._faces = <face_c *> sage_malloc(sizeof(face_c) * self.fcount)
-        self.face_indices = <int *> sage_malloc(sizeof(int) * index_len)
-        if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
-            raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
+        self.alloc(self.vcount, self.fcount, index_len)
 
         for i from 0 <= i < self.vcount:
             self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
 
-        print faces
         cdef int cur_pt = 0
         for i from 0 <= i < self.fcount:
             self._faces[i].n = len(faces[i])
@@ -60,10 +57,27 @@ cdef class IndexFaceSet(PrimativeObject):
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1
 
+    cdef alloc(self, vcount, fcount, icount):
+        if self.vs: sage_free(self.vs)
+        self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
+        if self._faces: sage_free(self._faces)
+        self._faces = <face_c *> sage_malloc(sizeof(face_c) * fcount)
+        if self.face_indices: sage_free(self.face_indices)
+        self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
+        if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
+            raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
+
+    def _clean_point_list(self):
+        # TODO: remove redundant/unused points...
+        pass
+
     def __dealloc__(self):
         if self.vs: sage_free(self.vs)
         if self._faces: sage_free(self._faces)
         if self.face_indices: sage_free(self.face_indices)
+
+    def is_enclosed(self):
+        return self.enclosed
 
     def index_faces(self):
         cdef Py_ssize_t i, j
@@ -93,7 +107,6 @@ cdef class IndexFaceSet(PrimativeObject):
     def tachyon_str(self, transform):
         faces = self.faces()
         lines = []
-        texture_str = "\n"+self.texture.tachyon_str()
         for face in faces:
             if transform is not None:
                 face = [transform(p) for p in face]
@@ -105,7 +118,7 @@ TRI
                 """ % (face[0][0], face[0][1], face[0][2],
                        face[1][0], face[1][1], face[1][2],
                        face[2][0], face[2][1], face[2][2]))
-            lines.append(texture_str)
+            lines.append(self.texture.id)
             if len(face) > 3:
                 for k in range(2, len(face)-1):
                     lines.append("""
@@ -116,15 +129,17 @@ TRI
                 """ % (face[0][0], face[0][1], face[0][2],
                        face[k][0], face[k][1], face[k][2],
                        face[k+1][0], face[k+1][1], face[k+1][2]))
-                    lines.append(texture_str)
+                    lines.append(self.texture.id)
         return "".join(lines)
 
 
     def obj_geometry(self, transform, point_offset=0):
 
-        points = ["%s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
-        faces = [" ".join([str(self._faces[i].vertices[j]) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
-        return "%s\n\n%s\n\n" % ("v\n".join(points), "f\n".join(faces))
+        points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
+        faces = [" ".join([str(self._faces[i].vertices[j]+1) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
+        if not self.enclosed:
+            faces += [" ".join([str(self._faces[i].vertices[j]+1) for j from self._faces[i].n > j >= 0]) for i from 0 <= i < self.fcount]
+        return "%s\n\nf %s\n\n" % ("\n".join(points), "\nf ".join(faces))
 
     def stickers(self, colors, width, hover):
         all = []

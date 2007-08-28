@@ -85,13 +85,14 @@ class Texture_class(SageObject):
         total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
         if total_color == 0:
             total_color = 1
-        return "    Texture Ambient %s Diffuse %s Specular %s Opacity %s\n" % \
+        return "Texdef %s\n" % self.id + \
+         "  Ambient %s Diffuse %s Specular %s Opacity %s\n" % \
                 (sum(self.ambient)/total_color,
                  sum(self.diffuse)/total_color,
                  sum(self.specular)/total_color,
                  self.opacity) + \
-        "       Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
-        "       TexFunc 0"
+        "   Color %s %s %s\n" % (self.color[0], self.color[1], self.color[2]) + \
+        "   TexFunc 0"
 
     def x3d_str(self):
         return "<Appearance><Material diffuseColor='%s %s %s' shininess='%s' specularColor='%s %s %s'/></Appearance>" % \

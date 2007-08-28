@@ -105,10 +105,13 @@ resolution 400 400
               COLOR 1.0 1.0 1.0
               TEXFUNC 0
 
+    %s
 
     %s
 
-end_scene""" % self.tachyon_str(Transformation(scale=[1,-1,1]))  # switch from LH to RH coords to be consistant with java rendition
+end_scene""" % (
+   "\n".join([t.tachyon_str() for t in self.texture_set()]),
+   self.tachyon_str(Transformation(scale=[1,-1,1])))  # switch from LH to RH coords to be consistant with java rendition
 
     def viewpoint(self):
         return Viewpoint(0,0,6)
@@ -119,9 +122,9 @@ end_scene""" % self.tachyon_str(Transformation(scale=[1,-1,1]))  # switch from L
 #        f.close()
 
     def mtl_str(self):
-        return "\n\n".join([t.mtl_str() for t in self.mtl_set()]) + "\n"
+        return "\n\n".join([t.mtl_str() for t in self.texture_set()]) + "\n"
 
-    def mtl_set(self):
+    def texture_set(self):
         return set()
 
     def flatten(self, T=None):
@@ -160,8 +163,8 @@ class Graphics3dGroup(Graphics3d_new):
             point_list = []
         return "\n\n".join([g.obj_str(transform, point_list) for g in self.all]) + "\n"
 
-    def mtl_set(self):
-        return reduce(set.union, [g.mtl_set() for g in self.all])
+    def texture_set(self):
+        return reduce(set.union, [g.texture_set() for g in self.all])
 
     def flatten(self, T=None):
         if len(self.all) == 1:
@@ -293,5 +296,5 @@ cdef class PrimativeObject(Graphics3d_new):
             point_list = []
         return self.triangulation().obj_geometry(transform, point_list)
 
-    def mtl_set(self):
+    def texture_set(self):
         return set([self.texture])

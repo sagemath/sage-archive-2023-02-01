@@ -11,7 +11,9 @@ cdef struct face_c:
 
 
 cdef class IndexFaceSet(PrimativeObject):
+    cdef bint enclosed
     cdef Py_ssize_t fcount, vcount, icount
+    cdef alloc(self, vcount, fcount, icount)
     # array of {x,y,z}
     cdef point_c* vs
     # array of array of fcount indices into points, each ending with -1

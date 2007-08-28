@@ -121,12 +121,14 @@ cdef object called
 cdef void init_m4ri():
     global called
     if called is None:
-        # TODO: remove packingmask
         setupPackingMasks()
         buildAllCodes()
         called = True
 
 init_m4ri()
+
+def free_m4ri():
+    destroyAllCodes()
 
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """

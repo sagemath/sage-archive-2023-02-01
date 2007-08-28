@@ -1,0 +1,25 @@
+#!/bin/sh
+
+CUR=`pwd`
+
+cp patches/lie "$SAGE_LOCAL"/bin/
+
+# PATCHING
+cp patches/lie.h src
+cp patches/Makefile src
+cp patches/closure.c src/box/
+
+rm -rf "$SAGE_LOCAL"/lib/lie
+cp -r src "$SAGE_LOCAL"/lib/lie
+
+cd "$SAGE_LOCAL"/lib/lie
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building Lie."
+    exit 1
+fi
+
+
+

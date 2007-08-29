@@ -75,7 +75,7 @@ def FreeAlgebra(R, n, names):
         sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
         sage: (x+y+z)^2
         x^2 + x*y + x*z + y*x + y^2 + y*z + z*x + z*y + z^2
-        sage: FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
+        sage: FreeAlgebra(GF(5),3, ['xx, zba, Y'])
         Free Algebra on 3 generators (xx, zba, Y) over Finite Field of size 5
         sage: FreeAlgebra(GF(5),3, 'abc')
         Free Algebra on 3 generators (a, b, c) over Finite Field of size 5

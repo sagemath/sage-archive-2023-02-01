@@ -1868,9 +1868,9 @@ class Worksheet:
 
         return '\n'.join(u)
 
-    def _eval_cmd(self, system, cmd):
+    def _eval_cmd(self, system, cmd, dir):
         cmd = cmd.replace("'", "\\u0027")
-        return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
+        return "print _support_.syseval(%s, ur'''%s''', '%s')"%(system, cmd, dir)
 
     ##########################################################
     # Parsing the %cython, %jsmath, %python, etc., extension.
@@ -1903,7 +1903,7 @@ class Worksheet:
                 s = after_first_word(s).lstrip()
                 z = s
             else:
-                return True, self._eval_cmd(S, s)
+                return True, self._eval_cmd(S, s, os.path.abspath(C.directory()))
 
         if len(s) == 0 or s[0] != '%':
             return False, z
@@ -1932,7 +1932,7 @@ class Worksheet:
             j = min(i,j)
         sys = s[1:j]
         s = s[i+1:]
-        cmd = self._eval_cmd(sys, s)
+        cmd = self._eval_cmd(sys, s, os.path.abspath(C.directory()))
         if sys == 'html':
             C.set_is_html(True)
         return True, cmd

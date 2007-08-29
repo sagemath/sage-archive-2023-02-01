@@ -248,7 +248,12 @@ def variables(with_types=True):
 
 
 
-def syseval(system, cmd):
+def syseval(system, cmd, dir=None):
+    if dir:
+        try:
+            system.chdir(dir)
+        except (AttributeError, TypeError):
+            pass
     try:
         return system.eval(cmd, locals = sage_globals)
     except TypeError:

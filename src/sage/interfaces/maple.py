@@ -269,7 +269,7 @@ class Maple(Expect):
         return """
 In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
-command-line version of Maple.
+command-line version of Maple (alternatively, you could use a remote connection to a server running Maple. Call _install_hints_ssh() for hints on how to do that).
 
   (1) You might have to buy Maple (list price: $1995.00 !!) at
              http://webstore.maplesoft.com/

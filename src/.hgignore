@@ -4,6 +4,9 @@ push
 pull
 \.h$
 \.hi$
+\.mtl$
+\.obj$
+\.db$
 \.o$
 \.o\.cmd$
 \.ko$

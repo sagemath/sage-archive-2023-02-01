@@ -268,7 +268,7 @@ class Mathematica(Expect):
         return """
 In order to use the Mathematica interface you need to have Mathematica
 installed and have a script in your PATH called "math" that runs the
-command-line version of Mathematica.
+command-line version of Mathematica (alternatively, you could use a remote connection to a server running Mathematica. Do _install_hints_ssh() for hints on how to do that).
 
   (1) You might have to buy Mathematica (for at most $1880) at
       http://www.wolfram.com/.

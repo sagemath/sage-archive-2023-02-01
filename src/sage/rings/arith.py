@@ -1241,13 +1241,13 @@ def generic_power(a, m, one=1):
         sage: generic_power(RealField()('2.5'),4)
         39.0625000000000
         sage: generic_power(0,0)
-        1
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: 0^0 is not defined.
         sage: generic_power(2,-3)
         1/8
     """
-    if bool(a == one):
-        return a
-    return sage.structure.element.generic_power(a,m)
+    return sage.structure.element.generic_power(a,m,one)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):

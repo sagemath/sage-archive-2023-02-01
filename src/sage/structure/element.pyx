@@ -376,6 +376,23 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
+    def N(self, prec=None, digits=None):
+        """
+        Return a numerical approximation of x with at least prec bits of
+        precision.
+
+        EXAMPLES:
+            sage: (2/3).N()
+            0.666666666666667
+            sage: a = 2/3
+            sage: pi.N(digits=10)
+            3.141592654
+            sage: pi.N(prec=20)   # 20 bits
+            3.1416
+        """
+        import sage.misc.functional
+        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
+
     def substitute(self,in_dict=None,**kwds):
         """
         This is an alias for self.subs().
@@ -1055,17 +1072,12 @@ cdef class MonoidElement(Element):
         """
         raise NotImplementedError
 
-    def __pow__(self, nn, dummy):
+    def __pow__(self, n, dummy):
         """
         Return the (integral) power of self.
         """
-        cdef int cn
 
-        n = int(nn)
-        if n != nn:
-            raise NotImplementedError, "non-integral exponents not supported"
-
-        return generic_power_c(self,n)
+        return generic_power_c(self,n,None)
 
 def is_AdditiveGroupElement(x):
     """
@@ -1397,7 +1409,7 @@ cdef class RingElement(ModuleElement):
         """
         return self._mul_c_impl(right)
 
-    def __pow__(self, m, dummy):
+    def __pow__(self, n, dummy):
         """
         Retern the (integral) power of self.
 
@@ -1430,13 +1442,8 @@ cdef class RingElement(ModuleElement):
             1
 
         """
-        cdef int cn
 
-        n = int(m)
-        if n != m:
-            raise ValueError, "n must be an integer"
-
-        return generic_power_c(self,n)
+        return generic_power_c(self,n,None)
 
 
     ##################################
@@ -2702,50 +2709,110 @@ def xgcd(x,y):
 
 ######################
 
-def generic_power(a,nn):
+def generic_power(a, n, one=None):
     """
-    INPUT:
+    Computes a^n, where n is an integer, and a is an object which
+    supports multiplication.  Optionally an additional argument,
+    which is used in the case that n == 0:
+
+        one: the "unit" element, returned directly (can be anything)
+
+    If this is not supplied, int(1) is returned.
+
+    EXAMPLES:
+        sage: generic_power(int(12),int(0))
+        1
+        sage: generic_power(int(0),int(100))
+        0
+        sage: generic_power(Integer(10),Integer(0))
+        1
+        sage: generic_power(Integer(0),Integer(23))
+        0
+        sage: sum([generic_power(2,i) for i in range(17)]) #test all 4-bit combinations
+        131071
+        sage: F = Zmod(5)
+        sage: a = generic_power(F(2), 5); a
+        2
+        sage: a.parent() is F
+        True
+        sage: a = generic_power(F(1), 2)
+        sage: a.parent() is F
+        True
+
         sage: generic_power(int(5), 0)
         1
     """
-    n = int(nn)
 
+    return generic_power_c(a,n,one)
+
+cdef generic_power_c(a, nn, one):
+    n = int(nn)
     if n != nn:
         raise NotImplementedError, "non-integral exponents not supported"
 
-    return generic_power_c(a,n)
+    if not a:
+        # a is zero, return it, or raise an exception if n is zero
+        if not n:
+            raise ArithmeticError, "0^0 is not defined."
+        else:
+            return a
+    elif not n:
+        # n is zero, let's try our best to return a one that doesn't suck
+        if one is None:
+            if PY_TYPE_CHECK(a, Element):
+                return (<Element>a)._parent(1)
+            try:
+                return type(a)(1)
+            except:
+                return 1 #oops, the one sucks
+        else:
+            return one
 
-
-cdef generic_power_c(a, n):
     if n < 0:
-        n = -n
+        # negative exponent! flip it all around.
         a = ~a
+        n = -n
 
     if n < 4:
         # These cases will probably be called often
         # and don't benefit from the code below
-        if n == 0:
-            return (<Element>a)._parent(1)
-        elif n == 1:
+        if n == 1:
             return a
         elif n == 2:
             return a*a
         elif n == 3:
             return a*a*a
 
+    # check for idempotence, and store the result otherwise
+    aa = a*a
+    if aa == a:
+        return a
+
+    # since we've computed a^2, let's start squaring there
+    # so, let's keep the least-significant bit around, just
+    # in case.
+    m = n & 1
+    n = n >> 1
+
     # One multiplication can be saved by starting with
-    # the smallest power needed rather than with 1
-    apow = a
+    # the second-smallest power needed rather than with 1
+    # we've already squared a, so let's start there.
+    apow = aa
     while n&1 == 0:
         apow = apow*apow
         n = n >> 1
     power = apow
     n = n >> 1
 
+    # now multiply that least-significant bit in...
+    if m:
+        power = power * a
+
+    # and this is straight from the book.
     while n != 0:
         apow = apow*apow
-        if n&1 != 0: power = power*apow
+        if n&1 != 0:
+            power = power*apow
         n = n >> 1
 
     return power
-

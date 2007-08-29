@@ -424,3 +424,89 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
     A.randomize(density=density, *args, **kwds)
     return A
 
+def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
+    """
+    INPUT:
+    Supported formats
+        1. matrix(diagonal_entries, [sparse=True]):
+               matrix with each row constructed from the list_of_rows
+        2. matrix(nrows, diagonal_entries, [sparse=True]):
+               matrix with each row constructed from the list_of_rows
+        3. matrix(ring, diagonal_entries, [sparse=True]):
+               matrix with each row constructed from the list_of_rows
+        4. matrix(ring, nrows, diagonal_entries, [sparse=True]):
+               matrix with given number of rows and flat list of entries
+    The sparse option is optional, must be explicitly named (i.e.,
+    sparse=True), and may be either True or False.
+
+    EXAMPLES:
+    Input format 1.
+        sage: diagonal_matrix([1,2,3])
+        [1 0 0]
+        [0 2 0]
+        [0 0 3]
+
+    Input format 2.
+        sage: diagonal_matrix(GF(3), [1,2,3])
+        [1 0 0]
+        [0 2 0]
+        [0 0 0]
+
+    Input format 3:
+        sage: diagonal_matrix(3, [1,2])
+        [1 0 0]
+        [0 2 0]
+        [0 0 0]
+
+    Input format 4:
+        sage: diagonal_matrix(GF(3), 3, [8,2])
+        [2 0 0]
+        [0 2 0]
+        [0 0 0]
+    """
+    ring = None
+    if isinstance(arg0, (list, tuple)):
+        # Format 1
+        v = arg0
+        nrows = len(v)
+    elif isinstance(arg0, (int, long, rings.Integer)):
+        nrows = arg0
+        v = arg1
+    elif rings.is_Ring(arg0):
+        ring = arg0
+        if isinstance(arg1, (list, tuple)):
+            v = arg1
+            nrows = len(v)
+        else:
+            nrows = arg1
+            v = arg2
+
+    if isinstance(v, list):
+        w = {}
+        for i in range(len(v)):
+            w[(i,i)] = v[i]
+    else:
+        w = v
+
+    if ring is None:
+        return matrix(nrows, nrows, w, sparse=sparse)
+    else:
+        return matrix(ring, nrows, nrows, w, sparse=sparse)
+
+
+def identity_matrix(ring, n=0):
+    """
+    Return the n x n identity matrix over the given ring.
+
+    EXAMPLES:
+        sage: identity_matrix(QQ, 2)
+        [1 0]
+        [0 1]
+        sage: identity_matrix(2)
+        [1 0]
+        [0 1]
+    """
+    if isinstance(ring, (int, long, rings.Integer)):
+        n = ring
+        ring = rings.ZZ
+    return matrix_space.MatrixSpace(ring, n, n).identity_matrix()

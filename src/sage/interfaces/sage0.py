@@ -30,8 +30,7 @@ class Sage(Expect):
     INPUT:
         server -- (optional); if specified runs SAGE on a remote machine with
                   address.  You must have ssh keys setup so you can login to
-                  the remote machine by typing "ssh remote_machine" and no password, e.g.:
-                     cd; ssh-keygen -t rsa; scp .ssh/id_rsa.pub remote_machine:.ssh/authorized_keys2
+                  the remote machine by typing "ssh remote_machine" and no password, call _install_hints_ssh() for hints on how to do that.
 
                   The version of SAGE should be the same as on the
                   local machine, since pickling is used to move data

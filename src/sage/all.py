@@ -52,6 +52,8 @@ get_sigs()
 
 from sage.misc.all       import *         # takes a while
 
+from sage.misc.sh import sh
+
 from sage.libs.all       import *
 
 get_sigs()

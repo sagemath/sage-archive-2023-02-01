@@ -201,7 +201,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R(S.0)
             Traceback (most recent call last):
             ...
-            TypeError: len() of unsized object
+            TypeError: cannot create a p-adic out of <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
         from polydict import ETuple
         if not self:
@@ -214,7 +214,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if vars == list(my_vars):
             return self.dict()
         elif not my_vars[-1] in vars:
-            x = base_ring(self) if base_ring else self
+            x = base_ring(self) if base_ring is not None else self
 #            print "vars", vars, type(vars)
             const_ix = ETuple((0,)*len(vars))
             return { const_ix: x }

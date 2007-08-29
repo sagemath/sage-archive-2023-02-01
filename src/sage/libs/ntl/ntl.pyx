@@ -339,7 +339,7 @@ cdef class ntl_ZZX:
 
     def __getitem__(self, unsigned int i):
         r"""
-        Retrieves coefficient #i as a SAGE Integer.
+        Retrieves coefficient number i as a SAGE Integer.
 
         sage: x = ntl.ZZX([129381729371289371237128318293718237, 2, -3, 0, 4])
         sage: x[0]

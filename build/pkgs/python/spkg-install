@@ -1,4 +1,4 @@
-#!/bin/sh
+ #!/bin/sh
 ###########################################
 ## Python
 ###########################################
@@ -42,8 +42,8 @@ patch()
 {
     # The following patch for fixing broken readline behavior on
     # Itanium Linux definitely does *not* work on anything else.
-    if [ `uname -p` = "ia64" -a `uname` = "Linux" ]; then
-	cp sage/readline.c Modules/readline.c
+    if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
+	cp ../patches/readline.c Modules/readline.c
     fi
 }
 

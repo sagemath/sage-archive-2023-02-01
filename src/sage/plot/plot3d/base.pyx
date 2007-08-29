@@ -2,12 +2,8 @@ r"""
 Base classes for 3D Graphics objects and plotting.
 
 EXAMPLES:
-    sage: from sage.plot.graphics3d import *
-    sage: S = ColorCube(.35, ['green', 'yellow', 'blue']) + Sphere(.2, color='red').translate(.4,.4,.4)
-    sage: S.show()
-
-    sage: from sage.plot.plot3d.plot3d import plot3d
     sage: from sage.plot.plot3d.shapes import *
+    sage: from sage.plot.plot3d.plot3d import plot3d
     sage: S = Sphere(.5, color='yellow')
     sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
     sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)

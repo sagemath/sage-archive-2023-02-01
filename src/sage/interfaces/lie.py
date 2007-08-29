@@ -344,6 +344,11 @@ class LiE(Expect):
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
 
+        self.__trait_names_dict = None
+        self.__trait_names_list = None
+        self.__help_dict = None
+
+    def __read_info_files(self):
         use_disk_cache = True
 
         import sage.misc.persist
@@ -437,7 +442,6 @@ class LiE(Expect):
             sage.misc.persist.save(commands, COMMANDS_CACHE)
             sage.misc.persist.save(help, HELP_CACHE)
 
-
     def _repr_(self):
         return 'LiE Interpreter'
 
@@ -457,6 +461,8 @@ class LiE(Expect):
 
 
     def trait_names(self, type=None, verbose=False, use_disk_cache=True):
+        if self.__trait_names_dict is None:
+            self.__read_info_files()
         if type:
             return self.__trait_names_dict[type]
         else:
@@ -499,6 +505,8 @@ class LiE(Expect):
 
     def help(self, command):
         # return help on a given command.
+        if self.__help_dict is None:
+            self.__read_info_files()
         try:
             return self.__help_dict[command]
         except KeyError:
@@ -549,7 +557,7 @@ class LiE(Expect):
         i = out.find("\n")
         j = out.rfind("\r")
 
-        err = max( out.find("\n(in"), out.find('not defined') )
+        err = max( out.find("\n(in"), out.find('not defined'), out.find('Argument types')  )
         if err != -1:
             raise RuntimeError, "An error occured running a LiE command:\n%s"%(out[i+1:j].replace('\r\n','\n'))
 
@@ -570,7 +578,7 @@ class LiE(Expect):
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
-        i = min( out.find('not defined'), out.find('(in') )
+        i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
         if i != -1:
             raise RuntimeError, out
 

@@ -84,6 +84,7 @@ cdef class Conversion:
 
         z = Rational()
         z.set_from_mpq(_z)
+        mpq_clear(_z)
         return z
 
     cdef public FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base):

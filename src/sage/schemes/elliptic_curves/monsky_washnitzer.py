@@ -276,9 +276,19 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
   def __nonzero__(self):
     return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
 
-  def _cmp_(self, other):
-      return cmp(self._triple, other._triple)
-
+  def __cmp__(self, other):
+    """
+    EXAMPLES:
+      sage: B.<t> = PolynomialRing(Integers(125))
+      sage: x, t = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4)).gens()
+      sage: x == t
+      False
+      sage: x == x
+      True
+      sage: x == x + x - x
+      True
+    """
+    return cmp(self._triple, other._triple)
 
   def _repr_(self):
     return "(%s) + (%s)*x + (%s)*x^2" % self._triple

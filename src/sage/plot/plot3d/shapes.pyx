@@ -212,6 +212,27 @@ def Line(start, end, radius, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
+def Arrow(start, end, radius, head_radius=None, head_len=None, **kwds):
+    if head_radius == None:
+        head_radius = 3*radius
+    if head_len == None:
+        head_len = 3*head_radius
+    start = vector(RDF, start, sparse=False)
+    end = vector(RDF, end, sparse=False)
+    zaxis = vector(RDF, (0,0,1), sparse=False)
+    diff = end - start
+    height = sqrt(diff.dot_product(diff))
+    arrow = Cylinder(radius, height-head_len, **kwds) \
+          + Cone(head_radius, head_len, **kwds).translate(0, 0, height-head_len)
+    axis = zaxis.cross_product(diff)
+    if axis == 0:
+        return arrow.translate(start)
+    else:
+        theta = -acos(diff[2]/height)
+        return arrow.rotate(axis, theta).translate(start)
+
+
+
 cdef class Sphere(ParametricSurface):
 
     def __init__(self, radius, **kwds):

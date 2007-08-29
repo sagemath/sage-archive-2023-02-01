@@ -11,8 +11,8 @@ AUTHOR:
     -- Robert Bradshaw 2007-08: cythonization, much optimization
 
 TODO:
-   -- finish integrating tachyon
-   -- good default lights, camera
+    -- finish integrating tachyon
+    -- good default lights, camera
 """
 
 #*****************************************************************************
@@ -304,6 +304,11 @@ cdef class PrimativeObject(Graphics3d):
                     self.texture = Texture(self.texture)
             except KeyError:
                 self.texture = default_texture
+
+    def set_texture(self, texture):
+        if not is_Texture(texture):
+            texture = Texture(texture)
+        self.texture = texture
 
     def x3d_str(self):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"

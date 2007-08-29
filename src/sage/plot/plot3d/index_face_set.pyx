@@ -5,6 +5,9 @@ triangulations of other objects.
 AUTHORS:
     -- Robert Bradshaw (2007-08-26): inital version
     -- Robert Bradshaw (2007-08-28): significant optimizations
+
+TODO:
+    -- Smooth triangles
 """
 
 
@@ -30,6 +33,7 @@ include "../../ext/interrupt.pxi"
 
 cdef extern from *:
      void memset(void *, int, Py_ssize_t)
+     void memcpy(void * dest, void * src, Py_ssize_t n)
      int sprintf_3d "sprintf" (char*, char*, double, double, double)
      int sprintf_3i "sprintf" (char*, char*, int, int, int)
      int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
@@ -51,6 +55,8 @@ from sage.modules.free_module_element import vector
 from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
+
+
 
 # --------------------------------------------------------------------
 # Fast routines for generating string representations of the polygons.
@@ -308,6 +314,67 @@ cdef class IndexFaceSet(PrimativeObject):
 </IndexedFaceSet>
 """%(coordIndex, points)
 
+    def bounding_box(self):
+        cdef Py_ssize_t i
+        cdef point_c low = self.vs[0], high = self.vs[0]
+        for i from 1 <= i < self.vcount:
+            point_c_lower_bound(&low, low, self.vs[i])
+            point_c_upper_bound(&high, high, self.vs[i])
+        return ((low.x, low.y, low.z), (high.x, high.y, high.z))
+
+    def partition(self, f):
+        """
+        Partition the faces of self based on a map $f: \mathbb{R}^3 \leftarrow \mathbb{Z}$
+        applied to the center of each face.
+        """
+        cdef Py_ssize_t i, j, ix, face_ix
+        cdef int part
+        cdef point_c P
+        cdef face_c *face, *new_face
+        cdef IndexFaceSet face_set
+
+        cdef int *partition = <int *>sage_malloc(sizeof(int) * self.fcount)
+
+        if partition == NULL:
+            raise MemoryError
+        part_counts = {}
+        for i from 0 <= i < self.fcount:
+            face = &self._faces[i]
+            P = self.vs[face.vertices[0]]
+            for j from 1 <= j < face.n:
+                point_c_add(&P, P, self.vs[face.vertices[j]])
+            point_c_mul(&P, P, 1.0/face.n)
+            partition[i] = part = f(P.x, P.y, P.z)
+            try:
+                count = part_counts[part]
+            except KeyError:
+                part_counts[part] = count = [0,0]
+            count[0] += 1
+            count[1] += face.n
+        all = {}
+        for part, count in part_counts.iteritems():
+            face_set = IndexFaceSet([])
+            face_set.realloc(self.vcount, count[0], count[1])
+            face_set.vcount = self.vcount
+            face_set.fcount = count[0]
+            face_set.icount = count[1]
+            memcpy(face_set.vs, self.vs, sizeof(point_c) * self.vcount)
+            face_ix = 0
+            ix = 0
+            for i from 0 <= i < self.fcount:
+                if partition[i] == part:
+                    face = &self._faces[i]
+                    new_face = &face_set._faces[face_ix]
+                    new_face.n = face.n
+                    new_face.vertices = &face_set.face_indices[ix]
+                    for j from 0 <= j < face.n:
+                        new_face.vertices[j] = face.vertices[j]
+                    face_ix += 1
+                    ix += face.n
+            face_set._clean_point_list()
+            all[part] = face_set
+        sage_free(partition)
+        return all
 
     def tachyon_repr(self, render_params):
         """

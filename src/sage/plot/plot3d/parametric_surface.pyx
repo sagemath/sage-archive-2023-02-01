@@ -58,7 +58,7 @@ from sage.rings.all import RDF
 
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
-    if point_c_cmp(vs[f.vertices[a]], vs[f.vertices[b]]):
+    if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
         f.vertices[b] = f.vertices[a]
         f.n = 3
         return 1
@@ -184,11 +184,11 @@ cdef class ParametricSurface(IndexFaceSet):
         for j from 0 <= j < m:
             first = &self._faces[j]
             last  = &self._faces[(n-1)*m+j]
-            if point_c_cmp(self.vs[first.vertices[0]], self.vs[last.vertices[3]]):
+            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[3]]):
                 last.vertices[3] = first.vertices[0]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
                 enclosed = 0
-            if point_c_cmp(self.vs[first.vertices[1]], self.vs[last.vertices[2]]):
+            if point_c_eq(self.vs[first.vertices[1]], self.vs[last.vertices[2]]):
                 last.vertices[2] = first.vertices[1]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
                 enclosed = 0
@@ -196,11 +196,11 @@ cdef class ParametricSurface(IndexFaceSet):
         for i from 0 <= i < n:
             first = &self._faces[i*m]
             last  = &self._faces[i*m + m-1]
-            if point_c_cmp(self.vs[first.vertices[0]], self.vs[last.vertices[1]]):
+            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[1]]):
                 last.vertices[1] = first.vertices[0]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
                 enclosed = 0
-            if point_c_cmp(self.vs[first.vertices[3]], self.vs[last.vertices[2]]):
+            if point_c_eq(self.vs[first.vertices[3]], self.vs[last.vertices[2]]):
                 last.vertices[2] = first.vertices[3]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
                 enclosed = 0

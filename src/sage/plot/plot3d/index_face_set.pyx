@@ -37,6 +37,8 @@ cdef extern from *:
 include "../../ext/python_list.pxi"
 include "../../ext/python_string.pxi"
 
+include "point_c.pxi"
+
 
 from math import sin, cos, sqrt
 
@@ -239,6 +241,13 @@ cdef class IndexFaceSet(PrimativeObject):
         cdef Py_ssize_t i, j
         return [[points[self._faces[i].vertices[j]] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
 
+    def edges(self):
+        return EdgeIter(self)
+
+    def edge_list(self):
+        # For consistancy
+        return list(self.edges())
+
     def vertices(self):
         """
         An iterator over the vertices.
@@ -396,6 +405,45 @@ cdef class FaceIter:
                 PyList_Append(face, (P.x, P.y, P.z))
             self.i += 1
             return face
+
+cdef class EdgeIter:
+    def __init__(self, face_set):
+        self.set = face_set
+        if not self.set.enclosed:
+            raise TypeError, "Must be closed to use the simple iterator."
+        self.i = 0
+        self.j = 0
+        self.seen = {}
+    def __iter__(self):
+        return self
+    def __next__(self):
+        cdef point_c P, Q
+        cdef face_c face = self.set._faces[self.i]
+        while self.i < self.set.fcount:
+            if self.j == face.n:
+                self.i += 1
+                self.j = 0
+                if self.i < self.set.fcount:
+                    face = self.set._faces[self.i]
+            else:
+                if self.j == 0:
+                    P = self.set.vs[face.vertices[face.n-1]]
+                else:
+                    P = self.set.vs[face.vertices[self.j-1]]
+                Q = self.set.vs[face.vertices[self.j]]
+                self.j += 1
+                if self.set.enclosed: # Every edge appears exactly twice, once in each orientation.
+                    if point_c_cmp(P, Q) < 0:
+                        return ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
+                else:
+                    if point_c_cmp(P, Q) > 0:
+                        P,Q = Q,P
+                    edge = ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
+                    if not edge in self.seen:
+                        self.seen[edge] = edge
+                        return edge
+        raise StopIteration
+
 
 cdef class VertexIter:
     def __init__(self, face_set):

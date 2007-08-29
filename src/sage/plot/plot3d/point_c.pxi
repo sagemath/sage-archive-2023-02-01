@@ -23,8 +23,30 @@ cdef extern from "math.h":
 cdef inline bint point_c_set(point_c* res, P) except -2:
     res.x, res.y, res.z = P[0], P[1], P[2]
 
-cdef inline bint point_c_cmp(point_c P, point_c Q):
+cdef inline bint point_c_eq(point_c P, point_c Q):
     return P.x == Q.x and P.y == Q.y and P.z == Q.z
+
+cdef inline int point_c_cmp(point_c P, point_c Q):
+    """
+    Lexographic order
+    """
+    if P.x == Q.x:
+        if P.y == Q.y:
+            if P.z == Q.z:
+                return 0
+            elif P.z < Q.z:
+                return -1
+            else:
+                return 1
+        elif P.y < Q.y:
+            return -1
+        else:
+            return 1
+    elif P.x < Q.x:
+        return -1
+    else:
+        return 1
+
 
 cdef inline void point_c_add(point_c* res, point_c P, point_c Q):
     res.x = P.x + Q.x

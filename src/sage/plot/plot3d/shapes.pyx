@@ -190,7 +190,7 @@ def Line(start, end, radius, **kwds):
     cyl = Cylinder(radius, height, **kwds)
     axis = zaxis.cross_product(diff)
     if axis == 0:
-        return cyl
+        return cyl.translate(start)
     else:
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)

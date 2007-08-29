@@ -13,10 +13,15 @@ cdef class IndexFaceSet(PrimativeObject):
     # pointers into face_indices marking the begining of each face
     cdef face_c* _faces
 
+
 cdef class FaceIter:
     cdef Py_ssize_t i
     cdef IndexFaceSet set
 
+cdef class EdgeIter:
+    cdef Py_ssize_t i, j
+    cdef object seen
+    cdef IndexFaceSet set
 
 cdef class VertexIter:
     cdef Py_ssize_t i

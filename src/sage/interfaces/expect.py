@@ -439,7 +439,7 @@ class Expect(ParentWithBase):
 #        print cmd
         os.system(cmd)
 
-    def _get_tmpfile_from_server(self, local_file,remote_file):
+    def _get_tmpfile_from_server(self, local_file=None,remote_file=None):
         if local_file is None:
             local_file = self._local_tmpfile()
         if remote_file is None:

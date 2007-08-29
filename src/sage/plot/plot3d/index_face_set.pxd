@@ -1,14 +1,6 @@
 from sage.plot.plot3d.base cimport PrimativeObject
 
-cdef struct point_c:
-  double x
-  double y
-  double z
-
-cdef struct face_c:
-  int n
-  int* vertices
-
+from transform cimport point_c, face_c
 
 cdef class IndexFaceSet(PrimativeObject):
     cdef bint enclosed

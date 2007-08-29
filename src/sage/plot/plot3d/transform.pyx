@@ -1,7 +1,9 @@
-from math import atan2, sin, cos
+from math import atan2, sin, cos, atan, sqrt, acos
+
+include "point_c.pxi"
 
 from sage.rings.real_double import RDF
-from sage.misc.functional import sqrt, atan, acos
+# from sage.misc.functional import sqrt, atan, acos
 
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
@@ -9,7 +11,8 @@ from sage.modules.free_module_element import vector
 pi = RDF.pi()
 
 
-class Transformation:
+
+cdef class Transformation:
     def __init__(self, scale=(1,1,1),
                        rot=None,
                        trans=[0,0,0],
@@ -43,6 +46,13 @@ class Transformation:
         self.matrix = m.augment(matrix(RDF, 3, 1, list(trans))) \
                        .stack(matrix(RDF, 1, 4, [0,0,0,1]))
 
+        # this raw data is used for optimized transformations
+        m_data = self.matrix.list()
+        cdef int i
+        for i from 0 <= i < 12:
+            self._matrix_data[i] = m_data[i]
+
+
     def is_skew(self, eps=1e-5):
         dx, dy, dz = self.matrix.submatrix(0,0,3,3).columns()
         return abs(dx.dot_product(dy)) + abs(dx.dot_product(dz)) + abs(dy.dot_product(dz)) > eps
@@ -56,7 +66,7 @@ class Transformation:
         basis = [vector(RDF, self.transform_vector(b)) for b in basis]
         a = basis.pop()
         len_a = a.dot_product(a)
-        return max([len_a - b.dot_product(b) for b in basis]) < eps
+        return max([abs(len_a - b.dot_product(b)) for b in basis]) < eps
 
     def rotX(self, theta):
         return matrix(RDF, 3, 3, [1, 0, 0,
@@ -76,11 +86,22 @@ class Transformation:
         Tx = self.matrix * vector(RDF, [x[0], x[1], x[2], 0])
         return (Tx[0], Tx[1], Tx[2])
 
-    def __mul__(self, other):
-        T = Transformation()
+    cdef void transform_point_c(self, point_c* res, point_c P):
+        point_c_transform(res, self._matrix_data, P)
+
+    cdef void transform_vector_c(self, point_c* res, point_c P):
+        point_c_stretch(res, self._matrix_data, P)
+
+    def __mul__(Transformation self, Transformation other):
+        cdef Transformation T = Transformation()
         T.matrix = self.matrix * other.matrix
         return T
 
     def __call__(self, p):
         res = self.matrix * vector(RDF, [p[0], p[1], p[2], 1])
         return tuple(res[:3])
+
+    def max_scale(self):
+        if self._svd is None:
+            self._svd = self.matrix.submatrix(0,0,3,3).SVD()
+        return self._svd[1][0,0]

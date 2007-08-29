@@ -24,7 +24,7 @@ class Box(IndexFaceSet):
                  [(x, y, z), ( x, y,-z), (-x, y,-z), (-x, y, z)],
                  [(x, y, z), ( x,-y, z), ( x,-y,-z), ( x, y,-z)] ]
         faces += [list(reversed([(-x,-y,-z) for x,y,z in face])) for face in faces]
-        IndexFaceSet.__init__(faces, **kwds)
+        IndexFaceSet.__init__(self, faces, enclosed=True, **kwds)
 
     def x3d_geometry(self):
         return "<Box size='%s %s %s'/>"%self.size
@@ -39,7 +39,7 @@ def ColorCube(size, colors):
         colors = colors * 2
     all = []
     for k in range(6):
-        all.append(IndexFaceSet([faces[k]], texture=colors[k]))
+        all.append(IndexFaceSet([faces[k]], enclosed=True, texture=colors[k]))
     return Graphics3dGroup(all)
 
 cdef class Cone(ParametricSurface):
@@ -55,7 +55,7 @@ cdef class Cone(ParametricSurface):
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
         v_res = max(int(twoPi*self.radius/ds), 5)
-        urange = [-1,0,1]
+        urange = [1,0,-1]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
@@ -80,10 +80,11 @@ cdef class Cylinder(ParametricSurface):
     def x3d_geometry(self):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
 
-    def tachyon_geometry(self, transform):
+    def tachyon_str(self, render_params):
+        transform = render_params.transform
         if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])):
             # Tachyon can't do sqashed
-            return ParametricSurface.tachyon_geometry(self, transform)
+            return ParametricSurface.tachyon_str(self, render_params)
 
         if transform is None:
             base = (0,0,0)
@@ -94,17 +95,16 @@ cdef class Cylinder(ParametricSurface):
             axis = transform.transform_vector((0,0,self.height))
             radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
-        return """
-FCylinder
+        return """FCylinder
    Base %s %s %s
    Apex %s %s %s
    Rad %s
-        """%(base[0], base[1], base[2], base[0]+axis[0], base[1]+axis[1], base[2]+axis[2], rad)
+   %s     """%(base[0], base[1], base[2], base[0]+axis[0], base[1]+axis[1], base[2]+axis[2], rad, self.texture.id)
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
         v_res = max(int(twoPi*self.radius/ds), 5)
-        urange = [-2,-1,1,2]
+        urange = [2,1,-1,-2]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
@@ -149,9 +149,10 @@ cdef class Sphere(ParametricSurface):
     def x3d_geometry(self):
         return "<Sphere radius='%s'/>"%(self.radius)
 
-    def tachyon_geometry(self, transform):
+    def tachyon_str(self, render_params):
+        transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
-            return ParametricSurface.tachyon_geometry(self, transform)
+            return ParametricSurface.tachyon_str(self, render_params)
 
         if transform is None:
             cen = (0,0,0)
@@ -160,16 +161,14 @@ cdef class Sphere(ParametricSurface):
             cen = transform.transform_point((0,0,0))
             radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
-        return """
-Sphere center %s %s %s
-   Rad %s
-        """%(cen[0], cen[1], cen[2], rad)
+        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def get_grid(self, ds):
-        twoPi = 2*RDF.pi()
+        pi = RDF.pi()
+        twoPi = 2*pi
         u_res = max(int(RDF.pi()*self.radius/ds), 6)
         v_res = max(int(twoPi*self.radius/ds), 6)
-        urange = [-10] + [twoPi*k/u_res - twoPi/4 for k in range(1,u_res)] + [10]
+        urange = [-10] + [pi*k/u_res - twoPi/4 for k in range(1,u_res)] + [10]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
@@ -179,8 +178,8 @@ Sphere center %s %s %s
         elif u == 10:
             res.x, res.y, res.z = 0, 0,  self.radius
         else:
-            res.x = self.radius*sin(v) * cos(u)
-            res.y = self.radius*cos(v) * cos(u)
+            res.x = self.radius*cos(v) * cos(u)
+            res.y = self.radius*sin(v) * cos(u)
             res.z = self.radius * sin(u)
 
 

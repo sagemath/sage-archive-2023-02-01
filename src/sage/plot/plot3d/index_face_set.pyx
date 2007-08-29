@@ -1,5 +1,14 @@
 include "../../ext/stdsage.pxi"
 
+cdef extern from *:
+     int sprintf_3d "sprintf" (char*, char*, double, double, double)
+     int sprintf_3i "sprintf" (char*, char*, int, int, int)
+     int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
+     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
+
+include "../../ext/python_list.pxi"
+include "../../ext/python_string.pxi"
+
 
 from math import sin, cos, sqrt
 
@@ -9,6 +18,50 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
 from sage.plot.plot3d.base import Graphics3dGroup
+
+from transform cimport Transformation
+
+# --------------------------------------------------------------------
+# Fast routines for generating string representations of the polygons.
+# --------------------------------------------------------------------
+
+cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
+    cdef char ss[250]
+    # PyString_FromFormat doesn't do floats?
+    cdef Py_ssize_t r = sprintf_9d(ss,
+                                   "TRI V0 %g %g %g V1 %g %g %g V2 %g %g %g",
+                                   P.x, P.y, P.z,
+                                   Q.x, Q.y, Q.z,
+                                   R.x, R.y, R.z )
+    return PyString_FromStringAndSize(ss, r)
+
+cdef inline format_obj_vertex(point_c P):
+    cdef char ss[100]
+    # PyString_FromFormat doesn't do floats?
+    cdef Py_ssize_t r = sprintf_3d(ss, "v %g %g %g", P.x, P.y, P.z)
+    return PyString_FromStringAndSize(ss, r)
+
+cdef inline format_obj_face(face_c face, int off):
+    cdef char ss[100]
+    cdef Py_ssize_t r, i
+    if face.n == 3:
+        r = sprintf_3i(ss, "f %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off)
+    elif face.n == 4:
+        r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off, face.vertices[3] + off)
+    else:
+        return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
+    return PyString_FromStringAndSize(ss, r)
+
+cdef inline format_obj_face_back(face_c face, int off):
+    cdef char ss[100]
+    cdef Py_ssize_t r, i
+    if face.n == 3:
+        r = sprintf_3i(ss, "f %d %d %d", face.vertices[2] + off, face.vertices[1] + off, face.vertices[1] + off)
+    elif face.n == 4:
+        r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
+    else:
+        return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
+    return PyString_FromStringAndSize(ss, r)
 
 
 
@@ -116,44 +169,105 @@ cdef class IndexFaceSet(PrimativeObject):
 </IndexedFaceSet>
 """%(coordIndex, points)
 
-    def tachyon_str(self, transform):
+    def tachyon_str(self, render_params):
+        transform = render_params.transform
         faces = self.faces()
         lines = []
         for face in faces:
             if transform is not None:
                 face = [transform(p) for p in face]
-            lines.append("""
-TRI
-    V0 %s %s %s
-    V1 %s %s %s
-    V2 %s %s %s
-                """ % (face[0][0], face[0][1], face[0][2],
-                       face[1][0], face[1][1], face[1][2],
-                       face[2][0], face[2][1], face[2][2]))
+            lines.append("TRI V0 %s %s %s V1 %s %s %s V2 %s %s %s" % \
+                          (face[0][0], face[0][1], face[0][2],
+                           face[1][0], face[1][1], face[1][2],
+                           face[2][0], face[2][1], face[2][2]))
             lines.append(self.texture.id)
             if len(face) > 3:
                 for k in range(2, len(face)-1):
-                    lines.append("""
-TRI
-    V0 %s %s %s
-    V1 %s %s %s
-    V2 %s %s %s
-                """ % (face[0][0], face[0][1], face[0][2],
-                       face[k][0], face[k][1], face[k][2],
-                       face[k+1][0], face[k+1][1], face[k+1][2]))
+                    lines.append("TRI V0 %s %s %s V1 %s %s %s V2 %s %s %s" % \
+                                 (face[0][0], face[0][1], face[0][2],
+                                  face[k][0], face[k][1], face[k][2],
+                                  face[k+1][0], face[k+1][1], face[k+1][2]))
                     lines.append(self.texture.id)
-        return "".join(lines)
+        return "\n".join(lines)
+
+    def tachyon_repr(self, render_params):
+        cdef Transformation transform = render_params.transform
+        lines = []
+        cdef point_c P, Q, R
+        cdef face_c face
+        cdef Py_ssize_t i, k
+        for i from 0 <= i < self.fcount:
+            face = self._faces[i]
+            if transform is not None:
+                transform.transform_point_c(&P, self.vs[face.vertices[0]])
+                transform.transform_point_c(&Q, self.vs[face.vertices[1]])
+                transform.transform_point_c(&R, self.vs[face.vertices[2]])
+            else:
+                P = self.vs[face.vertices[0]]
+                Q = self.vs[face.vertices[1]]
+                R = self.vs[face.vertices[2]]
+            PyList_Append(lines, format_tachyon_triangle(P, Q, R))
+            PyList_Append(lines, self.texture.id)
+            if face.n > 3:
+                for k from 3 <= k < face.n:
+                    Q = R
+                    if transform is not None:
+                        transform.transform_point_c(&R, self.vs[face.vertices[k]])
+                    else:
+                        R = self.vs[face.vertices[k]]
+                    PyList_Append(lines, format_tachyon_triangle(P, Q, R))
+                    PyList_Append(lines, self.texture.id)
+
+        return lines
 
 
-    def obj_geometry(self, transform, point_offset=0):
+    def obj_str(self, render_params):
+
+        header = "g %s\n\nusemtl %s\n" % (render_params.unique_name('obj'), self.texture.id)
+
+        transform = render_params.transform
+        cdef int off = render_params.obj_vertex_offset
         if transform is None:
             points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
         else:
-            points = ["v %s %s %s"%transform(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
-        faces = [" ".join([str(self._faces[i].vertices[j]+1) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
+            points = ["v %s %s %s"%transform((self.vs[i].x, self.vs[i].y, self.vs[i].z)) for i from 0 <= i < self.vcount]
+        faces = [" ".join([str(self._faces[i].vertices[j] + off) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
         if not self.enclosed:
-            faces += [" ".join([str(self._faces[i].vertices[j]+1) for j from self._faces[i].n > j >= 0]) for i from 0 <= i < self.fcount]
-        return "%s\n\nf %s\n\n" % ("\n".join(points), "\nf ".join(faces))
+            faces += [" ".join([str(self._faces[i].vertices[j] + off) for j from self._faces[i].n > j >= 0]) for i from 0 <= i < self.fcount]
+        render_params.obj_vertex_offset += self.vcount
+        return "%s\n%s\n\nf %s\n\n" % (header, "\n".join(points), "\nf ".join(faces))
+
+    def obj_repr(self, render_params):
+
+        cdef Transformation transform = render_params.transform
+        cdef int off = render_params.obj_vertex_offset
+        cdef Py_ssize_t i
+        cdef point_c res
+
+        print transform
+
+        if transform is None:
+#            points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
+            points = [format_obj_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
+        else:
+            points = []
+            for i from 0 <= i < self.vcount:
+                transform.transform_point_c(&res, self.vs[i])
+                PyList_Append(points, format_obj_vertex(res))
+
+        faces = [format_obj_face(self._faces[i], off) for i from 0 <= i < self.fcount]
+        if not self.enclosed:
+            back_faces = [format_obj_face_back(self._faces[i], off) for i from 0 <= i < self.fcount]
+        else:
+            back_faces = []
+
+        render_params.obj_vertex_offset += self.vcount
+
+        return ["g " + render_params.unique_name('obj'),
+                "usemtl " + self.texture.id,
+                points,
+                faces,
+                back_faces]
 
     def stickers(self, colors, width, hover):
         all = []

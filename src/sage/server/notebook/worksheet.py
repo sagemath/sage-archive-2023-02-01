@@ -793,10 +793,10 @@ class Worksheet:
 
         return """
 
-        <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif"> Print</a>
+        <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif" alt="Print">Print</a>
         <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Use</a>
-        <a class="%s" title="Edit text version of this worksheet" class="usercontrol" href="edit">Edit</a>
-        <a class="%s" title="View plain text version of this worksheet" class="usercontrol" href="text">Text</a>
+        <a class="%s" title="Edit text version of this worksheet" href="edit">Edit</a>
+        <a class="%s" title="View plain text version of this worksheet" href="text">Text</a>
         <a class="%s" href="revisions" title="View changes to this worksheet over time">Revisions</a>
         <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
@@ -823,30 +823,30 @@ class Worksheet:
 
         return """
 <select class="worksheet"  onchange="go_option(this);">
-<option title="Select a file related function" value=""  selected=1>File...</option>
+<option title="Select a file related function" value=""  selected>File...</option>
  <option title="Create a new worksheet" value="new_worksheet();">New Worksheet</option>
  <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download</option>
- <option title="Print this worksheet" value="print_worksheet();">Print</optooion>
+ <option title="Print this worksheet" value="print_worksheet();">Print</option>
  <option title="Rename this worksheet" value="rename_worksheet();">Rename worksheet</option>
  <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
  <option title="Move this worksheet to the trash" value="delete_worksheet('%s');">Delete worksheet</option>
 </select>
 
 <select class="worksheet"  onchange="go_option(this);" >
- <option title="Select a worksheet function" value="" selected=1>Action...</option>
+ <option title="Select a worksheet function" value="" selected>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
  <option title="Restart the worksheet" value="restart_sage();">Restart</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
- <option title="Hide all output" value="hide_all();">Hide All</option>
- <option title="Show all output" value="show_all();">Show All</option>
+ <option title="Hide all output" value="hide_all();">Hide All Output</option>
+ <option title="Show all output" value="show_all();">Show All Output</option>
  <option value="">---------------------------</option>
  <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
  </select>
 
 <select class="worksheet" onchange="go_data(this);" >
- <option title="Select an attached file" value="" selected=1>Data...</option>
+ <option title="Select an attached file" value="" selected>Data...</option>
  <option title="Upload or create a data file in a wide range of formats" value="__upload_data_file__">Upload or create file...</option>
  <option value="">--------------------</option>
 %s
@@ -868,7 +868,7 @@ class Worksheet:
         filename = os.path.split(self.filename())[-1]
         download_name = _notebook.clean_name(self.name())
 
-        menu += '  </span>'
+        #menu += '  </span>' #why is this here?  it isn't opened anywhere.
 
         return menu
 
@@ -893,8 +893,8 @@ class Worksheet:
         return s
 
     def javascript_for_being_active_worksheet(self):
-        s =  '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
-        s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
+        s =  '<script type="text/javascript">cell_id_list=%s;</script>'%self.compute_cell_id_list()
+        #s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
         return s
 
     def javascript_for_jsmath_rendering(self):
@@ -1868,9 +1868,9 @@ class Worksheet:
 
         return '\n'.join(u)
 
-    def _eval_cmd(self, system, cmd):
+    def _eval_cmd(self, system, cmd, dir):
         cmd = cmd.replace("'", "\\u0027")
-        return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
+        return "print _support_.syseval(%s, ur'''%s''', '%s')"%(system, cmd, dir)
 
     ##########################################################
     # Parsing the %cython, %jsmath, %python, etc., extension.
@@ -1903,7 +1903,7 @@ class Worksheet:
                 s = after_first_word(s).lstrip()
                 z = s
             else:
-                return True, self._eval_cmd(S, s)
+                return True, self._eval_cmd(S, s, os.path.abspath(C.directory()))
 
         if len(s) == 0 or s[0] != '%':
             return False, z
@@ -1932,7 +1932,7 @@ class Worksheet:
             j = min(i,j)
         sys = s[1:j]
         s = s[i+1:]
-        cmd = self._eval_cmd(sys, s)
+        cmd = self._eval_cmd(sys, s, os.path.abspath(C.directory()))
         if sys == 'html':
             C.set_is_html(True)
         return True, cmd

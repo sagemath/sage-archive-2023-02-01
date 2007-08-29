@@ -233,13 +233,14 @@ class Mathematica(Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None):
+    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
                         command = "math",
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         verbose_start = False,
                         logfile=logfile,
@@ -267,7 +268,7 @@ class Mathematica(Expect):
         return """
 In order to use the Mathematica interface you need to have Mathematica
 installed and have a script in your PATH called "math" that runs the
-command-line version of Mathematica.
+command-line version of Mathematica (alternatively, you could use a remote connection to a server running Mathematica. Do _install_hints_ssh() for hints on how to do that).
 
   (1) You might have to buy Mathematica (for at most $1880) at
       http://www.wolfram.com/.

@@ -747,7 +747,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of \frac{self}{other}
+        Computes the whole part of $\frac{self}{other}$.
 
         EXAMPLES:
             sage: a = Integer(321) ; b = Integer(10)

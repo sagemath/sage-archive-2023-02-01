@@ -29,6 +29,8 @@ SAGE_LOCAL = SAGE_ROOT + '/local/'
 
 HOSTNAME = socket.gethostname().replace('-','_')
 
+LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
+
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)
 
@@ -269,8 +271,8 @@ def set_verbose_files(file_name):
     """
     if not isinstance(file_name, list):
         file_name = [file_name]
-    for X in file_name:
-        verbose_files.append(X)
+    global verbose_files
+    verbose_files = file_name
 
 def get_verbose_files():
     """
@@ -841,6 +843,12 @@ def powerset(X):
         ...    print x,
         [] [0] [1] [0, 1] [-1] [0, -1] [1, -1] [0, 1, -1] [2] [0, 2] [1, 2]
 
+    You may also use subsets as an alias for powerset:
+        sage: subsets([1,2,3])   # random object location in output
+        <generator object at 0xaeae418c>
+        sage: list(subsets([1,2,3]))
+        [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
+
     \begin{notice} The reason we return lists instead of sets is that
     the elements of sets must be hashable and many structures on which
     one wants the powerset consist of non-hashable objects.
@@ -857,6 +865,8 @@ def powerset(X):
         pairs.append((2**len(pairs),x))
         for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
+
+subsets = powerset
 
 #################################################################
 # Type checking

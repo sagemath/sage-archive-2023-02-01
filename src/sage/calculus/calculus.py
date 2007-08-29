@@ -48,9 +48,9 @@ EXAMPLES:
 
         sage: f = sin(x)/cos(2*y)
         sage: f.derivative(y)
-        2*sin(x)*sin(2*y)/(cos(2*y)^2)
+        2*sin(x)*sin(2*y)/cos(2*y)^2
         sage: g = f.integral(x); g
-        -cos(x)/(cos(2*y))
+        -cos(x)/cos(2*y)
 
     Note that these methods require an explicit variable name. If none
     is given, \sage will try to find one for you.
@@ -475,7 +475,7 @@ class SymbolicExpression(RingElement):
 
         Use onscreen=False to get the 2d string:
              sage: f.display2d(onscreen=False)
-             '\t\t\t\t\t 3\r\n\t\t\t\t    y + x\r\n         \t\t\t ------------\r\n\t\t\t\t    2\r\n\t\t\t\t 3 y  + x + 1'
+             '                                         3\r\n                                    y + x\r\n                                 ------------\r\n                                    2\r\n                                 3 y  + x + 1'
 
         ASCII art is really helps for the following integral:
             sage: f = integral(sin(x^2)); f
@@ -1195,7 +1195,7 @@ class SymbolicExpression(RingElement):
             sin(x)*sin(y) - cos(x)*cos(y)
             sage: f = ((x^2+1)/(x^2-1))^(1/4)
             sage: g = diff(f, x); g # this is a complex expression
-            x/(2*(x^2 - 1)^(1/4)*(x^2 + 1)^(3/4)) - (x*(x^2 + 1)^(1/4)/(2*(x^2 - 1)^(5/4)))
+            x/(2*(x^2 - 1)^(1/4)*(x^2 + 1)^(3/4)) - x*(x^2 + 1)^(1/4)/(2*(x^2 - 1)^(5/4))
             sage: g.simplify_rational()
             -x/((x^2 - 1)^(5/4)*(x^2 + 1)^(3/4))
 
@@ -1213,7 +1213,7 @@ class SymbolicExpression(RingElement):
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
             sage: diff(g, x)
-            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - (x/((x^2 - 1)^(3/2)*abs(x + 5)^3))
+            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - x/((x^2 - 1)^(3/2)*abs(x + 5)^3)
         """
         # check each time
         s = ""
@@ -1280,19 +1280,19 @@ class SymbolicExpression(RingElement):
             sage: var('a, x, z')
             (a, x, z)
             sage: taylor(a*log(z), z, 2, 3)
-            log(2)*a + a*(z - 2)/2 - (a*(z - 2)^2/8) + a*(z - 2)^3/24
+            log(2)*a + a*(z - 2)/2 - a*(z - 2)^2/8 + a*(z - 2)^3/24
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
-            1 + (a + 1)*x/2 - ((a^2 + 2*a + 1)*x^2/8) + (3*a^3 + 9*a^2 + 9*a - 1)*x^3/48
+            1 + (a + 1)*x/2 - (a^2 + 2*a + 1)*x^2/8 + (3*a^3 + 9*a^2 + 9*a - 1)*x^3/48
             sage: taylor (sqrt (x + 1), x, 0, 5)
-            1 + x/2 - (x^2/8) + x^3/16 - (5*x^4/128) + 7*x^5/256
+            1 + x/2 - x^2/8 + x^3/16 - 5*x^4/128 + 7*x^5/256
             sage: taylor (1/log (x + 1), x, 0, 3)
-            1/x + 1/2 - (x/12) + x^2/24 - (19*x^3/720)
+            1/x + 1/2 - x/12 + x^2/24 - 19*x^3/720
             sage: taylor (cos(x) - sec(x), x, 0, 5)
-            -x^2 - (x^4/6)
+            -x^2 - x^4/6
             sage: taylor ((cos(x) - sec(x))^3, x, 0, 9)
-            -x^6 - (x^8/2)
+            -x^6 - x^8/2
             sage: taylor (1/(cos(x) - sec(x))^3, x, 0, 5)
-            -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - (6767*x^2/604800) - (15377*x^4/7983360)
+            -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - 6767*x^2/604800 - 15377*x^4/7983360
         """
         v = var(v)
         l = self._maxima_().taylor(v, SR(a), Integer(n))
@@ -1448,7 +1448,7 @@ class SymbolicExpression(RingElement):
             sage: de1.laplace(t, s)
             16*laplace(y(t), t, s) + s*laplace(x(t), t, s) - x(0)
             sage: de2.laplace(t, s)
-            s*laplace(y(t), t, s) + laplace(x(t), t, s) - (1/s) - y(0)
+            s*laplace(y(t), t, s) + laplace(x(t), t, s) - 1/s - y(0)
 
         Next we form the augmented matrix of the above system:
             sage: A = matrix([[s, 16, 270],[1, s, 90+1/s]])
@@ -1605,7 +1605,7 @@ class SymbolicExpression(RingElement):
         We next integrate a function with no closed form integral.  Notice that
         the answer comes back as an expression that contains an integral itself.
             sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
-            log(x - 4)/73 - (integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)/73)
+            log(x - 4)/73 - integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)/73
             sage: print A
                                      /  2
                                      [ x  + 4 x + 18
@@ -1880,7 +1880,7 @@ class SymbolicExpression(RingElement):
             (x, y, z)
             sage: f = x^3-y^3
             sage: f.factor()
-            (-(y - x))*(y^2 + x*y + x^2)
+            -(y - x)*(y^2 + x*y + x^2)
 
         Notice that the -1 factor is separated out:
             sage: f.factor_list()
@@ -2143,7 +2143,7 @@ class SymbolicExpression(RingElement):
             (x, y, z)
 
             sage: (x^3-y^3).factor()
-            (-(y - x))*(y^2 + x*y + x^2)
+            -(y - x)*(y^2 + x*y + x^2)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
             (2*y + x)*(z - 2)*(z + 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2395,7 +2395,7 @@ class SymbolicExpression(RingElement):
             x
             sage: f = x^2/(x+1)^3
             sage: f.partial_fraction()
-            1/(x + 1) - (2/(x + 1)^2) + 1/(x + 1)^3
+            1/(x + 1) - 2/(x + 1)^2 + 1/(x + 1)^3
             sage: print f.partial_fraction()
                                         1        2          1
                                       ----- - -------- + --------
@@ -2407,7 +2407,7 @@ class SymbolicExpression(RingElement):
             y
             sage: f = y^2/(y+1)^3
             sage: f.partial_fraction()
-            1/(y + 1) - (2/(y + 1)^2) + 1/(y + 1)^3
+            1/(y + 1) - 2/(y + 1)^2 + 1/(y + 1)^3
 
             sage: f = y^2/(y+1)^3 + x/(x-1)^3
             sage: f.partial_fraction()
@@ -2415,7 +2415,7 @@ class SymbolicExpression(RingElement):
 
         You can explicitly specify which variable is used.
             sage: f.partial_fraction(y)
-            1/(y + 1) - (2/(y + 1)^2) + 1/(y + 1)^3 + x/(x^3 - 3*x^2 + 3*x - 1)
+            1/(y + 1) - 2/(y + 1)^2 + 1/(y + 1)^3 + x/(x^3 - 3*x^2 + 3*x - 1)
         """
         if var is None:
             var = self._first_variable()
@@ -2530,17 +2530,32 @@ def sys_init(x, system):
 
 class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
+        from sage.rings.rational import Rational
+        if isinstance(x, Rational):
+            if x.is_integral():
+                self._precedence = 10**6
+            else:
+                self._precedence = 2000
         Symbolic_object.__init__(self, x)
 
+    #def _is_atomic(self):
+    #    try:
+    #        return self._atomic
+    #    except AttributeError:
+    #        if isinstance(self, Rational):
+    #            self._atomic = False
+    #        else:
+    #            self._atomic = True
+    #        return self._atomic
     def _is_atomic(self):
         try:
             return self._atomic
         except AttributeError:
-            if isinstance(self, Rational):
-                self._atomic = False
-            else:
-                self._atomic = True
-            return self._atomic
+            try:
+                return self._obj._is_atomic()
+            except AttributeError:
+                if isinstance(self._obj, int):
+                    return True
 
     def _recursive_sub(self, kwds):
         """
@@ -2693,7 +2708,7 @@ def var_cmp(x,y):
     return cmp(repr(x), repr(y))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
-            operator.div:'/', operator.pow:'^'}
+        operator.div:'/', operator.pow:'^', operator.neg:'-'}
 
 
 class SymbolicArithmetic(SymbolicOperation):
@@ -2704,6 +2719,36 @@ class SymbolicArithmetic(SymbolicOperation):
     def __init__(self, operands, op):
         SymbolicOperation.__init__(self, operands)
         self._operator = op
+        # assume a really low precedence by default
+        self._precedence = -1
+        # set up associativity and precedence rules
+        if op is operator.neg:
+            self._binary = False
+            self._unary = True
+            self._precedence = 2000
+        else:
+            self._binary = True
+            self._unary = False
+        if op is operator.pow:
+            self._precedence = 3000
+            self._l_assoc = False
+            self._r_assoc = True
+        elif op is operator.mul:
+            self._precedence = 2000
+            self._l_assoc = True
+            self._r_assoc = True
+        elif op is operator.div:
+            self._precedence = 2000
+            self._l_assoc = True
+            self._r_assoc = False
+        elif op is operator.sub:
+            self._precedence = 1000
+            self._l_assoc = True
+            self._r_assoc = False
+        elif op is operator.add:
+            self._precedence = 1000
+            self._l_assoc = True
+            self._r_assoc = True
 
     def _recursive_sub(self, kwds):
         """
@@ -2799,15 +2844,15 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: var('r')
             r
             sage: a = (1-1/r)^(-1); a
-            1/(1 - (1/r))
+            1/(1 - 1/r)
             sage: a.derivative(r)
-            -1/((1 - (1/r))^2*r^2)
+            -1/((1 - 1/r)^2*r^2)
 
             sage: var('a,b')
             (a, b)
             sage: s = 0*(1/a) + -b*(1/a)*(1 + -1*0*(1/a))*(1/(a*b + -1*b*(1/a)))
             sage: s
-            -b/(a*(a*b - (b/a)))
+            -b/(a*(a*b - b/a))
             sage: s(a=2,b=3)
             -1/3
             sage: -3/(2*(2*3-(3/2)))
@@ -2821,53 +2866,109 @@ class SymbolicArithmetic(SymbolicOperation):
 
         ops = self._operands
         op = self._operator
+        s = [x._repr_(simplify=simplify) for x in ops]
 
-        s = [o._repr_(simplify=False) for o in ops]
+        # if an operand is a rational number, trick SAGE into thinking it's an
+        # operation
+        li = []
+        for o in ops:
+            try:
+                obj = o._obj
+                if isinstance(obj, Rational):
+                    temp = SymbolicConstant(obj)
+                    if not temp._obj.is_integral():
+                        temp._operator = operator.div
+                        temp._l_assoc = True
+                        temp._r_assoc = False
+                        temp._precedence = 2000
+                        temp._binary = True
+                        temp._unary = False
+                    li.append(temp)
+                else:
+                    li.append(o)
+            except AttributeError:
+                li.append(o)
 
-        # for the left operand, we need to surround it in parens when the
-        # operator is mul/div/pow, and when the left operand contains an
-        # operation of lower precedence
-        if op in [operator.mul, operator.div]:
-            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
-                if not ops[0]._is_atomic():
-                    s[0] = '(%s)' % s[0]
+        ops = li
+
+        rop = ops[0]
+        if self._binary:
+            lop = rop
+            rop = ops[1]
+
+        lparens = True
+        rparens = True
+
+        if self._binary:
+            try:
+                l_operator = lop._operator
+            except AttributeError:
+                # if it's not arithmetic on the left, see if it's atomic
+                try:
+                    prec = lop._precedence
+                except AttributeError:
+                    if lop._is_atomic():
+                    # if it has no concept of precedence, leave the parens
+                        lparens = False
+                else:
+                    # if it a higher precedence, don't draw parens
+                    if self._precedence < lop._precedence:
+                        lparens = False
             else:
-                try:
-                    if isinstance(ops[0]._obj, Rational):
-                        s[0] = '(%s)' % s[0]
-                except AttributeError:
-                    pass
-                try:
-                    if isinstance(ops[1]._obj, Rational):
-                        s[1] = '(%s)' % s[1]
-                except AttributeError:
-                    pass
+                # if the left op is the same is this operator
+                if op is l_operator:
+                    # if it's left associative, get rid of the left parens
+                    if self._l_assoc:
+                        lparens = False
+                # different operators, same precedence, get rid of the left parens
+                elif self._precedence == lop._precedence:
+                    if self._l_assoc:
+                        lparens = False
+                # if we have a lower precedence than the left, get rid of the parens
+                elif self._precedence < lop._precedence:
+                    lparens = False
 
-        # for the right operand, we need to surround it in parens when
-        # the operation is mul/div/sub, and when the right operand
-        # contains a + or -.
-        if op in [operator.mul, operator.sub]:
-                # avoid drawing parens if s1 an atomic operation
-                if not ops[1]._is_atomic():
-                    s[1] = '(%s)' % s[1]
-
-        elif op is operator.div:
-            if not ops[1]._is_atomic() or ops[1]._has_op(operator.mul):
-                s[1] = '(%s)' % s[1]
-
-        elif op is operator.pow:
-            if not ops[0]._is_atomic():
+        try:
+            r_operator = rop._operator
+        except AttributeError:
+            try:
+                prec = rop._precedence
+            except AttributeError:
+                if rop._is_atomic():
+                    rparens = False
+            else:
+                if self._precedence < rop._precedence:
+                    rparens = False
+        else:
+            if rop._binary:
+                if op is r_operator:
+                    try:
+                        if self._r_assoc:
+                            rparens = False
+                    except AttributeError:
+                        pass
+                elif self._precedence == rop._precedence:
+                    try:
+                        if self._r_assoc:
+                            rparens = False
+                    except AttributeError:
+                        pass
+                # if the RHS has higher precedence, it comes first and parens are
+                # redundant
+                elif self._precedence < rop._precedence:
+                    rparens = False
+        if self._binary:
+            if lparens:
                 s[0] = '(%s)'% s[0]
-            if not ops[1]._is_atomic() or ('/' in s[1] or '*' in s[1]):
+            if rparens:
                 s[1] = '(%s)'% s[1]
 
-        if op is operator.neg:
-            if ops[0]._is_atomic():
-                return '-%s' % s[0]
-            else:
-                return '-(%s)'%s[0]
-        else:
             return '%s%s%s' % (s[0], symbols[op], s[1])
+
+        elif self._unary:
+            if rparens:
+                s[0] = '(%s)'%s[0]
+            return '%s%s' % (symbols[op], s[0])
 
     def _latex_(self):
         # if we are not simplified, return the latex of a simplified version
@@ -4354,7 +4455,7 @@ def polylog(n, z):
         sage: var('z')
         z
         sage: polylog(2,z).taylor(z, 1/2, 3)
-        (-(6*log(2)^2 - pi^2))/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
+        -(6*log(2)^2 - pi^2)/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
     """
     return Function_polylog(n)(z)
 

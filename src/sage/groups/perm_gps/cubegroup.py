@@ -2,7 +2,8 @@ r"""
 Rubik's cube group functions
 \label{sec:rubik}
 
-NOTE: ``Rubik's cube'' is trademarked.
+NOTE: ``Rubik's cube'' is trademarked. We shall omit the trademark symbol
+below for simplcity.
 
 NOTATION: B denotes a clockwise quarter turn of the back face
           D denotes a clockwise quarter turn of the down face
@@ -16,27 +17,29 @@ The "Singmaster notation":
      and the clockwise rotation of the corner sends x->y->z
   * edges: xy means the facet is on face x and a flip of the edge sends x->y.
 
-
-
-                        +-----------------+
-                        | 1     2      3 |
-                        | 4    up    5 |
-                        | 6     7      8 |
-     +-----------------+-----------------+--------------------+-------------------+
-     | 9    10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-     | 12  left  13 | 20  front 21 | 28  right 29 | 36  back  37 |
-     | 14   15   16 | 22    23  24 | 30   31   32 | 38   39   40 |
-     +------------------+-----------------+-------------------+-------------------+
-                        | 41   42   43 |
-                        | 44  down  45 |
-                        | 46   47   48 |
-                       +------------------+
+            sage: rubik = CubeGroup()
+            sage: rubik.display2d("")
+                         +--------------+
+                         |  1    2    3 |
+                         |  4   top   5 |
+                         |  6    7    8 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+            | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+            | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   43 |
+                         | 44 bottom 45 |
+                         | 46   47   48 |
+                         +--------------+
 
 AUTHOR:
     - David Joyner (2006-10-21): first version
     -      "       (2007-05): changed faces, added legal and solve
     -      "       (2007-06): added plotting functions
-    -      "       (2007-08): colors corrected, "solve" rewritten, and typos fixed.
+    -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
+    - Robert Miller (2007-08): editing, cleaned up display2d
+    - Robert Bradshaw (2006-08): RubiksCube object.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -46,21 +49,22 @@ REFERENCES:
 
 """
 
-#*********************************************************************************************************************************
+#**************************************************************************************
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*********************************************************************************************************************************
+#**************************************************************************************
 
 from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 import random
 
+from sage.structure.sage_object import SageObject
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer
+from sage.rings.all      import RationalField, Integer, RDF
 #from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -74,7 +78,9 @@ text = TextFactory()
 from sage.calculus.calculus import Function_sin, Function_cos
 sin = Function_sin()
 cos = Function_cos()
-pi = 3.14159265
+pi = RDF.pi()
+
+from sage.plot.graphics3d import *
 
 ####################### predefined colors ##################
 
@@ -567,28 +573,26 @@ def plot3d_cubie(cnt, clrs):
 class CubeGroup(PermutationGroup_generic):
     """
     A python class to help compute Rubik's cube group actions.
-    If G denotes the cube group then it may be regarded as a subgroup
-    of SymmetricGroup(48), where the 48 facets are labeled as follows.
-
-
-                             +--------------+
-                             |  1    2    3 |
-                             |  4   Up    5 |
-                             |  6    7    8 |
-              +--------------+--------------+--------------+--------------+
-              |  9   10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-              | 12  Left  13 | 20 Front  21 | 28 Right  29 | 36  Back  37 |
-              | 14   15   16 | 22   23   24 | 30   31   32 | 38   39   40 |
-              +--------------+--------------+--------------+--------------+
-                             | 41   42   43 |
-                             | 44  Down  45 |
-                             | 46   47   48 |
-                             +--------------+
-
-
 
     EXAMPLES:
+    If G denotes the cube group then it may be regarded as a subgroup
+    of SymmetricGroup(48), where the 48 facets are labeled as follows.
         sage: rubik = CubeGroup()
+        sage: rubik.display2d("")
+                     +--------------+
+                     |  1    2    3 |
+                     |  4   top   5 |
+                     |  6    7    8 |
+        +------------+--------------+-------------+------------+
+        |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+        | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+        | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+        +------------+--------------+-------------+------------+
+                     | 41   42   43 |
+                     | 44 bottom 45 |
+                     | 46   47   48 |
+                     +--------------+
+
         sage: rubik
         The PermutationGroup of all legal moves of the Rubik's cube.
         sage: print rubik
@@ -660,7 +664,7 @@ class CubeGroup(PermutationGroup_generic):
         return g
 
 
-    def facets(self):
+    def facets(self, g=None):
         r"""
         Returns the set of facets on which the group acts. This function is a "constant".
 
@@ -672,7 +676,10 @@ class CubeGroup(PermutationGroup_generic):
         """
         fcts = [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13,14,15,16,17,18,19,20,21,22,23,24,\
           25,26,27,28,29,30,31,32,33,34,35,36, 37,38,39,40,41,42,43,44,45,46,47,48 ]
-        return fcts
+        if g is not None:
+            return [g(i) for i in fcts]
+        else:
+            return fcts
 
     def faces(self, mv):
         r"""
@@ -690,7 +697,10 @@ class CubeGroup(PermutationGroup_generic):
         after making the move R followed by L.
 
         """
-        fcts = self.move(mv)[1]
+        if isinstance(mv, str):
+            fcts = self.move(mv)[1]
+        else:
+            fcts = self.facets(mv)
         faceR = [[fcts[24],fcts[25],fcts[26]],[fcts[27],0,fcts[28]],[fcts[29],fcts[30],fcts[31]]]
         faceL = [[fcts[8],fcts[9],fcts[10]],[fcts[11],0,fcts[12]],[fcts[13],fcts[14],fcts[15]]]
         faceU = [[fcts[0],fcts[1],fcts[2]],[fcts[3],0,fcts[4]],[fcts[5],fcts[6],fcts[7]]]
@@ -718,6 +728,7 @@ class CubeGroup(PermutationGroup_generic):
 	    (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
 
 	"""
+	mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "^(-1)")
 	m = mv.split("*")
 	M = [x.split("^") for x in m]
 	#print M
@@ -749,6 +760,9 @@ class CubeGroup(PermutationGroup_generic):
 	return [g,pos]
 
     def display2d(self,mv):
+        print self.repr2d(mv)
+
+    def repr2d(self, mv):
         r"""
         Displays a 2d map of the Rubik's cube after the move mv has been made.
         Nothing is returned.
@@ -756,52 +770,128 @@ class CubeGroup(PermutationGroup_generic):
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: rubik.display2d("")
-                                 +--------------+
-                                 |  1    2    3 |
-                                 |  4  top    5 |
-                                 |  6    7    8 |
-                  +--------------+--------------+--------------+--------------+
-                  |  9   10   11 | 17   18   19 | 25   26   27 | 33   34   35 |
-                  | 12  left  13 | 20 front  21 | 28 right  29 | 36  rear  37 |
-                  |  14   15   16 | 22   23   24 | 30   31   32 | 38   39   40 |
-                  +--------------+--------------+--------------+--------------+
-                                 | 41   42   43 |
-                                 | 44 bottom 45 |
-                                 | 46   47   48 |
-                                 +--------------+
+                         +--------------+
+                         |  1    2    3 |
+                         |  4   top   5 |
+                         |  6    7    8 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18   19 | 25   26  27 | 33  34  35 |
+            | 12 left 13 | 20  front 21 | 28 right 29 | 36 rear 37 |
+            | 14  15  16 | 22   23   24 | 30   31  32 | 38  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   43 |
+                         | 44 bottom 45 |
+                         | 46   47   48 |
+                         +--------------+
 
             sage: rubik.display2d("R")
-                                 +--------------+
-                                 |  1    2    38 |
-                                 |  4  top    36 |
-                                 |  6    7    33 |
-                  +--------------+--------------+--------------+--------------+
-                  |  9   10   11 | 17   18   3 | 27   29   32 | 48   34   35 |
-                  | 12  left  13 | 20 front  5 | 26 right  31 | 45  rear  37 |
-                  |  14   15   16 | 22   23   8 | 25   28   30 | 43   39   40 |
-                  +--------------+--------------+--------------+--------------+
-                                 | 41   42   19 |
-                                 | 44 bottom 21 |
-                                 | 46   47   24 |
-                                 +--------------+
+                         +--------------+
+                         |  1    2   38 |
+                         |  4   top  36 |
+                         |  6    7   33 |
+            +------------+--------------+-------------+------------+
+            |  9  10  11 | 17   18    3 | 27   29  32 | 48  34  35 |
+            | 12 left 13 | 20  front  5 | 26 right 31 | 45 rear 37 |
+            | 14  15  16 | 22   23    8 | 25   28  30 | 43  39  40 |
+            +------------+--------------+-------------+------------+
+                         | 41   42   19 |
+                         | 44 bottom 21 |
+                         | 46   47   24 |
+                         +--------------+
 
         You can see the right face has been rotated but not the left face.
         """
-        lst = self.move(mv)[1]
-        line1 = "                     +--------------+\n"
-        line2 = "                     |  %s    %s    %s |\n"%(lst[0],lst[1],lst[2])
-        line3 = "                     |  %s  top    %s |\n"%(lst[3],lst[4])
-        line4 = "                     |  %s    %s    %s |\n"%(lst[5],lst[6],lst[7])
-        line5 = "      +--------------+--------------+--------------+--------------+\n"
-        line6 = "      |  %s   %s   %s | %s   %s   %s | %s   %s   %s | %s   %s   %s |\n"%(lst[8],lst[9],lst[10],lst[16],lst[17],lst[18],lst[24],lst[25],lst[26],lst[32],lst[33],lst[34])
-        line7 = "      | %s  left  %s | %s front  %s | %s right  %s | %s  rear  %s |\n"%(lst[11],lst[12],lst[19],lst[20],lst[27],lst[28],lst[35],lst[36])
-        line8 = "      |  %s   %s   %s | %s   %s   %s | %s   %s   %s | %s   %s   %s |\n"%(lst[13],lst[14],lst[15],lst[21],lst[22],lst[23],lst[29],lst[30],lst[31],lst[37],lst[38],lst[39])
-        line9 = "      +--------------+--------------+--------------+--------------+\n"
-        line10 = "                     | %s   %s   %s |\n"%(lst[40],lst[41],lst[42])
-        line11 = "                     | %s bottom %s |\n"%(lst[43],lst[44])
-        line12 = "                     | %s   %s   %s |\n"%(lst[45],lst[46],lst[47])
-        line13 = "                     +--------------+\n"
-        print line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
+        if isinstance(mv, str):
+            lst = self.move(mv)[1]
+        else:
+            lst = self.facets(mv)
+        line1 =  "             +--------------+\n"
+        line2 =  "             |%3d  %3d  %3d |\n"%(lst[0],lst[1],lst[2])
+        line3 =  "             |%3d   top %3d |\n"%(lst[3],lst[4])
+        line4 =  "             |%3d  %3d  %3d |\n"%(lst[5],lst[6],lst[7])
+        line5 =  "+------------+--------------+-------------+------------+\n"
+        line6 =  "|%3d %3d %3d |%3d  %3d  %3d |%3d  %3d %3d |%3d %3d %3d |\n"%(lst[8],lst[9],lst[10],lst[16],lst[17],lst[18],lst[24],lst[25],lst[26],lst[32],lst[33],lst[34])
+        line7 =  "|%3d left%3d |%3d  front%3d |%3d right%3d |%3d rear%3d |\n"%(lst[11],lst[12],lst[19],lst[20],lst[27],lst[28],lst[35],lst[36])
+        line8 =  "|%3d %3d %3d |%3d  %3d  %3d |%3d  %3d %3d |%3d %3d %3d |\n"%(lst[13],lst[14],lst[15],lst[21],lst[22],lst[23],lst[29],lst[30],lst[31],lst[37],lst[38],lst[39])
+        line9 =  "+------------+--------------+-------------+------------+\n"
+        line10 = "             |%3d  %3d  %3d |\n"%(lst[40],lst[41],lst[42])
+        line11 = "             |%3d bottom%3d |\n"%(lst[43],lst[44])
+        line12 = "             |%3d  %3d  %3d |\n"%(lst[45],lst[46],lst[47])
+        line13 = "             +--------------+\n"
+        return line1+line2+line3+line4+line5+line6+line7+line8+line9+line10+line11+line12+line13
+
+    def plot_cube(self,mv,title=True):
+        """
+        Input the move mv, as a string in the Singmaster notation,
+        and output the 2-d plot of the cube in that state.
+
+        Type P.show() to display any of the plots below.
+
+        EXAMPLES:
+            sage: rubik = CubeGroup()
+            sage: P = rubik.plot_cube("R^2*U^2*R^2*U^2*R^2*U^2", title = False)
+            sage: # (R^2U^2)^3  permutes 2 pairs of edges (uf,ub)(fr,br)
+            sage: P = rubik.plot_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
+            sage: # the superflip (in 20f* moves)
+            sage: P = rubik.plot_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
+            sage: # "superflip+4 spot" (in 26q* moves)
+        """
+        rubik = CubeGroup()
+        if isinstance(mv, str):
+            state = rubik.move(mv)[1]
+        else:
+            state = rubik.facets(mv)
+        #print state
+        str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
+        colors = [eval(p) for p in str_colors]
+        centers = u_center(lpurple)+f_center(red)+l_center(yellow)+r_center(green)+d_center(blue)+b_center(orange)
+        clrs = centers+sum(colors)
+        clrs.axes(show=False)
+        if title == True:
+            t = text('sagemath.org', (7.8,-3.5),rgbcolor=lgrey)
+            P = clrs+t
+            P.axes(show=False)
+            return P
+        return clrs
+
+    def plot3d_cube(self,mv,title=True):
+        """
+        Displays F,U,R faces of the cube after the given move mv, where mv is a string in the Singmaster notation.
+        Mostly included for the purpose of drawing pictures and checking moves.
+
+        The first one below is "superflip+4 spot" (in 26q* moves) and the second one is the
+        superflip (in 20f* moves). Type show(P) to view them.
+
+        EXAMPLES:
+            sage: rubik = CubeGroup()
+            sage: P = rubik.plot3d_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
+            sage: P = rubik.plot3d_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
+        """
+        rubik = CubeGroup()
+        state = rubik.move(mv)[1]
+        clr_any = white
+        shown_labels = range(1,9)+range(17,33)
+        clr = [color_of_square(state[c-1]) for c in shown_labels]
+        cubiesR = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [32,31,30,29,28,27,26,25]]
+        cubeR = sum(cubiesR)
+        cubiesU = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in range(1,9)]
+        cubeU = sum(cubiesU)
+        cubiesF = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [22,23,24,20,21]]
+        cubeF = sum(cubiesF)
+        centerR =  polygon_plot3d([[1,3,1],[2,3,1],[2,3,2],[1,3,2],[1,3,1]],rgbcolor=green)
+        centerF =  polygon_plot3d([[3,1,1],[3,2,1],[3,2,2],[3,1,2],[3,1,1]],rgbcolor=red)
+        centerU =  polygon_plot3d([[1,1,3],[1,2,3],[2,2,3],[2,1,3],[1,1,3]],rgbcolor=lpurple)
+        centers = centerF+centerR+centerU
+        P = cubeR+cubeF+cubeU+centers
+        P.axes(show=False)
+        if title == True:
+            t1 = text('Up, Front, and Right faces. '   , (-0.2,-2.5))
+            t2  = text('      sagemath.org', (0.8,-3.1),rgbcolor=lgrey)
+            t3 = text("     ",(3.5,0),rgbcolor=white)
+            P = P+t1+t2+t3
+            P.axes(show=False)
+            return P
+        return P
 
     def legal(self,state,mode="quiet"):
         r"""
@@ -862,34 +952,49 @@ class CubeGroup(PermutationGroup_generic):
         in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
         and \code{PreImagesRepresentative}.
 
-        WARNING: This is currently evidently broken.
+        This algorithm
+        (a) constructs the free group on 6 generators then computes a
+        reasonable set of relations which they satisfy
+        (b) computes a homomorphism from the cube group to this free
+        group quotient
+        (c) takes the cube position, regarded as a group element,
+        and maps it over to the free group quotient
+        (d) using those relations and tricks from combinatorial group
+        theory (stabilizer chains), solves the "word problem" for that
+        element.
+        (e) uses python string parsing to rewrite that in cube notation.
+        The Rubik's cube group has about 4.3x10^(19) elements, so this
+        process is time-consuming.
+        See http://www.gap-system.org/Doc/Examples/rubik.html
+        for an interesting discussion of some GAP code analyzing the
+        Rubik's cube.
 
         EXAMPLES:
             sage: rubik = CubeGroup()
-            sage: R_state = rubik.faces("R")
-            sage.: rubik.solve(R_state)  # currently broken (long time)
-            'R'
+            sage: state = rubik.faces("R*U")
+            sage: rubik.solve(state)  # long time; *computationally intensive* even for simple moves
+            'R*U'
 
         You can also check this using \code{word_problem} method (eg, G = rubik.group();
         g = G("(3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)");
         g.word_problem([b,d,f,l,r,u]), though the output will be less intuitive).
 
         """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.interfaces.all import gap
         rubik = self
-        leg = rubik.legal(state,"verbose")
-        if not(leg[0]):
-            return "Illegal or syntactically incorrect state. No solution."
         G = rubik.group()
-        g = leg[1]
-        b = rubik.B()
-        d = rubik.D()
-        f = rubik.F()
-        l = rubik.L()
-        r = rubik.R()
-        u = rubik.U()
-        words = [b,d,f,l,r,u]
-        sol = leg[1].word_problem(words, False)[0]
-        sol1 = sol.replace("x1","B")
+        if isinstance(state, str):
+            leg = rubik.legal(state,"verbose")
+            if not(leg[0]):
+                return "Illegal or syntactically incorrect state. No solution."
+            g = leg[1]
+        else:
+            g = state
+        hom = G._gap_().EpimorphismFromFreeGroup()
+        soln = hom.PreImagesRepresentative(gap(str(g)))
+        # print soln
+        sol1 = str(soln).replace("x1","B")
         sol2 = sol1.replace("x2","D")
         sol3 = sol2.replace("x3","F")
         sol4 = sol3.replace("x4","L")
@@ -897,74 +1002,175 @@ class CubeGroup(PermutationGroup_generic):
         sol6 = sol5.replace("x6","U")
         return sol6
 
-### default plot method. Goes into global namespace
 
-def plot_cube(mv,title=True):
+
+##########################################################
+#              3d object generation
+##########################################################
+
+def cubie_faces():
     """
-    Input the move mv, as a string in the Singmaster notation,
-    and output the 2-d plot of the cube in that state.
+    This provides a map from the 6 faces of the 27 cubies to the 48 facets of the larger cube.
 
-    Type P.show() to display any of the plots below.
-
-    EXAMPLES:
-        sage: P = plot_cube("R^2*U^2*R^2*U^2*R^2*U^2", title = False)
-        sage: # (R^2U^2)^3  permutes 2 pairs of edges (uf,ub)(fr,br)
-        sage: P = plot_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
-        sage: # the superflip (in 20f* moves)
-        sage: P = plot_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
-        sage: # "superflip+4 spot" (in 26q* moves)
+    -1,-1,-1 is left, top, front
     """
-    rubik = CubeGroup()
-    state = rubik.move(mv)[1]
-    #print state
-    str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
-    colors = [eval(p) for p in str_colors]
-    centers = u_center(lpurple)+f_center(red)+l_center(yellow)+r_center(green)+d_center(blue)+b_center(orange)
-    clrs = centers+sum(colors)
-    clrs.axes(show=False)
-    if title == True:
-        t = text('sagemath.org', (7.8,-3.5),rgbcolor=lgrey)
-        P = clrs+t
-        P.axes(show=False)
-        return P
-    return clrs
+    faceR = [[25,26,27], [28,-3,29], [30,31,32]] # green
+    faceL = [[ 9,10,11], [12,-5,13], [14,15,16]] # orange
+    faceU = [[ 1, 2, 3], [ 4,-6, 5], [ 6, 7, 8]] # red
+    faceD = [[41,42,43], [44,-1,45], [46,47,48]] # purple
+    faceF = [[17,18,19], [20,-4,21], [22,23,24]] # yellow
+    faceB = [[33,34,35], [36,-2,37], [38,39,40]] # blue
+    cubies = {}
+    for x in [-1,0,1]:
+        for y in [-1,0,1]:
+            for z in [-1,0,1]:
+                cubies[x,y,z] = [0,0,0,0,0,0]
 
-####### 3d plot method. Goes into global namespace.
+    for i in [-1,0,1]:
+        for j in [-1,0,1]:
+            cubies[  i,  j, -1][1] = faceF[1+j][1+i]
+            cubies[  i,  j,  1][4] = faceB[1+j][1-i]
+            cubies[  i, -1,  j][0] = faceU[1-j][1+i]
+            cubies[  i,  1,  j][3] = faceD[1+j][1+i]
+            cubies[ -1,  i,  j][2] = faceL[1+i][1-j]
+            cubies[  1,  i,  j][5] = faceR[1+i][1+j]
 
-def plot3d_cube(mv,title=True):
+    return cubies
+
+cubie_face_list = cubie_faces()
+
+
+rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()) for _ in range(56)]
+
+
+class RubiksCube(SageObject):
     """
-    Displays F,U,R faces of the cube after the given move mv, where mv is a string in the Singmaster notation.
-    Mostly included for the purpose of drawing pictures and checking moves.
+    sage: C = RubiksCube().move("R U R'")
+    sage.: C.show3d()
 
-    The first one below is "superflip+4 spot" (in 26q* moves) and the second one is the
-    superflip (in 20f* moves). Type show(P) to view them.
-
-    EXAMPLES:
-        sage: P = plot3d_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
-        sage: P = plot3d_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
+    sage: C = RubiksCube("R*L"); C
+                 +--------------+
+                 | 17    2   38 |
+                 | 20   top  36 |
+                 | 22    7   33 |
+    +------------+--------------+-------------+------------+
+    | 11  13  16 | 41   18    3 | 27   29  32 | 48  34   6 |
+    | 10 left 15 | 44  front  5 | 26 right 31 | 45 rear  4 |
+    |  9  12  14 | 46   23    8 | 25   28  30 | 43  39   1 |
+    +------------+--------------+-------------+------------+
+                 | 40   42   19 |
+                 | 37 bottom 21 |
+                 | 35   47   24 |
+                 +--------------+
+    sage.: C.show()
+    sage: C.solve(algorithm='gap')  # long time
+    'L*R'
+    sage: C == RubiksCube("L*R")
+    True
     """
-    rubik = CubeGroup()
-    state = rubik.move(mv)[1]
-    clr_any = white
-    shown_labels = range(1,9)+range(17,33)
-    clr = [color_of_square(state[c-1]) for c in shown_labels]
-    cubiesR = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [32,31,30,29,28,27,26,25]]
-    cubeR = sum(cubiesR)
-    cubiesU = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in range(1,9)]
-    cubeU = sum(cubiesU)
-    cubiesF = [plot3d_cubie(cubie_centers(c),cubie_colors(c,state)) for c in [22,23,24,20,21]]
-    cubeF = sum(cubiesF)
-    centerR =  polygon_plot3d([[1,3,1],[2,3,1],[2,3,2],[1,3,2],[1,3,1]],rgbcolor=green)
-    centerF =  polygon_plot3d([[3,1,1],[3,2,1],[3,2,2],[3,1,2],[3,1,1]],rgbcolor=red)
-    centerU =  polygon_plot3d([[1,1,3],[1,2,3],[2,2,3],[2,1,3],[1,1,3]],rgbcolor=lpurple)
-    centers = centerF+centerR+centerU
-    P = cubeR+cubeF+cubeU+centers
-    P.axes(show=False)
-    if title == True:
-        t1 = text('Up, Front, and Right faces. '   , (-0.2,-2.5))
-        t2  = text('      sagemath.org', (0.8,-3.1),rgbcolor=lgrey)
-        t3 = text("     ",(3.5,0),rgbcolor=white)
-        P = P+t1+t2+t3
-        P.axes(show=False)
-        return P
-    return P
+    def __init__(self, state=None, history=[], colors=[lpurple,yellow,red,green,orange,blue]):
+        self.colors = colors
+        self._history = history
+        self._group = CubeGroup()
+        if state is None:
+            self._state = self._group(1)
+        else:
+            if isinstance(state, str):
+                state = self._group.faces(state)
+            if not isinstance(state, PermutationGroupElement):
+                legal, state = self._group.legal(state, mode="gimme_group_element")
+                if not legal:
+                    raise ValueError, "Not a legal cube."
+            self._state = state
+
+    def move(self, g):
+        if not g in self._group:
+            g = self._group.move(g)[0]
+        return RubiksCube(self._state * g, self._history + [g], self.colors)
+
+    def undo(self):
+        g = self._history[-1]
+        return RubiksCube(self._state * ~g, self._history[:-1], self.colors)
+
+    def __repr__(self):
+        return self._group.repr2d(self._state)
+
+    def facets(self):
+        return self._group.facets(self._state)
+
+    def plot(self):
+        return self._group.plot_cube(self._state)
+
+    def show(self):
+        self.plot().show()
+
+
+    def cubie(self, size, gap, x,y,z, colors, stickers=True):
+        sides = cubie_face_list[x,y,z]
+        t = 2*size+gap
+        my_colors = [colors[sides[i]+6] for i in range(6)]
+        if stickers:
+            B = Box(size, size, size, color=(.1, .1, .1))
+            S = B + B.triangulation().stickers(my_colors, size*.1, size*.01)
+            return S.translate(-t*x, -t*z, -t*y)
+        else:
+            return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
+
+    def plot3d(self, stickers=True):
+        """
+        sage: C = RubiksCube().move("R*U")
+        sage: C.plot3d()
+        <class 'sage.plot.graphics3d.TransformGroup'>
+        sage: C.plot()
+        Graphics object consisting of 55 graphics primitives
+        """
+        while len(self.colors) < 7:
+            self.colors.append((.1, .1, .1))
+        side_colors = [Texture(color=c, ambient=.75) for c in self.colors]
+        start_colors = sum([[c]*8 for c in side_colors], [])
+        facets = self._group.facets(self._state)
+        facet_colors = [0]*48
+        for i in range(48):
+            facet_colors[facets[i]-1] = start_colors[i]
+        all_colors = side_colors + facet_colors
+        pm = [-1,0,1]
+        C = sum([self.cubie(.15, .025, x, y, z, all_colors, stickers) for x in pm for y in pm for z in pm], Box(.35, .35, .35, color=self.colors[-1]))
+        return C.rotateZ(1.5) #.scale([1,-1,1]).rotateZ(1.5)
+
+    def show3d(self):
+        return self.plot3d().show()
+
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            return cmp(self._state, other._state)
+        else:
+            return c
+
+    def solve(self, algorithm="dietz"):
+        """
+        Algorithm must be one of :
+           dietz     - Use Eric Dietz's cubex program     (fast but lots of moves)
+           optimal   - Use Michael Reid's optimal program (may take a long time)
+           gap       - Use GAP word solution              (can be slow)
+
+
+        """
+
+        if algorithm == "dietz":
+            from sage.interfaces.rubik import CubexSolver
+            solver = CubexSolver()
+            return solver.solve(self.facets())
+
+        elif algorithm == "optimal":
+            # TODO: cache this, startup is expensive
+            from sage.interfaces.rubik import OptimalSolver
+            solver = OptimalSolver()
+            return solver.solve(self.facets())
+
+        elif algorithm == "gap":
+            solver = CubeGroup()
+            return solver.solve(self._state)
+
+        else:
+            raise ValueError, "Unrecognized algorithm"

@@ -46,6 +46,7 @@ class Reduce(Expect):
                  maxread=100000, script_subdirectory=None,
                  logfile='/home/was/a',
                  server=None,
+                 server_tmpdir=None,
                  init_list_length=1024):
         Expect.__init__(self,
 
@@ -62,6 +63,7 @@ class Reduce(Expect):
 
                         maxread = maxread,
                         server=server,
+                        server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
 
                         # If this is true, then whenever the user presses Control-C to

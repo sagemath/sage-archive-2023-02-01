@@ -160,6 +160,42 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
+        r"""
+        Coerce \code{x} into this univariate polynomial ring, possibly non-canonically.
+
+        Stacked polynomial rings coerce into constants if possible.  First,
+        the univariate case:
+            sage: R.<x> = QQ[]
+            sage: S.<u> = R[]
+            sage: S(u + 2)
+            u + 2
+            sage: S(x + 3)
+            x + 3
+            sage: S(x + 3).degree()
+            0
+
+        Second, the multivariate case:
+            sage: R.<x,y> = QQ[]
+            sage: S.<u> = R[]
+            sage: S(x + 2*y)
+            x + 2*y
+            sage: S(x + 2*y).degree()
+            0
+            sage: S(u + 2*x)
+            u + 2*x
+            sage: S(u + 2*x).degree()
+            1
+
+        Foreign polynomial rings coerce into the highest ring; the point here
+        is that an element of T could coerce to an element of R or an element
+        of S; it is anticipated that an element of T is more likely to be "the
+        right thing" and is historically consistent.
+            sage: R.<x> = QQ[]
+            sage: S.<u> = R[]
+            sage: T.<a> = QQ[]
+            sage: S(a)
+            u
+        """
         if is_Element(x):
             P = x.parent()
             if P is self:
@@ -193,7 +229,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self._names), self.base_ring()
+        return PolynomialFunctor(self.variable_name()), self.base_ring()
+
+    def completion(self, p, prec=20, extras=None):
+        if str(p) == self._names[0]:
+            from sage.rings.power_series_ring import PowerSeriesRing
+            return PowerSeriesRing(self.base_ring(), self._names[0], prec)
+        else:
+            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
     def _coerce_impl(self, x):
         """
@@ -202,26 +245,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         The rings that canonically coerce to this polynomial ring are:
             * this ring itself
+            * any ring that canonically coerces to the base ring of this ring.
             * polynomial rings in the same variable over any base ring that
               canonically coerces to the base ring of this ring
-            * any ring that canonically coerces to the base ring of this ring.
         """
+        # handle constants that canonically coerce into self.base_ring()
+        # first, if possible
+        try:
+            y = self.base_ring()._coerce_(x)
+            return self([y])
+        except TypeError:
+            pass
+
+        # polynomial rings in the same variable over a base that canonically
+        # coerces into self.base_ring()
         try:
             P = x.parent()
-
-            # polynomial rings in the same variable over any base that coerces in:
             if is_PolynomialRing(P):
                 if P.variable_name() == self.variable_name():
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
                     else:
                         raise TypeError, "no natural map between bases of polynomial rings"
-
         except AttributeError:
             pass
-
-        # any ring that coerces to the base ring of this polynomial ring.
-        return self._coerce_try(x, [self.base_ring()])
+        raise TypeError
 
     def _magma_(self, G=None):
         """
@@ -400,6 +448,48 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if isinstance(added_names, str):
             added_names = added_names.split(',')
         return PolynomialRing(self.base_ring(), names = self.variable_names() + tuple(added_names), order = order)
+
+    def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
+        r"""
+        Returns the list of variable names of this and its baserings, as if
+        it were a single multi-variate polynomial.
+
+        EXAMPLES:
+            sage: R = QQ['x']['y']['z']
+            sage: R.variable_names_recursive()
+            ('x', 'y', 'z')
+            sage: R.variable_names_recursive(2)
+            ('y', 'z')
+
+        """
+        if depth <= 0:
+            return ()
+        elif depth == 1:
+            return self.variable_names()
+        else:
+            my_vars = self.variable_names()
+            try:
+               return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+            except AttributeError:
+                return my_vars
+
+    def _mpoly_base_ring(self, vars=None):
+        """
+        Returns the basering if this is viewed as a polynomial ring over vars.
+        See also Polynomial._mpoly_dict_recursive
+        """
+        if vars is None:
+            vars = self.variable_names_recursive()
+        vars = list(vars)
+        var = self.variable_name()
+        if not var in vars:
+            return self
+        else:
+            try:
+                return self.base_ring()._mpoly_base_ring(vars[:vars.index(var)])
+            except AttributeError:
+                return self.base_ring()
+
 
     def characteristic(self):
         """
@@ -770,13 +860,6 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):
         PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
-
-    def completion(self, p, prec=20, extras=None):
-        if str(p) == self._names[0]:
-            from sage.rings.power_series_ring import PowerSeriesRing_domain
-            return PowerSeriesRing_domain(self.base_ring(), self._names[0], prec)
-        else:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,

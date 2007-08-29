@@ -23,7 +23,7 @@ from sage.misc.python import python
 
 from sage.misc.html import html
 
-from sage.misc.sh import sh
+
 
 
 

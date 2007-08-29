@@ -51,14 +51,13 @@ RR = RealField()
 import sage.rings.real_double
 import sage.rings.complex_double
 
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, generic_power
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 
 from sage.rings.integral_domain import is_IntegralDomain
-
 
 import polynomial_fateman
 
@@ -81,6 +80,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         y*x
         sage: type(f)
         <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+        sage: p = (y+1)^10; p(1)
+        1024
     """
 
     def __init__(self, parent, is_gen = False, construct=False):
@@ -746,7 +747,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 v = [R(0)]*right + [R(1)]
             return self.parent()(v, check=False)
-        return sage.rings.arith.generic_power(self, right, self.parent()(1))
+        return generic_power(self, right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmatic structure
@@ -757,7 +758,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
             v = [0]*right + [1]
             return self.parent()(v, check=True)
-        return sage.rings.arith.generic_power(self, right, self.parent()(1))
+        return generic_power(self, right)
 
     def _repr(self, name=None):
         s = " "

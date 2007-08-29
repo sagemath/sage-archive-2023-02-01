@@ -44,6 +44,7 @@ import number_field_element
 from sage.libs.all import pari_gen
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod
+from sage.structure.element import generic_power
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
@@ -155,15 +156,25 @@ class NumberFieldIdeal(Ideal_fractional):
     def __pow__(self, r):
         """
         Return self to the power of right.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: I = K.ideal(2/(5+a))
+            sage: J = I^2
+            sage: K = I^(-2)
+            sage: J*K
+            Fractional ideal (1) of Number Field in a with defining polynomial x^3 - 2
         """
-        right = int(r)
-        if right != r:
-            raise ValueError, "exponent must be an integer"
-        if right < 0:
-            x = self.number_field().ideal(1) / self
-            right *= -1
-            return arith.generic_power(x, right, one=self.parent()(1))
-        return arith.generic_power(self, right, one=self.parent()(1))
+#        right = int(r)
+#        if right != r:
+#            raise ValueError, "exponent must be an integer"
+#        if right < 0:
+#            x = self.number_field().ideal(1) / self
+#            right *= -1
+#            return generic_power(x, right, one=self.parent()(1))
+#        return generic_power(self, right, one=self.parent()(1))
+        return generic_power(self, r)
 
     def pari_hnf(self):
         """

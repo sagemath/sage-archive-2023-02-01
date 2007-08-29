@@ -40,6 +40,8 @@ from index_face_set import IndexFaceSet
 
 def Tetrahedron(**kwds):
     """
+    sage: from sage.plot.plot3d.platonic import *
+    sage: from sage.plot.plot3d.shapes import Sphere
     sage: S = Tetrahedron(color='yellow') + Sphere(.7, color='red')
     sage: S.show()
     """

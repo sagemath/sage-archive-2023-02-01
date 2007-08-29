@@ -6,6 +6,19 @@ EXAMPLES:
     sage: S = ColorCube(.35, ['green', 'yellow', 'blue']) + Sphere(.2, color='red').translate(.4,.4,.4)
     sage: S.show()
 
+    sage: from sage.plot.plot3d.plot3d import plot3d
+    sage: from sage.plot.plot3d.shapes import *
+    sage: S = Sphere(.5, color='yellow')
+    sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
+    sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+    sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+    sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+    sage: def f(x,y): return math.exp(x/5)*math.cos(y)
+    sage: P = plot3d(f,(-5,5),(-5,5), ['red','yellow'], max_depth=10)
+    sage: cape_man = P.scale(.2)+S.translate(1,0,0)
+    sage.: cape_man.show()
+
+
 AUTHOR:
     -- Robert Bradshaw 2007-02: inital version
     -- Robert Bradshaw 2007-08: cythonization, much optimization

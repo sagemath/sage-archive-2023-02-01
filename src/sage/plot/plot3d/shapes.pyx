@@ -83,10 +83,11 @@ def ColorCube(size, colors):
 
 cdef class Cone(ParametricSurface):
 
-    def __init__(self, radius, height, **kwds):
+    def __init__(self, radius, height, closed=True, **kwds):
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
         self.height = height
+        self.closed = closed
 
     def x3d_geometry(self):
         return "<Cone bottomRadius='%s' height='%s'/>"%(self.radius, self.height)
@@ -94,7 +95,10 @@ cdef class Cone(ParametricSurface):
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
         v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
-        urange = [1,0,-1]
+        if self.closed:
+            urange = [1,0,-1]
+        else:
+            urange = [1,0]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
@@ -111,10 +115,11 @@ cdef class Cone(ParametricSurface):
 
 cdef class Cylinder(ParametricSurface):
 
-    def __init__(self, radius, height, **kwds):
+    def __init__(self, radius, height, closed=True, **kwds):
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
         self.height = height
+        self.closed = closed
 
     def x3d_geometry(self):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
@@ -127,23 +132,35 @@ cdef class Cylinder(ParametricSurface):
 
         if transform is None:
             base = (0,0,0)
-            axis = (0,0,self.height)
+            top = (0,0,self.height)
             rad = self.radius
         else:
             base = transform.transform_point((0,0,0))
-            axis = transform.transform_vector((0,0,self.height))
+            top = transform.transform_point((0,0,self.height))
             radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
-        return """FCylinder
+        cyl = """FCylinder
    Base %s %s %s
    Apex %s %s %s
    Rad %s
-   %s     """%(base[0], base[1], base[2], base[0]+axis[0], base[1]+axis[1], base[2]+axis[2], rad, self.texture.id)
+   %s     """%(base[0], base[1], base[2], top[0], top[1], top[2], rad, self.texture.id)
+        if self.closed:
+            normal = transform.transform_vector((0,0,1))
+            base_cap = """Ring Center %s %s %s Normal %s %s %s Inner 0 Outer %s %s"""  \
+                       % (base[0], base[1], base[2], normal[0], normal[1], normal[2], rad, self.texture.id)
+            top_cap  = """Ring Center %s %s %s Normal %s %s %s Inner 0 Outer %s %s"""  \
+                       % ( top[0],  top[1],  top[2], normal[0], normal[1], normal[2], rad, self.texture.id)
+            return [base_cap, cyl, top_cap]
+        else:
+            return cyl
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
         v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
-        urange = [2,1,-1,-2]
+        if self.closed:
+            urange = [2,1,-1,-2]
+        else:
+            urange = [1,-1]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 

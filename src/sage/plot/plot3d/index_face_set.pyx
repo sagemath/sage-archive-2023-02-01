@@ -25,11 +25,11 @@ AUTHORS:
 
 
 
-
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 
 cdef extern from *:
+     void memset(void *, int, Py_ssize_t)
      int sprintf_3d "sprintf" (char*, char*, double, double, double)
      int sprintf_3i "sprintf" (char*, char*, int, int, int)
      int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
@@ -198,8 +198,35 @@ cdef class IndexFaceSet(PrimativeObject):
             raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
 
     def _clean_point_list(self):
-        # TODO: remove redundant/unused points...
-        pass
+        # TODO: There is still wasted space where quadrilaterals were converted to triangles...
+        #       but it's so little it's probably not worth bothering with
+        cdef int* point_map = <int *>sage_malloc(sizeof(int) * self.vcount)
+        if point_map == NULL:
+            raise MemoryError, "Out of memory cleaning up for %s" % type(self)
+        memset(point_map, 0, sizeof(int) * self.vcount)  # TODO: sage_calloc
+        cdef Py_ssize_t i, j
+        cdef face_c *face
+        for i from 0 <= i < self.fcount:
+            face = &self._faces[i]
+            for j from 0 <= j < face.n:
+                point_map[face.vertices[j]] += 1
+        ix = 0
+        for i from 0 <= i < self.vcount:
+            if point_map[i] > 0:
+                point_map[i] = ix
+                self.vs[ix] = self.vs[i]
+                ix += 1
+        if ix != self.vcount:
+            for i from 0 <= i < self.fcount:
+                face = &self._faces[i]
+                for j from 0 <= j < face.n:
+                    face.vertices[j] = point_map[face.vertices[j]]
+            self.realloc(ix, self.fcount, self.icount)
+            self.vcount = ix
+        sage_free(point_map)
+
+    def _mem_stats(self):
+        return self.vcount, self.fcount, self.icount
 
     def __dealloc__(self):
         if self.vs != NULL:

@@ -670,9 +670,8 @@ class HG:
 
         INPUT:
             options -- default: ''
-                'tip' -- tip
-                 -b --branch  merge with head of a specific branch
-                 -f --force   force a merge with outstanding changes
+             -f --force  force a merge with outstanding changes
+             -r --rev    revision to merge
         """
         self('merge %s'%options)
 

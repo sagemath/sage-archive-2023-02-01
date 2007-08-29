@@ -1,3 +1,6 @@
+* 20070823 Juan M. Bello Rivas <jmbr@superadditive.com>
+ + dropped dependencies on flex and bison
+
 * 20070802 Martin Albrecht <malb@informatik.uni-bremen.de>
  + new upstream release (3-0-3)
  + adapted new spkg structure (all changes in patches subdirectory)

@@ -4,9 +4,6 @@
 ## Singular
 ###########################################
 
-# This is necessary since the bison and flex included in SAGE-2.7.*
-# were problematic.  Someday deleting this would be fine.
-rm -f "$SAGE_LOCAL"/bin/flex "$SAGE_LOCAL"/bin/bison
 
 
 # work-around patch
@@ -32,6 +29,19 @@ cp patches/cf_factor.cc src/factory/
 cp patches/Singular.grammar.y src/Singular/grammar.y
 cp patches/singuname.sh src/singuname.sh
 
+# trick to drop dependencies on flex and bison
+touch src/factory/readcf.y
+touch src/Singular/grammar.y
+touch src/Singular/libparse.l
+touch src/Singular/scanner.l
+sleep 1
+cp patches/factory.readcf.cc src/factory/readcf.cc
+cp patches/Singular.grammar.cc src/Singular/grammar.cc
+cp patches/Singular.grammar.h src/Singular/grammar.h
+cp patches/Singular.libparse.cc src/Singular/libparse.cc
+cp patches/Singular.libparse.h src/Singular/libparse.h
+cp patches/Singular.scanner.cc src/Singular/scanner.cc
+
 # Build
 
 cd src/
@@ -39,20 +49,6 @@ cd src/
 unset TMPDIR  # see track ticket #48 -- do this to avoid subtle bug that Rob Gross found in build process
 
 DEBUG=0
-
-which flex
-
-if [ $? -ne 0 ]; then
-    echo "You must have flex installed in order to build Singular."
-    exit 1
-fi
-
-which bison
-
-if [ $? -ne 0 ]; then
-    echo "You must have bison installed in order to build Singular."
-    exit 1
-fi
 
 # since parallel make breaks the singular build
 MAKE="make"
@@ -106,6 +102,8 @@ config()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
 	        --without-MP \
+                --without-lex \
+                --without-bison \
                 --enable-gmp="$SAGE_LOCAL" \
                 --enable-Singular \
 		--enable-factory \

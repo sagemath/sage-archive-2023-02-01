@@ -1,3 +1,42 @@
+"""
+Basic objects such as Sphere, Box, Cone, etc.
+
+AUTHORS:
+    -- Robert Bradshaw 2007-02: inital version
+    -- Robert Bradshaw 2007-08: obj/tachon rendering, much updating
+    -- Robert Bradshaw 2007-08: cythonization
+
+EXAMPLES:
+    sage: from sage.plot.plot3d.shapes import *
+    sage: S = Sphere(.5, color='yellow')
+    sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
+    sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+    sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+    sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+    sage: S.show()
+    sage: S.scale(1,1,2).show()
+
+    sage: from sage.plot.plot3d.shapes import *
+    sage: Torus(.7, .2, color=(0,.3,0)).show()
+"""
+
+
+#*****************************************************************************
+#      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 cdef extern from "math.h":
     double sqrt(double)
     double sin(double)
@@ -126,6 +165,22 @@ cdef class Cylinder(ParametricSurface):
 def Line(start, end, radius, **kwds):
     """
     Create a cylindar from start to end with radius radius.
+
+    EXAMPLES:
+        sage: from sage.plot.plot3d.shapes import Line, Sphere
+        sage: P = (0,0,0.1)
+        sage: Q = (0.5,0.6,0.7)
+        sage: S = Sphere(.2, color='red').translate(P) + \
+                  Sphere(.2, color='blue').translate(Q) + \
+                  Line(P, Q, .05, color='black')
+        sage: S.show()
+        sage: S = Sphere(.1, color='red').translate(P) + \
+                  Sphere(.1, color='blue').translate(Q) + \
+                  Line(P, Q, .15, color='black')
+        sage: S.show()
+
+    AUTHOR:
+        -- Robert Bradshaw
     """
     start = vector(RDF, start, sparse=False)
     end = vector(RDF, end, sparse=False)
@@ -194,8 +249,8 @@ cdef class Torus(ParametricSurface):
         twoPi = 2*RDF.pi()
         u_divs = min(max(int(twoPi*self.R/ds), 6), 37)
         v_divs = min(max(int(twoPi*self.r/ds), 6), 37)
-        urange = [float(twoPi*k/u_divs) for k in range(u_divs)] + [0.0]
-        vrange = [float(twoPi*k/v_divs) for k in range(v_divs)] + [0.0]
+        urange = [-twoPi*k/u_divs for k in range(u_divs)] + [0.0]
+        vrange = [ twoPi*k/v_divs for k in range(v_divs)] + [0.0]
         return urange, vrange
 
     cdef eval_c(self, point_c *res, double u, double v):

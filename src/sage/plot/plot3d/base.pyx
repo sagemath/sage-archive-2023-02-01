@@ -6,20 +6,30 @@ EXAMPLES:
     sage: S = ColorCube(.35, ['green', 'yellow', 'blue']) + Sphere(.2, color='red').translate(.4,.4,.4)
     sage: S.show()
 
-    sage: S = Sphere(.5, color='yellow')
-    sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
-    sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
-    sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
-    sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
-    sage: S.show()
-
 AUTHOR:
-    -- Robert Bradshaw
+    -- Robert Bradshaw 2007-02: inital version
+    -- Robert Bradshaw 2007-08: cythonization, much optimization
 
 TODO:
    -- finish integrating tachyon
    -- good default lights, camera
 """
+
+#*****************************************************************************
+#      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 include "../../ext/python_list.pxi"
 
@@ -78,7 +88,7 @@ cdef class Graphics3d(SageObject):
         return Viewpoint(0,0,6)
 
     def default_render_params(self):
-        return RenderParams(ds=.1)
+        return RenderParams(ds=.75)
 
     def x3d(self):
         return """

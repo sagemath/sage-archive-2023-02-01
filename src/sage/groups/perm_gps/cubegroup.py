@@ -39,7 +39,7 @@ AUTHOR:
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
     - Robert Miller (2007-08): editing, cleaned up display2d
-    - Robert Bradshaw (2006-08): RubiksCube object.
+    - Robert Bradshaw (2006-08): RubiksCube object, 3d plotting.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.

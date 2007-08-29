@@ -1,3 +1,31 @@
+"""
+Graphics3D object that consists of a list of polygons, also used for
+triangulations of other objects.
+
+AUTHORS:
+    -- Robert Bradshaw (2007-08-26): inital version
+    -- Robert Bradshaw (2007-08-28): significant optimizations
+"""
+
+
+#*****************************************************************************
+#      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+
+
 include "../../ext/stdsage.pxi"
 
 cdef extern from *:
@@ -57,7 +85,7 @@ cdef inline format_obj_face_back(face_c face, int off):
     cdef char ss[100]
     cdef Py_ssize_t r, i
     if face.n == 3:
-        r = sprintf_3i(ss, "f %d %d %d", face.vertices[2] + off, face.vertices[1] + off, face.vertices[1] + off)
+        r = sprintf_3i(ss, "f %d %d %d", face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
     elif face.n == 4:
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
     else:
@@ -67,6 +95,38 @@ cdef inline format_obj_face_back(face_c face, int off):
 
 
 cdef class IndexFaceSet(PrimativeObject):
+
+    """
+    Graphics3D object that consists of a list of polygons, also used for
+    triangulations of other objects.
+
+    Polygons (mostly triangles and quadrilaterals) are stored in the
+    c struct \code{face_c} (see transform.pyx). Rather than storing
+    the points directly for each polygon, each face consists a list
+    of pointers into a common list of points which are basically triples
+    of doubles in a \code{point_c}.
+
+    Usually these objects are not created directly by users.
+
+    EXAMPLES:
+        sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+        sage: S = IndexFaceSet([[(1,0,0),(0,1,0),(0,0,1)],[(1,0,0),(0,1,0),(0,0,0)]])
+        sage: S.face_list()
+        [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)]]
+        sage: S.vertex_list()
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (0.0, 0.0, 0.0)]
+
+        sage: def make_face(n): return [(0,0,n),(0,1,n),(1,1,n),(1,0,n)]
+        sage: S = IndexFaceSet([make_face(n) for n in range(10)])
+        sage.: S.show()
+
+        sage: point_list = [(1,0,0),(0,1,0)] + [(0,0,n) for n in range(10)]
+        sage: face_list = [[0,1,n] for n in range(2,10)]
+        sage: S = IndexFaceSet(face_list, point_list, color='red')
+        sage: S.face_list()
+        [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
+        sage.: S.show()
+    """
 
     def __new__(self, faces, point_list=None, enclosde=False, **kwds):
         self.vs = <point_c *>NULL
@@ -143,6 +203,19 @@ cdef class IndexFaceSet(PrimativeObject):
         if self.face_indices: sage_free(self.face_indices)
 
     def is_enclosed(self):
+        """
+        Whether or not it is necessary to render the back sides of the polygons
+        (assuming, of course, that they have the correct orientation).
+
+        This is may be passed in on construction. It is also calculated
+        in ParametricSurface by verifying the opposite edges of the rendered
+        domain either line up or are pinched together.
+
+        EXAMPLES:
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: IndexFaceSet([[(0,0,1),(0,1,0),(1,0,0)]]).is_enclosed()
+            False
+        """
         return self.enclosed
 
     def index_faces(self):
@@ -150,6 +223,15 @@ cdef class IndexFaceSet(PrimativeObject):
         return [[self._faces[i].vertices[j] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
 
     def faces(self):
+        """
+        An iterator over the faces.
+
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: list(S.faces()) == S.face_list()
+            True
+        """
         return FaceIter(self)
 
     def face_list(self):
@@ -158,6 +240,15 @@ cdef class IndexFaceSet(PrimativeObject):
         return [[points[self._faces[i].vertices[j]] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
 
     def vertices(self):
+        """
+        An iterator over the vertices.
+
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Cone(1,1)
+            sage: list(S.vertices()) == S.vertex_list()
+            True
+        """
         return VertexIter(self)
 
     def vertex_list(self):
@@ -178,6 +269,12 @@ cdef class IndexFaceSet(PrimativeObject):
 
 
     def tachyon_repr(self, render_params):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Cone(1,1)
+            sage: s = S.tachyon_repr(S.default_render_params())
+        """
         cdef Transformation transform = render_params.transform
         lines = []
         cdef point_c P, Q, R
@@ -209,7 +306,12 @@ cdef class IndexFaceSet(PrimativeObject):
 
 
     def obj_repr(self, render_params):
-
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Cylinder(1,1)
+            sage: s = S.obj_repr(S.default_render_params())
+        """
         cdef Transformation transform = render_params.transform
         cdef int off = render_params.obj_vertex_offset
         cdef Py_ssize_t i
@@ -239,6 +341,27 @@ cdef class IndexFaceSet(PrimativeObject):
                 back_faces]
 
     def stickers(self, colors, width, hover):
+        """
+        Returns a group of IndexFaceSets
+
+        INPUT:
+            colors  - list of colors/textures to use (in cyclic order)
+            width   - offset perpendicular into the face (to creat a border)
+                      may also be negative
+            hover   - offset normal to the face (usually have to float above
+                      the original surface so it shows, typically this value
+                      is very small compared to the actual object
+
+        OUTPUT:
+            Graphics3dGroup of stickers
+
+        EXAMPLE:
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: B = Box(.5,.4,.3, color='black')
+            sage: S = B.stickers(['red','yellow','blue'], 0.1, 0.05)
+            sage.: S.show()
+            sage.: (S+B).show()
+        """
         all = []
         n = self.fcount; ct = len(colors)
         for k in range(len(colors)):
@@ -269,7 +392,7 @@ cdef class FaceIter:
         else:
             face = []
             for j from 0 <= j < self.set._faces[self.i].n:
-                P = self.set.vs[self.set._faces[self.i-1].vertices[j]]
+                P = self.set.vs[self.set._faces[self.i].vertices[j]]
                 PyList_Append(face, (P.x, P.y, P.z))
             self.i += 1
             return face
@@ -308,23 +431,3 @@ def sticker(face, width, hover):
         sticker.append(tuple(vector(RDF, face[i-1]) + dv + dw + N*(hover/lenN)))
     return sticker
 
-
-class RectangularGridSurface(IndexFaceSet):
-    def __init__(self, **kwds):
-        PrimativeObject.__init__(self, **kwds)
-    def getFaceList(self):
-        #return [[(0,0,0), (0,1,0), (0,1,1), (0,0,1)]]
-        grid = self.getGrid()
-        faces = []
-        for i in range(1, len(grid)):
-            line = grid[i]
-            last_line = grid[i-1]
-            for j in range(1, len(line)):
-                face = [line[j], line[j-1], last_line[j-1], last_line[j]]
-                # remove extra vertex of degenerate quads.
-                if   face[3] == face[0]: face.remove(face[0])
-                elif face[0] == face[1]: face.remove(face[1])
-                elif face[1] == face[2]: face.remove(face[2])
-                elif face[2] == face[3]: face.remove(face[3])
-                faces.append(face)
-        return faces

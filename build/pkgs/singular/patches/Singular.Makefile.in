@@ -482,7 +482,7 @@ install-nolns: all installbin-nolns installslib-nolns
 installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	${MKINSTALLDIRS} ${bindir}
 	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
-	for file in *.so; do \
+	-for file in *.so; do \
 	  ${INSTALL_PROGRAM} $$file ${bindir}; \
 	done
 	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
@@ -495,7 +495,7 @@ installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 installbin-nolns: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	${MKINSTALLDIRS} ${bindir}
 	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
-	for file in *.so; do \
+	-for file in *.so; do \
 	  ${INSTALL_PROGRAM} $$file ${bindir}; \
 	done
 	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}

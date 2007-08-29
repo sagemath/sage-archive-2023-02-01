@@ -1059,8 +1059,6 @@ cdef class MonoidElement(Element):
         """
         Return the (integral) power of self.
         """
-        if n < 0:
-            raise ValueError, "Exponent must be non-negative."
         return generic_power_c(self,n,None)
 
     def __nonzero__(self):

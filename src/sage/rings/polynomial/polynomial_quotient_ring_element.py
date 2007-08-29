@@ -22,6 +22,33 @@ And since $a^3 = -3x + 1$, we have:
     sage: z^6
     3*a - 1
 
+    sage: R.<x> = PolynomialRing(Integers(9))
+    sage: S.<a> = R.quotient(x^4 + 2*x^3 + x + 2)
+    sage: a^100
+    7*a^3 + 8*a + 7
+
+    sage: R.<x> = PolynomialRing(QQ)
+    sage: S.<a> = R.quotient(x^3-2)
+    sage: a
+    a
+    sage: a^3
+    2
+
+For the purposes of comparison in SAGE the quotient element
+$a^3$ is equal to $x^3$.  This is because when the comparison
+is performed, the right element is coerced into the parent of
+the left element, and $x^3$ coerces to $a^3$.
+
+    sage: a == x
+    True
+    sage: a^3 == x^3
+    True
+    sage: x^3
+    x^3
+    sage: S(x^3)
+    2
+
+
 AUTHOR:
     -- William Stein
 """
@@ -34,7 +61,6 @@ AUTHOR:
 
 import operator
 import sage.structure.element as element
-import sage.rings.arith as arith
 import sage.rings.commutative_ring_element as commutative_ring_element
 
 import polynomial_element
@@ -191,26 +217,6 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
     def __neg__(self):
         return PolynomialQuotientRingElement(self.parent(), -self._polynomial)
 
-    def __pow__(self, nn):
-        """
-        Return a power of a polynomial ring quotient element.
-
-        EXAMPLES:
-            sage: R.<x> = PolynomialRing(Integers(9))
-            sage: S.<a> = R.quotient(x^4 + 2*x^3 + x + 2)
-            sage: a^100
-            7*a^3 + 8*a + 7
-        """
-        n = int(nn)
-        if n != nn:
-            raise ValueError, "exponent must be an integer"
-        if n < 0:
-            x = self.__invert__()
-            n *= -1
-            return arith.generic_power(x, n, one=self.parent()(1))
-        return arith.generic_power(self, n, one=self.parent()(1))
-
-
     def __cmp__(self, other):
         """
         Compare this element with something else, where equality
@@ -218,26 +224,6 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         necessary).
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: S.<a> = R.quotient(x^3-2)
-            sage: a
-            a
-            sage: a^3
-            2
-
-        For the purposes of comparison in SAGE the quotient element
-        $a^3$ is equal to $x^3$.  This is because when the comparison
-        is performed, the right element is coerced into the parent of
-        the left element, and $x^3$ coerces to $a^3$.
-
-            sage: a == x
-            True
-            sage: a^3 == x^3
-            True
-            sage: x^3
-            x^3
-            sage: S(x^3)
-            2
         """
         return cmp(self._polynomial, other._polynomial)
 

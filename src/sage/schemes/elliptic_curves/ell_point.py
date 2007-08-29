@@ -22,6 +22,15 @@ Arithmetic with a point over an extension of a finite field:
     (2*a + 3 : 2*a : 1)
     sage: P + P + P + P + P
     (2*a + 3 : 2*a : 1)
+
+
+    sage: F = Zmod(3)
+    sage: E = EllipticCurve(F,[1,0]);
+    sage: P = E([2,1])
+    sage: import sys
+    sage: n = sys.maxint
+    sage: P*(n+1)-P*n == P
+    True
 """
 
 #*****************************************************************************

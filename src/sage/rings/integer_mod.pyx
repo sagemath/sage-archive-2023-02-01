@@ -1113,10 +1113,16 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: R = Integers(p)
             sage: R(9876)^(p-1)
             1
+            sage: R(0)^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
         cdef sage.rings.integer.Integer exp
         exp = sage.rings.integer_ring.Z(right)
         cdef IntegerMod_gmp x
+        if not (mpz_sgn(exp.value) or mpz_sgn(self.value)):
+            raise ArithmeticError, "0^0 is undefined."
         x = self._new_c()
         _sig_on
         mpz_powm(x.value, self.value, exp.value, self.__modulus.sageInteger.value)
@@ -1469,11 +1475,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R = Integers(389)
             sage: R(7)^388
             1
+            sage: R(0)^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
         cdef int_fast32_t x
         cdef mpz_t x_mpz
+        if not (self.ivalue or mpz_sgn(exp.value)):
+            raise ArithmeticError, "0^0 is undefined."
         if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
             x = mod_pow_int(self.ivalue, mpz_get_si(exp.value), self.__modulus.int32)
         else:
@@ -1981,11 +1993,17 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: R = Integers(p)
             sage: R(1234)^(p-1)
             1
+            sage: R(0)^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
         cdef int_fast64_t x
         cdef mpz_t x_mpz
+        if not (self.ivalue or mpz_sgn(exp.value)):
+            raise ArithmeticError, "0^0 is undefined."
         if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
             x = mod_pow_int64(self.ivalue, mpz_get_si(exp.value), self.__modulus.int64)
         else:

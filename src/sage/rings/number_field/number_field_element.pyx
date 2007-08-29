@@ -354,16 +354,6 @@ cdef class NumberFieldElement(FieldElement):
     def complex_embedding(self, prec=53, i=0):
         return self.parent().complex_embeddings(prec)[i](self)
 
-    def __pow__(self, r, mod):
-        right = int(r)
-        if right != r:
-            raise NotImplementedError, "number field element to non-integral power not implemented"
-        if right < 0:
-            x = self.__invert__()
-            right *= -1
-            return sage.rings.arith.generic_power(x, right, one=self.parent()(1))
-        return sage.rings.arith.generic_power(self, right, one=self.parent()(1))
-
     def is_square(self):
         return len(self.sqrt(all=True)) > 0
 

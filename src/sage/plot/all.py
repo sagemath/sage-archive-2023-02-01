@@ -8,7 +8,7 @@ from plot import (Graphics, line, polygon, plot, point, points,
 
 from animate import Animation as animate
 
-from plot3d import (Graphics3d, point3d, line3d, plot3d)
+from plot3d_matplotlib import (Graphics3d, point3d, line3d, plot3d)
 
 from plot3dsoya_wrap import plot3dsoya
 

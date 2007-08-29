@@ -130,7 +130,7 @@ verify it.
     sage: rhs
     [2.6420403358193507e44 .. 2.6420403358193520e44]
     sage: lhs - rhs
-    [-62883485433074552000000000000 .. 63753912023197085000000000000]
+    [-63347712947806569000000000000 .. 65804250213263496000000000000]
     sage: lhs == rhs
     True
     sage: lhs - rhs
@@ -151,6 +151,7 @@ from sage.rings.number_field.number_field import NumberField
 from sage.rings.number_field.number_field_element import is_NumberFieldElement
 from sage.rings.arith import factor
 from sage.libs.pari.gen import pari
+from sage.structure.element import generic_power
 
 # Singleton object implementation copied from integer_ring.py
 _obj = None
@@ -1223,19 +1224,7 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         n = e.numerator()
         d = e.denominator()
         if d == 1:
-            if n == 0:
-                # implements 0^0 == 1
-                return AlgebraicRealNumber(1)
-            elif n < 0:
-                return (~self).__pow__(-n)
-            elif n == 1:
-                return self
-            else:
-                pow_n2 = self.__pow__(n//2)
-                if n % 2 == 1:
-                    return pow_n2 * pow_n2 * self
-                else:
-                    return pow_n2 * pow_n2
+            return generic_power(self, n)
         # Without this special case, we don't know the multiplicity
         # of the desired root
         if self.sign() == 0:

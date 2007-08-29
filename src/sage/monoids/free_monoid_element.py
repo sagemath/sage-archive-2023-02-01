@@ -32,6 +32,19 @@ def is_FreeMonoidElement(x):
 class FreeMonoidElement(MonoidElement):
     """
     Element of a free monoid.
+
+    EXAMPLES:
+            sage: a = FreeMonoid(5, 'a').gens()
+            sage: x = a[0]*a[1]*a[4]**3
+            sage: x**3
+            a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
+            sage: x**0
+            1
+            sage: x**(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Exponent must be non-negative.
+
     """
     def __init__(self, F, x, check=True):
         """
@@ -151,38 +164,6 @@ class FreeMonoidElement(MonoidElement):
                 m = (y_elt[0][0],x_elt[k][1]+y_elt[0][1])
                 z._element_list = x_elt[0:k] + [ m ] + y_elt[1:]
         return z
-
-    def __pow__(self, n):
-        """
-        Return the $n$-th power of this monoid element.
-
-        EXAMPLES:
-            sage: a = FreeMonoid(5, 'a').gens()
-            sage: x = a[0]*a[1]*a[4]**3
-            sage: x**3
-            a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
-            sage: x**0
-            1
-
-        Note that raising to a negative power is \emph{not} a constructor
-        for an element of the corresponding free group (yet).
-            sage: x**(-1)
-            Traceback (most recent call last):
-            ...
-            IndexError: Argument n (= -1) must be non-negative.
-        """
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "Argument n (= %s) must be an integer."%n
-        if n < 0:
-            raise IndexError, "Argument n (= %s) must be non-negative."%n
-        elif n == 0:
-            return self.parent()(1)
-        elif n == 1:
-            return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
 
     def __len__(self):
         """

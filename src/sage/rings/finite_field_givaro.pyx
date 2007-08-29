@@ -1508,6 +1508,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return self
 
         elif exp == 0:
+            if (field.objectptr).isZero(self.element):
+                raise ArithmeticError, "0^0 is undefined."
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
         elif (field.objectptr).isZero(self.element):

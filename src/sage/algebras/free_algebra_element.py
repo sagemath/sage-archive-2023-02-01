@@ -7,6 +7,12 @@ TESTS:
     sage: R.<x,y> = FreeAlgebra(QQ,2)
     sage: x == loads(dumps(x))
     True
+    sage: x*y
+    x*y
+    sage: (x*y)^0
+    1
+    sage: (x*y)^3
+    x*y*x*y*x*y
 """
 
 #*****************************************************************************
@@ -157,18 +163,4 @@ class FreeAlgebraElement(AlgebraElement):
         z = A(0)
         z.__monomial_coefficients = z_elt
         return z
-
-    def __pow__(self, n):
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "Argument n (= %s) must be an integer."%n
-        if n < 0:
-            raise IndexError, "Argument n (= %s) must be positive."%n
-        elif n == 0:
-            return self.parent()(1)
-        elif n == 1:
-            return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
 

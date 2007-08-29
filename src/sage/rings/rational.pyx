@@ -946,6 +946,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
             sage: (2/3)^(3/4)
             2^(3/4)/3^(3/4)
+            sage: (0/1)^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):
@@ -966,7 +970,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
-        if n < 0:  # this doesn't make sense unless n is an integer.
+        if not (n or mpq_sgn(_self.value)):
+            raise ArithmeticError, "0^0 is undefined."
+        elif n < 0:  # this doesn't make sense unless n is an integer.
             x = _self**(-n)
             return x.__invert__()
 

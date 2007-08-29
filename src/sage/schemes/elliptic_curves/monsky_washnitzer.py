@@ -273,6 +273,12 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
       column.extend([base_ring(0)] * (degree - len(column)))
     return coeffs
 
+  def __nonzero__(self):
+    return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+
+  def _cmp_(self, other):
+      return cmp(self._triple, other._triple)
+
 
   def _repr_(self):
     return "(%s) + (%s)*x + (%s)*x^2" % self._triple
@@ -1972,6 +1978,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Return $A$ where $A dx/2y = self$.
         """
         return self._coeff
+
+    def __nonzero__(self):
+        return not not self._coeff
 
     def _repr_(self):
         s = self._coeff._repr_()

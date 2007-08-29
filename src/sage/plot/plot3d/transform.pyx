@@ -24,27 +24,30 @@ cdef class Transformation:
             trans = [0,0,0]
 
         # TODO: determine for sure if x3d does scale or rotation first
-        if m is None:
+        if m is not None:
+            self.matrix = m
+
+        else:
             m = matrix(RDF, 3, 3,
                       [scale[0], 0, 0, 0, scale[1], 0, 0, 0, scale[2]])
 
-        if rot is not None:
-            # rotate about v by theta
-            vx, vy, vz, theta = rot
-            t = atan2(vy,vz) + pi/2
-            m = self.rotX(t) * m
-            new_y = vy*cos(t) - vz*sin(t)
-            # v = [vx, new_y, 0]
-            s = atan2(vx,new_y) + pi/2
-            m = self.rotZ(s) * m
-            # v = [new_x, 0, 0]
-            m = self.rotX(theta) * m
-            # now put back to our former reference frame
-            m = self.rotZ(-s) * m
-            m = self.rotX(-t) * m
+            if rot is not None:
+                # rotate about v by theta
+                vx, vy, vz, theta = rot
+                t = atan2(vy,vz) + pi/2
+                m = self.rotX(t) * m
+                new_y = vy*cos(t) - vz*sin(t)
+                # v = [vx, new_y, 0]
+                s = atan2(vx,new_y) + pi/2
+                m = self.rotZ(s) * m
+                # v = [new_x, 0, 0]
+                m = self.rotX(theta) * m
+                # now put back to our former reference frame
+                m = self.rotZ(-s) * m
+                m = self.rotX(-t) * m
 
-        self.matrix = m.augment(matrix(RDF, 3, 1, list(trans))) \
-                       .stack(matrix(RDF, 1, 4, [0,0,0,1]))
+            self.matrix = m.augment(matrix(RDF, 3, 1, list(trans))) \
+                           .stack(matrix(RDF, 1, 4, [0,0,0,1]))
 
         # this raw data is used for optimized transformations
         m_data = self.matrix.list()
@@ -93,9 +96,7 @@ cdef class Transformation:
         point_c_stretch(res, self._matrix_data, P)
 
     def __mul__(Transformation self, Transformation other):
-        cdef Transformation T = Transformation()
-        T.matrix = self.matrix * other.matrix
-        return T
+        return Transformation(m = self.matrix * other.matrix)
 
     def __call__(self, p):
         res = self.matrix * vector(RDF, [p[0], p[1], p[2], 1])

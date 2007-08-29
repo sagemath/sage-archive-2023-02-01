@@ -6,6 +6,13 @@ EXAMPLES:
     sage: S = ColorCube(.35, ['green', 'yellow', 'blue']) + Sphere(.2, color='red').translate(.4,.4,.4)
     sage: S.show()
 
+    sage: S = Sphere(.5, color='yellow')
+    sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
+    sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+    sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+    sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+    sage: S.show()
+
 AUTHOR:
     -- Robert Bradshaw
 
@@ -13,6 +20,10 @@ TODO:
    -- finish integrating tachyon
    -- good default lights, camera
 """
+
+include "../../ext/python_list.pxi"
+
+
 from math import atan2
 
 from sage.modules.free_module_element import vector
@@ -30,7 +41,7 @@ from sage.interfaces.tachyon import tachyon_rt
 default_texture = Texture()
 
 
-cdef class Graphics3d_new(SageObject):
+cdef class Graphics3d(SageObject):
 
 
     def __add__(self, other):
@@ -122,8 +133,20 @@ end_scene""" % (
                "\n".join([t.tachyon_str() for t in self.texture_set()]),
                self.tachyon_str(render_params))
 
+    def tachyon_str(self, render_params):
+        """
+        DO NOT override this method, override tachyon_repr instead.
+        """
+        return "\n".join(flatten_list(self.tachyon_repr(render_params)))
+
     def obj(self):
         return self.obj_str(self.default_render_params())
+
+    def obj_str(self, render_params):
+        """
+        DO NOT override this method, override obj_repr instead.
+        """
+        return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
     def texture_set(self):
         return set()
@@ -149,24 +172,18 @@ end_scene""" % (
             f.close()
 
 
-class Graphics3dGroup(Graphics3d_new):
+class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):
         self.all = all
 
     def transform(self, **kwds):
         return TransformGroup(self.all, **kwds)
 
-    def tachyon_str(self, render_params):
-        return "\n".join([g.tachyon_str(render_params) for g in self.all])
-
     def tachyon_repr(self, render_params):
         return [g.tachyon_repr(render_params) for g in self.all]
 
     def x3d_str(self):
         return "\n".join([g.x3d_str() for g in self.all])
-
-    def obj_str(self, render_params):
-        return "\n\n".join([g.obj_str(render_params) for g in self.all]) + "\n"
 
     def obj_repr(self, render_params):
         return [g.obj_repr(render_params) for g in self.all]
@@ -219,23 +236,11 @@ class TransformGroup(Graphics3dGroup):
         s += "\n</Transform>"
         return s
 
-    def tachyon_str(self, render_params):
-        render_params.push_transform(self.get_transformation())
-        s = "\n".join([g.tachyon_str(render_params) for g in self.all])
-        render_params.pop_transform()
-        return s
-
     def tachyon_repr(self, render_params):
         render_params.push_transform(self.get_transformation())
         rep = [g.tachyon_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
-
-    def obj_str(self, render_params):
-        render_params.push_transform(self.get_transformation())
-        s = "\n".join([g.obj_str(render_params) for g in self.all])
-        render_params.pop_transform()
-        return s
 
     def obj_repr(self, render_params):
         render_params.push_transform(self.get_transformation())
@@ -264,7 +269,7 @@ class TransformGroup(Graphics3dGroup):
 
 
 
-class Viewpoint(Graphics3d_new):
+class Viewpoint(Graphics3d):
 
     def __init__(self, *x):
         if isinstance(x[0], (tuple, list)):
@@ -276,7 +281,7 @@ class Viewpoint(Graphics3d_new):
 
 
 
-cdef class PrimativeObject(Graphics3d_new):
+cdef class PrimativeObject(Graphics3d):
     def __init__(self, **kwds):
         try:
             self.texture = kwds['texture']
@@ -293,11 +298,11 @@ cdef class PrimativeObject(Graphics3d_new):
     def x3d_str(self):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 
-    def tachyon_str(self, render_params):
-        return self.triangulation().tachyon_str(render_params)
+    def tachyon_repr(self, render_params):
+        return self.triangulation().tachyon_repr(render_params)
 
-    def obj_str(self, render_params):
-        return self.triangulation().obj_str(render_params)
+    def obj_repr(self, render_params):
+        return self.triangulation().obj_repr(render_params)
 
     def texture_set(self):
         return set([self.texture])
@@ -349,3 +354,36 @@ class RenderParams(SageObject):
     def unique_name(self, desc="name"):
         self._uniq_counter += 1
         return "%s_%s" % (desc, self._uniq_counter)
+
+def flatten_list(L):
+    """
+    This is an optimized routine to turn a list of lists (of lists ...) into a single
+    list. We generate data in a non-flat format to avoid multiple data copying, and
+    then concatinate it all at the end.
+
+    This is NOT recursive, otherwise there would be a lot of redundant copying (which
+    we are trying to avoid in the first place, though at least it would be just the
+    pointers).
+    """
+    if not PyList_CheckExact(L):
+        return [L]
+    flat = []
+    L_stack = []; L_pop = L_stack.pop
+    i_stack = []; i_pop = i_stack.pop
+    cdef Py_ssize_t i = 0
+    while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
+        while i < PyList_GET_SIZE(L):
+            tmp = <object>PyList_GET_ITEM(L, i)
+            if PyList_CheckExact(tmp):
+                PyList_Append(L_stack, L)
+                L = tmp
+                PyList_Append(i_stack, i)
+                i = 0
+            else:
+                PyList_Append(flat, tmp)
+                i += 1
+        if PyList_GET_SIZE(L_stack) > 0:
+            L = L_pop()
+            i = i_pop()
+            i += 1
+    return flat

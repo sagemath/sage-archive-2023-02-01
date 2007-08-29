@@ -18,13 +18,9 @@ cdef class ParametricSurface(IndexFaceSet):
         self.f = f
         IndexFaceSet.__init__(self, [], [], **kwds)
 
-    def tachyon_str(self, render_params):
+    def tachyon_repr(self, render_params):
         self.triangulate(render_params)
-        return IndexFaceSet.tachyon_str(self, render_params)
-
-    def obj_str(self, render_params):
-        self.triangulate(render_params)
-        return IndexFaceSet.obj_str(self, render_params)
+        return IndexFaceSet.tachyon_repr(self, render_params)
 
     def obj_repr(self, render_params):
         self.triangulate(render_params)

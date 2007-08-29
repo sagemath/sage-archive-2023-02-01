@@ -54,7 +54,7 @@ cdef class Cone(ParametricSurface):
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
-        v_res = max(int(twoPi*self.radius/ds), 5)
+        v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
         urange = [1,0,-1]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
@@ -80,11 +80,11 @@ cdef class Cylinder(ParametricSurface):
     def x3d_geometry(self):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
 
-    def tachyon_str(self, render_params):
+    def tachyon_repr(self, render_params):
         transform = render_params.transform
         if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])):
             # Tachyon can't do sqashed
-            return ParametricSurface.tachyon_str(self, render_params)
+            return ParametricSurface.tachyon_repr(self, render_params)
 
         if transform is None:
             base = (0,0,0)
@@ -103,7 +103,7 @@ cdef class Cylinder(ParametricSurface):
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
-        v_res = max(int(twoPi*self.radius/ds), 5)
+        v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
         urange = [2,1,-1,-2]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
@@ -149,10 +149,10 @@ cdef class Sphere(ParametricSurface):
     def x3d_geometry(self):
         return "<Sphere radius='%s'/>"%(self.radius)
 
-    def tachyon_str(self, render_params):
+    def tachyon_repr(self, render_params):
         transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
-            return ParametricSurface.tachyon_str(self, render_params)
+            return ParametricSurface.tachyon_repr(self, render_params)
 
         if transform is None:
             cen = (0,0,0)
@@ -166,8 +166,8 @@ cdef class Sphere(ParametricSurface):
     def get_grid(self, ds):
         pi = RDF.pi()
         twoPi = 2*pi
-        u_res = max(int(RDF.pi()*self.radius/ds), 6)
-        v_res = max(int(twoPi*self.radius/ds), 6)
+        u_res = min(max(int(RDF.pi()*self.radius/ds), 6), 20)
+        v_res = min(max(int(twoPi*self.radius/ds), 6), 36)
         urange = [-10] + [pi*k/u_res - twoPi/4 for k in range(1,u_res)] + [10]
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
@@ -192,8 +192,8 @@ cdef class Torus(ParametricSurface):
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
-        u_divs = max(int(twoPi*self.R/ds), 6)
-        v_divs = max(int(twoPi*self.r/ds), 6)
+        u_divs = min(max(int(twoPi*self.R/ds), 6), 37)
+        v_divs = min(max(int(twoPi*self.r/ds), 6), 37)
         urange = [float(twoPi*k/u_divs) for k in range(u_divs)] + [0.0]
         vrange = [float(twoPi*k/v_divs) for k in range(v_divs)] + [0.0]
         return urange, vrange

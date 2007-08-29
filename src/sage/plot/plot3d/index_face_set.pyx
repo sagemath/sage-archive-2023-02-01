@@ -50,6 +50,7 @@ cdef inline format_obj_face(face_c face, int off):
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off, face.vertices[3] + off)
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
+    # PyString_FromFormat is almost twice as slow
     return PyString_FromStringAndSize(ss, r)
 
 cdef inline format_obj_face_back(face_c face, int off):
@@ -169,26 +170,6 @@ cdef class IndexFaceSet(PrimativeObject):
 </IndexedFaceSet>
 """%(coordIndex, points)
 
-    def tachyon_str(self, render_params):
-        transform = render_params.transform
-        faces = self.faces()
-        lines = []
-        for face in faces:
-            if transform is not None:
-                face = [transform(p) for p in face]
-            lines.append("TRI V0 %s %s %s V1 %s %s %s V2 %s %s %s" % \
-                          (face[0][0], face[0][1], face[0][2],
-                           face[1][0], face[1][1], face[1][2],
-                           face[2][0], face[2][1], face[2][2]))
-            lines.append(self.texture.id)
-            if len(face) > 3:
-                for k in range(2, len(face)-1):
-                    lines.append("TRI V0 %s %s %s V1 %s %s %s V2 %s %s %s" % \
-                                 (face[0][0], face[0][1], face[0][2],
-                                  face[k][0], face[k][1], face[k][2],
-                                  face[k+1][0], face[k+1][1], face[k+1][2]))
-                    lines.append(self.texture.id)
-        return "\n".join(lines)
 
     def tachyon_repr(self, render_params):
         cdef Transformation transform = render_params.transform
@@ -221,30 +202,12 @@ cdef class IndexFaceSet(PrimativeObject):
         return lines
 
 
-    def obj_str(self, render_params):
-
-        header = "g %s\n\nusemtl %s\n" % (render_params.unique_name('obj'), self.texture.id)
-
-        transform = render_params.transform
-        cdef int off = render_params.obj_vertex_offset
-        if transform is None:
-            points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
-        else:
-            points = ["v %s %s %s"%transform((self.vs[i].x, self.vs[i].y, self.vs[i].z)) for i from 0 <= i < self.vcount]
-        faces = [" ".join([str(self._faces[i].vertices[j] + off) for j from 0 <= j < self._faces[i].n]) for i from 0 <= i < self.fcount]
-        if not self.enclosed:
-            faces += [" ".join([str(self._faces[i].vertices[j] + off) for j from self._faces[i].n > j >= 0]) for i from 0 <= i < self.fcount]
-        render_params.obj_vertex_offset += self.vcount
-        return "%s\n%s\n\nf %s\n\n" % (header, "\n".join(points), "\nf ".join(faces))
-
     def obj_repr(self, render_params):
 
         cdef Transformation transform = render_params.transform
         cdef int off = render_params.obj_vertex_offset
         cdef Py_ssize_t i
         cdef point_c res
-
-        print transform
 
         if transform is None:
 #            points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]

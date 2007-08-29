@@ -516,8 +516,8 @@ class Cell(Cell_generic):
         if not do_print:
             s += self.html_new_cell_before()
 
-        if do_print:
-            ncols = 70
+        #if do_print:
+        #    ncols = 70
 
         r = max(1, number_of_rows(t.strip(), ncols))
 

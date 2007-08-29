@@ -300,7 +300,7 @@ class Polynomial_generic_sparse(Polynomial):
             [0, 17, 15, 0, 0, 13]
         """
         zero = self.base_ring()(0)
-        v = [zero for _ in xrange(self.degree()+1)]
+        v = [zero] * (self.degree()+1)
         for n, x in self.__coeffs.iteritems():
             v[n] = x
         return v
@@ -544,13 +544,9 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 x = [QQ(a) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = QQ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, QQ(0))
+
 
         elif isinstance(x, pari_gen):
             f = x.Polrev()
@@ -919,31 +915,6 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             b *= a
         return self.parent()(c)
 
-    def resultant(self, other):
-        """
-        Returns the resultant of self and other, which must lie in the same
-        polynomial ring.
-
-        INPUT:
-            other -- a polynomial
-        OUTPUT:
-            an element of the base ring of the polynomial ring
-
-        NOTES:
-            Implemented using pari's polresultant function.
-
-        EXAMPLES:
-            sage: R.<x> = QQ[]
-            sage: f = x^3 + x + 1;  g = x^3 - x - 1
-            sage: f.resultant(g)
-            -8
-        """
-        if not isinstance(other, Polynomial):
-            other = self.polynomial(other)
-        if self.parent() != other.parent():
-            raise TypeError
-        return QQ(str(self.__poly.polresultant(other.__poly, 0)))
-
     def hensel_lift(self, p, e):
         """
         Assuming that self factors modulo $p$ into distinct factors,
@@ -994,13 +965,9 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
                 x = [ZZ(a) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = ZZ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, ZZ(0))
+
 
         elif isinstance(x, ZZX_class):
             self.__poly = x.copy()
@@ -1354,11 +1321,12 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         EXAMPLES:
             sage: x = PolynomialRing(ZZ,'x').0
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
-            sage: f.resultant(g)
+            sage: r = f.resultant(g); r
             -8
+            sage: r.parent() is ZZ
+            True
         """
-        if not isinstance(other, Polynomial) or self.parent() != other.parent():
-            other = self.polynomial(other)
+        other = self.parent()._coerce_(other)
         return ZZ(str(self.__poly.resultant(other.__poly, 0)))
 
     def ntl_set_directly(self, v):
@@ -1369,7 +1337,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         class.  Use this function to set the value of this polynomial using
         the NTL constructor, which is potentially quicker.   The input v
         is either a vector of ints or a string of the form '[ n1 n2 n3 ... ]'
-        where the ni are integers and there are no commas between them.
+        where the \code{n_i} are integers and there are no commas between them.
         The optimal input format is the string format, since that's what NTL uses.
 
         EXAMPLES:
@@ -1578,13 +1546,9 @@ class Polynomial_dense_mod_n(Polynomial):
                 x = [ZZ(R(a)) for a in x.list()]
                 check = False
 
-        if isinstance(x, dict):
-            zero = ZZ(0)
-            n = max(x.keys())
-            v = [zero for _ in xrange(n+1)]
-            for i, z in x.iteritems():
-                v[i] = z
-            x = v
+        elif isinstance(x, dict):
+            x = self._dict_to_list(x, R(0))
+
 
         elif isinstance(x, ZZX_class):
             self.__poly = x.copy()
@@ -1860,14 +1824,15 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
             an element of the base ring of the polynomial ring
 
         EXAMPLES:
-            sage: _.<x> = PolynomialRing(GF(19))
+            sage: R.<x> = GF(19)['x']
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
-            sage: f.resultant(g)
+            sage: r = f.resultant(g); r
             11
+            sage: r.parent() is GF(19)
+            True
         """
-        if not isinstance(other, Polynomial) or self.parent() != other.parent():
-            other = self.polynomial(other)
         self.parent()._ntl_set_modulus()
+        other = self.parent()._coerce_(other)
         return self.base_ring()(str(self.ntl_ZZ_pX().resultant(other.ntl_ZZ_pX())))
 
     def discriminant(self):

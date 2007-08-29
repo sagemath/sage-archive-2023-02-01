@@ -1111,17 +1111,32 @@ def __GCD_list(v):
 
 def xgcd(a, b):
     """
-    Returns triple of integers (g,s,t) such that g = s*a+t*b =
-    gcd(a,b).
+    Returns triple (g,s,t) such that g = s*a+t*b = gcd(a,b).
 
+    INPUT:
+        a, b -- integers or univariate polynomials (or any type
+                with an xgcd method).
+    OUTPUT:
+        g, s, t -- such that g = s*a + t*b
+
+    EXAMPLES:
         sage: xgcd(56, 44)
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
+        sage: xgcd(5/1, 7/1)
+        (1, 3, -2)
+        sage: x = polygen(QQ)
+        sage: xgcd(x^3 - 1, x^2 - 1)
+        (x - 1, 1, -x)
     """
-    if not isinstance(a, RingElement):
+    try:
+        return a.xgcd(b)
+    except AttributeError:
+        pass
+    if not isinstance(a, sage.rings.integer.Integer):
         a = integer_ring.ZZ(a)
-    return a.xgcd(b)
+    return a.xgcd(integer_ring.ZZ(b))
 
 XGCD = xgcd
 
@@ -1226,36 +1241,13 @@ def generic_power(a, m, one=1):
         sage: generic_power(RealField()('2.5'),4)
         39.0625000000000
         sage: generic_power(0,0)
-        1
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: 0^0 is not defined.
         sage: generic_power(2,-3)
         1/8
     """
-    if bool(a == one):
-        return a
-    if m < 0:
-        a = ~a
-        m = -m
-    if m == 0:
-        return one
-    _m = int(m)
-    if _m != m:
-        raise ValueError, "exponent must be an integer"
-    else:
-        m = _m
-    power = None
-    i = 0
-    apow2 = a
-    while (m>>i) > 0:
-        if (m>>i) & 1:
-            if power is None:
-                power = apow2
-            else:
-                power *= apow2
-        apow2 *= apow2
-        i += 1
-    if power is None:
-        return one
-    return power
+    return sage.structure.element.generic_power(a,m,one)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):

@@ -64,6 +64,13 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise TypeError
 
+    def _polynomial_(self, R):
+        var = R.variable_name()
+        if var in self._parent.variable_names():
+            return R(self.polynomial(self._parent(var)))
+        else:
+            return R([self])
+
     def coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
@@ -165,6 +172,90 @@ cdef class MPolynomial(CommutativeRingElement):
             v.append(B(w))
             z *= var
         return ring(v)
+
+    def _mpoly_dict_recursive(self, vars=None, base_ring=None):
+        """
+        Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
+        with the given variables.
+
+        EXAMPLES:
+            sage: R = Integers(10)['x,y,z']['t,s']
+            sage: t,s = R.gens()
+            sage: x,y,z = R.base_ring().gens()
+            sage: (x+y+2*z*s+3*t)._mpoly_dict_recursive(['z','t','s'])
+            {(1, 0, 1): 2, (0, 1, 0): 3, (0, 0, 0): x + y}
+
+        TESTS:
+            sage: R = Qp(7)['x,y,z,t,p']; S = ZZ['x,z,t']['p']
+            sage: R(S.0)
+            p
+            sage: R = QQ['x,y,z,t,p']; S = ZZ['x']['y,z,t']['p']
+            sage: z = S.base_ring().gen(1)
+            sage: R(z)
+            z
+            sage: R = QQ['x,y,z,t,p']; S = ZZ['x']['y,z,t']['p']
+            sage: z = S.base_ring().gen(1); p = S.0; x = S.base_ring().base_ring().gen()
+            sage: R(z+p)
+            z + p
+            sage: R = Qp(7)['x,y,z,p']; S = ZZ['x']['y,z,t']['p'] # shouldn't work, but should throw a better error
+            sage: R(S.0)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot create a p-adic out of <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+        """
+        from polydict import ETuple
+        if not self:
+            return {}
+
+        if vars is None:
+            vars = self.parent().variable_names_recursive()
+        vars = list(vars)
+        my_vars = self.parent().variable_names()
+        if vars == list(my_vars):
+            return self.dict()
+        elif not my_vars[-1] in vars:
+            x = base_ring(self) if base_ring is not None else self
+#            print "vars", vars, type(vars)
+            const_ix = ETuple((0,)*len(vars))
+            return { const_ix: x }
+        elif not set(my_vars).issubset(set(vars)):
+            # we need to split it up
+            return self.polynomial(self.parent().gen(len(my_vars)-1))._mpoly_dict_recursive(vars, base_ring)
+        else:
+            D = {}
+            prev_vars = vars[:vars.index(my_vars[0])]
+            var_range = range(len(my_vars))
+            if len(prev_vars) > 0:
+                mapping = [vars.index(v) - len(prev_vars) for v in my_vars]
+                tmp = [0] * (len(vars) - len(prev_vars))
+                try:
+                    for ix,a in self.dict().iteritems():
+                        for k in var_range:
+                            tmp[mapping[k]] = ix[k]
+                        postfix = ETuple(tmp)
+                        mpoly = a._mpoly_dict_recursive(prev_vars, base_ring)
+                        for prefix,b in mpoly.iteritems():
+                            D[prefix+postfix] = b
+                    return D
+
+                except AttributeError:
+                    pass
+
+            if base_ring is self.base_ring():
+                base_ring = None
+
+            mapping = [vars.index(v) for v in my_vars]
+            tmp = [0] * len(vars)
+            for ix,a in self.dict().iteritems():
+                for k in var_range:
+                    tmp[mapping[k]] = ix[k]
+                if base_ring is not None:
+                    a = base_ring(a)
+                D[ETuple(tmp)] = a
+            return D
+
+
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

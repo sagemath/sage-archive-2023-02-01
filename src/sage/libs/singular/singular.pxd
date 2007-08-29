@@ -4,6 +4,9 @@ from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element
 from sage.rings.integer cimport Integer
 from sage.rings.finite_field_givaro cimport FiniteField_givaro,FiniteField_givaroElement
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
+
 
 cdef class Conversion:
     cdef extern Rational si2sa_QQ(self, number (*),ring (*))
@@ -18,3 +21,6 @@ cdef class Conversion:
 
     cdef extern object si2sa(self, number *n, ring *_ring, object base)
     cdef extern number *sa2si(self, Element elem, ring * _ring)
+
+
+    cdef extern  MPolynomial_libsingular new_MP(self, MPolynomialRing_libsingular parent, poly *p)

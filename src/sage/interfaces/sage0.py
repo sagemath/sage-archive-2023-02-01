@@ -17,7 +17,7 @@ interpreter.
 
 import cPickle, os, time
 
-from expect import Expect, ExpectElement, FunctionElement, tmp
+from expect import Expect, ExpectElement, FunctionElement
 import sage.misc.preparser
 
 from sage.structure.sage_object import dumps, loads, load
@@ -30,8 +30,7 @@ class Sage(Expect):
     INPUT:
         server -- (optional); if specified runs SAGE on a remote machine with
                   address.  You must have ssh keys setup so you can login to
-                  the remote machine by typing "ssh remote_machine" and no password, e.g.:
-                     cd; ssh-keygen -t rsa; scp .ssh/id_rsa.pub remote_machine:.ssh/authorized_keys2
+                  the remote machine by typing "ssh remote_machine" and no password, call _install_hints_ssh() for hints on how to do that.
 
                   The version of SAGE should be the same as on the
                   local machine, since pickling is used to move data
@@ -105,6 +104,7 @@ class Sage(Expect):
                        python    = False,
                        init_code = None,
                        server    = None,
+                       server_tmpdir = None,
                        remote_cleaner = True,
                        **kwds):
         if python:
@@ -129,14 +129,11 @@ class Sage(Expect):
                         logfile = logfile,
                         init_code = init_code,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         remote_cleaner = remote_cleaner,
                         **kwds
                         )
         self._preparse = preparse
-        self._is_local = (server is None)
-
-    def is_local(self):
-        return self._is_local
 
     def trait_names(self):
         return eval(self.eval('globals().keys()'))
@@ -146,7 +143,10 @@ class Sage(Expect):
         if not self._expect is None:
             pid = self._expect.pid
             if verbose:
-                print "Exiting spawned %s process (pid=%s)."%(self, pid)
+                if self.is_remote():
+                    print "Exiting spawned %s process (local pid=%s, running on %s)"%(self,pid,self._server)
+                else:
+                    print "Exiting spawned %s process (pid=%s)."%(self, pid)
             try:
                 for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
                     self._expect.sendline(chr(3))  # send ctrl-c
@@ -178,17 +178,6 @@ class Sage(Expect):
             self.__remote_tmpfile = eval(self.eval('import sage.interfaces.expect as e; e.tmp'))
             return self.__remote_tmpfile
 
-    def _send_tmpfile_to_server(self):
-        cmd = 'scp "%s" %s:"%s" 1>&2 2>/dev/null'%(tmp, self._server, self._remote_tmpfile())
-        #print cmd
-        os.system(cmd)
-
-    def _get_object_from_server_tmpfile(self):
-        cmd = 'scp %s:"%s_get.sobj" "%s_get.sobj" 1>&2 2>/dev/null'%( self._server, self._remote_tmpfile(), tmp)
-        #print cmd
-        os.system(cmd)
-        return load(tmp + "_get")
-
     def __call__(self, x):
         if isinstance(x, SageElement) and x.parent() is self:
             return x
@@ -196,10 +185,10 @@ class Sage(Expect):
             return SageElement(self, x)
 
         if self.is_local():
-            open(tmp,'w').write(cPickle.dumps(x,2))
-            return SageElement(self, 'cPickle.load(open("%s"))'%tmp)
+            open(self._local_tmpfile(),'w').write(cPickle.dumps(x,2))
+            return SageElement(self, 'cPickle.load(open("%s"))'%self._local_tmpfile())
         else:
-            open(tmp,'w').write(dumps(x))   # my dumps is compressed by default
+            open(self._local_tmpfile(),'w').write(dumps(x))   # my dumps is compressed by default
             self._send_tmpfile_to_server()
             return SageElement(self, 'loads(open("%s").read())'%self._remote_tmpfile())
 
@@ -276,11 +265,12 @@ class SageElement(ExpectElement):
     def _sage_(self):
         P = self.parent()
         if P.is_remote():
-            P.eval('save(%s, "%s_get")'%(self.name(), P._remote_tmpfile()))
-            return P._get_object_from_server_tmpfile()
+            P.eval('save(%s, "%s")'%(self.name(), P._remote_tmpfile()))
+            P._get_tmpfile_from_server(self)
+            return load(P._local_tmp_file())
         else:
-            P.eval('dumps(%s, "%s")'%(self.name(), tmp))
-            return loads(open(tmp).read())
+            P.eval('dumps(%s, "%s")'%(self.name(), P._local_tmpfile()))
+            return loads(open(P._local_tmpfile()).read())
 
 class SageFunction(FunctionElement):
     def __call__(self, *args):

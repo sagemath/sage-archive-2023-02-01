@@ -53,6 +53,8 @@ def notebook_twisted(self,
              server_pool = None,
              ulimit      = None,
 
+             timeout     = None,
+
              open_viewer = True):
     if not os.path.exists(directory):
         os.makedirs(directory)

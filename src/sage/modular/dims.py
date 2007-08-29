@@ -844,8 +844,12 @@ def dimension_modular_forms(X, k=2):
         3
         sage: dimension_eis(e,3)
         6
+        sage: dimension_modular_forms(11,2)
+        2
     """
-    if not isinstance(X, congroup.CongruenceSubgroup) and \
+    if isinstance(X, (int, long, Integer)):
+        X = congroup.Gamma0(X)
+    elif not isinstance(X, congroup.CongruenceSubgroup) and \
          not isinstance(X, dirichlet.DirichletCharacter):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
     if congroup.is_GammaH(X):

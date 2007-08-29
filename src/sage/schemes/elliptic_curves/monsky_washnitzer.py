@@ -273,6 +273,22 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
       column.extend([base_ring(0)] * (degree - len(column)))
     return coeffs
 
+  def __nonzero__(self):
+    return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+
+  def __cmp__(self, other):
+    """
+    EXAMPLES:
+      sage: B.<t> = PolynomialRing(Integers(125))
+      sage: x, t = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4)).gens()
+      sage: x == t
+      False
+      sage: x == x
+      True
+      sage: x == x + x - x
+      True
+    """
+    return cmp(self._triple, other._triple)
 
   def _repr_(self):
     return "(%s) + (%s)*x + (%s)*x^2" % self._triple
@@ -1480,7 +1496,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         CommutativeAlgebra.__init__(self, R)
 
-        x = PolynomialRing(R, 'x').gen(0)
+        x = PolynomialRing(R, 'xx').gen(0)
         if is_EllipticCurve(Q):
             E = Q
             if E.a1() != 0 or E.a2() != 0:
@@ -1508,7 +1524,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
                     self._curve = HyperellipticCurve(self._Q)
 
         else:
-            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
+            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)\n(Got element of %s)" % Q.parent()
 
         self._n = degree = int(Q.degree())
 
@@ -1671,6 +1687,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         self._f = parent._poly_ring(val)
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f])
+
+    def __cmp__(self, other):
+      """
+      EXAMPLES:
+      """
+      return cmp(self._f, other._f)
 
     def change_ring(self, R):
         return self.parent().change_ring(R)(self)
@@ -1972,6 +1994,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Return $A$ where $A dx/2y = self$.
         """
         return self._coeff
+
+    def __nonzero__(self):
+        return not not self._coeff
 
     def _repr_(self):
         s = self._coeff._repr_()

@@ -387,6 +387,10 @@ class FreeModule_generic(module.Module):
         self._gram_matrix = None
         self.element_class()
 
+    def construction(self):
+        from sage.categories.pushout import VectorFunctor
+        return VectorFunctor(self.rank(), self.is_sparse(), self.inner_product_matrix()), self.base_ring()
+
     def dense_module(self):
         """
         Return corresponding dense module.
@@ -2881,6 +2885,25 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         if check and len(basis) != len(self.__echelonized_basis):
             raise ValueError, "basis vectors must be linearly independent."
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely, the
+        subspace of the ambient module spanned by the given basis.
+
+        EXAMPLE:
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: c, V = W.construction()
+            sage: c(V) == W
+            True
+        """
+        from sage.categories.pushout import SubspaceFunctor
+        return SubspaceFunctor(self.basis()), self.ambient_module()
 
     def echelonized_basis_matrix(self):
         """

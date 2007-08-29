@@ -88,7 +88,7 @@ cdef class Graphics3d(SageObject):
         return Viewpoint(0,0,6)
 
     def default_render_params(self):
-        return RenderParams(ds=.75)
+        return RenderParams(ds=.075)
 
     def x3d(self):
         return """

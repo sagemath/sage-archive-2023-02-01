@@ -58,7 +58,7 @@ cdef inline void point_c_sub(point_c* res, point_c P, point_c Q):
     res.y = P.y - Q.y
     res.z = P.z - Q.z
 
-cdef inline void point_c_mul(point_c* res, double a, point_c P):
+cdef inline void point_c_mul(point_c* res, point_c P, double a):
     res.x = a * P.x
     res.y = a * P.y
     res.z = a * P.z

@@ -98,10 +98,16 @@ cdef class ParametricSurface(IndexFaceSet):
             False
         """
         if self.fcount == 0:
-            self.triangulate(self.default_render_params())
+            self.triangulate()
         return self.enclosed
 
-    def triangulate(self, render_params):
+    def dual(self):
+        # This doesn't completely make sense...
+        if self.fcount == 0:
+            self.triangulate()
+        return IndexFaceSet.dual(self)
+
+    def triangulate(self, render_params=None):
         """
         Call self.eval() for all (u,v) in urange \times vrange
         to construct this surface.
@@ -111,6 +117,8 @@ cdef class ParametricSurface(IndexFaceSet):
         to save memory, rather it is needed so normals of the triangles
         can be calculated correctly.
         """
+        if render_params is None:
+            render_params = self.default_render_params()
         ds = render_params.ds
         if render_params.transform is not None:
             ds /= render_params.transform.max_scale()
@@ -223,6 +231,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
         self.vcount = (n+1)*(m+1)
         self.fcount = n*m
+        self.icount = 4*n*m
         self._clean_point_list()
 
         self.render_grid = urange, vrange

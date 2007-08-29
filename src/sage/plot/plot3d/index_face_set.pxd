@@ -4,7 +4,7 @@ from transform cimport point_c, face_c
 
 cdef class IndexFaceSet(PrimativeObject):
     cdef bint enclosed
-    cdef Py_ssize_t fcount, vcount, icount
+    cdef Py_ssize_t vcount, fcount, icount
     cdef realloc(self, vcount, fcount, icount)
     # array of {x,y,z}
     cdef point_c* vs

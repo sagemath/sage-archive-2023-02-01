@@ -27,6 +27,7 @@ AUTHORS:
 
 
 include "../../ext/stdsage.pxi"
+include "../../ext/interrupt.pxi"
 
 cdef extern from *:
      int sprintf_3d "sprintf" (char*, char*, double, double, double)
@@ -159,12 +160,13 @@ cdef class IndexFaceSet(PrimativeObject):
                 faces.append(iface)
 
         cdef Py_ssize_t i
-        cdef Py_ssize_t index_len = len(faces)
+        cdef Py_ssize_t index_len = 0
         for i from 0 <= i < len(faces):
             index_len += len(faces[i])
 
         self.vcount = len(point_list)
         self.fcount = len(faces)
+        self.icount = index_len
 
         self.realloc(self.vcount, self.fcount, index_len)
 
@@ -180,18 +182,18 @@ cdef class IndexFaceSet(PrimativeObject):
                 cur_pt += 1
 
     cdef realloc(self, vcount, fcount, icount):
-        if self.vs:
-            self.vs = <point_c *> sage_realloc(self.vs, sizeof(point_c) * vcount)
-        else:
+        if self.vs == NULL:
             self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
-        if self._faces:
-            self._faces = <face_c *> sage_realloc(self._faces, sizeof(face_c) * fcount)
         else:
+            self.vs = <point_c *> sage_realloc(self.vs, sizeof(point_c) * vcount)
+        if self._faces == NULL:
             self._faces = <face_c *> sage_malloc(sizeof(face_c) * fcount)
-        if self.face_indices:
-            self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
         else:
+            self._faces = <face_c *> sage_realloc(self._faces, sizeof(face_c) * fcount)
+        if self.face_indices == NULL:
             self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
+        else:
+            self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
         if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
             raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
 
@@ -200,9 +202,12 @@ cdef class IndexFaceSet(PrimativeObject):
         pass
 
     def __dealloc__(self):
-        if self.vs: sage_free(self.vs)
-        if self._faces: sage_free(self._faces)
-        if self.face_indices: sage_free(self.face_indices)
+        if self.vs != NULL:
+            sage_free(self.vs)
+        if self._faces != NULL:
+            sage_free(self._faces)
+        if self.face_indices != NULL:
+            sage_free(self.face_indices)
 
     def is_enclosed(self):
         """
@@ -289,6 +294,7 @@ cdef class IndexFaceSet(PrimativeObject):
         cdef point_c P, Q, R
         cdef face_c face
         cdef Py_ssize_t i, k
+        _sig_on
         for i from 0 <= i < self.fcount:
             face = self._faces[i]
             if transform is not None:
@@ -310,6 +316,7 @@ cdef class IndexFaceSet(PrimativeObject):
                         R = self.vs[face.vertices[k]]
                     PyList_Append(lines, format_tachyon_triangle(P, Q, R))
                     PyList_Append(lines, self.texture.id)
+        _sig_off
 
         return lines
 
@@ -326,8 +333,8 @@ cdef class IndexFaceSet(PrimativeObject):
         cdef Py_ssize_t i
         cdef point_c res
 
+        _sig_on
         if transform is None:
-#            points = ["v %s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
             points = [format_obj_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
         else:
             points = []
@@ -342,12 +349,73 @@ cdef class IndexFaceSet(PrimativeObject):
             back_faces = []
 
         render_params.obj_vertex_offset += self.vcount
+        _sig_off
 
         return ["g " + render_params.unique_name('obj'),
                 "usemtl " + self.texture.id,
                 points,
                 faces,
                 back_faces]
+
+
+    def dual(self, **kwds):
+
+        cdef point_c P
+        cdef face_c *face
+        cdef Py_ssize_t i, j, ix, ff
+        cdef IndexFaceSet dual = IndexFaceSet([], **kwds)
+        cdef int incoming, outgoing
+
+        dual.realloc(self.fcount, self.vcount, self.icount)
+
+        _sig_on
+        # is using dicts overly-heavy?
+        dual_faces = [{} for i from 0 <= i < self.vcount]
+
+        for i from 0 <= i < self.fcount:
+            # Let the vertex be centered on the face according to a simple average
+            face = &self._faces[i]
+            dual.vs[i] = self.vs[face.vertices[0]]
+            for j from 1 <= j < face.n:
+                point_c_add(&dual.vs[i], dual.vs[i], self.vs[face.vertices[j]])
+            point_c_mul(&dual.vs[i], dual.vs[i], 1.0/face.n)
+
+            # Now compute the new face
+            for j from 0 <= j < face.n:
+                if j == 0:
+                    incoming = face.vertices[face.n-1]
+                else:
+                    incoming = face.vertices[j-1]
+                if j == face.n-1:
+                    outgoing = face.vertices[0]
+                else:
+                    outgoing = face.vertices[j+1]
+                dd = dual_faces[face.vertices[j]]
+                dd[incoming] = i, outgoing
+
+        i = 0
+        ix = 0
+        for dd in dual_faces:
+            face = &dual._faces[i]
+            face.n = len(dd)
+            if face.n == 0: # skip unused vertices
+                continue
+            face.vertices = &dual.face_indices[ix]
+            ff, next = dd.itervalues().next()
+            face.vertices[0] = ff
+            for j from 1 <= j < face.n:
+                ff, next = dd[next]
+                face.vertices[j] = ff
+            i += 1
+            ix += face.n
+
+        dual.vcount = self.fcount
+        dual.fcount = i
+        dual.icount = ix
+        _sig_off
+
+        return dual
+
 
     def stickers(self, colors, width, hover):
         """

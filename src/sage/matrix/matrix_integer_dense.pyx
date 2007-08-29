@@ -1821,6 +1821,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A*C == d*B
             True
 
+
         ALGORITHM: Uses IML.
 
         AUTHOR:

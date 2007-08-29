@@ -203,7 +203,7 @@ build()
     fi
 
     echo "#!/bin/sh" > Singular
-    echo "`/bin/ls Singular-* | tail -1` \$*" >> Singular
+    echo "`/bin/ls Singular-* | tail -n 1` \$*" >> Singular
     $CHMOD +x Singular
 
     # Lower case version is convenient.

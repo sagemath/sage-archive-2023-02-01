@@ -1688,6 +1688,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f])
 
+    def __cmp__(self, other):
+      """
+      EXAMPLES:
+      """
+      return cmp(self._f, other._f)
+
     def change_ring(self, R):
         return self.parent().change_ring(R)(self)
 

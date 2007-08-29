@@ -150,11 +150,17 @@ cdef class IndexFaceSet(PrimativeObject):
         return [[self._faces[i].vertices[j] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
 
     def faces(self):
-        points = self.vertices()
+        return FaceIter(self)
+
+    def face_list(self):
+        points = self.vertex_list()
         cdef Py_ssize_t i, j
         return [[points[self._faces[i].vertices[j]] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
 
     def vertices(self):
+        return VertexIter(self)
+
+    def vertex_list(self):
         cdef Py_ssize_t i
         return [(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
 
@@ -243,7 +249,7 @@ cdef class IndexFaceSet(PrimativeObject):
     def sticker(self, face_list, width, hover, **kwds):
         if not isinstance(face_list, (list, tuple)):
             face_list = (face_list,)
-        faces = self.getFaceList()
+        faces = self.face_list()
         all = []
         for k in face_list:
             all.append(sticker(faces[k], width, hover))
@@ -257,11 +263,16 @@ cdef class FaceIter:
     def __iter__(self):
         return self
     def __next__(self):
+        cdef point_c P
         if self.i >= self.set.fcount:
             raise StopIteration
         else:
-            return [self.set._faces[self.i].vertices[j] for j from 0 <= j < self.set._faces[self.i].n]
+            face = []
+            for j from 0 <= j < self.set._faces[self.i].n:
+                P = self.set.vs[self.set._faces[self.i-1].vertices[j]]
+                PyList_Append(face, (P.x, P.y, P.z))
             self.i += 1
+            return face
 
 cdef class VertexIter:
     def __init__(self, face_set):
@@ -273,8 +284,8 @@ cdef class VertexIter:
         if self.i >= self.set.vcount:
             raise StopIteration
         else:
-            return (self.set.vs[self.i].x, self.set.vs[self.i].y, self.set.vs[self.i].z)
             self.i += 1
+            return (self.set.vs[self.i-1].x, self.set.vs[self.i-1].y, self.set.vs[self.i-1].z)
 
 def len3d(v):
     return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])

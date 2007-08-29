@@ -3,11 +3,11 @@ SAGE Interface to the HG/Mercurial Revision Control System
 
 These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
-see http://www.selenic.com/mercurial/wiki/.
+see http://www.selenic.com/mercurial/wiki/ , in particular UnderstandingMercurial .
 
 This system should all be fully usable from the SAGE notebook (except
 for merging, currently).
-This system should all be mostly from the SAGE notebook.
+This system should all be mostly usable from the SAGE notebook.
 
 \begin{itemize}
 \item Use \code{hg_sage.record()} to record all of your changes.
@@ -362,7 +362,7 @@ class HG:
 
         INPUT:
             files -- list or string; name of file or directory.
-            options -- string
+            options -- string  (e.g., '--dry-run')
         """
         if isinstance(files, str):
             if ' ' in files:
@@ -392,22 +392,19 @@ class HG:
 
     def rename(self, src, dest, options=''):
         """
-        Move (rename) the given file.
+        Move (rename) the given file, from src to dest.
+        This command takes effect in the next commit.
 
         INPUT:
-            src, dest -- strings that define files, relative to self.dir()
+            src, dest -- strings that define a file, relative to self.dir()
             options --
                  -A --after    record a rename that has already occurred
                  -f --force    forcibly copy over an existing managed file
-                 -I --include  include names matching the given patterns
-                 -X --exclude  exclude names matching the given patterns
                  -n --dry-run  do not perform actions, just print output
         """
-        if isinstance(files, str):
-            files = [files]
-        for file in files:
-            print "Moving %s --> %s"%file
-            self('mv %s "%s"'%(options, file))
+        print "Moving %s --> %s"%(src,dest)
+        self('mv %s "%s" "%s"'%(options, src,dest))
+
 
     move = rename
     mv = rename
@@ -456,6 +453,8 @@ class HG:
             options += '-m '
         if patch:
             options += '-p "%s"'%patch
+        if template:
+            options += '--template'
         if include:
             options += '-I "%s"'%include
         if exclude:
@@ -538,9 +537,9 @@ class HG:
          -n --dry-run    do not perform actions, just print output
         """
         if not rev is None:
-            options = ' -r %s %s'%(rev, files)
+            options = options +' -r %s %s'%(rev, files)
         else:
-            options = files
+            options = options + files
         self('revert %s'%options)
 
     def dir(self):
@@ -554,6 +553,7 @@ class HG:
         Return the default 'master url' for this repository.
         """
         return self.__url
+
 
     def help(self, cmd=''):
         r"""
@@ -695,9 +695,9 @@ class HG:
 
         INPUT:
             options -- string (default: '')
-             -b --branch  checkout the head of a specific branch
-             -C --clean   overwrite locally modified files
-             -f --force   force a merge with outstanding changes
+            -C --clean  overwrite locally modified files
+            -d --date   tipmost revision matching date
+            -r --rev    revision
         """
         self('update %s'%options)
 
@@ -717,7 +717,6 @@ class HG:
 
         INPUT:
             options -- string (default: '')
-             -b --branches  show branches
                 --style     display using template map file
              -r --rev       show only heads which are descendants of rev
                 --template  display with template

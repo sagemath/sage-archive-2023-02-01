@@ -43,8 +43,7 @@ class FreeMonoidElement(MonoidElement):
             sage: x**(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Exponent must be non-negative.
-
+            TypeError: bad operand type for unary ~: 'FreeMonoidElement'
     """
     def __init__(self, F, x, check=True):
         """

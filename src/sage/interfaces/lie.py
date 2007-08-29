@@ -19,29 +19,29 @@ To access the LiE interpreter directly, run lie_console().
 
 
 EXAMPLES:
-    sage: a4 = lie('A4')
-    sage: lie.diagram('A4')
+    sage: a4 = lie('A4')  # optional -- requires lie package
+    sage: lie.diagram('A4')          # optional
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: lie.diagram(a4)
+    sage: lie.diagram(a4)            # optional
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: a4.diagram()
+    sage: a4.diagram()               # optional
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: a4.Cartan()
+    sage: a4.Cartan()                # optional
          [[ 2,-1, 0, 0]
          ,[-1, 2,-1, 0]
          ,[ 0,-1, 2,-1]
          ,[ 0, 0,-1, 2]
          ]
-    sage: lie.LR_tensor([3,1],[2,2])
+    sage: lie.LR_tensor([3,1],[2,2]) # optional
     1X[5,3]
 
 
@@ -51,68 +51,68 @@ The following examples are taken from Section 2.1 of the LiE manual.
 
 You can perform basic arithmetic operations in LiE.
 
-    sage: lie.eval('19+68')
+    sage: lie.eval('19+68') # optional
     '87'
-    sage: a = lie('1111111111*1111111111')
-    sage: a
+    sage: a = lie('1111111111*1111111111') # optional
+    sage: a # optional
     1234567900987654321
-    sage: a/1111111111
+    sage: a/1111111111 # optional
     1111111111
-    sage: a = lie('345')
-    sage: a^2+3*a-5
+    sage: a = lie('345') # optional
+    sage: a^2+3*a-5 # optional
     120055
-    sage: _ / 7*a
+    sage: _ / 7*a # optional
     5916750
 
 Vectors in LiE are created using square brackets.  Notice that
 the indexing in LiE is 1-based, unlike Python/SAGE which is
 0-based.
 
-    sage: v = lie('[3,2,6873,-38]')
-    sage: v
+    sage: v = lie('[3,2,6873,-38]') # optional
+    sage: v # optional
     [3,2,6873,-38]
-    sage: v[3]
+    sage: v[3] # optional
     6873
-    sage: v+v
+    sage: v+v # optional
     [6,4,13746,-76]
-    sage: v*v
+    sage: v*v # optional
     47239586
-    sage: v+234786
+    sage: v+234786 # optional
     [3,2,6873,-38,234786]
-    sage: v-3
+    sage: v-3 # optional
     [3,2,-38]
-    sage: v^v
+    sage: v^v # optional
     [3,2,6873,-38,3,2,6873,-38]
 
 You can also work with matrices in LiE.
 
-    sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]')
-    sage: m
+    sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
+    sage: m # optional
          [[ 1, 0, 3,3]
          ,[12, 4,-4,7]
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
          ]
-    sage: print lie.eval('*'+m._name)
+    sage: print lie.eval('*'+m._name) # optional
          [[1,12,-1, 3]
          ,[0, 4, 9,-5]
          ,[3,-4, 8,-2]
          ,[3, 7, 0, 9]
          ]
 
-    sage: m^3
+    sage: m^3 # optional
          [[ 220,   87, 81, 375]
          ,[-168,-1089, 13,1013]
          ,[1550,  357,-55,1593]
          ,[-854, -652, 98,-170]
          ]
-    sage: v*m
+    sage: v*m # optional
     [-6960,62055,55061,-319]
-    sage: m*v
+    sage: m*v # optional
     [20508,-27714,54999,-14089]
-    sage: v*m*v
+    sage: v*m*v # optional
     378549605
-    sage: m+v
+    sage: m+v # optional
          [[ 1, 0,   3,  3]
          ,[12, 4,  -4,  7]
          ,[-1, 9,   8,  0]
@@ -120,7 +120,7 @@ You can also work with matrices in LiE.
          ,[ 3, 2,6873,-38]
          ]
 
-    sage: m-2
+    sage: m-2 # optional
          [[ 1, 0, 3,3]
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
@@ -129,23 +129,23 @@ You can also work with matrices in LiE.
 
 LiE handles multivariate (Laurent) polynomials.
 
-    sage: lie('X[1,2]')
+    sage: lie('X[1,2]') # optional
     1X[1,2]
-    sage: -3*_
+    sage: -3*_ # optional
     -3X[1,2]
-    sage: _ + lie('4X[-1,4]')
+    sage: _ + lie('4X[-1,4]') # optional
     4X[-1,4] - 3X[ 1,2]
-    sage: _^2
+    sage: _^2 # optional
     16X[-2,8] - 24X[ 0,6] +  9X[ 2,4]
-    sage: lie('(4X[-1,4]-3X[1,2])*(X[2,0]-X[0,-4])')
+    sage: lie('(4X[-1,4]-3X[1,2])*(X[2,0]-X[0,-4])') # optional
     -4X[-1, 0] + 3X[ 1,-2] + 4X[ 1, 4] - 3X[ 3, 2]
-    sage: _ - _
+    sage: _ - _ # optional
     0X[0,0]
 
 
 You can call LiE's built-in functions using lie.functionname .
 
-    sage: lie.partitions(6)
+    sage: lie.partitions(6) # optional
          [[6,0,0,0,0,0]
          ,[5,1,0,0,0,0]
          ,[4,2,0,0,0,0]
@@ -158,7 +158,7 @@ You can call LiE's built-in functions using lie.functionname .
          ,[2,1,1,1,1,0]
          ,[1,1,1,1,1,1]
          ]
-    sage: lie.diagram('E8')
+    sage: lie.diagram('E8') # optional
             O 2
             |
             |
@@ -171,15 +171,15 @@ You can define your own functions in LiE using lie.eval .  Once you've defined
 a function (say f), you can call it using lie.f ; however, user-defined functions
 do not show up when using tab-completion.
 
-    sage: lie.eval('f(int x) = 2*x')
+    sage: lie.eval('f(int x) = 2*x') # optional
     ''
-    sage: lie.f(984)
+    sage: lie.f(984) # optional
     1968
-    sage: lie.eval('f(int n) = a=3*n-7; if a < 0 then a = -a fi; 7^a+a^3-4*a-57')
+    sage: lie.eval('f(int n) = a=3*n-7; if a < 0 then a = -a fi; 7^a+a^3-4*a-57') # optional
     ''
-    sage: lie.f(2)
+    sage: lie.f(2) # optional
     -53
-    sage: lie.f(5)
+    sage: lie.f(5) # optional
     5765224
 
 
@@ -187,7 +187,7 @@ do not show up when using tab-completion.
 LiE's help can be accessed through lie.help('functionname') where
 functionname is the function you want to receive help for.
 
-   sage: print lie.help('diagram')
+   sage: print lie.help('diagram') # optional
    diagram(g).   Prints the Dynkin diagram of g, also indicating
       the type of each simple component printed, and labeling the nodes as
       done by Bourbaki (for the second and further simple components the
@@ -204,45 +204,45 @@ native SAGE data types by calling the .sage() method.
 
 Integers:
 
-    sage: a = lie('1234')
-    sage: b = a.sage(); b
+    sage: a = lie('1234') # optional
+    sage: b = a.sage(); b # optional
     1234
-    sage: type(b)
+    sage: type(b) # optional
     <type 'sage.rings.integer.Integer'>
 
 Vectors:
 
-    sage: a = lie('[1,2,3]')
-    sage: b = a.sage(); b
+    sage: a = lie('[1,2,3]')# optional
+    sage: b = a.sage(); b # optional
     [1, 2, 3]
-    sage: type(b)
+    sage: type(b) # optional
     <type 'list'>
 
 Matrices:
 
-    sage: a = lie('[[1,2],[3,4]]')
-    sage: b = a.sage(); b
+    sage: a = lie('[[1,2],[3,4]]') # optional
+    sage: b = a.sage(); b # optional
     [1 2]
     [3 4]
-    sage: type(b)
+    sage: type(b) # optional
     <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
 
 
 Polynomials:
 
-    sage: a = lie('X[1,2] - 2*X[2,1]')
-    sage: b = a.sage(); b
+    sage: a = lie('X[1,2] - 2*X[2,1]') # optional
+    sage: b = a.sage(); b # optional
     -2*x0^2*x1 + x0*x1^2
-    sage: is_MPolynomial(b)
+    sage: is_MPolynomial(b) # optional
     True
 
 
 Text:
 
-    sage: a = lie('"text"')
-    sage: b = a.sage(); b
+    sage: a = lie('"text"') # optional
+    sage: b = a.sage(); b # optional
     'text'
-    sage: type(b)
+    sage: type(b) # optional
     <type 'str'>
 
 
@@ -251,7 +251,7 @@ of the manual gives an example of a function written in LiE's language
 which evaluates a polynomial at a point.  Below is a (roughly) direct
 translation of that program into Python / SAGE.
 
-    sage: def eval_pol(p, pt):
+    sage: def eval_pol(p, pt): # optional
     ...       s = 0
     ...       for i in range(1,p.length().sage()+1):
     ...           m = 1
@@ -259,12 +259,12 @@ translation of that program into Python / SAGE.
     ...               m *= pt[j]^p.expon(i)[j]
     ...           s += p.coef(i)*m
     ...       return s
-    sage: a = lie('X[1,2]')
-    sage: b1 = lie('[1,2]')
-    sage: b2 = lie('[2,3]')
-    sage: eval_pol(a, b1) # 1*2^2
+    sage: a = lie('X[1,2]') # optional
+    sage: b1 = lie('[1,2]') # optional
+    sage: b2 = lie('[2,3]') # optional
+    sage: eval_pol(a, b1) # optional
     4
-    sage: eval_pol(a, b2) # 2*3^2
+    sage: eval_pol(a, b2) # optional
     18
 
 

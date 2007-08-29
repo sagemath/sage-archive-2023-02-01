@@ -41,6 +41,7 @@ usage_advanced() {
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
+    echo "  -gdb-ipython  -- run SAGE's Ipython under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
     echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
     echo "  -grep <string>-- grep through all the SAGE library code for string"
@@ -343,6 +344,13 @@ if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd "$CUR"
     shift
     ipython "$@"
+    exit $?
+fi
+
+if [ $1 = '-gdb-ipython'  -o $1 = '--gdb-ipython' ]; then
+    cd "$CUR"
+    shift
+    sage-gdb-ipython "$@"
     exit $?
 fi
 

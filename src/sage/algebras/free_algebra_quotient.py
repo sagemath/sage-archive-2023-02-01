@@ -101,7 +101,7 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__module = FreeModule(R,self.__dim)
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
-        ParentWithGens.__init__(self, R, names, normalize=False)
+        ParentWithGens.__init__(self, R, names, normalize=True)
 
     def __eq__(self,right):
         return type(self) == type(right) and \

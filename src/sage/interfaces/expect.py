@@ -317,12 +317,24 @@ You need to setup:
             ProxyCommand ssh gate nc -w 1 remote 22
 
 That's it, normally.
-The last step tells ssh that whenever an ssh connection is required to the host "remote_for_sage", it should tunnel it through "gate". Any attempt to scp-connect to "remote_for_sage" will use ssh and thus this configuration file, and properly channel those file transfers through the tunnel.
-A good test is to attempt an scp connection from the command-line of "local" to "remote_for_sage" as if no tunnel through "gate" was required. No password should be asked for the second time around.
-Finally, we created thenew name "remote_for_sage" for "remote", but this name only exists locally. this is to avoid interfering with any other program that might already ssh to "remote" in their own way.
+
+The last step tells ssh that whenever an ssh connection is required to
+the host "remote_for_sage", it should tunnel it through "gate". Any
+attempt to scp-connect to "remote_for_sage" will use ssh and thus
+this configuration file, and properly channel those file transfers
+through the tunnel.
+
+A good test is to attempt an scp connection from the command-line
+of "local" to "remote_for_sage" as if no tunnel through "gate" was
+required. No password should be asked for the second time around.
+
+Finally, we created the new name "remote_for_sage" for "remote",
+but this name only exists locally. this is to avoid interfering
+with any other program that might already ssh to "remote" in
+their own way.
 
 If this all works, you can then make calls like:
-sage: math = Mathematica(server="remote_for_sage")
+         math = Mathematica(server="remote_for_sage")
 
 """
 

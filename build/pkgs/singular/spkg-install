@@ -28,6 +28,7 @@ cp patches/longrat.h src/kernel/
 cp patches/cf_factor.cc src/factory/
 cp patches/Singular.grammar.y src/Singular/grammar.y
 cp patches/singuname.sh src/singuname.sh
+cp patches/kernel.feResource.cc src/kernel/Resource.cc
 
 # trick to drop dependencies on flex and bison
 touch src/factory/readcf.y

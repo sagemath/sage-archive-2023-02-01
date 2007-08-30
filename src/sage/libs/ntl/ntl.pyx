@@ -35,6 +35,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 
 ZZ_sage = IntegerRing()
 
+
 ##############################################################################
 # ZZ: Arbitrary precision integers
 ##############################################################################
@@ -304,7 +305,8 @@ cdef class ntl_ZZX:
             ZZX_dealloc(self.x)
 
     def __repr__(self):
-        return str(ZZX_repr(self.x))
+        _sig_on
+        return string_delete(ZZX_repr(self.x))
 
     def copy(self):
         return make_ZZX(ZZX_copy(self.x))
@@ -1235,7 +1237,7 @@ cdef class ntl_ZZ_p:
 
     def __repr__(self):
         _sig_on
-        return string(ZZ_p_to_str(self.x))
+        return string_delete(ZZ_p_to_str(self.x))
 
     def __cmp__(ntl_ZZ_p self, ntl_ZZ_p other):
         cdef int t
@@ -1404,10 +1406,8 @@ cdef class ntl_ZZ_pX:
 
 
     def __repr__(self):
-        cdef char* a = ZZ_pX_repr(self.x)
-        s = str(a)
-        del_charstar(a)
-        return s
+        _sig_on
+        return string_delete(ZZ_pX_repr(self.x))
 
     def __copy__(self):
         return make_ZZ_pX(ZZ_pX_copy(self.x))
@@ -2273,7 +2273,7 @@ cdef class ntl_mat_ZZ:
 
     def __repr__(self):
         _sig_on
-        return string(mat_ZZ_to_str(self.x))
+        return string_delete(mat_ZZ_to_str(self.x))
 
     def __mul__(ntl_mat_ZZ self, other):
         cdef ntl_mat_ZZ y
@@ -2521,7 +2521,7 @@ cdef class ntl_GF2X:
 
     def __repr__(self):
         _sig_on
-        return string(GF2X_to_str(self.gf2x_x))
+        return string_delete(GF2X_to_str(self.gf2x_x))
 
 
     def __mul__(ntl_GF2X self, other):
@@ -2869,7 +2869,7 @@ cdef class ntl_GF2E(ntl_GF2X):
 
     def __repr__(self):
         _sig_on
-        return string(GF2E_to_str(self.gf2e_x))
+        return string_delete(GF2E_to_str(self.gf2e_x))
 
 
     def __mul__(ntl_GF2E self, other):
@@ -3078,7 +3078,7 @@ cdef class ntl_GF2EX:
 
     def __repr__(self):
         _sig_on
-        return string(GF2EX_to_str(self.x))
+        return string_delete(GF2EX_to_str(self.x))
 
 
     def __mul__(ntl_GF2EX self, other):
@@ -3208,7 +3208,7 @@ cdef class ntl_mat_GF2E:
 
     def __repr__(self):
         _sig_on
-        return string(mat_GF2E_to_str(self.x))
+        return string_delete(mat_GF2E_to_str(self.x))
 
     def __mul__(ntl_mat_GF2E self, other):
         cdef ntl_mat_GF2E y

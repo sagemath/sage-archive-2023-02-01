@@ -1204,7 +1204,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def __int__(self):
-        return mpz_get_pyintlong(self.value)
+        # TODO -- this crashes on sage.math, since it is evidently written incorrectly.
+        #return mpz_get_pyintlong(self.value)
+        return int(mpz_get_pylong(self.value))
 
     def __long__(self):
         return mpz_get_pylong(self.value)

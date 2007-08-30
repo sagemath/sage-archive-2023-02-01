@@ -58,7 +58,7 @@ import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-cdef extern from "../ext/mpz_pylong.h":
+cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)

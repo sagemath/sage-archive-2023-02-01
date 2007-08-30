@@ -100,7 +100,7 @@ include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 
-cdef extern from "../ext/mpz_pylong.h":
+cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef mpz_get_pyintlong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1

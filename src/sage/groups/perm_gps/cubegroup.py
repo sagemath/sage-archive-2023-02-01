@@ -954,17 +954,20 @@ class CubeGroup(PermutationGroup_generic):
         and \code{PreImagesRepresentative}.
 
         This algorithm
-        (a) constructs the free group on 6 generators then computes a
+        \begin{enumerate}
+        \item constructs the free group on 6 generators then computes a
         reasonable set of relations which they satisfy
-        (b) computes a homomorphism from the cube group to this free
+        \item computes a homomorphism from the cube group to this free
         group quotient
-        (c) takes the cube position, regarded as a group element,
+        \item takes the cube position, regarded as a group element,
         and maps it over to the free group quotient
-        (d) using those relations and tricks from combinatorial group
+        \item using those relations and tricks from combinatorial group
         theory (stabilizer chains), solves the "word problem" for that
         element.
-        (e) uses python string parsing to rewrite that in cube notation.
-        The Rubik's cube group has about 4.3x10^(19) elements, so this
+        \item uses python string parsing to rewrite that in cube notation.
+        \end{enumerate}
+
+        The Rubik's cube group has about $4.3 \times 10^{19}$ elements, so this
         process is time-consuming.
         See http://www.gap-system.org/Doc/Examples/rubik.html
         for an interesting discussion of some GAP code analyzing the

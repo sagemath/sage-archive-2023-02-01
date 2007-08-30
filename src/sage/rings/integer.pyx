@@ -1020,7 +1020,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __mod__(self, modulus):
         r"""
-        Returns \code{self % modulus}.
+        Returns self modulo the modulus.
 
         EXAMPLES:
             sage: z = 43
@@ -1030,7 +1030,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Integer modulo by zero
-        """
+            sage: -5 % 7
+            2
+         """
         cdef Integer _modulus, _self
         _modulus = integer(modulus)
         if not _modulus:

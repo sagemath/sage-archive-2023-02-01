@@ -2717,7 +2717,7 @@ def xgcd(x,y):
 
 def generic_power(a, n, one=None):
     """
-    Computes a^n, where n is an integer, and a is an object which
+    Computes $a^n$, where $n$ is an integer, and $a$ is an object which
     supports multiplication.  Optionally an additional argument,
     which is used in the case that n == 0:
 

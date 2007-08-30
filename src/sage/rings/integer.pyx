@@ -100,7 +100,7 @@ include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 
-cdef extern from "../ext/mpz_pylong.h":
+cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef mpz_get_pyintlong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -639,7 +639,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    cdef void _to_ZZ(self, ntl_c_ZZ *z):
+    cdef void _to_ZZ(self, ZZ_c *z):
         _sig_on
         mpz_to_ZZ(z, &self.value)
         _sig_off

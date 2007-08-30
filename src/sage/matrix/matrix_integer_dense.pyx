@@ -1821,6 +1821,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A*C == d*B
             True
 
+
         ALGORITHM: Uses IML.
 
         AUTHOR:
@@ -1885,6 +1886,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < n*m:
             mpz_init_set(M._entries[i], mp_N[i])
             mpz_clear(mp_N[i])
+        sage_free(mp_N)
         M._initialized = True
 
         D = PY_NEW(Integer)

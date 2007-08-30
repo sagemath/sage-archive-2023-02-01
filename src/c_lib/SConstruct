@@ -1,0 +1,35 @@
+import os
+
+# Note that SCons strong point is not the './configure' step of autotools.  However, for this build
+# we know that we are in a SAGE local filesystem.  Once we have SAGE_LOCAL imported, we know where
+# everything is.
+
+env = Environment()
+
+# By default, SCons hashes the source file contents to determine if rebuilds are necessary.
+# If you like the old way better, uncomment this to use timestamps.
+#env.SourceSignatures('timestamp')
+
+if env['PLATFORM']=="darwin":
+    # Since the sage build of python is only a static library, we just suppress the undefined python symbols.
+    # I don't really understand the other options (-single_module and -flat_namespace).  I can't find the documentation.
+    env.Append( LINKFLAGS="-single_module -flat_namespace -undefined suppress" )
+
+# SCons doesn't automatically pull in system environment variables
+# However, we only need SAGE_LOCAL, so that's easy.
+env['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
+
+# The SCons convenience function Split is the only strange thing to python programmers.
+# It just makes a list by splitting on whitespace with-out the syntax clutter of lists of strings.
+includes = Split( '$SAGE_LOCAL/include/ $SAGE_LOCAL/include/python2.5/ $SAGE_LOCAL/include/NTL/' )
+cFiles = Split( "interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c" )
+cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
+
+lib = env.SharedLibrary( "csage", cFiles + cppFiles, LIBS=['ntl', 'gmp'], LIBPATH=['$SAGE_LOCAL/lib'], CPPPATH=includes )
+
+includes_to_install = Split( "ZZ_pylong.h  ccobject.h  interrupt.h  mpn_pylong.h  mpz_pylong.h  ntl_wrap.h  stdsage.h" )
+
+env.Install( "$SAGE_LOCAL/include", includes_to_install )
+env.Install( "$SAGE_LOCAL/lib", lib )
+
+env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib"] )

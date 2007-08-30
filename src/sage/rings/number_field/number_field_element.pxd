@@ -9,16 +9,16 @@ from sage.structure.element cimport FieldElement, RingElement, ModuleElement
 from sage.structure.parent_base cimport ParentWithBase
 
 cdef class NumberFieldElement(FieldElement):
-    cdef ntl_c_ZZX __numerator
-    cdef ntl_c_ZZ __denominator
+    cdef ZZX_c __numerator
+    cdef ZZ_c __denominator
     cdef object __multiplicative_order
     cdef object __pari
     cdef object __matrix
 
     cdef NumberFieldElement _new(self)
 
-    cdef void _parent_poly_c_(self, ntl_c_ZZX *num, ntl_c_ZZ *den)
-    cdef void _invert_c_(self, ntl_c_ZZX *num, ntl_c_ZZ *den)
+    cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den)
+    cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _reduce_c_(self)
     cdef ModuleElement _add_c_impl(self, ModuleElement right)
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)

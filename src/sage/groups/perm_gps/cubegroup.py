@@ -39,7 +39,7 @@ AUTHOR:
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
     - Robert Miller (2007-08): editing, cleaned up display2d
-    - Robert Bradshaw (2006-08): RubiksCube object.
+    - Robert Bradshaw (2006-08): RubiksCube object, 3d plotting.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -80,7 +80,8 @@ sin = Function_sin()
 cos = Function_cos()
 pi = RDF.pi()
 
-from sage.plot.graphics3d import *
+from sage.plot.plot3d.shapes import *
+from sage.plot.plot3d.texture import Texture
 
 ####################### predefined colors ##################
 
@@ -1111,7 +1112,7 @@ class RubiksCube(SageObject):
         my_colors = [colors[sides[i]+6] for i in range(6)]
         if stickers:
             B = Box(size, size, size, color=(.1, .1, .1))
-            S = B + B.triangulation().stickers(my_colors, size*.1, size*.01)
+            S = B + B.stickers(my_colors, size*.1, size*.01)
             return S.translate(-t*x, -t*z, -t*y)
         else:
             return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)

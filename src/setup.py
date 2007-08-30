@@ -78,7 +78,10 @@ def is_src_file( f ):
 
 def needs_c_lib_build():
     lib = '../../local/lib/libcsage.so'
-    files = os.listdir( 'c_lib' )
+    try:
+        files = os.listdir( 'c_lib' )
+    except OSError:  # during setup.py sdist
+        return False
     src_files = ['c_lib/' + f for f in files if is_src_file( f )]
     src_files += ['c_lib/SConstruct']
     for f in src_files:
@@ -100,7 +103,10 @@ def is_src_file( f ):
 
 def needs_c_lib_build():
     lib = '../../local/lib/libcsage.so'
-    files = os.listdir( 'c_lib/src' )
+    try:
+       files = os.listdir( 'c_lib/src' )
+    except OSError:
+        return False
     src_files = ['c_lib/src/' + f for f in files if is_src_file( f )]
     src_files += ['c_lib/configure', 'c_lib/Makefile']
     for f in src_files:

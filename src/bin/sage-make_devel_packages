@@ -46,7 +46,7 @@ if [ -d $SAGE_ROOT/devel/doc ]; then
    cd $SAGE_ROOT/devel/doc
    hg diff
    hg status
-   hg tag -m "$SAGE_VERSION"
+   hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
    chmod +x scripts/spkg-dist
    scripts/spkg-dist $SAGE_VERSION
@@ -71,7 +71,7 @@ if [ -d $SAGE_ROOT/devel/sage-main ]; then
    cd $SAGE_ROOT/devel/sage-main
    hg diff
    hg status
-   hg tag -m "$SAGE_VERSION"
+   hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
    #./sage-push
    chmod +x spkg-dist
@@ -94,7 +94,7 @@ if [ -d $SAGE_ROOT/data/extcode ]; then
    cd $SAGE_ROOT/data/extcode
    hg diff
    hg status
-   hg tag -m "$SAGE_VERSION"
+   hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
 
    #./sage-push
@@ -119,7 +119,7 @@ if [ -d $SAGE_ROOT/examples ]; then
    cd $SAGE_ROOT/examples
    hg diff
    hg status
-   hg tag -m "$SAGE_VERSION"
+   hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
    #./sage-push
    cd ..
@@ -151,7 +151,7 @@ cd $SAGE_ROOT/local/bin/
 #./sage-push
 hg diff
 hg status
-hg tag -m "$SAGE_VERSION"
+hg tag "$SAGE_VERSION"
 hg commit -m "$SAGE_VERSION"
 
 if [ $? -ne 0 ]; then

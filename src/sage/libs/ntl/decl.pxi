@@ -15,6 +15,8 @@ cdef extern from "ntl_wrap.h":
     ctypedef struct ZZ_c "struct ZZ":
         pass
 
+    void del_charstar(char*)
+
     # Some boiler-plate
     ZZ_c* ZZ_new "New<ZZ>"()
     ZZ_c* ZZ_construct "Construct<ZZ>"(void *mem)

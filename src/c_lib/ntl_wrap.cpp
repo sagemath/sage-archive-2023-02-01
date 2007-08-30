@@ -6,6 +6,10 @@ using namespace std;
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/LLL.h>
 
+void del_charstar(char* a) {
+  delete a;
+}
+
 //////// ZZ //////////
 
 ZZ* new_ZZ() {

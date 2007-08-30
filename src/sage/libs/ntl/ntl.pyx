@@ -1404,7 +1404,10 @@ cdef class ntl_ZZ_pX:
 
 
     def __repr__(self):
-        return str(ZZ_pX_repr(self.x))
+        cdef char* a = ZZ_pX_repr(self.x)
+        s = str(a)
+        del_charstar(a)
+        return s
 
     def __copy__(self):
         return make_ZZ_pX(ZZ_pX_copy(self.x))

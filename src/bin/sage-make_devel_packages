@@ -23,7 +23,6 @@ rm doc-*.spkg
 rm examples-*.spkg
 rm extcode-*.spkg
 rm sage-*.spkg
-rm sage_c_lib-*.spkg
 rm sage_scripts-*.spkg
 
 if [ $# -eq 2 ]; then
@@ -107,36 +106,6 @@ if [ -d $SAGE_ROOT/data/extcode ]; then
    fi
    mv extcode-$SAGE_VERSION.spkg $DESTINATION/
    touch $SPKG_INST/extcode-$SAGE_VERSION
-fi
-
-
-if [ ! -f $PKG/extcode-$SAGE_VERSION.spkg ]; then
-    echo "The package extcode-$SAGE_VERSION.spkg wasn't created."
-    exit 1
-fi
-
-# NEW SAGE C LIBRARY CODE PACKAGE
-if [ -d "$SAGE_ROOT"/devel/c_lib ]; then
-   cd "$SAGE_ROOT"/devel/c_lib
-   rm -f configure~
-   chmod +x configure
-   hg diff
-   hg status
-   hg tag -m "$SAGE_VERSION"
-   hg commit -m "$SAGE_VERSION"
-   if [ $? -ne 0 ]; then
-       echo "Error building the sage_c_lib package"
-       exit 1
-   fi
-   NAME=sage_c_lib-$SAGE_VERSION
-   D="$DESTINATION"/"$NAME"
-   if [ -d "$D" ]; then
-       rm -rf "$D"
-   fi
-   cp -r "$SAGE_ROOT"/devel/c_lib "$D"
-   cd "$DESTINATION"
-   sage -pkg $NAME
-   rm -rf "$D"
 fi
 
 

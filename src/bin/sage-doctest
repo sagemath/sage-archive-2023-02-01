@@ -309,9 +309,12 @@ def test_file(file):
             print "Type bt if there is a crash to see a traceback."
             print "*"*80
             cmd = "gdb --args " + cmd
+        if valgrind:
+            cmd= "valgrind --tool=memcheck --leak-resolution=high --trace-children=yes --log-file=sage --show-reachable=yes --leak-check=full " + cmd
+ #           cmd = "valgrind --tool=massif --format=html " + cmd
         tm = time.time()
         try:
-            if verbose or gdb:
+            if verbose or gdb or valgrind:
                 e = os.system(cmd)
                 out = ''; err = ''
             else:
@@ -379,6 +382,7 @@ if __name__ ==  '__main__':
         long_time = has_opt('long')
         verbose   = has_opt('verbose')
         gdb       = has_opt('gdb')
+        valgrind  = has_opt('valgrind')
         if argv[1][0] == '-':
             usage()
         try:

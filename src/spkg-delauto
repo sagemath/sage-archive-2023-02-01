@@ -8,6 +8,9 @@ if len(sys.argv) != 2:
     print "all subdirectories of the given directory."
     sys.exit(1)
 
+os.system('rm c_lib/*.so')
+os.system('rm c_lib/*.os')
+
 def del_all(dir):
     for f in os.listdir(dir):
         filename = '%s/%s'%(dir,f)

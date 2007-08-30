@@ -98,6 +98,7 @@ version.py
 ^c_lib/.deps/.*
 ^c_lib/.libs/.*
 ^c_lib/.*\.lo$
+^c_lib/.*\.os$
 ^c_lib/Makefile$
 ^c_lib/autom4te.cache/.*$
 ^c_lib/config.log$
@@ -109,4 +110,5 @@ version.py
 ^sage/rings/integer.h$
 ^sage/rings/padics/padic_generic_element.h$
 ^sage/rings/rational.h$
-
+^c_lib/.sconsign.dblite$
+^c_lib/libcsage.so$

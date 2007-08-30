@@ -263,7 +263,7 @@ if __name__ ==  '__main__':
             sys.exit(1)
         e = E.terminate(0)
         if e:
-            print " ** Unclean exit -- possibly a memory error or segmentation fault occured. ** "
+            print " ** Unclean exit -- possibly a memory error or segmentation fault occurred. ** "
             sys.exit(1)
         try:
             # Hack to get around stupid pointless error message.

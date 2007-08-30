@@ -280,7 +280,7 @@ if [ $? -eq 0 ]; then
 
 else
 
-   echo "sage: An error occured while installing $PKG_NAME"
+   echo "sage: An error occurred while installing $PKG_NAME"
    echo "Please email sage-devel http://groups.google.com/group/sage-devel"
    echo "explaining the problem and send the relevant part of"
    echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."

@@ -402,6 +402,9 @@ ext_modules = [ \
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
 
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
+
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \

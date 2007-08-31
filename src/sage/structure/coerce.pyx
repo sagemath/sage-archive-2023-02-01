@@ -8,7 +8,7 @@
 
 
 include "../ext/stdsage.pxi"
-include "../ext/python_tuple.pxi"
+include "../ext/python_object.pxi"
 include "coerce.pxi"
 
 import operator
@@ -202,13 +202,13 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         -- Robert Bradshaw
     """
 
-    def __init__(self):
+    def __init__(self, lookup_dict_sizes=137):
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Morphism.
-        self._coercion_maps = {}
+        self._coercion_maps = PairDict(lookup_dict_sizes)
         # This MUST be a mapping of actions.
-        self._action_maps = {}
+        self._action_maps = {} #PairDict(lookup_dict_sizes)
 
     cdef bin_op_c(self, x, y, op):
 
@@ -224,7 +224,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 
         try:
             xy = self.canonical_coercion_c(x,y)
-            return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
+            return PyObject_CallObject(op, xy)
         except TypeError:
 #            raise
             pass
@@ -659,6 +659,8 @@ class CoercionProfileItem:
                     s = re.sub(r"([^\\]\b[^{}\\]{5,7})[^{}\\]{5,}([^{}\\]{3,})", "\\1...\\2", " "+s)
 
         return s
+
+
 
 
 

@@ -15,10 +15,10 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
     # This MUST be a mapping to tuples, where each
     # tuple contains at least two elements that are either
     # None or of type Morphism.
-    cdef object _coercion_maps
+    cdef TripleDict _coercion_maps
 
     # This MUST be a mapping to actions.
-    cdef object _action_maps
+    cdef TripleDict _action_maps
 
     cdef coercion_maps_c(self, R, S)
     cdef discover_coercion_c(self, R, S)

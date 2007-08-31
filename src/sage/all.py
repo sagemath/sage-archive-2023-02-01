@@ -100,6 +100,8 @@ from sage.games.all      import *
 
 from sage.media.all      import *
 
+from sage.logic.all      import *
+
 from copy import copy
 
 

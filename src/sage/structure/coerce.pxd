@@ -6,7 +6,7 @@ from parent_base cimport ParentWithBase
 from sage.categories.action cimport Action
 from sage.categories.morphism cimport Morphism
 
-from coerce_dict cimport PairDict, PairDictIter
+from coerce_dict cimport TripleDict, TripleDictIter
 
 cdef class CoercionModel_original(CoercionModel):
     pass
@@ -15,7 +15,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
     # This MUST be a mapping to tuples, where each
     # tuple contains at least two elements that are either
     # None or of type Morphism.
-    cdef PairDict _coercion_maps
+    cdef object _coercion_maps
 
     # This MUST be a mapping to actions.
     cdef object _action_maps

@@ -206,7 +206,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Morphism.
-        self._coercion_maps = PairDict(lookup_dict_sizes)
+        self._coercion_maps = {} #PairDict(lookup_dict_sizes)
         # This MUST be a mapping of actions.
         self._action_maps = {} #PairDict(lookup_dict_sizes)
 

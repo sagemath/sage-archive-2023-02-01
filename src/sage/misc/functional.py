@@ -684,10 +684,14 @@ def numerical_approx(x, prec=None, digits=None):
         3.141592654
         sage: numerical_approx(pi^2 + e, digits=20)
         12.587886229548403854
-        sage: N(pi^2 + e)
+        sage: n(pi^2 + e)
         12.5878862295484
-        sage: N(pi^2 + e, digits=50)
+        sage: n(pi^2 + e, digits=50)
         12.5878862295484038541947784712288136330709465009407
+
+    You can also usually use method notation:
+        sage: (pi^2 + e).n()
+        12.5878862295484
     """
     if prec is None:
         if digits is None:
@@ -702,7 +706,7 @@ def numerical_approx(x, prec=None, digits=None):
         except TypeError:
             return sage.rings.complex_field.ComplexField(prec)(x)
 
-N = numerical_approx
+n = numerical_approx
 
 def objgens(x):
     """

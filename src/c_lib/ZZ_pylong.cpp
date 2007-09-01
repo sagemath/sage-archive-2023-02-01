@@ -18,7 +18,9 @@
 
 #include "ZZ_pylong.h"
 #include "ntl_wrap.h"
-#include "mpz_pylong.h"
+extern "C" {
+    #include "mpz_pylong.h"
+}
 
 using namespace NTL;
 

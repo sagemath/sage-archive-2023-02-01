@@ -4,20 +4,16 @@
 #include <Python.h>
 #include <gmp.h>
 
-
-#ifdef __cplusplus
-#define EXTERN extern "C"
-#else
-#define EXTERN
-#endif
-
 /* mpz -> pylong conversion */
-EXTERN PyObject * mpz_get_pylong(mpz_srcptr z);
+PyObject * mpz_get_pylong(mpz_srcptr z);
+
+/* mpz -> pyint/pylong conversion */
+PyObject * mpz_get_pyintlong(mpz_srcptr z);
 
 /* pylong -> mpz conversion */
-EXTERN int mpz_set_pylong(mpz_ptr z, PyObject * ll);
+int mpz_set_pylong(mpz_ptr z, PyObject * ll);
 
 /* mpz python hash */
-EXTERN long mpz_pythonhash (mpz_srcptr z);
+long mpz_pythonhash (mpz_srcptr z);
 
 #endif

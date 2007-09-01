@@ -1,13 +1,10 @@
 """
-Singular C function and class declaration
+Conversion routines from to SINGULAR's native data structures
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
+
+TODO: Figure out how to do the cdef public/extern stuff with C++
 """
-
-################################################################################
-#
-################################################################################
-
 ###############################################################################
 #   SAGE: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
@@ -16,6 +13,7 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
+include "sage/ext/stdsage.pxi"
 include "singular-cdefs.pxi"
 
 cdef extern from "limits.h":
@@ -27,12 +25,8 @@ from sage.rings.finite_field import FiniteField_prime_modn
 from sage.rings.finite_field import FiniteField_ext_pari
 from sage.libs.pari.all import pari
 
-cdef extern from "stdsage.h":
-    ctypedef void PyObject
-    object PY_NEW(object t)
-    int PY_TYPE_CHECK(object o, object t)
-    PyObject** FAST_SEQ_UNSAFE(object o)
-    void init_csage()
+from sage.structure.parent_base cimport ParentWithBase
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
 cdef class Conversion:
     """
@@ -90,9 +84,24 @@ cdef class Conversion:
 
         z = Rational()
         z.set_from_mpq(_z)
+        mpq_clear(_z)
         return z
 
     cdef public FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base):
+        """
+        Convert a SINGULAR finite extension field element to a SAGE
+        finite extension field element in a field with order
+        $<2^{16}$.
+
+        INPUT:
+            n -- SINGULAR representation
+            _ring -- SINGULAR ring
+            base -- SAGE GF(q)
+
+        OUTPUT:
+            An Element in GF(q).
+
+        """
         cdef napoly *z
         cdef int c, e
         cdef int a
@@ -119,6 +128,18 @@ cdef class Conversion:
         return (<FiniteField_givaroElement>base._zero_element)._new_c(ret)
 
     cdef public object si2sa_GFqPari(self, number *n, ring *_ring, object base):
+        """
+        Convert a SINGULAR finite extension field element to a SAGE
+        finite extension field element in a field.
+
+        INPUT:
+            n -- SINGULAR representation
+            _ring -- SINGULAR ring
+            base -- SAGE GF(q)
+
+        OUTPUT:
+            An Element in GF(q).
+        """
         cdef napoly *z
         cdef int c, e
         cdef object a
@@ -147,13 +168,22 @@ cdef class Conversion:
 
     cdef public number *sa2si_QQ(self, Rational r, ring *_ring):
         """
+        Convert a SAGE rational number to a SINGULAR rational number.
+
+        INPUT:
+            r -- SAGE notation
+            _ring -- SINGULAR ring (ignored)
         """
         return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value) )
 
     cdef number *sa2si_GFqGivaro(self, int quo, ring *_ring):
         """
+        Convert a SAGE GF(q) element to a SINGULAR GF(q) element.
+
+        INPUT:
+            quo -- int representing the finite field element
+            _ring -- SINGULAR ring
         """
-        #can be done much faster
         cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
         cdef int b
 
@@ -185,7 +215,8 @@ cdef class Conversion:
         return n1
 
     cdef number *sa2si_GFqPari(self, object elem, ring *_ring):
-        #can be done much faster
+        """
+        """
         cdef int i
         cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
 
@@ -262,4 +293,14 @@ cdef class Conversion:
             return self.sa2si_GFqPari(elem, _ring)
         else:
             raise ValueError, "cannot convert to SINGULAR number"
+
+    cdef public  MPolynomial_libsingular new_MP(self, MPolynomialRing_libsingular parent, poly *juice):
+        """
+        Construct MPolynomial_libsingular from parent and SINGULAR poly.
+        """
+        cdef MPolynomial_libsingular p
+        p = PY_NEW(MPolynomial_libsingular)
+        p._parent = <ParentWithBase>parent
+        p._poly = juice
+        return p
 

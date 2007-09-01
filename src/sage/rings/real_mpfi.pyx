@@ -1320,7 +1320,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def __lshift__(x, y):
         """
-        Returns x * 2^y, for y an integer.  Much faster than an ordinary
+        Returns $x * 2^y$, for $y$ an integer.  Much faster than an ordinary
         multiplication.
 
         EXAMPLES:
@@ -1341,7 +1341,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def __rshift__(x, y):
         """
-        Returns x / 2^y, for y an integer.  Much faster than an ordinary
+        Returns $x / 2^y$, for $y$ an integer.  Much faster than an ordinary
         division.
 
         EXAMPLES:
@@ -2277,7 +2277,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def cos(self):
         """
-        Returns the cosine of this number
+        Returns the cosine of this number.
 
         EXAMPLES:
             sage: t=RIF(pi)/2
@@ -2285,6 +2285,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [-0.00000000000000016081226496766367 .. 0.000000000000000061232339957367661]
             sage: t.cos().cos()
             [0.99999999999999988 .. 1.0000000000000000]
+
+        WARNING:
+           There is a bug in the underlying MPFI library where
+           RealInterval(-1,1).cos() hangs.  If this bothers you,
+           please send them a bug report:
+              http://perso.ens-lyon.fr/nathalie.revol/software.html/.
         """
         cdef RealIntervalFieldElement x
         x = self._new()

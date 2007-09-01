@@ -28,6 +28,7 @@ from tachyon import tachyon_rt
 from psage import PSage
 from ecm import ECM, ecm
 from povray import povray
+from lie import lie, lie_console, LiE
 
 # signal handling
 from get_sigs import *

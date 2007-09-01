@@ -64,6 +64,7 @@ from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix
 import sage.rings.integer as integer
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
+from sage.structure.sage_object import SageObject
 
 
 #################################################################
@@ -116,6 +117,16 @@ def MatrixGroup(gens):
         ValueError: each generator must be an invertible matrix but one is not:
         [1 2]
         [3 4]
+
+    Some groups aren't supported:
+        sage: SL(2, CC).gens()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Matrix group over Complex Field with 53 bits of precision not implemented.
+        sage: G = SL(0, QQ)
+        Traceback (most recent call last):
+        ...
+        ValueError: The degree must be at least 1
     """
     if len(gens) == 0:
         raise ValueError, "gens must have positive length"
@@ -145,9 +156,19 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         if not is_Ring(R):
             raise TypeError, "R (=%s) must be a ring"%R
+
+
         self._var = var
         self.__n = integer.Integer(n)
+        if self.__n <= 0:
+            raise ValueError, "The degree must be at least 1"
         self.__R = R
+
+    def _gap_(self, G=None):
+        try:
+            return SageObject._gap_(self, G)
+        except TypeError:
+            raise NotImplementedError, "Matrix group over %s not implemented."%self.__R
 
     def __cmp__(self, H):
         if not isinstance(H, MatrixGroup_gap):

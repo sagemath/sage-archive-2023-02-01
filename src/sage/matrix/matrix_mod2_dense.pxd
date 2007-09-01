@@ -21,6 +21,7 @@ cdef extern from "../libs/m4ri/m4ri.h":
     cdef void setupPackingMasks()
 
     cdef void buildAllCodes() # builds all gray codes up to a certain size
+    cdef void destroyAllCodes()
 
     ##############
     # Constructors

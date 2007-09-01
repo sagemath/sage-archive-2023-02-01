@@ -684,10 +684,14 @@ def numerical_approx(x, prec=None, digits=None):
         3.141592654
         sage: numerical_approx(pi^2 + e, digits=20)
         12.587886229548403854
-        sage: N(pi^2 + e)
+        sage: n(pi^2 + e)
         12.5878862295484
-        sage: N(pi^2 + e, digits=50)
+        sage: n(pi^2 + e, digits=50)
         12.5878862295484038541947784712288136330709465009407
+
+    You can also usually use method notation:
+        sage: (pi^2 + e).n()
+        12.5878862295484
     """
     if prec is None:
         if digits is None:
@@ -702,7 +706,7 @@ def numerical_approx(x, prec=None, digits=None):
         except TypeError:
             return sage.rings.complex_field.ComplexField(prec)(x)
 
-N = numerical_approx
+n = numerical_approx
 
 def objgens(x):
     """
@@ -792,7 +796,7 @@ def regulator(x):
 
 def round(x, ndigits=0):
     """
-    round(number[, ndigits]) -> mpfr real number
+    round(number[, ndigits]) -> double-precision real number
 
     Round a number to a given precision in decimal digits (default 0
     digits).  This always returns a real double field element.
@@ -804,16 +808,26 @@ def round(x, ndigits=0):
         1.41421
         sage: round(pi)
         3.0
+        sage: b = 5.4999999999999999
+        sage: round(b)
+        5.0000000000000000
 
-    IMPLEMENTATION:  Calls Python's builtin round function, and converts
-    the result to a real double field element.
+
+    IMPLEMENTATION: If ndigits is specified, it calls Python's builtin round function,
+    and converts the result to a real double field element. Otherwise, it tries the
+    argument's .round() method, and if that fails, it falls back to the builtin round
+    function.
 
     NOTE: This is currently slower than the builtin round function,
     since it does more work -- i.e., allocating an RDF element and
     initializing it.  To access the builtin version do
     \code{import __builtin__; __builtin__.round}.
     """
-    return RealDoubleElement(__builtin__.round(x, ndigits))
+    if ndigits:
+        return RealDoubleElement(__builtin__.round(x, ndigits))
+    else:
+        try: return x.round()
+        except AttributeError: return RealDoubleElement(__builtin__.round(x, 0))
 
 def quotient(x, y, *args, **kwds):
     """

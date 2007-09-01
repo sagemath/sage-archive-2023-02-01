@@ -256,7 +256,7 @@ robust manner, as long as you are creating a new object.
 
 import re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.structure.element import RingElement
 
@@ -282,13 +282,14 @@ class Singular(Expect):
     AUTHORS: David Joyner and William Stein
     """
     def __init__(self, maxread=1000, script_subdirectory=None,
-                 logfile=None, server=None):
+                 logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'singular',
                         prompt = '> ',
                         command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = True,
                         verbose_start = False,
@@ -995,14 +996,16 @@ class SingularElement(ExpectElement):
         """
         if self.type()=='poly':
             return self.sage_poly(R)
-        if self.type() == 'module':
+        elif self.type() == 'module':
             return self.sage_matrix(R,sparse=True)
-        if self.type() == 'matrix':
+        elif self.type() == 'matrix':
             return self.sage_matrix(R,sparse=False)
-        if self.type() == 'list':
+        elif self.type() == 'list':
             return [ f._sage_(R) for f in self ]
-
-        NotImplementedError, "Coercion of this datatype not implemented yet"
+        elif self.type() == 'intvec':
+            return tuple([sage.rings.integer.Integer(str(e)) for e in self])
+        else:
+            raise NotImplementedError, "Coercion of this datatype not implemented yet"
 
     def set_ring(self):
         self.parent().set_ring(self)

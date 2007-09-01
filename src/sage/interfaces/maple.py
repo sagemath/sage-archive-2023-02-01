@@ -198,7 +198,7 @@ loaded.
 
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, tmp
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 
 import pexpect
 
@@ -217,7 +217,7 @@ class Maple(Expect):
     a new Maple object, and \code{maple.eval(...)} to run a string
     using Maple (and get the result back as a string).
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None):
+    def __init__(self, maxread=100, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Maple interpreter.
         """
@@ -228,6 +228,8 @@ class Maple(Expect):
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
+                        server = server,
+                        server_tmpdir = server_tmpdir,
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=1)  # very important that this is 1
@@ -267,7 +269,7 @@ class Maple(Expect):
         return """
 In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
-command-line version of Maple.
+command-line version of Maple (alternatively, you could use a remote connection to a server running Maple. Call _install_hints_ssh() for hints on how to do that).
 
   (1) You might have to buy Maple (list price: $1995.00 !!) at
              http://webstore.maplesoft.com/
@@ -419,8 +421,9 @@ command-line version of Maple.
         big ahead of time!  We assume it is for now, if the string
         used to create the object was big.)
         """
-        s = self.eval('save %s, "%s"'%(var, tmp))
-        s = open(tmp).read().replace('\\\n','')
+        # pdehaye/ 20070819: This might be obsolete
+        s = self.eval('save %s, "%s"'%(var, self._remote_tmpfile()))
+        s = open(self._remote_tmpfile()).read().replace('\\\n','')
         i = s.find('=')
         return s[i+2:-2]
 

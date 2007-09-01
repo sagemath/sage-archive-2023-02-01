@@ -279,7 +279,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: w = E2.point((pi,v(pi),1), check=False); w
             (pi : (-sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1)/2 : 1)
             sage: 2*w
-            ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - ((3*pi^2 - 2*pi - 10)*((-(3*pi^2 - 2*pi - 10)^2)/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/(sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79))) - 1 : 1)
+            ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - (3*pi^2 - 2*pi - 10)*(-(3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1 : 1)
         """
         a = [SR(x) for x in self.a_invariants()]
         x, y = SR.var('x, y')

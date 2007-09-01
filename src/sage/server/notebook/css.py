@@ -851,7 +851,7 @@ div.worksheet {
   overflow:auto;
   background-color: white;
   border:1px solid #aaa;
-    top: 8em;
+    top: 12em;
     bottom: 0ex;
     right: 0ex;
     left:1ex;

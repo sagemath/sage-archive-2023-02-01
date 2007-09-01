@@ -100,7 +100,7 @@ from real_mpfi import (RealIntervalField, is_RealIntervalField,
 
 # Complex numbers
 from complex_field import ComplexField, is_ComplexField
-from complex_number import ComplexNumber, is_ComplexNumber
+from complex_number import (is_ComplexNumber, create_ComplexNumber as ComplexNumber)
 Complexes = ComplexField
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
@@ -134,7 +134,7 @@ from contfrac import continued_fraction, CFF, ContinuedFractionField
 # Arithmetic
 from arith import *
 
-from bernoulli_mod_p import bernoulli_mod_p
+from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from morphism import is_RingHomomorphism
 

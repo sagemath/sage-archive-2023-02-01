@@ -17,7 +17,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
     def __init__(self, parent, f=0, prec=infinity, int check=1, is_gen=0):
         """
         EXAMPLES:
-            sage: S.<x> = QQ
+            sage: S.<x> = QQ[]
             sage: R.<y> = S[[]]
             sage: f = x + 2*y + x*y
             sage: loads(f.dumps()) == f

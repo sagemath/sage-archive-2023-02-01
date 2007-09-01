@@ -6,6 +6,8 @@ NOTE -- this is no longer used ?!
 AUTHOR:
     -- William Stein (2004): first version
     -- Didier Deshom <dfdeshom@gmail.com> (2006-03-01): optimization to _pow.
+
+todo: if this file is used, __pow__ should be modified to call generic_power.
 """
 
 #*****************************************************************************

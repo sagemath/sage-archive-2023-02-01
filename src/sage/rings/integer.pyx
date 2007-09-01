@@ -100,8 +100,9 @@ include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 
-cdef extern from "../ext/mpz_pylong.h":
+cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
+    cdef mpz_get_pyintlong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
 
@@ -312,7 +313,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: v[Integer(2):Integer(4)]
             [3, 4]
         """
-        return int(mpz_get_pylong(self.value))
+        return mpz_get_pyintlong(self.value)
 
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
@@ -638,7 +639,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    cdef void _to_ZZ(self, ntl_c_ZZ *z):
+    cdef void _to_ZZ(self, ZZ_c *z):
         _sig_on
         mpz_to_ZZ(z, &self.value)
         _sig_off
@@ -746,7 +747,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of \frac{self}{other}
+        Computes the whole part of $\frac{self}{other}$.
 
         EXAMPLES:
             sage: a = Integer(321) ; b = Integer(10)
@@ -1019,7 +1020,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __mod__(self, modulus):
         r"""
-        Returns \code{self % modulus}.
+        Returns self modulo the modulus.
 
         EXAMPLES:
             sage: z = 43
@@ -1029,7 +1030,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Integer modulo by zero
-        """
+            sage: -5 % 7
+            2
+         """
         cdef Integer _modulus, _self
         _modulus = integer(modulus)
         if not _modulus:
@@ -1201,6 +1204,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def __int__(self):
+        # TODO -- this crashes on sage.math, since it is evidently written incorrectly.
+        #return mpz_get_pyintlong(self.value)
         return int(mpz_get_pylong(self.value))
 
     def __long__(self):

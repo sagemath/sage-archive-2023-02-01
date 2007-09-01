@@ -27,10 +27,10 @@ class NotebookObject:
         address    -- (default: 'localhost'), address to listen on
         port_tries -- (default: 0), number of additional ports to try if the
                       first one doesn't work (*not* implemented)
-        secure     -- (default: False) if True use https so all
+        secure     -- (default: True) if True use https so all
                       communication, e.g., logins and passwords,
                       between web browsers and the SAGE notebook is
-                      encrypted (via GNU TLS).  Highly recommended!
+                      encrypted (via GNU TLS).  *Highly recommended!*
         reset      -- (default: False) if True allows you to set the
                       admin password.  Use this if you forget your
                       admin password.
@@ -46,36 +46,47 @@ class NotebookObject:
         open_viewer -- (default: True) whether to pop up a web browser
 
     \begin{verbatim}
+
+    NOTE: If you have problems with the server certificate hostname not
+    matching, do \code{notebook.setup()}.
+
     EXAMPLES:
 
-    1. I want to run the SAGE notebook server on a remote machine
+    1. I just want to run the SAGE notebook.  Type
+
+             notebook()
+
+    2. I want to run the SAGE notebook server on a remote machine
        and be the only person allowed to log in.  Type
 
-         notebook(address="address.of.remote.machine", secure=True)
+         notebook(address="address.of.remote.machine")
 
        the first time you do this you'll be prompted to set
        an administrator password.  Use this to login.
+       NOTE: You may have to run notebook.setup() again and change
+       the hostname.
 
-    2. I just want to run the server locally and do not want to be
-       bothered with SSL, accounts, etc., and I am the only
-       user so I do not have to worry about somebody else using
-       the notebook on localhost and deleting my files.  Use
+    3. I just want to run the server locally on my laptop at a coffee
+       shop with no wifi and do not want to be bothered with SSL,
+       accounts, etc., and I am *absolutely certain* I am the only
+       user logged into my laptop so I do not have to worry about
+       somebody else using the notebook on localhost and deleting my
+       files.  Use
 
-                  notebook()
+                  notebook(secure=False)
 
-    3. I want to create a SAGE notebook server that is open to anybody
+    4. I want to create a SAGE notebook server that is open to anybody
        in the world to create new accounts, etc.  To run the SAGE
        notebook publically (1) at a minimu run it from a chroot jail
        (see the SAGE install guide), and (2) use a command like
 
-    notebook(address="address.of.remote.machine", secure=True,
-         server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
+         notebook(address="address.of.remote.machine",
+            server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
 
-       The secure option enables enccryption between all users and the
-       notebook server.  The server_pool option specifies that
-       worksheet processes run as a separate user.  The ulimit option
-       restricts the memory available to each worksheet processes to
-       500MB.  See help on the accounts option above.
+       The server_pool option specifies that worksheet processes run
+       as a separate user.  The ulimit option restricts the memory
+       available to each worksheet processes to 500MB.  See help on
+       the accounts option above.
 
 
     INPUT:  (more advanced)

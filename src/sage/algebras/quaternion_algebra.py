@@ -35,7 +35,7 @@ from sage.rings.all import (IntegerRing, RationalField, PolynomialRing, is_Field
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module import VectorSpace
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix0 import Matrix
+from sage.matrix.matrix import is_Matrix
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_quotient import FreeAlgebraQuotient
 from sage.algebras.algebra_element import AlgebraElement
@@ -206,7 +206,7 @@ def QuaternionAlgebra(K, a, b, names=['i','j','k'], denom=1):
     _cache[key] = weakref.ref(H)
     return H
 
-def QuaternionAlgebraWithInnerProduct(K, norms, traces, names):
+def QuaternionAlgebraWithInnerProduct(K, norms, traces, names='i,j,k'):
     """
     """
     (n1,n2,n3) = norms
@@ -217,12 +217,12 @@ def QuaternionAlgebraWithInnerProduct(K, norms, traces, names):
         + t13*(t13 - t1*t3)*n2 \
         + t12*(t12 - t1*t2)*n3 \
         + t1**2*n2*n3 + t2**2*n1*n3 + t3**2*n1*n2 - 4*n1*n2*n3
-    if True and K(2).is_unit():
+    if K(2).is_unit():
         D = T**2 - 4*N
         try:
-            S = D.sqrt()
-        except AttributeError:
-            raise ValueError, "%s is not an integer"%D
+            S = D.sqrt(extend=False)
+        except ValueError:
+            raise ValueError, "%s is not an integer square"%D
         except ArithmeticError:
             raise ValueError, "Invalid inner product input."
         assert bool
@@ -265,10 +265,28 @@ def QuaternionAlgebraWithInnerProduct(K, norms, traces, names):
     FreeAlgebraQuotient.__init__(H, A, mons=mons, mats=mats, names=names)
     return H
 
-def QuaternionAlgebraWithGramMatrix(K, gram, names):
+def QuaternionAlgebraWithGramMatrix(K, gram, names='i,j,k'):
     """
+    INPUT:
+        K -- base field
+        gram -- the Gram matrix
+        names -- names of the three generators.
+
+    EXAMPLES:
+        sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
+        sage: g = A.gram_matrix(); g
+        [2 0 0 0]
+        [0 2 0 0]
+        [0 0 2 0]
+        [0 0 0 2]
+        sage: K.<i,j,k> = QuaternionAlgebraWithGramMatrix(QQ, g); K
+        Quaternion algebra with generators (i, j, k) over Rational Field
+
+        sage: R.<i,j,k> = QuaternionAlgebraWithGramMatrix(QQ, diagonal_matrix([8]*4))
+        sage: i^2, j^2, k^2
+        (-4, -4, -4)
     """
-    if not isinstance(gram,Matrix) or not gram.is_symmetric:
+    if not is_Matrix(gram) or not gram.is_symmetric():
         raise AttributeError, "Argument gram (= %s) must be a symmetric matrix"%gram
     (q0,t01,t02,t03,t10,q1,t12,t13,t20,t21,q2,t23,t30,t31,t32,q3) = gram.list()
     norms = [q1/2, q2/2, q3/2]

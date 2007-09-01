@@ -134,7 +134,7 @@ from contfrac import continued_fraction, CFF, ContinuedFractionField
 # Arithmetic
 from arith import *
 
-from bernoulli_mod_p import bernoulli_mod_p
+from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from morphism import is_RingHomomorphism
 

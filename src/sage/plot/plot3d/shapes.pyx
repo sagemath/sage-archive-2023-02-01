@@ -73,7 +73,7 @@ def ColorCube(size, colors):
     if not isinstance(size, (tuple, list)):
         size = (size, size, size)
     box = Box(size)
-    faces = box.triangulation().getFaceList()
+    faces = box.face_list()
     if len(colors) == 3:
         colors = colors * 2
     all = []

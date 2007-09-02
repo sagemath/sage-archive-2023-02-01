@@ -18,6 +18,7 @@ def is_ModularFormElement(x):
     """
     Return True if x is a modular form.
 
+    EXAMPLES:
         sage: is_ModularFormElement(5)
         False
         sage: is_ModularFormElement(ModularForms(11).0)

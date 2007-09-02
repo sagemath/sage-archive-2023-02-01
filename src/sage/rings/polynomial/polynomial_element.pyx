@@ -11,7 +11,6 @@ TESTS:
      sage: f = x^5 + 2*x^2 + (-1)
      sage: f == loads(dumps(f))
      True
-
 """
 
 ################################################################################
@@ -2432,7 +2431,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^6 + x^2 + -x^4 - 2*x^3
             sage: f.norm(2)
             2.64575131106459
-            sage: N(sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2))
+            sage: (sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2)).n()
             2.64575131106459
 
             sage: f.norm(1)

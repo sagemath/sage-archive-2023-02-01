@@ -2350,7 +2350,48 @@ cdef class FieldElement(CommutativeRingElement):
 ##     return IS_INSTANCE(x, FiniteFieldElement)
 
 cdef class FiniteFieldElement(FieldElement):
-    pass
+
+    def minpoly(self,var='x'):
+        """
+        Returns the minimal polynomial of this element
+        (over the corresponding prime subfield).
+        EXAMPLES:
+            sage: k.<a> = FiniteField(19^2)
+            sage: parent(a)
+            Finite Field in a of size 19^2
+            sage: b=a**20;p=b.charpoly("x");p
+            x^2 + 15*x + 4
+            sage: factor(p)
+            (x + 17)^2
+            sage: b.minpoly('x')
+            x + 17
+        """
+        p=self.charpoly(var);
+        for q in p.factor():
+            if q[0](self)==0:
+                return q[0]
+        # This shouldn't be reached, but you never know!
+        raise ArithmeticError("Could not find the minimal polynomial")
+
+        ## We have two names for the same method
+        ## for compatibility with sage.matrix
+    def minimal_polynomial(self,var='x'):
+        """
+        Returns the minimal polynomial of this element
+        (over the corresponding prime subfield).
+        EXAMPLES:
+            sage: k.<a> = FiniteField(3^4)
+            sage: parent(a)
+            Finite Field in a of size 3^4
+            sage: b=a**20;p=charpoly(b,"y");p
+            y^4 + 2*y^2 + 1
+            sage: factor(p)
+            (y^2 + 1)^2
+            sage: b.minimal_polynomial('y')
+            y^2 + 1
+        """
+        return self.minpoly(var)
+
 
 def is_AlgebraElement(x):
     """

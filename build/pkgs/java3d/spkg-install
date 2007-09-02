@@ -1,0 +1,26 @@
+#!/bin/sh
+
+cd src/
+
+DIR="$SAGE_LOCAL"/java
+export DIR
+
+if [ ! -d "$DIR" ]; then
+   mkdir $DIR
+fi
+
+$CP -r sun-libs "$DIR"/
+
+if [ $? -ne 0 ]; then
+   echo "Error installing java sun libraries."
+   exit 1
+fi
+
+$CP lib/sage3d.jar "$DIR"/
+
+if [ $? -ne 0 ]; then
+   echo "Error installing java 3d libraries."
+   exit 1
+fi
+
+exit 0

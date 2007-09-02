@@ -19,9 +19,26 @@ def functions_without_doctests(file):
         if j == -1:
             break
         j += i
+
+        # Skip line if it is commented out.
+        z = file[:i].rfind('\n')
+        if z != -1:
+            if file[z:i].lstrip().startswith('#'):
+                file = file[j:]
+                continue
+
         function_name = ' '.join(file[i:j].lstrip('def').split())
+
         if i > 0 and file[i-1] in ['c', 'e']: # and ('\n' in file[i:j] or '(' not in file[i:j]):
             file = file[i+10:]
+            continue
+        skip_this = False
+        for skip in ['__dealloc__', '__new__']:
+            if skip in function_name:
+                file = file[j:]
+                skip_this = True
+                break
+        if skip_this:
             continue
 
         k = file[j:].find('\n')

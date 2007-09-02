@@ -88,7 +88,13 @@ if [ `uname` = "Darwin" ]; then
     PATH="$SAGE_LOCAL/Frameworks/Python.framework/Versions/2.5/bin:$PATH" && export PATH
 fi
 
-LIBRARY_PATH="$SAGE_LOCAL/lib/:$LIBRARY_PATH"  && export LIBRARY_PATH
+if [ "$LIBRARY_PATH" -ne "" ]; then
+    LIBRARY_PATH="$SAGE_LOCAL/lib/:$LIBRARY_PATH"
+else
+    LIBRARY_PATH="$SAGE_LOCAL/lib/"
+fi
+export LIBRARY_PATH
+
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 
 if [ "$SAGE_SERVER" = "" ]; then

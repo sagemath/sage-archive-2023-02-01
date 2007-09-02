@@ -1194,8 +1194,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: max_prec = 60
       sage: M = monsky_washnitzer.adjusted_prec(p, max_prec)
       sage: R.<x> = PolynomialRing(Integers(p**M))
-      sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-      ...                         x^3 - x + R(1/4), p, M)         # long time
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)         # long time
       sage: A = A.change_ring(Integers(p**max_prec))              # long time
       sage: result = []                                           # long time
       sage: for prec in range(1, max_prec):                       # long time
@@ -1224,8 +1223,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: R.<x> = PolynomialRing(S)
       sage: Q = x**3 + a*x + b
       sage: A = monsky_washnitzer.matrix_of_frobenius(Q, p, M)    # long time
-      sage: B = A.change_ring(PowerSeriesRing(                    # long time
-      ...         Integers(p**prec), 't', default_prec=4))        # long time
+      sage: B = A.change_ring(PowerSeriesRing(Integers(p**prec), 't', default_prec=4))        # long time
       sage: B                                                     # long time
        [1144 + 264*t + 841*t^2 + 1025*t^3 + O(t^4)  176 + 1052*t + 216*t^2 + 523*t^3 + O(t^4)]
        [   847 + 668*t + 81*t^2 + 424*t^3 + O(t^4)   185 + 341*t + 171*t^2 + 642*t^3 + O(t^4)]

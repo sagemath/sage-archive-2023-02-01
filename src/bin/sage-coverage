@@ -50,6 +50,9 @@ def functions_without_doctests(file):
                     good.append(function_name)
         file = file[j+3:]
     #end while
+    #docs.sort()
+    #tests.sort()
+    #good.sort()
     return docs, tests, good
 
 def coverage(filename, file):

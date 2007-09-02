@@ -151,6 +151,21 @@ cdef set_zero_one_elements():
 set_zero_one_elements()
 
 def is_Integer(x):
+    """
+    Return true if x is of the SAGE integer type.
+
+    EXAMPLES:
+        sage: is_Integer(2)
+        True
+        sage: is_Integer(2/1)
+        False
+        sage: is_Integer(int(2))
+        False
+        sage: is_Integer(long(2))
+        False
+        sage: is_Integer('5')
+        False
+    """
     return PY_TYPE_CHECK(x, Integer)
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
@@ -388,6 +403,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self.str()
 
     def _mathml_(self):
+        """
+        Return mathml representation of this integer.
+
+        EXAMPLES:
+            sage: mathml(-45)
+            <mn>-45</mn>
+            sage: (-45)._mathml_()
+            '<mn>-45</mn>'
+        """
         return '<mn>%s</mn>'%self
 
     def __str_malloc(self, int base=10):

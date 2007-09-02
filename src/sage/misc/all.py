@@ -41,6 +41,8 @@ from getusage import top, get_memory_usage
 
 from log import log_html, log_dvi, log_html_mathml
 
+from mathml import mathml
+
 from defaults import set_default_variable_name
 
 from preparser import preparse

@@ -326,7 +326,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # if we don't do this.
         return sage.rings.integer.make_integer, (self.str(32),)
 
-    def _reduce_set(self, s):
+    cdef _reduce_set(self, s):
+        """
+        Set this integer from a string in base 32.
+
+        NOTE: Integers are supposed to be immutable, so you
+        should not use this function.
+        """
         mpz_set_str(self.value, s, 32)
 
     def __index__(self):
@@ -343,9 +349,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return mpz_get_pyintlong(self.value)
 
     def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of self under the map that sends
+        the generators of the parent to im_gens.  Since ZZ
+        maps canonically in the category of rings, this is just
+        the natural coercion.
+
+        EXAMPLES:
+            sage: n = -10
+            sage: R = GF(17)
+            sage: n._im_gens_(R, [R(1)])
+            7
+        """
         return codomain._coerce_(self)
 
-    def _xor(Integer self, Integer other):
+    cdef _xor(Integer self, Integer other):
         cdef Integer x
         x = PY_NEW(Integer)
         mpz_xor(x.value, self.value, other.value)
@@ -361,11 +379,32 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
-            return x._xor(y)
+            return (<Integer>x)._xor(y)
         return bin_op(x, y, operator.xor)
 
 
     def __richcmp__(left, right, int op):
+        """
+        cmp for integers
+
+        EXAMPLES:
+            sage: 2 < 3
+            True
+            sage: 2 > 3
+            False
+            sage: 2 == 3
+            False
+            sage: 3 > 2
+            True
+            sage: 3 < 2
+            False
+
+        Canonical coercisions are used but non-canonical ones are not.
+            sage: 4 == 4/1
+            True
+            sage: 4 == '4'
+            False
+        """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
@@ -443,25 +482,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             '<mn>-45</mn>'
         """
         return '<mn>%s</mn>'%self
-
-    def __str_malloc(self, int base=10):
-        r"""
-        Return the string representation of \code{self} in the given
-        base.
-
-        However, self.str() below is nice because we know the size of
-        the string ahead of time, and can work around a bug in GMP
-        nicely.  There seems to be a bug in GMP, where non-2-power
-        base conversion for very large integers > 10 million digits
-        (?) crashes GMP.
-        """
-        _sig_on
-        cdef char *s
-        s = mpz_get_str(NULL, base, self.value)
-        t = str(s)
-        free(s)
-        _sig_off
-        return t
 
     def str(self, int base=10):
         r"""
@@ -788,7 +808,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    def __floordiv(Integer self, Integer other):
+    cdef _floordiv(Integer self, Integer other):
         cdef Integer x
         x = PY_NEW(Integer)
 
@@ -809,7 +829,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             32
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
-            return x.__floordiv(y)
+            return (<Integer>x)._floordiv(y)
         return bin_op(x, y, operator.floordiv)
 
 
@@ -1308,6 +1328,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return mpz_get_pylong(self.value)
 
     def __float__(self):
+        """
+        Return double precision floating point representation of this integer.
+
+        EXAMPLES:
+            sage: n = Integer(17); float(n)
+            17.0
+            sage: n = Integer(902834098234908209348209834092834098); float(n)
+            9.0283409823490813e+35
+            sage: n = Integer(-57); float(n)
+            -57.0
+            sage: n.__float__()
+            -57.0
+            sage: type(n.__float__())
+            <type 'float'>
+        """
         return mpz_get_d(self.value)
 
     def __hash__(self):
@@ -1323,9 +1358,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(int(n))
             -920384
             sage: n = -920390823904823094890238490238484; n.__hash__()
-            -873977844
+            -873977844         # 32-bit
+            6874330978542788722   # 64-bit
             sage: hash(long(n))
-            -873977844
+            -873977844            # 32-bit
+            6874330978542788722   # 64-bit
         """
         return mpz_pythonhash(self.value)
 
@@ -2476,6 +2513,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def __and__(x, y):
+        """
+        Return the bitwise and two integers.
+
+        EXAMPLES:
+            sage: n = Integer(6);  m = Integer(2)
+            sage: n & m
+            2
+            sage: n.__and__(m)
+            2
+        """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return (<Integer>x)._and(y)
         return bin_op(x, y, operator.and_)
@@ -2515,7 +2562,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return Integer(1)/self    # todo: optimize
 
     def inverse_of_unit(self):
-        if mpz_cmp_si(self.value, 1) or mpz_cmp_si(self.value, -1):
+        """
+        Return inverse of self if self is a unit in the integers, i.e.,
+        self is -1 or 1.  Otherwise, raise a ZeroDivisionError.
+
+        EXAMPLES:
+            sage: (1).inverse_of_unit()
+            1
+            sage: (-1).inverse_of_unit()
+            -1
+            sage: 5.inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+            sage: 0.inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+        """
+        if mpz_cmp_si(self.value, 1) == 0 or mpz_cmp_si(self.value, -1) == 0:
             return self
         else:
             raise ZeroDivisionError, "Inverse does not exist."
@@ -2610,6 +2675,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the unique integer between $0$ and $mn$ that is
         congruent to the integer modulo $m$ and to $y$ modulo $n$.  We
         assume that~$m$ and~$n$ are coprime.
+
+        EXAMPLES:
+            sage: n = 17
+            sage: m = n.crt(5, 23, 11); m
+            247
+            sage: m%23
+            17
+            sage: m%11
+            5
         """
         cdef object g, s, t
         cdef Integer _y, _m, _n
@@ -3039,8 +3113,9 @@ cdef void fast_tp_dealloc(PyObject* o):
 
 hook_fast_tp_functions()
 
-def hook_fast_tp_functions():
+cdef hook_fast_tp_functions():
     """
+    Initialize the fast integer creation functions.
     """
     global global_dummy_Integer, mpz_t_offset, sizeof_Integer
 

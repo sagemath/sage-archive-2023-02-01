@@ -305,6 +305,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
     def __reduce__(self):
+        """
+        This is used when pickling integers.
+
+        EXAMPLES:
+            sage: n = 5
+            sage: t = n.__reduce__(); t
+            (<built-in function make_integer>, ('5',))
+            sage: t[0](*t[1])
+            5
+            sage: loads(dumps(n)) == n
+            True
+        """
         # This single line below took me HOURS to figure out.
         # It is the *trick* needed to pickle pyrex extension types.
         # The trick is that you must put a pure Python function
@@ -397,9 +409,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(self.value)
 
     def __repr__(self):
+        """
+        Return string representation of this integer.
+
+        EXAMPLES:
+            sage: n = -5; n.__repr__()
+            '-5'
+        """
         return self.str()
 
     def _latex_(self):
+        """
+        Return latex representation of this integer.  This is just the
+        underlying string representation and nothing more.  This
+        is called by the latex function.
+
+        EXAMPLES:
+            sage: n = -5; n._latex_()
+            '-5'
+            sage: latex(n)
+            -5
+        """
         return self.str()
 
     def _mathml_(self):
@@ -1186,6 +1216,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def rational_reconstruction(self, Integer m):
+        """
+        Return the rational reconstruction of this integer modulo m, i.e.,
+        the unique (if it exists) rational number that reduces to self
+        modulo m and whose numerator and denominator is bounded by
+        sqrt(m/2).
+
+        EXAMPLES:
+            sage: (3/7)%100
+            29
+            sage: (29).rational_reconstruction(100)
+            3/7
+        """
         import rational
         return rational.pyrex_rational_reconstruction(self, m)
 
@@ -1228,17 +1270,63 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def __int__(self):
+        """
+        Return the Python int (or long) corresponding to this SAGE integer.
+
+        EXAMPLES:
+            sage: n = 920938; n
+            920938
+            sage: int(n)
+            920938
+            sage: type(n.__int__())
+            <type 'int'>
+            sage: n = 99028390823409823904823098490238409823490820938; n
+            99028390823409823904823098490238409823490820938
+            sage: type(n.__int__())
+            <type 'long'>
+        """
         # TODO -- this crashes on sage.math, since it is evidently written incorrectly.
         #return mpz_get_pyintlong(self.value)
         return int(mpz_get_pylong(self.value))
 
     def __long__(self):
+        """
+        Return long integer corresponding to this SAGE integer.
+
+        EXAMPLES:
+            sage: n = 9023408290348092849023849820934820938490234290; n
+            9023408290348092849023849820934820938490234290
+            sage: long(n)
+            9023408290348092849023849820934820938490234290L
+            sage: n = 920938; n
+            920938
+            sage: long(n)
+            920938L
+            sage: n.__long__()
+            920938L
+        """
         return mpz_get_pylong(self.value)
 
     def __float__(self):
         return mpz_get_d(self.value)
 
     def __hash__(self):
+        """
+        Return the hash of this integer.
+
+        This agrees with the Python hash of the corresponding
+        Python int or long.
+
+        EXAMPLES:
+            sage: n = -920384; n.__hash__()
+            -920384
+            sage: hash(int(n))
+            -920384
+            sage: n = -920390823904823094890238490238484; n.__hash__()
+            -873977844
+            sage: hash(long(n))
+            -873977844
+        """
         return mpz_pythonhash(self.value)
 
     def factor(self, algorithm='pari'):
@@ -1251,6 +1339,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+
+        EXAMPLES:
+            sage: n = 2^100 - 1; n.factor()
+            3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
         """
         import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm)
@@ -2552,6 +2644,31 @@ ONE = Integer(1)
 
 
 def LCM_list(v):
+    """
+    Return the LCM of a list v of integers.  Element of v is
+    converted to a SAGE integer if it isn't one already.
+
+    This function is used, e.g., by rings/arith.py
+
+    INPUT:
+        v -- list or tuple
+
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: from sage.rings.integer import LCM_list
+        sage: w = LCM_list([3,9,30]); w
+        90
+        sage: type(w)
+        <type 'sage.rings.integer.Integer'>
+
+    The inputs are converted to SAGE integers.
+        sage: w = LCM_list([int(3), int(9), '30']); w
+        90
+        sage: type(w)
+        <type 'sage.rings.integer.Integer'>
+    """
     cdef int i, n
     cdef mpz_t z
     cdef Integer w
@@ -2589,6 +2706,31 @@ def LCM_list(v):
 
 
 def GCD_list(v):
+    """
+    Return the GCD of a list v of integers.  Element of v is
+    converted to a SAGE integer if it isn't one already.
+
+    This function is used, e.g., by rings/arith.py
+
+    INPUT:
+        v -- list or tuple
+
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: from sage.rings.integer import GCD_list
+        sage: w = GCD_list([3,9,30]); w
+        3
+        sage: type(w)
+        <type 'sage.rings.integer.Integer'>
+
+    The inputs are converted to SAGE integers.
+        sage: w = GCD_list([int(3), int(9), '30']); w
+        3
+        sage: type(w)
+        <type 'sage.rings.integer.Integer'>
+    """
     cdef int i, n
     cdef mpz_t z
     cdef Integer w
@@ -2630,29 +2772,26 @@ def GCD_list(v):
     return w
 
 def make_integer(s):
+    """
+    Create a SAGE integer from the base-32 Python *string* s.
+    This is used in unpickling integers.
+
+    EXAMPLES:
+        sage: from sage.rings.integer import make_integer
+        sage: make_integer('-29')
+        -73
+        sage: make_integer(29)
+        Traceback (most recent call last):
+        ...
+        TypeError: expected string or Unicode object, sage.rings.integer.Integer found
+    """
     cdef Integer r
     r = PY_NEW(Integer)
     r._reduce_set(s)
     return r
 
-# TODO: where is this used? Never doctested. Should I call IntegerRing.random_element()?
-from random import randint
-def random_integer(min=-2, max=2):
-    cdef Integer x
-    cdef int _min, _max, r
-    try:
-        _min = min
-        _max = max
-        x = PY_NEW(Integer)
-        r = randint() % (_max - _min + 1) + _min
-        mpz_set_si(x.value, r)
-        return x
-    except OverflowError:
-        return Integer(randint(min,max))
-
 
 ############### INTEGER CREATION CODE #####################
-######## There is nothing to see here, move along   #######
 
 cdef extern from *:
 
@@ -2945,6 +3084,14 @@ def hook_fast_tp_functions():
     o.ob_type.tp_dealloc = &fast_tp_dealloc
 
 def time_alloc_list(n):
+    """
+    Allocate n a list of n SAGE integers using PY_NEW.
+    (Used for timing purposes.)
+
+    EXAMPLES:
+       sage: from sage.rings.integer import time_alloc_list
+       sage: v = time_alloc_list(100)
+    """
     cdef int i
     l = []
     for i from 0 <= i < n:
@@ -2953,13 +3100,30 @@ def time_alloc_list(n):
     return l
 
 def time_alloc(n):
+    """
+    Time allocating n integers using PY_NEW.
+    Used for timing purposes.
+
+    EXAMPLES:
+       sage: from sage.rings.integer import time_alloc
+       sage: time_alloc(100)
+    """
     cdef int i
     for i from 0 <= i < n:
         z = PY_NEW(Integer)
 
 def pool_stats():
-    print "Used pool %s / %s times" % (use_pool, total_alloc)
-    print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)
+    """
+    Returns information about the Integer object pool.
+
+    EXAMPLES:
+        sage: from sage.rings.integer import pool_stats
+        sage: pool_stats()            # random-ish output
+        Used pool 0 / 0 times
+        Pool contains 3 / 100 items
+    """
+    return ["Used pool %s / %s times" % (use_pool, total_alloc),
+            "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)]
 
 cdef integer(x):
     if PY_TYPE_CHECK(x, Integer):

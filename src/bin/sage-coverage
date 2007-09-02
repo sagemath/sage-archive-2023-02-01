@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+
+import os, sys
+
+if len(sys.argv) == 1:
+    print "Usage: sage -coverage <files>"
+    print "Give info about doctest coverage of files."
+    sys.exit(1)
+
+def functions_without_doctests(file):
+    docs  = []
+    tests = []
+    good  = []
+    while True:
+        i = file.find('def ')
+        if i == -1:
+            break
+        j = file[i:].find(':')
+        if j == -1:
+            break
+        j += i
+        function_name = ' '.join(file[i:j].lstrip('def ').split())
+        k = file[j:].find('\n')
+        if k == -1:
+            break
+        k += j
+        kk = file[k+1:].find('\n')
+        if kk == -1:
+            break
+        kk += k+1
+
+        q0 = file[k:kk].find('"""')
+        if q0 == -1:
+            docs.append(function_name)
+        else:
+            q0 += k
+            q1 = file[q0+3:].find('"""')
+            if q1 == -1:
+                print "Error parsing %s"%function_name
+            else:
+                q1 += q0 + 3
+                d = file[q0:q1].find('sage:')
+                if d == -1:
+                    tests.append(function_name)
+                else:
+                    good.append(function_name)
+        file = file[j+3:]
+    #end while
+    return docs, tests, good
+
+def coverage(filename, file):
+    r = file.splitlines()
+    inp = [x for x in r if 'sage:' in x]
+    input_lines = len(inp)
+    fake_lines = len([x for x in r if 'sage.:' in x])
+    optional_lines = len([x for x in r if 'optional' in inp])
+    long_lines = len([x for x in r if 'long time' in inp])
+    random_lines = len([x for x in r if 'random' in inp])
+
+    #print os.path.abspath(filename)
+    print filename
+    print "Input Doctests Lines: %s"%input_lines
+    if fake_lines > 0:
+        print "Never tested lines: %s  (bad!)"%fake_lines
+    if optional_lines > 0:
+        print "Optional lines: %s"%optional_lines
+    if long_lines > 0:
+        print "Long lines: %s"%long_lines
+    if random_lines > 0:
+        print "Random lines: %s"%random_lines
+
+    docs, tests, good = functions_without_doctests(file)
+    if docs:
+        print "\nMissing documentation:\n\t * %s\n"%('\n\t * '.join(docs))
+    if tests:
+        print "\nMissing doctests:\n\t * %s\n"%('\n\t * '.join(tests))
+
+
+    num_functions = len(good+docs+tests)
+    score = 100 * (len(docs) + len(tests)) / float(num_functions)
+    score = int(score)
+    print "OVERALL SCORE: %s%%  (%s good, %s bad)"%(score, len(good), len(docs) + len(tests))
+
+
+for file in sys.argv[1:]:
+    if not os.path.exists(file):
+        print "File %s does not exist."%file
+        sys.exit(1)
+    f = open(file).read()
+    coverage(file, f)
+    print ""

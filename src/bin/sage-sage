@@ -35,6 +35,7 @@ usage_advanced() {
     echo "  -cleaner      -- run the SAGE cleaner"
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
+    echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
@@ -331,6 +332,18 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
     hgmerge $*
     exit $?
 fi
+
+#####################################################################
+# Test coverage of a module?
+#####################################################################
+
+if [ $1 = "-coverage" -o $1 = "--coverage" ]; then
+   cd "$CUR"
+   shift
+   sage-coverage $@
+   exit $?
+fi
+
 
 #####################################################################
 # Run Distributed SAGE

@@ -88,7 +88,7 @@ if [ `uname` = "Darwin" ]; then
     PATH="$SAGE_LOCAL/Frameworks/Python.framework/Versions/2.5/bin:$PATH" && export PATH
 fi
 
-if [ "$LIBRARY_PATH" -ne "" ]; then
+if [ "$LIBRARY_PATH" != "" ]; then
     LIBRARY_PATH="$SAGE_LOCAL/lib/:$LIBRARY_PATH"
 else
     LIBRARY_PATH="$SAGE_LOCAL/lib/"

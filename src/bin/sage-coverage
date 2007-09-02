@@ -19,7 +19,11 @@ def functions_without_doctests(file):
         if j == -1:
             break
         j += i
-        function_name = ' '.join(file[i:j].lstrip('def ').split())
+        function_name = ' '.join(file[i:j].lstrip('def').split())
+        if i > 0 and file[i-1] in ['c', 'e']: # and ('\n' in file[i:j] or '(' not in file[i:j]):
+            file = file[i+10:]
+            continue
+
         k = file[j:].find('\n')
         if k == -1:
             break
@@ -49,43 +53,47 @@ def functions_without_doctests(file):
     return docs, tests, good
 
 def coverage(filename, file):
-    r = file.splitlines()
-    inp = [x for x in r if 'sage:' in x]
-    input_lines = len(inp)
-    fake_lines = len([x for x in r if 'sage.:' in x])
-    optional_lines = len([x for x in r if 'optional' in inp])
-    long_lines = len([x for x in r if 'long time' in inp])
-    random_lines = len([x for x in r if 'random' in inp])
+    docs, tests, good = functions_without_doctests(file)
+    num_functions = len(good+docs+tests)
+    if num_functions == 0:
+        print "No functions in %s"%filename
+        return
+
 
     #print os.path.abspath(filename)
+    print '-'*70
     print filename
-    print "Input Doctests Lines: %s"%input_lines
-    if fake_lines > 0:
-        print "Never tested lines: %s  (bad!)"%fake_lines
-    if optional_lines > 0:
-        print "Optional lines: %s"%optional_lines
-    if long_lines > 0:
-        print "Long lines: %s"%long_lines
-    if random_lines > 0:
-        print "Random lines: %s"%random_lines
+    score = 100 * (len(good)) / float(num_functions)
+    score = int(score)
 
-    docs, tests, good = functions_without_doctests(file)
+    print "OVERALL SCORE: %s%%  (%s good, %s bad)"%(score, len(good), len(docs) + len(tests))
+
     if docs:
         print "\nMissing documentation:\n\t * %s\n"%('\n\t * '.join(docs))
     if tests:
         print "\nMissing doctests:\n\t * %s\n"%('\n\t * '.join(tests))
 
+    if 'class' in file and 'loads' not in file:
+        print "Every file that defines a class should contain a s == dumps(loads(s)) doctest."
 
-    num_functions = len(good+docs+tests)
-    score = 100 * (len(docs) + len(tests)) / float(num_functions)
-    score = int(score)
-    print "OVERALL SCORE: %s%%  (%s good, %s bad)"%(score, len(good), len(docs) + len(tests))
+    print '-'*70
 
 
-for file in sys.argv[1:]:
+def go(file):
+    if 'doctest_' in file or file.endswith('~'):
+        return
     if not os.path.exists(file):
         print "File %s does not exist."%file
         sys.exit(1)
-    f = open(file).read()
-    coverage(file, f)
-    print ""
+    if os.path.isdir(file):
+        for F in os.listdir(file):
+            go('%s/%s'%(file,F))
+        return
+    else:
+        f = open(file).read()
+        coverage(file, f)
+        print ""
+
+for file in sys.argv[1:]:
+    go(file)
+

@@ -183,7 +183,6 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
     cdef mpq_t *e
 
     m = binary_search(v.positions, v.num_nonzero, n, &ins)
-
     if m != -1:
         # The position n was found in the array of positions.
         # Now there are two cases:
@@ -229,17 +228,15 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
         for i from 0 <= i < ins:
             # v.entries[i] = e[i]
             mpq_set(v.entries[i], e[i])
+            mpq_clear(e[i])
             v.positions[i] = pos[i]
         # v.entries[ins] = x
         mpq_set(v.entries[ins], x)
         v.positions[ins] = n
         for i from ins < i < v.num_nonzero:
             mpq_set(v.entries[i], e[i-1])
+            mpq_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        # Free the memory occupied by GMP rationals.
-        # This -1 is because we incremented v.num_nonzero above.
-        for i from 0 <= i < v.num_nonzero-1:
-            mpq_clear(e[i])
         sage_free(e)
         sage_free(pos)
 

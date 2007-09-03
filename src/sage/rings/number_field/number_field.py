@@ -1544,7 +1544,7 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: no 4-th root of unity in self
+            ValueError: n (=4) does not divide order of generator
             sage: v = K.zeta(5, all=True); v
             [a, a^2, a^3, -a^3 - a^2 - a - 1]
             sage: [b^5 for b in v]
@@ -1557,7 +1557,7 @@ class NumberField_cyclotomic(NumberField_generic):
             z = self.gen()
             m = z.multiplicative_order()
             if m % n != 0:
-                raise ValueError, "n does not divide order of generator"
+                raise ValueError, "n (=%s) does not divide order of generator"%n
                 # use generic method (factor cyclotomic polynomial)
                 #  -- this is potentially really slow, so don't do it.
                 #return field.Field.zeta(self, n, all=all)

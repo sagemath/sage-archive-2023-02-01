@@ -576,8 +576,16 @@ def dimension_eis_H(G,k):
         dim -= Integer(1)
     return dim
 
-def dimension_new_cusp_forms_H(G,k, p):
+def dimension_new_cusp_forms_H(G,k, p=0):
     """
+    INPUT:
+        G -- group of the form Gamma_H(N)
+        k -- an integer at least 2 (the weight)
+        p -- integer (default: 0); if nonzero, compute the p-new subspace.
+
+    OUTPUT:
+        Integer
+
     EXAMPLES:
         sage: from sage.modular.dims import *
         sage: dimension_new_cusp_forms_H(GammaH(33,[2]), 2)

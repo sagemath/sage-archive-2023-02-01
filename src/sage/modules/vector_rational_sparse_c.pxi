@@ -202,9 +202,11 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
                 # v.entries[i] = e[i]
                 mpq_set(v.entries[i], e[i])
                 v.positions[i] = pos[i]
+                mpq_clear(e[i])
             for i from m < i < v.num_nonzero:
                 # v.entries[i-1] = e[i]
                 mpq_set(v.entries[i-1], e[i])
+                mpq_clear(e[i])
                 v.positions[i-1] = pos[i]
             sage_free(e)
             sage_free(pos)

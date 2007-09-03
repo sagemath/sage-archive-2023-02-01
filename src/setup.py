@@ -72,53 +72,8 @@ def is_older(file1, file2):
         return True
     return False
 
-def is_src_file( f ):
-    ext = os.path.splitext( f )[1]
-    return ext == ".h" or ext == ".c" or ext == ".cpp"
-
-def needs_c_lib_build():
-    lib = '../../local/lib/libcsage.so'
-    try:
-        files = os.listdir( 'c_lib' )
-    except OSError:  # during setup.py sdist
-        return False
-    src_files = ['c_lib/' + f for f in files if is_src_file( f )]
-    src_files += ['c_lib/SConstruct']
-    for f in src_files:
-        if is_older( f, lib ):
-            return True
-    return False
-
-#### Build the c_lib first
-if needs_c_lib_build():
-    if os.system( "cd c_lib && scons install" ) != 0:
-        print "    ERROR: The c_lib did not build successfully."
-        sys.exit(1)
-
 include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
-
-def is_src_file( f ):
-    ext = os.path.splitext( f )[1]
-    return ext == ".h" or ext == ".c" or ext == ".cc"
-
-def needs_c_lib_build():
-    lib = '../../local/lib/libcsage.so'
-    try:
-       files = os.listdir( 'c_lib/src' )
-    except OSError:
-        return False
-    src_files = ['c_lib/src/' + f for f in files if is_src_file( f )]
-    src_files += ['c_lib/configure', 'c_lib/Makefile']
-    for f in src_files:
-        if is_older( f, lib ):
-            return True
-    return False
-
-#### Build the c_lib first
-if needs_c_lib_build() and os.system( "cd c_lib && make install" ) != 0:
-    print "    ERROR: The c_lib did not build successfully."
-    sys.exit(1)
 
 #####################################################
 

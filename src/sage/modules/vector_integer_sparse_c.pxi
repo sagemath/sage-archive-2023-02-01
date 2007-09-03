@@ -190,10 +190,12 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
             for i from 0 <= i < m:
                 # v.entries[i] = e[i]
                 mpz_set(v.entries[i], e[i])
+                mpz_clear(e[i])
                 v.positions[i] = pos[i]
             for i from m < i < v.num_nonzero:
                 # v.entries[i-1] = e[i]
                 mpz_set(v.entries[i-1], e[i])
+                mpz_clear(e[i])
                 v.positions[i-1] = pos[i]
             sage_free(e)
             sage_free(pos)

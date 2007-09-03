@@ -50,6 +50,12 @@ of $q$-expansions has not been computed yet).
     sage: M.cuspidal_submodule()
     Cuspidal subspace of dimension 476 of Modular Forms space of dimension 484, character [1, zeta20] and weight 17 over Cyclotomic Field of order 20 and degree 8
 
+TESTS:
+    sage: m = ModularForms(DirichletGroup(20).1,5)
+    sage: m == loads(dumps(m))
+    True
+    sage: type(m)
+    <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
 """
 
 #########################################################################

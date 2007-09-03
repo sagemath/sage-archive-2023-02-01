@@ -8,6 +8,29 @@ build() {
       echo "----------------------------------------------------------"
       echo "sage: Building and installing modified SAGE library files."
       echo ""
+
+      ## install c_lib
+      ## we're doing this here instead of setup.py because
+      ## it's easier to keep track of whether or not we're
+      ## switching branches, which changes what we do with
+      ## the c_lib install
+      echo ""
+      echo "Installing c_lib"
+      CUR=`pwd`
+      cd "c_lib"
+      if [ $SWITCHING_BRANCHES = 1 ]; then
+	  scons branch_switch
+      else
+	  scons install
+      fi
+      ## make sure c_lib install went okay
+      if [ $? -ne 0 ]; then
+	  echo "ERROR: There was an error building c_lib."
+	  echo ""
+	  exit 1
+      fi
+      cd $CUR
+
       ./install $SAGE_ROOT
       if [ $? -ne 0 ]; then
          echo "sage: There was an error installing modified $1 library code."
@@ -28,6 +51,8 @@ else
     DO_BUILD_ALL=0
 fi
 
+SWITCHING_BRANCHES=0
+
 if [ "$1" != "" ]; then
     # make devel/sage point to devel/$1
     cd "$SAGE_ROOT/devel/"
@@ -38,6 +63,7 @@ if [ "$1" != "" ]; then
         exit 1
     fi
     ln -snf "sage-$1" sage
+    SWITCHING_BRANCHES=1
 fi
 
 if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
@@ -54,7 +80,3 @@ if [ $DO_BUILD_ALL = 1 ]; then
 fi
 
 build "sage"
-
-
-
-

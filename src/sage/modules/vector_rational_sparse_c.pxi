@@ -268,10 +268,11 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     cdef Py_ssize_t nz, i, j, k, do_multiply
     cdef mpq_vector* z
     cdef mpq_t tmp
-    mpq_init(tmp)
     if mpq_cmp_si(multiple, 0, 1) == 0:
         mpq_vector_init(sum, v.degree, 0)
         return 0
+
+    mpq_init(tmp)
     # Do not do the multiply if the multiple is 1.
     do_multiply = mpq_cmp_si(multiple, 1,1)
 
@@ -346,6 +347,8 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
         #end if
     # end while
     z.num_nonzero = k
+    for i from k <= i < z.num_nonzero:
+        mpz_clear(z.entries[i])
     mpq_clear(tmp)
     return 0
 

@@ -541,7 +541,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
                 E = self.eisenstein_series()
                 d = len([g for g in E if g.new_level() == self.level()])
             self.__the_dim_new_eisenstein = d
-        return self.__the_dim_new_cuspidal
+        return self.__the_dim_new_eisenstein
 
 
     ####################################################################

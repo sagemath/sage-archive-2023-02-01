@@ -218,17 +218,15 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
         for i from 0 <= i < ins:
             # v.entries[i] = e[i]
             mpz_set(v.entries[i], e[i])
+            mpz_clear(e[i])
             v.positions[i] = pos[i]
         # v.entries[ins] = x
         mpz_set(v.entries[ins], x)
         v.positions[ins] = n
         for i from ins < i < v.num_nonzero:
             mpz_set(v.entries[i], e[i-1])
+            mpz_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        # Free the memory occupied by GMP integer.
-        # This -1 is because we incremented v.num_nonzero above.
-        for i from 0 <= i < v.num_nonzero-1:
-            mpz_clear(e[i])
         sage_free(e)
         sage_free(pos)
 

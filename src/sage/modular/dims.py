@@ -424,7 +424,7 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
     elif isinstance(group, congroup.Gamma1):
         return dimension_new_cusp_forms_gamma1(group.level(), k, p)
     elif congroup.is_GammaH(group):
-        return dimension_new_cusp_forms_H(group.level(), k, p)
+        return dimension_new_cusp_forms_H(group, k, p)
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
         Gamma0 and Gamma1 is not yet implemented."
@@ -576,7 +576,7 @@ def dimension_eis_H(G,k):
         dim -= Integer(1)
     return dim
 
-def dimension_new_cusp_forms_H(G,k):
+def dimension_new_cusp_forms_H(G,k, p):
     """
     EXAMPLES:
         sage: from sage.modular.dims import *
@@ -584,8 +584,12 @@ def dimension_new_cusp_forms_H(G,k):
         3
     """
     N = G.level()
-    return sum([dimension_cusp_forms_H(H,k) * mumu(N // H.level()) \
+    if p==0 or N%p!=0:
+        return sum([dimension_cusp_forms_H(H,k) * mumu(N // H.level()) \
                 for H in G.divisor_subgroups()])
+    else:
+        return dimension_new_cusp_forms_H(G,k) - \
+               2*dimension_new_cusp_forms_H(G.restrict(N//p),k)
 
 
 #######

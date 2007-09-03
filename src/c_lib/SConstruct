@@ -14,9 +14,15 @@
 ## what happens is that you change libcsage in branch foo, do a sage -b bar,
 ## and since you haven't modified sage-bar/c_lib/libcsage.dylib, scons
 ## doesn't think it needs to reinstall libcsage.dylib into
-## $SAGE_ROOT/local/lib. This is obviously problematic; the best solution
-## I could come up with is just always copying all the libraries and
-## headers into $SAGE_ROOT where they belong.
+## $SAGE_ROOT/local/lib. (If it's not an OSX machine, then the target
+## would be libcsage.so, but the point is the same.) This is obviously
+## problematic; the best solution I could come up with is just always
+## copying all the libraries and headers into $SAGE_ROOT where they belong.
+## Actually, having discussed this with William, we came up with a better
+## plan: we have two targets, install and branch_switch. With install, it's
+## what you'd get with a sage -b. With branch_switch, it rebuilds the
+## libraries, and then forces the copy regardless to exactly deal with
+## the problem above.
 ##
 ## I also edited a bunch of lines below so that they didn't go over 80 chars,
 ## because I don't like seeing wrapped lines.
@@ -67,10 +73,10 @@ def copy_all_includes( target, source, env ):
 # whitespace without the syntax clutter of lists of strings.
 includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.5/',
             '$SAGE_LOCAL/include/NTL/']
-cFiles = Split( "interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c" )
+cFiles = Split( "convert.c interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 
-includes_to_install = Split( "ZZ_pylong.h  ccobject.h  interrupt.h") + \
+includes_to_install = Split( "ZZ_pylong.h  ccobject.h  convert.h  interrupt.h") + \
                       Split( "mpn_pylong.h  mpz_pylong.h  ntl_wrap.h  stdsage.h" )
 lib = env.SharedLibrary( "csage", cFiles + cppFiles,
                          LIBS=['ntl', 'gmp'], LIBPATH=['$SAGE_LOCAL/lib'],
@@ -82,5 +88,7 @@ env.Install( "$SAGE_LOCAL/lib", lib )
 Command( "install_includes", includes_to_install, copy_all_includes )
 Command( "install_lib", lib, Copy( env['SAGE_LOCAL'] + "/lib", lib ) )
 
-env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib",
-                       "install_includes", "install_lib"] )
+env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib"] )
+
+env.Alias( "branch_switch", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib",
+                             "install_includes", "install_lib"] )

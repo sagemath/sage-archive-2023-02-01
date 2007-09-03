@@ -577,6 +577,24 @@ def dimension_eis_H(G,k):
 def dimension_modular_forms_H(G,k):
     return dimension_eis_H(G,k) + dimension_cusp_forms_H(G,k)
 
+def dimension_new_modular_forms_H(G,k):
+    N = G.level()
+    return sum([dimension_modular_forms_H(H,k) * mumu(N // H.level()) \
+                for H in G.divisor_subgroups()])
+
+def dimension_new_cusp_forms_H(G,k):
+    N = G.level()
+    return sum([dimension_cusp_forms_H(H,k) * mumu(N // H.level()) \
+                for H in G.divisor_subgroups()])
+
+def dimension_new_eis_H(G,k):
+    N = G.level()
+    return sum([dimension_eis_H(H,k) * mumu(N // H.level()) \
+                for H in G.divisor_subgroups()])
+
+
+#######
+
 def multgroup(N):
     return [x for x in range(N) if gcd(x,N) == Integer(1)]
 

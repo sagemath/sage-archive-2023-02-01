@@ -516,6 +516,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         return self.__the_dim_eisenstein
 
     def _dim_new_cuspidal(self):
+        """
+        EXAMPLES:
+            sage: m = ModularForms(GammaH(11,[2]), 2); m._dim_new_cuspidal()
+
+        """
         try:
             return self.__the_dim_new_cuspidal
         except AttributeError:

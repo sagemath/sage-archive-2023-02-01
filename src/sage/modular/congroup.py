@@ -503,6 +503,14 @@ class GammaH_class(CongruenceSubgroup):
             raise TypeError, "H must be a list."
         self.__H = H
 
+    def divisor_subgroups(self):
+        r"""
+        Given this congruence subgroup $\Gamma_H(N)$, return all
+        subgroups $\Gamma_G(M)$ for $M$ a divisor of $N$ and such that
+        $G$ is equal to the image of $H$ modulo $M$.
+        """
+        raise NotImplementedError
+
     def __cmp__(self, other):
         if not isinstance(other, CongruenceSubgroup):
             return cmp(type(self), type(other))

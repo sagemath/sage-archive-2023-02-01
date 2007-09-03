@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Here we list bugs.  Enable doctesting of this file to find all kinds of problems.
 
 Modular forms with character over a finite field just breaks:

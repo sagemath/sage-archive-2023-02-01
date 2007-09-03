@@ -5,6 +5,7 @@ usage() {
     echo "| SAGE: Software for Algebra and Geometry Experimentation |"
     echo "-----------------------------------------------------------"
     echo " Optional arguments:"
+    echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -h            -- print this help message"
     echo "  -notebook [options] -- start the SAGE notebook (options are"
     echo "                   the same as to the notebook command in SAGE)"

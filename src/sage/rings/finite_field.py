@@ -156,7 +156,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
     name = normalize_names(1,name)
 
     if elem_cache is None:
-        elem_cahce = order < 500
+        elem_cache = order < 500
 
     key = (order, name, modulus)
     if cache.has_key(key):

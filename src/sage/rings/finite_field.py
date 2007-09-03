@@ -92,7 +92,7 @@ import sage.interfaces.gap
 cache = {}
 
 def FiniteField(order, name=None, modulus=None, names=None,
-                elem_cache=False, check_irreducible=True):
+                elem_cache=False, check_irreducible=True, *args, **kwds):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -106,6 +106,8 @@ def FiniteField(order, name=None, modulus=None, names=None,
                    definining polynomials can be arbitrary.
         elem_cache -- cache all elements to avoid creation time  (default: order<500)
         check_irreducible -- verify that the polynomial modulus is irreducible
+        args -- additional parameters passed to finite field implementations
+        kwds -- additional keyword parameters passed to finite field implementations
 
     ALIAS:
         You can also use GF instead of FiniteField -- they are identical.
@@ -164,7 +166,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
         if not K is None:
             return K
     if arith.is_prime(order):
-        K = FiniteField_prime_modn(order)
+        K = FiniteField_prime_modn(order,*args,**kwds)
     else:
         if check_irreducible and polynomial_element.is_Polynomial(modulus):
             if modulus.parent().base_ring().characteristic() == 0:
@@ -178,9 +180,9 @@ def FiniteField(order, name=None, modulus=None, names=None,
             # DO *NOT* use for prime subfield, since that would lead to
             # a circular reference in the call to ParentWithGens in the
             # __init__ method.
-            K = FiniteField_givaro(order, name, modulus, cache=elem_cache)
+            K = FiniteField_givaro(order, name, modulus, cache=elem_cache, *args,**kwds)
         else:
-            K = FiniteField_ext_pari(order, name, modulus)
+            K = FiniteField_ext_pari(order, name, modulus, *args, **kwds)
 
     cache[key] = weakref.ref(K)
     return K

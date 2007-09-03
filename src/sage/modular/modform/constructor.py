@@ -190,6 +190,11 @@ def ModularForms(group  = 1,
 
     elif isinstance(group, dirichlet.DirichletCharacter):
         eps = group
+        if eps.base_ring().characteristic() != 0:
+            # TODO -- implement this
+            # Need to add a lift_to_char_0 function for characters,
+            # and need to still remember eps.
+            raise NotImplementedError, "currently the character must be over a ring of characteristic 0."
         eps = eps.minimize_base_ring()
         if eps.is_trivial():
             return ModularForms(eps.modulus(), weight, base_ring,

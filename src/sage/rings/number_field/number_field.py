@@ -1557,8 +1557,10 @@ class NumberField_cyclotomic(NumberField_generic):
             z = self.gen()
             m = z.multiplicative_order()
             if m % n != 0:
+                raise ValueError, "n does not divide order of generator"
                 # use generic method (factor cyclotomic polynomial)
-                return field.Field.zeta(self, n, all=all)
+                #  -- this is potentially really slow, so don't do it.
+                #return field.Field.zeta(self, n, all=all)
             a = z**(m//n)
             if all:
                 v = [a]

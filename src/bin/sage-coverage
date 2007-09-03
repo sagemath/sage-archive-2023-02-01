@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+
+import os, sys
+
+if len(sys.argv) == 1:
+    print "Usage: sage -coverage <files>"
+    print "Give info about doctest coverage of files."
+    sys.exit(1)
+
+def functions_without_doctests(file):
+    docs  = []
+    tests = []
+    good  = []
+    while True:
+        i = file.find('def ')
+        if i == -1:
+            break
+        j = file[i:].find(':')
+        if j == -1:
+            break
+        j += i
+
+        # Skip line if it is commented out.
+        z = file[:i].rfind('\n')
+        if z != -1:
+            if file[z:i].lstrip().startswith('#'):
+                file = file[j:]
+                continue
+
+        function_name = ' '.join(file[i:j].lstrip('def').split())
+
+        if i > 0 and file[i-1] in ['c', 'e']: # and ('\n' in file[i:j] or '(' not in file[i:j]):
+            file = file[i+10:]
+            continue
+        skip_this = False
+        for skip in ['__dealloc__', '__new__']:
+            if skip in function_name:
+                file = file[j:]
+                skip_this = True
+                break
+        if skip_this:
+            continue
+
+        k = file[j:].find('\n')
+        if k == -1:
+            break
+        k += j
+        kk = file[k+1:].find('\n')
+        if kk == -1:
+            break
+        kk += k+1
+
+        q0 = file[k:kk].find('"""')
+        if q0 == -1:
+            docs.append(function_name)
+        else:
+            q0 += k
+            q1 = file[q0+3:].find('"""')
+            if q1 == -1:
+                print "Error parsing %s"%function_name
+            else:
+                q1 += q0 + 3
+                d = file[q0:q1].find('sage:')
+                if d == -1:
+                    tests.append(function_name)
+                else:
+                    good.append(function_name)
+        file = file[j+3:]
+    #end while
+    #docs.sort()
+    #tests.sort()
+    #good.sort()
+    return docs, tests, good
+
+def coverage(filename, file):
+    docs, tests, good = functions_without_doctests(file)
+    num_functions = len(good+docs+tests)
+    if num_functions == 0:
+        print "No functions in %s"%filename
+        return
+
+
+    #print os.path.abspath(filename)
+    print '-'*70
+    print filename
+    score = 100 * (len(good)) / float(num_functions)
+    score = int(score)
+
+    if 'class' in file and 'loads' not in file:
+        score -= 10
+        print "ERROR: Please define a s == dumps(loads(s)) doctest."
+
+    if score < 0:
+        score = 0
+
+    print "OVERALL SCORE: %s%%  (%s good, %s bad)"%(score, len(good), len(docs) + len(tests))
+
+    if docs:
+        print "\nMissing documentation:\n\t * %s\n"%('\n\t * '.join(docs))
+    if tests:
+        print "\nMissing doctests:\n\t * %s\n"%('\n\t * '.join(tests))
+
+    print '-'*70
+
+
+def go(file):
+    if 'doctest_' in file or file.endswith('~'):
+        return
+    if not os.path.exists(file):
+        print "File %s does not exist."%file
+        sys.exit(1)
+    if os.path.isdir(file):
+        for F in os.listdir(file):
+            go('%s/%s'%(file,F))
+        return
+    else:
+        f = open(file).read()
+        coverage(file, f)
+        print ""
+
+for file in sys.argv[1:]:
+    go(file)
+

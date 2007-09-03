@@ -5,7 +5,9 @@ usage() {
     echo "| SAGE: Software for Algebra and Geometry Experimentation |"
     echo "-----------------------------------------------------------"
     echo " Optional arguments:"
+    echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -h            -- print this help message"
+    echo "  -v, -version  -- print the SAGE version"
     echo "  -notebook [options] -- start the SAGE notebook (options are"
     echo "                   the same as to the notebook command in SAGE)"
     echo "  -inotebook [options] -- start the *insecure* SAGE notebook "
@@ -32,9 +34,11 @@ usage_advanced() {
     echo "  -ba [branch]  -- switch to, rebuild all Cython code, and run SAGE branch in devel/sage-branch"
     echo "  -ba-force [branch] -- same as -ba, but don't query before rebuilding"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
+    echo "  -branch       -- print the current SAGE branch"
     echo "  -cleaner      -- run the SAGE cleaner"
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
+    echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
@@ -62,6 +66,7 @@ usage_advanced() {
     echo "  -preparse <file.sage> -- produce corresponding file.sage.py "
     echo "  -python       -- run the python interpreter"
     echo "  -q            -- quiet; start with no banner"
+    echo "  -root         -- print the SAGE root directory"
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -twistd <..>  -- run Twisted server"
@@ -76,7 +81,8 @@ usage_advanced() {
     #echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -valgrind     -- run SAGE under the control of valgrind. The log files can be"
-    echo "                   found in $SAGE_LOCAL/bin. Those are named sage.$PID"
+    echo "                   found in $SAGE_LOCAL/bin. Those are named sage.$PID."
+    echo "                   Using valgrind requires a specially built version of SAGE."
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
@@ -201,6 +207,25 @@ if [ $1 = '-min' -o $1 = '--min' ]; then
     export SAGE_IMPORTALL
     shift
     sage-sage "$@"
+    exit $?
+fi
+
+#####################################################################
+# Report information about the SAGE environment
+#####################################################################
+
+if [ $1 = '-v' -o $1 = '-version' -o $1 = '--version' ]; then
+    cat "$SAGE_LOCAL/bin/sage-banner" | grep -i "version" | sed "s/\| //" | sed "s/ *\|//"
+    exit $?
+fi
+
+if [ $1 = '-root'  -o $1 = '--root' ]; then
+    echo "$SAGE_ROOT"
+    exit 0
+fi
+
+if [ $1 = '-branch'  -o $1 = '--branch' ]; then
+    readlink "$SAGE_ROOT/devel/sage" | sed "s/sage-//"
     exit $?
 fi
 
@@ -331,6 +356,18 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
     hgmerge $*
     exit $?
 fi
+
+#####################################################################
+# Test coverage of a module?
+#####################################################################
+
+if [ $1 = "-coverage" -o $1 = "--coverage" ]; then
+   cd "$CUR"
+   shift
+   sage-coverage $@
+   exit $?
+fi
+
 
 #####################################################################
 # Run Distributed SAGE
@@ -646,12 +683,15 @@ if [ $1 = "-cython" -o $1 = '--cython' -o $1 = '-pyrex' -o $1 = "--pyrex" ]; the
     exit $?
 fi
 
+<<<<<<< /tmp/sage-sage~base.IcHt1Y
+=======
 if [ $1 = '-valgrind' -o $1 = "--valgrind" ]; then
     sage_setup
     sage-valgrind
     exit $?
 fi
 
+>>>>>>> /tmp/sage-sage~other.fASUUr
 if [ $# -ge 1 ]; then
    matplotlib_setup
    T=`echo "$1" | sed -e "s/.*\.//"`

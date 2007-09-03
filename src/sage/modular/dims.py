@@ -564,12 +564,14 @@ def dimension_cusp_forms_H(G,k):
 def dimension_eis_H(G,k):
     N = G.level()
     H = G._list_of_elements_in_H()
-    if k%Integer(2) == Integer(1) and N-Integer(1) in H: return Integer(0)
-    if k == Integer(2): dim-= Integer(1)
+    if k%Integer(2) == Integer(1) and N-Integer(1) in H:
+        return Integer(0)
     if k%Integer(2) == Integer(0):
-        return nuinfH(N,H)
+        dim = nuinfH(N,H)
     else:
-        return nuinfHreg(N,H)
+        dim = nuinfHreg(N,H)
+    if k == Integer(2):
+        dim -= Integer(1)
     return dim
 
 def dimension_modular_forms_H(G,k):

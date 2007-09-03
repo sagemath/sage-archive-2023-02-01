@@ -8,4 +8,9 @@ Modular forms with character over a finite field just breaks:
    sage: m.basis()   # this just goes into infinite loop (???)
    boom
 
+
+This is not implemented yet, but needs to be.
+   sage: ModularForms(DirichletGroup(13, GF(7)).0^6,3).base_ring()
+   Finite Field of size 7
+
 """

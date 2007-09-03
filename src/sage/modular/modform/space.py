@@ -28,12 +28,9 @@ EXAMPLES (computation of base ring):
         sage: ModularForms(DirichletGroup(13).0^6,3).base_ring()
         Rational Field
 
-        sage: ModularForms(DirichletGroup(13, GF(7)).0^6,3).base_ring()
+    An example in characteristic $7$:
+        sage: ModularForms(13,3,base_ring=GF(7)).base_ring()
         Finite Field of size 7
-
-        sage: ModularForms(DirichletGroup(13, GF(7)).0,3).base_ring()
-        Finite Field of size 7
-
 """
 
 #########################################################################

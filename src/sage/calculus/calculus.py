@@ -4946,6 +4946,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     if equals_sub:
         s = s.replace('=','==')
 
+    #replace all instances of scientific notation
+    #with regular notation
+    sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+    search = sci_not.search(s)
+    while not search is None:
+        (start, end) = search.span()
+        s = s.replace(s[start:end], str(RR(s[start:end])))
+        search = sci_not.search(s)
+
     # have to do this here, otherwise maxima_tick catches it
     syms['limit'] = dummy_limit
 

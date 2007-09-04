@@ -4279,11 +4279,11 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: F = NumberField(x^3-2,'alpha')
-            sage: F._pari_().nfdisc()
+            sage: F._pari_()[0].nfdisc()
             -108
 
             sage: G = NumberField(x^5-11,'beta')
-            sage: G._pari_().nfdisc()
+            sage: G._pari_()[0].nfdisc()
             45753125
 
             sage: f = x^3-2
@@ -4332,16 +4332,16 @@ cdef class gen(sage.structure.element.RingElement):
             sage: F = NumberField(x^3-2,'alpha')
             sage: G = NumberField(x^3-2,'beta')
             sage: F._pari_().nfisisom(G._pari_())
-            [NumberFieldinbetawithdefiningpolynomialx]
+            [x]
 
             sage: GG = NumberField(x^3-4,'gamma')
             sage: F._pari_().nfisisom(GG._pari_())
-            [1/2*NumberFieldingammawithdefiningpolynomialx^2]
+            [1/2*x^2]
 
             sage: F._pari_().nfisisom(GG.pari_nf())
             [1/2*x^2]
 
-            sage: F.pari_nf().nfisisom(GG._pari_())
+            sage: F.pari_nf().nfisisom(GG._pari_()[0])
             [x^2]
 
             sage: H = NumberField(x^2-2,'alpha')

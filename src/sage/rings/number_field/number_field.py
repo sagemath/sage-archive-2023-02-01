@@ -48,6 +48,15 @@ import sage.structure.parent_gens
 
 _gp = None
 def gp():
+    """
+    Return the unique copy of the gp (PARI) interpreter
+    used for number field computations.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import gp
+        sage: gp()
+        GP/PARI interpreter
+    """
     global _gp
     if not _gp is None:
         return _gp
@@ -163,14 +172,78 @@ def NumberField(polynomial, name=None, check=True, names=None):
     _nf_cache[key] = weakref.ref(K)
     return K
 
-def QuadraticField(D, names, check=False):
-    x = polynomial_ring.PolynomialRing(QQ, 'x').gen()
-    return NumberField(x**2 - D, names, check)
+def QuadraticField(D, names, check=True):
+    """
+    Return a quadratic field obtained by adjoining a square root of
+    $D$ to the rational numbers, where $D$ is not a perfect square.
+
+    INPUT:
+        D -- a rational number
+        name -- variable name
+        check -- bool (default: True)
+
+    OUTPUT:
+        A number field defined by a quadratic polynomial.
+
+    EXAMPLES:
+        sage: QuadraticField(3, 'a')
+        Number Field in a with defining polynomial x^2 - 3
+        sage: K.<theta> = QuadraticField(3); K
+        Number Field in theta with defining polynomial x^2 - 3
+        sage: QuadraticField(9, 'a')
+        Traceback (most recent call last):
+        ...
+        ValueError: D must not be a perfect square.
+        sage: QuadraticField(9, 'a', check=False)
+        Number Field in a with defining polynomial x^2 - 9
+
+    Quadratic number fields derive from general number fields.
+        sage: type(K)
+        <class 'sage.rings.number_field.number_field.NumberField_quadratic'>
+        sage: is_NumberField(K)
+        True
+    """
+    D = QQ(D)
+    if check:
+        if D.is_square():
+            raise ValueError, "D must not be a perfect square."
+    R = polynomial_ring.PolynomialRing(QQ, 'x')
+    f = R([-D, 0, 1])
+    return NumberField(f, names, check=False)
 
 def is_QuadraticField(x):
+    r"""
+    Return True if x is of the quadratic {\em number} field type.
+
+    EXAMPLES:
+        sage: is_QuadraticField(QuadraticField(5,'a'))
+        True
+        sage: is_QuadraticField(NumberField(x^2 - 5, 'b'))
+        True
+        sage: is_QuadraticField(NumberField(x^3 - 5, 'b'))
+        False
+
+    A quadratic field specially refers to a number field, not a finite
+    field:
+        sage: is_QuadraticField(GF(9,'a'))
+        False
+    """
     return isinstance(x, NumberField_quadratic)
 
 def is_NumberField(x):
+    """
+    Return True if x is of number field type.
+
+    EXAMPLES:
+        sage: is_NumberField(NumberField(x^2+1,'a'))
+        True
+        sage: is_NumberField(QuadraticField(-97,'theta'))
+        True
+        sage: is_NumberField(CyclotomicField(97))
+        True
+        sage: is_NumberField(QQ)
+        True
+    """
     return isinstance(x, NumberField_generic)
 
 def is_NumberFieldExtension(x):

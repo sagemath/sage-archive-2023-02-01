@@ -1746,7 +1746,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         TESTS:
         We create a random 100x100 matrix and solve the corresponding system,
-        then verify that the result is correct.
+        then verify that the result is correct.  (NOTE: This test is very
+        risky without having a seeded random number generator!)
             sage: n = 100
             sage: a = random_matrix(ZZ,n)
             sage: v = vector(ZZ,n,range(n))

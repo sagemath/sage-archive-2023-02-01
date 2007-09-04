@@ -6,6 +6,16 @@ AUTHORS:
    -- Steven Sivek (2006-05-12): added support for relative extensions
 """
 
+"""
+Ideas / todo
+
+* Make the base class for all number fields cdef's so that elements
+have very fast access to e.g., properties of the field such as the
+degree, defining poly, etc.  This will optimize the error testing in
+getime for number field elements.
+
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006 William Stein <wstein@gmail.com>
 #

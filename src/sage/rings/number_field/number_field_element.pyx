@@ -2,7 +2,9 @@
 Number Field Elements
 
 AUTHORS:
-    -- Joel B. Mohler (2007-03-09) - First reimplementation into pyrex
+    -- William Stein version before it got cython'd
+    -- Joel B. Mohler (2007-03-09): First reimplementation into cython
+    -- William Stein (2007-09-04): add doctests
 """
 
 # TODO -- relative extensions need to be completely rewritten, so one
@@ -56,16 +58,41 @@ ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
 def is_NumberFieldElement(x):
-    return isinstance(x, NumberFieldElement)
+    """
+    Return True if x is of type NumberFieldElement, i.e., an
+    element of a number field.
+
+    EXAMPLES:
+        sage: is_NumberFieldElement(2)
+        False
+        sage: k.<a> = NumberField(x^7 + 17*x + 1)
+        sage: is_NumberFieldElement(a+1)
+        True
+    """
+    return PY_TYPE_CHECK(x, NumberFieldElement)
 
 def __create__NumberFieldElement_version0(parent, poly):
+    """
+    Used in unpickling elements of number fields.
+
+    EXAMPLES:
+    Since this is just used in unpickling, we unpickle.
+
+        sage: k.<a> = NumberField(x^3 - 2)
+        sage: loads(dumps(a+1)) == a + 1
+        True
+    """
     return NumberFieldElement(parent, poly)
 
 cdef class NumberFieldElement(FieldElement):
     """
     An element of a number field.
-    """
 
+    EXAMPLES:
+        sage: k.<a> = NumberField(x^3 + x + 1)
+        sage: a^3
+        -a - 1
+    """
     cdef NumberFieldElement _new(self):
         """
         Quickly creates a new initialized NumberFieldElement with the same parent as self.
@@ -202,14 +229,46 @@ cdef class NumberFieldElement(FieldElement):
         return x
 
     def __reduce__(self):
+        """
+        Used in pickling number field elements.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 - 17*x^2 + 1)
+            sage: t = a.__reduce__(); t
+            (<built-in function __create__NumberFieldElement_version0>, (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, x))
+            sage: t[0](*t[1]) == a
+            True
+        """
         return __create__NumberFieldElement_version0, \
                (self.parent(), self.polynomial())
 
     def __repr__(self):
+        """
+        String representation of this number field element,
+        which is just a polynomial in the generator.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 2)
+            sage: b = (2/3)*a + 3/5
+            sage: b.__repr__()
+            '2/3*a + 3/5'
+        """
         x = self.polynomial()
         return str(x).replace(x.parent().variable_name(),self.parent().variable_name())
 
     def _im_gens_(self, codomain, im_gens):
+        """
+        This is used in computing homomorphisms between number fields.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 - 2)
+            sage: m.<b> = NumberField(x^4 - 2)
+            sage: phi = k.hom([b^2])
+            sage: phi(a+1)
+            b^2 + 1
+            sage: (a+1)._im_gens_(m, [b^2])
+            b^2 + 1
+        """
         # NOTE -- if you ever want to change this so relative number fields are
         # in terms of a root of a poly.
         # The issue is that elements of a relative number field are represented in terms
@@ -306,6 +365,42 @@ cdef class NumberFieldElement(FieldElement):
         return 'Mod(%s, %s)'%(f,g)
 
     def __getitem__(self, n):
+        """
+        Return the n-th coefficient of this number field element, written
+        as a polynomial in the generator.
+
+        Note that $n$ must be between 0 and $d-1$, where $d$ is the
+        degree of the number field.
+
+        EXAMPLES:
+            sage: m.<b> = NumberField(x^4 - 1789)
+            sage: c = (2/3-4/5*b)^3; c
+            -64/125*b^3 + 32/25*b^2 - 16/15*b + 8/27
+            sage: c[0]
+            8/27
+            sage: c[2]
+            32/25
+            sage: c[3]
+            -64/125
+
+        We illustrate bounds checking:
+            sage: c[-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and degree minus 1.
+            sage: c[4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and degree minus 1.
+
+        The list method implicitly calls __getitem__:
+            sage: list(c)
+            [8/27, -16/15, 32/25, -64/125]
+            sage: m(list(c)) == c
+            True
+        """
+        if n < 0 or n >= self.parent().degree():     # make this faster.
+            raise IndexError, "index must be between 0 and degree minus 1."
         return self.polynomial()[n]
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
@@ -313,12 +408,33 @@ cdef class NumberFieldElement(FieldElement):
         return not (ZZX_equal(&left.__numerator, &_right.__numerator) and ZZ_equal(&left.__denominator, &_right.__denominator))
 
     def __abs__(self):
-        return self.abs(i=0, prec=53)
+        r"""
+        Return the numerical absolute value of this number field
+        element with respect to the first archimedean embedding, to 53
+        bits of precision.
 
-    def abs(self, i=0, prec=53):
+        This is the \code{abs( )} Python function.  If you want a different
+        embedding or precision, use \code{self.abs(...)}.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 - 2)
+            sage: abs(a)
+            1.25992104989487
+            sage: abs(a)^3
+            2.00000000000000
+            sage: a.abs(prec=128)
+            1.2599210498948731647672106072782283506
+        """
+        return self.abs(prec=53, i=0)
+
+    def abs(self, prec=53, i=0):
         """
         Return the absolute value of this element with respect to the
         ith complex embedding of parent, to the given precision.
+
+        INPUT:
+            prec -- (default: 53) integer bits of precision
+            i -- (default: ) integer, which embedding to use
 
         EXAMPLES:
             sage: z = CyclotomicField(7).gen()
@@ -331,9 +447,9 @@ cdef class NumberFieldElement(FieldElement):
             2.57128159065824
             sage: a.abs(prec=100)
             2.5712815906582353554531872087
-            sage: a.abs(1,100)
+            sage: a.abs(prec=100,i=1)
             2.5712815906582353554531872087
-            sage: a.abs(2,100)
+            sage: a.abs(100, 2)
             2.5712815906582353554531872087
 
         Here's one where the absolute value depends on the embedding.
@@ -348,14 +464,82 @@ cdef class NumberFieldElement(FieldElement):
         return abs(P(self))
 
     def complex_embeddings(self, prec=53):
+        """
+        Return the images of this element in the floating point
+        complex numbers, to the given bits of precision.
+
+        INPUT:
+            prec -- integer (default: 53) bits of precision
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 - 2)
+            sage: a.complex_embeddings()
+            [1.25992104989487, -0.629960524947437 + 1.09112363597172*I, -0.629960524947437 - 1.09112363597172*I]
+            sage: a.complex_embeddings(10)
+            [1.3, -0.63 + 1.1*I, -0.63 - 1.1*I]
+            sage: a.complex_embeddings(100)
+            [1.2599210498948731647672106073, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I]
+        """
         phi = self.parent().complex_embeddings(prec)
         return [f(self) for f in phi]
 
     def complex_embedding(self, prec=53, i=0):
+        """
+        Return the i-th embedding of self in the complex numbers, to
+        the given precision.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 - 2)
+            sage: a.complex_embedding()
+            1.25992104989487
+            sage: a.complex_embedding(10)
+            1.3
+            sage: a.complex_embedding(100)
+            1.2599210498948731647672106073
+            sage: a.complex_embedding(20, 1)
+            -0.62996 + 1.0911*I
+            sage: a.complex_embedding(20, 2)
+            -0.62996 - 1.0911*I
+        """
         return self.parent().complex_embeddings(prec)[i](self)
 
-    def is_square(self):
-        return len(self.sqrt(all=True)) > 0
+    def is_square(self, root=False):
+        """
+        Return True if self is a square in its parent number field and
+        otherwise return False.
+
+        INPUT:
+            root -- if True, also return a square root (or None if self
+                    is not a perfect square)
+
+        EXAMPLES:
+            sage: m.<b> = NumberField(x^4 - 1789)
+            sage: b.is_square()
+            False
+            sage: c = (2/3*b + 5)^2; c
+            4/9*b^2 + 20/3*b + 25
+            sage: c.is_square()
+            True
+            sage: c.is_square(True)
+            (True, 2/3*b + 5)
+
+        We also test the functional notation.
+            sage: is_square(c, True)
+            (True, 2/3*b + 5)
+            sage: is_square(c)
+            True
+            sage: is_square(c+1)
+            False
+        """
+        v = self.sqrt(all=True)
+        t = len(v) > 0
+        if root:
+            if t:
+                return t, v[0]
+            else:
+                return False, None
+        else:
+            return t
 
     def sqrt(self, all=False):
         """

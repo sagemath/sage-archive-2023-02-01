@@ -35,14 +35,14 @@ import notebook as _notebook
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-from sage.misc.misc import SAGE_EXTCODE, walltime, tmp_filename
+from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename
 from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
 image_path      = p(SAGE_EXTCODE, "notebook/images")
 javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
-java_path       = p(SAGE_EXTCODE, "notebook/java")
+java_path       = p(SAGE_LOCAL, "java")
 
 # the list of users waiting to register
 waiting = {}

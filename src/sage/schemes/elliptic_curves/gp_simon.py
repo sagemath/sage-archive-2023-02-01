@@ -89,8 +89,7 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
         print cmd
     s = gp.eval('ans=%s;'%cmd)
     if s.find("***") != -1:
-        print s
-        raise RuntimeError, "An error occured while running Simon's 2-descent program"
+        raise RuntimeError, "%s\nAn error occured while running Simon's 2-descent program"%s
     if verbose > 0:
         print s
     v = gp.eval('ans')

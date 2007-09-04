@@ -908,10 +908,10 @@ class HeckeModule_free_module(HeckeModule_generic):
 
 
         ALGORITHM:
-            Let $B$ be the matrix whose columns are got by
+            Let $B$ be the matrix whose columns are obtained by
             concatenating together a basis for the factors of the
             ambient space.  Then the projection matrix onto self is
-            the submatrix of $B^{-1}$ got from the rows corresponding
+            the submatrix of $B^{-1}$ obtained from the rows corresponding
             to self, i.e., if the basis vectors for self appear as
             columns $n$ through $m$ of $B$, then the projection matrix
             is got from rows $n$ through $m$ of $B^{-1}$.  This is
@@ -935,6 +935,14 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: pi = a.projection()
             sage: pi(m([0,oo]))
             -1/6*(2,7) + 1/6*(2,13) - 1/6*(2,31) + 1/6*(2,33)
+            sage: M = ModularSymbols(53,sign=1)
+            sage: S = M.cuspidal_subspace()[1] ; S
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 5 for Gamma_0(53) of weight 2 with sign 1 over Rational Field
+            sage: p = S.projection()
+            sage: S.basis()
+            ((1,33) - (1,37), (1,35), (1,49))
+            sage: [ p(x) for x in S.basis() ]
+            [(1,33) - (1,37), (1,35), (1,49)]
         """
 
         # Compute the Hecke-stable projection map pi from the ambient
@@ -961,6 +969,7 @@ class HeckeModule_free_module(HeckeModule_generic):
                       "for decomposition factors."
             A = self.ambient_hecke_module()
             B = A.decomposition_matrix_inverse()
+            i = (A.decomposition()).index(self)
             n = sum([A[j].rank() for j in range(i)])
             C = B.matrix_from_columns(range(n,n+self.rank()))
             H = homspace.HeckeModuleHomspace(A, self)

@@ -21,10 +21,14 @@ cdef class Integer(EuclideanDomainElement):
     cdef _rshift(Integer self, long int n)
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
+    cdef _xor(Integer self, Integer other)
+    cdef _floordiv(Integer self, Integer other)
 
     cdef RingElement _valuation(Integer self, Integer p)
     cdef object _val_unit(Integer self, Integer p)
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right)
     cdef bint _is_power_of(Integer self, Integer n)
+
+    cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
 cdef extern int set_mpz(Integer self, mpz_t value)

@@ -5,6 +5,10 @@
  * License: GPL v2
  *
  * this is free software: if it breaks, you get to keep all the pieces
+
+AUTHORS:
+  -- David Harvey (2007-08-18): added mpz_get_pyintlong function
+
  */
 
 #include "mpn_pylong.h"
@@ -37,6 +41,18 @@ mpz_get_pylong(mpz_srcptr z)
   }
 
   return (PyObject *) l;
+}
+
+/* mpz -> pyint/pylong conversion; if the value fits in a python int, it
+returns a python int (optimised for that pathway), otherwise returns
+a python long */
+PyObject *
+mpz_get_pyintlong(mpz_srcptr z)
+{
+  if (mpz_fits_slong_p(z))
+     return PyInt_FromLong(mpz_get_si(z));
+
+  return mpz_get_pylong(z);
 }
 
 /* pylong -> mpz conversion */

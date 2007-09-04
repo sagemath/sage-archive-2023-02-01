@@ -186,14 +186,16 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
         else:        # case 2
             e = v.entries
             pos = v.positions
-            allocate_mpz_vector(v, v.num_nonzero - 1)
+            allocate_mpz_vector(v, v.num_nonzero - 1)  # This does *not* change v.num_nonzero
             for i from 0 <= i < m:
                 # v.entries[i] = e[i]
                 mpz_set(v.entries[i], e[i])
+                mpz_clear(e[i])
                 v.positions[i] = pos[i]
             for i from m < i < v.num_nonzero:
                 # v.entries[i-1] = e[i]
                 mpz_set(v.entries[i-1], e[i])
+                mpz_clear(e[i])
                 v.positions[i-1] = pos[i]
             sage_free(e)
             sage_free(pos)
@@ -216,17 +218,15 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
         for i from 0 <= i < ins:
             # v.entries[i] = e[i]
             mpz_set(v.entries[i], e[i])
+            mpz_clear(e[i])
             v.positions[i] = pos[i]
         # v.entries[ins] = x
         mpz_set(v.entries[ins], x)
         v.positions[ins] = n
         for i from ins < i < v.num_nonzero:
             mpz_set(v.entries[i], e[i-1])
+            mpz_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        # Free the memory occupie by GMP integer.
-        # This -1 is because we incremented v.num_nonzero above.
-        for i from 0 <= i < v.num_nonzero-1:
-            mpz_clear(e[i])
         sage_free(e)
         sage_free(pos)
 
@@ -257,10 +257,11 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     cdef Py_ssize_t nz, i, j, k, do_multiply
     cdef mpz_vector* z
     cdef mpz_t tmp
-    mpz_init(tmp)
     if mpz_cmp_si(multiple, 0) == 0:
         mpz_vector_init(sum, v.degree, 0)
         return 0
+
+    mpz_init(tmp)
     # Do not do the multiply if the multiple is 1.
     do_multiply = mpz_cmp_si(multiple, 1)
 
@@ -334,6 +335,8 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
             j = j + 1
         #end if
     # end while
+    for i from k <= i < z.num_nonzero:
+        mpz_clear(z.entries[i])
     z.num_nonzero = k
     mpz_clear(tmp)
     return 0

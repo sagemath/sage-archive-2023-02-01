@@ -133,11 +133,11 @@ implicit coercion (what there is, at least) works:
     sage: y * 1.0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Real Field with 53 bits of precision'
     sage: y * (2/3)
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Rational Field'
 
 
 AUTHOR:

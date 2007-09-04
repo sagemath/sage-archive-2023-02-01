@@ -181,7 +181,7 @@ def integral(f, *args, **kwds):
 
 integrate = integral
 
-def limit(f, dir=None, **argv):
+def limit(f, dir=None, taylor=False, **argv):
     r"""
     Return the limit as the variable v approaches a from the
     given direction.
@@ -196,6 +196,9 @@ def limit(f, dir=None, **argv):
                for a limit from above, `minus' (or 'below') for a limit from
                below, or may be omitted (implying a two-sided
                limit is to be computed).
+        taylor -- (default: False); if True, use Taylor series, which
+               allows more integrals to be computed (but may also crash
+               in some obscure cases due to bugs in Maxima).
         **argv -- 1 named parameter
 
     ALIAS: You can also use lim instead of limit.
@@ -209,15 +212,19 @@ def limit(f, dir=None, **argv):
         0
         sage: lim(1/x, x=0)
         und
+        sage: limit(sqrt(x^2+x+1)+x, taylor=True, x=-oo)
+        -1/2
+        sage: limit((tan(sin(x)) - sin(tan(x)))/x^7, taylor=True, x=0)
+        1/30
 
     SAGE does not know how to do this limit (which is 0),
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-         limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
+        limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
     """
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
-    return f.limit(dir=dir, **argv)
+    return f.limit(dir=dir, taylor=taylor, **argv)
 
 lim = limit
 

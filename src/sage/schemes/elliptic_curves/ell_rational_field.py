@@ -902,7 +902,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: r, s, G = E.simon_two_descent(); r,s            # long time (1 second)
+            sage: r, s, G = E.simon_two_descent(); r,s       # long time
             (8, 8)
         """
         if self.torsion_order() % 2 == 0:
@@ -1195,9 +1195,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('5077a').regulator()
             0.417143558758385
             sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
-            1.50434488827529
+            1.50434488827528
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
-            14.7905275701311
+            14.7905275701310
         """
         try:
             return self.__regulator
@@ -3035,7 +3035,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         A rank 4 curve:
             sage: EllipticCurve([1, -1, 0, -79, 289]).sha_an_numerical()   # long time
-                0.999999999999996
+            1.00000000000000
 
     A rank 5 curve:
             sage.: EllipticCurve([0, 0, 1, -79, 342]).sha_an_numerical(prec=10, regproof=False)          # long time -- about 1 minute!
@@ -4204,7 +4204,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)                       # long time
-            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
+            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + O(5^9)
 
         Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

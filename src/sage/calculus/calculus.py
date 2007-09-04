@@ -1301,7 +1301,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # limits
     ###################################################################
-    def limit(self, dir=None, **argv):
+    def limit(self, dir=None, taylor=False, **argv):
         r"""
         Return the limit as the variable v approaches a from the
         given direction.
@@ -1316,6 +1316,9 @@ class SymbolicExpression(RingElement):
                    for a limit from above, `minus' (or 'below') for a limit from
                    below, or may be omitted (implying a two-sided
                    limit is to be computed).
+            taylor -- (default: False); if True, use Taylor series, which
+                   allows more integrals to be computed (but may also crash
+                   in some obscure cases due to bugs in Maxima).
             **argv -- 1 named parameter
 
         NOTE: Output it may also use `und' (undefined), `ind'
@@ -1329,8 +1332,8 @@ class SymbolicExpression(RingElement):
             7776/3125
             sage: f.limit(x = 1.2)
             2.069615754672029
-            sage: f.limit(x = I)
-            e^(I*log(1 - I))
+            sage: f.limit(x = I, taylor=True)
+            (1 - I)^I
             sage: f(1.2)
             2.069615754672029
             sage: f(I)
@@ -1368,10 +1371,10 @@ class SymbolicExpression(RingElement):
             Is  x  positive or negative?
 
             sage: f = log(log(x))/log(x)
-            sage: forget(); assume(x<-2); lim(f, x=0)
-            limit(log(log(x))/log(x), x=0)
+            sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
+            und
 
-        The following means "indefinite but bounded":
+        Here ind means "indefinite but bounded":
             sage: lim(sin(1/x), x = 0)
             ind
         """
@@ -1382,11 +1385,20 @@ class SymbolicExpression(RingElement):
             v = var(k, create=False)
             a = argv[k]
         if dir is None:
-            l = self._maxima_().limit(v, a)
+            if taylor:
+                l = self._maxima_().tlimit(v, a)
+            else:
+                l = self._maxima_().limit(v, a)
         elif dir == 'plus' or dir == 'above':
-            l = self._maxima_().limit(v, a, 'plus')
+            if taylor:
+                l = self._maxima_().tlimit(v, a, 'plus')
+            else:
+                l = self._maxima_().limit(v, a, 'plus')
         elif dir == 'minus' or dir == 'below':
-            l = self._maxima_().limit(v, a, 'minus')
+            if taylor:
+                l = self._maxima_().tlimit(v, a, 'minus')
+            else:
+                l = self._maxima_().limit(v, a, 'minus')
         else:
             raise ValueError, "dir must be one of 'plus' or 'minus'"
         return self.parent()(l)

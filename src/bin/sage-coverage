@@ -88,7 +88,7 @@ def coverage(filename, file):
 
     if 'class' in file and 'loads' not in file:
         score -= 10
-        print "ERROR: Please define a s == dumps(loads(s)) doctest."
+        print "ERROR: Please define a s == loads(dumps(s)) doctest."
 
     if score < 0:
         score = 0

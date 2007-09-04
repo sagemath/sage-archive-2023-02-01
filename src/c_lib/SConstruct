@@ -14,9 +14,15 @@
 ## what happens is that you change libcsage in branch foo, do a sage -b bar,
 ## and since you haven't modified sage-bar/c_lib/libcsage.dylib, scons
 ## doesn't think it needs to reinstall libcsage.dylib into
-## $SAGE_ROOT/local/lib. This is obviously problematic; the best solution
-## I could come up with is just always copying all the libraries and
-## headers into $SAGE_ROOT where they belong.
+## $SAGE_ROOT/local/lib. (If it's not an OSX machine, then the target
+## would be libcsage.so, but the point is the same.) This is obviously
+## problematic; the best solution I could come up with is just always
+## copying all the libraries and headers into $SAGE_ROOT where they belong.
+## Actually, having discussed this with William, we came up with a better
+## plan: we have two targets, install and branch_switch. With install, it's
+## what you'd get with a sage -b. With branch_switch, it rebuilds the
+## libraries, and then forces the copy regardless to exactly deal with
+## the problem above.
 ##
 ## I also edited a bunch of lines below so that they didn't go over 80 chars,
 ## because I don't like seeing wrapped lines.
@@ -82,5 +88,7 @@ env.Install( "$SAGE_LOCAL/lib", lib )
 Command( "install_includes", includes_to_install, copy_all_includes )
 Command( "install_lib", lib, Copy( env['SAGE_LOCAL'] + "/lib", lib ) )
 
-env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib",
-                       "install_includes", "install_lib"] )
+env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib"] )
+
+env.Alias( "branch_switch", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib",
+                             "install_includes", "install_lib"] )

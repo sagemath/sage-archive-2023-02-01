@@ -4272,6 +4272,17 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(nfbasis0(self.g, flag, g))
 
+    def nfdisc(self, long flag=0, p=0):
+        cdef gen _p
+        cdef GEN g
+        if p != 0:
+            _p = self.pari(p)
+            g = _p.g
+        else:
+            g = <GEN>NULL
+        _sig_on
+        return self.new_gen(nfdiscf0(self.g, flag, g))
+
     def nffactor(self, x):
         t0GEN(x)
         _sig_on
@@ -4285,6 +4296,10 @@ cdef class gen(sage.structure.element.RingElement):
     def nfinit(self, long flag=0):
         _sig_on
         return P.new_gen(nfinit0(self.g, flag, prec))
+
+    def nfisisom(self, gen other):
+        _sig_on
+        return P.new_gen(nfisisom(self.g, other.g))
 
     def rnfcharpoly(self, T, a, v='x'):
         t0GEN(T); t1GEN(a); t2GEN(v)

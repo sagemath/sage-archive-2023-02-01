@@ -4324,10 +4324,6 @@ cdef class gen(sage.structure.element.RingElement):
         number field. If they are isomorphic, it returns an
         embedding for the generators. If not, returns 0.
 
-        NOTE: Due to a documented SAGE <--> PARI printing issue
-        (sage trac ticket #585), the output in these doctests
-        is funny looking.
-
         EXAMPLES:
             sage: F = NumberField(x^3-2,'alpha')
             sage: G = NumberField(x^3-2,'beta')

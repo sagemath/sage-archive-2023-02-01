@@ -1034,9 +1034,40 @@ cdef class NumberFieldElement(FieldElement):
         return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
     def _set_multiplicative_order(self, n):
+        """
+        Set the multiplicative order of this number field element.
+
+        WARNING -- use with caution -- only for internal use!  End
+        users should never call this unless they have a very good
+        reason to do so.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: a._set_multiplicative_order(3)
+            sage: a.multiplicative_order()
+            3
+
+        You can be evil with this so be careful.  That's why the function
+        name begins with an underscore.
+            sage: a._set_multiplicative_order(389)
+            sage: a.multiplicative_order()
+            389
+        """
         self.__multiplicative_order = n
 
     def multiplicative_order(self):
+        """
+        Return the multiplicative order of this number field element.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(5)
+            sage: z.multiplicative_order()
+            5
+            sage: (-z).multiplicative_order()
+            10
+            sage: (1+z).multiplicative_order()
+            +Infinity
+        """
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
 
@@ -1093,7 +1124,12 @@ cdef class NumberFieldElement(FieldElement):
         Return the trace of this number field element.
 
         EXAMPLES:
-
+            sage: K.<a> = NumberField(x^3 -132/7*x^2 + x + 1); K
+            Number Field in a with defining polynomial x^3 - 132/7*x^2 + x + 1
+            sage: a.trace()
+            132/7
+            sage: (a+1).trace() == a.trace() + 3
+            True
         """
         K = self.parent().base_ring()
         return K(self._pari_('x').trace())
@@ -1103,7 +1139,12 @@ cdef class NumberFieldElement(FieldElement):
         Return the norm of this number field element.
 
         EXAMPLES:
-
+            sage: K.<a> = NumberField(x^3 + x^2 + x + -132/7); K
+            Number Field in a with defining polynomial x^3 + x^2 + x - 132/7
+            sage: a.norm()
+            132/7
+            sage: K(0).norm()
+            0
         """
         K = self.parent().base_ring()
         return K(self._pari_('x').norm())

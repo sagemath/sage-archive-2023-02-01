@@ -4273,6 +4273,25 @@ cdef class gen(sage.structure.element.RingElement):
         return self.new_gen(nfbasis0(self.g, flag, g))
 
     def nfdisc(self, long flag=0, p=0):
+        """
+        nfdisc(x): Return the discriminant of the number field
+        defined over QQ by x.
+
+        EXAMPLES:
+          sage: F = NumberField(x^3-2,'alpha')
+          sage: F._pari_().nfdisc()
+            -108
+
+          sage: G = NumberField(x^5-11,'beta')
+          sage: G._pari_().nfdisc()
+            45753125
+
+          sage: f = x^3-2
+          sage: f._pari_()
+            x^3 - 2
+          sage: f._pari_().nfdisc()
+            -108
+        """
         cdef gen _p
         cdef GEN g
         if p != 0:
@@ -4298,6 +4317,38 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(nfinit0(self.g, flag, prec))
 
     def nfisisom(self, gen other):
+        """
+        nfisisom(x, y): Determine if the number fields defined by
+        x and y are isomorphic. According to the PARI documentation,
+        this is much faster if at least one of x or y is a
+        number field. If they are isomorphic, it returns an
+        embedding for the generators. If not, returns 0.
+
+        NOTE: Due to a documented SAGE <--> PARI printing issue
+        (sage trac ticket #585), the output in these doctests
+        is funny looking.
+
+        EXAMPLES:
+          sage: F = NumberField(x^3-2,'alpha')
+          sage: G = NumberField(x^3-2,'beta')
+          sage: F._pari_().nfisisom(G._pari_())
+            [NumberFieldinbetawithdefiningpolynomialx]
+
+          sage: GG = NumberField(x^3-4,'gamma')
+          sage: F._pari_().nfisisom(GG._pari_())
+            [1/2*NumberFieldingammawithdefiningpolynomialx^2]
+
+          sage: F._pari_().nfisisom(GG.pari_nf())
+            [1/2*x^2]
+
+          sage: F.pari_nf().nfisisom(GG._pari_())
+            [x^2]
+
+          sage: H = NumberField(x^2-2,'alpha')
+          sage: F._pari_().nfisisom(H._pari_())
+            0
+
+        """
         _sig_on
         return P.new_gen(nfisisom(self.g, other.g))
 

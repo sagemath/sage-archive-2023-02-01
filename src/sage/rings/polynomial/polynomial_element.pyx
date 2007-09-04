@@ -2166,11 +2166,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RDF[]
             sage: f = R.cyclotomic_polynomial(5); f
             1.0*x^4 + 1.0*x^3 + 1.0*x^2 + 1.0*x + 1.0
-            sage: f.roots()
+            sage: f.roots()   # slightly random
             [0.309016994375 + 0.951056516295*I, 0.309016994375 - 0.951056516295*I, -0.809016994375 + 0.587785252292*I, -0.809016994375 - 0.587785252292*I]
-            sage: [z^5 for z in f.roots()]   # slightly random output
-            [1.0 - 2.44921270764e-16*I, 1.0 + 2.44921270764e-16*I, 1.0 - 4.89842541529e-16*I, 1.0 + 4.89842541529e-16*I]
-
+            sage: [z^5 for z in f.roots()]     # slightly random
+            [1.0 - 2.44929359829e-16*I, 1.0 + 2.44929359829e-16*I, 1.0 - 4.89858719659e-16*I, 1.0 + 4.89858719659e-16*I]
+            sage: f = RDF['x']([1,2,3,4]); f
+            4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
+            sage: r = f.roots()
+            sage: [f(a) for a in r]    # slightly random
+            [2.55351295664e-15, -4.4408920985e-16 - 2.08166817117e-16*I, -4.4408920985e-16 + 2.08166817117e-16*I]
         """
         seq = []
 
@@ -2188,7 +2192,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         elif sage.rings.real_double.is_RealDoubleField(K):
             import numpy
-            r = numpy.roots(numpy.array(self.list(), dtype='double'))
+            r = numpy.roots(numpy.array(list(reversed(self.list())), dtype='double'))
             CDF = sage.rings.complex_double.CDF
             return [CDF(z) for z in r]
 

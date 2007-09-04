@@ -346,9 +346,35 @@ cdef class NumberFieldElement(FieldElement):
         self.__pari[var] = h
         return h
 
-    def _pari_init_(self, var=None):
+    def _pari_init_(self, var='x'):
         """
-        Return GP/PARI string representation of self.
+        Return GP/PARI string representation of self. This is used for
+        converting this number field element to GP/PARI.  The returned
+        string defines a pari Mod in the variable is var, which is by
+        default 'x' -- not the name of the generator of the number
+        field.
+
+        INPUT:
+            var -- (default: 'x') the variable of the pari Mod.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^5 - x - 1)
+            sage: ((1 + 1/3*a)^4)._pari_init_()
+            'Mod(1/81*x^4 + 4/27*x^3 + 2/3*x^2 + 4/3*x + 1, x^5 - x - 1)'
+            sage: ((1 + 1/3*a)^4)._pari_init_('a')
+            'Mod(1/81*a^4 + 4/27*a^3 + 2/3*a^2 + 4/3*a + 1, a^5 - a - 1)'
+
+        Note that _pari_init_ can return something that can't be parsed
+        by PARI, because of reserved words.
+            sage: K.<theta> = NumberField(x^5 - x - 1)
+            sage: b = (1/2 - 2/3*theta)^3; b
+            -8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8
+            sage: b._pari_init_('theta')
+            'Mod(-8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8, theta^5 - theta - 1)'
+            sage: pari(b)
+            Traceback (most recent call last):
+            ...
+            PariError: unexpected character (2)
         """
         if var == None:
             var = self.parent().variable_name()
@@ -360,8 +386,8 @@ cdef class NumberFieldElement(FieldElement):
             gsub = str(gsub).replace(base.variable_name(), "y")
             g = g.replace("y", gsub)
         else:
-            f = self.polynomial()._pari_().subst("x",var)
-            g = self.parent().polynomial()._pari_().subst("x",var)
+            f = str(self.polynomial()).replace("x",var)
+            g = str(self.parent().polynomial()).replace("x",var)
         return 'Mod(%s, %s)'%(f,g)
 
     def __getitem__(self, n):
@@ -719,9 +745,39 @@ cdef class NumberFieldElement(FieldElement):
             return self.parent()(self._pari_()/right._pari_())
 
     def __floordiv__(self, other):
+        """
+        Return the quotient of self and other.  Since these are field
+        elements the floor division is exactly the same as usual
+        division.
+
+        EXAMPLES:
+            sage: m.<b> = NumberField(x^4 + x^2 + 2/3)
+            sage: c = (1+b) // (1-b); c
+            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
+            sage: (1+b) / (1-b) == c
+            True
+            sage: c * (1-b)
+            b + 1
+        """
         return self / other
 
     def __nonzero__(self):
+        """
+        Return True if this number field element is nonzero.
+
+        EXAMPLES:
+            sage: m.<b> = CyclotomicField(17)
+            sage: m(0).__nonzero__()
+            False
+            sage: b.__nonzero__()
+            True
+
+        Nonzero is used by the bool command:
+            sage: bool(b + 1)
+            True
+            sage: bool(m(0))
+            False
+        """
         return not IsZero_ZZX(self.__numerator)
 
     cdef ModuleElement _neg_c_impl(self):
@@ -733,6 +789,9 @@ cdef class NumberFieldElement(FieldElement):
 
     def __int__(self):
         """
+        Attempt to convert this number field element to a Python integer,
+        if possible.
+
         EXAMPLES:
             sage: C.<I>=CyclotomicField(4)
             sage: int(1/I)
@@ -741,10 +800,40 @@ cdef class NumberFieldElement(FieldElement):
             TypeError: cannot coerce nonconstant polynomial to int
             sage: int(I*I)
             -1
+
+            sage: K.<a> = NumberField(x^10 - x - 1)
+            sage: int(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial to int
+            sage: int(K(9390283))
+            9390283
+
+        The semantics are like in Python, so the value does not have
+        to preserved.
+            sage: int(K(393/29))
+            13
         """
         return int(self.polynomial())
 
     def __long__(self):
+        """
+        Attempt to convert this number field element to a Python long,
+        if possible.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^10 - x - 1)
+            sage: long(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial to long
+            sage: long(K(1234))
+            1234L
+
+        The value does not have to be preserved, in the case of fractions.
+            sage: long(K(393/29))
+            13L
+        """
         return long(self.polynomial())
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
@@ -897,6 +986,26 @@ cdef class NumberFieldElement(FieldElement):
             raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
     def polynomial(self):
+        """
+        Return the underlyling polynomial corresponding to this
+        number field element.
+
+        The resulting polynomial is currently *not* cached.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^5 - x - 1)
+            sage: f = (-2/3 + 1/3*a)^4; f
+            1/81*a^4 - 8/81*a^3 + 8/27*a^2 - 32/81*a + 16/81
+            sage: g = f.polynomial(); g
+            1/81*x^4 - 8/81*x^3 + 8/27*x^2 - 32/81*x + 16/81
+            sage: parent(g)
+            Univariate Polynomial Ring in x over Rational Field
+
+        Note that the result of this function is not cached (should this
+        be changed?):
+            sage: g is f.polynomial()
+            False
+        """
         coeffs = []
         cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
         cdef Integer numCoeff
@@ -980,10 +1089,22 @@ cdef class NumberFieldElement(FieldElement):
         return self.__multiplicative_order
 
     def trace(self):
+        """
+        Return the trace of this number field element.
+
+        EXAMPLES:
+
+        """
         K = self.parent().base_ring()
         return K(self._pari_('x').trace())
 
     def norm(self):
+        """
+        Return the norm of this number field element.
+
+        EXAMPLES:
+
+        """
         K = self.parent().base_ring()
         return K(self._pari_('x').norm())
 

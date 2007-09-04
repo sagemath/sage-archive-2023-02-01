@@ -4278,18 +4278,18 @@ cdef class gen(sage.structure.element.RingElement):
         defined over QQ by x.
 
         EXAMPLES:
-          sage: F = NumberField(x^3-2,'alpha')
-          sage: F._pari_().nfdisc()
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: F._pari_().nfdisc()
             -108
 
-          sage: G = NumberField(x^5-11,'beta')
-          sage: G._pari_().nfdisc()
+            sage: G = NumberField(x^5-11,'beta')
+            sage: G._pari_().nfdisc()
             45753125
 
-          sage: f = x^3-2
-          sage: f._pari_()
+            sage: f = x^3-2
+            sage: f._pari_()
             x^3 - 2
-          sage: f._pari_().nfdisc()
+            sage: f._pari_().nfdisc()
             -108
         """
         cdef gen _p
@@ -4329,25 +4329,24 @@ cdef class gen(sage.structure.element.RingElement):
         is funny looking.
 
         EXAMPLES:
-          sage: F = NumberField(x^3-2,'alpha')
-          sage: G = NumberField(x^3-2,'beta')
-          sage: F._pari_().nfisisom(G._pari_())
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: G = NumberField(x^3-2,'beta')
+            sage: F._pari_().nfisisom(G._pari_())
             [NumberFieldinbetawithdefiningpolynomialx]
 
-          sage: GG = NumberField(x^3-4,'gamma')
-          sage: F._pari_().nfisisom(GG._pari_())
+            sage: GG = NumberField(x^3-4,'gamma')
+            sage: F._pari_().nfisisom(GG._pari_())
             [1/2*NumberFieldingammawithdefiningpolynomialx^2]
 
-          sage: F._pari_().nfisisom(GG.pari_nf())
+            sage: F._pari_().nfisisom(GG.pari_nf())
             [1/2*x^2]
 
-          sage: F.pari_nf().nfisisom(GG._pari_())
+            sage: F.pari_nf().nfisisom(GG._pari_())
             [x^2]
 
-          sage: H = NumberField(x^2-2,'alpha')
-          sage: F._pari_().nfisisom(H._pari_())
+            sage: H = NumberField(x^2-2,'alpha')
+            sage: F._pari_().nfisisom(H._pari_())
             0
-
         """
         _sig_on
         return P.new_gen(nfisisom(self.g, other.g))

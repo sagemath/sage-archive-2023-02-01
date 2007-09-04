@@ -106,6 +106,8 @@ def coverage(filename, file):
 def go(file):
     if 'doctest_' in file or file.endswith('~'):
         return
+    if not (file.endswith('.py') or file.endswith('.pyx')):
+        return
     if not os.path.exists(file):
         print "File %s does not exist."%file
         sys.exit(1)

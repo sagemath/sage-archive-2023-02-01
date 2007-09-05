@@ -6,15 +6,6 @@ AUTHORS:
    -- Steven Sivek (2006-05-12): added support for relative extensions
 """
 
-"""
-Ideas / todo
-
-* Make the base class for all number fields cdef's so that elements
-have very fast access to e.g., properties of the field such as the
-degree, defining poly, etc.  This will optimize the error testing in
-getime for number field elements.
-
-"""
 
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006 William Stein <wstein@gmail.com>
@@ -71,7 +62,6 @@ import weakref
 from sage.misc.latex import latex
 
 import sage.rings.arith as arith
-import sage.rings.field as field
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
@@ -230,22 +220,6 @@ def is_QuadraticField(x):
     """
     return isinstance(x, NumberField_quadratic)
 
-def is_NumberField(x):
-    """
-    Return True if x is of number field type.
-
-    EXAMPLES:
-        sage: is_NumberField(NumberField(x^2+1,'a'))
-        True
-        sage: is_NumberField(QuadraticField(-97,'theta'))
-        True
-        sage: is_NumberField(CyclotomicField(97))
-        True
-        sage: is_NumberField(QQ)
-        True
-    """
-    return isinstance(x, NumberField_generic)
-
 def is_NumberFieldExtension(x):
     return isinstance(x, NumberField_extension)
 
@@ -265,8 +239,11 @@ def CyclotomicField(n, names=None):
 def is_CyclotomicField(x):
     return isinstance(x, NumberField_cyclotomic)
 
+import number_field_base
 
-class NumberField_generic(field.Field):
+is_NumberField = number_field_base.is_NumberField
+
+class NumberField_generic(number_field_base.NumberField):
     """
     EXAMPLES:
         sage: K.<a> = NumberField(x^3 - 2); K

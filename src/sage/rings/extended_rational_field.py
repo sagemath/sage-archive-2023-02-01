@@ -23,7 +23,7 @@ class _uniq0(object):
     def __new__(cls):
         if _obj.has_key(0):
             return _obj[0]
-        O = field.Field.__new__(cls)
+        O = RationalField.__new__(cls)
         _obj[0] = O
         return O
 

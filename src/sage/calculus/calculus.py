@@ -1111,7 +1111,13 @@ class SymbolicExpression(RingElement):
                 if repr(g) == r:
                     sub.append((v,g))
         if len(sub) == 0:
-            return R(B(self))
+            try:
+                return R(B(self))
+            except TypeError:
+                if len(vars) == 1:
+                    sub = [(vars[0], G[0])]
+                else:
+                    raise
         return self.substitute_over_ring(dict(sub), ring=R)
 
     def function(self, *args):
@@ -4906,12 +4912,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     #replace all instances of scientific notation
     #with regular notation
-    sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
-    search = sci_not.search(s)
-    while not search is None:
-        (start, end) = search.span()
-        s = s.replace(s[start:end], str(RR(s[start:end])))
-        search = sci_not.search(s)
+    #sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+    #search = sci_not.search(s)
+    #while not search is None:
+    #    (start, end) = search.span()
+    #    s = s.replace(s[start:end], str(RR(s[start:end])))
+    #    search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it
     syms['limit'] = dummy_limit

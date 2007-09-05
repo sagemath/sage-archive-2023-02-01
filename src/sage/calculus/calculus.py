@@ -4914,6 +4914,8 @@ maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
 maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
+sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     syms = dict(_syms)
 
@@ -4948,7 +4950,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     #replace all instances of scientific notation
     #with regular notation
-    sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
     search = sci_not.search(s)
     while not search is None:
         (start, end) = search.span()

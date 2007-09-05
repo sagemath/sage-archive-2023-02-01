@@ -897,8 +897,9 @@ class NumberField_generic(number_field_base.NumberField):
             (c,)
 
         There can be multiple generators:
+            sage: k.<a> = NumberField(x^2 + 20072)
             sage: G = k.class_group(); G
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C19 as the class group of Number Field in z with defining polynomial x^2 + 20072
+            Multiplicative Abelian Group isomorphic to C2 x C2 x C19 as the class group of Number Field in a with defining polynomial x^2 + 20072
             sage: G.gens()
             (c0, c1)
 
@@ -916,7 +917,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f.factor()
             (x - 3) * (x^3 + 4*x^2 + 3*x - 1) * (x^4 - 3*x^3 - x^2 + 6*x - 1)
             sage: for g,_ in f.factor(): print NumberField(g,'a').class_group().order()
-            ....:
+            ...
             1
             1
             1
@@ -1214,14 +1215,14 @@ class NumberField_generic(number_field_base.NumberField):
             Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the number field Number Field in b with defining polynomial x^2 - 14
 
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
-            PARI group [6, -1, 2, "S3"] of degree 3
+            Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
 
             sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional database_gap package
-            Transitive group number 1 of degree 1
+            Galois group Transitive group number 1 of degree 1 of the number field Number Field in a with defining polynomial x - 1
             sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional database_gap package
-            Transitive group number 1 of degree 2
+            Galois group Transitive group number 1 of degree 2 of the number field Number Field in a with defining polynomial x^2 + 2
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional database_gap package
-            Transitive group number 2 of degree 3
+            Galois group Transitive group number 2 of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
         """
         try:
             return self.__galois_group[pari_group, use_kash]
@@ -1764,7 +1765,7 @@ class NumberField_extension(NumberField_generic):
         """
         raise NotImplementedError, "relative extensions of relative extensions are not supported"
 
-    def galois_group(self, pari_group = False, use_kash=False):
+    def galois_group(self, pari_group = True, use_kash=False):
         r"""
         Return the Galois group of the Galois closure of this number
         field as an abstract group.  Note that even though this is an
@@ -1780,10 +1781,22 @@ class NumberField_extension(NumberField_generic):
             sage: K.<a> = NumberField(x^2 + 1)
             sage: R.<t> = PolynomialRing(K)
             sage: L = K.extension(t^5-t+a, 'b')
-            sage: L.galois_group()                     # optional
-            Transitive group number 22 of degree 10
+            sage: L.galois_group()
+            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the number field Extension by t^5 + (-1)*t + a of the Number Field in a with defining polynomial x^2 + 1
         """
-        return self.absolute_polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)
+        try:
+            return self.__galois_group[pari_group, use_kash]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__galois_group = {}
+
+        G = self.absolute_polynomial().galois_group(pari_group = pari_group,
+                                                    use_kash = use_kash)
+        H = GaloisGroup(G, self)
+        self.__galois_group[pari_group, use_kash] = H
+        return H
+
 
     def is_free(self, proof=True):
         r"""

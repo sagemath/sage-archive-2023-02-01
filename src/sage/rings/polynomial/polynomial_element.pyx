@@ -1080,6 +1080,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         S = self.parent().base_extend(R)
         return S(self)
 
+    def change_variable_name(self, var):
+        """
+        Return a new polynomial over the same base ring but in a different
+        variable.
+
+        EXAMPLES:
+            sage: x = polygen(QQ,'x')
+            sage: f = -2/7*x^3 + (2/3)*x - 19/993; f
+            -2/7*x^3 + 2/3*x - 19/993
+            sage: f.change_variable_name('theta')
+            -2/7*theta^3 + 2/3*theta - 19/993
+        """
+        R = self.parent().base_ring()[var]
+        return R(self.list())
+
+
     def change_ring(self, R):
         """
         Return a copy of this polynomial but with coefficients in R, if at
@@ -1926,7 +1942,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._pari_with_name(self.parent().variable_name())
 
     def _pari_with_name(self, name):
-        r"""Return polynomial as a PARI object with topmost variable \code{name}.
+        r"""
+        Return polynomial as a PARI object with topmost variable \code{name}.
 
         For internal use only.
         """

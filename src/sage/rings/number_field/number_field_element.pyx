@@ -288,31 +288,40 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.polynomial()._latex_(name=self.parent().latex_variable_name())
 
-    def _pari_(self, var=None):
+    def _pari_(self, var='x'):
         """
         Return PARI C-library object corresponding to self.
 
         EXAMPLES:
             sage: k.<j> = QuadraticField(-1)
-            sage: j._pari_()
+            sage: j._pari_('j')
             Mod(j, j^2 + 1)
             sage: pari(j)
-            Mod(j, j^2 + 1)
+            Mod(x, x^2 + 1)
 
             sage: y = QQ['y'].gen()
             sage: k.<j> = NumberField(y^3 - 2)
             sage: pari(j)
-            Mod(j, j^3 - 2)
+            Mod(x, x^3 - 2)
+
+        By default the variable name is 'x', since in PARI many variable
+        names are reserved:
+            sage: theta = polygen(QQ, 'theta')
+            sage: M.<theta> = NumberField(theta^2 + 1)
+            sage: pari(theta)
+            Mod(x, x^2 + 1)
 
         If you try do coerce a generator called I to PARI, hell may
         break loose:
             sage: k.<I> = QuadraticField(-1)
-            sage: pari(I)
+            sage: I._pari_('I')
             Traceback (most recent call last):
             ...
             PariError: forbidden (45)
 
         Instead, request the variable be named different for the coercion:
+            sage: pari(I)
+            Mod(x, x^2 + 1)
             sage: I._pari_('i')
             Mod(i, i^2 + 1)
             sage: I._pari_('II')
@@ -326,16 +335,19 @@ cdef class NumberFieldElement(FieldElement):
             self.__pari = {}
         if var is None:
             var = self.parent().variable_name()
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+        if isinstance(self.parent(),
+                      sage.rings.number_field.number_field.NumberField_extension):
             f = self.polynomial()._pari_()
             g = str(self.parent().pari_relative_polynomial())
             base = self.parent().base_ring()
             gsub = base.gen()._pari_()
-            gsub = str(gsub).replace(base.variable_name(), "y")
+            gsub = str(gsub).replace('x', "y")
             g = g.replace("y", gsub)
         else:
             f = self.polynomial()._pari_()
             gp = self.parent().polynomial()
+            if gp.name() != 'x':
+                gp = gp.change_variable_name('x')
             g = gp._pari_()
             gv = str(gp.parent().gen())
             if var != 'x':
@@ -371,10 +383,10 @@ cdef class NumberFieldElement(FieldElement):
             -8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8
             sage: b._pari_init_('theta')
             'Mod(-8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8, theta^5 - theta - 1)'
+
+        Fortunately pari_init returns everything in terms of x by default.
             sage: pari(b)
-            Traceback (most recent call last):
-            ...
-            PariError: unexpected character (2)
+            Mod(-8/27*x^3 + 2/3*x^2 - 1/2*x + 1/8, x^5 - x - 1)
         """
         if var == None:
             var = self.parent().variable_name()
@@ -1166,9 +1178,8 @@ cdef class NumberFieldElement(FieldElement):
         polynomial over $\Q$.
 
             sage: S.<X> = K[]
-            sage: L.<b> = NumberField(X^3 + 17)
-            sage: L
-            Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2
+            sage: L.<b> = NumberField(X^3 + 17); L
+            Number Field in b with defining polynomial X^3 + 17 over its base field.
             sage: a = L.0; a
             b
             sage: a.charpoly('x')

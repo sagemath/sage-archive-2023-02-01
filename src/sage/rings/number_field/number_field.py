@@ -631,10 +631,30 @@ class NumberField_generic(number_field_base.NumberField):
         INPUT:
             other -- arbitrary Python object.
 
-        If other is not a number field, then the types
-        of self and other are compared.
+        If other is not a number field, then the types of self and
+        other are compared.  If both are number fields, then the
+        variable names are compared.  If those are the same, then the
+        underlying defining polynomials are compared.  If the
+        polynomials are the same, the number fields are considered
+        ``equal'', but need not be identical.  Coercion between equal
+        number fields is allowed.
 
-
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 + 2); m.<b> = NumberField(x^3 + 2)
+            sage: cmp(k,m)
+            -1
+            sage: cmp(m,k)
+            1
+            sage: k == QQ
+            False
+            sage: k.<a> = NumberField(x^3 + 2); m.<a> = NumberField(x^3 + 2)
+            sage: k is m
+            True
+            sage: m = loads(dumps(k))
+            sage: k is m
+            False
+            sage: k == m
+            True
         """
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
@@ -643,6 +663,13 @@ class NumberField_generic(number_field_base.NumberField):
         return cmp(self.__polynomial, other.__polynomial)
 
     def _ideal_class_(self):
+        """
+        Return the Python class used in defining ideals of the ring of
+        integes of this number field.
+
+        EXAMPLES:
+
+        """
         return sage.rings.number_field.number_field_ideal.NumberFieldIdeal
 
     def ideal(self, gens):

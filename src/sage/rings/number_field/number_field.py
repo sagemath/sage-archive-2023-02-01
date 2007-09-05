@@ -423,10 +423,34 @@ class NumberField_generic(number_field_base.NumberField):
             self.__latex_variable_name = name
 
     def _repr_(self):
+        """
+        Return string representation of this number field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
+            sage: k._repr_()
+            'Number Field in a with defining polynomial x^13 - 2/3*x + 3'
+        """
         return "Number Field in %s with defining polynomial %s"%(
                    self.variable_name(), self.polynomial())
 
     def _latex_(self):
+        """
+        Return latex representation of this number field.  This is viewed
+        as a polynomial quotient ring over a field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
+            sage: k._latex_()
+            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3}a + 3)'
+            sage: latex(k)
+            \mathbf{Q}[a]/(a^{13} - \frac{2}{3}a + 3)
+
+        Numbered variables are often correctly typeset:
+            sage: k.<theta25> = NumberField(x^25+x+1)
+            sage: print k._latex_()
+            \mathbf{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
+        """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
 
@@ -456,6 +480,23 @@ class NumberField_generic(number_field_base.NumberField):
         return self._coerce_non_number_field_element_in(x)
 
     def _coerce_from_str(self, x):
+        """
+        Coerce a string representation of an element of this
+        number field into this number field.
+
+        INPUT:
+            x -- string
+
+        EXAMPLES:
+            sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
+            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+
+        This function is called by the coerce method when it gets a string
+        as input:
+            sage: k('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+        """
         # provide string coercion, as
         # for finite fields
         w = sage.misc.all.sage_eval(x,locals=\
@@ -466,6 +507,21 @@ class NumberField_generic(number_field_base.NumberField):
             return w
 
     def _coerce_from_other_number_field(self, x):
+        """
+        Coerce a number field element x into this number field.
+
+        In most cases this currently doesn't work (since it is
+        barely implemented) -- it only works for constants.
+
+        INPUT:
+            x -- an element of some number field
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: L.<b> = NumberField(x^2 + 1)
+            sage: K._coerce_from_other_number_field(L(2/3))
+            2/3
+        """
         f = x.polynomial()
         if f.degree() <= 0:
             return number_field_element.NumberFieldElement(self, f[0])
@@ -473,34 +529,118 @@ class NumberField_generic(number_field_base.NumberField):
         raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
     def _coerce_non_number_field_element_in(self, x):
+        """
+        Coerce a non-number field element x into this number field.
+
+        INPUT:
+            x -- a non number field element x, e.g., a list, integer,
+            rational, or polynomial.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2/3)
+            sage: K._coerce_non_number_field_element_in(-7/8)
+            -7/8
+            sage: K._coerce_non_number_field_element_in([1,2,3])
+            3*a^2 + 2*a + 1
+
+        The list is just turned into a polynomial in the generator.
+            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
+            -2/3*a - 2/3
+
+        Not any polynomial coerces in, e.g., not this one in characteristic 7.
+            sage: f = GF(7)['y']([1,2,3]); f
+            3*y^2 + 2*y + 1
+            sage: K._coerce_non_number_field_element_in(f)
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
         if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
-                              polynomial_element.Polynomial,
                               list)):
             return number_field_element.NumberFieldElement(self, x)
+        if isinstance(x, polynomial_element.Polynomial) and x.parent().base_ring() is QQ:
+            return number_field_element.NumberFieldElement(self, x)
+
         try:
             return number_field_element.NumberFieldElement(self, x._rational_())
         except (TypeError, AttributeError):
             pass
-        raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        raise TypeError
 
     def _coerce_impl(self, x):
+        """
+        Canonical coercion of x into self.
+
+        Currently integers, rationals, and this field itself coerce
+        canonical into this field.
+
+        EXAMPLES:
+            sage: S.<y> = NumberField(x^3 + x + 1)
+            sage: S._coerce_impl(int(4))
+            4
+            sage: S._coerce_impl(long(7))
+            7
+            sage: S._coerce_impl(-Integer(2))
+            -2
+            sage: z = S._coerce_impl(-7/8); z, type(z)
+            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement'>)
+            sage: S._coerce_impl(y) is y
+            True
+
+        There are situations for which one might imagine canonical
+        coercion could make sense (at least after fixing choices), but
+        which aren't yet implemented:
+            sage: K.<a> = QuadraticField(2)
+            sage: K._coerce_impl(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
         if isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
-        elif isinstance(x, number_field_element.NumberFieldElement) and x.parent() == self:
-            return number_field_element.NumberFieldElement(self, x.list())
+        elif isinstance(x, number_field_element.NumberFieldElement):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                return number_field_element.NumberFieldElement(self, x.list())
         raise TypeError
 
     def category(self):
+        """
+        Return the category of number fields.
+
+        EXAMPLES:
+            sage: NumberField(x^2 + 3, 'a').category()
+            Category of number fields
+            sage: category(NumberField(x^2 + 3, 'a'))
+            Category of number fields
+
+        The special types of number fields, e.g., quadratic fields,
+        don't have their own category:
+            sage: QuadraticField(2,'d').category()
+            Category of number fields
+        """
         from sage.categories.all import NumberFields
         return NumberFields()
 
     def __cmp__(self, other):
+        """
+        Compare a number field with something else.
+
+        INPUT:
+            other -- arbitrary Python object.
+
+        If other is not a number field, then the types
+        of self and other are compared.
+
+
+        """
         if not isinstance(other, NumberField_generic):
-            return -1
-        if self.variable_name() != other.variable_name():
-            return -1
-        return self.__polynomial.__cmp__(other.__polynomial)
+            return cmp(type(self), type(other))
+        c = cmp(self.variable_name(), other.variable_name())
+        if c: return c
+        return cmp(self.__polynomial, other.__polynomial)
 
     def _ideal_class_(self):
         return sage.rings.number_field.number_field_ideal.NumberFieldIdeal

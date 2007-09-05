@@ -1,3 +1,12 @@
+"""
+Base class for all number fields.
+
+
+TESTS:
+    sage: k = NumberField(x^2 + 1, 'i'); k == loads(dumps(k))
+    True
+"""
+
 def is_NumberField(x):
     """
     Return True if x is of number field type.
@@ -9,8 +18,12 @@ def is_NumberField(x):
         True
         sage: is_NumberField(CyclotomicField(97))
         True
+
+    Note that the rational numbers QQ are a number field.
         sage: is_NumberField(QQ)
         True
+        sage: is_NumberField(ZZ)
+        False
     """
     return isinstance(x, NumberField)
 

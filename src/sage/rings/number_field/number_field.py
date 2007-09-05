@@ -32,6 +32,7 @@ import sage.misc.preparser
 import sage.rings.arith
 import sage.rings.complex_field
 import sage.rings.ring
+from sage.misc.latex import latex_variable_name, latex_varify
 
 from sage.structure.element import is_Element
 
@@ -221,10 +222,70 @@ def is_QuadraticField(x):
     return isinstance(x, NumberField_quadratic)
 
 def is_NumberFieldExtension(x):
+    """
+    Return True if x is an extension of a number field, i.e., a relative
+    number field.
+
+    EXAMPLES:
+        sage: is_NumberFieldExtension(NumberField(x^2+1,'a'))
+        False
+        sage: k.<a> = NumberField(x^3 - 2)
+        sage: l.<b> = k.extension(x^3 - 3); l
+        Extension by x^3 + -3 of the Number Field in a with defining polynomial x^3 - 2
+        sage: is_NumberFieldExtension(l)
+        True
+        sage: is_NumberFieldExtension(QQ)
+        False
+    """
     return isinstance(x, NumberField_extension)
 
 _cyclo_cache = {}
 def CyclotomicField(n, names=None):
+    r"""
+    Return the n-th cyclotomic field, where n is a positive integer.
+
+    INPUT:
+        n -- a positive integer
+        names -- name of generator (optional -- defaults to zetan).
+
+    EXAMPLES:
+    We create the $7$th cyclotomic field $\QQ(\zeta_7)$ with the
+    default generator name.
+        sage: k = CyclotomicField(7); k
+        Cyclotomic Field of order 7 and degree 6
+        sage: k.gen()
+        zeta7
+
+    Cyclotomic fields are of a special type.
+        sage: type(k)
+        <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
+
+    We can specify a different generator name as follows.
+        sage: k.<z7> = CyclotomicField(7); k
+        Cyclotomic Field of order 7 and degree 6
+        sage: k.gen()
+        z7
+
+    The $n$ must be an integer.
+        sage: CyclotomicField(3/2)
+        Traceback (most recent call last):
+        ...
+        TypeError: no coercion of this rational to integer
+
+    The degree must be positive.
+        sage: CyclotomicField(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: n (=0) must be a positive integer
+
+    The special case $n=1$ does \emph{not} return the rational numbers:
+        sage: CyclotomicField(1)
+        Cyclotomic Field of order 1 and degree 1
+    """
+    n = ZZ(n)
+    if n <= 0:
+        raise ValueError, "n (=%s) must be a positive integer"%n
+
     if names is None:
         names = "zeta%s"%n
     names = sage.structure.parent_gens.normalize_names(1, names)
@@ -237,7 +298,27 @@ def CyclotomicField(n, names=None):
     return K
 
 def is_CyclotomicField(x):
+    """
+    Return True if x is a cyclotomic field, i.e., of the special
+    cyclotomic field class.  This function does not return True
+    for a number field that just happens to be isomorphic to a
+    cyclotomic field.
+
+    EXAMPLES:
+        sage: is_CyclotomicField(NumberField(x^2 + 1,'zeta4'))
+        False
+        sage: is_CyclotomicField(CyclotomicField(4))
+        True
+        sage: is_CyclotomicField(CyclotomicField(1))
+        True
+        sage: is_CyclotomicField(QQ)
+        False
+        sage: is_CyclotomicField(7)
+        False
+    """
     return isinstance(x, NumberField_cyclotomic)
+
+
 
 import number_field_base
 
@@ -253,6 +334,21 @@ class NumberField_generic(number_field_base.NumberField):
     """
     def __init__(self, polynomial, name,
                  latex_name=None, check=True):
+        """
+        Create a number field.
+
+        EXAMPLES:
+            sage: NumberField(x^97 - 19, 'a')
+            Number Field in a with defining polynomial x^97 - 19
+
+        If you use check=False, you avoid checking irreducibility of
+        the defining polynomial, which can save time.
+            sage: K.<a> = NumberField(x^2 - 1, check=False)
+
+        It can also be dangerous:
+            sage: (a-1)*(a+1)
+            0
+        """
         ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
@@ -267,7 +363,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         self._assign_names(name)
         if latex_name is None:
-            self.__latex_variable_name = self.variable_name()
+            self.__latex_variable_name = latex_variable_name(self.variable_name())
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
@@ -314,6 +410,13 @@ class NumberField_generic(number_field_base.NumberField):
         return e
 
     def latex_variable_name(self, name=None):
+        """
+        Return the latex representation of the variable name for
+        this number field.
+
+        EXAMPLES:
+
+        """
         if name is None:
             return self.__latex_variable_name
         else:
@@ -324,8 +427,8 @@ class NumberField_generic(number_field_base.NumberField):
                    self.variable_name(), self.polynomial())
 
     def _latex_(self):
-        return "%s[%s]/(%s)"%(latex(QQ), self.variable_name(),
-                              self.polynomial()._latex_(self.variable_name()))
+        return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
+                              self.polynomial()._latex_(self.latex_variable_name()))
 
     def __call__(self, x):
         """
@@ -1041,7 +1144,7 @@ class NumberField_extension(NumberField_generic):
             sage: K.extension(t^2+t+a, 'b')._latex_()
             '\\mathbf{Q}[b,a]/(b^{2} + b + a, a^{3} - 2)'
         """
-        return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.variable_name(), self.base_field().variable_name(), self.polynomial()._latex_(self.variable_name()), self.base_field().polynomial()._latex_(self.base_field().variable_name()))
+        return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.latex_variable_name(), self.base_field().latex_variable_name(), self.polynomial()._latex_(self.latex_variable_name()), self.base_field().polynomial()._latex_(self.base_field().latex_variable_name()))
 
     def __call__(self, x):
         """

@@ -3082,10 +3082,10 @@ class SymbolicVariable(SymbolicExpression):
         if len(a) > 1:
             m = re.search('(\d|[.,])+$',a)
             if m is None:
-                a = tex_varify(a)
+                a = latex_varify(a)
             else:
                 b = a[:m.start()]
-                a = '%s_{%s}'%(tex_varify(b), a[m.start():])
+                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
 
         self.__latex = a
         return a
@@ -3095,48 +3095,6 @@ class SymbolicVariable(SymbolicExpression):
 
     def _sys_init_(self, system):
         return self._name
-
-common_varnames = ['alpha',
-                   'beta',
-                   'gamma',
-                   'Gamma',
-                   'delta',
-                   'Delta',
-                   'epsilon',
-                   'zeta',
-                   'eta',
-                   'theta',
-                   'Theta',
-                   'iota',
-                   'kappa',
-                   'lambda',
-                   'Lambda',
-                   'mu',
-                   'nu',
-                   'xi',
-                   'Xi',
-                   'pi',
-                   'Pi',
-                   'rho',
-                   'sigma',
-                   'Sigma',
-                   'tau',
-                   'upsilon',
-                   'varphi',
-                   'chi',
-                   'psi',
-                   'Psi',
-                   'omega',
-                   'Omega']
-
-
-def tex_varify(a):
-    if a in common_varnames:
-        return "\\" + a
-    elif len(a) == 1:
-        return a
-    else:
-        return '\\mbox{%s}'%a
 
 _vars = {}
 def var(s, create=True):

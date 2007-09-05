@@ -589,10 +589,11 @@ class NumberField_generic(number_field_base.NumberField):
                               integer.Integer, pari_gen,
                               list)):
             return number_field_element.NumberFieldElement(self, x)
-        if isinstance(x, polynomial_element.Polynomial):
-            return number_field_element.NumberFieldElement(self, x)
 
         try:
+            if isinstance(x, polynomial_element.Polynomial):
+                return number_field_element.NumberFieldElement(self, x)
+
             return number_field_element.NumberFieldElement(self, x._rational_())
         except (TypeError, AttributeError):
             pass

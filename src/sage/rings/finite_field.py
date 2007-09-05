@@ -197,6 +197,20 @@ def FiniteField(order, name=None, modulus=None, names=None,
 
 
 def is_PrimeFiniteField(x):
+    """
+    Returns True if x is a prime finite field (which is a specific
+    data type).
+
+    EXAMPLES:
+        sage: is_PrimeFiniteField(QQ)
+        False
+        sage: is_PrimeFiniteField(GF(7))
+        True
+        sage: is_PrimeFiniteField(GF(7^2,'a'))
+        False
+        sage: is_PrimeFiniteField(GF(next_prime(10^90,proof=False)))
+        True
+    """
     return isinstance(x, FiniteField_prime_modn)
 
 GF = FiniteField

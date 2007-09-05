@@ -78,6 +78,9 @@ class AsciiArtString(str):
     def __repr__(self):
         return str(self)
 
+class PropTypeError(Exception):
+    pass
+
 
 class Expect(ParentWithBase):
     """
@@ -674,6 +677,8 @@ If this all works, you can then make calls like:
             return cls(self, x)
         try:
             return self._coerce_impl(x)
+        except PropTypeError, msg:
+            raise TypeError, msg
         except TypeError, msg:
             try:
                 return cls(self, str(x))
@@ -689,10 +694,14 @@ If this all works, you can then make calls like:
             return (x.__getattribute__(s))(self)
         except AttributeError, msg:
             pass
+        except TypeError, msg:
+            raise PropTypeError, msg
         try:
             return x._interface_(self)
         except AttributeError, msg:
             pass
+        except TypeError, msg:
+            raise PropTypeError, msg
 
         if isinstance(x, (list, tuple)):
             A = []

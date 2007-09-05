@@ -152,6 +152,14 @@ def FiniteField(order, name=None, modulus=None, names=None,
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
+
+    For example, you may print finite field elements as integers via
+    the Givaro implementation. But the constructor parameter to allow
+    this is not passed to the actual implementation so far.
+
+        sage: k.<a> = GF(2^8,repr='int')
+        sage: a
+        2
     """
     if not names is None: name = names
     order = int(order)

@@ -2188,7 +2188,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         root, there are many such numbers, and it's difficult to choose
         between them.)
 
-        To see why this is true, consider the naïve floating-point error
+        To see why this is true, consider the naive floating-point error
         analysis model where you just pretend that all floating-point numbers
         are somewhat imprecise -- a little "fuzzy", if you will.  Then the
         graph of a floating-point polynomial will be a fuzzy line.  Consider

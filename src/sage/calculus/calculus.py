@@ -215,7 +215,7 @@ from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex
+from sage.misc.latex import latex, latex_varify
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima

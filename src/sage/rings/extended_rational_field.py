@@ -18,12 +18,14 @@ IntegerPlusInfinity = sage.rings.extended_integer_ring.IntegerPlusInfinity
 IntegerMinusInfinity = sage.rings.extended_integer_ring.IntegerMinusInfinity
 SignError = sage.rings.infinity.SignError
 
+import sage.rings.number_field.number_field_base as number_field_base
+
 _obj = {}
 class _uniq0(object):
     def __new__(cls):
         if _obj.has_key(0):
             return _obj[0]
-        O = RationalField.__new__(cls)
+        O = number_field_base.NumberField.__new__(cls)
         _obj[0] = O
         return O
 

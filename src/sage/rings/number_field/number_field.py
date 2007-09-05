@@ -1,15 +1,40 @@
-"""
+r"""
 Number Fields
 
 AUTHORS:
    -- William Stein (2004, 2005): initial version
    -- Steven Sivek (2006-05-12): added support for relative extensions
    -- William Stein (2007-09-04): major rewrite and documentation
+
+A note from Bill Hart on how PARI computes class groups for quadratic
+number fields:
+
+Well I just read all the Pari source code very carefully for the case
+of a quadratic number field. The code is quite simple (less than 1000
+lines) and about the only thing one needs to implement it is fast
+composition and powering of binary quadratic forms (ultimately one
+might want some Smith normal form code to manipulate the class group,
+but the basic answer can be returned without it).
+
+The Pari implementation does not appear to use sieving. In the
+imaginary quadratic case it starts by computing a factor base of
+primes and simultaneously computes L(1,chi) to get hR. Then it appears
+to generate random binary quadratic forms with a specified factor and
+factors them over a factor base (up to some limit) and allows a single
+large prime beyond that limit which it keeps track of using a basic
+hash table. It generates relations according to Buchmann's algorithm,
+computing a provisional regulator as it goes, then uses the relations
+to compute the class group in a fairly straightforward way.
+
+The limit used is explicitly:
+\begin{verbatim}
+Max(0.2*(log D)^2, exp(sqrt(log D loglog D) / 8))
+\end{verbatim}
+where $D$ is the discriminant.
 """
 
-
 #*****************************************************************************
-#       Copyright (C) 2004, 2005, 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004, 2005, 2006, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -564,7 +589,7 @@ class NumberField_generic(number_field_base.NumberField):
                               integer.Integer, pari_gen,
                               list)):
             return number_field_element.NumberFieldElement(self, x)
-        if isinstance(x, polynomial_element.Polynomial) and x.parent().base_ring() is QQ:
+        if isinstance(x, polynomial_element.Polynomial):
             return number_field_element.NumberFieldElement(self, x)
 
         try:

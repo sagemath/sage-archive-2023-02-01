@@ -709,6 +709,10 @@ cdef class LeftModuleAction(Action):
                     raise TypeError, "Actor must be coercable into base."
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
+                    if self.connecting is None:
+                        # this may happen if G is, say, int rather than a parent
+                        # TODO: let python types be valid actions
+                        raise TypeError
 
         # TODO: detect this better
         # if this is bad it will raise a type error in the subsequent lines, which we propagate

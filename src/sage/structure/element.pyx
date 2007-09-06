@@ -867,9 +867,17 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        return module_element_generic_multiply_c(left, right)
+        if have_same_parent(left, right):
+             raise arith_error_message(left, right, mul)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, mul)
+#        return module_element_generic_multiply_c(left, right)
 
     def __imul__(left, right):
+        if have_same_parent(left, right):
+             raise TypeError
+        # Always do this
         global coercion_model
         return coercion_model.bin_op_c(left, right, imul)
 
@@ -1930,6 +1938,12 @@ cdef class Vector(ModuleElement):
             TypeError: Ambiguous base extension
 
         """
+        if have_same_parent(left, right):
+            return (<Vector>left)._vector_times_vector_c_impl(<Vector>right)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
+
         if PY_TYPE_CHECK(left, Vector):
             # left is the vector
             # Possibilities:
@@ -2015,7 +2029,11 @@ cdef class Matrix(AlgebraElement):
         raise NotImplementedError
 
     def __imul__(left, right):
-        return left * right
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
 
     def __mul__(left, right):
         """
@@ -2179,6 +2197,14 @@ cdef class Matrix(AlgebraElement):
             TypeError: Ambiguous base extension
 
         """
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, mul)
+
+
+
         if PY_TYPE_CHECK(left, Matrix):
             # left is the matrix
             # Possibilities:
@@ -2281,6 +2307,7 @@ cdef class Matrix(AlgebraElement):
         raise TypeError
     def _matrix_time_matrix(left, right):
         return left._matrix_times_matrix_c_impl(right)
+
 
 
 def is_Matrix(x):
@@ -2556,27 +2583,6 @@ cdef class MinusInfinityElement(InfinityElement):
     pass
 
 include "coerce.pxi"
-
-
-#################################################################################
-# Fast (inline) dispatcher for arithmatic
-#################################################################################
-
-cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._add_(right) if HAS_DICTIONARY(left) else left._add_c_impl(right)
-
-cdef inline ModuleElement _sub_c(ModuleElement left, ModuleElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._sub_(right) if HAS_DICTIONARY(left) else left._sub_c_impl(right)
-
-cdef inline RingElement _mul_c(RingElement left, RingElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._mul_(right) if HAS_DICTIONARY(left) else left._mul_c_impl(right)
-
-cdef inline RingElement _div_c(RingElement left, RingElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._div_(right) if HAS_DICTIONARY(left) else left._div_c_impl(right)
 
 
 #################################################################################

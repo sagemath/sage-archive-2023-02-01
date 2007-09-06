@@ -1186,7 +1186,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17); L
-            Number Field in b with defining polynomial X^3 + 17 over its base field.
+            Number Field in b with defining polynomial X^3 + 17 over its base field
             sage: a = L.0; a
             b
             sage: a.charpoly('x')

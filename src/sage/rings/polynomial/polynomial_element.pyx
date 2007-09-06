@@ -1573,7 +1573,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = L['x']
             sage: f = x^3 + x + 17
             sage: f.root_field('c')
-            Extension by x^3 + x + 17 of the Number Field in a with defining polynomial x^3 - 2
+            Number Field in c with defining polynomial x^3 + x + 17 over its base field
 
             sage: R.<x> = PolynomialRing(GF(9,'a'))
             sage: f = x^3 + x^2 + 8

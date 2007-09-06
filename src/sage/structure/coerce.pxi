@@ -133,3 +133,6 @@ cdef inline RingElement _idiv_c(RingElement left, RingElement right):
 cdef enum:
     # 3 references: handle, scope container, and arithmatic call stack
     inplace_threshold = 0
+
+
+

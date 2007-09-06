@@ -6,10 +6,10 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 cdef extern from *:
     ctypedef struct RefPyObject "PyObject":
         int ob_refcnt
-
 
 include "../ext/stdsage.pxi"
 include "../ext/python_object.pxi"
@@ -259,7 +259,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 #            raise
             pass
 
-        if op is operator.mul:
+        if op is operator.mul or op is operator.imul:
 
             # elements may also act on non-elements
             # (e.g. sequences or parents)
@@ -444,7 +444,9 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             try:
                 a = self.discover_action_c(R, S, no_inplace_op(op))
                 if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
-                    (<RightModuleAction>a).is_inplace = True
+                    # We want a new instance so that we don't alter the (potentially cached) original
+                    a = RightModuleAction(S, R)
+                    (<RightModuleAction>a).is_inplace = 1
                 return a
             except KeyError:
                 return None
@@ -789,14 +791,30 @@ cdef class RightModuleAction(Action):
             raise TypeError
 
         Action.__init__(self, G, S, False, operator.mul)
-        self.is_inplace = False
+        self.is_inplace = 0
 
     cdef Element _call_c_impl(self, Element a, Element g):
+        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_c(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._lmul_c(g)  # a * g
+            # TODO: figure out where/why the polynomial constructor is caching 'a'
+            if (<RefPyObject *>a).ob_refcnt == 2:
+                b = self.extended_base(0)
+            if (<RefPyObject *>a).ob_refcnt == 1:
+                # This is a truely new object, mutate it
+                return (<ModuleElement>a)._ilmul_c(g)  # a * g
+            return (<ModuleElement>a)._lmul_c(g)  # a * g
+        else:
+            # The 3 extra refcounts are from
+            #    (1) bin_op_c stack
+            #    (2) Action._call_c stack
+            #    (3) Action._call_c_impl stack
+            if (<RefPyObject *>a).ob_refcnt < 3 + inplace_threshold + self.is_inplace:
+                return (<ModuleElement>a)._ilmul_c(g)  # a * g
+            else:
+                return (<ModuleElement>a)._lmul_c(g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"

@@ -607,7 +607,7 @@ class NumberField_generic(number_field_base.NumberField):
                    self.variable_name(), self.polynomial())
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of this number field.  This is viewed
         as a polynomial quotient ring over a field.
 

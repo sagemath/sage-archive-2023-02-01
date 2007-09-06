@@ -2199,7 +2199,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         input polynomial is double precision:  Multiple roots are a
         very bad case for floating-point root finding.  Unless the
         solver includes special-purpose heuristics to detect multiple
-        roots, it's basically impossible to get an"accurate" result;
+        roots, it's basically impossible to get an "accurate" result;
         if your input is given to  n bits of precision, you should not expect
         more than n/k good bits for a k-fold root.  (As William points out,
         you can get solutions that make the polynomial evaluate to a number
@@ -2211,8 +2211,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         analysis model where you just pretend that all floating-point numbers
         are somewhat imprecise -- a little "fuzzy", if you will.  Then the
         graph of a floating-point polynomial will be a fuzzy line.  Consider
-        the graph of (x-1)^3; this will be a fuzzy line with a horizontal
-        tangent at x=1, y=0.  If the fuzziness extends up and down by about j,
+        the graph of $(x-1)^3$; this will be a fuzzy line with a horizontal
+        tangent at $x=1$, $y=0$.  If the fuzziness extends up and down by about j,
         then it will extend left and right by about cube_root(j).
 
           -- Carl Witty

@@ -59,8 +59,9 @@ def ToricCode(P,F):
         sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
         sage: C
         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
-        sage: C.minimum_distance()  ## long time -- very time consuming
-        28
+
+    This is in fact a [49,11,28] code over GF(8). If you type next
+    C.minimum_distance()  and wait overnight, you should get 28.
 
 
     AUTHOR: David Joyner (07-2006)

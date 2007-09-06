@@ -624,7 +624,7 @@ class Cell(Cell_generic):
 
         out = """<div class="cell_output_%s%s" id="cell_output_%s">%s</div>
                  <div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>
-                 <br><div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>
+                 <div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>
                  """%(prnt, typ, self.__id, out_wrap,
                       prnt, typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)

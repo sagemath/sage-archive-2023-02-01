@@ -1,6 +1,6 @@
 #!/bin/sh
 
-hg status
-hg diff
-hg ci
-hg push -f ssh://sage@www.sagemath.org/www/hg/sage-main
+sage -hg status
+sage -hg diff
+sage -hg ci
+sage -hg push -f ssh://sage@www.sagemath.org/www/hg/sage-main

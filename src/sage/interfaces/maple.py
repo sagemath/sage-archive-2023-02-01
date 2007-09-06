@@ -341,8 +341,15 @@ command-line version of Maple (alternatively, you could use a remote connection 
         """
         Return list of all commands defined in maple.
         """
-        v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
-            sum([self.completions(chr(97+n)) for n in range(26)], [])
+        try:
+            v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
+                sum([self.completions(chr(97+n)) for n in range(26)], [])
+        except RuntimeError:
+            print "\n"*3
+            print "*"*70
+            print "WARNING: You do not have a working version of Maple installed!"
+            print "*"*70
+            v = []
         v.sort()
         return v
 
@@ -363,7 +370,9 @@ command-line version of Maple (alternatively, you could use a remote connection 
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands()
             self.__trait_names = v
-            sage.misc.persist.save(v, COMMANDS_CACHE)
+            if len(v) > 200:
+                # Maple is actually installed.
+                sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):

@@ -184,9 +184,10 @@ cdef class NumberFieldElement(FieldElement):
 
     def _lift_cyclotomic_element(self, new_parent):
         """
-            Creates an element of the passed field from this field.  This is specific to creating elements in a
-        cyclotomic field from elements in another cyclotomic field.  This function aims to make this common
-        coercion extremely fast!
+        Creates an element of the passed field from this field.  This
+        is specific to creating elements in a cyclotomic field from
+        elements in another cyclotomic field.  This function aims to
+        make this common coercion extremely fast!
 
         EXAMPLES:
             sage: C.<zeta5>=CyclotomicField(5)

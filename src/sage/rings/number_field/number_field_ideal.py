@@ -350,7 +350,7 @@ class NumberFieldIdeal(Ideal_fractional):
             self.__factorization = Factorization(A)
             return self.__factorization
 
-    def gens_reduced(self, proof=False):
+    def gens_reduced(self, proof=None):
         r"""
         Express this ideal in terms of at most two generators, and one
         if possible.
@@ -359,7 +359,7 @@ class NumberFieldIdeal(Ideal_fractional):
         \code{idealtwoelt} function, which takes exponential time, the
         first time it is called for each ideal.  Also, this indirectly
         uses \code{bnfisprincipal}, so set \code{proof=True} if you
-        want to prove correctness (which is \emph{not} the default).
+        want to prove correctness (which \emph{is} the default).
 
         EXAMPLE:
             sage: R.<x> = PolynomialRing(QQ)
@@ -370,6 +370,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J.gens_reduced()
             (i + 1,)
         """
+        proof = number_field.proof_flag(proof)
         try:
             ## Compute the single generator, if it exists
             dummy = self.is_principal(proof)
@@ -506,12 +507,12 @@ class NumberFieldIdeal(Ideal_fractional):
                 self.__pari_prime = P[0]
             return self.__pari_prime is not None
 
-    def is_principal(self, proof=False):
+    def is_principal(self, proof=None):
         r"""
         Return True if this ideal is principal.
 
         Since it uses the PARI method \code{bnfisprincipal}, specify
-        \code{proof=True} (the default setting) to prove the
+        \code{proof=True} (this is the default setting) to prove the
         correctness of the output.
 
         EXAMPLES:
@@ -523,6 +524,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.is_principal()
             True
         """
+        proof = number_field.proof_flag(proof)
         try:
             return self.__is_principal
         except AttributeError:

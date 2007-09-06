@@ -20,6 +20,7 @@ import re
 import time
 
 import sage.categories.morphism
+from sage.categories.action import InverseAction
 
 cdef class CoercionModel_original(CoercionModel):
     """
@@ -108,7 +109,7 @@ cdef class CoercionModel_original(CoercionModel):
             return op(x1,y1)
         except TypeError, msg:
             # print msg  # this can be useful for debugging.
-            if not op is operator.mul:
+            if not op is mul:
                 raise TypeError, arith_error_message(x,y,op)
 
         # If the op is multiplication, then some other algebra multiplications
@@ -177,37 +178,6 @@ cdef class CoercionModel_original(CoercionModel):
         raise TypeError, arith_error_message(x,y,op)
 
 
-# so we can compare against these fast (e.g. to avoid action-searching)
-cdef op_add, op_sub, op_mul, op_div
-from operator import add as op_add, sub as op_sub, mul as op_mul, div as op_div
-cdef op_iadd, op_isub, op_imul, op_idiv
-from operator import iadd as op_iadd, isub as op_isub, imul as op_imul, idiv as op_idiv
-
-cdef inline inplace_op(op):
-    if op is op_add:
-        return op_iadd
-    elif op is op_sub:
-        return op_isub
-    elif op is op_mul:
-        return op_imul
-    elif op is op_div:
-        return op_idiv
-    else:
-        return operator.__dict__['i'+op.__name__]
-
-cdef inline no_inplace_op(op):
-    if op is op_iadd:
-        return op_add
-    elif op is op_isub:
-        return op_sub
-    elif op is op_imul:
-        return op_mul
-    elif op is op_idiv:
-        return op_div
-    else:
-        return operator.__dict__[op.__name__[1:]]
-
-
 cdef class CoercionModel_cache_maps(CoercionModel_original):
     """
     See also sage.categories.pushout
@@ -242,7 +212,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         self._action_maps = TripleDict(lookup_dict_sizes)
 
     cdef bin_op_c(self, x, y, op):
-        if (op is not op_add) and (op is not op_sub) and (op is not op_iadd) and (op is not op_isub):
+        if (op is not add) and (op is not sub) and (op is not iadd) and (op is not isub):
             # Actions take preference over common-parent coercions.
             xp = parent_c(x)
             yp = parent_c(y)
@@ -259,7 +229,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 #            raise
             pass
 
-        if op is operator.mul or op is operator.imul:
+        if op is mul or op is imul:
 
             # elements may also act on non-elements
             # (e.g. sequences or parents)
@@ -409,7 +379,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 #                print "found", action
                 return action
 
-        if op is operator.div:
+        if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
             # To return such an action, we need to verify that it would be an action for the mul
             # operator, but the action must be over a parent containing inverse elements.
@@ -423,16 +393,16 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 K = S
 
             if K is not None:
-                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, operator.mul, False) is not None:
-                    action = (<Parent>K).get_action_c(R, operator.mul, False)
+                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, mul, False) is not None:
+                    action = (<Parent>K).get_action_c(R, mul, False)
                     if action is not None and action.actor() is K:
                         try:
                             return ~action
                         except TypeError:
                             pass
 
-                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, operator.mul, True) is not None:
-                    action = (<Parent>R).get_action_c(K, operator.mul, True)
+                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, mul, True) is not None:
+                    action = (<Parent>R).get_action_c(K, mul, True)
                     if action is not None and action.actor() is K:
                         try:
                             return ~action
@@ -443,10 +413,14 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         if op.__name__[0] == 'i':
             try:
                 a = self.discover_action_c(R, S, no_inplace_op(op))
-                if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
-                    # We want a new instance so that we don't alter the (potentially cached) original
-                    a = RightModuleAction(S, R)
-                    (<RightModuleAction>a).is_inplace = 1
+                if a is not None:
+                    is_inverse = isinstance(a, InverseAction)
+                    if is_inverse: a = ~a
+                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                        # We want a new instance so that we don't alter the (potentially cached) original
+                        a = RightModuleAction(S, R)
+                        (<RightModuleAction>a).is_inplace = 1
+                    if is_inverse: a = ~a
                 return a
             except KeyError:
                 return None
@@ -707,14 +681,14 @@ from sage.structure.element cimport Element # workaround SageX bug
 cdef class LAction(Action):
     """Action calls _l_action of the actor."""
     def __init__(self, G, S):
-        Action.__init__(self, G, S, True, operator.mul)
+        Action.__init__(self, G, S, True, mul)
     cdef Element _call_c_impl(self, Element g, Element a):
         return g._l_action(a)  # a * g
 
 cdef class RAction(Action):
     """Action calls _r_action of the actor."""
     def __init__(self, G, S):
-        Action.__init__(self, G, S, False, operator.mul)
+        Action.__init__(self, G, S, False, mul)
     cdef Element _call_c_impl(self, Element a, Element g):
         return g._r_action(a)  # g * a
 
@@ -745,14 +719,14 @@ cdef class LeftModuleAction(Action):
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
 
-        Action.__init__(self, G, S, True, operator.mul)
+        Action.__init__(self, G, S, True, mul)
 
     cdef Element _call_c_impl(self, Element g, Element a):
         if self.connecting is not None:
             g = self.connecting._call_c(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._rmul_c(g)  # a * g
+        return _rmul_c(<ModuleElement>, <RingElement>g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"
@@ -790,7 +764,7 @@ cdef class RightModuleAction(Action):
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
 
-        Action.__init__(self, G, S, False, operator.mul)
+        Action.__init__(self, G, S, False, mul)
         self.is_inplace = 0
 
     cdef Element _call_c_impl(self, Element a, Element g):
@@ -804,17 +778,18 @@ cdef class RightModuleAction(Action):
                 b = self.extended_base(0)
             if (<RefPyObject *>a).ob_refcnt == 1:
                 # This is a truely new object, mutate it
-                return (<ModuleElement>a)._ilmul_c(g)  # a * g
-            return (<ModuleElement>a)._lmul_c(g)  # a * g
+                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+            else:
+                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
         else:
             # The 3 extra refcounts are from
             #    (1) bin_op_c stack
             #    (2) Action._call_c stack
             #    (3) Action._call_c_impl stack
             if (<RefPyObject *>a).ob_refcnt < 3 + inplace_threshold + self.is_inplace:
-                return (<ModuleElement>a)._ilmul_c(g)  # a * g
+                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
             else:
-                return (<ModuleElement>a)._lmul_c(g)  # a * g
+                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"

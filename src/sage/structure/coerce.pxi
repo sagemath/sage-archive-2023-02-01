@@ -46,6 +46,19 @@ def parent(x):
     return parent_c(x)
 
 #################################################################################
+# operators
+#################################################################################
+
+cdef add, sub, mul, div, iadd, isub, imul, idiv
+from operator import add, sub, mul, div, iadd, isub, imul, idiv
+
+cdef inline inplace_op(op):
+    return operator.__dict__['i'+op.__name__]
+
+cdef inline no_inplace_op(op):
+    return operator.__dict__[op.__name__[1:]]
+
+#################################################################################
 # errors
 #################################################################################
 cdef D = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/'}

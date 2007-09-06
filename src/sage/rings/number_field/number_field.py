@@ -2514,29 +2514,104 @@ class NumberField_cyclotomic(NumberField_generic):
         else:
             return self._coerce_non_number_field_element_in(x)
 
+    # TODO:
+    # The following is very nice and much more flexible / powerful.
+    # However, it is simply not *consistent*, since it totally
+    # breaks the doctests in eisenstein_submodule.py.
+    # FIX THIS.
+
+##     def _will_be_better_coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
+##         """
+##         Coerce an element x of a cyclotomic field into self, if at all possible.
+
+##         INPUT:
+##             x -- number field element
+
+##             only_canonical -- bool (default: False); Attempt to work,
+##                    even in some cases when x is not in a subfield of
+##                    the cyclotomics (as long as x is a root of unity).
+
+##         EXAMPLES:
+##             sage: k5 = CyclotomicField(5)
+##             sage: k3 = CyclotomicField(3)
+##             sage: k15 = CyclotomicField(15)
+##             sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
+##             zeta15^5
+##             sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
+##             -zeta15^5 + 14/3
+##             sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
+##             zeta3
+##             sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
+##             -2/3*zeta3 + 2/3
+##         """
+
+##         K = x.parent()
+
+##         if K is self:
+##             return x
+##         elif K == self:
+##             return number_field_element.NumberFieldElement(self, x.polynomial())
+##         n = K.zeta_order()
+##         m = self.zeta_order()
+##         print n, m, x
+
+
+##         self_gen = self.gen()
+
+##         if m % n == 0:   # easy case
+##             # pass this off to a method in the element class
+##             # it can be done very quickly and easily by the pyrex<->NTL interface there
+##             return x._lift_cyclotomic_element(self)
+
+##         # Whatever happens below, it has to be consistent with
+##         #  zeta_r |---> (zeta_s)^m
+
+##         if m % 2 and not n%2:
+##             m *= 2
+##             self_gen = -self_gen
+
+##         if only_canonical and m % n:
+##             raise TypeError, "no canonical coercion"
+
+##         if not is_CyclotomicField(K):
+##             raise TypeError, "x must be in a cyclotomic field"
+
+##         v = x.list()
+
+##         # Find the smallest power r >= 1 of the generator g of K that is in self,
+##         # i.e., find the smallest r such that g^r has order dividing m.
+
+##         d = sage.rings.arith.gcd(m,n)
+##         r = n // d
+
+##         # Since we use the power basis for cyclomotic fields, if every
+##         # v[i] with i not divisible by r is 0, then we're good.
+
+##         # If h generates self and has order m, then the element g^r
+##         # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
+##         #
+##         z = self_gen**(m // d)
+##         w = self(1)
+
+##         a = self(0)
+##         for i in range(len(v)):
+##             if i%r:
+##                 if v[i]:
+##                     raise TypeError, "element does not belong to cyclotomic field"
+##             else:
+##                 a += w*v[i]
+##                 w *= z
+##         return a
+
     def _coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
         """
         Coerce an element x of a cyclotomic field into self, if at all possible.
 
         INPUT:
             x -- number field element
-
-            only_canonical -- bool (default: False); Attempt to work,
-                   even in some cases when x is not in a subfield of
-                   the cyclotomics (as long as x is a root of unity).
-
-        EXAMPLES:
-            sage: k5 = CyclotomicField(5)
-            sage: k3 = CyclotomicField(3)
-            sage: k15 = CyclotomicField(15)
-            sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
-            zeta15^5
-            sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
-            -zeta15^5 + 14/3
-            sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
-            zeta3
-            sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
-            -2/3*zeta3 + 2/3
+            only_canonical -- bool (default: False); Attempt to work, even in some
+                   cases when x is not in a subfield of the cyclotomics (as long as x is
+                   a root of unity).
         """
         K = x.parent()
         if K is self:
@@ -2549,37 +2624,29 @@ class NumberField_cyclotomic(NumberField_generic):
             # pass this off to a method in the element class
             # it can be done very quickly and easily by the pyrex<->NTL interface there
             return x._lift_cyclotomic_element(self)
-        if only_canonical:
-            raise TypeError
+        else:
+            if only_canonical:
+                raise TypeError
+            n = x.multiplicative_order()
+            if m % n == 0:
+                # Harder case.  E.g., x = (zeta_42)^7 and
+                # self.__zeta = zeta_6, so it is possible to
+                # coerce x in, but not zeta_42 in.
+                # Algorithm:
+                #    1. Compute self.__zeta as an element
+                #       of K = parent of x.  Call this y.
+                #    2. Write x as a power r of y.
+                #       TODO: we do step two STUPIDLY.
+                #    3. Return self.__zeta to the power r.
+                y = K(self.zeta())
+                z = y
+                for r in xrange(y.multiplicative_order()):
+                    if z == x:
+                        return self.zeta()**(r+1)
+                    z *= y
+            raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        return number_field_element.NumberFieldElement(self, g)
 
-        if not is_CyclotomicField(K):
-            raise TypeError, "x must be in any cyclotomic field"
-        v = x.list()
-
-        # Find the smallest power r >= 1 of the generator g of K that is in self,
-        # i.e., find the smallest r such that g^r has order dividing m.
-
-        d = sage.rings.arith.gcd(m,n)
-        r = n // d
-
-        # Since we use the power basis for cyclomotic fields, if every
-        # v[i] with i not divisible by r is 0, then we're good.
-
-        # If h generates self and has order m, then the element g^r
-        # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
-        #
-        z = self.gen()**(m // d)
-        w = self(1)
-
-        a = self(0)
-        for i in range(len(v)):
-            if i%r:
-                if v[i]:
-                    raise TypeError, "element does not belong to cyclotomic field"
-            else:
-                a += w*v[i]
-                w *= z
-        return a
 
     def _coerce_from_gap(self, x):
         """

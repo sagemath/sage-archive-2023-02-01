@@ -102,6 +102,8 @@ from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 from number_field_ideal import convert_from_zk_basis
 
+import sage.rings.number_field.number_field_ideal_rel
+
 from sage.libs.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
@@ -1168,7 +1170,7 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: k.<a> = NumberField(x^2 + 23)
             sage: d = k.different(); d
-            Fractional ideal (a) of Number Field in a with defining polynomial x^2 + 23
+            Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 23
             sage: d.norm()
             23
             sage: k.disc()
@@ -1307,15 +1309,14 @@ class NumberField_generic(number_field_base.NumberField):
         Here are the factors:
 
 	    sage: fi, fj = K.factor_integer(13); fi,fj
-            ((Fractional ideal (3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1),
-            (Fractional ideal (-3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1))
+            ((Fractional ideal (-3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1), (Fractional ideal (3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1))
 
         Now we extract the reduced form of the generators:
 
 	    sage: zi = fi[0].gens_reduced()[0]; zi
-            3*I - 2
-	    sage: zj = fj[0].gens_reduced()[0]; zj
             -3*I - 2
+	    sage: zj = fj[0].gens_reduced()[0]; zj
+            3*I - 2
 
         We recover the integer that was factor in $\Z[i]$
 
@@ -1365,6 +1366,20 @@ class NumberField_generic(number_field_base.NumberField):
             True
         """
         return True
+
+    def is_galois(self):
+        r"""
+        Return True if this relative number field is a Galois extension of $\QQ$.
+
+        EXAMPLES:
+            sage: NumberField(cyclotomic_polynomial(5),'a').is_galois()
+            True
+            sage: NumberField(x^2 + 1, 'i').is_galois()
+            True
+            sage: NumberField(x^3 + 2, 'a').is_galois()
+            False
+        """
+        return self.galois_group(pari_group=True).group().order() == self.degree()
 
     def galois_group(self, pari_group = True, use_kash=False):
         r"""
@@ -1973,9 +1988,9 @@ class NumberField_extension(NumberField_generic):
         EXAMPLES:
             sage: k.<a> = NumberField([x^7 + 3, x^5 + 2])
             sage: k._ideal_class_ ()
-            <class 'sage.rings.number_field.number_field_ideal.NumberFieldIdeal_rel'>
+            <class 'sage.rings.number_field.number_field_ideal_rel.NumberFieldIdeal_rel'>
         """
-        return sage.rings.number_field.number_field_ideal.NumberFieldIdeal_rel
+        return sage.rings.number_field.number_field_ideal_rel.NumberFieldIdeal_rel
 
     def _pari_base_bnf(self, proof=False):
         """
@@ -2009,6 +2024,20 @@ class NumberField_extension(NumberField_generic):
             [y^2 + 2, [0, 1], -8, 1, ..., [1, 0, 0, -2; 0, 1, 1, 0]]
         """
         return self.__base_nf
+
+    def is_galois(self):
+        r"""
+        Return True if this relative number field is Galois over $\QQ$.
+
+        EXAMPLES:
+            sage: k.<a> =NumberField([x^2 + x + 1, x^3 - 2])
+            sage: k.is_galois()
+            True
+            sage: k.<a> =NumberField([x^2 + 1, x^3 - 2])
+            sage: k.is_galois()
+            False
+        """
+        return self.absolute_field().is_galois()
 
     def gen(self, n=0):
         """
@@ -2604,6 +2633,16 @@ class NumberField_cyclotomic(NumberField_generic):
             return self._coerce_from_other_cyclotomic_field(x, only_canonical=True)
         return NumberField_generic._coerce_impl(self, x)
 
+    def is_galois(self):
+        """
+        Return True since all cyclotomic fields are automatically Galois.
+
+        EXAMPLES:
+            sage: CyclotomicField(29).is_galois()
+            True
+        """
+        return True
+
     def complex_embedding(self, prec=53):
         r"""
         Return the embedding of this cyclotomic field into the
@@ -2846,6 +2885,16 @@ class NumberField_quadratic(NumberField_generic):
             True
         """
         return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())
+
+    def is_galois(self):
+        """
+        Return True since all quadratic fields are automatically Galois.
+
+        EXAMPLES:
+            sage: QuadraticField(1234,'d').is_galois()
+            True
+        """
+        return True
 
     def class_number(self, proof=False):
         r"""

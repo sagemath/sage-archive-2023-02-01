@@ -4,6 +4,7 @@ PARI Groups
 
 import group
 from sage.libs.all import pari, pari_gen
+from sage.rings.all import Integer
 
 class PariGroup(group.FiniteGroup):
     def __init__(self, x, degree=None):
@@ -20,6 +21,9 @@ class PariGroup(group.FiniteGroup):
 
     def degree(self):
         return self.__degree
+
+    def order(self):
+        return Integer(self.__x[0])
 
     def permutation_group(self):
         if self.__degree is None:

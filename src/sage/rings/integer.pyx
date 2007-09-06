@@ -3204,3 +3204,20 @@ cdef integer(x):
     if PY_TYPE_CHECK(x, Integer):
         return x
     return Integer(x)
+
+
+def free_integer_pool():
+    cdef int i
+    cdef PyObject *o
+
+    global integer_pool_count
+
+    for i from 0 <= i < integer_pool_count:
+        o = integer_pool[i]
+        mpz_clear(<__mpz_struct *>(<char*>o + mpz_t_offset))
+        # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
+        # set. If it was set another free function would need to be
+        # called.
+        PyObject_FREE(o)
+
+    integer_pool_count = 0

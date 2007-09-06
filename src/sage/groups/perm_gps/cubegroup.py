@@ -39,7 +39,8 @@ AUTHOR:
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
     - Robert Miller (2007-08): editing, cleaned up display2d
-    - Robert Bradshaw (2006-08): RubiksCube object, 3d plotting.
+    - Robert Bradshaw (2007-08): RubiksCube object, 3d plotting.
+    - DJ (2007-09): rewrote docstring for CubeGroup's "solve".
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -976,10 +977,11 @@ class CubeGroup(PermutationGroup_generic):
         EXAMPLES:
             sage: rubik = CubeGroup()
             sage: state = rubik.faces("R*U")
-            sage: rubik.solve(state)  # long time; *computationally intensive* even for simple moves
-            'R*U'
 
-        You can also check this using \code{word_problem} method (eg, G = rubik.group();
+        If you type next rubik.solve(state) and wait a long time, SAGE
+        will return the correct answer, 'R*U'. You can also check
+        this another (but similar) way using the \code{word_problem}
+        method (eg, G = rubik.group();
         g = G("(3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)");
         g.word_problem([b,d,f,l,r,u]), though the output will be less intuitive).
 

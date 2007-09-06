@@ -92,7 +92,7 @@ import sage.interfaces.gap
 cache = {}
 
 def FiniteField(order, name=None, modulus=None, names=None,
-                elem_cache=False, check_irreducible=True):
+                elem_cache=False, check_irreducible=True, *args, **kwds):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -106,6 +106,8 @@ def FiniteField(order, name=None, modulus=None, names=None,
                    definining polynomials can be arbitrary.
         elem_cache -- cache all elements to avoid creation time  (default: order<500)
         check_irreducible -- verify that the polynomial modulus is irreducible
+        args -- additional parameters passed to finite field implementations
+        kwds -- additional keyword parameters passed to finite field implementations
 
     ALIAS:
         You can also use GF instead of FiniteField -- they are identical.
@@ -150,21 +152,29 @@ def FiniteField(order, name=None, modulus=None, names=None,
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
+
+    For example, you may print finite field elements as integers via
+    the Givaro implementation. But the constructor parameter to allow
+    this is not passed to the actual implementation so far.
+
+        sage: k.<a> = GF(2^8,repr='int')
+        sage: a
+        2
     """
     if not names is None: name = names
     order = int(order)
     name = normalize_names(1,name)
 
     if elem_cache is None:
-        elem_cahce = order < 500
+        elem_cache = order < 500
 
-    key = (order, name, modulus)
+    key = (order, name, modulus, str([args, kwds]))
     if cache.has_key(key):
         K = cache[key]()
         if not K is None:
             return K
     if arith.is_prime(order):
-        K = FiniteField_prime_modn(order)
+        K = FiniteField_prime_modn(order,*args,**kwds)
     else:
         if check_irreducible and polynomial_element.is_Polynomial(modulus):
             if modulus.parent().base_ring().characteristic() == 0:
@@ -178,15 +188,29 @@ def FiniteField(order, name=None, modulus=None, names=None,
             # DO *NOT* use for prime subfield, since that would lead to
             # a circular reference in the call to ParentWithGens in the
             # __init__ method.
-            K = FiniteField_givaro(order, name, modulus, cache=elem_cache)
+            K = FiniteField_givaro(order, name, modulus, cache=elem_cache, *args,**kwds)
         else:
-            K = FiniteField_ext_pari(order, name, modulus)
+            K = FiniteField_ext_pari(order, name, modulus, *args, **kwds)
 
     cache[key] = weakref.ref(K)
     return K
 
 
 def is_PrimeFiniteField(x):
+    """
+    Returns True if x is a prime finite field (which is a specific
+    data type).
+
+    EXAMPLES:
+        sage: is_PrimeFiniteField(QQ)
+        False
+        sage: is_PrimeFiniteField(GF(7))
+        True
+        sage: is_PrimeFiniteField(GF(7^2,'a'))
+        False
+        sage: is_PrimeFiniteField(GF(next_prime(10^90,proof=False)))
+        True
+    """
     return isinstance(x, FiniteField_prime_modn)
 
 GF = FiniteField

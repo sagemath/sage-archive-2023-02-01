@@ -624,14 +624,14 @@ class CubeGroup(PermutationGroup_generic):
     def __repr__(self):
 	return "The PermutationGroup of all legal moves of the Rubik's cube."
 
-    def __call__(self,other):
+    def __call__(self, mv):
     	"""
     	EXAMPLES:
     	    sage: rubik = CubeGroup()
             sage: rubik(1)
             ()
     	"""
-    	return self._group(other)
+    	return self.parse(mv)
 
     def group(self):
         return self._group
@@ -725,7 +725,9 @@ class CubeGroup(PermutationGroup_generic):
                 mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "-1").replace('^','').replace('(','').replace(')','')
                 M = mv.split("*")
                 for m in M:
-                    if len(m) == 1:
+                    if len(m) == 0:
+                        pass
+                    elif len(m) == 1:
                         g *= map[m[0]]
                     else:
                         g *= map[m[0]]**int(m[1:])
@@ -753,7 +755,7 @@ class CubeGroup(PermutationGroup_generic):
         elif isinstance(mv, list):
             return G(mv)
         else:
-            raise TypeError, "Not a valid Rubik's move: %s" % mv
+            return G(mv)
 
     def facets(self, g=None):
         r"""
@@ -788,10 +790,7 @@ class CubeGroup(PermutationGroup_generic):
         after making the move R followed by L.
 
         """
-        if isinstance(mv, str):
-            fcts = self.move(mv)[1]
-        else:
-            fcts = self.facets(mv)
+        fcts = self.facets(self.parse(mv))
         faceR = [[fcts[24],fcts[25],fcts[26]],[fcts[27],0,fcts[28]],[fcts[29],fcts[30],fcts[31]]]
         faceL = [[fcts[8],fcts[9],fcts[10]],[fcts[11],0,fcts[12]],[fcts[13],fcts[14],fcts[15]]]
         faceU = [[fcts[0],fcts[1],fcts[2]],[fcts[3],0,fcts[4]],[fcts[5],fcts[6],fcts[7]]]
@@ -820,6 +819,9 @@ class CubeGroup(PermutationGroup_generic):
 	    (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
 
 	"""
+	g = self.parse(mv)
+	return g, self.facets(g)
+
 	mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "^(-1)")
 	m = mv.split("*")
 	M = [x.split("^") for x in m]
@@ -893,10 +895,8 @@ class CubeGroup(PermutationGroup_generic):
 
         You can see the right face has been rotated but not the left face.
         """
-        if isinstance(mv, str):
-            lst = self.move(mv)[1]
-        else:
-            lst = self.facets(mv)
+        g = self.parse(mv)
+        lst = self.facets(g)
         line1 =  "             +--------------+\n"
         line2 =  "             |%3d  %3d  %3d |\n"%(lst[0],lst[1],lst[2])
         line3 =  "             |%3d   top %3d |\n"%(lst[3],lst[4])
@@ -928,11 +928,8 @@ class CubeGroup(PermutationGroup_generic):
             sage: P = rubik.plot_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
             sage: # "superflip+4 spot" (in 26q* moves)
         """
-        rubik = CubeGroup()
-        if isinstance(mv, str):
-            state = rubik.move(mv)[1]
-        else:
-            state = rubik.facets(mv)
+        g = self.parse(mv)
+        state = self.facets(g)
         #print state
         str_colors = [index2singmaster(state[x])+"("+str(color_of_square(x+1))+")" for x in range(48)]
         colors = [eval(p) for p in str_colors]
@@ -959,8 +956,8 @@ class CubeGroup(PermutationGroup_generic):
             sage: P = rubik.plot3d_cube("U^2*F*U^2*L*R^(-1)*F^2*U*F^3*B^3*R*L*U^2*R*D^3*U*L^3*R*D*R^3*L^3*D^2")
             sage: P = rubik.plot3d_cube("R*L*D^2*B^3*L^2*F^2*R^2*U^3*D*R^3*D^2*F^3*B^3*D^3*F^2*D^3*R^2*U^3*F^2*D^3")
         """
-        rubik = CubeGroup()
-        state = rubik.move(mv)[1]
+        g = self.parse(mv)
+        state = self.facets(g)
         clr_any = white
         shown_labels = range(1,9)+range(17,33)
         clr = [color_of_square(state[c-1]) for c in shown_labels]
@@ -1004,39 +1001,17 @@ class CubeGroup(PermutationGroup_generic):
             0
 
         """
-        state_facets = []
-        keyss = state.keys()
-        keyss.sort()
-        for k in keyss:
-            r = state[k][0]+state[k][1]+state[k][2]
-            r.remove(0)
-            state_facets = state_facets + r
-        state0 = self.faces("")
-        state0_facets = []
-        keyss = state0.keys()
-        keyss.sort()
-        for k in keyss:
-            r = state0[k][0]+state0[k][1]+state0[k][2]
-            r.remove(0)
-            state0_facets = state0_facets + r
-        p1 = [state0_facets.index(x) for x in range(1,49)]
-        p2 = [state_facets[j] for j in p1]
-        #if mode != "quiet":
-        #    print "list (BDFLRU, L2R, T2B ordering):",p2
-        G = self.group()
         try:
-            g = G(p2)
+            g = self.parse(state)
+            res = 1
         except TypeError:
-            if mode != "quiet":
-                return 0,G([()])
-            else:
-                return 0
+            res = 0
+            g = self.group()([()])
+
+        if mode != 'quiet':
+            return res, g
         else:
-            if mode != "quiet":
-                #print "cube group element:"
-                return 1,g
-            else:
-                return 1
+            return res
 
     def solve(self,state):
         r"""
@@ -1066,27 +1041,26 @@ class CubeGroup(PermutationGroup_generic):
 
         EXAMPLES:
             sage: rubik = CubeGroup()
+            sage: state = rubik.faces("R")
+            sage: rubik.solve(state)
+            'R'
             sage: state = rubik.faces("R*U")
+            sage: rubik.solve(state)       # long time
+            'R*U'
 
-        If you type next rubik.solve(state) and wait a long time, SAGE
-        will return the correct answer, 'R*U'. You can also check
-        this another (but similar) way using the \code{word_problem}
-        method (eg, G = rubik.group();
+        You can also check this another (but similar) way using the
+        \code{word_problem} method (eg, G = rubik.group();
         g = G("(3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)");
         g.word_problem([b,d,f,l,r,u]), though the output will be less intuitive).
 
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
-        rubik = self
-        G = rubik.group()
-        if isinstance(state, str):
-            leg = rubik.legal(state,"verbose")
-            if not(leg[0]):
-                return "Illegal or syntactically incorrect state. No solution."
-            g = leg[1]
-        else:
-            g = state
+        G = self.group()
+        try:
+            g = self.parse(state)
+        except TypeError:
+            return "Illegal or syntactically incorrect state. No solution."
         hom = G._gap_().EpimorphismFromFreeGroup()
         soln = hom.PreImagesRepresentative(gap(str(g)))
         # print soln

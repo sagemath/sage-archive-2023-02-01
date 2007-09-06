@@ -792,6 +792,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
+        Return string representatin of this polynomial.
+
         EXAMPLES:
             sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3

@@ -6,6 +6,12 @@ AUTHORS:
    -- Steven Sivek (2006-05-12): added support for relative extensions
    -- William Stein (2007-09-04): major rewrite and documentation
 
+NOTE:
+    Just like in PARI/GP, class group computations by default assume
+    the Generalized Riemann Hypothesis.  To do class groups
+    computations provably correctly you must often pass the flag
+    proof=True to functions.
+
 This example follows one in the Magma reference manual:
     sage: K.<y> = NumberField(x^4 - 420*x^2 + 40000)
     sage: z = y^5/11; z
@@ -202,7 +208,7 @@ def NumberField(polynomial, name=None, check=True, names=None, all=False):
     if R == ZZ:
         polynomial = QQ['x'](polynomial)
     elif isinstance(R, NumberField_generic):
-        S = R.extension(polynomial, name)
+        S = R.extension(polynomial, name, check=check)
         _nf_cache[key] = weakref.ref(S)
         return S
 
@@ -215,7 +221,7 @@ def NumberField(polynomial, name=None, check=True, names=None, all=False):
     return K
 
 
-def MultiNumberField(v, names, all=False):
+def MultiNumberField(v, names, all=False, check=True):
     """
     Return the number field defined by the polynomials or number
     fields in the list v.
@@ -234,6 +240,8 @@ def MultiNumberField(v, names, all=False):
         all -- bool (default: False), if True then return all possible
                number fields constructed from the given input data;
                otherwise just contstruct 1.
+        check -- bool (default: True) only relevant if all is False.
+               Then check irreducibility of each input polynomial.
 
     OUTPUT:
         a single number field or a list of number fields
@@ -313,11 +321,11 @@ def MultiNumberField(v, names, all=False):
         z = []
         for k in w:
             for g, _ in f.factor():
-                z.append(k.extension(g, names=name+str(i)))
+                z.append(k.extension(g, names=name+str(i), check=False))
                 i += 1
         return z
     else:
-        return w.extension(f, name+str(i))
+        return w.extension(f, name+str(i), check=check)
 
 
 def QuadraticField(D, names, check=True):
@@ -572,7 +580,12 @@ class NumberField_generic(number_field_base.NumberField):
         this number field.
 
         EXAMPLES:
-
+            sage: NumberField(x^2 + 3, 'a').latex_variable_name()
+            'a'
+            sage: NumberField(x^3 + 3, 'theta3').latex_variable_name()
+            '\\theta_{3}'
+            sage: CyclotomicField(5).latex_variable_name()
+            '\\zeta_{5}'
         """
         if name is None:
             return self.__latex_variable_name
@@ -1245,7 +1258,7 @@ class NumberField_generic(number_field_base.NumberField):
         R = self.polynomial().parent()
         return [self(QQ['x'](R(g))) for g in B]
 
-    def extension(self, poly, name=None, names=None):
+    def extension(self, poly, name=None, names=None, check=True):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -1277,7 +1290,7 @@ class NumberField_generic(number_field_base.NumberField):
             name = name[0]
         if name is None:
             raise TypeError, "the variable name must be specified."
-        return NumberField_extension(self, poly, str(name))
+        return NumberField_extension(self, poly, str(name), check=check)
 
     def factor_integer(self, n):
         r"""
@@ -1510,6 +1523,14 @@ class NumberField_generic(number_field_base.NumberField):
         This is exactly the same as \code{self.polynomal()}.
 
         EXAMPLES:
+            sage: k5.<z> = CyclotomicField(5)
+            sage: k5.defining_polynomial()
+            x^4 + x^3 + x^2 + x + 1
+            sage: y = polygen(QQ,'y')
+            sage: k.<a> = NumberField(y^9 - 3*y + 5); k
+            Number Field in a with defining polynomial y^9 - 3*y + 5
+            sage: k.defining_polynomial()
+            y^9 - 3*y + 5
         """
         return self.polynomial()
 
@@ -1722,8 +1743,28 @@ class NumberField_extension(NumberField_generic):
     def __init__(self, base, polynomial, name,
                  latex_name=None, names=None, check=True):
         """
-        Note: polynomial must be defined in the ring \code{K['x']}, where
-        K is the base field.
+
+        INPUT:
+            base -- the base field
+            polynomial -- must be defined in the ring \code{K['x']}, where
+                          K is the base field.
+            name -- variable name
+            latex_name -- latex variable name
+            names --
+            check -- whether to check irreducibility of polynomial.
+
+        EXAMPLES:
+            sage: K.<x> = CyclotomicField(5)[]
+            sage: W.<a> = NumberField(x^2 + 1)
+            sage: W
+            Number Field in a with defining polynomial x^2 + 1 over its base field
+            sage: type(W)
+            <class 'sage.rings.number_field.number_field.NumberField_extension'>
+
+        Test that check=False really skips the test:
+            sage: W.<a> = NumberField(K.cyclotomic_polynomial(5), check=False)
+            sage: W
+            Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1 over its base field
         """
         if not names is None: name = names
         if not is_NumberField(base):
@@ -1832,7 +1873,24 @@ class NumberField_extension(NumberField_generic):
 
     def __call__(self, x):
         """
-        Coerce x into this number field.
+        Coerce x into this relative number field.
+
+        EXAMPLES:
+        We construct the composite of three quadratic fields, then
+        coerce from the quartic subfield of the relative extension:
+
+            sage: k.<a> = NumberField([x^2 + 1, x^2 + 3, x^2 + 5])
+            sage: m = k.base_field(); m
+            Number Field in a0 with defining polynomial x^4 + 8*x^2 + 4
+            sage: b = k(m.0)
+            sage: b
+            -21/1408*a1^7 - 745/1408*a1^5 - 5935/1408*a1^3 - 9171/1408*a1
+            sage: b^4 + 8*b^2 + 4
+            0
+            sage: k(2/3)
+            2/3
+            sage: k(m.0^4)
+            1/8*a1^6 + 37/8*a1^4 + 307/8*a1^2 + 519/8
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()
@@ -1848,7 +1906,6 @@ class NumberField_extension(NumberField_generic):
                               polynomial_element.Polynomial,
                               list)):
             return self.base_field()(x)
-            #raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
         return number_field_element.NumberFieldElement(self, x)
 
@@ -1882,6 +1939,20 @@ class NumberField_extension(NumberField_generic):
         Given an element of the base field, give its inclusion into this
         extension (according to PARI's rnfeltreltoabs) in terms of the
         generator of this field.
+
+        This is called by the canonical coercion map on elements from
+        the base field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^2 + 1, x^2 + 3])
+            sage: m = k.base_field(); m
+            Number Field in a with defining polynomial x^2 + 1
+            sage: k._coerce_(m.0 + 2/3)
+            1/4*a0^3 + 3/2*a0 + 2/3
+            sage: s = k._coerce_(m.0); s
+            1/4*a0^3 + 3/2*a0
+            sage: s^2
+            -1
         """
         if not number_field_element.is_NumberFieldElement(element):
             raise TypeError, "element must be a NumberFieldElement"
@@ -1996,8 +2067,15 @@ class NumberField_extension(NumberField_generic):
 
     def pari_polynomial(self):
         """
-        PARI polynomial corresponding to polynomial that defines
-        this field.
+        PARI polynomial corresponding to the polynomial over the
+        rationals that defines this field as an absolute number field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^2 + 1, x^2 + 3])
+            sage: k.pari_polynomial()
+            x^4 + 8*x^2 + 4
+            sage: k.defining_polynomial ()
+            x^2 + 3
         """
         try:
             return self.__pari_polynomial
@@ -2136,7 +2214,7 @@ class NumberField_extension(NumberField_generic):
 
     disc = discriminant
 
-    def extension(self, poly, name='b'):
+    def extension(self, poly, name='b', check=True):
         """
         Raise a NotImplemented error, since relative extensions of relative
         extensions are not yet supported.
@@ -2302,7 +2380,7 @@ class NumberField_cyclotomic(NumberField_generic):
             <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
         """
         f = QQ['x'].cyclotomic_polynomial(n)
-        if names[0][:4] == 'zeta':
+        if names[0].startswith('zeta'):
             latex_name = "\\zeta_{%s}"%n
         else:
             latex_name = None
@@ -2328,11 +2406,48 @@ class NumberField_cyclotomic(NumberField_generic):
         return NumberField_cyclotomic_v1, (self.__zeta_order, self.variable_name())
 
     def _repr_(self):
+        r"""
+        Return string representation of this cyclotomic field.
+
+        The ``order'' of the cyclotomic field $\QQ(\zeta_n)$ in the
+        string output refers to the order of the $\zeta_n$, i.e., it
+        is the integer $n$.  The degree is the degree of the field as
+        an extension of $\QQ$.
+
+        EXAMPLES:
+            sage: CyclotomicField(4)._repr_()
+            'Cyclotomic Field of order 4 and degree 2'
+            sage: CyclotomicField(400)._repr_()
+            'Cyclotomic Field of order 400 and degree 160'
+        """
         return "Cyclotomic Field of order %s and degree %s"%(
                 self.zeta_order(), self.degree())
 
     def _latex_(self):
-        return "%s(\\zeta_{%s})"%(latex(QQ), self.__zeta_order)
+        """
+        Return the latex representation of this cyclotomic field.
+
+        EXAMPLES:
+            sage: Z = CyclotomicField(4)
+            sage: Z.gen()
+            zeta4
+            sage: latex(Z)
+            \mathbf{Q}(\zeta_{4})
+
+        Latex printing respects the generator name.
+            sage: k.<a> = CyclotomicField(4)
+            sage: latex(k)
+            \mathbf{Q}[a]/(a^{2} + 1)
+            sage: k
+            Cyclotomic Field of order 4 and degree 2
+            sage: k.gen()
+            a
+        """
+        v = self.latex_variable_name()
+        if v.startswith('\\zeta_'):
+            return "%s(%s)"%(latex(QQ), v)
+        else:
+            return NumberField_generic._latex_(self)
 
     def __call__(self, x):
         """
@@ -2356,9 +2471,7 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: k6(b^2)
             zeta6 - 1
 
-        Coercion of GAP cyclotomic elements is also fully supported.
-
-
+        Coercion of GAP cyclotomic elements is also supported.
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             if isinstance(x.parent(), NumberField_cyclotomic):
@@ -2378,9 +2491,23 @@ class NumberField_cyclotomic(NumberField_generic):
 
         INPUT:
             x -- number field element
-            only_canonical -- bool (default: False); Attempt to work, even in some
-                   cases when x is not in a subfield of the cyclotomics (as long as x is
-                   a root of unity).
+
+            only_canonical -- bool (default: False); Attempt to work,
+                   even in some cases when x is not in a subfield of
+                   the cyclotomics (as long as x is a root of unity).
+
+        EXAMPLES:
+            sage: k5 = CyclotomicField(5)
+            sage: k3 = CyclotomicField(3)
+            sage: k15 = CyclotomicField(15)
+            sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
+            zeta15^5
+            sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
+            -zeta15^5 + 14/3
+            sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
+            zeta3
+            sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
+            -2/3*zeta3 + 2/3
         """
         K = x.parent()
         if K is self:
@@ -2393,32 +2520,51 @@ class NumberField_cyclotomic(NumberField_generic):
             # pass this off to a method in the element class
             # it can be done very quickly and easily by the pyrex<->NTL interface there
             return x._lift_cyclotomic_element(self)
-        else:
-            if only_canonical:
-                raise TypeError
-            n = x.multiplicative_order()
-            if m % n == 0:
-                # Harder case.  E.g., x = (zeta_42)^7 and
-                # self.__zeta = zeta_6, so it is possible to
-                # coerce x in, but not zeta_42 in.
-                # Algorithm:
-                #    1. Compute self.__zeta as an element
-                #       of K = parent of x.  Call this y.
-                #    2. Write x as a power r of y.
-                #       TODO: we do step two STUPIDLY.
-                #    3. Return self.__zeta to the power r.
-                y = K(self.zeta())
-                z = y
-                for r in xrange(y.multiplicative_order()):
-                    if z == x:
-                        return self.zeta()**(r+1)
-                    z *= y
-            raise TypeError, "Cannot coerce %s into %s"%(x,self)
-        return number_field_element.NumberFieldElement(self, g)
+        if only_canonical:
+            raise TypeError
+
+        if not is_CyclotomicField(K):
+            raise TypeError, "x must be in any cyclotomic field"
+        v = x.list()
+
+        # Find the smallest power r >= 1 of the generator g of K that is in self,
+        # i.e., find the smallest r such that g^r has order dividing m.
+
+        d = sage.rings.arith.gcd(m,n)
+        r = n // d
+
+        # Since we use the power basis for cyclomotic fields, if every
+        # v[i] with i not divisible by r is 0, then we're good.
+
+        # If h generates self and has order m, then the element g^r
+        # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
+        #
+        z = self.gen()**(m // d)
+        w = self(1)
+
+        a = self(0)
+        for i in range(len(v)):
+            if i%r:
+                if v[i]:
+                    raise TypeError, "element does not belong to cyclotomic field"
+            else:
+                a += w*v[i]
+                w *= z
+        return a
 
     def _coerce_from_gap(self, x):
         """
         Attempt to coerce a GAP number field element into this cyclotomic field.
+
+        EXAMPLES:
+            sage: k5.<z> = CyclotomicField(5)
+            sage: gap('E(5)^7 + 3')
+            -3*E(5)-2*E(5)^2-3*E(5)^3-3*E(5)^4
+            sage: w = gap('E(5)^7 + 3')
+            sage: z^7 + 3
+            z^2 + 3
+            sage: k5(w)
+            z^2 + 3
         """
         s = str(x)
         i = s.find('E(')
@@ -2440,10 +2586,18 @@ class NumberField_cyclotomic(NumberField_generic):
 
     def _coerce_impl(self, x):
         """
-        Canonical coercion of x into self.
+        Canonical implicit coercion of x into self.
 
-        Elements of other compatible cyclotomic fields coerce in, as do elements
-        of the rings that coerce to all number fields (e.g., integers, rationals).
+        Elements of other compatible cyclotomic fields coerce in, as
+        do elements of the rings that coerce to all number fields
+        (e.g., integers, rationals).
+
+        EXAMPLES:
+            sage: CyclotomicField(15)._coerce_impl(CyclotomicField(5).0 - 17/3)
+            zeta15^3 - 17/3
+            sage: K.<a> = CyclotomicField(16)
+            sage: K(CyclotomicField(4).0)
+            a^4
         """
         if isinstance(x, number_field_element.NumberFieldElement) and \
                 isinstance(x.parent(), NumberField_cyclotomic):
@@ -2525,6 +2679,13 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         Return a list of elements of this number field that are a basis
         for the full ring of integers.
+
+        This field is cyclomotic, so this is a trivial computation,
+        since the power basis on the generator is an integral basis.
+
+        EXAMPLES:
+            sage: CyclotomicField(5).integral_basis()
+            [1, zeta5, zeta5^2, zeta5^3]
         """
         try:
             return self.__integral_basis
@@ -2540,9 +2701,33 @@ class NumberField_cyclotomic(NumberField_generic):
 
 
     def zeta_order(self):
+        """
+        Return the order of the root of unity that generates this
+        cyclotomic field.
+
+        EXAMPLES:
+            sage: CyclotomicField(1).zeta_order()
+            1
+            sage: CyclotomicField(4).zeta_order()
+            4
+            sage: CyclotomicField(5).zeta_order()
+            5
+            sage: CyclotomicField(389).zeta_order()
+            389
+        """
         return self.__zeta_order
 
-    def multiplicative_order_table(self):
+    def _multiplicative_order_table(self):
+        """
+        Return a dictionary that maps powers of zeta to their order.
+        This makes computing the orders of the elements of finite
+        order in this field faster.
+
+        EXAMPLES:
+            sage: v = CyclotomicField(6)._multiplicative_order_table()
+            sage: w = v.items(); w.sort(); w
+            [(-1, 2), (1, 1), (-x, 3), (-x + 1, 6), (x - 1, 3), (x, 6)]
+        """
         try:
             return self.__multiplicative_order_table
         except AttributeError:
@@ -2635,10 +2820,23 @@ class NumberField_quadratic(NumberField_generic):
         Number Field in b with defining polynomial x^2 + 4
     """
     def __init__(self, polynomial, name=None, check=True):
+        """
+        Create a quadratic number field.
+
+        EXAMPLES:
+            sage: k.<a> = QuadraticField(5, check=False); k
+            Number Field in a with defining polynomial x^2 - 5
+
+        Don't do this:
+            sage: k.<a> = QuadraticField(4, check=False); k
+            Number Field in a with defining polynomial x^2 - 4
+        """
         NumberField_generic.__init__(self, polynomial, name=name, check=check)
 
     def __reduce__(self):
         """
+        This is used in pickling quadratic number fields.
+
         TESTS:
             sage: K.<z7> = QuadraticField(7)
             sage: L = loads(dumps(K))
@@ -2650,15 +2848,29 @@ class NumberField_quadratic(NumberField_generic):
         return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())
 
     def class_number(self, proof=False):
-        """
+        r"""
         Return the size of the class group of self.
 
         If proof = False (the default!) and the discriminant of the
         field is negative, then the following warning from the PARI
-        manual applies: IMPORTANT WARNING: For $D<0$, this function may
-        give incorrect results when the class group has a low exponent
-        (has many cyclic factors), because implementing Shank's method
-        in full generality slows it down immensely.
+        manual applies: IMPORTANT WARNING: For $D<0$, this function
+        may give incorrect results when the class group has a low
+        exponent (has many cyclic factors), because implementing
+        Shank's method in full generality slows it down immensely.
+
+        EXAMPLES:
+            sage: QuadraticField(-23,'a').class_number()
+            3
+
+        These are all the primes so that the class number of $\QQ(\sqrt{-p})$ is $1$:
+            sage: [d for d in prime_range(2,300) if not is_square(d) and QuadraticField(-d,'a').class_number() == 1]
+            [2, 3, 7, 11, 19, 43, 67, 163]
+
+        It is an open problem to \emph{prove} that there are infinity
+        many positive square-free $d$ such that $\QQ(\sqrt{d})$ has
+        class number $1$:
+            sage: len([d for d in range(2,200) if not is_square(d) and QuadraticField(d,'a').class_number() == 1])
+            121
         """
         try:
             return self.__class_number
@@ -2679,12 +2891,13 @@ class NumberField_quadratic(NumberField_generic):
         implementation is quite fast.}
 
         EXAMPLES:
-            sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 23, 'a')
+            sage: K.<b> = QuadraticField(-23)
             sage: K.hilbert_class_polynomial()
             x^3 + x^2 - 1
 
-            sage: K = NumberField(x^2 + 431, 'a')
+            sage: K.<a> = QuadraticField(-431)
+            sage: K.class_number()
+            21
             sage: K.hilbert_class_polynomial()
             x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
         """
@@ -2694,10 +2907,10 @@ class NumberField_quadratic(NumberField_generic):
 
     def hilbert_class_field(self, names):
         r"""
-        Returns the Hilbert class field of this quadratic
-        field as an absolute extension of $\QQ$.  For a polynomial
-        that defines a relative extension see the
-        \code{hilbert_class_polynomial} command.
+        Returns the Hilbert class field of this quadratic field as an
+        absolute extension of $\QQ$.  For a polynomial that defines a
+        relative extension see the \code{hilbert_class_polynomial}
+        command.
 
         \note{Computed using PARI via Schertz's method.  This implementation
         is amazingly fast.}
@@ -2716,6 +2929,18 @@ class NumberField_quadratic(NumberField_generic):
         return C[0]
 
 def is_fundamental_discriminant(D):
+    r"""
+    Return True if the integer $D$ is a fundamental discriminant, i.e.,
+    if $D \con 0,1\pmod{4}$, and $D\neq 0, 1$ and either (1) $D$ is square free
+    or (2) we have $D\con 0\pmod{4}$ with $D/4 \con 2,3\pmod{4}$ and $D/4$
+    square free.  These are exactly the discriminants of quadratic fields.
+
+    EXAMPLES:
+        sage: [D for D in range(-15,15) if is_fundamental_discriminant(D)]
+        [-15, -11, -8, -7, -4, -3, 5, 8, 12, 13]
+        sage: [D for D in range(-15,15) if not is_square(D) and QuadraticField(D,'a').disc() == D]
+        [-15, -11, -8, -7, -4, -3, 5, 8, 12, 13]
+    """
     d = D % 4
     if not (d in [0,1]):
         return False
@@ -2729,13 +2954,50 @@ def is_fundamental_discriminant(D):
 ###################
 
 def NumberField_generic_v1(poly, name, latex_name):
+    """
+    This is used in pickling generic number fields.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import NumberField_generic_v1
+        sage: R.<x> = QQ[]
+        sage: NumberField_generic_v1(x^2 + 1, 'i', 'i')
+        Number Field in i with defining polynomial x^2 + 1
+    """
     return NumberField_generic(poly, name, latex_name, check=False)
 
 def NumberField_extension_v1(base_field, poly, name, latex_name):
+    """
+    This is used in pickling extension fields.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import NumberField_extension_v1
+        sage: R.<x> = CyclotomicField(3)[]
+        sage: NumberField_extension_v1(CyclotomicField(3), x^2 + 7, 'a', 'a')
+        Number Field in a with defining polynomial x^2 + 7 over its base field
+    """
     return NumberField_extension(base_field, poly, name, latex_name, check=False)
 
 def NumberField_cyclotomic_v1(zeta_order, name):
+    """
+    This is used in pickling cyclotomic fields.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import NumberField_cyclotomic_v1
+        sage: NumberField_cyclotomic_v1(5,'a')
+        Cyclotomic Field of order 5 and degree 4
+        sage: NumberField_cyclotomic_v1(5,'a').variable_name()
+        'a'
+    """
     return NumberField_cyclotomic(zeta_order, name)
 
 def NumberField_quadratic_v1(poly, name):
+    """
+    This is used in pickling quadratic fields.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import NumberField_quadratic_v1
+        sage: R.<x> = QQ[]
+        sage: NumberField_quadratic_v1(x^2 - 2, 'd')
+        Number Field in d with defining polynomial x^2 - 2
+    """
     return NumberField_quadratic(poly, name, check=False)

@@ -1099,7 +1099,7 @@ cdef class NumberFieldElement(FieldElement):
                 return self.__multiplicative_order
 
         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_cyclotomic):
-            t = self.parent().multiplicative_order_table()
+            t = self.parent()._multiplicative_order_table()
             f = self.polynomial()
             if t.has_key(f):
                 self.__multiplicative_order = t[f]

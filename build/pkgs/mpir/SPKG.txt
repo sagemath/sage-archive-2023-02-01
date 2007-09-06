@@ -13,6 +13,13 @@ Changes made from standard distro:
           * Gaudry's speedups for AMD 64:
                     http://www.loria.fr/~gaudry/mpn_AMD64/
 
+  * A patch is applied to incorporate GMP's fast GCD/XGCD code, which
+    probably won't get officially released until GMP 5. The underlying
+    code was obtained from http://gmplib.org/devel/ on 6-Sep-2007, which
+    says that the author is Niels Moller, and it's licensed under GPL
+    (apparently *not* all under LGPL). David Harvey wrote the patch to
+    include it in SAGE's GMP build.
+
 ============================
 
 NOTE: When upgrading GMP, don't forget to update the spkg-install

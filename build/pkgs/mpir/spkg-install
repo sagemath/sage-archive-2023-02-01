@@ -5,6 +5,7 @@
 ##    -- Joe Weening (2006-02-19), jweening@ccrwest.org
 ##    -- William Stein (2006-11).
 ##    -- Jason Martin (2007-02): turn on support for some optimization patches.
+##    -- David Harvey (2007-09): fast gcd patch
 ###########################################
 
 
@@ -118,15 +119,20 @@ EOF
 	if [ ${IS_CORE2_CPU} == "Yes" ]; then
 	    # Apply the Core2 patch
 	    cd patches/gmp-4.2.1-core2-port
-	    ./install_gmp_4.2.1_core2_patch.sh "$CUR"/gmp
+	    ./install_gmp_4.2.1_core2_patch.sh "$CUR"/src
 	    cd "$CUR"
 	else
             # Apply the AMD 64 patch
 	    cd patches/amd64
-	    ./install "$CUR"/gmp
+	    ./install "$CUR"/src
 	    cd "$CUR"
 	fi
     fi
+
+    # apply fast gcd patch
+    cd patches/fastgcd
+    ./install "$CUR"/src
+    cd "$CUR"
 }
 
 build()

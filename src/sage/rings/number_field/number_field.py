@@ -2003,15 +2003,42 @@ class NumberField_extension(NumberField_generic):
             return self.__pari_polynomial
 
     def pari_rnf(self):
+        """
+        Return the PARI relative number field object associated
+        to this relative extension.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^2 + 2, x^4 + 3])
+            sage: k.pari_rnf()
+            [x^4 + 3, [], [[108, 0; 0, 108], [3, 0]~], ... 0]
+        """
         return self.__rnf
 
     def pari_relative_polynomial(self):
+        """
+        Return the PARI relative polynomial associated to this
+        number field.  This is always a polynomial in x and y.
+
+        EXAMPLES:
+            sage: k.<i> = NumberField(x^2 + 1)
+            sage: m.<z> = k.extension(k['w']([i,0,1]))
+            sage: m
+            Number Field in z with defining polynomial w^2 + i over its base field.
+            sage: m.pari_relative_polynomial ()
+            x^2 + y
+        """
         return self.__pari_relative_polynomial
 
     def absolute_field(self, name=None):
         r"""
         Return this field as an extension of $\QQ$ rather than an
         extension of the base field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^2 + 2, x^4 + 3]); k
+            Number Field in a0 with defining polynomial x^4 + 3 over its base field.
+            sage: k.absolute_field()
+            Number Field in a0 with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
         """
         try:
             return self.__absolute_field
@@ -2023,8 +2050,14 @@ class NumberField_extension(NumberField_generic):
 
     def absolute_polynomial(self):
         r"""
-        Return the polynomial over $\QQ$ which defines this field as an
+        Return the polynomial over $\QQ$ that defines this field as an
         extension of the rational numbers.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1]); k
+            Number Field in a0 with defining polynomial x^2 + 1 over its base field.
+            sage: k.absolute_polynomial()
+            x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
         """
         try:
             return self.__absolute_polynomial
@@ -2037,13 +2070,40 @@ class NumberField_extension(NumberField_generic):
             return self.__absolute_polynomial
 
     def base_field(self):
+        """
+        Return the base field of this relative number field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^3 + x + 1])
+            sage: R.<z> = k[]
+            sage: L.<b> = NumberField(z^3 + a)
+            sage: L.base_field()
+            Number Field in a with defining polynomial x^3 + x + 1
+            sage: L.base_field() is k
+            True
+
+        This is very useful because the print representation of
+        a relative field doesn't describe the base field.
+            sage: L
+            Number Field in b with defining polynomial z^3 + a over its base field.
+        """
         return self.__base_field
 
     def base_ring(self):
+        """
+        This is exactly the same as base_field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1])
+            sage: k.base_ring()
+            Number Field in a with defining polynomial x^3 + x + 1
+            sage: k.base_field()
+            Number Field in a with defining polynomial x^3 + x + 1
+        """
         return self.base_field()
 
     def discriminant(self, proof=True):
-        """
+        r"""
         Return the relative discriminant of this extension $L/K$ as
         an ideal of $K$.  If you want the (rational) discriminant of
         $L/Q$, use e.g. \code{L.absolute_field().discriminant()}.
@@ -2074,6 +2134,15 @@ class NumberField_extension(NumberField_generic):
         """
         Raise a NotImplemented error, since relative extensions of relative
         extensions are not yet supported.
+
+        EXAMPLE:
+        I can't until this doctest breaks:
+            sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1])
+            sage: R.<z> = k[]
+            sage: L.<b> = NumberField(z^3 + a)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: relative extensions of relative extensions are not supported
         """
         raise NotImplementedError, "relative extensions of relative extensions are not supported"
 
@@ -2156,6 +2225,24 @@ class NumberField_extension(NumberField_generic):
         return self.base_field()(f.list())
 
     def polynomial(self):
+        """
+        Return the defining polynomial of this number field.
+
+        EXAMPLES:
+            sage: y = polygen(QQ,'y')
+            sage: k.<a> = NumberField([x^3 + x + 1, y^2 + y + 1])
+            sage: k.polynomial()
+            y^2 + y + 1
+
+        This is the same as defining_polynomial:
+            sage: k.defining_polynomial()
+            y^2 + y + 1
+
+        Use absolute polynomial for a polynomial that defines the
+        absolute extension.
+            sage: k.absolute_polynomial()
+            x^6 + 3*x^5 + 8*x^4 + 9*x^3 + 7*x^2 + 6*x + 3
+        """
         return self.__relative_polynomial
 
 
@@ -2196,6 +2283,15 @@ class NumberField_cyclotomic(NumberField_generic):
         zeta12^2*x^3/(x + zeta12^2)
     """
     def __init__(self, n, names):
+        """
+        A cyclomotic field, i.e., a field obtained by adjoining an
+        n-th root of unity to the rational numbers.
+
+        EXAMPLES:
+            sage: k = CyclotomicField(3)
+            sage: type(k)
+            <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
+        """
         f = QQ['x'].cyclotomic_polynomial(n)
         if names[0][:4] == 'zeta':
             latex_name = "\\zeta_{%s}"%n

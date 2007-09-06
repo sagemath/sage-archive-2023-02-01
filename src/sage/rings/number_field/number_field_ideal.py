@@ -158,7 +158,8 @@ class NumberFieldIdeal(Ideal_fractional):
 
             sage: K.<a> = NumberField(x^4 + 3); K
             Number Field in a with defining polynomial x^4 + 3
-            sage: I = K.factor_integer(13)[0][0]; I
+            sage: I = K.factor_integer(13)[0][0]
+            sage: I  # random sign in output
             Fractional ideal (-2*a^2 - 1) of Number Field in a with defining polynomial x^4 + 3
             sage: 2/3 in I
             False
@@ -168,7 +169,7 @@ class NumberFieldIdeal(Ideal_fractional):
             True
             sage: 1 in I*I^(-1)
             True
-            sage: I
+            sage: I   # random sign in output
             Fractional ideal (-2*a^2 - 1) of Number Field in a with defining polynomial x^4 + 3
         """
         # For now, $x \in I$ if and only if $\langle x \rangle + I = I$.
@@ -519,13 +520,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K = QuadraticField(-119,'a')
             sage: P = K.ideal([2]).factor()[1][0]
             sage: I = P^5
-            sage: a = K.0
-            sage: J = K.ideal([1/2*a+3/2])
-            sage: I == J
-            True
             sage: I.is_principal()
-            True
-            sage: J.is_principal()
             True
         """
         try:

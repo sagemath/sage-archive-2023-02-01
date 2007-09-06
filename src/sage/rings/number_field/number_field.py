@@ -982,7 +982,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_bnf())
             10
             sage: k.pari_bnf()[:4]
-            [[;], matrix(0,7), [;], Mat([0.E-693 + 10.352073178770991947816442612760937457*I, 0.E-693 + 8.2487727536742446128967079885883377973*I, 0.E-693 + 9.9147352870231080237320951122610602744*I, 0.E-693 + 10.995574287564276334619251841478260095*I, 0.E-693 + 5.3558900891779742444967743036365769643*I, 0.E-693 + 4.3175978606849283409538655445296737394*I, 0.E-693 + 2.6516353273360649301184784208569512624*I])]
+            [[;], matrix(0,7), [;], ...]
             sage: len(k.pari_nf())
             9
         """
@@ -1169,7 +1169,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: k.<a> = NumberField(x^2 + 23)
-            sage: d = k.different(); d
+            sage: d = k.different()
+            sage: d        # random sign in output
             Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 23
             sage: d.norm()
             23

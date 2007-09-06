@@ -905,11 +905,11 @@ class Notebook(SageObject):
 
     def html_banner(self):
         s = """
-        <span class="banner">
+        <div class="banner">
         <table width="100%"><tr><td>
         <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Searching for SAGE server...</span></td>
         </tr></table>
-        </span>
+        </div>
         """
         return s
 

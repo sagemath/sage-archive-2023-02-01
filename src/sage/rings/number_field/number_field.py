@@ -1023,12 +1023,12 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return 0
 
-    def class_group(self, proof=True, names='c'):
+    def class_group(self, proof=False, names='c'):
         r"""
         Return the class group of this field.
 
         INPUT:
-            proof -- if True (which is the default), then compute
+            proof -- if True (*not* the default), then compute
                        the classgroup provably correctly.
             names -- names of the generators of this class group.
 
@@ -1044,7 +1044,7 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in a with defining polynomial x^2 + 23
             sage: G is k.class_group()
             True
-            sage: G is k.class_group(proof=False)
+            sage: G is k.class_group(proof=True)
             False
             sage: G.gens()
             (c,)
@@ -1089,12 +1089,12 @@ class NumberField_generic(number_field_base.NumberField):
         self.__class_group[proof,names] = G
         return G
 
-    def class_number(self, proof=True):
+    def class_number(self, proof=False):
         """
         Return the class number of this number field, as an integer.
 
         INPUT:
-            proof -- bool (default: True)
+            proof -- bool (default: False)
 
         EXAMPLES:
             sage: NumberField(x^2 + 23, 'a').class_number()
@@ -1228,7 +1228,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.discriminant(v=v)
 
-    def elements_of_norm(self, n, proof=True):
+    def elements_of_norm(self, n, proof=False):
         r"""
         Return a list of solutions modulo units of positive norm to
         $Norm(a) = n$, where a can be any integer in this number field.
@@ -1417,9 +1417,12 @@ class NumberField_generic(number_field_base.NumberField):
             self.__integral_basis = [self(R(g).list()) for g in B]
         return self.__integral_basis
 
-    def narrow_class_group(self, proof = True):
+    def narrow_class_group(self, proof=False):
         r"""
         Return the narrow class group of this field.
+
+        INPUT:
+            proof -- default: False
 
         EXAMPLES:
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
@@ -1543,7 +1546,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.polynomial_ring().quotient(self.polynomial(), self.variable_name())
 
-    def regulator(self, proof=True):
+    def regulator(self, proof=False):
         """
         Return the regulator of this number field.
 
@@ -1600,7 +1603,7 @@ class NumberField_generic(number_field_base.NumberField):
                 A[j,i] = t
         return A
 
-    def units(self, proof = True):
+    def units(self, proof=False):
         """
         Return generators for the unit group modulo torsion.
 
@@ -1903,7 +1906,7 @@ class NumberField_extension(NumberField_generic):
         """
         return sage.rings.number_field.number_field_ideal.NumberFieldIdeal_rel
 
-    def _pari_base_bnf(self, proof=True):
+    def _pari_base_bnf(self, proof=False):
         """
         Return the PARI bnf (big number field) representation of the
         base field.
@@ -2102,7 +2105,7 @@ class NumberField_extension(NumberField_generic):
         """
         return self.base_field()
 
-    def discriminant(self, proof=True):
+    def discriminant(self, proof=False):
         r"""
         Return the relative discriminant of this extension $L/K$ as
         an ideal of $K$.  If you want the (rational) discriminant of
@@ -2113,6 +2116,9 @@ class NumberField_extension(NumberField_generic):
         GP but a \code{bnf} parameter in the C library.  If the C
         library actually accepts an \code{nf}, then this function
         should be fixed and the \code{proof} parameter removed.
+
+        INPUT:
+            proof -- (default: False)
 
         EXAMPLE:
             sage: x = QQ['x'].0
@@ -2179,10 +2185,13 @@ class NumberField_extension(NumberField_generic):
         return H
 
 
-    def is_free(self, proof=True):
+    def is_free(self, proof=False):
         r"""
         Determine whether or not $L/K$ is free (i.e. if $\mathcal{O}_L$ is
         a free $\mathcal{O}_K$-module).
+
+        INPUT:
+            proof -- default: False
 
         EXAMPLES:
             sage: x = QQ['x'].0
@@ -2640,13 +2649,13 @@ class NumberField_quadratic(NumberField_generic):
         """
         return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())
 
-    def class_number(self, proof = True):
+    def class_number(self, proof=False):
         """
         Return the size of the class group of self.
 
-        If proof = False (not the default) and the discriminant of the
+        If proof = False (the default!) and the discriminant of the
         field is negative, then the following warning from the PARI
-        manual applies: IMPORTANT WARNING: For D<0, this function may
+        manual applies: IMPORTANT WARNING: For $D<0$, this function may
         give incorrect results when the class group has a low exponent
         (has many cyclic factors), because implementing Shank's method
         in full generality slows it down immensely.

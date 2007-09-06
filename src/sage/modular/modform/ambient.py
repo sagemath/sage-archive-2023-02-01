@@ -451,8 +451,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
     def _q_expansion(self, element, prec):
         """
-        Return the q-expansion of a particular element of this space of modular forms,
-        where telement should be a vector of list (not a ModularFormElement).
+        Return the q-expansion of a particular element of this space
+        of modular forms, where the element should be a vector of list
+        (not a ModularFormElement).
 
         INPUT:
             element -- vector, list or tuple

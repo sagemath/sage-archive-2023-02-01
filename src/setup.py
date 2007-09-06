@@ -570,6 +570,9 @@ ext_modules = [ \
               libraries=['ntl','gmp'],
               language = 'c++'), \
 
+    Extension('sage.rings.number_field.number_field_base',
+              sources = ['sage/rings/number_field/number_field_base.pyx']), \
+
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 

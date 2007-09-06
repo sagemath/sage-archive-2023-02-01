@@ -78,6 +78,9 @@ class AsciiArtString(str):
     def __repr__(self):
         return str(self)
 
+class PropTypeError(Exception):
+    pass
+
 
 class Expect(ParentWithBase):
     """
@@ -673,26 +676,37 @@ If this all works, you can then make calls like:
         if isinstance(x, basestring):
             return cls(self, x)
         try:
-            return self._coerce_impl(x)
+            return self._coerce_from_special_method(x)
+        except TypeError:
+            raise
+        except AttributeError, msg:
+            pass
+        try:
+            return self._coerce_impl(x, use_special=False)
         except TypeError, msg:
             try:
                 return cls(self, str(x))
             except TypeError, msg2:
                 raise TypeError, msg
 
+    def _coerce_from_special_method(self, x):
+        """
+        Tries to coerce to self by calling a special underscore method.
 
-    def _coerce_impl(self, x):
+        If no such method is defined, raises an AttributeError
+        instead of a TypeError.
+        """
         s = '_%s_'%self.name()
         if s == '_pari_':
             s = '_gp_'
-        try:
-            return (x.__getattribute__(s))(self)
-        except AttributeError, msg:
-            pass
-        try:
-            return x._interface_(self)
-        except AttributeError, msg:
-            pass
+        return (x.__getattribute__(s))(self)
+
+    def _coerce_impl(self, x, use_special=True):
+        if use_special:
+            try:
+                return self._coerce_from_special_method(x)
+            except AttributeError, msg:
+                pass
 
         if isinstance(x, (list, tuple)):
             A = []

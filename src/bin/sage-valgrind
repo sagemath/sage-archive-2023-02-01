@@ -5,4 +5,4 @@ PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-gdb-pythonstartup
 export PYTHONSTARTUP
 echo $PYTHONSTARTUP
 valgrind --tool=memcheck --leak-resolution=high --trace-children=yes \
-         --log-file=sage --show-reachable=yes --leak-check=full  python -i
+         --log-file=$HOME/.sage/sage-memcheck --show-reachable=yes --leak-check=full  python -i

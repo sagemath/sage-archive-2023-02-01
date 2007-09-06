@@ -58,7 +58,7 @@ cdef class TripleDict:
         [(('c', 'b', 'a'), -1)]
         sage: len(L)
         1
-        sage: L.stats()             # random -- min, avg, max (bucket length)
+        sage: L.stats()             # min, avg, max (bucket length)
         (0, 0.032258064516129031, 1)
         sage: L.bucket_lens()       # random layout
         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -71,7 +71,7 @@ cdef class TripleDict:
         sage: L.bucket_lens()       # random layout
         [33, 34, 32, 32, 35, 32, 31, 33, 34, 31, 32, 34, 32, 31, 31, 32, 32, 31, 31, 33, 32, 32, 32, 33, 33, 33, 31, 33, 33, 32, 31]
         sage: L = TripleDict(101, L)
-        sage: L.stats()
+        sage: L.stats()             # random
         (8, 9.9108910891089117, 11)
         sage: L = TripleDict(3, L)
         sage: L.stats()             # random
@@ -90,6 +90,8 @@ cdef class TripleDict:
         Traceback (most recent call last):
         ...
         KeyError: 'a'
+
+    The following illistrates why even sizes are bad.
         sage: L = TripleDict(4, L)
         sage: L.stats()
         (0, 250.25, 1001)

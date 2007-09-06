@@ -242,8 +242,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         self._action_maps = TripleDict(lookup_dict_sizes)
 
     cdef bin_op_c(self, x, y, op):
-
-        if (op is not op_add) and (op is not op_sub) and (op is not op_iadd) and not (op is not op_isub):
+        if (op is not op_add) and (op is not op_sub) and (op is not op_iadd) and (op is not op_isub):
             # Actions take preference over common-parent coercions.
             xp = parent_c(x)
             yp = parent_c(y)

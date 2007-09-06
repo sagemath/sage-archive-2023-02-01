@@ -35,7 +35,6 @@ cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
     cdef ModuleElement _add_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
-    cdef ModuleElement _iadd_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
     cdef ModuleElement _sub_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
     cdef ModuleElement _neg_c(self)                         # do *NOT* override, but OK to call directly
     # self._rmul_c(x) is x * self
@@ -44,11 +43,15 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _lmul_c(self, RingElement right)     # do *NOT* override, but OK to call directly
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
     cdef ModuleElement _neg_c_impl(self)                       # OK to override, but do *NOT* call directly
     cdef ModuleElement _lmul_c_impl(self, RingElement right)   # OK to override, but do *NOT* call directly
     cdef ModuleElement _rmul_c_impl(self, RingElement left)    # OK to override, but do *NOT* call directly
+
+    # Inplace operations, override, do *NOT* call directly
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right)
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right)
+    cdef ModuleElement _ilmul_c_impl(self, RingElement right)
 
     # Coerce x to the base ring of self and return the result.
     cdef RingElement coerce_to_base_ring(self, x)
@@ -84,6 +87,10 @@ cdef class RingElement(ModuleElement):
 
     cdef RingElement _mul_c_impl(self, RingElement right)     # OK to override, but do *NOT* call directly
     cdef RingElement _div_c_impl(self, RingElement right)     # OK to override, but do *NOT* call directly
+
+    # Inplace operations, override, do *NOT* call directly
+    cdef RingElement _imul_c_impl(self, RingElement right)
+    cdef RingElement _idiv_c_impl(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass

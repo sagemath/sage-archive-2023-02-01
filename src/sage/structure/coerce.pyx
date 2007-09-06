@@ -6,6 +6,10 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+cdef extern from *:
+    ctypedef struct RefPyObject "PyObject":
+        int ob_refcnt
+
 
 include "../ext/stdsage.pxi"
 include "../ext/python_tuple.pxi"
@@ -173,9 +177,36 @@ cdef class CoercionModel_original(CoercionModel):
         raise TypeError, arith_error_message(x,y,op)
 
 
-# just so we can detect these fast to avoid action-searching
-cdef op_add, op_sub
-from operator import add as op_add, sub as op_sub
+# so we can compare against these fast (e.g. to avoid action-searching)
+cdef op_add, op_sub, op_mul, op_div
+from operator import add as op_add, sub as op_sub, mul as op_mul, div as op_div
+cdef op_iadd, op_isub, op_imul, op_idiv
+from operator import iadd as op_iadd, isub as op_isub, imul as op_imul, idiv as op_idiv
+
+cdef inline inplace_op(op):
+    if op is op_add:
+        return op_iadd
+    elif op is op_sub:
+        return op_isub
+    elif op is op_mul:
+        return op_imul
+    elif op is op_div:
+        return op_idiv
+    else:
+        return operator.__dict__['i'+op.__name__]
+
+cdef inline no_inplace_op(op):
+    if op is op_iadd:
+        return op_add
+    elif op is op_isub:
+        return op_sub
+    elif op is op_imul:
+        return op_mul
+    elif op is op_idiv:
+        return op_div
+    else:
+        return operator.__dict__[op.__name__[1:]]
+
 
 cdef class CoercionModel_cache_maps(CoercionModel_original):
     """
@@ -212,7 +243,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 
     cdef bin_op_c(self, x, y, op):
 
-        if (op is not op_add) and (op is not op_sub):
+        if (op is not op_add) and (op is not op_sub) and (op is not op_iadd) and not (op is not op_isub):
             # Actions take preference over common-parent coercions.
             xp = parent_c(x)
             yp = parent_c(y)
@@ -412,6 +443,16 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                             return ~action
                         except TypeError:
                             pass
+
+
+        if op.__name__[0] == 'i':
+            try:
+                a = self.discover_action_c(R, S, no_inplace_op(op))
+                if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                    (<RightModuleAction>a).is_inplace = True
+                return a
+            except KeyError:
+                return None
 
 
 
@@ -751,6 +792,7 @@ cdef class RightModuleAction(Action):
             raise TypeError
 
         Action.__init__(self, G, S, False, operator.mul)
+        self.is_inplace = False
 
     cdef Element _call_c_impl(self, Element a, Element g):
         if self.connecting is not None:

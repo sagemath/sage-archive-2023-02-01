@@ -57,3 +57,14 @@ cdef inline arith_error_message(x, y, op):
             n = op.__name__
         return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(n, parent_c(x), parent_c(y))
 
+cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._add_(right)
+    else:
+        return left._add_c_impl(right)
+
+cdef inline ModuleElement _iadd_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._iadd_(right)
+    else:
+        return left._iadd_c_impl(right)

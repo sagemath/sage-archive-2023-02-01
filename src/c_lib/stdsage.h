@@ -86,13 +86,6 @@ extern "C" {
 #define HAS_DICTIONARY(zzz_obj) \
     (((PyObject*)(zzz_obj))->ob_type->tp_dictoffset != NULL)
 
-/**
- * Very very unsafe access to the list of pointers to PyObject*'s
- * underlying a list / sequence.  This does error checking of any kind
- * -- make damn sure you hand it a list or sequence!
- */
-#define FAST_SEQ_UNSAFE(zzz_obj) \
-    PySequence_Fast_ITEMS(PySequence_Fast(zzz_obj, "expected sequence type"))
 
 /** Returns the type field of a python object, cast to void*. The
  *  returned value should only be used as an opaque object e.g. for
@@ -111,7 +104,6 @@ extern "C" {
  */
 #define IS_INSTANCE(zzz_obj, zzz_type) \
     PyBool_FromLong(PY_TYPE_CHECK(zzz_obj, zzz_type))
-
 
 /**
  * A global empty python tuple object. This is used to speed up some

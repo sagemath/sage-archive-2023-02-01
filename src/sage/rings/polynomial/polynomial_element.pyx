@@ -2726,6 +2726,21 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) >= len(y):
+            for i from 0 <= i < len(y):
+                x[i] += y[i]
+        else:
+            for i from 0 <= i < len(x):
+                x[i] += y[i]
+            x += y[len(x):]
+        if len(x) == len(y):
+            self.__normalize()
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs

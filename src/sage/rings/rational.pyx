@@ -869,6 +869,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        mpq_add(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x

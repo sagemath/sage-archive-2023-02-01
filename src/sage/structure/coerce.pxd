@@ -36,3 +36,4 @@ cdef class LeftModuleAction(Action):
 cdef class RightModuleAction(Action):
     cdef Morphism connecting
     cdef extended_base
+    cdef bint is_inplace

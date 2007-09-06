@@ -154,6 +154,13 @@ and classes are similar. There are four relevant functions.
 """
 
 
+cdef extern from *:
+    ctypedef struct RefPyObject "PyObject":
+        int ob_refcnt
+
+
+
+
 ##################################################################
 # Generic element, so all this functionality must be defined
 # by any element.  Derived class must call __init__
@@ -640,9 +647,36 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
         if have_same_parent(left, right):
-            return (<ModuleElement>left)._add_c(<ModuleElement>right)
+            if  (<RefPyObject *>left).ob_refcnt <= 2:
+                # This is a temporary variable (incref due to calling, and at the top of this fn).
+                return (<ModuleElement>left)._iadd_c(<ModuleElement>right)
+            else:
+                return (<ModuleElement>left)._add_c(<ModuleElement>right)
         global coercion_model
         return coercion_model.bin_op_c(left, right, operator.add)
+
+    def __iadd__(ModuleElement self, right):
+        if have_same_parent(self, right):
+            if  (<RefPyObject *>self).ob_refcnt <= 3:
+                return self._iadd_c(<ModuleElement>right)
+            else:
+                return self._add_c(right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op_c(self, right, operator.iadd)
+
+    cdef ModuleElement _iadd_c(self, ModuleElement right):
+        if HAS_DICTIONARY(self):
+            return self._iadd_(right)
+        else:
+            return self._iadd_c_impl(right)
+
+    def _iadd_(self, right):
+        return self._iadd_c_impl(right)
+
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        return self._add_c(right)
+
 
     cdef ModuleElement _add_c(left, ModuleElement right):
         """

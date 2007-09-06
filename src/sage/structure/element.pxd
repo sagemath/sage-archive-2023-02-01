@@ -35,6 +35,7 @@ cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
     cdef ModuleElement _add_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
+    cdef ModuleElement _iadd_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
     cdef ModuleElement _sub_c(self, ModuleElement right)    # do *NOT* override, but OK to call directly
     cdef ModuleElement _neg_c(self)                         # do *NOT* override, but OK to call directly
     # self._rmul_c(x) is x * self
@@ -43,6 +44,7 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _lmul_c(self, RingElement right)     # do *NOT* override, but OK to call directly
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)  # OK to override, but do NOT call
     cdef ModuleElement _neg_c_impl(self)                       # OK to override, but do *NOT* call directly
     cdef ModuleElement _lmul_c_impl(self, RingElement right)   # OK to override, but do *NOT* call directly

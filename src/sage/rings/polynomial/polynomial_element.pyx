@@ -11,7 +11,6 @@ TESTS:
      sage: f = x^5 + 2*x^2 + (-1)
      sage: f == loads(dumps(f))
      True
-
 """
 
 ################################################################################
@@ -793,6 +792,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
+        Return string representatin of this polynomial.
+
         EXAMPLES:
             sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
@@ -1080,6 +1081,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         S = self.parent().base_extend(R)
         return S(self)
+
+    def change_variable_name(self, var):
+        """
+        Return a new polynomial over the same base ring but in a different
+        variable.
+
+        EXAMPLES:
+            sage: x = polygen(QQ,'x')
+            sage: f = -2/7*x^3 + (2/3)*x - 19/993; f
+            -2/7*x^3 + 2/3*x - 19/993
+            sage: f.change_variable_name('theta')
+            -2/7*theta^3 + 2/3*theta - 19/993
+        """
+        R = self.parent().base_ring()[var]
+        return R(self.list())
+
 
     def change_ring(self, R):
         """
@@ -1558,7 +1575,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = L['x']
             sage: f = x^3 + x + 17
             sage: f.root_field('c')
-            Extension by x^3 + x + 17 of the Number Field in a with defining polynomial x^3 - 2
+            Number Field in c with defining polynomial x^3 + x + 17 over its base field
 
             sage: R.<x> = PolynomialRing(GF(9,'a'))
             sage: f = x^3 + x^2 + 8
@@ -1927,7 +1944,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._pari_with_name(self.parent().variable_name())
 
     def _pari_with_name(self, name):
-        r"""Return polynomial as a PARI object with topmost variable \code{name}.
+        r"""
+        Return polynomial as a PARI object with topmost variable \code{name}.
 
         For internal use only.
         """
@@ -2167,11 +2185,37 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RDF[]
             sage: f = R.cyclotomic_polynomial(5); f
             1.0*x^4 + 1.0*x^3 + 1.0*x^2 + 1.0*x + 1.0
-            sage: f.roots()
+            sage: f.roots()   # slightly random
             [0.309016994375 + 0.951056516295*I, 0.309016994375 - 0.951056516295*I, -0.809016994375 + 0.587785252292*I, -0.809016994375 - 0.587785252292*I]
-            sage: [z^5 for z in f.roots()]   # slightly random output
-            [1.0 - 2.44921270764e-16*I, 1.0 + 2.44921270764e-16*I, 1.0 - 4.89842541529e-16*I, 1.0 + 4.89842541529e-16*I]
+            sage: [z^5 for z in f.roots()]     # slightly random
+            [1.0 - 2.44929359829e-16*I, 1.0 + 2.44929359829e-16*I, 1.0 - 4.89858719659e-16*I, 1.0 + 4.89858719659e-16*I]
+            sage: f = RDF['x']([1,2,3,4]); f
+            4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
+            sage: r = f.roots()
+            sage: [f(a) for a in r]    # slightly random
+            [2.55351295664e-15, -4.4408920985e-16 - 2.08166817117e-16*I, -4.4408920985e-16 + 2.08166817117e-16*I]
 
+        NOTE: This is a note about numerical root finding when the
+        input polynomial is double precision:  Multiple roots are a
+        very bad case for floating-point root finding.  Unless the
+        solver includes special-purpose heuristics to detect multiple
+        roots, it's basically impossible to get an "accurate" result;
+        if your input is given to  n bits of precision, you should not expect
+        more than n/k good bits for a k-fold root.  (As William points out,
+        you can get solutions that make the polynomial evaluate to a number
+        very close to zero; basically the problem is that with a multiple
+        root, there are many such numbers, and it's difficult to choose
+        between them.)
+
+        To see why this is true, consider the naive floating-point error
+        analysis model where you just pretend that all floating-point numbers
+        are somewhat imprecise -- a little "fuzzy", if you will.  Then the
+        graph of a floating-point polynomial will be a fuzzy line.  Consider
+        the graph of $(x-1)^3$; this will be a fuzzy line with a horizontal
+        tangent at $x=1$, $y=0$.  If the fuzziness extends up and down by about j,
+        then it will extend left and right by about cube_root(j).
+
+          -- Carl Witty
         """
         seq = []
 
@@ -2189,7 +2233,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         elif sage.rings.real_double.is_RealDoubleField(K):
             import numpy
-            r = numpy.roots(numpy.array(self.list(), dtype='double'))
+            r = numpy.roots(numpy.array(list(reversed(self.list())), dtype='double'))
             CDF = sage.rings.complex_double.CDF
             return [CDF(z) for z in r]
 
@@ -2432,7 +2476,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^6 + x^2 + -x^4 - 2*x^3
             sage: f.norm(2)
             2.64575131106459
-            sage: N(sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2))
+            sage: (sqrt(1^2 + 1^2 + (-1)^2 + (-2)^2)).n()
             2.64575131106459
 
             sage: f.norm(1)

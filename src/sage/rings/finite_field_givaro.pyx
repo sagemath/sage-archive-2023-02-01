@@ -1880,7 +1880,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         n = self.log(g)
         return 'Z(%s)^%s'%(F.order_c(), n)
 
-    def charpoly(FiniteField_givaroElement self, var):
+    def charpoly(FiniteField_givaroElement self, var='x'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
 

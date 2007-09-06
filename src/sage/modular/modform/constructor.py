@@ -41,11 +41,38 @@ import element
 
 
 def canonical_parameters(group, weight, base_ring):
+    """
+    Given a group, weight, and base_ring as input by the user,
+    return a canonicalized version of them, where group really
+    is a group, weight a SAGE integer, and base_ring a SAGE
+    ring.
+
+    INPUT:
+        group -- int, long, SAGE integer, group, dirichlet character
+        weight -- coercible to SAGE integer
+        base_ring -- commutative SAGE ring
+
+    OUTPUT:
+        level -- SAGE integer
+        group -- congruence subgroup
+        weight -- SAGE integer
+        ring -- commutative SAGE ring
+
+    EXAMPLES:
+        sage: from sage.modular.modform.constructor import canonical_parameters
+        sage: v = canonical_parameters(5, int(7), ZZ); v
+        (5, Congruence Subgroup Gamma0(5), 7, Integer Ring)
+        sage: type(v[0]), type(v[1]), type(v[2]), type(v[3])
+        (<type 'sage.rings.integer.Integer'>,
+         <class 'sage.modular.congroup.Gamma0'>,
+         <type 'sage.rings.integer.Integer'>,
+         <type 'sage.rings.integer_ring.IntegerRing_class'>)
+    """
     weight = rings.Integer(weight)
     if weight <= 1:
         raise NotImplementedError, "weight must be at least 2"
 
-    if isinstance(group, (int, rings.Integer)):
+    if isinstance(group, (int, long, rings.Integer)):
         group = congroup.Gamma0(group)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
@@ -161,8 +188,18 @@ def ModularForms(group  = 1,
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
+    elif congroup.is_GammaH(group):
+        M = ambient.ModularFormsAmbient(group, weight, rings.QQ)
+        if base_ring != rings.QQ:
+            M = ambient_R.ModularFormsAmbient_R(M, base_ring)
+
     elif isinstance(group, dirichlet.DirichletCharacter):
         eps = group
+        if eps.base_ring().characteristic() != 0:
+            # TODO -- implement this
+            # Need to add a lift_to_char_0 function for characters,
+            # and need to still remember eps.
+            raise NotImplementedError, "currently the character must be over a ring of characteristic 0."
         eps = eps.minimize_base_ring()
         if eps.is_trivial():
             return ModularForms(eps.modulus(), weight, base_ring,

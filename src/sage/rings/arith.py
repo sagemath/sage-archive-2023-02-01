@@ -1648,13 +1648,43 @@ def is_square(n, root=False):
     Returns whether or not n is square, and if n is a square
     also returns the square root.  If n is not square, also
     returns None.
+
     INPUT:
         n -- an integer
         root -- whether or not to also return a square root (default: False)
     OUTPUT:
         bool -- whether or not a square
-        object --
+        object -- (optional) an actual square if found, and None otherwise.
+
+    EXAMPLES:
+        sage: is_square(2)
+        False
+        sage: is_square(4)
+        True
+        sage: is_square(2.2)
+        True
+        sage: is_square(-2.2)
+        False
+        sage: is_square(CDF(-2.2))
+        True
+        sage: is_square((x-1)^2)
+        True
+
+        sage: is_square(4, True)
+        (True, 2)
     """
+    try:
+        if root:
+            try:
+                return n.is_square(root)
+            except TypeError:
+                if n.is_square():
+                    return True, n.sqrt()
+                else:
+                    return False, None
+        return n.is_square()
+    except AttributeError:
+        pass
     t, x = pari(n).issquare(find_root=True)
     if root:
         if t:

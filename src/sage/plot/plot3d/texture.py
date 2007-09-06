@@ -62,6 +62,8 @@ class Texture_class(SageObject):
         if not isinstance(color, tuple):
             color = parse_color(color)
         else:
+            if len(color) == 4:
+                opacity = color[3]
             color = (float(color[0]), float(color[1]), float(color[2]))
 
         self.color = color
@@ -104,6 +106,6 @@ class Texture_class(SageObject):
                    "Kd %s %s %s" % self.diffuse,
                    "Ks %s %s %s" % self.specular,
                    "illum %s" % (2 if sum(self.specular) > 0 else 1),
-                   "Tr %s" % self.opacity,
-                   "Ns %s" % self.shininess ])
+                   "Ns %s" % self.shininess,
+                   "d %s" % self.opacity, ])
 

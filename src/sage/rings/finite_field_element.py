@@ -409,7 +409,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         n = self.log(g)
         return 'Z(%s)^%s'%(F.order(), n)
 
-    def charpoly(self, var):
+    def charpoly(self, var='x'):
         """
         Returns the characteristic polynomial of this element.
 

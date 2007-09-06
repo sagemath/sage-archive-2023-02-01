@@ -50,6 +50,12 @@ of $q$-expansions has not been computed yet).
     sage: M.cuspidal_submodule()
     Cuspidal subspace of dimension 476 of Modular Forms space of dimension 484, character [1, zeta20] and weight 17 over Cyclotomic Field of order 20 and degree 8
 
+TESTS:
+    sage: m = ModularForms(DirichletGroup(20).1,5)
+    sage: m == loads(dumps(m))
+    True
+    sage: type(m)
+    <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
 """
 
 #########################################################################
@@ -81,21 +87,47 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         Create an ambient modular forms space with character.
 
+        NOTE that the base ring must be of characteristic 0.  The
+        ambient_R Python module is used for computing in
+        characteristic p, which we view as the reduction of
+        characteristic 0.
+
         INPUT:
             weight -- int
             character -- dirichlet.DirichletCharacter
             base_ring -- base field
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(11).0,3); m
+            Modular Forms space of dimension 3, character [zeta10] and weight 3 over Cyclotomic Field of order 10 and degree 4
+            sage: type(m)
+            <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
         """
         if not dirichlet.is_DirichletCharacter(character):
             raise TypeError, "character (=%s) must be a Dirichlet character"%character
         if base_ring==None: base_ring=character.base_ring()
         if character.base_ring() != base_ring:
             character = character.change_ring(base_ring)
+        if base_ring.characteristic() != 0:
+            raise ValueError, "the base ring must have characteristic 0."
         group = congroup.Gamma1(character.modulus())
         base_ring = character.base_ring()
         ambient.ModularFormsAmbient.__init__(self, group, weight, base_ring, character)
 
     def _repr_(self):
+        """
+        String representation of this space with character.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(8).1,2)
+            sage: m._repr_()
+            'Modular Forms space of dimension 2, character [1, -1] and weight 2 over Rational Field'
+
+        You can rename the space with the rename command.
+            sage: m.rename('Modforms of level 8')
+            sage: m
+            Modforms of level 8
+        """
         return "Modular Forms space of dimension %s, character %s and weight %s over %s"%(
             self.dimension(), self.character(), self.weight(), self.base_ring())
 
@@ -117,6 +149,25 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return self.__cuspidal_submodule
 
     def change_ring(self, base_ring):
+        """
+        Return space with same defining parameters as this ambient
+        space of modular symbols, but defined over a different base
+        ring.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
+            sage: m.change_ring(CyclotomicField(12))
+            Modular Forms space of dimension 3, character [zeta12^2] and weight 2 over Cyclotomic Field of order 12 and degree 4
+
+        It must be possible to change the ring of the underlying Dirichlet character:
+            sage: m.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce zeta6 to a rational
+        """
+        if self.base_ring() == base_ring:
+            return self
         return ModularFormsAmbient_eps(character = self.character(),
                                        weight    = self.weight(),
                                        base_ring = base_ring)
@@ -154,6 +205,17 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return self.__modsym[sign]
 
     def eisenstein_submodule(self):
+        """
+        Return the submodule of this ambient module with character that is
+        spanned by Eisenstein series.  This is the Hecke stable complement
+        of the cuspidal submodule.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
+            sage: m.eisenstein_submodule()
+            Eisenstein subspace of dimension 2 of Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
+        """
         try:
             return self.__eisenstein_submodule
         except AttributeError:
@@ -164,6 +226,13 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
     # Computations of Dimensions
     ####################################################################
     def _dim_cuspidal(self):
+        """
+        Return the dimension of the cuspidal subspace, computed using a dimension formula.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(389,CyclotomicField(4)).0,3); m._dim_cuspidal()
+            64
+        """
         try:
             return self.__the_dim_cuspidal
         except AttributeError:
@@ -172,6 +241,18 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return self.__the_dim_cuspidal
 
     def _dim_eisenstein(self):
+        """
+        Return the dimension of the Eisenstein subspace of this space, computed
+        using a dimension formula.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(13).0,7); m
+            Modular Forms space of dimension 8, character [zeta12] and weight 7 over Cyclotomic Field of order 12 and degree 4
+            sage: m._dim_eisenstein()
+            2
+            sage: m._dim_cuspidal()
+            6
+        """
         try:
             return self.__the_dim_eisenstein
         except AttributeError:
@@ -179,6 +260,18 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return self.__the_dim_eisenstein
 
     def _dim_new_cuspidal(self):
+        """
+        Return the dimension of the new cuspidal subspace, computed
+        using a dimension formula.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(33).0,7); m
+            Modular Forms space of dimension 26, character [-1, 1] and weight 7 over Rational Field
+            sage: m._dim_new_cuspidal()
+            20
+            sage: m._dim_cuspidal()
+            22
+        """
         try:
             return self.__the_dim_new_cuspidal
         except AttributeError:
@@ -187,6 +280,18 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return self.__the_dim_new_cuspidal
 
     def _dim_new_eisenstein(self):
+        """
+        Return the dimension of the new Eisenstein subspace, computed
+        by enumerating all Eisenstein series of the appropriate level.
+
+        EXAMPLES:
+            sage: m = ModularForms(DirichletGroup(36).0,5); m
+            Modular Forms space of dimension 28, character [-1, 1] and weight 5 over Rational Field
+            sage: m._dim_new_eisenstein()
+            2
+            sage: m._dim_eisenstein()
+            8
+        """
         try:
             return self.__the_dim_new_eisenstein
         except AttributeError:
@@ -199,6 +304,6 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
                 E = self.eisenstein_series()
                 d = len([g for g in E if g.new_level() == self.level()])
             self.__the_dim_new_eisenstein = d
-        return self.__the_dim_new_cuspidal
+        return self.__the_dim_new_eisenstein
 
 

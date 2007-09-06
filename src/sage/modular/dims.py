@@ -423,6 +423,8 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
         return dimension_new_cusp_forms_gamma0(group.level(), k, p)
     elif isinstance(group, congroup.Gamma1):
         return dimension_new_cusp_forms_gamma1(group.level(), k, p)
+    elif congroup.is_GammaH(group):
+        return dimension_new_cusp_forms_H(group, k, p)
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
         Gamma0 and Gamma1 is not yet implemented."
@@ -564,16 +566,41 @@ def dimension_cusp_forms_H(G,k):
 def dimension_eis_H(G,k):
     N = G.level()
     H = G._list_of_elements_in_H()
-    if k%Integer(2) == Integer(1) and N-Integer(1) in H: return Integer(0)
-    if k == Integer(2): dim-= Integer(1)
+    if k%Integer(2) == Integer(1) and N-Integer(1) in H:
+        return Integer(0)
     if k%Integer(2) == Integer(0):
-        return nuinfH(N,H)
+        dim = nuinfH(N,H)
     else:
-        return nuinfHreg(N,H)
+        dim = nuinfHreg(N,H)
+    if k == Integer(2):
+        dim -= Integer(1)
     return dim
 
-def dimension_modular_forms_H(G,k):
-    return dimension_eis_H(G,k) + dimension_cusp_forms_H(G,k)
+def dimension_new_cusp_forms_H(G,k, p=0):
+    """
+    INPUT:
+        G -- group of the form Gamma_H(N)
+        k -- an integer at least 2 (the weight)
+        p -- integer (default: 0); if nonzero, compute the p-new subspace.
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: from sage.modular.dims import *
+        sage: dimension_new_cusp_forms_H(GammaH(33,[2]), 2)
+        3
+    """
+    N = G.level()
+    if p==0 or N%p!=0:
+        return sum([dimension_cusp_forms_H(H,k) * mumu(N // H.level()) \
+                for H in G.divisor_subgroups()])
+    else:
+        return dimension_new_cusp_forms_H(G,k) - \
+               2*dimension_new_cusp_forms_H(G.restrict(N//p),k)
+
+
+#######
 
 def multgroup(N):
     return [x for x in range(N) if gcd(x,N) == Integer(1)]

@@ -49,6 +49,9 @@ class TextCell(Cell_generic):
         self.__text = text
         self.__worksheet = worksheet
 
+    def set_input_text(self, input_text):
+        self.__text = input_text
+
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
         if not id is None:
@@ -513,8 +516,8 @@ class Cell(Cell_generic):
         if not do_print:
             s += self.html_new_cell_before()
 
-        if do_print:
-            ncols = 70
+        #if do_print:
+        #    ncols = 70
 
         r = max(1, number_of_rows(t.strip(), ncols))
 
@@ -575,8 +578,12 @@ class Cell(Cell_generic):
                 continue
             url = "%s/%s"%(self.url_to_self(), F)
             if F.endswith('.png') or F.endswith('.bmp') or \
-                   F.endswith('.jpg') or F.endswith('.gif'):
+                    F.endswith('.jpg') or F.endswith('.gif'):
                 images.append('<img src="%s?%d">'%(url, self.version()))
+            elif F.endswith('.obj'):
+                images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
+            elif F.endswith('.mtl') or F.endswith(".objmeta"):
+                pass
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
             else:

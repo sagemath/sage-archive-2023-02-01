@@ -64,8 +64,8 @@ from integer_mod import IntegerMod, Mod, mod, is_IntegerMod
 Integers = IntegerModRing
 
 # Finite fields
-from finite_field import (FiniteField, is_FiniteField, GF,
-                          conway_polynomial, exists_conway_polynomial)
+from finite_field import (FiniteField, is_FiniteField, is_PrimeFiniteField,
+                          GF, conway_polynomial, exists_conway_polynomial)
 from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 
 # Number field
@@ -100,7 +100,7 @@ from real_mpfi import (RealIntervalField, is_RealIntervalField,
 
 # Complex numbers
 from complex_field import ComplexField, is_ComplexField
-from complex_number import ComplexNumber, is_ComplexNumber
+from complex_number import (is_ComplexNumber, create_ComplexNumber as ComplexNumber)
 Complexes = ComplexField
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
@@ -134,7 +134,7 @@ from contfrac import continued_fraction, CFF, ContinuedFractionField
 # Arithmetic
 from arith import *
 
-from bernoulli_mod_p import bernoulli_mod_p
+from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from morphism import is_RingHomomorphism
 

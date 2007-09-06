@@ -14,6 +14,18 @@ import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 
+def is_ModularFormElement(x):
+    """
+    Return True if x is a modular form.
+
+    EXAMPLES:
+        sage: is_ModularFormElement(5)
+        False
+        sage: is_ModularFormElement(ModularForms(11).0)
+        True
+    """
+    return isinstance(x, ModularFormElement)
+
 class ModularFormElement(element.HeckeModuleElement):
     """
     An element of a space of modular forms.
@@ -42,6 +54,12 @@ class ModularFormElement(element.HeckeModuleElement):
             raise TypeError, "Second argument must be a modular form."
         if self.ambient_module() != other.ambient_module():
             raise ArithmeticError, "Modular forms must be in the same ambient space."
+
+    def __call__(self, x, prec=None):
+        """
+        Evaluate the q-expansion of this modular form at x.
+        """
+        return self.q_expansion(prec)(x)
 
     def _add_(self, other):
         return ModularFormElement(self.ambient_module(), self.element() + other.element())
@@ -147,7 +165,8 @@ class ModularFormElement(element.HeckeModuleElement):
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
-            current_prec, f = -1, 0
+            zero = self.parent()._q_expansion_ring()(0, -1)
+            current_prec, f = 0, zero
         if current_prec == prec:
             return f
         elif current_prec > prec:

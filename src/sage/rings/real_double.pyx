@@ -65,7 +65,7 @@ cdef class RealDoubleField_class(Field):
         return False
 
     def _latex_(self):
-        return "\\R"
+        return "\\mathbf{R}"
 
     def __repr__(self):
         """
@@ -1566,7 +1566,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
 hook_fast_tp_functions()
 
-def hook_fast_tp_functions():
+cdef hook_fast_tp_functions():
     """
     """
     global global_dummy_element

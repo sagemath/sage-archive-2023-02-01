@@ -23,6 +23,8 @@ import traceback
 import time
 import crypt
 
+import sage.misc.remote_file as remote_file
+
 import bz2
 
 import re
@@ -836,8 +838,8 @@ class Worksheet:
  <option title="Restart the worksheet" value="restart_sage();">Restart</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
- <option title="Hide all output" value="hide_all();">Hide All</option>
- <option title="Show all output" value="show_all();">Show All</option>
+ <option title="Hide all output" value="hide_all();">Hide All Output</option>
+ <option title="Show all output" value="show_all();">Show All Output</option>
  <option value="">---------------------------</option>
  <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
@@ -1775,6 +1777,8 @@ class Worksheet:
         return [self.directory() + '/data/'] + [D + x for x in os.listdir(D)]
 
     def hunt_file(self, filename):
+        if filename.lower().startswith('http://'):
+            filename = remote_file.get_remote_file(filename)
         if not os.path.exists(filename):
             fn = os.path.split(filename)[-1]
             for D in self.load_path():
@@ -1864,9 +1868,9 @@ class Worksheet:
 
         return '\n'.join(u)
 
-    def _eval_cmd(self, system, cmd):
+    def _eval_cmd(self, system, cmd, dir):
         cmd = cmd.replace("'", "\\u0027")
-        return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
+        return "print _support_.syseval(%s, ur'''%s''', '%s')"%(system, cmd, dir)
 
     ##########################################################
     # Parsing the %cython, %jsmath, %python, etc., extension.
@@ -1899,7 +1903,7 @@ class Worksheet:
                 s = after_first_word(s).lstrip()
                 z = s
             else:
-                return True, self._eval_cmd(S, s)
+                return True, self._eval_cmd(S, s, os.path.abspath(C.directory()))
 
         if len(s) == 0 or s[0] != '%':
             return False, z
@@ -1928,7 +1932,7 @@ class Worksheet:
             j = min(i,j)
         sys = s[1:j]
         s = s[i+1:]
-        cmd = self._eval_cmd(sys, s)
+        cmd = self._eval_cmd(sys, s, os.path.abspath(C.directory()))
         if sys == 'html':
             C.set_is_html(True)
         return True, cmd

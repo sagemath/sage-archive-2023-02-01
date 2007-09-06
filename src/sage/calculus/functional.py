@@ -39,7 +39,7 @@ def derivative(f, *args, **kwds):
         (a, x)
         sage: f = exp(sin(a - x^2))/x
         sage: diff(f, x)
-        -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - (e^(-sin(x^2 - a))/x^2)
+        -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - e^(-sin(x^2 - a))/x^2
         sage: diff(f, a)
         cos(x^2 - a)*e^(-sin(x^2 - a))/x
     """
@@ -142,7 +142,7 @@ def integral(f, *args, **kwds):
 
     SAGE can't do this elliptic integral (yet):
         sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
-        integrate(1/(sqrt(2*t^4 - 3*t^2 - 2)), t, 2, 3)
+        integrate(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
 
     A double integral:
         sage: y = var('y')
@@ -181,7 +181,7 @@ def integral(f, *args, **kwds):
 
 integrate = integral
 
-def limit(f, dir=None, **argv):
+def limit(f, dir=None, taylor=False, **argv):
     r"""
     Return the limit as the variable v approaches a from the
     given direction.
@@ -196,6 +196,9 @@ def limit(f, dir=None, **argv):
                for a limit from above, `minus' (or 'below') for a limit from
                below, or may be omitted (implying a two-sided
                limit is to be computed).
+        taylor -- (default: False); if True, use Taylor series, which
+               allows more integrals to be computed (but may also crash
+               in some obscure cases due to bugs in Maxima).
         **argv -- 1 named parameter
 
     ALIAS: You can also use lim instead of limit.
@@ -209,15 +212,19 @@ def limit(f, dir=None, **argv):
         0
         sage: lim(1/x, x=0)
         und
+        sage: limit(sqrt(x^2+x+1)+x, taylor=True, x=-oo)
+        -1/2
+        sage: limit((tan(sin(x)) - sin(tan(x)))/x^7, taylor=True, x=0)
+        1/30
 
     SAGE does not know how to do this limit (which is 0),
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-         limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
+        limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
     """
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
-    return f.limit(dir=dir, **argv)
+    return f.limit(dir=dir, taylor=taylor, **argv)
 
 lim = limit
 
@@ -235,7 +242,7 @@ def taylor(f, v, a, n):
         sage: var('x,k,n')
         (x, k, n)
         sage: taylor (sqrt (1 - k^2*sin(x)^2), x, 0, 6)
-        1 - (k^2*x^2/2) - ((3*k^4 - 4*k^2)*x^4/24) - ((45*k^6 - 60*k^4 + 16*k^2)*x^6/720)
+        1 - k^2*x^2/2 - (3*k^4 - 4*k^2)*x^4/24 - (45*k^6 - 60*k^4 + 16*k^2)*x^6/720
         sage: taylor ((x + 1)^n, x, 0, 4)
         1 + n*x + (n^2 - n)*x^2/2 + (n^3 - 3*n^2 + 2*n)*x^3/6 + (n^4 - 6*n^3 + 11*n^2 - 6*n)*x^4/24
 
@@ -302,7 +309,7 @@ def laplace(f, t, s):
         sage: f = exp (2*t + a) * sin(t) * t; f
         t*e^(2*t + a)*sin(t)
         sage: L = laplace(f, t, s); L
-        e^a*(2*s - 4)/((s^2 - 4*s + 5)^2)
+        e^a*(2*s - 4)/(s^2 - 4*s + 5)^2
         sage: inverse_laplace(L, s, t)
         t*e^(2*t + a)*sin(t)
 
@@ -325,7 +332,7 @@ def inverse_laplace(f, t, s):
         sage: f(t) = t*cos(t)
         sage: s = var('s')
         sage: L = laplace(f, t, s); L
-        t |--> 2*s^2/(s^2 + 1)^2 - (1/(s^2 + 1))
+        t |--> 2*s^2/(s^2 + 1)^2 - 1/(s^2 + 1)
         sage: inverse_laplace(L, s, t)
         t |--> t*cos(t)
         sage: print inverse_laplace(1/(s^3+1), s, t)

@@ -141,8 +141,10 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
         sage: S = CuspForms(DirichletGroup(5).0,5); S
         Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3, character [zeta4] and weight 5 over Cyclotomic Field of order 4 and degree 2
 
-        sage: S.basis()              # long time
-        (q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6),)
+        sage: S.basis()
+        [
+        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)
+        ]
         sage: f = S.0
         sage: f.qexp()
         q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)

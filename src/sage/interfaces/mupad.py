@@ -35,7 +35,7 @@ class Mupad(Expect):
     """
     Interface to the MuPAD interpreter.
     """
-    def __init__(self, maxread=1000, script_subdirectory="", logfile=None):
+    def __init__(self, maxread=1000, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the MuPAD interpreter.
         """
@@ -45,6 +45,8 @@ class Mupad(Expect):
                         command = "mupkern -P e",
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
+                        server = server,
+                        server_tmpdir = server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         logfile = logfile)

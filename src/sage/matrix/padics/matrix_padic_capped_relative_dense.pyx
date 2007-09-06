@@ -120,6 +120,7 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+
     def __hash__(self):
         x = self.fetch('hash')
         if not x is None: return x
@@ -131,10 +132,9 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
         cdef Py_ssize_t i
         cdef long h
         h = 0
-        cdef PyObject** w
-        w = FAST_SEQ_UNSAFE(v)
+
         for i from 0 <= i < len(v):
-            h = h ^ (i * PyObject_Hash( <object> w[i] ))
+            h = h ^ (i * hash(v[i]))
         h = h ^ self._value_matrix._hash()
         self.cache('hash', h)
         return h

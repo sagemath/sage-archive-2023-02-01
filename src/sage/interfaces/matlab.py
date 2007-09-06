@@ -152,13 +152,14 @@ class Matlab(Expect):
            505
     """
     def __init__(self, maxread=100, script_subdirectory="",
-                 logfile=None, server=None):
+                 logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'matlab',
                         prompt = '>> ',
                         command = "matlab -nodisplay",
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -180,7 +181,7 @@ class Matlab(Expect):
         from SAGE.   You can read all about MATLAB at
                   http://www.mathworks.com/
 
-        You might have to buy MATLAB (list price: $1900).
+        You might have to buy MATLAB (list price: $1900) or get away with setting up a remote connection to a server running Maple. Do _install_hints_ssh() for hints on how to do that).
         """
 
     def _start(self):
@@ -189,19 +190,21 @@ class Matlab(Expect):
     def whos(self):
         return self.eval('whos')
 
-    def get_via_file(self, var_name):
-        t = self._temp_file(var_name)
-        self.eval('save -text "%s" %s'%(t,var_name))
-        r = open(t).read()
-        os.unlink(t)
-        return r.strip('\n')
+#    pdehaye/20070819: This is no obsolete, see Expect._get_tmpfile_from_server and Expect._send_tmpfile_to_server
 
-    def set_via_file(self, var_name, x):
-        t = self._temp_file(var_name)
-        open(t,'w').write(x)
-        print 'load "%s" %s'%(t, var_name)
-        self.eval('load "%s" %s'%(t, var_name))
-        #os.unlink(t)
+#    def get_via_file(self, var_name):
+#        t = self._temp_file(var_name)
+#        self.eval('save -text "%s" %s'%(t,var_name))
+#        r = open(t).read()
+#        os.unlink(t)
+#        return r.strip('\n')
+
+#    def set_via_file(self, var_name, x):
+#        t = self._temp_file(var_name)
+#        open(t,'w').write(x)
+#        print 'load "%s" %s'%(t, var_name)
+#        self.eval('load "%s" %s'%(t, var_name))
+#        #os.unlink(t)
 
     def set(self, var, value):
         """

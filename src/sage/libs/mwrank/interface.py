@@ -25,9 +25,14 @@ def set_precision(n):
 
     INPUT:
         n -- long
+
+    EXAMPLES:
+        sage: mwrank_set_precision(20)
     """
-    from sage.libs.mwrank.mwrank import _set_precision # import here to save time
-    _set_precision(n)
+    # don't want to load mwrank every time SAGE starts up, so we do
+    # the import here.
+    from sage.libs.mwrank.mwrank import set_precision
+    set_precision(n)
 
 class mwrank_EllipticCurve(SageObject):
     r"""

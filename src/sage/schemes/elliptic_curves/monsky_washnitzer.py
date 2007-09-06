@@ -273,6 +273,22 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
       column.extend([base_ring(0)] * (degree - len(column)))
     return coeffs
 
+  def __nonzero__(self):
+    return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+
+  def __cmp__(self, other):
+    """
+    EXAMPLES:
+      sage: B.<t> = PolynomialRing(Integers(125))
+      sage: x, t = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4)).gens()
+      sage: x == t
+      False
+      sage: x == x
+      True
+      sage: x == x + x - x
+      True
+    """
+    return cmp(self._triple, other._triple)
 
   def _repr_(self):
     return "(%s) + (%s)*x + (%s)*x^2" % self._triple
@@ -1178,8 +1194,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: max_prec = 60
       sage: M = monsky_washnitzer.adjusted_prec(p, max_prec)
       sage: R.<x> = PolynomialRing(Integers(p**M))
-      sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-      ...                         x^3 - x + R(1/4), p, M)         # long time
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)         # long time
       sage: A = A.change_ring(Integers(p**max_prec))              # long time
       sage: result = []                                           # long time
       sage: for prec in range(1, max_prec):                       # long time
@@ -1208,8 +1223,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: R.<x> = PolynomialRing(S)
       sage: Q = x**3 + a*x + b
       sage: A = monsky_washnitzer.matrix_of_frobenius(Q, p, M)    # long time
-      sage: B = A.change_ring(PowerSeriesRing(                    # long time
-      ...         Integers(p**prec), 't', default_prec=4))        # long time
+      sage: B = A.change_ring(PowerSeriesRing(Integers(p**prec), 't', default_prec=4))        # long time
       sage: B                                                     # long time
        [1144 + 264*t + 841*t^2 + 1025*t^3 + O(t^4)  176 + 1052*t + 216*t^2 + 523*t^3 + O(t^4)]
        [   847 + 668*t + 81*t^2 + 424*t^3 + O(t^4)   185 + 341*t + 171*t^2 + 642*t^3 + O(t^4)]
@@ -1480,7 +1494,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         CommutativeAlgebra.__init__(self, R)
 
-        x = PolynomialRing(R, 'x').gen(0)
+        x = PolynomialRing(R, 'xx').gen(0)
         if is_EllipticCurve(Q):
             E = Q
             if E.a1() != 0 or E.a2() != 0:
@@ -1508,7 +1522,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
                     self._curve = HyperellipticCurve(self._Q)
 
         else:
-            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
+            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)\n(Got element of %s)" % Q.parent()
 
         self._n = degree = int(Q.degree())
 
@@ -1671,6 +1685,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         self._f = parent._poly_ring(val)
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f])
+
+    def __cmp__(self, other):
+      """
+      EXAMPLES:
+      """
+      return cmp(self._f, other._f)
 
     def change_ring(self, R):
         return self.parent().change_ring(R)(self)
@@ -1972,6 +1992,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Return $A$ where $A dx/2y = self$.
         """
         return self._coeff
+
+    def __nonzero__(self):
+        return not not self._coeff
 
     def _repr_(self):
         s = self._coeff._repr_()

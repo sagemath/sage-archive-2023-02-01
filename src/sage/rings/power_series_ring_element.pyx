@@ -329,6 +329,9 @@ cdef class PowerSeries(AlgebraElement):
         Includes 0's in the list on the right so that the list has
         length $n$.
 
+        INPUT:
+            n -- an integer that is at least 0
+
         EXAMPLES:
             sage: R.<q> = PowerSeriesRing(QQ)
             sage: f = 1 - 17*q + 13*q^2 + 10*q^4 + O(q^7)
@@ -341,6 +344,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.padded_list(3)
             [1, -17, 13]
         """
+        if n < 0:
+            raise ValueError, "n must be at least 0"
         v = self.list()
         if len(v) < n:
             z = self._parent.base_ring()(0)

@@ -88,7 +88,7 @@ from constants import e as E
 from functions import sin,cos,expo
 
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import CommutativeRingElement
+from sage.structure.element import CommutativeRingElement, generic_power
 
 
 ############################################################
@@ -893,18 +893,9 @@ class ElementaryFunction_class(CommutativeRingElement):
             Elementary function (1/2)cos(4*t) +  1/2
 
         """
-        n = ZZ(n)
         if n < 0:
             raise TypeError,"Negative powers are not allowed"
-        if n==0:
-            return ElementaryFunction([(self.variable()**0,0,0,0)])
-        if n==1:
-            return self
-        if n>1:
-            ans = self
-            for i in range(n-1):
-                ans = ans*self
-            return ans
+        return generic_power(self, n)
 
     def simplify(self):
 	r"""

@@ -381,7 +381,8 @@ class Kash(Expect):
                  script_subdirectory=None,
                  restart_on_ctrlc = True,
                  logfile=None,
-                 server=None):
+                 server=None,
+                 server_tmpdir=None):
 
         """
         INPUT:
@@ -402,6 +403,7 @@ class Kash(Expect):
                         command = cmd,
                         maxread = maxread,
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = True,
                         verbose_start = False,
@@ -419,11 +421,18 @@ class Kash(Expect):
         self.__seq += 1
         return '_s_[%s]'%self.__seq
 
+    def _read_in_file_command(self,filename):
+        return 'Read("%s");'%filename
+
     def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
+        F = open(self._local_tmp_file(), 'w')
         F.write(line)
         F.close()
-        return self._eval_line('Read("%s");'%tmp,
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
+        return self._eval_line(self._read_inf_file_command(tmp_to_use),
                                allow_use_file=False)
 
     # Change the default for KASH, since eval using a file doesn't

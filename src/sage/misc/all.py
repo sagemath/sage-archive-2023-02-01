@@ -1,7 +1,8 @@
 from misc import (alarm, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
-                  version, banner, add, union, uniq, powerset, exists, forall,
+                  version, banner, add, union, uniq, powerset, subsets,
+                  exists, forall,
                   random_sublist, mul, prod, walltime, generic_cmp,
                   repr_lincomb, tmp_dir, tmp_filename,
                   pad_zeros,
@@ -39,6 +40,8 @@ from reset import reset, restore
 from getusage import top, get_memory_usage
 
 from log import log_html, log_dvi, log_html_mathml
+
+from mathml import mathml
 
 from defaults import set_default_variable_name
 
@@ -104,7 +107,7 @@ from functional import (additive_order,
                         norm,
                         numerator,
                         numerical_approx,
-                        N,
+                        n,
                         objgens,
                         objgen,
                         one,

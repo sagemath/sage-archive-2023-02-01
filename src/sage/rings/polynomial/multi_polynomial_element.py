@@ -229,13 +229,6 @@ class MPolynomial_element(MPolynomial):
         """
         return self.parent().fraction_field()(self.__element, right.__element)
 
-    def __pow__(self, n):
-        if not isinstance(n, (int, long, sage.rings.integer.Integer)):
-            n = sage.rings.integer.Integer(n)
-        if n < 0:
-            return 1/(self**(-n))
-        return self.parent()(self.__element**n)
-
     def __rpow__(self, n):
         if not isinstance(n, (int, long, sage.rings.integer.Integer)):
             raise TypeError, "The exponent must be an integer."

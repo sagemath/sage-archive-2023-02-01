@@ -11,6 +11,11 @@ EXAMPLES:
     q - 4*q^3 - q^4 + 3*q^5 + O(q^6),
     q^2 - 2*q^3 - q^4 + 2*q^5 + O(q^6)
     ]
+
+TESTS:
+    sage: m = ModularForms(Gamma1(20),2)
+    sage: loads(dumps(m)) == m
+    True
 """
 
 #########################################################################
@@ -31,13 +36,35 @@ import eisenstein_submodule
 import submodule
 
 class ModularFormsAmbient_g1_Q(ambient.ModularFormsAmbient):
+    """
+    A space of modular forms for the group $\Gamma_1(N)$ over the rational numbers.
+    """
     def __init__(self, level, weight):
+        r"""
+        Create a space of modular forms for $\Gamma_1(N)$ of integral weight over the
+        rational numbers.
+
+        EXAMPLES:
+            sage: m = ModularForms(Gamma1(100),5); m
+            Modular Forms space of dimension 1270 for Congruence Subgroup Gamma1(100) of weight 5 over Rational Field
+            sage: type(m)
+            <class 'sage.modular.modform.ambient_g1.ModularFormsAmbient_g1_Q'>
+        """
         ambient.ModularFormsAmbient.__init__(self, congroup.Gamma1(level), weight, rings.QQ)
 
     ####################################################################
     # Computation of Special Submodules
     ####################################################################
     def cuspidal_submodule(self):
+        """
+        Return the cuspidal submodule of this modular forms space.
+
+        EXAMPLES:
+            sage: m = ModularForms(Gamma1(17),2); m
+            Modular Forms space of dimension 20 for Congruence Subgroup Gamma1(17) of weight 2 over Rational Field
+            sage: m.cuspidal_submodule()
+            Cuspidal subspace of dimension 5 of Modular Forms space of dimension 20 for Congruence Subgroup Gamma1(17) of weight 2 over Rational Field
+        """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
@@ -48,6 +75,15 @@ class ModularFormsAmbient_g1_Q(ambient.ModularFormsAmbient):
         return self.__cuspidal_submodule
 
     def eisenstein_submodule(self):
+        """
+        Return the Eisenstein submodule of this modular forms space.
+
+        EXAMPLES:
+            sage: ModularForms(Gamma1(13),2).eisenstein_submodule()
+            Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
+            sage: ModularForms(Gamma1(13),10).eisenstein_submodule()
+            Eisenstein subspace of dimension 12 of Modular Forms space of dimension 69 for Congruence Subgroup Gamma1(13) of weight 10 over Rational Field
+        """
         try:
             return self.__eisenstein_submodule
         except AttributeError:

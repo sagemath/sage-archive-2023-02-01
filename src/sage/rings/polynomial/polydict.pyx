@@ -27,7 +27,7 @@ AUTHOR: William Stein, David Joyner and Martin Albrecht (ETuple)
 
 
 import copy
-from sage.rings.arith import generic_power
+from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 
@@ -551,15 +551,14 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f**2
             PolyDict with representation {(3, 3): 24, (3, 5): 12, (4, 4): 16, (4, 2): 16, (4, 6): 4, (2, 4): 9}
+            sage: f**0
+            PolyDict with representation {(0, 0): 1}
+            sage: (f-f)**0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
-        _n = int(n)
-        if _n != n:
-            raise ValueError, "n must be an integer"
-        if _n < 0:
-            raise ValueError, "n must be nonnegative."
-        if _n == 0:
-            return self.__one()
-        return generic_power(self, _n, self.__one())
+        return generic_power(self, n, self.__one())
 
     def lcmt(PolyDict self, greater_etuple):
         """

@@ -215,7 +215,7 @@ from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex
+from sage.misc.latex import latex, latex_varify
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -1111,7 +1111,13 @@ class SymbolicExpression(RingElement):
                 if repr(g) == r:
                     sub.append((v,g))
         if len(sub) == 0:
-            return R(B(self))
+            try:
+                return R(B(self))
+            except TypeError:
+                if len(vars) == 1:
+                    sub = [(vars[0], G[0])]
+                else:
+                    raise
         return self.substitute_over_ring(dict(sub), ring=R)
 
     def function(self, *args):
@@ -1301,7 +1307,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # limits
     ###################################################################
-    def limit(self, dir=None, **argv):
+    def limit(self, dir=None, taylor=False, **argv):
         r"""
         Return the limit as the variable v approaches a from the
         given direction.
@@ -1316,6 +1322,9 @@ class SymbolicExpression(RingElement):
                    for a limit from above, `minus' (or 'below') for a limit from
                    below, or may be omitted (implying a two-sided
                    limit is to be computed).
+            taylor -- (default: False); if True, use Taylor series, which
+                   allows more integrals to be computed (but may also crash
+                   in some obscure cases due to bugs in Maxima).
             **argv -- 1 named parameter
 
         NOTE: Output it may also use `und' (undefined), `ind'
@@ -1329,8 +1338,8 @@ class SymbolicExpression(RingElement):
             7776/3125
             sage: f.limit(x = 1.2)
             2.069615754672029
-            sage: f.limit(x = I)
-            e^(I*log(1 - I))
+            sage: f.limit(x = I, taylor=True)
+            (1 - I)^I
             sage: f(1.2)
             2.069615754672029
             sage: f(I)
@@ -1368,10 +1377,10 @@ class SymbolicExpression(RingElement):
             Is  x  positive or negative?
 
             sage: f = log(log(x))/log(x)
-            sage: forget(); assume(x<-2); lim(f, x=0)
-            limit(log(log(x))/log(x), x=0)
+            sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
+            und
 
-        The following means "indefinite but bounded":
+        Here ind means "indefinite but bounded":
             sage: lim(sin(1/x), x = 0)
             ind
         """
@@ -1382,11 +1391,20 @@ class SymbolicExpression(RingElement):
             v = var(k, create=False)
             a = argv[k]
         if dir is None:
-            l = self._maxima_().limit(v, a)
+            if taylor:
+                l = self._maxima_().tlimit(v, a)
+            else:
+                l = self._maxima_().limit(v, a)
         elif dir == 'plus' or dir == 'above':
-            l = self._maxima_().limit(v, a, 'plus')
+            if taylor:
+                l = self._maxima_().tlimit(v, a, 'plus')
+            else:
+                l = self._maxima_().limit(v, a, 'plus')
         elif dir == 'minus' or dir == 'below':
-            l = self._maxima_().limit(v, a, 'minus')
+            if taylor:
+                l = self._maxima_().tlimit(v, a, 'minus')
+            else:
+                l = self._maxima_().limit(v, a, 'minus')
         else:
             raise ValueError, "dir must be one of 'plus' or 'minus'"
         return self.parent()(l)
@@ -3070,10 +3088,10 @@ class SymbolicVariable(SymbolicExpression):
         if len(a) > 1:
             m = re.search('(\d|[.,])+$',a)
             if m is None:
-                a = tex_varify(a)
+                a = latex_varify(a)
             else:
                 b = a[:m.start()]
-                a = '%s_{%s}'%(tex_varify(b), a[m.start():])
+                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
 
         self.__latex = a
         return a
@@ -3083,48 +3101,6 @@ class SymbolicVariable(SymbolicExpression):
 
     def _sys_init_(self, system):
         return self._name
-
-common_varnames = ['alpha',
-                   'beta',
-                   'gamma',
-                   'Gamma',
-                   'delta',
-                   'Delta',
-                   'epsilon',
-                   'zeta',
-                   'eta',
-                   'theta',
-                   'Theta',
-                   'iota',
-                   'kappa',
-                   'lambda',
-                   'Lambda',
-                   'mu',
-                   'nu',
-                   'xi',
-                   'Xi',
-                   'pi',
-                   'Pi',
-                   'rho',
-                   'sigma',
-                   'Sigma',
-                   'tau',
-                   'upsilon',
-                   'varphi',
-                   'chi',
-                   'psi',
-                   'Psi',
-                   'omega',
-                   'Omega']
-
-
-def tex_varify(a):
-    if a in common_varnames:
-        return "\\" + a
-    elif len(a) == 1:
-        return a
-    else:
-        return '\\mbox{%s}'%a
 
 _vars = {}
 def var(s, create=True):
@@ -4902,6 +4878,8 @@ maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
 maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
+sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     syms = dict(_syms)
 
@@ -4933,6 +4911,14 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     if equals_sub:
         s = s.replace('=','==')
+
+    #replace all instances of scientific notation
+    #with regular notation
+    search = sci_not.search(s)
+    while not search is None:
+        (start, end) = search.span()
+        s = s.replace(s[start:end], str(RR(s[start:end])))
+        search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it
     syms['limit'] = dummy_limit

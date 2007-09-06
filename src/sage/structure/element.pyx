@@ -376,18 +376,18 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
-    def N(self, prec=None, digits=None):
+    def n(self, prec=None, digits=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
 
         EXAMPLES:
-            sage: (2/3).N()
+            sage: (2/3).n()
             0.666666666666667
             sage: a = 2/3
-            sage: pi.N(digits=10)
+            sage: pi.n(digits=10)
             3.141592654
-            sage: pi.N(prec=20)   # 20 bits
+            sage: pi.n(prec=20)   # 20 bits
             3.1416
         """
         import sage.misc.functional
@@ -1010,9 +1010,6 @@ cdef class MonoidElement(Element):
     Generic element of a monoid.
     """
 
-    def __nonzero__(self):
-        return True
-
     #############################################################
     # Multiplication
     #############################################################
@@ -1079,8 +1076,14 @@ cdef class MonoidElement(Element):
         """
         Return the (integral) power of self.
         """
-
         return generic_power_c(self,n,None)
+
+    def __nonzero__(self):
+        return True
+    def nonzero(self):
+        return True
+    def is_zero(self):
+        return False
 
 def is_AdditiveGroupElement(x):
     """
@@ -2347,7 +2350,48 @@ cdef class FieldElement(CommutativeRingElement):
 ##     return IS_INSTANCE(x, FiniteFieldElement)
 
 cdef class FiniteFieldElement(FieldElement):
-    pass
+
+    def minpoly(self,var='x'):
+        """
+        Returns the minimal polynomial of this element
+        (over the corresponding prime subfield).
+        EXAMPLES:
+            sage: k.<a> = FiniteField(19^2)
+            sage: parent(a)
+            Finite Field in a of size 19^2
+            sage: b=a**20;p=b.charpoly("x");p
+            x^2 + 15*x + 4
+            sage: factor(p)
+            (x + 17)^2
+            sage: b.minpoly('x')
+            x + 17
+        """
+        p=self.charpoly(var);
+        for q in p.factor():
+            if q[0](self)==0:
+                return q[0]
+        # This shouldn't be reached, but you never know!
+        raise ArithmeticError("Could not find the minimal polynomial")
+
+        ## We have two names for the same method
+        ## for compatibility with sage.matrix
+    def minimal_polynomial(self,var='x'):
+        """
+        Returns the minimal polynomial of this element
+        (over the corresponding prime subfield).
+        EXAMPLES:
+            sage: k.<a> = FiniteField(3^4)
+            sage: parent(a)
+            Finite Field in a of size 3^4
+            sage: b=a**20;p=charpoly(b,"y");p
+            y^4 + 2*y^2 + 1
+            sage: factor(p)
+            (y^2 + 1)^2
+            sage: b.minimal_polynomial('y')
+            y^2 + 1
+        """
+        return self.minpoly(var)
+
 
 def is_AlgebraElement(x):
     """
@@ -2714,7 +2758,7 @@ def xgcd(x,y):
 
 def generic_power(a, n, one=None):
     """
-    Computes a^n, where n is an integer, and a is an object which
+    Computes $a^n$, where $n$ is an integer, and $a$ is an object which
     supports multiplication.  Optionally an additional argument,
     which is used in the case that n == 0:
 
@@ -2756,7 +2800,7 @@ cdef generic_power_c(a, nn, one):
     if not a:
         # a is zero, return it, or raise an exception if n is zero
         if not n:
-            raise ArithmeticError, "0^0 is not defined."
+            raise ArithmeticError, "0^0 is undefined."
         else:
             return a
     elif not n:
@@ -2765,7 +2809,10 @@ cdef generic_power_c(a, nn, one):
             if PY_TYPE_CHECK(a, Element):
                 return (<Element>a)._parent(1)
             try:
-                return type(a)(1)
+                try:
+                    return a.parent()(1)
+                except AttributeError:
+                    return type(a)(1)
             except:
                 return 1 #oops, the one sucks
         else:

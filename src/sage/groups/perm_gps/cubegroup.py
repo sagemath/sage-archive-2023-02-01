@@ -39,7 +39,7 @@ AUTHOR:
     -      "       (2007-06): added plotting functions
     -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
     - Robert Miller (2007-08): editing, cleaned up display2d
-    - Robert Bradshaw (2006-08): RubiksCube object.
+    - Robert Bradshaw (2006-08): RubiksCube object, 3d plotting.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -80,7 +80,8 @@ sin = Function_sin()
 cos = Function_cos()
 pi = RDF.pi()
 
-from sage.plot.graphics3d import *
+from sage.plot.plot3d.shapes import *
+from sage.plot.plot3d.texture import Texture
 
 ####################### predefined colors ##################
 
@@ -953,17 +954,20 @@ class CubeGroup(PermutationGroup_generic):
         and \code{PreImagesRepresentative}.
 
         This algorithm
-        (a) constructs the free group on 6 generators then computes a
+        \begin{enumerate}
+        \item constructs the free group on 6 generators then computes a
         reasonable set of relations which they satisfy
-        (b) computes a homomorphism from the cube group to this free
+        \item computes a homomorphism from the cube group to this free
         group quotient
-        (c) takes the cube position, regarded as a group element,
+        \item takes the cube position, regarded as a group element,
         and maps it over to the free group quotient
-        (d) using those relations and tricks from combinatorial group
+        \item using those relations and tricks from combinatorial group
         theory (stabilizer chains), solves the "word problem" for that
         element.
-        (e) uses python string parsing to rewrite that in cube notation.
-        The Rubik's cube group has about 4.3x10^(19) elements, so this
+        \item uses python string parsing to rewrite that in cube notation.
+        \end{enumerate}
+
+        The Rubik's cube group has about $4.3 \times 10^{19}$ elements, so this
         process is time-consuming.
         See http://www.gap-system.org/Doc/Examples/rubik.html
         for an interesting discussion of some GAP code analyzing the
@@ -1111,7 +1115,7 @@ class RubiksCube(SageObject):
         my_colors = [colors[sides[i]+6] for i in range(6)]
         if stickers:
             B = Box(size, size, size, color=(.1, .1, .1))
-            S = B + B.triangulation().stickers(my_colors, size*.1, size*.01)
+            S = B + B.stickers(my_colors, size*.1, size*.01)
             return S.translate(-t*x, -t*z, -t*y)
         else:
             return ColorCube(size, [colors[sides[i]+6] for i in range(6)]).translate(-t*x, -t*z, -t*y)
@@ -1120,7 +1124,7 @@ class RubiksCube(SageObject):
         """
         sage: C = RubiksCube().move("R*U")
         sage: C.plot3d()
-        <class 'sage.plot.graphics3d.TransformGroup'>
+        <class 'base.TransformGroup'>
         sage: C.plot()
         Graphics object consisting of 55 graphics primitives
         """

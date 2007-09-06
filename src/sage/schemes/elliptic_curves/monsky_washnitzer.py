@@ -276,9 +276,19 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
   def __nonzero__(self):
     return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
 
-  def _cmp_(self, other):
-      return cmp(self._triple, other._triple)
-
+  def __cmp__(self, other):
+    """
+    EXAMPLES:
+      sage: B.<t> = PolynomialRing(Integers(125))
+      sage: x, t = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4)).gens()
+      sage: x == t
+      False
+      sage: x == x
+      True
+      sage: x == x + x - x
+      True
+    """
+    return cmp(self._triple, other._triple)
 
   def _repr_(self):
     return "(%s) + (%s)*x + (%s)*x^2" % self._triple
@@ -1184,8 +1194,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: max_prec = 60
       sage: M = monsky_washnitzer.adjusted_prec(p, max_prec)
       sage: R.<x> = PolynomialRing(Integers(p**M))
-      sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-      ...                         x^3 - x + R(1/4), p, M)         # long time
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)         # long time
       sage: A = A.change_ring(Integers(p**max_prec))              # long time
       sage: result = []                                           # long time
       sage: for prec in range(1, max_prec):                       # long time
@@ -1214,8 +1223,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
       sage: R.<x> = PolynomialRing(S)
       sage: Q = x**3 + a*x + b
       sage: A = monsky_washnitzer.matrix_of_frobenius(Q, p, M)    # long time
-      sage: B = A.change_ring(PowerSeriesRing(                    # long time
-      ...         Integers(p**prec), 't', default_prec=4))        # long time
+      sage: B = A.change_ring(PowerSeriesRing(Integers(p**prec), 't', default_prec=4))        # long time
       sage: B                                                     # long time
        [1144 + 264*t + 841*t^2 + 1025*t^3 + O(t^4)  176 + 1052*t + 216*t^2 + 523*t^3 + O(t^4)]
        [   847 + 668*t + 81*t^2 + 424*t^3 + O(t^4)   185 + 341*t + 171*t^2 + 642*t^3 + O(t^4)]
@@ -1677,6 +1685,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         self._f = parent._poly_ring(val)
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f])
+
+    def __cmp__(self, other):
+      """
+      EXAMPLES:
+      """
+      return cmp(self._f, other._f)
 
     def change_ring(self, R):
         return self.parent().change_ring(R)(self)

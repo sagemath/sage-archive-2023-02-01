@@ -380,6 +380,8 @@ class ode_solver(object):
          T= gsl_odeiv_step_rk4imp
       elif self.algorithm == "bsimp":
          T = gsl_odeiv_step_bsimp
+         if self.jacobian==None:
+            raise TypeError,"The jacobian must be provided for the implicit Burlisch-Stoer method"
       elif self.algorithm == "gear1":
          T = gsl_odeiv_step_gear1
       elif self.algorithm == "gear2":

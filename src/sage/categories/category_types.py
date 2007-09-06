@@ -613,22 +613,18 @@ class NumberFields(Category_uniq):
         sage: C
         Category of number fields
 
-    Notice that the rational numbers $\Q$ are not considered as
+    Notice that the rational numbers $\Q$ *are* considered as
     an object in this category.
         sage: RationalField() in C
-        False
+        True
 
-    However, we can define a degree 1 extension of $\Q$, which is in
-    this category.
+    However, we can define a degree 1 extension of $\Q$, which is of
+    course also in this category.
         sage: x = PolynomialRing(RationalField(), 'x').gen()
         sage: K = NumberField(x - 1, 'a'); K
         Number Field in a with defining polynomial x - 1
         sage: K in C
         True
-
-    We can also coerce $\Q$ into the category of number fields.
-        sage: C(RationalField())
-        Number Field in a with defining polynomial x - 1
 
     Number fields all lie in this category, irregardless of the name
     of the variable.

@@ -35,7 +35,7 @@ of an element of the list changes the object.
 import operator
 
 from sage.rings.integer import Integer
-from sage.structure.element import MonoidElement
+from sage.structure.element import MonoidElement, generic_power
 
 def is_FreeAbelianMonoidElement(x):
     return isinstance(x, FreeAbelianMonoidElement)
@@ -103,18 +103,37 @@ class FreeAbelianMonoidElement(MonoidElement):
         return z
 
     def __pow__(self, n):
+        """
+        Raises self to the power of n.
+
+        AUTHOR:
+            - Tom Boothby (2007-08) Replaced O(log n) time, O(n) space
+              algorithm with O(1) time and space "algorithm".
+
+        EXAMPLES:
+            sage: F = FreeAbelianMonoid(5,names = list("abcde"))
+            sage: (a,b,c,d,e) = F.gens()
+            sage: x = a*b^2*e*d; x
+            a*b^2*d*e
+            sage: x^3
+            a^3*b^6*d^3*e^3
+            sage: x^0
+            1
+        """
+
         if not isinstance(n, (int, long, Integer)):
             raise TypeError, "Argument n (= %s) must be an integer."%n
         if n < 0:
             raise IndexError, "Argument n (= %s) must be positive."%n
-        elif n == 0:
-            return self.parent()(1)
         elif n == 1:
             return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
+        z = self.parent()(1)
+        if n == 0:
+            return z
+        else:
+            z.__element_vector = [i*n for i in self.__element_vector]
+            return z
+
 
     def list(self):
         """

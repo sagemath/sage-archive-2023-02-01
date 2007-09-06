@@ -571,8 +571,47 @@ def lprint():
         sys.displayhook = _show_hook
         print "Latex print mode on."
 
+common_varnames = ['alpha',
+                   'beta',
+                   'gamma',
+                   'Gamma',
+                   'delta',
+                   'Delta',
+                   'epsilon',
+                   'zeta',
+                   'eta',
+                   'theta',
+                   'Theta',
+                   'iota',
+                   'kappa',
+                   'lambda',
+                   'Lambda',
+                   'mu',
+                   'nu',
+                   'xi',
+                   'Xi',
+                   'pi',
+                   'Pi',
+                   'rho',
+                   'sigma',
+                   'Sigma',
+                   'tau',
+                   'upsilon',
+                   'varphi',
+                   'chi',
+                   'psi',
+                   'Psi',
+                   'omega',
+                   'Omega']
 
 
+def latex_varify(a):
+    if a in common_varnames:
+        return "\\" + a
+    elif len(a) == 1:
+        return a
+    else:
+        return '\\mbox{%s}'%a
 
 def latex_variable_name(x):
     """
@@ -589,4 +628,4 @@ def latex_variable_name(x):
     m = re.search('\d+$',x)
     if m is None:
         return x
-    return '%s_{%s}'%(x[:m.start()], x[m.start():])
+    return '%s_{%s}'%(latex_varify(x[:m.start()]), x[m.start():])

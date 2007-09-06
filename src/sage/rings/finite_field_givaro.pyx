@@ -1507,6 +1507,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return self
 
         elif exp == 0:
+            if (field.objectptr).isZero(self.element):
+                raise ArithmeticError, "0^0 is undefined."
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
         elif (field.objectptr).isZero(self.element):
@@ -1878,7 +1880,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         n = self.log(g)
         return 'Z(%s)^%s'%(F.order_c(), n)
 
-    def charpoly(FiniteField_givaroElement self, var):
+    def charpoly(FiniteField_givaroElement self, var='x'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
 

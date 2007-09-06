@@ -1,3 +1,3 @@
 recursive-include * *.c *.h *.pyx *.pyxe *.pxd *.pxi *.cc *.txt *.tex *.i *.d 00*
-include install sage-push spkg-dist spkg-install MANIFEST.in README.txt .hgignore .hg .hg/* bundle export mercurial-howto.txt pull test_changed bundle export mercurial-howto.txt sage/matrix/padics/__init__.py .hgtags bundle export mercurial-howto.txt sage/dsage/README.markdown sage/libs/linbox/matrix_rational_dense_linbox.cpp sage/rings/padics/polynomial/__init__.py sage/rings/padics/polynomial/all.py
+include c_lib c_lib/* install sage-push spkg-dist spkg-install MANIFEST.in README.txt .hgignore .hg .hg/* bundle export mercurial-howto.txt pull test_changed bundle export mercurial-howto.txt sage/matrix/padics/__init__.py .hgtags bundle export mercurial-howto.txt sage/dsage/README.markdown sage/libs/linbox/matrix_rational_dense_linbox.cpp sage/rings/padics/polynomial/__init__.py sage/rings/padics/polynomial/all.py
 

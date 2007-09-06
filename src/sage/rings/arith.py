@@ -1200,32 +1200,41 @@ def inverse_mod(a, m):
 #         raise "inverse_mod(a=%s,m=%s), error since GCD=%s"%(a,m,g)
 #     return s
 
-def power_mod(a,m,n):
-    """The m-th power of a modulo the integer n.
+def power_mod(a,n,m):
+    """The n-th power of a modulo the integer m.
     sage: power_mod(0,0,5)
-    1
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: 0^0 is undefined.
     sage: power_mod(2,390,391)
     285
     sage: power_mod(2,-1,7)
     4
     """
-    if n==0:
-        raise ZeroDivisionError, "Modulus must be nonzero."
-    if n==1:
-        return 0
-    if m < 0:
-        ainv = inverse_mod(a,n)
-        return power_mod(ainv, -m, n)
     if m==0:
+        raise ZeroDivisionError, "Modulus must be nonzero."
+    if m==1:
+        return 0
+    if n < 0:
+        ainv = inverse_mod(a,m)
+        return power_mod(ainv, -n, m)
+    if n==0:
+        if a == 0:
+            raise ArithmeticError, "0^0 is undefined."
         return 1
-    power = 1
-    i = 0
-    apow2 = a
-    while ((m>>i) > 0):
-        if((m>>i) & 1):
-            power = (power * apow2) % n
-        apow2 = (apow2 * apow2) % n
-        i += 1
+
+    apow = a
+    while n&1 == 0:
+        apow = (apow*apow) % m
+        n = n >> 1
+    power = apow
+    n = n >> 1
+    while n != 0:
+        apow = (apow*apow) % m
+        if n&1 != 0:
+            power = (power*apow) % m
+        n = n >> 1
+
     return power
 
 def generic_power(a, m, one=1):
@@ -1243,7 +1252,7 @@ def generic_power(a, m, one=1):
         sage: generic_power(0,0)
         Traceback (most recent call last):
         ...
-        ArithmeticError: 0^0 is not defined.
+        ArithmeticError: 0^0 is undefined.
         sage: generic_power(2,-3)
         1/8
     """
@@ -1639,13 +1648,43 @@ def is_square(n, root=False):
     Returns whether or not n is square, and if n is a square
     also returns the square root.  If n is not square, also
     returns None.
+
     INPUT:
         n -- an integer
         root -- whether or not to also return a square root (default: False)
     OUTPUT:
         bool -- whether or not a square
-        object --
+        object -- (optional) an actual square if found, and None otherwise.
+
+    EXAMPLES:
+        sage: is_square(2)
+        False
+        sage: is_square(4)
+        True
+        sage: is_square(2.2)
+        True
+        sage: is_square(-2.2)
+        False
+        sage: is_square(CDF(-2.2))
+        True
+        sage: is_square((x-1)^2)
+        True
+
+        sage: is_square(4, True)
+        (True, 2)
     """
+    try:
+        if root:
+            try:
+                return n.is_square(root)
+            except TypeError:
+                if n.is_square():
+                    return True, n.sqrt()
+                else:
+                    return False, None
+        return n.is_square()
+    except AttributeError:
+        pass
     t, x = pari(n).issquare(find_root=True)
     if root:
         if t:

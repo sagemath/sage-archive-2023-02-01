@@ -182,6 +182,14 @@ cdef class NumberFieldElement(FieldElement):
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
             SetCoeff( self.__numerator, i, coeff )
 
+    def __alloc__(self):
+        ZZX_construct(&self.__numerator)
+        ZZ_construct(&self.__denominator)
+
+    def __dealloc__(self):
+        ZZX_destruct(&self.__numerator)
+        ZZ_destruct(&self.__denominator)
+
     def _lift_cyclotomic_element(self, new_parent):
         """
             Creates an element of the passed field from this field.  This is specific to creating elements in a
@@ -689,28 +697,31 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
+        cdef ZZX_c temp
+        cdef ZZ_c temp1
         cdef ZZ_c parent_den
         cdef ZZX_c parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
-        # an ugly hack fix for the fact that MulMod doesn't handle non-monic polynomials
-        # I expect that PARI will win out over NTL for reasons of speed and things like this
-        # that will be the elegant fix
+        x = self._new()
+        _sig_on
+        # MulMod doesn't handle non-monic polynomials.
+        # Therefore, we handle the non-monic case entirely separately.
         if ZZX_is_monic( &parent_num ):
-            x = self._new()
-            _sig_on
             mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
             MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
-            _sig_off
-            x._reduce_c_()
-            return x
         else:
-            return self.parent()(self._pari_()*right._pari_())
-            #  Hmm, this next bit is not so straight-forward as I thought it should be
-            # I'll get back to this when I benchmark
-#            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
-#            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
-#                PseudoRem_ZZX(x.__numerator, x.__numerator, parent_num)
-#                mul_ZZ(x.__denominator, x.__denominator, parent_den)
+            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
+            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
+                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
+                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
+                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                mul_ZZ(x.__denominator, x.__denominator, parent_den)
+                mul_ZZ(x.__denominator, x.__denominator, temp1)
+        _sig_off
+        x._reduce_c_()
+        return x
 
         #NOTES: In LiDIA, they build a multiplication table for the
         #number field, so it's not necessary to reduce modulo the
@@ -748,20 +759,30 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c inv_den
         cdef ZZ_c parent_den
         cdef ZZX_c parent_num
+        cdef ZZX_c temp
+        cdef ZZ_c temp1
         if not _right:
             raise ZeroDivisionError, "Number field element division by zero"
         self._parent_poly_c_( &parent_num, &parent_den )
+        x = self._new()
+        _sig_on
+        _right._invert_c_(&inv_num, &inv_den)
         if ZZX_is_monic( &parent_num ):
-            _right._invert_c_(&inv_num, &inv_den)
-            x = self._new()
-            _sig_on
             mul_ZZ(x.__denominator, self.__denominator, inv_den)
             MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
-            _sig_off
-            x._reduce_c_()
-            return x
         else:
-            return self.parent()(self._pari_()/right._pari_())
+            mul_ZZ(x.__denominator, self.__denominator, inv_den)
+            mul_ZZX(x.__numerator, self.__numerator, inv_num)
+            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
+                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
+                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
+                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                mul_ZZ(x.__denominator, x.__denominator, parent_den)
+                mul_ZZ(x.__denominator, x.__denominator, temp1)
+        x._reduce_c_()
+        _sig_off
+        return x
 
     def __floordiv__(self, other):
         """

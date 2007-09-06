@@ -100,6 +100,10 @@ class NumberFieldIdeal(Ideal_fractional):
         INPUT:
             field -- a number field
             x -- a list of NumberFieldElements belonging to the field
+
+        EXAMPLES:
+            sage: NumberField(x^2 + 1, 'a').ideal(7)
+            Fractional ideal (7) of Number Field in a with defining polynomial x^2 + 1
         """
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
@@ -711,6 +715,20 @@ class NumberFieldIdeal(Ideal_fractional):
 
 
 def is_pari_zero_vector(z):
+    """
+    Return True if each entry of the PARI matrix row or vector z is 0.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field_ideal import is_pari_zero_vector
+        sage: is_pari_zero_vector(pari('[]~'))
+        True
+        sage: is_pari_zero_vector(pari('[0,0]~'))
+        True
+        sage: is_pari_zero_vector(pari('[0,0,0,0,0]~'))
+        True
+        sage: is_pari_zero_vector(pari('[0,0,0,1,0]~'))
+        False
+    """
     for a in z:
         if a:
             return False

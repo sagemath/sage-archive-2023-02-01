@@ -2973,10 +2973,10 @@ cdef void (* mpz_free)(void *, size_t)
 # - When an integer is collected, it will add it to the pool
 #   if there is room, otherwise it will be deallocated.
 
-cdef enum:
-    integer_pool_size = 100 # Pyrex has no way of defining constants
 
-cdef PyObject* integer_pool[integer_pool_size]
+cdef int integer_pool_size = 100
+
+cdef PyObject** integer_pool
 cdef int integer_pool_count = 0
 
 # used for profiling the pool
@@ -3117,7 +3117,9 @@ cdef hook_fast_tp_functions():
     """
     Initialize the fast integer creation functions.
     """
-    global global_dummy_Integer, mpz_t_offset, sizeof_Integer
+    global global_dummy_Integer, mpz_t_offset, sizeof_Integer, integer_pool
+
+    integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
 
     cdef long flag
 
@@ -3210,7 +3212,7 @@ def free_integer_pool():
     cdef int i
     cdef PyObject *o
 
-    global integer_pool_count
+    global integer_pool_count, integer_pool_size
 
     for i from 0 <= i < integer_pool_count:
         o = integer_pool[i]
@@ -3220,4 +3222,6 @@ def free_integer_pool():
         # called.
         PyObject_FREE(o)
 
+    integer_pool_size = 0
     integer_pool_count = 0
+    sage_free(integer_pool)

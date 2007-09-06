@@ -726,7 +726,7 @@ cdef class LeftModuleAction(Action):
             g = self.connecting._call_c(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return _rmul_c(<ModuleElement>, <RingElement>g)  # a * g
+        return _rmul_c(<ModuleElement>a, <RingElement>g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"

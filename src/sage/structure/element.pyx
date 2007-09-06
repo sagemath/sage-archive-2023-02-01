@@ -868,7 +868,9 @@ cdef class ModuleElement(Element):
     ##################################################
     def __mul__(left, right):
         if have_same_parent(left, right):
-             raise arith_error_message(left, right, mul)
+            print left, "__mul__", right
+            print parent_c(left), "__mul__", parent_c(right)
+            raise arith_error_message(left, right, mul)
         # Always do this
         global coercion_model
         return coercion_model.bin_op_c(left, right, mul)
@@ -1018,6 +1020,9 @@ cdef class ModuleElement(Element):
 
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
+
+    def _ilmul_(self, right):
+        return self._ilmul_c_impl(right)
 
     cdef ModuleElement _ilmul_c_impl(self, RingElement right):
         return _lmul_c(self, right)

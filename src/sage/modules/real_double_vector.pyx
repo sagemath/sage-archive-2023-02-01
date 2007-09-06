@@ -207,13 +207,13 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             y._value += gsl_vector_get(self.v, i) * gsl_vector_get((<RealDoubleVectorSpaceElement>right).v, i)
         return y
 
-    def componentwise_product(self, Vector right):
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
         """
         Return the component-wise product of self and right.
 
         EXAMPLES:
             sage: v = vector(RDF, [1,2,3]); w = vector(RDF, [2, 4, -3])
-            sage: v.componentwise_product(w)
+            sage: v.pairwise_product(w)
             (2.0, 8.0, -9.0)
         """
         if not right.parent() == self.parent():

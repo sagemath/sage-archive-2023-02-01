@@ -21,7 +21,7 @@ EXAMPLES:
     sage: v + v
     (2, 4, 6, 0, 2)
     sage: v * v
-    (1, 4, 1, 0, 1)
+    7
 
     sage: v = vector(Integers(8),[1,2,3,4,5])
     sage: u = vector(Integers(8),[1,2,3,4,4])
@@ -216,6 +216,27 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         return z
 
     cdef Element _vector_times_vector_c_impl(self, Vector right):
+        cdef Py_ssize_t i
+        cdef IntegerMod_int n
+        cdef Vector_modn_dense r = right
+        n =  IntegerMod_int.__new__(IntegerMod_int)
+        IntegerMod_abstract.__init__(n, self.base_ring())
+        n.ivalue = 0
+
+        for i from 0 <= i < self._degree:
+            n.ivalue = (n.ivalue + self._entries[i] * r._entries[i]) % self._p
+
+        return n
+
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        EXAMPLES:
+           sage: v = vector(Integers(8), [2,3]); w = vector(Integers(8), [2,5])
+           sage: v * w
+           3
+           sage: w * v
+           3
+        """
         cdef Vector_modn_dense z, r
         r = right
         z = self._new_c()

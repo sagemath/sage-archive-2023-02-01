@@ -632,8 +632,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Return the dot product of self and right, which is a vector of
         of the product of the corresponding entries.
 
-        This is a synonym for self * right.
-
         INPUT:
             right -- vector of the same degree as self.  it need not
                      be in the same vector space as self, as long as
@@ -660,8 +658,57 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v.pairwise_product(w).parent()
             Vector space of dimension 3 over Finite Field of size 3
+
+        TESTS:
+            sage: x, y = var('x, y')
+
+            sage: parent(vector(ZZ,[1,2]).pairwise_product(vector(ZZ,[1,2])))
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: parent(vector(ZZ,[1,2]).pairwise_product(vector(QQ,[1,2])))
+            Vector space of dimension 2 over Rational Field
+            sage: parent(vector(QQ,[1,2]).pairwise_product(vector(ZZ,[1,2])))
+            Vector space of dimension 2 over Rational Field
+            sage: parent(vector(QQ,[1,2]).pairwise_product(vector(QQ,[1,2])))
+            Vector space of dimension 2 over Rational Field
+
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x],[1,2,3,4])))
+            Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
+            Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[x],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(vector(QQ[y],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous base extension
+            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous base extension
+            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous base extension
+            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            Traceback (most recent call last):
+            ...
+            TypeError: Ambiguous base extension
         """
-        return self * right
+        return self._pairwise_product_c(right)
 
     def element(self):
         return self
@@ -937,14 +984,14 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return left.dot_product(right)
 
-    def componentwise_product(left, element_Vector right):
+    cdef element_Vector _pairwise_product_c_impl(left, element_Vector right):
         """
         EXAMPLES:
             sage: R.<x> = QQ[]
             sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
-            sage: v.componentwise_product(w)
+            sage: v.pairwise_product(w)
             (2*x^2, x^3, 3*x^2 + 9*x)
-            sage: w.componentwise_product(v)
+            sage: w.pairwise_product(v)
             (2*x^2, x^3, 3*x^2 + 9*x)
         """
         if not right.parent() == left.parent():
@@ -1161,18 +1208,23 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     cdef Element _vector_times_vector_c_impl(left, element_Vector right):
         """
         Return the dot product of left and right.
+
+        EXAMPLES:
+            sage: v = vector([1,2,0], sparse=True); w = vector([0,5,-9], sparse=True)
+            sage: v * w
+            10
+            sage: w * v
+            10
         """
-        # Component wise vector * vector multiplication.
-        cdef object v, e
-        e = left.base_ring()(0)
+        cdef object v, e, z
+        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        z = left.base_ring()(0)
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                e += (<RingElement>a)._mul_c(<RingElement> e[i])
-            else:
-                e += a
-        return e
+                z += (<RingElement>a)._mul_c(<RingElement> e[i])
+        return z
 
-    def _pairwise_product_c_impl(left, Vector right):
+    cdef element_Vector _pairwise_product_c_impl(left, element_Vector right):
         # Component wise vector * vector multiplication.
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)

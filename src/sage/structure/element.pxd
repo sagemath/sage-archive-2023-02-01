@@ -124,6 +124,9 @@ cdef class Vector(ModuleElement):
     cdef Element _vector_times_vector_c(Vector left, Vector right)     # do *NOT* override, but OK to call directly
     cdef Element _vector_times_vector_c_impl(Vector left, Vector right)  # OK to override, but do *NOT* call directly
 
+    cdef Vector _pairwise_product_c(Vector left, Vector right) # do *NOT* override, but OK to call directly
+    cdef Vector _pairwise_product_c_impl(Vector left, Vector right) # OK to override, but do *NOT* call directly
+
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)
 

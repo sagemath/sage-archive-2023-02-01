@@ -18,8 +18,8 @@ EXAMPLES:
     (0, 0, 0, 0, 0)
     sage: v + v
     (2, 4, 6, 8, 10)
-    sage: v * v
-    (1, 4, 9, 16, 25)
+    sage: v * v   # dot product.
+    55
 
 We make a large zero vector:
     sage: k = ZZ^100000; k
@@ -203,7 +203,13 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         mpz_clear(t)
         return z
 
-    cdef Vector _pairwise_product_c_impl(Vector self, Vector right):
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, [1,2,-3]); w = vector(ZZ,[4,3,2])
+            sage: v.pairwise_product(w)
+            (4, 6, -6)
+        """
         cdef Vector_integer_dense z, r
         r = right
         z = self._new_c()

@@ -80,9 +80,16 @@ usage_advanced() {
     #echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
     #echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
-    echo "  -valgrind     -- run SAGE under the control of valgrind. The log files can be"
-    echo "                   found in $SAGE_LOCAL/bin. Those are named sage.$PID."
-    echo "                   Using valgrind requires a specially built version of SAGE."
+    echo "  -valgrind     -- this is an alias for -memcheck"
+    echo "  -memcheck     -- run SAGE under the control of valgrind using the memcheck tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-memcheck.$PID."
+    echo "  -massif       -- run SAGE under the control of valgrind using the massif tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-massif.$PID."
+    echo "  -cachegrind   -- run SAGE under the control of valgrind using the cachegrind tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-cachegrind.$PID."
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
@@ -683,9 +690,21 @@ if [ $1 = "-cython" -o $1 = '--cython' -o $1 = '-pyrex' -o $1 = "--pyrex" ]; the
     exit $?
 fi
 
-if [ $1 = '-valgrind' -o $1 = "--valgrind" ]; then
+if [ $1 = '-valgrind' -o $1 = "--valgrind" -o $1 = '-memcheck' -o $1 = "--memcheck" ]; then
     sage_setup
     sage-valgrind
+    exit $?
+fi
+
+if [ $1 = '-massif' -o $1 = "--massif" ]; then
+    sage_setup
+    sage-massif
+    exit $?
+fi
+
+if [ $1 = '-cachegrind' -o $1 = "--cachegrind" ]; then
+    sage_setup
+    sage-cachegrind
     exit $?
 fi
 

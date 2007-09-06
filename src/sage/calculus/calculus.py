@@ -944,7 +944,15 @@ class SymbolicExpression(RingElement):
 
 
     def __call__(self, dict=None, **kwds):
-        return self.substitute(dict, **kwds)
+        if 'substitute' in kwds:
+            del kwds['substitute']
+            return self.substitute(dict, **kwds)
+        else:
+            if len(self.variables()) > 0:
+                return self.substitute(dict, **kwds)
+            else:
+                raise ValueError, "trying to substitute into a constant expression, use substitute=True if this is what you really want to do"
+
 
     def power_series(self, base_ring):
         """
@@ -2582,6 +2590,10 @@ class SymbolicConstant(Symbolic_object):
             sage: type(a)
             <class 'sage.calculus.calculus.SymbolicConstant'>
             sage: a(x=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: trying to substitute into a constant expression, use substitute=True if this is what you really want to do
+            sage: a(x=3, substitute=True)
             5/6
         """
         return self
@@ -2655,6 +2667,18 @@ class SymbolicPolynomial(Symbolic_object):
                 else:
                     t.append(g)
             return ring(f(*t))
+
+    def variables(self):
+        """
+        Returns the generators of the polynomial ring.
+
+        sage: R.<x,y,theta> = ZZ[]
+        sage: f = SR(x^3 + x + y + theta^2);
+        sage: f.variables()
+        (x, y, theta)
+
+        """
+        return self._obj.parent().gens()
 
     def polynomial(self, base_ring):
         """

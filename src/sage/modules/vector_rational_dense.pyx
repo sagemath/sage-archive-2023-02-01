@@ -186,7 +186,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cdef Vector _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _vector_times_vector_c_impl(self, Vector right):
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()

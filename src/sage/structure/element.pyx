@@ -1842,7 +1842,7 @@ cdef class Vector(ModuleElement):
             right = (<Vector>right).base_base_extend_canonical_sym_c((<Element>left)._parent)
             return (<Vector>right)._rmultiply_by_scalar(left)
 
-    cdef Vector _vector_times_vector_c(Vector left, Vector right):
+    cdef Element _vector_times_vector_c(Vector left, Vector right):
         if left._degree != right._degree:
             raise TypeError, "incompatible degrees"
         left, right = coercion_model.canonical_base_coercion_c(left, right)
@@ -1850,7 +1850,7 @@ cdef class Vector(ModuleElement):
             return left._vector_times_vector(right)
         else:
             return left._vector_times_vector_c_impl(right)
-    cdef Vector _vector_times_vector_c_impl(Vector left, Vector right):
+    cdef Element _vector_times_vector_c_impl(Vector left, Vector right):
         raise TypeError,arith_error_message(left, right, operator.mul)
 
     def  _vector_times_vector(left, right):

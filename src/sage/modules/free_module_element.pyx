@@ -921,7 +921,34 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [x * right for x in self._entries]
         return self._new_c(v)
 
-    cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
+    cdef Element _vector_times_vector_c_impl(left, element_Vector right):
+        """
+        Return the dot product of left and right.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
+            sage: v*w
+            x^3 + 5*x^2 + 9*x
+            sage: (x*2*x) + (x^2*x) + (3*x*(3+x))
+            x^3 + 5*x^2 + 9*x
+            sage: w*v
+            x^3 + 5*x^2 + 9*x
+        """
+        return left.dot_product(right)
+
+    def componentwise_product(left, element_Vector right):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
+            sage: v.componentwise_product(w)
+            (2*x^2, x^3, 3*x^2 + 9*x)
+            sage: w.componentwise_product(v)
+            (2*x^2, x^3, 3*x^2 + 9*x)
+        """
+        if not right.parent() == left.parent():
+            right = left.parent().ambient_module()(right)
         # Component wise vector * vector multiplication.
         cdef Py_ssize_t i, n
         n = PyList_Size(left._entries)
@@ -1131,7 +1158,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             v[i] = left._mul_c(a)
         return self._new_c(v)
 
-    cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
+    cdef Element _vector_times_vector_c_impl(left, element_Vector right):
+        """
+        Return the dot product of left and right.
+        """
+        # Component wise vector * vector multiplication.
+        cdef object v, e
+        e = left.base_ring()(0)
+        for i, a in left._entries.iteritems():
+            if e.has_key(i):
+                e += (<RingElement>a)._mul_c(<RingElement> e[i])
+            else:
+                e += a
+        return e
+
+    def _pairwise_product_c_impl(left, Vector right):
         # Component wise vector * vector multiplication.
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)

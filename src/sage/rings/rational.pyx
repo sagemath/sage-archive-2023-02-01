@@ -58,6 +58,9 @@ import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
+import sys
+MAX_UNSIGNED_LONG = 2 * sys.maxint  #TODO: this was copied from integer.pyx -- should this be defined somewhere more general?
+
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -951,31 +954,41 @@ cdef class Rational(sage.structure.element.FieldElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: 0^0 is undefined.
+            sage: s = (1/2)^(2^100)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294  # 32-bit
+            RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
         """
-        cdef Rational _self, x
-        if not isinstance(self, Rational):
-            return self.__pow__(float(n))
-        _self = self
+        cdef Rational _self = self, x
         cdef unsigned int _n
+
+        if not PY_TYPE_CHECK(self, Rational):  #this is here for no good reason apparent to me... should be removed in the future.
+            assert False, "BUG:  Rational.__pow__ called on a non-Rational"
+            return self.__pow__(float(n)) #whose idea was it to float(n)?
+
         try:
-            _n = integer.Integer(n)
+            _n = PyNumber_Index(n)
         except TypeError:
-            if isinstance(n, Rational):
+            if PY_TYPE_CHECK(n, Rational):
                 # this is the only sensible answer that avoids rounding and
                 # an infinite recursion.
                 from sage.calculus.calculus import SR
                 return SR(self)**SR(n)
+            if PY_TYPE_CHECK(n, Element):
+                return (<Element>n)._parent(self)**n
             try:
-                s = n.parent()(self)
-                return s**n
+                return n.parent()(self)**n
             except AttributeError:
-                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+                try:
+                    return type(n)(self)**n
+                except:
+                    raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
-        if not (n or mpq_sgn(_self.value)):
+        if n > MAX_UNSIGNED_LONG:
+            raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
+        elif not (n or mpq_sgn(_self.value)):
             raise ArithmeticError, "0^0 is undefined."
-        elif n < 0:  # this doesn't make sense unless n is an integer.
-            x = _self**(-n)
-            return x.__invert__()
 
         x = <Rational> PY_NEW(Rational)
         cdef mpz_t num, den
@@ -983,8 +996,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         _sig_on
         mpz_init(num)
         mpz_init(den)
-        mpz_pow_ui(num, mpq_numref(_self.value), _n)
-        mpz_pow_ui(den, mpq_denref(_self.value), _n)
+        if n < 0:  # we used to call (self**(-n)).__invert__()) -- this should be loads faster
+            _n = PyNumber_Index(-n)
+            mpz_pow_ui(den, mpq_numref(_self.value), _n) #we switch den and num to invert
+            mpz_pow_ui(num, mpq_denref(_self.value), _n)
+        else:
+            mpz_pow_ui(num, mpq_numref(_self.value), _n)
+            mpz_pow_ui(den, mpq_denref(_self.value), _n)
         mpq_set_num(x.value, num)
         mpq_set_den(x.value, den)
         mpz_clear(num)

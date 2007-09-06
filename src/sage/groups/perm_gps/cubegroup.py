@@ -41,6 +41,7 @@ AUTHOR:
     - Robert Miller (2007-08): editing, cleaned up display2d
     - Robert Bradshaw (2007-08): RubiksCube object, 3d plotting.
     - DJ (2007-09): rewrote docstring for CubeGroup's "solve".
+    - Robert Bradshaw (2007-09): Versatile parse function for all input types.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -614,6 +615,9 @@ class CubeGroup(PermutationGroup_generic):
         #PermutationGroup_subgroup(H,self.__gens)    #### very slow..
 	self._group
 
+    def gen_names(self):
+        return ['B','D','F','L','R','U']
+
     def __str__(self):
 	return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
 
@@ -666,6 +670,91 @@ class CubeGroup(PermutationGroup_generic):
         return g
 
 
+    def parse(self, mv):
+        """
+        This function allows one to create the permutation group element from a variety of formats.
+
+        INPUT: one of the following
+            list -- list of facets (as returned by self.facets())
+            dict -- list of faces (as returned by self.faces())
+            str  -- either cycle notation (passed to GAP) or a product of generators or Singmaster notation
+            perm_group element -- returned as an element of self.group()
+
+        EXAMPLES:
+            sage: C = CubeGroup()
+            sage: C.parse(range(1,49))
+            ()
+            sage: g = C.parse("L"); g
+            (1,17,41,40)(4,20,44,37)(6,22,46,35)(9,11,16,14)(10,13,15,12)
+            sage: C.parse(str(g)) == g
+            True
+            sage: facets = C.facets(g); facets
+            [17, 2, 3, 20, 5, 22, 7, 8, 11, 13, 16, 10, 15, 9, 12, 14, 41, 18, 19, 44, 21, 46, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 6, 36, 4, 38, 39, 1, 40, 42, 43, 37, 45, 35, 47, 48]
+            sage: C.parse(facets)
+            (1,17,41,40)(4,20,44,37)(6,22,46,35)(9,11,16,14)(10,13,15,12)
+            sage: C.parse(facets) == g
+            True
+            sage: faces = C.faces("L"); faces
+            {'right': [[25, 26, 27], [28, 0, 29], [30, 31, 32]], 'up': [[17, 2, 3], [20, 0, 5], [22, 7, 8]], 'back': [[33, 34, 6], [36, 0, 4], [38, 39, 1]], 'down': [[40, 42, 43], [37, 0, 45], [35, 47, 48]], 'front': [[41, 18, 19], [44, 0, 21], [46, 23, 24]], 'left': [[11, 13, 16], [10, 0, 15], [9, 12, 14]]}
+            sage: C.parse(faces) == C.parse("L")
+            True
+            sage: C.parse("L' R2") == C.parse("L^(-1)*R^2")
+            True
+            sage: C.parse("L' R2")
+            (1,40,41,17)(3,43)(4,37,44,20)(5,45)(6,35,46,22)(8,48)(9,14,16,11)(10,12,15,13)(19,38)(21,36)(24,33)(25,32)(26,31)(27,30)(28,29)
+            sage: C.parse("L^4")
+            ()
+            sage: C.parse("L^(-1)*R")
+            (1,40,41,17)(3,38,43,19)(4,37,44,20)(5,36,45,21)(6,35,46,22)(8,33,48,24)(9,14,16,11)(10,12,15,13)(25,27,32,30)(26,29,31,28)
+        """
+        G = self.group()
+        if isinstance(mv, PermutationGroupElement):
+            # mv is a perm_group element, return mv
+            return mv if mv.parent() is G else G(mv)
+        elif isinstance(mv, str):
+            # It is a string: may be in cycle notation or rubik's notation
+            if '(' in mv and not '^' in mv:
+                return G(mv)
+            else:
+                gens = G.gens()
+                names = self.gen_names()
+                map = {}
+                for i in range(6):
+                    map[names[i]] = gens[i]
+                g = G(1)
+                mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "-1").replace('^','').replace('(','').replace(')','')
+                M = mv.split("*")
+                for m in M:
+                    if len(m) == 1:
+                        g *= map[m[0]]
+                    else:
+                        g *= map[m[0]]**int(m[1:])
+                return g
+        elif isinstance(mv, dict):
+            state = mv
+            state_facets = []
+            keyss = state.keys()
+            keyss.sort()
+            for k in keyss:
+                r = state[k][0]+state[k][1]+state[k][2]
+                r.remove(0)
+                state_facets = state_facets + r
+            state0 = self.faces("")
+            state0_facets = []
+            keyss = state0.keys()
+            keyss.sort()
+            for k in keyss:
+                r = state0[k][0]+state0[k][1]+state0[k][2]
+                r.remove(0)
+                state0_facets = state0_facets + r
+            p1 = [state0_facets.index(x) for x in range(1,49)]
+            p2 = [state_facets[j] for j in p1]
+            return G(p2)
+        elif isinstance(mv, list):
+            return G(mv)
+        else:
+            raise TypeError, "Not a valid Rubik's move: %s" % mv
+
     def facets(self, g=None):
         r"""
         Returns the set of facets on which the group acts. This function is a "constant".
@@ -710,6 +799,7 @@ class CubeGroup(PermutationGroup_generic):
         faceF = [[fcts[16],fcts[17],fcts[18]],[fcts[19],0,fcts[20]],[fcts[21],fcts[22],fcts[23]]]
         faceB = [[fcts[32],fcts[33],fcts[34]],[fcts[35],0,fcts[36]],[fcts[37],fcts[38],fcts[39]]]
         return {'right':faceR,'left':faceL,'up':faceU,'down':faceD,'front':faceF,'back':faceB}
+
 
     def move(self,mv):
         r"""

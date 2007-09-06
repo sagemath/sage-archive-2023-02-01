@@ -11,6 +11,8 @@ NOTATION: B denotes a clockwise quarter turn of the back face
           Products of moves are read {\it right to left}, so for example,
           R*U means move U first and then R.
 
+See \code{CubeGroup.parse()} for all possible input notations.
+
 The "Singmaster notation":
   * moves: U, D, R, L, F, B as in the diagram below,
   * corners: xyz means the facet is on face x (in R,F,L,U,D,B)
@@ -1064,14 +1066,11 @@ class CubeGroup(PermutationGroup_generic):
         hom = G._gap_().EpimorphismFromFreeGroup()
         soln = hom.PreImagesRepresentative(gap(str(g)))
         # print soln
-        sol1 = str(soln).replace("x1","B")
-        sol2 = sol1.replace("x2","D")
-        sol3 = sol2.replace("x3","F")
-        sol4 = sol3.replace("x4","L")
-        sol5 = sol4.replace("x5","R")
-        sol6 = sol5.replace("x6","U")
-        return sol6
-
+        sol = str(soln)
+        names = self.gen_names()
+        for i in range(6):
+            sol = sol.replace("x%s" % (i+1), names[i])
+        return sol
 
 
 ##########################################################

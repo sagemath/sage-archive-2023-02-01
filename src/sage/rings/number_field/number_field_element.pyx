@@ -15,6 +15,9 @@ AUTHORS:
 # nontrivial project, and it needs somebody to attack it.  I'm amazed
 # how long this has gone unattacked.
 
+# Relative elements need to be a derived class or something.  This is
+# terrible as it is now.
+
 #*****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
@@ -338,7 +341,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(self.parent(),
                       sage.rings.number_field.number_field.NumberField_extension):
             f = self.polynomial()._pari_()
-            g = str(self.parent().pari_relative_polynomial())
+            g = str(self.parent().pari_polynomial())
             base = self.parent().base_ring()
             gsub = base.gen()._pari_()
             gsub = str(gsub).replace('x', "y")
@@ -376,31 +379,35 @@ cdef class NumberFieldElement(FieldElement):
             sage: ((1 + 1/3*a)^4)._pari_init_('a')
             'Mod(1/81*a^4 + 4/27*a^3 + 2/3*a^2 + 4/3*a + 1, a^5 - a - 1)'
 
-        Note that _pari_init_ can return something that can't be parsed
-        by PARI, because of reserved words.
+        Note that _pari_init_ can fail because of reserved words in PARI,
+        and since it actually works by obtaining the PARI representation
+        of something.
             sage: K.<theta> = NumberField(x^5 - x - 1)
             sage: b = (1/2 - 2/3*theta)^3; b
             -8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8
             sage: b._pari_init_('theta')
-            'Mod(-8/27*theta^3 + 2/3*theta^2 - 1/2*theta + 1/8, theta^5 - theta - 1)'
+            Traceback (most recent call last):
+            ...
+            PariError: unexpected character (2)
 
         Fortunately pari_init returns everything in terms of x by default.
             sage: pari(b)
             Mod(-8/27*x^3 + 2/3*x^2 - 1/2*x + 1/8, x^5 - x - 1)
         """
-        if var == None:
-            var = self.parent().variable_name()
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
-            f = self.polynomial()._pari_()
-            g = str(self.parent().pari_relative_polynomial())
-            base = self.parent().base_ring()
-            gsub = base.gen()._pari_()
-            gsub = str(gsub).replace(base.variable_name(), "y")
-            g = g.replace("y", gsub)
-        else:
-            f = str(self.polynomial()).replace("x",var)
-            g = str(self.parent().polynomial()).replace("x",var)
-        return 'Mod(%s, %s)'%(f,g)
+        return repr(self._pari_(var=var))
+##         if var == None:
+##             var = self.parent().variable_name()
+##         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+##             f = self.polynomial()._pari_()
+##             g = str(self.parent().pari_relative_polynomial())
+##             base = self.parent().base_ring()
+##             gsub = base.gen()._pari_()
+##             gsub = str(gsub).replace(base.variable_name(), "y")
+##             g = g.replace("y", gsub)
+##         else:
+##             f = str(self.polynomial()).replace("x",var)
+##             g = str(self.parent().polynomial()).replace("x",var)
+##         return 'Mod(%s, %s)'%(f,g)
 
     def __getitem__(self, n):
         """
@@ -1161,7 +1168,7 @@ cdef class NumberFieldElement(FieldElement):
         K = self.parent().base_ring()
         return K(self._pari_('x').norm())
 
-    def charpoly(self, var):
+    def charpoly(self, var='x'):
         r"""
         The characteristic polynomial of this element over $\Q$.
 

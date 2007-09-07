@@ -32,7 +32,7 @@ import os
 # autotools.  However, for this build we know that we are in a
 # SAGE local filesystem.  Once we have SAGE_LOCAL imported, we
 # know where everything is.
-env = Environment()
+env = Environment(ENV = os.environ)
 
 # By default, SCons hashes the source file contents to determine
 # if rebuilds are necessary. If you like the old way better,

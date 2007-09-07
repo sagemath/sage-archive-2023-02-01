@@ -1026,7 +1026,15 @@ cdef class FiniteField(Field):
         return 'GF(%s)'%self.order()
 
     def _magma_init_(self):
-        return 'GF(%s)'%self.order()
+        """
+        Return string representation of self that MAGMA can
+        understand.
+        """
+        if self.degree() == 1:
+            return 'GF(%s)'%self.order()
+        B = self.base_ring()
+        p = self.polynomial()
+        return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
     def __cmp__(self, other):
         """

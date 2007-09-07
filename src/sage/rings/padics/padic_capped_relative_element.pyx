@@ -476,6 +476,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             return (~self)**(-right)
         # We now check to see if right is the Integer 0.  In that case, we always return 1 to maximum precision.
         elif mpz_sgn((<Integer>right).value) == 0:
+            if not self:
+                raise ArithmeticError, "0^0 is undefined."
             ans = self._new_c()
             # note that right = Integer(0)
             ans.set_from_Integers(right, Integer(1), self.parent().precision_cap())

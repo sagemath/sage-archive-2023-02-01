@@ -29,6 +29,7 @@ cdef extern from "ntl_wrap.h":
     void sub_ZZ "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
     void mul_ZZ "mul"( ZZ_c x, ZZ_c a, ZZ_c b)
     void mul_ZZ_long "mul"( ZZ_c x, ZZ_c a, long b)
+    void power_ZZ "power"(ZZ_c t, ZZ_c x, long e)
     void div_ZZ_ZZ "div"( ZZ_c x, ZZ_c a, ZZ_c b)
     void GCD_ZZ "GCD"(ZZ_c d, ZZ_c a, ZZ_c b)
     void negate(ZZ_c x, ZZ_c a)
@@ -99,6 +100,8 @@ cdef extern from "ntl_wrap.h":
     void ZZX_delete "Delete<ZZX>"(ZZX_c *mem)
     void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
 
+    void PseudoRem_ZZX "PseudoRem"(ZZX_c x, ZZX_c a, ZZX_c b)
+    ZZ_c LeadCoeff_ZZX "LeadCoeff"(ZZX_c x)
     void GetCoeff(ZZ_c x, ZZX_c a, long i)
     void SetCoeff(ZZX_c x, long i, ZZ_c a)
     long IsZero_ZZX "IsZero"(ZZX_c a)

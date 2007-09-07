@@ -385,7 +385,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         cdef Vector_rational_dense w, ans
         cdef Py_ssize_t i, j
-        cdef mpq_t x
+        cdef mpq_t x, y
 
         M = self._row_ambient_module()
         w = <Vector_rational_dense> v

@@ -935,6 +935,3 @@ hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'SAGE External System Code (e.g., PARI, MAGMA, etc.)',
                 url='%s/extcode-main'%SAGE_SERVER)
 
-hg_c_lib = HG('%s/devel/c_lib'%SAGE_ROOT,
-                'SAGE C-library code',
-                url='%s/extcode-main'%SAGE_SERVER)

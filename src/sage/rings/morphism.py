@@ -464,9 +464,10 @@ class RingHomomorphism_im_gens(RingHomomorphism):
     """
     def __init__(self, parent, im_gens, check=True):
         RingHomomorphism.__init__(self, parent)
-        if not isinstance(im_gens, (tuple, list)):
-            im_gens = [im_gens]
-        im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
+        if not isinstance(im_gens, sage.structure.all.Sequence):
+            if not isinstance(im_gens, (tuple, list)):
+                im_gens = [im_gens]
+            im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
         if len(im_gens) != parent.domain().ngens():
             raise ValueError, "number of images must equal number of generators"
         if check:

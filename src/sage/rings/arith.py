@@ -1124,8 +1124,9 @@ def xgcd(a, b):
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
-        sage: xgcd(5/1, 7/1)
-        (1, 3, -2)
+        sage: g, a, b = xgcd(5/1, 7/1); g, a, b
+        (1, -4, 3)
+        sage: a*(5/1) + b*(7/1) == g
         sage: x = polygen(QQ)
         sage: xgcd(x^3 - 1, x^2 - 1)
         (x - 1, 1, -x)
@@ -1773,13 +1774,17 @@ def crt(a,b,m,n):
 
     EXAMPLES:
         sage: crt(2, 1, 3, 5)
-        -4
+        11
         sage: crt(13,20,100,301)
         -2087
 
     You can also use upper case:
-        sage: CRT(2,3, 3, 5)
-        8
+        sage: c = CRT(2,3, 3, 5); c
+        -7
+        sage: c % 3 == 2
+        True
+        sage: c % 5 == 3
+        True
     """
     if isinstance(a,list):
         return CRT_list(a,b)

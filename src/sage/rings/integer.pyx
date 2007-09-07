@@ -99,6 +99,7 @@ include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
+include "../ext/python_number.pxi"
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -848,6 +849,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
             sage: (-1)^(1/3)
             -1
+            sage: 0^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
+
 
         The base need not be an integer (it can be a builtin
         Python type).
@@ -857,7 +863,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9536.7431640625
             sage: 'sage'^3
             'sagesagesage'
-
 
         The exponent must fit in an unsigned long.
             sage: x = 2^100000000000000000000000
@@ -887,7 +892,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^(-1/2)
             1/sqrt(2)
         """
-        cdef Integer _n
+        if dummy is not None:
+            raise RuntimeError, "__pow__ dummy argument ignored"
+        cdef _n
         cdef unsigned int _nval
         if not PY_TYPE_CHECK(self, Integer):
             if isinstance(self, str):
@@ -896,9 +903,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return self.__pow__(int(n))
 
         try:
-            # todo: should add a fast pathway to deal with n being
-            # an Integer or python int
-            _n = Integer(n)
+            _n = PyNumber_Index(n)
         except TypeError:
             try:
                 s = n.parent()(self)
@@ -906,6 +911,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             except AttributeError:
                 raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
+        if not _n:
+            if not self:
+                raise ArithmeticError, "0^0 is undefined."
+            else:
+                return Integer(1)
         if _n < 0:
             return Integer(1)/(self**(-_n))
         if _n > MAX_UNSIGNED_LONG:

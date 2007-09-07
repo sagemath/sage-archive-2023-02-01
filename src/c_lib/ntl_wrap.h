@@ -20,6 +20,8 @@ using namespace NTL;
 #define EXTERN
 #endif
 
+#include "ccobject.h"
+
 EXTERN void del_charstar(char*);
 
 

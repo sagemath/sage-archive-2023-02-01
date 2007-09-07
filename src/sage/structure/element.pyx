@@ -1076,6 +1076,8 @@ cdef class MonoidElement(Element):
         """
         Return the (integral) power of self.
         """
+        if dummy is not None:
+            raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
 
     def __nonzero__(self):
@@ -1443,14 +1445,18 @@ cdef class RingElement(ModuleElement):
             True
 
         TESTS:
-        This crashed in sage-2.5 due to a mistake in missing type below.
             sage: 2r**(SR(2)-1-1r)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-integral exponents not supported
+            sage: 2r**(Integer(SR(2)-1-1r))
             1
 
+
         """
-
+        if dummy is not None:
+            raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
-
 
     ##################################
     # Division
@@ -2362,6 +2368,27 @@ cdef class FieldElement(CommutativeRingElement):
 
 cdef class FiniteFieldElement(FieldElement):
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Used for applying homomorphisms of finite fields.
+
+        EXAMPLES:
+            sage: k.<a> = FiniteField(73^2, 'a')
+            sage: K.<b> = FiniteField(73^4, 'b')
+            sage: phi = k.hom([ b^(73*73+1) ])
+            sage: phi(0)
+            0
+            sage: phi(a)
+            7*b^3 + 13*b^2 + 65*b + 71
+
+            sage: phi(a+3)
+            7*b^3 + 13*b^2 + 65*b + 1
+        """
+        ## NOTE: see the note in sage/rings/number_field_element.pyx,
+        ## in the comments for _im_gens_ there -- something analogous
+        ## applies here.
+        return codomain(self.polynomial()(im_gens[0]))
+
     def minpoly(self,var='x'):
         """
         Returns the minimal polynomial of this element
@@ -2804,8 +2831,9 @@ def generic_power(a, n, one=None):
     return generic_power_c(a,n,one)
 
 cdef generic_power_c(a, nn, one):
-    n = int(nn)
-    if n != nn:
+    try:
+        n = PyNumber_Index(nn)
+    except TypeError:
         raise NotImplementedError, "non-integral exponents not supported"
 
     if not a:

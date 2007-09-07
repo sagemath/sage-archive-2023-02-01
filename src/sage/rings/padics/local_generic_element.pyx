@@ -67,9 +67,6 @@ cdef class LocalGenericElement(CommutativeRingElement):
     def _pari_init_(self):
         return self._repr(mode = 'series')
 
-    #def __pow__(self, right):
-    #    raise NotImplementedError
-
     def _repr_(self):
         return self._repr()
 

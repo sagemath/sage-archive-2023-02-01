@@ -28,6 +28,7 @@ import homset
 
 include "../ext/stdsage.pxi"
 from sage.structure.element cimport Element
+from sage.structure.element import generic_power
 
 def make_morphism(_class, parent, _dict, _slots):
     # from element.pyx
@@ -143,8 +144,7 @@ cdef class Morphism(Element):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
-        import sage.rings.arith as arith
-        return arith.generic_power(self, n)
+        return generic_power(self, n)
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):

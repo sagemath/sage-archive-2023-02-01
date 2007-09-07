@@ -1,14 +1,22 @@
 #!/bin/sh
 
+# Run DSAGE unit tests
+sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log
+
 if [ -d $SAGE_ROOT/devel/doc ]; then
    echo "Testing SAGE documentation"
 
    echo "Testing SAGE tutorial"
    cd $SAGE_ROOT/devel/doc/tut
    sage -t "$@" tut.tex
+
    echo "Testing SAGE programming guide"
    cd $SAGE_ROOT/devel/doc/prog
    sage -t "$@" prog.tex
+
+   echo "Testing SAGE constructions guide"
+   cd $SAGE_ROOT/devel/doc/const
+   sage -t "$@" const.tex
 fi
 
 if [ -d $SAGE_ROOT/devel/sage/sage ]; then

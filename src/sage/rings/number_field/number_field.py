@@ -7,10 +7,14 @@ AUTHORS:
    -- William Stein (2007-09-04): major rewrite and documentation
 
 NOTE:
-    Just like in PARI/GP, class group computations by default assume
-    the Generalized Riemann Hypothesis.  To do class groups
-    computations provably correctly you must often pass the flag
-    proof=True to functions.
+
+    Unlike in PARI/GP, class group computations do not by default
+    assume the Generalized Riemann Hypothesis.  To do class groups
+    computations not provably correctly you must often pass the flag
+    proof=False to functions or call the function
+    \code{number_field_proof(False)}.  Note that many class group
+    functions won't work for any reasonable cases without
+    \code{proof=False}.
 
 This example follows one in the Magma reference manual:
     sage: K.<y> = NumberField(x^4 - 420*x^2 + 40000)
@@ -61,6 +65,46 @@ from galois_group import GaloisGroup
 from sage.structure.element import is_Element
 
 import sage.structure.parent_gens
+
+nfproof = True
+
+def number_field_proof(t=None):
+    """
+    Set or get the global number field proof option.
+
+    EXAMPLES:
+        sage: number_field_proof()
+        True
+        sage: number_field_proof(False)
+        sage: number_field_proof()
+        False
+        sage: number_field_proof(True)
+        sage: number_field_proof()
+        True
+    """
+    global nfproof
+    if t is None:
+        return nfproof
+    nfproof = bool(t)
+
+def proof_flag(t):
+    """
+    Used for easily determining the correct proof flag to use.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import proof_flag
+        sage: proof_flag(None)
+        True
+        sage: proof_flag(False)
+        False
+        sage: proof_flag(True)
+        True
+    """
+    global nfproof
+    if t is None:
+        return nfproof
+    else:
+        return t
 
 _gp = None
 def gp():
@@ -982,7 +1026,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_bnf())
             10
             sage: k.pari_bnf()[:4]
-            [[;], matrix(0,7), [;], Mat([0.E-693 + 10.352073178770991947816442612760937457*I, 0.E-693 + 8.2487727536742446128967079885883377973*I, 0.E-693 + 9.9147352870231080237320951122610602744*I, 0.E-693 + 10.995574287564276334619251841478260095*I, 0.E-693 + 5.3558900891779742444967743036365769643*I, 0.E-693 + 4.3175978606849283409538655445296737394*I, 0.E-693 + 2.6516353273360649301184784208569512624*I])]
+            [[;], matrix(0,7), [;], ...]
             sage: len(k.pari_nf())
             9
         """
@@ -1038,13 +1082,14 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return 0
 
-    def class_group(self, proof=False, names='c'):
+    def class_group(self, proof=None, names='c'):
         r"""
         Return the class group of this field.
 
         INPUT:
-            proof -- if True (*not* the default), then compute
-                       the classgroup provably correctly.
+            proof -- if True then compute the classgroup provably correctly.
+                     Default is True.  Call number_field_proof to change
+                     this default globally.
             names -- names of the generators of this class group.
 
         OUTPUT:
@@ -1059,7 +1104,7 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in a with defining polynomial x^2 + 23
             sage: G is k.class_group()
             True
-            sage: G is k.class_group(proof=True)
+            sage: G is k.class_group(proof=False)
             False
             sage: G.gens()
             (c,)
@@ -1090,6 +1135,7 @@ class NumberField_generic(number_field_base.NumberField):
             1
             1
         """
+        proof = proof_flag(proof)
         try:
             return self.__class_group[proof, names]
         except KeyError:
@@ -1104,12 +1150,12 @@ class NumberField_generic(number_field_base.NumberField):
         self.__class_group[proof,names] = G
         return G
 
-    def class_number(self, proof=False):
+    def class_number(self, proof=None):
         """
         Return the class number of this number field, as an integer.
 
         INPUT:
-            proof -- bool (default: False)
+            proof -- bool (default: True unless you called number_field_proof)
 
         EXAMPLES:
             sage: NumberField(x^2 + 23, 'a').class_number()
@@ -1119,6 +1165,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3 + x^2 + 997*x + 1, 'a').class_number(proof=False)
             1539
         """
+        proof = proof_flag(proof)
         return self.class_group(proof).order()
 
     def composite_fields(self, other, names):
@@ -1169,7 +1216,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: k.<a> = NumberField(x^2 + 23)
-            sage: d = k.different(); d
+            sage: d = k.different()
+            sage: d        # random sign in output
             Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 23
             sage: d.norm()
             23
@@ -1243,10 +1291,14 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.discriminant(v=v)
 
-    def elements_of_norm(self, n, proof=False):
+    def elements_of_norm(self, n, proof=None):
         r"""
         Return a list of solutions modulo units of positive norm to
         $Norm(a) = n$, where a can be any integer in this number field.
+
+        INPUT:
+            proof -- default: True, unless you called number_field_proof and
+            set it otherwise.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+1)
@@ -1256,6 +1308,7 @@ class NumberField_generic(number_field_base.NumberField):
             [7*a - 1, -5*a + 5, a - 7]           # 32-bit
             [7*a - 1, -5*a + 5, -7*a - 1]        # 64-bit
         """
+        proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
         R = self.polynomial().parent()
         return [self(QQ['x'](R(g))) for g in B]
@@ -1445,17 +1498,19 @@ class NumberField_generic(number_field_base.NumberField):
             self.__integral_basis = [self(R(g).list()) for g in B]
         return self.__integral_basis
 
-    def narrow_class_group(self, proof=False):
+    def narrow_class_group(self, proof=None):
         r"""
         Return the narrow class group of this field.
 
         INPUT:
-            proof -- default: False
+            proof -- default: True, unless you called number_field_proof and
+            set it to False.
 
         EXAMPLES:
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
             Multiplicative Abelian Group isomorphic to C2
         """
+        proof = proof_flag(proof)
         try:
             return self.__narrow_class_group
         except AttributeError:
@@ -1582,12 +1637,15 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.polynomial_ring().quotient(self.polynomial(), self.variable_name())
 
-    def regulator(self, proof=False):
+    def regulator(self, proof=None):
         """
         Return the regulator of this number field.
 
         Note that PARI computes the regulator to higher precision than
         the SAGE default.
+
+        INPUT:
+            proof -- default: True, unless you set it otherwise.
 
         EXAMPLES:
             sage: NumberField(x^2-2, 'a').regulator()
@@ -1595,6 +1653,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^4+x^3+x^2+x+1, 'a').regulator()
             0.96242365011920694
         """
+        proof = proof_flag(proof)
         try:
             return self.__regulator
         except AttributeError:
@@ -1639,11 +1698,14 @@ class NumberField_generic(number_field_base.NumberField):
                 A[j,i] = t
         return A
 
-    def units(self, proof=False):
+    def units(self, proof=None):
         """
         Return generators for the unit group modulo torsion.
 
         ALGORITHM: Uses PARI's bnfunit command.
+
+        INPUTS:
+            proof -- default: True
 
         EXAMPLES:
             sage: x = QQ['x'].0
@@ -1652,6 +1714,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.units()
             [8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
         """
+        proof = proof_flag(proof)
         try:
             return self.__units
         except AttributeError:
@@ -1992,13 +2055,13 @@ class NumberField_extension(NumberField_generic):
         """
         return sage.rings.number_field.number_field_ideal_rel.NumberFieldIdeal_rel
 
-    def _pari_base_bnf(self, proof=False):
+    def _pari_base_bnf(self, proof=None):
         """
         Return the PARI bnf (big number field) representation of the
         base field.
 
         INPUT:
-            proof -- bool (default: False) if True, certify correctness
+            proof -- bool (default: True) if True, certify correctness
                      of calculations (not assuming GRH).
 
         EXAMPLES:
@@ -2006,6 +2069,7 @@ class NumberField_extension(NumberField_generic):
             sage: k._pari_base_bnf()
             [[;], matrix(0,9), [;], ... 0]
         """
+        proof = proof_flag(proof)
         # No need to certify the same field twice, so we'll just check
         # that the base field is certified.
         if proof:
@@ -2212,7 +2276,7 @@ class NumberField_extension(NumberField_generic):
         """
         return self.base_field()
 
-    def discriminant(self, proof=False):
+    def discriminant(self, proof=None):
         r"""
         Return the relative discriminant of this extension $L/K$ as
         an ideal of $K$.  If you want the (rational) discriminant of
@@ -2235,6 +2299,8 @@ class NumberField_extension(NumberField_generic):
             sage: L.discriminant()
             Fractional ideal (256) of Number Field in i with defining polynomial x^2 + 1
         """
+        proof = proof_flag(proof)
+
         bnf = self._pari_base_bnf(proof)
         K = self.base_field()
         R = K.polynomial().parent()
@@ -2292,13 +2358,13 @@ class NumberField_extension(NumberField_generic):
         return H
 
 
-    def is_free(self, proof=False):
+    def is_free(self, proof=None):
         r"""
         Determine whether or not $L/K$ is free (i.e. if $\mathcal{O}_L$ is
         a free $\mathcal{O}_K$-module).
 
         INPUT:
-            proof -- default: False
+            proof -- default: True
 
         EXAMPLES:
             sage: x = QQ['x'].0
@@ -2307,6 +2373,7 @@ class NumberField_extension(NumberField_generic):
             sage: L.is_free()
             False
         """
+        proof = proof_flag(proof)
         base_bnf = self._pari_base_bnf(proof)
         if base_bnf.rnfisfree(self.pari_relative_polynomial()) == 1:
             return True
@@ -2514,29 +2581,104 @@ class NumberField_cyclotomic(NumberField_generic):
         else:
             return self._coerce_non_number_field_element_in(x)
 
+    # TODO:
+    # The following is very nice and much more flexible / powerful.
+    # However, it is simply not *consistent*, since it totally
+    # breaks the doctests in eisenstein_submodule.py.
+    # FIX THIS.
+
+##     def _will_be_better_coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
+##         """
+##         Coerce an element x of a cyclotomic field into self, if at all possible.
+
+##         INPUT:
+##             x -- number field element
+
+##             only_canonical -- bool (default: False); Attempt to work,
+##                    even in some cases when x is not in a subfield of
+##                    the cyclotomics (as long as x is a root of unity).
+
+##         EXAMPLES:
+##             sage: k5 = CyclotomicField(5)
+##             sage: k3 = CyclotomicField(3)
+##             sage: k15 = CyclotomicField(15)
+##             sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
+##             zeta15^5
+##             sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
+##             -zeta15^5 + 14/3
+##             sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
+##             zeta3
+##             sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
+##             -2/3*zeta3 + 2/3
+##         """
+
+##         K = x.parent()
+
+##         if K is self:
+##             return x
+##         elif K == self:
+##             return number_field_element.NumberFieldElement(self, x.polynomial())
+##         n = K.zeta_order()
+##         m = self.zeta_order()
+##         print n, m, x
+
+
+##         self_gen = self.gen()
+
+##         if m % n == 0:   # easy case
+##             # pass this off to a method in the element class
+##             # it can be done very quickly and easily by the pyrex<->NTL interface there
+##             return x._lift_cyclotomic_element(self)
+
+##         # Whatever happens below, it has to be consistent with
+##         #  zeta_r |---> (zeta_s)^m
+
+##         if m % 2 and not n%2:
+##             m *= 2
+##             self_gen = -self_gen
+
+##         if only_canonical and m % n:
+##             raise TypeError, "no canonical coercion"
+
+##         if not is_CyclotomicField(K):
+##             raise TypeError, "x must be in a cyclotomic field"
+
+##         v = x.list()
+
+##         # Find the smallest power r >= 1 of the generator g of K that is in self,
+##         # i.e., find the smallest r such that g^r has order dividing m.
+
+##         d = sage.rings.arith.gcd(m,n)
+##         r = n // d
+
+##         # Since we use the power basis for cyclomotic fields, if every
+##         # v[i] with i not divisible by r is 0, then we're good.
+
+##         # If h generates self and has order m, then the element g^r
+##         # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
+##         #
+##         z = self_gen**(m // d)
+##         w = self(1)
+
+##         a = self(0)
+##         for i in range(len(v)):
+##             if i%r:
+##                 if v[i]:
+##                     raise TypeError, "element does not belong to cyclotomic field"
+##             else:
+##                 a += w*v[i]
+##                 w *= z
+##         return a
+
     def _coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
         """
         Coerce an element x of a cyclotomic field into self, if at all possible.
 
         INPUT:
             x -- number field element
-
-            only_canonical -- bool (default: False); Attempt to work,
-                   even in some cases when x is not in a subfield of
-                   the cyclotomics (as long as x is a root of unity).
-
-        EXAMPLES:
-            sage: k5 = CyclotomicField(5)
-            sage: k3 = CyclotomicField(3)
-            sage: k15 = CyclotomicField(15)
-            sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
-            zeta15^5
-            sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
-            -zeta15^5 + 14/3
-            sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
-            zeta3
-            sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
-            -2/3*zeta3 + 2/3
+            only_canonical -- bool (default: False); Attempt to work, even in some
+                   cases when x is not in a subfield of the cyclotomics (as long as x is
+                   a root of unity).
         """
         K = x.parent()
         if K is self:
@@ -2549,37 +2691,29 @@ class NumberField_cyclotomic(NumberField_generic):
             # pass this off to a method in the element class
             # it can be done very quickly and easily by the pyrex<->NTL interface there
             return x._lift_cyclotomic_element(self)
-        if only_canonical:
-            raise TypeError
+        else:
+            if only_canonical:
+                raise TypeError
+            n = x.multiplicative_order()
+            if m % n == 0:
+                # Harder case.  E.g., x = (zeta_42)^7 and
+                # self.__zeta = zeta_6, so it is possible to
+                # coerce x in, but not zeta_42 in.
+                # Algorithm:
+                #    1. Compute self.__zeta as an element
+                #       of K = parent of x.  Call this y.
+                #    2. Write x as a power r of y.
+                #       TODO: we do step two STUPIDLY.
+                #    3. Return self.__zeta to the power r.
+                y = K(self.zeta())
+                z = y
+                for r in xrange(y.multiplicative_order()):
+                    if z == x:
+                        return self.zeta()**(r+1)
+                    z *= y
+            raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        return number_field_element.NumberFieldElement(self, g)
 
-        if not is_CyclotomicField(K):
-            raise TypeError, "x must be in any cyclotomic field"
-        v = x.list()
-
-        # Find the smallest power r >= 1 of the generator g of K that is in self,
-        # i.e., find the smallest r such that g^r has order dividing m.
-
-        d = sage.rings.arith.gcd(m,n)
-        r = n // d
-
-        # Since we use the power basis for cyclomotic fields, if every
-        # v[i] with i not divisible by r is 0, then we're good.
-
-        # If h generates self and has order m, then the element g^r
-        # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
-        #
-        z = self.gen()**(m // d)
-        w = self(1)
-
-        a = self(0)
-        for i in range(len(v)):
-            if i%r:
-                if v[i]:
-                    raise TypeError, "element does not belong to cyclotomic field"
-            else:
-                a += w*v[i]
-                w *= z
-        return a
 
     def _coerce_from_gap(self, x):
         """
@@ -2896,11 +3030,11 @@ class NumberField_quadratic(NumberField_generic):
         """
         return True
 
-    def class_number(self, proof=False):
+    def class_number(self, proof=None):
         r"""
         Return the size of the class group of self.
 
-        If proof = False (the default!) and the discriminant of the
+        If proof = False (*not* the default!) and the discriminant of the
         field is negative, then the following warning from the PARI
         manual applies: IMPORTANT WARNING: For $D<0$, this function
         may give incorrect results when the class group has a low
@@ -2917,10 +3051,11 @@ class NumberField_quadratic(NumberField_generic):
 
         It is an open problem to \emph{prove} that there are infinity
         many positive square-free $d$ such that $\QQ(\sqrt{d})$ has
-        class number $1$:
+        class number $1$:n
             sage: len([d for d in range(2,200) if not is_square(d) and QuadraticField(d,'a').class_number() == 1])
             121
         """
+        proof = proof_flag(proof)
         try:
             return self.__class_number
         except AttributeError:

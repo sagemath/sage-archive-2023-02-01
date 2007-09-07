@@ -155,8 +155,7 @@ class MPolynomialIdeal_magma_repr:
         if magma == None:
             import sage.interfaces.magma
             magma = sage.interfaces.magma.magma
-        mlist = magma(self.gens())
-        return magma("ideal<%s|%s>"%(self.ring()._magma_().name(),mlist.name()))
+        return magma.ideal(self.gens())
 
     def _magma_groebner_basis(self):
         """
@@ -175,8 +174,11 @@ class MPolynomialIdeal_magma_repr:
             pass
         R = self.ring()
         mgb = self._magma_().GroebnerBasis()
-        B = Sequence([R(str(mgb[i+1])) for i in range(len(mgb))], R,
-                        check=False, immutable=True)
+        mgb = [str(mgb[i+1]) for i in range(len(mgb))]
+        if R.base_ring().degree() > 1:
+            a = str(R.base_ring().gen())
+            mgb = [e.replace("$.1",a) for e in mgb]
+        B = Sequence([R(e) for e in mgb], R, check=False, immutable=True)
         self.__magma_groebner_basis = B
         return B
 

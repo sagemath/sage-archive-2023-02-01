@@ -164,9 +164,9 @@ def __find_eisen_chars(character, k):
             for chi in GL:
                 for psi in GR:
                     if chi*psi == eps:
-                        chi, psi = __common_minimal_basering(chi, psi)
-                        for t in divisors(N/(R*L)):
-                            params.append( (chi,psi,t) )
+                        chi0, psi0 = __common_minimal_basering(chi, psi)
+                        for t in divisors(N//(R*L)):
+                            params.append( (chi0,psi0,t) )
     return params
 
 

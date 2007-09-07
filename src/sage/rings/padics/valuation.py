@@ -144,9 +144,11 @@ class Valuation(CRE):
         return Valuation_neg(self)
 
     def __pow__(self, right):
-        if right == 0:
+        if not right:
             if isinstance(self, Valuation_infinity):
                 raise ValueError, "infinity^0 not defined"
+            elif not self:
+                raise ArithmeticError, "0^0 is undefined."
             return Valuation_point(Integer(1))
         right = Integer(right)  #may later add support for Valuations, rationals and infinities in the exponent
         if isinstance(self, Valuation_infinity):

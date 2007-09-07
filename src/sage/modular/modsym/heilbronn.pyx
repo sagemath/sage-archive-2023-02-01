@@ -32,6 +32,8 @@ export = p1list.export()
 
 ctypedef long long llong
 
+cdef extern from "solaris_fix.h": pass
+
 cdef int llong_prod_mod(int a, int b, int N):
     cdef int c
     c = <int> ( ((<llong> a) * (<llong> b)) % (<llong> N) )

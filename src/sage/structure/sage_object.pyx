@@ -229,7 +229,7 @@ cdef class SageObject:
                 X = self.__interface[I]
                 X._check_valid()
                 return X
-            except AttributeError:
+            except (AttributeError, TypeError):
                 try:
                     self.__interface = {}
                 except AttributeError:

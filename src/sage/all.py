@@ -52,6 +52,8 @@ get_sigs()
 
 from sage.misc.all       import *         # takes a while
 
+from sage.misc.sh import sh
+
 from sage.libs.all       import *
 
 get_sigs()
@@ -97,6 +99,8 @@ from sage.gsl.all        import *
 from sage.games.all      import *
 
 from sage.media.all      import *
+
+from sage.logic.all      import *
 
 from copy import copy
 
@@ -239,6 +243,9 @@ def quit_sage(verbose=True):
                t1m,t1s,t2m,t2s)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
+
+    import sage.matrix.matrix_mod2_dense
+    sage.matrix.matrix_mod2_dense.free_m4ri()
 
     ### The following is removed -- since it would cleanup
     ### the tmp directory that the sage cleaner depends upon.

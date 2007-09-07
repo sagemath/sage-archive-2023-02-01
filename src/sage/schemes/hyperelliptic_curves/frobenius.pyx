@@ -28,7 +28,7 @@ include "sage/ext/interrupt.pxi"
 
 
 cdef extern from "frobenius_cpp.h":
-     int frobenius_cpp "frobenius" (mat_ZZ output, ntl_c_ZZ p, int N, ntl_c_ZZX Q)
+     int frobenius_cpp "frobenius" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
 
 
 def frobenius(p, N, Q):
@@ -113,9 +113,9 @@ def frobenius(p, N, Q):
    mm = ntl_mat_ZZ(2*g, 2*g)
 
    # actual NTL objects
-   cdef ntl_c_ZZ ppp
-   cdef ntl_c_ZZX QQQ
-   cdef mat_ZZ* mmm
+   cdef ZZ_c ppp
+   cdef ZZX_c QQQ
+   cdef mat_ZZ_c* mmm
    ppp = pp.x[0]
    QQQ = QQ.x[0]
    mmm = mm.x

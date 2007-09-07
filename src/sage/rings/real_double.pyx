@@ -65,7 +65,7 @@ cdef class RealDoubleField_class(Field):
         return False
 
     def _latex_(self):
-        return "\\R"
+        return "\\mathbf{R}"
 
     def __repr__(self):
         """
@@ -508,6 +508,11 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
+
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers
+        self._value += (<RealDoubleElement>right)._value
+        return self
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
@@ -1566,7 +1571,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
 hook_fast_tp_functions()
 
-def hook_fast_tp_functions():
+cdef hook_fast_tp_functions():
     """
     """
     global global_dummy_element

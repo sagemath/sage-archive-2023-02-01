@@ -35,13 +35,14 @@ import notebook as _notebook
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-from sage.misc.misc import SAGE_EXTCODE, walltime, tmp_filename
+from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename
 from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
 image_path      = p(SAGE_EXTCODE, "notebook/images")
 javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
+java_path       = p(SAGE_LOCAL, "java")
 
 # the list of users waiting to register
 waiting = {}
@@ -942,8 +943,10 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
             input_text = input_text.replace('\r\n', '\n')   # DOS
 
         W = self.worksheet
-        if W.owner() != self.username and not (self.username in W.collaborators()):
-            return InvalidPage(msg = "can't evaluate worksheet cells", username = self.username)
+        owner = W.owner()
+        if owner != '_sage_':
+            if W.owner() != self.username and not (self.username in W.collaborators()):
+               return InvalidPage(msg = "can't evaluate worksheet cells", username = self.username)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         cell.evaluate(username = self.username)
@@ -1364,6 +1367,20 @@ class Javascript(resource.Resource):
 
 setattr(Javascript, 'child_main.js', Main_js())
 
+
+############################
+# Java resources
+############################
+
+class Java(resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File(java_path)
+
+    def childFactory(self, request, name):
+        return static.File(java_path + "/" + name)
+
 ############################
 # Logout
 ############################
@@ -1601,6 +1618,7 @@ class AnonymousToplevel(Toplevel):
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()
+    child_java = Java()
 
     userchild_home = PublicWorksheetsHome
     userchild_pub = PublicWorksheets
@@ -1635,6 +1653,7 @@ class UserToplevel(Toplevel):
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()
+    child_java = Java()
 
     child_upload = Upload()
     child_logout = Logout()

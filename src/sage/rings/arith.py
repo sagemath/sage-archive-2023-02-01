@@ -1111,17 +1111,32 @@ def __GCD_list(v):
 
 def xgcd(a, b):
     """
-    Returns triple of integers (g,s,t) such that g = s*a+t*b =
-    gcd(a,b).
+    Returns triple (g,s,t) such that g = s*a+t*b = gcd(a,b).
 
+    INPUT:
+        a, b -- integers or univariate polynomials (or any type
+                with an xgcd method).
+    OUTPUT:
+        g, s, t -- such that g = s*a + t*b
+
+    EXAMPLES:
         sage: xgcd(56, 44)
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
+        sage: xgcd(5/1, 7/1)
+        (1, 3, -2)
+        sage: x = polygen(QQ)
+        sage: xgcd(x^3 - 1, x^2 - 1)
+        (x - 1, 1, -x)
     """
-    if not isinstance(a, RingElement):
+    try:
+        return a.xgcd(b)
+    except AttributeError:
+        pass
+    if not isinstance(a, sage.rings.integer.Integer):
         a = integer_ring.ZZ(a)
-    return a.xgcd(b)
+    return a.xgcd(integer_ring.ZZ(b))
 
 XGCD = xgcd
 
@@ -1185,32 +1200,41 @@ def inverse_mod(a, m):
 #         raise "inverse_mod(a=%s,m=%s), error since GCD=%s"%(a,m,g)
 #     return s
 
-def power_mod(a,m,n):
-    """The m-th power of a modulo the integer n.
+def power_mod(a,n,m):
+    """The n-th power of a modulo the integer m.
     sage: power_mod(0,0,5)
-    1
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: 0^0 is undefined.
     sage: power_mod(2,390,391)
     285
     sage: power_mod(2,-1,7)
     4
     """
-    if n==0:
-        raise ZeroDivisionError, "Modulus must be nonzero."
-    if n==1:
-        return 0
-    if m < 0:
-        ainv = inverse_mod(a,n)
-        return power_mod(ainv, -m, n)
     if m==0:
+        raise ZeroDivisionError, "Modulus must be nonzero."
+    if m==1:
+        return 0
+    if n < 0:
+        ainv = inverse_mod(a,m)
+        return power_mod(ainv, -n, m)
+    if n==0:
+        if a == 0:
+            raise ArithmeticError, "0^0 is undefined."
         return 1
-    power = 1
-    i = 0
-    apow2 = a
-    while ((m>>i) > 0):
-        if((m>>i) & 1):
-            power = (power * apow2) % n
-        apow2 = (apow2 * apow2) % n
-        i += 1
+
+    apow = a
+    while n&1 == 0:
+        apow = (apow*apow) % m
+        n = n >> 1
+    power = apow
+    n = n >> 1
+    while n != 0:
+        apow = (apow*apow) % m
+        if n&1 != 0:
+            power = (power*apow) % m
+        n = n >> 1
+
     return power
 
 def generic_power(a, m, one=1):
@@ -1226,36 +1250,13 @@ def generic_power(a, m, one=1):
         sage: generic_power(RealField()('2.5'),4)
         39.0625000000000
         sage: generic_power(0,0)
-        1
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: 0^0 is undefined.
         sage: generic_power(2,-3)
         1/8
     """
-    if bool(a == one):
-        return a
-    if m < 0:
-        a = ~a
-        m = -m
-    if m == 0:
-        return one
-    _m = int(m)
-    if _m != m:
-        raise ValueError, "exponent must be an integer"
-    else:
-        m = _m
-    power = None
-    i = 0
-    apow2 = a
-    while (m>>i) > 0:
-        if (m>>i) & 1:
-            if power is None:
-                power = apow2
-            else:
-                power *= apow2
-        apow2 *= apow2
-        i += 1
-    if power is None:
-        return one
-    return power
+    return sage.structure.element.generic_power(a,m,one)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):
@@ -1647,13 +1648,43 @@ def is_square(n, root=False):
     Returns whether or not n is square, and if n is a square
     also returns the square root.  If n is not square, also
     returns None.
+
     INPUT:
         n -- an integer
         root -- whether or not to also return a square root (default: False)
     OUTPUT:
         bool -- whether or not a square
-        object --
+        object -- (optional) an actual square if found, and None otherwise.
+
+    EXAMPLES:
+        sage: is_square(2)
+        False
+        sage: is_square(4)
+        True
+        sage: is_square(2.2)
+        True
+        sage: is_square(-2.2)
+        False
+        sage: is_square(CDF(-2.2))
+        True
+        sage: is_square((x-1)^2)
+        True
+
+        sage: is_square(4, True)
+        (True, 2)
     """
+    try:
+        if root:
+            try:
+                return n.is_square(root)
+            except TypeError:
+                if n.is_square():
+                    return True, n.sqrt()
+                else:
+                    return False, None
+        return n.is_square()
+    except AttributeError:
+        pass
     t, x = pari(n).issquare(find_root=True)
     if root:
         if t:

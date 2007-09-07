@@ -64,10 +64,6 @@ cp -pr * .hg* "$DEVEL/sage-main/"
 
 cd "$DEVEL/sage-main"
 
-# for backward compatibility
-# (going from sage-1.4 to sage-1.5)
-rm -f */*/interrupt.h */*/*/interrupt.h */*/*/*/interrupt.h
-
 # touch and build everything
 sage -b main
 

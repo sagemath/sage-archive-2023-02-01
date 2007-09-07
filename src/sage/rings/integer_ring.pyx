@@ -235,7 +235,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return integer_ring_python.iterator(self)
 
-    cdef Integer _coerce_ZZ(self, ntl_c_ZZ *z):
+    cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)
         _sig_on

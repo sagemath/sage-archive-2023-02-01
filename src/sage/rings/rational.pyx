@@ -58,7 +58,7 @@ import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-cdef extern from "../ext/mpz_pylong.h":
+cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
@@ -869,6 +869,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        mpq_add(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x
@@ -947,6 +951,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
             sage: (2/3)^(3/4)
             2^(3/4)/3^(3/4)
+            sage: (0/1)^0
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 0^0 is undefined.
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):
@@ -967,7 +975,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
-        if n < 0:  # this doesn't make sense unless n is an integer.
+        if not (n or mpq_sgn(_self.value)):
+            raise ArithmeticError, "0^0 is undefined."
+        elif n < 0:  # this doesn't make sense unless n is an integer.
             x = _self**(-n)
             return x.__invert__()
 

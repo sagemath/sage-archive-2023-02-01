@@ -345,7 +345,7 @@ import os, re, sys
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
 import random
@@ -401,7 +401,8 @@ class Maxima(Expect):
         self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
-        self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask]
+        self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
+                            ['Break [0-9]+']
         self._error_re = re.compile('(debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
@@ -450,6 +451,10 @@ class Maxima(Expect):
                 i = self._expect.expect(expr)
             if i > 0:
                 v = self._expect.before
+                if i >= len(self._ask):
+                    self.quit()
+                    raise ValueError, "%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v
+
                 j = v.find('Is ')
                 v = v[j:]
                 msg = "Computation failed since Maxima requested additional constraints (use assume):\n" + v + self._ask[i-1]
@@ -493,13 +498,18 @@ class Maxima(Expect):
         return self._expect.before
 
     def _batch(self, str, batchload=True):
-        F = open(tmp, 'w')
+        F = open(self._local_tmpfile(), 'w')
         F.write(str)
         F.close()
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
+
         if batchload:
-            cmd = 'batchload("%s");'%tmp
+            cmd = 'batchload("%s");'%tmp_to_use
         else:
-            cmd = 'batch("%s");'%tmp
+            cmd = 'batch("%s");'%tmp_to_use
         self._sendline(cmd)
         self._expect_expr()
         out = self._before()

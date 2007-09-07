@@ -1032,6 +1032,10 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':
             self.send_header("Content-type", 'application/sobj')
+        elif self.path[-4:] == '.jar':
+            self.send_header("Content-type", 'application/java-archive ')
+        elif self.path[-5:] == '.jnlp':
+            self.send_header("Content-type", 'application/x-java-jnlp-file ')
         else:
             self.send_header("Content-type", 'text/html')
         self.end_headers()
@@ -1149,7 +1153,9 @@ VALID_EXTENSIONS = ['eps', 'pdf', 'png', 'bmp', 'svg', 'tex',
                     'dvi', 'log', 'css',
                     'txt', 'ico', 'sws',
                     'c', 'sobj', 'html',
-                    'ps', 'js', 'hg', 'patch']
+                    'ps', 'js', 'hg', 'patch',
+                    'jar', 'jnlp',
+                    'obj', 'mtl']
 
 def has_valid_file_extension(path):
     for ext in VALID_EXTENSIONS:

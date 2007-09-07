@@ -25,6 +25,7 @@ TESTS:
 # System imports
 import random
 import weakref
+import operator
 
 # SAGE matrix imports
 import matrix
@@ -43,6 +44,8 @@ import matrix_integer_sparse
 import matrix_rational_dense
 import matrix_rational_sparse
 
+import matrix_mpolynomial_dense
+
 #import padics.matrix_padic_capped_relative_dense
 
 ## import matrix_cyclo_dense
@@ -59,6 +62,7 @@ import sage.groups.matrix_gps.matrix_group_element
 
 
 # SAGE imports
+import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
@@ -70,6 +74,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.integer_mod_ring
+import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
@@ -327,6 +332,29 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         from sage.categories.pushout import MatrixFunctor
         return MatrixFunctor(self.__nrows, self.__ncols), self.base_ring()
 
+    def get_action_impl(self, S, op, self_on_left):
+        try:
+            if op is operator.mul:
+                import action as matrix_action
+                if self_on_left:
+                    if is_MatrixSpace(S):
+                        return matrix_action.MatrixMatrixAction(self, S)
+                    elif sage.modules.free_module.is_FreeModule(S):
+                        return matrix_action.MatrixVectorAction(self, S)
+                    else:
+                        # action of basering
+                        return sage.structure.coerce.RightModuleAction(S, self)
+                else:
+                    if sage.modules.free_module.is_FreeModule(S):
+                        return matrix_action.VectorMatrixAction(self, S)
+                    else:
+                        # action of basering
+                        return sage.structure.coerce.LeftModuleAction(S, self)
+            else:
+                return None
+        except TypeError:
+            return None
+
     def _coerce_impl(self, x):
         """
         EXAMPLES:
@@ -434,6 +462,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
+            elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring().is_field():
+                return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
             # the default

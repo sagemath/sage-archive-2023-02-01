@@ -47,13 +47,13 @@ import quit
 
 import cleaner
 
-from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
+from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.structure.element import RingElement
 BAD_SESSION = -2
 
 failed_to_start = []
 
-tmp='%s/tmp'%SAGE_TMP_INTERFACE
+tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
 
 ## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
 ## it should not be necessary or used anyways.
@@ -83,7 +83,7 @@ class Expect(ParentWithBase):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None,
+    def __init__(self, name, prompt, command=None, server=None, server_tmpdir=None,
                  ulimit = None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
@@ -96,16 +96,21 @@ class Expect(ParentWithBase):
             command = name
         if not server is None:
             if ulimit:
-                command = 'ssh -t %s "PATH=%s:$PATH; export PATH; ulimit %s; %s"'%(
-                    server, SAGE_ROOT, ulimit, command)
+                command = 'ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
             else:
                 command = "ssh -t %s %s"%(server, command)
             self.__is_remote = True
-            eval_using_file_cutoff = 0  # don't allow this!
+#            eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:
                 print "Using remote server"
                 print command
             self._server = server
+            if server_tmpdir is None:
+                # TO DO: Why default to /tmp/? Might be better to use the expect process itself to get a tmp folder
+                print "No remote temporary directory (option server_tmpdir) specified, using /tmp/ on "+server
+                self.__remote_tmpdir = "/tmp/"
+            else:
+                self.__remote_tmpdir = server_tmpdir
         else:
             self._server = None
         self.__do_cleaner = do_cleaner
@@ -211,11 +216,12 @@ class Expect(ParentWithBase):
     def _change_prompt(self, prompt):
         self._prompt = prompt
 
-    def _temp_file(self, x):
-        T = self.__path + "/tmp/"
-        if not os.path.exists(T):
-            os.makedirs(T)
-        return T + str(x)
+#    (pdehaye 20070819: this was used by some interfaces but does not work well remotely)
+#    def _temp_file(self, x):
+#        T = self.__path + "/tmp/"
+#        if not os.path.exists(T):
+#            os.makedirs(T)
+#        return T + str(x)
 
     def name(self):
         return self.__name
@@ -261,12 +267,77 @@ class Expect(ParentWithBase):
         return self._expect.pid
 
     def _install_hints(self):
-        """
+        r"""
         Hints for installing needed slave program on your computer.
 
         There are no hints by default.
         """
         return ''
+
+    def _install_hints_ssh(self):
+        r"""
+        Hints for installing passwordless authentication on your computer...
+        """
+        # Written by Paul-Olivier Dehaye 2007/08/23
+        return """
+In order for Sage (on "local") to launch a "slave" process on "remote", the following command needs to work from local's console, without the need to enter any password:
+
+       "ssh -t remote slave",
+
+where "slave" could be "math" (for text-mode Mathematica), "gap", "magma", "sage", "maple", etc.
+
+This thus requires passwordless authentication to be setup, which can be done with commands like these:
+        cd; ssh-keygen -t rsa; scp .ssh/id_rsa.pub remote:.ssh/authorized_keys2\n
+(WARNING: this would overwrite your current list of auhorized keys on "remote")
+
+In many cases, the server that can actually run "slave" is not accessible from the internet directly, but you have to hop through an intermediate trusted server, say "gate".
+If that is your case, get help with _install_hints_ssh_through_gate().
+
+"""
+
+    def _install_hints_ssh_through_gate(self):
+        r"""
+        Hints for installing passwordless authentication through a gate
+        """
+        # Written by Paul-Olivier Dehaye 2007/08/23
+        return """
+
+ We assume you would like to run a "slave" process  on a machine called "remote" from a machine running SAGE called "local". We also assume "remote" can only be accessed from "local" by ssh'ing first to "gate" (this is a fairly common setup). Sometimes, "gate" and "remote" haved a shared filesystem, and this helps a bit.
+
+  Note: You cannot just create shell scripts on "local" and "gate" that would use two successive SSH connections to "remote" in order to simulate running "slave" locally. This is because SAGE will sometimes use files (and scp)  to communicate with "remote", which shell scripts would not take care of.
+
+You need to setup:
+ * passwordless authentication to "gate" from "local"
+ * add passwordless authentication to "remote" from "local",
+   for instance by appending the file local:~/.ssh/id_rsa.pub to remote:~/.ssh/authorized_keys2 and logging in once
+      (this is only needed if "remote" and "gate" don\'t share fylesystems)
+ * add a few lines to your local:~/.ssh/ssh_config. Mine look like
+
+       Host remote_for_sage
+            ProxyCommand ssh gate nc -w 1 remote 22
+
+That's it, normally.
+
+The last step tells ssh that whenever an ssh connection is required to
+the host "remote_for_sage", it should tunnel it through "gate". Any
+attempt to scp-connect to "remote_for_sage" will use ssh and thus
+this configuration file, and properly channel those file transfers
+through the tunnel.
+
+A good test is to attempt an scp connection from the command-line
+of "local" to "remote_for_sage" as if no tunnel through "gate" was
+required. No password should be asked for the second time around.
+
+Finally, we created the new name "remote_for_sage" for "remote",
+but this name only exists locally. this is to avoid interfering
+with any other program that might already ssh to "remote" in
+their own way.
+
+If this all works, you can then make calls like:
+         math = Mathematica(server="remote_for_sage")
+
+"""
+
 
     def _do_cleaner(self):
         try:
@@ -388,10 +459,16 @@ class Expect(ParentWithBase):
         # kill the binary.
         E = self._expect
         if verbose:
-            print "Exiting spawned %s process."%self
+            if self.is_remote():
+                    print "Exiting spawned %s process (local pid=%s, running on %s)"%(self,E.pid,self._server)
+            else:
+                print "Exiting spawned %s process."%self
         try:
+#            TO DO: This should be implemented or the remote tmp will get crowded
+#            self._remove_remote_tmpfile()
             E.sendline(self._quit_string())
             self._so_far(wait=timeout)
+            # In case of is_remote(), killing the local "ssh -t" also kills the remote process it initiated
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
         except (RuntimeError, OSError), msg:
@@ -402,15 +479,58 @@ class Expect(ParentWithBase):
     def _quit_string(self):
         return 'quit'
 
+    def _local_tmpfile(self):
+        try:
+            return self.__local_tmpfile
+        except AttributeError:
+            self.__local_tmpfile = tmp_expect_interface_local
+            return self.__local_tmpfile
+
+    def _remote_tmpdir(self):
+        return self.__remote_tmpdir
+
+    def _remote_tmpfile(self):
+        try:
+            return self.__remote_tmpfile
+        except AttributeError:
+            self.__remote_tmpfile = self._remote_tmpdir()+"/interface_%s:%s"%(LOCAL_IDENTIFIER,self.pid())
+            return self.__remote_tmpfile
+
+    def _send_tmpfile_to_server(self, local_file=None, remote_file=None):
+        if local_file is None:
+            local_file = self._local_tmpfile()
+        if remote_file is None:
+            remote_file = self._remote_tmpfile()
+        cmd = 'scp "%s" %s:"%s" 1>&2 2>/dev/null'%(local_file, self._server, remote_file)
+#        print cmd
+        os.system(cmd)
+
+    def _get_tmpfile_from_server(self, local_file=None,remote_file=None):
+        if local_file is None:
+            local_file = self._local_tmpfile()
+        if remote_file is None:
+            remote_file = self._remote_tmpfile()
+        cmd = 'scp %s:"%s" "%s" 1>&2 2>/dev/null'%( self._server, remote_file, local_file)
+#        print cmd
+        os.system(cmd)
+
+    def _remove_tmpfile_from_server(self):
+        if not (self.__remote_tmpfile is None):
+            raise NotImplementedError
+
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
-    def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
+    def _eval_line_using_file(self, line):
+        F = open(self._local_tmpfile(), 'w')
         F.write(line+'\n')
         F.close()
+        tmp_to_use = self._local_tmpfile()
+        if self.is_remote():
+            self._send_tmpfile_to_server()
+            tmp_to_use = self._remote_tmpfile()
         try:
-            s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+            s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False)
         except pexpect.EOF, msg:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
@@ -425,7 +545,7 @@ class Expect(ParentWithBase):
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
+            return self._eval_line_using_file(line)
         try:
             if self._expect is None:
                 self._start()
@@ -448,15 +568,18 @@ class Expect(ParentWithBase):
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
                     try:
-                        if self._read_in_file_command(tmp) in line:
+                        if self.is_local():
+                            tmp_to_use = self._local_tmpfile()
+                        else:
+                            tmp_to_use = self._remote_tmpfile()
+                        if self._read_in_file_command(tmp_to_use) in line:
                             raise pexpect.EOF, msg
                     except NotImplementedError:
                         pass
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,
-                                                   self, line)
+                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,self, line)
                 out = E.before
             else:
                 out = '\n\r'
@@ -751,9 +874,10 @@ class FunctionElement(SageObject):
     def _sage_doc_(self):
         return ''
 
-
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
+
+
 
 class ExpectElement(RingElement):
     """
@@ -764,7 +888,7 @@ class ExpectElement(RingElement):
         self._create = value
         if parent is None: return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
-        # is too long aqnd if so get it using file, otherwise
+        # is too long and if so get it using file, otherwise
         # don't.
         if isinstance(value, basestring) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
@@ -866,13 +990,15 @@ class ExpectElement(RingElement):
             pass
 
     def _sage_(self):
+        #TO DO: this could use file transfers when self.is_remote()
+        return sage.misc.sage_eval.sage_eval(repr(self))
+
+
+    def sage(self):
         """
         Attempt to return a SAGE version of this object.
         """
-        return self.sage()
-
-    def sage(self):
-        return sage.misc.sage_eval.sage_eval(repr(self))
+        return self._sage_()
 
     def __repr__(self):
         try:
@@ -1012,5 +1138,6 @@ def reduce_load(parent, x):
 import os
 def console(cmd):
     os.system(cmd)
+
 
 

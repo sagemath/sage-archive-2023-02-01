@@ -39,7 +39,7 @@ EXAMPLES:
     sage: a*b
     Traceback (most recent call last):
     ...
-    TypeError: incompatible dimensions
+    TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2' and 'Full MatrixSpace of 2 by 3 dense matrices over Finite Field of size 2'
     sage: b*a
     [1 0 1]
     [1 0 0]
@@ -121,16 +121,18 @@ cdef object called
 cdef void init_m4ri():
     global called
     if called is None:
-        # TODO: remove packingmask
         setupPackingMasks()
         buildAllCodes()
         called = True
 
 init_m4ri()
 
+def free_m4ri():
+    destroyAllCodes()
+
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
-
+    Dense matrix over GF(2)
     """
     ########################################################################
     # LEVEL 1 functionality

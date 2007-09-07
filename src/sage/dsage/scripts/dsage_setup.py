@@ -78,12 +78,19 @@ def setup_worker():
 
 def setup_server(template=None):
     check_dsage_dir()
-    template_dict = {'organization': 'SAGE (at %s)'%(socket.getfqdn()),
+    print "Choose a domain name for your SAGE notebook server,"
+    print "for example, localhost (personal use) or %s (to allow outside connections)."%socket.getfqdn()
+    dn = raw_input("Domain name [localhost]: ").strip()
+    if dn == '':
+        print "Using default localhost"
+        dn = 'localhost'
+
+    template_dict = {'organization': 'SAGE (at %s)'%(dn),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
                 'country': 'US',
-                'cn': socket.getfqdn(),
+                'cn': dn,
                 'uid': 'sage_user',
                 'dn_oid': None,
                 'serial': str(random.randint(1,2**31)),

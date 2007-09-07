@@ -32,12 +32,13 @@ from expect import Expect
 from sage.structure.sage_object import SageObject
 
 class Genus2reduction_expect(Expect):
-    def __init__(self, server=None, logfile=None):
+    def __init__(self, server=None, server_tmpdir=None, logfile=None):
         Expect.__init__(self,
                         name = 'genus2reduction',
                         prompt = 'enter',
                         command = 'genus2reduction',
                         server = server,
+                        server_tmpdir = server_tmpdir,
                         maxread = 10000,
                         restart_on_ctrlc = True,
                         logfile = logfile,

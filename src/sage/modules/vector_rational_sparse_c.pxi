@@ -183,7 +183,6 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
     cdef mpq_t *e
 
     m = binary_search(v.positions, v.num_nonzero, n, &ins)
-
     if m != -1:
         # The position n was found in the array of positions.
         # Now there are two cases:
@@ -202,9 +201,11 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
                 # v.entries[i] = e[i]
                 mpq_set(v.entries[i], e[i])
                 v.positions[i] = pos[i]
+                mpq_clear(e[i])
             for i from m < i < v.num_nonzero:
                 # v.entries[i-1] = e[i]
                 mpq_set(v.entries[i-1], e[i])
+                mpq_clear(e[i])
                 v.positions[i-1] = pos[i]
             sage_free(e)
             sage_free(pos)
@@ -227,17 +228,15 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
         for i from 0 <= i < ins:
             # v.entries[i] = e[i]
             mpq_set(v.entries[i], e[i])
+            mpq_clear(e[i])
             v.positions[i] = pos[i]
         # v.entries[ins] = x
         mpq_set(v.entries[ins], x)
         v.positions[ins] = n
         for i from ins < i < v.num_nonzero:
             mpq_set(v.entries[i], e[i-1])
+            mpq_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        # Free the memory occupied by GMP rationals.
-        # This -1 is because we incremented v.num_nonzero above.
-        for i from 0 <= i < v.num_nonzero-1:
-            mpq_clear(e[i])
         sage_free(e)
         sage_free(pos)
 
@@ -268,10 +267,11 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     cdef Py_ssize_t nz, i, j, k, do_multiply
     cdef mpq_vector* z
     cdef mpq_t tmp
-    mpq_init(tmp)
     if mpq_cmp_si(multiple, 0, 1) == 0:
         mpq_vector_init(sum, v.degree, 0)
         return 0
+
+    mpq_init(tmp)
     # Do not do the multiply if the multiple is 1.
     do_multiply = mpq_cmp_si(multiple, 1,1)
 
@@ -346,6 +346,8 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
         #end if
     # end while
     z.num_nonzero = k
+    for i from k <= i < z.num_nonzero:
+        mpz_clear(z.entries[i])
     mpq_clear(tmp)
     return 0
 

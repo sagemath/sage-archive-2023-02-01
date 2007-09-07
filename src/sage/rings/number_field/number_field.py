@@ -6,6 +6,16 @@ AUTHORS:
    -- Steven Sivek (2006-05-12): added support for relative extensions
 """
 
+"""
+Ideas / todo
+
+* Make the base class for all number fields cdef's so that elements
+have very fast access to e.g., properties of the field such as the
+degree, defining poly, etc.  This will optimize the error testing in
+getime for number field elements.
+
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006 William Stein <wstein@gmail.com>
 #
@@ -387,6 +397,22 @@ class NumberField_generic(field.Field):
             f = self.pari_polynomial()
             self.__pari_nf = f.nfinit()
             return self.__pari_nf
+
+    def _pari_init_(self):
+        """
+        Needed for conversion of number field to PARI.
+
+        EXAMPLES:
+            sage: k = NumberField(x^2 + x + 1, 'a')
+            sage: k._pari_init_()
+            'nfinit(x^2 + x + 1)'
+            sage: k._pari_()
+            [x^2 + x + 1, [0, 1], -3, 1, [Mat([1, -0.50000000000000000000000000000000000000 + 0.86602540378443864676372317075293618347*I]), [1, 0.36602540378443864676372317075293618347; 1, -1.3660254037844386467637231707529361835], 0, [2, -1; -1, -1], [3, 2; 0, 1], [1, -1; -1, -2], [3, [2, -1; 1, 1]]], [-0.50000000000000000000000000000000000000 + 0.86602540378443864676372317075293618347*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
+            sage: pari(k)
+            [x^2 + x + 1, [0, 1], -3, 1, [Mat([1, -0.50000000000000000000000000000000000000 + 0.86602540378443864676372317075293618347*I]), [1, 0.36602540378443864676372317075293618347; 1, -1.3660254037844386467637231707529361835], 0, [2, -1; -1, -1], [3, 2; 0, 1], [1, -1; -1, -2], [3, [2, -1; 1, 1]]], [-0.50000000000000000000000000000000000000 + 0.86602540378443864676372317075293618347*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
+        """
+
+        return 'nfinit(%s)'%self.pari_polynomial()
 
     def pari_bnf(self, certify=False):
         """
@@ -1544,7 +1570,7 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: no 4-th root of unity in self
+            ValueError: n (=4) does not divide order of generator
             sage: v = K.zeta(5, all=True); v
             [a, a^2, a^3, -a^3 - a^2 - a - 1]
             sage: [b^5 for b in v]
@@ -1557,8 +1583,10 @@ class NumberField_cyclotomic(NumberField_generic):
             z = self.gen()
             m = z.multiplicative_order()
             if m % n != 0:
+                raise ValueError, "n (=%s) does not divide order of generator"%n
                 # use generic method (factor cyclotomic polynomial)
-                return field.Field.zeta(self, n, all=all)
+                #  -- this is potentially really slow, so don't do it.
+                #return field.Field.zeta(self, n, all=all)
             a = z**(m//n)
             if all:
                 v = [a]

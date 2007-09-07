@@ -58,6 +58,20 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
 
+def is_older(file1, file2):
+    """
+    Return True if either file2 does not exist or is older than file1.
+
+    If file1 does not exist, always return False.
+    """
+    if not os.path.exists(file1):
+        return False
+    if not os.path.exists(file2):
+        return True
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
+        return True
+    return False
+
 include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
@@ -112,6 +126,8 @@ qd = Extension('sage.rings.real_rqdf',
                        )
 
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
+
+matrix_action = Extension('sage.matrix.action', ['sage/matrix/action.pyx'])
 
 matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
                         libraries=['gmp'])
@@ -219,6 +235,13 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
                                    ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
+
+matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
+                                     ['sage/matrix/matrix_mpolynomial_dense.pyx'],
+                                     libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+                                     language="c++",
+                                     include_dirs=[SAGE_ROOT +'/local/include/singular'])
+
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
 
@@ -316,6 +339,7 @@ ext_modules = [ \
 
     matrix,
 
+    matrix_action,
     matrix_misc,
 
     matrix_dense,
@@ -346,6 +370,8 @@ ext_modules = [ \
      matrix_modn_dense,
      matrix_modn_sparse,
      matrix_mod2_dense,
+     matrix_mpolynomial_dense, \
+
      givaro_gfq, \
 
      libsingular, \
@@ -354,6 +380,7 @@ ext_modules = [ \
 
 ##     matrix_cyclo_dense,
 ##     matrix_cyclo_sparse,
+
 
     dwt,
 
@@ -391,6 +418,9 @@ ext_modules = [ \
 
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
+
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
 
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
@@ -464,8 +494,7 @@ ext_modules = [ \
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
     Extension('sage.rings.integer',
-              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
-                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.integer_ring',
@@ -532,8 +561,7 @@ ext_modules = [ \
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx',
                          'sage/ext/arith.pyx', \
-                         'sage/rings/integer.pyx', \
-                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+                         'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.sparse_poly',
@@ -630,6 +658,24 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+
+    Extension('sage.plot.plot3d.base',
+              ['sage/plot/plot3d/base.pyx']
+              ), \
+    Extension('sage.plot.plot3d.transform',
+              ['sage/plot/plot3d/transform.pyx']
+              ), \
+    Extension('sage.plot.plot3d.index_face_set',
+              ['sage/plot/plot3d/index_face_set.pyx']
+              ), \
+    Extension('sage.plot.plot3d.parametric_surface',
+              ['sage/plot/plot3d/parametric_surface.pyx']
+              ), \
+    Extension('sage.plot.plot3d.shapes',
+              ['sage/plot/plot3d/shapes.pyx']
+              ), \
+
+
     ]
 
 
@@ -645,7 +691,7 @@ if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
 
 if DEVEL:
     extra_compile_args.append('-ggdb')
-    ext_modules.append(hanke)
+    #ext_modules.append(hanke)
     #ext_modules.append(mpc)
 
 for m in ext_modules:
@@ -660,52 +706,29 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def is_older(file1, file2):
-    """
-    Return True if either file2 does not exist or is older than file1.
-
-    If file1 does not exist, always return False.
-    """
-    if not os.path.exists(file1):
-        return False
-    if not os.path.exists(file2):
-        return True
-    if os.path.getmtime(file2) < os.path.getmtime(file1):
-        return True
-    return False
-
-
-def need_to_cython(filename, outfile):
+def check_dependencies( filename, outfile ):
     """
     INPUT:
-        filename -- The name of a cython file in the SAGE source tree.
-        outfile -- The name of the corresponding c or cpp file in the build directory.
+        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
+        outfile -- The output file for which we are determining out-of-date-ness
 
     OUTPUT:
         bool -- whether or not outfile must be regenerated.
     """
-    if is_older(filename, outfile):   # outfile is older than filename
+    if is_older(filename, outfile):
+        print "\nBuilding %s because it depends on %s."%(outfile, filename)
         return True
-    base =  os.path.splitext(filename)[0]
-    pxd = base+'.pxd'
-    if is_older(pxd, outfile):   # outfile is older than pxd file (if it exists)
-        return True
-
-    ## comment this out to turn on dependency checking!
-    # return False
 
     # Now we look inside the file to see what it cimports or include.
     # If any of these files are newer than outfile, we rebuild
     # outfile.
     S = open(filename).readlines()
-    if os.path.exists(pxd):
-        S += open(pxd).readlines()
     # Take the lines that begin with cimport (it won't hurt to
     # have extra lines)
     C = [x.strip() for x in S if 'cimport' in x]
     for A in C:
         # Deduce the full module name.
-        # The only allowed forms of cimport are:
+        # The only allowed forms of cimport/include are:
         #        cimport a.b.c.d
         #        from a.b.c.d cimport e
         # Also, the cimport can be both have no dots (current directory) or absolute.
@@ -720,6 +743,9 @@ def need_to_cython(filename, outfile):
             # be in a comment or something)
             continue
 
+        if A[0] == '"':
+            A = A[1:-1]
+
         # Now convert A to a filename, e.g., a/b/c/d
         #
         if '.' in A:
@@ -727,11 +753,10 @@ def need_to_cython(filename, outfile):
             A = A.replace('.','/') + '.pxd'
         else:
             # It is a relative cimport.
-            A =  os.path.split(base)[0] + '/' + A + '.pxd'
+            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A) and is_older(A, outfile):
-            print "\nRegenerating %s because it depends on %s."%(outfile, A)
+        if os.path.exists(A) and check_dependencies(A, outfile):
             return True # yep we must rebuild
 
     # OK, next we move on to include pxi files.
@@ -754,14 +779,35 @@ def need_to_cython(filename, outfile):
         # and strip off the last part of the path and stick
         # A onto it to get the filename of the pxi file relative
         # where setup.py is being run.
+        R = A # save the relative filename in case it is absolute
         A = os.path.split(filename)[0] + '/' + A
+        if not os.path.exists(A):
+            # A is an "absolute" path -- that is, absolute to the base of the sage tree
+            A = R # restore
         # Finally, check to see if filename is older than A
-        if os.path.exists(A) and is_older(A, outfile):
-            print "\nBuilding %s because it depends on %s."%(outfile, A)
+        if os.path.exists(A) and check_dependencies(A, outfile):
             return True
 
-    # We do not have to rebuild.
-    return False
+
+def need_to_cython(filename, outfile):
+    """
+    INPUT:
+        filename -- The name of a cython file in the SAGE source tree.
+        outfile -- The name of the corresponding c or cpp file in the build directory.
+
+    OUTPUT:
+        bool -- whether or not outfile must be regenerated.
+    """
+
+    base =  os.path.splitext(filename)[0]
+    pxd = base+'.pxd'
+
+    if check_dependencies(filename, outfile):
+        return True
+    elif os.path.exists(pxd) and check_dependencies(pxd, outfile):
+        return True
+    else:
+        return False
 
 def process_cython_file(f, m):
     """
@@ -779,17 +825,13 @@ def process_cython_file(f, m):
         outfile += 'pp'
 
     if need_to_cython(f, outfile):
-        cmd = "cython --embed-positions -I%s %s"%(os.getcwd(), f)
+        # Insert the -o parameter to specify the output file (particularly for c++)
+        cmd = "cython --embed-positions -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
             print "sage: Error running cython."
             sys.exit(1)
-        # If the language for the extension is C++,
-        # then move the resulting output file to have the correct extension.
-        # (I don't know how to tell Cython to do this automatically.)
-        if m.language == 'c++':
-            os.system('mv %s.c %s'%(f[:-4], outfile))
     return [outfile]
 
 
@@ -800,7 +842,7 @@ def cython(ext_modules):
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
-            s = open(f).read()
+#            s = open(f).read()
             if f[-4:] == ".pyx":
                 new_sources += process_cython_file(f, m)
             else:
@@ -873,6 +915,8 @@ setup(name        = 'sage',
                      'sage.libs.pari',
                      'sage.libs.singular',
 
+                     'sage.logic',
+
                      'sage.matrix',
 #                     'sage.matrix.padics',
                      'sage.media',
@@ -891,6 +935,7 @@ setup(name        = 'sage',
 
                      'sage.plot',
                      'sage.plot.mpl3d',
+                     'sage.plot.plot3d',
 
                      'sage.probability',
 

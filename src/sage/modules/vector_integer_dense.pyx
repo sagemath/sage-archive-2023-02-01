@@ -18,8 +18,8 @@ EXAMPLES:
     (0, 0, 0, 0, 0)
     sage: v + v
     (2, 4, 6, 8, 10)
-    sage: v * v
-    (1, 4, 9, 16, 25)
+    sage: v * v   # dot product.
+    55
 
 We make a large zero vector:
     sage: k = ZZ^100000; k
@@ -179,7 +179,37 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cdef Vector _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _vector_times_vector_c_impl(self, Vector right):
+        """
+        Dot product of dense vectors over the integers.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [1,2,-3]); w = vector(ZZ,[4,3,2])
+            sage: v*w
+            4
+            sage: w*v
+            4
+        """
+        cdef Vector_integer_dense r = right
+        cdef Integer z
+        z = PY_NEW(Integer)
+        cdef mpz_t t
+        mpz_init(t)
+        mpz_set_si(z.value, 0)
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._degree:
+            mpz_mul(t, self._entries[i], r._entries[i])
+            mpz_add(z.value, z.value, t)
+        mpz_clear(t)
+        return z
+
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, [1,2,-3]); w = vector(ZZ,[4,3,2])
+            sage: v.pairwise_product(w)
+            (4, 6, -6)
+        """
         cdef Vector_integer_dense z, r
         r = right
         z = self._new_c()

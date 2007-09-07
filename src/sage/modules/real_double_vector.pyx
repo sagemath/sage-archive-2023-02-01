@@ -18,7 +18,7 @@ TESTS:
 ###############################################################################
 
 
-from sage.structure.element cimport ModuleElement, RingElement, Vector
+from sage.structure.element cimport ModuleElement, RingElement, Vector, Element
 
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_double import new_RealDoubleElement
@@ -189,7 +189,35 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             raise RuntimeError, "error subtracting real double vectors"
         return self._new_c(v)
 
-    cdef Vector _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _vector_times_vector_c_impl(self, Vector right):
+        """
+        Dot product of self and right.
+
+        EXAMPLES:
+            sage: v = vector(RDF, [1,2,3]); w = vector(RDF, [2, 4, -3])
+            sage: v*w
+            1.0
+            sage: w*v
+            1.0
+        """
+        cdef RealDoubleElement y = new_RealDoubleElement()
+        y._value = 0
+        cdef unsigned int i
+        for i from 0 <= i < self.v.size:
+            y._value += gsl_vector_get(self.v, i) * gsl_vector_get((<RealDoubleVectorSpaceElement>right).v, i)
+        return y
+
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        Return the component-wise product of self and right.
+
+        EXAMPLES:
+            sage: v = vector(RDF, [1,2,3]); w = vector(RDF, [2, 4, -3])
+            sage: v.pairwise_product(w)
+            (2.0, 8.0, -9.0)
+        """
+        if not right.parent() == self.parent():
+            right = self.parent().ambient_module()(right)
         if not self.v:
             return self
         cdef gsl_vector* v

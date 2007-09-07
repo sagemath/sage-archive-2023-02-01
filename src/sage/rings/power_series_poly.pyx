@@ -18,6 +18,15 @@ cdef class PowerSeries_poly(PowerSeries):
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q
             True
+
+            sage: R.<t> = QQ[[]]
+            sage: f = 3 - t^3 + O(t^5)
+            sage: a = f^3; a
+            27 - 27*t^3 + O(t^5)
+            sage: b = f^-3; b
+            1/27 + 1/27*t^3 + O(t^5)
+            sage: a*b
+            1 + O(t^5)
         """
         R = parent._poly_ring()
         if PY_TYPE_CHECK(f, Element):
@@ -47,21 +56,6 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
-
-    def __pow__(self_t, r, dummy):
-        cdef PowerSeries_poly self = self_t
-        cdef int right = r
-        if right != r:
-            raise ValueError, "exponent must be an integer"
-        if right < 0:
-            return (~self)**(-right)
-        if right == 0:
-            return self._parent(1)
-        if self.__is_gen:
-            return PowerSeries_poly(self._parent, self.__f**right, check=False)
-        if self.is_zero():
-            return self
-        return arith.generic_power(self, right, self._parent(1))
 
     def polynomial(self):
         """

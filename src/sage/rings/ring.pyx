@@ -1026,7 +1026,15 @@ cdef class FiniteField(Field):
         return 'GF(%s)'%self.order()
 
     def _magma_init_(self):
-        return 'GF(%s)'%self.order()
+        """
+        Return string representation of self that MAGMA can
+        understand.
+        """
+        if self.degree() == 1:
+            return 'GF(%s)'%self.order()
+        B = self.base_ring()
+        p = self.polynomial()
+        return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
     def __cmp__(self, other):
         """
@@ -1107,6 +1115,40 @@ cdef class FiniteField(Field):
 
     def __iter__(self):
         return FiniteFieldIterator(self)
+
+    def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        Return True if the map from self to codomain sending
+        self.0 to the unique element of im_gens is a valid field
+        homomorphism. Otherwise, return False.
+
+        EXAMPLES:
+            sage: k = FiniteField(73^2, 'a')
+            sage: K = FiniteField(73^3, 'b') ; b = K.0
+            sage: L = FiniteField(73^4, 'c') ; c = L.0
+            sage: k.hom([c])
+            Traceback (most recent call last):
+            ...
+            TypeError: images do not define a valid homomorphism
+
+            sage: k.hom([c^(73*73+1)])
+            Ring morphism:
+            From: Finite Field in a of size 73^2
+            To:   Finite Field in c of size 73^4
+            Defn: a |--> 7*c^3 + 13*c^2 + 65*c + 71
+
+            sage: k.hom([b])
+            Traceback (most recent call last):
+            ...
+            TypeError: images do not define a valid homomorphism
+        """
+
+        if (self.characteristic() != codomain.characteristic()):
+            raise ValueError, "no map from %s to %s"%(self, codomain)
+        if (len(im_gens) != 1):
+            raise ValueError, "only one generator for finite fields."
+
+        return (im_gens[0].charpoly())(self.gen(0)).is_zero()
 
     def gen(self):
         raise NotImplementedError

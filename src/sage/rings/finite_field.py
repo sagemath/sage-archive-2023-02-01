@@ -782,6 +782,17 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         return cmp(self.__char, other.__char)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        This is called implicitly by the hom constructor.
+
+        EXAMPLES:
+            sage: k = GF(73^2,'a')
+            sage: f = k.modulus()
+            sage: r = f.change_ring(k).roots()
+            sage: k.hom([r[0][0]])
+            Ring endomorphism of Finite Field in a of size 73^2
+              Defn: a |--> 72*a + 3
+        """
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
         except TypeError:

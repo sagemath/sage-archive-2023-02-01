@@ -9,6 +9,27 @@
 #
 # to include this in a file.
 
+cdef extern from "gmp_globals.h":
+    cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
+    cdef mpq_t tmp
+
+    cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
+
+    cdef mpz_t crtrr_a, crtrr_mod
+
+    cdef mpz_t rand_val, rand_n, rand_n1
+
+    cdef gmp_randstate_t rand_state
+
+    void init_mpz_globals_c "init_mpz_globals"()
+    void clear_mpz_globals_c "clear_mpz_globals"()
+
+def init_mpz_globals():
+    init_mpz_globals_c()
+
+def clear_mpz_globals():
+    clear_mpz_globals_c()
+
 cdef object mpz_to_str(mpz_t x):
     """
     Convert a GMP integer to a Python string.
@@ -57,18 +78,6 @@ cdef int previous_probab_prime_int(int p) except -1:
     p2 = mpz_get_si(p1)
     mpz_clear(p1)
     return p2
-
-# these vars are all used in rational reconstruction; they're cached so we don't
-# have to recreate them with every call.
-cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
-cdef mpq_t tmp
-mpz_init(u);  mpz_init(v); mpz_init(q)
-mpz_init(u0); mpz_init(u1); mpz_init(u2)
-mpz_init(v0); mpz_init(v1); mpz_init(v2)
-mpz_init(t0); mpz_init(t1); mpz_init(t2)
-mpz_init(x);  mpz_init(y);
-mpz_init(sqr);  mpz_init(m2)
-mpq_init(tmp)
 
 cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     """
@@ -166,11 +175,6 @@ cdef int mpz_crt_vec(mpz_t **z, mpz_t *x, mpz_t *y, int r, mpz_t m, mpz_t n) exc
     mpz_clear(g); mpz_clear(s); mpz_clear(t); mpz_clear(mn)
     return 0
 
-
-
-cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
-mpz_init(a1); mpz_init(a2); mpz_init(mod1); mpz_init(mod2)
-mpz_init(g); mpz_init(s); mpz_init(t); mpz_init(xx)
 cdef int mpz_crt_intvec(mpz_t* answer, mpz_t* modulus,
                         unsigned int *v, unsigned int *m, int n) except -1:
     cdef int i
@@ -196,8 +200,6 @@ cdef int mpz_crt_intvec(mpz_t* answer, mpz_t* modulus,
     mpz_set(modulus[0], mod1)
     return 0   # everything OK
 
-cdef mpz_t crtrr_a, crtrr_mod
-mpz_init(crtrr_a); mpz_init(crtrr_mod)
 cdef int mpq_using_crt_and_rr(mpq_t answer,
                       unsigned int *v, unsigned int *m, int n) except -1:
     """
@@ -216,13 +218,6 @@ cdef int mpq_using_crt_and_rr(mpq_t answer,
     mpz_crt_intvec(&crtrr_a, &crtrr_mod, v, m, n)
     mpq_rational_reconstruction(answer, crtrr_a, crtrr_mod)
     return 0
-
-
-cdef mpz_t rand_val, rand_n, rand_n1
-mpz_init(rand_val); mpz_init(rand_n); mpz_init(rand_n1)
-
-cdef gmp_randstate_t rand_state
-gmp_randinit_default(rand_state)
 
 cdef int mpz_randrange(mpz_t val, int n1, int n2) except -1:
     mpz_set_si(rand_n, n2-n1)

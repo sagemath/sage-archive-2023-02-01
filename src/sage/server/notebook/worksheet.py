@@ -25,6 +25,8 @@ import crypt
 
 import sage.misc.remote_file as remote_file
 
+import sage.misc.cython as cython
+
 import bz2
 
 import re
@@ -1807,6 +1809,16 @@ class Worksheet:
         else:
             if filename.endswith('.py'):
                 t = F
+            elif filename.endswith('.spyx') or filename.endswith('.pyx'):
+                cur = os.path.abspath(os.curdir)
+                try:
+                    mod, dir  = cython.cython(filename, compile_message=True, use_cache=True)
+                except (IOError, OSError, RuntimeError), msg:
+                    return "print r'''Error compiling cython file:\n%s'''"%msg
+                t  = "import sys\n"
+                t += "sys.path.append('%s')\n"%dir
+                t += "from %s import *\n"%mod
+                return t
             elif filename.endswith('.sage'):
                 t = self.preparse(F)
             else:

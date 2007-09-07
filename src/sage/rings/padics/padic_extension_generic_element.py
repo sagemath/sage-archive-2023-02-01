@@ -254,16 +254,6 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
     def _pari_init_(self):
         raise TypeError, "Pari does not support p-adic extension rings"
 
-    def __pow__(self, nn):
-        n = int(nn)
-        if n != nn:
-            raise ValueError, "exponent must be an integer"
-        if n < 0:
-            x = self.__invert__()
-            n *= -1
-            return sage.rings.arith.generic_power(x, n, one=self.parent()(1))
-        return sage.rings.arith.generic_power(self, n, one=self.parent()(1))
-
     def is_square(self): #is this implementation still correct in the eisenstein case?
         #This needs to be rewritten
         if self._polynomial == 0:

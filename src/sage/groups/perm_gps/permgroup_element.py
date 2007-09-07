@@ -534,25 +534,21 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         import copy
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
-        G = g.parent()
-        #print G
-        gap.eval("l:=One(Rationals)")
-        s1 = "gens := GeneratorsOfGroup(%s)"%G._gap_init_()
-        #print s1
-        gap.eval(s1)
-        s2 = "g0:=%s; gensH:=%s"%(gap(g),words)
-        gap.eval(s2)
-        s3 = 'G:=Group(gens); H:=Group(gensH)'
-        #print s3
-        gap.eval(s3)
-        phi = gap.eval("hom:=EpimorphismFromFreeGroup(G)")
-        #print phi
-        l1 = gap.eval("ans:=PreImagesRepresentative(hom,g0)")
+
+        G = gap(words[0].parent())
+        g = words[0].parent()(g)
+        gensH = gap(words)
+        H = gensH.Group()
+        hom = G.EpimorphismFromFreeGroup()
+        ans = hom.PreImagesRepresentative(gap(g))
+
+        l1 = str(ans)
         l2 = copy.copy(l1)
         l4 = []
         l3 = l1.split("*")
         for i in range(1,len(words)+1):
             l2 = l2.replace("x"+str(i),str(words[i-1]))
+
         if display:
             for i in range(len(l3)):    ## parsing the word for display
                 if len(l3[i].split("^"))==2:

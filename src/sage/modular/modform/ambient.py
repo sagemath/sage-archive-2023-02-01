@@ -382,6 +382,19 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m.new_submodule()
             Modular Forms subspace of dimension 1 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(33) of weight 2 over Rational Field
 
+        Another example:
+            sage: M = ModularForms(17,4)
+            sage: N = M.new_subspace(); N
+            Modular Forms subspace of dimension 4 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(17) of weight 4 over Rational Field
+            sage: N.basis()
+            [
+            q + 2*q^5 + O(q^6),
+            q^2 - 3/2*q^5 + O(q^6),
+            q^3 + O(q^6),
+            q^4 - 1/2*q^5 + O(q^6)
+            ]
+
+
         Unfortunaely (TODO) -- $p$-new submodules aren't yet implemented:
             sage: m.new_submodule(3)
             Traceback (most recent call last):

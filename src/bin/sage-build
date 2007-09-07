@@ -76,6 +76,10 @@ if [ $DO_BUILD_ALL = 1 ]; then
    cd "$SAGE_ROOT/devel/sage/sage"
    echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
+   cd "$SAGE_ROOT/devel/sage/c_lib/"
+   scons -c "$SAGE_LOCAL"/lib/  # delete target
+   scons -c # delete stuff locally
+
    cd "$CUR"
 fi
 

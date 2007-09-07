@@ -15,7 +15,8 @@ usage() {
     echo "  -min ...      -- do not populate global namespace (must be first option)"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
-    echo "        options to '-t':   --verbose, --gdb, --long, --optional"
+    echo "        options to '-t':   --verbose, --gdb, --long, --optional,"
+    echo "                  --valgrind, --memcheck, --massif, --cachegrind"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
@@ -67,6 +68,7 @@ usage_advanced() {
     echo "  -python       -- run the python interpreter"
     echo "  -q            -- quiet; start with no banner"
     echo "  -root         -- print the SAGE root directory"
+    echo "  -scons <..>   -- run SAGE's scons"
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -twistd <..>  -- run Twisted server"
@@ -321,6 +323,13 @@ if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     cd "$CUR"
     shift
     M2 "$@"
+    exit $?
+fi
+
+if [ $1 = '-scons'  -o $1 = '--scons' ]; then
+    cd "$CUR"
+    shift
+    scons "$@"
     exit $?
 fi
 

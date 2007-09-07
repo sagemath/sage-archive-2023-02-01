@@ -330,13 +330,13 @@ class PiecewisePolynomial:
             sage: rsf = f.riemann_sum(7)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
-            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
+            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0], substitute=True)]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
             sage: ## To view this, type show(P+Q+L).
             sage: f = Piecewise([[(-1,1),1/2+x-x^3]]) ## example 3
             sage: rsf = f.riemann_sum(8)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
-            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
+            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0], substitute=True)]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
             sage: ## To view this, type show(P+Q+L).
         """
         x = PolynomialRing(QQ,'x').gen()

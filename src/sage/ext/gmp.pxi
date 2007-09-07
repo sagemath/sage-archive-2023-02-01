@@ -9,26 +9,66 @@
 #
 # to include this in a file.
 
-cdef extern from "gmp_globals.h":
-    cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
-    cdef mpq_t tmp
+############ The following is the "one global set of vars"
+## This *doesn't work* so I've commented it out.  To turn
+## this backup on, uncomment it and comment out the declaration
+## and initialization of the same variables below.
 
-    cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
+## cdef extern from "gmp_globals.h":
+##     cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
+##     cdef mpq_t tmp
 
-    cdef mpz_t crtrr_a, crtrr_mod
+##     cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
 
-    cdef mpz_t rand_val, rand_n, rand_n1
+##     cdef mpz_t crtrr_a, crtrr_mod
 
-    cdef gmp_randstate_t rand_state
+##     cdef mpz_t rand_val, rand_n, rand_n1
 
-    void init_mpz_globals_c "init_mpz_globals"()
-    void clear_mpz_globals_c "clear_mpz_globals"()
+##     cdef gmp_randstate_t rand_state
+
+##     void init_mpz_globals_c "init_mpz_globals"()
+##     void clear_mpz_globals_c "clear_mpz_globals"()
+
+## def init_mpz_globals():
+##     init_mpz_globals_c()
+
+## def clear_mpz_globals():
+##     clear_mpz_globals_c()
+
+
+#####################################################
+# these vars are all used in rational reconstruction; they're cached so we don't
+# have to recreate them with every call.
+cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
+cdef mpq_t tmp
+mpz_init(u);  mpz_init(v); mpz_init(q)
+mpz_init(u0); mpz_init(u1); mpz_init(u2)
+mpz_init(v0); mpz_init(v1); mpz_init(v2)
+mpz_init(t0); mpz_init(t1); mpz_init(t2)
+mpz_init(x);  mpz_init(y);
+mpz_init(sqr);  mpz_init(m2)
+mpq_init(tmp)
+
+cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
+mpz_init(a1); mpz_init(a2); mpz_init(mod1); mpz_init(mod2)
+mpz_init(g); mpz_init(s); mpz_init(t); mpz_init(xx)
+
+cdef mpz_t crtrr_a, crtrr_mod
+mpz_init(crtrr_a); mpz_init(crtrr_mod)
+
+cdef mpz_t rand_val, rand_n, rand_n1
+mpz_init(rand_val); mpz_init(rand_n); mpz_init(rand_n1)
+
+cdef gmp_randstate_t rand_state
+gmp_randinit_default(rand_state)
 
 def init_mpz_globals():
-    init_mpz_globals_c()
-
+    pass
 def clear_mpz_globals():
-    clear_mpz_globals_c()
+    pass
+
+## end alternative version.
+########################################################
 
 cdef object mpz_to_str(mpz_t x):
     """

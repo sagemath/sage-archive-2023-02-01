@@ -20,7 +20,7 @@ EXAMPLES:
     sage: v + v
     (2, 4, 6, 8, 10)
     sage: v * v
-    (1, 4, 9, 16, 25)
+    55
 
 We make a large zero vector:
     sage: k = QQ^100000; k
@@ -186,7 +186,38 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cdef Vector _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _vector_times_vector_c_impl(self, Vector right):
+        """
+        Dot product of dense vectors over the rationals.
+
+        EXAMPLES:
+            sage: v = vector(QQ, [1,2,-3]); w = vector(QQ,[4,3,2])
+            sage: v*w
+            4
+            sage: w*v
+            4
+        """
+        cdef Vector_rational_dense r = right
+        cdef Rational z
+        z = PY_NEW(Rational)
+        cdef mpq_t t
+        mpq_init(t)
+        mpq_set_si(z.value, 0, 1)
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._degree:
+            mpq_mul(t, self._entries[i], r._entries[i])
+            mpq_add(z.value, z.value, t)
+        mpq_clear(t)
+        return z
+
+
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        EXAMPLES:
+            sage: v = vector(QQ, [1,2,-3]); w = vector(QQ,[4,3,2])
+            sage: v.pairwise_product(w)
+            (4, 6, -6)
+        """
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()

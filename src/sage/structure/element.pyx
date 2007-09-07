@@ -1445,9 +1445,13 @@ cdef class RingElement(ModuleElement):
             True
 
         TESTS:
-        This crashed in sage-2.5 due to a mistake in missing type below.
             sage: 2r**(SR(2)-1-1r)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-integral exponents not supported
+            sage: 2r**(Integer(SR(2)-1-1r))
             1
+
 
         """
         if dummy is not None:

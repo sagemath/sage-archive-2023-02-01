@@ -160,20 +160,6 @@ cdef class PowerSeries_mpoly(PowerSeries):
     cdef ModuleElement _lmul_c_impl(self, RingElement c):
         return PowerSeries_mpoly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
 
-    def __pow__(self_t, r, dummy):  # TODO -- too much code duplication with power_series_poly.pyx?
-        cdef PowerSeries_mpoly self = self_t
-        cdef int right = r
-        if right != r:
-            raise ValueError, "exponent must be an integer"
-        if right < 0:
-            return (~self)**(-right)
-        if right == 0:
-            return self._parent(1)
-        if self.__is_gen:
-            return PowerSeries_mpoly(self._parent, self.__f**right, check=False)
-        if self.is_zero():
-            return self
-        return arith.generic_power(self, right, self._parent(1))
 
 def make_powerseries_mpoly_v0(parent,  f, prec, is_gen):
     return PowerSeries_mpoly(parent, f, prec, 0, is_gen)

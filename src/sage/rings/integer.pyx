@@ -143,11 +143,14 @@ from sage.structure.element import  bin_op
 import integer_ring
 the_integer_ring = integer_ring.ZZ
 
+initialized = False
 cdef set_zero_one_elements():
-    global the_integer_ring
+    global the_integer_ring, initialized
+    if initialized: return
     the_integer_ring._zero_element = Integer(0)
     the_integer_ring._one_element = Integer(1)
-
+    init_mpz_globals()
+    initialized = True
 set_zero_one_elements()
 
 def is_Integer(x):

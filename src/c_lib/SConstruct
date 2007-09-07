@@ -73,11 +73,11 @@ def copy_all_includes( target, source, env ):
 # whitespace without the syntax clutter of lists of strings.
 includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.5/',
             '$SAGE_LOCAL/include/NTL/']
-cFiles = Split( "interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c" )
+cFiles = Split( "interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c gmp_globals.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 
 includes_to_install = Split( "ZZ_pylong.h  ccobject.h  interrupt.h") + \
-                      Split( "mpn_pylong.h  mpz_pylong.h  ntl_wrap.h  stdsage.h" )
+                      Split( "mpn_pylong.h  mpz_pylong.h  ntl_wrap.h  stdsage.h gmp_globals.h" )
 lib = env.SharedLibrary( "csage", cFiles + cppFiles,
                          LIBS=['ntl', 'gmp'], LIBPATH=['$SAGE_LOCAL/lib'],
                          CPPPATH=includes )

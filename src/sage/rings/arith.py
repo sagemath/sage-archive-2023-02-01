@@ -1127,6 +1127,7 @@ def xgcd(a, b):
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
         (1, -4, 3)
         sage: a*(5/1) + b*(7/1) == g
+        True
         sage: x = polygen(QQ)
         sage: xgcd(x^3 - 1, x^2 - 1)
         (x - 1, 1, -x)

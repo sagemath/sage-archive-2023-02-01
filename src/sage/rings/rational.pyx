@@ -950,6 +950,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
             sage: (2/3)^(3/4)
             2^(3/4)/3^(3/4)
+            sage: (-1/3)^0
+            1
             sage: (0/1)^0
             Traceback (most recent call last):
             ...
@@ -959,16 +961,21 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             RuntimeError: exponent must be at most 4294967294  # 32-bit
             RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
+            sage: s = (1/2)^(-2^100)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294  # 32-bit
+            RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
         """
-        cdef Rational _self = self, x
-        cdef unsigned int _n
+        cdef Rational _self = self
+        cdef unsigned long _n
 
         if not PY_TYPE_CHECK(self, Rational):  #this is here for no good reason apparent to me... should be removed in the future.
             assert False, "BUG:  Rational.__pow__ called on a non-Rational"
             return self.__pow__(float(n)) #whose idea was it to float(n)?
 
         try:
-            _n = PyNumber_Index(n)
+            _n = n = PyNumber_Index(n)
         except TypeError:
             if PY_TYPE_CHECK(n, Rational):
                 # this is the only sensible answer that avoids rounding and
@@ -985,12 +992,18 @@ cdef class Rational(sage.structure.element.FieldElement):
                 except:
                     raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
-        if n > MAX_UNSIGNED_LONG:
+        if PY_TYPE(n) != <void*>int or n > MAX_UNSIGNED_LONG or -n > MAX_UNSIGNED_LONG:
             raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
-        elif not (n or mpq_sgn(_self.value)):
-            raise ArithmeticError, "0^0 is undefined."
 
-        x = <Rational> PY_NEW(Rational)
+        cdef Rational x = <Rational> PY_NEW(Rational)
+
+        if not _n:
+            if not mpq_sgn(_self.value):
+                raise ArithmeticError, "0^0 is undefined."
+            else:
+                mpq_set_si(x.value, 1, 1)
+                return x
+
         cdef mpz_t num, den
 
         _sig_on

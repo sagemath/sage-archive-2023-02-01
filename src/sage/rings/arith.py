@@ -2162,10 +2162,11 @@ class Moebius:
         For simplicity, if $n=0$ we define $\mu(n) = 0$.
 
     IMPLEMENTATION:
-        Uses the PARI C library.
+        Factors or -- for integers -- uses the PARI C library.
 
     INPUT:
-        n -- an integer
+        n -- anything that can be factored.
+
     OUTPUT:
         0, 1, or -1
 
@@ -2185,18 +2186,31 @@ class Moebius:
 
         sage: moebius(0)   # potentially nonstandard!
         0
+
+
+    The moebius function even makes sense for non-integer inputs.
+        sage: x = GF(7)['x'].0
+        sage: moebius(x+2)
+        -1
     """
     def __call__(self, n):
+        if isinstance(n, (int, long)):
+            n = integer.Integer(n)
+        elif not isinstance(n, integer.Integer):
+            # Use a generic algorithm.
+            if n < 0:
+                n = -n
+            F = factor(n)
+            for _, e in F:
+                if e >= 2:
+                    return 0
+            return (-1)**len(F)
+
+        # Use fast PARI algorithm
         if n == 0:
             return integer.Integer(0)
         return integer.Integer(pari(n).moebius().int_unsafe())
-    ##     if n < 0:
-    ##         n = -n
-    ##     F = factor(n)
-    ##     for _, e in F:
-    ##         if e >= 2:
-    ##             return 0
-    ##     return (-1)**len(F)
+
 
     def __repr__(self):
         return "The Moebius function"

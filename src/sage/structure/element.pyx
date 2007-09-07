@@ -1451,7 +1451,6 @@ cdef class RingElement(ModuleElement):
 
         return generic_power_c(self,n,None)
 
-
     ##################################
     # Division
     ##################################
@@ -2350,6 +2349,27 @@ cdef class FieldElement(CommutativeRingElement):
 ##     return IS_INSTANCE(x, FiniteFieldElement)
 
 cdef class FiniteFieldElement(FieldElement):
+
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Used for applying homomorphisms of finite fields.
+
+        EXAMPLES:
+            sage: k.<a> = FiniteField(73^2, 'a')
+            sage: K.<b> = FiniteField(73^4, 'b')
+            sage: phi = k.hom([ b^(73*73+1) ])
+            sage: phi(0)
+            0
+            sage: phi(a)
+            7*b^3 + 13*b^2 + 65*b + 71
+
+            sage: phi(a+3)
+            7*b^3 + 13*b^2 + 65*b + 1
+        """
+        ## NOTE: see the note in sage/rings/number_field_element.pyx,
+        ## in the comments for _im_gens_ there -- something analogous
+        ## applies here.
+        return codomain(self.polynomial()(im_gens[0]))
 
     def minpoly(self,var='x'):
         """

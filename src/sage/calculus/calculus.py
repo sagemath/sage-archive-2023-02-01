@@ -944,7 +944,7 @@ class SymbolicExpression(RingElement):
 
 
     def __call__(self, dict=None, **kwds):
-        if 'substitute' in kwds:
+        if 'substitute' in kwds and kwds['substitute'] is True:
             del kwds['substitute']
             return self.substitute(dict, **kwds)
         else:

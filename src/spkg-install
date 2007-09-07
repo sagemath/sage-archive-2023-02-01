@@ -48,6 +48,11 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx  2> /dev/null
 
+    # Delete the scons target too
+    cd c_lib
+    scons -c "$SAGE_LOCAL"/lib/  # delete target
+    cd ..
+
     # We also delete the build directory, since it could contain
     # old .py files we don't want anymore.
     rm -rf build

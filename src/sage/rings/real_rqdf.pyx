@@ -5,7 +5,7 @@ Quad double numbers allow us to represent real numbers with 212 bits
 (or 64 decimal digits) of accuracy.  Computation of special functions
 is extremely fast in this field, and arithmetic is slightly faster
 than arithmetic in the MPFR real field.
-
+Bloh
 EXAMPLES:
 RQDF numbers can be mixed with RDF and MPFR reals, Integers,
 Rationals, etc.:

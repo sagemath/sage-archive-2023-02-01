@@ -64,6 +64,7 @@ AUTHOR: David Joyner (2006-04) -- initial version
 	                for computing and plotting, added options to plotting of FS
 	                (eg, specifying rgb values arenow allowed). Fixed bug in
                         documentation reported by Pablo De Napoli.
+	DJ (2007-09) - bug fixes due to behaviour of SymbolicArithmetic
 
 """
 
@@ -969,8 +970,7 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",repr(RR(pi)))
-            yi = sage_eval(yi.replace("x",repr(xi)))
+	    yi = ff(xi)
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1007,8 +1007,7 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",repr(RR(pi)))
-            yi = sage_eval(yi.replace("x",repr(xi)))
+	    yi = ff(xi)
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1045,8 +1044,7 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",repr(RR(pi)))
-            yi = sage_eval(yi.replace("x",repr(xi)))
+	    yi = ff(xi)
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1085,8 +1083,7 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",repr(RR(pi)))
-            yi = sage_eval(yi.replace("x",repr(xi)))
+	    yi = ff(xi)
             pts.append([xi,yi])
         return line(pts, **kwds)
 

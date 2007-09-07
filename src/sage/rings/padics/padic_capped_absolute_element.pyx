@@ -210,6 +210,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return ans
 
     def __pow__(pAdicCappedAbsoluteElement self, right, dummy):
+        if not self and not right:
+            raise ArithmeticError, "0^0 is undefined."
         cdef Integer new, val, absprec
         cdef mpz_t tmp
         new = Integer(right) #Need to make sure that this works for p-adic exponents

@@ -323,6 +323,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     def __pow__(pAdicFixedModElement self, right, m): # NOTE: m ignored, always use self.prime_pow.modulus
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right) #Need to make sure that this works for p-adic exponents
+        if not right and not self:
+            raise ArithmeticError, "0^0 is undefined."
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         _sig_on

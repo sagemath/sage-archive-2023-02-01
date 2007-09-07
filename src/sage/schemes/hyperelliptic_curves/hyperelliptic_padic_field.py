@@ -41,11 +41,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         prec = self.base_ring().precision_cap()
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
         x = P[0]+t*(Q[0]-P[0])
-        pt = self.lift_x(x)
-        if pt[1][0] == P[1]:
-            return pt
+        pts = self.lift_x(x, all=True)
+        if pts[0][1][0] == P[1]:
+            return pts[0]
         else:
-            return -pt
+            return pts[1]
 
     def tiny_integrals(self, F, P, Q):
         """
@@ -110,12 +110,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         K = P[0].parent()
         x = K.teichmuller(P[0])
-        pt = self.lift_x(x)
+        pts = self.lift_x(x, all=True)
         p = K.prime()
-        if (pt[1] - P[1]).valuation() > 0:
-            return pt
+        if (pts[0][1] - P[1]).valuation() > 0:
+            return pts[0]
         else:
-            return -pt
+            return pts[1]
 
     def coleman_integrals_on_basis(self, P, Q):
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
@@ -201,6 +201,22 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         O(11^6)
         sage: C.coleman_integral(x^2*w, P, Q)
         3*11 + 2*11^2 + 7*11^3 + 2*11^4 + 10*11^5 + O(11^6)
+
+        sage: p = 71; m = 4
+        sage: K = pAdicField(p, m)
+        sage: x = polygen(K)
+        sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
+        sage: P = C(-1, 1); P1 = C(-1, -1)
+        sage: Q = C(0, 1/4); Q1 = C(0, -1/4)
+        sage: x, y = C.monsky_washnitzer_gens()
+        sage: w = C.invariant_differential()
+        sage: w.integrate(P, Q), (x*w).integrate(P, Q)
+        (O(71^4), O(71^4))
+        sage: R, R1 = C.lift_x(4, all=True)
+        sage: w.integrate(P, R)
+        42*71 + 63*71^2 + 55*71^3 + O(71^4)
+        sage: w.integrate(P, R) + w.integrate(P1, R1)
+        O(71^4)
         """
         # TODO: implement jacobians and show the relationship directly
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer

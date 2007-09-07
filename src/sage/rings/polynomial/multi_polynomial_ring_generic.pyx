@@ -222,7 +222,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return R
 
     def _magma_init_(self):
-        B = self.base_ring()._magma_init_()
+        """
+        Return a string representation of self MAGMA can understand.
+        """
+        try: # we need that for GF(q) arithmetic
+            B = self.base_ring()._magma_().name()
+        except (RuntimeError,TypeError):
+            B = self.base_ring()._magma_init_()
         R = 'PolynomialRing(%s, %s, %s)'%(B, self.ngens(),self.term_order().magma_str())
         return R
 

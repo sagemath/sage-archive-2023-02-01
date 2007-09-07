@@ -67,6 +67,7 @@ usage_advanced() {
     echo "  -python       -- run the python interpreter"
     echo "  -q            -- quiet; start with no banner"
     echo "  -root         -- print the SAGE root directory"
+    echo "  -scons <..>   -- run SAGE's scons"
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -twistd <..>  -- run Twisted server"
@@ -321,6 +322,13 @@ if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     cd "$CUR"
     shift
     M2 "$@"
+    exit $?
+fi
+
+if [ $1 = '-scons'  -o $1 = '--scons' ]; then
+    cd "$CUR"
+    shift
+    scons "$@"
     exit $?
 fi
 

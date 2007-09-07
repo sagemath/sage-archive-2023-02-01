@@ -34,11 +34,11 @@ import sage.structure.element
 
 include "../ext/stdsage.pxi"
 
-def LeftAction(G, S, op=None):
-    return Action(G, S, 1, op)
-
-def RightAction(G, S, op=None):
-    return Action(G, S, 0, op)
+#def LeftAction(G, S, op=None):
+#    return Action(G, S, 1, op)
+#
+#def RightAction(G, S, op=None):
+#    return Action(G, S, 0, op)
 
 cdef class Action(Functor):
 

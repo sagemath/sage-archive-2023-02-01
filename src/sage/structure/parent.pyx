@@ -462,7 +462,8 @@ cdef class Parent(sage_object.SageObject):
         except:
             pass
 
-        for x in ['_an_element_', 'pi', 1.2, 2, 1, 0]:
+        from sage.rings.infinity import infinity
+        for x in ['_an_element_', 'pi', 1.2, 2, 1, 0, infinity]:
             try:
                 return self(x)
             except (TypeError, NameError, NotImplementedError):

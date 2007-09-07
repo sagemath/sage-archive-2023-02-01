@@ -509,6 +509,11 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers
+        self._value += (<RealDoubleElement>right)._value
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.

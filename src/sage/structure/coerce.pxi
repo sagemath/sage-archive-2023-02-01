@@ -46,9 +46,22 @@ def parent(x):
     return parent_c(x)
 
 #################################################################################
+# operators
+#################################################################################
+
+cdef add, sub, mul, div, iadd, isub, imul, idiv
+from operator import add, sub, mul, div, iadd, isub, imul, idiv
+
+cdef inline inplace_op(op):
+    return operator.__dict__['i'+op.__name__]
+
+cdef inline no_inplace_op(op):
+    return operator.__dict__[op.__name__[1:]]
+
+#################################################################################
 # errors
 #################################################################################
-cdef D = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/'}
+cdef D = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/', 'imul': '*', 'iadd': '+', 'isub':'-', 'idiv':'/'}
 
 cdef inline arith_error_message(x, y, op):
         try:
@@ -56,4 +69,83 @@ cdef inline arith_error_message(x, y, op):
         except KeyError:
             n = op.__name__
         return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(n, parent_c(x), parent_c(y))
+
+#################################################################################
+# Inline arithmatic dispatchers for ModuleElements and RingElements
+#################################################################################
+
+cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._add_(right)
+    else:
+        return left._add_c_impl(right)
+
+cdef inline ModuleElement _iadd_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._iadd_(right)
+    else:
+        return left._iadd_c_impl(right)
+
+cdef inline ModuleElement _sub_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._sub_(right)
+    else:
+        return left._sub_c_impl(right)
+
+cdef inline ModuleElement _isub_c(ModuleElement left, ModuleElement right):
+    if HAS_DICTIONARY(left):
+        return left._isub_(right)
+    else:
+        return left._isub_c_impl(right)
+
+# rmul -- left * self
+cdef inline ModuleElement _rmul_c(ModuleElement right, RingElement left):
+    if HAS_DICTIONARY(right):
+        return right._rmul_(left)
+    else:
+        return right._rmul_c_impl(left)
+
+# lmul -- self * right
+cdef inline ModuleElement _lmul_c(ModuleElement left, RingElement right):
+    if HAS_DICTIONARY(left):
+        return left._lmul_(right)
+    else:
+        return left._lmul_c_impl(right)
+
+# ilmul -- inplace self * right
+cdef inline ModuleElement _ilmul_c(ModuleElement self, RingElement right):
+    if HAS_DICTIONARY(self):
+        return self._ilmul_(right)
+    else:
+        return self._ilmul_c_impl(right)
+
+cdef inline RingElement _mul_c(RingElement left, RingElement right):
+    if HAS_DICTIONARY(left):
+        return left._mul_(right)
+    else:
+        return left._mul_c_impl(right)
+
+cdef inline RingElement _imul_c(RingElement left, RingElement right):
+    if HAS_DICTIONARY(left):
+        return left._imul_(right)
+    else:
+        return left._imul_c_impl(right)
+
+cdef inline RingElement _div_c(RingElement left, RingElement right):
+    if HAS_DICTIONARY(left):
+        return left._div_(right)
+    else:
+        return left._div_c_impl(right)
+
+cdef inline RingElement _idiv_c(RingElement left, RingElement right):
+    if HAS_DICTIONARY(left):
+        return left._idiv_(right)
+    else:
+        return left._idiv_c_impl(right)
+
+cdef enum:
+    # 3 references: handle, scope container, and arithmatic call stack
+    inplace_threshold = 0
+
+
 

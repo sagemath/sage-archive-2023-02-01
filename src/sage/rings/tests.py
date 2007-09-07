@@ -9,5 +9,5 @@ TESTS:
     Traceback (most recent call last):
     ...
     RuntimeError: exponent must be at most 9223372036854775807     # 64-bit
-    RuntimeError: exponent must be at most 4294967294              # 32-bit
+    RuntimeError: exponent must be at most 2147483647              # 32-bit
 """

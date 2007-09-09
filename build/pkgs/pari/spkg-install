@@ -9,6 +9,9 @@ cd src
 
 cp "$TOP"/patches/get_dlld config/
 
+# Mabshoff: This patch is to get around problem in PPC 32-bit linux build (but it is ok on any other machine)
+cp "$TOP"/patches/get_dlcflags config/
+
 # This is needed or there are weird locale problems involving rpath
 # with building SAGE.
 LC_ALL=C
@@ -113,7 +116,7 @@ build()
     fi
 
     # PARI doesn't set PIC correctly on Solaris, so we do this.
-    if [ `uname` == "SunOS" ]; then
+    if [ `uname` = "SunOS" ]; then
        CFLAGS=$CFLAGS" -fPIC"
        export CFLAGS
     fi

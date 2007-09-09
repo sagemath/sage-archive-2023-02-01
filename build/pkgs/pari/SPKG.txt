@@ -16,6 +16,9 @@ Here is how to build a new version of the PARI SAGE spkg:
 
 -----------------------------------
 
+* 2007-09-09: (Michael Abshoff)
+   add -fPIC to DCLFLAGS on Linux PPC in src/config/get_dlcflags
+
 * 2007-03-04: included Pablo De Napoli (denapo@gmail.com)'s
    improvement so PARI will build on systems with runpath support.
    See sage/runpath.txt for details.

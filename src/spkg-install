@@ -50,6 +50,7 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     # Delete the scons target too
     cd c_lib
+    scons -c
     scons -c "$SAGE_LOCAL"/lib/  # delete target
     cd ..
 

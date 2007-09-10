@@ -1858,21 +1858,19 @@ def binomial(x,m):
     $$
        x (x-1) \cdots (x-m+1) / m!
     $$
-    which is defined for $m \in \Z$ and any $x$.
-    If $m<0$ return $0$.
-
-    If x-m is an integer we define:
+    which is defined for $m \in \Z$ and any $x$.  We extend this definition to
+    include cases when $x-m$ is an integer but $m$ is not by
 
     binomial(x,m)= binomial(x,x-m)
 
-    (This rule makes sense if x is assumed to be an integer)
+    If $m<0$ return $0$.
 
     INPUT::
         x,m -- numbers or symbolic expressions
-        Either x or x-m must be an integer.
+        Either m or x-m must be an integer.
 
     OUTPUT::
-        number
+        number or symbolic expression (if input is symbolic)
 
     EXAMPLES::
         sage: binomial(5,2)

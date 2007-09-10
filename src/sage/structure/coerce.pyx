@@ -227,6 +227,12 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         # This MUST be a mapping of actions.
         self._action_maps = TripleDict(lookup_dict_sizes)
 
+    def get_cache(self):
+        return dict(self._coercion_maps.iteritems()), dict(self._action_maps.iteritems())
+
+    def get_stats(self):
+        return self._coercion_maps.stats(), self._action_maps.stats()
+
     cdef bin_op_c(self, x, y, op):
         if (op is not add) and (op is not sub) and (op is not iadd) and (op is not isub):
             # Actions take preference over common-parent coercions.

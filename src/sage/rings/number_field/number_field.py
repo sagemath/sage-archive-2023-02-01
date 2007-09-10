@@ -2009,8 +2009,8 @@ class NumberField_extension(NumberField_generic):
                 return x
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
-        else:
-            return self.__base_inclusion(self.base_field()._coerce_impl(x))
+
+        return self.__base_inclusion(self.base_field()._coerce_impl(x))
 
     def __base_inclusion(self, element):
         """

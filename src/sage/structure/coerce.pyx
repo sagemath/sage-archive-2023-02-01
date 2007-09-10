@@ -280,6 +280,10 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 y_elt = (<Morphism>y_map)._call_c(y)
             else:
                 y_elt = y
+            if x_elt is None:
+                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (x, type(x_map), x_map)
+            elif y_elt is None:
+                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (y, type(y_map), y_map)
             if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above

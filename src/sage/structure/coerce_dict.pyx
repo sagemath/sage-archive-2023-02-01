@@ -140,11 +140,7 @@ cdef class TripleDict:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        value = self.get(k1, k2, k3)
-        if value is None:
-            raise KeyError, k
-        else:
-            return value
+        return self.get(k1, k2, k3)
 
     cdef get(self, k1, k2, k3):
         cdef Py_ssize_t h = (<Py_ssize_t>k1 + 13*<Py_ssize_t>k2 + 503*<Py_ssize_t>k3)
@@ -156,7 +152,7 @@ cdef class TripleDict:
                PyList_GET_ITEM(bucket, i+1) == <PyObject*>k2 and \
                PyList_GET_ITEM(bucket, i+2) == <PyObject*>k3:
                 return <object>PyList_GET_ITEM(bucket, i+3)
-        return None
+        raise KeyError, (k1, k2, k3)
 
     def __setitem__(self, k, value):
         try:

@@ -874,7 +874,7 @@ cdef class ModuleElement(Element):
         # Always do this
         global coercion_model
         return coercion_model.bin_op_c(left, right, mul)
-#        return module_element_generic_multiply_c(left, right)
+        # return module_element_generic_multiply_c(left, right)
 
     def __imul__(left, right):
         if have_same_parent(left, right):

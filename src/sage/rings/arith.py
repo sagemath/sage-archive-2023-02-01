@@ -1861,9 +1861,15 @@ def binomial(x,m):
     which is defined for $m \in \Z$ and any $x$.
     If $m<0$ return $0$.
 
+    If x-m is an integer we define:
+
+    binomial(x,m)= binomial(x,x-m)
+
+    (This rule makes sense if x is assumed to be an integer)
+
     INPUT::
-        x -- number
-        m -- integer
+        x,m -- numbers or symbolic expressions
+        Either x or x-m must be an integer.
 
     OUTPUT::
         number
@@ -1881,9 +1887,18 @@ def binomial(x,m):
         184756
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
+        sage: n=var('n'); binomial(n,2)
+        (n - 1)*n/2
+        sage: n=var('n'); binomial(n,n)
+        1
+        sage: n=var('n'); binomial(n,n-1)
+        n
     """
     if not isinstance(m, (int, long, integer.Integer)):
-        raise TypeError, 'm must be an integer'
+        try:
+            m=integer_ring.ZZ(x-m)
+        except TypeError:
+            raise TypeError, 'Either m or x-m must be an integer'
     if isinstance(x, (int, long, integer.Integer)):
         return integer_ring.ZZ(pari(x).binomial(m))
     try:

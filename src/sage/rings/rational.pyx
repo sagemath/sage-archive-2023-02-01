@@ -1583,3 +1583,23 @@ cdef class Z_to_Q(Morphism):
         mpq_set_z(rat.value, (<integer.Integer>x).value)
         return rat
 
+    def _repr_type(self):
+        return "Natural"
+
+cdef class int_to_Q(Morphism):
+    def __init__(self):
+        import rational_field
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
+
+    cdef Element _call_c(self, a):
+        # Override this _call_c rather than _call_c_impl because a is not an Element
+        cdef Rational rat
+        rat = <Rational> PY_NEW(Rational)
+        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+        return rat
+
+    def _repr_type(self):
+        return "Native"
+

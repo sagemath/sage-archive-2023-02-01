@@ -629,6 +629,45 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"
 
+    def coerce_map_from_impl(self, S):
+        """
+        EXAMPLES:
+            sage: R = Integers(15)
+            sage: f = R.coerce_map_from(Integers(450)); f
+            Natural morphism:
+              From: Ring of integers modulo 450
+              To:   Ring of integers modulo 15
+            sage: f(-1)
+            14
+            sage: f = R.coerce_map_from(int); f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Ring of integers modulo 15
+            sage: f(-1r)
+            14
+            sage: f = R.coerce_map_from(ZZ); f
+            Natural morphism:
+              From: Integer Ring
+              To:   Ring of integers modulo 15
+            sage: f(-1)
+            14
+            sage: f = R.coerce_map_from(Integers(10)); print f
+            None
+            sage: f = R.coerce_map_from(QQ); print f
+            None
+        """
+        if S is int:
+            return integer_mod.Int_to_IntegerMod(self)
+        elif S is integer_ring.ZZ:
+            return integer_mod.Integer_to_IntegerMod(self)
+        elif isinstance(S, IntegerModRing_generic):
+            try:
+                return integer_mod.IntegerMod_to_IntegerMod(S, self)
+            except TypeError:
+                return None
+        else:
+            return quotient_ring.QuotientRing_generic.coerce_map_from_impl(self, S)
+
     def __cmp__(self, other):
         """
         EXAMPLES:

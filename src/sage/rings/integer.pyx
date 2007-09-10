@@ -101,6 +101,7 @@ include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
+include "../ext/python_int.pxi"
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -265,10 +266,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PyInt_Check(x):
-                mpz_set_si(self.value, x)
+            elif PyInt_CheckExact(x):
+                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
-            elif PyLong_Check(x):
+            elif PyLong_CheckExact(x):
                 mpz_set_pylong(self.value, x)
 
             elif PyString_Check(x):
@@ -2897,6 +2898,21 @@ def make_integer(s):
     r = PY_NEW(Integer)
     r._reduce_set(s)
     return r
+
+cdef class int_to_Z(Morphism):
+    def __init__(self):
+        import integer_ring
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
+    cdef Element _call_c(self, a):
+        # Override this _call_c rather than _call_c_impl because a is not an element
+        cdef Integer r
+        r = PY_NEW(Integer)
+        mpz_set_si(r.value, PyInt_AS_LONG(a))
+        return r
+    def _repr_type(self):
+        return "Native"
 
 
 ############### INTEGER CREATION CODE #####################

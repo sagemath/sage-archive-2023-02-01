@@ -208,7 +208,7 @@ class Polynomial_generic_sparse(Polynomial):
     def __normalize(self):
         x = self.__coeffs
         zero = self.base_ring()(0)
-        D = [n for n, z in x.iteritems() if z == 0]
+        D = [n for n, z in x.iteritems() if not z]
         for n in D:
             del x[n]
 
@@ -561,7 +561,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             x = [QQ(z) for z in x]
 
         self.__list = list(x)
-        while len(self.__list) > 0 and self.__list[-1] == 0:
+        while len(self.__list) > 0 and not self.__list[-1]:
             del self.__list[-1]
 
         # NOTE: It is much faster to convert to string and let pari's parser at it,
@@ -1379,7 +1379,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
         """
         coeffs = self._Polynomial_generic_dense__coeffs
         for n in range(len(coeffs)):
-            if coeffs[n] == 0:
+            if not coeffs[n]:
                 self._Polynomial_generic_dense__coeffs[n] = self.base_ring()(0)
 
     def _repr(self, name=None):

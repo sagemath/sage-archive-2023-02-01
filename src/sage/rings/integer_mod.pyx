@@ -60,6 +60,7 @@ import commutative_ring_element
 import sage.interfaces.all
 
 import sage.rings.integer
+import sage.rings.integer_ring
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
@@ -2444,30 +2445,23 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     """
     Very fast IntegerMod to IntegerMod homomorphism.
 
-    sage: from sage.rings.integer_mod import IntegerMod_to_IntegerMod
-    sage: R = Integers(2^8); S = Integers(2^3)
-    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
-    sage: hom(R(-1))
-    7
-    sage: R = Integers(2^18); S = Integers(2^3)
-    sage: type(R(1))
-    <type 'sage.rings.integer_mod.IntegerMod_int64'>
-    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
-    sage: hom(R(-1))
-    7
-    sage: R = Integers(2^118); S = Integers(2^3)
-    sage: type(R(1))
-    <type 'sage.rings.integer_mod.IntegerMod_gmp'>
-    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
-    sage: hom(R(-1))
-    7
-    sage: R = Integers(3^118); S = Integers(3^109)
-    sage: type(S(1))
-    <type 'sage.rings.integer_mod.IntegerMod_gmp'>
-    sage: hom = IntegerMod_to_IntegerMod(HomsetWithBase(R, S))
-    sage: hom(R(-1)) + 1
-    0
+    EXAMPLES:
+        sage: from sage.rings.integer_mod import IntegerMod_to_IntegerMod
+        sage: Rs = [Integers(3**k) for k in range(1,30,5)]
+        sage: [type(R(0)) for R in Rs]
+        [<type 'sage.rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.integer_mod.IntegerMod_gmp'>, <type 'sage.rings.integer_mod.IntegerMod_gmp'>]
+        sage: fs = [IntegerMod_to_IntegerMod(S, R) for R in Rs for S in Rs if S is not R and S.order() > R.order()]
+        sage: all([f(-1) == f.codomain()(-1) for f in fs])
+        True
+        sage: [f(-1) for f in fs]
+        [2, 2, 2, 2, 2, 728, 728, 728, 728, 177146, 177146, 177146, 43046720, 43046720, 10460353202]
     """
+    def __init__(self, R, S):
+        if not S.order().divides(R.order()):
+            raise TypeError, "No natural coercion from %s to %s" % (R, S)
+        import sage.categories.homset
+        IntegerMod_hom.__init__(self, sage.categories.homset.Hom(R, S))
+
     cdef Element _call_c_impl(self, Element x):
         cdef IntegerMod_abstract a
         if PY_TYPE_CHECK(x, IntegerMod_int):
@@ -2479,29 +2473,34 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
             a.set_from_mpz((<IntegerMod_gmp>x).value)
             return a
 
+    def _repr_type(self):
+        return "Natural"
+
 cdef class Integer_to_IntegerMod(IntegerMod_hom):
     """
     Fast $\Z \rightarrow \Z/n\Z$ morphism.
 
-    sage: from sage.rings.integer_mod import Integer_to_IntegerMod
-    sage: R = Integers(5)
-    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
-    sage: hom(-1)
-    4
-    sage: R = Integers(2^20)
-    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
-    sage: hom(5)
-    5
-    sage: R = Integers(5^120)
-    sage: hom = Integer_to_IntegerMod(HomsetWithBase(ZZ, R))
-    sage: hom(2)
-    2
+    EXAMPLES:
+    We make sure it works for every type.
+        sage: from sage.rings.integer_mod import Integer_to_IntegerMod
+        sage: Rs = [Integers(10), Integers(10^5), Integers(10^10)]
+        sage: [type(R(0)) for R in Rs]
+        [<type 'sage.rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.integer_mod.IntegerMod_gmp'>]
+        sage: fs = [Integer_to_IntegerMod(R) for R in Rs]
+        sage: [f(-1) for f in fs]
+        [9, 99999, 9999999999]
     """
+    def __init__(self, R):
+        import sage.categories.homset
+        IntegerMod_hom.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, R))
+
     cdef Element _call_c_impl(self, Element x):
         cdef IntegerMod_abstract a
         cdef Py_ssize_t res
         if self.modulus.table is not None:
             res = x % self.modulus.int64
+            if res < 0:
+                res += self.modulus.int64
             a = self.modulus.lookup(res)
             if a._parent is not self._codomain:
                a._parent = self._codomain
@@ -2512,17 +2511,46 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             a.set_from_mpz((<Integer>x).value)
             return a
 
-class Int_to_IntegerMode(IntegerMod_hom):
-    def _call_(self, x):
+    def _repr_type(self):
+        return "Natural"
+
+cdef class Int_to_IntegerMod(IntegerMod_hom):
+    """
+    EXAMPLES:
+    We make sure it works for every type.
+        sage: from sage.rings.integer_mod import Int_to_IntegerMod
+        sage: Rs = [Integers(2**k) for k in range(1,50,10)]
+        sage: [type(R(0)) for R in Rs]
+        [<type 'sage.rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.integer_mod.IntegerMod_gmp'>, <type 'sage.rings.integer_mod.IntegerMod_gmp'>]
+        sage: fs = [Int_to_IntegerMod(R) for R in Rs]
+        sage: [f(-1) for f in fs]
+        [1, 2047, 2097151, 2147483647, 2199023255551]
+    """
+    def __init__(self, R):
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
+
+    cdef Element _call_c(self, x):
         cdef IntegerMod_abstract a
-        cdef long res
-        if self.modulus.table is not None:
-            res = x
-            res %= self.modulus.int64
-            a = self.modulus.lookup(res)
-            if a._parent is not self._codomain:
-               a._parent = self._codomain
-#                print (<Element>a)._parent, " is not ", parent
-            return a
+        cdef long res = PyInt_AS_LONG(x)
+        if PY_TYPE_CHECK(self.zero, IntegerMod_gmp):
+            if 0 <= res < INTEGER_MOD_INT64_LIMIT:
+                return self.zero._new_c_from_long(res)
+            else:
+                return IntegerMod_gmp(self.zero._parent, x)
         else:
-            return self.zero._new_c_from_long(x)
+            res %= self.modulus.int64
+            if res < 0:
+                res += self.modulus.int64
+            if self.modulus.table is not None:
+                a = self.modulus.lookup(res)
+                if a._parent is not self._codomain:
+                   a._parent = self._codomain
+    #                print (<Element>a)._parent, " is not ", parent
+                return a
+            else:
+                return self.zero._new_c_from_long(res)
+
+    def _repr_type(self):
+        return "Native"

@@ -3,7 +3,8 @@ include "../libs/ntl/decl.pxi"
 
 import sage.structure.element
 cimport sage.structure.element
-from sage.structure.element cimport EuclideanDomainElement, RingElement, ModuleElement
+from sage.structure.element cimport EuclideanDomainElement, RingElement, ModuleElement, Element
+from sage.categories.morphism cimport Morphism
 
 cdef class Integer(EuclideanDomainElement):
     cdef mpz_t value
@@ -32,3 +33,6 @@ cdef class Integer(EuclideanDomainElement):
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
 cdef extern int set_mpz(Integer self, mpz_t value)
+
+cdef class int_to_Z(Morphism):
+    pass

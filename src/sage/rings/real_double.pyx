@@ -149,7 +149,7 @@ cdef class RealDoubleField_class(Field):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr
-        if S in [ZZ, QQ] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
+        if S in [int, float, ZZ, QQ] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
             return ToRDF(S)
         return Field.coerce_map_from_c(self, S)
 
@@ -1387,12 +1387,48 @@ cdef class RealDoubleElement(FieldElement):
 
 cdef class ToRDF(Morphism):
     def __init__(self, R):
+        """
+        Fast morphism from anything with a __float__ method to an RDF element.
+
+        EXAMPLES:
+            sage: f = RDF.coerce_map_from(ZZ); f
+            Native morphism:
+              From: Integer Ring
+              To:   Real Double Field
+            sage: f(4)
+            4.0
+            sage: f = RDF.coerce_map_from(QQ); f
+            Native morphism:
+              From: Rational Field
+              To:   Real Double Field
+            sage: f(1/2)
+            0.5
+            sage: f = RDF.coerce_map_from(int); f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Real Double Field
+            sage: f(3r)
+            3.0
+            sage: f = RDF.coerce_map_from(float); f
+            Native morphism:
+              From: Set of Python objects of type 'float'
+              To:   Real Double Field
+            sage: f(3.5)
+            3.5
+        """
         from sage.categories.homset import Hom
+        if isinstance(R, type):
+            from sage.structure.parent import Set_PythonType
+            R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
-    cdef Element _call_c_impl(self, Element x):
+    cdef Element _call_c(self, x):
+        # Override this _call_c rather than _call_c_impl because a may not be an Element
         cdef RealDoubleElement r = <RealDoubleElement>PY_NEW(RealDoubleElement)
         r._value = PyFloat_AsDouble(x)
         return r
+    def _repr_type(self):
+        return "Native"
+
 
 #####################################################
 # unique objects

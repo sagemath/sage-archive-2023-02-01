@@ -281,6 +281,28 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         raise TypeError, "no canonical coercion to an integer"
 
 
+    cdef coerce_map_from_c_impl(self, S):
+        """
+        EXAMPLES:
+            sage: f = ZZ.coerce_map_from(int); f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            sage: f(4r)
+            4
+            sage: f(-7r)
+            -7
+
+        Note that the input MUST be an int.
+            sage: f(10000000000000000000000r) # random
+            5
+        """
+        if S is int:
+            return sage.rings.integer.int_to_Z()
+        else:
+            return PrincipalIdealDomain.coerce_map_from_c_impl(self, S)
+
+
     def is_subring(self, other):
         """
         Return True if ZZ is a subring of other in a natural way.

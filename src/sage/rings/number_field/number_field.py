@@ -543,7 +543,7 @@ class NumberField_generic(number_field_base.NumberField):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, polynomial, name,
+    def __init__(self, orig_polynomial, name,
                  latex_name=None, check=True):
         """
         Create a number field.
@@ -561,16 +561,24 @@ class NumberField_generic(number_field_base.NumberField):
             0
         """
         ParentWithGens.__init__(self, QQ, name)
-        if not isinstance(polynomial, polynomial_element.Polynomial):
+        if not isinstance(orig_polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
 
         if check:
-            if not polynomial.is_irreducible():
+            if not orig_polynomial.is_irreducible():
                 raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
-            if not polynomial.parent().base_ring() == QQ:
+            if not orig_polynomial.parent().base_ring() == QQ:
                 raise TypeError, "polynomial must be defined over rational field"
+
+        # Make the polynomial integral.
+        polynomial=orig_polynomial*orig_polynomial.denominator()
         if not polynomial.is_monic():
-            raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
+            # Make the polynomial monic.
+            plist=polynomial.list()
+            deg=polynomial.degree()
+            newlist=[plist[i]*plist[deg]**(deg-i-1) for i in range(deg+1)]
+            R=polynomial.parent()
+            polynomial=R(newlist)
 
         self._assign_names(name)
         if latex_name is None:
@@ -578,6 +586,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
+        self.__orig_polynomial = orig_polynomial
         self.__pari_bnf_certified = False
         self.__absolute_field = self
 

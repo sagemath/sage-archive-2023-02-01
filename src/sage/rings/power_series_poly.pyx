@@ -232,8 +232,10 @@ cdef class PowerSeries_poly(PowerSeries):
                 self.__f = self.__f._inplace_truncate(self._prec)
             else:
                 self.__f = self.__f._inplace_truncate(right._prec)
+                self._prec = right._prec
         elif right._prec is not infinity:
             self.__f = self.__f._inplace_truncate(right._prec)
+            self._prec = right._prec
         return self
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
@@ -275,9 +277,10 @@ cdef class PowerSeries_poly(PowerSeries):
             19*w^10 + 323*w^11 + O(w^12)
         """
         prec = self._mul_prec(right_r)
-        self.__f * (<PowerSeries_poly>right_r).__f
+        self.__f *= (<PowerSeries_poly>right_r).__f
         if prec is not infinity:
-            self.__f._inplace_truncate(prec)
+            self.__f = self.__f._inplace_truncate(prec)
+            self._prec = prec
         return self
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
@@ -287,7 +290,15 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
 
     cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+#        print "f", type(self.__f), self.__f
+#        print "c", type(c), c
+#        print "f*c", type(self.__f*c), self.__f*c
+#        ff = self.__f
         self.__f *= c
+#        ff *= c
+#        print "ff", type(ff), ff
+#        self.__f = ff
+#        self.__f = self.__f * c
         return self
 
 
@@ -326,7 +337,7 @@ cdef class PowerSeries_poly(PowerSeries):
         else:
             return self.__f.truncate_c(prec)
 
-    def _inplace_truncate(self, prec):
+    cdef _inplace_truncate(self, long prec):
         self.__f = self.__f._inplace_truncate(prec)
         self.prec = prec
         return self

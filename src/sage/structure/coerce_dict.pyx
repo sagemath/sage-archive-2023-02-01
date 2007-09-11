@@ -20,7 +20,6 @@ cdef class TripleDict:
        - All keys must be sequence of exactly three elements. All sequence
          types (tuple, list, etc.) map to the same item.
        - Comparison is done using the 'is' rather than '==' operator.
-       - A value of None is treated as a non-existant value.
 
     In addition, there is the following difference which (unlike the above
     three) should probably be changed.
@@ -104,6 +103,17 @@ cdef class TripleDict:
     """
 
     def __init__(self, size, data=None):
+        """
+        Create a special dict using triples for keys.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: a = 'a'; b = 'b'; c = 'c'
+            sage: L[a,b,c] = 1
+            sage: L[a,b,c]
+            1
+        """
         cdef int i
         self.buckets = [[] for i from 0 <= i <  size]
         if data is not None:
@@ -111,6 +121,20 @@ cdef class TripleDict:
                 self[k] = v
 
     def __len__(self):
+        """
+        The number of items in self.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(37)
+            sage: a = 'a'; b = 'b'; c = 'c'
+            sage: L[a,b,c] = 1
+            sage: L[a,b,c] = -1 # re-assign
+            sage: L[a,c,b] = 1
+            sage: L[a,a,None] = None
+            sage: len(L)
+            3
+        """
         cdef Py_ssize_t size = 0
         for bucket in self.buckets:
             if bucket:
@@ -118,6 +142,29 @@ cdef class TripleDict:
         return size
 
     def stats(self):
+        """
+        The distribution of items in buckets.
+
+        OUTPUT:
+            (min, avg, max)
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(37)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.stats() # random
+            (2, 2.7027027027027026, 4)
+
+            sage: L = TripleDict(3007)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.stats() # random
+            (0, 0.03325573661456601, 1)
+
+            sage: L = TripleDict(1)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.stats()
+            (100, 100.0, 100)
+        """
         cdef Py_ssize_t size = len(self)
         cdef Py_ssize_t cur, min = size, max = 0
         for bucket in self.buckets:
@@ -130,12 +177,51 @@ cdef class TripleDict:
         return min, 1.0*size/len(self.buckets), max
 
     def bucket_lens(self):
+        """
+        The distribution of items in buckets.
+
+        OUTPUT:
+            A list of how many items are in each bucket.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(37)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.bucket_lens() # random
+            [3, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 3, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4]
+            sage: sum(L.bucket_lens())
+            100
+
+            sage: L = TripleDict(1)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.bucket_lens()
+            [100]
+        """
         return [len(self.buckets[i])/4 for i from 0 <= i < len(self.buckets)]
 
     def _get_buckets(self):
+        """
+        The actual buckets of self, for debugging.
+
+        EXAMPLE:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(3)
+            sage: L[0,0,0] = None
+            sage: L._get_buckets() # random
+            [[0, 0, 0, None], [], []]
+        """
         return self.buckets
 
     def __getitem__(self, k):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: a = 'a'; b = 'b'; c = 'c'
+            sage: L[a,b,c] = 1
+            sage: L[a,b,c]
+            1
+        """
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
@@ -155,18 +241,20 @@ cdef class TripleDict:
         raise KeyError, (k1, k2, k3)
 
     def __setitem__(self, k, value):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: a = 'a'; b = 'b'; c = 'c'
+            sage: L[a,b,c] = -1
+            sage: L[a,b,c]
+            -1
+        """
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        if value is None:
-            # for consistency with get
-            try:
-                del self[k]
-            except KeyError:
-                pass
-        else:
-            self.set(k1, k2, k3, value)
+        self.set(k1, k2, k3, value)
 
     cdef set(self, k1, k2, k3, value):
         cdef Py_ssize_t h = (<Py_ssize_t>k1 + 13*<Py_ssize_t>k2 + 503*<Py_ssize_t>k3)
@@ -182,6 +270,16 @@ cdef class TripleDict:
         bucket += [k1, k2, k3, value]
 
     def __delitem__(self, k):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: a = 'a'; b = 'b'; c = 'c'
+            sage: L[a,b,c] = -1
+            sage: del L[a,b,c]
+            sage: len(L)
+            0
+        """
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
@@ -199,16 +297,49 @@ cdef class TripleDict:
         raise KeyError, k
 
     def iteritems(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = None
+            sage: list(L.iteritems())
+            [((1, 2, 3), None)]
+        """
         return TripleDictIter(self)
 
 
 cdef class TripleDictIter:
     def __init__(self, pairs):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = None
+            sage: L.iteritems().next()
+            ((1, 2, 3), None)
+        """
         self.pairs = pairs
         self.buckets = iter(self.pairs.buckets)
     def __iter__(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = None
+            sage: iter(L.iteritems()).next()
+            ((1, 2, 3), None)
+        """
         return self
     def __next__(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = None
+            sage: L[3,2,1] = None
+            sage: sorted(L.iteritems())
+            [((1, 2, 3), None), ((3, 2, 1), None)]
+        """
         while self.bucket_iter is None:
             self.bucket_iter = self.buckets.next()
         self.bucket_iter = iter(self.bucket_iter)

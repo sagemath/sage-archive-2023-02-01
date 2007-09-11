@@ -735,26 +735,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
-        # self and right are guaranteed to be Integers
+        # self and right are guaranteed to be Integers, self safe to mutate
         mpz_add(self.value, self.value, (<Integer>right).value)
         return self
-
-##     def _unsafe_add_in_place(self,  ModuleElement right):
-##         """
-##         Do *not* use this...  unless you really know what you
-##         are doing.
-##         """
-##         if not (right._parent is self._parent):
-##             raise TypeError
-##         mpz_add(self.value, self.value, (<Integer>right).value)
-##     cdef _unsafe_add_in_place_c(self,  ModuleElement right):
-##         """
-##         Do *not* use this...  unless you really know what you
-##         are doing.
-##         """
-##         if not (right._parent is self._parent):
-##             raise TypeError
-##         mpz_add(self.value, self.value, (<Integer>right).value)
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
@@ -762,6 +745,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         x = PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        mpz_sub(self.value, self.value, (<Integer>right).value)
+        return self
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
@@ -806,6 +793,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
+
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) when the
+            # product might take a while to compute
+            _sig_on
+            mpz_mul(self.value, self.value, (<Integer>right).value)
+            _sig_off
+        else:
+            mpz_mul(self.value, self.value, (<Integer>right).value)
+        return self
 
     cdef RingElement _div_c_impl(self, RingElement right):
         r"""

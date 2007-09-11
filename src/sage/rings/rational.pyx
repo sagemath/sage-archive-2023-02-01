@@ -881,6 +881,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        mpq_sub(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef ModuleElement _neg_c_impl(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -901,6 +905,18 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
@@ -917,6 +933,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         x = <Rational> PY_NEW(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
+
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
+            raise ZeroDivisionError, "Rational division by zero"
+        mpq_div(self.value, self.value, (<Rational>right).value)
+        return self
+
 
     ################################################################
     # Other arithmetic operations.

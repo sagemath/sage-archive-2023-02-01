@@ -510,6 +510,12 @@ cdef class RealDoubleElement(FieldElement):
         return x
 
     cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: a = RDF(0.5)
+            sage: a += RDF(3); a
+            3.5
+        """
         # self and right are guaranteed to be Integers
         self._value += (<RealDoubleElement>right)._value
         return self
@@ -526,6 +532,16 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: a = RDF(0.5)
+            sage: a -= RDF(3); a
+            -2.5
+        """
+        self._value -= (<RealDoubleElement>right)._value
+        return self
+
     cdef RingElement _mul_c_impl(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
@@ -537,6 +553,16 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
+
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: a = RDF(2.5)
+            sage: a *= RDF(3); a
+            7.5
+        """
+        self._value *= (<RealDoubleElement>right)._value
+        return self
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
@@ -550,7 +576,19 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value / (<RealDoubleElement>right)._value
         return x
 
-    cdef ModuleElement _neg_c_impl(self):
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: a = RDF(1.5)
+            sage: a /= RDF(2); a
+            0.75
+            sage: a /= RDF(0); a
+            inf
+        """
+        self._value /= (<RealDoubleElement>right)._value
+        return self
+
+    def __neg__(self):
         """
         Negates a real number.
 

@@ -318,7 +318,10 @@ cdef class Parent(sage_object.SageObject):
             from sage.rings.integer_ring import ZZ
             if S in [int, long, ZZ] and not self.has_coerce_map_from(ZZ):
                 from sage.structure.coerce import IntegerMulAction
-                return IntegerMulAction(S, self, not self_on_left)
+                try:
+                    return IntegerMulAction(S, self, not self_on_left)
+                except TypeError:
+                    pass
 
 #            print "found nothing"
 

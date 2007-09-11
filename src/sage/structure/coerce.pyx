@@ -889,6 +889,7 @@ cdef class IntegerMulAction(Action):
         if PY_TYPE_CHECK(ZZ, type):
             from sage.structure.parent import Set_PythonType
             ZZ = Set_PythonType(ZZ)
+        test = M._an_element() + (-M._an_element()) # make sure addition and negation is allowed
         Action.__init__(self, ZZ, M, is_left, mul)
 
     cdef Element _call_c(self, nn, a):

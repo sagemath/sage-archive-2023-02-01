@@ -543,6 +543,9 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
+    Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
+              sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx']), \
+
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 

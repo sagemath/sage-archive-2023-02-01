@@ -739,6 +739,9 @@ cdef class RAction(Action):
 
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
+        if not isinstance(G, Parent):
+            # only let Parents act
+            raise TypeError
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
@@ -788,6 +791,9 @@ cdef class LeftModuleAction(Action):
 
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
+        if not isinstance(G, Parent):
+            # only let Parents act
+            raise TypeError
         # Objects are implemented with the assumption that
         # _lmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:

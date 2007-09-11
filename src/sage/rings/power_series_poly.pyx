@@ -222,7 +222,7 @@ cdef class PowerSeries_poly(PowerSeries):
             x + x^4
             sage: g = x^2 + O(x^3); g
             x^2 + O(x^3)
-            sage: f += g
+            sage: f += g; f
             x + x^2 + O(x^3)
         """
         cdef PowerSeries_poly right = <PowerSeries_poly>right_m

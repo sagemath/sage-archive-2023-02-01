@@ -354,17 +354,6 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             self._coercion_maps.set(S, R, None, swap)
         return homs
 
-    def get_action(self, R, S, op):
-        return self.get_action_c(R, S, op)
-
-    cdef get_action_c(self, R, S, op):
-        try:
-            return self._action_maps.get(R, S, op)
-        except KeyError:
-            action = self.discover_action_c(R, S, op)
-            self._action_maps.set(R, S, op, action)
-            return action
-
     cdef discover_coercion_c(self, R, S):
         from sage.categories.homset import Hom
         if R is S:
@@ -395,6 +384,17 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
         return None
 
+
+    def get_action(self, R, S, op):
+        return self.get_action_c(R, S, op)
+
+    cdef get_action_c(self, R, S, op):
+        try:
+            return self._action_maps.get(R, S, op)
+        except KeyError:
+            action = self.discover_action_c(R, S, op)
+            self._action_maps.set(R, S, op, action)
+            return action
 
     cdef discover_action_c(self, R, S, op):
 #        print "looking", R, <int>R, op, S, <int>S

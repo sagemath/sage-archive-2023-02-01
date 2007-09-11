@@ -446,15 +446,19 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action_c(sageR, S, op)
-                if action and not PY_TYPE_CHECK(action, IntegerMulAction):
-                    return PyScalarAction(action)
+                if action:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PyScalarAction(action)
+                    return action
 
         if PY_TYPE(S) == <void *>type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action_c(R, sageS, op)
-                if action and not PY_TYPE_CHECK(action, IntegerMulAction):
-                    return PyScalarAction(action)
+                if action:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PyScalarAction(action)
+                    return action
 
         if op.__name__[0] == 'i':
             try:
@@ -882,6 +886,9 @@ cdef class PyScalarAction(Action):
             b = self.G(b)
             return self._action._call_c(a,b)
 
+    def __inverse__(self):
+        return PyScalarAction(~self._action)
+
 
 cdef class IntegerMulAction(Action):
 
@@ -896,7 +903,6 @@ cdef class IntegerMulAction(Action):
         # Override _call_c because signature of _call_c_impl requires elements
         if not self._is_left:
             a, nn = nn, a
-        print type(nn)
         if not PyInt_CheckExact(nn):
             nn = PyNumber_Int(nn)
             if not PyInt_CheckExact(nn):

@@ -282,7 +282,7 @@ cdef class Parent(sage_object.SageObject):
                     _unregister_pair(x,y)
 #                    print "got", action
                     return action
-                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                except (NotImplementedError, TypeError, AttributeError, ValueError), ex:
                     pass
 
                 try:
@@ -300,7 +300,7 @@ cdef class Parent(sage_object.SageObject):
                     _unregister_pair(x,y)
 #                    print "got", action
                     return action
-                except (NotImplementedError, TypeError, AttributeError, ValueError):
+                except (NotImplementedError, TypeError, AttributeError, ValueError), ex:
                     pass
 
                 try:
@@ -311,17 +311,21 @@ cdef class Parent(sage_object.SageObject):
                 except (NotImplementedError, TypeError, AttributeError, ValueError):
                     pass
 
-            _unregister_pair(x,y)
 
-        if op is operator.mul:
-            # Do I really want to import this here?
-            from sage.rings.integer_ring import ZZ
-            if S in [int, long, ZZ] and not self.has_coerce_map_from(ZZ):
-                from sage.structure.coerce import IntegerMulAction
-                try:
-                    return IntegerMulAction(S, self, not self_on_left)
-                except TypeError:
-                    pass
+            try:
+                # maybe there is a more clever way of detecting ZZ than importing here...
+                from sage.rings.integer_ring import ZZ
+                if S is ZZ and not self.has_coerce_map_from(ZZ):
+#                    print "IntegerMulAction"
+                    from sage.structure.coerce import IntegerMulAction
+                    action = IntegerMulAction(S, self, not self_on_left)
+#                    print "got", action
+                    _unregister_pair(x,y)
+                    return action
+            except (NotImplementedError, TypeError, AttributeError, ValueError):
+                pass
+
+            _unregister_pair(x,y)
 
 #            print "found nothing"
 

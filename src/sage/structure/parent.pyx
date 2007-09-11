@@ -312,7 +312,16 @@ cdef class Parent(sage_object.SageObject):
                     pass
 
             _unregister_pair(x,y)
+
+        if op is operator.mul:
+            # Do I really want to import this here?
+            from sage.rings.integer_ring import ZZ
+            if S in [int, long, ZZ] and not self.has_coerce_map_from(ZZ):
+                from sage.structure.coerce import IntegerMulAction
+                return IntegerMulAction(S, self, not self_on_left)
+
 #            print "found nothing"
+
 
     def construction(self):
         """

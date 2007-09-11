@@ -12,7 +12,10 @@ cdef extern from *:
         int ob_refcnt
 
 include "../ext/stdsage.pxi"
+include "../ext/interrupt.pxi"
 include "../ext/python_object.pxi"
+include "../ext/python_number.pxi"
+include "../ext/python_int.pxi"
 include "coerce.pxi"
 
 import operator
@@ -443,14 +446,14 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action_c(sageR, S, op)
-                if action:
+                if action and not PY_TYPE_CHECK(action, IntegerMulAction):
                     return PyScalarAction(action)
 
         if PY_TYPE(S) == <void *>type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action_c(R, sageS, op)
-                if action:
+                if action and not PY_TYPE_CHECK(action, IntegerMulAction):
                     return PyScalarAction(action)
 
         if op.__name__[0] == 'i':
@@ -467,6 +470,14 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 return a
             except KeyError:
                 pass
+
+#        if op is operator.mul:
+#            from sage.rings.integer_ring import ZZ
+#            if S in [int, long, ZZ] and not R.has_coerce_map_from(ZZ):
+#                return IntegerMulAction(S, R False)
+#
+#            if R in [int, long, ZZ] and not S.has_coerce_map_from(ZZ):
+#                return IntegerMulAction(R, S, True)
 
         return None
 
@@ -870,3 +881,75 @@ cdef class PyScalarAction(Action):
         else:
             b = self.G(b)
             return self._action._call_c(a,b)
+
+
+cdef class IntegerMulAction(Action):
+
+    def __init__(self, ZZ, M, is_left):
+        if PY_TYPE_CHECK(ZZ, type):
+            from sage.structure.parent import Set_PythonType
+            ZZ = Set_PythonType(ZZ)
+        Action.__init__(self, ZZ, M, is_left, mul)
+
+    cdef Element _call_c(self, nn, a):
+        # Override _call_c because signature of _call_c_impl requires elements
+        if not self._is_left:
+            a, nn = nn, a
+        print type(nn)
+        if not PyInt_CheckExact(nn):
+            nn = PyNumber_Int(nn)
+            if not PyInt_CheckExact(nn):
+                return fast_mul(a, nn)
+
+        return fast_mul_long(a, PyInt_AS_LONG(nn))
+
+    def __inverse__(self):
+        raise TypeError, "No generic module division by Z."
+
+    def _repr_type(self):
+        return "Integer Multiplication"
+
+
+
+cdef inline fast_mul(a, n):
+    _sig_on
+    if n < 0:
+        n = -n
+        a = -a
+    pow2a = a
+    while n & 1 == 0:
+        pow2a += pow2a
+        n = n >> 1
+    sum = pow2a
+    n = n >> 1
+    while n != 0:
+        pow2a += pow2a
+        if n & 1:
+            sum += pow2a
+        n = n >> 1
+    _sig_off
+    return sum
+
+cdef inline fast_mul_long(a, long n):
+    if n < 0:
+        n = -n
+        a = -a
+    if n < 4:
+        if n == 0: return (<Element>a)._parent(0)
+        if n == 1: return a
+        if n == 2: return a+a
+        if n == 3: return a+a+a
+    _sig_on
+    pow2a = a
+    while n & 1 == 0:
+        pow2a += pow2a
+        n = n >> 1
+    sum = pow2a
+    n = n >> 1
+    while n != 0:
+        pow2a += pow2a
+        if n & 1:
+            sum += pow2a
+        n = n >> 1
+    _sig_off
+    return sum

@@ -967,30 +967,11 @@ cdef class ModuleElement(Element):
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
+
+        The coercion model will catch this error and create the
+        appropriate action.
         """
-        n = int(left)
-        if n != left:
-            raise TypeError, "left (=%s) must be an integer."%left
-        a = self
-        if n < 0:
-            a = -a
-            n = -n
-        sum = None
-        asum = a
-        while True:
-            if n&1 > 0:
-                if sum is None:
-                    sum = asum
-                else:
-                    sum += asum
-            n = n >> 1
-            if n != 0:
-                asum += asum
-            else:
-                break
-        if sum is None:
-            return self._parent(0)
-        return sum
+        raise NotImplementedError
 
     def _rmul_(self, left):
         return self._rmul_c_impl(left)
@@ -1009,21 +990,22 @@ cdef class ModuleElement(Element):
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
-        Default module right scalar multiplication, which is to try to
+        Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
+
+        The coercion model will catch this error and create the
+        appropriate action.
         """
-        return self._rmul_c(right)
+        raise NotImplementedError
 
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
 
     def _ilmul_(self, right):
-#        print "_ilmul_", self, right
         return self._ilmul_c_impl(right)
 
     cdef ModuleElement _ilmul_c_impl(self, RingElement right):
-#        print "_ilmul_c_impl", self, right
         return _lmul_c(self, right)
 
     cdef RingElement coerce_to_base_ring(self, x):
@@ -1164,38 +1146,15 @@ cdef class AdditiveGroupElement(ModuleElement):
         return self._lmul_c_impl(left)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        m = int(right)  # a little worrisome, let's check if we got the right answer.
-        if m != right:
-            raise NotImplementedError, "non-integral exponents not supported"
-        if m<0:
-            a = -self
-            m = -m
-        else:
-            a = self
-        if m==0:
-            return self.scheme()(0)
-        elif m==1:
-            return a
-        elif m==2:
-            return a+a
-        elif m==3:
-            return a+a+a
+        """
+        Default module left scalar multiplication, which is to try to
+        canonically coerce the scalar to the integers and do that
+        multiplication, which is always defined.
 
-        # One addition can be saved by starting with
-        # the smallest power needed rather than with 1
-        while m&1 == 0:
-            a = a+a
-            m = m >> 1
-        power = a
-        m = m >> 1
-
-        while m != 0:
-            a = a+a
-            if m&1 != 0:
-                power = power+a
-            m = m >> 1
-
-        return power
+        The coercion model will catch this error and create the
+        appropriate action.
+        """
+        raise NotImplementedError
 
 def is_MultiplicativeGroupElement(x):
     """

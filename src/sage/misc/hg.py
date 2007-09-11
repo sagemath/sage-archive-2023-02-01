@@ -305,10 +305,12 @@ class HG:
 
     patch = import_patch
 
-    def incoming(self, source, options=''):
+    def incoming(self, source, options='-p'):
         """
-        Show new changesets found in the given source.  This even
-        works if the source is a bundle file (ends in .hg or .bundle).
+        Show new changesets found in the given source and display the
+        corresponding diffs.  This even works if the source is a
+        bundle file (ends in .hg or .bundle).  This is great because
+        it lets you "see inside" the myserious binary-only .hg files.
 
         Show new changesets found in the specified path/URL or the default
         pull location. These are the changesets that would be pulled if a pull
@@ -323,7 +325,8 @@ class HG:
 
         INPUT:
             filename -- string
-            options -- string '[-p] [-n] [-M] [-r REV] ...'
+            options -- (default: '-p')
+                       string '[-p] [-n] [-M] [-r REV] ...'
                          -M --no-merges     do not show merges
                          -f --force         run even when remote repository is unrelated
                             --style         display using template map file
@@ -341,7 +344,7 @@ class HG:
             source = os.path.abspath(source)
         if os.path.splitext(source)[1] in ['.hg', '.bundle']:
             source = 'bundle://%s'%source
-        self('incoming %s "%s"'%(options, source))
+        self('incoming %s "%s" | %s'%(options, source, pager()))
 
     inspect = incoming
 

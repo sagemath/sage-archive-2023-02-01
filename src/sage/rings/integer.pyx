@@ -1585,7 +1585,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns the integer self / right when self is divisible by right.
 
-        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+        If self is not divisible by right, the return value is undefined, and may not even be close to self/right.
         For more documentation see \code{divide_knowing_divisible_by}
 
         AUTHOR:
@@ -1609,12 +1609,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns the integer self / right when self is divisible by right.
 
-        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+        If self is not divisible by right, the return value is undefined,
+        and may not even be close to self/right for multi-word integers.
 
         EXAMPLES:
-        sage: a = 8; b = 4
-        sage: a.divide_knowing_divisible_by(b)
-        2
+            sage: a = 8; b = 4
+            sage: a.divide_knowing_divisible_by(b)
+            2
+            sage: (100000).divide_knowing_divisible_by(25)
+            4000
+            sage: (100000).divide_knowing_divisible_by(26) # close
+            3846
+
+      However, often it's way off.
+
+            sage: a = 2^70; a
+            1180591620717411303424
+            sage: a // 11  # floor divide
+            107326510974310118493
+            sage: a.divide_knowing_divisible_by(11) # way off and possibly random
+            43215361478743422388970455040
+
         """
         return self._divide_knowing_divisible_by(right)
 

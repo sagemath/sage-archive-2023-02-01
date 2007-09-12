@@ -594,6 +594,32 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return NumberField_generic_v1, (self.__polynomial, self.variable_name(), self.__latex_variable_name)
 
+    def is_isomorphic(self, other):
+        """
+        Return True if self is isomorphic as a number field to other.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: m.<b> = NumberField(x^2 + 4)
+            sage: k.is_isomorphic(m)
+            True
+            sage: m.<b> = NumberField(x^2 + 5)
+            sage: k.is_isomorphic (m)
+            False
+
+            sage: k = NumberField(x^3 + 2, 'a')
+            sage: k.is_isomorphic(NumberField((x+1/3)^3 + 2, 'b'))
+            True
+            sage: k.is_isomorphic(NumberField(x^3 + 4, 'b'))
+            True
+            sage: k.is_isomorphic(NumberField(x^3 + 5, 'b'))
+            False
+        """
+        if not isinstance(other, NumberField_generic):
+            raise ValueError, "other must be a generic number field."
+        t = self.pari_polynomial().nfisisom(other.pari_polynomial())
+        return t != 0
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this ring into the approximate

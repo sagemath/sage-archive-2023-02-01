@@ -21,6 +21,7 @@ cdef extern from "pb_wrap.h":
     ctypedef struct PBRing "struct BoolePolyRing":
         int (* nVariables)()
         PBDD (* variable)(int n)
+        void (*setRingVariableName)(int idx, char *varname)
 
     # Some boiler-plate
     #PBRing* PBRing_new "New<BoolePolyRing>"()

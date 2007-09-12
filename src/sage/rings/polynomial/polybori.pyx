@@ -37,14 +37,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     """
     Boolean Polynomial Ring.
     """
-    def __init__(self, base_ring, n, names, order):
+    def __init__(self, n, names, order='lp'):
         cdef char *_n
 
-        if base_ring is not GF(2):
-            raise TypeError, "base ring must be GF(2)"
-
         PBRing_construct(&self._R, n, order_dict.get(order, lp))
-        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
+        MPolynomialRing_generic.__init__(self, GF(2), n, names, order)
 
         for i in range(self.ngens()):
             _n = self._names[i]
@@ -64,13 +61,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def gen(self, int n=0):
         """
         """
-        self._R.activate()
         return new_BP_from_DD(self, self._R.variable(n))
 
     def gens(self):
         """
         """
-        self._R.activate()
         return [new_BP_from_DD(self, self._R.variable(i)) \
                 for i in xrange(self.ngens())]
 
@@ -86,7 +81,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         i = int(other)
         i = i % 2
-        self._R.activate()
         p = new_BP(self)
         PBPoly_construct_int(&p._P,i)
         return p
@@ -109,13 +103,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __repr__(self):
         (<BooleanPolynomialRing>self._parent)._R.activate()
-
         return str(PBPoly_to_str(&self._P))
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         cdef BooleanPolynomial p = new_BP((<BooleanPolynomial>left)._parent)
-        (<BooleanPolynomialRing>left._parent)._R.activate()
-
         p._P = PBPoly_add((<BooleanPolynomial>left)._P, (<BooleanPolynomial>right)._P)
         return p
 
@@ -133,7 +124,6 @@ cdef class BooleanPolynomial(MPolynomial):
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         cdef BooleanPolynomial p = new_BP((<BooleanPolynomial>left)._parent)
-        (<BooleanPolynomialRing>left._parent)._R.activate()
         p._P = PBPoly_mul((<BooleanPolynomial>left)._P, (<BooleanPolynomial>right)._P)
         return p
 

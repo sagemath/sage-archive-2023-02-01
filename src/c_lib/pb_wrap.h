@@ -5,18 +5,23 @@
 USING_NAMESPACE_PBORI
 
 
-BoolePolyRing* BPRing_Construct(void* mem, BoolePolyRing::size_type nvars,
+BoolePolyRing* PBRing_construct(void* mem, BoolePolyRing::size_type nvars,
         BoolePolyRing::ordercode_type order){
     return new(mem) BoolePolyRing(nvars, order);
 }
 
-BoolePolynomial* BPolyNewDD(const BoolePolyRing::dd_type &d){
-    return new BoolePolynomial(d);
+BoolePolynomial* PBPoly_construct_dd(void* mem, const BoolePolyRing::dd_type &d) {
+    return new(mem) BoolePolynomial(d);
 }
 
-BoolePolynomial* BPolyNewBPoly(const BoolePolynomial &d){
-    return new BoolePolynomial(d);
+BoolePolynomial* PBPoly_construct_pbpoly(void *mem, const BoolePolynomial &d) {
+    return new(mem) BoolePolynomial(d);
 }
+
+BoolePolynomial* PBPoly_construct_int(void *mem, const int d) {
+    return new(mem) BoolePolynomial(d);
+}
+
 
 template<class T>
 char* to_str(const T* x)
@@ -29,14 +34,12 @@ char* to_str(const T* x)
     return buf;
 }
 
-BoolePolynomial* PBPoly_add(BoolePolynomial* rval, BoolePolynomial* lval)
+inline BoolePolynomial PBPoly_add(BoolePolynomial rval, BoolePolynomial lval)
 {
-    BoolePolynomial* n = new BoolePolynomial(*rval + *lval);
-    return n;
+    return BoolePolynomial(rval + lval);
 }
 
-BoolePolynomial* PBPoly_mul(BoolePolynomial* rval, BoolePolynomial* lval)
+inline BoolePolynomial PBPoly_mul(BoolePolynomial rval, BoolePolynomial lval)
 {
-    BoolePolynomial* n = new BoolePolynomial(*rval * *lval);
-    return n;
+    return BoolePolynomial(rval * lval);
 }

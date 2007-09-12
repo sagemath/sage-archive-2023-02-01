@@ -5,8 +5,8 @@ from sage.rings.polynomial.multi_polynomial_ring_generic cimport \
                                                 MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 
-cdef class BPRing(MPolynomialRing_generic):
+cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _R
 
-cdef class BPolynomial(MPolynomial):
-    cdef PBPoly *_P
+cdef class BooleanPolynomial(MPolynomial):
+    cdef PBPoly _P

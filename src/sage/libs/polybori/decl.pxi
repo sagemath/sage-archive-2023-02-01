@@ -1,11 +1,4 @@
 cdef extern from "pb_wrap.h":
-
-    #ctypedef size_type "size_type":
-    #    pass
-
-    #ctypedef order_type "CTypes::ordercode_type":
-    #    pass
-
     cdef enum ordercodes "COrderEnums::ordercodes":
         lp            "CTypes::lp"
         dlex          "CTypes::dlex"
@@ -17,31 +10,39 @@ cdef extern from "pb_wrap.h":
     ctypedef struct PBDD "struct CDDInterface<CTypes::dd_base>":
         pass
 
-    # really, this is from NTL/ZZ.h
     ctypedef struct PBRing "struct BoolePolyRing":
         int (* nVariables)()
         PBDD (* variable)(int n)
         void (*setRingVariableName)(int idx, char *varname)
-
-    # Some boiler-plate
-    #PBRing* PBRing_new "New<BoolePolyRing>"()
-    PBRing* PBRing_construct "BPRing_Construct"(void *mem, int nvars,
-                                                        ordercodes order)
-    void PBRing_destruct "Destruct<BoolePolyRing>"(PBRing *mem)
-    #void PBRing_delete "Delete<BoolePolyRing>"(PBRing *mem)
+        void (*activate)()
 
     ctypedef struct PBPoly "struct BoolePolynomial":
         pass
 
-    #PBPoly* PBPoly_construct "Construct<BoolePolynomial>"(void *mem)
+    # Some boiler-plate
+
+    # allocating versions
+    PBRing* PBRing_new "New<BoolePolyRing>"()
+    void PBRing_delete "Delete<BoolePolyRing>"(PBRing *mem)
+
+    # non-allocating versions
+    PBRing* PBRing_construct (void *mem, int nvars,
+                                                        ordercodes order)
+    void PBRing_destruct "Destruct<BoolePolyRing>"(PBRing *mem)
+
+    # allocating versions
     PBPoly* PBPoly_new "New<BoolePolynomial>"()
-    PBPoly* PBPoly_new_dd "BPolyNewDD"(PBDD d)
-    PBPoly* PBPoly_new_pbpoly "BPolyNewBPoly"(PBPoly d)
     void PBPoly_delete "Delete<BoolePolynomial>"(PBPoly *mem)
+
+    # non-allocating versions
+    PBPoly* PBPoly_construct "Construct<BoolePolynomial>"(void *mem)
+    PBPoly PBPoly_construct_dd (void *mem, PBDD d)
+    PBPoly PBPoly_construct_pbpoly (void *mem, PBPoly d)
+    PBPoly PBPoly_construct_int (void *mem, int d)
+    void PBPoly_destruct "Destruct<BoolePolynomial>"(PBPoly *mem)
 
     char* PBPoly_to_str "to_str<BoolePolynomial>"(PBPoly *p)
 
     # PBPoly arithmetic
-    PBPoly* PBPoly_add (PBPoly* left, PBPoly* right)
-    PBPoly* PBPoly_mul (PBPoly* left, PBPoly* right)
-
+    PBPoly PBPoly_add (PBPoly left, PBPoly right)
+    PBPoly PBPoly_mul (PBPoly left, PBPoly right)

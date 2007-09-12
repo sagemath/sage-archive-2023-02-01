@@ -196,19 +196,19 @@ class DikSolver:
     def __call__(self, facets):
         return self.solve(facets)
 
-    def solve(self, facets, extra_time=2):
+    def solve(self, facets, timeout=10, extra_time=2):
         cube_str = self.format_cube(facets)
         child = pexpect.spawn(self.__cmd+" -p")
         child.expect('Initialization done!')
         child.sendline(cube_str)
         child.sendeof()
-        ix = child.expect(['Solution[^\n]*:', pexpect.EOF])
+        ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT], timeout=timeout)
         if ix == 0:
             child.expect(['[^\n]+'])
             sol = child.after.strip()
             start_time = time.time()
             while extra_time > time.time() - start_time:
-                ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT])
+                ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT], timeout=extra_time - int(time.time() - start_time))
                 if ix == 0:
                     child.expect(['[^\n]+'])
                     sol = child.after.strip()
@@ -216,8 +216,11 @@ class DikSolver:
                     extra_time = 0
             # format the string into our notation
             return ' '.join([self.rot_map[m[0]]+str(4-int(m[1])) for m in reversed(sol.split(' '))]).replace('1', '').replace('3',"'")
+        elif ix == 1:
+            # invalid format
+            raise ValueError, child.before
         else:
-            return child.before
+            raise RuntimeError, "timeout"
 
     def format_cube(self, facets):
         colors = sum([[i]*8 for i in range(1,7)], [])

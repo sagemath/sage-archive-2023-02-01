@@ -84,6 +84,7 @@ sin = Function_sin()
 cos = Function_cos()
 pi = RDF.pi()
 
+
 from sage.plot.plot3d.shapes import *
 from sage.plot.plot3d.texture import Texture
 
@@ -1216,31 +1217,37 @@ class RubiksCube(SageObject):
         else:
             return c
 
-    def solve(self, algorithm="kociemba"):
+    def solve(self, algorithm="hybrid", timeout=15):
         """
         Algorithm must be one of :
-           kociemba  - Use Dik T. Winter's program     (reasonable speed, few moves)
+           hybrid    - try kociemba for timeout seconds, then dietz
+           kociemba  - Use Dik T. Winter's program       (reasonable speed, few moves)
            dietz     - Use Eric Dietz's cubex program     (fast but lots of moves)
            optimal   - Use Michael Reid's optimal program (may take a long time)
            gap       - Use GAP word solution              (can be slow)
 
 
         """
+        import sage.interfaces.rubik # here to avoid circular referencing
+        if algorithm == "hybrid":
+            try:
+                solver = sage.interfaces.rubik.DikSolver()
+                return solver.solve(self.facets(), timeout=timeout)
+            except RuntimeError:
+                solver = sage.interfaces.rubik.CubexSolver()
+                return solver.solve(self.facets())
 
-        if algorithm == "kociemba":
-            from sage.interfaces.rubik import DikSolver
-            solver = DikSolver()
-            return solver.solve(self.facets())
+        elif algorithm == "kociemba":
+            solver = sage.interfaces.rubik.DikSolver()
+            return solver.solve(self.facets(), timeout=timeout)
 
         elif algorithm == "dietz":
-            from sage.interfaces.rubik import CubexSolver
-            solver = CubexSolver()
+            solver = sage.interfaces.rubik.CubexSolver()
             return solver.solve(self.facets())
 
         elif algorithm == "optimal":
             # TODO: cache this, startup is expensive
-            from sage.interfaces.rubik import OptimalSolver
-            solver = OptimalSolver()
+            solver = sage.interfaces.rubik.OptimalSolver()
             return solver.solve(self.facets())
 
         elif algorithm == "gap":

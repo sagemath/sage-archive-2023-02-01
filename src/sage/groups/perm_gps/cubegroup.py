@@ -1216,9 +1216,10 @@ class RubiksCube(SageObject):
         else:
             return c
 
-    def solve(self, algorithm="dietz"):
+    def solve(self, algorithm="kociemba"):
         """
         Algorithm must be one of :
+           kociemba  - Use Dik T. Winter's program     (reasonable speed, few moves)
            dietz     - Use Eric Dietz's cubex program     (fast but lots of moves)
            optimal   - Use Michael Reid's optimal program (may take a long time)
            gap       - Use GAP word solution              (can be slow)
@@ -1226,7 +1227,12 @@ class RubiksCube(SageObject):
 
         """
 
-        if algorithm == "dietz":
+        if algorithm == "kociemba":
+            from sage.interfaces.rubik import DikSolver
+            solver = DikSolver()
+            return solver.solve(self.facets())
+
+        elif algorithm == "dietz":
             from sage.interfaces.rubik import CubexSolver
             solver = CubexSolver()
             return solver.solve(self.facets())
@@ -1242,4 +1248,4 @@ class RubiksCube(SageObject):
             return solver.solve(self._state)
 
         else:
-            raise ValueError, "Unrecognized algorithm"
+            raise ValueError, "Unrecognized algorithm: %s" % algorithm

@@ -33,7 +33,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, pexpect
+import os, pexpect, time
 import cleaner
 
 from sage.groups.perm_gps.cubegroup import *
@@ -187,4 +187,76 @@ class CubexSolver:
         return "".join(str(c) for c in facet_colors)
 
 
+
+
+class DikSolver:
+
+    __cmd = "cube"
+
+    def __call__(self, facets):
+        return self.solve(facets)
+
+    def solve(self, facets, extra_time=2):
+        cube_str = self.format_cube(facets)
+        child = pexpect.spawn(self.__cmd+" -p")
+        child.expect('Initialization done!')
+        child.sendline(cube_str)
+        child.sendeof()
+        ix = child.expect(['Solution[^\n]*:', pexpect.EOF])
+        if ix == 0:
+            child.expect(['[^\n]+'])
+            sol = child.after.strip()
+            start_time = time.time()
+            while extra_time > time.time() - start_time:
+                ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT])
+                if ix == 0:
+                    child.expect(['[^\n]+'])
+                    sol = child.after.strip()
+                else:
+                    extra_time = 0
+            # format the string into our notation
+            return ' '.join([self.rot_map[m[0]]+str(4-int(m[1])) for m in reversed(sol.split(' '))]).replace('1', '').replace('3',"'")
+        else:
+            return child.before
+
+    def format_cube(self, facets):
+        colors = sum([[i]*8 for i in range(1,7)], [])
+        facet_colors = [0] * 54
+        for i in range(48):
+            f = self.facet_map.index(facets[i])
+            facet_colors[f] = colors[i]
+        # now do the centers
+        facet_colors[4] = 1
+        facet_colors[49] = 6
+        for i in range(2,6):
+            facet_colors[16+i*3] = i
+        return "".join(str(c) for c in facet_colors)
+
+    facet_map = [      1,  2,  3,                                \
+                       4,  0,  5,                                \
+                       6,  7,  8,                                \
+           9, 10, 11, 17, 18, 19, 25, 26, 27, 33, 34, 35,        \
+          12,  0, 13, 20,  0, 21, 28,  0, 29, 36,  0, 37,        \
+          14, 15, 16, 22, 23, 24, 30, 31, 32, 38, 39, 40,        \
+                      41, 42, 43,                                \
+                      44,  0, 45,                                \
+                      46, 47, 48,                                \
+            ]
+
+
+    # to compensate for different face naming
+    rot_map = dict(zip("BLURDF", "ULFRBD"))
+
+
+#    facet_map = [
+#                      1,  2,  3,
+#                      4,      6,
+#                      7,  8,  9,
+#          10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+#          23,     25, 26,     28,     29, 30, 31,     33,
+#          34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+#                      46, 47, 48,
+#                      49,     51,
+#                      52, 53, 54,
+#    ]
 

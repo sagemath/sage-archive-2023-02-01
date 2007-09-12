@@ -1480,13 +1480,9 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
         Z = integer_ring.IntegerRing()
     prev = pari.get_debug_level()
     pari.set_debug_level(debug_level)
-    F = pari(n).factor()
+    F = pari(n).factor(proof=proof)
     B = F[0]
     e = F[1]
-    if proof:
-        for i in xrange(len(B)):
-            if not B[i].isprime():
-                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
 
     if debug_level > 0:
@@ -1558,9 +1554,14 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
         try:
-            return n.factor(**kwds)
+            return n.factor(proof=proof, **kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
+        except TypeError:  # just in case factor method doesn't have a proof option.
+            try:
+                return n.factor(**kwds)
+            except AttributeError:
+                raise TypeError, "unable to factor n"
     #n = abs(n)
     n = Z(n)
     if n < 0:

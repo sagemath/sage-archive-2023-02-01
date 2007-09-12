@@ -5031,20 +5031,34 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     # polarit2.c
     ###########################################
-    def factor(gen self, limit=-1):
+    def factor(gen self, limit=-1, bint proof=1):
         """
         Return the factorization of x.
 
-        lim is optional and can be set whenever x is of (possibly
-        recursive) rational type. If lim is set return partial
-        factorization, using primes up to lim (up to primelimit if
-        lim=0).
+        INPUT:
+            limit -- (default: -1) is optional and can be set whenever
+                     x is of (possibly recursive) rational type. If limit
+                     is set return partial factorization, using primes
+                     up to limit (up to primelimit if limit=0).
+
+            proof -- (default: True) optional.  If False (not the default),
+                     returned factors $<10^{15}$ may only be pseudoprimes.
+
+        NOTE: In the standard PARI/GP interpreter and C-library the
+        factor command *always* has proof=False, so beware!
 
         EXAMPLES:
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
             sage: pari(2^100-1).factor()
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+            page: pari(2^100-1).factor(proof=False)
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+
+        We illustrate setting a limit:
+            sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
+            [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
+
 
         PARI doesn't have an algorithm for factoring multivariate polynomials:
 
@@ -5053,6 +5067,16 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError: sorry, (15)
         """
+        cdef int r
+        if limit == -1 and typ(self.g) == t_INT and proof:
+            _sig_on
+            r = factorint_withproof_sage(&t0, self.g, ten_to_15)
+            _sig_off
+            z = P.new_gen(t0)
+            if not r:
+                return z
+            else:
+                return _factor_int_when_pari_factor_failed(self, z)
         _sig_on
         return P.new_gen(factor0(self.g, limit))
 
@@ -6066,8 +6090,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         s = self.new_gen(g)*self.ONE.Mod(p)
         return s.Mod(f).charpoly(var)
 
+##############################################
+# Used in integer factorization -- must be done
+# after the pari_instance creation above:
 
-    ##############################################
+cdef gen _tmp = pari('1000000000000000')
+cdef GEN ten_to_15 = _tmp.g
+
+##############################################
+
 
 
 cdef int init_stack(size_t size) except -1:
@@ -6203,6 +6234,10 @@ cdef extern from "pari/pari.h":
     int errpile
     int noer
 
+cdef extern from "misc.h":
+    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
+    int     gcmp_sage(GEN x, GEN y)
+
 def __errmessage(d):
     if d <= 0 or d > noer:
         return "unknown"
@@ -6267,3 +6302,39 @@ def vecsmall_to_intlist(gen v):
     if typ(v.g) != t_VECSMALL:
         raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
     return [v.g[k+1] for k in range(glength(v.g))]
+
+
+
+cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
+    """
+    This is called by factor when PARI's factor tried to factor, got
+    the failed_factorization, and it turns out that one of the factors
+    in there is not proved prime.  At this point, we don't care too
+    much about speed (so don't write everything below using the PARI C
+    library), since the probability this function ever gets called is
+    infinitesimal.  (That said, we of course did test this function by
+    forcing a fake failure in the code in misc.h.)
+    """
+    P = failed_factorization[0]  # 'primes'
+    E = failed_factorization[1]  # exponents
+    if len(P) == 1 and E[0] == 1:
+        # Major problem -- factor can't split the integer at all, but it's composite.  We're stuffed.
+        print "BIG WARNING: The number %s wasn't split at all by PARI, but it's definitely composite."%(P[0])
+        print "This is probably an infinite loop..."
+    w = []
+    for i in range(len(P)):
+        p = P[i]
+        e = E[i]
+        if not p.isprime():
+            # Try to factor further -- assume this works.
+            F = p.factor(proof=True)
+            for j in range(len(F[0])):
+                w.append((F[0][j], F[1][j]))
+        else:
+            w.append((p, e))
+    m = pari.matrix(len(w), 2)
+    for i in range(len(w)):
+        m[i,0] = w[i][0]
+        m[i,1] = w[i][1]
+    return m
+

@@ -215,11 +215,14 @@ class DikSolver:
                 else:
                     extra_time = 0
             # format the string into our notation
+            child.close(True)
             return ' '.join([self.rot_map[m[0]]+str(4-int(m[1])) for m in reversed(sol.split(' '))]).replace('1', '').replace('3',"'")
         elif ix == 1:
             # invalid format
+            child.close(True)
             raise ValueError, child.before
         else:
+            child.close(True)
             raise RuntimeError, "timeout"
 
     def format_cube(self, facets):

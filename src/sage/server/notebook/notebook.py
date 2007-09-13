@@ -186,9 +186,6 @@ class Notebook(SageObject):
             email -- the email address
             account_type -- one of 'user', 'admin', or 'guest'
         """
-        if username == 'root':
-            raise ValueError, "The 'root'' account is banned."
-
         if not self.get_accounts() and not force:
             raise ValueError, "creating new accounts disabled."
 

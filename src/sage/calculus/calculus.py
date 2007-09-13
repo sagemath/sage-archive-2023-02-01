@@ -2988,13 +2988,19 @@ class SymbolicArithmetic(SymbolicOperation):
                 s[0] = '(%s)'%s[0]
             return '%s%s' % (symbols[op], s[0])
 
-    def _latex_(self):
+    def _latex_(self, simplify=True):
         # if we are not simplified, return the latex of a simplified version
-        if not self.is_simplified():
+        if simplify and not self.is_simplified():
             return self.simplify()._latex_()
         op = self._operator
         ops = self._operands
-        s = [x._latex_() for x in self._operands]
+        s = []
+        for x in self._operands:
+            try:
+                s.append(x._latex_(simplify=simplify))
+            except TypeError:
+                s.append(x._latex_())
+        ## what it used to be --> s = [x._latex_() for x in self._operands]
 
         if op is operator.add:
             return '%s + %s' % (s[0], s[1])

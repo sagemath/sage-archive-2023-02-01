@@ -211,8 +211,9 @@ class HG:
             options = ''
 
         print "If you get an error 'abort: unknown parent'"
-        print "this usually means you need to do:"
+        print "this usually means either you need to do:"
         print "       hg_%s.pull()"%self.__obj_name
+        print "or you're applying this patch to the wrong repository."
         self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle

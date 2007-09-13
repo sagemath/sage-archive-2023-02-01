@@ -1486,7 +1486,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         ALGORITHM:
             Givaro objects are stored as integers $i$ such that $self=a^i$, where
-            $a$ is a generator of $K$ (though necissarily the one returned by K.gens()).
+            $a$ is a generator of $K$ (though not necissarily the one returned by K.gens()).
             Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
             mod the multiplicative order of $K$.
 
@@ -1512,6 +1512,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
         elif (field.objectptr).isZero(self.element):
+            if exp < 0:
+                raise ArithmeticError, "zero inversion undefined."
             return make_FiniteField_givaroElement(field, field.objectptr.zero)
 
         order = (field.order_c()-1)

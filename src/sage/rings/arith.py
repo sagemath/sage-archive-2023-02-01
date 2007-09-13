@@ -1480,13 +1480,9 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
         Z = integer_ring.IntegerRing()
     prev = pari.get_debug_level()
     pari.set_debug_level(debug_level)
-    F = pari(n).factor()
+    F = pari(n).factor(proof=proof)
     B = F[0]
     e = F[1]
-    if proof:
-        for i in xrange(len(B)):
-            if not B[i].isprime():
-                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
 
     if debug_level > 0:
@@ -1558,9 +1554,14 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
         try:
-            return n.factor(**kwds)
+            return n.factor(proof=proof, **kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
+        except TypeError:  # just in case factor method doesn't have a proof option.
+            try:
+                return n.factor(**kwds)
+            except AttributeError:
+                raise TypeError, "unable to factor n"
     #n = abs(n)
     n = Z(n)
     if n < 0:
@@ -1597,14 +1598,15 @@ def prime_divisors(n):
     is negative, we do *not* include -1 among the prime divisors, since -1 is
     not a prime number.
 
-    sage: prime_divisors(1)
-    []
-    sage: prime_divisors(100)
-    [2, 5]
-    sage: prime_divisors(-100)
-    [2, 5]
-    sage: prime_divisors(2004)
-    [2, 3, 167]
+    EXAMPLES:
+        sage: prime_divisors(1)
+        []
+        sage: prime_divisors(100)
+        [2, 5]
+        sage: prime_divisors(-100)
+        [2, 5]
+        sage: prime_divisors(2004)
+        [2, 3, 167]
     """
     v = [p for p,_ in factor(n) if p != -1]
     v.sort()
@@ -1858,15 +1860,20 @@ def binomial(x,m):
     $$
        x (x-1) \cdots (x-m+1) / m!
     $$
-    which is defined for $m \in \Z$ and any $x$.
+    which is defined for $m \in \ZZ$ and any $x$.  We extend this
+    definition to include cases when $x-m$ is an integer but $m$ is
+    not by
+
+    binomial(x,m)= binomial(x,x-m)
+
     If $m<0$ return $0$.
 
     INPUT::
-        x -- number
-        m -- integer
+        x,m -- numbers or symbolic expressions
+        Either m or x-m must be an integer.
 
     OUTPUT::
-        number
+        number or symbolic expression (if input is symbolic)
 
     EXAMPLES::
         sage: binomial(5,2)
@@ -1881,9 +1888,18 @@ def binomial(x,m):
         184756
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
+        sage: n=var('n'); binomial(n,2)
+        (n - 1)*n/2
+        sage: n=var('n'); binomial(n,n)
+        1
+        sage: n=var('n'); binomial(n,n-1)
+        n
     """
     if not isinstance(m, (int, long, integer.Integer)):
-        raise TypeError, 'm must be an integer'
+        try:
+            m=integer_ring.ZZ(x-m)
+        except TypeError:
+            raise TypeError, 'Either m or x-m must be an integer'
     if isinstance(x, (int, long, integer.Integer)):
         return integer_ring.ZZ(pari(x).binomial(m))
     try:

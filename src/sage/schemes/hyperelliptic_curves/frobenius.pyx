@@ -114,17 +114,9 @@ def frobenius(p, N, Q):
    # time.
    mm = ntl_mat_ZZ(2*g, 2*g)
 
-   # actual NTL objects
-   cdef ZZ_c ppp
-   cdef ZZX_c QQQ
-   cdef mat_ZZ_c mmm
-   ppp = pp.x
-   QQQ = QQ.x
-   mmm = mm.x
-
    cdef int result
    _sig_on
-   result = frobenius_cpp(mmm, ppp, N, QQQ)
+   result = frobenius_cpp(mm.x, pp.x, N, QQ.x)
    _sig_off
 
    if not result:

@@ -386,8 +386,7 @@ if __name__ ==  '__main__':
         long_time  = has_opt('long')
         verbose    = has_opt('verbose')
         gdb        = has_opt('gdb')
-        memcheck   = has_opt('valgrind')
-        memcheck   = has_opt('memcheck')
+        memcheck   = has_opt('memcheck') or has_opt('valgrind')
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
         if argv[1][0] == '-':

@@ -1844,7 +1844,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
-            [(0.500000000, -5.45450037e-18), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
+            [(0.500000000, 0), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
@@ -2047,7 +2047,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.Lseries(1)
             0.000000000000000
-            sage: E.Lseries('1.1')       # long time (!)
+            sage: E.Lseries(1.1)       # long time (!)
             0.285491007678148
 
         TODO: Planned massive improvement -- use Micheal Rubinstein's
@@ -3221,7 +3221,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('11a1').sha_an_padic(11) #rank 0
             1 + O(11)
             sage: EllipticCurve('123a1').sha_an_padic(41) #rank 1    (long time)
-            40 + O(41)
+            1 + O(41)
             sage: EllipticCurve('817a1').sha_an_padic(43) #rank 2    (long time)
             42 + O(43)
 
@@ -4204,7 +4204,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)                       # long time
-            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + O(5^9)
+            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
 
         Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

@@ -34,11 +34,17 @@ cdef class Transformation:
             if rot is not None:
                 # rotate about v by theta
                 vx, vy, vz, theta = rot
-                t = atan2(vy,vz) + pi/2
+                if vx == vy == 0:
+                    t = RDF(pi/2)
+                else:
+                    t = atan2(vy,vz) + pi/2
                 m = self.rotX(t) * m
                 new_y = vy*cos(t) - vz*sin(t)
                 # v = [vx, new_y, 0]
-                s = atan2(vx,new_y) + pi/2
+                if vx == new_y == 0:
+                    s = RDF(pi/2)
+                else:
+                    s = atan2(vx,new_y) + pi/2
                 m = self.rotZ(s) * m
                 # v = [new_x, 0, 0]
                 m = self.rotX(theta) * m

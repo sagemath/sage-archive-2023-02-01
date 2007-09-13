@@ -89,7 +89,7 @@ def notebook_twisted(self,
             print "\n"
             if secure:
                 print "Login to the SAGE notebook as admin with the password you specified above."
-        nb.del_user('root')
+        #nb.del_user('root')
 
     if not server_pool is None:
         nb.set_server_pool(server_pool)

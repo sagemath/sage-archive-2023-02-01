@@ -157,6 +157,11 @@ cdef class NumberFieldElement(FieldElement):
             conv_ZZ_int( self.__denominator, 1 )
             return
 
+        elif isinstance(f, NumberFieldElement):
+            self.__numerator = (<NumberFieldElement>f).__numerator
+            self.__denominator = (<NumberFieldElement>f).__denominator
+            return
+
         ppr = parent.polynomial_ring()
         if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
             ppr = parent.base_field().polynomial_ring()

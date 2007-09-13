@@ -78,8 +78,8 @@ patch
 build
 
 cd $SAGE_LOCAL/lib
-rm -rf python python2.4
-ln -s python2.5 python
+rm -rf python/python python python2.4
+ln -s python2.5/ python
 
 # Make sure sufficient crypto support is available in the built python.  This is critical.
 python -c "import md5"

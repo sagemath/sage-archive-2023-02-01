@@ -1033,7 +1033,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def polynomial(self):
         """
-        Return the underlyling polynomial corresponding to this
+        Return the underlying polynomial corresponding to this
         number field element.
 
         The resulting polynomial is currently *not* cached.
@@ -1052,6 +1052,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: g is f.polynomial()
             False
         """
+        return QQ['x'](self._coefficients())
+
+    def _coefficients(self):
+        """
+        Return the coefficients of the underlying polynomial corresponding to this
+        number field element.
+
+        OUTPUT:
+             -- a list whose length corresponding to the degree of this element
+                written in terms of a generator.
+
+        EXAMPLES:
+
+        """
         coeffs = []
         cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
         cdef Integer numCoeff
@@ -1060,7 +1074,7 @@ cdef class NumberFieldElement(FieldElement):
             numCoeff = PY_NEW(Integer)
             ZZX_getitem_as_mpz(&numCoeff.value, &self.__numerator, i)
             coeffs.append( numCoeff / den )
-        return QQ['x'](coeffs)
+        return coeffs
 
     def denominator(self):
         """
@@ -1351,6 +1365,8 @@ cdef class NumberFieldElement(FieldElement):
 
     def list(self):
         """
+        Return list of coefficients of self written in terms of a power basis.
+
         EXAMPLE:
             sage: K.<z> = CyclotomicField(3)
             sage: (2+3/5*z).list()
@@ -1366,6 +1382,6 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(P, sage.rings.number_field.number_field.NumberField_extension):
             raise NotImplementedError
         n = self.parent().degree()
-        v = self.polynomial().list()[:n]
+        v = self._coefficients()
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))

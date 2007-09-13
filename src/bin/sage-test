@@ -117,7 +117,9 @@ def test_file(F):
 
 files = argv[1:]
 if len(files) == 0:
-    files = os.listdir('.')
+    print "Usage: sage -t <files or directories>."
+    print "For more information, type 'sage -help'."
+    sys.exit(1)
 
 files.sort()
 

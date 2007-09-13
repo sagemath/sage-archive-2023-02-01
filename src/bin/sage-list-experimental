@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+import os, sys, urllib
+
+if not os.environ.has_key("SAGE_ROOT"):
+     raise RuntimeError, "The environment variable SAGE_ROOT must be set"
+SAGE_ROOT=os.environ["SAGE_ROOT"]
+SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
+
+
+if not os.environ.has_key("SAGE_SERVER"):
+     print "The environment variable SAGE_SERVER must be set"
+     sys.exit(1)
+PKG_SERVER=os.environ['SAGE_SERVER'] + '/packages'
+
+print "Using SAGE Server %s"%PKG_SERVER
+url = "%s/experimental/list"%PKG_SERVER
+
+file = "%s/tmp/list"%SAGE_ROOT
+if not os.path.exists("%s/tmp"%SAGE_ROOT):
+     os.makedirs("%s/tmp"%SAGE_ROOT)
+
+try:
+     installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
+except OSError:
+     installed = set([])
+
+print url, "-->", file
+try:
+    urllib.urlretrieve(url, file)
+except (OSError, IOError), msg:
+    print msg
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    print "Error contacting %s. Try using an alternative server."%url
+    print "For example, from the bash prompt try typing\n"
+    print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
+    print "then try again."
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    sys.exit(1)
+
+if os.path.getsize(file) < 1000 and open(file).read().find("404 Not Found") != -1:
+     print "Error downloading optional package list"
+else:
+     do_have = []
+     dont_have = []
+     for pkg_name in open(file).xreadlines():
+          pkg_name = pkg_name.rstrip()  # get rid of \n
+          if pkg_name in installed:
+               do_have.append(pkg_name)
+          else:
+               dont_have.append(pkg_name)
+     print " ***********************************"
+     print "    ***   Optional Packages   ***"
+     print " ***********************************\n"
+     print "INSTALLED:\n" + '\n'.join(do_have)
+     print "\nNOT INSTALLED:\n" + '\n'.join(dont_have)
+     print "\nType 'sage -i package_name' to download and install a package."
+
+os.unlink(file)
+
+

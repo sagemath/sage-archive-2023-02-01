@@ -40,6 +40,7 @@ usage_advanced() {
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
+    echo "  -experimental -- list all experimental packages that can be downloaded"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gdb-ipython  -- run SAGE's Ipython under the control of gdb"
@@ -571,6 +572,11 @@ install() {
 
 if [ $1 = '-optional' -o $1 = "--optional" ]; then
    sage-list-optional
+   exit 0
+fi
+
+if [ $1 = '-experimental' -o $1 = "--experimental" ]; then
+   sage-list-experimental
    exit 0
 fi
 

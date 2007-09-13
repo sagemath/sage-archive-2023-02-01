@@ -1824,6 +1824,27 @@ class NumberField_generic(number_field_base.NumberField):
 
 
 class NumberField_absolute(NumberField_generic):
+
+    def is_absolute(self):
+        """
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.is_absolute()
+            True
+        """
+        return True
+
+    def absolute_field(self):
+        """
+        Returns self as an extension over QQ, which is self.
+
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.absolute_field()
+            Cyclotomic Field of order 5 and degree 4
+        """
+        return self
+
     def __reduce__(self):
         """
         TESTS:
@@ -2504,7 +2525,7 @@ class NumberField_extension(NumberField_generic):
 
 
 
-class NumberField_cyclotomic(NumberField_generic):
+class NumberField_cyclotomic(NumberField_absolute):
     """
     Create a cyclotomic extension of the rational field.
 
@@ -2554,7 +2575,7 @@ class NumberField_cyclotomic(NumberField_generic):
             latex_name = "\\zeta_{%s}"%n
         else:
             latex_name = None
-        NumberField_generic.__init__(self, f,
+        NumberField_absolute.__init__(self, f,
                                      name= names,
                                      latex_name=latex_name,
                                      check=False)
@@ -3054,7 +3075,7 @@ class NumberField_cyclotomic(NumberField_generic):
             else:
                 return a
 
-class NumberField_quadratic(NumberField_generic):
+class NumberField_quadratic(NumberField_absolute):
     """
     Create a quadratic extension of the rational field.
 
@@ -3078,7 +3099,7 @@ class NumberField_quadratic(NumberField_generic):
             sage: k.<a> = QuadraticField(4, check=False); k
             Number Field in a with defining polynomial x^2 - 4
         """
-        NumberField_generic.__init__(self, polynomial, name=name, check=check)
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check)
 
     def __reduce__(self):
         """

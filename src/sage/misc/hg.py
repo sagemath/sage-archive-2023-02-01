@@ -61,7 +61,7 @@ class HG:
             cd <SAGE_ROOT>/devel/sage/ && hg command line arguments
     \end{verbatim}
     """
-    def __init__(self, dir, name, url, target=None, cloneable=False):
+    def __init__(self, dir, name, url, target=None, cloneable=False, obj_name=''):
         """
         INPUT:
             dir -- directory that will contain the repository
@@ -78,6 +78,7 @@ class HG:
         self.__initialized = False
         self.__target = target
         self.__cloneable = cloneable
+        self.__obj_name = obj_name
 
     def __repr__(self):
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
@@ -658,9 +659,7 @@ class HG:
             print "You *MUST* restart SAGE in order for the changes to take effect!"
 
         print "If it says use 'hg merge' above, then you should"
-        print "type hg_sage.merge(), where hg_sage is the name"
-        print "of the repository you are using.  This might not"
-        print "work with the notebook yet."
+        print "type hg_%s.merge()."%self.__obj_name
 
     def merge(self, options=''):
         """
@@ -924,17 +923,21 @@ except KeyError:
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
                 url='%s/sage-main'%SAGE_SERVER,
-                cloneable=True)
+                cloneable=True,
+                obj_name='sage')
 
 hg_doc     = HG('%s/devel/doc'%SAGE_ROOT,
                 'SAGE Documentation',
-                url='%s/doc-main'%SAGE_SERVER)
+                url='%s/doc-main'%SAGE_SERVER,
+                obj_name='doc')
 
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'SAGE Scripts',
-                url='%s/scripts-main'%SAGE_SERVER)
+                url='%s/scripts-main'%SAGE_SERVER,
+                obj_name='scripts')
 
 hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'SAGE External System Code (e.g., PARI, MAGMA, etc.)',
-                url='%s/extcode-main'%SAGE_SERVER)
+                url='%s/extcode-main'%SAGE_SERVER,
+                obj_name='extcode')
 

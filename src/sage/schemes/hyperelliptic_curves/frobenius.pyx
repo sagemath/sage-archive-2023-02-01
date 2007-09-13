@@ -17,7 +17,9 @@ AUTHOR:
 #*****************************************************************************
 
 
-from sage.libs.ntl.ntl cimport ntl_ZZ, ntl_ZZX, ntl_mat_ZZ
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
 from sage.libs.ntl.all import ZZ, ZZX
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
@@ -115,14 +117,14 @@ def frobenius(p, N, Q):
    # actual NTL objects
    cdef ZZ_c ppp
    cdef ZZX_c QQQ
-   cdef mat_ZZ_c* mmm
-   ppp = pp.x[0]
-   QQQ = QQ.x[0]
+   cdef mat_ZZ_c mmm
+   ppp = pp.x
+   QQQ = QQ.x
    mmm = mm.x
 
    cdef int result
    _sig_on
-   result = frobenius_cpp(mmm[0], ppp, N, QQQ)
+   result = frobenius_cpp(mmm, ppp, N, QQQ)
    _sig_off
 
    if not result:

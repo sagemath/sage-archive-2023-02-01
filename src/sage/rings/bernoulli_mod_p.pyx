@@ -26,7 +26,7 @@ ctypedef long long llong
 import sage.rings.arith
 
 from sage.libs.ntl import all as ntl
-from sage.libs.ntl.ntl cimport ntl_ZZ_pX
+from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 import sage.libs.pari.gen
 from sage.rings.integer_mod_ring import Integers
 
@@ -108,14 +108,12 @@ def bernoulli_mod_p_old(int p, scale_properly=True):
 
     N = (p-1)/2     # length of polynomials
 
-    ntl.set_modulus(ntl.ZZ(p))
-
     # Compute the series that we want to invert.
 
     # We normalise the series (multiply by 2) so that the constant
     # term is 1 (otherwise NTL gets angry).
 
-    series = ntl.ZZ_pX()
+    series = ntl.ZZ_pX(modulus = ntl.ZZ(p))
     series.preallocate_space(N)
     cdef int product, factor1, factor2
     cdef int i
@@ -243,8 +241,6 @@ def bernoulli_mod_p(int p):
     if not sage.libs.pari.gen.pari(p).isprime():
         raise ValueError, "p (=%s) must be a prime"%p
 
-    ntl.set_modulus(ntl.ZZ(p))
-
     cdef int g, gSqr, gInv, gInvSqr, isOdd
 
     g = sage.rings.arith.primitive_root(p)
@@ -272,8 +268,8 @@ def bernoulli_mod_p(int p):
     fudge = fudgeInv = 1
 
     cdef ntl_ZZ_pX G, J
-    G = ntl.ZZ_pX()
-    J = ntl.ZZ_pX()
+    G = ntl.ZZ_pX(modulus = ntl.ZZ(p))
+    J = ntl.ZZ_pX(modulus = ntl.ZZ(p))
     G.preallocate_space((p-1)/2)
     J.preallocate_space((p-1)/2)
 

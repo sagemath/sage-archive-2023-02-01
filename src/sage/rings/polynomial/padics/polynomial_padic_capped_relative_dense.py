@@ -12,7 +12,7 @@ import sage.rings.fraction_field_element as fraction_field_element
 import copy
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZX_class, ZZ_pX_class
+from sage.libs.ntl.all import ZZX
 from sage.structure.factorization import Factorization
 from sage.rings.infinity import infinity
 
@@ -52,7 +52,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             return
 
         #First we list the types that are turned into Polynomials
-        if isinstance(x, ZZX_class):
+        if isinstance(x, ZZX):
             from polynomial_ring_constructor import PolynomialRing
             x = Polynomial_integer_dense(PolynomialRing(ZZ, parent.variable_name()), x, construct = True)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \

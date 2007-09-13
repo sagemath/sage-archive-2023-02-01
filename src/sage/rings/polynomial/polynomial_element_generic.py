@@ -34,7 +34,7 @@ from sage.structure.element import (IntegralDomainElement, EuclideanDomainElemen
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, zero_ZZX, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
+from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX, set_modulus
 from sage.structure.factorization import Factorization
 
 from sage.rings.infinity import infinity
@@ -946,7 +946,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
-            if isinstance(x, ZZX_class):
+            if isinstance(x, ZZX):
                 self.__poly = x
                 return
             self.__poly = ZZX(x)
@@ -969,7 +969,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             x = self._dict_to_list(x, ZZ(0))
 
 
-        elif isinstance(x, ZZX_class):
+        elif isinstance(x, ZZX):
             self.__poly = x.copy()
             return
 
@@ -1011,12 +1011,12 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
                (self.parent(), self.list(), False, self.is_gen())
 
     def __getitem__(self, n):
-        return self.__poly[n]
+        return self.__poly[n].get_as_sage_int()
 
     def __getslice__(self, i, j):
         i = max(0,i)
         j = min(j, self.__poly.degree()+1)
-        v = [ZZ(self.__poly[k]) for k in range(i,j)]
+        v = [self.__poly[k].get_as_sage_int() for k in range(i,j)]
         P = self.parent()
         return P([0] * int(i) + v)
 
@@ -1302,8 +1302,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f.list()
             []
         """
-        return self.__poly.list()
-
+        return [self[i] for i in range(self.degree()+1)]
 
     def resultant(self, other):
         """
@@ -1525,20 +1524,19 @@ class Polynomial_dense_mod_n(Polynomial):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
         if construct:
-            if isinstance(x, ZZ_pX_class):
+            if isinstance(x, ZZ_pX):
                 self.__poly = x
                 return
-            self.__poly = ZZ_pX(x)
+            self.__poly = ZZ_pX(x, parent.modulus())
             return
 
-        self.__poly = ZZ_pX([])
+        self.__poly = ZZ_pX([], parent.modulus())
 
         if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
-                parent._ntl_set_modulus()
                 self.__poly = x.__poly.__copy__()
                 return
             else:
@@ -1550,7 +1548,7 @@ class Polynomial_dense_mod_n(Polynomial):
             x = self._dict_to_list(x, R(0))
 
 
-        elif isinstance(x, ZZX_class):
+        elif isinstance(x, ZZX):
             self.__poly = x.copy()
             return
 
@@ -1571,8 +1569,7 @@ class Polynomial_dense_mod_n(Polynomial):
             R = parent.base_ring()
             x = [ZZ(R(a)) for a in x]
 
-        parent._ntl_set_modulus()
-        self.__poly = ZZ_pX(x)
+        self.__poly = ZZ_pX(x, parent.modulus())
 
     def _ntl_set_modulus(self):
         self.parent()._ntl_set_modulus()
@@ -1610,7 +1607,7 @@ class Polynomial_dense_mod_n(Polynomial):
         return self.__poly
 
     def __getitem__(self, n):
-        return self.base_ring()(self.__poly[n])
+        return self.parent().base_ring()(self.__poly[n]._sage_())
 
     def __getslice__(self, i, j):
         R = self.base_ring()
@@ -1618,7 +1615,7 @@ class Polynomial_dense_mod_n(Polynomial):
             i = 0
         if j > self.__poly.degree()+1:
             j = self.__poly.degree()+1
-        v = [R(self.__poly[k]) for k in range(i,j)]
+        v = [R(self.__poly[k]._sage_()) for k in range(i,j)]
         return self.parent()([0]*int(i) + v)
 
     def _unsafe_mutate(self, n, value):
@@ -1654,14 +1651,14 @@ class Polynomial_dense_mod_n(Polynomial):
     def _rmul_(self, c):
         try:
             self._ntl_set_modulus()
-            return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+            return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError, msg: # should this realy be a TypeError
             raise TypeError, msg
 
     def _lmul_(self, c):
         try:
             self._ntl_set_modulus()
-            return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+            return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError, msg: # should this realy be a TypeError
             raise TypeError, msg
 
@@ -1777,7 +1774,7 @@ class Polynomial_dense_mod_n(Polynomial):
         if self.is_gen():
             raise TypeError, "Cannot change the value of the generator."
         self._ntl_set_modulus()
-        self.__poly = ZZ_pX(v)
+        self.__poly = ZZ_pX(v, self.parent().modulus())
         try:
             del self.__list
         except AttributeError:

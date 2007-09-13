@@ -1385,3 +1385,14 @@ cdef class NumberFieldElement(FieldElement):
         v = self._coefficients()
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))
+
+cdef class OrderElement(NumberFieldElement):
+    """
+    Element of an order in a number field.
+
+    EXAMPLES:
+        sage: k.<a> = NumberField(x^2 + 1)
+        sage: O = k.maximal_order()
+
+    """
+    pass

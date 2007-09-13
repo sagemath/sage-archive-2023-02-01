@@ -260,6 +260,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             16
             sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(2)
             16
+
+        An even bigger extension (which we check against Magma):
+            sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(100)
+            515377520732011331036459693969645888996929981504
+            sage: magma.eval("#EllipticCurve([GF(3^100)|1,2,3,4,5])")    # optional -- requires magma
+            '515377520732011331036459693969645888996929981504'
+
+
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')

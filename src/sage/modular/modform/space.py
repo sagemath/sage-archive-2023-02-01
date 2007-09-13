@@ -975,6 +975,21 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         return self.cuspidal_submodule()
 
+    def new_submodule(self, p=None):
+        """
+         Return the new submodule of self. If p is specified, return the
+         p-new submodule of self.
+
+         NOTE: This function should be overridden by all derived classes.
+
+         EXAMPLES:
+             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_submodule()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: computation of new submodule not yet implemented
+         """
+        raise NotImplementedError, "computation of new submodule not yet implemented"
+
     def new_subspace(self, p=None):
         """
         Synonym for new_submodule.

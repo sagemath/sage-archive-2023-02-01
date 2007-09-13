@@ -1837,6 +1837,16 @@ class NumberField_absolute(NumberField_generic):
         """
         return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name())
 
+    def maximal_order(self):
+        try:
+            return self.__maximal_order
+        except AttributeError:
+            B = self.integral_basis()
+            O = order.absolute_order_from_generators(B)
+            self.__maxima_order = O
+            return O
+
+
     def vector_space(self):
         """
         Return a vector space V and isomorphisms self --> V and V --> self.

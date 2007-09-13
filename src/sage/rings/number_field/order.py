@@ -1,5 +1,6 @@
 from sage.rings.ring import DedekindDomain
 from number_field_element import NumberFieldElement
+from sage.structure.sequence import Sequence
 
 
 class Order(DedekindDomain):
@@ -12,6 +13,8 @@ class Order(DedekindDomain):
 
     def fraction_field(self):
         return self._K
+
+
 
 
 class AbsoluteOrder(Order):
@@ -53,4 +56,28 @@ class RelativeOrder(Order):
         V, to_V, from_V = self._K.vector_space()
         basis = self._module_rep.basis()
         return "Order over %r spanned by %r" % (self._base, ",".join([from_V(b) for b in self._absolute_order.basis()]))
+
+
+
+def absolute_order_from_generators(gens):
+    """
+    INPUT:
+        gens -- list of elements of a single absolute number field
+                that generate an order in that number field as a ZZ
+                *module*.
+
+    OUTPUT:
+        an absolute order
+
+    EXAMPLES:
+        sage: ???
+    """
+    if len(gens) == 0:
+        raise ValueError, "gens must span an order over ZZ"
+    gens = Sequence(gens)
+    K = gens.universe()
+    V, to_V, _ = K.vector_space()
+    gens = [to_V(x) for x in gens]
+    W = V.span(gens)
+    return AbsoluteOrder(K, W)
 

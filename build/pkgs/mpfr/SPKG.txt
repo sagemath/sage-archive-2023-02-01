@@ -1,3 +1,7 @@
+* 2007-09-14: (Michael Abshoff)
+ - upgrade to mpfr 2.3.0 release
+ - add spkg-check
+
 2006-11-29:
 
 Just took the standard distribution from

@@ -159,6 +159,17 @@ cdef class ntl_mat_ZZ:
         _sig_off
 
     def __getitem__(self, ij):
+        """
+            sage: m = ntl.mat_ZZ(3, 2, range(6))
+            sage: m[0,0]
+            0
+            sage: m[2,1]
+            5
+            sage: m[3,2] #  oops, 0 based
+            Traceback (most recent call last):
+            ...
+            IndexError: array index out of range
+        """
         cdef int i, j
         if not isinstance(ij, tuple) or len(ij) != 2:
             raise TypeError, 'ij must be a 2-tuple'

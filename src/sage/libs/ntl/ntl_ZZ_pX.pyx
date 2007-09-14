@@ -275,8 +275,16 @@ cdef class ntl_ZZ_pX:
     def __mul__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         EXAMPLES:
-            sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
-            sage: c.ZZ_pX(range(5)) * c.ZZ_pX(range(6))
+            sage: c1=ntl.ZZ_pContext(ntl.ZZ(20))
+            sage: alpha = c1.ZZ_pX(range(5))
+            sage: beta = c1.ZZ_pX(range(6))
+            sage: alpha * beta
+            [0 0 1 4 10 0 10 14 11]
+            sage: c2=ntl.ZZ_pContext(ntl.ZZ(5))  # we can mix up the moduli
+            sage: x = c2.ZZ_pX([2, 3, 4])
+            sage: x^2
+            [4 2 0 4 1]
+            sage: alpha * beta  # back to the first one and the ntl modulus gets reset correctly
             [0 0 1 4 10 0 10 14 11]
         """
         if self.c is not other.c:

@@ -142,6 +142,14 @@ cdef class ntl_ZZX:
         return make_ZZX(ZZX_copy(&self.x))
 
     def __setitem__(self, long i, a):
+        """
+            sage: n=ntl.ZZX([1,2,3])
+            sage: n
+            [1 2 3]
+            sage: n[1] = 4
+            sage: n
+            [1 4 3]
+        """
         if i < 0:
             raise IndexError, "index (i=%s) must be >= 0"%i
         cdef ntl_ZZ cc

@@ -100,6 +100,11 @@ cdef class ntl_ZZ:
         return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
 
     def __mul__(self, other):
+        """
+            sage: n=ntl.ZZ(2983)*ntl.ZZ(2)
+            sage: n
+            5966
+        """
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
         if not PY_TYPE_CHECK(self, ntl_ZZ):
             self = ntl_ZZ(self)
@@ -109,6 +114,13 @@ cdef class ntl_ZZ:
         return r
 
     def __sub__(self, other):
+        """
+            sage: n=ntl.ZZ(2983)-ntl.ZZ(2)
+            sage: n
+            2981
+            sage: ntl.ZZ(2983)-2
+            2981
+        """
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
         if not PY_TYPE_CHECK(self, ntl_ZZ):
             self = ntl_ZZ(self)
@@ -118,6 +130,13 @@ cdef class ntl_ZZ:
         return r
 
     def __add__(self, other):
+        """
+            sage: n=ntl.ZZ(2983)+ntl.ZZ(2)
+            sage: n
+            2985
+            sage: ntl.ZZ(23)+2
+            25
+        """
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
         if not PY_TYPE_CHECK(self, ntl_ZZ):
             self = ntl_ZZ(self)
@@ -132,6 +151,10 @@ cdef class ntl_ZZ:
         return r
 
     def __pow__(ntl_ZZ self, long e, ignored):
+        """
+            sage: ntl.ZZ(23)^50
+            122008981252869411022491112993141891091036959856659100591281395343249
+        """
         cdef ntl_ZZ r = ntl_ZZ()
         power_ZZ(r.x, self.x, e)
         return r

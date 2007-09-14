@@ -22,6 +22,7 @@ ZZ_pContextDict = {}
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 
+
 cdef class ntl_ZZ_pContext_class:
     def __init__(self, ntl_ZZ v):
         """
@@ -48,9 +49,18 @@ cdef class ntl_ZZ_pContext_class:
     def __new__(self, ntl_ZZ v):
         ZZ_pContext_construct_ZZ(&self.x, &v.x)
         ZZ_pContextDict[repr(v)] = self
+        self.p = v
 
     def __dealloc__(self):
         ZZ_pContext_destruct(&self.x)
+
+    def __reduce__(self):
+        """
+        sage: c=ntl.ZZ_pContext(ntl.ZZ(13))
+        sage: loads(dumps(c)) is c
+        True
+        """
+        return ntl_ZZ_pContext, (self.p,)
 
     def restore(self):
         self.restore_c()

@@ -21,6 +21,8 @@ include 'decl.pxi'
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
+from ntl_ZZ import unpickle_class_args
+
 cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
@@ -69,7 +71,20 @@ cdef class ntl_mat_ZZ:
                     mat_ZZ_setitem(&self.x, i, j, &tmp.x)
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        TEST:
+            sage: m = ntl.mat_ZZ(3, 2, range(6)); m
+            [[0 1]
+            [2 3]
+            [4 5]
+            ]
+            sage: loads(dumps(m))
+            [[0 1]
+            [2 3]
+            [4 5]
+            ]
+        """
+        return unpickle_class_args, (ntl_mat_ZZ, (self.__nrows, self.__ncols, self.list()))
 
     def __new__(self, nrows=0,  ncols=0, v=None):
         mat_ZZ_construct(&self.x)
@@ -151,6 +166,22 @@ cdef class ntl_mat_ZZ:
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
             raise IndexError, "array index out of range"
         return make_ZZ(mat_ZZ_getitem(&self.x, i+1, j+1))
+
+    def list(self):
+        """
+        EXAMPLE:
+            sage: m = ntl.mat_ZZ(3, 4, range(12)); m
+            [[0 1 2 3]
+            [4 5 6 7]
+            [8 9 10 11]
+            ]
+            sage: m.list()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        """
+        cdef int i, j
+        return [make_ZZ(mat_ZZ_getitem(&self.x, i+1, j+1))
+                    for i from 0 <= i < self.__nrows
+                        for j from 0 <= j < self.__ncols]
 
     def determinant(self, deterministic=True):
         _sig_on

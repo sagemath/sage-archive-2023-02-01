@@ -83,7 +83,7 @@ def ntl_GF2E_modulus(p=None):
     cdef ntl_GF2X elem
 
     if p==None:
-        if __have_GF2E_modulus == True:
+        if __have_GF2E_modulus:
             return make_GF2X(<GF2X_c*>GF2E_modulus())
         else:
             raise "NoModulus"
@@ -97,7 +97,7 @@ def ntl_GF2E_modulus(p=None):
         raise "DegreeToSmall"
 
     ntl_GF2E_set_modulus(<GF2X_c*>&elem.gf2x_x)
-    __have_GF2E_modulus=True
+    __have_GF2E_modulus = True
 
 def ntl_GF2E_modulus_degree():
     """
@@ -131,6 +131,10 @@ def ntl_GF2E_random():
     r.gf2e_x = GF2E_random()
     _sig_off
     return r
+
+def unpickle_GF2E(hex, mod):
+    ntl_GF2E_modulus(mod)
+    return ntl_GF2E(hex)
 
 
 # make sure not to segfault
@@ -193,7 +197,15 @@ cdef class ntl_GF2E(ntl_GF2X):
         GF2E_destruct(&self.gf2e_x)
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        EXAMPES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: a = ntl.GF2E(ntl.ZZ_pX([1,1,3],2))
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,1,0,1]))
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return unpickle_GF2E, (self.ntl_GF2X().hex(), ntl_GF2E_modulus())
 
     def __repr__(self):
         _sig_on
@@ -298,6 +310,14 @@ cdef class ntl_GF2E(ntl_GF2X):
     def ntl_GF2X(ntl_GF2E self):
         """
         Returns a ntl.GF2X copy of this element.
+
+        EXAMPLE:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: a = ntl.GF2E('0x1c')
+            sage: a.ntl_GF2X()
+            [1 0 0 0 0 0 1 1]
+            sage: a.copy().ntl_GF2X()
+            [1 0 0 0 0 0 1 1]
         """
         cdef ntl_GF2X x = ntl_GF2X()
         x.gf2x_x = self.gf2x_x

@@ -19,6 +19,7 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZ import unpickle_class_value
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
@@ -116,7 +117,13 @@ cdef class ntl_ZZX:
             ZZX_from_str(&self.x, v)
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        sage: from sage.libs.ntl.ntl_ZZX import ntl_ZZX
+        sage: f = ntl_ZZX([1,2,0,4])
+        sage: loads(dumps(f)) == f
+        True
+        """
+        return unpickle_class_value, (ntl_ZZX, self.list())
 
     def __new__(self, v=None):
         ZZX_construct(&self.x)
@@ -1020,6 +1027,7 @@ cdef class ntl_ZZX:
         free(v)
         free(e)
         return F
+
 
 one_ZZX = ntl_ZZX([1])
 zero_ZZX = ntl_ZZX()

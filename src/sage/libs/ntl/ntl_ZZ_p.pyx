@@ -26,6 +26,8 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
@@ -125,7 +127,15 @@ cdef class ntl_ZZ_p:
         return r
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        sage: a = ntl.ZZ_p(4,7)
+        sage: loads(dumps(a)) == a
+        True
+        """
+        return unpickle_class_args, (ntl_ZZ_p, (self.lift(), self.get_modulus_context()))
+
+    def get_modulus_context(self):
+        return self.c
 
     def __repr__(self):
         self.c.restore_c()
@@ -272,6 +282,12 @@ cdef class ntl_ZZ_p:
         """
         self.c.restore_c()
         self.set_from_int(int(value))
+
+    def lift(self):
+        cdef ntl_ZZ r = ntl_ZZ()
+        self.c.restore_c()
+        r.x = rep(self.x)
+        return r
 
     def modulus(self):
         r"""

@@ -23,6 +23,8 @@ from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
+from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+
 cdef make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
     _sig_off
@@ -116,7 +118,14 @@ cdef class ntl_ZZ_pX:
         return r
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        TEST:
+            sage: f = ntl.ZZ_pX([1,2,3,7], 5); f
+            [1 2 3 2]
+            sage: loads(dumps(f)) == f
+            True
+        """
+        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.get_modulus_context()))
 
     def __repr__(self):
         self.c.restore_c()
@@ -130,6 +139,9 @@ cdef class ntl_ZZ_pX:
 
     def copy(self):
         return self.__copy__()
+
+    def get_modulus_context(self):
+        return self.c
 
     def __setitem__(self, long i, a):
         r"""
@@ -225,7 +237,8 @@ cdef class ntl_ZZ_pX:
         Return list of entries as a list of ntl_ZZ_p.
         """
         self.c.restore_c()
-        return [self[i] for i in range(self.degree())]
+        cdef Py_ssize_t i
+        return [self[i] for i from 0 <= i <= self.degree()]
 
     def __add__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """

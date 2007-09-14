@@ -18,6 +18,8 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from ntl_ZZ import unpickle_class_value
+
 ##############################################################################
 #
 # ntl_GF2X: Polynomials over GF(2) via NTL
@@ -28,7 +30,7 @@ include 'decl.pxi'
 #
 ##############################################################################
 
-__have_GF2X_hex_repr = False # hex representation of GF2X
+cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
 
 
 cdef class ntl_GF2X:
@@ -105,7 +107,16 @@ cdef class ntl_GF2X:
         GF2X_destruct(&self.gf2x_x)
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X(ntl.ZZ_pX([1,1,3],2))
+            sage: loads(dumps(f)) == f
+            True
+            sage: f = ntl.GF2X('0x1c')
+            sage: loads(dumps(f)) == f
+            True
+        """
+        return unpickle_class_value, (ntl_GF2X, self.hex())
 
     def __repr__(self):
         _sig_on

@@ -35,6 +35,9 @@ from ntl_GF2E import ntl_GF2E_sage
 ##############################################################################
 
 
+from ntl_ZZ import unpickle_class_args
+
+
 cdef class ntl_mat_GF2E:
     r"""
     The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
@@ -96,7 +99,14 @@ cdef class ntl_mat_GF2E:
         mat_GF2E_destruct(&self.x)
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
+            sage: m = ntl.mat_GF2E(5,5,range(25))
+            sage: loads(dumps(m)) == m
+            True
+        """
+        return unpickle_class_args, (ntl_mat_GF2E, (self.__nrows, self.__ncols, self.list()))
 
     def __repr__(self):
         _sig_on
@@ -148,6 +158,16 @@ cdef class ntl_mat_GF2E:
         mat_GF2E_power(r.x, self.x, e)
         _sig_off
         return r
+
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if not c:
+            if (self-other).is_zero():
+                return 0
+            else:
+                return 1
+        else:
+            return c
 
     def nrows(self):
         """
@@ -238,12 +258,7 @@ cdef class ntl_mat_GF2E:
             sage: m.list()                   # random output
             [[1 0 1 0 1 0 1 1], [0 1 0 0 0 0 1], [0 0 0 1 0 0 1], [1 1 1 0 0 0 0 1]]
         """
-        cdef unsigned long i, j
-        v = []
-        for i from 0 <= i < self.__nrows:
-            for j from 0 <= j < self.__ncols:
-                v.append(self[i,j])
-        return v
+        return [self[i,j] for i in range(self.__nrows) for j in range(self.__ncols)]
 
     def is_zero(self):
         cdef long isZero

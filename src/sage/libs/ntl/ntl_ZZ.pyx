@@ -91,7 +91,13 @@ cdef class ntl_ZZ:
         return string_delete(ZZ_to_str(&self.x))
 
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        sage: from sage.libs.ntl.ntl_ZZ import ntl_ZZ
+        sage: a = ntl_ZZ(-7)
+        sage: loads(dumps(a))
+        -7
+        """
+        return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
 
     def __mul__(self, other):
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
@@ -202,6 +208,12 @@ cdef class ntl_ZZ:
         self.set_from_int(int(value))
 
     # todo: add wrapper for int_to_ZZ in wrap.cc?
+
+def unpickle_class_value(cls, x):
+    return cls(x)
+
+def unpickle_class_args(cls, x):
+    return cls(*x)
 
 # Random-number generation
 def ntl_setSeed(x=None):

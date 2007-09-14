@@ -54,6 +54,8 @@ class AbsoluteOrder(Order):
                 raise ValueError, "AbsoluteOrder must be called with an absolute number field."
             if to_v(1) not in module_rep:
                 raise ValueError, "1 is not in the span of the module, hence not an order."
+            if module_rep.rank() != self._K.degree():
+                raise ValueError, "the module must have full rank."
 
     def __call__(self, x):
         if x.parent() is not self._K:
@@ -151,12 +153,42 @@ class RelativeOrder(Order):
         return self._absolute_order
 
 
-def absolute_order_from_generators(gens):
+def each_is_integral(v):
+    """
+    Return True if each element of the list v of elements
+    of a number field is integral.
+    """
+    for x in v:
+        if not x.is_integral():
+            return False
+    return True
+
+
+def absolute_order_from_ring_generators(gens, check=True):
     """
     INPUT:
-        gens -- list of elements of a single absolute number field
-                that generate an order in that number field as a ZZ
+        gens -- list of integral elements of an absolute order.
+        check -- bool (default: True) whether to check that the
+                 generators are integral.
+    """
+    if not each_is_integral(gens):
+        raise ValueError, "each generator must be integral"
+    gens = Sequence(gens)
+    K = gens.universe()
+    n = K.degree()
+
+    module_gens = []
+
+
+
+def absolute_order_from_module_generators(gens, check=True):
+    """
+    INPUT:
+        gens -- list of elements of an absolute number field
+                that generates an order in that number field as a ZZ
                 *module*.
+        check -- bool (default: True) check that these are really
+                module generators.
 
     OUTPUT:
         an absolute order
@@ -168,8 +200,9 @@ def absolute_order_from_generators(gens):
         raise ValueError, "gens must span an order over ZZ"
     gens = Sequence(gens)
     K = gens.universe()
-    V, to_V, _ = K.vector_space()
+    V, _, to_V = K.vector_space()
     gens = [to_V(x) for x in gens]
     W = V.span(gens)
     return AbsoluteOrder(K, W)
+
 

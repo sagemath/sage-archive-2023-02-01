@@ -61,6 +61,7 @@ from sage.misc.latex import latex_variable_name, latex_varify
 
 from class_group import ClassGroup
 from galois_group import GaloisGroup
+import order
 
 from sage.structure.element import is_Element
 
@@ -1863,10 +1864,17 @@ class NumberField_absolute(NumberField_generic):
             return self.__maximal_order
         except AttributeError:
             B = self.integral_basis()
-            O = order.absolute_order_from_generators(B)
+            O = order.absolute_order_from_module_generators(B, check=False)
             self.__maxima_order = O
             return O
 
+    def order(self, *gens, **kwds):
+        if len(gens) == 0:
+            return self.maximal_order()
+        if len(gens) == 1 and isinstance(gens, (list, tuple)):
+            gens = gens[0]
+        gens = [self(x) for x in gens]
+        return order.absolute_order_from_generators(gens, **kwds)
 
     def vector_space(self):
         """

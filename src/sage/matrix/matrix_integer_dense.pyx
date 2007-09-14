@@ -2187,20 +2187,6 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     sage_free(row_list)
     return M
 
-##########################################################
-# Setup the c-library and GMP random number generators.
-# seed it when module is loaded.
-from random import randrange
-cdef extern from "stdlib.h":
-    long random()
-    void srandom(unsigned int seed)
-k = randrange(0,Integer(2)**(32))
-srandom(k)
-
-cdef gmp_randstate_t state
-gmp_randinit_mt(state)
-gmp_randseed_ui(state,k)
-
 #######################################################
 
 # Conclusions:

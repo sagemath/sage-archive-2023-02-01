@@ -1394,7 +1394,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
-    def factor(self, algorithm='pari'):
+    def factor(self, algorithm='pari', proof=True):
         """
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
@@ -1404,13 +1404,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+            proof -- bool (default: True) whether or not to prove primality
+                    of each factor (only applicable for PARI).
+
 
         EXAMPLES:
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
         """
         import sage.rings.integer_ring
-        return sage.rings.integer_ring.factor(self, algorithm=algorithm)
+        return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 
     def coprime_integers(self, m):
         """

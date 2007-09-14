@@ -156,9 +156,6 @@ DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
 first_try = True
 
-if not os.path.exists('%s/tmp'%SAGE_ROOT):
-    os.makedirs('%s/tmp'%SAGE_ROOT)
-
 if not os.path.exists('%s/gap/'%DOT_SAGE):
     os.makedirs('%s/gap/'%DOT_SAGE)
     open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")

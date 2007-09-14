@@ -37,7 +37,7 @@ void clear_mpz_globals() {
   mpz_clear(t0); mpz_clear(t1); mpz_clear(t2);
   mpz_clear(x);  mpz_clear(y);
   mpz_clear(sqr);  mpz_clear(m2);
-  mpq_init(tmp);
+  mpq_clear(tmp);
 
   mpz_clear(a1); mpz_clear(a2); mpz_clear(mod1); mpz_clear(mod2);
   mpz_clear(g); mpz_clear(s); mpz_clear(t); mpz_clear(xx);

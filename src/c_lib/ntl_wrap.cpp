@@ -7,7 +7,7 @@ using namespace std;
 #include <NTL/LLL.h>
 
 void del_charstar(char* a) {
-  delete a;
+  delete[] a;
 }
 
 //////// ZZ //////////

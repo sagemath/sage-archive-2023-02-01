@@ -87,6 +87,7 @@ import sage.misc.defaults
 import sage.misc.latex as latex
 import multi_polynomial_element
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
+import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.fraction_field_element import FractionFieldElement
 
@@ -365,7 +366,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if isinstance(R, rational_field.RationalField) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
-            self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
+            self.__polynomial_class = polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
         elif isinstance(R, pAdicRingLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, pAdicFieldLazy):
@@ -529,7 +530,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if C == polynomial_element_generic.Polynomial_rational_dense:
             return self(f, construct=True)
         coeffs = str(f.Vec())
-        if C == polynomial_element_generic.Polynomial_integer_dense:
+        if C == polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl:
             return self(coeffs, construct=True)
 
         coeffs = eval(coeffs)

@@ -1100,7 +1100,6 @@ cdef extern from 'pari/pari.h':
     void    gaffsg(long s, GEN x)
     GEN     gclone(GEN x)
     int     gcmp(GEN x, GEN y)
-    int     gcmp_sage(GEN x, GEN y)
     int     gcmpsg(long x, GEN y)
     int     gcmp0(GEN x)
     int     gcmp1(GEN x)

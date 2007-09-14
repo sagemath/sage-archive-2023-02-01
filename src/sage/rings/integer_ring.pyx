@@ -484,13 +484,13 @@ Z = ZZ
 def IntegerRing():
     return ZZ
 
-def factor(n, algorithm='pari'):
+def factor(n, algorithm='pari', proof=True):
     """
     Return the factorization of the positive integer $n$ as a list of
     tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
     """
     import sage.rings.arith
-    return sage.rings.arith.factor(n, algorithm=algorithm)
+    return sage.rings.arith.factor(n, algorithm=algorithm, proof=proof)
 
 import sage.misc.misc
 def crt_basis(X, xgcd=None):

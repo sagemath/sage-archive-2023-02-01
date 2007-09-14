@@ -572,8 +572,8 @@ class NumberField_generic(number_field_base.NumberField):
                 raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
             if not polynomial.parent().base_ring() == QQ:
                 raise TypeError, "polynomial must be defined over rational field"
-        if not polynomial.is_monic():
-            raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
+            if not polynomial.is_monic():
+                raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
 
         self._assign_names(name)
         if latex_name is None:
@@ -1291,7 +1291,7 @@ class NumberField_generic(number_field_base.NumberField):
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = QQ(str(self.pari_nf()[2]))
+                self.__disc = QQ(str(self.pari_polynomial().nfdisc()))
                 return self.__disc
         else:
             return QQ(self.trace_pairing(v).det())

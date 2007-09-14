@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# We reuse the gdb pythonstartup script.
+PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-gdb-pythonstartup
+export PYTHONSTARTUP
+echo $PYTHONSTARTUP
+valgrind --tool=callgrind --trace-children=yes \
+         --log-file=$HOME/.sage/sage-callgrind  python -i

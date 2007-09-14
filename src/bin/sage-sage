@@ -16,7 +16,7 @@ usage() {
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "        options to '-t':   --verbose, --gdb, --long, --optional,"
-    echo "                  --valgrind, --memcheck, --massif, --cachegrind"
+    echo "                  --valgrind, --memcheck, --massif, --cachegrind, --callgrind"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
@@ -87,13 +87,16 @@ usage_advanced() {
     echo "  -valgrind     -- this is an alias for -memcheck"
     echo "  -memcheck     -- run SAGE under the control of valgrind using the memcheck tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
-    echo "                   sage-memcheck.$PID."
+    echo "                   sage-memcheck.PID."
     echo "  -massif       -- run SAGE under the control of valgrind using the massif tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
-    echo "                   sage-massif.$PID."
+    echo "                   sage-massif.PID."
     echo "  -cachegrind   -- run SAGE under the control of valgrind using the cachegrind tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
-    echo "                   sage-cachegrind.$PID."
+    echo "                   sage-cachegrind.PID."
+    echo "  -callgrind    -- run SAGE under the control of valgrind using the callgrind tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-callgrind.PID."
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
@@ -728,6 +731,12 @@ fi
 if [ $1 = '-cachegrind' -o $1 = "--cachegrind" ]; then
     sage_setup
     sage-cachegrind
+    exit $?
+fi
+
+if [ $1 = '-callgrind' -o $1 = "--callgrind" ]; then
+    sage_setup
+    sage-callgrind
     exit $?
 fi
 

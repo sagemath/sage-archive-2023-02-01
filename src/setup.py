@@ -599,7 +599,10 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
-              sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx']), \
+                 sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
+                 language = 'c++',
+                 include_dirs=['sage/libs/ntl/']), \
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \

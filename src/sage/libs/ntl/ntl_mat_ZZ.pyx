@@ -210,12 +210,9 @@ cdef class ntl_mat_ZZ:
 
     def charpoly(self):
         """
-        Notice that the substantive code of this function is
-        commented out!  This is to make it compile with sagex as of sage 2.6.
-
         EXAMPLES:
-            sage: True  # Here's a place-holder for a failed doc-test
-            False
+            sage: ntl.mat_ZZ(2,2,[1,2,3,4]).determinant()
+            -2
         """
         cdef ntl_ZZX r = ntl_ZZX()
         _sig_on

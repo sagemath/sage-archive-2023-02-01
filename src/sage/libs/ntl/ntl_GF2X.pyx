@@ -17,7 +17,6 @@ include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
-include 'init.pxi'
 
 ##############################################################################
 #

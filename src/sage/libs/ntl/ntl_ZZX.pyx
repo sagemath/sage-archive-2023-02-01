@@ -28,6 +28,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 ZZ = IntegerRing()
 
 cdef make_ZZ(ZZ_c* x):
+    """ These make_XXXX functions are deprecated and should be phased out."""
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
@@ -36,6 +37,7 @@ cdef make_ZZ(ZZ_c* x):
     return y
 
 cdef make_ZZX(ZZX_c* x):
+    """ These make_XXXX functions are deprecated and should be phased out."""
     cdef ntl_ZZX y
     _sig_off
     y = ntl_ZZX()

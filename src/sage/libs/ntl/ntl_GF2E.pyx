@@ -17,11 +17,11 @@ include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
-include 'init.pxi'
 
 from ntl_GF2X cimport ntl_GF2X
 
 cdef make_GF2X(GF2X_c *x):
+    """ These make_XXXX functions are deprecated and should be phased out."""
     cdef ntl_GF2X y
     _sig_off
     y = ntl_GF2X()

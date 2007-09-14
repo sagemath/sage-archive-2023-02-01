@@ -1,3 +1,5 @@
+"""nodoctest"""
+
 from sage.rings.ring import DedekindDomain
 from number_field_element import NumberFieldElement
 from sage.structure.sequence import Sequence
@@ -223,9 +225,6 @@ def absolute_order_from_module_generators(gens, check=True):
 
     OUTPUT:
         an absolute order
-
-    EXAMPLES:
-        sage: ???
     """
     if len(gens) == 0:
         raise ValueError, "gens must span an order over ZZ"

@@ -1392,7 +1392,5 @@ cdef class OrderElement(NumberFieldElement):
 
     EXAMPLES:
         sage: k.<a> = NumberField(x^2 + 1)
-        sage: O = k.maximal_order()
-
     """
     pass

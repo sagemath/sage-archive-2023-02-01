@@ -2,6 +2,13 @@
 
 CUR=`pwd`
 
+
+# !!!  a temporary patches that so far I'm only sure we
+# need on OS X Powerpc.  That said, the algorithm used
+# for det without this patch seems very flaky.
+$CP patches/det.h linbox/linbox/solutions/
+
+
 $CP patches/configure linbox/
 $CP patches/install-sh linbox/
 $CP patches/mkinstalldirs linbox/
@@ -37,6 +44,12 @@ elif [ $UNAME = "Linux" -a -f "/usr/lib/libcblas.so.3" ]; then
 
     LINBOX_BLAS=/usr/lib/libcblas.so.3
 
+elif [ $UNAME = "SunOS" -a -f "/usr/lib/libcblas.so" ]; then
+
+    echo "Solaris cblas"
+
+    LINBOX_BLAS=/usr/lib/libcblas.so
+
 else
     echo "WARNING WARNING"
     echo "WARNING WARNING"
@@ -51,10 +64,8 @@ else
 
     if [ $UNAME = "Darwin" ]; then
         LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.dylib
-    elif [ $UNAME = "Linux" ]; then
-        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.so
     else
-        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.a
+        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.so
     fi
 
 fi

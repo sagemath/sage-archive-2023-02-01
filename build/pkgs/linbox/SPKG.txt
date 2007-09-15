@@ -1,3 +1,8 @@
+*2007-09-03: merged LinBox ChangeSet 2803, which fixes #498 without the
+             performance regression of the initial workaround
+             (mabshoff)
+
+
 1. Modified charpoly.h and commentator.C
 
 2. Added linboxwrap (malb)

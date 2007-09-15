@@ -15,7 +15,7 @@
 #endif
 
 /* From M Abshoff */
-#if defined(__sun) && defined(__SunOS_5_9)
+#if defined(__sun)
 #define lround(x) my_lround(x)
 static long my_lround(double x)
 {

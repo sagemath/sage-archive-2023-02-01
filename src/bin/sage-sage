@@ -73,6 +73,7 @@ usage_advanced() {
     echo "  -scons <..>   -- run SAGE's scons"
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
+    echo "  -standard     -- list all standard packages that can be downloaded"
     echo "  -twistd <..>  -- run Twisted server"
     echo "  -t [-optional] [-verbose] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
@@ -117,7 +118,7 @@ if [ $# -eq 3 ]; then
 fi
 
 if [ $# -gt 0 ]; then
-  if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 = '-help' ]; then
+  if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 = '--help' ]; then
      usage
   fi
   if [ $1 = "-advanced" -o $1 = "--advanced" ]; then
@@ -577,6 +578,11 @@ fi
 
 if [ $1 = '-experimental' -o $1 = "--experimental" ]; then
    sage-list-experimental
+   exit 0
+fi
+
+if [ $1 = '-standard' -o $1 = "--standard" ]; then
+   sage-list-standard
    exit 0
 fi
 

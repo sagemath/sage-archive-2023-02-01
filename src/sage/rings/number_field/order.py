@@ -38,6 +38,18 @@ class Order(DedekindDomain):
     def __init__(self, K):
         self._K = K
 
+    def gen(self, i):
+        return self.basis()[i]
+
+    def gens(self):
+        return self.basis()
+
+    def ngens(self):
+        return len(self.basis())
+
+    def basis(self):  # this must be defined in derived class
+        raise NotImplementedError
+
     def number_field(self):
         """
         Return the number field of this order, which is the ambient
@@ -311,21 +323,64 @@ class AbsoluteOrder(Order):
         Return the intersection of this order with another order.
 
         EXAMPLES:
-
+            sage: k.<i> = NumberField(x^2 + 1)
+            sage: O6 = k.order(6*i)
+            sage: O9 = k.order(9*i)
+            sage: O6.intersection(O9)
+            Order with module basis 1, 18*i in Number Field in i with defining polynomial x^2 + 1
+            sage: O6 & O9
+            Order with module basis 1, 18*i in Number Field in i with defining polynomial x^2 + 1
+            sage: O6 + O9
+            Order with module basis 1, 3*i in Number Field in i with defining polynomial x^2 + 1
         """
         return self & other
 
     def _repr_(self):
         """
         Return print representation of this absolute order.
+
+        EXAMPLES:
         """
         return "Order with module basis %s in %r" % (", ".join([str(b) for b in self.basis()]), self._K)
 
     def basis(self):
-        V, from_V, to_V = self._K.vector_space()
-        return [from_V(b) for b in self._module_rep.basis()]
+        """
+        Return the basis over ZZ for this order.
+
+        EXAMPLES:
+            sage: k.<c> = NumberField(x^3 + x^2 + 1)
+            sage: O = k.maximal_order(); O          1)
+            Order with module basis 1, c, c^2 in Number Field in c with defining polynomial x^3 + x^2 + 1
+            sage: O.basis()
+            [1, c, c^2]
+
+        The basis is an immutable sequence:
+            sage: type(O.basis())
+            <class 'sage.structure.sequence.Sequence'>
+
+        The generator functionality uses the basis method:
+            sage: O.0
+            1
+            sage: O.1
+            c
+            sage: O.gens()
+            [1, c, c^2]
+            sage: O.ngens()
+            3
+        """
+        try:
+            return self.__basis
+        except AttributeError:
+            V, from_V, to_V = self._K.vector_space()
+            B = Sequence([from_V(b) for b in self._module_rep.basis()], immutable=True)
+            self.__basis = B
+        return B
 
     def absolute_order(self):
+        """
+        Return the absolute order associated to this order, which is
+        just this order again since this is an absolute order.
+        """
         return self
 
 

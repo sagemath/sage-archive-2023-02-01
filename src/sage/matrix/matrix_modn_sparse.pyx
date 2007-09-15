@@ -79,6 +79,13 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 
+from sage.rings.integer import Integer
+
+from sage.matrix.matrix0 import Matrix as Matrix0
+from sage.rings.arith import is_prime
+
+from sage.structure.element import is_Vector
+
 ################
 # TODO: change this to use extern cdef's methods.
 from sage.ext.arith cimport arith_int
@@ -88,6 +95,10 @@ ai = arith_int()
 
 import sage.ext.multi_modular
 MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
+from sage.libs.linbox.linbox cimport Linbox_modn_sparse
+cdef Linbox_modn_sparse linbox
+linbox = Linbox_modn_sparse()
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
@@ -462,3 +473,197 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             for j from 0 <= j < self.rows[i].num_nonzero:
                 k+=1
         return QQ(k)/QQ(self.nrows()*self.ncols())
+
+    cdef _init_linbox(self):
+        _sig_on
+        linbox.set(self.p, self._nrows, self._ncols,  self.rows)
+        _sig_off
+
+    def _rank_linbox(self):
+        """
+        See self.rank().
+        """
+        if is_prime(self.p):
+            x = self.fetch('rank')
+            if not x is None:
+                return x
+            self._init_linbox()
+            _sig_on
+            # the returend pivots list is currently wrong
+            #r, pivots = linbox.rank(1)
+            r = linbox.rank(1)
+            r = Integer(r)
+            _sig_off
+            self.cache('rank', r)
+            return r
+        else:
+            raise TypeError, "only GF(p) supported via LinBox"
+
+    def rank(self, gauss=False):
+        """
+        Compute the rank of self.
+
+        INPUT:
+            gauss -- if True Gaussian elimination is used. If False
+                     'Symbolic Reordering' as implemented in LinBox
+                     is used. (default: False)
+
+        EXAMPLE:
+            sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
+            sage: r1 = A.rank(gauss=False)
+            sage: r2 = A.rank(gauss=True)
+            sage: r1 == r2
+            True
+
+        ALGORITHM: Uses LinBox or native implementation.
+
+        REFERENCES: Jean-Guillaume Dumas and Gilles Villars. 'Computing the
+            Rank of Large Sparse Matrices over Finite Fields'. Proc. CASC'2002,
+            The Fifth International Workshop on Computer Algebra in Scientific Computing,
+            Big Yalta, Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
+            http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
+
+        NOTE:
+            For very sparse matrices Gaussian elimination is faster because
+            it barly has anything to do. If the fill in needs to be considered,
+            'Symbolic Reordering' is usually much faster.
+        """
+        x = self.fetch('rank')
+        if not x is None: return x
+
+        if is_prime(self.p) and not gauss:
+            return self._rank_linbox()
+        else:
+            return Matrix0.rank(self)
+
+    def transpose(self):
+        """
+        Return the transpose of self.
+
+        EXAMPLE:
+            sage: A = matrix(GF(127),3,3,[0,1,0,2,0,0,3,0,0],sparse=True)
+            sage: A
+            [0 1 0]
+            [2 0 0]
+            [3 0 0]
+            sage: A.transpose()
+            [0 2 3]
+            [1 0 0]
+            [0 0 0]
+        """
+        cdef int i, j
+        cdef c_vector_modint row
+        cdef Matrix_modn_sparse B
+
+        B = self.new_matrix(nrows = self.ncols(), ncols = self.nrows())
+        for i from 0 <= i < self._nrows:
+            row = self.rows[i]
+            for j from 0 <= j < row.num_nonzero:
+                set_entry(&B.rows[row.positions[j]], i, row.entries[j])
+        return B
+
+    def matrix_from_rows(self, rows):
+        """
+        Return the matrix constructed from self using rows with indices
+        in the rows list.
+
+        INPUT:
+            rows -- list or tuple of row indices
+
+        EXAMPLE:
+            sage: M = MatrixSpace(GF(127),3,3,sparse=True)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.matrix_from_rows([2,1])
+            [6 7 8]
+            [3 4 5]
+        """
+        cdef int i,k
+        cdef Matrix_modn_sparse A
+        cdef c_vector_modint row
+
+        if not isinstance(rows, (list, tuple)):
+            raise TypeError, "rows must be a list of integers"
+
+
+        A = self.new_matrix(nrows = len(rows))
+
+        k = 0
+        for ii in rows:
+            i = ii
+            if i < 0 or i >= self.nrows():
+                raise IndexError, "row %s out of range"%i
+
+            row = self.rows[i]
+            for j from 0 <= j < row.num_nonzero:
+                set_entry(&A.rows[k], row.positions[j], row.entries[j])
+            k += 1
+        return A
+
+
+    def matrix_from_columns(self, cols):
+        """
+        Return the matrix constructed from self using columns with
+        indices in the columns list.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(GF(127),3,3,sparse=True)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.matrix_from_columns([2,1])
+            [2 1]
+            [5 4]
+            [8 7]
+        """
+        cdef int i,j
+        cdef Matrix_modn_sparse A
+        cdef c_vector_modint row
+
+        if not isinstance(cols, (list, tuple)):
+            raise TypeError, "rows must be a list of integers"
+
+        A = self.new_matrix(ncols = len(cols))
+
+        cols = dict(zip([int(e) for e in cols],range(len(cols))))
+
+        for i from 0 <= i < self.nrows():
+            row = self.rows[i]
+            for j from 0 <= j < row.num_nonzero:
+                if int(row.positions[j]) in cols:
+                    set_entry(&A.rows[i], cols[int(row.positions[j])], row.entries[j])
+        return A
+
+##     def _solve(self, Matrix_modn_sparse B):
+##         """
+##         """
+##         cdef c_vector_modint *X
+
+##         cdef Matrix_modn_sparse C
+
+##         if not self.is_square():
+##             raise NotImplementedError, "input matrix must be square"
+
+##         if self.rank() != self.nrows():
+##             raise ValueError, "input matrix must have full rank but it doesn't"
+
+##         self._init_linbox()
+
+##         matrix = True
+##         if is_Vector(B):
+##             matrix = False
+##         C = self.matrix_space(1,self.nrows())(B.list())
+
+##         #_sig_on
+##         linbox.solve(&X, C.rows)
+##         #_sig_off
+
+## ##         X = None
+## ##         if not matrix:
+## ##             # Convert back to a vector
+## ##             return (X.base_ring() ** X.nrows())(X.list())
+## ##         else:
+## ##             return X

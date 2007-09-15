@@ -6,7 +6,7 @@ AUTHORS:
 """
 
 from sage.rings.ring import DedekindDomain
-from number_field_element import OrderElement
+from number_field_element import OrderElement_absolute, OrderElement_relative
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 
@@ -211,7 +211,7 @@ class AbsoluteOrder(Order):
         V, _, embedding = self._K.vector_space()
         if not embedding(x) in self._module_rep:
             raise TypeError, "Not an element of the order."
-        return OrderElement(self, x)
+        return OrderElement_absolute(self, x)
 
     def __add__(left, right):
         """
@@ -396,7 +396,7 @@ class RelativeOrder(Order):
         if x.parent() is not self._K:
             x = self._K(x)
         x = self._absolute_order(x) # will test membership
-        return OrderElement(self, x)
+        return OrderElement_relative(self, x)
 
     def _repr_(self, x):
         """

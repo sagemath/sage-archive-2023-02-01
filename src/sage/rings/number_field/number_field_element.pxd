@@ -24,6 +24,14 @@ cdef class NumberFieldElement(FieldElement):
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef ModuleElement _neg_c_impl(self)
 
+cdef class NumberFieldElement_absolute(NumberFieldElement):
+    pass
 
-cdef class OrderElement(NumberFieldElement):
+cdef class NumberFieldElement_relative(NumberFieldElement):
+    pass
+
+cdef class OrderElement_absolute(NumberFieldElement_absolute):
+    cdef object _order
+
+cdef class OrderElement_relative(NumberFieldElement_relative):
     cdef object _order

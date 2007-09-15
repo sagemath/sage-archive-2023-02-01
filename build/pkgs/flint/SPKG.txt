@@ -1,0 +1,3 @@
+Obtained from:
+  svn export https://flint.svn.sourceforge.net/svnroot/flint/trunk
+

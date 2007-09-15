@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
+   FLINT_TUNE="-mtune=opteron -march=opteron"
+elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
+   FLINT_TUNE=" "
+   #FLINT_TUNE="-m64 -mcpu=970 -mtune=970 -mpowerpc64 -falign-loops=16 -falign-functions=16 -falign-labels=16 -falign-jumps=16"
+else
+   FLINT_TUNE=" "
+fi
+
+export FLINT_TUNE
+
+FLINT_GMP_INCLUDE_DIR="$SAGE_LOCAL"/include/
+FLINT_GMP_LIB_DIR="$SAGE_LOCAL"/lib/
+
+# What is QD??
+FLINT_QD_INCLUDE_DIR="$SAGE_LOCAL"/include
+
+export FLINT_GMP_INCLUDE_DIR
+export FLINT_GMP_LIB_DIR
+export FLINT_QD_INCLUDE_DIR
+
+
+###
+FLINT_LINK_OPTIONS=""
+export FLINT_LINK_OPTIONS
+
+cd src
+
+make Z_mpn-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
+
+
+if [ $? -ne 0 ]; then
+    echo "Error building FLINT"
+    exit 1
+fi

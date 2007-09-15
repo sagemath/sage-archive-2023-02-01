@@ -9,4 +9,4 @@ libflint.dll: $(FLINTOBJ)
 	$(CXX) -fPIC -shared -o libflint.dll $(FLINTOBJ) -lgmp
 
 libflint.so: $(FLINTOBJ)
-	$(CXX) -fPIC -shared -o libflint.so $(FLINTOBJ) -lgmp
+	$(CXX) -fPIC -shared -fPIC -o libflint.so $(FLINTOBJ) -lgmp

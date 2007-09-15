@@ -1,12 +1,12 @@
 #!/bin/sh
 
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
-   FLINT_TUNE="-mtune=opteron -march=opteron"
+   FLINT_TUNE="-mtune=opteron -march=opteron -fPIC"
 elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
-   FLINT_TUNE=" "
+   FLINT_TUNE=" -fPIC "
    #FLINT_TUNE="-m64 -mcpu=970 -mtune=970 -mpowerpc64 -falign-loops=16 -falign-functions=16 -falign-labels=16 -falign-jumps=16"
 else
-   FLINT_TUNE=" "
+   FLINT_TUNE=" -fPIC "
 fi
 
 export FLINT_TUNE
@@ -52,10 +52,16 @@ fi
 
 
 # Copy the header files
+
+rm -rf "$SAGE_LOCAL"/include/FLINT
 mkdir "$SAGE_LOCAL"/include/FLINT
+
+if [ $? -ne 0 ]; then
+    echo "Error building FLINT"
+    exit 1
+fi
+
 $CP *.h "$SAGE_LOCAL"/include/FLINT/
-
-
 
 if [ $? -ne 0 ]; then
     echo "Error building FLINT"

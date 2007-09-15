@@ -6,23 +6,117 @@ AUTHORS:
 """
 
 from sage.rings.ring import DedekindDomain
-from number_field_element import NumberFieldElement
+from number_field_element import OrderElement
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 
 class Order(DedekindDomain):
+    r"""
+    An order in a number field.
 
+    An order is a subring of the number field that has $\ZZ$-rank equal
+    to the degree of the number field over $\QQ$.
+
+    EXAMPLES:
+        sage: K.<theta> = NumberField(x^4 + x + 17)
+        sage: K.maximal_order()
+        Order with module basis 1, theta, theta^2, theta^3 in Number Field in theta with defining polynomial x^4 + x + 17
+        sage: K.order(17*theta)
+        Order with module basis 1, 17*theta, 289*theta^2, 4913*theta^3 in Number Field in theta with defining polynomial x^4 + x + 17
+        sage: K.order(17*theta, 13*theta)
+        Order with module basis 1, theta, theta^2, theta^3 in Number Field in theta with defining polynomial x^4 + x + 17
+        sage: K.order([34*theta, 17*theta + 17])
+        Order with module basis 1, 17*theta, 289*theta^2, 4913*theta^3 in Number Field in theta with defining polynomial x^4 + x + 17
+        sage: K.<b> = NumberField(x^4 + x^2 + 2)
+        sage: (b^2).charpoly().factor()
+        (x^2 + x + 2)^2
+        sage: K.order(b^2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the rank of the span of gens is wrong
+    """
     def __init__(self, K):
         self._K = K
 
     def number_field(self):
+        """
+        Return the number field of this order, which is the ambient
+        number field that this order is embedded in.
+
+        EXAMPLES:
+            sage: K.<b> = NumberField(x^4 + x^2 + 2)
+            sage: O = K.order(2*b); O
+            Order with module basis 1, 2*b, 4*b^2, 8*b^3 in Number Field in b with defining polynomial x^4 + x^2 + 2
+            sage: O.number_field()
+            Number Field in b with defining polynomial x^4 + x^2 + 2
+            sage: O.number_field() is K
+            True
+        """
         return self._K
 
+    def ambient(self):
+        r"""
+        Return the ambient number field that contains self.
+
+        This is the same as \code{self.number_field()} and
+        \code{self.fraction_field()}
+
+        EXAMPLES:
+            sage: k.<z> = NumberField(x^2 - 389)
+            sage: o = k.order(389*z + 1)
+            sage: o
+            Order with module basis 1, 389*z in Number Field in z with defining polynomial x^2 - 389
+            sage: o.ambient()
+            Number Field in z with defining polynomial x^2 - 389
+        """
+        return self._K
+
+
     def fraction_field(self):
+        """
+        Return the fraction field of this order, which is the
+        ambient number field.
+
+        EXAMPLES:
+            sage: K.<b> = NumberField(x^4 + 17*x^2 + 17)
+            sage: O = K.order(17*b); O
+            Order with module basis 1, 17*b, 289*b^2, 4913*b^3 in Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+            sage: O.fraction_field()
+            Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+        """
         return self._K
 
     def degree(self):
+        r"""
+        Return the degree of this order, which is the rank
+        of this order as a $\ZZ$-module.
+
+        EXAMPLES:
+            sage: k.<c> = NumberField(x^3 + x^2 - 2*x+8)
+            sage: o = k.maximal_order()
+            sage: o.degree()
+            3
+            sage: o.rank()
+            3
+        """
         return self._K.degree()
+
+    def rank(self):
+        r"""
+        Return the rank of this order, which is the rank of
+        the underlying $\ZZ$-module, or the degree of the ambient
+        number field that contains this order.
+
+        This is a synonym for \code{self.degree()}.
+
+        EXAMPLES:
+            sage: k.<c> = NumberField(x^5 + x^2 + 1)
+            sage: o = k.maximal_order(); o
+            Order with module basis 1, c, c^2, c^3, c^4 in Number Field in c with defining polynomial x^5 + x^2 + 1
+            sage: o.rank()
+            5
+        """
+        return self.degree()
 
     def __eq__(left, right):
         """
@@ -90,12 +184,22 @@ class AbsoluteOrder(Order):
                 raise ValueError, "the module must have full rank."
 
     def __call__(self, x):
+        """
+        Coerce x into this order.
+
+        EXAMPLES:
+            sage: k.<z> = NumberField(x^2 - 389)
+            sage: m = k.order(3*z); m
+            Order with module basis 1, 3*z in Number Field in z with defining polynomial x^2 - 389
+            sage: m(6*z)
+            6*z
+        """
         if x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()
         if not embedding(x) in self._module_rep:
             raise TypeError, "Not an element of the order."
-        return NumberFieldElement(self, x)
+        return OrderElement(self, x)
 
     def __add__(left, right):
         """
@@ -147,7 +251,15 @@ class AbsoluteOrder(Order):
 
     def index_in(self, other):
         """
-        Return the index of self in other.
+        Return the index of self in other.  This is a lattice index,
+        so it is a rational number if self isn't contained in other.
+
+        INPUT:
+            other -- another absolute order with the same ambient
+            number field.
+
+        OUTPUT:
+            a rational number
 
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
@@ -155,17 +267,59 @@ class AbsoluteOrder(Order):
             sage: O5 = k.order(5*i)
             sage: O5.index_in(O1)
             5
+
+            sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
+            sage: o = k.maximal_order()
+            sage: o
+            Order with module basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            sage: O1 = k.order(a); O1
+            Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            sage: O1.index_in(o)
+            2
+            sage: O2 = k.order(1+2*a); O2
+            Order with module basis 1, 2*a, 4*a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            sage: o.index_in(O2)
+            1/16
         """
+        if not isinstance(other, AbsoluteOrder):
+            raise TypeError, "other must be an absolute order."
+        if other.ambient() != self.ambient():
+            raise ValueError, "other must have the same ambient number field as self."
         return self._module_rep.index_in(other._module_rep)
 
     def free_module(self):
+        """
+        Returns the underlying free module corresponding to this
+        order, embedded in the vector space corresponding to the
+        ambient number field.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 + x + 3)
+            sage: m = k.order(3*a); m
+            Order with module basis 1, 3*a, 9*a^2 in Number Field in a with defining polynomial x^3 + x + 3
+            sage: m.free_module()
+            Free module of degree 3 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [1 0 0]
+            [0 3 0]
+            [0 0 9]
+        """
         return self._module_rep
 
     def intersection(self, other):
+        """
+        Return the intersection of this order with another order.
+
+        EXAMPLES:
+
+        """
         return self & other
 
-    def __repr__(self):
-        return "Order with integral basis %s in %r" % (", ".join([str(b) for b in self.basis()]), self._K)
+    def _repr_(self):
+        """
+        Return print representation of this absolute order.
+        """
+        return "Order with module basis %s in %r" % (", ".join([str(b) for b in self.basis()]), self._K)
 
     def basis(self):
         V, from_V, to_V = self._K.vector_space()
@@ -187,9 +341,12 @@ class RelativeOrder(Order):
         if x.parent() is not self._K:
             x = self._K(x)
         x = self._absolute_order(x) # will test membership
-        return NumberFieldElement(self, x)
+        return OrderElement(self, x)
 
-    def __repr__(self, x):
+    def _repr_(self, x):
+        """
+        Return print representation of this relative order.
+        """
         V, to_V, from_V = self._K.vector_space()
         basis = self._module_rep.basis()
         return "Order over %r spanned by %r" % (self._base, ",".join([from_V(b) for b in self._absolute_order.basis()]))

@@ -23,3 +23,7 @@ cdef class NumberFieldElement(FieldElement):
     cdef ModuleElement _add_c_impl(self, ModuleElement right)
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef ModuleElement _neg_c_impl(self)
+
+
+cdef class OrderElement(NumberFieldElement):
+    cdef object _order

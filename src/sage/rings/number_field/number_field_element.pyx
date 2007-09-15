@@ -98,7 +98,8 @@ cdef class NumberFieldElement(FieldElement):
     """
     cdef NumberFieldElement _new(self):
         """
-        Quickly creates a new initialized NumberFieldElement with the same parent as self.
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
         """
         cdef NumberFieldElement x
         x = PY_NEW(NumberFieldElement)
@@ -1393,4 +1394,8 @@ cdef class OrderElement(NumberFieldElement):
     EXAMPLES:
         sage: k.<a> = NumberField(x^2 + 1)
     """
-    pass
+    def __init__(self, order, f):
+        K = order.number_field()
+        NumberFieldElement.__init__(self, K, f)
+        self._order = order
+

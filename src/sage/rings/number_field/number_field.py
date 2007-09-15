@@ -1863,6 +1863,15 @@ class NumberField_absolute(NumberField_generic):
         """
         Return the maximal order, i.e., the ring of integers, associated
         to this number field.
+
+        EXAMPLES:
+
+        In this example, the maximal order cannot be generated
+        by a single element.
+            sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
+            sage: o = k.maximal_order()
+            sage: o
+            Order with modular basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
         """
         try:
             return self.__maximal_order
@@ -1890,9 +1899,9 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
             sage: k.order(2*i)
-            Order with integral basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
+            Order with modular basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(10*i)
-            Order with integral basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
+            Order with modular basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(3)
             Traceback (most recent call last):
             ...
@@ -1901,12 +1910,11 @@ class NumberField_absolute(NumberField_generic):
             Traceback (most recent call last):
             ...
             ValueError: each generator must be integral
-
         """
         if len(gens) == 0:
             return NumberField_generic.order(self)
-        if len(gens) == 1 and isinstance(gens, (list, tuple)):
-            gens = [gens[0]]
+        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+            gens = gens[0]
         gens = [self(x) for x in gens]
         return order.absolute_order_from_ring_generators(gens, **kwds)
 

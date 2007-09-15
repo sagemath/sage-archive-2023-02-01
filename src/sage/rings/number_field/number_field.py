@@ -61,10 +61,13 @@ from sage.misc.latex import latex_variable_name, latex_varify
 
 from class_group import ClassGroup
 from galois_group import GaloisGroup
+import order
 
 from sage.structure.element import is_Element
 
 import sage.structure.parent_gens
+
+import maps
 
 nfproof = True
 
@@ -261,7 +264,7 @@ def NumberField(polynomial, name=None, check=True, names=None, all=False):
     if polynomial.degree() == 2:
         K = NumberField_quadratic(polynomial, name, check)
     else:
-        K = NumberField_generic(polynomial, name, None, check)
+        K = NumberField_absolute(polynomial, name, None, check)
 
     _nf_cache[key] = weakref.ref(K)
     return K
@@ -569,8 +572,8 @@ class NumberField_generic(number_field_base.NumberField):
                 raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
             if not polynomial.parent().base_ring() == QQ:
                 raise TypeError, "polynomial must be defined over rational field"
-        if not polynomial.is_monic():
-            raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
+            if not polynomial.is_monic():
+                raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
 
         self._assign_names(name)
         if latex_name is None:
@@ -581,18 +584,31 @@ class NumberField_generic(number_field_base.NumberField):
         self.__pari_bnf_certified = False
         self.__absolute_field = self
 
-    def __reduce__(self):
+    def is_isomorphic(self, other):
         """
-        TESTS:
-            sage: Z = var('Z')
-            sage: K.<w> = NumberField(Z^3 + Z + 1)
-            sage: L = loads(dumps(K))
-            sage: print L
-            Number Field in w with defining polynomial Z^3 + Z + 1
-            sage: print L == K
+        Return True if self is isomorphic as a number field to other.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: m.<b> = NumberField(x^2 + 4)
+            sage: k.is_isomorphic(m)
             True
+            sage: m.<b> = NumberField(x^2 + 5)
+            sage: k.is_isomorphic (m)
+            False
+
+            sage: k = NumberField(x^3 + 2, 'a')
+            sage: k.is_isomorphic(NumberField((x+1/3)^3 + 2, 'b'))
+            True
+            sage: k.is_isomorphic(NumberField(x^3 + 4, 'b'))
+            True
+            sage: k.is_isomorphic(NumberField(x^3 + 5, 'b'))
+            False
         """
-        return NumberField_generic_v1, (self.__polynomial, self.variable_name(), self.__latex_variable_name)
+        if not isinstance(other, NumberField_generic):
+            raise ValueError, "other must be a generic number field."
+        t = self.pari_polynomial().nfisisom(other.pari_polynomial())
+        return t != 0
 
     def complex_embeddings(self, prec=53):
         r"""
@@ -1275,7 +1291,7 @@ class NumberField_generic(number_field_base.NumberField):
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = QQ(str(self.pari_nf()[2]))
+                self.__disc = QQ(str(self.pari_polynomial().nfdisc()))
                 return self.__disc
         else:
             return QQ(self.trace_pairing(v).det())
@@ -1723,7 +1739,6 @@ class NumberField_generic(number_field_base.NumberField):
             self.__units = [self(R(g)) for g in B]
             return self.__units
 
-
     def zeta(self, n=2, all=False):
         """
         Return an n-th root of unity in this field.  If all is True,
@@ -1808,6 +1823,94 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.pari_nf().dirzetak(n)
 
+
+class NumberField_absolute(NumberField_generic):
+
+    def is_absolute(self):
+        """
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.is_absolute()
+            True
+        """
+        return True
+
+    def absolute_field(self):
+        """
+        Returns self as an extension over QQ, which is self.
+
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.absolute_field()
+            Cyclotomic Field of order 5 and degree 4
+        """
+        return self
+
+    def __reduce__(self):
+        """
+        TESTS:
+            sage: Z = var('Z')
+            sage: K.<w> = NumberField(Z^3 + Z + 1)
+            sage: L = loads(dumps(K))
+            sage: print L
+            Number Field in w with defining polynomial Z^3 + Z + 1
+            sage: print L == K
+            True
+        """
+        return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name())
+
+    def _maximal_order(self):
+        try:
+            return self.__maximal_order
+        except AttributeError:
+            B = self.integral_basis()
+            O = order.absolute_order_from_module_generators(B, check=False)
+            self.__maxima_order = O
+            return O
+
+    def _order_ring(self, *gens, **kwds):
+        if len(gens) == 0:
+            return self.maximal_order()
+        if len(gens) == 1 and isinstance(gens, (list, tuple)):
+            gens = gens[0]
+        gens = [self(x) for x in gens]
+        return order.absolute_order_from_generators(gens, **kwds)
+
+    def vector_space(self):
+        """
+        Return a vector space V and isomorphisms self --> V and V --> self.
+
+        OUTPUT:
+            V -- a vector space over the rational numbers
+            phi -- an isomorphism from self to V
+            psi -- an isomorphism from V to self
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^3 + 2)
+            sage: V, phi, psi  = k.vector_space()
+            sage: phi(V([1,2,3]))
+            3*a^2 + 2*a + 1
+            sage: psi(1 + 2*a + 3*a^2)
+            (1, 2, 3)
+            sage: V
+            Vector space of dimension 3 over Rational Field
+            sage: phi
+            Isomorphism from Vector space of dimension 3 over Rational Field to Number Field in a with defining polynomial x^3 + 2
+            sage: psi
+            Isomorphism from Number Field in a with defining polynomial x^3 + 2 to Vector space of dimension 3 over Rational Field
+            sage: phi(psi(2/3*a - 5/8))
+            2/3*a - 5/8
+            sage: psi(phi(V([0,-1/7,0])))
+            (0, -1/7, 0)
+        """
+        try:
+            return self.__vector_space
+        except AttributeError:
+            V = QQ**self.degree()
+            phi = maps.MapVectorSpaceToNumberField(V, self)
+            psi = maps.MapNumberFieldToVectorSpace(self, V)
+            self.__vector_space = (V, phi, psi)
+            return self.__vector_space
 
 
 class NumberField_extension(NumberField_generic):
@@ -2430,7 +2533,7 @@ class NumberField_extension(NumberField_generic):
 
 
 
-class NumberField_cyclotomic(NumberField_generic):
+class NumberField_cyclotomic(NumberField_absolute):
     """
     Create a cyclotomic extension of the rational field.
 
@@ -2480,7 +2583,7 @@ class NumberField_cyclotomic(NumberField_generic):
             latex_name = "\\zeta_{%s}"%n
         else:
             latex_name = None
-        NumberField_generic.__init__(self, f,
+        NumberField_absolute.__init__(self, f,
                                      name= names,
                                      latex_name=latex_name,
                                      check=False)
@@ -2980,7 +3083,7 @@ class NumberField_cyclotomic(NumberField_generic):
             else:
                 return a
 
-class NumberField_quadratic(NumberField_generic):
+class NumberField_quadratic(NumberField_absolute):
     """
     Create a quadratic extension of the rational field.
 
@@ -3004,7 +3107,7 @@ class NumberField_quadratic(NumberField_generic):
             sage: k.<a> = QuadraticField(4, check=False); k
             Number Field in a with defining polynomial x^2 - 4
         """
-        NumberField_generic.__init__(self, polynomial, name=name, check=check)
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check)
 
     def __reduce__(self):
         """
@@ -3137,7 +3240,8 @@ def is_fundamental_discriminant(D):
 # For pickling
 ###################
 
-def NumberField_generic_v1(poly, name, latex_name):
+
+def NumberField_absolute_v1(poly, name, latex_name):
     """
     This is used in pickling generic number fields.
 
@@ -3147,7 +3251,9 @@ def NumberField_generic_v1(poly, name, latex_name):
         sage: NumberField_generic_v1(x^2 + 1, 'i', 'i')
         Number Field in i with defining polynomial x^2 + 1
     """
-    return NumberField_generic(poly, name, latex_name, check=False)
+    return NumberField_absolute(poly, name, latex_name, check=False)
+
+NumberField_generic_v1 = NumberField_absolute_v1  # for historical reasons only (so old objects unpickle)
 
 def NumberField_extension_v1(base_field, poly, name, latex_name):
     """

@@ -274,6 +274,16 @@ class RationalField(_uniq, number_field_base.NumberField):
     def ngens(self):
         return 1
 
+    def is_absolute(self):
+        """
+        QQ is an absolute extension of QQ.
+
+        EXAMPLES:
+            sage: QQ.is_absolute()
+            True
+        """
+        return True
+
     def is_subring(self, K):
         if K.is_field():
             return K.characteristic() == 0

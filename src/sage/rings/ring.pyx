@@ -462,7 +462,10 @@ cdef class Ring(ParentWithGens):
             sage: Zp(5).characteristic()
             0
         """
-        raise NotImplementedError
+        from sage.rings.infinity import infinity
+        from sage.rings.integer_ring import ZZ
+        order_1 = self.one_element().additive_order()
+        return ZZ.zero_element() if order_1 is infinity else order_1
 
     def order(self):
         """

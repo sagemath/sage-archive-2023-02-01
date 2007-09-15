@@ -30,4 +30,21 @@ def is_NumberField(x):
 from sage.rings.ring cimport Field
 
 cdef class NumberField(Field):
-    pass
+
+    def is_absolute(self):
+        """
+        Return True if self is viewed as a single extension over Q.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3+2)
+            sage: K.is_absolute()
+            True
+            sage: y = polygen(K)
+            sage: L.<b> = NumberField(y^2+1)
+            sage: L.is_absolute()
+            False
+            sage: QQ.is_absolute()
+            True
+        """
+        return False
+

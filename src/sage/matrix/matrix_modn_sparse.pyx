@@ -81,7 +81,7 @@ from sage.misc.misc import verbose, get_verbose, graphics_filename
 
 from sage.rings.integer import Integer
 
-from sage.matrix.matrix0 import Matrix as Matrix0
+from sage.matrix.matrix2 import Matrix as Matrix2
 from sage.rings.arith import is_prime
 
 from sage.structure.element import is_Vector
@@ -474,68 +474,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 k+=1
         return QQ(k)/QQ(self.nrows()*self.ncols())
 
-    cdef _init_linbox(self):
-        _sig_on
-        linbox.set(self.p, self._nrows, self._ncols,  self.rows)
-        _sig_off
-
-    def _rank_linbox(self):
-        """
-        See self.rank().
-        """
-        if is_prime(self.p):
-            x = self.fetch('rank')
-            if not x is None:
-                return x
-            self._init_linbox()
-            _sig_on
-            # the returend pivots list is currently wrong
-            #r, pivots = linbox.rank(1)
-            r = linbox.rank(1)
-            r = Integer(r)
-            _sig_off
-            self.cache('rank', r)
-            return r
-        else:
-            raise TypeError, "only GF(p) supported via LinBox"
-
-    def rank(self, gauss=False):
-        """
-        Compute the rank of self.
-
-        INPUT:
-            gauss -- if True Gaussian elimination is used. If False
-                     'Symbolic Reordering' as implemented in LinBox
-                     is used. (default: False)
-
-        EXAMPLE:
-            sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
-            sage: r1 = A.rank(gauss=False)
-            sage: r2 = A.rank(gauss=True)
-            sage: r1 == r2
-            True
-
-        ALGORITHM: Uses LinBox or native implementation.
-
-        REFERENCES: Jean-Guillaume Dumas and Gilles Villars. 'Computing the
-            Rank of Large Sparse Matrices over Finite Fields'. Proc. CASC'2002,
-            The Fifth International Workshop on Computer Algebra in Scientific Computing,
-            Big Yalta, Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
-            http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
-
-        NOTE:
-            For very sparse matrices Gaussian elimination is faster because
-            it barly has anything to do. If the fill in needs to be considered,
-            'Symbolic Reordering' is usually much faster.
-        """
-        x = self.fetch('rank')
-        if not x is None: return x
-
-        if is_prime(self.p) and not gauss:
-            return self._rank_linbox()
-        else:
-            return Matrix0.rank(self)
-
     def transpose(self):
         """
         Return the transpose of self.
@@ -637,33 +575,161 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     set_entry(&A.rows[i], cols[int(row.positions[j])], row.entries[j])
         return A
 
-##     def _solve(self, Matrix_modn_sparse B):
-##         """
-##         """
-##         cdef c_vector_modint *X
+    cdef _init_linbox(self):
+        _sig_on
+        linbox.set(self.p, self._nrows, self._ncols,  self.rows)
+        _sig_off
 
-##         cdef Matrix_modn_sparse C
+    def _rank_linbox(self, method):
+        """
+        See self.rank().
+        """
+        if is_prime(self.p):
+            x = self.fetch('rank')
+            if not x is None:
+                return x
+            self._init_linbox()
+            _sig_on
+            # the returend pivots list is currently wrong
+            #r, pivots = linbox.rank(1)
+            r = linbox.rank(method)
+            r = Integer(r)
+            _sig_off
+            self.cache('rank', r)
+            return r
+        else:
+            raise TypeError, "only GF(p) supported via LinBox"
 
-##         if not self.is_square():
-##             raise NotImplementedError, "input matrix must be square"
+    def rank(self, gauss=False):
+        """
+        Compute the rank of self.
 
-##         if self.rank() != self.nrows():
-##             raise ValueError, "input matrix must have full rank but it doesn't"
+        INPUT:
+            gauss -- if True LinBox' Gaussian elimination is used. If False
+                     'Symbolic Reordering' as implemented in LinBox
+                     is used. If 'native' the native SAGE implementation
+                     is used. (default: False)
 
-##         self._init_linbox()
+        EXAMPLE:
+            sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
+            sage: r1 = A.rank(gauss=False)
+            sage: r2 = A.rank(gauss=True)
+            sage: r3 = A.rank(gauss='native')
+            sage: r1 == r2 == r3
+            True
 
-##         matrix = True
-##         if is_Vector(B):
-##             matrix = False
-##         C = self.matrix_space(1,self.nrows())(B.list())
+        ALGORITHM: Uses LinBox or native implementation.
 
-##         #_sig_on
-##         linbox.solve(&X, C.rows)
-##         #_sig_off
+        REFERENCES: Jean-Guillaume Dumas and Gilles Villars. 'Computing the
+            Rank of Large Sparse Matrices over Finite Fields'. Proc. CASC'2002,
+            The Fifth International Workshop on Computer Algebra in Scientific Computing,
+            Big Yalta, Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
+            http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
 
-## ##         X = None
-## ##         if not matrix:
-## ##             # Convert back to a vector
-## ##             return (X.base_ring() ** X.nrows())(X.list())
-## ##         else:
-## ##             return X
+        NOTE:
+            For very sparse matrices Gaussian elimination is faster because
+            it barly has anything to do. If the fill in needs to be considered,
+            'Symbolic Reordering' is usually much faster.
+        """
+        x = self.fetch('rank')
+        if not x is None: return x
+
+        if is_prime(self.p):
+            if gauss is False:
+                return self._rank_linbox(0)
+            elif gauss is True:
+                return self._rank_linbox(1)
+            elif gauss == "native":
+                return Matrix2.rank(self)
+            else:
+                raise TypeError, "parameter 'gauss' not understood"
+        else:
+            return Matrix2.rank(self)
+
+    def solve_right(self, B, algorithm=None, check_rank = True):
+        """
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        INPUT:
+            B -- a matrix or vector
+            algorithm -- one of the following:
+                         'LinBox:BlasElimination' -- dense elimination
+                         'LinBox:Blackbox' -- LinBox chooses a Blackbox algorithm
+                         'LinBox:Wiedemann' -- Wiedemann's algorithm
+                         'generic' -- use generic implementation (inversion)
+                         None -- LinBox chooses an algorithm (default)
+            check_rank -- check rank before attempting to solve (default: True)
+
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: A = matrix(GF(127), 3, [1,2,3,-1,2,5,2,3,1], sparse=True)
+            sage: b = vector(GF(127),[1,2,3])
+            sage: x = A \ b; x
+            (73, 76, 10)
+            sage: A * x
+            (1, 2, 3)
+
+        """
+        cdef Matrix_modn_sparse A = self
+        cdef Matrix_modn_sparse b
+        cdef Matrix_modn_sparse X
+        cdef c_vector_modint *x
+
+        if algorithm == "generic" or not is_prime(self.p):
+            return Matrix2.solve_right(self, B)
+
+        if check_rank and self.rank() < self.nrows():
+            raise ValueError, "self must be of full rank."
+
+        if not self.is_square():
+            raise NotImplementedError, "input matrix must be square"
+
+        self._init_linbox()
+
+        matrix = True
+        if is_Vector(B):
+            matrix = False
+            b = <Matrix_modn_sparse>self.matrix_space(1, self.ncols(),sparse=True)(B.list())
+        if PY_TYPE_CHECK(B,Matrix_modn_sparse) and B.base_ring() == self.base_ring():
+            b = <Matrix_modn_sparse>B
+        else:
+            try:
+                b = <Matrix_modn_sparse>self.matrix_space(1, self.ncols(),sparse=True)(B.list())
+            except (TypeError, AttributeError):
+                raise TypeError, "parameter 'b' not understood."
+
+        X = self.new_matrix(b.nrows(),A.ncols())
+
+        if b.nrows() > 1: # such that we can walk through it easily
+            b = b.transpose()
+
+        if algorithm is None:
+            algorithm = 0
+        elif algorithm == "LinBox:BlasElimination":
+            algorithm = 1
+        elif algorithm == "LinBox:Blackbox":
+            algorithm = 2
+        elif algorithm == "LinBox:Wiedemann":
+            algorithm = 3
+        else:
+            raise TypeError, "parameter 'algorithm' not understood"
+
+        for i in range(X.nrows()):
+            _sig_on
+            x = &X.rows[i]
+            linbox.solve(&x, &b.rows[i], algorithm)
+            _sig_off
+
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.ncols())(X.list())
+        else:
+            return X.transpose()

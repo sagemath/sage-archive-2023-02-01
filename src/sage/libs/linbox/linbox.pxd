@@ -24,8 +24,8 @@ cdef class Linbox_modn_sparse:
     cdef unsigned int modulus
 
     cdef set(self, int modulus, size_t nrows, size_t ncols, c_vector_modint *rows)
-    cdef object rank(self, int reorder)
-    #cdef void solve(self, void *x, void *b)
+    cdef object rank(self, int gauss)
+    cdef void solve(self, c_vector_modint **x, c_vector_modint *b, int method)
 
 
 cdef class Linbox_integer_dense:

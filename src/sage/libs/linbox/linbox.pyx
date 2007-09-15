@@ -91,9 +91,17 @@ cdef class Linbox_modn_dense:
 ## Sparse matices modulo p.
 ##########################################################################
 
+include '../../modules/vector_modn_sparse_c.pxi'
+include '../../ext/stdsage.pxi'
+
 cdef extern from "linbox_wrap.h":
+    ctypedef struct vector_uint "std::vector<unsigned int>":
+        void (*push_back)(unsigned int)
+        int (*get "operator[]") (size_t i)
+        int (*size)()
+
     int linbox_modn_sparse_matrix_rank(unsigned long modulus, size_t nrows, size_t ncols, void* rows, int reorder) #, int **pivots)
-    void linbox_modn_sparse_matrix_solve(unsigned long modulus, size_t numrows, size_t numcols, void **x, void *a,  void *b)
+    vector_uint linbox_modn_sparse_matrix_solve(unsigned long modulus, size_t numrows, size_t numcols, void *a,  void *b, int method)
 
 cdef class Linbox_modn_sparse:
     cdef set(self, int modulus, size_t nrows, size_t ncols, c_vector_modint *rows):
@@ -102,19 +110,24 @@ cdef class Linbox_modn_sparse:
         self.ncols = ncols
         self.modulus = modulus
 
-    cdef object rank(self, int reorder):
+    cdef object rank(self, int gauss):
         #cdef int *_pivots
         cdef int r
-        r = linbox_modn_sparse_matrix_rank(self.modulus, self.nrows, self.ncols, self.rows, reorder)
+        r = linbox_modn_sparse_matrix_rank(self.modulus, self.nrows, self.ncols, self.rows, gauss)
 
         #pivots = [_pivots[i] for i in range(r)]
         #free(_pivots)
         return r#, pivots
 
-##     cdef void solve(self, void *x, void *b):
-##         """
-##         """
-##         linbox_modn_sparse_matrix_solve(self.modulus, self.nrows, self.ncols, &x, self.rows, b)
+    cdef void solve(self, c_vector_modint **x, c_vector_modint *b, int method):
+        """
+        """
+        cdef vector_uint X
+        X = linbox_modn_sparse_matrix_solve(self.modulus, self.nrows, self.ncols, self.rows, b, method)
+
+        for i from 0 <= i < X.size():
+            set_entry(x[0], i, X.get(i))
+
 
 ##########################################################################
 ## Sparse matrices over ZZ

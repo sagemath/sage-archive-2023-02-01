@@ -321,10 +321,30 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sage.rings.integer.Integer(0)
 
+    def maximal_order(self):
+        """
+        Return the maximal order of the rational numbers,
+        i.e., the ring ZZ of integers.
+
+        EXAMPLES:
+            sage: QQ.maximal_order()
+            Integer Ring
+            sage: QQ.ring_of_integers ()
+            Integer Ring
+        """
+        from integer_ring import ZZ
+        return ZZ
+
     def number_field(self, poly_var='x', nf_var='a'):
-        from sage.rings.number_field.all import NumberField
-        x = sage.rings.polynomial.polynomial_ring.PolynomialRing(self, poly_var).gen()
-        return NumberField(x-1, nf_var)
+        """
+        Return the number field associated to QQ.  Since QQ
+        is a number field, this just returns QQ again.
+
+        EXAMPLES:
+            sage: QQ.number_field() is QQ
+            True
+        """
+        return self
 
     def order(self):
         """

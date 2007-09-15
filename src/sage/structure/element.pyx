@@ -2840,6 +2840,8 @@ cdef generic_power_c(a, nn, one):
         # a is zero, return it, or raise an exception if n is zero
         if not n:
             raise ArithmeticError, "0^0 is undefined."
+        elif n < 0:
+            raise ZeroDivisionError
         else:
             return a
     elif not n:

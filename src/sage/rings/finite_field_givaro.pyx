@@ -1513,7 +1513,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         elif (field.objectptr).isZero(self.element):
             if exp < 0:
-                raise ArithmeticError, "zero inversion undefined."
+                raise ZeroDivisionError
             return make_FiniteField_givaroElement(field, field.objectptr.zero)
 
         order = (field.order_c()-1)

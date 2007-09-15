@@ -28,7 +28,33 @@ export FLINT_LINK_OPTIONS
 
 cd src
 
+cat makefile ../patches/lib_makefile > makefile.1
+mv makefile.1 makefile
+
 make Z_mpn-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
+
+
+# UNIX
+$MAKE libflint.so
+if [ -f libflint.so ]; then
+    $CP libflint.so "$SAGE_LOCAL/lib/"
+fi
+
+# OS X
+if [ $UNAME = "Darwin" ]; then
+    $MAKE libflint.dylib
+    if [ ! -f libflint.dylib ]; then
+        echo "Failed to build FLINT dylib."
+        exit 1
+    fi
+    $CP libflint.dylib "$SAGE_LOCAL/lib/"
+fi
+
+
+# Copy the header files
+mkdir "$SAGE_LOCAL"/include/FLINT
+$CP *.h "$SAGE_LOCAL"/include/FLINT/
+
 
 
 if [ $? -ne 0 ]; then

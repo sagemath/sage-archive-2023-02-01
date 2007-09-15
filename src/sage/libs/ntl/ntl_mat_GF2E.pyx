@@ -13,17 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
-include 'misc.pxi'
-include 'decl.pxi'
-
-from ntl_GF2E cimport ntl_GF2E
-
-import ntl_GF2E as ntl_GF2E_module
-
-from ntl_GF2E import ntl_GF2E_sage
-
 ##############################################################################
 #
 # ntl_mat_GF2E: Matrices over the GF(2**x) via NTL
@@ -34,9 +23,19 @@ from ntl_GF2E import ntl_GF2E_sage
 #
 ##############################################################################
 
+include "../../ext/interrupt.pxi"
+include "../../ext/stdsage.pxi"
+include 'misc.pxi'
+include 'decl.pxi'
 
-from ntl_ZZ import unpickle_class_args
+from ntl_GF2E cimport ntl_GF2E
+import ntl_GF2E as ntl_GF2E_module
+from ntl_GF2E import ntl_GF2E_sage
+from ntl_GF2E import ntl_GF2E_modulus
 
+def unpickle_mat_GF2E(nrows, ncols, entries, mod):
+    ntl_GF2E_modulus(mod)
+    return ntl_mat_GF2E(nrows, ncols, entries)
 
 cdef class ntl_mat_GF2E:
     r"""
@@ -106,7 +105,7 @@ cdef class ntl_mat_GF2E:
             sage: loads(dumps(m)) == m
             True
         """
-        return unpickle_class_args, (ntl_mat_GF2E, (self.__nrows, self.__ncols, self.list()))
+        return unpickle_mat_GF2E, (self.__nrows, self.__ncols, self.list(), ntl_GF2E_modulus())
 
     def __repr__(self):
         _sig_on

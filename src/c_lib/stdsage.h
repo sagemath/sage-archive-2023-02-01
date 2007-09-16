@@ -74,6 +74,14 @@ extern "C" {
 #define PY_NEW(zzz_type) \
     (((PyTypeObject*)(zzz_type))->tp_new((PyTypeObject*)(zzz_type), global_empty_tuple, NULL))
 
+
+  /** Constructs a new object of type the same type as zzz_obj by calling tp_new
+   *  directly, with no arguments.
+   */
+
+#define PY_NEW_SAME_TYPE(zzz_obj) \
+  PY_NEW(PY_TYPE(zzz_obj))
+
 /** Resets the tp_new slot of zzz_type1 to point to the tp_new slot of
  *  zzz_type2. This is used in SAGE to speed up Pyrex's boilerplate
  *  object construction code by skipping irrelevant base class tp_new

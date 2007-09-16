@@ -30,6 +30,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 cdef class NumberFieldElement_relative(NumberFieldElement):
     pass
 
+# TODO: cyclotomic and/or quadratic classes? (Both for differing implementations and speed).
+
 cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cdef object _order
 

@@ -349,7 +349,6 @@ class AbelianGroup_class(group.AbelianGroup):
         for i in range(n):
             if 1 in invs:
                 invs.remove(1)
-        invs.sort()
         self.__invariants = invs
         # *now* define ngens
         self.__ngens = len(self.__invariants)
@@ -444,7 +443,10 @@ class AbelianGroup_class(group.AbelianGroup):
 ##         return s
 
     def _repr_(self):
-        eldv = self.elementary_divisors()
+        return "Multiplicative Abelian Group isomorphic to " + self._group_notation()
+
+    def _group_notation(self):
+        eldv = self.invariants()
         if eldv == []:
             return "Trivial Abelian Group"
         v = []
@@ -453,9 +455,7 @@ class AbelianGroup_class(group.AbelianGroup):
                 v.append("C%s"%x)
             else:
                 v.append("Z")
-        gp = ' x '.join(v)
-        s = "Multiplicative Abelian Group isomorphic to "+gp
-        return s
+        return ' x '.join(v)
 
     def _latex_(self):
         r"""

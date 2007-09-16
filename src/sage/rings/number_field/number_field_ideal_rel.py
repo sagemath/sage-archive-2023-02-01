@@ -52,7 +52,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         try:
             return self.__pari_rhnf
         except AttributeError:
-            nf = self.number_field().absolute_field().pari_nf()
+            nf = self.number_field().absolute_field()[0].pari_nf()
             rnf = self.number_field().pari_rnf()
             L_hnf = self.absolute_ideal().pari_hnf()
             self.__pari_rhnf = rnf.rnfidealabstorel(nf.getattr('zk')*L_hnf)
@@ -67,7 +67,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
             return self.__absolute_ideal
         except AttributeError:
             rnf = self.number_field().pari_rnf()
-            L = self.number_field().absolute_field()
+            L = self.number_field().absolute_field()[0]
             R = L['x']
             nf = L.pari_nf()
             genlist = [L(R(x.polynomial())) for x in list(self.gens())]

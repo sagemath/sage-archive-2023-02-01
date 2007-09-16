@@ -4201,6 +4201,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
 
+    def idealred(self, I, vdir=0):
+        t0GEN(I); t1GEN(vdir)
+        _sig_on
+        return self.new_gen(ideallllred(self.g, t0, t1, prec))
+
     def idealadd(self, x, y):
         t0GEN(x); t1GEN(y)
         _sig_on

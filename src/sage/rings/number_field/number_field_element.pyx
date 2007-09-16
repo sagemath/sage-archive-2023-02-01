@@ -5,6 +5,7 @@ AUTHORS:
     -- William Stein version before it got cython'd
     -- Joel B. Mohler (2007-03-09): First reimplementation into cython
     -- William Stein (2007-09-04): add doctests
+    -- Robert Bradshaw (2007-09-15): specialized classes for relative and absolute elements
 """
 
 # TODO -- relative extensions need to be completely rewritten, so one
@@ -181,7 +182,7 @@ cdef class NumberFieldElement(FieldElement):
             return
 
         ppr = parent.polynomial_ring()
-        if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
+        if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
             ppr = parent.base_field().polynomial_ring()
 
         if isinstance(f, pari_gen):
@@ -190,7 +191,7 @@ cdef class NumberFieldElement(FieldElement):
         if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
             f = ppr(f)
         if f.degree() >= parent.degree():
-            if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
+            if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
                 f %= parent.absolute_polynomial()
             else:
                 f %= parent.polynomial()
@@ -361,7 +362,7 @@ cdef class NumberFieldElement(FieldElement):
         return repr(self._pari_(var=var))
 ##         if var == None:
 ##             var = self.parent().variable_name()
-##         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+##         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_relative):
 ##             f = self.polynomial()._pari_()
 ##             g = str(self.parent().pari_relative_polynomial())
 ##             base = self.parent().base_ring()
@@ -838,7 +839,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c coeff
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_relative):
             # ugly temp code
             f = self.parent().absolute_polynomial()
 
@@ -900,7 +901,7 @@ cdef class NumberFieldElement(FieldElement):
         return x
 #        K = self.parent()
 #        quotient = K(1)._pari_('x') / self._pari_('x')
-#        if isinstance(K, sage.rings.number_field.number_field.NumberField_extension):
+#        if isinstance(K, sage.rings.number_field.number_field.NumberField_relative):
 #            return K(K.pari_rnf().rnfeltreltoabs(quotient))
 #        else:
 #            return K(quotient)
@@ -1235,7 +1236,7 @@ cdef class NumberFieldElement(FieldElement):
 ##             True
 
 #         Absolute number field:
-#             sage: M = L.absolute_field().gen().matrix(); M
+#             sage: M = L.absolute_field()[0].gen().matrix(); M
 #             [  0   1   0   0   0   0]
 #             [  0   0   1   0   0   0]
 #             [  0   0   0   1   0   0]

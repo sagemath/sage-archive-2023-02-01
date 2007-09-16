@@ -1388,6 +1388,143 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         return v + [z]*(n - len(v))
 
 
+cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
+    # (a + b sqrt(disc)) / denom
+    def __init__(self, parent, f):
+        NumberFieldElement_absolute.__init__(self, parent, f)
+
+    cdef void _reduce_c_(self):
+        cdef mpz_t gcd
+        mpz_init(gcd)
+        mpz_gcd(gcd, self.a, self.b)
+        mpz_gcd(gcd, gcd, self.denom)
+        if mpz_cmp_si(gcd, 1): # != 0 (i.e. it is not 1)
+            mpz_divexact(self.a, self.a, gcd)
+            mpz_divexact(self.b, self.b, gcd)
+            mpz_divexact(self.denom, self.denom, gcd)
+        mpz_clear(gcd)
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_add(res.a, self.a, other.a)
+        mpz_add(res.b, self.b, other.b)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_sub(res.a, self.a, other.a)
+        mpz_sub(res.b, self.b, other.b)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res
+
+    def __neg__(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_neg(res.a, self.a)
+        mpz_neg(res.b, self.b)
+        mpz_set(res.denom, self.denom)
+        return res
+
+    cdef RingElement _mul_c_impl(self, RingElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        cdef mpz_t tmp
+        mpz_init(tmp)
+
+        if mpz_size(self.a) < 2: # could I use a macro instead?
+            # Do it the traditional way
+            mpz_mul(res.a, self.a, other.a)
+            mpz_mul(tmp, self.b, other.b)
+            mpz_mul(tmp, tmp, self.disc.value)
+            mpz_add(res.a, res.a, tmp)
+
+            mpz_mul(res.b, self.a, other.b)
+            mpz_mul(tmp, self.a, other.b)
+            mpz_add(res.b, res.b, tmp)
+
+        else:
+            # Karatsuba
+            mpz_add(res.a, self.a, other.a) # using res.a as tmp
+            mpz_add(tmp, self.b, other.b)
+            mpz_mul(res.b, res.a, tmp) # res.b = (self.a + other.a)(self.b + other.b)
+
+            mpz_mul(res.a, self.a, other.a)
+            mpz_sub(res.b, res.b, res.a)
+            mpz_mul(tmp, self.b, other.b)
+            mpz_sub(res.b, res.b, tmp)
+            mpz_mul(tmp, tmp, self.disc.value)
+            mpz_add(res.a, tmp, tmp)
+
+        mpz_clear(tmp)
+
+        mpz_mul(res.denom, self.denom, other.denom)
+        res._reduce_c_()
+
+        return res
+
+    cdef RingElement _div_c_impl(self, RingElement other):
+        return self * ~other
+
+    def __invert__(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        cdef mpz_t tmp, gcd
+        mpz_init(tmp)
+        mpz_init(gcd)
+
+        mpz_gcd(gcd, self.a, self.b)
+        if mpz_cmp_si(gcd, 1): # != 0 (i.e. it is not 1)
+            # cancel out g (g(a'-b'd)) / (g^2 (a'^2-b'^2d^2))
+            mpz_divexact(res.a, self.a, gcd)
+            mpz_divexact(res.b, self.b, gcd)
+            mpz_neg(res.b, res.b)
+        else:
+            mpz_set(res.a, self.a)
+            mpz_neg(res.b, self.b)
+
+        mpz_pow_ui(res.denom, res.a, 2)
+        mpz_pow_ui(tmp, res.b, 2)
+        mpz_mul(tmp, tmp, self.disc.value)
+        mpz_sub(res.denom, res.denom, tmp)
+        # need to multiply the leftover g back in
+        mpz_mul(res.denom, res.denom, gcd)
+
+        mpz_mul(res.denom, res.denom, self.denom)
+
+        mpz_clear(tmp)
+        mpz_clear(gcd)
+
+        res._reduce_c_()
+        return res
+
+    cdef NumberFieldElement conjugate_c(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_set(res.a, self.a)
+        mpz_neg(res.b, self.b)
+        mpz_set(res.denom, self.denom)
+        return res
+
+
+    def __new__(self):
+        # we do NOT own self.disc.value
+        mpz_init(self.a)
+        mpz_init(self.b)
+        mpz_init(self.denom)
+
+    def __dealloc__(self):
+        # we do NOT own self.disc.value
+        mpz_clear(self.a)
+        mpz_clear(self.b)
+        mpz_clear(self.denom)
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
 

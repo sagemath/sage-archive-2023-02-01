@@ -27,6 +27,12 @@ cdef class NumberFieldElement(FieldElement):
 cdef class NumberFieldElement_absolute(NumberFieldElement):
     pass
 
+cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
+    # (a + b sqrt(disc)) / denom
+    cdef mpz_t a, b, denom
+    cdef Integer disc
+    cdef NumberFieldElement conjugate_c(self)
+
 cdef class NumberFieldElement_relative(NumberFieldElement):
     pass
 

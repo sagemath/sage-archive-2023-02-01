@@ -82,7 +82,7 @@ import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing
 import sage.rings.integer as integer
 import sage.rings.integer_mod_ring as integer_mod_ring
-from sage.libs.all import pari
+from sage.libs.all import pari, pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
 import multi_polynomial_element
@@ -196,6 +196,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: T.<a> = QQ[]
             sage: S(a)
             u
+
+        Coercing in pari elements:
+            sage: QQ['x'](pari('[1,2,3/5]'))
+            3/5*x^2 + 2*x + 1
+            sage: QQ['x'](pari('(-1/3)*x^10 + (2/3)*x - 1/5'))
+            -1/3*x^10 + 2/3*x - 1/5
         """
         if is_Element(x):
             P = x.parent()
@@ -222,6 +228,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 raise TypeError, "denominator must be a unit"
+
+        elif isinstance(x, pari_gen):
+            if x.type() != 't_POL':
+                x = x.Polrev()
+
         C = self.__polynomial_class
         if absprec is None:
             return C(self, x, check, is_gen, construct=construct)

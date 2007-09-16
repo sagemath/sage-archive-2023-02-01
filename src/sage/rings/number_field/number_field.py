@@ -329,6 +329,17 @@ def MultiNumberField(v, names, all=False, check=True):
         sage: m.base_field ()
         Number Field in beta0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
 
+    A tower of quadratic fields:
+        sage: K.<a> = NumberField([x^2 + 1, x^2 + 2, x^2 + 3])
+        sage: K
+        Number Field in a1 with defining polynomial x^2 + 3 over its base field
+        sage: K.base_field()
+        Number Field in a0 with defining polynomial x^2 + 2 over its base field
+        sage: K.base_field().base_field()
+        Number Field in a with defining polynomial x^2 + 1
+
+    A bigger tower of quadratic fields:
+        sage: K.<a> = NumberField([x^2 + p for p in [2,3,5,7,11]])
     """
     name = sage.structure.parent_gens.normalize_names(1, names)[0]
     if not isinstance(v, (list, tuple)):
@@ -346,8 +357,6 @@ def MultiNumberField(v, names, all=False, check=True):
             return NumberField(v[0], names=names)
     f = v[-1]
     w = MultiNumberField(v[:-1], names=names, all=all)
-    if is_RelativeNumberField(w):
-        w = w.absolute_field()[0]
     if isinstance(f, polynomial_element.Polynomial):
         var = f.name()
     else:
@@ -598,6 +607,29 @@ class NumberField_generic(number_field_base.NumberField):
         self.__polynomial = polynomial
         self.__pari_bnf_certified = False
         self.__absolute_field = (self, maps.IdentityMap(self), maps.IdentityMap(self))
+
+    def _Hom_(self, codomain, cat=None):
+        import morphism
+        return morphism.NumberFieldHomset(self, codomain)
+
+    def absolute_field(self):
+        """
+        Returns self as an extension over QQ, which is self.
+
+        OUTPUT:
+            K -- this number field (since it is already absolute)
+            phi -- isomorphism K --> self
+            psi -- isomorphism self --> K
+
+
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.absolute_field()
+            (Cyclotomic Field of order 5 and degree 4,
+             Identity map on Cyclotomic Field of order 5 and degree 4,
+             Identity map on Cyclotomic Field of order 5 and degree 4)
+        """
+        return self.__absolute_field
 
     def is_isomorphic(self, other):
         """
@@ -1386,7 +1418,6 @@ class NumberField_generic(number_field_base.NumberField):
             sage: R.<t> = K[]
             sage: L.<b> = K.extension(t^2 + a); L
             Number Field in b with defining polynomial t^2 + a over its base field
-
         We create another extension.
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1
@@ -1397,6 +1428,11 @@ class NumberField_generic(number_field_base.NumberField):
             x^4 + 6*x^2 + 1
             sage: b.minpoly('z')
             z^4 + 6*z^2 + 1
+
+        A relative extension of a relative extension.
+            sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1])
+            sage: R.<z> = k[]
+            sage: L.<b> = NumberField(z^3 + a)
         """
         if not isinstance(poly, polynomial_element.Polynomial):
             try:
@@ -1887,24 +1923,17 @@ class NumberField_absolute(NumberField_generic):
         """
         return True
 
-    def absolute_field(self):
-        """
-        Returns self as an extension over QQ, which is self.
-
-        OUTPUT:
-            K -- this number field (since it is already absolute)
-            phi -- isomorphism K --> self
-            psi -- isomorphism self --> K
-
+    def absolute_polynomial(self):
+        r"""
+        Return absolute polynomial that defines this absolute field.
+        This is the same as \code{self.polynomial()}.
 
         EXAMPLES:
-            sage: K = CyclotomicField(5)
-            sage: K.absolute_field()
-            (Cyclotomic Field of order 5 and degree 4,
-             Identity map on Cyclotomic Field of order 5 and degree 4,
-             Identity map on Cyclotomic Field of order 5 and degree 4)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.absolute_polynomial ()
+            x^2 + 1
         """
-        return self.__absolute_field
+        return self.polynomial()
 
     def __reduce__(self):
         """
@@ -1918,6 +1947,65 @@ class NumberField_absolute(NumberField_generic):
             True
         """
         return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name())
+
+    def optimized_representation(self, names=None, both_maps=True):
+        """
+        Return a field isomorphic to self with a better defining
+        polynomial if possible, along with field isomorphisms from the
+        new field to self and from self to the new field.
+
+        EXAMPLES:
+        We construct a compositum of 3 quadratic fields, then find an optimized
+        representation and transform elements back and forth.
+            sage: K = NumberField([x^2 + p for p in [2,3,5]],'a').absolute_field()[0]; K
+            Number Field in a1 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
+            sage: L, from_L, to_L = K.optimized_representation()
+            sage: to_L(K.0)
+            4/189*a1^7 - 1/63*a1^6 + 1/27*a1^5 + 2/9*a1^4 - 5/27*a1^3 + 8/9*a1^2 + 3/7*a1 + 3/7
+            sage: from_L(L.0)
+            1/1152*a1^7 + 1/192*a1^6 + 23/576*a1^5 + 17/96*a1^4 + 37/72*a1^3 + 5/6*a1^2 + 55/24*a1 + 3/4
+
+        The transformation maps are mutually inverse isomorphisms.
+            sage: from_L(to_L(K.0))
+            a1
+            sage: to_L(from_L(L.0))
+            a1
+        """
+        if names is None:
+            names = self.variable_names()
+        try:
+            return self.__optimized_representation[names, both_maps]
+        except AttributeError:
+            self.__optimized_representation = {}
+        except KeyError:
+            pass
+        v = pari(self.polynomial()).polred(2)
+        elts = v[0]; polys = v[1]
+        R = self.polynomial_ring()
+        f = R(polys[len(polys)-1])
+        a = self(R(elts[len(elts)-1]))
+        assert f.degree() == self.degree()
+        K = NumberField(f, names=names)
+
+        from_K = K.hom([a])    # check=False here ??   would be safe unless there are bugs.
+
+        if both_maps:
+            g = K['x'](self.polynomial())
+            v = g.roots()
+            a = from_K(K.gen())
+            for i in range(len(v)):
+                r = g.roots()[i][0]
+                to_K = self.hom([r])    # check=False here ??
+                if to_K(a) == K.gen():
+                    break
+        else:
+            to_K = None
+        self.__optimized_representation[names, both_maps] = K, from_K, to_K
+
+        return K, from_K, to_K
+
+    def subfields(self, names=None):
+        raise NotImplementedError
 
     def maximal_order(self):
         """
@@ -2026,8 +2114,7 @@ class NumberField_relative(NumberField_generic):
     """
     def __init__(self, base, polynomial, name,
                  latex_name=None, names=None, check=True):
-        """
-
+        r"""
         INPUT:
             base -- the base field
             polynomial -- must be defined in the ring \code{K['x']}, where
@@ -2049,6 +2136,16 @@ class NumberField_relative(NumberField_generic):
             sage: W.<a> = NumberField(K.cyclotomic_polynomial(5), check=False)
             sage: W
             Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1 over its base field
+
+        A relative extension of a relative extension:
+            sage: k.<a> = NumberField([x^2+1, x^2 + 2])
+            sage: l.<b> = k.extension(x^2 + 3)
+            sage: l
+            Number Field in b with defining polynomial x^2 + 3 over its base field
+            sage: l.base_field()
+            Number Field in a0 with defining polynomial x^2 + 2 over its base field
+            sage: l.base_field().base_field()
+            Number Field in a with defining polynomial x^2 + 1
         """
         if not names is None: name = names
         if not is_NumberField(base):
@@ -2063,23 +2160,18 @@ class NumberField_relative(NumberField_generic):
         if polynomial.parent().base_ring() != base:
             raise ValueError, "The polynomial must be defined over the base field"
 
-        if check:
-            if not polynomial.is_irreducible():
-                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
-
         # Generate the nf and bnf corresponding to the base field
         # defined as polynomials in y, e.g. for rnfisfree
 
         # Convert the polynomial defining the base field into a
         # polynomial in y to satisfy PARI's ordering requirements.
-        # NOTE: This might not work properly if the base field is not
-        #       defined by a polynomial in one variable.  But currently
-        #       they are all defined in one variable, so no problem!
 
-        Qx = base.polynomial().parent()
-        Qy = (base.polynomial().base_ring())['y']
+        abs_base, from_abs_base, to_abs_base = base.absolute_field()
+        self.__absolute_base_field = abs_base, from_abs_base, to_abs_base
+        Qx = abs_base.polynomial().parent()
+        Qy = (abs_base.polynomial().base_ring())['y']
         phi = Qx.hom([Qy.gen()])
-        base_polynomial_y = phi(base.polynomial())
+        base_polynomial_y = phi(abs_base.polynomial())
 
         self.__base_nf = pari(base_polynomial_y).nfinit()
         self.__base_bnf = pari(base_polynomial_y).bnfinit()
@@ -2089,17 +2181,23 @@ class NumberField_relative(NumberField_generic):
         # the generator of the base field.
         # NOTE: This should be rewritten if there is a way to extend
         #       homomorphisms K -> K' to homomorphisms K[x] -> K'[x].
-        base_field_y = NumberField(base.polynomial(), 'y')
+        base_field_y = NumberField(abs_base.polynomial(), 'y')
         Kx = base_field_y['x']
-        i = base.hom([base_field_y.gen()]) # inclusion K -> K' with a -> y
-        rel_coeffs = [i(c) for c in polynomial.coeffs()]
+        i = abs_base.hom([base_field_y.gen()]) # inclusion K -> K' with a -> y
+        rel_coeffs = [i(to_abs_base(c)) for c in polynomial.coeffs()]
         polynomial_y = Kx(rel_coeffs)
+
+        if check:
+            if not polynomial_y.is_irreducible():
+                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
+
 
         self.__pari_relative_polynomial = pari(str(polynomial_y))
         self.__rnf = self.__base_nf.rnfinit(self.__pari_relative_polynomial)
 
         self.__base_field = base
-        NumberField_generic.__init__(self, self.absolute_polynomial(), name=name, latex_name=latex_name, check=False)
+        NumberField_generic.__init__(self, self.absolute_polynomial(), name=name,
+                                     latex_name=latex_name, check=False)
 
         self._assign_names(name)
         self.__relative_polynomial = polynomial
@@ -2221,9 +2319,8 @@ class NumberField_relative(NumberField_generic):
 
     def __base_inclusion(self, element):
         """
-        Given an element of the base field, give its inclusion into this
-        extension (according to PARI's rnfeltreltoabs) in terms of the
-        generator of this field.
+        Given an element of the base field, give its inclusion into
+        this extension in terms of the generator of this field.
 
         This is called by the canonical coercion map on elements from
         the base field.
@@ -2238,17 +2335,26 @@ class NumberField_relative(NumberField_generic):
             1/4*a0^3 + 3/2*a0
             sage: s^2
             -1
-        """
-        if not number_field_element.is_NumberFieldElement(element):
-            raise TypeError, "element must be a NumberFieldElement"
-        if element.parent() != self.base_field():
-            raise TypeError, "element must belong to the base field"
-        base_field_y = NumberField(self.base_field().polynomial(), 'y')
-        phi = self.base_field().hom([base_field_y.gen()])
-        expr_x = self.pari_rnf().rnfeltreltoabs(str(phi(element)))
 
-        # Convert to a polynomial in x, then to one in gen(), and return it
-        return self(QQ['x'](str(expr_x).replace('^','**')))
+        This implicitly tests this coercion map:
+            sage: K.<a> = NumberField([x^2 + p for p in [2,3,5]])
+            sage: K._coerce_(K.base_field().0)
+            -5/576*a1^7 - 97/288*a1^5 - 95/36*a1^3 - 65/12*a1
+            sage: (K.base_field().0).minpoly()
+            x^4 + 10*x^2 + 1
+            sage: K._coerce_(K.base_field().0).minpoly()
+            x^4 + 10*x^2 + 1
+        """
+        abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
+        # Write element in terms of the absolute base field
+        element = to_abs_base(element)
+        # Obtain the polynomial in y corresponding to element in terms of the absolute base
+        f = element.polynomial('y')
+        # Find an expression in terms of the absolute generator for self of element.
+        expr_x = self.pari_rnf().rnfeltreltoabs(f._pari_())
+        # Convert to a SAGE polynomial, then to one in gen(), and return it
+        R = self.polynomial_ring()
+        return self(R(expr_x))
 
     def _ideal_class_(self):
         """
@@ -2309,6 +2415,9 @@ class NumberField_relative(NumberField_generic):
             False
         """
         return self.absolute_field()[0].is_galois()
+
+    def absolute_base_field(self):
+        return self.__absolute_base_field
 
     def gen(self, n=0):
         """
@@ -2536,22 +2645,6 @@ class NumberField_relative(NumberField_generic):
         R = K.polynomial().parent()
         D, d = bnf.rnfdisc(self.pari_relative_polynomial())
         return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, D) ])
-
-    def extension(self, poly, name='b', check=True):
-        """
-        Raise a NotImplemented error, since relative extensions of relative
-        extensions are not yet supported.
-
-        EXAMPLE:
-        I can't until this doctest breaks:
-            sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1])
-            sage: R.<z> = k[]
-            sage: L.<b> = NumberField(z^3 + a)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: relative extensions of relative extensions are not supported
-        """
-        raise NotImplementedError, "relative extensions of relative extensions are not supported"
 
     def order(self, *gens, **kwds):
         """

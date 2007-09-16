@@ -983,7 +983,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
-    def polynomial(self):
+    def polynomial(self, var='x'):
         """
         Return the underlying polynomial corresponding to this
         number field element.
@@ -1004,7 +1004,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: g is f.polynomial()
             False
         """
-        return QQ['x'](self._coefficients())
+        return QQ[var](self._coefficients())
 
     def _coefficients(self):
         """

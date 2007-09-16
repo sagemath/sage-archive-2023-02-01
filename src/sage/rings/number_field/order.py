@@ -67,16 +67,60 @@ class Order(DedekindDomain):
         self._is_maximal = is_maximal
 
     def __mul__(self, right):
+        """
+        Create an ideal in this order using the notation Ok*gens
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 5077); G = k.class_group(); G
+            Class group of order 22 with structure C22 of Number Field in a with defining polynomial x^2 + 5077
+            sage: G.0
+            Fractional ideal class (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
+            sage: Ok = k.maximal_order(); Ok
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 5077
+            sage: Ok*(31, a+10)
+            Fractional ideal (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
+            sage: (31, a+10) * Ok
+            Fractional ideal (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
+        """
         if self.is_maximal():
             return self._K.ideal(right)
         raise TypeError
 
     def __rmul__(self, left):
-        return self.__mul__(right)
+        """
+        Create an ideal in this order using the notation gens*Ok.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 431); G = k.class_group(); G
+            Class group of order 21 with structure C21 of Number Field in a with defining polynomial x^2 + 431
+            sage: G.0
+            Fractional ideal class (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
+            sage: Ok = k.maximal_order(); Ok
+            Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 431
+            sage: (6, 1/2*a + 11/2)*Ok
+            Fractional ideal (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
+            sage: 17*Ok
+            Principal ideal (17) of Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 431
+        """
+        return self.__mul__(left)
 
     def is_maximal(self):
-        if self._is_maximal == None:
-            self._is_maximal == (self.discriminant() == self._K.discriminant())
+        """
+        Returns True if this is the maximal order.
+
+            sage: k.<i> = NumberField(x^2 + 1)
+            sage: O3 = k.order(3*i); O5 = k.order(5*i); Ok = k.maximal_order(); Osum = O3 + O5
+            sage: Osum.is_maximal()
+            True
+            sage: O3.is_maximal()
+            False
+            sage: O5.is_maximal()
+            False
+            sage: Ok.is_maximal()
+            True
+        """
+        if self._is_maximal is None:
+            self._is_maximal = (self.discriminant() == self._K.discriminant())
         return self._is_maximal
 
     def gen(self, i):
@@ -270,9 +314,14 @@ class Order(DedekindDomain):
         (Currently only implemented for the maximal order.)
 
         EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 5077)
+            sage: O = k.maximal_order(); O
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 5077
+            sage: O.class_group()
+            Class group of order 22 with structure C22 of Number Field in a with defining polynomial x^2 + 5077
         """
         if self.is_maximal():
-            return self.number_field().class_group(*args, **kwds)
+            return self.number_field().class_group(proof=proof, names=names)
         else:
             raise NotImplementedError
 
@@ -427,7 +476,7 @@ class AbsoluteOrder(Order):
             return left
         elif right._is_maximal:
             return right
-        return AbsoluteOrder(left._K, left._module_rep + right._module_rep, False)
+        return AbsoluteOrder(left._K, left._module_rep + right._module_rep, None)
 
     def __and__(left, right):
         """

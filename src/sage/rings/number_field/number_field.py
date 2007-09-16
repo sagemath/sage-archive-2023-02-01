@@ -705,7 +705,7 @@ class NumberField_generic(number_field_base.NumberField):
             if x.parent() is self:
                 return x
             elif x.parent() == self:
-                return number_field_element.NumberFieldElement(self, x.polynomial())
+                return self._element_class(self, x.polynomial())
             return self._coerce_from_other_number_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
@@ -756,7 +756,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         f = x.polynomial()
         if f.degree() <= 0:
-            return number_field_element.NumberFieldElement(self, f[0])
+            return self._element_class(self, f[0])
         # todo: more general coercion if embedding have been asserted
         raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
@@ -790,13 +790,13 @@ class NumberField_generic(number_field_base.NumberField):
         if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
                               list)):
-            return number_field_element.NumberFieldElement(self, x)
+            return self._element_class(self, x)
 
         try:
             if isinstance(x, polynomial_element.Polynomial):
-                return number_field_element.NumberFieldElement(self, x)
+                return self._element_class(self, x)
 
-            return number_field_element.NumberFieldElement(self, x._rational_())
+            return self._element_class(self, x._rational_())
         except (TypeError, AttributeError), msg:
             pass
         raise TypeError
@@ -817,7 +817,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: S._coerce_impl(-Integer(2))
             -2
             sage: z = S._coerce_impl(-7/8); z, type(z)
-            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement'>)
+            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>)
             sage: S._coerce_impl(y) is y
             True
 
@@ -831,12 +831,12 @@ class NumberField_generic(number_field_base.NumberField):
             TypeError
         """
         if isinstance(x, (rational.Rational, integer.Integer, int, long)):
-            return number_field_element.NumberFieldElement(self, x)
+            return self._element_class(self, x)
         elif isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
                 return x
             elif x.parent() == self:
-                return number_field_element.NumberFieldElement(self, x.list())
+                return self._element_class(self, x.list())
         raise TypeError
 
     def category(self):
@@ -1423,7 +1423,7 @@ class NumberField_generic(number_field_base.NumberField):
                 X = self.__polynomial.parent().gen()
             else:
                 X = PolynomialRing(rational_field.RationalField()).gen()
-            self.__gen = number_field_element.NumberFieldElement(self, X)
+            self.__gen = self._element_class(self, X)
             return self.__gen
 
     def is_field(self):
@@ -1826,6 +1826,10 @@ class NumberField_generic(number_field_base.NumberField):
 
 class NumberField_absolute(NumberField_generic):
 
+    def __init__(self, polynomial, name, latex_name=None, check=True):
+        NumberField_generic.__init__(self, polynomial, name, latex_name, check)
+        self._element_class = number_field_element.NumberFieldElement_absolute
+
     def is_absolute(self):
         """
         EXAMPLES:
@@ -2043,6 +2047,7 @@ class NumberField_extension(NumberField_generic):
         self._assign_names(name)
         self.__relative_polynomial = polynomial
         self.__pari_bnf_certified = False
+        self._element_class = number_field_element.NumberFieldElement_relative
 
     def __reduce__(self):
         """
@@ -2120,7 +2125,7 @@ class NumberField_extension(NumberField_generic):
             if P is self:
                 return x
             elif P == self:
-                return number_field_element.NumberFieldElement(self, x.polynomial())
+                return self._element_class(self, x.polynomial())
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
 
@@ -2130,7 +2135,7 @@ class NumberField_extension(NumberField_generic):
                               list)):
             return self.base_field()(x)
 
-        return number_field_element.NumberFieldElement(self, x)
+        return self._element_class(self, x)
 
     def _coerce_impl(self, x):
         """
@@ -2274,7 +2279,7 @@ class NumberField_extension(NumberField_generic):
             return self.__gen
         except AttributeError:
             X = rational_field.RationalField()['x'].gen()
-            self.__gen = number_field_element.NumberFieldElement(self, X)
+            self.__gen = self._element_class(self, X)
             return self.__gen
 
     def gen_relative(self):
@@ -2300,7 +2305,7 @@ class NumberField_extension(NumberField_generic):
         except AttributeError:
             rnf = self.pari_rnf()
             f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
-            self.__gen_relative = number_field_element.NumberFieldElement(self, f)
+            self.__gen_relative = self._element_class(self, f)
             return self.__gen_relative
 
     def pari_polynomial(self):
@@ -2762,7 +2767,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         if K is self:
 ##             return x
 ##         elif K == self:
-##             return number_field_element.NumberFieldElement(self, x.polynomial())
+##             return self._element_class(self, x.polynomial())
 ##         n = K.zeta_order()
 ##         m = self.zeta_order()
 ##         print n, m, x
@@ -2829,7 +2834,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         if K is self:
             return x
         elif K == self:
-            return number_field_element.NumberFieldElement(self, x.polynomial())
+            return self._element_class(self, x.polynomial())
         n = K.zeta_order()
         m = self.zeta_order()
         if m % n == 0:   # easy case
@@ -2857,7 +2862,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                         return self.zeta()**(r+1)
                     z *= y
             raise TypeError, "Cannot coerce %s into %s"%(x,self)
-        return number_field_element.NumberFieldElement(self, g)
+        return self._element_class(self, g)
 
 
     def _coerce_from_gap(self, x):

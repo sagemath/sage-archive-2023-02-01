@@ -1389,12 +1389,10 @@ cdef class NumberFieldElement(FieldElement):
 
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):
-    def __init__(self, K, f):
-        NumberFieldElement.__init__(self, K, f)
+    pass
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
-    def __init__(self, K, f):
-        NumberFieldElement.__init__(self, K, f)
+    pass
 
 
 cdef class OrderElement_absolute(NumberFieldElement_absolute):

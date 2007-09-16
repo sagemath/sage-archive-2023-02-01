@@ -443,12 +443,13 @@ class AbelianGroup_class(group.AbelianGroup):
 ##         return s
 
     def _repr_(self):
+        eldv = self.invariants()
+        if len(eldv) == 0:
+            return "Trivial Abelian Group"
+        g = self._group_notation(eldv)
         return "Multiplicative Abelian Group isomorphic to " + self._group_notation()
 
-    def _group_notation(self):
-        eldv = self.invariants()
-        if eldv == []:
-            return "Trivial Abelian Group"
+    def _group_notation(self, eldv):
         v = []
         for x in eldv:
             if x:

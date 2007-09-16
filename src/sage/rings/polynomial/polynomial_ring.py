@@ -239,6 +239,19 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             return C(self, x, check, is_gen, construct=construct, absprec = absprec)
 
+    def is_integral_domain(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x'].is_integral_domain()
+            True
+            sage: Integers(8)['x'].is_integral_domain()
+            False
+        """
+        return self.base_ring().is_integral_domain()
+
+    def is_noetherian(self):
+        return self.base_ring().is_noetherian()
+
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
         return PolynomialFunctor(self.variable_name()), self.base_ring()

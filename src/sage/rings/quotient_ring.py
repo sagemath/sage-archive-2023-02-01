@@ -225,11 +225,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     def cover_ring(self):
         return self.__R
 
-    def ideal(self, gens, coerce=False):
+    def ideal(self, *gens, **kwds):
+        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+            gens = gens[0]
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,coerce)
+            MPolynomialRing_generic.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -237,7 +239,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
     def _can_convert_to_singular(self):
         return self.__R._can_convert_to_singular()

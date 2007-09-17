@@ -39,7 +39,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         sage: i = K.ideal([a+1]); i
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce -a + 1 to an integer
+        TypeError: Unable to coerce -a to an integer
     """
     def pari_rhnf(self):
         """

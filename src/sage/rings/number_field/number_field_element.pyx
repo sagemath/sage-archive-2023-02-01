@@ -1593,7 +1593,11 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: y = QQ['y'].gen()
             sage: k.<j> = NumberField([y^3 - 2, y^2 - 7])
             sage: pari(j)
-            Mod(x, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+            Mod(42/5515*x^5 - 9/11030*x^4 - 196/1103*x^3 + 273/5515*x^2 + 10281/5515*x + 4459/11030, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+            sage: j^2
+            7
+            sage: pari(j)^2
+            Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
         """
         try:
             return self.__pari[var]
@@ -1653,12 +1657,16 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17); L
             Number Field in b with defining polynomial X^3 + 17 over its base field
+            sage: b.charpoly ()
+            x^9 + 51*x^6 + 867*x^3 + 4913
+            sage: b.charpoly()(b)
+            0
             sage: a = L.0; a
             b
             sage: a.charpoly('x')
-            x^9 + 57*x^6 + 165*x^3 + 6859
+            x^9 + 51*x^6 + 867*x^3 + 4913
             sage: a.charpoly('y')
-            y^9 + 57*y^6 + 165*y^3 + 6859
+            y^9 + 51*y^6 + 867*y^3 + 4913
         """
         R = self.parent().base_ring()[var]
         g = self.polynomial()  # in QQ[x]

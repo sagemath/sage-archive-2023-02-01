@@ -226,9 +226,9 @@ def NumberField(polynomial, name=None, check=True, names=None, all=False):
         sage: L.absolute_field()[0]
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
         sage: a*b
-        -b^4 - b^2
+        a*b
         sage: L(a)
-        -b^3 - b
+        a
         sage: L.lift_to_base(b^3 + b)
         -a
 
@@ -335,7 +335,7 @@ def MultiNumberField(v, names, all=False, check=True):
     Note -- because SAGE currently doesn't support relative extensions
     of relative extensions, the base field is an absolute field.
         sage: k.base_field()
-        Number Field in a0 with defining polynomial x^4 + 8*x^2 + 4
+        Number Field in a0 with defining polynomial x^2 + 3 over its base field
 
     In the following examle the second polynomial reducible over the first, so
     we have to create all extensions or we get an error:
@@ -360,7 +360,7 @@ def MultiNumberField(v, names, all=False, check=True):
         sage: m
         Number Field in beta1 with defining polynomial y^3 + -3 over its base field
         sage: m.base_field ()
-        Number Field in beta0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
+        Number Field in beta0 with defining polynomial x^2 + x + 1 over its base field
 
     A tower of quadratic fields:
         sage: K.<a> = NumberField([x^2 + 1, x^2 + 2, x^2 + 3])
@@ -371,8 +371,8 @@ def MultiNumberField(v, names, all=False, check=True):
         sage: K.base_field().base_field()
         Number Field in a with defining polynomial x^2 + 1
 
-    A bigger tower of quadratic fields:
-        sage: K.<a> = NumberField([x^2 + p for p in [2,3,5,7,11]])
+    A bigger tower of quadratic fields.
+        sage: K.<a> = NumberField([x^2 + p for p in [2,3,5,7]])
     """
     name = sage.structure.parent_gens.normalize_names(1, names)[0]
     if not isinstance(v, (list, tuple)):
@@ -470,7 +470,7 @@ def is_AbsoluteNumberField(x):
 
     The rationals are a number field, but they're not of the absolute number field class.
         sage: is_AbsoluteNumberField(QQ)
-        True
+        False
     """
     return isinstance(x, NumberField_absolute)
 
@@ -1321,25 +1321,25 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G = K.class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
             sage: G.0
-            Fractional ideal (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23
+            Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23
             sage: G.gens()
-            [Fractional ideal (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23]
+            [Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23]
 
             sage: G.number_field()
             Number Field in a with defining polynomial x^2 + 23
-            sage: G is k.class_group()
+            sage: G is K.class_group()
             True
-            sage: G is k.class_group(proof=False)
+            sage: G is K.class_group(proof=False)
             False
             sage: G.gens()
-            (c,)
+            [Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23]
 
         There can be multiple generators:
             sage: k.<a> = NumberField(x^2 + 20072)
             sage: G = k.class_group(); G
-            Class group of order 76 with structure C2 x C2 x C19 of Number Field in a with defining polynomial x^2 + 20072
+            Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
             sage: G.gens()
-            (c0, c1)
+            [Fractional ideal class (41, a + 10) of Number Field in a with defining polynomial x^2 + 20072, Fractional ideal class (2, -1/2*a) of Number Field in a with defining polynomial x^2 + 20072]
             sage: G.0
             Fractional ideal class (41, a + 10) of Number Field in a with defining polynomial x^2 + 20072
             sage: G.0^20
@@ -1350,15 +1350,6 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal class (2, -1/2*a) of Number Field in a with defining polynomial x^2 + 20072
             sage: G.1^2
             Trivial principal fractional ideal class of Number Field in a with defining polynomial x^2 + 20072
-
-        You can name the generators during construction:
-            sage: G.<Z0,Z1> = k.class_group(); G.gens()
-            (Z0, Z1)
-
-        Assigning generator names without having to know how many
-        there will be:
-            sage: k.class_group(names='W').gens()
-            (W0, W1)
 
         Class groups of Hecke polynomials tend to be very small:
             sage: f = ModularForms(97, 2).T(2).charpoly()
@@ -1573,15 +1564,18 @@ class NumberField_generic(number_field_base.NumberField):
             sage: y = var('y')
             sage: m.<b> = k.extension(y^2 + 2); m
             Number Field in b with defining polynomial y^2 + 2 over its base field
+
+        Note that b is a root of $y^2 + 2$:
             sage: b.minpoly()
-            x^4 + 6*x^2 + 1
+            x^2 + 2
             sage: b.minpoly('z')
-            z^4 + 6*z^2 + 1
+            z^2 + 2
 
         A relative extension of a relative extension.
             sage: k.<a> = NumberField([x^3 + x + 1, x^2 + 1])
             sage: R.<z> = k[]
-            sage: L.<b> = NumberField(z^3 + a)
+            sage: L.<b> = NumberField(z^3 + 3 + a); L
+            Number Field in b with defining polynomial z^3 + a0 + 3 over its base field
         """
         if not isinstance(poly, polynomial_element.Polynomial):
             try:
@@ -2030,7 +2024,7 @@ class NumberField_generic(number_field_base.NumberField):
             else:
                 return self(-1)
         else:
-            field = self.__absolute_field
+            field = self.absolute_field()[0]
             f = field.polynomial_ring().cyclotomic_polynomial(n)
             F = polynomial_ring.PolynomialRing(field, 'x')(f)
             R = F.roots()
@@ -2109,8 +2103,10 @@ class NumberField_absolute(NumberField_generic):
             sage: K = NumberField([x^2 + p for p in [2,3,5]],'a').absolute_field()[0]; K
             Number Field in a1 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L, from_L, to_L = K.optimized_representation()
+            sage: L
+            Number Field in a14 with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
             sage: to_L(K.0)
-            4/189*a1^7 - 1/63*a1^6 + 1/27*a1^5 + 2/9*a1^4 - 5/27*a1^3 + 8/9*a1^2 + 3/7*a1 + 3/7
+            4/189*a14^7 - 1/63*a14^6 + 1/27*a14^5 + 2/9*a14^4 - 5/27*a14^3 + 8/9*a14^2 + 3/7*a14 + 3/7
             sage: from_L(L.0)
             1/1152*a1^7 + 1/192*a1^6 + 23/576*a1^5 + 17/96*a1^4 + 37/72*a1^3 + 5/6*a1^2 + 55/24*a1 + 3/4
 
@@ -2118,9 +2114,9 @@ class NumberField_absolute(NumberField_generic):
             sage: from_L(to_L(K.0))
             a1
             sage: to_L(from_L(L.0))
-            a1
+            a14
         """
-        return self.optimized_subfields(names, degree=self.degree(), both_maps=both_maps)[0]
+        return self.optimized_subfields(degree=self.degree(), name=names, both_maps=both_maps)[0]
 
     def optimized_subfields(self, degree=0, name=None, both_maps=True):
         """
@@ -2130,6 +2126,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
             sage: K = NumberField([x^2 + p for p in [2,3,5]],'a').absolute_field()[0]; K
+            Number Field in a1 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L = K.optimized_subfields(name='b')
             sage: L[0][0]
             Number Field in b0 with defining polynomial x - 1
@@ -2182,7 +2179,7 @@ class NumberField_absolute(NumberField_generic):
              x^3 + 3*x^2 + 3*x - 1,
              x^6 + 3*x^5 + 6*x^4 + 11*x^3 + 12*x^2 - 3*x + 1]
         """
-        return self._subfields_helper(degree=degree, names=name,
+        return self._subfields_helper(degree=degree, name=name,
                                       both_maps=True, optimize=False)
 
     def _subfields_helper(self, degree=0, name=None, both_maps=True, optimize=False):
@@ -2244,7 +2241,7 @@ class NumberField_absolute(NumberField_generic):
             sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
             sage: o = k.maximal_order()
             sage: o
-            Order with modular basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            Order with module basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
         """
         try:
             return self.__maximal_order
@@ -2277,9 +2274,9 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
             sage: k.order(2*i)
-            Order with modular basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
+            Order with module basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(10*i)
-            Order with modular basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
+            Order with module basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(3)
             Traceback (most recent call last):
             ...
@@ -2318,8 +2315,6 @@ class NumberField_absolute(NumberField_generic):
             (1, 2, 3)
             sage: V
             Vector space of dimension 3 over Rational Field
-            sage: to_V
-            Isomorphism from Vector space of dimension 3 over Rational Field to Number Field in a with defining polynomial x^3 + 2
             sage: to_V
             Isomorphism from Number Field in a with defining polynomial x^3 + 2 to Vector space of dimension 3 over Rational Field
             sage: from_V(to_V(2/3*a - 5/8))
@@ -2373,6 +2368,7 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1 over its base field
 
         A relative extension of a relative extension:
+            sage: x = var('x')
             sage: k.<a> = NumberField([x^2+1, x^2 + 2])
             sage: l.<b> = k.extension(x^2 + 3)
             sage: l
@@ -2510,16 +2506,16 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^2 + 1, x^2 + 3, x^2 + 5])
             sage: m = k.base_field(); m
-            Number Field in a0 with defining polynomial x^4 + 8*x^2 + 4
+            Number Field in a0 with defining polynomial x^2 + 3 over its base field
             sage: b = k(m.0)
             sage: b
-            -21/1408*a1^7 - 745/1408*a1^5 - 5935/1408*a1^3 - 9171/1408*a1
-            sage: b^4 + 8*b^2 + 4
+            a0
+            sage: b^2 + 3
             0
             sage: k(2/3)
             2/3
             sage: k(m.0^4)
-            1/8*a1^6 + 37/8*a1^4 + 307/8*a1^2 + 519/8
+            9
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()
@@ -2575,20 +2571,20 @@ class NumberField_relative(NumberField_generic):
             sage: m = k.base_field(); m
             Number Field in a with defining polynomial x^2 + 1
             sage: k._coerce_(m.0 + 2/3)
-            1/4*a0^3 + 3/2*a0 + 2/3
+            a + 2/3
             sage: s = k._coerce_(m.0); s
-            1/4*a0^3 + 3/2*a0
+            a
             sage: s^2
             -1
 
         This implicitly tests this coercion map:
             sage: K.<a> = NumberField([x^2 + p for p in [2,3,5]])
             sage: K._coerce_(K.base_field().0)
-            -5/576*a1^7 - 97/288*a1^5 - 95/36*a1^3 - 65/12*a1
+            a0
             sage: (K.base_field().0).minpoly()
-            x^4 + 10*x^2 + 1
+            x^2 + 3
             sage: K._coerce_(K.base_field().0).minpoly()
-            x^4 + 10*x^2 + 1
+            x^2 + 3
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         # Write element in terms of the absolute base field
@@ -2673,7 +2669,7 @@ class NumberField_relative(NumberField_generic):
             sage: from_V(V.0)
             1
             sage: to_V(K.0)
-            (-a0, 1)
+            (0, 1)
             sage: from_V(to_V(K.0))
             a1
             sage: to_V(from_V(V.0))
@@ -2699,28 +2695,22 @@ class NumberField_relative(NumberField_generic):
     def absolute_vector_space(self):
         """
         EXAMPLES:
-            sage: K.<a> = NumberField([x^3 + 2, x^3 + 3])
-            sage: K
+            sage: K.<a> = NumberField([x^3 + 2, x^3 + 3]); K
             Number Field in a0 with defining polynomial x^3 + 3 over its base field
-            sage: V,from_V,to_V = K.absolute_vector_space()
-            sage: V
+            sage: V,from_V,to_V = K.absolute_vector_space(); V
             Vector space of dimension 9 over Rational Field
             sage: from_V
             Isomorphism from Vector space of dimension 9 over Rational Field to Number Field in a0 with defining polynomial x^3 + 3 over its base field
             sage: to_V
             Isomorphism from Number Field in a0 with defining polynomial x^3 + 3 over its base field to Vector space of dimension 9 over Rational Field
-            sage: from_V(V.0)
-            1
-            sage: from_V(V.1)
-            a0
-            sage: to_V((a+1)^3)
-            (1, 3, 3, 1, 0, 0, 0, 0, 0)
-            sage: to_V((a+1)^10)
-            (-9, 9, 45, -1530, 45, 252, 180, 117, 45)
-            sage: from_V(to_V((a+1)^10))
-            45*a0^8 + 117*a0^7 + 180*a0^6 + 252*a0^5 + 45*a0^4 - 1530*a0^3 + 45*a0^2 + 9*a0 - 9
-            sage: (a+1)^10
-            45*a0^8 + 117*a0^7 + 180*a0^6 + 252*a0^5 + 45*a0^4 - 1530*a0^3 + 45*a0^2 + 9*a0 - 9
+            sage: b = (a+1)^5; b
+            7*a0^2 + (-10)*a0 + -29
+            sage: to_V(b)
+            (-29, -712/9, 19712/45, 0, -14/9, 364/45, 0, -4/9, 119/45)
+            sage: from_V(to_V(b))
+            7*a0^2 + (-10)*a0 + -29
+            sage: from_V(3*to_V(b))
+            21*a0^2 + (-30)*a0 + -87
         """
         try:
             return self.__absolute_vector_space
@@ -2745,10 +2735,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in a1 with defining polynomial x^2 + 2 over its base field
             sage: K.base_field()
             Number Field in a0 with defining polynomial x^3 + 3 over its base field
-            sage: K.absolute_base_field()
-            (Number Field in a0 with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1,
-             Isomorphism from Number Field in a0 with defining polynomial x^3 + 3 over its base field to Number Field in a0 with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1,
-             Isomorphism from Number Field in a0 with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1 to Number Field in a0 with defining polynomial x^3 + 3 over its base field)
+            sage: K.absolute_base_field()[0]
+            Number Field in a0 with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
             sage: K.base_field().absolute_field()[0]
             Number Field in a0 with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
         """
@@ -2766,7 +2754,7 @@ class NumberField_relative(NumberField_generic):
             sage: m.<b> = k.extension(y^2+3); m
             Number Field in b with defining polynomial x^2 + 3 over its base field
             sage: c = m.gen(); c
-            1/4*b^3 + 5/2*b
+            b
             sage: c^2 + 3
             0
         """
@@ -2865,10 +2853,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in a0 with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
 
             sage: k.<a> = NumberField([x^2 + 1, x^3 + 2])
-            sage: k.absolute_field()
-            (Number Field in a0 with defining polynomial x^6 + 3*x^4 + 4*x^3 + 3*x^2 - 12*x + 5,
-            Isomorphism from Number Field in a0 with defining polynomial x^3 + 2 over its base field to Number Field in a0 with defining polynomial x^6 + 3*x^4 + 4*x^3 + 3*x^2 - 12*x + 5,
-            Isomorphism from Number Field in a0 with defining polynomial x^6 + 3*x^4 + 4*x^3 + 3*x^2 - 12*x + 5 to Number Field in a0 with defining polynomial x^3 + 2 over its base field)
+            sage: k.absolute_field()[0]
+            Number Field in a0 with defining polynomial x^6 + 3*x^4 + 4*x^3 + 3*x^2 - 12*x + 5
         """
         try:
             return self.__absolute_field
@@ -2956,7 +2942,6 @@ class NumberField_relative(NumberField_generic):
             sage: L.<b> = K.extension(t^4 - i)
             sage: L.relative_discriminant()
             Fractional ideal (256) of Number Field in i with defining polynomial x^2 + 1
-            sage: L.discriminant()
             sage: factor(L.discriminant())
             2^24
             sage: factor( L.relative_discriminant().norm() )

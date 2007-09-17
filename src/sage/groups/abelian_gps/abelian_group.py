@@ -447,7 +447,7 @@ class AbelianGroup_class(group.AbelianGroup):
         if len(eldv) == 0:
             return "Trivial Abelian Group"
         g = self._group_notation(eldv)
-        return "Multiplicative Abelian Group isomorphic to " + self._group_notation()
+        return "Multiplicative Abelian Group isomorphic to " + g
 
     def _group_notation(self, eldv):
         v = []

@@ -24,6 +24,9 @@ cdef class NumberFieldElement(FieldElement):
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef ModuleElement _neg_c_impl(self)
 
+    cdef bint is_rational_c(self)
+
+
 cdef class NumberFieldElement_absolute(NumberFieldElement):
     pass
 
@@ -32,6 +35,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cdef mpz_t a, b, denom
     cdef Integer disc
     cdef NumberFieldElement conjugate_c(self)
+    cdef bint is_sqrt_disc(self)
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
     pass

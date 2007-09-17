@@ -5,6 +5,7 @@ AUTHORS:
     -- William Stein version before it got cython'd
     -- Joel B. Mohler (2007-03-09): First reimplementation into cython
     -- William Stein (2007-09-04): add doctests
+    -- Robert Bradshaw (2007-09-15): specialized classes for relative and absolute elements
 """
 
 # TODO -- relative extensions need to be completely rewritten, so one
@@ -36,7 +37,11 @@ AUTHORS:
 import operator
 
 include "../../ext/stdsage.pxi"
+cdef extern from *:
+    # TODO: move to stdsage.pxi
+    object PY_NEW_SAME_TYPE(object o)
 include '../../ext/interrupt.pxi'
+include '../../ext/python_int.pxi'
 
 import sage.rings.field_element
 import sage.rings.infinity
@@ -87,6 +92,19 @@ def __create__NumberFieldElement_version0(parent, poly):
     """
     return NumberFieldElement(parent, poly)
 
+def __create__NumberFieldElement_version1(parent, cls, poly):
+    """
+    Used in unpickling elements of number fields.
+
+    EXAMPLES:
+    Since this is just used in unpickling, we unpickle.
+
+        sage: k.<a> = NumberField(x^3 - 2)
+        sage: loads(dumps(a+1)) == a + 1
+        True
+    """
+    return cls(parent, poly)
+
 cdef class NumberFieldElement(FieldElement):
     """
     An element of a number field.
@@ -98,10 +116,11 @@ cdef class NumberFieldElement(FieldElement):
     """
     cdef NumberFieldElement _new(self):
         """
-        Quickly creates a new initialized NumberFieldElement with the same parent as self.
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
         """
         cdef NumberFieldElement x
-        x = PY_NEW(NumberFieldElement)
+        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = self._parent
         return x
 
@@ -163,7 +182,7 @@ cdef class NumberFieldElement(FieldElement):
             return
 
         ppr = parent.polynomial_ring()
-        if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
+        if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
             ppr = parent.base_field().polynomial_ring()
 
         if isinstance(f, pari_gen):
@@ -171,8 +190,10 @@ cdef class NumberFieldElement(FieldElement):
             f = ppr(f)
         if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
             f = ppr(f)
-        if f.degree() >= parent.degree():
-            if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
+        if f.degree() >= parent.absolute_degree():
+            if f.variable_name() != 'x':
+                f = f.change_variable_name('x')
+            if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
                 f %= parent.absolute_polynomial()
             else:
                 f %= parent.polynomial()
@@ -228,8 +249,7 @@ cdef class NumberFieldElement(FieldElement):
         except TypeError:
             raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
 
-        cdef NumberFieldElement x
-        x = PY_NEW(NumberFieldElement)
+        cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = <ParentWithBase>new_parent
         x.__denominator = self.__denominator
         cdef ZZX_c result
@@ -252,12 +272,12 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES:
             sage: k.<a> = NumberField(x^3 - 17*x^2 + 1)
             sage: t = a.__reduce__(); t
-            (<built-in function __create__NumberFieldElement_version0>, (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, x))
+            (<built-in function __create__NumberFieldElement_version1>, (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>, x))
             sage: t[0](*t[1]) == a
             True
         """
-        return __create__NumberFieldElement_version0, \
-               (self.parent(), self.polynomial())
+        return __create__NumberFieldElement_version1, \
+               (self.parent(), type(self), self.polynomial())
 
     def __repr__(self):
         """
@@ -306,74 +326,7 @@ cdef class NumberFieldElement(FieldElement):
         return self.polynomial()._latex_(name=self.parent().latex_variable_name())
 
     def _pari_(self, var='x'):
-        """
-        Return PARI C-library object corresponding to self.
-
-        EXAMPLES:
-            sage: k.<j> = QuadraticField(-1)
-            sage: j._pari_('j')
-            Mod(j, j^2 + 1)
-            sage: pari(j)
-            Mod(x, x^2 + 1)
-
-            sage: y = QQ['y'].gen()
-            sage: k.<j> = NumberField(y^3 - 2)
-            sage: pari(j)
-            Mod(x, x^3 - 2)
-
-        By default the variable name is 'x', since in PARI many variable
-        names are reserved:
-            sage: theta = polygen(QQ, 'theta')
-            sage: M.<theta> = NumberField(theta^2 + 1)
-            sage: pari(theta)
-            Mod(x, x^2 + 1)
-
-        If you try do coerce a generator called I to PARI, hell may
-        break loose:
-            sage: k.<I> = QuadraticField(-1)
-            sage: I._pari_('I')
-            Traceback (most recent call last):
-            ...
-            PariError: forbidden (45)
-
-        Instead, request the variable be named different for the coercion:
-            sage: pari(I)
-            Mod(x, x^2 + 1)
-            sage: I._pari_('i')
-            Mod(i, i^2 + 1)
-            sage: I._pari_('II')
-            Mod(II, II^2 + 1)
-        """
-        try:
-            return self.__pari[var]
-        except KeyError:
-            pass
-        except TypeError:
-            self.__pari = {}
-        if var is None:
-            var = self.parent().variable_name()
-        if isinstance(self.parent(),
-                      sage.rings.number_field.number_field.NumberField_extension):
-            f = self.polynomial()._pari_()
-            g = str(self.parent().pari_polynomial())
-            base = self.parent().base_ring()
-            gsub = base.gen()._pari_()
-            gsub = str(gsub).replace('x', "y")
-            g = g.replace("y", gsub)
-        else:
-            f = self.polynomial()._pari_()
-            gp = self.parent().polynomial()
-            if gp.name() != 'x':
-                gp = gp.change_variable_name('x')
-            g = gp._pari_()
-            gv = str(gp.parent().gen())
-            if var != 'x':
-                f = f.subst("x",var)
-            if var != gv:
-                g = g.subst(gv, var)
-        h = f.Mod(g)
-        self.__pari[var] = h
-        return h
+        raise NotImplementedError, "NumberFieldElement sub-classes must override _pari_"
 
     def _pari_init_(self, var='x'):
         """
@@ -411,7 +364,7 @@ cdef class NumberFieldElement(FieldElement):
         return repr(self._pari_(var=var))
 ##         if var == None:
 ##             var = self.parent().variable_name()
-##         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+##         if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_relative):
 ##             f = self.polynomial()._pari_()
 ##             g = str(self.parent().pari_relative_polynomial())
 ##             base = self.parent().base_ring()
@@ -521,6 +474,58 @@ cdef class NumberFieldElement(FieldElement):
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
+
+    def coordinates_in_terms_of_powers(self):
+        r"""
+        Let $\alpha$ be self.  Return a Python function that takes any
+        element of the parent of self in $\QQ(\alpha)$ and writes it in
+        terms of the powers of $\alpha$: $1, \alpha, \alpha^2, ...$.
+
+        (NOT CACHED).
+
+        EXAMPLES:
+        This function allows us to write elements of a number field in
+        terms of a different generator without having to construct a
+        whole separate number field.
+
+            sage: y = polygen(QQ,'y'); K.<beta> = NumberField(y^3 - 2); K
+            Number Field in beta with defining polynomial y^3 - 2
+            sage: alpha = beta^2 + beta + 1
+            sage: c = alpha.coordinates_in_terms_of_powers(); c
+            Coordinate function that writes elements in terms of the powers of beta^2 + beta + 1
+            sage: c(beta)
+            [-2, -3, 1]
+            sage: c(alpha)
+            [0, 1, 0]
+            sage: c((1+beta)^5)
+            [3, 3, 3]
+            sage: c((1+beta)^10)
+            [54, 162, 189]
+
+        This function works even if self only generates a subfield
+        of this number field.
+            sage: k.<a> = NumberField(x^6 - 5)
+            sage: alpha = a^3
+            sage: c = alpha.coordinates_in_terms_of_powers()
+            sage: c((2/3)*a^3 - 5/3)
+            [-5/3, 2/3]
+            sage: c
+            Coordinate function that writes elements in terms of the powers of a^3
+            sage: c(a)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+        """
+        K = self.parent()
+        V, from_V, to_V = K.absolute_vector_space()
+        h = K(1)
+        B = [to_V(h)]
+        f = self.minpoly()
+        for i in range(f.degree()-1):
+            h *= self
+            B.append(to_V(h))
+        W = V.span_of_basis(B)
+        return CoordinateFunction(self, W, to_V)
 
     def complex_embeddings(self, prec=53):
         """
@@ -883,11 +888,12 @@ cdef class NumberFieldElement(FieldElement):
         return long(self.polynomial())
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        raise NotImplementedError, "NumberFieldElement subclasses must override _parent_poly_c_()"
         cdef long i
         cdef ZZ_c coeff
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
+        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_relative):
             # ugly temp code
             f = self.parent().absolute_polynomial()
 
@@ -949,7 +955,7 @@ cdef class NumberFieldElement(FieldElement):
         return x
 #        K = self.parent()
 #        quotient = K(1)._pari_('x') / self._pari_('x')
-#        if isinstance(K, sage.rings.number_field.number_field.NumberField_extension):
+#        if isinstance(K, sage.rings.number_field.number_field.NumberField_relative):
 #            return K(K.pari_rnf().rnfeltreltoabs(quotient))
 #        else:
 #            return K(quotient)
@@ -1031,7 +1037,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
-    def polynomial(self):
+    def polynomial(self, var='x'):
         """
         Return the underlying polynomial corresponding to this
         number field element.
@@ -1052,7 +1058,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: g is f.polynomial()
             False
         """
-        return QQ['x'](self._coefficients())
+        return QQ[var](self._coefficients())
 
     def _coefficients(self):
         """
@@ -1210,48 +1216,7 @@ cdef class NumberFieldElement(FieldElement):
         return K(self._pari_('x').norm())
 
     def charpoly(self, var='x'):
-        r"""
-        The characteristic polynomial of this element over $\Q$.
-
-        EXAMPLES:
-
-        We compute the charpoly of cube root of $3$.
-
-            sage: R.<x> = QQ[]
-            sage: K.<a> = NumberField(x^3-2)
-            sage: a.charpoly('x')
-            x^3 - 2
-
-        We construct a relative extension and find the characteristic
-        polynomial over $\Q$.
-
-            sage: S.<X> = K[]
-            sage: L.<b> = NumberField(X^3 + 17); L
-            Number Field in b with defining polynomial X^3 + 17 over its base field
-            sage: a = L.0; a
-            b
-            sage: a.charpoly('x')
-            x^9 + 57*x^6 + 165*x^3 + 6859
-            sage: a.charpoly('y')
-            y^9 + 57*y^6 + 165*y^3 + 6859
-        """
-        R = self.parent().base_ring()[var]
-        if not isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_extension):
-            return R(self._pari_('x').charpoly())
-        else:
-            g = self.polynomial()  # in QQ[x]
-            f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            return R( (g._pari_().Mod(f)).charpoly() )
-
-## This might be useful for computing relative charpoly.
-## BUT -- currently I don't even know how to view elements
-## as being in terms of the right thing, i.e., this code
-## below as is lies.
-##             nf = self.parent()._pari_base_nf()
-##             prp = self.parent().pari_relative_polynomial()
-##             elt = str(self.polynomial()._pari_())
-##             return R(nf.rnfcharpoly(prp, elt))
-##         # return self.matrix().charpoly('x')
+        raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
 
     def minpoly(self, var='x'):
         """
@@ -1325,7 +1290,7 @@ cdef class NumberFieldElement(FieldElement):
 ##             True
 
 #         Absolute number field:
-#             sage: M = L.absolute_field().gen().matrix(); M
+#             sage: M = L.absolute_field()[0].gen().matrix(); M
 #             [  0   1   0   0   0   0]
 #             [  0   0   1   0   0   0]
 #             [  0   0   0   1   0   0]
@@ -1366,6 +1331,102 @@ cdef class NumberFieldElement(FieldElement):
     def list(self):
         """
         Return list of coefficients of self written in terms of a power basis.
+        """
+        # Power basis list is total nonsense, unless the parent of self is an
+        # absolute extension.
+        raise NotImplementedError
+
+
+cdef class NumberFieldElement_absolute(NumberFieldElement):
+
+    def _pari_(self, var='x'):
+        """
+        Return PARI C-library object corresponding to self.
+
+        EXAMPLES:
+            sage: k.<j> = QuadraticField(-1)
+            sage: j._pari_('j')
+            Mod(j, j^2 + 1)
+            sage: pari(j)
+            Mod(x, x^2 + 1)
+
+            sage: y = QQ['y'].gen()
+            sage: k.<j> = NumberField(y^3 - 2)
+            sage: pari(j)
+            Mod(x, x^3 - 2)
+
+        By default the variable name is 'x', since in PARI many variable
+        names are reserved:
+            sage: theta = polygen(QQ, 'theta')
+            sage: M.<theta> = NumberField(theta^2 + 1)
+            sage: pari(theta)
+            Mod(x, x^2 + 1)
+
+        If you try do coerce a generator called I to PARI, hell may
+        break loose:
+            sage: k.<I> = QuadraticField(-1)
+            sage: I._pari_('I')
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden (45)
+
+        Instead, request the variable be named different for the coercion:
+            sage: pari(I)
+            Mod(x, x^2 + 1)
+            sage: I._pari_('i')
+            Mod(i, i^2 + 1)
+            sage: I._pari_('II')
+            Mod(II, II^2 + 1)
+        """
+        try:
+            return self.__pari[var]
+        except KeyError:
+            pass
+        except TypeError:
+            self.__pari = {}
+        if var is None:
+            var = self.parent().variable_name()
+        f = self.polynomial()._pari_()
+        gp = self.parent().polynomial()
+        if gp.name() != 'x':
+            gp = gp.change_variable_name('x')
+        g = gp._pari_()
+        gv = str(gp.parent().gen())
+        if var != 'x':
+            f = f.subst("x",var)
+        if var != gv:
+            g = g.subst(gv, var)
+        h = f.Mod(g)
+        self.__pari[var] = h
+        return h
+
+    cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        cdef ntl_ZZX _num
+        cdef ntl_ZZ _den
+        _num, _den = self.parent().polynomial_ntl()
+        num[0] = _num.x[0]
+        den[0] = _den.x[0]
+
+    def charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this element over $\Q$.
+
+        EXAMPLES:
+
+        We compute the charpoly of cube root of $2$.
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-2)
+            sage: a.charpoly('x')
+            x^3 - 2
+
+        """
+        R = self.parent().base_ring()[var]
+        return R(self._pari_('x').charpoly())
+
+    def list(self):
+        """
+        Return list of coefficients of self written in terms of a power basis.
 
         EXAMPLE:
             sage: K.<z> = CyclotomicField(3)
@@ -1376,21 +1437,290 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(3).list()
             [3, 0]
         """
-        P = self.parent()
-        # The algorithm below is total nonsense, unless the parent of self is an
-        # absolute extension.
-        if isinstance(P, sage.rings.number_field.number_field.NumberField_extension):
-            raise NotImplementedError
         n = self.parent().degree()
         v = self._coefficients()
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))
 
-cdef class OrderElement(NumberFieldElement):
+
+cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
+    # (a + b sqrt(disc)) / denom
+    def __init__(self, parent, f):
+        NumberFieldElement_absolute.__init__(self, parent, f)
+
+    cdef void _reduce_c_(self):
+        cdef mpz_t gcd
+        mpz_init(gcd)
+        mpz_gcd(gcd, self.a, self.b)
+        mpz_gcd(gcd, gcd, self.denom)
+        if mpz_cmp_si(gcd, 1): # != 0 (i.e. it is not 1)
+            mpz_divexact(self.a, self.a, gcd)
+            mpz_divexact(self.b, self.b, gcd)
+            mpz_divexact(self.denom, self.denom, gcd)
+        mpz_clear(gcd)
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_add(res.a, self.a, other.a)
+        mpz_add(res.b, self.b, other.b)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_sub(res.a, self.a, other.a)
+        mpz_sub(res.b, self.b, other.b)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res
+
+    def __neg__(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_neg(res.a, self.a)
+        mpz_neg(res.b, self.b)
+        mpz_set(res.denom, self.denom)
+        return res
+
+    cdef RingElement _mul_c_impl(self, RingElement other_m):
+        cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        cdef mpz_t tmp
+        mpz_init(tmp)
+
+        if mpz_size(self.a) < 2: # could I use a macro instead?
+            # Do it the traditional way
+            mpz_mul(res.a, self.a, other.a)
+            mpz_mul(tmp, self.b, other.b)
+            mpz_mul(tmp, tmp, self.disc.value)
+            mpz_add(res.a, res.a, tmp)
+
+            mpz_mul(res.b, self.a, other.b)
+            mpz_mul(tmp, self.a, other.b)
+            mpz_add(res.b, res.b, tmp)
+
+        else:
+            # Karatsuba
+            mpz_add(res.a, self.a, other.a) # using res.a as tmp
+            mpz_add(tmp, self.b, other.b)
+            mpz_mul(res.b, res.a, tmp) # res.b = (self.a + other.a)(self.b + other.b)
+
+            mpz_mul(res.a, self.a, other.a)
+            mpz_sub(res.b, res.b, res.a)
+            mpz_mul(tmp, self.b, other.b)
+            mpz_sub(res.b, res.b, tmp)
+            mpz_mul(tmp, tmp, self.disc.value)
+            mpz_add(res.a, tmp, tmp)
+
+        mpz_clear(tmp)
+
+        mpz_mul(res.denom, self.denom, other.denom)
+        res._reduce_c_()
+
+        return res
+
+    cdef RingElement _div_c_impl(self, RingElement other):
+        return self * ~other
+
+    def __invert__(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        cdef mpz_t tmp, gcd
+        mpz_init(tmp)
+        mpz_init(gcd)
+
+        mpz_gcd(gcd, self.a, self.b)
+        if mpz_cmp_si(gcd, 1): # != 0 (i.e. it is not 1)
+            # cancel out g (g(a'-b'd)) / (g^2 (a'^2-b'^2d^2))
+            mpz_divexact(res.a, self.a, gcd)
+            mpz_divexact(res.b, self.b, gcd)
+            mpz_neg(res.b, res.b)
+        else:
+            mpz_set(res.a, self.a)
+            mpz_neg(res.b, self.b)
+
+        mpz_pow_ui(res.denom, res.a, 2)
+        mpz_pow_ui(tmp, res.b, 2)
+        mpz_mul(tmp, tmp, self.disc.value)
+        mpz_sub(res.denom, res.denom, tmp)
+        # need to multiply the leftover g back in
+        mpz_mul(res.denom, res.denom, gcd)
+
+        mpz_mul(res.denom, res.denom, self.denom)
+
+        mpz_clear(tmp)
+        mpz_clear(gcd)
+
+        res._reduce_c_()
+        return res
+
+    cdef NumberFieldElement conjugate_c(self):
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new_c()
+        res.disc = self.disc
+        mpz_set(res.a, self.a)
+        mpz_neg(res.b, self.b)
+        mpz_set(res.denom, self.denom)
+        return res
+
+
+    def __new__(self):
+        # we do NOT own self.disc.value
+        mpz_init(self.a)
+        mpz_init(self.b)
+        mpz_init(self.denom)
+
+    def __dealloc__(self):
+        # we do NOT own self.disc.value
+        mpz_clear(self.a)
+        mpz_clear(self.b)
+        mpz_clear(self.denom)
+
+cdef class NumberFieldElement_relative(NumberFieldElement):
+
+    def _pari_(self, var='x'):
+        """
+        Return PARI C-library object corresponding to self.
+
+        EXAMPLES:
+        By default the variable name is 'x', since in PARI many variable
+        names are reserved.
+            sage: y = QQ['y'].gen()
+            sage: k.<j> = NumberField([y^3 - 2, y^2 - 7])
+            sage: pari(j)
+            Mod(42/5515*x^5 - 9/11030*x^4 - 196/1103*x^3 + 273/5515*x^2 + 10281/5515*x + 4459/11030, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+            sage: j^2
+            7
+            sage: pari(j)^2
+            Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+        """
+        try:
+            return self.__pari[var]
+        except KeyError:
+            pass
+        except TypeError:
+            self.__pari = {}
+        if var is None:
+            var = self.parent().variable_name()
+        f = self.polynomial()._pari_()
+        g = str(self.parent().pari_polynomial())
+        base = self.parent().base_ring()
+        gsub = base.gen()._pari_()
+        gsub = str(gsub).replace('x', 'y')
+        g = g.replace('y', gsub)
+        h = f.Mod(g)
+        self.__pari[var] = h
+        return h
+
+    cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        cdef long i
+        cdef ZZ_c coeff
+        cdef ntl_ZZX _num
+        cdef ntl_ZZ _den
+        # ugly temp code
+        f = self.parent().absolute_polynomial()
+
+        __den = f.denominator()
+        (<Integer>ZZ(__den))._to_ZZ(den)
+
+        __num = f * __den
+        for i from 0 <= i <= __num.degree():
+            (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
+            SetCoeff( num[0], i, coeff )
+
+    def __repr__(self):
+        K = self.parent()
+        # Compute representation of self in terms of relative vector space.
+        w = self.vector()
+        R = K.base_field()[K.variable_name()]
+        return repr(R(w.list()))
+
+    def vector(self):
+        return self.parent().vector_space()[2](self)
+
+    def charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this element over $\Q$.
+
+        EXAMPLES:
+
+        We construct a relative extension and find the characteristic
+        polynomial over $\Q$.
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-2)
+            sage: S.<X> = K[]
+            sage: L.<b> = NumberField(X^3 + 17); L
+            Number Field in b with defining polynomial X^3 + 17 over its base field
+            sage: b.charpoly ()
+            x^9 + 51*x^6 + 867*x^3 + 4913
+            sage: b.charpoly()(b)
+            0
+            sage: a = L.0; a
+            b
+            sage: a.charpoly('x')
+            x^9 + 51*x^6 + 867*x^3 + 4913
+            sage: a.charpoly('y')
+            y^9 + 51*y^6 + 867*y^3 + 4913
+        """
+        R = self.parent().base_ring()[var]
+        g = self.polynomial()  # in QQ[x]
+        f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
+        return R( (g._pari_().Mod(f)).charpoly() )
+
+## This might be useful for computing relative charpoly.
+## BUT -- currently I don't even know how to view elements
+## as being in terms of the right thing, i.e., this code
+## below as is lies.
+##             nf = self.parent()._pari_base_nf()
+##             prp = self.parent().pari_relative_polynomial()
+##             elt = str(self.polynomial()._pari_())
+##             return R(nf.rnfcharpoly(prp, elt))
+##         # return self.matrix().charpoly('x')
+
+
+cdef class OrderElement_absolute(NumberFieldElement_absolute):
     """
-    Element of an order in a number field.
+    Element of an order in an absolute number field.
 
     EXAMPLES:
         sage: k.<a> = NumberField(x^2 + 1)
     """
-    pass
+    def __init__(self, order, f):
+        K = order.number_field()
+        NumberFieldElement_absolute.__init__(self, K, f)
+        self._order = order
+
+cdef class OrderElement_relative(NumberFieldElement_relative):
+    """
+    Element of an order in a relative number field.
+    """
+    def __init__(self, order, f):
+        K = order.number_field()
+        NumberFieldElement_relative.__init__(self, K, f)
+        self._order = order
+
+
+
+
+class CoordinateFunction:
+    def __init__(self, alpha, W, to_V):
+        self.__alpha = alpha
+        self.__W = W
+        self.__to_V = to_V
+        self.__K = alpha.parent()
+
+    def __repr__(self):
+        return "Coordinate function that writes elements in terms of the powers of %s"%self.__alpha
+
+    def alpha(self):
+        return self.__alpha
+
+    def __call__(self, x):
+        return self.__W.coordinates(self.__to_V(self.__K(x)))
+

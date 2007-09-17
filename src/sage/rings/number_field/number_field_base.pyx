@@ -31,6 +31,18 @@ from sage.rings.ring cimport Field
 
 cdef class NumberField(Field):
 
+    def ring_of_integers(self):
+        r"""
+        Synomym for \code{self.maximal_order()}.
+        """
+        return self.maximal_order()
+
+    def maximal_order(self):
+        raise NotImplementedError
+
+    def OK(self, *args, **kwds):
+        return self.maximal_order(*args, **kwds)
+
     def is_absolute(self):
         """
         Return True if self is viewed as a single extension over Q.

@@ -3043,6 +3043,9 @@ class SymbolicArithmetic(SymbolicOperation):
 
 import re
 
+def is_SymbolicVariable(x):
+    return isinstance(x, SymbolicVariable)
+
 class SymbolicVariable(SymbolicExpression):
     def __init__(self, name):
         SymbolicExpression.__init__(self)

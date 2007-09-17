@@ -29,7 +29,7 @@ from dist import install_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
-from package import install_package, optional_packages, upgrade
+from package import install_package, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager
 

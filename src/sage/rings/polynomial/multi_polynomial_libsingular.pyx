@@ -637,13 +637,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         return co.new_MP(self,_p)
 
-    def ideal(self, gens, coerce=True):
+    def ideal(self, *gens, **kwds):
         """
         Create an ideal in this polynomial ring.
 
         INPUT:
-            gens -- generators of the ideal
-            coerce -- shall the generators be coerced first (default:True)
+            *gens -- list or tuple of generators (or several input
+                  arguments)
+            coerce -- bool (default: True); this must be a keyword
+                  argument. Only set it to False if you are certain
+                  that each generator is already in the ring.
+
 
         EXAMPLE:
             sage: P.<x,y,z> = QQ[]
@@ -654,6 +658,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Polynomial Ring in x, y, z over Rational Field
 
         """
+        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+            gens = gens[0]
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True

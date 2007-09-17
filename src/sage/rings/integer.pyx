@@ -1754,6 +1754,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_sgn(self.value) != 0
 
+    def is_integral(self):
+        """
+        Return \code{True} since integers are integral, i.e., satisfy
+        a monic polynomial with integer coefficients.
+
+        EXAMPLES:
+            sage: Integer(3).is_integral()
+            True
+        """
+        return True
+
     def is_unit(self):
         r"""
         Returns \code{true} if this integer is a unit, i.e., 1 or $-1$.

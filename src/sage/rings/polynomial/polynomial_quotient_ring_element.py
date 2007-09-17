@@ -374,7 +374,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             ...
 ##             ValueError: polynomial must be irreducible
         F = self.parent().modulus().root_field(names)
-        if isinstance(F, number_field.NumberField_extension):
+        if isinstance(F, number_field.NumberField_relative):
             if F.gen() != F.gen_relative():
                 # The issue is that there is no way to specify a homomorphism
                 # from the relative number to the poly ring quotient that

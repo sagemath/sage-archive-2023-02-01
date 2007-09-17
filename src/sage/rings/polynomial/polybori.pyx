@@ -24,6 +24,7 @@ include '../../libs/polybori/decl.pxi'
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
 
+from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.finite_field import GF
 
 order_dict= {"lp":      lp,
@@ -127,6 +128,31 @@ cdef class BooleanPolynomial(MPolynomial):
         p._P = PBPoly_mul((<BooleanPolynomial>left)._P, (<BooleanPolynomial>right)._P)
         return p
 
+class BooleanPolynomialIdeal(MPolynomialIdeal):
+    def __init__(self, ring, gens=[], coerce=True):
+        MPolynomialIdeal.__init__(self, ring, gens, coerce)
+
+    def groebner_basis(self):
+        return groebner_basis_c_impl(self.ring(), self.gens())
+
+cdef groebner_basis_c_impl(BooleanPolynomialRing R, g):
+    cdef int i
+    cdef PBPoly t
+    cdef BooleanPolynomial p, r
+    cdef PBPoly_vector vec
+    cdef GBStrategy strat
+
+    GBStrategy_construct(&strat)
+    for p in g:
+        strat.addGeneratorDelayed(p._P)
+    strat.symmGB_F2()
+    vec = strat.minimalize()
+    lvec = vec.size()
+    res = []
+    for i from 0 <= i < lvec:
+        r = new_BP_from_PBPoly(R, vec.get(i) )
+        res.append(r)
+    return res
 
 cdef inline BooleanPolynomial new_BP(BooleanPolynomialRing parent):
     cdef BooleanPolynomial p

@@ -46,3 +46,15 @@ cdef extern from "pb_wrap.h":
     # PBPoly arithmetic
     PBPoly PBPoly_add (PBPoly left, PBPoly right)
     PBPoly PBPoly_mul (PBPoly left, PBPoly right)
+
+    ctypedef struct PBPoly_vector "std::vector<BoolePolynomial>":
+        int (* size)()
+        PBPoly (* get "operator[]")(int)
+
+    ctypedef struct GBStrategy "struct GroebnerStrategy":
+        void (* addGeneratorDelayed)(PBPoly)
+        void (* symmGB_F2)()
+        PBPoly_vector (* minimalize)()
+
+    GBStrategy* GBStrategy_construct "Construct<GroebnerStrategy>"(void *mem)
+    void GBStrategy_destruct "Destruct<GroebnerStrategy>"(GBStrategy *mem)

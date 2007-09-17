@@ -677,8 +677,10 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.polybori',
               sources = ['sage/rings/polynomial/polybori.pyx'],
-              libraries=['polybori','pboriCudd'],
-              include_dirs=[SAGE_ROOT+'/local/include/cudd'],
+              libraries=['polybori','pboriCudd','groebner'],
+              include_dirs=[SAGE_ROOT+'/local/include/cudd',
+                            SAGE_ROOT+'/local/include/polybori',
+                            SAGE_ROOT+'/local/include/groebner'],
               language = 'c++'), \
 
     ]

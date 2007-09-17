@@ -103,6 +103,8 @@ class NumberFieldHomset(RingHomset_generic):
             Automorphism group of Number Field in a0 with defining polynomial x^2 + x + 1 over its base field
             sage: v = G.list()
             sage: v[1]
+            Ring endomorphism of Number Field in a0 with defining polynomial x^2 + x + 1 over its base field
+              Defn: a0 |--> (-1)*a0 + -1
         """
         try:
             return self.__list
@@ -118,7 +120,6 @@ class NumberFieldHomset(RingHomset_generic):
         v = []
         for a, _ in r:
             im = Dabs.hom([from_Cabs(a)])(to_Dabs(D.gen()))
-            print im
             v.append(self([im]))
         v = Sequence(v, immutable=True, cr=True)
         self.__list = v

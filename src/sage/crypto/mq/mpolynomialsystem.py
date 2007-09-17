@@ -24,6 +24,8 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
 from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.finite_field import GF
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 
@@ -559,6 +561,25 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
         INPUT:
             k -- GF(2) (parameter only  for compatible syntax)
 
+        EXAMPLE:
+            sage: k.<a> = GF(2^2)
+            sage: P.<x,y> = PolynomialRing(k,2)
+            sage: a = P.base_ring().gen()
+            sage: F = mq.MPolynomialSystem(P,[x*y + 1, a*x + 1])
+            sage: F
+            Polynomial System with 2 Polynomials in 2 Variables
+            sage: F2 = F.change_ring(GF(2)); F2
+            Polynomial System with 8 Polynomials in 4 Variables
+            sage: F2.gens()
+            [x1*y0 + x0*y1 + x1*y1,
+            x0*y0 + x1*y1 + 1,
+            x0 + x1,
+            x1 + 1,
+            x0^2 + x0,
+            x1^2 + x1,
+            y0^2 + y0,
+            y1^2 + y1]
+
         NOTE: Based on SINGULAR implementation by Michael Brickenstein
         <brickenstein@googlemail.com>
 
@@ -593,8 +614,6 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
         myminpoly=myminpoly(*map_ideal)
 
         l = [f(*map_ideal).reduce([myminpoly]) for f in l]
-
-        print map_ideal
 
         result = []
         # split e.g. a^2*x0+a*x1+x2 to x0,x1,x2

@@ -40,6 +40,9 @@ cdef class NumberField(Field):
     def maximal_order(self):
         raise NotImplementedError
 
+    def OK(self, *args, **kwds):
+        return self.maximal_order(*args, **kwds)
+
     def is_absolute(self):
         """
         Return True if self is viewed as a single extension over Q.

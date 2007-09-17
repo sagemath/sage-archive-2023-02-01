@@ -1119,8 +1119,8 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        if is_NumberFieldIdeal(gens):
-            I = gens
+        if len(gens) == 1 and is_NumberFieldIdeal(gens[0]):
+            I = gens[0]
             if I.number_field() == self:
                 return I
             else:
@@ -1566,6 +1566,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: R.<t> = K[]
             sage: L.<b> = K.extension(t^2 + a); L
             Number Field in b with defining polynomial t^2 + a over its base field
+
         We create another extension.
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1

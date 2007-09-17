@@ -964,6 +964,8 @@ setup(name        = 'sage',
 
                      'sage.crypto',
 
+		     'sage.crypto.mq',
+
                      'sage.databases',
 
                      'sage.ext',

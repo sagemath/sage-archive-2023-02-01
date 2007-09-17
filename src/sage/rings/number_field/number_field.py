@@ -54,6 +54,11 @@ WARNING: Doing arithmetic in towers of relative fields that depends on
 canonical coercions is currently VERY SLOW.  It is much better to
 explicitly coerce all elements into a common field, then do arithmetic
 with them there (which is quite fast).
+
+TESTS:
+    sage: y = polygen(QQ,'y'); K.<beta> = NumberField([y^2 - 2, y^3 - 3])
+    sage: K(y^10)
+    (-3024*beta + 1530)*beta0^2 + (-2320*beta + 5067)*beta0 + -3150*beta + 7592
 """
 
 # TODO:
@@ -757,9 +762,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         OUTPUT:
             K -- this number field (since it is already absolute)
-            to_K -- isomorphism K --> self
             from_K -- isomorphism self --> K
-
+            to_K -- isomorphism K --> self
 
         EXAMPLES:
             sage: K = CyclotomicField(5)
@@ -1429,6 +1433,9 @@ class NumberField_generic(number_field_base.NumberField):
         R = self.polynomial().parent()
         C = [R(h) for h in C]
         return [NumberField(h, names) for h in C]
+
+    def absolute_degree(self):
+        return self.polynomial().degree()
 
     def degree(self):
         """
@@ -2431,6 +2438,17 @@ class NumberField_relative(NumberField_generic):
         self.__pari_bnf_certified = False
         self._element_class = number_field_element.NumberFieldElement_relative
 
+    def absolute_degree(self):
+        """
+        EXAMPLES:
+            sage: K.<a> = NumberField([x^2 + 2, x^2 + 3])
+            sage: K.absolute_degree()
+            4
+            sage: K.degree()
+            2
+        """
+        return self.absolute_polynomial().degree()
+
     def __reduce__(self):
         """
         TESTS:
@@ -2735,25 +2753,6 @@ class NumberField_relative(NumberField_generic):
         """
         return self.__absolute_base_field
 
-    def gen_absolute(self):
-        """
-        Return element of this number field that generates it over QQ.
-
-        EXAMPLES:
-            sage: y = polygen(QQ,'y')
-            sage: k.<a> = NumberField([y^2 + 2, y^4 + 3])
-            sage: k.gen_absolute()
-            ???
-        """
-        if n != 0:
-            raise IndexError, "Only one generator."
-        try:
-            return self.__gen
-        except AttributeError:
-            X = rational_field.RationalField()['x'].gen()
-            self.__gen = self._element_class(self, X)
-            return self.__gen
-
     def gen(self, n=0):
         """
         Return root of defining polynomial, which is a generator of
@@ -2823,10 +2822,30 @@ class NumberField_relative(NumberField_generic):
         """
         return self.__pari_relative_polynomial
 
+    def absolute_generator(self):
+        """
+        Return the chosen generator over QQ for this relative number field.
+
+        EXAMPLES:
+            sage: y = polygen(QQ,'y')
+            sage: k.<a> = NumberField([y^2 + 2, y^4 + 3])
+            sage: g = k.absolute_generator(); g
+            a0 + -a
+            sage: g.minpoly()
+            x^8 + 8*x^6 + 30*x^4 + (-40)*x^2 + 49
+        """
+        try:
+            return self.__abs_gen
+        except AttributeError:
+            self.__abs_gen = self._element_class(self, QQ['x'].gen())
+            return self.__abs_gen
+
+
     def absolute_field(self, name=None):
         r"""
-        Return an absolute number field K that is isomorphic to this field along with a field-theoretic
-        bijection from self to K and from K to self.
+        Return an absolute number field K that is isomorphic to this
+        field along with a field-theoretic bijection from self to K
+        and from K to self.
 
         INPUT:
             name -- string; name of generator of the absolute field
@@ -2835,8 +2854,8 @@ class NumberField_relative(NumberField_generic):
 
         OUTPUT:
             K -- an absolute number field
-            phi -- isomorphism K --> self
-            psi -- isomorphism self --> K
+            from_K -- isomorphism K --> self
+            to_K -- isomorphism self --> K
 
         EXAMPLES:
             sage: k.<a> = NumberField([x^2 + 2, x^4 + 3]); k
@@ -2856,9 +2875,9 @@ class NumberField_relative(NumberField_generic):
             if name is None:
                 name = self.variable_name()
             K = NumberField(self.absolute_polynomial(), name)
-            phi = maps.MapRelativeToAbsoluteNumberField(self, K)
-            psi = maps.MapAbsoluteToRelativeNumberField(K, self)
-            self.__absolute_field = (K, phi, psi)
+            to_K = maps.MapRelativeToAbsoluteNumberField(self, K)
+            from_K = maps.MapAbsoluteToRelativeNumberField(K, self)
+            self.__absolute_field = (K, from_K, to_K)
             return self.__absolute_field
 
     def absolute_polynomial(self):

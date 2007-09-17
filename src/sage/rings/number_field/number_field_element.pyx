@@ -190,7 +190,9 @@ cdef class NumberFieldElement(FieldElement):
             f = ppr(f)
         if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
             f = ppr(f)
-        if f.degree() >= parent.degree():
+        if f.degree() >= parent.absolute_degree():
+            if f.variable_name() != 'x':
+                f = f.change_variable_name('x')
             if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
                 f %= parent.absolute_polynomial()
             else:

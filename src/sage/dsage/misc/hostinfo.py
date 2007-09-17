@@ -20,7 +20,7 @@
 import sys
 import os
 from twisted.spread import pb
-from twisted.internet import reactor, utils, defer
+from twisted.internet import     utils, defer
 from twisted.python import log
 
 class HostInfo(pb.Copyable, pb.RemoteCopy):
@@ -163,7 +163,7 @@ class ClassicHostInfo(object):
     """
 
     def __init__(self):
-        self.host_info = self.get_host_info(sys.platform)
+        self.host_info = self.get_host_info()
 
     def __str__(self):
         return str(self.host_info)
@@ -171,10 +171,13 @@ class ClassicHostInfo(object):
     def __repr__(self):
         return str(self.host_info)
 
-    def get_host_info(self, platform):
+    def get_host_info(self):
+        import platform
         host_info = {}
-        host_info['os'] = platform
-        if platform in ('linux', 'linux2', 'cygwin'):
+        host_info['os'] = platform.system().lower()
+
+        if host_info['os'] in ('linux', 'linux2', 'cygwin'):
+            # Get CPU related data
             cpuinfo = open('/proc/cpuinfo','r').readlines()
             cpus = 0
             for line in cpuinfo:
@@ -182,42 +185,38 @@ class ClassicHostInfo(object):
                     cpus += 1
                 s = line.split(':')
                 if s != ['\n']:
-                    if s[0].strip() == 'cpu MHz':
-                        host_info[s[0].strip()] = int(float(s[1].strip()))
+                    key = s[0].strip()
+                    value = s[1].strip()
+                    if key == 'cpu MHz':
+                        host_info[key] = int(float(value))
                     else:
-                        host_info[s[0].strip()] = s[1].strip()
+                        host_info[key] = value
             host_info['cpus'] = cpus
 
-            # On Itanium /proc/cpuinfo does not have a 'model name' entry
-            # 'family' works almost as well
-            if not host_info.has_key('model name'):
-                try:
-                    host_info['model name'] = host_info['family']
-                except KeyError:
-                    host_info['model name'] = 'Unknown'
+            # perform architecture specific modifications of host_info
+            arch = platform.architecture()[0]
+            if arch == 'Itanium':
+                host_info['model name'] = host_info['family']
+            elif arch == 'PPC':
+                host_info['cpu MHz'] = int(float(host_info['clock']))
+                host_info['model name'] = host_info['cpu']
 
-            uptime = open('/proc/uptime', 'r').readline().split(' ')
-            host_info['uptime'] = int(float(uptime[0]))
-
+            # Get memory related date
             meminfo = open('/proc/meminfo', 'r').readlines()
             for line in meminfo:
                 s = line.split(':')
                 if s != ['\n']:
-                    if s[0].strip() == 'MemTotal':
-                        mem_total = int(int(s[1].split()[0].strip()) / 1024)
-                        host_info[s[0].strip()] = mem_total
-                    elif s[0].strip() == 'MemFree':
-                        mem_free = int(int(s[1].split()[0].strip()) / 1024)
-                        host_info[s[0].strip()] = mem_free
+                    key = s[0].strip()
+                    value = s[1]
+                    if key == 'MemTotal':
+                        mem_total = int(int(value.split()[0].strip()) / 1024)
+                        host_info[key] = mem_total
+                    elif key == 'MemFree':
+                        mem_free = int(int(value.split()[0].strip()) / 1024)
+                        host_info[key] = mem_free
                     else:
-                        host_info[s[0].strip()] = s[1].strip()
-
-            hostname = os.popen('hostname').readline().strip()
-            host_info['hostname'] = hostname
-
-            kernel_version = os.popen('uname -r').readline().strip()
-            host_info['kernel_version'] = kernel_version
-        if platform == 'darwin':
+                        host_info[key] = value.strip()
+        elif host_info['os'] == 'darwin':
             for line in os.popen('sysctl -a hw machdep').readlines():
                 l = line.strip()
                 if '=' in l:
@@ -242,13 +241,9 @@ class ClassicHostInfo(object):
                 elif l[0] == 'hw.model': # OS X PPC
                     host_info['model name'] = l[1]
 
-            # hostname
-            hostname = os.popen('hostname').readline().strip()
-            host_info['hostname'] = hostname
-
-            # kernel version
-            kernel_version = os.popen('uname -r').readline().strip()
-            host_info['kernel_version'] = kernel_version
+        host_info['hostname'] = os.uname()[1]
+        host_info['kernel_version'] = os.uname()[2]
+        host_info['uptime'] = uptime = os.popen('uptime').readline().strip()
 
         return self.canonical_info(host_info)
 
@@ -268,7 +263,8 @@ class ClassicHostInfo(object):
                       'hostname': 'hostname',
                       'cpus': 'cpus',
                       'ip': 'ip',
-                      'os': 'os'}
+                      'os': 'os',
+                      'uptime': 'uptime'}
         canonical_info = {}
         for k,v in platform_host_info.iteritems():
             try:

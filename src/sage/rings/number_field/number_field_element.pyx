@@ -473,6 +473,58 @@ cdef class NumberFieldElement(FieldElement):
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
 
+    def coordinates_in_terms_of_powers(self):
+        r"""
+        Let $\alpha$ be self.  Return a Python function that takes any
+        element of the parent of self in $\QQ(\alpha)$ and writes it in
+        terms of the powers of $\alpha$: $1, \alpha, \alpha^2, ...$.
+
+        (NOT CACHED).
+
+        EXAMPLES:
+        This function allows us to write elements of a number field in
+        terms of a different generator without having to construct a
+        whole separate number field.
+
+            sage: y = polygen(QQ,'y'); K.<beta> = NumberField(y^3 - 2); K
+            Number Field in beta with defining polynomial y^3 - 2
+            sage: alpha = beta^2 + beta + 1
+            sage: c = alpha.coordinates_in_terms_of_powers(); c
+            Coordinate function that writes elements in terms of the powers of beta^2 + beta + 1
+            sage: c(beta)
+            [-2, -3, 1]
+            sage: c(alpha)
+            [0, 1, 0]
+            sage: c((1+beta)^5)
+            [3, 3, 3]
+            sage: c((1+beta)^10)
+            [54, 162, 189]
+
+        This function works even if self only generates a subfield
+        of this number field.
+            sage: k.<a> = NumberField(x^6 - 5)
+            sage: alpha = a^3
+            sage: c = alpha.coordinates_in_terms_of_powers()
+            sage: c((2/3)*a^3 - 5/3)
+            [-5/3, 2/3]
+            sage: c
+            Coordinate function that writes elements in terms of the powers of a^3
+            sage: c(a)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+        """
+        K = self.parent()
+        V, from_V, to_V = K.absolute_vector_space()
+        h = K(1)
+        B = [to_V(h)]
+        f = self.minpoly()
+        for i in range(f.degree()-1):
+            h *= self
+            B.append(to_V(h))
+        W = V.span_of_basis(B)
+        return CoordinateFunction(self, W, to_V)
+
     def complex_embeddings(self, prec=53):
         """
         Return the images of this element in the floating point
@@ -1553,8 +1605,8 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         g = str(self.parent().pari_polynomial())
         base = self.parent().base_ring()
         gsub = base.gen()._pari_()
-        gsub = str(gsub).replace('x', "y")
-        g = g.replace("y", gsub)
+        gsub = str(gsub).replace('x', 'y')
+        g = g.replace('y', gsub)
         h = f.Mod(g)
         self.__pari[var] = h
         return h
@@ -1574,6 +1626,16 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         for i from 0 <= i <= __num.degree():
             (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
             SetCoeff( num[0], i, coeff )
+
+    def __repr__(self):
+        K = self.parent()
+        # Compute representation of self in terms of relative vector space.
+        w = self.vector()
+        R = K.base_field()[K.variable_name()]
+        return repr(R(w.list()))
+
+    def vector(self):
+        return self.parent().vector_space()[2](self)
 
     def charpoly(self, var='x'):
         r"""
@@ -1633,4 +1695,22 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         NumberFieldElement_relative.__init__(self, K, f)
         self._order = order
 
+
+
+
+class CoordinateFunction:
+    def __init__(self, alpha, W, to_V):
+        self.__alpha = alpha
+        self.__W = W
+        self.__to_V = to_V
+        self.__K = alpha.parent()
+
+    def __repr__(self):
+        return "Coordinate function that writes elements in terms of the powers of %s"%self.__alpha
+
+    def alpha(self):
+        return self.__alpha
+
+    def __call__(self, x):
+        return self.__W.coordinates(self.__to_V(self.__K(x)))
 

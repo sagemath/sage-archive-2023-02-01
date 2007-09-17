@@ -3,6 +3,7 @@ from equations import SymbolicEquation, forget, assume, assumptions, solve
 from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpressionRing,
                       is_SymbolicExpression,
+                      is_SymbolicVariable,
                       CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpression,

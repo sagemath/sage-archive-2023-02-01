@@ -658,15 +658,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Polynomial Ring in x, y, z over Rational Field
 
         """
-        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+        if len(gens) == 1:
             gens = gens[0]
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
-        if is_Macaulay2Element(gens):
+        elif is_Macaulay2Element(gens):
             gens = list(gens)
             coerce = True
-        elif not isinstance(gens, (list, tuple)):
+        if not isinstance(gens, (list, tuple)):
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!

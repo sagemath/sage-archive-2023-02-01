@@ -1237,7 +1237,7 @@ class NumberField_generic(number_field_base.NumberField):
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         return 'nfinit(%s)'%self.pari_polynomial()
 
-    def pari_bnf(self, certify=False):
+    def pari_bnf(self, certify=False, units=True):
         """
         PARI big number field corresponding to this field.
 
@@ -1259,7 +1259,10 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__pari_bnf
         except AttributeError:
             f = self.pari_polynomial()
-            self.__pari_bnf = f.bnfinit()
+            if units:
+                self.__pari_bnf = f.bnfinit(1)
+            else:
+                self.__pari_bnf = f.bnfinit()
             if certify:
                 self.pari_bnf_certify()
             return self.__pari_bnf
@@ -1285,7 +1288,7 @@ class NumberField_generic(number_field_base.NumberField):
         if self.defining_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         if not self.__pari_bnf_certified:
-            if self.pari_bnf(certify=False).bnfcertify() != 1:
+            if self.pari_bnf(certify=False, units=True).bnfcertify() != 1:
                 raise ValueError, "The result is not correct according to bnfcertify"
             self.__pari_bnf_certified = True
         return self.__pari_bnf_certified

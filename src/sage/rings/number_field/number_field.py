@@ -181,6 +181,7 @@ import sage.groups.abelian_gps.abelian_group
 
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
+import number_field_element_quadratic
 from number_field_ideal import convert_from_zk_basis, is_NumberFieldIdeal
 
 import sage.rings.number_field.number_field_ideal_rel
@@ -1510,7 +1511,7 @@ class NumberField_generic(number_field_base.NumberField):
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = QQ(str(self.pari_polynomial().nfdisc()))
+                self.__disc = ZZ(str(self.pari_polynomial().nfdisc()))
                 return self.__disc
         else:
             return QQ(self.trace_pairing(v).det())
@@ -3681,6 +3682,11 @@ class NumberField_quadratic(NumberField_absolute):
             Number Field in a with defining polynomial x^2 - 4
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check)
+        self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+        c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
+        # set the generator
+        parts = -b/(2*a), ((b*b-4*a*c)/self.discriminant()).sqrt()/(2*a)
+        self._NumberField_generic__gen = self._element_class(self, parts)
 
     def __reduce__(self):
         """

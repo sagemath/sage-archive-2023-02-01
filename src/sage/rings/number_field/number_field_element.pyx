@@ -178,9 +178,12 @@ cdef class NumberFieldElement(FieldElement):
             return
 
         elif isinstance(f, NumberFieldElement):
-            self.__numerator = (<NumberFieldElement>f).__numerator
-            self.__denominator = (<NumberFieldElement>f).__denominator
-            return
+            if PY_TYPE(self) is PY_TYPE(f):
+                self.__numerator = (<NumberFieldElement>f).__numerator
+                self.__denominator = (<NumberFieldElement>f).__denominator
+                return
+            else:
+                f = f.polynomial()
 
         ppr = parent.polynomial_ring()
         if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):

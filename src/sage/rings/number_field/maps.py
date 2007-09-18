@@ -19,7 +19,7 @@ class MapVectorSpaceToNumberField(SageObject):
 
     def __call__(self, v):
         f = self.__R(self.__V(v).list())
-        return number_field_element.NumberFieldElement_absolute(self.__K, f)
+        return self.__K._element_class(self.__K, f)
 
     def domain(self):
         return self.__V
@@ -78,7 +78,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(SageObject):
         # Next we write the poly in x over a poly in y in terms
         # of an absolute polynomial for the rnf.
         g = self.__R(self.__rnf.rnfeltreltoabs(h))
-        return number_field_element.NumberFieldElement_relative(self.__K, g)
+        return self.__K._element_class(self.__K, g)
 
     def domain(self):
         return self.__V
@@ -157,7 +157,7 @@ class MapRelativeToAbsoluteNumberField(SageObject):
 
     def __call__(self, x):
         f = self.__R(x).polynomial()
-        return number_field_element.NumberFieldElement_absolute(self.__A, f)
+        return self.__A._element_class(self.__A, f)
 
     def domain(self):
         return self.__R
@@ -178,7 +178,7 @@ class MapAbsoluteToRelativeNumberField(SageObject):
 
     def __call__(self, x):
         f = self.__A(x).polynomial()
-        return number_field_element.NumberFieldElement_relative(self.__R, f)
+        return self.__R._element_class(self.__R, f)
 
     def domain(self):
         return self.__A

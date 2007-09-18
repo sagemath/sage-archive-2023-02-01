@@ -79,6 +79,9 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+from sage.structure.parent_gens import localvars
+
 # There will be one running instance of GP for all
 # number field calculations that use the interpreter.
 from sage.interfaces.gp import Gp
@@ -1175,7 +1178,9 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self.__pari_polynomial
         except AttributeError:
-            self.__pari_polynomial = self.polynomial()._pari_()
+            poly = self.polynomial()
+            with localvars(poly.parent(), 'x'):
+                self.__pari_polynomial = poly._pari_()
             return self.__pari_polynomial
 
     def pari_nf(self):
@@ -2785,7 +2790,9 @@ class NumberField_relative(NumberField_generic):
         try:
             return self.__pari_polynomial
         except AttributeError:
-            self.__pari_polynomial = self.absolute_polynomial()._pari_()
+            poly = self.absolute_polynomial()
+            with localvars(poly.parent(), 'x'):
+                self.__pari_polynomial = poly._pari_()
             return self.__pari_polynomial
 
     def pari_rnf(self):
@@ -3685,10 +3692,16 @@ class NumberField_quadratic(NumberField_absolute):
             Number Field in a with defining polynomial x^2 - 4
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check)
+        return
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
-        parts = -b/(2*a), ((b*b-4*a*c)/self.discriminant()).sqrt()/(2*a)
+        D = b*b - 4*a*c
+        d = D.numer().square_free_part() * D.denom().square_free_part()
+        if d % 4 != 1:
+            d *= 4
+        self._NumberField_generic__disc = d
+        parts = -b/(2*a), (D/d).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
 
     def __reduce__(self):
@@ -3704,6 +3717,7 @@ class NumberField_quadratic(NumberField_absolute):
             True
         """
         return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())
+
 
     def is_galois(self):
         """

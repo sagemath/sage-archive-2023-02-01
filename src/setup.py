@@ -342,7 +342,7 @@ ext_modules = [ \
 
     ntl,
 
-    fmpz_poly,
+    #fmpz_poly,
 
     matrix,
 
@@ -584,6 +584,12 @@ ext_modules = [ \
               sources = ['sage/rings/number_field/number_field_element.pyx'],
               libraries=['ntl','gmp'],
               language = 'c++'), \
+
+    Extension('sage.rings.number_field.number_field_element_quadratic',
+              sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
+              libraries=['gmp'],
+              language = 'c++'), \
+                    # Needs c++ because it has c++ members in class struct
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \

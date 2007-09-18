@@ -226,7 +226,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.__R
 
     def ideal(self, *gens, **kwds):
-        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+        if len(gens) == 1:
             gens = gens[0]
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
@@ -237,7 +237,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if coerce:
+        if kwds.has_key('coerce') and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 

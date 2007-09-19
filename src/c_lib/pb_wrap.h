@@ -20,6 +20,10 @@ BoolePolynomial* PBPoly_construct_pbpoly(void *mem, const BoolePolynomial &d) {
     return new(mem) BoolePolynomial(d);
 }
 
+BoolePolynomial* PBPoly_construct_pbmonom(void *mem, const BooleMonomial &d) {
+    return new(mem) BoolePolynomial(d);
+}
+
 BoolePolynomial* PBPoly_construct_int(void *mem, const int d) {
     return new(mem) BoolePolynomial(d);
 }

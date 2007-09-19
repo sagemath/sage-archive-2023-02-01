@@ -94,6 +94,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         return hash(str(self))
 
+    def ideal(self, gens, coerce=True):
+        if coerce:
+            gens = [self(p) for p in gens]
+        return BooleanPolynomialIdeal(self, gens)
+
 cdef class BooleanPolynomial(MPolynomial):
     def __init__(self, parent):
         PBPoly_construct(&self._P)
@@ -127,6 +132,54 @@ cdef class BooleanPolynomial(MPolynomial):
         cdef BooleanPolynomial p = new_BP((<BooleanPolynomial>left)._parent)
         p._P = PBPoly_mul((<BooleanPolynomial>left)._P, (<BooleanPolynomial>right)._P)
         return p
+
+    def __pow__(BooleanPolynomial self, int exp, ignored):
+        """
+        """
+        if exp > 0:
+            return self
+        elif exp == 0:
+            return self._parent._one_element
+        elif self._P.isConstant():
+            return self
+        else:
+            raise NotImplementedError, "Negative exponents for non constant polynomials are not implemented."
+
+
+    def __neg__(BooleanPolynomial self):
+        """
+        """
+        return self
+
+    def total_degree(BooleanPolynomial self):
+        """
+        """
+        return self._P.deg()
+
+    def lm(BooleanPolynomial self):
+        """
+        """
+        return new_BP_from_PBMonom(self._parent, self._P.lead())
+
+    def lt(BooleanPolynomial self):
+        """
+        """
+        return self.lm()
+
+    def is_zero(BooleanPolynomial self):
+        """
+        """
+        return self._P.isZero()
+
+    def is_one(BooleanPolynomial self):
+        """
+        """
+        return self._P.isOne()
+
+    def is_unit(BooleanPolynomial self):
+        """
+        """
+        return self._P.isOne()
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __init__(self, ring, gens=[], coerce=True):
@@ -174,5 +227,13 @@ cdef inline BooleanPolynomial new_BP_from_PBPoly(BooleanPolynomialRing parent, P
     """
     cdef BooleanPolynomial p = new_BP(parent)
     PBPoly_construct_pbpoly(&p._P,juice)
+    return p
+
+cdef inline BooleanPolynomial new_BP_from_PBMonom(BooleanPolynomialRing parent, PBMonom juice):
+    """
+    Construct a new BooleanPolynomial element
+    """
+    cdef BooleanPolynomial p = new_BP(parent)
+    PBPoly_construct_pbmonom(&p._P,juice)
     return p
 

@@ -230,7 +230,7 @@ cdef class ntl_ZZX:
 
     def list(self):
         r"""
-        Retrieves coefficients as a list of SAGE Integers.
+        Retrieves coefficients as a list of ntl.ZZ Integers.
 
         EXAMPLES:
             sage: x = ntl.ZZX([129381729371289371237128318293718237, 2, -3, 0, 4])

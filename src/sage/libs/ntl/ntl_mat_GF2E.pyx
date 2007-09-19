@@ -217,6 +217,7 @@ cdef class ntl_mat_GF2E:
         cdef GF2E_c* elt = mat_GF2E_getitem(&self.x, i+1, j+1)
         cdef ntl_GF2E r = ntl_GF2E()
         r.gf2e_x = elt[0]
+        r.gf2x_x = GF2E_rep(r.gf2e_x)
         GF2E_delete(elt)
         return r
 

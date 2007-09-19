@@ -174,9 +174,11 @@ class ClassicHostInfo(object):
     def get_host_info(self):
         import platform
         host_info = {}
-        host_info['os'] = platform.system().lower()
+        #  uname = (system,node,release,version,machine,processor)
+        uname = platform.uname()
+        host_info['os'] = uname[0]
 
-        if host_info['os'] in ('linux', 'linux2', 'cygwin'):
+        if host_info['os'] == 'Linux':
             # Get CPU related data
             cpuinfo = open('/proc/cpuinfo','r').readlines()
             cpus = 0
@@ -194,12 +196,14 @@ class ClassicHostInfo(object):
             host_info['cpus'] = cpus
 
             # perform architecture specific modifications of host_info
-            arch = platform.architecture()[0]
-            if arch == 'Itanium':
-                host_info['model name'] = host_info['family']
-            elif arch == 'PPC':
+            if uname[5] == 'ppc':
+                host_info['clock'] = host_info['clock'].replace('MHz', '')
                 host_info['cpu MHz'] = int(float(host_info['clock']))
                 host_info['model name'] = host_info['cpu']
+
+            # Itanium 64 specific code here
+            # elif uname[5] == 'PPC':
+            #     host_info['model name'] = host_info['family']
 
             # Get memory related date
             meminfo = open('/proc/meminfo', 'r').readlines()
@@ -216,7 +220,7 @@ class ClassicHostInfo(object):
                         host_info[key] = mem_free
                     else:
                         host_info[key] = value.strip()
-        elif host_info['os'] == 'darwin':
+        elif host_info['os'] == 'Darwin':
             for line in os.popen('sysctl -a hw machdep').readlines():
                 l = line.strip()
                 if '=' in l:

@@ -621,7 +621,7 @@ def assert_attribute(x, attr, init=None):
     x.__dict__[attr] = init
 
 #################################################################
-# Used for [1,2,..,n] notation.
+# Ranges and [1,2,..,n] notation.
 #################################################################
 
 def urange(start, end, step=1, universe=None, check=True):
@@ -634,9 +634,11 @@ def urange(start, end, step=1, universe=None, check=True):
     if universe is int:
         return range(start, end, step)
     elif universe is ZZ:
-        return srange(start, end, step)
+        return ZZ.range(start, end, step)
     else:
         L = []
+        if (end-start)/step <= 0:
+            return L
         while start < end:
             L.append(start)
             start += step
@@ -655,13 +657,11 @@ def xurange(start, end, step=1, universe=None, check=True):
     elif universe is ZZ:
         return xsrange(start, end, step)
     else:
-        L = []
-        while start < end:
-            L.append(start)
-            start += step
-        return L
+        return generic_xurange(start, end, step)
 
 def generic_xurange(start, end, step):
+    if (end-start)/step <= 0:
+        return
     while start < end:
         yield start
         start += step

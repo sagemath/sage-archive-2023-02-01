@@ -744,9 +744,8 @@ class Singular(Expect):
         print "Interrupting %s..."%self
         try:
             self._expect.sendline(chr(4))
-        except pexpect.ExceptionPexpect:
-            print "WARNING: -- unable to kill %s. You may have to do so manually."%self
-            pass
+        except pexpect.ExceptionPexpect, msg:
+            raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
         self._start()
         raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
 

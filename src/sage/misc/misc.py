@@ -624,6 +624,25 @@ def assert_attribute(x, attr, init=None):
 # Used for [1,2,..,n] notation.
 #################################################################
 
+def urange(start, end, step=1, universe=None, check=True):
+    from sage.structure.sequence import Sequence
+    from sage.rings.all import ZZ
+    if check:
+        if universe is None:
+            universe = Sequence([start, end, step]).universe()
+        start, end, step = universe(start), universe(end), universe(step)
+    if universe is int:
+        return range(start, end, step)
+    elif universe is ZZ:
+        return srange(start, end, step)
+    else:
+        L = []
+        while start < end:
+            start += step
+            L.append(start)
+        return L
+
+
 def ellipsis_range(*args):
     """
     Return arithmatic sequence determined by the numeric arguments and
@@ -639,19 +658,26 @@ def ellipsis_range(*args):
         sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20)
         [0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19]
     """
-    L = []
-    if len(args) >= 4 and args[1] is not Ellipsis:
-        diff = args[1]-args[0]
-    else:
-        diff = 1
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+
+    diff = universe(1)
+    if Ellipsis in args:
+        i = args.index(Ellipsis)
+        if i > 1:
+            diff = args[i-1]-args[i-2]
+
     skip = False
+    L = []
     for i in range(len(args)):
         if skip:
             skip = False
         elif args[i] is Ellipsis:
             if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
                 L.append(args[i-1])
-            L += range(args[i-1]+diff, args[i+1]+1, diff)
+            L += urange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False)
             skip = True
         else:
             L.append(args[i])
@@ -677,27 +703,36 @@ def ellipsis_iter(*args):
         sage: [A.next() for _ in range(10)]
         [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
     """
-    if len(args) >= 3 and args[1] is not Ellipsis:
-        diff = args[1]-args[0]
-    else:
-        diff = 1
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+
+    diff = universe(1)
+    if Ellipsis in args:
+        i = args.index(Ellipsis)
+        if i > 1:
+            diff = args[i-1]-args[i-2]
+
     skip = False
     for i in range(len(args)):
         if skip:
             skip = False
         elif args[i] is Ellipsis:
-            if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
+            if i > 2 and args[i-2] is Ellipsis and last != args[i-1]:
                 yield args[i-1]
             if i == len(args)-1:
                 cur = args[i-1]
                 while True:
                     cur += diff
                     yield cur
-            for num in xrange(args[i-1]+diff, args[i+1]+1, diff):
+            for num in urange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False):
                 yield num
+            last = num
             skip = True
         else:
             yield args[i]
+            last = args[i]
     return
 
 #################################################################

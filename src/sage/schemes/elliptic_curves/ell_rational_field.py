@@ -4207,8 +4207,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
-            sage: E.padic_regulator(5, 10)                       # long time
-            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
+            sage: E.padic_regulator(5, 10)
+            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + 3*5^9 + O(5^10)
 
         Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

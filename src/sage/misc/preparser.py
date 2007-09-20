@@ -199,7 +199,7 @@ def strip_string_literals(code):
                 q += 1
         else:
             raw = q>0 and code[q-1] == 'r'
-            if code[q+1] == code[q] == code[q+2]:
+            if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
                 in_quote = code[q]*3
             else:
                 in_quote = code[q]
@@ -284,7 +284,7 @@ def parse_ellipsis(code):
         if code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]
-        elif code[ix+2]=='.':
+        elif len(code) >= ix+3 and code[ix+2]=='.':
             # '...' be valid Python in index slices
             code = code[:ix] + "Ellipsis" + code[ix+3:]
         else:

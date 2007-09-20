@@ -2370,7 +2370,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: G.1
             (282 : 0 : 1)
             sage: list(G)
-            [1, P1, P1^2, P1^3, P1^4, P1^5, P1^6, P1^7, P0, P0*P1, P0*P1^2, P0*P1^3, P0*P1^4, P0*P1^5, P0*P1^6, P0*P1^7]
+            [1, P1, P0, P0*P1, P0^2, P0^2*P1, P0^3, P0^3*P1, P0^4, P0^4*P1, P0^5, P0^5*P1, P0^6, P0^6*P1, P0^7, P0^7*P1]
         """
         try:
             return self.__torsion_subgroup

@@ -118,8 +118,8 @@ sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
           use_cache=False, create_local_c_file=False):
-    if filename[-5:] != '.spyx':
-        print "File (=%s) must have extension .spyx"%filename
+    if not filename.endswith('pyx'):
+        print "File (=%s) should have extension .pyx"%filename
 
     clean_filename = sanitize(filename)
     base = os.path.split(os.path.splitext(clean_filename)[0])[1]
@@ -203,7 +203,7 @@ setup(ext_modules = ext_modules,
 
     cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && cython -p %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
+    cmd = 'cd %s && cython -p --pre-import sage.all %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)

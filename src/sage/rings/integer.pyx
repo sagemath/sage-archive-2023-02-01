@@ -1754,6 +1754,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_sgn(self.value) != 0
 
+    def is_integral(self):
+        """
+        Return \code{True} since integers are integral, i.e., satisfy
+        a monic polynomial with integer coefficients.
+
+        EXAMPLES:
+            sage: Integer(3).is_integral()
+            True
+        """
+        return True
+
     def is_unit(self):
         r"""
         Returns \code{true} if this integer is a unit, i.e., 1 or $-1$.
@@ -2174,12 +2185,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return Integer( (self._pari_()+1).nextprime())
 
-    def next_prime(self, proof=True):
+    def next_prime(self, proof=None):
         r"""
         Returns the next prime after self.
 
         INPUT:
-            proof -- bool (default: True)
+            proof -- bool or None (default: None, see proof.arithmetic or
+                            sage.structure.proof)
+                        Note that the global Sage default is proof=True
 
         EXAMPLES:
             sage: Integer(100).next_prime()
@@ -2193,6 +2206,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
         if self < 2:   # negatives are not prime.
             return integer_ring.ZZ(2)
         if self == 2:

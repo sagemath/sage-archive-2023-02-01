@@ -348,7 +348,8 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
-import random
+#import random
+from random import randrange
 
 import sage.rings.all
 import sage.rings.complex_number
@@ -588,7 +589,7 @@ class Maxima(Expect):
             4
         """
         if self._expect is None: return
-        r = random.randrange(2147483647)
+        r = randrange(2147483647)
         s = str(r+1)
         cmd = "1+%s;\n"%r
         self._sendstr(cmd)

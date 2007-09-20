@@ -4317,12 +4317,12 @@ class Graph(GenericGraph):
             else:
                 return a
 
-    def is_isomorphic(self, other, proof=False, verbosity=0):
+    def is_isomorphic(self, other, certify=False, verbosity=0):
         """
         Tests for isomorphism between self and other.
 
         INPUT:
-            proof -- if True, then output is (a,b), where a is a boolean and b is either a map or
+            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
         None.
 
         EXAMPLES:
@@ -4339,7 +4339,7 @@ class Graph(GenericGraph):
             sage: gamma = S.random_element()
             sage: E = D.copy()
             sage: E.relabel(gamma)
-            sage: a,b = D.is_isomorphic(E, proof=True); a
+            sage: a,b = D.is_isomorphic(E, certify=True); a
             True
             sage: import networkx
             sage: from sage.plot.plot import GraphicsArray
@@ -4353,15 +4353,15 @@ class Graph(GenericGraph):
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
-        if proof:
+        if certify:
             if self.order() != other.order():
                 return False, None
             if self.size() != other.size():
                 return False, None
             if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
                 return False, None
-            b,a = self.canonical_label(proof=True, verbosity=verbosity)
-            d,c = other.canonical_label(proof=True, verbosity=verbosity)
+            b,a = self.canonical_label(certify=True, verbosity=verbosity)
+            d,c = other.canonical_label(certify=True, verbosity=verbosity)
             map = {}
             cc = c.items()
             for vert in self.vertices():
@@ -4385,7 +4385,7 @@ class Graph(GenericGraph):
             d = other.canonical_label(verbosity=verbosity)
             return enum(b) == enum(d)
 
-    def canonical_label(self, partition=None, proof=False, verbosity=0):
+    def canonical_label(self, partition=None, certify=False, verbosity=0):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
@@ -4394,7 +4394,7 @@ class Graph(GenericGraph):
             sage: D = graphs.DodecahedralGraph()
             sage: E = D.canonical_label(); E
             Dodecahedron: Graph on 20 vertices
-            sage: D.canonical_label(proof=True)
+            sage: D.canonical_label(certify=True)
             (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
             sage: D.is_isomorphic(E)
             True
@@ -4405,8 +4405,8 @@ class Graph(GenericGraph):
         from sage.graphs.graph_isom import search_tree
         if partition is None:
             partition = [self.vertices()]
-        if proof:
-            a,b,c = search_tree(self, partition, proof=True, dig=self.loops(), verbosity=verbosity)
+        if certify:
+            a,b,c = search_tree(self, partition, certify=True, dig=self.loops(), verbosity=verbosity)
             return b,c
         else:
             a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
@@ -5666,25 +5666,25 @@ class DiGraph(GenericGraph):
             else:
                 return a
 
-    def is_isomorphic(self, other, proof=False, verbosity=0):
+    def is_isomorphic(self, other, certify=False, verbosity=0):
         """
         Tests for isomorphism between self and other.
 
         INPUT:
-            proof -- if True, then output is (a,b), where a is a boolean and b is either a map or
+            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
         None.
 
         EXAMPLE:
             sage: A = DiGraph( { 0 : [1,2] } )
             sage: B = DiGraph( { 1 : [0,2] } )
-            sage: A.is_isomorphic(B, proof=True)
+            sage: A.is_isomorphic(B, certify=True)
             (True, {0: 1, 1: 0, 2: 2})
 
         """
         if self.multiple_arcs():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
-        if proof:
+        if certify:
             if self.order() != other.order():
                 return False, None
             if self.size() != other.size():
@@ -5693,8 +5693,8 @@ class DiGraph(GenericGraph):
                 return False, None
             if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
                 return False, None
-            b,a = self.canonical_label(proof=True, verbosity=verbosity)
-            d,c = other.canonical_label(proof=True, verbosity=verbosity)
+            b,a = self.canonical_label(certify=True, verbosity=verbosity)
+            d,c = other.canonical_label(certify=True, verbosity=verbosity)
             if enum(b) == enum(d):
                 map = {}
                 cc = c.items()
@@ -5720,7 +5720,7 @@ class DiGraph(GenericGraph):
             d = other.canonical_label(verbosity=verbosity)
             return enum(b) == enum(d)
 
-    def canonical_label(self, partition=None, proof=False, verbosity=0):
+    def canonical_label(self, partition=None, certify=False, verbosity=0):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
@@ -5747,8 +5747,8 @@ class DiGraph(GenericGraph):
         from sage.graphs.graph_isom import search_tree
         if partition is None:
             partition = [self.vertices()]
-        if proof:
-            a,b,c = search_tree(self, partition, proof=True, dig=True, verbosity=verbosity)
+        if certify:
+            a,b,c = search_tree(self, partition, certify=True, dig=True, verbosity=verbosity)
             return b,c
         else:
             a,b = search_tree(self, partition, dig=True, verbosity=verbosity)

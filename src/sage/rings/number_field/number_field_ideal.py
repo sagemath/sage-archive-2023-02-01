@@ -388,7 +388,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J.gens_reduced()
             (i + 1,)
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             ## Compute the single generator, if it exists
             dummy = self.is_principal(proof)
@@ -542,7 +543,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.is_principal()
             True
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             return self.__is_principal
         except AttributeError:

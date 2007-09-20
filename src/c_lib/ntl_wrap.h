@@ -65,8 +65,10 @@ EXTERN struct ZZ_p* new_ZZ_p(void);
 EXTERN void del_ZZ_p(struct ZZ_p* x);
 EXTERN struct ZZ_p* str_to_ZZ_p(const char* s);
 EXTERN char* ZZ_p_to_str(const struct ZZ_p* x);
-EXTERN int ZZ_p_to_int(const struct ZZ_p* x);
-EXTERN struct ZZ_p* int_to_ZZ_p(int value);
+#ifdef __cplusplus  // sorry, if you want a C version, feel free to add it
+EXTERN int ZZ_p_to_int(const ZZ_p& x);
+EXTERN ZZ_p int_to_ZZ_p(int value);
+#endif
 EXTERN void ZZ_p_set_from_int(struct ZZ_p* x, int value);
 EXTERN struct ZZ_p* ZZ_p_add(const struct ZZ_p* x, const struct ZZ_p* y);
 EXTERN struct ZZ_p* ZZ_p_sub(const struct ZZ_p* x, const struct ZZ_p* y);
@@ -350,7 +352,7 @@ EXTERN struct GF2EX* GF2EX_copy(struct GF2EX* x);
 struct mat_GF2E;
 #endif
 
-void mat_GF2E_SetDims(struct mat_GF2E* mGF2E, long nrows, long ncols);
+EXTERN void mat_GF2E_SetDims(struct mat_GF2E* mGF2E, long nrows, long ncols);
 EXTERN struct mat_GF2E* new_mat_GF2E(long nrows, long ncols);
 EXTERN void del_mat_GF2E(struct mat_GF2E* x);
 EXTERN char* mat_GF2E_to_str(struct mat_GF2E* x);

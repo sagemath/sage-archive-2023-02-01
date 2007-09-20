@@ -896,15 +896,18 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # Echelon form
     ################################################
     def echelonize(self, algorithm='default',
-                   height_guess=None, proof=True, **kwds):
+                   height_guess=None, proof=None, **kwds):
         """
         INPUT:
             algorithm -- 'default' (default): use heuristic choice
                          'padic': an algorithm based on the IML p-adic solver.
                          'multimodular': uses a multimodular algorithm the uses linbox
                                          modulo many primes.
-            height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
+            height_guess, **kwds -- all passed to the multimodular algorithm; ignored
                                            by the p-adic algorithm.
+            proof -- bool or None (default: None, see proof.linear_algebra or
+                         sage.structure.proof).  Passed to the multimodular algorithm.
+                         Note that the Sage global default is proof=True.
 
         OUTPUT:
             matrix -- the reduced row echelon for of self.
@@ -948,15 +951,18 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 
     def echelon_form(self, algorithm='default',
-                     height_guess=None, proof=True, **kwds):
+                     height_guess=None, proof=None, **kwds):
         """
         INPUT:
             algorithm -- 'default' (default): use heuristic choice
                          'padic': an algorithm based on the IML p-adic solver.
                          'multimodular': uses a multimodular algorithm the uses linbox
                                          modulo many primes.
-            height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
+            height_guess, **kwds -- all passed to the multimodular algorithm; ignored
                                            by the p-adic algorithm.
+            proof -- bool or None (default: None, see proof.linear_algebra or
+                         sage.structure.proof).  Passed to the multimodular algorithm.
+                         Note that the Sage global default is proof=True.
 
         OUTPUT:
             self is no in reduced row echelon form.
@@ -1086,7 +1092,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 
     # Multimodular echelonization algorithms
-    def _echelonize_multimodular(self, height_guess=None, proof=True, **kwds):
+    def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
         cdef Py_ssize_t i, j
@@ -1098,7 +1104,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_set(row0[j], row1[j])
         return E.pivots()
 
-    def _echelon_form_multimodular(self, height_guess=None, proof=True):
+    def _echelon_form_multimodular(self, height_guess=None, proof=None):
         """
         Returns reduced row-echelon form using a multi-modular
         algorithm.  Does not change self.
@@ -1107,14 +1113,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         INPUT:
             height_guess -- integer or None
-            proof -- boolean (default: True)
+            proof -- boolean (default: None, see proof.linear_algebra or
+                         sage.structure.proof)
+                         Note that the Sage global default is proof=True.
         """
         import misc
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
     def decomposition(self, is_diagonalizable=False, dual=False,
-                      algorithm='default', height_guess=None, proof=True):
+                      algorithm='default', height_guess=None, proof=None):
         """
         Returns the decomposition of the free module on which this
         matrix A acts from the right (i.e., the action is x goes to x
@@ -1144,7 +1152,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             algorithm -- 'default': use default algorithm for computing Echelon forms,
                          'multimodular': much better if the answers factors have small height
             height_guess -- positive integer; only used by the multimodular algorithm
-            proof -- bool (default: True); only used by the multimodular algorithm
+            proof -- bool or None (default: None, see proof.linear_algebra or
+                         sage.structure.proof); only used by the multimodular algorithm.
+                         Note that the Sage global default is proof=True.
 
         IMPORTANT NOTE:
         If you expect that the subspaces in the answer are spanned by vectors

@@ -620,8 +620,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
         cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
         ad, bd = self.parts()
+        if not self:
+            return []
+        if not bd:
+            return [ad]
         if gen.is_sqrt_disc():
-            # gen = sqrt(disc)
             return [ad,bd]
         else:
             alpha, beta = gen.parts()

@@ -479,12 +479,12 @@ class GenericGraph(SageObject):
             sage: G = DiGraph(loops=True,multiedges=True)
             sage: G.add_arcs( [ (0,0), (1,1), (2,2), (2,3), (2,3), (3,2) ] )
             sage: G.arcs(labels=False)
-            [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3,2)]
+            [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
             sage: H=G.to_simple()
             sage: H.edges(labels=False)
             [(2, 3)]
-            sage: H.is_undirected()
-            True
+            sage: H.is_directed()
+            False
             sage: H.loops()
             False
             sage: H.multiple_edges()
@@ -1860,7 +1860,7 @@ class GenericGraph(SageObject):
             sage: D = graphs.DodecahedralGraph()
             sage: P = graphs.PetersenGraph()
             sage: D.disjoint_union(P)
-            Graph on 30 vertices
+            union( Dodecahedron, Petersen graph ): Graph on 30 vertices
 
         """
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
@@ -2772,7 +2772,7 @@ class Graph(GenericGraph):
 
 
         """
-        G = Graph(self._nxg, name=self._nxg.name, pos=self._pos, boundary=self._boundary)
+        G = Graph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
         return G
 
     def to_directed(self):
@@ -2782,7 +2782,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: graphs.PetersenGraph().to_directed()
-            Digraph on 10 vertices
+            Petersen graph: Digraph on 10 vertices
 
         """
         return DiGraph(self._nxg.to_directed(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
@@ -3985,7 +3985,7 @@ class Graph(GenericGraph):
         EXAMPLES:
             sage: G = graphs.CompleteGraph(9)
             sage: H = G.subgraph([0,1,2]); H
-            Graph on 3 vertices
+            Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
             sage: K = G.subgraph([0,1,2], inplace=True); K
@@ -4621,7 +4621,7 @@ class DiGraph(GenericGraph):
             True
 
         """
-        G = DiGraph(self._nxg, name=self._nxg.name, pos=self._pos, boundary=self._boundary)
+        G = DiGraph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
         return G
 
     def to_directed(self):
@@ -4837,9 +4837,9 @@ class DiGraph(GenericGraph):
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph().to_directed()
             sage: D.arcs()
-            [(0, 1, None), (0, 10, None), (0, 19, None), (1, 0, None), (1, 8, None), (1, 2, None), (2, 1, None), (2, 3, None), (2, 6, None), (3, 2, None), (3, 19, None), (3, 4, None), (4, 17, None), (4, 3, None), (4, 5, None), (5, 4, None), (5, 6, None), (5, 15, None), (6, 2, None), (6, 5, None), (6, 7, None), (7, 8, None), (7, 6, None), (7, 14, None), (8, 1, None), (8, 7, None), (8, 9, None), (9, 8, None), (9, 10, None), (9, 13, None), (10, 0, None), (10, 9, None), (10, 11, None), (11, 10, None), (11, 12, None), (11, 18, None), (12, 16, None), (12, 11, None), (12, 13, None), (13, 9, None), (13, 12, None), (13, 14, None), (14, 7, None), (14, 13, None), (14, 15, None), (15, 16, None), (15, 5, None), (15, 14, None), (16, 17, None), (16, 12, None), (16, 15, None), (17, 16, None), (17, 18, None), (17, 4, None), (18, 11, None), (18, 17, None), (18, 19, None), (19, 0, None), (19, 18, None), (19, 3, None)]
+            [(0, 1, None), (0, 10, None), (0, 19, None), (1, 0, None), (1, 8, None), (1, 2, None), (2, 1, None), (2, 3, None), (2, 6, None), (3, 2, None), (3, 19, None), (3, 4, None), (4, 17, None), (4, 3, None), (4, 5, None), (5, 4, None), (5, 6, None), (5, 15, None), (6, 2, None), (6, 5, None), (6, 7, None), (7, 8, None), (7, 14, None), (7, 6, None), (8, 1, None), (8, 9, None), (8, 7, None), (9, 8, None), (9, 10, None), (9, 13, None), (10, 0, None), (10, 9, None), (10, 11, None), (11, 10, None), (11, 12, None), (11, 18, None), (12, 16, None), (12, 11, None), (12, 13, None), (13, 9, None), (13, 12, None), (13, 14, None), (14, 15, None), (14, 13, None), (14, 7, None), (15, 16, None), (15, 5, None), (15, 14, None), (16, 17, None), (16, 12, None), (16, 15, None), (17, 16, None), (17, 18, None), (17, 4, None), (18, 19, None), (18, 17, None), (18, 11, None), (19, 0, None), (19, 18, None), (19, 3, None)]
             sage: D.arcs(labels = False)
-            [(0, 1), (0, 10), (0, 19), (1, 0), (1, 8), (1, 2), (2, 1), (2, 3), (2, 6), (3, 2), (3, 19), (3, 4), (4, 17), (4, 3), (4, 5), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 8), (7, 6), (7, 14), (8, 1), (8, 7), (8, 9), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 16), (12, 11), (12, 13), (13, 9), (13, 12), (13, 14), (14, 7), (14, 13), (14, 15), (15, 16), (15, 5), (15, 14), (16, 17), (16, 12), (16, 15), (17, 16), (17, 18), (17, 4), (18, 11), (18, 17), (18, 19), (19, 0), (19, 18), (19, 3)]
+            [(0, 1), (0, 10), (0, 19), (1, 0), (1, 8), (1, 2), (2, 1), (2, 3), (2, 6), (3, 2), (3, 19), (3, 4), (4, 17), (4, 3), (4, 5), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 8), (7, 14), (7, 6), (8, 1), (8, 9), (8, 7), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 16), (12, 11), (12, 13), (13, 9), (13, 12), (13, 14), (14, 15), (14, 13), (14, 7), (15, 16), (15, 5), (15, 14), (16, 17), (16, 12), (16, 15), (17, 16), (17, 18), (17, 4), (18, 19), (18, 17), (18, 11), (19, 0), (19, 18), (19, 3)]
 
         """
         L = self._nxg.edges()
@@ -5208,21 +5208,21 @@ class DiGraph(GenericGraph):
             6
             6
             4
-            4
             6
             4
             4
+            4
             6
-
+            sage: for i in D.degree_iterator(labels=True):
             ...    print i
             ((0, 1), 6)
             ((1, 2), 6)
             ((0, 0), 4)
-            ((0, 3), 4)
-            ((1, 1), 6)
+            ((0, 2), 6)
             ((1, 3), 4)
             ((1, 0), 4)
-            ((0, 2), 6)
+            ((0, 3), 4)
+            ((1, 1), 6)
 
         """
         return self._nxg.degree_iter(vertices, with_labels=labels)
@@ -5252,8 +5252,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            2
             3
+            2
             2
             2
             3
@@ -5262,11 +5262,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 3), 2)
-            ((1, 1), 3)
+            ((0, 2), 3)
             ((1, 3), 2)
             ((1, 0), 2)
-            ((0, 2), 3)
+            ((0, 3), 2)
+            ((1, 1), 3)
 
         """
         return self._nxg.in_degree_iter(vertices, with_labels=labels)
@@ -5296,8 +5296,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            2
             3
+            2
             2
             2
             3
@@ -5306,11 +5306,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 3), 2)
-            ((1, 1), 3)
+            ((0, 2), 3)
             ((1, 3), 2)
             ((1, 0), 2)
-            ((0, 2), 3)
+            ((0, 3), 2)
+            ((1, 1), 3)
 
         """
         return self._nxg.out_degree_iter(vertices, with_labels=labels)
@@ -5386,7 +5386,7 @@ class DiGraph(GenericGraph):
         EXAMPLES:
             sage: D = DiGraph({ 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] })
             sage: D.reverse()
-            Digraph on 6 vertices
+            Reverse of (): Digraph on 6 vertices
 
         """
         NXG = self._nxg.reverse()
@@ -5409,13 +5409,13 @@ class DiGraph(GenericGraph):
         EXAMPLES:
             sage: D = graphs.CompleteGraph(9).to_directed()
             sage: H = D.subgraph([0,1,2]); H
-            Digraph on 3 vertices
+            Subgraph of (Complete graph): Digraph on 3 vertices
             sage: D
-            Digraph on 9 vertices
+            Complete graph: Digraph on 9 vertices
             sage: K = D.subgraph([0,1,2], inplace=True); K
-            Subgraph of (): Digraph on 3 vertices
+            Subgraph of (Complete graph): Digraph on 3 vertices
             sage: D
-            Subgraph of (): Digraph on 3 vertices
+            Subgraph of (Complete graph): Digraph on 3 vertices
             sage: D is K
             True
 

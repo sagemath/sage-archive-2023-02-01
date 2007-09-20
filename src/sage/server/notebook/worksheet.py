@@ -1980,35 +1980,53 @@ class Worksheet:
             except AttributeError:
                 pass
 
+__internal_test1 = '''
+def foo(x):
+    "
+    EXAMPLES:
+        sage: 2+2
+        4
+    "
+    return x
+'''.lstrip()
 
-def ignore_prompts_and_output(s):
+__internal_test2 = '''
+sage: 2 + 2
+4
+'''.lstrip()
+
+def ignore_prompts_and_output(aString):
     """
     Given a string s that defines an input block of code,
-    if any line begins in "sage:" (or ">>>"), strip out all lines
+    if the first line begins in "sage:" (or ">>>"), strip out all lines
     that don't begin in either "sage:" (or ">>>") or"...", and
     remove all "sage:" (or ">>>") and "..." from the beginning
     of the remaining lines.
-    """
-    t = s.split('\n')
-    do_strip = False
-    for I in t:
-        I2 = I.lstrip()
-        if I2.startswith('sage:') or I2.startswith('>>>'):
-            do_strip = True
-            break
-    if not do_strip:
-        return s
-    s = ''
-    for I in t:
-        I2 = I.lstrip()
-        if I2.startswith('sage:'):
-            s += after_first_word(I2).lstrip() + '\n'
-        elif I2.startswith('>>>'):
-            s += after_first_word(I2).lstrip() + '\n'
-        elif I2.startswith('...'):
-            s += after_first_word(I2) + '\n'
-    return s
 
+    TESTS:
+        sage: test1 = sage.server.notebook.worksheet.__internal_test1
+        sage: test1 == sage.server.notebook.worksheet.ignore_prompts_and_output(test1)
+        True
+
+        sage: test2 = sage.server.notebook.worksheet.__internal_test2
+        sage: sage.server.notebook.worksheet.ignore_prompts_and_output(test2)
+        '2 + 2\n'
+    """
+    s = aString.lstrip()
+    is_example = s.startswith('sage:') or s.startswith('>>>')
+    if not is_example:
+        return aString # return original, not stripped copy
+    new = ''
+    lines = s.split('\n')
+    for line in lines:
+        line = line.lstrip()
+        if line.startswith('sage:'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('>>>'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('...'):
+            new += after_first_word(line) + '\n'
+    return new
 
 def extract_text_before_first_compute_cell(text):
     """

@@ -164,11 +164,11 @@ def strip_string_literals(code):
         ['a', "b", 'c', "d\""]
 
     Triple-quotes are handled as well.
-        sage: s, literals = strip_string_literals("[a, '''b''', c]")
+        sage: s, literals = strip_string_literals("[a, '''b''', c, '']")
         sage: s
-        '[a, %(L1)s, c]'
+        '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
-        [a, '''b''', c]
+        [a, '''b''', c, '']
     """
     new_code = []
     literals = {}
@@ -199,7 +199,7 @@ def strip_string_literals(code):
                 q += 1
         else:
             raw = q>0 and code[q-1] == 'r'
-            if code[q+1] == code[q]:
+            if code[q+1] == code[q] == code[q+2]:
                 in_quote = code[q]*3
             else:
                 in_quote = code[q]
@@ -208,7 +208,7 @@ def strip_string_literals(code):
             q += len(in_quote)
 
 
-def containing_block(code, ix, delimiters=("[{(", "]})")):
+def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     """
     Returns the smallest range (start,end) such that code[start,end]
     is delimited by balanced parentheses/brackets/braces.
@@ -226,16 +226,23 @@ def containing_block(code, ix, delimiters=("[{(", "]})")):
         '5'
         sage: start, end = containing_block(s, 20); s[start:end]
         '[5]'
-        sage: start, end = containing_block(s, 20, delimiters=('(',')')); s[start:end]
+        sage: start, end = containing_block(s, 20, delimiters=['()']); s[start:end]
         '(L[5]+1)'
         sage: start, end = containing_block(s, 10); s[start:end]
         '(next_prime(L[5]+1))'
     """
-    openings, closings = delimiters
+    openings = "".join([d[0] for d in delimiters])
+    closings = "".join([d[-1] for d in delimiters])
     levels = [0] * len(openings)
+    p = 0
     start = ix
-    while start > 0:
+    while start >= 0:
         start -= 1
+        if start == -1:
+            if require_delim:
+                raise SyntaxError, "Unbalanced or missing ()'s"
+            else:
+                break
         if code[start] in openings:
             p = openings.index(code[start])
             levels[p] -= 1
@@ -244,10 +251,14 @@ def containing_block(code, ix, delimiters=("[{(", "]})")):
         elif code[start] in closings:
             p = closings.index(code[start])
             levels[p] += 1
+    if start == -1:
+        return 0, len(code)
     end = ix
     level = 0
-    while end < len(code)-1:
+    while end < len(code):
         end += 1
+        if end == len(code):
+            raise SyntaxError, "Unbalanced or missing ()'s"
         if code[end] == openings[p]:
             level += 1
         elif code[end] == closings[p]:
@@ -264,9 +275,9 @@ def parse_ellipsis(code):
     EXAMPLES:
         sage: from sage.misc.preparser import parse_ellipsis
         sage: parse_ellipsis("[1,2,..,n]")
-        'ellipsis_range(1,2,Ellipsis,n)'
+        '(ellipsis_range(1,2,Ellipsis,n))'
         sage: parse_ellipsis("for i in (f(x) .. L[10]):")
-        'for i in ellipsis_iter(f(x),Ellipsis,L[10]):'
+        'for i in (ellipsis_iter(f(x) ,Ellipsis, L[10])):'
     """
     ix = code.find('..')
     while ix != -1:
@@ -277,14 +288,14 @@ def parse_ellipsis(code):
             # '...' be valid Python in index slices
             code = code[:ix] + "Ellipsis" + code[ix+3:]
         else:
-            start_list, end_list = containing_block(code, ix)
+            start_list, end_list = containing_block(code, ix, ['()','[]'])
             arguments = code[start_list+1:end_list-1].replace('...', ',Ellipsis,').replace('..', ',Ellipsis,')
             arguments = re.sub(r',\s*,', ',', arguments)
             range_or_iter = 'range' if code[start_list]=='[' else 'iter'
-            code = "%sellipsis_%s(%s)%s" %  (code[:start_list],
-                                             range_or_iter,
-                                             arguments,
-                                             code[end_list:])
+            code = "%s(ellipsis_%s(%s))%s" %  (code[:start_list],
+                                               range_or_iter,
+                                               arguments,
+                                               code[end_list:])
         ix = code.find('..')
     return code
 

@@ -218,18 +218,18 @@ char* ZZ_p_to_str(const ZZ_p* x)
 
 /* Return value is only valid if the result should fit into an int.
    AUTHOR: David Harvey (2008-06-08) */
-int ZZ_p_to_int(const ZZ_p* x)
+int ZZ_p_to_int(const ZZ_p& x )
 {
-  return ZZ_to_int(&rep(*x));
+  return ZZ_to_int(&rep(x));
 }
 
 /* Returns a *new* ZZ_p object.
    AUTHOR: David Harvey (2008-06-08) */
-struct ZZ_p* int_to_ZZ_p(int value)
+ZZ_p int_to_ZZ_p(int value)
 {
-  ZZ_p* output = new ZZ_p();
-  conv(*output, value);
-  return output;
+  ZZ_p r;
+  r = value;
+  return r;
 }
 
 /* Sets given ZZ_p to value
@@ -1583,6 +1583,10 @@ mat_GF2E* new_mat_GF2E(long nrows, long ncols) {
 
 void del_mat_GF2E(mat_GF2E* x) {
   delete x;
+}
+
+void mat_GF2E_SetDims(struct mat_GF2E* m, long nrows, long ncols){
+  m->SetDims(nrows, ncols);
 }
 
 char* mat_GF2E_to_str(mat_GF2E* x)

@@ -55,7 +55,8 @@ import sage.rings.arith
 
 import sage.rings.number_field.number_field
 
-from sage.libs.ntl.ntl cimport ntl_ZZ, ntl_ZZX
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.all import pari_gen
@@ -173,7 +174,7 @@ cdef class NumberFieldElement(FieldElement):
             # set it up and exit immediately
             # fast pathway
             (<Integer>ZZ(f))._to_ZZ(&coeff)
-            SetCoeff( self.__numerator, 0, coeff )
+            ZZX_SetCoeff( self.__numerator, 0, coeff )
             conv_ZZ_int( self.__denominator, 1 )
             return
 
@@ -210,9 +211,9 @@ cdef class NumberFieldElement(FieldElement):
         num = f * den
         for i from 0 <= i <= num.degree():
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
-            SetCoeff( self.__numerator, i, coeff )
+            ZZX_SetCoeff( self.__numerator, i, coeff )
 
-    def __alloc__(self):
+    def __new__(self, parent = None, f = None):
         ZZX_construct(&self.__numerator)
         ZZ_construct(&self.__denominator)
 
@@ -263,10 +264,10 @@ cdef class NumberFieldElement(FieldElement):
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         _num, _den = new_parent.polynomial_ntl()
-        for i from 0 <= i <= deg(self.__numerator):
-            GetCoeff(tmp, self.__numerator, i)
-            SetCoeff(result, i*rel, tmp)
-        rem_ZZX(x.__numerator, result, _num.x[0])
+        for i from 0 <= i <= ZZX_deg(self.__numerator):
+            tmp = ZZX_coeff(self.__numerator, i)
+            ZZX_SetCoeff(result, i*rel, tmp)
+        rem_ZZX(x.__numerator, result, _num.x)
         return x
 
     def __reduce__(self):
@@ -665,7 +666,7 @@ cdef class NumberFieldElement(FieldElement):
         content(t1, self.__numerator)
         GCD_ZZ(gcd, t1, self.__denominator)
         if sign(gcd) != sign(self.__denominator):
-            negate(t1, gcd)
+            ZZ_negate(t1, gcd)
             gcd = t1
         div_ZZX_ZZ(t2, self.__numerator, gcd)
         div_ZZ_ZZ(t1, self.__denominator, gcd)
@@ -907,11 +908,11 @@ cdef class NumberFieldElement(FieldElement):
             __num = f * __den
             for i from 0 <= i <= __num.degree():
                 (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
-                SetCoeff( num[0], i, coeff )
+                ZZX_SetCoeff( num[0], i, coeff )
         else:
             _num, _den = self.parent().polynomial_ntl()
-            num[0] = _num.x[0]
-            den[0] = _den.x[0]
+            num[0] = _num.x
+            den[0] = _den.x
 
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
         """
@@ -977,7 +978,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (2*I*I)._integer_()
             -2
         """
-        if deg(self.__numerator) >= 1:
+        if ZZX_deg(self.__numerator) >= 1:
             raise TypeError, "Unable to coerce %s to an integer"%self
         return ZZ(self._rational_())
 
@@ -994,7 +995,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (I*I/2)._rational_()
             -1/2
         """
-        if deg(self.__numerator) >= 1:
+        if ZZX_deg(self.__numerator) >= 1:
             raise TypeError, "Unable to coerce %s to a rational"%self
         cdef Integer num
         num = PY_NEW(Integer)
@@ -1080,7 +1081,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
         cdef Integer numCoeff
         cdef int i
-        for i from 0 <= i <= deg(self.__numerator):
+        for i from 0 <= i <= ZZX_deg(self.__numerator):
             numCoeff = PY_NEW(Integer)
             ZZX_getitem_as_mpz(&numCoeff.value, &self.__numerator, i)
             coeffs.append( numCoeff / den )

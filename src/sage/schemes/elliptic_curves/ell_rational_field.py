@@ -112,11 +112,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return
         EllipticCurve_field.__init__(self, [Q(x) for x in ainvs])
         self.__np = {}
+        self.__gens = {}
+        self.__rank = {}
+        self.__regulator = {}
         if self.base_ring() != Q:
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
 
     def _set_rank(self, r):
-        self.__rank = Integer(r)
+        self.__rank = {}
+        self.__rank[True] = Integer(r)
     def _set_torsion_order(self, t):
         self.__torsion_order = Integer(t)
     def _set_cremona_label(self, L):
@@ -127,9 +131,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         self.__modular_degree = Integer(deg)
 
     def _set_gens(self, gens):
-        self.__gens = [self.point(x, check=True) for x in gens]
-        self.__gens_certain = True
-        self.__gens.sort()
+        self.__gens = {}
+        self.__gens[True] = [self.point(x, check=True) for x in gens]
+        self.__gens[True].sort()
 
     def is_integral(self):
         try:
@@ -1000,8 +1004,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             proof = bool(proof)
         try:
             return self.__rank[proof]
-        except AttributeError:
-            self.__rank = {}
         except KeyError:
             if proof is False and self.__rank.has_key(True):
                 return self.__rank[True]
@@ -1104,9 +1106,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             proof = bool(proof)
         try:
             return list(self.__gens[proof])  # return copy so not changed
-        except AttributeError:
-            self.__gens = {}
-            self.__regulator = {}
         except KeyError:
             if proof is False and self.__gens.has_key(True):
                 return self.__gens[True]
@@ -1188,11 +1187,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Return True if the generators have been proven correct.
         """
-        try:
-            return self.__gens.has_key(True)
-        except AttributeError:
-            self.gens()
-            return self.__gens.has_key(True)
+        return self.__gens.has_key(True)
 
     def ngens(self, proof = None):
         return len(self.gens(proof = proof))
@@ -1235,9 +1230,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             proof = bool(proof)
         try:
             return self.__regulator[proof]
-        except AttributeError:
-            self.__gens = {} #Need to put this here so that these two are always created at the same time.
-            self.__regulator = {}
         except KeyError:
             if proof is False and self.__regulator.has_key(True):
                 return self.__regulator[True]

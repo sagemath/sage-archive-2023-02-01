@@ -200,10 +200,8 @@ class ClassicHostInfo(object):
                 host_info['clock'] = host_info['clock'].replace('MHz', '')
                 host_info['cpu MHz'] = int(float(host_info['clock']))
                 host_info['model name'] = host_info['cpu']
-
-            # Itanium 64 specific code here
-            # elif uname[5] == 'PPC':
-            #     host_info['model name'] = host_info['family']
+            elif uname[5] == 'ia64':
+                host_info['model name'] = host_info['family']
 
             # Get memory related date
             meminfo = open('/proc/meminfo', 'r').readlines()

@@ -101,6 +101,13 @@ ntl = Extension('sage.libs.ntl.ntl',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
+fmpz_poly = Extension('sage.libs.flint.fmpz_poly',
+                 sources = ["sage/libs/flint/fmpz_poly.pyx"],
+                 libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
+                 include_dirs=[SAGE_ROOT+'/local/include/FLINT/'],
+                 extra_compile_args=["-std=c99"]
+                 )
+
 mwrank =  Extension("sage.libs.mwrank.mwrank",
                     sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],
@@ -335,6 +342,8 @@ ext_modules = [ \
 
     ntl,
 
+    fmpz_poly,
+
     matrix,
 
     matrix_misc,
@@ -543,6 +552,9 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
+    Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
+              sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx']), \
+
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 
@@ -572,6 +584,12 @@ ext_modules = [ \
               sources = ['sage/rings/number_field/number_field_element.pyx'],
               libraries=['ntl','gmp'],
               language = 'c++'), \
+
+    Extension('sage.rings.number_field.number_field_element_quadratic',
+              sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
+              libraries=['gmp'],
+              language = 'c++'), \
+                    # Needs c++ because it has c++ members in class struct
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
@@ -912,6 +930,7 @@ setup(name        = 'sage',
                      'sage.libs.linbox',
                      'sage.libs.mwrank',
                      'sage.libs.ntl',
+                     'sage.libs.flint',
                      'sage.libs.pari',
                      'sage.libs.singular',
 
@@ -968,6 +987,7 @@ setup(name        = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
+                     'sage.structure.proof',
 
                      'sage.dsage',
                      'sage.dsage.tests',

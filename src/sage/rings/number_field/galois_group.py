@@ -12,5 +12,8 @@ class GaloisGroup:
     def group(self):
         return self.__group
 
+    def order(self):
+        return self.__group.order()
+
     def number_field(self):
         return self.__number_field

@@ -11,11 +11,6 @@ cdef class Integer(EuclideanDomainElement):
     cdef void _to_ZZ(self, ZZ_c *z)
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
-    #cdef object _pari
-
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
-    cdef ModuleElement _neg_c_impl(self)
 
     cdef _lshift(self, long int n)
     cdef _rshift(Integer self, long int n)

@@ -33,7 +33,7 @@ def flatten(in_list, ltypes=(list, tuple)):
        [0, 1, 2, 3, 4]
 
    Degenerate cases:
-      sage: flatten([[]])
+      sage: flatten([[],[]])
       []
       sage: flatten([[[]]])
       []
@@ -47,6 +47,7 @@ def flatten(in_list, ltypes=(list, tuple)):
             new_list[index : index + 1] = v
          else:
             new_list.pop(index)
+            index -= 1
             break
       index += 1
    return new_list

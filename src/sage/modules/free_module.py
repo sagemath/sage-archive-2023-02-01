@@ -1440,25 +1440,25 @@ class FreeModule_generic_pid(FreeModule_generic):
             self.__basis_matrix = A
             return A
 
-    def index(self, other):
+    def index_in(self, other):
         """
-        Return the lattice index [self : other] which is an element
-        of the base field.  When other is contained in self, the lattice
-        index is the usual index.  If the index is infinite, then this
-        function returns infinity.
+        Return the lattice index [other:self] of self in other, as an
+        element of the base field.  When self is contained in other,
+        the lattice index is the usual index.  If the index is
+        infinite, then this function returns infinity.
 
         EXAMPLES:
             sage: L1 = span(ZZ, [[1,2]])
             sage: L2 = span(ZZ, [[3,6]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             3
 
         Note that the free modules being compared need not be integral.
             sage: L1 = span(ZZ, [['1/2','1/3'], [4,5]])
             sage: L2 = span(ZZ, [[1,2], [3,4]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             12/7
-            sage: L2.index(L1)
+            sage: L1.index_in(L2)
             7/12
             sage: L1.discriminant() / L2.discriminant()
             49/144
@@ -1466,7 +1466,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         The index of a lattice of infinite index is infinite.
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span(ZZ, [[1,2]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             +Infinity
         """
         if not isinstance(other, FreeModule_generic):
@@ -1478,21 +1478,20 @@ class FreeModule_generic_pid(FreeModule_generic):
         if self.base_ring() != other.base_ring():
             raise NotImplementedError, "lattice index only defined for modules over the same base ring."
 
-        if self.base_ring().is_field():
+        if other.base_ring().is_field():
             if self == other:
                 return sage.rings.integer.Integer(1)
             else:
-                if other.is_subspace(self):
+                if self.is_subspace(other):
                     return sage.rings.infinity.infinity
-            raise ArithmeticError, "other must be contained in the vector space spanned by self."
+            raise ArithmeticError, "self must be contained in the vector space spanned by other."
 
         try:
-            C = [self.coordinates(b) for b in other.basis()]
+            C = [other.coordinates(b) for b in self.basis()]
         except ArithmeticError:
             raise
-#            raise ArithmeticError, "other must be contained in the vector space spanned by self."
 
-        if other.rank() < self.rank():
+        if self.rank() < other.rank():
             return sage.rings.infinity.infinity
 
         A = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C)
@@ -1649,7 +1648,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             1/6
         """
         # TODO: There is probably a much faster algorithm in this case.
-        return self.saturation().index(self)
+        return self.index_in(self.saturation())
 
     def saturation(self):
         r"""

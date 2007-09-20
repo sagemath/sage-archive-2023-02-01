@@ -4,6 +4,7 @@ p-adic Capped Relative Dense Polynomials
 
 import sage.rings.polynomial.polynomial_element_generic
 import sage.rings.polynomial.polynomial_element
+import sage.rings.polynomial.polynomial_integer_dense_ntl
 import sage.rings.integer
 import sage.rings.integer_ring
 import sage.rings.padics.misc as misc
@@ -23,7 +24,7 @@ Integer = sage.rings.integer.Integer
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
-Polynomial_integer_dense = sage.rings.polynomial.polynomial_element_generic.Polynomial_integer_dense
+Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
 class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):

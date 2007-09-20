@@ -579,18 +579,16 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
             sage: g(x^2 + 2)
             b^2 + 2
 
-        We do an example involving a relative number field, which
-        doesn't work since the relative extension generator doesn't
-        generate the absolute extension.
+        We do an example involving a relative number field:
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
-            sage: F, g, h = Q.field_extension('b')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()
-
+            sage: Q.field_extension('b')
+            (Number Field in b with defining polynomial X^3 + 2*X + 1 over its base field, Ring morphism:
+              ...
+              To:   Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^3 - 2 with modulus X^3 + 2*X + 1
+              Defn: b |--> b)
 
         We slightly change the example above so it works.
 
@@ -616,15 +614,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
         """
 
         F = self.modulus().root_field(names)
-        if sage.rings.number_field.all.is_NumberFieldExtension(F):
-            if F.gen() != F.gen_relative():
-                # The issue is that there is no way to specify a homomorphism
-                # from the relative number to the poly ring quotient that
-                # is defined over Q.
-                raise NotImplementedError, "not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()"
-            alpha = F.gen_relative()
-        else:
-            alpha = F.gen()
+        alpha = F.gen()
         x = self.gen()
 
         f = self.hom([alpha], F, check=False)

@@ -2361,7 +2361,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e = EllipticCurve([-1386747,368636886]);e
             Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: G = e.torsion_subgroup(); G
-            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C2 x C8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            Torsion Subgroup isomorphic to Multiplicative Abelian
+            Group isomorphic to C8 x C2 associated to the Elliptic
+            Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
+            Rational Field
             sage: G.0
             (1227 : 22680 : 1)
             sage: G.1

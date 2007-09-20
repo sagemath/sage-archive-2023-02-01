@@ -785,34 +785,6 @@ class CombinatorialClass(SageObject):
 
     previous = __previous_from_iterator
 
-class ExampleCombinatorialClass_size(CombinatorialClass):
-    def __init__(self, size):
-        self.size = size
-
-    def __contains__(self, x):
-        if not isinstance(x, __builtin__.list):
-            return False
-        if len(x) != self.size:
-            return False
-        for i in x:
-            if not ( i == 0 or i == 1 ):
-                return False
-        return True
-
-    def size(self):
-        return self.size
-
-    def first(self):
-        return [0]*int(self.size)
-
-    def next(self, x):
-        try:
-            pos = x.index(0)
-        except:
-            return None
-
-        return [0]*int(pos) + [1] + x[pos+1:]
-
 def hurwitz_zeta(s,x,N):
     """
     Returns the value of the $\zeta(s,x)$ to $N$ decimals, where s and x are real.
@@ -854,3 +826,1138 @@ def hurwitz_zeta(s,x,N):
     return s  ## returns an odd string
 
 
+#####################################################
+#### combinatorial sets/lists
+
+def combinations(mset,k):
+    r"""
+    A {\it combination} of a multiset (a list of objects which may
+    contain the same object several times) mset is an unordered
+    selection without repetitions and is represented by a sorted
+    sublist of mset.  Returns the set of all combinations of the
+    multiset mset with k elements.
+
+    WARNING: Wraps GAP's Combinations.  Hence mset must be a list of
+    objects that have string representations that can be interpreted by
+    the GAP intepreter.  If mset consists of at all complicated SAGE
+    objects, this function does *not* do what you expect.  A proper
+    function should be written! (TODO!)
+
+    EXAMPLES:
+        sage: mset = [1,1,2,3,4,4,5]
+        sage: combinations(mset,2)
+        [[1, 1],
+         [1, 2],
+         [1, 3],
+         [1, 4],
+         [1, 5],
+         [2, 3],
+         [2, 4],
+         [2, 5],
+         [3, 4],
+         [3, 5],
+         [4, 4],
+         [4, 5]]
+         sage: mset = ["d","a","v","i","d"]
+         sage: combinations(mset,3)
+         ['add', 'adi', 'adv', 'aiv', 'ddi', 'ddv', 'div']
+
+    NOTE: For large lists, this raises a string error.
+    """
+    ans=gap.eval("Combinations(%s,%s)"%(mset,ZZ(k))).replace("\n","")
+    return eval(ans)
+
+def combinations_iterator(mset,n=None):
+    """
+    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
+    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
+
+    Much faster than combinations.
+
+    EXAMPLES:
+        sage: X = combinations_iterator([1,2,3,4,5],3)
+        sage: [x for x in X]
+        [[1, 2, 3],
+         [1, 2, 4],
+         [1, 2, 5],
+         [1, 3, 4],
+         [1, 3, 5],
+         [1, 4, 5],
+         [2, 3, 4],
+         [2, 3, 5],
+         [2, 4, 5],
+         [3, 4, 5]]
+    """
+    items = mset
+    if n is None:
+        n = len(items)
+    for i in range(len(items)):
+        v = items[i:i+1]
+        if n == 1:
+            yield v
+        else:
+            rest = items[i+1:]
+            for c in combinations_iterator(rest, n-1):
+                yield v + c
+
+
+def number_of_combinations(mset,k):
+    """
+    Returns the size of combinations(mset,k).
+    IMPLEMENTATION: Wraps GAP's NrCombinations.
+
+
+    NOTE: mset must be a list of integers or strings (i.e., this is very restricted).
+
+    EXAMPLES:
+        sage: mset = [1,1,2,3,4,4,5]
+        sage: number_of_combinations(mset,2)
+        12
+    """
+    return ZZ(gap.eval("NrCombinations(%s,%s)"%(mset,ZZ(k))))
+
+def arrangements(mset,k):
+    r"""
+    An arrangement of mset is an ordered selection without repetitions
+    and is represented by a list that contains only elements from
+    mset, but maybe in a different order.
+
+    \code{arrangements} returns the set of arrangements of the
+    multiset mset that contain k elements.
+
+    IMPLEMENTATION: Wraps GAP's Arrangements.
+
+    WARNING: Wraps GAP -- hence mset must be a list of objects that
+    have string representations that can be interpreted by the GAP
+    intepreter.  If mset consists of at all complicated SAGE objects,
+    this function does *not* do what you expect.  A proper function
+    should be written! (TODO!)
+
+    EXAMPLES:
+        sage: mset = [1,1,2,3,4,4,5]
+        sage: arrangements(mset,2)
+        [[1, 1],
+         [1, 2],
+         [1, 3],
+         [1, 4],
+         [1, 5],
+         [2, 1],
+         [2, 3],
+         [2, 4],
+         [2, 5],
+         [3, 1],
+         [3, 2],
+         [3, 4],
+         [3, 5],
+         [4, 1],
+         [4, 2],
+         [4, 3],
+         [4, 4],
+         [4, 5],
+         [5, 1],
+         [5, 2],
+         [5, 3],
+         [5, 4]]
+         sage: arrangements( ["c","a","t"], 2 )
+         ['ac', 'at', 'ca', 'ct', 'ta', 'tc']
+         sage: arrangements( ["c","a","t"], 3 )
+         ['act', 'atc', 'cat', 'cta', 'tac', 'tca']
+    """
+    ans=gap.eval("Arrangements(%s,%s)"%(mset,k))
+    return eval(ans)
+
+def number_of_arrangements(mset,k):
+    """
+    Returns the size of arrangements(mset,k).
+    Wraps GAP's NrArrangements.
+
+    EXAMPLES:
+        sage: mset = [1,1,2,3,4,4,5]
+        sage: number_of_arrangements(mset,2)
+        22
+    """
+    return ZZ(gap.eval("NrArrangements(%s,%s)"%(mset,ZZ(k))))
+
+def derangements(mset):
+    """
+    A derangement is a fixed point free permutation of list and is
+    represented by a list that contains exactly the same elements as
+    mset, but possibly in different order.  Derangements returns the
+    set of all derangements of a multiset.
+
+    Wraps GAP's Derangements.
+
+    WARNING: Wraps GAP -- hence mset must be a list of objects that
+    have string representations that can be interpreted by the GAP
+    intepreter.  If mset consists of at all complicated SAGE objects,
+    this function does *not* do what you expect.  A proper function
+    should be written! (TODO!)
+
+    EXAMPLES:
+        sage: mset = [1,2,3,4]
+        sage: derangements(mset)
+        [[2, 1, 4, 3],
+         [2, 3, 4, 1],
+         [2, 4, 1, 3],
+         [3, 1, 4, 2],
+         [3, 4, 1, 2],
+         [3, 4, 2, 1],
+         [4, 1, 2, 3],
+         [4, 3, 1, 2],
+         [4, 3, 2, 1]]
+         sage: derangements(["c","a","t"])
+         ['atc', 'tca']
+
+    """
+    ans=gap.eval("Derangements(%s)"%mset)
+    return eval(ans)
+
+def number_of_derangements(mset):
+    """
+    Returns the size of derangements(mset).
+    Wraps GAP's NrDerangements.
+
+    EXAMPLES:
+        sage: mset = [1,2,3,4]
+        sage: number_of_derangements(mset)
+        9
+    """
+    ans=gap.eval("NrDerangements(%s)"%mset)
+    return ZZ(ans)
+
+def tuples(S,k):
+    """
+    An ordered tuple of length k of set is an ordered selection with
+    repetition and is represented by a list of length k containing
+    elements of set.
+    tuples returns the set of all ordered tuples of length k of the set.
+
+    EXAMPLES:
+        sage: S = [1,2]
+        sage: tuples(S,3)
+	[[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
+        sage: mset = ["s","t","e","i","n"]
+        sage: tuples(mset,2)
+	[['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
+	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
+         ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
+	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
+
+    The Set(...) comparisons are necessary because finite fields are not
+    enumerated in a standard order.
+	sage: K.<a> = GF(4, 'a')
+	sage: mset = [x for x in K if x!=0]
+	sage: tuples(mset,2)
+        [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
+
+    AUTHOR: Jon Hanke (2006-08?)
+    """
+    import copy
+    if k<=0:
+        return [[]]
+    if k==1:
+        return [[x] for x in S]
+    ans = []
+    for s in S:
+        for x in tuples(S,k-1):
+            y = copy.copy(x)
+            y.append(s)
+            ans.append(y)
+    return ans
+    ## code wrapping GAP's Tuples:
+    #ans=gap.eval("Tuples(%s,%s)"%(S,k))
+    #return eval(ans)
+
+
+def number_of_tuples(S,k):
+    """
+    Returns the size of tuples(S,k).
+    Wraps GAP's NrTuples.
+
+    EXAMPLES:
+        sage: S = [1,2,3,4,5]
+        sage: number_of_tuples(S,2)
+        25
+        sage: S = [1,1,2,3,4,5]
+        sage: number_of_tuples(S,2)
+        25
+
+    """
+    ans=gap.eval("NrTuples(%s,%s)"%(S,ZZ(k)))
+    return ZZ(ans)
+
+def unordered_tuples(S,k):
+    """
+    An unordered tuple of length k of set is a unordered selection
+    with repetitions of set and is represented by a sorted list of
+    length k containing elements from set.
+
+    unordered_tuples returns the set of all unordered tuples of length k
+    of the set.
+    Wraps GAP's UnorderedTuples.
+
+    WARNING: Wraps GAP -- hence mset must be a list of objects that
+    have string representations that can be interpreted by the GAP
+    intepreter.  If mset consists of at all complicated SAGE objects,
+    this function does *not* do what you expect.  A proper function
+    should be written! (TODO!)
+
+    EXAMPLES:
+        sage: S = [1,2]
+        sage: unordered_tuples(S,3)
+        [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
+        sage: unordered_tuples(["a","b","c"],2)
+        ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
+
+    """
+    ans=gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
+    return eval(ans)
+
+def number_of_unordered_tuples(S,k):
+    """
+    Returns the size of unordered_tuples(S,k).
+    Wraps GAP's NrUnorderedTuples.
+
+    EXAMPLES:
+        sage: S = [1,2,3,4,5]
+        sage: number_of_unordered_tuples(S,2)
+        15
+    """
+    ans=gap.eval("NrUnorderedTuples(%s,%s)"%(S,ZZ(k)))
+    return ZZ(ans)
+
+def permutations(mset):
+    """
+    A {\it permutation} is represented by a list that contains exactly the same
+    elements as mset, but possibly in different order. If mset is a
+    proper set there are $|mset| !$ such permutations. Otherwise if the
+    first elements appears $k_1$ times, the second element appears $k_2$ times
+    and so on, the number of permutations is $|mset|! / (k_1! k_2! \ldots)$,
+    which is sometimes called a {\it multinomial coefficient}.
+
+    permutations returns the set of all permutations of a multiset.
+    Wraps GAP's PermutationsList.
+
+    WARNING: Wraps GAP -- hence mset must be a list of objects that
+    have string representations that can be interpreted by the GAP
+    intepreter.  If mset consists of at all complicated SAGE objects,
+    this function does *not* do what you expect.  A proper function
+    should be written! (TODO!)
+
+    EXAMPLES:
+        sage: mset = [1,1,2,2,2]
+        sage: permutations(mset)
+        [[1, 1, 2, 2, 2],
+         [1, 2, 1, 2, 2],
+         [1, 2, 2, 1, 2],
+         [1, 2, 2, 2, 1],
+         [2, 1, 1, 2, 2],
+         [2, 1, 2, 1, 2],
+         [2, 1, 2, 2, 1],
+         [2, 2, 1, 1, 2],
+         [2, 2, 1, 2, 1],
+         [2, 2, 2, 1, 1]]
+
+    """
+    ans=gap.eval("PermutationsList(%s)"%mset)
+    return eval(ans)
+
+def permutations_iterator(mset,n=None):
+    """
+    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
+    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
+
+    Note-- This function considers repeated elements as different entries,
+    so for example:
+        sage: from sage.combinat.combinat import permutations, permutations_iterator
+        sage: mset = [1,2,2]
+        sage: permutations(mset)
+        [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
+        sage: for p in permutations_iterator(mset): print p
+        [1, 2, 2]
+        [1, 2, 2]
+        [2, 1, 2]
+        [2, 2, 1]
+        [2, 1, 2]
+        [2, 2, 1]
+
+
+    EXAMPLES:
+        sage: X = permutations_iterator(range(3),2)
+        sage: [x for x in X]
+        [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
+    """
+    items = mset
+    if n is None:
+        n = len(items)
+    for i in range(len(items)):
+        v = items[i:i+1]
+        if n == 1:
+            yield v
+        else:
+            rest = items[:i] + items[i+1:]
+            for p in permutations_iterator(rest, n-1):
+                yield v + p
+
+def number_of_permutations(mset):
+    """
+    Returns the size of permutations(mset).
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: mset = [1,1,2,2,2]
+        sage: number_of_permutations(mset)
+        10
+
+    """
+    from sage.rings.arith import factorial, prod
+    m = len(mset)
+    n = []
+    seen = []
+    for element in mset:
+        try:
+            n[seen.index(element)] += 1
+        except:
+            n.append(1)
+            seen.append(element)
+    return factorial(m)/prod([factorial(k) for k in n])
+
+def cyclic_permutations(mset):
+    """
+    Returns a list of all cyclic permutations of mset. Treats mset as a list,
+    not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    return list(cyclic_permutations_iterator(mset))
+
+def cyclic_permutations_iterator(mset):
+    """
+    Iterates over all cyclic permutations of mset in cycle notation. Treats
+    mset as a list, not a set, i.e. entries with the same value are distinct.
+
+    AUTHOR: Emily Kirkman
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
+        sage: cyclic_permutations(range(4))
+        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
+        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
+        ...       print cycle
+        ['a', 'b', 'c']
+        ['a', 'c', 'b']
+
+    Note that lists with repeats are not handled intuitively:
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1], [1, 1, 1]]
+
+    """
+    if len(mset) > 2:
+        for perm in permutations_iterator(mset[1:]):
+            yield [mset[0]] + perm
+    else:
+        yield mset
+
+#### partitions
+
+def partitions_set(S,k=None, use_file=True):
+    r"""
+    An {\it unordered partition} of a set $S$ is a set of pairwise disjoint
+    nonempty subsets with union $S$ and is represented by a sorted
+    list of such subsets.
+
+    partitions_set returns the set of all unordered partitions of the
+    list $S$ of increasing positive integers into k pairwise disjoint
+    nonempty sets. If k is omitted then all partitions are returned.
+
+    The Bell number $B_n$, named in honor of Eric Temple Bell, is
+    the number of different partitions of a set with n elements.
+
+    WARNING: Wraps GAP -- hence S must be a list of objects that have
+    string representations that can be interpreted by the GAP
+    intepreter.  If mset consists of at all complicated SAGE objects,
+    this function does *not* do what you expect.  A proper function
+    should be written! (TODO!)
+
+    WARNING: This function is inefficient.  The runtime is dominated
+    by parsing the output from GAP.
+
+    Wraps GAP's PartitionsSet.
+
+    EXAMPLES:
+        sage: S = [1,2,3,4]
+        sage: partitions_set(S,2)
+        [[[1], [2, 3, 4]],
+         [[1, 2], [3, 4]],
+         [[1, 2, 3], [4]],
+         [[1, 2, 4], [3]],
+         [[1, 3], [2, 4]],
+         [[1, 3, 4], [2]],
+         [[1, 4], [2, 3]]]
+
+    REFERENCES:
+       http://en.wikipedia.org/wiki/Partition_of_a_set
+    """
+    if k is None:
+        ans=gap("PartitionsSet(%s)"%S).str(use_file=use_file)
+    else:
+        ans=gap("PartitionsSet(%s,%s)"%(S,k)).str(use_file=use_file)
+    return eval(ans)
+
+def number_of_partitions_set(S,k):
+    r"""
+    Returns the size of \code{partitions_set(S,k)}.  Wraps GAP's
+    NrPartitionsSet.
+
+    The Stirling number of the second kind is the number of partitions
+    of a set of size n into k blocks.
+
+    EXAMPLES:
+        sage: mset = [1,2,3,4]
+        sage: number_of_partitions_set(mset,2)
+        7
+        sage: stirling_number2(4,2)
+        7
+
+    REFERENCES
+        http://en.wikipedia.org/wiki/Partition_of_a_set
+
+    """
+    if k==None:
+        ans=gap.eval("NrPartitionsSet(%s)"%S)
+    else:
+        ans=gap.eval("NrPartitionsSet(%s,%s)"%(S,ZZ(k)))
+    return ZZ(ans)
+
+def partitions_list(n,k=None):
+    r"""
+    An {\it unordered partition of $n$} is an unordered sum
+    $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is represented by
+    the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
+    $p1\geq p_2 ...\geq p_k$.
+
+    INPUT:
+        n -- a positive integer
+
+    \code{partitions_list(n,k)} returns the list of all (unordered)
+    partitions of the positive integer n into sums with k summands. If
+    k is omitted then all partitions are returned.
+
+    Do not call partitions_list with an n much larger than 40, in
+    which case there are 37338 partitions, since the list will simply
+    become too large.
+
+    Wraps GAP's Partitions.
+
+    The function \code{partitions} (a wrapper for the corresponding
+    PARI function) returns not a list but rather a generator for a
+    list. It is also a function of only one argument.
+
+    EXAMPLES:
+        sage: partitions_list(10,2)
+        [[5, 5], [6, 4], [7, 3], [8, 2], [9, 1]]
+        sage: partitions_list(5)
+        [[1, 1, 1, 1, 1], [2, 1, 1, 1], [2, 2, 1], [3, 1, 1], [3, 2], [4, 1], [5]]
+
+    However, partitions(5) returns ``<generator object at ...>''.
+    """
+    n = ZZ(n)
+    if n <= 0:
+        raise ValueError, "n (=%s) must be a positive integer"%n
+    if k==None:
+        ans=gap.eval("Partitions(%s)"%(n))
+    else:
+        ans=gap.eval("Partitions(%s,%s)"%(n,k))
+    return eval(ans.replace('\n',''))
+
+def number_of_partitions(n,k=None, algorithm='default'):
+    r"""
+    Returns the size of partitions_list(n,k).
+
+    INPUT:
+        n -- an integer
+        k -- (default: None); if specified, instead returns the
+             cardinality of the set of all (unordered) partitions of
+             the positive integer n into sums with k summands.
+        algorithm -- (default: 'default')
+            'bober' -- use Jonathon Bober's implementation (*very* fast,
+                      but new and not well tested yet).
+            'gap' -- use GAP (VERY *slow*)
+            'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
+                      in the thousands, in which case PARI is faster. *But*
+                      PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
+                      outputs numbpart(147007)%1000 as 536, but it
+                      should be 533!.  So do not use this option.
+            'default' -- 'bober' when k is not specified; otherwise
+                      use 'gap'.
+
+    IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
+
+    Use the function \code{partitions(n)} to return a generator over
+    all partitions of $n$.
+
+    It is possible to associate with every partition of the integer n
+    a conjugacy class of permutations in the symmetric group on n
+    points and vice versa.  Therefore p(n) = NrPartitions(n) is the
+    number of conjugacy classes of the symmetric group on n points.
+
+    EXAMPLES:
+        sage: v = list(partitions(5)); v
+        [(1, 1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 2), (1, 1, 3), (2, 3), (1, 4), (5,)]
+        sage: len(v)
+        7
+        sage: number_of_partitions(5, algorithm='gap')
+        7
+        sage: number_of_partitions(5, algorithm='pari')
+        7
+        sage: number_of_partitions(5, algorithm='bober')
+        7
+
+    The input must be a nonnegative integer or a ValueError is raised.
+        sage: number_of_partitions(-5)
+        Traceback (most recent call last):
+        ...
+        ValueError: n (=-5) must be a nonnegative integer
+
+        sage: number_of_partitions(10,2)
+        5
+        sage: number_of_partitions(10)
+        42
+        sage: number_of_partitions(3)
+        3
+        sage: number_of_partitions(10)
+        42
+        sage: number_of_partitions(3, algorithm='pari')
+        3
+        sage: number_of_partitions(10, algorithm='pari')
+        42
+        sage: number_of_partitions(40)
+        37338
+        sage: number_of_partitions(100)
+        190569292
+
+    A generating function for p(n) is given by the reciprocal of
+    Euler's function:
+
+    \[
+    \sum_{n=0}^\infty p(n)x^n = \prod_{k=1}^\infty \left(\frac {1}{1-x^k} \right).
+    \]
+
+    We use SAGE to verify that the first several coefficients do
+    instead agree:
+
+        sage: q = PowerSeriesRing(QQ, 'q', default_prec=9).gen()
+        sage: prod([(1-q^k)^(-1) for k in range(1,9)])  ## partial product of
+        1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + O(q^9)
+        sage: [number_of_partitions(k) for k in range(2,10)]
+        [2, 3, 5, 7, 11, 15, 22, 30]
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Partition_%28number_theory%29
+
+    """
+    n = ZZ(n)
+    if n < 0:
+        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+    elif n == 0:
+        return ZZ(1)
+    if algorithm == 'gap' or (not k is None and algorithm=='default'):
+        if k==None:
+            ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
+        else:
+            ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
+        return ZZ(ans)
+    if not k is None:
+        raise ValueError, "only the GAP algorithm works if k is specified."
+    if algorithm == 'default' and k is None:
+        return partitions_ext.number_of_partitions(n)
+    elif algorithm == 'bober' and k is None:
+        return partitions_ext.number_of_partitions(n)
+    elif algorithm == 'pari':
+        if not k is None:
+            raise ValueError, "cannot specify second argument k if the algorithm is PARI"
+        return ZZ(pari(ZZ(n)).numbpart())
+    raise ValueError, "unknown algorithm '%s'"%algorithm
+
+def partitions(n):
+    r"""
+    Generator of all the partitions of the integer $n$.
+
+    INPUT:
+        n -- int
+
+    To compute the number of partitions of $n$ use
+    \code{number_of_partitions(n)}.
+
+    EXAMPLES:
+        sage.: partitions(3)
+        <generator object at 0xab3b3eac>
+        sage: list(partitions(3))
+        [(1, 1, 1), (1, 2), (3,)]
+
+
+    AUTHOR: Adapted from David Eppstein, Jan Van lent, George Yoshida;
+    Python Cookbook 2, Recipe 19.16.
+    """
+    n == ZZ(n)
+    # base case of the recursion: zero is the sum of the empty tuple
+    if n == 0:
+        yield ( )
+        return
+    # modify the partitions of n-1 to form the partitions of n
+    for p in partitions(n-1):
+        yield (1,) + p
+        if p and (len(p) < 2 or p[1] > p[0]):
+            yield (p[0] + 1,) + p[1:]
+
+def cyclic_permutations_of_partition(partition):
+    """
+    Returns all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    return list(cyclic_permutations_of_partition_iterator(partition))
+
+def cyclic_permutations_of_partition_iterator(partition):
+    """
+    Iterates over all combinations of cyclic permutations of each cell of the
+    partition.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLES:
+        sage: from sage.combinat.combinat import cyclic_permutations_of_partition
+        sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal:
+        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+
+    """
+    if len(partition) == 1:
+        for i in cyclic_permutations_iterator(partition[0]):
+            yield [i]
+    else:
+        for right in cyclic_permutations_of_partition_iterator(partition[1:]):
+            for perm in cyclic_permutations_iterator(partition[0]):
+                yield [perm] + right
+
+def ferrers_diagram(pi):
+    """
+    Return the Ferrers diagram of pi.
+
+    INPUT:
+        pi -- a partition, given as a list of integers.
+
+    EXAMPLES:
+        sage: print ferrers_diagram([5,5,2,1])
+        *****
+        *****
+        **
+        *
+        sage: pi = partitions_list(10)[30] ## [6,1,1,1,1]
+        sage: print ferrers_diagram(pi)
+        ******
+        *
+        *
+        *
+        *
+        sage: pi = partitions_list(10)[33] ## [6, 3, 1]
+        sage: print ferrers_diagram(pi)
+        ******
+        ***
+        *
+    """
+    return '\n'.join(['*'*p for p in pi])
+
+
+def ordered_partitions(n,k=None):
+    r"""
+    An {\it ordered partition of $n$} is an ordered sum
+    $$
+       n = p_1+p_2 + \cdots + p_k
+    $$
+    of positive integers and is represented by the list $p = [p_1,p_2,\cdots ,p_k]$.
+    If $k$ is omitted then all ordered partitions are returned.
+
+    \code{ordered_partitions(n,k)} returns the set of all (ordered)
+    partitions of the positive integer n into sums with k summands.
+
+    Do not call \code{ordered_partitions} with an n much larger than
+    15, since the list will simply become too large.
+
+    Wraps GAP's OrderedPartitions.
+
+    The number of ordered partitions $T_n$ of $\{ 1, 2, ..., n \}$ has the
+    generating function is
+    \[
+    \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
+    \]
+
+    EXAMPLES:
+        sage: ordered_partitions(10,2)
+        [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5], [6, 4], [7, 3], [8, 2], [9, 1]]
+
+        sage: ordered_partitions(4)
+        [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Ordered_partition_of_a_set
+
+    """
+    if k==None:
+        ans=gap.eval("OrderedPartitions(%s)"%(ZZ(n)))
+    else:
+        ans=gap.eval("OrderedPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
+    return eval(ans.replace('\n',''))
+
+def number_of_ordered_partitions(n,k=None):
+    """
+    Returns the size of ordered_partitions(n,k).
+    Wraps GAP's NrOrderedPartitions.
+
+    It is possible to associate with every partition of the integer n a conjugacy
+    class of permutations in the symmetric group on n points and vice versa.
+    Therefore p(n) = NrPartitions(n) is the number of conjugacy classes of the
+    symmetric group on n points.
+
+
+    EXAMPLES:
+        sage: number_of_ordered_partitions(10,2)
+        9
+        sage: number_of_ordered_partitions(15)
+        16384
+    """
+    if k==None:
+        ans=gap.eval("NrOrderedPartitions(%s)"%(n))
+    else:
+        ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
+    return ZZ(ans)
+
+def partitions_greatest(n,k):
+    """
+    Returns the set of all (unordered) ``restricted'' partitions of the integer n having
+    parts less than or equal to the integer k.
+
+    Wraps GAP's PartitionsGreatestLE.
+
+    EXAMPLES:
+        sage: partitions_greatest(10,2)
+        [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+         [2, 1, 1, 1, 1, 1, 1, 1, 1],
+         [2, 2, 1, 1, 1, 1, 1, 1],
+         [2, 2, 2, 1, 1, 1, 1],
+         [2, 2, 2, 2, 1, 1],
+         [2, 2, 2, 2, 2]]
+    """
+    return eval(gap.eval("PartitionsGreatestLE(%s,%s)"%(ZZ(n),ZZ(k))))
+
+def partitions_greatest_eq(n,k):
+    """
+    Returns the set of all (unordered) ``restricted'' partitions of the
+    integer n having at least one part equal to the integer k.
+
+    Wraps GAP's PartitionsGreatestEQ.
+
+    EXAMPLES:
+        sage: partitions_greatest_eq(10,2)
+        [[2, 1, 1, 1, 1, 1, 1, 1, 1],
+         [2, 2, 1, 1, 1, 1, 1, 1],
+         [2, 2, 2, 1, 1, 1, 1],
+         [2, 2, 2, 2, 1, 1],
+         [2, 2, 2, 2, 2]]
+
+    """
+    ans = gap.eval("PartitionsGreatestEQ(%s,%s)"%(n,k))
+    return eval(ans)
+
+def partitions_restricted(n,S,k=None):
+    r"""
+    A {\it restricted partition} is, like an ordinary partition, an
+    unordered sum $n = p_1+p_2+\ldots+p_k$ of positive integers and is
+    represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
+    order. The difference is that here the $p_i$ must be elements
+    from the set $S$, while for ordinary partitions they may be
+    elements from $[1..n]$.
+
+    Returns the set of all restricted partitions of the positive integer
+    n into sums with k summands with the summands of the partition coming
+    from the set $S$. If k is not given all restricted partitions for all
+    k are returned.
+
+    Wraps GAP's RestrictedPartitions.
+
+    EXAMPLES:
+        sage: partitions_restricted(8,[1,3,5,7])
+        [[1, 1, 1, 1, 1, 1, 1, 1],
+         [3, 1, 1, 1, 1, 1],
+         [3, 3, 1, 1],
+         [5, 1, 1, 1],
+         [5, 3],
+         [7, 1]]
+        sage: partitions_restricted(8,[1,3,5,7],2)
+        [[5, 3], [7, 1]]
+    """
+    if k==None:
+        ans=gap.eval("RestrictedPartitions(%s,%s)"%(n,S))
+    else:
+        ans=gap.eval("RestrictedPartitions(%s,%s,%s)"%(n,S,k))
+    return eval(ans)
+
+def number_of_partitions_restricted(n,S,k=None):
+    """
+    Returns the size of partitions_restricted(n,S,k).
+    Wraps GAP's NrRestrictedPartitions.
+
+    EXAMPLES:
+        sage: number_of_partitions_restricted(8,[1,3,5,7])
+        6
+        sage: number_of_partitions_restricted(8,[1,3,5,7],2)
+        2
+
+    """
+    if k==None:
+        ans=gap.eval("NrRestrictedPartitions(%s,%s)"%(ZZ(n),S))
+    else:
+        ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))
+    return ZZ(ans)
+
+def partitions_tuples(n,k):
+    """
+    partition_tuples( n, k ) returns the list of all k-tuples of partitions
+    which together form a partition of n.
+
+    k-tuples of partitions describe the classes and the characters of
+    wreath products of groups with k conjugacy classes with the symmetric
+    group $S_n$.
+
+    Wraps GAP's PartitionTuples.
+
+    EXAMPLES:
+        sage: partitions_tuples(3,2)
+        [[[1, 1, 1], []],
+         [[1, 1], [1]],
+         [[1], [1, 1]],
+         [[], [1, 1, 1]],
+         [[2, 1], []],
+         [[1], [2]],
+         [[2], [1]],
+         [[], [2, 1]],
+         [[3], []],
+         [[], [3]]]
+    """
+    ans=gap.eval("PartitionTuples(%s,%s)"%(ZZ(n),ZZ(k)))
+    return eval(ans)
+
+def number_of_partitions_tuples(n,k):
+    r"""
+    number_of_partition_tuples( n, k ) returns the number of partition_tuples(n,k).
+
+    Wraps GAP's NrPartitionTuples.
+
+    EXAMPLES:
+        sage: number_of_partitions_tuples(3,2)
+        10
+        sage: number_of_partitions_tuples(8,2)
+        185
+
+    Now we compare that with the result of the following GAP
+    computation:
+ \begin{verbatim}
+        gap> S8:=Group((1,2,3,4,5,6,7,8),(1,2));
+        Group([ (1,2,3,4,5,6,7,8), (1,2) ])
+        gap> C2:=Group((1,2));
+        Group([ (1,2) ])
+        gap> W:=WreathProduct(C2,S8);
+        <permutation group of size 10321920 with 10 generators>
+        gap> Size(W);
+        10321920     ## = 2^8*Factorial(8), which is good:-)
+        gap> Size(ConjugacyClasses(W));
+        185
+\end{verbatim}
+    """
+    ans=gap.eval("NrPartitionTuples(%s,%s)"%(ZZ(n),ZZ(k)))
+    return ZZ(ans)
+
+def partition_power(pi,k):
+    """
+    partition_power( pi, k ) returns the partition corresponding to the
+    $k$-th power of a permutation with cycle structure pi
+    (thus describes the powermap of symmetric groups).
+
+    Wraps GAP's PowerPartition.
+
+    EXAMPLES:
+        sage: partition_power([5,3],1)
+        [5, 3]
+        sage: partition_power([5,3],2)
+        [5, 3]
+        sage: partition_power([5,3],3)
+        [5, 1, 1, 1]
+        sage: partition_power([5,3],4)
+        [5, 3]
+
+     Now let us compare this to the power map on $S_8$:
+
+        sage: G = SymmetricGroup(8)
+        sage: g = G([(1,2,3,4,5),(6,7,8)])
+        sage: g
+        (1,2,3,4,5)(6,7,8)
+        sage: g^2
+        (1,3,5,2,4)(6,8,7)
+        sage: g^3
+        (1,4,2,5,3)
+        sage: g^4
+        (1,5,4,3,2)(6,7,8)
+
+    """
+    ans=gap.eval("PowerPartition(%s,%s)"%(pi,ZZ(k)))
+    return eval(ans)
+
+def partition_sign(pi):
+    r"""
+    partition_sign( pi ) returns the sign of a permutation with cycle structure
+    given by the partition pi.
+
+    This function corresponds to a homomorphism from the symmetric group
+    $S_n$ into the cyclic group of order 2, whose kernel is exactly the
+    alternating group $A_n$. Partitions of sign $1$ are called {\it even partitions}
+    while partitions of sign $-1$ are called {\it odd}.
+
+    Wraps GAP's SignPartition.
+
+    EXAMPLES:
+        sage: partition_sign([5,3])
+        1
+        sage: partition_sign([5,2])
+        -1
+
+    {\it Zolotarev's lemma} states that the Legendre symbol
+    $ \left(\frac{a}{p}\right)$ for an integer $a \pmod p$ ($p$ a prime number),
+    can be computed as sign(p_a), where sign denotes the sign of a permutation
+    and p_a the permutation of the residue classes $\pmod p$ induced by
+    modular multiplication by $a$, provided $p$ does not divide $a$.
+
+    We verify this in some examples.
+
+        sage: F = GF(11)
+        sage: a = F.multiplicative_generator();a
+        2
+        sage: plist = [int(a*F(x)) for x in range(1,11)]; plist
+        [2, 4, 6, 8, 10, 1, 3, 5, 7, 9]
+
+    This corresponds ot the permutation (1, 2, 4, 8, 5, 10, 9, 7, 3, 6)
+    (acting the set $\{1,2,...,10\}$) and to the partition [10].
+
+        sage: p = PermutationGroupElement('(1, 2, 4, 8, 5, 10, 9, 7, 3, 6)')
+        sage: p.sign()
+        -1
+        sage: partition_sign([10])
+        -1
+        sage: kronecker_symbol(11,2)
+        -1
+
+    Now replace $2$ by $3$:
+
+        sage: plist = [int(F(3*x)) for x in range(1,11)]; plist
+        [3, 6, 9, 1, 4, 7, 10, 2, 5, 8]
+        sage: range(1,11)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: p = PermutationGroupElement('(3,4,8,7,9)')
+        sage: p.sign()
+        1
+        sage: kronecker_symbol(3,11)
+        1
+        sage: partition_sign([5,1,1,1,1,1])
+        1
+
+    In both cases, Zolotarev holds.
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Zolotarev's_lemma
+    """
+    ans=gap.eval("SignPartition(%s)"%(pi))
+    return sage_eval(ans)
+
+def partition_associated(pi):
+    """
+    partition_associated( pi ) returns the ``associated'' (also called
+    ``conjugate'' in the literature) partition of the partition pi which is
+    obtained by transposing the corresponding Ferrers diagram.
+
+    Wraps GAP's AssociatedPartition.
+
+    EXAMPLES:
+        sage: partition_associated([2,2])
+        [2, 2]
+        sage: partition_associated([6,3,1])
+        [3, 2, 2, 1, 1, 1]
+        sage: print ferrers_diagram([6,3,1])
+        ******
+        ***
+        *
+        sage: print ferrers_diagram([3,2,2,1,1,1])
+        ***
+        **
+        **
+        *
+        *
+        *
+    """
+    ans=gap.eval("AssociatedPartition(%s)"%(pi))
+    return eval(ans)

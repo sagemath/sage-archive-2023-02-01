@@ -638,9 +638,34 @@ def urange(start, end, step=1, universe=None, check=True):
     else:
         L = []
         while start < end:
-            start += step
             L.append(start)
+            start += step
         return L
+
+
+def xurange(start, end, step=1, universe=None, check=True):
+    from sage.structure.sequence import Sequence
+    from sage.rings.all import ZZ
+    if check:
+        if universe is None:
+            universe = Sequence([start, end, step]).universe()
+        start, end, step = universe(start), universe(end), universe(step)
+    if universe is int:
+        return xrange(start, end, step)
+    elif universe is ZZ:
+        return xsrange(start, end, step)
+    else:
+        L = []
+        while start < end:
+            L.append(start)
+            start += step
+        return L
+
+def generic_xurange(start, end, step):
+    while start < end:
+        yield start
+        start += step
+
 
 
 def ellipsis_range(*args):
@@ -726,7 +751,7 @@ def ellipsis_iter(*args):
                 while True:
                     cur += diff
                     yield cur
-            for num in urange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False):
+            for num in xurange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False):
                 yield num
             last = num
             skip = True

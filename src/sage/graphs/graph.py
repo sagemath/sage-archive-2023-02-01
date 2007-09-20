@@ -381,6 +381,14 @@ class GenericGraph(SageObject):
             sage: type(N)
             <class 'networkx.xgraph.XGraph'>
 
+        Note that this returns a copy of the actual internal object,
+        not the actual internal networkX object.
+
+            sage: G = graphs.TetrahedralGraph()
+            sage: N = G.networkx_graph()
+            sage: G._nxg is N
+            False
+
         """
         return self._nxg.copy()
 
@@ -2509,13 +2517,41 @@ class Graph(GenericGraph):
     We illustrate the first six input formats (the other two
     involve packages that are currently not standard in SAGE):
 
-    1. A NetworkX graph:
+    1. A NetworkX XGraph:
         sage: import networkx
-        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
+        sage: g = networkx.XGraph({0:[1,2,3], 2:[5]})
         sage: Graph(g)
         Graph on 5 vertices
 
-    2. A dictionary of dictionaries:
+    In this single case, we do not make a copy of g, but just wrap the actual
+    NetworkX passed.  We do this for performance reasons.
+
+        sage: import networkx
+        sage: g = networkx.XGraph({0:[1,2,3], 2:[5]})
+        sage: G = Graph(g)
+        sage: H = Graph(g)
+        sage: G._nxg is H._nxg
+        True
+
+    2. A NetworkX graph:
+        sage: import networkx
+        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
+        sage: DiGraph(g)
+        Digraph on 5 vertices
+
+    Note that in this case, we copy the networkX structure.
+
+        sage: import networkx
+        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
+        sage: G = Graph(g)
+        sage: H = Graph(g)
+        sage: G._nxg is H._nxg
+        False
+
+
+
+
+    3. A dictionary of dictionaries:
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
         Graph on 5 vertices
 
@@ -2523,17 +2559,17 @@ class Graph(GenericGraph):
     the label for the edge on 2 and 5. Labels can be used as weights, if all the
     labels share some common parent.
 
-    3. A dictionary of lists:
+    4. A dictionary of lists:
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
         Graph on 5 vertices
 
-    4. A numpy matrix or ndarray:
+    5. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
         sage: Graph(A)
         Graph on 3 vertices
 
-    5. A graph6 or sparse6 string:
+    6. A graph6 or sparse6 string:
     SAGE automatically recognizes whether a string is in graph6 or sage6 format:
 
         sage: s = ':I`AKGsaOs`cI]Gb~'
@@ -2546,7 +2582,7 @@ class Graph(GenericGraph):
         sage: graphs_list.from_sparse6(s)
         [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
-    6. A SAGE matrix:
+    7. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
@@ -4447,13 +4483,39 @@ class DiGraph(GenericGraph):
         boundary -- a list of boundary vertices, if none, digraph is considered as a 'digraph
                     without boundary'
     EXAMPLES:
-    1. A NetworkX digraph:
+    1. A NetworkX XDiGraph:
+        sage: import networkx
+        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[5]})
+        sage: DiGraph(g)
+        Digraph on 5 vertices
+
+    In this single case, we do not make a copy of g, but just wrap the actual
+    NetworkX passed.  We do this for performance reasons.
+
+        sage: import networkx
+        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[5]})
+        sage: G = DiGraph(g)
+        sage: H = DiGraph(g)
+        sage: G._nxg is H._nxg
+        True
+
+    2. A NetworkX digraph:
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[5]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
-    2. A dictionary of dictionaries:
+    Note that in this case, we copy the networkX structure.
+
+        sage: import networkx
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[5]})
+        sage: G = DiGraph(g)
+        sage: H = DiGraph(g)
+        sage: G._nxg is H._nxg
+        False
+
+
+    3. A dictionary of dictionaries:
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
         Digraph on 5 vertices
 
@@ -4461,17 +4523,17 @@ class DiGraph(GenericGraph):
     the label for the arc from 2 to 5. Labels can be used as weights, if all the
     labels share some common parent.
 
-    3. A dictionary of lists:
+    4. A dictionary of lists:
         sage: g = DiGraph({0:[1,2,3], 2:[5]}); g
         Digraph on 5 vertices
 
-    4. A numpy matrix or ndarray:
+    5. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
         sage: DiGraph(A)
         Digraph on 3 vertices
 
-    5. A SAGE matrix:
+    6. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 

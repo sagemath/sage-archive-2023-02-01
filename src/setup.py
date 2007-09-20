@@ -342,7 +342,7 @@ ext_modules = [ \
 
     ntl,
 
-    #fmpz_poly,
+    fmpz_poly,
 
     matrix,
 

@@ -113,6 +113,10 @@ ntl_ZZX = Extension('sage.libs.ntl.ntl_ZZX',
                  language='c++')
 
 ntl_ZZ_pContext = Extension('sage.libs.ntl.ntl_ZZ_pContext',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
 ntl_ZZ_p = Extension('sage.libs.ntl.ntl_ZZ_p',
                  sources = ["sage/libs/ntl/ntl_ZZ_p.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],

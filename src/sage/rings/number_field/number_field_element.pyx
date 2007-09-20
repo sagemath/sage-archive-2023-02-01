@@ -1088,7 +1088,7 @@ cdef class NumberFieldElement(FieldElement):
         return coeffs
 
     cdef void _ntl_coeff_as_mpz(self, mpz_t* z, long i):
-        if i > deg(self.__numerator):
+        if i > ZZX_deg(self.__numerator):
             mpz_set_ui(z[0], 0)
         else:
             ZZX_getitem_as_mpz(z, &self.__numerator, i)
@@ -1197,7 +1197,7 @@ cdef class NumberFieldElement(FieldElement):
         return self.__multiplicative_order
 
     cdef bint is_rational_c(self):
-        return deg(self.__numerator) == 0
+        return ZZX_deg(self.__numerator) == 0
 
     def trace(self):
         """
@@ -1418,8 +1418,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         _num, _den = self.parent().polynomial_ntl()
-        num[0] = _num.x[0]
-        den[0] = _den.x[0]
+        num[0] = _num.x
+        den[0] = _den.x
 
     def charpoly(self, var='x'):
         r"""
@@ -1508,7 +1508,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         __num = f * __den
         for i from 0 <= i <= __num.degree():
             (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
-            SetCoeff( num[0], i, coeff )
+            ZZX_SetCoeff( num[0], i, coeff )
 
     def __repr__(self):
         K = self.parent()

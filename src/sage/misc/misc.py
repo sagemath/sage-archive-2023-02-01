@@ -5,6 +5,7 @@ AUTHOR:
     -- William Stein
     -- William Stein (2006-04-26): added workaround for Windows where
             most users's home directory has a space in it.
+    -- Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
 """
 
 ########################################################################
@@ -618,6 +619,86 @@ def assert_attribute(x, attr, init=None):
             z = z[0]
         attr = "_" + z[len(x.__module__)+1:] + attr
     x.__dict__[attr] = init
+
+#################################################################
+# Used for [1,2,..,n] notation.
+#################################################################
+
+def ellipsis_range(*args):
+    """
+    Return arithmatic sequence determined by the numeric arguments and
+    ellipsis. Best illistrated by examples.
+
+    Use [1,2,..,n] notation.
+
+    EXAMPLES:
+        sage: ellipsis_range(1,Ellipsis,11,100)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100]
+        sage: ellipsis_range(0,2,Ellipsis,10,Ellipsis,20)
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20)
+        [0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19]
+    """
+    L = []
+    if len(args) >= 4 and args[1] is not Ellipsis:
+        diff = args[1]-args[0]
+    else:
+        diff = 1
+    skip = False
+    for i in range(len(args)):
+        if skip:
+            skip = False
+        elif args[i] is Ellipsis:
+            if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
+                L.append(args[i-1])
+            L += range(args[i-1]+diff, args[i+1]+1, diff)
+            skip = True
+        else:
+            L.append(args[i])
+    return L
+
+
+def ellipsis_iter(*args):
+    """
+    Same as ellipsis_range, but as an iterator (and may end with an Ellipsis).
+
+    Use (1,2,...) notation.
+
+    EXAMPLES:
+        sage: A = ellipsis_iter(1,2,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: A.next()
+        11
+        sage: A = ellipsis_iter(1,3,5,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+        sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
+    """
+    if len(args) >= 4 and args[1] is not Ellipsis:
+        diff = args[1]-args[0]
+    else:
+        diff = 1
+    skip = False
+    for i in range(len(args)):
+        if skip:
+            skip = False
+        elif args[i] is Ellipsis:
+            if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
+                yield args[i-1]
+            if i == len(args)-1:
+                cur = args[i-1]
+                while True:
+                    cur += diff
+                    yield cur
+            for num in xrange(args[i-1]+diff, args[i+1]+1, diff):
+                yield num
+            skip = True
+        else:
+            yield args[i]
+    return
 
 #################################################################
 # Useful but hard to classify

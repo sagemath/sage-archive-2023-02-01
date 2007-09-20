@@ -9,6 +9,9 @@ AUTHOR:
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
     -- Bobby Moretti (2007-01-25): * added preliminary function assignment
                                      notation
+    -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
+                                       utility functions. Arrr!
+                                     * Add [1,2,..,n] notation.
 
 EXAMPLES:
 
@@ -142,6 +145,156 @@ in_triple_quote = False
 
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
+
+
+def strip_string_literals(code):
+    r"""
+    Returns a string with all literal quotes replaced with
+    labels and a dict of labels for re-subsitution. This makes
+    parsing much easier.
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import strip_string_literals
+        sage: s, literals = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
+        sage: s
+        '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
+        sage: literals
+        {'L4': '"d\\""', 'L2': '"b"', 'L3': "'c'", 'L1': "'a'"}
+        sage: print s % literals
+        ['a', "b", 'c', "d\""]
+
+    Triple-quotes are handled as well.
+        sage: s, literals = strip_string_literals("[a, '''b''', c]")
+        sage: s
+        '[a, %(L1)s, c]'
+        sage: print s % literals
+        [a, '''b''', c]
+    """
+    new_code = []
+    literals = {}
+    counter = 0
+    start = q = 0
+    in_quote = False
+    raw = False
+    while True:
+        sig_q = code.find("'", q)
+        dbl_q = code.find('"', q)
+        q = min(sig_q, dbl_q)
+        if q == -1: q = max(sig_q, dbl_q)
+        if q == -1:
+            new_code.append(code[start:].replace('%','%%'))
+            return "".join(new_code), literals
+        if in_quote:
+            if not raw and code[q-1] == '\\':
+                q += 1
+            if code[q:q+len(in_quote)] == in_quote:
+                counter += 1
+                label = "L%s" % counter
+                literals[label] = code[start:q+len(in_quote)]
+                new_code.append("%%(%s)s" % label)
+                q += len(in_quote)
+                start = q
+                in_quote = False
+            else:
+                q += 1
+        else:
+            raw = q>0 and code[q-1] == 'r'
+            if code[q+1] == code[q]:
+                in_quote = code[q]*3
+            else:
+                in_quote = code[q]
+            new_code.append(code[start:q].replace('%', '%%'))
+            start = q
+            q += len(in_quote)
+
+
+def containing_block(code, ix, delimiters=("[{(", "]})")):
+    """
+    Returns the smallest range (start,end) such that code[start,end]
+    is delimited by balanced parentheses/brackets/braces.
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import containing_block
+        sage: s = "factor(next_prime(L[5]+1))"
+        sage: s[22]
+        '+'
+        sage: start, end = containing_block(s, 22); print start, end
+        17 25
+        sage: s[start:end]
+        '(L[5]+1)'
+        sage: s[20]
+        '5'
+        sage: start, end = containing_block(s, 20); s[start:end]
+        '[5]'
+        sage: start, end = containing_block(s, 20, delimiters=('(',')')); s[start:end]
+        '(L[5]+1)'
+        sage: start, end = containing_block(s, 10); s[start:end]
+        '(next_prime(L[5]+1))'
+    """
+    openings, closings = delimiters
+    levels = [0] * len(openings)
+    start = ix
+    while start > 0:
+        start -= 1
+        if code[start] in openings:
+            p = openings.index(code[start])
+            levels[p] -= 1
+            if levels[p] == -1:
+                break
+        elif code[start] in closings:
+            p = closings.index(code[start])
+            levels[p] += 1
+    end = ix
+    level = 0
+    while end < len(code)-1:
+        end += 1
+        if code[end] == openings[p]:
+            level += 1
+        elif code[end] == closings[p]:
+            level -= 1
+            if level == -1:
+                break
+    return start, end+1
+
+
+def parse_ellipsis(code):
+    """
+    Preparse [0,2,..,n] notation.
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import parse_ellipsis
+        sage: parse_ellipsis("[1,2,..,n]")
+        'ellipsis_range(1,2,Ellipsis,n)'
+        sage: parse_ellipsis("for i in (f(x) .. L[10]):")
+        'for i in ellipsis_iter(f(x),Ellipsis,L[10]):'
+    """
+    ix = code.find('..')
+    while ix != -1:
+        if code[ix-1]=='.':
+            # '...' be valid Python in index slices
+            code = code[:ix-1] + "Ellipsis" + code[ix+2:]
+        elif code[ix+2]=='.':
+            # '...' be valid Python in index slices
+            code = code[:ix] + "Ellipsis" + code[ix+3:]
+        else:
+            start_list, end_list = containing_block(code, ix)
+            ellipsis = "Ellipsis"
+            start_dots = ix-1
+            while code[start_dots].isspace(): start_dots -= 1
+            if code[start_dots] != ',': ellipsis = ','+ellipsis
+            end_dots = ix+2
+            while code[end_dots].isspace(): end_dots += 1
+            if code[end_dots] != ',': ellipsis += ','
+            range_or_iter = 'range' if code[start_list]=='[' else 'iter'
+            code = "%sellipsis_%s(%s%s%s)%s" %  (code[:start_list],
+                                                 range_or_iter,
+                                                 code[start_list+1:start_dots+1],
+                                                 ellipsis,
+                                                 code[end_dots: end_list-1],
+                                                 code[end_list:])
+        ix = code.find('..')
+    return code
+
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 

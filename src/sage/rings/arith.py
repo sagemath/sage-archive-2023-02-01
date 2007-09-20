@@ -724,17 +724,18 @@ def next_probable_prime(n):
     """
     return integer_ring.ZZ(n).next_probable_prime()
 
-def next_prime(n, proof=True):
+def next_prime(n, proof=None):
     """
     The next prime greater than the integer n.  If n is prime, then
     this function does not return n, but the next prime after n.  If
-    the optional argument proof is False (the default), this function
+    the optional argument proof is False, this function
     only returns a pseudo-prime, as defined by the PARI nextprime
-    function.
+    function.  If it is None, uses the global default
+    (see sage.structure.proof)
 
     INPUT:
         n -- integer
-        proof -- bool (default: True)
+        proof -- bool or None (default: None)
 
     EXAMPLES:
         sage: next_prime(-100)
@@ -838,7 +839,7 @@ def previous_prime_power(n):
         n -= 1
     return n
 
-def random_prime(n, pseudo=False):
+def random_prime(n, proof=None):
     """
     Returns a random prime p between 2 and n (i.e. 2 <= p <= n).
     The returned prime is chosen uniformly at random from the
@@ -846,10 +847,11 @@ def random_prime(n, pseudo=False):
 
     INPUT:
         n -- an integer >= 2.
-        pseudo -- bool (default: False) If True, the function uses
+        proof -- bool or None (default: None) If False, the function uses
                 a pseudo-primality test, which is much faster for
                 really big numbers but does not provide a proof
-                of primality.
+                of primality.  If None, uses the global default
+                (see sage.structure.proof)
 
     EXAMPLES:
         sage: random_prime(100000)
@@ -864,13 +866,15 @@ def random_prime(n, pseudo=False):
     """
     import random    # since we don't want random to get
                      # pulled when you say "from sage.arith import *".
+    from sage.structure.proof.proof import get_flag
+    proof = get_flag(proof, "arithmetic")
     n = integer_ring.ZZ(n)
     if n < 2:
         raise ValueError, "n must be >= 2."
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        if pseudo:
+        if not proof:
             prime_test = is_pseudoprime
         else:
             prime_test = is_prime
@@ -1472,7 +1476,10 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
+def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
+    if proof is None:
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "arithmetic")
     if int_:
         Z = int
     else:
@@ -1480,13 +1487,9 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
         Z = integer_ring.IntegerRing()
     prev = pari.get_debug_level()
     pari.set_debug_level(debug_level)
-    F = pari(n).factor()
+    F = pari(n).factor(proof=proof)
     B = F[0]
     e = F[1]
-    if proof:
-        for i in xrange(len(B)):
-            if not B[i].isprime():
-                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
 
     if debug_level > 0:
@@ -1497,14 +1500,14 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
 #todo: add a limit option to factor, so it will only split off
 # primes at most a given limit.
 
-def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
+def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Returns the factorization of the integer n as a sorted list of
     tuples (p,e).
 
     INPUT:
         n -- an nonzero integer
-        proof -- bool (default: True)
+        proof -- bool or None (default: None)
         int_ -- bool (default: False) whether to return answers as Python ints
         algorithm -- string
                  * 'pari' -- (default)  use the PARI c library
@@ -1544,9 +1547,10 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-    SAGE calls PARI's factor, which has proof False by default.  SAGE
-    by default *does* check primality of each factor that is
-    returned. To turn this off, do proof False.
+    SAGE calls PARI's factor, which has proof False by default.  SAGE has
+    a global proof flag, set to True by default (see sage.structure.proof,
+    or proof.[tab]).  To override the default, call this function with
+    proof=False.
 
         sage: factor(3^89-1, proof=False)
         2 * 179 * 1611479891519807 * 5042939439565996049162197
@@ -1558,9 +1562,14 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
         try:
-            return n.factor(**kwds)
+            return n.factor(proof=proof, **kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
+        except TypeError:  # just in case factor method doesn't have a proof option.
+            try:
+                return n.factor(**kwds)
+            except AttributeError:
+                raise TypeError, "unable to factor n"
     #n = abs(n)
     n = Z(n)
     if n < 0:
@@ -1597,14 +1606,15 @@ def prime_divisors(n):
     is negative, we do *not* include -1 among the prime divisors, since -1 is
     not a prime number.
 
-    sage: prime_divisors(1)
-    []
-    sage: prime_divisors(100)
-    [2, 5]
-    sage: prime_divisors(-100)
-    [2, 5]
-    sage: prime_divisors(2004)
-    [2, 3, 167]
+    EXAMPLES:
+        sage: prime_divisors(1)
+        []
+        sage: prime_divisors(100)
+        [2, 5]
+        sage: prime_divisors(-100)
+        [2, 5]
+        sage: prime_divisors(2004)
+        [2, 3, 167]
     """
     v = [p for p,_ in factor(n) if p != -1]
     v.sort()
@@ -1858,15 +1868,20 @@ def binomial(x,m):
     $$
        x (x-1) \cdots (x-m+1) / m!
     $$
-    which is defined for $m \in \Z$ and any $x$.
+    which is defined for $m \in \ZZ$ and any $x$.  We extend this
+    definition to include cases when $x-m$ is an integer but $m$ is
+    not by
+
+    binomial(x,m)= binomial(x,x-m)
+
     If $m<0$ return $0$.
 
     INPUT::
-        x -- number
-        m -- integer
+        x,m -- numbers or symbolic expressions
+        Either m or x-m must be an integer.
 
     OUTPUT::
-        number
+        number or symbolic expression (if input is symbolic)
 
     EXAMPLES::
         sage: binomial(5,2)
@@ -1881,9 +1896,18 @@ def binomial(x,m):
         184756
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
+        sage: n=var('n'); binomial(n,2)
+        (n - 1)*n/2
+        sage: n=var('n'); binomial(n,n)
+        1
+        sage: n=var('n'); binomial(n,n-1)
+        n
     """
     if not isinstance(m, (int, long, integer.Integer)):
-        raise TypeError, 'm must be an integer'
+        try:
+            m=integer_ring.ZZ(x-m)
+        except TypeError:
+            raise TypeError, 'Either m or x-m must be an integer'
     if isinstance(x, (int, long, integer.Integer)):
         return integer_ring.ZZ(pari(x).binomial(m))
     try:

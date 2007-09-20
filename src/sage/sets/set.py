@@ -562,6 +562,9 @@ class Set_object_enumerated(Set_object):
         """
         return frozenset(self.object())
 
+    def __hash__(self):
+ 	return hash(self.frozenset())
+
     def __cmp__(self, other):
         """
         Compare the sets self and other.

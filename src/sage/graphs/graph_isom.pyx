@@ -761,7 +761,7 @@ def _term_pnest_graph(G, PartitionStack nu):
     H.relabel(d)
     return H
 
-def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0):
+def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity=0):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -776,7 +776,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     valid for digraphs and graphs with loops.
         dict--      if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
-        proof--     if True, return the automorphism between G and its canonical
+        certify--     if True, return the automorphism between G and its canonical
     label. Forces lab=True.
         verbosity-- 0 - print nothing
                     1 - display state trace
@@ -888,7 +888,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         120
 
         sage: D = graphs.DodecahedralGraph()
-        sage: a,b,c = search_tree(D, [range(20)], proof=True)
+        sage: a,b,c = search_tree(D, [range(20)], certify=True)
         sage: from sage.plot.plot import GraphicsArray # long time
         sage: import networkx # long time
         sage: position_D = networkx.spring_layout(D._nxg) # long time
@@ -1207,7 +1207,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             H = G.copy()
         if dict:
             ddd = {}
-        if proof:
+        if certify:
             dd = {}
             if dict:
                 return [[]], ddd, H, dd
@@ -1222,7 +1222,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         else:
             return [[]]
 
-    if proof:
+    if certify:
         lab=True
 
     # create to and from mappings to relabel vertices
@@ -1760,7 +1760,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             else:
                 ddd[v] = n
 
-    if proof:
+    if certify:
         dd = {}
         for i from 0 <= i < n:
             dd[_rho.entries[i]] = i

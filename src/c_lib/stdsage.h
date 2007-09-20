@@ -61,7 +61,13 @@ extern "C" {
 #define PY_TYPE_CHECK(zzz_obj, zzz_type) \
     (PyObject_TypeCheck((PyObject*)(zzz_obj), (PyTypeObject*)(zzz_type)))
 
-/** Returns the type field of a python object, cast to void*. The
+/** Tests whether zzz_obj is exactly of type zzz_type. The zzz_type must be a
+  * built-in or extension type.
+  */
+#define PY_TYPE_CHECK_EXACT(zzz_obj, zzz_type) \
+  ((PyTypeObject*)PY_TYPE(zzz_obj) == (PyTypeObject*)(zzz_type))
+
+  /** Returns the type field of a python object, cast to void*. The
  *  returned value should only be used as an opaque object e.g. for
  *  type comparisons.
  */
@@ -73,6 +79,14 @@ extern "C" {
 
 #define PY_NEW(zzz_type) \
     (((PyTypeObject*)(zzz_type))->tp_new((PyTypeObject*)(zzz_type), global_empty_tuple, NULL))
+
+
+  /** Constructs a new object of type the same type as zzz_obj by calling tp_new
+   *  directly, with no arguments.
+   */
+
+#define PY_NEW_SAME_TYPE(zzz_obj) \
+  PY_NEW(PY_TYPE(zzz_obj))
 
 /** Resets the tp_new slot of zzz_type1 to point to the tp_new slot of
  *  zzz_type2. This is used in SAGE to speed up Pyrex's boilerplate

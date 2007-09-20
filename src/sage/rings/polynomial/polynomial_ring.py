@@ -82,11 +82,12 @@ import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing
 import sage.rings.integer as integer
 import sage.rings.integer_mod_ring as integer_mod_ring
-from sage.libs.all import pari
+from sage.libs.all import pari, pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
 import multi_polynomial_element
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
+import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.fraction_field_element import FractionFieldElement
 
@@ -195,6 +196,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: T.<a> = QQ[]
             sage: S(a)
             u
+
+        Coercing in pari elements:
+            sage: QQ['x'](pari('[1,2,3/5]'))
+            3/5*x^2 + 2*x + 1
+            sage: QQ['x'](pari('(-1/3)*x^10 + (2/3)*x - 1/5'))
+            -1/3*x^10 + 2/3*x - 1/5
         """
         if is_Element(x):
             P = x.parent()
@@ -221,11 +228,29 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 raise TypeError, "denominator must be a unit"
+
+        elif isinstance(x, pari_gen):
+            if x.type() != 't_POL':
+                x = x.Polrev()
+
         C = self.__polynomial_class
         if absprec is None:
             return C(self, x, check, is_gen, construct=construct)
         else:
             return C(self, x, check, is_gen, construct=construct, absprec = absprec)
+
+    def is_integral_domain(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x'].is_integral_domain()
+            True
+            sage: Integers(8)['x'].is_integral_domain()
+            False
+        """
+        return self.base_ring().is_integral_domain()
+
+    def is_noetherian(self):
+        return self.base_ring().is_noetherian()
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
@@ -365,7 +390,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if isinstance(R, rational_field.RationalField) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
-            self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
+            self.__polynomial_class = polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
         elif isinstance(R, pAdicRingLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, pAdicFieldLazy):
@@ -529,7 +554,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if C == polynomial_element_generic.Polynomial_rational_dense:
             return self(f, construct=True)
         coeffs = str(f.Vec())
-        if C == polynomial_element_generic.Polynomial_integer_dense:
+        if C == polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl:
             return self(coeffs, construct=True)
 
         coeffs = eval(coeffs)
@@ -956,6 +981,9 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name="x"):
         self.__modulus = ntl_ZZ(base_ring.order())
         PolynomialRing_commutative.__init__(self, base_ring, name)
+
+    def modulus(self):
+        return self.__modulus
 
     def _ntl_set_modulus(self):
         set_modulus(self.__modulus)

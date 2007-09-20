@@ -4,6 +4,7 @@ p-adic Capped Relative Dense Polynomials
 
 import sage.rings.polynomial.polynomial_element_generic
 import sage.rings.polynomial.polynomial_element
+import sage.rings.polynomial.polynomial_integer_dense_ntl
 import sage.rings.integer
 import sage.rings.integer_ring
 import sage.rings.padics.misc as misc
@@ -12,7 +13,7 @@ import sage.rings.fraction_field_element as fraction_field_element
 import copy
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZX_class, ZZ_pX_class
+from sage.libs.ntl.all import ZZX
 from sage.structure.factorization import Factorization
 from sage.rings.infinity import infinity
 
@@ -23,7 +24,7 @@ Integer = sage.rings.integer.Integer
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
-Polynomial_integer_dense = sage.rings.polynomial.polynomial_element_generic.Polynomial_integer_dense
+Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
 class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
@@ -52,7 +53,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             return
 
         #First we list the types that are turned into Polynomials
-        if isinstance(x, ZZX_class):
+        if isinstance(x, ZZX):
             from polynomial_ring_constructor import PolynomialRing
             x = Polynomial_integer_dense(PolynomialRing(ZZ, parent.variable_name()), x, construct = True)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \

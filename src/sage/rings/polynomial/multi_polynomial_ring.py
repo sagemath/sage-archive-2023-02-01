@@ -453,13 +453,15 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return self.base_ring().is_field()
         return False
 
-    def ideal(self, gens, coerce=True):
+    def ideal(self, *gens, **kwds):
         """
         Create an ideal in this polynomial ring.
         """
+        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+            gens = gens[0]
         if not self._has_singular:
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,coerce)
+            MPolynomialRing_generic.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -468,9 +470,9 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if coerce:
+        if kwds.has_key('coerce') and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
 
     def monomial_quotient(self,f, g, coeff=False):

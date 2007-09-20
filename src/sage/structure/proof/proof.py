@@ -12,6 +12,7 @@ class _ProofPref(SageObject):
         self._require_proof["elliptic_curve"] = proof
         self._require_proof["linear_algebra"] = proof
         self._require_proof["number_field"] = proof
+        self._require_proof["polynomial"] = proof
         self._require_proof["other"] = proof
 
     def arithmetic(self, t = None):
@@ -118,6 +119,33 @@ class _ProofPref(SageObject):
             return self._require_proof["number_field"]
         self._require_proof["number_field"] = bool(t)
 
+    def polynomial(self, t = None):
+        """
+        Controls the default proof strategy for polynomial algorithms.
+
+        INPUT:
+            t -- boolean or None
+
+        OUTPUT:
+            If t == True, requires polynomial algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+            If t == False, allows polynomial algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+            If t is None, returns the current polynomial proof status.
+
+        EXAMPLES:
+            sage: proof.polynomial()
+            True
+            sage: proof.polynomial(False)
+            sage: proof.polynomial()
+            False
+            sage: proof.polynomial(True)
+            sage: proof.polynomial()
+            True
+        """
+        if t is None:
+            return self._require_proof["polynomial"]
+        self._require_proof["polynomial"] = bool(t)
+
+
 _proof_prefs = _ProofPref(True) #Creates the global object that stores proof preferences.
 
 def get_flag(t = None, subsystem = None):
@@ -125,19 +153,21 @@ def get_flag(t = None, subsystem = None):
     Used for easily determining the correct proof flag to use.
 
     EXAMPLES:
-        sage: from sage.structure.proof import get_flag
-        sage: get_flag(None)
-        True
+        sage: from sage.structure.proof.proof import get_flag
         sage: get_flag(False)
         False
         sage: get_flag(True)
         True
-
+        sage: get_flag()
+        True
+        sage: proof.all(False)
+        sage: get_flag()
+        False
     """
     if t is None:
-        if subsystem in ["arithmetic", "elliptic_curve", "linear_algebra", "number_field"]:
-            return _proof_prefs[subsystem]
+        if subsystem in ["arithmetic", "elliptic_curve", "linear_algebra", "number_field","polynomial"]:
+            return _proof_prefs._require_proof[subsystem]
         else:
-            return _proof_prefs["other"]
+            return _proof_prefs._require_proof["other"]
     return t
 

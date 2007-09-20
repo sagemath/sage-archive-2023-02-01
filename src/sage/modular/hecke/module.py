@@ -481,7 +481,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         return self.__basis
 
     def decomposition(self, bound=None, anemic=True, compute_dual=False,
-                      height_guess=1, proof=True):
+                      height_guess=1, proof=None):
         """
         Returns the maximal decomposition of this Hecke module under
         the action of Hecke operators of index coprime to the level.

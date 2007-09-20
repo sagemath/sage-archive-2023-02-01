@@ -12,7 +12,7 @@ NOTE:
     assume the Generalized Riemann Hypothesis.  To do class groups
     computations not provably correctly you must often pass the flag
     proof=False to functions or call the function
-    \code{number_field_proof(False)}.  Note that many class group
+    \code{proof.number_field(False)}.  Note that many class group
     functions won't work for any reasonable cases without
     \code{proof=False}.
 

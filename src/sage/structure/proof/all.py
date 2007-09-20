@@ -23,7 +23,7 @@ def arithmetic(t = None):
     from proof import _proof_prefs
     return _proof_prefs.arithmetic(t)
 
-def elliptic_curve(self, t = None):
+def elliptic_curve(t = None):
     """
     Controls the default proof strategy for elliptic curve algorithms.
 
@@ -98,6 +98,31 @@ def number_field(t = None):
     from proof import _proof_prefs
     return _proof_prefs.number_field(t)
 
+def polynomial(t = None):
+    """
+    Controls the default proof strategy for polynomial algorithms.
+
+    INPUT:
+        t -- boolean or None
+
+    OUTPUT:
+        If t == True, requires polynomial algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+        If t == False, allows polynomial algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+        If t is None, returns the current polynomial proof status.
+
+    EXAMPLES:
+        sage: proof.polynomial()
+        True
+        sage: proof.polynomial(False)
+        sage: proof.polynomial()
+        False
+        sage: proof.polynomial(True)
+        sage: proof.polynomial()
+        True
+    """
+    from proof import _proof_prefs
+    return _proof_prefs.polynomial(t)
+
 def all(t = None):
     """
     Controls the default proof strategy throughout Sage.
@@ -112,10 +137,12 @@ def all(t = None):
 
     EXAMPLES:
     sage: proof.all()
-    True
+    {'polynomial': True, 'other': True, 'elliptic_curve': True, 'number_field': True, 'linear_algebra': True, 'arithmetic': True}
     sage: proof.number_field(False)
     sage: proof.number_field()
     False
+    sage: proof.all()
+    {'polynomial': True, 'other': True, 'elliptic_curve': True, 'number_field': False, 'linear_algebra': True, 'arithmetic': True}
     sage: proof.number_field(True)
     sage: proof.number_field()
     True

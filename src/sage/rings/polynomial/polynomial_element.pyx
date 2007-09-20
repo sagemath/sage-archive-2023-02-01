@@ -2256,6 +2256,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     seq.append(-g[0]/g[1])
         return seq
 
+    def variable_name(self):
+        """
+        Return name of variable used in this polynomial as a string.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: R.<t> = QQ[]
+            sage: f = t^3 + 3/2*t + 5
+            sage: f.variable_name()
+            't'
+        """
+        return self.parent().variable_name()
+
     def valuation(self, p=None):
         r"""
         If $f = a_r x^r + a_{r+1}x^{r+1} + \cdots$, with $a_r$ nonzero,

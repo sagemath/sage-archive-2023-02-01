@@ -404,7 +404,10 @@ class QuaternionAlgebra_generic(FreeAlgebraQuotient):
         return (self(1), self([0,1,0,0]), self([0,0,1,0]), self([0,0,0,1]))
 
     def discriminant(self):
-        return self.gram_matrix().determinant()
+        """
+        Given a quaternion algebra A defined over the field of rational numbers, return the discriminant of A, i.e. the product of the ramified primes of A.
+        """
+        return mul(self.ramified_primes())
 
     def gram_matrix(self):
         """
@@ -438,6 +441,100 @@ class QuaternionAlgebra_generic(FreeAlgebraQuotient):
             False
         """
         return False
+
+    def is_division_algebra(self):
+        """
+        Return True if the quaternion algebra is a division algebra
+        (i.e. a ring, not necessarily commutative, in which every nonzero
+        element is invertible).  So if this returns False, the quaternion
+        algebra is isomorphic to the 2x2 matrix algebra.
+
+        At the moment, this is implemented only for finite fields.
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(GF(5), -3, -7)
+            sage: Q.is_division_algebra()
+            False
+        """
+        if self.base_ring().is_finite():
+            return False
+        else:
+            raise AttributeError, "Only implemented for quaternion algebras over finite fields."
+
+    def is_exact(self):
+        """
+        Return True if elements of this quaternion algebra are represented exactly, i.e. there is no precision loss when doing arithmetic.  A quaternion algebra is exact if and only if its base field is exact.
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.is_exact()
+            True
+            sage: Q.<i,j,k> = QuaternionAlgebra(Qp(7), -3, -7)
+            sage: Q.is_exact()
+            False
+        """
+        return self.base_ring().is_exact()
+
+    def is_field(self):
+        """
+        Return False always, since all quaternion algebras are noncommutative and all fields are commutative.
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.is_field()
+            False
+        """
+        return False
+
+    def is_finite(self):
+        """
+        Return True if the quaternion algebra is a finite ring, i.e. if and only if the base field is finite.
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.is_finite()
+            False
+            sage: Q.<i,j,k> = QuaternionAlgebra(GF(5), -3, -7)
+            sage: Q.is_finite()
+            True
+        """
+        return self.base_ring().is_finite()
+
+    def is_integral_domain(self):
+        """
+        Return False always, since all quaternion algebras are noncommutative and integral domains are commutative (in SAGE).
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.is_integral_domain()
+            False
+        """
+        return False
+
+    def is_noetherian(self):
+        """
+        Return True always, since any quaternion algebra is a noetherian ring (because it's a finitely-generated module over a field, which is noetherian).
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.is_noetherian()
+            True
+        """
+        return True
+
+    def order(self):
+        """
+        Return the number of elements of the quaternion algebra, or +Infinity if the algebra is not finite.
+
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+            sage: Q.order()
+            +Infinity
+            sage: Q.<i,j,k> = QuaternionAlgebra(GF(5), -3, -7)
+            sage: Q.order()
+            20
+        """
+        return 4*self.base_ring().order()
 
     def ramified_primes(self):
         try:

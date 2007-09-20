@@ -22,11 +22,13 @@ import random
 from ell_field import EllipticCurve_field
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
-from sage.rings.all import Integer, PolynomialRing
+from sage.rings.all import Integer, PolynomialRing, ComplexField
 import gp_cremona
 import sea
 from sage.groups.all import AbelianGroup
 import ell_point
+from sage.calculus.calculus import log
+from sage.rings.arith import integer_ceil, integer_floor
 
 import sage.plot.all as plot
 
@@ -211,10 +213,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         q = self.base_field().order()
         return q + 1 - self.cardinality()
 
-    def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False):
+    def cardinality(self, degree=1, algorithm='heuristic', early_abort=False, disable_warning=False):
         r"""
-        Return the number of points on this elliptic curve over this
-        finite field.
+        Return the number of points on this elliptic curve over a
+        finite extension of the base field.
 
         \note{If the cardinality of the base field is not prime, this
         function literally enumerates the points and counts them. It's so
@@ -222,7 +224,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         disable_warning flag.}
 
         INPUT:
-            algorithm -- string (default: 'heuristic')
+            degree       -- integer (default: 1); the degree of the
+                            extension field over which to compute the
+                            number of points
+            algorithm    -- string (default: 'heuristic')
                   'heuristic' -- use a heuristic to choose between bsgs and sea.
                   'bsgs' -- use the baby step giant step method as implemented in
                             PARI via the C-library function ellap.
@@ -246,11 +251,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.
             8
+            sage: EllipticCurve(GF(2),[1,2,3,4,5]).cardinality(2)
+            8
             sage: EllipticCurve(GF(9,'a'),[1,2,3,4,5]).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.
             16
+            sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(2)
+            16
+
+        An even bigger extension (which we check against Magma):
+            sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(100)
+            515377520732011331036459693969645888996929981504
+            sage: magma.eval("#EllipticCurve([GF(3^100)|1,2,3,4,5])")    # optional -- requires magma
+            '515377520732011331036459693969645888996929981504'
+
+
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')
@@ -287,8 +304,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 print "WARNING: Using very very stupid algorithm for counting "
                 print "points over non-prime finite field. Please rewrite."
                 print "See the file ell_finite_field.py."
+            p = self.base_field().cardinality()
             N = len(self.points())
+
         self.__cardinality = Integer(N)
+
+        if degree > 1:
+            q = p**degree
+            # using the Hasse bound to estimate the required precision
+            prec = integer_ceil(degree*log(p)/log(2))+3
+            C = ComplexField(prec)
+            t = C(p+1-N)
+            alphap = t/2 + (-p+t**2/4).sqrt()
+            apd = alphap**degree
+            bpd = alphap.conjugate()**degree
+            M = q + 1 - apd - bpd
+            N = integer_floor(M.real())
+
         return N
 
     def _cremona_abgrp_data(self):

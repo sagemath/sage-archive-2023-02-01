@@ -560,7 +560,7 @@ cdef class Element(sage_object.SageObject):
             return (r >= 0)
 
     ####################################################################
-    # For a derived Pyrex class, you **must** put the following in
+    # For a derived Cython class, you **must** put the following in
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
     # either _cmp_c_impl (if your subclass is totally ordered),
@@ -2840,6 +2840,8 @@ cdef generic_power_c(a, nn, one):
         # a is zero, return it, or raise an exception if n is zero
         if not n:
             raise ArithmeticError, "0^0 is undefined."
+        elif n < 0:
+            raise ZeroDivisionError
         else:
             return a
     elif not n:

@@ -315,20 +315,14 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: g(x^2 + 2)
             b^2 + 2
 
-        We do an example involving a relative number field, which
-        doesn't work since the relative extension generator doesn't
-        generate the absolute extension.
+        We do an example involving a relative number field:
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: F, g, h = b.field_extension('c')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()
 
-
-        We slightly change the example above so it works.
+        Another more awkward example:
 
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
@@ -374,15 +368,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             ...
 ##             ValueError: polynomial must be irreducible
         F = self.parent().modulus().root_field(names)
-        if isinstance(F, number_field.NumberField_extension):
-            if F.gen() != F.gen_relative():
-                # The issue is that there is no way to specify a homomorphism
-                # from the relative number to the poly ring quotient that
-                # is defined over Q.
-                raise NotImplementedError, "not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()"
-            alpha = F.gen_relative()
-        else:
-            alpha = F.gen()
+        alpha = F.gen()
 	R = self.parent()
 	x = R.gen()
 

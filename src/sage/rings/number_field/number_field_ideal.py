@@ -270,6 +270,9 @@ class NumberFieldIdeal(Ideal_fractional):
         """
         return generic_power(self, r)
 
+    def _pari_(self):
+        return self.pari_hnf()
+
     def pari_hnf(self):
         """
         Return PARI's representation of this ideal in Hermite normal form.
@@ -350,6 +353,21 @@ class NumberFieldIdeal(Ideal_fractional):
             self.__factorization = Factorization(A)
             return self.__factorization
 
+    def reduce_equiv(self):
+        """
+        Return a small ideal that is equivalent to self in the group
+        of fractional ideals modulo principal ideals.  Very often (but
+        not always) if self is principal then this function returns
+        the unit ideal.
+
+        ALGORITHM: Calls pari's idealred function.
+        """
+        K = self.number_field()
+        P = K.pari_nf()
+        hnf = P.idealred(self.pari_hnf())
+        gens = self.__elements_from_hnf(hnf)
+        return K.ideal(gens)
+
     def gens_reduced(self, proof=None):
         r"""
         Express this ideal in terms of at most two generators, and one
@@ -370,7 +388,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J.gens_reduced()
             (i + 1,)
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             ## Compute the single generator, if it exists
             dummy = self.is_principal(proof)
@@ -524,7 +543,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.is_principal()
             True
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             return self.__is_principal
         except AttributeError:

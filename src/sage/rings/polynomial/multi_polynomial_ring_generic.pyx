@@ -27,7 +27,24 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         ParentWithGens.__init__(self, base_ring, names)
 
     def is_integral_domain(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x,y'].is_integral_domain()
+            True
+            sage: Integers(8)['x,y'].is_integral_domain()
+            False
+        """
         return self.base_ring().is_integral_domain()
+
+    def is_noetherian(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x,y'].is_noetherian()
+            True
+            sage: Integers(8)['x,y'].is_noetherian()
+            True
+        """
+        return self.base_ring().is_noetherian()
 
     def construction(self):
         """

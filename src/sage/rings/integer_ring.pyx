@@ -71,6 +71,8 @@ import sage.rings.ideal
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 
+from sage.structure.sequence import Sequence
+
 cimport integer
 cimport rational
 
@@ -188,6 +190,33 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         mpq_canonicalize(x.value)
         return x
 
+    def __getitem__(self, x):
+        """
+        Return the ring ZZ[...] got by adjoing to the integers
+        an element of several elements.
+
+        """
+        if x in self:
+            return self
+        if isinstance(x, str):
+            return PrincipalIdealDomain.__getitem__(self, x)
+        from sage.calculus.all import is_SymbolicVariable
+        if is_SymbolicVariable(x):
+            return PrincipalIdealDomain.__getitem__(self, repr(x))
+        from sage.rings.number_field.all import is_NumberFieldElement
+        if is_NumberFieldElement(x):
+            K, from_K = x.parent().subfield(x)
+            return K.order(K.gen())
+
+        if isinstance(x, tuple) and len(x) > 0:
+            for y in x:
+                if not is_NumberFieldElement(y):
+                    return PrincipalIdealDomain.__getitem__(self, x)
+            x = Sequence(x)
+            K = x.universe()
+            return K.order(x, allow_subfield=True)
+        return PrincipalIdealDomain.__getitem__(self, x)
+
     def __call__(self, x, base=0):
         """
         EXAMPLES:
@@ -216,6 +245,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 y.__init__(x, base)
             except AttributeError:
                 pass
+        try:
+            return x.get_as_sage_int()
+        except AttributeError:
+            pass
+
         raise TypeError, msg
 
     def __iter__(self):

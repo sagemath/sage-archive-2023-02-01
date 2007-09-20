@@ -60,7 +60,8 @@ def is_Parent(x):
 
 cdef class Parent(sage_object.SageObject):
     """
-    Parents are the SAGE/mathematical analogues of container objects in computer science.
+    Parents are the SAGE/mathematical analogues of container objects
+    in computer science.
     """
 
     def __init__(self, coerce_from=[], actions=[], embeddings=[]):

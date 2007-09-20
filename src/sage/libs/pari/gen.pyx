@@ -4201,6 +4201,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
 
+    def idealred(self, I, vdir=0):
+        t0GEN(I); t1GEN(vdir)
+        _sig_on
+        return self.new_gen(ideallllred(self.g, t0, t1, prec))
+
     def idealadd(self, x, y):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -4346,6 +4351,25 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return P.new_gen(nfisisom(self.g, other.g))
+
+    def nfsubfields(self, d=0):
+        """
+        Find all subfields of degree d of number field nf (all
+        subfields if d is null or omitted). Result is a vector of
+        subfields, each being given by [g,h], where g is an absolute
+        equation and h expresses one of the roots of g in terms of the
+        root x of the polynomial defining nf.
+
+        INPUT:
+            self -- nf number field
+            d -- integer
+        """
+        if d == 0:
+            _sig_on
+            return self.new_gen(subfields0(self.g, <GEN>0))
+        t0GEN(d)
+        _sig_on
+        return self.new_gen(subfields0(self.g, t0))
 
     def rnfcharpoly(self, T, a, v='x'):
         t0GEN(T); t1GEN(a); t2GEN(v)
@@ -4743,6 +4767,22 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
+
+    def qflll(self, long flag=0):
+        """
+        qflll(x,{flag=0}): LLL reduction of the vectors forming the
+        matrix x (gives the unimodular transformation matrix). The
+        columns of x must be linearly independent, unless specified
+        otherwise below. flag is optional, and can be 0: default, 1:
+        assumes x is integral, columns may be dependent, 2: assumes x
+        is integral, returns a partially reduced basis, 4: assumes x
+        is integral, returns [K,I] where K is the integer kernel of x
+        and I the LLL reduced image, 5: same as 4 but x may have
+        polynomial coefficients, 8: same as 0 but x may have
+        polynomial coefficients.
+        """
+        _sig_on
+        return self.new_gen(qflll0(self.g,flag,prec)).Mat()
 
     def qflllgram(self, long flag=0):
         """

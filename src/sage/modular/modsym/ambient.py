@@ -61,6 +61,7 @@ import sage.rings.arith as arith
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
+from sage.rings.arith import binomial
 import sage.structure.all
 
 import boundary
@@ -236,10 +237,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             0 -- the integer 0; results in the 0 modular symbol.
 
         \item
-            3-tuple -- Given a 3-tuple (i,u,v), returns the elementmodular
-                       defined by the Manin symbol
+            3-tuple -- Given a 3-tuple (i,u,v), returns the modular
+                       symbol element defined by the Manin symbol
                        $[X^{i}\cdot Y^{k-2-i}, (u,v)]$, where k is the
-                       weight.  Note that we must have $0\leq i \leq 2-k$.
+                       weight.  Note that we must have $0\leq i \leq k-2$.
 
         \item
             2-tuple -- Given a 2-tuple (u,v), returns the element
@@ -250,13 +251,21 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             2-elements list -- Given a list \code{[alpha, beta]}, where
                        $\alpha$ and $\beta$ are (coercible to) cusps, return
                        the modular symbol $\{\alpha, \beta\}$.  When the
-                       the weight $k > 2$ return $Y^{k-2-i} \{\alpha, \beta\}$.
+                       the weight $k > 2$ return $Y^{k-2} \{\alpha, \beta\}$.
 
         \item
             3-element list -- Given a list \code{[i, alpha, beta]},
                        where $i$ is an integer, and $\alpha$, $\beta$
                        are (coercible to) cusps, return the modular symbol
                        $X^i Y^{k-2-i} \{\alpha, \beta\}$.
+
+                       If our list is \code{[f, alpha, beta]}, where
+                       $f$ is a homogeneous polynomial in two variables
+                       of degree k-2 with integer coefficients, and alpha
+                       and beta are cusps, return the corresponding sum of
+                       modular symbols as an element of self. So if
+                       $f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}$, return
+                       $\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]$.
         \end{itemize}
         """
         if isinstance(x, free_module_element.FreeModuleElement):
@@ -284,7 +293,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return sum([c*self(y) for c, y in x], self(0))
 
         elif isinstance(x, list):
-            return self.modular_symbol(x)
+            if len(x) == 3 and rings.is_MPolynomial(x[0]):
+                return self.modular_symbol_sum(x)
+            else:
+                return self.modular_symbol(x)
 
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 
@@ -333,16 +345,67 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return self.manin_symbol((i,0,1), check=False)
         v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
         a = self(0)
-        if self.weight() > 2:
-            # TODO!!!!!  must apply action to the polynomial part
-            raise NotImplementedError
-        for k in range(1,len(c)):
-            u = c[k][1]
-            v = c[k-1][1]
-            if k % 2 == 0:
-                v = -v
-            x = self.manin_symbol((i, u, v), check=False)
-            a += x
+        zero = rings.ZZ(0)
+        one = rings.ZZ(1)
+        two = rings.ZZ(2)
+        if self.weight() > two:
+            R = rings.ZZ['X']
+            X = R.gen(0)
+            ## need to add first two terms, which aren't necessarily
+            ## zero in this case. we do the first here, and the
+            ## second in the k=0 case below, so as to avoid code
+            ## duplication
+            a += self.manin_symbol((i,0,1), check=False)
+            for k in range(0,len(c)):
+                ## matrix entries associated to this partial sum
+                if k == 0:
+                    x = c[0][0]
+                    y = -1
+                    z = 1
+                    w = 0
+                else:
+                    x = c[k][0]
+                    y = c[k-1][0]
+                    z = c[k][1]
+                    w = c[k-1][1]
+                    if k%2 == 0:
+                        y = -y
+                        w = -w
+
+                ## two options here: write out the polynomial directly,
+                ## and deal with all the separate cases, or create two
+                ## polynomials and then exponentiate and multiply them.
+                ## given how fast ntl/flint/etc are, the second may
+                ## be faster.
+
+                ## method 1: write out solution. this is currently
+                ## incorrect, because it ends up doing 0^0 in the sum,
+                ## so i'll fix it and do timings soon.
+##                for s in range(0,self.weight()-two+1):
+##                    coeff = sum([ binomial(i,t)*binomial(self.weight()-two-i,s-t)*
+##                                  x**t * y**(i-t) * z**(s-t) *
+##                                  w**(self.weight()-two-i-s+t) for t in range(0,s) ])
+##                    m = coeff * self.manin_symbol((s, y, w), check=False)
+##                    a += m
+
+                ## method 2
+                p1 = x*X+y
+                p2 = z*X+w
+                if i == 0:
+                    p1 = R(one)
+                if (self.weight()-2-i == 0):
+                    p2 = R(one)
+                poly = (p1**i) * (p2**(self.weight()-2-i))
+                for s in range(0,self.weight()-1): ## k-2+1 = k-1
+                    a += poly[s] * self.manin_symbol((s,z,w), check=False)
+        else:
+            for k in range(1,len(c)):
+                u = c[k][1]
+                v = c[k-1][1]
+                if k % 2 == 0:
+                    v = -v
+                x = self.manin_symbol((i, u, v), check=False)
+                a += x
         return a
 
     def modular_symbol(self, x, check=True):
@@ -353,7 +416,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             x -- a list of either 2 or 3 entries
             2 entries:   [alpha, beta] -- creates the modular
                          symbol {alpha, beta}, or, if the weight
-                         is > 2 the symbol Y^(k-2-i){alpha,beta}.
+                         is > 2 the symbol Y^(k-2){alpha,beta}.
             3 entries:   [i, alpha, beta] -- create the modular
                          symbol X^i*Y^(k-2-i){alpha,beta}.
 
@@ -373,6 +436,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             ...
             ValueError: The first entry of the tuple (=[10, -1/8, 0]) must be an integer between 0 and k-2 (=0).
 
+            sage: N = ModularSymbols(6,4)
+            sage: N([1,Cusp(-1/4),Cusp(0)])
+            5*X^2*{0,Infinity} - 125*X^2*{4/5,1} + 200*X*Y*{4/5,1} - 80*Y^2*{4/5,1} + 27/2*X^2*{1/3,1/2} - 9*X*Y*{1/3,1/2} + 3/2*Y^2*{1/3,1/2} - 75/2*X^2*{2/5,1/2} + 30*X*Y*{2/5,1/2} - 6*Y^2*{2/5,1/2} + 3/2*X^2*{-1,-2/3} + 3*X*Y*{-1,-2/3} + 3/2*Y^2*{-1,-2/3} - 6*X^2*{-1/2,-1/3} - 6*X*Y*{-1/2,-1/3} - 3/2*Y^2*{-1/2,-1/3}
+            sage: N([1,Cusp(-1/2),Cusp(0)])
+            0
+
+
+
         Use check=False for efficiency if the input x is
         a list of length 3 whose first entry is an Integer,
         and whose second and third entries are cusps:
@@ -386,7 +457,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if check:
             if len(x) == 2:
                 x = [0,x[0],x[1]]
-            if len(x) == 3:
+            elif len(x) == 3:
                 if x[0] < 0 or x[0] > self.weight()-2:
                     raise ValueError, "The first entry of the tuple (=%s) must be an integer between 0 and k-2 (=%s)."%(
                         x, self.weight()-2)
@@ -404,6 +475,51 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         a = self._modular_symbol_0_to_alpha(alpha, i)
         b = self._modular_symbol_0_to_alpha(beta, i)
         return b - a
+
+    def modular_symbol_sum(self, x, check=True):
+        """
+        Take a 3-element list consisting of a homogeneous
+        polynomial in degree self.weight()-2 over ZZ, and
+        return the corresponding sum of modular symbols as an
+        element of self. That is, if x is
+        \code{[f, alpha, beta]}, where
+        $f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}$, return
+        $\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]$.
+
+        EXAMPLES:
+        """
+        if check:
+            if len(x) != 3:
+                raise ValueError, "%s must have length 3"%x
+            f = x[0]
+            R = self.base_ring()['X','Y']
+            X = R.gen(0)
+            try:
+                f = R(f)
+            except TypeError:
+                raise ValueError, \
+                      "f must be coercible to a polynomial over %s"%self.base_ring()
+            if (not f.is_homogeneous()) or (f.degree() != self.weight()-2):
+                raise ValueError, "f must be a homogeneous polynomial of degree k-2"
+            alpha = Cusp(x[1])
+            beta = Cusp(x[2])
+        else:
+            f = x[0]
+            R = self.base_ring()
+            X = R.gen(0)
+            alpha = x[1]
+            beta = x[2]
+
+        s = self(0)
+
+        for term in f.monomials():
+            deg = term.degree(X)
+            a = self._modular_symbol_0_to_alpha(alpha, deg)
+            b = self._modular_symbol_0_to_alpha(beta, deg)
+            s += f.monomial_coefficient(term) * (b-a)
+
+        return s
+
 
     def _compute_dual_hecke_matrix(self, n):
         return self.hecke_matrix(n).transpose()
@@ -1096,6 +1212,28 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 else:
                     M = V.span(M)
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
+
+    def twisted_winding_element(self, i, eps):
+        """
+        Given a space of modular symbols, an integer 0 <= i <= k-2,
+        and a Dirichlet character eps, return the so-called
+        'twisted winding element':
+        $\sum_{a \in (\mathbb{Z}/m\mathbb{Z})^\times} \
+        eps(a) * [ i, 0, a/m ]$.
+        """
+
+        if not dirichlet.is_DirichletCharacter(eps):
+            raise TypeError, "eps must be a Dirichlet character."
+        if (i < 0) or (i > self.weight()-2):
+            raise ValueError, "i must be between 0 and k-2."
+
+        m = eps.modulus()
+        s = self(0)
+
+        for a in ([ x for x in range(1,m) if rings.gcd(x,m) == 1 ]):
+            s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
+
+        return s
 
     ######################################################################
     # Z-module of integral modular symbols.

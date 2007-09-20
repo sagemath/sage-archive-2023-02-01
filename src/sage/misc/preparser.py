@@ -298,6 +298,11 @@ def parse_ellipsis(code):
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
+    # [1,2,..,n] notation
+    L, literals = strip_string_literals(line)
+    L = parse_ellipsis(L)
+    line = L % literals
+
     # find where the parens are for function assignment notation
     oparen_index = -1
     cparen_index = -1

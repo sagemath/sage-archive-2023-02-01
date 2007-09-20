@@ -33,7 +33,6 @@ Arithmetic obeys the usual coercion rules.
 
 import math
 import types
-from sage.misc.misc import xsrange
 import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
@@ -5648,7 +5647,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except AttributeError:
             pass
         if isinstance(s, (types.ListType, types.XRangeType,
-                            types.TupleType, xsrange)):
+                            types.TupleType, types.GeneratorType)):
             v = self.vector(len(s))
             for i, x in enumerate(s):
                 v[i] = self(x)

@@ -740,6 +740,16 @@ class Singular(Expect):
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
+    def _keyboard_interrupt(self):
+        print "Interrupting %s..."%self
+        try:
+            self._expect.sendline(chr(4))
+        except pexpect.ExceptionPexpect:
+            print "WARNING: -- unable to kill %s. You may have to do so manually."%self
+            pass
+        self._start()
+        raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
+
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
         RingElement.__init__(self, parent)

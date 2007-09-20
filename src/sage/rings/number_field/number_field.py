@@ -12,7 +12,7 @@ NOTE:
     assume the Generalized Riemann Hypothesis.  To do class groups
     computations not provably correctly you must often pass the flag
     proof=False to functions or call the function
-    \code{number_field_proof(False)}.  Note that many class group
+    \code{proof.number_field(False)}.  Note that many class group
     functions won't work for any reasonable cases without
     \code{proof=False}.
 
@@ -104,47 +104,14 @@ from sage.structure.sequence import Sequence
 
 import sage.structure.parent_gens
 
+from sage.structure.proof.proof import get_flag
 import maps
-
-nfproof = True
-
-def number_field_proof(t=None):
-    """
-    Set or get the global number field proof option.
-
-    EXAMPLES:
-        sage: number_field_proof()
-        True
-        sage: number_field_proof(False)
-        sage: number_field_proof()
-        False
-        sage: number_field_proof(True)
-        sage: number_field_proof()
-        True
-    """
-    global nfproof
-    if t is None:
-        return nfproof
-    nfproof = bool(t)
 
 def proof_flag(t):
     """
     Used for easily determining the correct proof flag to use.
-
-    EXAMPLES:
-        sage: from sage.rings.number_field.number_field import proof_flag
-        sage: proof_flag(None)
-        True
-        sage: proof_flag(False)
-        False
-        sage: proof_flag(True)
-        True
     """
-    global nfproof
-    if t is None:
-        return nfproof
-    else:
-        return t
+    return get_flag(t, "number_field")
 
 _gp = None
 def gp():
@@ -3693,6 +3660,7 @@ class NumberField_quadratic(NumberField_absolute):
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check)
         return
+        # optimized quadratic elements currently disabled.
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator

@@ -47,7 +47,7 @@ import twist
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 3
+INTERRUPT_TRIES = 1
 INITIAL_NUM_CELLS = 1
 
 WARN_THRESHOLD = 100
@@ -1325,7 +1325,7 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3, quit_on_fail=False)
+            success = S.interrupt(INTERRUPT_TRIES, quit_on_fail=False)
 
         if success:
             self.clear_queue()

@@ -982,6 +982,9 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         self.__modulus = ntl_ZZ(base_ring.order())
         PolynomialRing_commutative.__init__(self, base_ring, name)
 
+    def modulus(self):
+        return self.__modulus
+
     def _ntl_set_modulus(self):
         set_modulus(self.__modulus)
 

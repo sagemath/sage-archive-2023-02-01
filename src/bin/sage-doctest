@@ -87,7 +87,7 @@ def doc_preparse(s):
     """
     Run the preparser on the documentation string s.
     This *only* preparses the input lines, i.e., those
-    that begin with "sage:".or with "...:"
+    that begin with "sage:".or with "..."
     """
     sl = s.lower()
 
@@ -200,7 +200,11 @@ def extract_doc(file_name, module):
         j = i+3 + F[i+3:].find('"""')
         s += "def %s_%s():"%(name,n)
         n += 1
-        s += "\tr"+doc_preparse(F[i:j+3]) + "\n\n"
+        try:
+            doc = doc_preparse(F[i:j+3])
+        except SyntaxError:
+            doc = F[i:j+3]
+        s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
 
     #i = F.find('def __doctest_cleanup')

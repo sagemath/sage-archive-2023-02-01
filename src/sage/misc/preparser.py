@@ -132,7 +132,7 @@ implemented using the GMP C library.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-import os
+import os, re
 import pdb
 
 def isalphadigit_(s):
@@ -278,20 +278,13 @@ def parse_ellipsis(code):
             code = code[:ix] + "Ellipsis" + code[ix+3:]
         else:
             start_list, end_list = containing_block(code, ix)
-            ellipsis = "Ellipsis"
-            start_dots = ix-1
-            while code[start_dots].isspace(): start_dots -= 1
-            if code[start_dots] != ',': ellipsis = ','+ellipsis
-            end_dots = ix+2
-            while code[end_dots].isspace(): end_dots += 1
-            if code[end_dots] != ',': ellipsis += ','
+            arguments = code[start_list+1:end_list-1].replace('...', ',Ellipsis,').replace('..', ',Ellipsis,')
+            arguments = re.sub(r',\s*,', ',', arguments)
             range_or_iter = 'range' if code[start_list]=='[' else 'iter'
-            code = "%sellipsis_%s(%s%s%s)%s" %  (code[:start_list],
-                                                 range_or_iter,
-                                                 code[start_list+1:start_dots+1],
-                                                 ellipsis,
-                                                 code[end_dots: end_list-1],
-                                                 code[end_list:])
+            code = "%sellipsis_%s(%s)%s" %  (code[:start_list],
+                                             range_or_iter,
+                                             arguments,
+                                             code[end_list:])
         ix = code.find('..')
     return code
 

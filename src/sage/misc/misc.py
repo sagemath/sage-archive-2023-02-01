@@ -677,7 +677,7 @@ def ellipsis_iter(*args):
         sage: [A.next() for _ in range(10)]
         [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
     """
-    if len(args) >= 4 and args[1] is not Ellipsis:
+    if len(args) >= 3 and args[1] is not Ellipsis:
         diff = args[1]-args[0]
     else:
         diff = 1

@@ -344,7 +344,6 @@ class DualAbelianGroup_class(group.AbelianGroup):
             [1, B, B^2, A, A*B, A*B^2]
 
         """
-        from sage.combinat.combinat import tuples
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()

@@ -1724,11 +1724,17 @@ class Partitions_n(CombinatorialClass):
             sage: [x for x in Partitions(4)]
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
-        old_p = self.first()
-        #Go through all of the partitions
-        while old_p != False:
-            yield old_p
-            old_p = old_p.next()
+        # base case of the recursion: zero is the sum of the empty tuple
+        if n == 0:
+            yield []
+            return
+
+        # modify the partitions of n-1 to form the partitions of n
+        for p in Partitions_n(self.n-1):
+            if p and (len(p) < 2 or p[-2] > p[-1]):
+                yield p[:-1] + [p[-1] + 1]
+            yield  p + [1]
+
 
 
 def PartitionsInBox(h, w):

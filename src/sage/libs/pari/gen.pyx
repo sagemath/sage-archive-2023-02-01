@@ -4768,6 +4768,22 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
 
+    def qflll(self, long flag=0):
+        """
+        qflll(x,{flag=0}): LLL reduction of the vectors forming the
+        matrix x (gives the unimodular transformation matrix). The
+        columns of x must be linearly independent, unless specified
+        otherwise below. flag is optional, and can be 0: default, 1:
+        assumes x is integral, columns may be dependent, 2: assumes x
+        is integral, returns a partially reduced basis, 4: assumes x
+        is integral, returns [K,I] where K is the integer kernel of x
+        and I the LLL reduced image, 5: same as 4 but x may have
+        polynomial coefficients, 8: same as 0 but x may have
+        polynomial coefficients.
+        """
+        _sig_on
+        return self.new_gen(qflll0(self.g,flag,prec)).Mat()
+
     def qflllgram(self, long flag=0):
         """
         qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram

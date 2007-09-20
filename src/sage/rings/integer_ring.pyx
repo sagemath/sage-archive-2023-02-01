@@ -245,6 +245,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 y.__init__(x, base)
             except AttributeError:
                 pass
+        try:
+            return x.get_as_sage_int()
+        except AttributeError:
+            pass
+
         raise TypeError, msg
 
     def __iter__(self):

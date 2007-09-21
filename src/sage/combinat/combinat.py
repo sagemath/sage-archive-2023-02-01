@@ -202,6 +202,7 @@ import __builtin__
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
+import partitions as partitions_ext
 
 ######### combinatorial sequences
 

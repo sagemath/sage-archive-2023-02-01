@@ -5798,6 +5798,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef object GEN_to_str(self, GEN g):
         cdef char* c
         cdef int n
+        _sig_off
         _sig_on
         c = GENtostr(g)
         _sig_off

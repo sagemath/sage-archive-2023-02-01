@@ -26,6 +26,7 @@ AUTHOR:
     -- Bobby Moretti (2007-08-12): fixed up plotting of graphs with
        edge colors differentiated by label
 
+
 TUTORIAL:
 
     I. The Basics
@@ -270,12 +271,8 @@ class GenericGraph(SageObject):
         elif self.loops() != other.loops():
             return 1
         else:
-            try:
-                if self.multiple_arcs() != other.multiple_arcs():
-                    return 1
-            except AttributeError:
-                if self.multiple_edges() != other.multiple_edges():
-                    return 1
+            if self.multiple_edges() != other.multiple_edges():
+                return 1
         if self.vertices() != other.vertices():
             return 1
         comp = enum(self) - enum(other)
@@ -485,8 +482,8 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: G = DiGraph(loops=True,multiedges=True)
-            sage: G.add_arcs( [ (0,0), (1,1), (2,2), (2,3), (2,3), (3,2) ] )
-            sage: G.arcs(labels=False)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (2,3), (2,3), (3,2) ] )
+            sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
             sage: H=G.to_simple()
             sage: H.edges(labels=False)
@@ -576,7 +573,7 @@ class GenericGraph(SageObject):
 
     def delete_vertex(self, vertex):
         """
-        Deletes vertex, removing all incident edges(arcs).
+        Deletes vertex, removing all incident edges.
 
         EXAMPLES:
             sage: G = graphs.WheelGraph(9)
@@ -793,7 +790,7 @@ class GenericGraph(SageObject):
                         numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
                         numbr += 1<<((n-(perm[j]+1))*n + n-(perm[i]+1))
                 elif isinstance(self, DiGraph):
-                    for i,j,l in self.arc_iterator():
+                    for i,j,l in self.edge_iterator():
                         numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
                 return numbr
             if isinstance(self, Graph):
@@ -1844,18 +1841,16 @@ class GenericGraph(SageObject):
         if self.loops():
             raise TypeError('(Di)Graph complement not well defined for (di)graphs with loops.')
         if self.is_directed():
-            if self.multiple_arcs():
-                raise TypeError('Digraph complement not well defined for graphs with multiple arcs.')
+            if self.multiple_edges():
+                raise TypeError('Digraph complement not well defined for graphs with multiple edges.')
             import networkx
-            D = DiGraph(networkx.complement(self._nxg))
-            D._pos = self._pos
+            D = DiGraph(networkx.complement(self._nxg), pos=self._pos)
             return D
         else:
             if self.multiple_edges():
                 raise TypeError('Graph complement not well defined for graphs with multiple edges.')
             import networkx
-            G = Graph(networkx.complement(self._nxg))
-            G._pos = self._pos
+            G = Graph(networkx.complement(self._nxg), pos=self._pos)
             return G
 
     def disjoint_union(self, other):
@@ -1909,8 +1904,8 @@ class GenericGraph(SageObject):
             D = DiGraph()
             D.add_vertices(self.vertices())
             D.add_vertices(other.vertices())
-            D.add_arcs(self.arcs())
-            D.add_arcs(other.arcs())
+            D.add_edges(self.edges())
+            D.add_edges(other.edges())
             return D
         else:
             G = Graph()
@@ -1926,9 +1921,9 @@ class GenericGraph(SageObject):
 
         The Cartesian product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge (arc) iff either
-            - (u, w) is an edge (arc) of self and v = x, or
-            - (v, x) is an edge (arc) of other and u = w.
+        ((u,v), (w,x)) is an edge iff either
+            - (u, w) is an edge of self and v = x, or
+            - (v, x) is an edge of other and u = w.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
@@ -1947,33 +1942,21 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    D.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if (self.has_arc(u, w) and v == x) or (other.has_arc(v, x) and u == w):
-                        D.add_arc((u,v), (w,x))
-            return D
+            G = DiGraph()
         else:
             G = Graph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    G.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if (self.has_edge(u, w) and v == x) or (other.has_edge(v, x) and u == w):
-                        G.add_edge((u,v), (w,x))
-            return G
+        verts = []
+        for a in self.vertices():
+            for b in other.vertices():
+                G.add_vertex((a,b))
+                verts.append((a,b))
+        for i in range(len(verts)):
+            for j in range(i):
+                u,v = verts[i]
+                w,x = verts[j]
+                if (self.has_edge(u, w) and v == x) or (other.has_edge(v, x) and u == w):
+                    G.add_edge((u,v), (w,x))
+        return G
 
     def tensor_product(self, other):
         """
@@ -1981,9 +1964,9 @@ class GenericGraph(SageObject):
 
         The tensor product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge (arc) iff
-            - (u, w) is an edge (arc) of self, and
-            - (v, x) is an edge (arc) of other.
+        ((u,v), (w,x)) is an edge iff
+            - (u, w) is an edge of self, and
+            - (v, x) is an edge of other.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
@@ -2002,33 +1985,21 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    D.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_arc(u, w) and other.has_arc(v, x):
-                        D.add_arc((u,v), (w,x))
-            return D
+            G = DiGraph()
         else:
             G = Graph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    G.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_edge(u, w) and other.has_edge(v, x):
-                        G.add_edge((u,v), (w,x))
-            return G
+        verts = []
+        for a in self.vertices():
+            for b in other.vertices():
+                G.add_vertex((a,b))
+                verts.append((a,b))
+        for i in range(len(verts)):
+            for j in range(i):
+                u,v = verts[i]
+                w,x = verts[j]
+                if self.has_edge(u, w) and other.has_edge(v, x):
+                    G.add_edge((u,v), (w,x))
+        return G
 
     def lexicographic_product(self, other):
         """
@@ -2036,9 +2007,9 @@ class GenericGraph(SageObject):
 
         The lexicographic product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge (arc) iff
-            - (u, w) is an edge (arc) of self, or
-            - u = w and (v, x) is an edge (arc) of other.
+        ((u,v), (w,x)) is an edge iff
+            - (u, w) is an edge of self, or
+            - u = w and (v, x) is an edge of other.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
@@ -2057,33 +2028,21 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    D.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_arc(u, w) or (u == w and other.has_arc(v, x)):
-                        D.add_arc((u,v), (w,x))
-            return D
+            G = DiGraph()
         else:
             G = Graph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    G.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_edge(u, w) or (u == w and other.has_edge(v, x)):
-                        G.add_edge((u,v), (w,x))
-            return G
+        verts = []
+        for a in self.vertices():
+            for b in other.vertices():
+                G.add_vertex((a,b))
+                verts.append((a,b))
+        for i in range(len(verts)):
+            for j in range(i):
+                u,v = verts[i]
+                w,x = verts[j]
+                if self.has_edge(u, w) or (u == w and other.has_edge(v, x)):
+                    G.add_edge((u,v), (w,x))
+        return G
 
     def strong_product(self, other):
         """
@@ -2091,10 +2050,10 @@ class GenericGraph(SageObject):
 
         The strong product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge (arc) iff either
-            - (u, w) is an edge (arc) of self and v = x, or
-            - (v, x) is an edge (arc) of other and u = w, or
-            - (u, w) is an edge (arc) of self and (v, x) is an edge (arc) of
+        ((u,v), (w,x)) is an edge iff either
+            - (u, w) is an edge of self and v = x, or
+            - (v, x) is an edge of other and u = w, or
+            - (u, w) is an edge of self and (v, x) is an edge of
         other.
 
 
@@ -2115,37 +2074,24 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    D.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if (self.has_arc(u, w) and v == x) or \
-                       (other.has_arc(v, x) and u == w) or \
-                       (self.has_arc(u, w) and other.has_arc(v, x)):
-                        D.add_arc((u,v), (w,x))
-            return D
+            G = DiGraph()
         else:
             G = Graph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    G.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if (self.has_edge(u, w) and v == x) or \
-                       (other.has_edge(v, x) and u == w) or \
-                       (self.has_edge(u, w) and other.has_edge(v, x)):
-                        G.add_edge((u,v), (w,x))
-            return G
+
+        verts = []
+        for a in self.vertices():
+            for b in other.vertices():
+                G.add_vertex((a,b))
+                verts.append((a,b))
+        for i in range(len(verts)):
+            for j in range(i):
+                u,v = verts[i]
+                w,x = verts[j]
+                if (self.has_edge(u, w) and v == x) or \
+                   (other.has_edge(v, x) and u == w) or \
+                   (self.has_edge(u, w) and other.has_edge(v, x)):
+                    G.add_edge((u,v), (w,x))
+        return G
 
     def disjunctive_product(self, other):
         """
@@ -2153,9 +2099,9 @@ class GenericGraph(SageObject):
 
         The disjunctive product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge (arc) iff either
-            - (u, w) is an edge (arc) of self, or
-            - (v, x) is an edge (arc) of other.
+        ((u,v), (w,x)) is an edge iff either
+            - (u, w) is an edge of self, or
+            - (v, x) is an edge of other.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
@@ -2173,32 +2119,20 @@ class GenericGraph(SageObject):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
             D = DiGraph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    D.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_arc(u, w) or other.has_arc(v, x):
-                        D.add_arc((u,v), (w,x))
-            return D
         else:
             G = Graph()
-            verts = []
-            for a in self.vertices():
-                for b in other.vertices():
-                    G.add_vertex((a,b))
-                    verts.append((a,b))
-            for i in range(len(verts)):
-                for j in range(i):
-                    u,v = verts[i]
-                    w,x = verts[j]
-                    if self.has_edge(u, w) or other.has_edge(v, x):
-                        G.add_edge((u,v), (w,x))
-            return G
+        verts = []
+        for a in self.vertices():
+            for b in other.vertices():
+                G.add_vertex((a,b))
+                verts.append((a,b))
+        for i in range(len(verts)):
+            for j in range(i):
+                u,v = verts[i]
+                w,x = verts[j]
+                if self.has_edge(u, w) or other.has_edge(v, x):
+                    G.add_edge((u,v), (w,x))
+        return G
 
     ### Visualization
     def _color_by_label(self, format='hex'):
@@ -2209,7 +2143,7 @@ class GenericGraph(SageObject):
         from sage.plot.plot import rainbow
         edge_labels = []
         if self.is_directed():
-            iterator = self.arc_iterator
+            iterator = self.edge_iterator
         else:
             iterator = self.edge_iterator
         for e in iterator():
@@ -2243,7 +2177,7 @@ class GenericGraph(SageObject):
                 'circular' -- plots the graph with vertices evenly distributed on a circle
                 'spring' -- uses the traditional spring layout, ignores the graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
+            edge_labels -- whether to print edge labels. By default, False, but if True, the result
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
@@ -2259,7 +2193,7 @@ class GenericGraph(SageObject):
                 1/8 won't be useful unless the nodes are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
-            color_by_label -- if True, color edges or arcs by their labels
+            color_by_label -- if True, color edges by their labels
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
 
@@ -2291,8 +2225,8 @@ class GenericGraph(SageObject):
             sage: G.plot(edge_labels=True).save('sage.png')
 
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
-            sage: for u,v,l in D.arcs():
-            ...    D.set_arc_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: for u,v,l in D.edges():
+            ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.plot(edge_labels=True, layout='circular').save('sage.png')
 
             sage: from sage.plot.plot import rainbow
@@ -2388,7 +2322,7 @@ class GenericGraph(SageObject):
                 'circular' -- plots the graph with vertices evenly distributed on a circle
                 'spring' -- uses the traditional spring layout, ignores the graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
+            edge_labels -- whether to print edgeedge labels. By default, False, but if True, the result
                 of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
@@ -2405,7 +2339,7 @@ class GenericGraph(SageObject):
             talk -- if true, prints large nodes with white backgrounds so that labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
-            color_by_label -- if True, color edges or arcs by their labels
+            color_by_label -- if True, color edges by their labels
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
 
@@ -2437,8 +2371,8 @@ class GenericGraph(SageObject):
             sage: G.plot(edge_labels=True).save('sage.png')
 
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
-            sage: for u,v,l in D.arcs():
-            ...    D.set_arc_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: for u,v,l in D.edges():
+            ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.plot(edge_labels=True, layout='circular').save('sage.png')
 
             sage: from sage.plot.plot import rainbow
@@ -2814,7 +2748,7 @@ class Graph(GenericGraph):
     def to_directed(self):
         """
         Returns a directed version of the graph. A single edge becomes two
-        arcs, one in each direction.
+        edges, one in each direction.
 
         EXAMPLE:
             sage: graphs.PetersenGraph().to_directed()
@@ -4519,8 +4453,8 @@ class DiGraph(GenericGraph):
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
         Digraph on 5 vertices
 
-    The labels ('x', 'z', 'a', 'out') are labels for arcs. For example, 'out' is
-    the label for the arc from 2 to 5. Labels can be used as weights, if all the
+    The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
+    the label for the edge from 2 to 5. Labels can be used as weights, if all the
     labels share some common parent.
 
     4. A dictionary of lists:
@@ -4661,7 +4595,7 @@ class DiGraph(GenericGraph):
         name = ""
         if self.loops():
             name += "looped "
-        if self.multiple_arcs():
+        if self.multiple_edges():
             name += "multi-"
         name += "digraph on %d vert"%self.order()
         if self.order() == 1:
@@ -4699,12 +4633,12 @@ class DiGraph(GenericGraph):
 
     def to_undirected(self):
         """
-        Returns an undirected version of the graph. Every arc becomes an edge.
+        Returns an undirected version of the graph. Every directed edge becomes an edge.
 
         EXAMPLE:
             sage: D = DiGraph({0:[1,2],1:[0]})
             sage: G = D.to_undirected()
-            sage: D.arcs(labels=False)
+            sage: D.edges(labels=False)
             [(0, 1), (0, 2), (1, 0)]
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
@@ -4721,17 +4655,17 @@ class DiGraph(GenericGraph):
         """
         return True
 
-    def multiple_arcs(self, new=None):
+    def multiple_edges(self, new=None):
         """
-        Returns whether multiple arcs are permitted in the digraph.
+        Returns whether multiple edges are permitted in the digraph.
 
         INPUT:
-        new -- boolean, changes whether multiple arcs are permitted in the digraph.
+        new -- boolean, changes whether multiple edges are permitted in the digraph.
 
         EXAMPLE:
             sage: D = DiGraph(multiedges=True); D
             Multi-digraph on 0 vertices
-            sage: D.multiple_arcs(False); D
+            sage: D.multiple_edges(False); D
             False
             Digraph on 0 vertices
 
@@ -4768,86 +4702,86 @@ class DiGraph(GenericGraph):
             C += [V]
         return iter(C)
 
-    ### Arc Handlers
+    ### Edge Handlers
 
-    def add_arc(self, u, v=None, label=None):
+    def add_edge(self, u, v=None, label=None):
         """
-        Adds an arc from u to v.
+        Adds an edge from u to v.
 
         INPUT:
         The following forms are all accepted by NetworkX:
         INPUT:
         The following forms are all accepted:
 
-        G.add_arc( 1, 2 )
-        G.add_arc( (1, 2) )
-        G.add_arcs( [ (1, 2) ] )
-        G.add_arc( 1, 2, 'label' )
-        G.add_arc( (1, 2, 'label') )
-        G.add_arcs( [ (1, 2, 'label') ] )
+        G.add_edge( 1, 2 )
+        G.add_edge( (1, 2) )
+        G.add_edges( [ (1, 2) ] )
+        G.add_edge( 1, 2, 'label' )
+        G.add_edge( (1, 2, 'label') )
+        G.add_edges( [ (1, 2, 'label') ] )
 
         WARNING:
         The following intuitive input results in nonintuitive output:
         sage: G = DiGraph()
-        sage: G.add_arc((1,2),'label')
+        sage: G.add_edge((1,2),'label')
         sage: G.networkx_graph().adj           # random output order
         {'label': {}, (1, 2): {'label': None}}
 
         Use one of these instead:
         sage: G = DiGraph()
-        sage: G.add_arc((1,2), label="label")
+        sage: G.add_edge((1,2), label="label")
         sage: G.networkx_graph().adj           # random output order
         {1: {2: 'label'}, 2: {}}
 
         sage: G = DiGraph()
-        sage: G.add_arc(1,2,'label')
+        sage: G.add_edge(1,2,'label')
         sage: G.networkx_graph().adj           # random output order
         {1: {2: 'label'}, 2: {}}
 
         """
         self._nxg.add_edge(u, v, label)
 
-    def add_arcs(self, arcs):
+    def add_edges(self, edges):
         """
-        Add arcs from an iterable container.
+        Add edges from an iterable container.
 
         EXAMPLE:
             sage: G = graphs.DodecahedralGraph().to_directed()
             sage: H = DiGraph()
-            sage: H.add_arcs( G.arc_iterator() ); H
+            sage: H.add_edges( G.edge_iterator() ); H
             Digraph on 20 vertices
 
         """
-        self._nxg.add_edges_from( arcs )
+        self._nxg.add_edges_from( edges )
 
-    def delete_arc(self, u, v=None, label=None):
+    def delete_edge(self, u, v=None, label=None):
         r"""
-        Delete the arc from u to v, return silently if vertices or arc does
+        Delete the edge from u to v, return silently if vertices or edge does
         not exist.
 
         INPUT:
         The following forms are all accepted:
 
-        G.delete_arc( 1, 2 )
-        G.delete_arc( (1, 2) )
-        G.delete_arcs( [ (1, 2) ] )
-        G.delete_arc( 1, 2, 'label' )
-        G.delete_arc( (1, 2, 'label') )
-        G.delete_arcs( [ (1, 2, 'label') ] )
+        G.delete_edge( 1, 2 )
+        G.delete_edge( (1, 2) )
+        G.delete_edges( [ (1, 2) ] )
+        G.delete_edge( 1, 2, 'label' )
+        G.delete_edge( (1, 2, 'label') )
+        G.delete_edges( [ (1, 2, 'label') ] )
 
         EXAMPLES:
             sage: D = graphs.CompleteGraph(19).to_directed()
             sage: D.size()
             342
-            sage: D.delete_arc( 1, 2 )
-            sage: D.delete_arc( (3, 4) )
-            sage: D.delete_arcs( [ (5, 6), (7, 8) ] )
-            sage: D.delete_arc( 9, 10, 'label' )
-            sage: D.delete_arc( (11, 12, 'label') )
-            sage: D.delete_arcs( [ (13, 14, 'label') ] )
+            sage: D.delete_edge( 1, 2 )
+            sage: D.delete_edge( (3, 4) )
+            sage: D.delete_edges( [ (5, 6), (7, 8) ] )
+            sage: D.delete_edge( 9, 10, 'label' )
+            sage: D.delete_edge( (11, 12, 'label') )
+            sage: D.delete_edges( [ (13, 14, 'label') ] )
             sage: D.size()
             335
-            sage: D.has_arc( (11, 12) )
+            sage: D.has_edge( (11, 12) )
             False
 
             Note that even though the edge (11, 12) has no label, it still gets
@@ -4856,51 +4790,51 @@ class DiGraph(GenericGraph):
         """
         self._nxg.delete_edge(u, v, label)
 
-    def delete_arcs(self, arcs):
+    def delete_edges(self, edges):
         """
-        Delete arcs from an iterable container.
+        Delete edges from an iterable container.
 
         EXAMPLE:
             sage: K12 = graphs.CompleteGraph(12).to_directed()
             sage: K4 = graphs.CompleteGraph(4).to_directed()
             sage: K12.size()
             132
-            sage: K12.delete_arcs(K4.arc_iterator())
+            sage: K12.delete_edges(K4.edge_iterator())
             sage: K12.size()
             120
 
         """
-        self._nxg.delete_edges_from(arcs)
+        self._nxg.delete_edges_from(edges)
 
-    def delete_multiarc(self, u, v):
+    def delete_multiedge(self, u, v):
         """
-        Deletes all arcs from u to v.
+        Deletes all edges from u to v.
 
         EXAMPLE:
             sage: D = DiGraph(multiedges=True)
-            sage: D.add_arcs([(0,1), (0,1), (0,1), (1,0), (1,2), (2,3)])
-            sage: D.arcs()
+            sage: D.add_edges([(0,1), (0,1), (0,1), (1,0), (1,2), (2,3)])
+            sage: D.edges()
             [(0, 1, None), (0, 1, None), (0, 1, None), (1, 0, None), (1, 2, None), (2, 3, None)]
-            sage: D.delete_multiarc( 0, 1 )
-            sage: D.arcs()
+            sage: D.delete_multiedge( 0, 1 )
+            sage: D.edges()
             [(1, 0, None), (1, 2, None), (2, 3, None)]
 
         """
         self._nxg.delete_multiedge(u, v)
 
-    def arcs(self, labels=True):
+    def edges(self, labels=True):
         """
-        Return a list of arcs. Each arc is a triple (u,v,l) where the arc is
+        Return a list of edges. Each edge is a triple (u,v,l) where the edge is
         from u to v, with label l.
 
         INPUT:
-        labels -- if False, each arc is a tuple (u,v) of vertices.
+        labels -- if False, each edge is a tuple (u,v) of vertices.
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph().to_directed()
-            sage: D.arcs()
+            sage: D.edges()
             [(0, 1, None), (0, 10, None), (0, 19, None), (1, 0, None), (1, 8, None), (1, 2, None), (2, 1, None), (2, 3, None), (2, 6, None), (3, 2, None), (3, 19, None), (3, 4, None), (4, 17, None), (4, 3, None), (4, 5, None), (5, 4, None), (5, 6, None), (5, 15, None), (6, 2, None), (6, 5, None), (6, 7, None), (7, 8, None), (7, 14, None), (7, 6, None), (8, 1, None), (8, 9, None), (8, 7, None), (9, 8, None), (9, 10, None), (9, 13, None), (10, 0, None), (10, 9, None), (10, 11, None), (11, 10, None), (11, 12, None), (11, 18, None), (12, 16, None), (12, 11, None), (12, 13, None), (13, 9, None), (13, 12, None), (13, 14, None), (14, 15, None), (14, 13, None), (14, 7, None), (15, 16, None), (15, 5, None), (15, 14, None), (16, 17, None), (16, 12, None), (16, 15, None), (17, 16, None), (17, 18, None), (17, 4, None), (18, 19, None), (18, 17, None), (18, 11, None), (19, 0, None), (19, 18, None), (19, 3, None)]
-            sage: D.arcs(labels = False)
+            sage: D.edges(labels = False)
             [(0, 1), (0, 10), (0, 19), (1, 0), (1, 8), (1, 2), (2, 1), (2, 3), (2, 6), (3, 2), (3, 19), (3, 4), (4, 17), (4, 3), (4, 5), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 8), (7, 14), (7, 6), (8, 1), (8, 9), (8, 7), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 16), (12, 11), (12, 13), (13, 9), (13, 12), (13, 14), (14, 15), (14, 13), (14, 7), (15, 16), (15, 5), (15, 14), (16, 17), (16, 12), (16, 15), (17, 16), (17, 18), (17, 4), (18, 19), (18, 17), (18, 11), (19, 0), (19, 18), (19, 3)]
 
         """
@@ -4913,7 +4847,7 @@ class DiGraph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def arc_boundary(self, vertices1, vertices2=None, labels=True):
+    def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
         Returns a list of edges (u,v,l) with u in vertices1 and v in vertices2.
         If vertices2 is None, then it is set to the complement of vertices1.
@@ -4923,12 +4857,12 @@ class DiGraph(GenericGraph):
 
         EXAMPLE:
             sage: K = graphs.CompleteBipartiteGraph(9,3).to_directed()
-            sage: len(K.arc_boundary( [0,1,2,3,4,5,6,7,8], [9,10,11] ))
+            sage: len(K.edge_boundary( [0,1,2,3,4,5,6,7,8], [9,10,11] ))
             27
             sage: K.size()
             54
 
-            Note that the arc boundary preserves direction: compare this example to
+            Note that the edge boundary preserves direction: compare this example to
             the one in edge_boundary in the Graph class.
 
         """
@@ -4941,15 +4875,15 @@ class DiGraph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def arc_iterator(self, vertices=None):
+    def edge_iterator(self, vertices=None):
         """
-        Returns an iterator over the arcs pointing out of the given
+        Returns an iterator over the edges pointing out of the given
         set of vertices. If vertices is None, then returns an iterator over
-        all arcs.
+        all edges.
 
         EXAMPLE:
             sage: D = DiGraph( { 0 : [1,2], 1: [0] } )
-            sage: for i in D.arc_iterator([0]):
+            sage: for i in D.edge_iterator([0]):
             ...    print i
             (0, 1, None)
             (0, 2, None)
@@ -4957,14 +4891,14 @@ class DiGraph(GenericGraph):
         """
         return self._nxg.edges_iter(vertices)
 
-    def incoming_arc_iterator(self, vertices=None):
+    def incoming_edge_iterator(self, vertices=None):
         """
-        Return an iterator over all arriving arcs from vertices, or over all
-        arcs if vertices is None.
+        Return an iterator over all arriving edges from vertices, or over all
+        edges if vertices is None.
 
         EXAMPLE:
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: for a in D.incoming_arc_iterator([0]):
+            sage: for a in D.incoming_edge_iterator([0]):
             ...    print a
             (1, 0, None)
             (4, 0, None)
@@ -4972,16 +4906,16 @@ class DiGraph(GenericGraph):
         """
         return self._nxg.in_edges_iter(vertices)
 
-    def incoming_arcs(self, vertices=None, labels=True):
+    def incoming_edges(self, vertices=None, labels=True):
         """
-        Returns a list of arcs arriving at vertices.
+        Returns a list of edges arriving at vertices.
 
         INPUT:
         labels -- if False, each edge is a tuple (u,v) of vertices.
 
         EXAMPLE:
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.incoming_arcs([0])
+            sage: D.incoming_edges([0])
             [(1, 0, None), (4, 0, None)]
 
         """
@@ -4994,14 +4928,14 @@ class DiGraph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def outgoing_arc_iterator(self, vertices=None):
+    def outgoing_edge_iterator(self, vertices=None):
         """
-        Return an iterator over all departing arcs from vertices, or over all
-        arcs if vertices is None.
+        Return an iterator over all departing edges from vertices, or over all
+        edges if vertices is None.
 
         EXAMPLE:
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: for a in D.outgoing_arc_iterator([0]):
+            sage: for a in D.outgoing_edge_iterator([0]):
             ...    print a
             (0, 1, None)
             (0, 2, None)
@@ -5010,16 +4944,16 @@ class DiGraph(GenericGraph):
         """
         return self._nxg.out_edges_iter(vertices)
 
-    def outgoing_arcs(self, vertices=None, labels=True):
+    def outgoing_edges(self, vertices=None, labels=True):
         """
-        Returns a list of arcs departing from vertices.
+        Returns a list of edges departing from vertices.
 
         INPUT:
         labels -- if False, each edge is a tuple (u,v) of vertices.
 
         EXAMPLE:
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.outgoing_arcs([0])
+            sage: D.outgoing_edges([0])
             [(0, 1, None), (0, 2, None), (0, 3, None)]
 
         """
@@ -5032,79 +4966,79 @@ class DiGraph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def has_arc(self, u, v=None, label=None):
+    def has_edge(self, u, v=None, label=None):
         """
-        Returns True if there is an arc from u to v, False otherwise.
+        Returns True if there is an edge from u to v, False otherwise.
 
         INPUT:
         The following forms are accepted by NetworkX:
 
-        D.has_arc( 1, 2 )
-        D.has_arc( (1, 2) )
-        D.has_arc( 1, 2, 'label' )
+        D.has_edge( 1, 2 )
+        D.has_edge( (1, 2) )
+        D.has_edge( 1, 2, 'label' )
 
         EXAMPLE:
-            sage: DiGraph().has_arc(9,2)
+            sage: DiGraph().has_edge(9,2)
             False
 
         """
         return self._nxg.has_edge(u,v)
 
-    def set_arc_label(self, u, v, l):
+    def set_edge_label(self, u, v, l):
         """
-        Set the arc label of a given arc.
+        Set the edge label of a given edge.
 
         INPUT:
-            u, v -- the vertices (and direction) of the arc
+            u, v -- the vertices (and direction) of the edge
             l -- the new label
 
         EXAMPLE:
             sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
-            sage: SD.set_arc_label(1, 18, 'discrete')
-            sage: SD.set_arc_label(4, 7, 'discrete')
-            sage: SD.set_arc_label(2, 5, 'h = 0')
-            sage: SD.set_arc_label(7, 18, 'h = 0')
-            sage: SD.set_arc_label(7, 10, 'aut')
-            sage: SD.set_arc_label(8, 10, 'aut')
-            sage: SD.set_arc_label(8, 9, 'label')
-            sage: SD.set_arc_label(8, 6, 'no label')
-            sage: SD.set_arc_label(13, 17, 'k > h')
-            sage: SD.set_arc_label(13, 14, 'k = h')
-            sage: SD.set_arc_label(17, 15, 'v_k finite')
-            sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
+            sage: SD.set_edge_label(1, 18, 'discrete')
+            sage: SD.set_edge_label(4, 7, 'discrete')
+            sage: SD.set_edge_label(2, 5, 'h = 0')
+            sage: SD.set_edge_label(7, 18, 'h = 0')
+            sage: SD.set_edge_label(7, 10, 'aut')
+            sage: SD.set_edge_label(8, 10, 'aut')
+            sage: SD.set_edge_label(8, 9, 'label')
+            sage: SD.set_edge_label(8, 6, 'no label')
+            sage: SD.set_edge_label(13, 17, 'k > h')
+            sage: SD.set_edge_label(13, 14, 'k = h')
+            sage: SD.set_edge_label(17, 15, 'v_k finite')
+            sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
             sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
             sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
         """
-        if self.has_arc(u, v):
+        if self.has_edge(u, v):
             self._nxg.adj[u][v] = l
 
-    def arc_label(self, u, v=None):
+    def edge_label(self, u, v=None):
         """
-        Returns the label of an arc.
+        Returns the label of an edge.
 
         EXAMPLE:
             sage: D = DiGraph({0 : {1 : 'edgelabel'}})
-            sage: D.arcs(labels=False)
+            sage: D.edges(labels=False)
             [(0, 1)]
-            sage: D.arc_label( 0, 1 )
+            sage: D.edge_label( 0, 1 )
             'edgelabel'
 
         """
         return self._nxg.get_edge(u,v)
 
-    def arc_labels(self):
+    def edge_labels(self):
         """
         Returns a list of edge labels.
 
         EXAMPLE:
             sage: G = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
-            sage: G.arc_labels()
+            sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
 
         """
         labels = []
-        for u,v,l in self.arcs():
+        for u,v,l in self.edges():
             labels.append(l)
         return labels
 
@@ -5161,17 +5095,17 @@ class DiGraph(GenericGraph):
         """
         return list(self.successor_iterator(vertex))
 
-    def remove_multiple_arcs(self):
+    def remove_multiple_edges(self):
         """
-        Removes all multiple arcs, retaining one arc for each.
+        Removes all multiple edges, retaining one edge for each.
 
         EXAMPLE:
             sage: D = DiGraph(multiedges=True)
-            sage: D.add_arcs( [ (0,1), (0,1), (0,1), (0,1), (1,2) ] )
-            sage: D.arcs(labels=False)
+            sage: D.add_edges( [ (0,1), (0,1), (0,1), (0,1), (1,2) ] )
+            sage: D.edges(labels=False)
             [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
-            sage: D.remove_multiple_arcs()
-            sage: D.arcs(labels=False)
+            sage: D.remove_multiple_edges()
+            sage: D.edges(labels=False)
             [(0, 1), (1, 2)]
 
         """
@@ -5183,11 +5117,11 @@ class DiGraph(GenericGraph):
 
         EXAMPLE:
             sage: D = DiGraph(loops=True)
-            sage: D.add_arcs( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: D.arcs(labels=False)
+            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: D.remove_loops()
-            sage: D.arcs(labels=False)
+            sage: D.edges(labels=False)
             [(2, 3)]
             sage: D.loops()
             True
@@ -5197,16 +5131,16 @@ class DiGraph(GenericGraph):
             self._nxg.remove_all_selfloops()
         else:
             for v in vertices:
-                self.delete_multiarc(v,v)
+                self.delete_multiedge(v,v)
 
-    def loop_arcs(self):
+    def loop_edges(self):
         """
         Returns a list of all loops in the graph.
 
         EXAMPLE:
             sage: D = DiGraph(loops=True)
-            sage: D.add_arcs( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: D.loop_arcs()
+            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
 
         """
@@ -5214,12 +5148,12 @@ class DiGraph(GenericGraph):
 
     def number_of_loops(self):
         """
-        Returns the number of arcs that are loops.
+        Returns the number of edges that are loops.
 
         EXAMPLE:
             sage: D = DiGraph(loops=True)
-            sage: D.add_arcs( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: D.arcs(labels=False)
+            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: D.number_of_loops()
             4
@@ -5399,7 +5333,7 @@ class DiGraph(GenericGraph):
         n = len(self._nxg.adj)
         verts = self.vertices()
         D = {}
-        for i,j,l in self.arc_iterator():
+        for i,j,l in self.edge_iterator():
             i = verts.index(i)
             j = verts.index(j)
             D[(i,j)] = 1
@@ -5430,7 +5364,7 @@ class DiGraph(GenericGraph):
         verts = self.vertices()
         d = [0]*n
         cols = []
-        for i, j, l in self.arc_iterator():
+        for i, j, l in self.edge_iterator():
             col = copy(d)
             i = verts.index(i)
             j = verts.index(j)
@@ -5443,7 +5377,7 @@ class DiGraph(GenericGraph):
 
     def reverse(self):
         """
-        Returns a copy of digraph with arcs reversed in direction.
+        Returns a copy of digraph with edges reversed in direction.
 
         EXAMPLES:
             sage: D = DiGraph({ 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] })
@@ -5493,9 +5427,9 @@ class DiGraph(GenericGraph):
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None,
                vertex_size=0.06,
-               arc_size=0.02,
-               arc_size2=0.0325,
-               arc_colors=None, pos3d=None,
+               edge_size=0.02,
+               edge_size2=0.0325,
+               edge_colors=None, pos3d=None,
                color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
@@ -5509,11 +5443,11 @@ class DiGraph(GenericGraph):
                 (default: (1,0,0))), and each corresponding entry is a list of
                 vertices. If a vertex is not listed, it looks invisible on the
                 resulting plot (it doesn't get drawn).
-            arc_colors -- a dictionary specifying arc colors: each key is a
+            edge_colors -- a dictionary specifying edge colors: each key is a
                 color recognized by tachyon ( default: (0,0,0) ), and each
-                entry is a list of arcs.
-            arc_size -- float (default: 0.02)
-            arc_size2 -- float (default: 0.0325)
+                entry is a list of edges.
+            edge_size -- float (default: 0.02)
+            edge_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
@@ -5528,43 +5462,43 @@ class DiGraph(GenericGraph):
 
             sage: P = graphs.PetersenGraph().to_directed()
             sage: from sage.plot.plot import rainbow
-            sage: arcs = P.arcs()
-            sage: R = rainbow(len(arcs), 'rgbtuple')
-            sage: arc_colors = {}
-            sage: for i in range(len(arcs)):
-            ...       arc_colors[R[i]] = [arcs[i]]
-            sage: P.plot3d(arc_colors=arc_colors).save('sage.png') # long time
+            sage: edges = P.edges()
+            sage: R = rainbow(len(edges), 'rgbtuple')
+            sage: edge_colors = {}
+            sage: for i in range(len(edges)):
+            ...       edge_colors[R[i]] = [edges[i]]
+            sage: P.plot3d(edge_colors=edge_colors).save('sage.png') # long time
 
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
                                         vertex_size=vertex_size, pos3d=pos3d, **kwds)
-        arcs = self.arcs()
+        edges = self.edges()
         i = 0
 
         if color_by_label:
-            if arc_colors is None:
-                arc_colors = self._color_by_label(format='rgbtuple')
+            if edge_colors is None:
+                edge_colors = self._color_by_label(format='rgbtuple')
 
-        if arc_colors is None:
-            arc_colors = { (0,0,0) : arcs }
+        if edge_colors is None:
+            edge_colors = { (0,0,0) : edges }
 
-        for color in arc_colors:
+        for color in edge_colors:
             i += 1
-            TT.texture('arc_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
-            for u,v,l in arc_colors[color]:
+            TT.texture('edge_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
+            for u,v,l in edge_colors[color]:
                 TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),
-                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc_color_%d'%i)
+                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge_color_%d'%i)
                 TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],
                                0.25*pos3d[u][1] + 0.75*pos3d[v][1],
                                0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
-                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc_color_%d'%i)
+                              (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size2,'edge_color_%d'%i)
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_colors=None,
                vertex_size=0.06,
-               arc_size=0.02,
-               arc_size2=0.0325,
-               arc_colors=None,
+               edge_size=0.02,
+               edge_size2=0.0325,
+               edge_colors=None,
                pos3d=None, color_by_label=False, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
@@ -5577,11 +5511,11 @@ class DiGraph(GenericGraph):
                 (default: (1,0,0))), and each corresponding entry is a list of
                 vertices. If a vertex is not listed, it looks invisible on the
                 resulting plot (it doesn't get drawn).
-            arc_colors -- a dictionary specifying arc colors: each key is a
+            edge_colors -- a dictionary specifying edge colors: each key is a
                 color recognized by tachyon ( default: (0,0,0) ), and each
-                entry is a list of arcs.
-            arc_size -- float (default: 0.02)
-            arc_size2 -- float (default: 0.0325)
+                entry is a list of edges.
+            edge_size -- float (default: 0.02)
+            edge_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
@@ -5596,18 +5530,18 @@ class DiGraph(GenericGraph):
 
             sage: P = graphs.PetersenGraph().to_directed()
             sage: from sage.plot.plot import rainbow
-            sage: arcs = P.arcs()
-            sage: R = rainbow(len(arcs), 'rgbtuple')
-            sage: arc_colors = {}
-            sage: for i in range(len(arcs)):
-            ...       arc_colors[R[i]] = [arcs[i]]
-            sage: P.plot3d(arc_colors=arc_colors).save('sage.png') # long time
+            sage: edges = P.edges()
+            sage: R = rainbow(len(edges), 'rgbtuple')
+            sage: edge_colors = {}
+            sage: for i in range(len(edges)):
+            ...       edge_colors[R[i]] = [edges[i]]
+            sage: P.plot3d(edge_colors=edge_colors).save('sage.png') # long time
 
         """
 
         self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
-                    vertex_size=vertex_size, arc_size=arc_size,
-                    arc_size2=arc_size2, arc_colors=arc_colors,
+                    vertex_size=vertex_size, edge_size=edge_size,
+                    edge_size2=edge_size2, edge_colors=edge_colors,
                     color_by_label=color_by_label, **kwds).show()
 
     ### Connected components
@@ -5615,14 +5549,14 @@ class DiGraph(GenericGraph):
     def is_connected(self):
         """
         Indicates whether the digraph is connected. Note that in a digraph,
-        the direction of the arcs does not effect whether it is connected or
+        the direction of the edges does not effect whether it is connected or
         not.
 
         EXAMPLE:
             sage: D = DiGraph( { 0 : [1, 2], 1 : [2], 3 : [4, 5], 4 : [5] } )
             sage: D.is_connected()
             False
-            sage: D.add_arc(0,3)
+            sage: D.add_edge(0,3)
             sage: D.is_connected()
             True
 
@@ -5708,7 +5642,7 @@ class DiGraph(GenericGraph):
             Permutation Group with generators [(1,2,3,4,5)]
 
         """
-        if self.multiple_arcs():
+        if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         else:
             from sage.graphs.graph_isom import search_tree, perm_group_elt
@@ -5743,7 +5677,7 @@ class DiGraph(GenericGraph):
             (True, {0: 1, 1: 0, 2: 2})
 
         """
-        if self.multiple_arcs():
+        if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
         if certify:
@@ -5804,7 +5738,7 @@ class DiGraph(GenericGraph):
 
 
         """
-        if self.multiple_arcs():
+        if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         from sage.graphs.graph_isom import search_tree
         if partition is None:
@@ -5823,7 +5757,7 @@ class DiGraph(GenericGraph):
         n = len(vertices)
         ns = n*n
         bit_vector = set()
-        for e,f,g in self.arc_iterator():
+        for e,f,g in self.edge_iterator():
             c = vertices.index(e)
             d = vertices.index(f)
             p = c*n + d
@@ -5849,7 +5783,7 @@ class DiGraph(GenericGraph):
         n = self.order()
         if n > 262143:
             raise ValueError, 'dig6 format supports graphs on 0 to 262143 vertices only.'
-        elif self.multiple_arcs():
+        elif self.multiple_edges():
             raise ValueError, 'dig6 format does not support multiple edges.'
         else:
             return graph_fast.N(n) + graph_fast.R(self.__bit_vector())
@@ -5871,11 +5805,11 @@ class DiGraph(GenericGraph):
             sage: D.is_directed_acyclic()
             True
 
-            sage: D.add_arc(9,7)
+            sage: D.add_edge(9,7)
             sage: D.is_directed_acyclic()
             True
 
-            sage: D.add_arc(7,4)
+            sage: D.add_edge(7,4)
             sage: D.is_directed_acyclic()
             False
 
@@ -5899,11 +5833,11 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort()
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
 
-            sage: D.add_arc(9,7)
+            sage: D.add_edge(9,7)
             sage: D.topological_sort()
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
 
-            sage: D.add_arc(7,4)
+            sage: D.add_edge(7,4)
             sage: D.topological_sort()
             Traceback (most recent call last):
             ...
@@ -5955,8 +5889,8 @@ class DiGraph(GenericGraph):
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
             sage: for sort in D.topological_sort_generator():
-            ...       for arc in D.arc_iterator():
-            ...           u,v,l = arc
+            ...       for edge in D.edge_iterator():
+            ...           u,v,l = edge
             ...           if sort.index(u) > sort.index(v):
             ...               print "This should never happen."
 
@@ -6066,7 +6000,7 @@ def enum(graph, quick=False):
                 enumeration += 1 << ((n-(i+1))*n + n-(j+1))
                 enumeration += 1 << ((n-(j+1))*n + n-(i+1))
         elif isinstance(graph, DiGraph):
-            for i, j, l in graph.arc_iterator():
+            for i, j, l in graph.edge_iterator():
                 enumeration += 1 << ((n-(i+1))*n + n-(j+1))
         return enumeration
     M = graph.am()

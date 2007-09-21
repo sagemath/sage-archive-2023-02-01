@@ -835,7 +835,7 @@ def generic_xsrange(start, end, step):
 sxrange = xsrange
 
 
-def ellipsis_range(*args):
+def ellipsis_range(*args, **kwds):
     """
     Return arithmatic sequence determined by the numeric arguments and
     ellipsis. Best illistrated by examples.
@@ -849,36 +849,101 @@ def ellipsis_range(*args):
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
         sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20)
         [0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19]
+        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20, step=3)
+        [0, 2, 5, 8, 11, 14, 17, 20]
+        sage: ellipsis_range(10,Ellipsis,0)
+        []
+
+    TESTS:
+      These were carefully chosen tests, only to be changed if the semantics of
+      ellipsis ranges change. In otherwords, if they don't pass it's probably a
+      bug in the implementation, not in the doctest.
+
+      Note 10 only appears once (though it is in both ranges).
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+      Sometimes one or more ranges is emtpy.
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
+        [10, 12, 14, 16, 18, 20]
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
+        [0, 2, 4, 6, 8, 10]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=2)
+        []
+
+      We always start on the leftmost point of the range.
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=3)
+        [0, 3, 6, 9, 10, 13, 16, 19]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=3)
+        [10, 13, 16, 19]
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=3)
+        [0, 3, 6, 9]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=3)
+        []
+        sage: ellipsis_range(0,1,Ellipsis,-10)
+        []
+        sage: ellipsis_range(0,1,Ellipsis,-10,step=1)
+        [0]
+        sage: ellipsis_range(100,0,1,Ellipsis,-10)
+        [100]
+
+      Note the duplicate 5 in the output.
+        sage: ellipsis_range(0,Ellipsis,5,5,Ellipsis,10)
+        [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
+
     """
     from sage.structure.sequence import Sequence
     S = Sequence([a for a in args if a is not Ellipsis])
     universe = S.universe()
     args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
 
-    diff = universe(1)
-    if Ellipsis in args:
-        i = args.index(Ellipsis)
-        if i > 1:
-            diff = args[i-1]-args[i-2]
+    # Use kwds so step not absorbed into *args
+    step_magic = 0
+    if len(kwds) == 0:
+        step = universe(1)
+        if Ellipsis in args:
+            i = args.index(Ellipsis)
+            if i > 1:
+                step = args[i-1]-args[i-2]
+                step_magic = i
+    else:
+        step = universe(kwds.pop('step'))
+        if len(kwds) != 0:
+            TypeError, "Unexpected keywords", kwds
 
     skip = False
+    last_end = None
     L = []
     for i in range(len(args)):
         if skip:
             skip = False
         elif args[i] is Ellipsis:
-            if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
-                L.append(args[i-1])
-            L += srange(args[i-1]+diff, args[i+1], diff, universe=universe, check=False, include_endpoint=True)
+            start, end = args[i-1], args[i+1]
+            if i < 2 or args[i-2] is not Ellipsis:
+                L.pop()
+                if i == step_magic:
+                    L.pop()
+                    start = args[i-2]
+            more = srange(start, end, step, universe=universe, check=False, include_endpoint=True)
+            if len(more) > 0:
+                if last_end == more[0]:
+                    L.pop()
+                last_end = more[-1]
+                L += more
+            else:
+                last_end = None
             skip = True
         else:
             L.append(args[i])
+            last_end = None
     return L
 
 
-def ellipsis_iter(*args):
+def ellipsis_iter(*args, **kwds):
     """
     Same as ellipsis_range, but as an iterator (and may end with an Ellipsis).
+
+    See also ellipsis_range.
 
     Use (1,2,...) notation.
 
@@ -894,38 +959,115 @@ def ellipsis_iter(*args):
         sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
         sage: [A.next() for _ in range(10)]
         [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
+
+    TESTS:
+
+      These were carefully chosen tests, only to be changed if the semantics of
+      ellipsis ranges change. In otherwords, if they don't pass it's probably a
+      bug in the implementation, not in the doctest.
+
+        sage: list(1,..,10)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: list(1,3,..,10)
+        [1, 3, 5, 7, 9]
+        sage: list(1,..,10,..,20)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        sage: list(1,3,..,10,..,20)
+        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
+        sage: list(1,3,..,10,10,..,20)
+        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
+        sage: list(0,2,..,10,10,..,20,20,..,25)
+        [0, 2, 4, 6, 8, 10, 10, 12, 14, 16, 18, 20, 20, 22, 24]
+        sage: list(10,..,1)
+        []
+        sage: list(10,11,..,1)
+        []
+        sage: list(10,9,..,1)
+        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        sage: list(100,..,10,..,20)
+        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        sage: list(0,..,10,..,-20)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: list(100,..,10,..,-20)
+        []
+        sage: list(100,102,..,10,..,20)
+        [10, 12, 14, 16, 18, 20]
     """
     from sage.structure.sequence import Sequence
     S = Sequence([a for a in args if a is not Ellipsis])
     universe = S.universe()
     args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
 
-    diff = universe(1)
-    if Ellipsis in args:
-        i = args.index(Ellipsis)
-        if i > 1:
-            diff = args[i-1]-args[i-2]
+    # Use kwds so step not absorbed into *args
+    step_magic = 0
+    if len(kwds) == 0:
+        step = universe(1)
+        if Ellipsis in args:
+            i = args.index(Ellipsis)
+            if i > 1:
+                step = args[i-1]-args[i-2]
+                step_magic = i
+    else:
+        step = universe(kwds.pop('step'))
+        if len(kwds) != 0:
+            TypeError, "Unexpected keywords", kwds
 
+    # this is a bit more complicated because we can't pop what's already been yielded
+    next = None
     skip = False
-    for i in range(len(args)):
+    last_end = None
+    # first we handle step_magic (which may require two pops if the range is empty)
+    if step_magic:
+        for i in range(step_magic-2):
+            yield args[i]
+        if len(args) > step_magic+1:
+            i = step_magic
+            more = xsrange(args[i-2], args[i+1], step, universe=universe, check=False, include_endpoint=True)
+            a = None
+            for a in more:
+                yield a
+            last_end = a
+            skip = True
+            next = None
+            step_magic += 1
+        else:
+            yield args[step_magic-2]
+
+    # now onto the rest
+    L = []
+    for i in range(step_magic, len(args)):
         if skip:
             skip = False
         elif args[i] is Ellipsis:
-            if i > 2 and args[i-2] is Ellipsis and last != args[i-1]:
-                yield args[i-1]
             if i == len(args)-1:
+                # continue forever
                 cur = args[i-1]
-                while True:
-                    cur += diff
+                if last_end != cur:
                     yield cur
-            for num in xsrange(args[i-1]+diff, args[i+1], diff, universe=universe, check=False, include_endpoint=True):
-                yield num
-            last = num
+                while True:
+                    cur += step
+                    yield cur
+            start, end = args[i-1], args[i+1]
+            if i < 2 or args[i-2] is not Ellipsis:
+                next = None # L.pop()
+            more = xsrange(start, end, step, universe=universe, check=False, include_endpoint=True)
+            try:
+                first = more.next()
+                if last_end != first:
+                    yield first
+                for a in more:
+                    yield a
+                last_end = a
+            except StopIteration: # len(more) == 0
+                last_end = None
             skip = True
+            next = None
         else:
-            yield args[i]
-            last = args[i]
-    return
+            if next is not None:
+                yield next
+            next = args[i]
+            last_end = None
+
 
 #################################################################
 # Useful but hard to classify

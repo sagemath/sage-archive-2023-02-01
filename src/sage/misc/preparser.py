@@ -268,7 +268,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     return start, end+1
 
 
-def parse_ellipsis(code):
+def parse_ellipsis(code, preparse_step=True):
     """
     Preparse [0,2,..,n] notation.
 
@@ -291,6 +291,8 @@ def parse_ellipsis(code):
             start_list, end_list = containing_block(code, ix, ['()','[]'])
             arguments = code[start_list+1:end_list-1].replace('...', ',Ellipsis,').replace('..', ',Ellipsis,')
             arguments = re.sub(r',\s*,', ',', arguments)
+            if preparse_step:
+                arguments = arguments.replace(';', ', step=')
             range_or_iter = 'range' if code[start_list]=='[' else 'iter'
             code = "%s(ellipsis_%s(%s))%s" %  (code[:start_list],
                                                range_or_iter,
@@ -304,7 +306,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     # [1,2,..,n] notation
     L, literals = strip_string_literals(line)
-    L = parse_ellipsis(L)
+    L = parse_ellipsis(L, preparse_step=False)
     line = L % literals
 
     # find where the parens are for function assignment notation

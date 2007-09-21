@@ -3580,7 +3580,7 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.rings.infinity import Infinity
-        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.combinat.all import CyclicPermutationsOfPartition
         from sage.graphs.graph_genus1 import trace_faces, nice_copy
 
         graph = nice_copy(self)
@@ -3606,7 +3606,7 @@ class Graph(GenericGraph):
             part.append(graph.neighbors(extra))
 
         all_perms = []
-        for p in cyclic_permutations_of_partition_iterator(part):
+        for p in CyclicPermutationsOfPartition(part):
             if ordered:
                 p.append(boundary)
             all_perms.append(p)
@@ -3645,7 +3645,7 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.rings.infinity import Infinity
-        from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+        from sage.combinat.all import CyclicPermutationsOfPartition
         from sage.graphs.graph_genus1 import trace_faces, nice_copy
 
         graph = nice_copy(self)
@@ -3659,7 +3659,7 @@ class Graph(GenericGraph):
             part.append(graph.neighbors(node))
 
         all_perms = []
-        for p in cyclic_permutations_of_partition_iterator(part):
+        for p in CyclicPermutationsOfPartition(part):
             all_perms.append(p)
 
         max_faces = -Infinity

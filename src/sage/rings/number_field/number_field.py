@@ -3659,6 +3659,8 @@ class NumberField_quadratic(NumberField_absolute):
             Number Field in a with defining polynomial x^2 - 4
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check)
+        return
+        # optimized quadratic elements currently disabled.
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator

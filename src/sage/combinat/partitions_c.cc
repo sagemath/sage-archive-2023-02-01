@@ -84,12 +84,12 @@
 
 
 #if defined(__sun)
-extern long double fabsl (long double);
-extern long double sinl (long double);
-extern long double cosl (long double);
-extern long double sqrtl (long double);
-extern long double coshl (long double);
-extern long double sinhl (long double);
+extern "C" long double fabsl (long double);
+extern "C" long double sinl (long double);
+extern "C" long double cosl (long double);
+extern "C" long double sqrtl (long double);
+extern "C" long double coshl (long double);
+extern "C" long double sinhl (long double);
 #endif
 
 

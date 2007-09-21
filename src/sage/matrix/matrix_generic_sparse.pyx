@@ -37,8 +37,8 @@ EXAMPLES:
     [1.00000000000000*x^3 1.00000000000000*x^4 1.00000000000000*x^5]
     sage: latex(c)
     \left(\begin{array}{rrr}
-    5&x&x^{2}\\
-    x^{3}&x^{4}&x^{5}
+    5 & x & x^{2} \\
+    x^{3} & x^{4} & x^{5}
     \end{array}\right)
     sage: c.sparse_rows()
     [(5, x, x^2), (x^3, x^4, x^5)]

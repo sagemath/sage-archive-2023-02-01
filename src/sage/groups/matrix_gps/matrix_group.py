@@ -652,11 +652,11 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: G = MatrixGroup(gens)
             sage: latex(G)
             \left\langle \left(\begin{array}{rr}
-            1&2\\
-            4&1
+            1 & 2 \\
+            4 & 1
             \end{array}\right), \left(\begin{array}{rr}
-            1&1\\
-            0&1
+            1 & 1 \\
+            0 & 1
             \end{array}\right) \right\rangle
         """
         gens = ', '.join([latex(x) for x in self.gens()])

@@ -1994,6 +1994,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(v)
             2*a^2 + 1
 
+        You can also compute the vector in the other order:
+            sage: e.vector(reverse=True)
+            (0, 2, 0, 1)
         """
         cdef FiniteField_givaro k = <FiniteField_givaro>self._parent
 

@@ -124,7 +124,7 @@ def notebook_twisted(self,
                 address, port, secure)
 
         if open_viewer:
-            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s)"%(address, port, secure)
+            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s, '%s')"%(address, port, secure, '')
         else:
             open_page = ''
 

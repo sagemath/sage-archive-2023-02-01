@@ -1725,7 +1725,7 @@ class Partitions_n(CombinatorialClass):
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
         # base case of the recursion: zero is the sum of the empty tuple
-        if n == 0:
+        if self.n == 0:
             yield []
             return
 

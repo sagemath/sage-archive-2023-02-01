@@ -793,7 +793,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: SD.set_edge_label(7, 10, 'aut')
         sage: SD.set_edge_label(8, 10, 'aut')
         sage: SD.set_edge_label(8, 9, 'label')
-        sage: SD.set_edge_(8, 6, 'no label')
+        sage: SD.set_edge_label(8, 6, 'no label')
         sage: SD.set_edge_label(13, 17, 'k > h')
         sage: SD.set_edge_label(13, 14, 'k = h')
         sage: SD.set_edge_label(17, 15, 'v_k finite')

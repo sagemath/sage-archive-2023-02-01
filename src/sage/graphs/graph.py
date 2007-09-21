@@ -474,7 +474,7 @@ class GenericGraph(SageObject):
             Looped digraph on 0 vertices
 
         """
-        if not new is None:
+        if new is not None:
             if new:
                 self._nxg.allow_selfloops()
             else:
@@ -490,12 +490,18 @@ class GenericGraph(SageObject):
             sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
             sage: G = Graph(d); G.density()
             1/3
+            sage: G = Graph({0:[1,2], 1:[0] }); G.density()
+            2/3
+            sage: G = DiGraph({0:[1,2], 1:[0] }); G.density()
+            1/2
 
         """
         from sage.rings.rational import Rational
         n = self.order()
-        n = (n**2 - n)/2
-        return Rational(self.size())/Rational(n)
+        if self.is_directed():
+            return Rational(self.size())/Rational((n**2 -n))
+        else:
+            return Rational(self.size())/Rational((n**2 -n)/2)
 
     def to_simple(self):
         """

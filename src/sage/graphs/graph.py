@@ -29,13 +29,9 @@ AUTHOR:
        edge colors differentiated by label
 
 
-\section{Tutorial}
+\subsection{Graph Format}
 
-\subsection{The Basics}
-
-\subsubsection{Graph Format}
-
-            \paragraph{The SAGE Graph Class: NetworkX plus}
+\subsubsection{The SAGE Graph Class: NetworkX plus}
 
             SAGE graphs are actually NetworkX graphs, wrapped in a SAGE class.
             In fact, any graph can produce its underlying NetworkX graph. For example,
@@ -53,11 +49,13 @@ AUTHOR:
 
             Each dictionary key is a vertex label, and each key in the following
             dictionary is a neighbor of that vertex. In undirected graphs, there
-            is reduncancy: for example, the dictionary containing the entry
-            1: {2: None} implies it must contain 2: {1: None}. The innermost entry
-            of None is related to edge labelling (see section I.3.).
+            is redundancy: for example, the dictionary containing the entry
+            \verb|1: {2: None}| implies it must contain \verb|{2: {1: None}|.
+            The innermost entry of \var{None} is related to edge labeling
+            (see section \ref{Graph:labels}).
 
-            \paragraph{Supported formats}
+            \subsubsection{Supported formats}
+
 
             SAGE Graphs can be created from a wide range of inputs. A few examples are
             covered here.
@@ -66,7 +64,8 @@ AUTHOR:
 
                   \item NetworkX dictionary format:
 
-                sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
+                sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9],
+                      5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
                 Graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
@@ -85,10 +84,13 @@ AUTHOR:
                 Looped multi-graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
 
-                \item adjacency matrix: In an adjacency matrix, each column and each row represent
+                \item adjacency matrix In an adjacency matrix, each column and each row represent
                 a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
 
-                sage: M = Matrix([(0,1,0,0,1,1,0,0,0,0),(1,0,1,0,0,0,1,0,0,0),(0,1,0,1,0,0,0,1,0,0),(0,0,1,0,1,0,0,0,1,0),(1,0,0,1,0,0,0,0,0,1),(1,0,0,0,0,0,0,1,1,0),(0,1,0,0,0,0,0,0,1,1),(0,0,1,0,0,1,0,0,0,1),(0,0,0,1,0,1,1,0,0,0),(0,0,0,0,1,0,1,1,0,0)])
+                sage: M = Matrix([(0,1,0,0,1,1,0,0,0,0),(1,0,1,0,0,0,1,0,0,0),
+                (0,1,0,1,0,0,0,1,0,0), (0,0,1,0,1,0,0,0,1,0),(1,0,0,1,0,0,0,0,0,1),
+                (1,0,0,0,0,0,0,1,1,0), (0,1,0,0,0,0,0,0,1,1),(0,0,1,0,0,1,0,0,0,1),
+                (0,0,0,1,0,1,1,0,0,0), (0,0,0,0,1,0,1,1,0,0)])
                 sage: M
                 [0 1 0 0 1 1 0 0 0 0]
                 [1 0 1 0 0 0 1 0 0 0]
@@ -107,7 +109,12 @@ AUTHOR:
                 \item incidence matrix: In an incidence matrix, each row represents a vertex
                 and each column reprensents an edge.
 
-                sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0),(1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0),(0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1),(0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0),(0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0),(0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
+                sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0),
+                (1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0),
+                (0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1),
+                (0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0),
+                (0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0),
+                (0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
                 sage: M
                 [-1  0  0  0  1  0  0  0  0  0 -1  0  0  0  0]
                 [ 1 -1  0  0  0  0  0  0  0  0  0 -1  0  0  0]
@@ -125,13 +132,13 @@ AUTHOR:
 
         \end{itemize}
 
-        \subsubsection{Generators}
+        \subsection{Generators}
 
         For some commonly used graphs to play with, type
 
             sage.: graphs.
 
-        and hit <tab>. Most of these graphs come with their own custom plot, so you
+        and hit \kbd{tab}. Most of these graphs come with their own custom plot, so you
         can see how people usually visualize these graphs.
 
             sage: G = graphs.PetersenGraph()
@@ -159,12 +166,12 @@ AUTHOR:
             sage: L = G.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
-            \subsubsection{Labels}
+            \subsection{Labels}\label{Graph:labels}
 
         Each vertex can have any hashable object as a label. These are things like
-        strings, numbers, and tuples. Each edge is given a default label of None, but
-        if specified, edges can have any label at all. Edges between nodes u and v are
-        represented typically as (u, v, l), where l is the label for the edge.
+        strings, numbers, and tuples. Each edge is given a default label of \var{None}, but
+        if specified, edges can have any label at all. Edges between nodes $u$ and $v$ are
+        represented typically as \verb|(u, v, l)|, where \var{l} is the label for the edge.
 
         Note that vertex labels themselves cannot be mutable items:
 
@@ -177,7 +184,8 @@ AUTHOR:
         However, if one wants to define a dictionary, with the same keys and arbitrary objects
         for entries, one can make that association:
 
-            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(),2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(),
+                  2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
             Moebius-Kantor Graph: Graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
@@ -187,7 +195,7 @@ AUTHOR:
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
 
-        \subsubsection{Database}
+        \subsection{Database}
 
         There is a database available for searching for graphs that satisfy a certain set
         of parameters, including number of vertices and edges, density, maximum and minimum
@@ -196,28 +204,27 @@ AUTHOR:
 
             sage.: graphs_query.
 
-        and hit tab.
+        and hit \kbd{tab}.
 
             sage: graphs_query = GraphDatabase()
             sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
-        \subsubsection{Visualization}
+        \subsection{Visualization}
 
-        To see a graph G you are working with, right now there are two main options:
+        To see a graph G you are working with, right now there are two main options.
+        You can view the graph in two dimensions via matplotlib with \method{show()}.
 
             sage: G = graphs.RandomGNP(15,.3)
-
-        You can view the graph in two dimensions via matplotlib:
-
             sage.: G.show()
 
-        Or you can view it in three dimensions via Tachyon:
+        Or you can view it in three dimensions via Tachyon with \method{show3d()}.
 
             sage.: G.show3d()
 
-NOTE: Many functions are passed directly on to NetworkX, and in this
-case the documentation is based on the NetworkX docs.
+            \note{Many functions are passed directly on to NetworkX.
+              In these cases, the documentation is based on the
+              NetworkX docs.}
 
 """
 

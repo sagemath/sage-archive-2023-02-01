@@ -349,12 +349,11 @@ class GenericGraph(SageObject):
 
     def __str__(self):
         """
-        str(G) returns the name of the graph, unless it doesn't have one, in
+        str(G) returns the name of the graph, unless the name is the empty string, in
         which case it returns the default representation.
 
         """
-        name = self._nxg.name
-        if name is not None and name != "No Name":
+        if self._nxg.name != '':
             return self._nxg.name
         else:
             return repr(self)
@@ -427,7 +426,7 @@ class GenericGraph(SageObject):
 
     ### General properties
 
-    def name(self, new=None, set_to_none=False):
+    def name(self, new=''):
         """
         Returns the name of the (di)graph.
 
@@ -442,17 +441,17 @@ class GenericGraph(SageObject):
             sage: G.name("Petersen Graph"); G
             'Petersen Graph'
             Petersen Graph: Graph on 10 vertices
-            sage: G.name(set_to_none=True); G
+            sage: G.name(""); G
             Graph on 10 vertices
 
         """
-        if new is not None:
-            if not isinstance(new, str):
-                raise TypeError, "New name must be a string."
-            self._nxg.name = new
-        if set_to_none:
-            self._nxg.name = None
-        return self._nxg.name
+        if not isinstance(new, str):
+            raise TypeError, "New name must be a string."
+        self._nxg.name = new
+        if new != '':
+            return self._nxg.name
+        else:
+            return None
 
     def loops(self, new=None):
         """

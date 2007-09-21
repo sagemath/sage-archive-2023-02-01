@@ -5617,7 +5617,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Create a new gen, but don't free any memory on the stack and
         don't call _sig_off.
         """
-        return _new_gen(x)
+        z = _new_gen(x)
+        _sig_off
+        return z
 
     def double_to_gen(self, x):
         cdef double dx
@@ -6057,7 +6059,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen v
         _sig_on
         v = self.new_gen(zerovec(n))
-        if entries != None:
+        if entries is not None:
             if len(entries) != n:
                 raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
                       (len(entries), n)
@@ -6220,11 +6222,9 @@ cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
-    _sig_on
     h = deepcopy_to_python_heap(x, &address)
     y = PY_NEW(gen)
     y.init(h, address)
-    _sig_off
     return y
 
 cdef gen xxx_new_gen(GEN x):
@@ -6315,6 +6315,7 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
         ...
         RuntimeError: The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times.
     """
+    _sig_off
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:

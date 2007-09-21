@@ -73,16 +73,32 @@ class ModularFormElement(element.HeckeModuleElement):
         The coefficients a_n of self, for integers n>=0 in the list X.
 
         This function caches the results of the compute function.
+
+        TESTS:
+            sage: e = DirichletGroup(11).gen()
+            sage: f = EisensteinForms(e, 3).eisenstein_series()[0]
+            sage: f.coefficients([0,1])
+            [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11,
+            1]
+            sage: f.coefficients([0,1,2,3])
+            [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11,
+            1,
+            4*zeta10 + 1,
+            -9*zeta10^3 + 1]
+            sage: f.coefficients([2,3])
+            [4*zeta10 + 1,
+            -9*zeta10^3 + 1]
+
         """
         try:
             self.__coefficients
         except AttributeError:
             self.__coefficients = {}
-        Y = [n for n in X   if    not (n in self.__coefficients.keys())]
+        Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
         for i in range(len(v)):
-            self.__coefficients[X[i]] = v[i]
-        return v
+            self.__coefficients[Y[i]] = v[i]
+        return [ self.__coefficients[x] for x in X ]
 
 ##     def _compute(self, X):
 ##         r"""
@@ -295,6 +311,15 @@ class EisensteinSeries(ModularFormElement):
         Compute the coefficients of $q^n$ of the power series of self,
         for $n$ in the list $X$.  The results are not cached.  (Use
         coefficients for cached results).
+
+        EXAMPLES:
+            sage: e = DirichletGroup(11).gen()
+            sage: f = EisensteinForms(e, 3).eisenstein_series()[0]
+            sage: f._compute([3,4,5])
+            [-9*zeta10^3 + 1,
+             16*zeta10^2 + 4*zeta10 + 1,
+             25*zeta10^3 - 25*zeta10^2 + 25*zeta10 - 24]
+
         """
         if self.weight() == 2 and (self.__chi.is_trivial() and self.__psi.is_trivial()):
             return self.__compute_weight2_trivial_character(X)
@@ -320,6 +345,10 @@ class EisensteinSeries(ModularFormElement):
 
     def __compute_general_case(self, X):
         """
+        Returns the list coefficients of $q^n$ of the power series of self,
+        for $n$ in the list $X$.  The results are not cached.  (Use
+        coefficients for cached results).
+
         General case (except weight 2, trivial character, where this is wrong!)
         $\chi$ is a primitive character of conductor $L$
         $\psi$ is a primitive character of conductor $M$
@@ -331,13 +360,25 @@ class EisensteinSeries(ModularFormElement):
         with $c_0=0$ if $L>1$,
          and
         $c_0=L(1-k,psi)/2$ if $L=1$ (that second $L$ is an $L$-function $L$).
+
+        EXAMPLES:
+            sage: e = DirichletGroup(11).gen()
+            sage: f = EisensteinForms(e, 3).eisenstein_series()[0]
+            sage: f._EisensteinSeries__compute_general_case([1])
+            [1]
+            sage: f._EisensteinSeries__compute_general_case([2])
+            [4*zeta10 + 1]
+            sage: f._EisensteinSeries__compute_general_case([0,1,2])
+            [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11, 1, 4*zeta10 + 1]
         """
         c0, chi, psi, K, n, t, L, M = self.__defining_parameters()
         zero = K(0)
         k = self.weight()
-        v = [c0]
+        v = []
         for i in X:
-            if i==0: continue
+            if i==0:
+                v.append(c0)
+                continue
             if i%t != 0:
                 v.append(zero)
             else:

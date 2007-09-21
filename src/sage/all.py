@@ -83,6 +83,7 @@ from sage.dsage.all      import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
+import sage.crypto.mq as mq
 
 from sage.plot.all       import *
 from sage.coding.all     import *

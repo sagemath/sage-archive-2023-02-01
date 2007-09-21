@@ -248,7 +248,7 @@ class pAdicLseries(SageObject):
             self._alpha[prec] = a
             return a
 
-    def order_of_vanishing(self, proof=True):
+    def order_of_vanishing(self):
         """
         Return the order of vanishing of this $p$-adic $L$-series.
 

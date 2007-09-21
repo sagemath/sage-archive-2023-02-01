@@ -54,6 +54,8 @@ def Hom(X, Y, cat=None):
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
     """
+    if hasattr(X, '_Hom_'):
+        return X._Hom_(Y, cat)
     import category_types
     global _cache
     key = (X,Y,cat)

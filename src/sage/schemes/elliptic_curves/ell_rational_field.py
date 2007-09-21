@@ -112,11 +112,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return
         EllipticCurve_field.__init__(self, [Q(x) for x in ainvs])
         self.__np = {}
+        self.__gens = {}
+        self.__rank = {}
+        self.__regulator = {}
         if self.base_ring() != Q:
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
 
     def _set_rank(self, r):
-        self.__rank = Integer(r)
+        self.__rank = {}
+        self.__rank[True] = Integer(r)
     def _set_torsion_order(self, t):
         self.__torsion_order = Integer(t)
     def _set_cremona_label(self, L):
@@ -127,9 +131,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         self.__modular_degree = Integer(deg)
 
     def _set_gens(self, gens):
-        self.__gens = [self.point(x, check=True) for x in gens]
-        self.__gens_certain = True
-        self.__gens.sort()
+        self.__gens = {}
+        self.__gens[True] = [self.point(x, check=True) for x in gens]
+        self.__gens[True].sort()
 
     def is_integral(self):
         try:
@@ -952,7 +956,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def rank(self, use_database=False, verbose=False,
                    only_use_mwrank=True,
                    algorithm='mwrank_shell',
-                   proof=True):
+                   proof=None):
         """
         Return the rank of this elliptic curve, assuming no conjectures.
 
@@ -968,7 +972,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                       -- 'mwrank_lib' -- call mwrank c library
             only_use_mwrank -- (default: True) if False try using
                        analytic rank methods first.
-            proof -- bool (default: True)
+            proof -- bool or None (default: None, see proof.elliptic_curve or
+                       sage.structure.proof).  Note that results
+                       obtained from databases are considered proof = True
 
         OUTPUT:
             rank (int) -- the rank of the elliptic curve.
@@ -984,65 +990,74 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2
             sage: EllipticCurve('5077a').rank()
             3
-            sage: EllipticCurve([1, -1, 0, -79, 289]).rank()   # long time
+            sage: EllipticCurve([1, -1, 0, -79, 289]).rank()   # long time.  This will use the default proof behavior of True.
             4
             sage: EllipticCurve([0, 0, 1, -79, 342]).rank(proof=False)  # long time -- but under a minute
             5
             sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # much faster -- almost instant.
             5
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "elliptic_curve")
+        else:
+            proof = bool(proof)
         try:
-            return self.__rank
-        except AttributeError:
-            if use_database:
-                try:
-                    self.__rank = self.database_curve().rank()
-                    return self.__rank
-                except (AttributeError, RuntimeError):
-                    pass
-            if not only_use_mwrank:
-                N = self.conductor()
-                prec = int(4*float(sqrt(N))) + 10
-                if self.root_number() == 1:
-                    L, err = self.Lseries_at1(prec)
-                    if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                        misc.verbose("rank 0 because L(E,1)=%s"%L)
-                        self.__rank = 0
-                        return self.__rank
-                else:
-                    Lprime, err = self.Lseries_deriv_at1(prec)
-                    if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
-                        misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
-                        self.__rank = 1
-                        return self.__rank
+            return self.__rank[proof]
+        except KeyError:
+            if proof is False and self.__rank.has_key(True):
+                return self.__rank[True]
+        if use_database:
+            try:
+                self.__rank[True] = self.database_curve().rank()
+                return self.__rank[True]
+            except (AttributeError, RuntimeError):
+                pass
+        if not only_use_mwrank:
+            N = self.conductor()
+            prec = int(4*float(sqrt(N))) + 10
+            if self.root_number() == 1:
+                L, err = self.Lseries_at1(prec)
+                if abs(L) > err + R(0.0001):  # definitely doesn't vanish
+                    misc.verbose("rank 0 because L(E,1)=%s"%L)
+                    self.__rank[proof] = 0
+                    return self.__rank[proof]
+            else:
+                Lprime, err = self.Lseries_deriv_at1(prec)
+                if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
+                    misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                    self.__rank[proof] = 1
+                    return self.__rank[proof]
 
-            if algorithm == 'mwrank_lib':
-                misc.verbose("using mwrank lib")
-                C = self.mwrank_curve()
-                C.set_verbose(verbose)
-                r = C.rank()
-                if not C.certain():
-                    del self.__mwrank_curve
-                    raise RuntimeError, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again.  You could also try rank with only_use_mwrank=False."
-                self.__rank = r
-            elif algorithm == 'mwrank_shell':
-                misc.verbose("using mwrank shell")
-                X = self.mwrank()
-                if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
-                    if proof:
-                        raise RuntimeError, '%s\nRank not provably correct.'%X
-                    else:
-                        misc.verbose("Warning -- rank not provably correct", level=1)
-                i = X.find('Rank = ')
-                assert i != -1
-                j = i + X[i:].find('\n')
-                self.__rank = Integer(X[i+7:j])
-        return self.__rank
+        if algorithm == 'mwrank_lib':
+            misc.verbose("using mwrank lib")
+            C = self.mwrank_curve()
+            C.set_verbose(verbose)
+            r = C.rank()
+            if not C.certain():
+                del self.__mwrank_curve
+                raise RuntimeError, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again.  You could also try rank with only_use_mwrank=False."
+            self.__rank[proof] = r
+        elif algorithm == 'mwrank_shell':
+            misc.verbose("using mwrank shell")
+            X = self.mwrank()
+            if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
+                if proof:
+                    raise RuntimeError, '%s\nRank not provably correct.'%X
+                else:
+                    misc.verbose("Warning -- rank not provably correct", level=1)
+            elif proof is False:
+                proof = True #since we actually provably found the rank
+            i = X.find('Rank = ')
+            assert i != -1
+            j = i + X[i:].find('\n')
+            self.__rank[proof] = Integer(X[i+7:j])
+        return self.__rank[proof]
 
     def gens(self, verbose=False, rank1_search=10,
              algorithm='mwrank_shell',
              only_use_mwrank=True,
-             proof = True):
+             proof = None):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
@@ -1053,7 +1068,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         TODO: Right now this function assumes that the input curve is
         in minimal Weierstrass form.  This restriction will be removed
-        in the near future.  This function raises a
+        in the future.  This function raises a
         NotImplementedError if a non-minimal curve is given as input.
 
         WARNING: If the program fails to give a provably correct
@@ -1070,6 +1085,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                        fails the usual mwrank procedure is called.
             algorithm -- 'mwrank_shell' (default) -- call mwrank shell command
                       -- 'mwrank_lib' -- call mwrank c library
+            only_use_mwrank -- bool (default True) if false, attempts to
+                       first use more naive, natively implemented methods.
+            proof -- bool or None (default None, see proof.elliptic_curve or
+                       sage.structure.proof).
         OUTPUT:
             generators -- List of generators for the Mordell-Weil group.
 
@@ -1080,24 +1099,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.gens()                 # random output
             [(-1 : 1 : 1), (0 : 0 : 1)]
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "elliptic_curve")
+        else:
+            proof = bool(proof)
         try:
-            return list(self.__gens)  # return copy so not changed
-        except AttributeError:
-            pass
+            return list(self.__gens[proof])  # return copy so not changed
+        except KeyError:
+            if proof is False and self.__gens.has_key(True):
+                return self.__gens[True]
         if self.conductor() > 10**7:
             only_use_mwrank = True
 
         if not only_use_mwrank:
             try:
                 misc.verbose("Trying to compute rank.")
-                r = self.rank()
+                r = self.rank(only_use_mwrank = False)
                 misc.verbose("Got r = %s."%r)
                 if r == 0:
                     misc.verbose("Rank = 0, so done.")
-                    self.__gens = []
-                    self.__regulator = R(1)
-                    self.__gens_certain = True
-                    return self.__gens
+                    self.__gens[True] = []
+                    self.__regulator[True] = R(1)
+                    return self.__gens[True]
                 if r == 1 and rank1_search:
                     misc.verbose("Rank = 1, so using direct search.")
                     h = 6
@@ -1109,10 +1133,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                             misc.verbose("Direct search succeeded.")
                             G, _, reg = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
-                            self.__gens = G
-                            self.__gens_certain = True
-                            self.__regulator = reg
-                            return self.__gens
+                            self.__gens[True] = G
+                            self.__regulator[True] = reg
+                            return self.__gens[True]
                         h += 2
                     misc.verbose("Direct search FAILED.")
             except RuntimeError:
@@ -1126,11 +1149,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if not (verbose is None):
                 C.set_verbose(verbose)
             G = C.gens()
-            self.__gens_certain = C.certain()
-            if not self.__gens_certain:
+            if proof is True and C.certain() is False:
                 del self.__mwrank_curve
                 raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + \
                       "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
+            else:
+                proof = C.certain()
         else:
             X = self.mwrank()
             misc.verbose("Calling mwrank shell.")
@@ -1140,6 +1164,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     raise RuntimeError, '%s\n%s'%(X,msg)
                 else:
                     misc.verbose("Warning -- %s"%msg, level=1)
+            elif proof is False:
+                proof = True
             G = []
             i = X.find('Generator ')
             while i != -1:
@@ -1150,27 +1176,23 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 i = X.find('Generator ')
             i = X.find('Regulator = ')
             j = i + X[i:].find('\n')
-            self.__regulator = R(X[i+len('Regulator = '):j])
+            self.__regulator[proof] = R(X[i+len('Regulator = '):j])
         ####
-        self.__gens = [self.point(x, check=True) for x in G]
-        self.__gens.sort()
-        self.__rank = len(self.__gens)
-        return self.__gens
+        self.__gens[proof] = [self.point(x, check=True) for x in G]
+        self.__gens[proof].sort()
+        self.__rank[proof] = len(self.__gens[proof])
+        return self.__gens[proof]
 
     def gens_certain(self):
         """
         Return True if the generators have been proven correct.
         """
-        try:
-            return self.__gens_certain
-        except AttributeError:
-            self.gens()
-            return self.__gens_certain
+        return self.__gens.has_key(True)
 
-    def ngens(self):
-        return len(self.gens())
+    def ngens(self, proof = None):
+        return len(self.gens(proof = proof))
 
-    def regulator(self, use_database=True, verbose=None, proof=True):
+    def regulator(self, use_database=True, verbose=None, proof=None):
         """
         Returns the regulator of this curve, which must be defined
         over Q.
@@ -1180,7 +1202,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                   look up the regulator in the Cremona database.
             verbose -- (default: None), if specified changes the
                   verbosity of mwrank computations.
-            proof -- bool (default: True)
+            proof -- bool or None (default: None, see proof.[tab] or
+                       sage.structure.proof).  Note that results from
+                       databases are considered proof = True
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
@@ -1199,26 +1223,35 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
             14.7905275701310
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "elliptic_curve")
+        else:
+            proof = bool(proof)
         try:
-            return self.__regulator
-        except AttributeError:
-            if use_database:
-                try:
-                    self.__regulator = R(self.database_curve().db_extra[3])
-                    return self.__regulator
-                except (AttributeError, RuntimeError):
-                    pass
-            G = self.gens(proof=proof)
-            try:  # in some cases self.gens() efficiently computes regulator.
-                return self.__regulator
-            except AttributeError:
+            return self.__regulator[proof]
+        except KeyError:
+            if proof is False and self.__regulator.has_key(True):
+                return self.__regulator[True]
+        if use_database:
+            try:
+                self.__regulator[True] = R(self.database_curve().db_extra[3])
+                return self.__regulator[True]
+            except (AttributeError, RuntimeError):
                 pass
-            C = self.mwrank_curve()
-            reg = R(C.regulator())
-            if not C.certain():
-                raise RuntimeError, "Unable to compute the rank, hence regulator, with certainty (lower bound=%s)."%C.rank()
-            self.__regulator = reg
-        return self.__regulator
+        G = self.gens(proof=proof)
+        try:  # in some cases self.gens() efficiently computes regulator.
+            return self.__regulator[proof]
+        except KeyError:
+            if proof is False and self.__regulator.has_key(True):
+                return self.__regulator[True]
+        C = self.mwrank_curve()
+        reg = R(C.regulator())
+        if proof is True and not C.certain():
+            raise RuntimeError, "Unable to compute the rank, hence regulator, with certainty (lower bound=%s)."%C.rank()
+        proof = C.certain()
+        self.__regulator[proof] = reg
+        return self.__regulator[proof]
 
     def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
         """
@@ -1844,7 +1877,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
-            [(0.500000000, -5.45450037e-18), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
+            [(0.500000000, 0), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
@@ -2047,7 +2080,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.Lseries(1)
             0.000000000000000
-            sage: E.Lseries('1.1')       # long time (!)
+            sage: E.Lseries(1.1)       # long time (!)
             0.285491007678148
 
         TODO: Planned massive improvement -- use Micheal Rubinstein's
@@ -2361,13 +2394,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e = EllipticCurve([-1386747,368636886]);e
             Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: G = e.torsion_subgroup(); G
-            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C2 x C8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            Torsion Subgroup isomorphic to Multiplicative Abelian
+            Group isomorphic to C8 x C2 associated to the Elliptic
+            Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
+            Rational Field
             sage: G.0
             (1227 : 22680 : 1)
             sage: G.1
             (282 : 0 : 1)
             sage: list(G)
-            [1, P1, P1^2, P1^3, P1^4, P1^5, P1^6, P1^7, P0, P0*P1, P0*P1^2, P0*P1^3, P0*P1^4, P0*P1^5, P0*P1^6, P0*P1^7]
+            [1, P1, P0, P0*P1, P0^2, P0^2*P1, P0^3, P0^3*P1, P0^4, P0^4*P1, P0^5, P0^5*P1, P0^6, P0^6*P1, P0^7, P0^7*P1]
         """
         try:
             return self.__torsion_subgroup
@@ -3005,7 +3041,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     ########################################################################
 
     def sha_an_numerical(self, prec = 53,
-                         use_database=False, regproof=False):
+                         use_database=False, proof=None):
         """
         Return the numerical analytic order of Sha, which is
         a floating point number in all cases.
@@ -3015,7 +3051,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     for the L-series computation; not for regulator, etc.
             use_database -- whether the rank and regulator should
                     be looked up in the database if possible.
-            regproof -- bool (default: False) proof option passed
+            proof -- bool or None (default: None, see proof.[tab] or
+                           sage.structure.proof) proof option passed
                     onto regulator and rank computation.
 
         NOTE: See also the sha_an() command, which will return a
@@ -3038,18 +3075,18 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1.00000000000000
 
     A rank 5 curve:
-            sage.: EllipticCurve([0, 0, 1, -79, 342]).sha_an_numerical(prec=10, regproof=False)          # long time -- about 1 minute!
+            sage.: EllipticCurve([0, 0, 1, -79, 342]).sha_an_numerical(prec=10, proof=False)          # long time -- about 1 minute!
                 1.0
         """
         try:
             return self.__sha_an_numerical
         except AttributeError:
             pass
-        r = Integer(self.rank(use_database=use_database, proof=regproof))
+        r = Integer(self.rank(use_database=use_database, proof=proof))
         L = self.Lseries_dokchitser(prec=prec)
         Lr= L.derivative(1,r)
         Om = self.omega()
-        Reg = self.regulator(use_database=use_database, proof=regproof)
+        Reg = self.regulator(use_database=use_database, proof=proof)
         T = self.torsion_order()
         cp = self.tamagawa_product()
         Sha = Lr*T*T/(r.factorial()*Om*cp*Reg)
@@ -3221,7 +3258,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('11a1').sha_an_padic(11) #rank 0
             1 + O(11)
             sage: EllipticCurve('123a1').sha_an_padic(41) #rank 1    (long time)
-            40 + O(41)
+            1 + O(41)
             sage: EllipticCurve('817a1').sha_an_padic(43) #rank 2    (long time)
             42 + O(43)
 
@@ -4204,7 +4241,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)                       # long time
-            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + O(5^9)
+            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
 
         Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

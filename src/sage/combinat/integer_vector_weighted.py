@@ -1,0 +1,144 @@
+#*****************************************************************************
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from combinat import CombinatorialClass, CombinatorialObject
+from __builtin__ import list as builtinlist
+from sage.rings.integer import Integer
+import word
+from permutation import Permutation_class
+
+def WeightedIntegerVectors(n, weight):
+    """
+    Returns the combinatorial class of integer vectors of n
+    weighted by weight.
+
+    EXAMPLES:
+        sage: WeightedIntegerVectors(8, [1,1,2])
+        Integer vectors of 8 weighted by [1, 1, 2]
+        sage: WeightedIntegerVectors(8, [1,1,2]).first()
+        [0, 0, 4]
+        sage: WeightedIntegerVectors(8, [1,1,2]).last()
+        [8, 0, 0]
+        sage: WeightedIntegerVectors(8, [1,1,2]).count()
+        25
+        sage: WeightedIntegerVectors(8, [1,1,2]).random() #random
+        [2, 0, 3]
+    """
+    return WeightedIntegerVectors_nweight(n, weight)
+
+class WeightedIntegerVectors_nweight(CombinatorialClass):
+    def __init__(self, n, weight):
+        """
+        TESTS:
+            sage: WIV = WeightedIntegerVectors(8, [1,1,2])
+            sage: WIV == loads(dumps(WIV))
+            True
+        """
+        self.n = n
+        self.weight = weight
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(WeightedIntegerVectors(8, [1,1,2]))
+            'Integer vectors of 8 weighted by [1, 1, 2]'
+        """
+        return "Integer vectors of %s weighted by %s"%(self.n, self.weight)
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: [] in WeightedIntegerVectors(0, [])
+            True
+            sage: [] in WeightedIntegerVectors(1, [])
+            False
+            sage: [3,0,0] in WeightedIntegerVectors(6, [2,1,1])
+            True
+            sage: [1] in WeightedIntegerVectors(1, [1])
+            True
+            sage: [1] in WeightedIntegerVectors(2, [2])
+            True
+            sage: [2] in WeightedIntegerVectors(4, [2])
+            True
+            sage: [2, 0] in WeightedIntegerVectors(4, [2, 2])
+            True
+            sage: [2, 1] in WeightedIntegerVectors(4, [2, 2])
+            False
+            sage: [2, 1] in WeightedIntegerVectors(6, [2, 2])
+            True
+            sage: [2, 1, 0] in WeightedIntegerVectors(6, [2, 2])
+            False
+            sage: [0] in WeightedIntegerVectors(0, [])
+            False
+        """
+        if not isinstance(x, builtinlist):
+            return False
+        if len(self.weight) != len(x):
+            return False
+        s = 0
+        for i in range(len(x)):
+            if not isinstance(x[i], (int, Integer)):
+                return False
+            s += x[i]*self.weight[i]
+        if s != self.n:
+            return False
+
+        return True
+
+    def list(self):
+        """
+        TESTS:
+            sage: WeightedIntegerVectors(7, [2,2]).list()
+            []
+            sage: WeightedIntegerVectors(3, [2,1,1]).list()
+            [[1, 0, 1], [1, 1, 0], [0, 0, 3], [0, 1, 2], [0, 2, 1], [0, 3, 0]]
+
+            sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
+            sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
+            sage: all( [ sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11) ] )
+            True
+
+            sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
+            sage: all( [ i.count() == len(i.list()) for i in ivw] )
+            True
+        """
+
+        if len(self.weight) == 0:
+            if n == 0:
+                return [[]]
+            else:
+                return []
+
+        perm = word.standard(self.weight)
+        l = [x for x in sorted(self.weight)]
+
+        def recfun(n, l):
+            result = []
+            w = l[-1]
+            l = l[:-1]
+            if l == []:
+                d = int(n) / int(w)
+                if n%w == 0:
+                    return [[d]]
+                else:
+                    return [] #bad branch...
+
+            for d in range(int(n)/int(w), -1, -1):
+                result += map( lambda x: x + [d], recfun(n-d*w, l) )
+
+            return result
+
+        return map( lambda x: Permutation_class(perm)._left_to_right_multiply_on_right(Permutation_class(x)), recfun(self.n,l) )
+

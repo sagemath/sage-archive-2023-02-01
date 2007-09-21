@@ -1,3 +1,4 @@
+
 r"""
 \protect{Ring $\Z$ of Integers}
 
@@ -61,6 +62,9 @@ include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/random.pxi"
 
+include "../ext/python_int.pxi"
+include "../ext/python_list.pxi"
+
 import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
@@ -70,6 +74,8 @@ import sage.libs.pari.all
 import sage.rings.ideal
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
+
+from sage.structure.sequence import Sequence
 
 cimport integer
 cimport rational
@@ -188,6 +194,33 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         mpq_canonicalize(x.value)
         return x
 
+    def __getitem__(self, x):
+        """
+        Return the ring ZZ[...] got by adjoing to the integers
+        an element of several elements.
+
+        """
+        if x in self:
+            return self
+        if isinstance(x, str):
+            return PrincipalIdealDomain.__getitem__(self, x)
+        from sage.calculus.all import is_SymbolicVariable
+        if is_SymbolicVariable(x):
+            return PrincipalIdealDomain.__getitem__(self, repr(x))
+        from sage.rings.number_field.all import is_NumberFieldElement
+        if is_NumberFieldElement(x):
+            K, from_K = x.parent().subfield(x)
+            return K.order(K.gen())
+
+        if isinstance(x, tuple) and len(x) > 0:
+            for y in x:
+                if not is_NumberFieldElement(y):
+                    return PrincipalIdealDomain.__getitem__(self, x)
+            x = Sequence(x)
+            K = x.universe()
+            return K.order(x, allow_subfield=True)
+        return PrincipalIdealDomain.__getitem__(self, x)
+
     def __call__(self, x, base=0):
         """
         EXAMPLES:
@@ -216,7 +249,83 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 y.__init__(x, base)
             except AttributeError:
                 pass
+        try:
+            return x.get_as_sage_int()
+        except AttributeError:
+            pass
+
         raise TypeError, msg
+
+    def range(self, start, end=None, step=None):
+        """
+        Optimized range function for SAGE integer.
+
+        AUTHOR:
+          -- Robert Bradshaw (2007-09-20)
+
+        EXAMPLES:
+            sage: ZZ.range(10)
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: ZZ.range(-5,5)
+            [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+            sage: ZZ.range(0,50,5)
+            [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
+            sage: ZZ.range(0,50,-5)
+            []
+            sage: ZZ.range(50,0,-5)
+            [50, 45, 40, 35, 30, 25, 20, 15, 10, 5]
+            sage: ZZ.range(50,0,5)
+            []
+            sage: ZZ.range(50,-1,-5)
+            [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0]
+
+        It uses different code if the step doesn't fit in a long:
+            sage: ZZ.range(0,2^83,2^80)
+            [0, 1208925819614629174706176, 2417851639229258349412352, 3626777458843887524118528, 4835703278458516698824704, 6044629098073145873530880, 7253554917687775048237056, 8462480737302404222943232]
+        """
+        if end is None:
+            end = start
+            start = PY_NEW(Integer) # 0
+        if step is None:
+            step = 1
+        if not PyInt_CheckExact(step):
+            if not PY_TYPE_CHECK(step, integer.Integer):
+                step = integer.Integer(step)
+            if mpz_fits_slong_p((<Integer>step).value):
+                step = int(step)
+        if not PY_TYPE_CHECK(start, integer.Integer):
+            start = integer.Integer(start)
+        if not PY_TYPE_CHECK(end, integer.Integer):
+            start = integer.Integer(end)
+        cdef integer.Integer a = <Integer>start
+        cdef integer.Integer b = <Integer>end
+
+        cdef int step_sign
+        cdef long istep
+        cdef integer.Integer zstep, last
+
+        L = []
+        if PyInt_CheckExact(step):
+            istep = PyInt_AS_LONG(step)
+            step_sign = istep
+        else:
+            zstep = <Integer>step
+            step_sign = mpz_sgn(zstep.value)
+
+        _sig_on
+        while mpz_cmp(a.value, b.value)*step_sign < 0:
+            last = a
+            a = PY_NEW(Integer)
+            if PyInt_CheckExact(step): # count on branch prediction...
+                if istep > 0:
+                    mpz_add_ui(a.value, last.value, istep)
+                else:
+                    mpz_sub_ui(a.value, last.value, -istep)
+            else:
+                mpz_add(a.value, last.value, zstep.value)
+            PyList_Append(L, last)
+        _sig_off
+        return L
 
     def __iter__(self):
         """
@@ -484,13 +593,13 @@ Z = ZZ
 def IntegerRing():
     return ZZ
 
-def factor(n, algorithm='pari'):
+def factor(n, algorithm='pari', proof=True):
     """
     Return the factorization of the positive integer $n$ as a list of
     tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
     """
     import sage.rings.arith
-    return sage.rings.arith.factor(n, algorithm=algorithm)
+    return sage.rings.arith.factor(n, algorithm=algorithm, proof=proof)
 
 import sage.misc.misc
 def crt_basis(X, xgcd=None):

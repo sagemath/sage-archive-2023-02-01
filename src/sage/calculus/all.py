@@ -3,6 +3,7 @@ from equations import SymbolicEquation, forget, assume, assumptions, solve
 from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpressionRing,
                       is_SymbolicExpression,
+                      is_SymbolicVariable,
                       CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpression,
@@ -21,6 +22,10 @@ from functional import (diff, derivative,
                         expand,
                         integrate, limit, lim,
                         taylor, simplify)
+
+from desolvers import (desolve, desolve_laplace, desolve_system,
+                       eulers_method, eulers_method_2x2,
+                       eulers_method_2x2_plot)
 
 from var import (var, function, clear_vars)
 

@@ -1725,15 +1725,15 @@ class Partitions_n(CombinatorialClass):
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
         # base case of the recursion: zero is the sum of the empty tuple
-        if n == 0:
-            yield []
+        if self.n == 0:
+            yield Partition_class([])
             return
 
         # modify the partitions of n-1 to form the partitions of n
         for p in Partitions_n(self.n-1):
             if p and (len(p) < 2 or p[-2] > p[-1]):
-                yield p[:-1] + [p[-1] + 1]
-            yield  p + [1]
+                yield Partition_class(list(p[:-1]) + [p[-1] + 1])
+            yield  Partition_class(p + [1])
 
 
 

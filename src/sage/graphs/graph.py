@@ -2118,7 +2118,7 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
+            G = DiGraph()
         else:
             G = Graph()
         verts = []

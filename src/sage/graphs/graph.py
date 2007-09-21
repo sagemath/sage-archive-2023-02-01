@@ -1,6 +1,8 @@
 r"""
 Graph Theory
 
+This module implements many graph theoretic operations and concepts.
+
 AUTHOR:
     -- Robert L. Miller (2006-10-22): initial version
     -- William Stein (2006-12-05): Editing
@@ -27,13 +29,13 @@ AUTHOR:
        edge colors differentiated by label
 
 
-TUTORIAL:
+\section{Tutorial}
 
-    I. The Basics
+\subsection{The Basics}
 
-        1. Graph Format
+\subsubsection{Graph Format}
 
-            A. The SAGE Graph Class: NetworkX plus
+            \paragraph{The SAGE Graph Class: NetworkX plus}
 
             SAGE graphs are actually NetworkX graphs, wrapped in a SAGE class.
             In fact, any graph can produce its underlying NetworkX graph. For example,
@@ -55,33 +57,35 @@ TUTORIAL:
             1: {2: None} implies it must contain 2: {1: None}. The innermost entry
             of None is related to edge labelling (see section I.3.).
 
-            B. Supported formats
+            \paragraph{Supported formats}
 
             SAGE Graphs can be created from a wide range of inputs. A few examples are
             covered here.
 
-                i.   a. NetworkX dictionary format:
+            \begin{itemize}
+
+                  \item NetworkX dictionary format:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
                 Graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
 
-                    b. A NetworkX graph:
+                    \item A NetworkX graph:
 
                 sage: K = networkx.complete_bipartite_graph(12,7)
                 sage: G = Graph(K)
                 sage: G.degree()
                 [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12, 12, 12]
 
-                ii. graph6 or sparse6 format:
+                \item graph6 or sparse6 format:
 
                 sage: s = ':I`AKGsaOs`cI]Gb~'
                 sage: G = Graph(s); G
                 Looped multi-graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
 
-                iii. adjacency matrix: In an adjacency matrix, each column and each row represent
+                \item adjacency matrix: In an adjacency matrix, each column and each row represent
                 a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
 
                 sage: M = Matrix([(0,1,0,0,1,1,0,0,0,0),(1,0,1,0,0,0,1,0,0,0),(0,1,0,1,0,0,0,1,0,0),(0,0,1,0,1,0,0,0,1,0),(1,0,0,1,0,0,0,0,0,1),(1,0,0,0,0,0,0,1,1,0),(0,1,0,0,0,0,0,0,1,1),(0,0,1,0,0,1,0,0,0,1),(0,0,0,1,0,1,1,0,0,0),(0,0,0,0,1,0,1,1,0,0)])
@@ -100,7 +104,7 @@ TUTORIAL:
                 Graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
 
-                iv. incidence matrix: In an incidence matrix, each row represents a vertex
+                \item incidence matrix: In an incidence matrix, each row represents a vertex
                 and each column reprensents an edge.
 
                 sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0),(1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0),(0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1),(0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0),(0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0),(0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
@@ -119,7 +123,9 @@ TUTORIAL:
                 Graph on 10 vertices
                 sage: G.plot().save('sage.png')    # or G.show()
 
-        2. Generators
+        \end{itemize}
+
+        \subsubsection{Generators}
 
         For some commonly used graphs to play with, type
 
@@ -153,7 +159,7 @@ TUTORIAL:
             sage: L = G.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
-        3. Labels
+            \subsubsection{Labels}
 
         Each vertex can have any hashable object as a label. These are things like
         strings, numbers, and tuples. Each edge is given a default label of None, but
@@ -181,7 +187,7 @@ TUTORIAL:
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
 
-        4. Database
+        \subsubsection{Database}
 
         There is a database available for searching for graphs that satisfy a certain set
         of parameters, including number of vertices and edges, density, maximum and minimum
@@ -196,7 +202,7 @@ TUTORIAL:
             sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
-        5. Visualization
+        \subsubsection{Visualization}
 
         To see a graph G you are working with, right now there are two main options:
 

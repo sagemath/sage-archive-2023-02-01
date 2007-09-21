@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Doctests for cvxopt, scipy
 
 sage: from cvxopt.base import *

@@ -86,10 +86,11 @@ class Words_alphabetk(CombinatorialClass):
             sage: Words(['a','b','c'],1).count()
             3
             sage: Words(7,13).count()
-            96889010407L
+            96889010407L               # 32-bit
+            96889010407                # 64-bit
             sage: Words(['a','b','c','d','e','f','g'],13).count()
-            96889010407L
-
+            96889010407L               # 32-bit
+            96889010407                # 64-bit
         """
         n = len(self.alphabet)
         return n**self.k

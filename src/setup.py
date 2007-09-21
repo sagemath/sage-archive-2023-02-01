@@ -368,6 +368,7 @@ sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 symmetrica = Extension('sage.libs.symmetrica.symmetrica',
                        sources = ["sage/libs/symmetrica/%s"%s for s in \
                                   ["symmetrica.pyx"]],
+                       include_dirs=['/usr/include/malloc/'],
                        libraries = ["symmetrica"])
 
 

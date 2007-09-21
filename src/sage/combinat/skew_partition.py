@@ -162,7 +162,7 @@ class SkewPartition_class(CombinatorialObject):
 
         EXAMPLES:
             sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag()
-            sage: dag.arcs()
+            sage: dag.edges()
             [('0,1', '0,2', None), ('0,1', '1,1', None)]
             sage: dag.vertices()
             ['0,1', '0,2', '1,1', '2,0']
@@ -185,14 +185,14 @@ class SkewPartition_class(CombinatorialObject):
                     #Check to see if there is a node to the right
                     if column != len(skew[row]) - 1:
                         newstring = "%d,%d" % (row, column+1)
-                        G.add_arc(string, newstring)
+                        G.add_edge(string, newstring)
 
                     #Check to see if there is anything below
                     if row != len(skew) - 1:
                         if len(skew[row+1]) > column:
                             if skew[row+1][column] != None:
                                 newstring = "%d,%d" % (row+1, column)
-                                G.add_arc(string, newstring)
+                                G.add_edge(string, newstring)
         return G
 
 

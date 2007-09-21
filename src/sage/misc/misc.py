@@ -21,7 +21,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, socket, sys, signal, time, weakref, random, resource
+import operator, os, socket, sys, signal, time, weakref, random, resource, math
 
 from banner import version, banner
 
@@ -682,6 +682,11 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         sage: srange(1.0, 5.0, include_endpoint=True)
         [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
 
+        sage: srange(1.0, 1.1)
+        [1.00000000000000]
+        sage: srange(1.0, 1.0)
+        []
+
         sage: V = VectorSpace(QQ, 2)
         sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
         [(0, 0), (2, 2), (4, 4)]
@@ -711,11 +716,11 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         L = []
         sign = 1 if step > 0 else -1
         # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
-        count = int(float((end-start)/step))
+        count = int(math.ceil((float((end-start)/step))))
         if count <= 0:
             return L
         # we assume that a+b*c = a + b + ... + b
-        if not (start + (count+1) * step)*sign > end*sign:
+        if not (start + count * step)*sign > end*sign:
             # we won't get there by adding, perhaps comparison in the ring is bad
             # rather than enter an infinite loop, do something sensible
             # the 'not' is hear because incomparable items return False
@@ -806,11 +811,11 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
 def generic_xsrange(start, end, step):
         sign = 1 if step > 0 else -1
         # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
-        count = int(float((end-start)/step))
+        count = int(math.ceil((float((end-start)/step))))
         if count <= 0:
             return
         # we assume that a+b*c = a + b + ... + b
-        if not (start + (count+1) * step)*sign > end*sign:
+        if not (start + count * step)*sign > end*sign:
             # we won't get there by adding, perhaps comparison in the ring is bad
             # rather than enter an infinite loop, do something sensible
             # the 'not' is hear because incomparable items return False
@@ -864,7 +869,7 @@ def ellipsis_range(*args):
         elif args[i] is Ellipsis:
             if i > 2 and args[i-2] is Ellipsis and L[-1] != args[i-1]:
                 L.append(args[i-1])
-            L += srange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False)
+            L += srange(args[i-1]+diff, args[i+1], diff, universe=universe, check=False, include_endpoint=True)
             skip = True
         else:
             L.append(args[i])
@@ -913,7 +918,7 @@ def ellipsis_iter(*args):
                 while True:
                     cur += diff
                     yield cur
-            for num in xsrange(args[i-1]+diff, args[i+1]+1, diff, universe=universe, check=False):
+            for num in xsrange(args[i-1]+diff, args[i+1], diff, universe=universe, check=False, include_endpoint=True):
                 yield num
             last = num
             skip = True

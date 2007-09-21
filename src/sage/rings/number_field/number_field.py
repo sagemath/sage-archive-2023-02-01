@@ -2079,17 +2079,17 @@ class NumberField_absolute(NumberField_generic):
             sage: K = NumberField([x^2 + p for p in [2,3,5]],'a').absolute_field()[0]; K
             Number Field in a1 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L, from_L, to_L = K.optimized_representation()
-            sage: L
+            sage: L    # your answer may different, since algorithm is random
             Number Field in a14 with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
-            sage: to_L(K.0)
+            sage: to_L(K.0)   # random
             4/189*a14^7 - 1/63*a14^6 + 1/27*a14^5 + 2/9*a14^4 - 5/27*a14^3 + 8/9*a14^2 + 3/7*a14 + 3/7
-            sage: from_L(L.0)
+            sage: from_L(L.0)   # random
             1/1152*a1^7 + 1/192*a1^6 + 23/576*a1^5 + 17/96*a1^4 + 37/72*a1^3 + 5/6*a1^2 + 55/24*a1 + 3/4
 
         The transformation maps are mutually inverse isomorphisms.
             sage: from_L(to_L(K.0))
             a1
-            sage: to_L(from_L(L.0))
+            sage: to_L(from_L(L.0))     # random
             a14
         """
         return self.optimized_subfields(degree=self.degree(), name=names, both_maps=both_maps)[0]
@@ -2108,7 +2108,7 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b0 with defining polynomial x - 1
             sage: L[1][0]
             Number Field in b1 with defining polynomial x^2 - x + 1
-            sage: [z[0] for z in L]
+            sage: [z[0] for z in L]          # random -- since algorithm is random
             [Number Field in b0 with defining polynomial x - 1,
              Number Field in b1 with defining polynomial x^2 - x + 1,
              Number Field in b2 with defining polynomial x^4 - 5*x^2 + 25,
@@ -2117,9 +2117,9 @@ class NumberField_absolute(NumberField_generic):
 
         We examine one of the optimized subfields in more detail:
              sage: M, from_M, to_M = L[2]
-             sage: M
+             sage: M                             # random
              Number Field in b2 with defining polynomial x^4 - 5*x^2 + 25
-             sage: from_M
+             sage: from_M     # may be slightly random
              Ring morphism:
                From: Number Field in b2 with defining polynomial x^4 - 5*x^2 + 25
                To:   Number Field in a1 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
@@ -2130,11 +2130,11 @@ class NumberField_absolute(NumberField_generic):
 
         We apply the from_M map to the generator of M, which gives a rather
         large element of $K$:
-             sage: from_M(M.0)
+             sage: from_M(M.0)          # random
              -5/1152*a1^7 + 1/96*a1^6 - 97/576*a1^5 + 17/48*a1^4 - 95/72*a1^3 + 17/12*a1^2 - 53/24*a1 - 1
 
         Nevertheless, that large-ish element lies in a degree 4 subfield:
-             sage: from_M(M.0).minpoly()
+             sage: from_M(M.0).minpoly()   # random
              x^4 - 5*x^2 + 25
         """
         return self._subfields_helper(degree=degree,name=name,

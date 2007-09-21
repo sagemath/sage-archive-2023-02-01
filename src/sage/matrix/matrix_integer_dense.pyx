@@ -332,7 +332,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self._zero_out_matrix()
             j = 0
             for i from 0 <= i < self._nrows:
-                mpz_init_set(self._entries[j], x.value)
+                mpz_set(self._entries[j], x.value)
                 j = j + self._nrows + 1
             self._initialized = True
 

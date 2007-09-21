@@ -679,6 +679,12 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: srange(0,1,R('0.4'))
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
+        sage: srange(1.0, 5.0, include_endpoint=True)
+        [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
+
+        sage: V = VectorSpace(QQ, 2)
+        sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
+        [(0, 0), (2, 2), (4, 4)]
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -691,17 +697,30 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         start, end, step = universe(start), universe(end), universe(step)
     if include_endpoint:
         if universe in [int, long, ZZ]:
-            if (start-end) % step == 0:
+            if (end-start) % step == 0:
                 end += step
-        elif (start-end)/step in ZZ:
-            end += step
-    if universe is int:
+        else:
+            count = (end-start)/step
+            if count == int(float(count)):
+                end += step
+    if universe is int or universe is long:
         return range(start, end, step)
     elif universe is ZZ:
         return ZZ.range(start, end, step)
     else:
         L = []
-        if step > 0:
+        sign = 1 if step > 0 else -1
+        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
+        count = int(float((end-start)/step))
+        if count <= 0:
+            return L
+        # we assume that a+b*c = a + b + ... + b
+        if not (start + (count+1) * step)*sign > end*sign:
+            # we won't get there by adding, perhaps comparison in the ring is bad
+            # rather than enter an infinite loop, do something sensible
+            # the 'not' is hear because incomparable items return False
+            L = [start + k*step for k in range(count)] # this is slower due to coercion and mult
+        elif step > 0:
             while start < end:
                 L.append(start)
                 start += step
@@ -771,8 +790,11 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         if universe in [int, long, ZZ]:
             if (start-end) % step == 0:
                 end += step
-        elif (start-end)/step in ZZ:
-            end += step
+        else:
+            count = (start-end)/step
+            if count == int(float(count)):
+                end += step
+                count += 1
     if universe is int:
         return xrange(start, end, step)
 #    elif universe is ZZ:
@@ -782,14 +804,28 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
 
 
 def generic_xsrange(start, end, step):
-    if step > 0:
-        while start < end:
-            yield start
-            start += step
-    else:
-        while start > end:
-            yield start
-            start += step
+        sign = 1 if step > 0 else -1
+        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
+        count = int(float((end-start)/step))
+        if count <= 0:
+            return
+        # we assume that a+b*c = a + b + ... + b
+        if not (start + (count+1) * step)*sign > end*sign:
+            # we won't get there by adding, perhaps comparison in the ring is bad
+            # rather than enter an infinite loop, do something sensible
+            # the 'not' is hear because incomparable items return False
+            for k in xrange(count):
+                yield start + k*step
+        elif step > 0:
+            while start < end:
+                yield start
+                start += step
+        elif step < 0:
+            while start > end:
+                yield start
+                start += step
+        else:
+            raise ValueError, "step must not be 0"
 
 sxrange = xsrange
 

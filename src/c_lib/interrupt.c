@@ -58,8 +58,9 @@ void sage_signal_handler(int sig) {
 
     _signals.mpio |= 4;
 
+    signal(sig, sage_signal_handler);
     //where to go next?
-    if ( _signals.mpio && 2 ) {
+    if ( _signals.mpio & 2 ) {
       siglongjmp(_signals.env, sig);
     } else {
       //this case shouldn't happen as _sig_[on|off]_short is disabled
@@ -85,6 +86,8 @@ void sage_signal_handler(int sig) {
       _signals.python_handler(sig);
       break;
     };
+
+    signal(sig, sage_signal_handler);
   }
 }
 

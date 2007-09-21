@@ -18,6 +18,26 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+cdef extern from "NTL/LLL.h":
+    cdef long mat_ZZ_LLL_FP   "LLL_FP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_FP_U "LLL_FP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_QP   "LLL_QP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_QP_U "LLL_QP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_XD   "LLL_XD"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_XD_U "LLL_XD"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_RR   "LLL_RR"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_LLL_RR_U "LLL_RR"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+
+    cdef long mat_ZZ_G_LLL_FP   "G_LLL_FP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_FP_U "G_LLL_FP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_QP   "G_LLL_QP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_QP_U "G_LLL_QP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_XD   "G_LLL_XD"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_XD_U "G_LLL_XD"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_RR   "G_LLL_RR"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
+    cdef long mat_ZZ_G_LLL_RR_U "G_LLL_RR"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
+
+
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
@@ -513,3 +533,227 @@ cdef class ntl_mat_ZZ:
             rank = int(mat_ZZ_LLL(&det2,&self.x,int(a),int(b),int(verbose)))
             _sig_off
             return rank,make_ZZ(det2)
+
+    def LLL_FP(self, delta=0.75 , return_U=False, verbose=False):
+        r"""
+        Performs approximate LLL reduction of self (puts self in an
+        LLL form) subject to the following conditions:
+
+        The precision is double.
+
+        The return value is the rank of B.
+
+        Classical Gramm-Schmidt Orthogonalization is used:
+
+        This choice uses classical methods for computing the
+        Gramm-Schmidt othogonalization.  It is fast but prone to
+        stability problems.  This strategy was first proposed by
+        Schnorr and Euchner [C. P. Schnorr and M. Euchner,
+        Proc. Fundamentals of Computation Theory, LNCS 529, pp. 68-85,
+        1991].  The version implemented here is substantially
+        different, improving both stability and performance.
+
+        If return_U is True, then also U is returned which is
+        the transition matrix: $U * self_{old} = self_{new}$
+
+        The optional argument 'delta' is the reduction parameter, and
+        may be set so that 0.50 <= delta < 1.  Setting it close to 1
+        yields shorter vectors, and also improves the stability, but
+        increases the running time.  Recommended value: delta =
+        0.99.
+
+        The optional parameter 'verbose' can be set to see all kinds
+        of fun things printed while the routine is executing.  A
+        status report is also printed every once in a while.
+
+        INPUT:
+           delta    -- as described above (0.5 <= delta < 1.0) (default: 0.75)
+           return_U -- return U as described above
+           verbose  -- if True NTL will produce some verbatim messages on
+                       what's going on internally (default: False)
+
+        OUTPUT:
+            (rank,[U]) where rank and U are as described above and U
+            is an optional return value if return_U is True.
+
+        EXAMPLE:
+            sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
+            sage: M.LLL_FP()
+            2
+            sage: M
+            [[0 0 0]
+            [2 1 0]
+            [-1 1 3]
+            ]
+            sage: M=ntl.mat_ZZ(4,4,[-6,9,-15,-18,4,-6,10,12,10,-16,18,35,-24,36,-46,-82]); M
+            [[-6 9 -15 -18]
+            [4 -6 10 12]
+            [10 -16 18 35]
+            [-24 36 -46 -82]
+            ]
+            sage: M.LLL_FP()
+            3
+            sage: M
+            [[0 0 0 0]
+            [0 -2 0 0]
+            [-2 1 -5 -6]
+            [0 -1 -7 5]
+            ]
+
+        WARNING: This method modifies self. So after applying this method your matrix
+        will be a vector of vectors.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_LLL_FP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_LLL_FP(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def LLL_QP(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.LLL_FP using the same
+        calling conventions but with quad float precision.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_LLL_QP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_LLL_QP(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def LLL_XD(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.LLL_FP using the same
+        calling conventions but with extended exponent double
+        precision.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_LLL_XD_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_LLL_XD(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def LLL_RR(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.LLL_FP using the same
+        calling conventions but with arbitrary precision floating
+        point numbers.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_LLL_RR_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_LLL_RR(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    # Givens Orthogonalization.  This is a bit slower, but generally
+    # much more stable, and is really the preferred orthogonalization
+    # strategy.  For a nice description of this, see Chapter 5 of
+    # [G. Golub and C. van Loan, Matrix Computations, 3rd edition,
+    # Johns Hopkins Univ. Press, 1996].
+
+    def G_LLL_FP(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.LLL_FP using the same
+        calling conventions but uses the Givens Orthogonalization.
+
+        Givens Orthogonalization.  This is a bit slower, but generally
+        much more stable, and is really the preferred
+        orthogonalization strategy.  For a nice description of this,
+        see Chapter 5 of [G. Golub and C. van Loan, Matrix
+        Computations, 3rd edition, Johns Hopkins Univ. Press, 1996].
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_FP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_FP(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def G_LLL_QP(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.G_LLL_FP using the same
+        calling conventions but with quad float precision.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_QP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_QP(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def G_LLL_XD(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.G_LLL_FP using the same
+        calling conventions but with extended exponent double
+        precision.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_XD_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_XD(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank
+
+    def G_LLL_RR(self, delta, return_U=False, verbose=False):
+        r"""
+        Peforms the same reduction as self.G_LLL_FP using the same
+        calling conventions but with aribitrary precision floating
+        point numbers.
+        """
+        cdef ntl_mat_ZZ U
+        if return_U:
+            U = PY_NEW(ntl_mat_ZZ)
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_RR_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
+            _sig_off
+            return rank, U
+        else:
+            _sig_on
+            rank = int(mat_ZZ_G_LLL_RR(self.x,float(delta),0,0,int(verbose)))
+            _sig_off
+            return rank

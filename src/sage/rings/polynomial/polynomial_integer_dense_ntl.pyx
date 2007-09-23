@@ -168,19 +168,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
 
-
-        if not check:
-            # for now just check types while we sort out what other doctests are failing....
-            for zz in x:
-               if not isinstance(zz, Integer):
-                  print "ARRGGGGHHHH!!!!!"
-                  from traceback import print_stack
-                  from sys import stdout
-                  print_stack(file=stdout)
-                  break
-            check = True
-
-
         if check:
             x = [Integer(z) for z in x]
 

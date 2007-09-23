@@ -946,6 +946,7 @@ cdef class Matrix(matrix1.Matrix):
             raise ArithmeticError, "charpoly not defined for non-square matrix."
 
         # Replace self by its Hessenberg form
+        # (note the entries might now live in the fraction field)
         cdef Matrix H
         H = self.hessenberg_form()
 
@@ -989,7 +990,7 @@ cdef class Matrix(matrix1.Matrix):
             Py_INCREF(o); PyList_SET_ITEM(v, i, o)
 
         R = self._base_ring[var]    # polynomial ring over the base ring
-        return R(v, check=False)
+        return R(v)
 
     #####################################################################################
     # Decomposition: kernel, image, decomposition

@@ -296,7 +296,7 @@ class SkewTableau_class(CombinatorialObject):
         if not self.is_standard():
             raise ValueError, "the skew tableau must be standard to perform the restriction"
 
-        return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y <= n, x), t)) )
+        return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
 
     def to_chain(self):
         """

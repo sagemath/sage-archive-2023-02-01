@@ -33,7 +33,6 @@ Arithmetic obeys the usual coercion rules.
 
 import math
 import types
-from sage.misc.misc import xsrange
 import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
@@ -4768,6 +4767,22 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
 
+    def qflll(self, long flag=0):
+        """
+        qflll(x,{flag=0}): LLL reduction of the vectors forming the
+        matrix x (gives the unimodular transformation matrix). The
+        columns of x must be linearly independent, unless specified
+        otherwise below. flag is optional, and can be 0: default, 1:
+        assumes x is integral, columns may be dependent, 2: assumes x
+        is integral, returns a partially reduced basis, 4: assumes x
+        is integral, returns [K,I] where K is the integer kernel of x
+        and I the LLL reduced image, 5: same as 4 but x may have
+        polynomial coefficients, 8: same as 0 but x may have
+        polynomial coefficients.
+        """
+        _sig_on
+        return self.new_gen(qflll0(self.g,flag,prec)).Mat()
+
     def qflllgram(self, long flag=0):
         """
         qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
@@ -5602,7 +5617,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Create a new gen, but don't free any memory on the stack and
         don't call _sig_off.
         """
-        return _new_gen(x)
+        z = _new_gen(x)
+        _sig_off
+        return z
 
     def double_to_gen(self, x):
         cdef double dx
@@ -5696,7 +5713,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except AttributeError:
             pass
         if isinstance(s, (types.ListType, types.XRangeType,
-                            types.TupleType, xsrange)):
+                            types.TupleType, types.GeneratorType)):
             v = self.vector(len(s))
             for i, x in enumerate(s):
                 v[i] = self(x)
@@ -5781,6 +5798,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef object GEN_to_str(self, GEN g):
         cdef char* c
         cdef int n
+        _sig_off
         _sig_on
         c = GENtostr(g)
         _sig_off
@@ -6042,7 +6060,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen v
         _sig_on
         v = self.new_gen(zerovec(n))
-        if entries != None:
+        if entries is not None:
             if len(entries) != n:
                 raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
                       (len(entries), n)
@@ -6205,11 +6223,9 @@ cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
-    _sig_on
     h = deepcopy_to_python_heap(x, &address)
     y = PY_NEW(gen)
     y.init(h, address)
-    _sig_off
     return y
 
 cdef gen xxx_new_gen(GEN x):
@@ -6300,6 +6316,7 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
         ...
         RuntimeError: The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times.
     """
+    _sig_off
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:

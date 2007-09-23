@@ -1,0 +1,1613 @@
+#*****************************************************************************
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from sage.rings.arith import factorial
+from sage.rings.integer import Integer
+import sage.combinat.skew_tableau
+from partition import Partition, Partitions
+from composition import Compositions
+import word
+import misc
+import partition
+import sage.libs.symmetrica.all as symmetrica
+from sage.misc.all import prod
+import exceptions
+import random
+import copy
+from sage.groups.perm_gps.permgroup import PermutationGroup
+from combinat import CombinatorialClass, CombinatorialObject
+import __builtin__
+
+def Tableau(t):
+    """
+    Returns the tableau object corresponding to t.
+
+    EXAMPLES:
+        sage: t = Tableau([[1,2,3],[4,5]]); t
+        [[1, 2, 3], [4, 5]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.is_standard()
+        True
+    """
+    if t in Tableaux():
+        return Tableau_class(t)
+    raise ValueError, "invalid tableau"
+
+class Tableau_class(CombinatorialObject):
+    def __init__(self, t):
+        """
+        TESTS:
+            sage: t = Tableau([[1,2],[3,4]])
+            sage: t == loads(dumps(t))
+            True
+        """
+        for row in t:
+            if not isinstance(row, list):
+                raise TypeError, "each element of the tableau must be a list"
+            if row == []:
+                raise TypeError, "a tableau cannot have an empty list for a row"
+
+        CombinatorialObject.__init__(self,t)
+
+    def __div__(self, t):
+        """
+        Returns the skew partition self/t.
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2,3],[3,4],[5]])
+            sage: t/[1,1]
+            [[None, 2, 3], [None, 4], [5]]
+            sage: t/[3,1]
+            [[None, None, None], [None, 4], [5]]
+        """
+
+        #if t is a list, convert to to a partition first
+        if isinstance(t, list):
+            t = Partition(t)
+
+        #Check to make sure that
+        if not self.shape().dominates(t):
+            raise ValueError, "the partition must dominate t"
+
+
+        st = copy.deepcopy(self.list)
+
+        for i in range(len(t)):
+            for j in range(t[i]):
+                st[i][j] = None
+
+        return sage.combinat.skew_tableau.SkewTableau(st)
+
+
+
+    def shape(self):
+        r"""
+        Returns the shape of a tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1,2,3],[4,5],[6]]).shape()
+            [3, 2, 1]
+        """
+
+        return Partition([len(row) for row in self])
+
+    def size(self):
+        """
+        Returns the size of the shape of the tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).size()
+            6
+            sage: Tableau([[1, 3], [2, 4]]).size()
+            4
+
+        """
+        return sum([len(row) for row in self])
+
+    def corners(self):
+        """
+        Returns the corners of the tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).corners()
+            [[0, 2], [1, 1], [2, 0]]
+            sage: Tableau([[1, 3], [2, 4]]).corners()
+            [[1, 1]]
+
+        """
+        return self.shape().corners()
+
+    def conjugate(self):
+        """
+        Returns the conjugate of the tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).conjugate()
+            [[1, 3], [2, 4]]
+        """
+        conj_shape = self.shape().conjugate()
+
+        conj = [[None]*row_length for row_length in conj_shape]
+
+        for i in range(len(conj)):
+            for j in range(len(conj[i])):
+                conj[i][j] = self[j][i]
+
+
+        return Tableau(conj)
+
+    def pp(self):
+        """
+        Returns a pretty print string of the tableau.
+        EXAMPLES:
+            sage: t = Tableau([[1,2,3],[3,4],[5]])
+            sage: print t.pp()
+              1  2  3
+              3  4
+              5
+        """
+        return '\n'.join([ "".join(map(lambda x: "%3s"%str(x) , row))  for row in self])
+
+    def to_word_by_row(self):
+        """
+        Returns a word obtained from a row reading of the tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).to_word_by_row()
+            [1, 2, 3, 4]
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
+            [1, 4, 6, 2, 5, 3]
+        """
+        word = []
+        for row in self:
+            word += row
+
+        return word
+
+
+    def to_word_by_column(self):
+        """
+        Returns the word obtained from a column reading of the tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).to_word_by_column()
+            [1, 3, 2, 4]
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
+            [1, 2, 3, 4, 5, 6]
+        """
+        word = []
+        conj = self.conjugate()
+        for row in conj:
+            word += row
+
+        return word
+
+    def to_word(self):
+        """
+        An alias for to_word_by_row.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).to_word()
+            [1, 2, 3, 4]
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
+            [1, 4, 6, 2, 5, 3]
+        """
+        return self.to_word_by_row()
+
+    def evaluation(self):
+        """
+        Returns the evaluation of the word from tableau t.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).evaluation()
+            [1, 1, 1, 1]
+        """
+
+        return word.evaluation(self.to_word())
+
+    def is_standard(self):
+        """
+        Returns True if t is a standard tableau and False otherwise.
+
+        EXAMPLES:
+            sage: Tableau([[1, 3], [2, 4]]).is_standard()
+            True
+            sage: Tableau([[1, 2], [2, 4]]).is_standard()
+            False
+            sage: Tableau([[2, 3], [2, 4]]).is_standard()
+            False
+            sage: Tableau([[5, 3], [2, 4]]).is_standard()
+            False
+        """
+        t = self
+        #Check to make sure the first position is 1
+        fillings = []
+        for row in t:
+            fillings += row
+        fillings.sort()
+        if fillings != range(1, t.size()+1):
+            return False
+
+
+
+        #Check to make sure it is increasing along the rows
+        for row in t:
+            for i in range(1, len(row)):
+                if row[i] <= row[i-1]:
+                    return False
+
+
+        #Check to make sure it is increasing along the columns
+        conj = t.conjugate()
+        for row in conj:
+            for i in range(1, len(row)):
+                if row[i] <= row[i-1]:
+                    return False
+
+        return True
+
+    def is_rectangular(self):
+        """
+        Returns True if the tableau t is rectangular and False otherwise.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).is_rectangular()
+            True
+            sage: Tableau([[1,2,3],[4,5],[6]]).is_rectangular()
+            False
+        """
+        width = len(self[0])
+        for row in self:
+            if len(row) != width:
+                return False
+        return True
+
+    def vertical_flip(self):
+        """
+        Returns the tableau obtained by vertically flipping the tableau t.
+        This only works for rectangular tableau.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).vertical_flip()
+            [[3, 4], [1, 2]]
+        """
+
+        if not self.is_rectangular():
+            raise TypeError, "the tableau must be rectangular to use verticl_flip()"
+
+        return Tableau([row for row in reversed(self)])
+
+    def rotate_180(self):
+        """
+        Returns the tableau obtained by rotating t by 180 degrees.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).rotate_180()
+            [[4, 3], [2, 1]]
+        """
+        if not self.is_rectangular():
+            raise TypeError, "the tableau must be rectangular to use verticl_flip()"
+
+        return Tableau([ [l for l in reversed(row)] for row in reversed(self) ])
+
+
+    def k_weight(self, k):
+        """
+        Returns the k-weight of the tableau t.
+
+        The i-th entry of the list is the number of different
+        diagonals in which lie boxes labelled by i.
+
+        EXAMPLES:
+
+        """
+        t = self
+        res = []
+        e = t.evaluation()
+
+        s = []
+        for i in range(len(t)):
+            s += [ [i,j] for j in range(len(t[-i])) ]
+
+        for l in range(1,len(e)+1):
+            new_s = filter(lambda x: t[len(t)-1-x[0]][x[1]] == l, s)
+
+            #If there are no elements that mee the condition
+            if new_s == [[]]:
+                res += [0]
+                continue
+
+            x = filter(lambda x: (x[0]-x[1])% k+1, new_s)
+
+            #Remove duplicates from x
+            u = {}
+            for element in x:
+                u[str(element)] = 1
+
+            res += [len(u.keys())]
+
+        return res
+
+
+    def restrict(self, n):
+        """
+        Returns the restriction of the standard tableau to n.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3],[4]]).restrict(3)
+            [[1, 2], [3]]
+            sage: Tableau([[1,2],[3],[4]]).restrict(2)
+            [[1, 2]]
+        """
+        t = self[:]
+        if not self.is_standard():
+            raise ValueError, "the tableau must be standard to perform the restriction"
+
+        return Tableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y <= n, x), t)) )
+
+    def to_chain(self):
+        """
+        Returns the chain of partitions corresponding to the standard
+        skew tableau.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3],[4]]).to_chain()
+            [[], [1], [2], [2, 1], [2, 1, 1]]
+        """
+        if not self.is_standard():
+            raise ValueError, "the tableau must be standard to convert to a chain"
+
+        return map(lambda x: self.restrict(x).shape(), range(self.size()+1))
+
+
+    def anti_restrict(self, n):
+        """
+        Returns the skew tableau formed by removing all of the boxes
+        from self that are filled with a number less than
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2,3],[4,5]]); t
+            [[1, 2, 3], [4, 5]]
+            sage: t.anti_restrict(1)
+            [[None, 2, 3], [4, 5]]
+            sage: t.anti_restrict(2)
+            [[None, None, 3], [4, 5]]
+            sage: t.anti_restrict(3)
+            [[None, None, None], [4, 5]]
+            sage: t.anti_restrict(4)
+            [[None, None, None], [None, 5]]
+
+        """
+        t = list(copy.deepcopy(self))
+
+        for row in xrange(len(t)):
+            for col in xrange(len(t[row])):
+                if t[row][col] <= n:
+                    t[row][col] = None
+        return sage.combinat.skew_tableau.SkewTableau( t )
+
+
+    def up(self):
+        """
+        An iterator for all the tableaux that can be obtained from self by adding a box.
+        EXAMPLES:
+            sage: t = Tableau([[1,2]])
+            sage: [x for x in t.up()]
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        #Get a list of all places where we can add a box
+        #to the shape of self
+
+        outside_corners = self.shape().outside_corners()
+
+        n = self.size()
+
+        #Go through and add n+1 to the end of each
+        #of the rows
+        for (row, col) in outside_corners:
+            new_t = map(list, self)
+            if row != len(self):
+                new_t[row] += [n+1]
+            else:
+                new_t.append([n+1])
+            yield Tableau(new_t)
+
+    def up_list(self):
+        """
+        Returns a list of all the tableaux that can be obtained from self by adding a box.
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2]])
+            sage: t.up_list()
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        return list(self.up())
+
+    def down(self):
+        """
+        An iterator for all the tableaux that can be obtained from self by removing a box.  Note that this iterates just over a single tableaux.
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3]])
+            sage: [x for x in t.down()]
+            [[[1, 2]]]
+        """
+        yield self.restrict( self.size() - 1 )
+
+    def down_list(self):
+        """
+        Returns a list of all the tableaux that can be obtained from self by removing a box.  Note that this is just a single tableaux.
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3]])
+            sage: t.down_list()
+            [[[1, 2]]]
+        """
+        return list(self.down())
+
+
+    def bump(self, x):
+        """
+        Schensted's row-bumping (or row-insertion) algorithm.
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3]])
+            sage: t.bump(1)
+            [[1, 1], [2], [3]]
+            sage: t
+            [[1, 2], [3]]
+            sage: t.bump(2)
+            [[1, 2, 2], [3]]
+            sage: t.bump(3)
+            [[1, 2, 3], [3]]
+            sage: t
+            [[1, 2], [3]]
+            sage: t = Tableau([[1,2,2,3],[2,3,5,5],[4,4,6],[5,6]])
+            sage: t.bump(2)
+            [[1, 2, 2, 2], [2, 3, 3, 5], [4, 4, 5], [5, 6, 6]]
+
+        """
+        new_t = copy.deepcopy(self[:])
+        to_insert = x
+        row = 0
+        done = False
+        while not done:
+            #if we are at the end of the tableau
+            #add to_insert as the last row
+            if row == len(new_t):
+                new_t.append([to_insert])
+                break
+
+            i = 0
+            #try to insert to_insert into row
+            while i < len(new_t[row]):
+                if to_insert < new_t[row][i]:
+                    t = to_insert
+                    to_insert = new_t[row][i]
+                    new_t[row][i] = t
+                    break
+                i += 1
+
+
+            #if we haven't already inserted to_insert
+            #append it to the end of row
+            if i == len(new_t[row]):
+                new_t[row].append(to_insert)
+                done = True
+
+            row += 1
+
+        return Tableau(new_t)
+
+    def bump_multiply(left, right):
+        """
+        Multiply two tableaux using Schensted's bump.
+
+        This product makes the set of tableaux into an associative monoid.
+        The empty tableaux is the unit in this monoid.
+
+        Fulton, William. 'Young Tableaux' p11-12
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2,2,3],[2,3,5,5],[4,4,6],[5,6]])
+            sage: t2 = Tableau([[1,2],[3]])
+            sage: t.bump_multiply(t2)
+            [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
+
+        """
+        if not isinstance(right, Tableau_class):
+            raise TypeError, "right must be a Tableau"
+
+        row = len(right)
+        product = copy.deepcopy(left)
+        while row > 0:
+            row -= 1
+            for i in right[row]:
+                product = product.bump(i)
+        return product
+
+    def slide_multiply(left, right):
+        """
+        Multiply two tableaux using jeu de taquin.
+
+        This product makes the set of tableaux into an associative monoid.
+        The empty tableaux is the unit in this monoid.
+
+        Fulton, William. 'Young Tableaux' p15
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2,2,3],[2,3,5,5],[4,4,6],[5,6]])
+            sage: t2 = Tableau([[1,2],[3]])
+            sage: t.slide_multiply(t2)
+            [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
+        """
+        st = []
+        if len(left) == 0:
+            return right
+        else:
+            l = len(left[0])
+
+        for row in range(len(right)):
+            st.append([None]*l + right[row])
+        for row in range(len(left)):
+            st.append(left[row])
+
+        return sage.combinat.skew_tableau.SkewTableau(st).rectify()
+
+
+    def row_stabilizer(self):
+        """
+        Return the PermutationGroup corresponding to the row stabilizer
+        of self.
+
+        EXAMPLES:
+            sage: rs = Tableau([[1,2,3],[4,5]]).row_stabilizer()
+            sage: rs.order() == factorial(3)*factorial(2)
+            True
+            sage: PermutationGroupElement([(1,3,2),(4,5)]) in rs
+            True
+            sage: PermutationGroupElement([(1,4)]) in rs
+            False
+            sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
+            sage: rs.order()
+            1
+        """
+
+        gens = [ "()" ]
+        for i in range(len(self)):
+            for j in range(0, len(self[i])-1):
+                gens.append( (self[i][j], self[i][j+1]) )
+        return PermutationGroup( gens )
+
+    def column_stabilizer(self):
+        """
+        Return the PermutationGroup corresponding to the column stabilizer
+        of self.
+
+        EXAMPLES:
+            sage: cs = Tableau([[1,2,3],[4,5]]).column_stabilizer()
+            sage: cs.order() == factorial(2)*factorial(2)
+            True
+            sage: PermutationGroupElement([(1,3,2),(4,5)]) in cs
+            False
+            sage: PermutationGroupElement([(1,4)]) in cs
+            True
+        """
+
+        return self.conjugate().row_stabilizer()
+
+
+
+def Tableaux(n=None):
+    """
+    Returns the combinatorial class of tableaux.  If n
+    is specified, then it returns the combinatoiral class
+    of all tableaux of size n.
+
+    EXAMPLES:
+        sage: T = Tableaux(); T
+        Tableaux
+        sage: [[1,2],[3,4]] in T
+        True
+        sage: [[1,2],[3]] in T
+        True
+        sage: [1,2,3] in T
+        False
+
+        sage: T = Tableaux(4); T
+        Tableaux of size 4
+        sage: [[1,2],[3,4]] in T
+        True
+        sage: [[1,2],[3]] in T
+        False
+        sage: [1,2,3] in T
+        False
+    """
+    if n == None:
+        return Tableaux_all()
+    else:
+        return Tableaux_n(n)
+
+class Tableaux_all(CombinatorialClass):
+    def __init__(self):
+        """
+        TESTS:
+            sage: T = Tableaux()
+            sage: T == loads(dumps(T))
+            True
+        """
+        pass
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: T = Tableaux()
+            sage: [[1,2],[3,4]] in T
+            True
+            sage: [[1,2],[3]] in T
+            True
+            sage: [1,2,3] in T
+            False
+        """
+        if isinstance(x, Tableau_class):
+            return True
+
+        if not isinstance(x, __builtin__.list):
+            return False
+
+        for row in x:
+            if not isinstance(row, __builtin__.list):
+                return False
+
+        return True
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Tableaux())
+            'Tableaux'
+        """
+        return "Tableaux"
+
+    def list(self):
+        """
+        TESTS:
+            sage: Tableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def iterator(self):
+        """
+        TESTS:
+            sage: Tableaux().iterator()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
+class Tableaux_n(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: T = Tableaux(3)
+            sage: T == loads(dumps(T))
+            True
+        """
+        self.n = n
+
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Tableaux(4))
+            'Tableaux of size 4'
+        """
+        return "Tableaux of size %s"%self.n
+
+    def __contains__(self,x):
+        """
+        EXAMPLES:
+            sage: [[2,4],[1,3]] in Tableaux(3)
+            False
+            sage: [[2,4], [1]] in Tableaux(3)
+            True
+        """
+        return x in Tableaux() and sum(map(len, x)) == self.n
+
+    def list(self):
+        """
+        TESTS:
+            sage: Tableaux(3).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def iterator(self):
+        """
+        TESTS:
+            sage: Tableaux(3).iterator()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+def StandardTableaux(n=None):
+    """
+    Returns the combinatorial class of standard tableaux.
+    If n is specified abd is an integer, then it returns
+    the combinatorial class of all standard tableaux of
+    size n.  If n is a partition, then it returns the class
+    of all standard tableaux of shape n.
+
+    EXAMPLES:
+        sage: ST = StandardTableaux(3); ST
+        Standard tableaux of size 3
+        sage: ST.first()
+        [[1, 2, 3]]
+        sage: ST.last()
+        [[1], [2], [3]]
+        sage: ST.count()
+        4
+        sage: ST.list()
+        [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+
+        sage: ST = StandardTableaux([2,2]); ST
+        Standard tableaux of shape [2, 2]
+        sage: ST.first()
+        [[1, 3], [2, 4]]
+        sage: ST.last()
+        [[1, 2], [3, 4]]
+        sage: ST.count()
+        2
+        sage: ST.list()
+        [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
+    """
+    if n == None:
+        return StandardTableaux_all()
+    elif n in Partitions():
+        return StandardTableaux_partition(n)
+    else:
+        return StandardTableaux_n(n)
+
+class StandardTableaux_all(CombinatorialClass):
+    def __init__(self):
+        """
+        TESTS:
+            sage: ST = StandardTableaux()
+            sage: ST == loads(dumps(ST))
+            True
+        """
+        pass
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: [[1,1],[2,3]] in StandardTableaux()
+            False
+            sage: [[1,2],[3,4]] in StandardTableaux()
+            True
+            sage: [[1,3],[2,4]] in StandardTableaux()
+            True
+        """
+        if x not in Tableaux():
+            return False
+        else:
+            t = Tableau(x)
+
+        #Check to make sure the first position is 1
+        fillings = []
+        for row in t:
+            fillings += row
+        fillings.sort()
+        if fillings != range(1, max(fillings)+1):
+            return False
+
+        #Check to make sure it is increasing along the rows
+        for row in t:
+            for i in range(1, len(row)):
+                if row[i] <= row[i-1]:
+                    return False
+
+        #Check to make sure it is increasing along the columns
+        conj = t.conjugate()
+        for row in conj:
+            for i in range(1, len(row)):
+                if row[i] <= row[i-1]:
+                    return False
+
+        return True
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(StandardTableaux())
+            'Standard tableaux'
+        """
+        return "Standard tableaux"
+
+    def list(self):
+        """
+        TESTS:
+            sage: StandardTableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
+class StandardTableaux_n(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: ST = StandardTableaux(3)
+            sage: ST == loads(dumps(ST))
+            True
+        """
+        self.n = n
+
+    object_class = Tableau_class
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(StandardTableaux(3))
+            'Standard tableaux of size 3'
+        """
+        return "Standard tableaux of size %s"%self.n
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: ST3 = StandardTableaux(3)
+            sage: all([st in ST3 for st in ST3])
+            True
+            sage: ST4 = StandardTableaux(4)
+            sage: filter(lambda x: x in ST3, ST4)
+            []
+        """
+        return x in StandardTableaux() and sum(map(len, x)) == self.n
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: StandardTableaux(1).list()
+            [[[1]]]
+            sage: StandardTableaux(2).list()
+            [[[1, 2]], [[1], [2]]]
+            sage: StandardTableaux(3).list()
+            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+            sage: StandardTableaux(4).list()
+            [[[1, 2, 3, 4]],
+             [[1, 3, 4], [2]],
+             [[1, 2, 4], [3]],
+             [[1, 2, 3], [4]],
+             [[1, 3], [2, 4]],
+             [[1, 2], [3, 4]],
+             [[1, 4], [2], [3]],
+             [[1, 3], [2], [4]],
+             [[1, 2], [3], [4]],
+             [[1], [2], [3], [4]]]
+        """
+        for p in Partitions(self.n):
+            for st in StandardTableaux(p):
+                yield st
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: StandardTableaux(3).count()
+            4
+            sage: ns = [1,2,3,4,5,6]
+            sage: sts = [StandardTableaux(n) for n in ns]
+            sage: all([st.count() == len(st.list()) for st in sts])
+            True
+        """
+        c = 0
+        for p in Partitions(self.n):
+            c += StandardTableaux(p).count()
+        return c
+
+
+class StandardTableaux_partition(CombinatorialClass):
+    def __init__(self, p):
+        """
+        TESTS:
+            sage: ST = StandardTableaux([2,1,1])
+            sage: ST == loads(dumps(ST))
+            True
+        """
+        self.p = Partition(p)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: ST = StandardTableaux([2,1,1])
+            sage: all([st in ST for st in ST])
+            True
+            sage: len(filter(lambda x: x in ST, StandardTableaux(4)))
+            3
+            sage: ST.count()
+            3
+
+        """
+        return x in StandardTableaux() and map(len,x) == self.p
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(StandardTableaux([2,1,1]))
+            'Standard tableaux of shape [2, 1, 1]'
+        """
+        return "Standard tableaux of shape %s"%str(self.p)
+
+    def count(self):
+        r"""
+        Returns the number of standard Young tableaux associated with
+        a partition pi
+
+        A formula for the number of Young tableaux associated with a given partition.
+        In each box, write the sum of one plus the number of boxes horizontally to the right
+        and vertically below the box (the hook length).
+        The number of tableaux is then n! divided by the product of all hook lengths.
+
+        For example, consider the partition [3,2,1] of 6 with Ferrers Diagram
+        * * *
+        * *
+        *
+        When we fill in the boxes with the hook lengths, we obtain
+        5 3 1
+        3 1
+        1
+        The hook length formula returns 6!/(5*3*1*3*1*1) = 16.
+
+        EXAMPLES:
+            sage: StandardTableaux([3,2,1]).count()
+            16
+            sage: StandardTableaux([2,2]).count()
+            2
+            sage: StandardTableaux([5]).count()
+            1
+            sage: StandardTableaux([6,5,5,3]).count()
+            6651216
+
+        REFERENCES:
+            http://mathworld.wolfram.com/HookLengthFormula.html
+        """
+        pi = self.p
+
+        number = factorial(sum(pi))
+        hook = pi.hook_lengths()
+        entry = 0
+
+        for row in range(len(pi)):
+            for col in range(pi[row]):
+                #Divide the hook length by the entry
+                number /= hook[row][col]
+
+        return number
+
+    def iterator(self):
+        r"""
+        An iterator for the standard Young tableaux associated to the
+        partition pi.
+
+        EXAMPLES:
+            sage: [p for p in StandardTableaux([2,2])]
+            [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
+            sage: [p for p in StandardTableaux([3,2])]
+            [[[1, 3, 5], [2, 4]],
+             [[1, 2, 5], [3, 4]],
+             [[1, 3, 4], [2, 5]],
+             [[1, 2, 4], [3, 5]],
+             [[1, 2, 3], [4, 5]]]
+
+        """
+
+        pi = self.p
+        #Set the intial tableaux by filling it in going down the columns
+        tableau = [[None]*n for n in pi]
+        size = sum(pi)
+        row = 0
+        col = 0
+        for i in range(size):
+            tableau[row][col] = i+1
+
+            #If we can move down, then do it;
+            #otherwise, move to the next column over
+            if ( row + 1 < len(pi) and col < pi[row+1]):
+                row += 1
+            else:
+                row = 0
+                col += 1
+
+        yield Tableau(tableau)
+
+        if self.count() == 1:
+            last_tableau = True
+        else:
+            last_tableau = False
+
+        while not last_tableau:
+            #Convert the tableau to "vector format"
+            #tableau_vector[i] is the row that number i
+            #is in
+            tableau_vector = [None]*size
+            for row in range(len(pi)):
+                for col in range(pi[row]):
+                    tableau_vector[tableau[row][col]-1] = row
+
+            #Locate the smallest integer j such that j is not
+            #in the lowest corner of the subtableau T_j formed by
+            #1,...,j.  This happens to be first j such that
+            #tableau_vector[j]<tableau_vector[j-1].
+            #l will correspond to the shape of T_j
+            l = [0]*size
+            l[0] = 1
+            j = 0
+            for i in range(1,size):
+                l[tableau_vector[i]] += 1
+                if ( tableau_vector[i] < tableau_vector[i-1] ):
+                    j = i
+                    break
+
+            #Find the last nonzero row of l and store it in k
+            i = size - 1
+            while ( l[i] == 0 ):
+                i -= 1
+            k = i
+
+            #Find a new row for the letter j (next lowest corner)
+            t = l[ 1 + tableau_vector[j] ]
+            i = k
+            while ( l[i] != t ):
+                i -= 1
+
+            #Move the letter j to row i
+            tableau_vector[j] = i
+            l[i] -= 1
+
+            #Fill in the columns of T_j using 1,...,j-1 in increasing order
+            m = 0
+            while ( m < j ):
+                r = 0
+                while ( l[r] != 0 ):
+                    tableau_vector[m] = r
+                    l[r] -= 1
+                    m += 1
+                    r += 1
+
+            #Convert the tableau vector back to the regular tableau
+            #format
+            row_count= [0]*len(pi)
+            start_positions = [sum(pi[:n]) for n in range(len(pi))]
+            tableau = [[None]*n for n in pi]
+
+            for i in range(size):
+                #print tableau_vector, tableau_vector[i], row_count[tableau_vector[i]]
+                tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
+                row_count[tableau_vector[i]] += 1
+
+            yield Tableau(tableau)
+
+            #Check to see if we are at the last tableau
+            #The last tableau if given by filling in the
+            #partition along the rows.  For example, the
+            #last partition corresponding to [3,2] is
+            #[[1,2,3],
+            # [4,5]]
+            last_tableau = True
+            i = 1
+            for row in range(len(pi)):
+                for col in range(pi[row]):
+                    if tableau[row][col] != i:
+                        last_tableau = False
+                    i += 1
+
+
+        return
+
+
+    def list(self):
+        r"""
+        Returns a list of the standard Young tableau associated with a
+        partition p.
+
+        EXAMPLES:
+            sage: StandardTableaux([2,2]).list()
+            [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
+            sage: StandardTableaux([5]).list()
+            [[[1, 2, 3, 4, 5]]]
+            sage: StandardTableaux([3,2,1]).list()
+            [[[1, 4, 6], [2, 5], [3]],
+             [[1, 3, 6], [2, 5], [4]],
+             [[1, 2, 6], [3, 5], [4]],
+             [[1, 3, 6], [2, 4], [5]],
+             [[1, 2, 6], [3, 4], [5]],
+             [[1, 4, 5], [2, 6], [3]],
+             [[1, 3, 5], [2, 6], [4]],
+             [[1, 2, 5], [3, 6], [4]],
+             [[1, 3, 4], [2, 6], [5]],
+             [[1, 2, 4], [3, 6], [5]],
+             [[1, 2, 3], [4, 6], [5]],
+             [[1, 3, 5], [2, 4], [6]],
+             [[1, 2, 5], [3, 4], [6]],
+             [[1, 3, 4], [2, 5], [6]],
+             [[1, 2, 4], [3, 5], [6]],
+             [[1, 2, 3], [4, 5], [6]]]
+
+        """
+        return [y for y in self]
+
+
+    def random(self):
+        """
+        Returns a random standard tableau of shape p using the
+        Green-Nijenhuis-Wilf Algorithm.
+
+
+        EXAMPLES:
+            sage: StandardTableaux([2,2]).random() #random
+            [[1, 2], [3, 4]]
+        """
+
+        p = self.p
+
+        t = [[None]*n for n in p]
+
+
+        #Get the cells in the
+        cells = []
+        for i in range(len(p)):
+            for j in range(p[i]):
+                cells.append([i,j])
+
+
+        done = False
+        m = sum(p)
+        while m > 0:
+
+            #Choose a cell at random
+            cell = random.choice(cells)
+
+
+            #Find a corner
+            inner_corners = p.corners()
+            while cell not in inner_corners:
+                hooks = []
+                for k in range(cell[1], p[cell[0]]):
+                    hooks.append([cell[0], k])
+                for k in range(cell[0], len(p)):
+                    if p[k] > cell[1]:
+                        hooks.append([k, cell[1]])
+
+                cell = random.choice(hooks)
+
+
+            #Assign m to cell
+            t[cell[0]][cell[1]] = m
+
+            p = p.remove_box(cell[0])
+
+            cells.remove(cell)
+
+            m -= 1
+
+        return Tableau(t)
+
+
+## def heights(t):
+##     """
+##     Returns a list of the heights of the tableau t.
+
+##     EXAMPLES:
+##         sage: tableau.heights([[1,2],[3,2])
+##         [2, 2]
+##         sage: tableau.heights([3,2,1])
+##         [3, 2, 1]
+##         sage: tableau.heights([3,1])
+##         [2, 1, 1]
+##     """
+
+##     return partition.heights(shape(t))
+
+
+
+
+
+##########################
+# Semi-standard tableaux #
+##########################
+
+def SemistandardTableaux(p=None, mu=None):
+    """
+    Returns the combinatorial class of semistandard tableaux.
+
+    If p is specified and is a partition, then it returns the
+    class of semistandard tableaux of shape p (and max entry
+    sum(p))
+
+    If p is specified and is an integer, it returns the class
+    of semistandard tableaux of size p.
+
+    If mu is also specified, then it returns the class of
+    semistandard tableaux with evaluation/content mu.
+
+    EXAMPLES:
+        sage: SST = SemistandardTableaux([2,1]); SST
+        Semistandard tableaux of shape [2, 1]
+        sage: SST.list()
+        [[[1, 2], [3]], [[1, 3], [2]], [[1, 2], [2]], [[1, 1], [2]]]
+
+        sage: SST = SemistandardTableaux(3); SST
+        Semistandard tableaux of size 3
+        sage: SST.list()
+        [[[1, 2, 3]],
+         [[1, 2, 2]],
+         [[1, 1, 2]],
+         [[1, 1, 1]],
+         [[1, 2], [3]],
+         [[1, 3], [2]],
+         [[1, 2], [2]],
+         [[1, 1], [2]],
+         [[1], [2], [3]]]
+    """
+    if p == None:
+        return SemistandardTableaux_all()
+    elif p in Partitions():
+        if mu == None:
+            return SemistandardTableaux_p(p)
+        else:
+            if sum(p) != sum(mu):
+                #Error size mismatch
+                raise TypeError, "p and mu must be of the same size"
+            else:
+                return SemistandardTableaux_pmu(p, mu)
+    elif isinstance(p, (int, Integer)):
+        if mu == None:
+            return SemistandardTableaux_n(p)
+        else:
+            if p != sum(mu):
+                #Error size mismatch
+                raise TypeError, "mu must be of size p (= %s)"%self.p
+            else:
+                return SemistandardTableaux_nmu(p, mu)
+    else:
+        raise ValueError
+
+class SemistandardTableaux_all(CombinatorialClass):
+    def __init__(self):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux()
+            sage: SST == loads(dumps(SST))
+            True
+        """
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: [[1,2],[1]] in SemistandardTableaux()
+            False
+            sage: SST = SemistandardTableaux()
+            sage: all([st in SST for st in StandardTableaux(4)])
+            True
+            sage: [[1,1],[2]] in SemistandardTableaux()
+            True
+        """
+        if x not in Tableaux():
+            return False
+        else:
+            t = Tableau(x)
+
+        #Check to make sure the first position is 1
+        fillings = []
+        for row in t:
+            for i in row:
+                if not isinstance(i, (int, Integer)):
+                    return False
+
+        #Check to make sure it is non-decreasing along the rows
+        for row in t:
+            for i in range(1, len(row)):
+                if row[i] < row[i-1]:
+                    return False
+
+        #Check to make sure it is increasing along the columns
+        conj = t.conjugate()
+        for row in conj:
+            for i in range(1, len(row)):
+                if row[i] <= row[i-1]:
+                    return False
+
+        return True
+
+    def list(self):
+        """
+        TESTS:
+            sage: SemistandardTableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+class SemistandardTableaux_n(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux(3)
+            sage: SST == loads(dumps(SST))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SemistandardTableaux(3))
+            'Semistandard tableaux of size 3'
+        """
+        return "Semistandard tableaux of size %s"%str(self.n)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: [[1,2],[3,3]] in SemistandardTableaux(3)
+            False
+            sage: [[1,2],[3,3]] in SemistandardTableaux(4)
+            True
+            sage: SST = SemistandardTableaux(4)
+            sage: all([sst in SST for sst in SST])
+            True
+        """
+        return x in SemistandardTableaux() and sum(map(len, x)) == self.n
+
+    object_class = Tableau_class
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux(3).count()
+            9
+            sage: SemistandardTableaux(4).count()
+            33
+            sage: ns = range(1, 6)
+            sage: ssts = [ SemistandardTableaux(n) for n in ns ]
+            sage: all([sst.count() == len(sst.list()) for sst in ssts])
+            True
+        """
+        c = 0
+        for part in Partitions(self.n):
+            c += SemistandardTableaux(part).count()
+        return c
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux(2).list()
+            [[[1, 2]], [[1, 1]], [[1], [2]]]
+            sage: SemistandardTableaux(3).list()
+            [[[1, 2, 3]],
+             [[1, 2, 2]],
+             [[1, 1, 2]],
+             [[1, 1, 1]],
+             [[1, 2], [3]],
+             [[1, 3], [2]],
+             [[1, 2], [2]],
+             [[1, 1], [2]],
+             [[1], [2], [3]]]
+        """
+        for part in Partitions(self.n):
+            for sst in SemistandardTableaux(part):
+                yield sst
+
+class SemistandardTableaux_pmu(CombinatorialClass):
+    def __init__(self, p, mu):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux([2,1], [2,1])
+            sage: SST == loads(dumps(SST))
+            True
+        """
+        self.p = p
+        self.mu = mu
+
+    object_class = Tableau_class
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SemistandardTableaux([2,1],[2,1]))
+            'Semistandard tableaux of shape [2, 1] and evaluation [2, 1]'
+        """
+        return "Semistandard tableaux of shape %s and evaluation %s"%(self.p, self.mu)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: SST = SemistandardTableaux([2,1], [2,1])
+            sage: all([sst in SST for sst in SST])
+            True
+            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            1
+            sage: SST.count()
+            1
+        """
+        if not x in SemistandardTableaux(self.p):
+            return False
+        n = sum(self.p)
+
+        if n == 0 and len(x) == 0:
+            return True
+
+        content = {}
+        for row in x:
+            for i in row:
+                content[i] = content.get(i, 0) + 1
+        content_list = [0]*int(max(content))
+
+        for key in content:
+            content_list[key-1] = content[key]
+
+        if content_list != self.mu:
+            return False
+
+        return True
+
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux([2,2], [2, 1, 1]).count()
+            1
+            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).count()
+            1
+            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).count()
+            1
+            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).count()
+            2
+        """
+        return symmetrica.kostka_number(self.p,self.mu)
+
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux([2,2], [2, 1, 1]).list()
+            [[[1, 1], [2, 3]]]
+            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).list()
+            [[[1, 1], [2, 2], [3, 4]]]
+            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).list()
+            [[[1, 1], [2, 2], [3, 3]]]
+            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).list()
+            [[[1, 1, 2], [2, 3], [3]], [[1, 1, 3], [2, 2], [3]]]
+        """
+        return symmetrica.kostka_tab(self.p, self.mu)
+
+
+class SemistandardTableaux_p(CombinatorialClass):
+    def __init__(self, p):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux([2,1])
+            sage: SST == loads(dumps(SST))
+            True
+        """
+        self.p = p
+
+    object_class = Tableau_class
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: SST = SemistandardTableaux([2,1])
+            sage: all([sst in SST for sst in SST])
+            True
+            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            4
+            sage: SST.count()
+            4
+        """
+        return x in SemistandardTableaux_all() and map(len, x) == self.p
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SemistandardTableaux([2,1]))
+            'Semistandard tableaux of shape [2, 1]'
+        """
+        return "Semistandard tableaux of shape %s" % str(self.p)
+
+
+    def iterator(self):
+        """
+        An iterator for the semistandard partitions of shape p.
+
+        EXAMPLES:
+            sage: SemistandardTableaux([3]).list()
+            [[[1, 2, 3]], [[1, 2, 2]], [[1, 1, 2]], [[1, 1, 1]]]
+            sage: SemistandardTableaux([2,1]).list()
+            [[[1, 2], [3]], [[1, 3], [2]], [[1, 2], [2]], [[1, 1], [2]]]
+            sage: SemistandardTableaux([1,1,1]).list()
+            [[[1], [2], [3]]]
+        """
+        for c in Compositions(sum(self.p)):
+            for sst in SemistandardTableaux(self.p, c):
+                yield sst
+
+class SemistandardTableaux_nmu(CombinatorialClass):
+    def __init__(self, n, mu):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux(3, [2,1])
+            sage: SST == loads(dumps(SST))
+            True
+        """
+        self.n = n
+        self.mu = mu
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SemistandardTableaux(3, [2,1]))
+            'Semistandard tableaux of size 3 and evaluation [2, 1]'
+        """
+        return "Semistandard tableaux of size %s and evaluation %s"%(self.n, self.mu)
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux(3, [2,1]).list()
+            [[[1, 1, 2]], [[1, 1], [2]]]
+            sage: SemistandardTableaux(4, [2,2]).list()
+            [[[1, 1, 2, 2]], [[1, 1, 2], [2]], [[1, 1], [2, 2]]]
+        """
+        for p in Partitions(self.n):
+            for sst in SemistandardTableaux_pmu(p, self.mu):
+                yield sst
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux(3, [2,1]).count()
+            2
+            sage: SemistandardTableaux(4, [2,2]).count()
+            3
+        """
+        c = 0
+        for p in Partitions(self.n):
+            c += SemistandardTableaux_pmu(p, self.mu).count()
+        return c
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: SST = SemistandardTableaux(6, [2,2,2])
+            sage: all([sst in SST for sst in SST])
+            True
+            sage: all([sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2])])
+            True
+        """
+        return x in SemistandardTableaux_all() and x in SemistandardTableaux(map(len, x), self.mu)

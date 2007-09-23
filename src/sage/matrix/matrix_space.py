@@ -22,6 +22,8 @@ TESTS:
     [0 0]
 """
 
+import types
+
 # System imports
 import random
 import weakref
@@ -621,7 +623,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [ 1  0]
             [ 0 -1]
         """
-        if isinstance(x, (xrange,xsrange)):
+        if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()

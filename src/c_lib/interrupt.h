@@ -170,10 +170,11 @@ extern struct sage_signals _signals;
  * See also @ref _sig_str
  */
 
-#define _sig_on  _signals.mpio = 1+2; _signals.s = NULL;\
-                if (sigsetjmp(_signals.env,1)) { \
+#define _sig_on if (_signals.mpio == 0) { _signals.mpio = 1+2; _signals.s = NULL;\
+                 if (sigsetjmp(_signals.env,1)) { \
+                  _signals.mpio = 0;   \
                   return(0); \
-                }
+                } } // else { _signals.s = "Unbalanced _sig_on/_sig_off\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
 
 /* /\** */
 /*  * Enables SAGE signal handling for the following C block. This macro */
@@ -194,11 +195,12 @@ extern struct sage_signals _signals;
  *
  */
 
-#define _sig_str(mstring) _signals.mpio = 1+2; \
+#define _sig_str(mstring) if (_signals.mpio == 0) { _signals.mpio = 1+2; \
                 _signals.s = mstring; \
                 if (sigsetjmp(_signals.env,1)) { \
+                  _signals.mpio = 0; \
                  return(0); \
-                }
+                } } //else { _signals.s = "Unbalanced _sig_str/_sig_off\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
 
 
 /**

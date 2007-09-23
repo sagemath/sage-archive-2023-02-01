@@ -33,7 +33,7 @@ ZZ_sage = IntegerRing()
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-from sage.libs.ntl.all import ZZX, zero_ZZX
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -111,9 +111,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: type(pari(f))
             <type 'sage.libs.pari.gen.gen'>
             sage: type(R(pari(f)))
-             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
+            <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: R(pari(f))
             5*x^2 + 2*x - 1
+
+        Coercion from NTL polynomial:
+            sage: f = ntl.ZZX([1, 2, 3])
+            sage: print R(f)
+            3*x^2 + 2*x + 1
 
         Coercion from dictionary:
             sage: f = R({2: -4, 3: 47}); f
@@ -125,12 +130,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             <class 'sage.rings.fraction_field_element.FractionFieldElement'>
             sage: g = R(f); g
             x^2 + x + 1
-
-        TODO:
-            -- why is there a construct parameter here? It's never used.
-               But if I remove it, other parts of the Polynomial code fail.
-
-            -- coercion from ntl.pyx ZZX objects
 
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -155,6 +154,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             x = [Integer(w) for w in x.Vecrev()]
             check = False
 
+        elif isinstance(x, ntl_ZZX):    # coercion from ntl.pyx object
+            # copy with NTL assignment operator
+            self.__poly = (<ntl_ZZX>x).x
+            return
+
         elif isinstance(x, FractionFieldElement) and \
                  isinstance(x.numerator(), Polynomial_integer_dense_ntl):
             if x.denominator() == 1:
@@ -163,6 +167,19 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
+
+
+        if not check:
+            # for now just check types while we sort out what other doctests are failing....
+            for zz in x:
+               if not isinstance(zz, Integer):
+                  print "ARRGGGGHHHH!!!!!"
+                  from traceback import print_stack
+                  from sys import stdout
+                  print_stack(file=stdout)
+                  break
+            check = True
+
 
         if check:
             x = [Integer(z) for z in x]

@@ -151,11 +151,11 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: phi = G.hom(G.gens())
             sage: print latex(phi)
             \left\langle \left(\begin{array}{rr}
-            1&1\\
-            0&1
+            1 & 1 \\
+            0 & 1
             \end{array}\right) \right\rangle \rightarrow{} \left\langle \left(\begin{array}{rr}
-            1&1\\
-            0&1
+            1 & 1 \\
+            0 & 1
             \end{array}\right) \right\rangle
         """
         return "%s \\rightarrow{} %s"%(latex(self.domain()), latex(self.codomain()))

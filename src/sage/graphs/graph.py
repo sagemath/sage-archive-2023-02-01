@@ -426,7 +426,7 @@ class GenericGraph(SageObject):
 
     ### General properties
 
-    def name(self, new=''):
+    def name(self, new=None):
         """
         Returns the name of the (di)graph.
 
@@ -441,12 +441,20 @@ class GenericGraph(SageObject):
             sage: G.name("Petersen Graph"); G
             'Petersen Graph'
             Petersen Graph: Graph on 10 vertices
-            sage: G.name(""); G
+            sage: G.name(new=""); G
             Graph on 10 vertices
+            sage: G.name()
 
         """
+        if new is None:
+            if self._nxg.name != '':
+                return self._nxg.name
+            else:
+                return None
+
         if not isinstance(new, str):
             raise TypeError, "New name must be a string."
+
         self._nxg.name = new
         if new != '':
             return self._nxg.name
@@ -739,10 +747,34 @@ class GenericGraph(SageObject):
 
     def clear(self):
         """
-        Empties the graph of vertices and edges, removes name.
+        Empties the graph of vertices and edges and removes name,
+        boundary, associated objects, and position information.
+
+        EXAMPLE:
+            sage: G=graphs.CycleGraph(4); G.associate({0:'vertex0'})
+            sage: G.order(); G.size()
+            4
+            4
+            sage: len(G._pos)
+            4
+            sage: G.name()
+            'Cycle graph'
+            sage: G.obj(0)
+            'vertex0'
+            sage: G.clear()
+            sage: G.order(); G.size()
+            0
+            0
+            sage: len(G._pos)
+            0
+            sage: G.name()
+            sage: G.obj(0)
 
         """
         self._nxg.clear()
+        self._pos=[]
+        self._boundary=[]
+        self._assoc=None
 
     def neighbors(self, vertex):
         """

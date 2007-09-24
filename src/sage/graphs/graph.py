@@ -566,6 +566,10 @@ class GenericGraph(SageObject):
         will be represented by the least integer not already representing a
         vertex. Name must be an immutable object.
 
+        As it is implemented now, if a graph $G$ has a large number of
+        vertices with numeric labels, then G.add_vertex() could
+        potentially be slow.
+
         EXAMPLES:
             sage: G = Graph(); G.add_vertex(); G
             Graph on 1 vertex

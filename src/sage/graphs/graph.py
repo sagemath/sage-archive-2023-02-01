@@ -254,6 +254,8 @@ class GenericGraph(SageObject):
         settings for loops and multiedges, output the same vertex list (in order)
         and the same adjacency matrix.
 
+        Note that this is _not_ an isomorphism test.
+
         Note that the less-than and greater-than value returned here
         doesn't mean much.  The equality test is the useful thing.
 

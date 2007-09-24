@@ -4778,15 +4778,8 @@ class DiGraph(GenericGraph):
             110
 
         """
-        A = list(self._nxg.pred[vertex].iterkeys())
-        B = list(self._nxg.succ[vertex].iterkeys())
-        C = []
-        for V in A:
-            if not V in B:
-                C += [V]
-        for V in B:
-            C += [V]
-        return iter(C)
+        return iter(set(self._nxg.successors_iter(vertex)) \
+                    | set(self._nxg.predecessors_iter(vertex)))
 
     ### Edge Handlers
 

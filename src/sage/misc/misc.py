@@ -892,24 +892,25 @@ def ellipsis_range(*args, **kwds):
         [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
 
     """
-    from sage.structure.sequence import Sequence
-    S = Sequence([a for a in args if a is not Ellipsis])
-    universe = S.universe()
-    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
-
     # Use kwds so step not absorbed into *args
     step_magic = 0
     if len(kwds) == 0:
-        step = universe(1)
+        step = 1
         if Ellipsis in args:
-            i = args.index(Ellipsis)
+            i = list(args).index(Ellipsis)
             if i > 1:
                 step = args[i-1]-args[i-2]
                 step_magic = i
     else:
-        step = universe(kwds.pop('step'))
+        step = kwds.pop('step')
         if len(kwds) != 0:
             TypeError, "Unexpected keywords", kwds
+
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis] + [step])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+    step = universe(step)
 
     skip = False
     last_end = None
@@ -993,24 +994,25 @@ def ellipsis_iter(*args, **kwds):
         sage: list(100,102,..,10,..,20)
         [10, 12, 14, 16, 18, 20]
     """
-    from sage.structure.sequence import Sequence
-    S = Sequence([a for a in args if a is not Ellipsis])
-    universe = S.universe()
-    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
-
     # Use kwds so step not absorbed into *args
     step_magic = 0
     if len(kwds) == 0:
-        step = universe(1)
+        step = 1
         if Ellipsis in args:
-            i = args.index(Ellipsis)
+            i = list(args).index(Ellipsis)
             if i > 1:
                 step = args[i-1]-args[i-2]
                 step_magic = i
     else:
-        step = universe(kwds.pop('step'))
+        step = kwds.pop('step')
         if len(kwds) != 0:
             TypeError, "Unexpected keywords", kwds
+
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis] + [step])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+    step = universe(step)
 
     # this is a bit more complicated because we can't pop what's already been yielded
     next = None

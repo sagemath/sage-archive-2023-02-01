@@ -193,6 +193,11 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 ##                                       self._has_coerce_map_from,
 ##                                       self._names))
 
+    # First n generators, for n <= ngens:
+    def _first_ngens(self, n):
+        v = self.gens()
+        return v[:n]
+
     # Derived class *must* define ngens method.
     def ngens(self):
         raise NotImplementedError, "Number of generators not known."

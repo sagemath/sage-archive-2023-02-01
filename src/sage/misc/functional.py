@@ -898,34 +898,34 @@ def isqrt(x):
     except AttributeError:
         raise NotImplementedError
 
-def square_free_part(x):
+def squarefree_part(x):
     """
     Return the square free part of $x$, i.e., a divisor $z$ such that $x = z y^2$,
     for a perfect square $y^2$.
 
     EXAMPLES:
-        sage: square_free_part(100)
+        sage: squarefree_part(100)
         1
-        sage: square_free_part(12)
+        sage: squarefree_part(12)
         3
-        sage: square_free_part(10)
+        sage: squarefree_part(10)
         10
 
         sage: x = QQ['x'].0
-        sage: S = square_free_part(-9*x*(x-6)^7*(x-3)^2); S
+        sage: S = squarefree_part(-9*x*(x-6)^7*(x-3)^2); S
         -9*x^2 + 54*x
         sage: S.factor()
         (-9) * (x - 6) * x
 
         sage: f = (x^3 + x + 1)^3*(x-1); f
         x^10 - x^9 + 3*x^8 + 3*x^5 - 2*x^4 - x^3 - 2*x - 1
-        sage: g = square_free_part(f); g
+        sage: g = squarefree_part(f); g
         x^4 - x^3 + x^2 - 1
         sage: g.factor()
         (x - 1) * (x^3 + x + 1)
     """
     try:
-        return x.square_free_part()
+        return x.squarefree_part()
     except AttributeError:
         pass
     F = factor(x)
@@ -934,8 +934,6 @@ def square_free_part(x):
         if e%2 != 0:
             n *= p
     return n * F.unit()
-
-squarefree_part = square_free_part
 
 ## def square_root(x):
 ##     """

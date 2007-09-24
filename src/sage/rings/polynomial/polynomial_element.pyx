@@ -2459,6 +2459,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self._parent(self[:n], check=False)
 
+    def is_squarefree(self):
+        """
+        Return True if this polynomial is square free.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: f = (x-1)*(x-2)*(x^2-5)*(x^17-3); f
+            x^21 - 3*x^20 - 3*x^19 + 15*x^18 - 10*x^17 - 3*x^4 + 9*x^3 + 9*x^2 - 45*x + 30
+            sage: f.is_squarefree()
+            True
+            sage: (f*(x^2-5)).is_squarefree()
+            False
+        """
+        return self.derivative().gcd(self).degree() <= 0
+
     def radical(self):
         """
         Returns the radical of self; over a field, this is the product of the

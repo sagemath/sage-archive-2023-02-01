@@ -1067,7 +1067,7 @@ class Maxima(Expect):
 ##         # Take square-free part so sqrt(n) doesn't get simplified further by maxima
 ##         # (The original version of this function would yield wrong answers if
 ##         # n is not squarefree.)
-##         n = Integer(n).square_free_part()
+##         n = Integer(n).squarefree_part()
 ##         if n < 1:
 ##             raise ValueError, "n (=%s) must be >= 1"%n
 ##         s = str(self('qunit(%s)'%n)).lower()

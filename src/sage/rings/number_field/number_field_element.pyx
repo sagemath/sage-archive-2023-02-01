@@ -1002,6 +1002,20 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
+    def galois_conjuges(self):
+        """
+        Return the Galois conjugates of this number field element in
+        the Galois closure of the parent field.
+
+        EXAMPLES:
+        """
+        L = self.parent()
+        K, phi = L.galois_closure()
+        f = self.minpoly()
+        K['x']
+
+
+
     def conjugate(self):
         """
         Return the complex conjugate of the number field element.  Currently,
@@ -1243,7 +1257,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: R.<X> = K['X']
             sage: L.<b> = K.extension(X^2-(22 + a))
             sage: b.minpoly('t')
-            t^4 + (-44)*t^2 + 487
+            t^2 + -a - 22
+            sage: b.absolute_minpoly('t')
+            t^4 - 44*t^2 + 487
             sage: b^2 - (22+a)
             0
         """
@@ -1421,9 +1437,28 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         num[0] = _num.x
         den[0] = _den.x
 
+    def absolute_charpoly(self, var='x'):
+        r"""
+        Return the characteristic polynomial of this element over $\QQ$.
+        """
+        return self.charpoly(var=var)
+
+    def absolute_minpoly(self, var='x'):
+        r"""
+        Return the minimal polynomial of this element over $\QQ$.
+
+        EXAMPLES:
+
+
+        """
+        return self.minpoly(var=var)
+
     def charpoly(self, var='x'):
         r"""
-        The characteristic polynomial of this element over $\Q$.
+        The characteristic polynomial of this element over $\QQ$.
+
+        This is the same as \code{self.absolute_charpoly} since this
+        is an element of an absolute extension.
 
         EXAMPLES:
 
@@ -1459,6 +1494,21 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
 
 cdef class NumberFieldElement_relative(NumberFieldElement):
+    def list(self):
+        """
+        Return list of coefficients of self written in terms of a
+        power basis.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^3+2, x^2+1])
+            sage: a.list()
+            [0, 1, 0]
+            sage: v = (K.base_field().0 + a)^2 ; v
+            a^2 + 2*b*a + -1
+            sage: v.list()
+            [-1, 2*b, 1]
+        """
+        return self.vector().list()
 
     def _pari_(self, var='x'):
         """
@@ -1468,7 +1518,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         By default the variable name is 'x', since in PARI many variable
         names are reserved.
             sage: y = QQ['y'].gen()
-            sage: k.<j> = NumberField([y^3 - 2, y^2 - 7])
+            sage: k.<j> = NumberField([y^2 - 7, y^3 - 2])
             sage: pari(j)
             Mod(42/5515*x^5 - 9/11030*x^4 - 196/1103*x^3 + 273/5515*x^2 + 10281/5515*x + 4459/11030, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
             sage: j^2
@@ -1522,33 +1572,49 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def charpoly(self, var='x'):
         r"""
-        The characteristic polynomial of this element over $\Q$.
+        The characteristic polynomial of this element over its base field.
 
         EXAMPLES:
 
-        We construct a relative extension and find the characteristic
-        polynomial over $\Q$.
+        """
+        return self.matrix().charpoly(var)
 
+    def absolute_charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this element over $\QR$.
+
+        We construct a relative extension and find the characteristic
+        polynomial over $\QQ$.
+
+        EXAMPLES:
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17); L
             Number Field in b with defining polynomial X^3 + 17 over its base field
-            sage: b.charpoly ()
+            sage: b.absolute_charpoly()
             x^9 + 51*x^6 + 867*x^3 + 4913
             sage: b.charpoly()(b)
             0
             sage: a = L.0; a
             b
-            sage: a.charpoly('x')
+            sage: a.absolute_charpoly('x')
             x^9 + 51*x^6 + 867*x^3 + 4913
-            sage: a.charpoly('y')
+            sage: a.absolute_charpoly('y')
             y^9 + 51*y^6 + 867*y^3 + 4913
         """
-        R = self.parent().base_ring()[var]
         g = self.polynomial()  # in QQ[x]
+        R = g.parent()
         f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-        return R( (g._pari_().Mod(f)).charpoly() )
+        return R( (g._pari_().Mod(f)).charpoly() ).change_variable_name(var)
+
+    def absolute_minpoly(self, var='x'):
+        r"""
+        Return the minpoly over $\QQ$ of this element.
+
+        EXAMPLES:
+        """
+        return self.absolute_charpoly(var).radical()
 
 ## This might be useful for computing relative charpoly.
 ## BUT -- currently I don't even know how to view elements

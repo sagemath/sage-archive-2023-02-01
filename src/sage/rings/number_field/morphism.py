@@ -84,7 +84,7 @@ class NumberFieldHomset(RingHomset_generic):
         Return a list of all the elements of self.
 
         EXAMPLES:
-            sage: K.<a> = NumberField( [x^3 + 2, x^2 + x + 1] )
+            sage: K.<a> = NumberField( [x^2 + x + 1, x^3 + 2] )
             sage: L = K.absolute_field()[0]
             sage: G = End(L); G
             Automorphism group of Number Field in a0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9

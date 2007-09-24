@@ -497,9 +497,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 d0 = line[:c0].rfind('[')
                 if c0 == -1:
                     raise SyntaxError, 'constructor must end with ) or ]'
-                line_new = '%s"%s"%s; (%s,) = %s.gens()'%(
+                line_new = '%s"%s"%s; (%s,) = %s._first_ngens(%s)'%(
                     line[:i] + line[gen_end+1:d0+1], gen_vars,
-                    line[c0:c], gen_vars, gen_obj)
+                    line[c0:c], gen_vars, gen_obj, gen_vars.count(',')+1)
             else:
                 c0 = line[:c].rfind(')')
                 # General constructor -- rewrite the input line as two commands
@@ -513,9 +513,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 else:
                     sep = ''
 
-                line_new = '%s%snames=%s); (%s,) = %s.gens()'%(
+                line_new = '%s%snames=%s); (%s,) = %s._first_ngens(%s)'%(
                     line[:i] + line[gen_end+1:c0], sep, gen_names,
-                    gen_vars, gen_obj)
+                    gen_vars, gen_obj, gen_vars.count(',')+1)
 
             line = line_new + line[c:]
             #i = len(line_new)

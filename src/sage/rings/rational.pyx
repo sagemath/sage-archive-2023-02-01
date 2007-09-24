@@ -530,23 +530,23 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
 
-    def square_free_part(self):
+    def squarefree_part(self):
         """
         Return the square free part of $x$, i.e., an integer z such that $x = z y^2$,
         for a perfect square $y^2$.
 
         EXAMPLES:
             sage: a = 1/2
-            sage: a.square_free_part()
+            sage: a.squarefree_part()
             2
-            sage: b = a/a.square_free_part()
+            sage: b = a/a.squarefree_part()
             sage: b, b.is_square()
             (1/4, True)
             sage: a = 24/5
-            sage: a.square_free_part()
+            sage: a.squarefree_part()
             30
         """
-        return self.numer().square_free_part() * self.denom().square_free_part()
+        return self.numer().squarefree_part() * self.denom().squarefree_part()
 
     def sqrt_approx(self, prec=None, all=False):
         """

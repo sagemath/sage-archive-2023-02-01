@@ -3051,7 +3051,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         p_Delete(&gcd, _ring)
         return co.new_MP(self._parent, ret)
 
-    def is_square_free(self):
+    def is_squarefree(self):
         """
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring

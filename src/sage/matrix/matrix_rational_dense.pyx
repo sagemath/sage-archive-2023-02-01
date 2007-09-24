@@ -658,13 +658,28 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES:
             sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
-            sage: f = a.minpoly(); f           # optional -- os x only right now
+            sage: f = a.minpoly(); f
             x^3 - 7/12*x^2 - 149/40*x + 97/30
             sage: a = Mat(ZZ,4)(range(16))
-            sage: f = a.minpoly(); f.factor()  # optional -- os x only right now
+            sage: f = a.minpoly(); f.factor()
             x * (x^2 - 30*x - 80)
-            sage: f(a) == 0                    # optional -- os x only right now
+            sage: f(a) == 0
             True
+
+            sage: a = matrix(QQ, 4, [1..4^2])
+            sage: factor(a.minpoly())
+            x * (x^2 - 34*x - 80)
+            sage: factor(a.minpoly('y'))
+            y * (y^2 - 34*y - 80)
+            sage: factor(a.charpoly())
+            x^2 * (x^2 - 34*x - 80)
+            sage: b = matrix(QQ, 4, [-1, 2, 2, 0, 0, 4, 2, 2, 0, 0, -1, -2, 0, -4, 0, 4])
+            sage: a = matrix(QQ, 4, [1, 1, 0,0, 0,1,0,0, 0,0,5,0, 0,0,0,5])
+            sage: c = b^(-1)*a*b
+            sage: factor(c.minpoly())
+            (x - 5) * (x - 1)^2
+            sage: factor(c.charpoly())
+            (x - 5)^2 * (x - 1)^2
         """
         key = 'minpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
@@ -1344,12 +1359,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##         F = f.factor()
 ##         G = [g for g, _ in F]
 ##         minpoly = prod(G)
-##         square_free_degree = sum([g.degree() for g in G])
+##         squarefree_degree = sum([g.degree() for g in G])
 ##         verbose('done factoring', t=t, level=2, caller_name='simple decomp')
 
 ##         V = ZZ**self.nrows()
 ##         v = V.random_element()
-##         num_iterates = max([square_free_degree - g.degree() for g in G]) + 1
+##         num_iterates = max([squarefree_degree - g.degree() for g in G]) + 1
 
 ##         S = [ ]
 

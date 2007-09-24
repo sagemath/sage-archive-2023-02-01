@@ -302,8 +302,8 @@ class ExtendedInteger(Integer):
     def ceil(self):
         return self
 
-    def square_free_part(self):
-        return self.parent()(Integer(self).square_free_part())
+    def squarefree_part(self):
+        return self.parent()(Integer(self).squarefree_part())
 
     def next_prime(self):
         return self.parent()(Integer(self).next_prime())
@@ -466,7 +466,7 @@ class IntegerPlusInfinity(_uniq1, PlusInfinityElement):
     def factorial(self):
         return self
 
-    def square_free_part(self):
+    def squarefree_part(self):
         raise ValueError, "square free part not defined"
 
     def next_prime(self):
@@ -634,7 +634,7 @@ class IntegerMinusInfinity(_uniq2, MinusInfinityElement):
     def factorial(self):
         raise ValueError, "-Infinity! not defined"
 
-    def square_free_part(self):
+    def squarefree_part(self):
         raise ValueError, "square free part not defined"
 
     def next_prime(self):

@@ -659,8 +659,11 @@ class GenericGraph(SageObject):
         complement of vertices1.  This is much faster if vertices1 is smaller than
         vertices2.
 
-        The external boundary of a set of vertices is the union of the neighborhoods
-        of each vertex in the set.
+        The external boundary of a set of vertices is the union of the
+        neighborhoods of each vertex in the set.  Note that in this
+        implementation, since vertices2 defaults to the complement of
+        vertices1, if a vertex $v$ has a loop, then vertex_boundary(v)
+        will not contain $v$.
 
         EXAMPLE:
             sage: G = graphs.CubeGraph(4)

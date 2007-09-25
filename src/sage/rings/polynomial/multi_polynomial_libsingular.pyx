@@ -3301,6 +3301,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = R.hom([y,x], R)
             sage: f(x^2 + 3*y^5)
             3*x^5 + y^2
+
+            sage: R.<a,b,c,d> = QQ[]
+            sage: S.<u> = QQ[]
+            sage: h = R.hom([0,0,0,u], S)
+            sage: h((a+d)^3)
+            u^3
         """
         #TODO: very slow
         n = self.parent().ngens()
@@ -3308,7 +3314,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.dict().iteritems():
-            y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) ])
+            y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
         return y
 
     def diff(self, MPolynomial_libsingular variable, have_ring=True):

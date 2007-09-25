@@ -1407,6 +1407,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots() # random output (unfortunately)
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
 
+        Over a relative number field:
+            sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
+            sage: x = L['x'].0
+            sage: f = (x^3 + x + a)*(x^5 + x + L.1); f
+            x^8 + x^6 + a*x^5 + x^4 + zeta3*x^3 + x^2 + (a + zeta3)*x + zeta3*a
+            sage: f.factor()
+            (x^3 + x + a) * (x^5 + x + zeta3)
         """
 
         # PERFORMANCE NOTE:
@@ -1425,7 +1432,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError, "factorization of 0 not defined"
         G = None
 
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.all import is_NumberField, is_RelativeNumberField
         from sage.rings.finite_field import is_FiniteField
 
         n = None
@@ -1437,6 +1444,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 G = list(self._pari_with_name('x').factor())
             except PariError:
                 raise NotImplementedError
+
+        elif is_RelativeNumberField(R):
+
+            M, from_M, to_M = R.absolute_field()
+            g = M['x']([to_M(x) for x in self.list()])
+            F = g.factor()
+            S = R['x']
+            v = [(S([from_M(x) for x in f.list()]), e) for f, e in g.factor()]
+            return Factorization(v, from_M(F.unit()))
+
 
         elif is_NumberField(R) or is_FiniteField(R):
 

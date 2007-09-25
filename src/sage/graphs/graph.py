@@ -27,7 +27,8 @@ AUTHOR:
         embeddings and all planar embeddings), all paths, interior paths
     -- Bobby Moretti (2007-08-12): fixed up plotting of graphs with
        edge colors differentiated by label
-
+    -- Jason Grout (2007-09-25): Added functions, bug fixes, and
+       general enhancements
 
 \subsection{Graph Format}
 
@@ -2472,6 +2473,61 @@ class GenericGraph(SageObject):
                   scaling_term=scaling_term, iterations=iterations,
                   color_by_label=color_by_label,
                   heights=heights).show(**kwds)
+
+    def transitive_closure(self):
+        r"""
+        Modifies a graph to be its transitive closure and returns the
+        modified graph.
+
+        The transitive closure of a graph G has an edge (x,y) if and
+        only if there is a path between x and y in G.
+
+        The transitive closure of any strongly connected component of
+        a graph is a complete graph.  In particular, the transitive
+        closure of a connected undirected graph is a complete graph.
+        The transitive closure of a directed acyclic graph is a
+        directed acyclic graph representing the full partial order.
+
+        EXAMPLES:
+            sage: g=graphs.PathGraph(4)
+            sage: g.transitive_closure()==graphs.CompleteGraph(4)
+            True
+            sage: g=DiGraph({0:[1,2], 1:[3], 2:[5,6]})
+            sage: g.transitive_closure().edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (0, 5), (0, 6), (1, 3), (2, 5), (2, 6)]
+
+        """
+
+        for v in self:
+            # todo optimization opportunity: we are adding edges that
+            # are already in the graph and we are adding edges
+            # one at a time.
+            for e in self.breadth_first_search(v):
+                self.add_edge((v,e))
+        return self
+
+    def antisymmetric(self):
+        r"""
+        Returns True if the relation given by the graph is
+        antisymmetric and False otherwise.
+
+        A graph represents an antisymmetric relation if there being a
+        path from a vertex x to a vertex y implies that there is not a
+        path from y to x unless x=y.
+
+        A directed acyclic graph is antisymmetric.  An undirected
+        graph is never antisymmetric unless it is just a union of
+        isolated vertices.
+
+        sage: graphs.RandomGNP(20,0.5).antisymmetric()
+        False
+        sage: graphs.RandomDirectedGNR(20,0.5).antisymmetric()
+        True
+
+        """
+
+        A=self.copy().transitive_closure().am()
+        return len(set(A.nonzero_positions()) & set(A.transpose().nonzero_positions())-set([(i,i) for i in xrange(self.order())]))==0
 
 class Graph(GenericGraph):
     r"""

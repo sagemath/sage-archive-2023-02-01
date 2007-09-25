@@ -891,6 +891,13 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(0,Ellipsis,5,5,Ellipsis,10)
         [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
 
+    Examples in which the step determines the parent of the elements:
+        sage: [1..3, step=0.5]
+        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000]
+        sage: v = [1..5, step=1/1]; v
+        [1, 2, 3, 4, 5]
+        sage: parent(v[2])
+        Rational Field
     """
     # Use kwds so step not absorbed into *args
     step_magic = 0

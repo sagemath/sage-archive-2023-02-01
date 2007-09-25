@@ -1408,6 +1408,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
 
         Over a relative number field:
+            sage: x = QQ['x'].0
             sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
             sage: x = L['x'].0
             sage: f = (x^3 + x + a)*(x^5 + x + L.1); f
@@ -1466,7 +1467,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             G = list(self._pari_with_name('x').factor())
 
         elif sage.rings.real_double.is_RealDoubleField(R):
-            roots = self.roots()
+            roots = self.roots(multiplicities=False)
             G = [[],[]]
             real_roots = []
             non_real_roots = []
@@ -2051,7 +2052,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.Factors()
             [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
             sage: f.factor()
-            (y + 5) * (y + 1)^2
+            (y + 1)^2 * (y + 5)
         """
         if G is None:
             import sage.interfaces.gap
@@ -2131,9 +2132,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return all roots of this polynomial.
 
         INPUT:
-            multiplicities -- bool (default: True, except over RR or CC)
-                              if True return list of pairs (r, n), where r is
-                              the root and n is the multiplicity.
+            multiplicities -- bool (default: True)
+                   if True return list of pairs (r, n), where r is
+                   the root and n is the multiplicity.
+                   If False, just return the unique roots, with
+                   no information about multiplicities.
 
         If the polynomial is over RR or CC returns all roots in CC
         with multiplicities all set to 1.
@@ -2167,15 +2170,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = RR['x'].0
             sage: f = x^2 - 1e100
             sage: f.roots()
-            [-1.00000000000000e50, 1.00000000000000e50]
+            [(-1.00000000000000e50, 1), (1.00000000000000e50, 1)]
             sage: f = x^10 - 2*(5*x-1)^2
-            sage: f.roots()
+            sage: f.roots(multiplicities=False)
             [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
 
             sage: x = CC['x'].0
             sage: i = CC.0
             sage: f = (x - 1)*(x - i)
-            sage: f.roots()
+            sage: f.roots(multiplicities=False)
             [1.00000000000000*I, 1.00000000000000]
 
         A purely symbolic roots example:
@@ -2202,15 +2205,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RDF[]
             sage: f = R.cyclotomic_polynomial(5); f
             1.0*x^4 + 1.0*x^3 + 1.0*x^2 + 1.0*x + 1.0
-            sage: f.roots()   # slightly random
+            sage: f.roots(multiplicities=False)   # slightly random
             [0.309016994375 + 0.951056516295*I, 0.309016994375 - 0.951056516295*I, -0.809016994375 + 0.587785252292*I, -0.809016994375 - 0.587785252292*I]
-            sage: [z^5 for z in f.roots()]     # slightly random
+            sage: [z^5 for z in f.roots(multiplicities=False)]     # slightly random
             [1.0 - 2.44929359829e-16*I, 1.0 + 2.44929359829e-16*I, 1.0 - 4.89858719659e-16*I, 1.0 + 4.89858719659e-16*I]
             sage: f = RDF['x']([1,2,3,4]); f
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
-            sage: r = f.roots()
+            sage: r = f.roots(multiplicities=False)
             sage: [f(a) for a in r]    # slightly random
             [2.55351295664e-15, -4.4408920985e-16 - 2.08166817117e-16*I, -4.4408920985e-16 + 2.08166817117e-16*I]
+
+        Another example:
+            sage: x = RDF['x'].0
+            sage: ((x^3 -1)).roots()
+            [(-0.5 + 0.866025403784*I, 1), (-0.5 - 0.866025403784*I, 1), (1.0, 1)]
+            sage: ((x^3 -1)).roots(multiplicities=False)
+            [-0.5 + 0.866025403784*I, -0.5 - 0.866025403784*I, 1.0]
 
         NOTE: This is a note about numerical root finding when the
         input polynomial is double precision:  Multiple roots are a
@@ -2246,13 +2256,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             r = pari(self).polroots()
             seq = [K(root) for root in r]
             pari.set_real_precision(n)
-            return seq
+            if multiplicities:
+                return [(x, 1) for x in seq]
+            else:
+                return seq
 
         elif sage.rings.real_double.is_RealDoubleField(K):
             import numpy
             r = numpy.roots(numpy.array(list(reversed(self.list())), dtype='double'))
             CDF = sage.rings.complex_double.CDF
-            return [CDF(z) for z in r]
+            v = [CDF(z) for z in r]
+            if multiplicities:
+                return [(x, 1) for x in v]
+            else:
+                return v
 
         try:
             rts = self.factor()

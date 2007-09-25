@@ -2,7 +2,7 @@
 Quotients of Univariate Polynomial Rings
 
 EXAMPLES:
-    sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+    sage: R.<x> = QQ[]
     sage: S = R.quotient(x**3-3*x+1, 'alpha')
     sage: S.gen()**2 in S
     True
@@ -581,7 +581,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
 
         We do an example involving a relative number field:
             sage: R.<x> = QQ['x']
-            sage: K.<a> = NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3 - 2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: Q.field_extension('b')

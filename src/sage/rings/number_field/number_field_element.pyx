@@ -1002,19 +1002,47 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
-    def galois_conjuges(self):
-        """
-        Return the Galois conjugates of this number field element in
-        the Galois closure of the parent field.
+    def galois_conjugates(self, K=None):
+        r"""
+        Return all Gal(Qbar/Q)-conjugates of this number field element in
+        the Galois closure of the parent field if K is not given, or
+        in K if K is given.
 
         EXAMPLES:
+        In the first example the conjugates are obvious:
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: a.galois_conjugates()
+            [a, -a]
+            sage: K(3).galois_conjugates()
+            [3]
+
+        In this example the field is not Galois, so we have to pass
+        to an extension to obtain the Galois conjugates.
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: a.galois_conjugates()
+            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: c = a.galois_conjugates(); c
+            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            sage: c[0]^3
+            2
+            sage: parent(c[0])
+            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+            sage: parent(c[0]).is_galois()
+            True
+
+        There is only one Galois conjugate of $\sqrt[3]{2}$ in
+        $\QQ(\sqrt[3]{2})$.
+            sage: a.galois_conjugates(K)
+            [a]
+
         """
-        L = self.parent()
-        K, phi = L.galois_closure()
+        if K is None:
+            L = self.parent()
+            K = L.galois_closure()
         f = self.minpoly()
-        K['x']
-
-
+        g = K['x'](f)
+        return [a for a,_ in g.roots()]
 
     def conjugate(self):
         """

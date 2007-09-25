@@ -1003,10 +1003,13 @@ class Notebook(SageObject):
         for w in worksheets:
             k = '<tr>'
             k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
+            name = self.html_worksheet_link(w, pub)
+            if w.compute_process_has_been_started():
+                name = '(active) %s'%name
             if w.is_active(user):
-                k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
+                k += '<td class="worksheet_link">%s</td>'%name
             else:
-                k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
+                k += '<td class="archived_worksheet_link">%s</td>'%name
             k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user, typ)
             k += '<td class="last_edited">%s</td>'%w.html_time_since_last_edited()
             k += '</tr>'
@@ -1686,7 +1689,7 @@ function save_worksheet_and_close() {
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
               %s
-              <h1><font size=+1>Upload your Worksheet</font></h1>
+              <h1><font size=+1>Upload worksheet from your computer to the Sage Notebook</font></h1>
               <hr>
               <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">

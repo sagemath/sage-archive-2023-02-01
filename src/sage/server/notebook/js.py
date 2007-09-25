@@ -2237,18 +2237,19 @@ function restart_sage_callback(status, response_text) {
     for(i = 0; i < cell_id_list.length; i++)
         cell_set_not_evaluated(cell_id_list[i]);
     active_cell_list = []
-    var link = get_element("restart_sage");
+/*    var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";
+*/
     sync_active_cell_list();
 }
 
 function restart_sage() {
-/*    var link = get_element("restart_sage");
-    link.className = "restart_sage_in_progress";
-    link.innerHTML = "Restart";
-    */
     async_request(worksheet_command('restart_sage'), restart_sage_callback);
+}
+
+function quit_sage() {
+    async_request(worksheet_command('quit_sage'), restart_sage_callback);
 }
 
 function login(username,password) {

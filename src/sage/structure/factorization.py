@@ -126,7 +126,8 @@ class Factorization(SageObject, list):
             a = self[0][0].degree()
             def _cmp(f,g):
                 try:
-                    return cmp(f[0].degree()*f[1], g[0].degree()*g[1])
+                    #return cmp(f[0].degree()*f[1], g[0].degree()*g[1])
+                    return cmp(f[0].degree(), g[0].degree())
                 except (AttributeError, NotImplementedError):
                     return cmp(f[0], g[0])
         except (AttributeError, NotImplementedError):

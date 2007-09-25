@@ -39,6 +39,8 @@ JSMATH = True
 
 vbar = '<span class="vbar"></span>'
 
+DOC_TIMEOUT = 120
+
 class Notebook(SageObject):
     def __init__(self,
                  dir='sage_notebook',
@@ -738,6 +740,13 @@ class Notebook(SageObject):
 
     def quit_idle_worksheet_processes(self):
         timeout = self.conf()['idle_timeout']
+        if timeout == 0:
+            # Quit only the doc browser worksheets
+            for W in self.__worksheets.itervalues():
+                if W.docbrowser() and W.compute_process_has_been_started():
+                    W.quit_if_idle(DOC_TIMEOUT)
+            return
+
         for W in self.__worksheets.itervalues():
             if W.compute_process_has_been_started():
                 W.quit_if_idle(timeout)

@@ -837,7 +837,7 @@ class Worksheet:
 <select class="worksheet"  onchange="go_option(this);" >
  <option title="Select a worksheet function" value="" selected>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
- <option title="Restart the worksheet" value="restart_sage();">Restart</option>
+ <option title="Quit the worksheet process" value="restart_sage();">Quit process</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
  <option title="Hide all output" value="hide_all();">Hide All Output</option>

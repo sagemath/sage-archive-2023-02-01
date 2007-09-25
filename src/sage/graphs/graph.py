@@ -974,8 +974,8 @@ class GenericGraph(SageObject):
 
     def cliques(self):
         """
-        Returns the list of maximal cliques of which each are members
-        of the clique.
+        Returns the list of maximal cliques.  Each maximal clique is
+        represented by a list of vertices.
 
         Currently only implemented for undirected graphs.  Use to_undirected
         to convert a digraph to an undirected graph.  (See examples below).
@@ -1010,7 +1010,7 @@ class GenericGraph(SageObject):
             import networkx.cliques
             return networkx.cliques.find_cliques(self._nxg)
 
-    def cliques_get_max_clique_graph(self, **kwds):
+    def cliques_get_max_clique_graph(self, name=''):
         """
         Returns a graph constructed with maximal cliques as vertices,
         and edges between maximal cliques with common members in
@@ -1018,6 +1018,9 @@ class GenericGraph(SageObject):
 
         Currently only implemented for undirected graphs.  Use to_undirected
         to convert a digraph to an undirected graph.  (See examples below).
+
+        INPUT:
+           name -- The name of the new graph.
 
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
@@ -1039,7 +1042,7 @@ class GenericGraph(SageObject):
             raise TypeError('Function defined for undirected graphs only.  See documentation.')
         else:
             import networkx.cliques
-            return Graph(networkx.cliques.make_max_clique_graph(self._nxg, **kwds))
+            return Graph(networkx.cliques.make_max_clique_graph(self._nxg, name=name, create_using=networkx.xgraph.XGraph()))
 
     # Add fpos (below) when Bipartite class is wrapped.
     def cliques_get_clique_bipartite(self, **kwds):

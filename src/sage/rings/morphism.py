@@ -282,6 +282,26 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^2 + 1)
     2.58740105196820
 
+An example from Jim Carlson:
+
+    sage: K = QQ # by the way :-)
+    sage: R.<a,b,c,d> = K[]; R
+    Polynomial Ring in a, b, c, d over Rational Field
+    sage: S.<u> = K[]; S
+    Univariate Polynomial Ring in u over Rational Field
+    sage: f = R.hom([0,0,0,u], S); f
+    Ring morphism:
+      From: Polynomial Ring in a, b, c, d over Rational Field
+      To:   Univariate Polynomial Ring in u over Rational Field
+      Defn: a |--> 0
+            b |--> 0
+            c |--> 0
+            d |--> u
+    sage: f(a+b+c+d)
+    u
+    sage: f( (a+b+c+d)^2 )
+    u^2
+
 TESTS:
     sage: H = Hom(ZZ, QQ)
     sage: H == loads(dumps(H))

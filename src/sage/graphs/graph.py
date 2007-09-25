@@ -821,49 +821,49 @@ class GenericGraph(SageObject):
                 int_verts.append(v)
         return bdy_verts + sorted(int_verts)
 
-    def relabel(self, perm, inplace=True, quick=False):
+    def relabel(self, perm, quick=False):
         r"""
-        Uses a dictionary or permutation to relabel the (di)graph.
-        If perm is a dictionary, each old vertex v is a key in the
-        dictionary, and its new label is d[v]. If perm is a list,
-        we think of it as a map $i \mapsto perm[i]$ (only for graphs
-        with $V = \{0,1,...,n-1\}$ ). If perm is a per mutation, the
-        permutation is simply applied to the graph, under the
-        assumption that $V = \{0,1,...,n-1\}$ is the vertex set, and
-        the permutation acts on the set $\{1,2,...,n\}$, where we think
-        of $n = 0$.
+        Uses a dictionary, list, or permutation to relabel the (di)graph.
+        If perm is a dictionary d, each old vertex v is a key in the
+        dictionary, and its new label is d[v].
+
+        If perm is a list, we think of it as a map $i \mapsto perm[i]$
+        with the assumption that the vertices are $\{0,1,...,n-1\}$.
+
+        If perm is a permutation, the permutation is simply applied to
+        the graph, under the assumption that the vertices are
+        $\{0,1,...,n-1\}$.  The permutation acts on the set
+        $\{1,2,...,n\}$, where we think of $n = 0$.
+
 
         INPUT:
             quick -- if True, simply return the enumeration of the new graph
         without constructing it. Requires that perm is of type list.
 
         EXAMPLES:
-            sage: G = Graph({0:[1],1:[2],2:[]})
+            sage: G = graphs.PathGraph(3)
             sage: G.am()
             [0 1 0]
             [1 0 1]
             [0 1 0]
 
-        Relabeling using a list:
-            sage: G.relabel([0,2,1])
-            sage: G.am()
+        Relabeling using a dictionary:
+            sage: G.copy().relabel({1:2,2:1}).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]
 
-        Relabeling using a dictionary:
-            sage: G.relabel({0:2,2:0})
-            sage: G.am()
-            [0 1 1]
-            [1 0 0]
-            [1 0 0]
+        Relabeling using a list:
+            sage: G.copy().relabel([0,2,1]).am()
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
 
         Relabeling using a SAGE permutation:
             sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: S = SymmetricGroup(3)
-            sage: gamma = S('(3,2)')
-            sage: G.relabel(gamma)
-            sage: G.am()
+            sage: gamma = S('(1,2)')
+            sage: G.copy().relabel(gamma).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]
@@ -890,12 +890,8 @@ class GenericGraph(SageObject):
                     for w in oldtempd.iterkeys():
                         newtempd[perm[w]] = oldtempd[w]
                     newd[perm[v]] = newtempd
-                if inplace:
-                    self._nxg.adj = newd
-                else:
-                    G = self.copy()
-                    G._nxg.adj = newd
-                    return G
+                self._nxg.adj = newd
+                return self
             else: # DiGraph
                 oldsucc = self._nxg.succ
                 oldpred = self._nxg.pred
@@ -913,26 +909,22 @@ class GenericGraph(SageObject):
                     for w in oldtemppred.iterkeys():
                         newtemppred[perm[w]] = oldtemppred[w]
                     newpred[perm[v]] = newtemppred
-                if inplace:
-                    self._nxg.adj = newsucc
-                    self._nxg.succ = self._nxg.adj
-                    self._nxg.pred = newpred
-                else:
-                    D = self.copy()
-                    D._nxg.adj = newsucc
-                    D._nxg.succ = D._nxg.adj
-                    D._nxg.pred = newpred
-                    return D
+                self._nxg.adj = newsucc
+                self._nxg.succ = self._nxg.adj
+                self._nxg.pred = newpred
+                return self
+
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         if type(perm) == PermutationGroupElement:
             n = self.order()
             dict = {}
             llist = perm.list()
-            for i in range(1,n):
-                dict[i] = llist[i-1]%n
+            for i in xrange(1,n):
+                 dict[i] = llist[i-1]%n
             if n > 0:
                 dict[0] = llist[n-1]%n
             perm = dict
+
         if type(perm) == type({}):
             keys = perm.keys()
             verts = self.vertices()
@@ -954,12 +946,8 @@ class GenericGraph(SageObject):
                     for w in oldtempd.iterkeys():
                         newtempd[perm[w]] = oldtempd[w]
                     newd[perm[v]] = newtempd
-                if inplace:
-                    self._nxg.adj = newd
-                else:
-                    G = self.copy()
-                    G._nxg.adj = newd
-                    return G
+                self._nxg.adj = newd
+                return self
             else: # DiGraph
                 oldsucc = self._nxg.succ
                 oldpred = self._nxg.pred
@@ -977,16 +965,10 @@ class GenericGraph(SageObject):
                     for w in oldtemppred.iterkeys():
                         newtemppred[perm[w]] = oldtemppred[w]
                     newpred[perm[v]] = newtemppred
-                if inplace:
-                    self._nxg.adj = newsucc
-                    self._nxg.succ = self._nxg.adj
-                    self._nxg.pred = newpred
-                else:
-                    D = self.copy()
-                    D._nxg.adj = newsucc
-                    D._nxg.succ = D._nxg.adj
-                    D._nxg.pred = newpred
-                    return D
+                self._nxg.adj = newsucc
+                self._nxg.succ = self._nxg.adj
+                self._nxg.pred = newpred
+                return self
 
     ### Cliques
 
@@ -4389,6 +4371,7 @@ class Graph(GenericGraph):
             sage: E = D.copy()
             sage: gamma = SymmetricGroup(20).random_element()
             sage: E.relabel(gamma)
+            Dodecahedron: Graph on 20 vertices
             sage: D.is_isomorphic(E)
             True
 
@@ -4397,6 +4380,7 @@ class Graph(GenericGraph):
             sage: gamma = S.random_element()
             sage: E = D.copy()
             sage: E.relabel(gamma)
+            Dodecahedron: Graph on 20 vertices
             sage: a,b = D.is_isomorphic(E, certify=True); a
             True
             sage: import networkx

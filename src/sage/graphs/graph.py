@@ -1971,19 +1971,14 @@ class GenericGraph(SageObject):
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
         if self.is_directed():
-            D = DiGraph()
-            D.add_vertices(self.vertices())
-            D.add_vertices(other.vertices())
-            D.add_edges(self.edges())
-            D.add_edges(other.edges())
-            return D
+            G = DiGraph()
         else:
             G = Graph()
-            G.add_vertices(self.vertices())
-            G.add_vertices(other.vertices())
-            G.add_edges(self.edges())
-            G.add_edges(other.edges())
-            return G
+        G.add_vertices(self.vertices())
+        G.add_vertices(other.vertices())
+        G.add_edges(self.edges())
+        G.add_edges(other.edges())
+        return G
 
     def cartesian_product(self, other):
         """

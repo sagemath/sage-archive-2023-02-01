@@ -1397,7 +1397,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: expand(F)
             T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
 
-        Over RealDoubleField:
+        Over the real double field:
             sage: x = polygen(RDF)
             sage: f = (x-1)^3
             sage: f.factor() # random output (unfortunately)
@@ -1406,6 +1406,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Note that this factorization suffers from the roots function:
             sage: f.roots() # random output (unfortunately)
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
+
+        Over the complex double field.  Because this approximate, all factors will occur
+        with multiplicity 1.
+            sage: x = CDF['x'].0; i = CDF.0
+            sage: f = (x^2 + 2*i)^3
+            sage: f.factor()
+            (1.0*x + -0.999994409957 + 1.00001040378*I) * (1.0*x + -0.999993785062 + 0.999989956987*I) * (1.0*x + -1.00001180498 + 0.999999639235*I) * (1.0*x + 0.999995530902 - 0.999987780431*I) * (1.0*x + 1.00001281704 - 1.00000223945*I) * (1.0*x + 0.999991652054 - 1.00000998012*I)
+            sage: f(-f.factor()[0][0][0])
+            -2.38358052913e-14 - 2.57571741713e-14*I
+
 
         Over a relative number field:
             sage: x = QQ['x'].0
@@ -1466,8 +1476,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             G = list(self._pari_with_name('x').factor())
 
+        elif sage.rings.complex_double.is_ComplexDoubleField(R):
+            unit = self.leading_coefficient()
+            f = (~unit)*self
+            roots = f.roots(multiplicities=False)
+            assert len(roots) == self.degree()   # all roots appear with multiplicity...
+            x = self.parent().gen()
+            v = [(x - a, 1) for a in roots]
+            return Factorization(v, unit)
+
         elif sage.rings.real_double.is_RealDoubleField(R):
             roots = self.roots(multiplicities=False)
+            assert len(roots) == self.degree()   # all roots appear with multiplicity...
             G = [[],[]]
             real_roots = []
             non_real_roots = []
@@ -1534,7 +1554,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if not unit.is_unit():
 
-            F.append((R(unit), 1))
+            F.append((R(unit), ZZ(1)))
             unit = R.base_ring()(1)
 
         elif R.base_ring().is_field():
@@ -2222,6 +2242,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: ((x^3 -1)).roots(multiplicities=False)
             [-0.5 + 0.866025403784*I, -0.5 - 0.866025403784*I, 1.0]
 
+        Examples involving the complex double field:
+            sage: x = CDF['x'].0
+            sage: i = CDF.0
+            sage: f = x^3 + 2*i; f
+            1.0*x^3 + 2.0*I
+            sage: f.roots()
+            [(-1.09112363597 - 0.629960524947*I, 1), (6.66133814775e-16 + 1.25992104989*I, 1), (1.09112363597 - 0.629960524947*I, 1)]
+            sage: f.roots(multiplicities=False)
+            [-1.09112363597 - 0.629960524947*I, 6.66133814775e-16 + 1.25992104989*I, 1.09112363597 - 0.629960524947*I]
+            sage: [f(z) for z in f.roots(multiplicities=False)]
+            [-3.10862446895e-15 - 4.4408920985e-16*I, -3.17226455498e-15 + 3.99680288865e-15*I, -5.55111512313e-16 - 8.881784197e-16*I]
+            sage: f = i*x^3 + 2; f
+            1.0*I*x^3 + 2.0
+            sage: f.roots()
+            [(-1.09112363597 + 0.629960524947*I, 1), (6.66133814775e-16 - 1.25992104989*I, 1), (1.09112363597 + 0.629960524947*I, 1)]
+            sage: f(f.roots()[0][0])
+            -4.4408920985e-16 - 3.10862446895e-15*I
+
         NOTE: This is a note about numerical root finding when the
         input polynomial is double precision:  Multiple roots are a
         very bad case for floating-point root finding.  Unless the
@@ -2257,7 +2295,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             seq = [K(root) for root in r]
             pari.set_real_precision(n)
             if multiplicities:
-                return [(x, 1) for x in seq]
+                return [(x, ZZ(1)) for x in seq]
             else:
                 return seq
 
@@ -2267,7 +2305,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             CDF = sage.rings.complex_double.CDF
             v = [CDF(z) for z in r]
             if multiplicities:
-                return [(x, 1) for x in v]
+                return [(x, ZZ(1)) for x in v]
+            else:
+                return v
+
+        elif sage.rings.complex_double.is_ComplexDoubleField(K):
+            import numpy
+            v = [complex(x) for x in reversed(self.list())]
+            r = numpy.roots(numpy.array(v, dtype='complex'))
+            CDF = sage.rings.complex_double.CDF
+            v = [CDF(z) for z in r]
+            if multiplicities:
+                return [(x, ZZ(1)) for x in v]
             else:
                 return v
 

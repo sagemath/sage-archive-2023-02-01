@@ -1487,7 +1487,7 @@ class GenericGraph(SageObject):
         import networkx
         try:
             return networkx.eccentricity(self._nxg, v, dist_dict, with_labels)
-        except:
+        except networkx.NetworkXError:
             from sage.rings.infinity import Infinity
             e = {}
             if v is None:
@@ -4346,7 +4346,7 @@ class Graph(GenericGraph):
             from sage.graphs.graph_isom import search_tree, perm_group_elt
             from sage.groups.perm_gps.permgroup import PermutationGroup
             if partition is None:
-                partition = [sort(self.vertices())]
+                partition = [sorted(self.vertices())]
             if translation:
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops(), verbosity=verbosity)
             else:

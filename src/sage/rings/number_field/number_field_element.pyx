@@ -1285,11 +1285,12 @@ cdef class NumberFieldElement(FieldElement):
             Number Field in a with defining polynomial x^3 + x^2 + x - 132/7
             sage: a.norm()
             132/7
+            sage: factor(a.norm())
             sage: K(0).norm()
             0
         """
         if K is None:
-            return self._pari_('x').norm()
+            return QQ(self._pari_('x').norm())
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"

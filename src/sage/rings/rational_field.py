@@ -254,24 +254,81 @@ class RationalField(_uniq, number_field_base.NumberField):
           yield n
           yield -n
 
+    def embeddings(self, K):
+        """
+        Return list of the one embedding of QQ into K, if it exists.
+
+        EXAMPLES:
+            sage: QQ.embeddings(QQ)
+            [Coercion endomorphism of Rational Field]
+            sage: QQ.embeddings(CyclotomicField(5))
+            [Coercion morphism:
+              From: Rational Field
+              To:   Cyclotomic Field of order 5 and degree 4]
+
+        K must have characteristic 0:
+            sage: QQ.embeddings(GF(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: no embeddings of the rational field into K.
+        """
+        if K.characteristic() != 0:
+            raise ValueError, "no embeddings of the rational field into K."
+        return [self.hom(K)]
+
     def complex_embedding(self, prec=53):
+        """
+        Return embedding of the rational numbers into the complex numbers.
+
+        EXAMPLES:
+            sage: QQ.complex_embedding()
+            Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 53 bits of precision
+              Defn: 1 |--> 1.00000000000000
+            sage: QQ.complex_embedding(20)
+            Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 20 bits of precision
+              Defn: 1 |--> 1.0000
+        """
         import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
     def gens(self):
+        """
+        EXAMPLES:
+            sage: QQ.gens()
+            (1,)
+        """
         return (self(1), )
 
     def gen(self, n=0):
+        """
+        EXAMPLES:
+            sage: QQ.gen()
+            1
+        """
         if n == 0:
             return self(1)
         else:
             raise IndexError, "n must be 0"
 
     def degree(self):
+        """
+        EXAMPLES:
+            sage: QQ.degree()
+            1
+        """
         return 1
 
     def ngens(self):
+        """
+        EXAMPLES:
+            sage: QQ.ngens()
+            1
+        """
         return 1
 
     def is_absolute(self):
@@ -285,25 +342,64 @@ class RationalField(_uniq, number_field_base.NumberField):
         return True
 
     def is_subring(self, K):
+        """
+        Return True if QQ is a subring of K.
+
+        We are only able to determine this in some cases, e.g., when K
+        is a field or of positive characteristic.
+
+        EXAMPLES:
+            sage: QQ.is_subring(QQ)
+            True
+            sage: QQ.is_subring(QQ['x'])
+            True
+            sage: QQ.is_subring(GF(7))
+            False
+            sage: QQ.is_subring(CyclotomicField(7))
+            True
+            sage: QQ.is_subring(ZZ)
+            False
+            sage: QQ.is_subring(Frac(ZZ))
+            True
+        """
         if K.is_field():
             return K.characteristic() == 0
         if K.characteristic() != 0:
             return False
-        raise NotImplementedError
+        try:
+            self.embeddings(K)
+        except (TypeError, ValueError):
+            return False
+        return True
 
     def is_field(self):
         """
         Return True, since the rational field is a field.
+
+        EXAMPLES:
+            sage: QQ.is_field()
+            True
         """
         return True
 
     def is_finite(self):
         """
         Return False, since the rational field is not finite.
+
+        EXAMPLES:
+            sage: QQ.is_finite()
+            False
         """
         return False
 
     def is_prime_field(self):
+        """
+        Return True, since QQ is a prime field.
+
+        EXAMPLES:
+            sage: QQ.is_prime_field()
+            True
+        """
         return True
 
     def is_atomic_repr(self):

@@ -53,7 +53,7 @@ import sage.rings.integer_ring
 import sage.rings.integer
 import sage.rings.arith
 
-import sage.rings.number_field.number_field
+import number_field
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
@@ -187,7 +187,7 @@ cdef class NumberFieldElement(FieldElement):
                 f = f.polynomial()
 
         ppr = parent.polynomial_ring()
-        if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
+        if isinstance(parent, number_field.NumberField_relative):
             ppr = parent.base_field().polynomial_ring()
 
         if isinstance(f, pari_gen):
@@ -198,7 +198,7 @@ cdef class NumberFieldElement(FieldElement):
         if f.degree() >= parent.absolute_degree():
             if f.variable_name() != 'x':
                 f = f.change_variable_name('x')
-            if isinstance(parent, sage.rings.number_field.number_field.NumberField_relative):
+            if isinstance(parent, number_field.NumberField_relative):
                 f %= parent.absolute_polynomial()
             else:
                 f %= parent.polynomial()
@@ -240,7 +240,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         # Right now, I'm a little confused why quadratic extension fields have a zeta_order function
         # I would rather they not have this function since I don't want to do this isinstance check here.
-        if not isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_cyclotomic) or not isinstance(new_parent, sage.rings.number_field.number_field.NumberField_cyclotomic):
+        if not isinstance(self.parent(), number_field.NumberField_cyclotomic) or not isinstance(new_parent, number_field.NumberField_cyclotomic):
             raise TypeError, "The field and the new parent field must both be cyclotomic fields."
 
         try:
@@ -905,7 +905,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c coeff
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_relative):
+        if isinstance(self.parent(), number_field.NumberField_relative):
             # ugly temp code
             f = self.parent().absolute_polynomial()
 
@@ -1087,7 +1087,7 @@ cdef class NumberFieldElement(FieldElement):
                 return self.polynomial()(-gen)
             else:
                 return self
-        elif isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_cyclotomic):
+        elif isinstance(self.parent(), number_field.NumberField_cyclotomic):
             # We are in a cyclotomic field
             # Replace the generator zeta_n with (zeta_n)^(n-1)
             gen = self.parent().gen()
@@ -1209,7 +1209,7 @@ cdef class NumberFieldElement(FieldElement):
             self.__multiplicative_order = self._rational_().multiplicative_order()
             return self.__multiplicative_order
 
-        if isinstance(self.parent(), sage.rings.number_field.number_field.NumberField_cyclotomic):
+        if isinstance(self.parent(), number_field.NumberField_cyclotomic):
             t = self.parent()._multiplicative_order_table()
             f = self.polynomial()
             if t.has_key(f):
@@ -1254,7 +1254,8 @@ cdef class NumberFieldElement(FieldElement):
 
     def trace(self, K=None):
         """
-        Return the trace of this number field element.
+        Return the absolute or relative trace of this number field
+        element.
 
         If K is given then K must be a subfield of the parent L of
         self, in which case the trace is the relative trace from L to K.
@@ -1274,7 +1275,8 @@ cdef class NumberFieldElement(FieldElement):
 
     def norm(self, K=None):
         """
-        Return the norm of this number field element.
+        Return the absolute or relative norm of this number field
+        element.
 
         If K is given then K must be a subfield of the parent L of
         self, in which case the norm is the relative norm from L to K.
@@ -1288,9 +1290,32 @@ cdef class NumberFieldElement(FieldElement):
             sage: factor(a.norm())
             sage: K(0).norm()
             0
+
+        Some complicated relatives norms in a tower of number fields.
+            sage: K.<a,b,c> = NumberField([x^2 + 1, x^2 + 3, x^2 + 5])
+            sage: L = K.base_field(); M = L.base_field()
+            sage: a.norm()
+            1
+            sage: a.norm(L)
+            1
+            sage: a.norm(M)
+            1
+            sage: a
+            a
+            sage: (a+b+c).norm()
+            121
+            sage: (a+b+c).norm(L)
+            2*c*b + -7
+            sage: (a+b+c).norm(M)
+            -11
+
+        We illustrate that norm is compatible with towers:
+            sage: z = (a+b+c).norm(L); z.norm(M)
+            -11
         """
         if K is None:
             return QQ(self._pari_('x').norm())
+        return self.matrix(K).determinant()
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
@@ -1343,16 +1368,16 @@ cdef class NumberFieldElement(FieldElement):
         for the number field.  Thus the {\em rows} of this matrix give
         the images of each of the $x^i$.
 
-        If base is not None, then base must be a field that embeds in
-        the parent of self, in which case this function returns the
-        matrix of multiplication by self on the power basis, where we
-        view the parent field as a field over base.
+        If base is not None, then base must be either a field that
+        embeds in the parent of self or a morphism to the parent of
+        self, in which case this function returns the matrix of
+        multiplication by self on the power basis, where we view the
+        parent field as a field over base.
 
         INPUT:
-            base --
+            base -- field or morphism
 
         EXAMPLES:
-
         Regular number field:
             sage: K.<a> = NumberField(QQ['x'].0^3 - 5)
             sage: M = a.matrix(); M
@@ -1389,7 +1414,31 @@ cdef class NumberFieldElement(FieldElement):
             [a 0]
             sage: M.base_ring() is K
             True
+
+        An example where we explicitly give the subfield or the embedding:
+            sage: K.<a> = NumberField(x^4 + 1); L.<a2> = NumberField(x^2 + 1)
+            sage: a.matrix(L)
+            [ 0  1]
+            [a2  0]
+
+        Notice that if we compute all embeddings and choose a different one,
+        then the matrix is changed as it should be:
+            sage: v = L.embeddings(K)
+            sage: a.matrix(v[1])
+            [  0   1]
+            [-a2   0]
+
+        The norm is also changed:
+            sage: a.norm(v[1])
+            a2
+            sage: a.norm(v[0])
+            -a2
         """
+        if base is not None:
+            if number_field.is_NumberField(base):
+                return self._matrix_over_base(base)
+            else:
+                return self._matrix_over_base_morphism(base)
         # Mutiply each power of field generator on
         # the left by this element; make matrix
         # whose rows are the coefficients of the result,
@@ -1408,6 +1457,41 @@ cdef class NumberFieldElement(FieldElement):
             M = sage.matrix.matrix_space.MatrixSpace(k, d)
             self.__matrix = M(v)
         return self.__matrix
+
+    def _matrix_over_base(self, L):
+        K = self.parent()
+        E = L.embeddings(K)
+        if len(E) == 0:
+            raise ValueError, "no way to embed L into parent's base ring K"
+        phi = E[0]
+        return self._matrix_over_base_morphism(phi)
+
+    def _matrix_over_base_morphism(self, phi):
+        L = phi.domain()
+        alpha = L.primitive_element()
+        beta = phi(alpha)
+        K = phi.codomain()
+        if K != self.parent():
+            raise ValueError, "codomain of phi must be parent of self"
+
+        # Construct a relative extension over L (= QQ(beta))
+        M = K.relativize(beta, ('a','b'))
+                     # variable name a is OK, since this is temporary
+
+        # Carry self over to M.
+        from_M, to_M = M.structure()
+        try:
+            z = to_M(self)
+        except Exception:
+            return to_M, self, K, beta
+
+        # Compute the relative matrix of self, but in M
+        R = z.matrix()
+
+        # Map back to L.
+        psi = M.base_field().hom([alpha])
+        return R.apply_morphism(psi)
+
 
     def list(self):
         """

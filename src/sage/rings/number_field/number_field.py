@@ -652,9 +652,13 @@ class NumberField_generic(number_field_base.NumberField):
         import morphism
         return morphism.NumberFieldHomset(self, codomain)
 
-    def _set_structure(self, from_self, to_self):
+    def _set_structure(self, from_self, to_self, unsafe_force_change=False):
         # Note -- never call this on a cached number field, since
         # that could eventually lead to problems.
+        if unsafe_force_change:
+            self.__from_self = from_self
+            self.__to_self = to_self
+            return
         try:
             self.__from_self
         except AttributeError:
@@ -2591,6 +2595,12 @@ class NumberField_absolute(NumberField_generic):
         numbers). This will return an identical result when given K as
         input again.
 
+        If possible, the most natural embedding of K into self
+        is put first in the list.
+
+        INPUT:
+            K -- a number field
+
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 - 2)
             sage: L = K.galois_closure(); L
@@ -2637,7 +2647,11 @@ class NumberField_absolute(NumberField_generic):
         f = K['x'](self.defining_polynomial())
         r = f.roots(); r.sort()
         v = [self.hom([e[0]], check=False) for e in r]
-        self.__embeddings[K] = v
+        # If there is an embedding that preserves variable names
+        # then it is most natural, so we put it first.
+        put_natural_embedding_first(v)
+
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False)
         return v
 
     def relativize(self, alpha, names):
@@ -3455,6 +3469,12 @@ class NumberField_relative(NumberField_generic):
         it could be the complex numbers). This will return an
         identical result when given K as input again.
 
+        If possible, the most natural embedding of K into self
+        is put first in the list.
+
+        INPUT:
+            K -- a number field
+
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
             sage: f = K.embeddings(CC); f
@@ -3483,7 +3503,12 @@ class NumberField_relative(NumberField_generic):
         L = self.absolute_field('a')
         E = L.embeddings(K)
         v = [self.hom(f, K) for f in E]
-        self.__embeddings[K] = v
+
+        # If there is an embedding that preserves variable names
+        # then it is most natural, so we put it first.
+        put_natural_embedding_first(v)
+
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False)
         return v
 
     def relative_discriminant(self, proof=None):
@@ -3699,8 +3724,26 @@ class NumberField_relative(NumberField_generic):
         K = self.absolute_field('a')
         from_K, to_K = K.structure()
         beta = to_K(alpha)
-        return K.relativize(beta, names)
+        S = K.relativize(beta, names)
+        # Now S is the appropriate field,
+        # but the structure maps attached to S
+        # are isomorphisms with the absolute
+        # field.  We have to compose them
+        # with from_K and to_K to get
+        # the appropriate maps.
+        from_S, to_S = S.structure()
 
+        # Map from S to self:
+        #   x |--> from_K(from_S(x))
+        # Map from self to S:
+        #   x |--> to_K(from_K(x))
+        new_to_S = self.Hom(S)(to_S)
+        a = from_S.abs_hom()
+        W = a.domain()
+        phi = W.hom([from_K(a(W.gen()))])
+        new_from_S = S.Hom(self)(phi)
+        S._set_structure(new_from_S, new_to_S, unsafe_force_change=True)
+        return S
 
 class NumberField_cyclotomic(NumberField_absolute):
     """
@@ -4477,3 +4520,15 @@ def NumberField_quadratic_v1(poly, name):
         Number Field in d with defining polynomial x^2 - 2
     """
     return NumberField_quadratic(poly, name, check=False)
+
+
+def put_natural_embedding_first(v):
+    for i in range(len(v)):
+        phi = v[i]
+        a = str(list(phi.domain().gens()))
+        b = str(list(phi.im_gens()))
+        if a == b:
+            v[i] = v[0]
+            v[0] = phi
+            return
+

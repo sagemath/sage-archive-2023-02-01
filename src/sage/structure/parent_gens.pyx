@@ -59,6 +59,7 @@ This example illustrates generators for a free module over $\Z$.
 import sage.misc.defaults
 import sage.misc.latex
 import gens_py
+import parent
 
 include '../ext/stdsage.pxi'
 
@@ -505,7 +506,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ...
             TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
         """
-        if not isinstance(im_gens, (tuple, list)):
+        if isinstance(im_gens, parent.Parent):
             return self.Hom(im_gens).natural_map()
         if codomain is None:
             from sage.structure.all import Sequence

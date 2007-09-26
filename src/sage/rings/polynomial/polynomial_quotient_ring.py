@@ -533,14 +533,11 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
 
     def field_extension(self, names):
         r"""
-        Takes a polynomial defined in a quotient ring, and returns
-        a tuple with three elements: the NumberField defined by the
-        same polynomial, a homomorphism from its parent to the
-	NumberField sending the generators to one another, and the
-	inverse isomorphism.
-
-        For some reason, we first implemented this as a method
-        for an element, instead of for the quotient ring.
+        Takes a polynomial quotient ring, and returns a tuple with
+        three elements: the NumberField defined by the same polynomial
+        quotient ring, a homomorphism from its parent to the
+        NumberField sending the generators to one another, and the
+        inverse isomorphism.
 
         OUTPUT:
             -- field
@@ -585,10 +582,12 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: Q.field_extension('b')
-            (Number Field in b with defining polynomial X^3 + 2*X + 1 over its base field, Ring morphism:
-              ...
+            (Number Field in b with defining polynomial X^3 + 2*X + 1 over its base field, ...
+              Defn: b |--> b, Relative number field morphism:
+              From: Number Field in b with defining polynomial X^3 + 2*X + 1 over its base field
               To:   Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^3 - 2 with modulus X^3 + 2*X + 1
-              Defn: b |--> b)
+              Defn: b |--> b
+                    a |--> a)
 
         We slightly change the example above so it works.
 
@@ -613,14 +612,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
             -- William Stein 06 Aug 06
         """
 
-        F = self.modulus().root_field(names)
-        alpha = F.gen()
-        x = self.gen()
-
-        f = self.hom([alpha], F, check=False)
-        g = F.hom([x], self, check=False)
-
-        return F, f, g
+        return self.gen().field_extension(names)
 
 
 
@@ -656,16 +648,16 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         complex field with precision prec.
 
         EXAMPLES:
-            sage: x = polygen(QQ)
+            sage: R.<x> = QQ[]
             sage: f = x^5 + x + 17
-            sage: k = QQ['x'].quotient(f)
+            sage: k = R.quotient(f)
             sage: v = k.complex_embeddings(100)
             sage: [phi(k.0^2) for phi in v]
             [0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I, 2.9757207403766761469671194565, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         f = self.modulus().base_extend(CC)
-        v = f.roots()
+        v = f.roots(multiplicities=False)
         return [self.hom([a], check=False) for a in v]
 
 

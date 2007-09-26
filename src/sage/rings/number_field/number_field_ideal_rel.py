@@ -28,18 +28,18 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
     An ideal of a relative number field.
 
     EXAMPLES:
-        sage: K.<a> = NumberField([x^2 + 2, x^2 + 1]); K
+        sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal(38); i
         Fractional ideal (38) of Number Field in a0 with defining polynomial x^2 + 1 over its base field
 
     BIG WARNING: Ideals in relative number fields are broken -- big warning:
-        sage: K.<a> = NumberField([x^2 + 2, x^2 + 1]); K
+        sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal([a+1]); i
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce -a to an integer
+        TypeError: Unable to coerce -a1 to an integer
     """
     def pari_rhnf(self):
         """

@@ -1483,10 +1483,8 @@ cdef class Matrix(matrix1.Matrix):
                     is irreducible.
 
         EXAMPLES:
-            sage: MS1 = MatrixSpace(ZZ,4)
-            sage: MS2 = MatrixSpace(QQ,6)
-            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
-            sage: B = MS2(range(36))
+            sage: A = matrix(ZZ, 4, [3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = matrix(QQ, 6, range(36))
             sage: B*11
             [  0  11  22  33  44  55]
             [ 66  77  88  99 110 121]
@@ -2828,8 +2826,11 @@ cdef class Matrix(matrix1.Matrix):
                     k+=1
         return QQ(k)/QQ(nr*nc)
 
+def _dim_cmp(x,y):
+    return cmp(x[0].dimension(), y[0].dimension())
 
-cdef decomp_seq(v):
+def decomp_seq(v):
+    list.sort(v, _dim_cmp)
     return Sequence(v, universe=tuple, check=False, cr=True)
 
 

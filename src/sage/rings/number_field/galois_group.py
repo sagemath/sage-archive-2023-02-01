@@ -1,6 +1,9 @@
 
 
 class GaloisGroup:
+    """
+    The Galois group of a number field as an abstract object.
+    """
     def __init__(self, group, number_field):
         self.__group = group
         self.__number_field = number_field

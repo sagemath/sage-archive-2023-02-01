@@ -427,8 +427,8 @@ cdef class NumberFieldElement(FieldElement):
     def __abs__(self):
         r"""
         Return the numerical absolute value of this number field
-        element with respect to the first archimedean embedding, to 53
-        bits of precision.
+        element with respect to the first archimedean embedding, to
+        double precision.
 
         This is the \code{abs( )} Python function.  If you want a different
         embedding or precision, use \code{self.abs(...)}.
@@ -436,9 +436,9 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES:
             sage: k.<a> = NumberField(x^3 - 2)
             sage: abs(a)
-            1.25992104989487
+            1.25992104989
             sage: abs(a)^3
-            2.00000000000000
+            2.0
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
         """
@@ -461,7 +461,7 @@ cdef class NumberFieldElement(FieldElement):
             16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
-            2.57128159065824
+            2.57128159066
             sage: a.abs(prec=100)
             2.5712815906582353554531872087
             sage: a.abs(prec=100,i=1)
@@ -473,9 +473,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(x^2-2)
             sage: a = 1 + b
             sage: a.abs(i=0)
-            2.41421356237309
+            0.414213562373
             sage: a.abs(i=1)
-            0.414213562373095
+            2.41421356237
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
@@ -543,11 +543,11 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES:
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embeddings()
-            [1.25992104989487, -0.629960524947437 + 1.09112363597172*I, -0.629960524947437 - 1.09112363597172*I]
+            [-0.629960524947 - 1.09112363597*I, -0.629960524947 + 1.09112363597*I, 1.25992104989]
             sage: a.complex_embeddings(10)
-            [1.3, -0.63 + 1.1*I, -0.63 - 1.1*I]
+            [-0.63 - 1.1*I, -0.63 + 1.1*I, 1.3]
             sage: a.complex_embeddings(100)
-            [1.2599210498948731647672106073, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I]
+            [-0.62996052494743658238360530364 - 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, 1.2599210498948731647672106073]
         """
         phi = self.parent().complex_embeddings(prec)
         return [f(self) for f in phi]
@@ -560,15 +560,15 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES:
             sage: k.<a> = NumberField(x^3 - 2)
             sage: a.complex_embedding()
-            1.25992104989487
+            -0.629960524947 - 1.09112363597*I
             sage: a.complex_embedding(10)
-            1.3
+            -0.63 - 1.1*I
             sage: a.complex_embedding(100)
-            1.2599210498948731647672106073
+            -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I
             sage: a.complex_embedding(20, 1)
             -0.62996 + 1.0911*I
             sage: a.complex_embedding(20, 2)
-            -0.62996 - 1.0911*I
+            1.2599
         """
         return self.parent().complex_embeddings(prec)[i](self)
 
@@ -1036,11 +1036,15 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.galois_conjugates(K)
             [a]
 
+        Galois conjugates of $\sqrt[3]{2}$ in the field $\QQ(\zeta_3,\sqrt[3]{2})$:
+            sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
+            sage: a.galois_conjugates()
+            [a, (-zeta3 - 1)*a, zeta3*a]
         """
         if K is None:
             L = self.parent()
             K = L.galois_closure()
-        f = self.minpoly()
+        f = self.absolute_minpoly()
         g = K['x'](f)
         return [a for a,_ in g.roots()]
 
@@ -1241,9 +1245,13 @@ cdef class NumberFieldElement(FieldElement):
     cdef bint is_rational_c(self):
         return ZZX_deg(self.__numerator) == 0
 
-    def trace(self):
+    def trace(self, K=None):
         """
         Return the trace of this number field element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the trace is the relative trace from L to K.
+        In all other cases, the trace is the absolute trace down to QQ.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 -132/7*x^2 + x + 1); K
@@ -1253,12 +1261,17 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a+1).trace() == a.trace() + 3
             True
         """
-        K = self.parent().base_ring()
-        return K(self._pari_('x').trace())
+        if K is None:
+            return QQ(self._pari_('x').trace())
 
-    def norm(self):
+
+    def norm(self, K=None):
         """
         Return the norm of this number field element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the norm is the relative norm from L to K.
+        In all other cases, the norm is the absolute norm down to QQ.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + x^2 + x + -132/7); K
@@ -1268,8 +1281,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(0).norm()
             0
         """
-        K = self.parent().base_ring()
-        return K(self._pari_('x').norm())
+        if K is None:
+            return self._pari_('x').norm()
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"

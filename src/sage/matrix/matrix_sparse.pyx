@@ -310,7 +310,31 @@ cdef class Matrix_sparse(matrix.Matrix):
             A.set_unsafe(self._ncols-j-1, self._nrows-i-1,self.get_unsafe(i,j))
         return A
 
+    def charpoly(self, var='x', **kwds):
+        """
+        Return the characteristic polynomial of this matrix.
 
+        Note -- the generic sparse charpoly implementation in Sage is
+        to just compute the charpoly of the corresponding dense
+        matrix, so this could use a lot of memory.  In particular,
+        for this matrix, the charpoly will be computed using a dense
+        algorithm.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 4, range(16), sparse=True)
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
+            sage: A.charpoly('y')
+            y^4 - 30*y^3 - 80*y^2
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
+        """
+        f = self.fetch('charpoly')
+        if f is not None:
+            return f.change_variable_name(var)
+        f = self.dense_matrix().charpoly(var=var, **kwds)
+        self.cache('charpoly', f)
+        return f
 
 ##     def _echelon_in_place_classical(self):
 ##         """

@@ -1717,7 +1717,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def absolute_charpoly(self, var='x'):
         r"""
-        The characteristic polynomial of this element over $\QR$.
+        The characteristic polynomial of this element over $\QQ$.
 
         We construct a relative extension and find the characteristic
         polynomial over $\QQ$.

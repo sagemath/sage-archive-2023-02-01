@@ -8,13 +8,13 @@ AUTHORS:
 
 NOTE:
 
-    Unlike in PARI/GP, class group computations do not by default
-    assume the Generalized Riemann Hypothesis.  To do class groups
-    computations not provably correctly you must often pass the flag
-    proof=False to functions or call the function
-    \code{proof.number_field(False)}.  Note that many class group
-    functions won't work for any reasonable cases without
-    \code{proof=False}.
+    Unlike in PARI/GP, class group computations *in SAGE* do *not* by
+    default assume the Generalized Riemann Hypothesis.  To do class
+    groups computations not provably correctly you must often pass the
+    flag proof=False to functions or call the function
+    \code{proof.number_field(False)}.  It can easily take 1000's of
+    times longer to do computations with \code{proof=True} (the
+    default).
 
 This example follows one in the Magma reference manual:
     sage: K.<y> = NumberField(x^4 - 420*x^2 + 40000)
@@ -91,7 +91,12 @@ import sage.libs.pari.all as pari
 import sage.interfaces.gap
 import sage.misc.preparser
 import sage.rings.arith
+
 import sage.rings.complex_field
+import sage.rings.real_mpfr
+import sage.rings.complex_double
+import sage.rings.real_double
+
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
@@ -788,29 +793,71 @@ class NumberField_generic(number_field_base.NumberField):
 
     def complex_embeddings(self, prec=53):
         r"""
-        Return all homomorphisms of this ring into the approximate
-        complex field with precision prec.
+        Return all homomorphisms of this number field into the
+        approximate complex field with precision prec.
+
+        If prec is 53 (the default), then the complex double field is
+        used; otherwise the arbitrary precision (but slow) complex
+        field is used.  If you want 53-bit arbitrary precision then
+        do \code{self.embeddings(ComplexField(53))}.
 
         EXAMPLES:
-            sage: x = polygen(QQ)
-            sage: f = x^5 + x + 17
-            sage: k.<a> = NumberField(f)
+            sage: k.<a> = NumberField(x^5 + x + 17)
             sage: v = k.complex_embeddings()
             sage: [phi(k.0^2) for phi in v]
-            [0.921039066973047 - 3.07553311884578*I, 0.921039066973047 + 3.07553311884578*I, 2.97572074037668, -2.40889943716139 - 1.90254105303505*I, -2.40889943716139 + 1.90254105303505*I]
+            [2.97572074038 + 1.73496602657e-16*I, -2.40889943716 + 1.90254105304*I, -2.40889943716 - 1.90254105304*I, 0.921039066973 + 3.07553311885*I, 0.921039066973 - 3.07553311885*I]
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.complex_embeddings()
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Complex Double Field
+              Defn: a |--> -1.25992104989 - 3.88578058619e-16*I,
+            ...]
+            sage: K.complex_embeddings(100)
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Complex Field with 100 bits of precision
+              Defn: a |--> -1.2599210498948731647672106073,
+            ...]
         """
-        try:
-            return self.__complex_embeddings[prec]
-        except AttributeError:
-            self.__complex_embeddings = {}
-        except KeyError:
-            pass
-        CC = sage.rings.complex_field.ComplexField(prec)
-        f = self.defining_polynomial().base_extend(CC)
-        v = f.roots()
-        e = [self.hom([a], check=False) for a in v]
-        self.__complex_embeddings[prec] = e
-        return e
+        if prec == 53:
+            CC = sage.rings.complex_double.CDF
+        else:
+            CC = sage.rings.complex_field.ComplexField(prec)
+        return self.embeddings(CC)
+
+    def real_embeddings(self, prec=53):
+        r"""
+        Return all homomorphisms of this number field into the
+        approximate real field with precision prec.
+
+        If prec is 53 (the default), then the real double field is
+        used; otherwise the arbitrary precision (but slow) real field
+        is used.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.real_embeddings()
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Real Double Field
+              Defn: a |--> -1.25992104989]
+            sage: K.real_embeddings(16)
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Real Field with 16 bits of precision
+              Defn: a |--> -1.260]
+            sage: K.real_embeddings(100)
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Real Field with 100 bits of precision
+              Defn: a |--> -1.2599210498948731647672106073]
+        """
+        if prec == 53:
+            K = sage.rings.real_double.RDF
+        else:
+            K = sage.rings.real_mpfr.RealField(prec)
+        return self.embeddings(K)
 
     def latex_variable_name(self, name=None):
         """
@@ -1693,6 +1740,10 @@ class NumberField_generic(number_field_base.NumberField):
         typing \code{K.polynomial().galois_group?}, where $K$
         is a number field.
 
+        To obtain actual field automorphisms that can be applied to
+        elements, use \code{End(K).list()} and
+        \code{K.galois_closure()} together (see example below).
+
         EXAMPLES:
             sage: k.<b> = NumberField(x^2 - 14)
             sage: k.galois_group ()
@@ -1707,6 +1758,26 @@ class NumberField_generic(number_field_base.NumberField):
             Galois group Transitive group number 1 of degree 2 of the number field Number Field in a with defining polynomial x^2 + 2
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional database_gap package
             Galois group Transitive group number 2 of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
+
+        EXPLICIT GALOIS GROUP:
+        We compute the Galois group as an explicit group of
+        automorphisms of the Galois closure of a field.
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: L.<b> = K.galois_closure(); L
+            Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            sage: G = End(L); G
+            Automorphism group of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            sage: G.list()
+            [
+            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+              Defn: b1 |--> b1,
+            ...
+            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+              Defn: b1 |--> -2/63*b1^4 - 31/63*b1
+            ]
+            sage: G[1](b)
+            1/36*b1^4 + 1/18*b1
         """
         try:
             return self.__galois_group[pari_group, use_kash]
@@ -1752,8 +1823,7 @@ class NumberField_generic(number_field_base.NumberField):
         Return the narrow class group of this field.
 
         INPUT:
-            proof -- default: True, unless you called number_field_proof and
-            set it to False.
+            proof -- default: None (use the global proof setting, which defaults to True).
 
         EXAMPLES:
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
@@ -2358,14 +2428,12 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.vector_space()
 
-    def galois_closure(self, names=None, embedding=True):
+    def galois_closure(self, names=None):
         """
-        Return number field $K$ that is generated by all roots of the
-        defining polynomial of self
+        Return number field $K$ that is the Galois closure of self,
+        i.e., is generated by all roots of the defining polynomial of
+        self
 
-        To obtain a homomorphism of fields from self into the Galois
-        closure $K$ use the command {\tt self.embedding} on the output
-        field.
 
         INPUT:
             names -- variable name for Galois closure
@@ -2396,8 +2464,9 @@ class NumberField_absolute(NumberField_generic):
 
     def embeddings(self, K):
         """
-        Compute all field embeddings of self into the absolute number
-        field K.  This will return an identical result when given K as
+        Compute all field embeddings of self into the field K (which
+        need not even be a number field, e.g., it could be the complex
+        numbers). This will return an identical result when given K as
         input again.
 
         EXAMPLES:
@@ -2420,9 +2489,23 @@ class NumberField_absolute(NumberField_generic):
               Defn: a |--> 2*zeta7^4 + 2*zeta7^2 + 2*zeta7 + 1,
              Ring morphism: ...
               Defn: a |--> -2*zeta7^4 - 2*zeta7^2 - 2*zeta7 - 1]
+
+        We embed a cubic field in the complex numbers:
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: K.embeddings(CC)
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^3 - 2
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> -0.629960524947437 - 1.09112363597172*I,
+             Ring morphism:
+              From: Number Field in a with defining polynomial x^3 - 2
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> -0.629960524947437 + 1.09112363597172*I,
+             Ring morphism:
+              From: Number Field in a with defining polynomial x^3 - 2
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> 1.25992104989487]
         """
-        if not is_AbsoluteNumberField(K):
-            raise ValueError, "currently K must be an absolute number field"
         try:
             return self.__embeddings[K]
         except AttributeError:
@@ -2431,7 +2514,7 @@ class NumberField_absolute(NumberField_generic):
             pass
         f = K['x'](self.defining_polynomial())
         r = f.roots(); r.sort()
-        v = [self.hom([e[0]]) for e in r]
+        v = [self.hom([e[0]], check=False) for e in r]
         self.__embeddings[K] = v
         return v
 
@@ -2490,7 +2573,8 @@ class NumberField_relative(NumberField_generic):
         if name == base.variable_name():
             raise ValueError, "Base field and extension cannot have the same name"
         if polynomial.parent().base_ring() != base:
-            raise ValueError, "The polynomial must be defined over the base field"
+            polynomial = polynomial.change_ring(base)
+            #raise ValueError, "The polynomial must be defined over the base field"
 
         # Generate the nf and bnf corresponding to the base field
         # defined as polynomials in y, e.g. for rnfisfree
@@ -2557,6 +2641,18 @@ class NumberField_relative(NumberField_generic):
             raise IndexError, "invalid generator %s"%n
         return self.__gens[n]
 
+    def galois_closure(self, names=None):
+        """
+        Return the absolute number field $K$ that is the Galois
+        closure of self.
+
+        EXAMPLES:
+        """
+        K = self.absolute_field()[0].galois_closure(names=names)
+        if K.degree() == self.absolute_degree():
+            return self
+        return K
+
     def absolute_degree(self):
         """
         EXAMPLES:
@@ -2603,6 +2699,24 @@ class NumberField_relative(NumberField_generic):
         #return "Extension by %s of the Number Field in %s with defining polynomial %s"%(
         #self.polynomial(), self.base_field().variable_name(),
         #    self.base_field().polynomial())
+
+    def _Hom_(self, codomain, cat=None):
+        """
+        Return homset of homomorphisms from this relative number field
+        to the codomain.
+
+        The cat option is currently ignored.   The result is not cached.
+
+        EXAMPLES:
+        This function is implicitly caled by the Hom method or function.
+            sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
+            sage: K.Hom(K)
+            Automorphism group of Number Field in a with defining polynomial x^3 + -2 over its base field
+            sage: type(K.Hom(K))
+            <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset'>
+        """
+        import morphism
+        return morphism.RelativeNumberFieldHomset(self, codomain)
 
     def _latex_(self):
         r"""
@@ -3041,6 +3155,44 @@ class NumberField_relative(NumberField_generic):
             Number Field in a1 with defining polynomial x^3 + x + 1
         """
         return self.base_field()
+
+    def embeddings(self, K):
+        """
+        Compute all field embeddings of the relative number field self
+        into the field K (which need not even be a number field, e.g.,
+        it could be the complex numbers). This will return an
+        identical result when given K as input again.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
+            sage: f = K.embeddings(CC); f
+            [Relative number field morphism:
+              From: Number Field in a with defining polynomial x^3 + -2 over its base field
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> -0.629960524947442 - 1.09112363597172*I
+                    b |--> -0.00000000000000532907051820075 + 1.00000000000000*I,
+              ...
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> 1.25992104989487 + 0.000000000000000222044604925031*I
+                    b |--> -1.00000000000000*I]
+            sage: f[0](a)^3
+            2.00000000000001 - 0.0000000000000279776202205539*I
+            sage: f[0](b)^2
+            -1.00000000000001 - 0.0000000000000106581410364015*I
+            sage: f[0](a+b)
+            -0.629960524947448 - 0.0911236359717185*I
+        """
+        try:
+            return self.__embeddings[K]
+        except AttributeError:
+            self.__embeddings = {}
+        except KeyError:
+            pass
+        L = self.absolute_field()[0]
+        E = L.embeddings(K)
+        v = [self.hom(f, K) for f in E]
+        self.__embeddings[K] = v
+        return v
 
     def relative_discriminant(self, proof=None):
         r"""

@@ -2313,7 +2313,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(int(L.prec()/3.2)+1)
             r = pari(self).polroots()
             if is_RealField(K):
-                seq = [L(root) for root in r if root.imag() == 0]
+                seq = [K(root.real()) for root in r if root.imag() == 0]
             else:
                 seq = [L(root) for root in r]
 

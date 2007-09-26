@@ -843,6 +843,13 @@ cdef class NumberFieldElement(FieldElement):
         x.__denominator = self.__denominator
         return x
 
+    def __copy__(self):
+        cdef NumberFieldElement x
+        x = self._new()
+        x.__numerator = self.__numerator
+        x.__denominator = self.__denominator
+        return x
+
     def __int__(self):
         """
         Attempt to convert this number field element to a Python integer,
@@ -1263,7 +1270,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if K is None:
             return QQ(self._pari_('x').trace())
-
+        return self.matrix(K).trace()
 
     def norm(self, K=None):
         """
@@ -1328,11 +1335,20 @@ cdef class NumberFieldElement(FieldElement):
         """
         return all([a in ZZ for a in self.minpoly()])
 
-    def matrix(self):
+    def matrix(self, base=None):
         r"""
-        The matrix of right multiplication by the element on the power
-        basis $1, x, x^2, \ldots, x^{d-1}$ for the number field.  Thus
-        the {\em rows} of this matrix give the images of each of the $x^i$.
+        If base is None, return the matrix of right multiplication by
+        the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+        for the number field.  Thus the {\em rows} of this matrix give
+        the images of each of the $x^i$.
+
+        If base is not None, then base must be a field that embeds in
+        the parent of self, in which case this function returns the
+        matrix of multiplication by self on the power basis, where we
+        view the parent field as a field over base.
+
+        INPUT:
+            base --
 
         EXAMPLES:
 
@@ -1345,41 +1361,34 @@ cdef class NumberFieldElement(FieldElement):
             sage: M.base_ring() is QQ
             True
 
+        Relative number field:
+            sage: L.<b> = K.extension(K['x'].0^2 - 2)
+            sage: M = b.matrix(); M
+            [0 1]
+            [2 0]
+            sage: M.base_ring() is K
+            True
+
+        Absolute number field:
+            sage: M = L.absolute_field('c').gen().matrix(); M
+            [  0   1   0   0   0   0]
+            [  0   0   1   0   0   0]
+            [  0   0   0   1   0   0]
+            [  0   0   0   0   1   0]
+            [  0   0   0   0   0   1]
+            [-17 -60 -12 -10   6   0]
+            sage: M.base_ring() is QQ
+            True
+
+        More complicated relative number field:
+            sage: L.<b> = K.extension(K['x'].0^2 - a); L
+            Number Field in b with defining polynomial x^2 + -a over its base field
+            sage: M = b.matrix(); M
+            [0 1]
+            [a 0]
+            sage: M.base_ring() is K
+            True
         """
-##         Relative number field:
-##             sage: L.<b> = K.extension(K['x'].0^2 - 2)
-##             sage: 1*b, b*b, b**3, b**6
-##             (b, b^2, b^3, 6*b^4 - 10*b^3 - 12*b^2 - 60*b - 17)
-##             sage: L.pari_rnf().rnfeltabstorel(b._pari_())
-##             x - y
-##             sage: L.pari_rnf().rnfeltabstorel((b**2)._pari_())
-##             2
-##             sage: M = b.matrix(); M
-##             [0 1]
-##             [3 0]
-##             sage: M.base_ring() is K
-##             True
-
-#         Absolute number field:
-#             sage: M = L.absolute_field()[0].gen().matrix(); M
-#             [  0   1   0   0   0   0]
-#             [  0   0   1   0   0   0]
-#             [  0   0   0   1   0   0]
-#             [  0   0   0   0   1   0]
-#             [  0   0   0   0   0   1]
-#             [  2 -90 -27 -10   9   0]
-#             sage: M.base_ring() is QQ
-#             True
-
-#         More complicated relative number field:
-#             sage: L.<b> = K.extension(K['x'].0^2 - a); L
-#             Extension by x^2 + -a of the Number Field in a with defining polynomial x^3 - 5
-#             sage: M = b.matrix(); M
-#             [0 1]
-#             [a 0]
-#             sage: M.base_ring()
-#             sage: M.base_ring() is K
-#             True
         # Mutiply each power of field generator on
         # the left by this element; make matrix
         # whose rows are the coefficients of the result,

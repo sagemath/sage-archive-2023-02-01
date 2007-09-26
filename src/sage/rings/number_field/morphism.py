@@ -73,12 +73,7 @@ class NumberFieldHomset(RingHomset_generic):
             return self.__order
         except AttributeError:
             pass
-        D = self.domain()
-        C = self.codomain().absolute_field()[0]
-        f = D.absolute_polynomial()
-        g = C['x'](f)
-        r = g.roots()
-        n = Integer(len(r))
+        n = len(self.list())
         self.__order = n
         return n
 
@@ -88,18 +83,18 @@ class NumberFieldHomset(RingHomset_generic):
 
         EXAMPLES:
             sage: K.<a> = NumberField( [x^2 + x + 1, x^3 + 2] )
-            sage: L = K.absolute_field()[0]
+            sage: L = K.absolute_field('b')
             sage: G = End(L); G
-            Automorphism group of Number Field in a0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
+            Automorphism group of Number Field in b with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
             sage: G.order()
             6
             sage: G.list()
             [
-            Ring endomorphism of Number Field in a0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
-              Defn: a0 |--> a0,
+            Ring endomorphism of Number Field in b with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
+              Defn: b |--> b,
             ...
-            Ring endomorphism of Number Field in a0 with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
-              Defn: a0 |--> -5/9*a0^5 - a0^4 - 2*a0^3 + 2/3*a0^2 - a0 - 5
+            Ring endomorphism of Number Field in b with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
+              Defn: b |--> -5/9*b^5 - b^4 - 2*b^3 + 2/3*b^2 - b - 5
             ]
         """
         try:
@@ -108,8 +103,10 @@ class NumberFieldHomset(RingHomset_generic):
             pass
         D = self.domain()
         C = self.codomain()
-        Dabs, from_Dabs, to_Dabs = self.domain().absolute_field()
-        Cabs, from_Cabs, to_Cabs = self.codomain().absolute_field()
+        Dabs = D.absolute_field(D.variable_name())
+        from_Dabs, to_Dabs = Dabs.structure()
+        Cabs = C.absolute_field(C.variable_name())
+        from_Cabs, to_Cabs = Cabs.structure()
         f = Dabs.polynomial()
         g = Cabs['x'](f)
         r = g.roots()
@@ -157,7 +154,10 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             # Then it must be a homomorphism from the corresponding
             # absolute number field
             abs_hom = im_gen
-            K, from_K, to_K = self.domain().absolute_field()
+            K = abs_hom.domain()
+            if K != self.domain().absolute_field(K.variable_name()):
+                raise TypeError, "domain of morphism must be absolute field of domain."
+            from_K, to_K = K.structure()
             if abs_hom.domain() != K:
                 raise ValueError, "domain of absolute homomorphism must be absolute field of domain."
             if abs_hom.codomain() != self.codomain():
@@ -187,7 +187,8 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         Return the homomorphism that acts on the base as given and
         sends the generator of the domain to im_gen.
         """
-        K, from_K, to_K = self.domain().absolute_field()
+        K = self.domain().absolute_field('a')
+        from_K, to_K = K.structure()
         a = from_K(K.gen())
         # We just have to figure out where a goes to
         # under the morphism defined by im_gen and base_hom.
@@ -234,7 +235,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             pass
         D = self.domain()
         C = self.codomain()
-        K = D.absolute_field()[0]
+        K = D.absolute_field('a')
         v = K.Hom(C).list()
         w = [self(phi) for phi in v]
         w = Sequence(w, immutable=True, cr=True, universe=self)
@@ -246,10 +247,11 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
     def __init__(self, parent, abs_hom):
         RingHomomorphism.__init__(self, parent)
         self.__abs_hom = abs_hom
-        K, from_K, to_K = self.domain().absolute_field()
+        K = abs_hom.domain()
+        from_K, to_K = K.structure()
         self.__K = K
-        self.__from_K = K
-        self.__to_K = K
+        self.__from_K = from_K
+        self.__to_K = to_K
 
     def abs_hom(self):
         return self.__abs_hom

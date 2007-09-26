@@ -167,7 +167,7 @@ QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
 _nf_cache = {}
-def NumberField(polynomial, name=None, check=True, names=None):
+def NumberField(polynomial, name=None, check=True, names=None, cache=True):
     r"""
     Return {\em the} number field defined by the given irreducible
     polynomial and with variable with the given name.  If check is
@@ -197,8 +197,8 @@ def NumberField(polynomial, name=None, check=True, names=None):
         sage: R.<t> = K[]
         sage: L.<b> = K.extension(t^3+t+a); L
         Number Field in b with defining polynomial t^3 + t + a over its base field
-        sage: L.absolute_field()[0]
-        Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
+        sage: L.absolute_field('c')
+        Number Field in c with defining polynomial x^6 + 2*x^4 + x^2 - 2
         sage: a*b
         a*b
         sage: L(a)
@@ -255,17 +255,19 @@ def NumberField(polynomial, name=None, check=True, names=None):
     #if all:
     #    return [NumberField(f, name=name, check=check, names=names) for f, _ in polynomial.factor()]
 
-    key = (polynomial, name)
-    if _nf_cache.has_key(key):
-        K = _nf_cache[key]()
-        if not K is None: return K
+    if cache:
+        key = (polynomial, name)
+        if _nf_cache.has_key(key):
+            K = _nf_cache[key]()
+            if not K is None: return K
 
     R = polynomial.base_ring()
     if R == ZZ:
         polynomial = QQ['x'](polynomial)
     elif isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)
-        _nf_cache[key] = weakref.ref(S)
+        if cache:
+            _nf_cache[key] = weakref.ref(S)
         return S
 
     if polynomial.degree() == 2:
@@ -273,7 +275,8 @@ def NumberField(polynomial, name=None, check=True, names=None):
     else:
         K = NumberField_absolute(polynomial, name, None, check)
 
-    _nf_cache[key] = weakref.ref(K)
+    if cache:
+        _nf_cache[key] = weakref.ref(K)
     return K
 
 
@@ -630,7 +633,6 @@ class NumberField_generic(number_field_base.NumberField):
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
         self.__pari_bnf_certified = False
-        self.__absolute_field = (self, maps.IdentityMap(self), maps.IdentityMap(self))
 
     def _Hom_(self, codomain, cat=None):
         """
@@ -649,6 +651,70 @@ class NumberField_generic(number_field_base.NumberField):
         """
         import morphism
         return morphism.NumberFieldHomset(self, codomain)
+
+    def _set_structure(self, from_self, to_self):
+        # Note -- never call this on a cached number field, since
+        # that could eventually lead to problems.
+        try:
+            self.__from_self
+        except AttributeError:
+            self.__from_self = from_self
+            self.__to_self = to_self
+        else:
+            raise ValueError, "number field structure is immutable."
+
+    def structure(self):
+        """
+        Return fixed isomorphism or embedding structure on self.
+
+        This is used to record various isomorphisms or embeddings
+        that arise naturally in other constructions.
+
+        EXAMPLES:
+            sage: K.<z> = NumberField(x^2 + 3)
+            sage: L.<a> = K.absolute_field(); L
+            Number Field in a with defining polynomial x^2 + 3
+            sage: L.structure()
+            (Number field isomorphism from Number Field in a with defining polynomial x^2 + 3 to Number Field in z with defining polynomial x^2 + 3 given by variable name change,
+             Number field isomorphism from Number Field in z with defining polynomial x^2 + 3 to Number Field in a with defining polynomial x^2 + 3 given by variable name change)
+        """
+        try:
+            if self.__to_self is not None:
+                return self.__from_self, self.__to_self
+            else:
+                return self.__from_self, self.__to_self
+        except AttributeError:
+            f = self.hom(self)
+            self._set_structure(f,f)
+            return f, f
+
+    def primitive_element(self):
+        r"""
+        Return a primitive element for this field, i.e., an element
+        that generates it over $\QQ$.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.primitive_element()
+            a
+            sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
+            sage: K.primitive_element()
+            a + (-1)*b + c
+            sage: alpha = K.primitive_element(); alpha
+            a + (-1)*b + c
+            sage: alpha.minpoly()
+            x^2 + (2*b + -2*c)*x + (-2*c)*b + 6
+            sage: alpha.absolute_minpoly()
+            x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
+        """
+        try:
+            return self.__primitive_element
+        except AttributeError:
+            pass
+        K = self.absolute_field('a')
+        from_K, to_K = K.structure()
+        self.__primitive_element = from_K(K.gen())
+        return self.__primitive_element
 
     def subfield(self, alpha, name=None):
         r"""
@@ -697,7 +763,7 @@ class NumberField_generic(number_field_base.NumberField):
         r"""
         Given the number field self, construct another isomorphic
         number field $K$ generated by the element alpha of self, along
-        with isomprhisms from $K$ to self and from self to $K$.
+        with isomorphisms from $K$ to self and from self to $K$.
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2 + 1); K
@@ -746,24 +812,46 @@ class NumberField_generic(number_field_base.NumberField):
         to_K = self.hom([K(c)])
         return K, from_K, to_K
 
+    def is_absolute(self):
+        raise NotImplementedError
 
-    def absolute_field(self):
+    def is_relative(self):
         """
-        Returns self as an extension over QQ, which is self.
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^10 - 2)
+            sage: K.is_absolute()
+            True
+            sage: K.is_relative()
+            False
+        """
+        return not self.is_absolute()
+
+    def absolute_field(self, names):
+        """
+        Returns self as an absolute extension over QQ.
 
         OUTPUT:
             K -- this number field (since it is already absolute)
-            from_K -- isomorphism self --> K
-            to_K -- isomorphism K --> self
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an isomorphism
+        from self to K.
 
         EXAMPLES:
             sage: K = CyclotomicField(5)
-            sage: K.absolute_field()
-            (Cyclotomic Field of order 5 and degree 4,
-             Identity map on Cyclotomic Field of order 5 and degree 4,
-             Identity map on Cyclotomic Field of order 5 and degree 4)
+            sage: K.absolute_field('a')
+            Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1
         """
-        return self.__absolute_field
+        try:
+            return self.__absolute_field[names]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__absolute_field = {}
+        K = NumberField(self.defining_polynomial(), names, cache=False)
+        K._set_structure(maps.NameChangeMap(K, self), maps.NameChangeMap(self, K))
+        self.__absolute_field[names] = K
+        return K
 
     def is_isomorphic(self, other):
         """
@@ -2056,8 +2144,7 @@ class NumberField_generic(number_field_base.NumberField):
         False), this function raises an ArithmeticError exception.
 
         EXAMPLES:
-            sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 3, 'zeta3')
+            sage: K.<z> = NumberField(x^2 + 3)
             sage: K.zeta(1)
             1
             sage: K.zeta(2)
@@ -2065,24 +2152,24 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(2, all=True)
             [-1]
             sage: K.zeta(3)
-            1/2*zeta3 - 1/2
+            1/2*z - 1/2
             sage: K.zeta(3, all=True)
-            [1/2*zeta3 - 1/2, -1/2*zeta3 - 1/2]
+            [1/2*z - 1/2, -1/2*z - 1/2]
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
             ArithmeticError: There are no 4-th roots of unity self.
 
             sage: r.<x> = QQ[]
-            sage: K.<a> = NumberField(x^2+1)
+            sage: K.<b> = NumberField(x^2+1)
             sage: K.zeta(4)
-            a
+            b
             sage: K.zeta(4,all=True)
-            [a, -a]
+            [b, -b]
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-th roots of unity self.
+            ArithmeticError: There are no 3-rd roots of unity self.
             sage: K.zeta(3,all=True)
             []
         """
@@ -2100,19 +2187,28 @@ class NumberField_generic(number_field_base.NumberField):
             else:
                 return self(-1)
         else:
-            field = self.absolute_field()[0]
+            field = self.absolute_field('a')
+            from_field = field.structure()[0]
             f = field.polynomial_ring().cyclotomic_polynomial(n)
-            F = polynomial_ring.PolynomialRing(field, 'x')(f)
+            F = field['x'](f)
             R = F.roots()
             if len(R) == 0:
                 if all:
                     return []
                 else:
-                    raise ArithmeticError, "There are no %s-th roots of unity self."%n
+                    if n == 1:
+                        th = 'st'
+                    elif n == 2:
+                        th = 'nd'
+                    elif n == 3:
+                        th = 'rd'
+                    else:
+                        th = 'th'
+                    raise ArithmeticError, "There are no %s-%s roots of unity self."%(n,th)
             if all:
-                return [r[0] for r in R]
+                return [from_field(r[0]) for r in R]
             else:
-                return R[0][0]
+                return from_field(R[0][0])
 
     def zeta_coefficients(self, n):
         """
@@ -2179,8 +2275,8 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
         We construct a compositum of 3 quadratic fields, then find an optimized
         representation and transform elements back and forth.
-            sage: K = NumberField([x^2 + p for p in [5, 3, 2]],'a').absolute_field()[0]; K
-            Number Field in a0 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
+            sage: K = NumberField([x^2 + p for p in [5, 3, 2]],'a').absolute_field('b'); K
+            Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L, from_L, to_L = K.optimized_representation()
             sage: L    # your answer may different, since algorithm is random
             Number Field in a14 with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
@@ -2191,7 +2287,7 @@ class NumberField_absolute(NumberField_generic):
 
         The transformation maps are mutually inverse isomorphisms.
             sage: from_L(to_L(K.0))
-            a0
+            b
             sage: to_L(from_L(L.0))     # random
             a14
         """
@@ -2204,8 +2300,8 @@ class NumberField_absolute(NumberField_generic):
         degrees if degree is 0.
 
         EXAMPLES:
-            sage: K = NumberField([x^2 + p for p in [5, 3, 2]],'a').absolute_field()[0]; K
-            Number Field in a0 with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
+            sage: K = NumberField([x^2 + p for p in [5, 3, 2]],'a').absolute_field('b'); K
+            Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L = K.optimized_subfields(name='b')
             sage: L[0][0]
             Number Field in b0 with defining polynomial x - 1
@@ -2243,10 +2339,36 @@ class NumberField_absolute(NumberField_generic):
         return self._subfields_helper(degree=degree,name=name,
                                       both_maps=both_maps,optimize=True)
 
+    def change_name(self, names):
+        r"""
+        Return number field isomorphic to self but with the given
+        generator name.
+
+        INPUT:
+            names -- should be exactly one variable name.
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an
+        isomorphism from self to K.
+
+        EXAMPLES:
+            sage: K.<z> = NumberField(x^2 + 3); K
+            Number Field in z with defining polynomial x^2 + 3
+            sage: L.<ww> = K.change_name()
+            sage: L
+            Number Field in ww with defining polynomial x^2 + 3
+            sage: L.structure()[0]
+            Number field isomorphism from Number Field in ww with defining polynomial x^2 + 3 to Number Field in z with defining polynomial x^2 + 3 given by variable name change
+            sage: L.structure()[0](ww + 5/3)
+            z + 5/3
+        """
+        return self.absolute_field(names)
+
     def subfields(self, degree=0, name=None):
         """
         EXAMPLES:
-            sage: K.<a> = NumberField( [x^3 - 2, x^2 + x + 1] ); K=K.absolute_field()[0]
+            sage: K.<a> = NumberField( [x^3 - 2, x^2 + x + 1] );
+            sage: K = K.absolute_field('b')
             sage: S = K.subfields()
             sage: len(S)
             6
@@ -2518,6 +2640,91 @@ class NumberField_absolute(NumberField_generic):
         self.__embeddings[K] = v
         return v
 
+    def relativize(self, alpha, names):
+        r"""
+        Given an element alpha in self, return a relative number field
+        $K$ isomorphic to self that is relative over the absolute field
+        $\QQ(\alpha)$, along with isomorphisms from $K$ to self and
+        from self to K.
+
+        INPUT:
+            alpha -- an element of self.
+            names -- 2-tuple of names of generator for output
+                     field K and the subfield QQ(alpha)
+                     names[0] generators K and names[1] QQ(alpha).
+
+        OUTPUT:
+            K   -- relative number field, map from K to self,
+                   map from self to K.
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an isomorphism
+        from self to K.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^10 - 2)
+            sage: L.<c,d> = K.relativize(a^4 + a^2 + 2); L
+            Number Field in c with defining polynomial x^2 + -1/5*d^4 + 8/5*d^3 - 23/5*d^2 + 7*d - 18/5 over its base field
+            sage: c.absolute_minpoly()
+            x^10 - 2
+            sage: d.absolute_minpoly()
+            x^5 - 10*x^4 + 40*x^3 - 90*x^2 + 110*x - 58
+            sage: (a^4 + a^2 + 2).minpoly()
+            x^5 - 10*x^4 + 40*x^3 - 90*x^2 + 110*x - 58
+            sage: from_L, to_L = L.structure()
+            sage: to_L(a)
+            c
+            sage: to_L(a^4 + a^2 + 2)
+            d
+            sage: from_L(to_L(a^4 + a^2 + 2))
+            a^4 + a^2 + 2
+        """
+        # step 1: construct the abstract field generated by alpha.
+        # step 2: make a relative extension of it.
+        # step 3: construct isomorphisms
+
+        names = sage.structure.parent_gens.normalize_names(2, names)
+
+        # make sure alpha is in self
+        alpha = self(alpha)
+
+        f = alpha.minpoly()
+        L = NumberField(f, names[1])
+
+        g = self.defining_polynomial()
+        h = L['x'](g)
+        F = h.factor()
+
+        for f, e in F:
+            if L.degree() * f.degree() == self.degree():
+                M = L.extension(f, names[0])
+                beta = M(L.gen())
+                try:
+                    to_M = self.hom([M.gen(0)], M, check=True)  # be paranoid
+                except TypeError:
+                    continue
+                if to_M(alpha) == beta:
+                    # Bingo.
+                    # We have now constructed a relative
+                    # number field M, and an isomorphism
+                    # self --> M that sends alpha to
+                    # the generator of the intermediate field.
+                    from_M = M.hom([self.gen()], self, check=True)
+                    M._set_structure(from_M, to_M)  # don't have to
+                                                    # worry about caching since relative number fields aren't cached.
+                    return M
+
+        assert False, "bug in relativize"
+
+
+
+
+
+
+
+
+
+
 class NumberField_relative(NumberField_generic):
     """
     EXAMPLES:
@@ -2582,7 +2789,14 @@ class NumberField_relative(NumberField_generic):
         # Convert the polynomial defining the base field into a
         # polynomial in y to satisfy PARI's ordering requirements.
 
-        abs_base, from_abs_base, to_abs_base = base.absolute_field()
+        if base.is_relative():
+            abs_base = base.absolute_field('a')
+            from_abs_base, to_abs_base = abs_base.structure()
+        else:
+            abs_base = base
+            from_abs_base = maps.IdentityMap(base)
+            to_abs_base = maps.IdentityMap(base)
+
         self.__absolute_base_field = abs_base, from_abs_base, to_abs_base
         Qx = abs_base.polynomial().parent()
         Qy = (abs_base.polynomial().base_ring())['y']
@@ -2617,18 +2831,79 @@ class NumberField_relative(NumberField_generic):
         self._element_class = number_field_element.NumberFieldElement_relative
 
         self.__gens = [None]
-        NumberField_generic.__init__(self, self.absolute_polynomial(), name=name,
-                                     latex_name=latex_name, check=False)
-        self._assign_names(name)
 
         v = [None]
-        K = self.base_field()
+        K = base
+        names = [name]
         while K != QQ:
-            v.append(self(K.gen()))
+            names.append(K.variable_name())
+            v.append(K.gen())
             K = K.base_field()
+
+        self._assign_names(tuple(names), normalize=False)
+
+        NumberField_generic.__init__(self, self.absolute_polynomial(), name=None,
+                                     latex_name=latex_name, check=False)
+
         v[0] = self._gen_relative()
+        v = [self(x) for x in v]
         self.__gens = tuple(v)
 
+
+    def change_name(self, names):
+        r"""
+        Return relative number field isomorphic to self but with the
+        given generator names.
+
+        INPUT:
+            names -- number of names should be at most the number of
+                     generators of self, i.e., the number of steps in
+                     the tower of relative fields.
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an
+        isomorphism from self to K.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: L.<c,d> = K.change_name()
+            sage: L
+            Number Field in c with defining polynomial x^4 + 3 over its base field
+            sage: L.base_field()
+            Number Field in d with defining polynomial x^2 + 2
+
+        An example with a 3-level tower:
+            sage: K.<a,b,c> = NumberField([x^2 + 17, x^2 + x + 1, x^3 - 2]); K
+            Number Field in a with defining polynomial x^2 + 17 over its base field
+            sage: L.<m,n,r> = K.change_name()
+            sage: L
+            Number Field in m with defining polynomial x^2 + 17 over its base field
+            sage: L.base_field()
+            Number Field in n with defining polynomial x^2 + x + 1 over its base field
+            sage: L.base_field().base_field()
+            Number Field in r with defining polynomial x^3 - 2
+
+        """
+        if len(names) == 0:
+            names = self.variable_names()
+        elif isinstance(names, str):
+            names = names.split(',')
+        K = self.base_field().change_name(tuple(names[1:]))
+        L = K.extension(self.defining_polynomial(), names=names[0])
+        return L
+
+    def is_absolute(self):
+        """
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K.is_absolute()
+            False
+            sage: K.is_relative()
+            True
+        """
+        return False
 
     def gens(self):
         return self.__gens
@@ -2648,7 +2923,7 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES:
         """
-        K = self.absolute_field()[0].galois_closure(names=names)
+        K = self.absolute_field('a').galois_closure(names=names)
         if K.degree() == self.absolute_degree():
             return self
         return K
@@ -2886,7 +3161,7 @@ class NumberField_relative(NumberField_generic):
             sage: k.is_galois()
             False
         """
-        return self.absolute_field()[0].is_galois()
+        return self.absolute_field('a').is_galois()
 
     def vector_space(self):
         """
@@ -2947,7 +3222,8 @@ class NumberField_relative(NumberField_generic):
             return self.__absolute_vector_space
         except AttributeError:
             pass
-        K, from_K, to_K = self.absolute_field()
+        K = self.absolute_field('a')
+        from_K, to_K = K.structure()
         V, from_V, to_V = K.vector_space()
         fr = maps.MapVectorSpaceToRelativeNumberField(V, self, from_V, from_K)
         to   = maps.MapRelativeNumberFieldToVectorSpace(self, V, to_K, to_V)
@@ -2967,9 +3243,9 @@ class NumberField_relative(NumberField_generic):
             sage: K.base_field()
             Number Field in b with defining polynomial x^3 + 3 over its base field
             sage: K.absolute_base_field()[0]
-            Number Field in b with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
-            sage: K.base_field().absolute_field()[0]
-            Number Field in b with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
+            Number Field in a with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
+            sage: K.base_field().absolute_field('z')
+            Number Field in z with defining polynomial x^9 + 3*x^6 + 165*x^3 + 1
         """
         return self.__absolute_base_field
 
@@ -3065,42 +3341,58 @@ class NumberField_relative(NumberField_generic):
             return self.__abs_gen
 
 
-    def absolute_field(self, name=None):
+    def absolute_field(self, names):
         r"""
         Return an absolute number field K that is isomorphic to this
         field along with a field-theoretic bijection from self to K
         and from K to self.
 
         INPUT:
-            name -- string; name of generator of the absolute field
-                    (defaults to be the same the name of the generator
-                    of the relative field).
+            names -- string; name of generator of the absolute field
 
         OUTPUT:
             K -- an absolute number field
-            from_K -- isomorphism K --> self
-            to_K -- isomorphism self --> K
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an isomorphism
+        from self to K.
 
         EXAMPLES:
-            sage: k.<a,b> = NumberField([x^4 + 3, x^2 + 2]); k
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
             Number Field in a with defining polynomial x^4 + 3 over its base field
-            sage: k.absolute_field()[0]
-            Number Field in a with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
+            sage: L.<xyz> = K.absolute_field(); L
+            Number Field in xyz with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
+            sage: L.<c> = K.absolute_field(); L
+            Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
 
-            sage: k.<a,b> = NumberField([x^3 + 2, x^2 + 1])
-            sage: k.absolute_field()[0]
-            Number Field in a with defining polynomial x^6 + 3*x^4 + 4*x^3 + 3*x^2 - 12*x + 5
+            sage: from_L, to_L = L.structure()
+            sage: from_L
+            Isomorphism from Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49 to Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: from_L(c)
+            a + -b
+            sage: to_L
+            Isomorphism from Number Field in a with defining polynomial x^4 + 3 over its base field to Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
+            sage: to_L(a)
+            -5/182*c^7 - 87/364*c^5 - 185/182*c^3 + 323/364*c
+            sage: to_L(b)
+            -5/182*c^7 - 87/364*c^5 - 185/182*c^3 - 41/364*c
+            sage: to_L(a)^4
+            -3
+            sage: to_L(b)^2
+            -2
         """
         try:
-            return self.__absolute_field
+            return self.__absolute_field[names]
+        except KeyError:
+            pass
         except AttributeError:
-            if name is None:
-                name = self.variable_name()
-            K = NumberField(self.absolute_polynomial(), name)
-            to_K = maps.MapRelativeToAbsoluteNumberField(self, K)
-            from_K = maps.MapAbsoluteToRelativeNumberField(K, self)
-            self.__absolute_field = (K, from_K, to_K)
-            return self.__absolute_field
+            self.__absolute_field = {}
+        K = NumberField(self.absolute_polynomial(), names, cache=False)
+        from_K = maps.MapAbsoluteToRelativeNumberField(K, self)
+        to_K = maps.MapRelativeToAbsoluteNumberField(self, K)
+        K._set_structure(from_K, to_K)
+        self.__absolute_field[names] = K
+        return K
 
     def absolute_polynomial(self):
         r"""
@@ -3188,7 +3480,7 @@ class NumberField_relative(NumberField_generic):
             self.__embeddings = {}
         except KeyError:
             pass
-        L = self.absolute_field()[0]
+        L = self.absolute_field('a')
         E = L.embeddings(K)
         v = [self.hom(f, K) for f in E]
         self.__embeddings[K] = v
@@ -3375,6 +3667,40 @@ class NumberField_relative(NumberField_generic):
             x^6 + 3*x^5 + 8*x^4 + 9*x^3 + 7*x^2 + 6*x + 3
         """
         return self.__relative_polynomial
+
+    def relativize(self, alpha, names):
+        r"""
+        Given an element alpha in self, return a relative number field
+        $K$ isomorphic to self that is relative over the absolute field
+        $\QQ(\alpha)$, along with isomorphisms from $K$ to self and
+        from self to K.
+
+        INPUT:
+            alpha -- an element of self.
+            names -- name of generator for output field K.
+
+        OUTPUT:
+            K, from_K, to_K -- relative number field, map from K to self,
+                               map from self to K.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: L.<z,w> = K.relativize(a^2)
+            sage: z^2
+            z^2
+            sage: w^2
+            -3
+            sage: L
+            Number Field in z with defining polynomial x^4 + (-2*w + 4)*x^2 + 4*w + 1 over its base field
+            sage: L.base_field()
+            Number Field in w with defining polynomial x^2 + 3
+        """
+        K = self.absolute_field('a')
+        from_K, to_K = K.structure()
+        beta = to_K(alpha)
+        return K.relativize(beta, names)
+
 
 class NumberField_cyclotomic(NumberField_absolute):
     """

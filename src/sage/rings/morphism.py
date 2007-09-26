@@ -399,6 +399,12 @@ class RingHomomorphism(RingMap):
             raise TypeError, "parent must be a ring homset"
         RingMap.__init__(self, parent)
 
+    def __nonzero__(self):
+        """
+        There is no zero map between rings, since 1 goes to 1.
+        """
+        return True
+
     def _repr_type(self):
         return "Ring"
 

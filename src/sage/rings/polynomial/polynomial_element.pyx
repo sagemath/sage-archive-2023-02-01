@@ -1481,7 +1481,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         elif is_RelativeNumberField(R):
 
-            M, from_M, to_M = R.absolute_field()
+            M = R.absolute_field('a')
+            from_M, to_M = M.structure()
             g = M['x']([to_M(x) for x in self.list()])
             F = g.factor()
             S = R['x']
@@ -2095,7 +2096,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.Factors()
             [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
             sage: f.factor()
-            (y + 1)^2 * (y + 5)
+            (y + 5) * (y + 1)^2
         """
         if G is None:
             import sage.interfaces.gap

@@ -276,7 +276,7 @@ class GenericGraph(SageObject):
             sage: G == H
             True
             sage: G.loops(True)
-            True
+            Looped graph on 8 vertices
             sage: G == H
             False
             sage: G = graphs.RandomGNP(9,.3).to_directed()
@@ -474,15 +474,17 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: G = Graph(); G
             Graph on 0 vertices
-            sage: G.loops(True); G
-            True
+            sage: G.loops(True)
             Looped graph on 0 vertices
 
             sage: D = DiGraph(); D
             Digraph on 0 vertices
-            sage: D.loops(True); D
-            True
+            sage: D.loops()
+            False
+            sage: D.loops(True)
             Looped digraph on 0 vertices
+            sage: D.loops()
+            True
 
         """
         if new is not None:
@@ -490,6 +492,7 @@ class GenericGraph(SageObject):
                 self._nxg.allow_selfloops()
             else:
                 self._nxg.ban_selfloops()
+            return self
         return self._nxg.selfloops
 
     def density(self):
@@ -2525,9 +2528,17 @@ class GenericGraph(SageObject):
         True
 
         """
+        if not self.is_directed():
+            if self.size()-len(self.loop_edges())>0:
+                return False
+            else:
+                return True
 
-        A=self.copy().transitive_closure().am()
-        return len(set(A.nonzero_positions()) & set(A.transpose().nonzero_positions())-set([(i,i) for i in xrange(self.order())]))==0
+        gpaths=self.copy().multiple_edges(False).loops(False).transitive_closure().edges(labels=False)
+        for e in gpaths:
+            if (e[1],e[0]) in gpaths:
+                return False
+        return True
 
 class Graph(GenericGraph):
     r"""
@@ -2915,16 +2926,16 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: G = Graph(multiedges=True); G
             Multi-graph on 0 vertices
-            sage: G.multiple_edges(False); G
-            False
+            sage: G.multiple_edges(False)
             Graph on 0 vertices
 
         """
-        if not new is None:
+        if new is not None:
             if new:
                 self._nxg.allow_multiedges()
             else:
                 self._nxg.ban_multiedges()
+            return self
         return self._nxg.multiedges
 
     ### Vertex handlers
@@ -3511,6 +3522,9 @@ class Graph(GenericGraph):
         represented by its position in the list returned by the vertices()
         function.
 
+        If the graph does not allow multiple edges, then the returned matrix is over
+        the ring with two elements, otherwise it is over the integers.
+
         EXAMPLE:
             sage: G = graphs.CubeGraph(4)
             sage: G.adjacency_matrix()
@@ -3548,7 +3562,7 @@ class Graph(GenericGraph):
         from sage.rings.integer_mod_ring import IntegerModRing
         from sage.rings.integer_ring import IntegerRing
         from sage.matrix.constructor import matrix
-        if self.multiple_edges:
+        if self.multiple_edges():
             R = IntegerRing()
         else:
             R = IntegerModRing(2)
@@ -3652,10 +3666,13 @@ class Graph(GenericGraph):
             [-1  0  0  1]
 
         """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import IntegerRing
+
         if weighted:
             M = self.weighted_adjacency_matrix()
         else:
-            M = self.am()
+            M = matrix(self,IntegerRing())
         A = list(-M)
         S = [sum(M[i]) for i in range(M.nrows())]
         for i in range(len(A)):
@@ -4796,16 +4813,16 @@ class DiGraph(GenericGraph):
         EXAMPLE:
             sage: D = DiGraph(multiedges=True); D
             Multi-digraph on 0 vertices
-            sage: D.multiple_edges(False); D
-            False
+            sage: D.multiple_edges(False)
             Digraph on 0 vertices
 
         """
-        if not new is None:
+        if new is not None:
             if new:
                 self._nxg.allow_multiedges()
             else:
                 self._nxg.ban_multiedges()
+            return self
         return self._nxg.multiedges
 
     ### Vertex Handlers
@@ -5439,8 +5456,8 @@ class DiGraph(GenericGraph):
 
     def adjacency_matrix(self, sparse=True):
         """
-        Returns the adjacency matrix of the digraph. Each vertex is
-        represented by its position in the list returned by the vertices()
+        Returns the adjacency matrix of the digraph as a matrix over the field of two elements.
+        Each vertex is represented by its position in the list returned by the vertices()
         function.
 
         EXAMPLE:

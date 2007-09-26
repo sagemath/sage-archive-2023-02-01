@@ -73,6 +73,8 @@ from sage.structure.sequence import Sequence
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
+from matrix2 import decomp_seq
+
 import sage.modules.free_module
 import sage.modules.free_module_element
 
@@ -2166,9 +2168,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             D, E = X
             D = [(W.intersection(V), t) for W, t in D]
             E = [(W.intersection(V), t) for W, t in E]
-            return D, E
+            return decomp_seq(D), decomp_seq(E)
         else:
-            return [(W.intersection(V), t) for W, t in X]
+            return decomp_seq([(W.intersection(V), t) for W, t in X])
 
 
 ###############################################################
@@ -2313,7 +2315,3 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
 ##         raise NotImplementedError
 
 
-
-
-cdef decomp_seq(v):
-    return Sequence(v, universe=tuple, check=False, cr=True)

@@ -473,9 +473,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(x^2-2)
             sage: a = 1 + b
             sage: a.abs(i=0)
-            0.41421356237
+            0.414213562373
             sage: a.abs(i=1)
-            2.414213562373
+            2.41421356237
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
@@ -1245,9 +1245,13 @@ cdef class NumberFieldElement(FieldElement):
     cdef bint is_rational_c(self):
         return ZZX_deg(self.__numerator) == 0
 
-    def trace(self):
+    def trace(self, K=None):
         """
         Return the trace of this number field element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the trace is the relative trace from L to K.
+        In all other cases, the trace is the absolute trace down to QQ.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 -132/7*x^2 + x + 1); K
@@ -1257,12 +1261,17 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a+1).trace() == a.trace() + 3
             True
         """
-        K = self.parent().base_ring()
-        return K(self._pari_('x').trace())
+        if K is None:
+            return QQ(self._pari_('x').trace())
 
-    def norm(self):
+
+    def norm(self, K=None):
         """
         Return the norm of this number field element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the norm is the relative norm from L to K.
+        In all other cases, the norm is the absolute norm down to QQ.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + x^2 + x + -132/7); K
@@ -1272,8 +1281,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(0).norm()
             0
         """
-        K = self.parent().base_ring()
-        return K(self._pari_('x').norm())
+        if K is None:
+            return self._pari_('x').norm()
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"

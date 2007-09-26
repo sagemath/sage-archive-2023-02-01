@@ -1437,6 +1437,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
         #     NTL's implementation is asymptotically better.  I could use
         #     PARI for smaller degree over other rings besides Z, and use
         #     NTL in general.
+        # A remark from Bill Hart (2007-09-25) about the above observation:
+        ## NTL uses the Berlekamp-Zassenhaus method with van Hoeij's improvements.
+        ## But so does Magma since about Jul 2001.
+        ##
+        ## But here's the kicker. Pari also uses this algorithm. Even Maple uses
+        ## it!
+        ##
+        ## NTL's LLL algorithms are extremely well developed (van Hoeij uses
+        ## LLL). There is also a possible speed difference in whether one uses
+        ## quadratic convegence or not in the Hensel lift. But the right choice
+        ## is not always what one thinks.
+        ##
+        ## But more than likely NTL is just better for large problems because
+        ## Victor Schoup was very careful with the choice of strategies and
+        ## parameters he used. Paul Zimmerman supplied him with a pile of
+        ## polynomials to factor for comparison purposes and these seem to have
+        ## been used to tune the algorithm for a wide range of inputs, including
+        ## cases that van Hoeij's algorithm doesn't usually like.
+        ##
+        ## If you have a bound on the coefficients of the factors, one can surely
+        ## do better than a generic implementation, but probably not much better
+        ## if there are many factors.
+        ##
 
         R = self.parent().base_ring()
         if self.degree() < 0:

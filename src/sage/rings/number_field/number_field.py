@@ -2651,7 +2651,7 @@ class NumberField_absolute(NumberField_generic):
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
 
-        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False)
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False, universe=self.Hom(K))
         return v
 
     def relativize(self, alpha, names):
@@ -3508,7 +3508,7 @@ class NumberField_relative(NumberField_generic):
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
 
-        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False)
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False, universe=self.Hom(K))
         return v
 
     def relative_discriminant(self, proof=None):

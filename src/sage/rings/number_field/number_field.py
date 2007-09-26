@@ -896,10 +896,10 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: k.<a> = NumberField(x^5 + x + 17)
             sage: v = k.complex_embeddings()
-            sage: [phi(k.0^2) for phi in v]
+            sage: [phi(k.0^2) for phi in v]    # random low order bits
             [2.97572074038 + 1.73496602657e-16*I, -2.40889943716 + 1.90254105304*I, -2.40889943716 - 1.90254105304*I, 0.921039066973 + 3.07553311885*I, 0.921039066973 - 3.07553311885*I]
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: K.complex_embeddings()
+            sage: K.complex_embeddings()   # random low order bits
             [Ring morphism:
               From: Number Field in a with defining polynomial x^3 + 2
               To:   Complex Double Field

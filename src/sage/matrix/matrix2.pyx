@@ -28,6 +28,7 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
+
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
@@ -2824,6 +2825,7 @@ cdef class Matrix(matrix1.Matrix):
                 if not self.get_unsafe(x,y).is_zero():
                     k+=1
         return QQ(k)/QQ(nr*nc)
+
 
 def _dim_cmp(x,y):
     return cmp(x[0].dimension(), y[0].dimension())

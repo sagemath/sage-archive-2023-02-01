@@ -933,7 +933,7 @@ class GenericGraph(SageObject):
             dict = {}
             llist = perm.list()
             for i in xrange(1,n):
-                 dict[i] = llist[i-1]%n
+                dict[i] = llist[i-1]%n
             if n > 0:
                 dict[0] = llist[n-1]%n
             perm = dict
@@ -2916,6 +2916,7 @@ class Graph(GenericGraph):
 
         """
         return DiGraph(self._nxg.to_directed(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
+
     def to_undirected(self):
         """
         Since the graph is already undirected, simply returns a copy of itself.
@@ -4424,7 +4425,7 @@ class Graph(GenericGraph):
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
             sage: M.determinant()
-            -712483534798848
+            712483534798848
             sage: G.order()
             384
 

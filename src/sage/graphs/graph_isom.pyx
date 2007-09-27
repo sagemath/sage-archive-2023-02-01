@@ -875,7 +875,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: Pi = [Pi]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [[0, 2, 1, 3, 4, 6, 5, 7], [0, 1, 4, 5, 2, 3, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6]] 520239721777506480
+        [[0, 3, 2, 1, 6, 5, 4, 7], [0, 1, 4, 5, 2, 3, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6], [2, 1, 0, 3, 4, 7, 6, 5]] 520239721777506480
         sage: c = search_tree(G, Pi, lab=False)
 
         sage: PermutationGroup([perm_group_elt(aa) for aa in a]).order() # long time

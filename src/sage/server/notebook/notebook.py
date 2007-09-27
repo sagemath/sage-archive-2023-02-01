@@ -1672,7 +1672,7 @@ function save_worksheet_and_close() {
 
         s +="""
         <br>        <br>
-        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Ramier.
+        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Raymer.
         </center>
         </body>
         </html>

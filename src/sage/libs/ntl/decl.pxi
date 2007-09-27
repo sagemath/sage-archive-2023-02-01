@@ -111,7 +111,7 @@ cdef extern from "ntl_wrap.h":
     ZZ_p_c int_to_ZZ_p(int i)
     void ZZ_p_modulus(ZZ_c* mod, ZZ_p_c* x)
 
-    ZZ_c rep(ZZ_p_c x)
+    ZZ_c ZZ_p_rep "rep"(ZZ_p_c x)
 
     #### ZZX_c
 
@@ -275,6 +275,82 @@ cdef extern from "ntl_wrap.h":
 
     void ZZ_pX_factor(ZZ_pX_c*** v, long** e, long* n, ZZ_pX_c* x, long verbose)
     void ZZ_pX_linear_roots(ZZ_p_c*** v, long* n, ZZ_pX_c* x)
+
+    #### zz_p_c
+    ctypedef struct zz_p_c "struct zz_p":
+        void *rep
+##        pass
+    long zz_p_rep "rep"(zz_p_c x)
+    void zz_p_set_from_long(zz_p_c x, long a)
+    void zz_p_add "add"(zz_p_c x, zz_p_c a, zz_p_c b)
+    void zz_p_sub "sub"(zz_p_c x, zz_p_c a, zz_p_c b)
+    void zz_p_negate "negate"(zz_p_c x, zz_p_c a)
+    void zz_p_mul "mul"(zz_p_c x, zz_p_c a, zz_p_c b)
+    void zz_p_div "div"(zz_p_c x, zz_p_c a, zz_p_c b)
+    void zz_p_inv "inv"(zz_p_c x, zz_p_c a)
+    void zz_p_power "power"(zz_p_c x, zz_p_c a, long e)
+    void zz_p_sqr "sqr"(zz_p_c x, zz_p_c a)
+    zz_p_c zz_p_square "sqr"(zz_p_c x)
+    void zz_p_clear "clear"(zz_p_c x)
+    void zz_p_set_zero "clear"(zz_p_c x)
+    void zz_p_set_one "set"(zz_p_c x)
+    void zz_p_swap "swap"(zz_p_c x, zz_p_c y)
+
+
+    bint NTL_zz_p_DOUBLE_EQUALS(zz_p_c x, zz_p_c y)
+
+    void zz_p_set_modulus "zz_p::init"(long p)
+    long zz_p_modulus "zz_p::modulus"()
+
+    #### zz_pContext_c
+    ctypedef struct zz_pContext_c "struct zz_pContext":
+        pass
+
+    zz_pContext_c* zz_pContext_new "New<zz_pContext>"()
+    zz_pContext_c* zz_pContext_construct "Construct<zz_pContext>"(void *mem)
+    zz_pContext_c* zz_pContext_new_long "zz_pContext_new"(long p)
+    zz_pContext_c* zz_pContext_construct_long "zz_pContext_construct"(void *mem, long p)
+    void zz_pContext_destruct "Destruct<zz_pContext>"(zz_pContext_c *mem)
+    void zz_pContext_delete "Delete<zz_pContext>"(zz_pContext_c *mem)
+
+    void zz_pContext_restore(zz_pContext_c *c)
+
+
+    #### zz_pX_c
+    ctypedef struct zz_pX_c "struct zz_pX":
+        void *rep
+        void (* SetMaxLength)(long n)
+
+##    zz_pX_c* zz_pX_construct "Construct<zz_pX>"(void *mem)
+##    void zz_pX_destruct "Destruct<zz_pX>"(zz_pX_c *mem)
+    char* zz_pX_repr(zz_pX_c* x)
+    void zz_pX_SetCoeff_long "SetCoeff"(zz_pX_c x, long i, long a)
+    zz_p_c zz_pX_GetCoeff "coeff"(zz_pX_c x, long i)
+    void zz_pX_add "add"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
+    void zz_pX_sub "sub"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
+    void zz_pX_mul "mul"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
+    long zz_pX_divide "divide"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
+    void zz_pX_mod "rem"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
+    void zz_pX_neg "negate"(zz_pX_c x, zz_pX_c a)
+    zz_p_c zz_pX_LeadCoeff "LeadCoeff"(zz_pX_c x)
+    zz_p_c zz_pX_ConstTerm "ConstTerm" (zz_pX_c x)
+    void zz_pX_negate "negate"(zz_pX_c x, zz_pX_c a)
+    void zz_pX_trunc "trunc"(zz_pX_c x, zz_pX_c a, long n) ## x = a % X^n
+    void zz_pX_MulTrunc "MulTrunc"(zz_pX_c x, zz_pX_c a, zz_pX_c b, long n)
+    void zz_pX_SqrTrunc "SqrTrunc"(zz_pX_c x, zz_pX_c a, long n)
+    void zz_pX_InvTrunc "InvTrunc"(zz_pX_c x, zz_pX_c a, long n)
+    void zz_pX_sqr "sqr"(zz_pX_c x, zz_pX_c a)
+    zz_pX_c zz_pX_square "sqr"(zz_pX_c a)
+    void zz_pX_clear "clear"(zz_pX_c x)
+    void zz_pX_SetX "SetX"(zz_pX_c x)
+    long zz_pX_IsX "IsX"(zz_pX_c x)
+    long zz_pX_IsZero "IsZero"(zz_pX_c x)
+    long zz_pX_IsOne "IsOne"(zz_pX_c x)
+    long zz_pX_deg "deg"(zz_pX_c x)
+    zz_pX_c zz_pX_zero "zz_pX::zero"()
+
+    long NTL_SP_BOUND
+    bint NTL_zz_pX_DOUBLE_EQUALS(zz_pX_c x, zz_pX_c y)
 
     #### mat_ZZ_c
     ctypedef struct mat_ZZ_c "struct mat_ZZ":

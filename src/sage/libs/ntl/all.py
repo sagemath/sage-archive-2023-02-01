@@ -42,6 +42,12 @@ from sage.libs.ntl.ntl_ZZX import (
 
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX as ZZ_pX
 
+from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext as zz_pContext
+
+from sage.libs.ntl.ntl_lzz_p import ntl_zz_p as zz_p
+
+from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX as zz_pX
+
 from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ as mat_ZZ
 
 from sage.libs.ntl.ntl_GF2X import (

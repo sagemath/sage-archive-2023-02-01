@@ -29,7 +29,7 @@ import arith
 import integer_ring
 from integer import Integer
 import rational
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 from sage.structure.element import FiniteFieldElement
 import field_element
 import integer_mod

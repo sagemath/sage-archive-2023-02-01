@@ -70,7 +70,7 @@ cdef class ntl_ZZ_p:
     """
     def __init__(self, v=None, modulus=None):
         r"""
-        Initializes and NTL integer.
+        Initializes an NTL integer mod p.
 
         EXAMPLES:
             sage: c=ntl.ZZ_pContext(ntl.ZZ(11))
@@ -286,7 +286,7 @@ cdef class ntl_ZZ_p:
     def lift(self):
         cdef ntl_ZZ r = ntl_ZZ()
         self.c.restore_c()
-        r.x = rep(self.x)
+        r.x = ZZ_p_rep(self.x)
         return r
 
     def modulus(self):

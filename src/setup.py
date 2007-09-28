@@ -638,6 +638,12 @@ ext_modules = [ \
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 
+    Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
+                 sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
+                 language = 'c++',
+                 include_dirs=['sage/libs/ntl/']), \
+
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 

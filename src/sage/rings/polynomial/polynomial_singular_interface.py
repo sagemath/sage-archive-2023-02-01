@@ -3,6 +3,7 @@ Polynomial Interfaces to Singular
 
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
+     -- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
 
 TESTS:
     sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
@@ -265,187 +266,203 @@ class Polynomial_singular_repr:
     This class is a base class for all (univariate and multivariate)
     polynomial classes which support conversion from and to
     Singular polynomials.
+
+    Due to the incompatablity of Python extension classes and multiple inheritance,
+    this just defers to module-level functions.
     """
     def _singular_(self, singular=singular_default, have_ring=False, force=False):
-        """
-        Return Singular polynomial matching this polynomial.
-
-        INPUT:
-            singular -- Singular instance to use
-
-            have_ring -- if True we will not attempt to set this
-                         element's ring as the current Singular
-                         ring. This is useful to speed up a batch of
-                         f._singular_() calls. However, it's dangerous
-                         as it might lead to wrong results if another
-                         ring is singluar.current_ring().  (default:
-                         False)
-
-            force -- polynomials over ZZ may be coerced to Singular by
-                     treating them as polynomials over QQ. This is
-                     inexact but works for some cases where the
-                     coeffients are not considered (default: False).
-
-
-        EXAMPLES:
-            sage: P.<a,b> = PolynomialRing(GF(7), 2)
-            sage: f = (a^3 + 2*b^2*a)^7; f
-            a^21 + 2*a^7*b^14
-            sage: h = f._singular_(); h
-            a^21+2*a^7*b^14
-            sage: P(h)
-            a^21 + 2*a^7*b^14
-            sage: P(h^20) == f^20
-            True
-
-            sage: R.<x> = PolynomialRing(GF(7))
-            sage: f = (x^3 + 2*x^2*x)^7
-            sage: f
-            3*x^21
-            sage: h = f._singular_(); h
-            3*x^21
-            sage: R(h)
-            3*x^21
-            sage: R(h^20) == f^20
-            True
-        """
-        if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
-
-        try:
-            self.__singular._check_valid()
-            if self.__singular.parent() is singular:
-                return self.__singular
-        except (AttributeError,ValueError):
-            pass
-        return self._singular_init_(singular,have_ring=have_ring)
-
-    def _singular_init_(self, singular=singular_default, have_ring=False, force=False):
-        """
-        Return corresponding Singular polynomial but enforce that a new
-        instance is created in the Singular interpreter.
-
-        Use self._singular_() instead.
-        """
-        if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
-
-        self.__singular = singular(str(self))
-
-        return self.__singular
-
-    def lcm(self, right, have_ring=False):
-        """
-        Returns the least common multiple of this element and the right element.
-
-        INPUT:
-            right -- multivariate polynomial
-            have_ring -- see self._singular_() (default:False)
-
-        OUTPUT:
-            multivariate polynomial representing the least common
-            multiple of self and right
-
-        ALGORITHM: Singular
-
-        EXAMPLES:
-            sage: r.<x,y> = MPolynomialRing(GF(2**8,'a'),2)
-            sage: a = r.base_ring().0
-            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
-            sage: f.lcm(x^4)
-            (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
-
-            sage: w = var('w')
-            sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
-            sage: a = r.base_ring().0
-            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
-            sage: f.lcm(x^4)
-            (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
-        """
-        lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
-        return lcm.sage_poly(self.parent())
-
+        return _singular_func(self, singular, have_ring, force)
+    def _singular_init_func(self, singular=singular_default, have_ring=False, force=False):
+        return _singular_init_func(self, singular, have_ring, force)
+    def lcm(self, singular=singular_default, have_ring=False):
+        return lcm_func(self, singular, have_ring)
     def diff(self, variable, have_ring=False):
-        """
-        Differentiates self with respect to the provided variable. This
-        is completely symbolic so it is also defined over e.g. finite
-        fields.
-
-        INPUT:
-            variable -- the derivative is taken with respect to variable
-            have_ring -- see self._singular_() (default:False)
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(RR,2)
-            sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
-            sage: f.diff(x)
-            9.00000000000000*x^2*y^2 + 3.00000000000000
-            sage: f.diff(y)
-            6.00000000000000*x^3*y + 10.0000000000000*y
-
-            The derivate is also defined over finite fields:
-
-            sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
-            sage: f = x^3*y^2 + y^2 + x + 2
-            sage: f.diff(x)
-            x^2*y^2 + 1
-
-            The new coefficients are coerced to the base ring:
-
-            sage: f.diff(y)
-            0
-
-            sage: w = var('w')
-            sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
-            sage: a=R.base_ring().0
-            sage: f = x^3*y^2 + y^2 + a*x + 2
-            sage: f.diff(x)
-            3*x^2*y^2 + a
-
-        ALGORITHM: Singular
-
-        """
-        df = self._singular_(have_ring=have_ring).diff(variable._singular_(have_ring=have_ring))
-        return df.sage_poly(self.parent())
-
-
+        return diff_func(self, variable, have_ring)
     def resultant(self, other, variable=None):
-        """
-        computes the resultant of self and the first argument with
-        respect to the variable given as the second argument.
+        return resultant_func(self, other, variable)
 
-        If a second argument is not provide the first variable of
-        self.parent() is chosen.
 
-        INPUT:
-            other -- polynomial in self.parent()
-            variable -- optional variable (of type polynomial) in self.parent() (default: None)
+def _singular_func(self, singular=singular_default, have_ring=False, force=False):
+    """
+    Return Singular polynomial matching this polynomial.
 
-        EXAMPLE:
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: a = x+y
-            sage: b = x^3-y^3
-            sage: c = a.resultant(b); c
-            -2*y^3
-            sage: d = a.resultant(b,y); d
-            2*x^3
+    INPUT:
+        singular -- Singular instance to use
 
-        TESTS:
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ,2,order='degrevlex')
-            sage: a = x+y
-            sage: b = x^3-y^3
-            sage: c = a.resultant(b); c
-            -2*y^3
-            sage: d = a.resultant(b,y); d
-            2*x^3
+        have_ring -- if True we will not attempt to set this
+                     element's ring as the current Singular
+                     ring. This is useful to speed up a batch of
+                     f._singular_() calls. However, it's dangerous
+                     as it might lead to wrong results if another
+                     ring is singluar.current_ring().  (default:
+                     False)
 
-        """
-        if variable is None:
-            variable = self.parent().gen(0)
-        rt = self._singular_().resultant(other._singular_(), variable._singular_())
-        r = rt.sage_poly(self.parent())
-        if self.parent().ngens() <= 1 and r.degree() <= 0:
-            return self.parent().base_ring()(r[0])
-        else:
-            return r
+        force -- polynomials over ZZ may be coerced to Singular by
+                 treating them as polynomials over QQ. This is
+                 inexact but works for some cases where the
+                 coeffients are not considered (default: False).
+
+
+    EXAMPLES:
+        sage: P.<a,b> = PolynomialRing(GF(7), 2)
+        sage: f = (a^3 + 2*b^2*a)^7; f
+        a^21 + 2*a^7*b^14
+        sage: h = f._singular_(); h
+        a^21+2*a^7*b^14
+        sage: P(h)
+        a^21 + 2*a^7*b^14
+        sage: P(h^20) == f^20
+        True
+
+        sage: R.<x> = PolynomialRing(GF(7))
+        sage: f = (x^3 + 2*x^2*x)^7
+        sage: f
+        3*x^21
+        sage: h = f._singular_(); h
+        3*x^21
+        sage: R(h)
+        3*x^21
+        sage: R(h^20) == f^20
+        True
+    """
+    if not have_ring:
+        self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+
+    try:
+        self.__singular._check_valid()
+        if self.__singular.parent() is singular:
+            return self.__singular
+    except (AttributeError,ValueError):
+        pass
+#    return self._singular_init_(singular,have_ring=have_ring)
+    return _singular_init_func(self, singular,have_ring=have_ring)
+
+def _singular_init_func(self, singular=singular_default, have_ring=False, force=False):
+    """
+    Return corresponding Singular polynomial but enforce that a new
+    instance is created in the Singular interpreter.
+
+    Use self._singular_() instead.
+    """
+    if not have_ring:
+        self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+
+    self.__singular = singular(str(self))
+
+    return self.__singular
+
+def lcm_func(self, right, have_ring=False):
+    """
+    Returns the least common multiple of this element and the right element.
+
+    INPUT:
+        right -- multivariate polynomial
+        have_ring -- see self._singular_() (default:False)
+
+    OUTPUT:
+        multivariate polynomial representing the least common
+        multiple of self and right
+
+    ALGORITHM: Singular
+
+    EXAMPLES:
+        sage: r.<x,y> = MPolynomialRing(GF(2**8,'a'),2)
+        sage: a = r.base_ring().0
+        sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
+        sage: f.lcm(x^4)
+        (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
+
+        sage: w = var('w')
+        sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
+        sage: a = r.base_ring().0
+        sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
+        sage: f.lcm(x^4)
+        (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
+    """
+    lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
+    return lcm.sage_poly(self.parent())
+
+def diff_func(self, variable, have_ring=False):
+    """
+    Differentiates self with respect to the provided variable. This
+    is completely symbolic so it is also defined over e.g. finite
+    fields.
+
+    INPUT:
+        variable -- the derivative is taken with respect to variable
+        have_ring -- see self._singular_() (default:False)
+
+    EXAMPLES:
+        sage: R.<x,y> = PolynomialRing(RR,2)
+        sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
+        sage: f.diff(x)
+        9.00000000000000*x^2*y^2 + 3.00000000000000
+        sage: f.diff(y)
+        6.00000000000000*x^3*y + 10.0000000000000*y
+
+        The derivate is also defined over finite fields:
+
+        sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
+        sage: f = x^3*y^2 + y^2 + x + 2
+        sage: f.diff(x)
+        x^2*y^2 + 1
+
+        The new coefficients are coerced to the base ring:
+
+        sage: f.diff(y)
+        0
+
+        sage: w = var('w')
+        sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
+        sage: a=R.base_ring().0
+        sage: f = x^3*y^2 + y^2 + a*x + 2
+        sage: f.diff(x)
+        3*x^2*y^2 + a
+
+    ALGORITHM: Singular
+
+    """
+    df = self._singular_(have_ring=have_ring).diff(variable._singular_(have_ring=have_ring))
+    return df.sage_poly(self.parent())
+
+
+def resultant_func(self, other, variable=None):
+    """
+    computes the resultant of self and the first argument with
+    respect to the variable given as the second argument.
+
+    If a second argument is not provide the first variable of
+    self.parent() is chosen.
+
+    INPUT:
+        other -- polynomial in self.parent()
+        variable -- optional variable (of type polynomial) in self.parent() (default: None)
+
+    EXAMPLE:
+        sage: P.<x,y> = PolynomialRing(QQ,2)
+        sage: a = x+y
+        sage: b = x^3-y^3
+        sage: c = a.resultant(b); c
+        -2*y^3
+        sage: d = a.resultant(b,y); d
+        2*x^3
+
+    TESTS:
+        sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+        sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ,2,order='degrevlex')
+        sage: a = x+y
+        sage: b = x^3-y^3
+        sage: c = a.resultant(b); c
+        -2*y^3
+        sage: d = a.resultant(b,y); d
+        2*x^3
+
+    """
+    if variable is None:
+        variable = self.parent().gen(0)
+    rt = self._singular_().resultant(other._singular_(), variable._singular_())
+    r = rt.sage_poly(self.parent())
+    if self.parent().ngens() <= 1 and r.degree() <= 0:
+        return self.parent().base_ring()(r[0])
+    else:
+        return r

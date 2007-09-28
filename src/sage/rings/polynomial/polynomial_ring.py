@@ -88,6 +88,7 @@ import sage.misc.latex as latex
 import multi_polynomial_element
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
+import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.fraction_field_element import FractionFieldElement
 
@@ -990,7 +991,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         set_modulus(self.__modulus)
-        return polynomial_element_generic.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
+        return polynomial_modn_dense_ntl.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,
@@ -1016,7 +1017,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 raise TypeError,"Unable to coerce string"
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
-        return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
+        return polynomial_modn_dense_ntl.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 
 def polygen(ring_or_element, name="x"):

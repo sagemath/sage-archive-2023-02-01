@@ -25,7 +25,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
+cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
     _sig_off
     y = ntl_ZZ_p(modulus = ctx)
@@ -35,7 +35,8 @@ cdef make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
 
 cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_pX y
-    y = ntl_ZZ_pX(modulus = ctx)
+    y = <ntl_ZZ_pX>PY_NEW(ntl_ZZ_pX)
+    y.c = ctx
     y.x = x[0]
     ZZ_pX_delete(x)
     _sig_off
@@ -103,7 +104,7 @@ cdef class ntl_ZZ_pX:
             ZZ_pX_from_str(&self.x, s)
             _sig_off
 
-    def __new__(self, v=[], modulus=None):
+    def __new__(self, v=None, modulus=None):
         ZZ_pX_construct(&self.x)
 
     def __dealloc__(self):

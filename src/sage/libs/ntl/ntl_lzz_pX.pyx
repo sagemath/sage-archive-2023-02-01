@@ -153,7 +153,7 @@ cdef class ntl_zz_pX:
         return
 
     def __reduce__(self):
-        raise NotImplementedError
+        return make_zz_pX, (self.list(), self.c)
 
     def __repr__(self):
         return str(self.list())
@@ -810,3 +810,14 @@ cdef class ntl_zz_pX:
         _sig_off
         return
 
+
+def make_zz_pX(L, context):
+    """
+    For unpickling.
+
+    TEST:
+        sage: f = ntl.zz_pX(range(16), 12)
+        sage: loads(dumps(f)) == f
+        True
+    """
+    return ntl_zz_pX(L, context)

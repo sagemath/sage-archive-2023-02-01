@@ -1674,6 +1674,8 @@ struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x) {
   return y;
 }
 
+
+
 ZZ_pContext* ZZ_pContext_new(ZZ *p)
 {
 	return new ZZ_pContext(*p);
@@ -1685,6 +1687,22 @@ ZZ_pContext* ZZ_pContext_construct(void *mem, ZZ *p)
 }
 
 void ZZ_pContext_restore(ZZ_pContext *ctx)
+{
+	ctx->restore();
+}
+
+
+zz_pContext* zz_pContext_new(long p)
+{
+	return new zz_pContext(p);
+}
+
+zz_pContext* zz_pContext_construct(void *mem, long p)
+{
+	return new(mem) zz_pContext(p);
+}
+
+void zz_pContext_restore(zz_pContext *ctx)
 {
 	ctx->restore();
 }

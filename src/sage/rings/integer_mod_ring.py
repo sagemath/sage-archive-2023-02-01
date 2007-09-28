@@ -56,7 +56,7 @@ AUTHORS
 import random
 import weakref
 
-import arith
+from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
 import commutative_ring
 import field
 import integer_mod
@@ -68,7 +68,7 @@ import ideal
 import finite_field_element
 from sage.structure.parent_gens import ParentWithGens
 
-from sage.libs.all import pari, PariError
+from sage.libs.pari.all import pari, PariError
 
 import sage.interfaces.all
 

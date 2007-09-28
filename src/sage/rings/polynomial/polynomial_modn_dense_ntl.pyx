@@ -22,6 +22,7 @@ from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX, set_modu
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 import sage.rings.integer as integer
+from sage.rings.integer_mod import IntegerMod_abstract
 
 from sage.rings.fraction_field_element import FractionFieldElement
 import sage.rings.polynomial.polynomial_ring
@@ -29,9 +30,16 @@ import sage.rings.polynomial.polynomial_ring
 import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
+from sage.structure.element import generic_power, canonical_coercion
+
 def make_element(parent, args):
     return parent(*args)
 
+include "../../ext/stdsage.pxi"
+include "../../ext/interrupt.pxi"
+include "../../ext/cdefs.pxi"
+
+zz_p_max = NTL_SP_BOUND
 
 cdef class Polynomial_dense_mod_n(Polynomial):
     """
@@ -79,7 +87,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
-                self.__poly = x.__poly.__copy__()
+                self.__poly = (<Polynomial_dense_modn_ntl_zz>x).__poly.__copy__()
                 return
             else:
                 R = parent.base_ring()
@@ -316,10 +324,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             raise TypeError, "Cannot change the value of the generator."
         self._ntl_set_modulus()
         self.__poly = ZZ_pX(v, self.parent().modulus())
-        try:
-            del self.__list
-        except AttributeError:
-            pass
 
     # Polynomial_singular_repr
 
@@ -334,6 +338,238 @@ cdef class Polynomial_dense_mod_n(Polynomial):
     def resultant(self, other, variable=None):
         return polynomial_singular_interface.resultant_func(self, other, variable)
 
+
+cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
+
+    def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
+        if isinstance(v, Polynomial):
+            if (<Element>v)._parent == parent:
+                Polynomial.__init__(self, parent, is_gen=is_gen)
+                self.x = (<Polynomial_dense_modn_ntl_zz>v).x
+                self.c = (<Polynomial_dense_modn_ntl_zz>v).c
+                return
+
+        Polynomial_dense_mod_n.__init__(self, parent, v, check=check, is_gen=is_gen, construct=construct)
+#        if check:
+#            R = parent.base_ring()
+#            v = [a if isinstance(a, (int, long, integer.Integer, IntegerMod_abstract)) else R(a) for a in v]
+        v = [int(a) for a in self.__poly.list()]
+        self.__poly = None # this will eventually go away
+        cdef ntl_zz_pX ntl = ntl_zz_pX(v, int(parent.modulus())) # let it handle the hard work
+        self.x = ntl.x
+        self.c = ntl.c
+
+    def ntl_set_directly(self, v):
+        # TODO: Get rid of this
+        Polynomial_dense_mod_n.ntl_set_directly(self, v)
+        # verbatim from __init__
+        v = [int(a) for a in self.__poly.list()]
+        self.__poly = None # this will eventually go away
+        cdef ntl_zz_pX ntl = ntl_zz_pX(v, int(self._parent.modulus())) # let it handle the hard work
+        self.x = ntl.x
+        self.c = ntl.c
+
+    cdef Polynomial_dense_modn_ntl_zz _new(self):
+        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>PY_NEW(Polynomial_dense_modn_ntl_zz)
+        y.c = self.c
+        y._parent = self._parent
+        return y
+
+    def int_list(self):
+        cdef long i
+        return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
+
+    def __getitem__(self, n):
+        R = self._parent._base
+        if n < 0 or n > zz_pX_deg(self.x):
+            return R(0)
+        else:
+            return R(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
+
+    def _unsafe_mutate(self, n, value):
+        self.c.restore_c()
+        zz_pX_SetCoeff_long(self.x, n, value)
+
+    def __getslice__(self, i, j):
+        R = self.base_ring()
+        if i < 0:
+            i = 0
+        if j > zz_pX_deg(self.x)+1:
+            j = zz_pX_deg(self.x)+1
+        v = [ zz_p_rep(zz_pX_GetCoeff(self.x, t)) for t from i <= t < j ]
+        return Polynomial_dense_modn_ntl_zz(v, check=False) << i
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+        cdef Polynomial_dense_modn_ntl_zz right = <Polynomial_dense_modn_ntl_zz>_right
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 1000000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_add(r.x, self.x, right.x)
+        if do_sig: _sig_off
+        return r
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+        cdef Polynomial_dense_modn_ntl_zz right = <Polynomial_dense_modn_ntl_zz>_right
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 1000000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_sub(r.x, self.x, right.x)
+        if do_sig: _sig_off
+        return r
+
+    cdef RingElement _mul_c_impl(self, RingElement _right):
+        cdef Polynomial_dense_modn_ntl_zz right = <Polynomial_dense_modn_ntl_zz>_right
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 10000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        if self is right:
+            zz_pX_sqr(r.x, self.x)
+        else:
+            zz_pX_mul(r.x, self.x, right.x)
+        if do_sig: _sig_off
+        return r
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) > 100000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_rmul(r.x, self.x, c)
+        if do_sig: _sig_off
+        return r
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) > 100000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_lmul(r.x, c, self.x)
+        if do_sig: _sig_off
+        return r
+
+    def __pow__(Polynomial_dense_modn_ntl_zz self, ee, dummy):
+        cdef bint recip = 0
+        cdef long e = ee
+        if e != ee:
+            raise TypeError, "Only integral powers defined."
+        elif e < 0:
+            recip = 1
+            e = -e
+        if not self:
+            if e == 0:
+                raise ArithmeticError, "0^0 is undefined."
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        self.c.restore_c()
+        cdef bint do_sig = zz_pX_deg(self.x) *e > 1000
+        if do_sig: _sig_on
+        zz_pX_power(r.x, self.x, e)
+        if do_sig: _sig_off
+        if recip:
+            return ~r
+        else:
+            return r
+
+    def quo_rem(self, right):
+        if PY_TYPE(self) != PY_TYPE(right) or self._parent is not (<Element>right)._parent:
+            self, right = canonical_coercion(self, right)
+            return self.quo_rem(right)
+        cdef Polynomial_dense_modn_ntl_zz q = self._new()
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(denom.x) > 1000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_divrem(q.x, r.x, self.x, denom.x)
+        if do_sig: _sig_off
+        return q, r
+
+    def __floordiv__(self, right):
+        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+            self, right = canonical_coercion(self, right)
+            return self // right
+        cdef Polynomial_dense_modn_ntl_zz q = self._new()
+        cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
+        cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
+        cdef bint do_sig = zz_pX_deg(numer.x) + zz_pX_deg(denom.x) > 1000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_div(q.x, numer.x, denom.x)
+        if do_sig: _sig_off
+        return q
+
+    def __mod__(self, right):
+        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+            self, right = canonical_coercion(self, right)
+            return self % right
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
+        cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
+        cdef bint do_sig = zz_pX_deg(numer.x) + zz_pX_deg(denom.x) > 1000
+        if do_sig: _sig_on
+        self.c.restore_c()
+        zz_pX_div(r.x, numer.x, denom.x)
+        if do_sig: _sig_off
+        return r
+
+    def shift(self, n):
+        return self << n
+
+    def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        zz_pX_lshift(r.x, self.x, n)
+        return r
+
+    def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        zz_pX_rshift(r.x, self.x, n)
+        return r
+
+    def derivative(self):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        zz_pX_diff(r.x, self.x)
+        return r
+
+    def reverse(self):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        zz_pX_reverse(r.x, self.x)
+        return r
+
+    def is_gen(self):
+        return zz_pX_IsX(self.x)
+
+    def __nonzero__(self):
+        return not zz_pX_IsZero(self.x)
+
+    def degree(self):
+        return zz_pX_deg(self.x)
+
+    def truncate(self, long n):
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        zz_pX_trunc(r.x, self.x, n)
+        return r
+
+    def __call__(self, *args, **kwds):
+        if len(args) != 1 or len(kwds) != 0:
+            return Polynomial.__call__(self, *args, **kwds)
+        arg = args[0]
+#        cdef zz_p_c x
+        cdef ntl_zz_p fx = ntl_zz_p(0, self.c), x = None
+        if PY_TYPE_CHECK(arg, int):
+            x = ntl_zz_p(arg, self.c)
+        elif PY_TYPE_CHECK(arg, integer.Integer):
+            x = ntl_zz_p(arg, self.c)
+        elif PY_TYPE_CHECK(arg, Element):
+            map = self._parent.coerce_map_from((<Element>arg)._parent)
+            if map is not None:
+                x = ntl_zz_p(map(arg), self.c)
+        if <PyObject *>x == <PyObject *>None: # c++ pointer compare error
+            return Polynomial.__call__(self, *args, **kwds)
+        else:
+            zz_pX_eval(fx.x, self.x, x.x)
+            return self._parent(int(fx))
 
 
 cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):

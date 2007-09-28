@@ -991,7 +991,10 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         set_modulus(self.__modulus)
-        return polynomial_modn_dense_ntl.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
+        if int(self.__modulus) < polynomial_modn_dense_ntl.zz_p_max:
+            return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz(self, x, check, is_gen, construct=construct)
+        else:
+            return polynomial_modn_dense_ntl.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,

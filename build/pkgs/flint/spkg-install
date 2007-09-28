@@ -43,7 +43,9 @@ fi
 
 mv makefile.1 makefile
 
-make Z_mpn-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
+
+# We only need the library (built below).
+#make Z_mpn-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
 
 
 # UNIX

@@ -403,11 +403,12 @@ cdef class ntl_ZZ_pX:
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
         """
-        self.c.restore_c()
+        ## FIXME
         if n < 0:
             raise NotImplementedError
         import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pX([1],self.c))
+        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pX([1]))
+
 
     def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """

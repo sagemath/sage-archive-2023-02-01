@@ -346,11 +346,50 @@ cdef class ntl_zz_pX:
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
         """
-        ## FIXME
         if n < 0:
-            raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_zz_pX([1]))
+            raise TypeError, "Only positive exponents allowed."
+        _sig_on
+        cdef ntl_zz_pX y = self._new()
+        zz_pX_power(y.x, self.x, n)
+        _sig_off
+        return y
+
+    def quo_rem(ntl_zz_pX self, ntl_zz_pX right):
+        cdef ntl_zz_pX q = self._new()
+        cdef ntl_zz_pX r = self._new()
+        _sig_on
+        self.c.restore_c()
+        zz_pX_divrem(q.x, r.x, self.x, right.x)
+        _sig_off
+        return q, r
+
+    def __floordiv__(ntl_zz_pX self, ntl_zz_pX right):
+        _sig_on
+        self.c.restore_c()
+        cdef ntl_zz_pX q = self._new()
+        zz_pX_div(q.x, self.x, right.x)
+        _sig_off
+        return q
+
+    def __lshift__(ntl_zz_pX self, long n):
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_lshift(r.x, self.x, n)
+        return r
+
+    def __rshift__(ntl_zz_pX self, long n):
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_rshift(r.x, self.x, n)
+        return r
+
+    def diff(self):
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_diff(r.x, self.x)
+        return r
+
+    def reverse(self):
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_reverse(r.x, self.x)
+        return r
 
     def __neg__(self):
         """

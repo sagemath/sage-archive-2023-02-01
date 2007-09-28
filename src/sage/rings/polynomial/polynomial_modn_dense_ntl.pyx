@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from sage.rings.polynomial.polynomial_element import Polynomial, is_Polynomial, Polynomial_generic_dense
+from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
 
 from sage.libs.all import pari, pari_gen
 
@@ -33,7 +33,7 @@ def make_element(parent, args):
     return parent(*args)
 
 
-class Polynomial_dense_mod_n(Polynomial):
+cdef class Polynomial_dense_mod_n(Polynomial):
     """
     A dense polynomial over the integers modulo n, where n is composite.
 
@@ -175,11 +175,11 @@ class Polynomial_dense_mod_n(Polynomial):
             return (~self)**(-n)
         return self.parent()(self.__poly**n, construct=True)
 
-    def _add_(self, right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         self._ntl_set_modulus()
-        return self.parent()(self.__poly + right.__poly, construct=True)
+        return self.parent()(self.__poly + (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    def _mul_(self, right):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: x = PolynomialRing(Integers(100), 'x').0
@@ -187,7 +187,7 @@ class Polynomial_dense_mod_n(Polynomial):
             x^3 + 90*x^2 + 32*x + 68
         """
         self._ntl_set_modulus()
-        return self.parent()(self.__poly * right.__poly, construct=True)
+        return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def _rmul_(self, c):
         try:
@@ -243,9 +243,9 @@ class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly.left_shift(n),
                              construct=True)
 
-    def _sub_(self, right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         self._ntl_set_modulus()
-        return self.parent()(self.__poly - right.__poly, construct=True)
+        return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
         if is_Polynomial(right) and right.is_constant() and \
@@ -336,7 +336,7 @@ class Polynomial_dense_mod_n(Polynomial):
 
 
 
-class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
+cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
     """
     A dense polynomial over the integers modulo p, where p is prime.
     """

@@ -28,15 +28,31 @@ export FLINT_LINK_OPTIONS
 
 cd src
 
+cp ../patches/makefile .
+
+if [ $? - ne 0 ]; then
+   echo "Error patching makefile."
+   exit 1
+fi
+
 cat makefile ../patches/lib_makefile > makefile.1
+if [ $? - ne 0 ]; then
+   echo "Error patching makefile."
+   exit 1
+fi
+
 mv makefile.1 makefile
 
 make Z_mpn-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test fmpz_poly-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
 
 
 # UNIX
-$MAKE libflint.so
-if [ -f libflint.so ]; then
+if [ $UNAME != "Darwin" ]; then
+    $MAKE libflint.so
+    if [ $? -ne 0 ]; then
+        echo "Error building flint shared library."
+        exit 1
+    fi
     $CP libflint.so "$SAGE_LOCAL/lib/"
 fi
 

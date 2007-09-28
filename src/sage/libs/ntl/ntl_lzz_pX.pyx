@@ -74,9 +74,11 @@ cdef class ntl_zz_pX:
             [0 0 0 0 0 0 0 0 0 0 5]
             sage: g[10]
             5
+            sage: f = ntl.zz_pX([10^30+1, 10^50+1], 100); f
+            [1 1]
         """
         cdef long n
-        cdef int i
+        cdef Py_ssize_t i
         cdef long temp
 
         if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
@@ -94,7 +96,7 @@ cdef class ntl_zz_pX:
             try:
                 modulus = long(modulus)
             except:
-                raise ValueError, "%s is not a valid modulus."%modulus
+                raise ValueError, "%s (type %s) is not a valid modulus." % (modulus, type(modulus))
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
 
@@ -138,14 +140,14 @@ cdef class ntl_zz_pX:
                     raise ValueError, \
                           "Mismatched modulus for converting to zz_pX."
             elif PY_TYPE_CHECK(a, Integer):
-                zz_pX_SetCoeff_long(self.x, i, mpz_get_si((<Integer>a).value)%self.c.p)
+                zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
             elif PY_TYPE_CHECK(a, int):
                 ## we're lucky that python int is no larger than long
                 temp = a
                 zz_pX_SetCoeff_long(self.x, i, temp%self.c.p)
             else:
                 a = Integer(a)
-                zz_pX_SetCoeff_long(self.x, i, mpz_get_si((<Integer>a).value)%self.c.p)
+                zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
 
 ##        zz_pX_SetCoeff_long(self.x, n, <long>1)
 
@@ -387,15 +389,17 @@ cdef class ntl_zz_pX:
 
     def list(self):
         """
-        Return list of entries as a list of longs.
+        Return list of entries as a list of python ints.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX([23, 5,0,1], 10)
+            sage: f.list()
+            [3, 5, 0, 1]
+            sage: type(f.list()[0])
+            <type 'int'>
         """
-        ## FIXME: doctests
-##        R = GF(zz_p_modulus())
-        n = self.degree()
-
-        ls = [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i in range(n+1) ]
-
-        return ls
+        cdef long i
+        return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
     def degree(self):
         """

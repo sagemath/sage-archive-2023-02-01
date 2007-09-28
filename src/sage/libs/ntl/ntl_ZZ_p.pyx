@@ -235,6 +235,8 @@ cdef class ntl_ZZ_p:
         _sig_off
         return r
 
+    def __int__(self):
+        return self.get_as_int()
 
     cdef int get_as_int(ntl_ZZ_p self):
         r"""

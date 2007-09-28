@@ -30,13 +30,13 @@ cd src
 
 cp ../patches/makefile .
 
-if [ $? - ne 0 ]; then
+if [ $? -ne 0 ]; then
    echo "Error patching makefile."
    exit 1
 fi
 
 cat makefile ../patches/lib_makefile > makefile.1
-if [ $? - ne 0 ]; then
+if [ $? -ne 0 ]; then
    echo "Error patching makefile."
    exit 1
 fi

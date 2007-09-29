@@ -196,6 +196,18 @@ cdef class ntl_ZZ:
         """
         return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
+    def _integer_(self):
+        r"""
+        Gets the value as a sage int.
+
+        sage: n=ntl.ZZ(2983)
+        sage: type(n._integer_())
+        <type 'sage.rings.integer.Integer'>
+
+        Alias for get_as_sage_int
+        """
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
+
     cdef void set_from_int(ntl_ZZ self, int value):
         r"""
         Sets the value from a C int.

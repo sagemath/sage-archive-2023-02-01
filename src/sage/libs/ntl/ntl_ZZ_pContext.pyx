@@ -50,6 +50,7 @@ cdef class ntl_ZZ_pContext_class:
         ZZ_pContext_construct_ZZ(&self.x, &v.x)
         ZZ_pContextDict[repr(v)] = self
         self.p = v
+        self.p_bits = self._integer_().bits()
 
     def __dealloc__(self):
         ZZ_pContext_destruct(&self.x)

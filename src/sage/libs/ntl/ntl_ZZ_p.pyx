@@ -305,6 +305,11 @@ cdef class ntl_ZZ_p:
         ZZ_p_modulus( &r.x, &self.x )
         return r
 
+    def _integer_(self):
+        self.c.restore_c()
+        cdef ZZ_c rep = ZZ_p_rep(self.x)
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep)
+
     def _sage_(self):
         r"""
         Returns the value as a sage IntegerModRing.

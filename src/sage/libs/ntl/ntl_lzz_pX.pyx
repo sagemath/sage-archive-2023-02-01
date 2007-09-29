@@ -74,18 +74,24 @@ cdef class ntl_zz_pX:
             [0 0 0 0 0 0 0 0 0 0 5]
             sage: g[10]
             5
+            sage: f = ntl.zz_pX([10^30+1, 10^50+1], 100); f
+            [1 1]
         """
         cdef long n
-        cdef int i
+        cdef Py_ssize_t i
         cdef long temp
 
         if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
             self.c = <ntl_zz_pContext_class>modulus
             p_sage = Integer(self.c.p)
         elif PY_TYPE_CHECK( modulus, Integer ):
+            if modulus > NTL_SP_BOUND:
+                raise ValueError, "Modulus (=%s) is too big" % modulus
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(mpz_get_si((<Integer>modulus).value))
             p_sage = modulus
         elif PY_TYPE_CHECK( modulus, long ):
+            if modulus > NTL_SP_BOUND:
+                raise ValueError, "Modulus (=%s) is too big" % modulus
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
         elif modulus is None:
@@ -93,20 +99,15 @@ cdef class ntl_zz_pX:
         else:
             try:
                 modulus = long(modulus)
+                if modulus > NTL_SP_BOUND:
+                    raise ValueError, "Modulus (=%s) is too big" % modulus
             except:
-                raise ValueError, "%s is not a valid modulus."%modulus
+                raise ValueError, "%s (type %s) is not a valid modulus." % (modulus, type(modulus))
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-
-##        p_long = <long>p
-##        if (p_long > NTL_SP_BOUND):
-##            raise ValueError, "Modulus (=%s) is too big"%p
-##        zz_p_set_modulus(p_long)
-##
-##        p_sage = Integer(p)
 
         n = len(ls)
         if (n == 0):
@@ -138,21 +139,21 @@ cdef class ntl_zz_pX:
                     raise ValueError, \
                           "Mismatched modulus for converting to zz_pX."
             elif PY_TYPE_CHECK(a, Integer):
-                zz_pX_SetCoeff_long(self.x, i, mpz_get_si((<Integer>a).value)%self.c.p)
+                zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
             elif PY_TYPE_CHECK(a, int):
                 ## we're lucky that python int is no larger than long
                 temp = a
                 zz_pX_SetCoeff_long(self.x, i, temp%self.c.p)
             else:
                 a = Integer(a)
-                zz_pX_SetCoeff_long(self.x, i, mpz_get_si((<Integer>a).value)%self.c.p)
+                zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
 
 ##        zz_pX_SetCoeff_long(self.x, n, <long>1)
 
         return
 
     def __reduce__(self):
-        raise NotImplementedError
+        return make_zz_pX, (self.list(), self.c)
 
     def __repr__(self):
         return str(self.list())
@@ -344,11 +345,108 @@ cdef class ntl_zz_pX:
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
         """
-        ## FIXME
         if n < 0:
-            raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_zz_pX([1]))
+            raise ValueError, "Only positive exponents allowed."
+        _sig_on
+        cdef ntl_zz_pX y = self._new()
+        zz_pX_power(y.x, self.x, n)
+        _sig_off
+        return y
+
+    def quo_rem(ntl_zz_pX self, ntl_zz_pX right):
+        """
+        Returns the quotient and remander when self is devided by right.
+
+        Specifically, this return r, q such that $self = q * right + r$
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX(range(7), 19)
+            sage: g = ntl.zz_pX([2,4,6], 19)
+            sage: f // g
+            [1, 1, 15, 16, 1]
+            sage: f % g
+            [17, 14]
+            sage: f.quo_rem(g)
+            ([1, 1, 15, 16, 1], [17, 14])
+            sage: (f // g) * g + f % g
+            [0, 1, 2, 3, 4, 5, 6]
+        """
+        cdef ntl_zz_pX q = self._new()
+        cdef ntl_zz_pX r = self._new()
+        _sig_on
+        self.c.restore_c()
+        zz_pX_divrem(q.x, r.x, self.x, right.x)
+        _sig_off
+        return q, r
+
+    def __floordiv__(ntl_zz_pX self, ntl_zz_pX right):
+        """
+        Returns the whole part of $self / right$.
+
+        EXAMPLE:
+            sage: f = ntl.zz_pX(range(10), 19); g = ntl.zz_pX([1]*5, 19)
+            sage: f // g
+            [8, 18, 18, 18, 18, 9]
+
+        """
+        _sig_on
+        self.c.restore_c()
+        cdef ntl_zz_pX q = self._new()
+        zz_pX_div(q.x, self.x, right.x)
+        _sig_off
+        return q
+
+    def __lshift__(ntl_zz_pX self, long n):
+        """
+        Shifts this polynomial to the left, which is multiplication by $x^n$.
+
+        EXAMPLE:
+            sage: f = ntl.zz_pX([2,4,6], 17)
+            sage: f << 2
+            [0, 0, 2, 4, 6]
+        """
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_lshift(r.x, self.x, n)
+        return r
+
+    def __rshift__(ntl_zz_pX self, long n):
+        """
+        Shifts this polynomial to the right, which is division by $x^n$ (and truncation).
+
+        EXAMPLE:
+            sage: f = ntl.zz_pX([1,2,3], 17)
+            sage: f >> 2
+            [3]
+        """
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_rshift(r.x, self.x, n)
+        return r
+
+    def diff(self):
+        """
+        The formal derivative of self.
+
+        EXAMPLE:
+            sage: f = ntl.zz_pX(range(10), 17)
+            sage: f.diff()
+            [1, 4, 9, 16, 8, 2, 15, 13, 13]
+        """
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_diff(r.x, self.x)
+        return r
+
+    def reverse(self):
+        """
+        Returns self with coefficients reversed, i.e. $x^n self(x^{-n})$.
+
+        EXAMPLE:
+            sage: f = ntl.zz_pX([2,4,6], 17)
+            sage: f.reverse()
+            [6, 4, 2]
+        """
+        cdef ntl_zz_pX r = self._new()
+        zz_pX_reverse(r.x, self.x)
+        return r
 
     def __neg__(self):
         """
@@ -387,15 +485,17 @@ cdef class ntl_zz_pX:
 
     def list(self):
         """
-        Return list of entries as a list of longs.
+        Return list of entries as a list of python ints.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX([23, 5,0,1], 10)
+            sage: f.list()
+            [3, 5, 0, 1]
+            sage: type(f.list()[0])
+            <type 'int'>
         """
-        ## FIXME: doctests
-##        R = GF(zz_p_modulus())
-        n = self.degree()
-
-        ls = [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i in range(n+1) ]
-
-        return ls
+        cdef long i
+        return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
     def degree(self):
         """
@@ -710,3 +810,14 @@ cdef class ntl_zz_pX:
         _sig_off
         return
 
+
+def make_zz_pX(L, context):
+    """
+    For unpickling.
+
+    TEST:
+        sage: f = ntl.zz_pX(range(16), 12)
+        sage: loads(dumps(f)) == f
+        True
+    """
+    return ntl_zz_pX(L, context)

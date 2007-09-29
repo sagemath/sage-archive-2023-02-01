@@ -287,7 +287,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: Integers(389^2).is_integral_domain()
             False
         """
-        return arith.is_prime(self.order())
+        return is_prime(self.order())
 
     def is_field(self):
         """

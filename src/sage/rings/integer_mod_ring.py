@@ -68,6 +68,8 @@ import ideal
 import finite_field_element
 from sage.structure.parent_gens import ParentWithGens
 
+import arith
+
 from sage.libs.pari.all import pari, PariError
 
 import sage.interfaces.all

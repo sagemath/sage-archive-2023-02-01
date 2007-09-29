@@ -18,6 +18,7 @@ cdef extern from "ntl_wrap.h":
 
 cdef class Polynomial_dense_mod_n(Polynomial):
     cdef object __poly
+    cdef object __singular
 
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     cdef zz_pX_c x

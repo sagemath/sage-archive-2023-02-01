@@ -30,7 +30,7 @@ import sage.rings.polynomial.polynomial_ring
 import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
-from sage.structure.element import generic_power, canonical_coercion
+from sage.structure.element import generic_power, canonical_coercion, bin_op
 
 def make_element(parent, args):
     return parent(*args)
@@ -72,6 +72,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
     def __init__(self, parent, x=None, check=True,
                  is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
+        cdef Polynomial_dense_mod_n numer, denom
 
         if construct:
             if isinstance(x, ZZ_pX):
@@ -108,9 +109,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         elif isinstance(x, FractionFieldElement) and \
                  isinstance(x.numerator(), Polynomial_dense_mod_n):
-            if x.denominator() == 1:
-                x = x.numerator().__poly
+            if x.denominator().is_unit():
+                numer = x.numerator()
+                denom = x.denominator().inverse_of_unit()
+                x = numer.__poly * denom.__poly
                 check = False
+            else:
+                raise TypeError, "Denominator not a unit."
 
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
@@ -325,12 +330,26 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         self._ntl_set_modulus()
         self.__poly = ZZ_pX(v, self.parent().modulus())
 
-    # Polynomial_singular_repr
+    # Polynomial_singular_repr stuff, copied due to lack of multiple inheritance
 
     def _singular_(self, singular=singular_default, have_ring=False, force=False):
-        return polynomial_singular_interface._singular_func(self, singular, have_ring, force)
-    def _singular_init_func(self, singular=singular_default, have_ring=False, force=False):
-        return polynomial_singular_interface._singular_init_func(self, singular, have_ring, force)
+        if not have_ring:
+            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+        if self.__singular is not None:
+            try:
+                self.__singular._check_valid()
+                if self.__singular.parent() is singular:
+                    return self.__singular
+            except (AttributeError, ValueError):
+                pass
+        return self._singular_init_(singular, have_ring=have_ring)
+
+    def _singular_init_(self, singular=singular_default, have_ring=False, force=False):
+        if not have_ring:
+            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+        self.__singular = singular(str(self))
+        return self.__singular
+
     def lcm(self, singular=singular_default, have_ring=False):
         return polynomial_singular_interface.lcm_func(self, singular, have_ring)
     def diff(self, variable, have_ring=False):
@@ -1251,6 +1270,19 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
             raise TypeError
         g = self.ntl_ZZ_pX().gcd(right.ntl_ZZ_pX())
         return self.parent()(g, construct=True)
+
+    def xgcd(self, right):
+        r"""
+        Return the extended gcd of self and other, i.e., elements $r, s, t$ such that
+        $$
+           r = s \cdot self + t \cdot other.
+        $$
+        """
+        # copied from sage.structure.element.PrincipalIdealDomainElement due to lack of mult inheritance
+        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
+            from sage.rings.arith import xgcd
+            return bin_op(self, right, xgcd)
+        return self._xgcd(right)
 
     def _xgcd(self, right):
         """

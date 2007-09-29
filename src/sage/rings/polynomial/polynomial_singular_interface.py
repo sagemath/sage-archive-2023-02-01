@@ -332,7 +332,7 @@ def _singular_func(self, singular=singular_default, have_ring=False, force=False
         self.__singular._check_valid()
         if self.__singular.parent() is singular:
             return self.__singular
-    except (AttributeError,ValueError):
+    except (AttributeError, ValueError):
         pass
 #    return self._singular_init_(singular,have_ring=have_ring)
     return _singular_init_func(self, singular,have_ring=have_ring)

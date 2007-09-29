@@ -580,28 +580,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9
             sage: 5.bits()
             3
+            sage: 12345.bits() == len(12345.binary())
+            True
         """
-        return mpz_sizeinbase(self.value, 2)
-
-    def size_in_base(self, int base):
-        """
-        Return the number of digits in self, base base.
-
-        EXAMPLES:
-            sage: 42.size_in_base(2)
-            5
-            sage: 42.bits()
-            5
-            sage: 42.size_in_base(41)
-            2
-            sage: 42.size_in_base(42)
-            2
-            sage: 42.size_in_base(43)
-            1
-        """
-        if base < 2:
-            raise ValueError, "base must be >= 2"
-        return mpz_sizeinbase(self.value, base)
+        return int(mpz_sizeinbase(self.value, 2))
 
     def digits(self, int base=2, digits=None):
         """

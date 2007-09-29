@@ -21,7 +21,7 @@ from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX, set_modulus
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-import sage.rings.integer as integer
+from sage.rings.integer import Integer
 from sage.rings.integer_mod import IntegerMod_abstract
 
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -625,28 +625,74 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def shift(self, n):
         """
-        Shift self to left by $n$, truncating if $n$ is negative.
+        Shift self to left by $n$, which is multiplication by $x^n$,
+        truncating if $n$ is negative.
 
-
+        EXAMPLES:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^7 + x + 1
+            sage: f.shift(1)
+            x^8 + x^2 + x
+            sage: f.shift(-1)
+            x^6 + 1
+            sage: f.shift(10).shift(-10) == f
+            True
         """
         return self << n
 
     def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
+        """
+        TEST:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^5 + 2*x + 1
+            sage: f << 3
+            x^8 + 2*x^4 + x^3
+        """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_lshift(r.x, self.x, n)
         return r
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
+        """
+        TEST:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^5 + 2*x + 1
+            sage: f >> 3
+            x^2
+        """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_rshift(r.x, self.x, n)
         return r
 
     def derivative(self):
+        """
+        Returns the formal derivative of self.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: f.derivative()
+            4*x^3 + 76
+        """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
         return r
 
     def reverse(self):
+        """
+        Reverses the coeffients of self. The reverse of f(x) is x^n f(1/x).
+
+        The degree will go down if the constant term is zero.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: f.reverse()
+            76*x^4 + 76*x^3 + 1
+            sage: f = x^3 - x
+            sage: f.reverse()
+            76*x^2 + 1
+        """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_reverse(r.x, self.x)
         return r
@@ -655,17 +701,66 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         return zz_pX_IsX(self.x)
 
     def __nonzero__(self):
+        """
+        TESTS:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: not f
+            False
+            sage: not (x-x)
+            True
+        """
         return not zz_pX_IsZero(self.x)
 
     def degree(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = Integers(77)[]
+            sage: f = x^4 - x - 1
+            sage: f.degree()
+            4
+            sage: f = 77*x + 1
+            sage: f.degree()
+            0
+        """
         return zz_pX_deg(self.x)
 
     def truncate(self, long n):
+        """
+        Returns this polynomial mod $x^n$.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(77)[]
+            sage: f = sum(x^n for n in range(10)); f
+            x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+            sage: f.truncate(6)
+            x^5 + x^4 + x^3 + x^2 + x + 1
+        """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_trunc(r.x, self.x, n)
         return r
 
     def __call__(self, *args, **kwds):
+        """
+        Evaluate self at x. If x is a single argument coercable into
+        the basering of self, this is done directly in NTL, otherwise
+        the generic Polynomial call code is used.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(100)[]
+            sage: f = x^3+7
+            sage: f(5)
+            32
+            sage: f(5r)
+            32
+            sage: f(mod(5, 1000))
+            32
+            sage: f(x)
+            x^3 + 7
+            sage: S.<y> = Integers(5)[]
+            sage: f(y)
+            y^3 + 2
+        """
         if len(args) != 1 or len(kwds) != 0:
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
@@ -673,10 +768,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         cdef ntl_zz_p fx = ntl_zz_p(0, self.c), x = None
         if PY_TYPE_CHECK(arg, int):
             x = ntl_zz_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, integer.Integer):
+        elif PY_TYPE_CHECK(arg, Integer):
             x = ntl_zz_p(arg, self.c)
         elif PY_TYPE_CHECK(arg, Element):
-            map = self._parent.coerce_map_from((<Element>arg)._parent)
+            map = self._parent._base.coerce_map_from((<Element>arg)._parent)
             if map is not None:
                 x = ntl_zz_p(map(arg), self.c)
         if <PyObject *>x == <PyObject *>None: # c++ pointer compare error

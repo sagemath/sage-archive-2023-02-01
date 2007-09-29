@@ -221,7 +221,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         elif self.parent() != right.parent():
             raise TypeError
         self._ntl_set_modulus()
-        v = self.__poly.quo_rem(right.__poly)
+        v = self.__poly.quo_rem((<Polynomial_dense_mod_n>right).__poly)
         P = self.parent()
         return (P(v[0], construct=True), P(v[1], construct=True) )
 
@@ -610,8 +610,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: R.<x> = Integers(81)[]
             sage: f = x^7 + x + 1; g = x^3
             sage: r = f % g; r
-            2*x + 1
-            sage: g * (x^4+x) + r
+            x + 1
+            sage: g * x^4 + r
             x^7 + x + 1
         """
         if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
@@ -836,6 +836,9 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 #        cdef long i
 #        return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
+    def list(self):
+        return [self._parent._base(self[n]) for n from 0 <= n <= self.degree()]
+
     def __getitem__(self, n):
         """
         EXAMPLES:
@@ -850,9 +853,13 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         self.c.restore_c()
         cdef Integer z
-        cdef ZZ_c rep = ZZ_p_rep(ZZ_pX_coeff(self.x, n))
-        ZZ_to_mpz(&z.value, &rep)
-        return R(z)
+#        cdef ZZ_c rep = ZZ_p_rep(ZZ_pX_coeff(self.x, n))
+#        print ZZ_to_int(&rep)
+#        ZZ_to_mpz(&z.value, &rep) # does this work?
+# TODO, make this faster
+        cdef ntl_ZZ_p ntl = ntl_ZZ_p(0, self.c)
+        ntl.x = ZZ_pX_coeff(self.x, n)
+        return R(ntl._integer_())
 
     def _unsafe_mutate(self, n, value):
         self.c.restore_c()
@@ -884,7 +891,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if j > ZZ_pX_deg(self.x)+1:
             j = ZZ_pX_deg(self.x)+1
         v = [ self[t] for t from i <= t < j ]
-        return Polynomial_dense_modn_ntl_zz(self._parent, v, check=False) << i
+        return Polynomial_dense_modn_ntl_ZZ(self._parent, v, check=False) << i
 
     cdef ModuleElement _add_c_impl(self, ModuleElement _right):
         """
@@ -1042,7 +1049,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ q = numer._new()
-        cdef bint do_sig = (ZZ_pX_deg(numer.x) + ZZ_pX_deg(denom.x)) * self.c.p_bits > 1e4
+        cdef bint do_sig = (ZZ_pX_deg(numer.x) + ZZ_pX_deg(denom.x)) * numer.c.p_bits > 1e4
         if do_sig: _sig_on
         numer.c.restore_c()
         ZZ_pX_div(q.x, numer.x, denom.x)
@@ -1065,10 +1072,10 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ r = numer._new()
-        cdef bint do_sig = (ZZ_pX_deg(numer.x) + ZZ_pX_deg(denom.x)) * self.c.p_bits > 1e4
+        cdef bint do_sig = (ZZ_pX_deg(numer.x) + ZZ_pX_deg(denom.x)) * numer.c.p_bits > 1e4
         if do_sig: _sig_on
         numer.c.restore_c()
-        ZZ_pX_mod(r.x, numer.x, denom.x)
+        ZZ_pX_rem(r.x, numer.x, denom.x)
         if do_sig: _sig_off
         return r
 
@@ -1213,7 +1220,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if len(args) != 1 or len(kwds) != 0:
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
-        cdef ntl_ZZ_p fx = ntl_zz_p(0, self.c), x = None
+        cdef ntl_ZZ_p fx = ntl_ZZ_p(0, self.c), x = None
         if PY_TYPE_CHECK(arg, int) or PY_TYPE_CHECK(arg, Integer):
             x = ntl_ZZ_p(arg, self.c)
         elif PY_TYPE_CHECK(arg, Element):

@@ -14,6 +14,16 @@ include "sage/ext/cdefs.pxi"
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
+
+cdef extern from "factory.h":
+    # CF option
+    void On( int )
+    void Off( int )
+    int isOn( int )
+
+    cdef int SW_USE_CHINREM_GCD
+    cdef int SW_USE_EZGCD
+
 cdef extern from "libsingular.h":
 
     #

@@ -292,6 +292,7 @@ cdef extern from "ntl_wrap.h":
         void *rep
 ##        pass
     long zz_p_rep "rep"(zz_p_c x)
+    long zz_p_isZero "IsZero"(zz_p_c x)
     void zz_p_set_from_long(zz_p_c x, long a)
     void zz_p_add "add"(zz_p_c x, zz_p_c a, zz_p_c b)
     void zz_p_sub "sub"(zz_p_c x, zz_p_c a, zz_p_c b)

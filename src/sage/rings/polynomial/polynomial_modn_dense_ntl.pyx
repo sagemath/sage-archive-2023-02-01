@@ -27,6 +27,8 @@ from sage.rings.integer_mod import IntegerMod_abstract
 from sage.rings.fraction_field_element import FractionFieldElement
 import sage.rings.polynomial.polynomial_ring
 
+from sage.rings.infinity import infinity
+
 import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
@@ -735,6 +737,28 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         return not zz_pX_IsZero(self.x)
 
+    def valuation(self):
+        """
+        Returns the valuation of self, that is, the power of the
+        lowest non-zero monomial of self.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(10)[]
+            sage: x.valuation()
+            1
+            sage: f = x-3; f.valuation()
+            0
+            sage: f = x^99; f.valuation()
+            99
+            sage: f = x-x; f.valuation()
+            +Infinity
+        """
+        cdef long n
+        for n from 0 <= n <= zz_pX_deg(self.x):
+            if zz_p_rep(zz_pX_GetCoeff(self.x, n)):
+                return n
+        return infinity
+
     def degree(self):
         """
         EXAMPLES:
@@ -1174,6 +1198,30 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def is_gen(self):
         return ZZ_pX_IsX(self.x)
+
+    def valuation(self):
+        """
+        Returns the valuation of self, that is, the power of the
+        lowest non-zero monomial of self.
+
+        EXAMPLES:
+            sage: R.<x> = Integers(10^50)[]
+            sage: x.valuation()
+            1
+            sage: f = x-3; f.valuation()
+            0
+            sage: f = x^99; f.valuation()
+            99
+            sage: f = x-x; f.valuation()
+            +Infinity
+        """
+        cdef long n
+        cdef ZZ_p_c coeff
+        for n from 0 <= n <= ZZ_pX_deg(self.x):
+            coeff = ZZ_pX_coeff(self.x, n)
+            if not ZZ_p_is_zero(&coeff):
+                return n
+        return infinity
 
     def __nonzero__(self):
         """

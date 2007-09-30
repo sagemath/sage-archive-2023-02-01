@@ -649,9 +649,9 @@ cdef class PowerSeries(AlgebraElement):
         # endif
         return prec
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Return True if this power series equals 0.
+        Return True if this power series is not equal to 0.
 
         EXAMPLES:
             sage: R.<q> = ZZ[[ ]]; R
@@ -666,7 +666,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (0 + O(q^1000)).is_zero()
             True
         """
-        return self.polynomial().is_zero()
+        return not not self.polynomial()
 
     def is_unit(self):
         """

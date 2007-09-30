@@ -1148,7 +1148,7 @@ cdef class Matrix(matrix1.Matrix):
             [x1 x0]
             [x1 x0]
             sage: M.kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Polynomial Ring in x0, x1 over Rational Field
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 -1]
         """

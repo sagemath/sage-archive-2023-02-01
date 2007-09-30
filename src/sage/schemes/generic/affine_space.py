@@ -63,7 +63,7 @@ def AffineSpace(n, R=None, names='x'):
         sage: A = AffineSpace(2, QQ, names='XY'); A
         Affine Space of dimension 2 over Rational Field
         sage: A.coordinate_ring()
-        Polynomial Ring in X, Y over Rational Field
+        Multivariate Polynomial Ring in X, Y over Rational Field
 
     Use the divide operator for base extension.
         sage: AffineSpace(5, names='x')/GF(17)
@@ -252,9 +252,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
         EXAMPLES:
             sage: R = AffineSpace(2, GF(9,'alpha'), 'z').coordinate_ring(); R
-            Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
+            Multivariate Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
             sage: AffineSpace(3, R, 'x').coordinate_ring()
-            Polynomial Ring in x0, x1, x2 over Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
+            Multivariate Polynomial Ring in x0, x1, x2 over Multivariate Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
         """
         try:
             return self._coordinate_ring
@@ -344,7 +344,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: X.defining_polynomials ()
             (x, y^2, x*y^2)
             sage: I = X.defining_ideal(); I
-            Ideal (x, y^2, x*y^2) of Polynomial Ring in x, y over Rational Field
+            Ideal (x, y^2, x*y^2) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: I.groebner_basis()
             [x, y^2]
             sage: X.dimension()

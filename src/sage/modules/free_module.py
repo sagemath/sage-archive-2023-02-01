@@ -57,7 +57,7 @@ Base ring:
     sage: R.<x,y> = MPolynomialRing(QQ,2)
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
-    Polynomial Ring in x, y over Rational Field
+    Multivariate Polynomial Ring in x, y over Rational Field
 
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
@@ -668,7 +668,7 @@ class FreeModule_generic(module.Module):
             sage: R.<x,y> = QQ[]
             sage: M = FreeModule(R,2)
             sage: M.ambient_module()
-            Ambient free module of rank 2 over the integral domain Polynomial Ring in x, y over Rational Field
+            Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y over Rational Field
 
             sage: V = FreeModule(QQ, 4).span([[1,2,3,4], [1,0,0,0]]); V
             Vector space of degree 4 and dimension 2 over Rational Field

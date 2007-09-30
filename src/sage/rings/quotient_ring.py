@@ -85,7 +85,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: S.<a,b> = R.quo(1 + y^2)
         sage: T.<c,d> = S.quo(a)
         sage: T
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
         sage: T.gens()
         (0, d)
     """
@@ -138,8 +138,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x
             sage: l = pi.lift(); l
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y^2)
-              To:   Polynomial Ring in x, y over Rational Field
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: l(x+y^3)
             x
@@ -163,13 +163,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S = R.quotient(x^2 + y^2)
             sage: pi = S.cover(); pi
             Ring morphism:
-              From: Polynomial Ring in x, y over Rational Field
-              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              From: Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               Defn: Natural quotient map
             sage: L = S.lift(); L
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-              To:   Polynomial Ring in x, y over Rational Field
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: L(S.0)
             x

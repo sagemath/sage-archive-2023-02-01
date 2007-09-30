@@ -185,7 +185,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: f = ZZ['t','x'].0 + QQ['x'].0 + CyclotomicField(13).gen(); f
         t + x + zeta13
         sage: f.parent()
-        Polynomial Ring in t, x over Cyclotomic Field of order 13 and degree 12
+        Multivariate Polynomial Ring in t, x over Cyclotomic Field of order 13 and degree 12
         sage: ZZ['x','y'].0 + ~Frac(QQ['y']).0
         (x*y + 1)/y
         sage: MatrixSpace(ZZ['x'], 2, 2)(2) + ~Frac(QQ['x']).0
@@ -194,7 +194,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: f = ZZ['x,y,z'].0 + QQ['w,x,z,a'].0; f
         w + x
         sage: f.parent()
-        Polynomial Ring in w, x, y, z, a over Rational Field
+        Multivariate Polynomial Ring in w, x, y, z, a over Rational Field
         sage: ZZ['x,y,z'].0 + ZZ['w,x,z,a'].1
         2*x
 

@@ -152,7 +152,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLES:
             sage: P.<x,y,z> = QQ[]
             sage: P
-            Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Rational Field
 
             sage: f = 27/113 * x^2 + y*z + 1/2; f
             27/113*x^2 + y*z + 1/2
@@ -162,7 +162,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: P = MPolynomialRing(GF(127),3,names='abc', order='lex')
             sage: P
-            Polynomial Ring in a, b, c over Finite Field of size 127
+            Multivariate Polynomial Ring in a, b, c over Finite Field of size 127
 
             sage: a,b,c = P.gens()
             sage: f = 57 * a^2*b + 43 * c + 1; f
@@ -563,11 +563,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             sage: P.<x,y> = QQ[]
             sage: P
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
 
         """
         varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
-        return "Polynomial Ring in %s over %s"%(varstr,self._base)
+        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self._base)
 
     def ngens(self):
         """
@@ -652,10 +652,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             sage: P.<x,y,z> = QQ[]
             sage: sage.rings.ideal.Katsura(P)
-            Ideal (x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
             sage: P.ideal([x + 2*y + 2*z-1, 2*x*y + 2*y*z-y, x^2 + 2*y^2 + 2*z^2-x])
-            Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
         """
         if len(gens) == 1:
@@ -872,7 +872,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             sage: P.<x,y,z> = QQ[]
             sage: hash(P)
-            -6257278808099690586 # 64-bit
+            967902441410893180 # 64-bit
             -1767675994 # 32-bit
         """
         return hash(self.__repr__())
@@ -1623,7 +1623,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y>=MPolynomialRing(QQ,2)
             sage: f = (x + y)/3
             sage: f.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
 
         Note that / is still a constructor for elements of the
         fraction field in all cases as long as both arguments have the
@@ -1636,7 +1636,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: h = f/g; h
             (x^3 + y)/x
             sage: h.parent()
-            Fraction Field of Polynomial Ring in x, y over Rational Field
+            Fraction Field of Multivariate Polynomial Ring in x, y over Rational Field
 
         TESTS:
             sage: R.<x,y>=MPolynomialRing(QQ,2)
@@ -2109,7 +2109,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             0
 
             sage: R.<x> = MPolynomialRing(GF(7),1); R
-            Polynomial Ring in x over Finite Field of size 7
+            Multivariate Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             -2*x^2 + 3
             sage: f[2]
@@ -2175,7 +2175,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: c = f.coefficient(x*y); c
             2
             sage: c.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
             sage: c in P
             True
 
@@ -2201,7 +2201,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: R.<x,y> = MPolynomialRing(GF(389),2)
             sage: parent(R(x*y+5).coefficient(R(1)))
-            Polynomial Ring in x, y over Finite Field of size 389
+            Multivariate Polynomial Ring in x, y over Finite Field of size 389
         """
         cdef poly *p = self._poly
         cdef poly *m = mon._poly
@@ -2341,7 +2341,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: g = f.homogenize('z'); g
             5*x*y^10 + x^2*z^9 + y*z^10 + z^11
             sage: g.parent()
-            Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: f.homogenize(x)
             2*x^11 + x^10*y + 5*x*y^10
 

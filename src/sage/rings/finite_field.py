@@ -544,7 +544,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         Multivariate polynomials also coerce:
             sage: R = k['x,y,z']; R
-            Polynomial Ring in x, y, z over Finite Field in a of size 5^2
+            Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
             sage: k(R(2))
             2
             sage: R = QQ['x,y,z']

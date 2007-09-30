@@ -172,7 +172,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
 
     def _repr_(self):
-        return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+        return "Multivariate Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
     def repr_long(self):
         """

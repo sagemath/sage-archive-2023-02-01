@@ -21,7 +21,7 @@ EXAMPLES:
     By default variables are ordered reverse to as they appear., e.g.:
 
     sage: sr.R
-    Polynomial Ring in k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003 over Finite Field in a of size 2^4
+    Multivariate Polynomial Ring in k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003 over Finite Field in a of size 2^4
 
     For SR(1,1,1,4) the ShiftRows matrix isn't that interresting:
 

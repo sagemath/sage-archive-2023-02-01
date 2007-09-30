@@ -60,7 +60,7 @@ EXAMPLES:
     sage: I = sage.rings.ideal.Katsura(P)
 
     sage: I
-    Ideal (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a, 2*a*b + 2*b*c - b) of Polynomial Ring in a, b, c over Finite Field of size 127
+    Ideal (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a, 2*a*b + 2*b*c - b) of Multivariate Polynomial Ring in a, b, c over Finite Field of size 127
 
     The original Buchberger algorithm performs 15 useless reductions to zero for this example:
 

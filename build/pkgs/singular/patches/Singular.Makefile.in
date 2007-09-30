@@ -54,7 +54,7 @@ CFLAGS		= @CFLAGS@ ${PIPE}
 CXXFLAGS	= @CXXFLAGS@ ${PIPE}
 CXXTEMPLFLAGS	= @CXXTEMPLFLAGS@
 ifneq ($(SINGUNAME),ix86-Win)
-CPPFLAGS	= -I${srcdir} -I../kernel -I../omalloc @CPPFLAGS@
+CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
 else
 ## Dirs after @CPPFLAGS@ are for PySingular
 CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
@@ -67,7 +67,7 @@ LDFLAGS		= -L../kernel -lkernel @LDFLAGS@
 LDFLAGSG	= -L../kernel -lkernel-g @LDFLAGS@
 else
 ## -L/usr/local/lib -L../modules/python --> PySingular
-LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L../modules/python
+LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L/usr/local/lib -L../modules/python
 LDFLAGSG	= -L../kernel -L/bin -lkernel-g @LDFLAGS@
 endif
 LD_DYN_FLAGS	= @LD_DYN_FLAGS@
@@ -101,7 +101,7 @@ HAVE_MPSR       = @HAVE_MPSR@
 #
 # Handle libSINGULAR stuff
 #
-LIBSINGULAR_LIBS =-lsingfac -lntl -lreadline -lgmp -lomalloc_ndebug
+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
 
 SO_SUFFIX = so
 #LIBSINGULAR_FLAGS = -export-dynamic
@@ -291,7 +291,10 @@ GFTABLES = $(wildcard LIB/gftables/[1-9]*)
 ## Build Targets
 ##
 .l.cc:
-	@if test "x${LEX}" = x; then \
+	@if test -r scanner.cc; then \
+		touch scanner.cc ;\
+	else \
+	if test "x${LEX}" = x; then \
 		echo Error: no lex given, could not rebuilt scanner.cc;\
                 exit 1; \
 	fi
@@ -299,13 +302,17 @@ GFTABLES = $(wildcard LIB/gftables/[1-9]*)
 	cp scanner.cc.lmp scanner.cc
 
 .y.cc:
-	@if test "x${BISON}" = x; then \
+	@if test -r grammar.cc; then \
+		touch grammar.cc ;\
+	else \
+	if test "x${BISON}" = x; then \
 		echo Error: no bison given, could not rebuilt grammar.cc;\
                 exit 1; \
+	fi;\
+	${BISON} -d -t -o grammar.cc $<;\
+	chmod +x testgh;\
+	./testgh;\
 	fi
-	${BISON} -d -t -o grammar.cc $<
-	chmod +x testgh
-	./testgh
 
 .cc.o:
 	${CXX} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} -c $<

@@ -39,7 +39,7 @@ then
         exit 1
     fi
 # Intel ########################################################
-elif (echo $uname_m | $egrep "i[3,4,5,6]86" > $devnull)
+elif (echo $uname_a | $egrep "i[3,4,5,6]86" > $devnull)
 then
     prefix=ix86
     # Win ################

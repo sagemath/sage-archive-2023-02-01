@@ -48,7 +48,7 @@ PIPE		= @PIPE@
 CFLAGS		= @CFLAGS@ ${PIPE}
 CXXFLAGS	= @CXXFLAGS@ ${PIPE}
 CXXTEMPLFLAGS	= @CXXTEMPLFLAGS@
-CPPFLAGS	= -I${srcdir} -I../omalloc @CPPFLAGS@
+CPPFLAGS	= -I${srcdir} @CPPFLAGS@
 DEFS		= -DNDEBUG -DOM_NDEBUG -D@SING_UNAME@ @DEFS@
 LDFLAGS		= @LDFLAGS@
 LD_DYN_FLAGS	= @LD_DYN_FLAGS@
@@ -379,7 +379,7 @@ TAGS:   ${SOURCES} ${ESOURCES} ${HEADERS}
 	etags ${SOURCES} ${ESOURCES} ${HEADERS}
 
 tags:
-	ctags *.y *.l *.c *.h *.cc *.inc
+	ctags *.c *.h *.cc *.inc
 
 echoLIBS:
 	@echo ${SLIBS}

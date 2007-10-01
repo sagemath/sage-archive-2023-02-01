@@ -265,18 +265,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return P([0] * int(i) + v)
 
 
-# todo: this _pow function wasn't even being called before I did
-# the rewrite. Need to figure out what the arithmetic architecture
-# does with powering.
-
-#     def _pow(self, n):
-#         if self.degree() <= 0:
-#             return self.parent()(self[0]**n)
-#         if n < 0:
-#             return (~self)**(-n)
-#         return self.parent()(self.__poly**n, construct=True)
-
-
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         r"""
         Returns self plus right.

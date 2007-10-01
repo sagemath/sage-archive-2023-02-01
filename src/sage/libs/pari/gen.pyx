@@ -5503,6 +5503,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __dealloc__(self):
         pari_close()
 
+    def _unsafe_deallocate_pari_stack(self):
+        pari_close()
+
     def __repr__(self):
         return "Interface to the PARI C library"
 

@@ -38,6 +38,9 @@ from sage.rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int, IntegerMod_i
 from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext
 from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
 
+from sage.libs.ntl.ntl_lzz_p import ntl_zz_p
+from sage.libs.ntl.ntl_lzz_p cimport ntl_zz_p
+
 ZZ_sage = IntegerRing()
 
 ##############################################################################
@@ -63,19 +66,18 @@ cdef class ntl_zz_pX:
     def __init__(self, ls=[], modulus=None):
         """
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,5,-9])
+            sage: f = ntl.zz_pX([1,2,5,-9],20)
             sage: f
-            [1 2 5 11]
-            sage: g = ntl.zz_pX([0,0,0]); g
+            [1, 2, 5, 11]
+            sage: g = ntl.zz_pX([0,0,0],20); g
             []
             sage: g[10]=5
             sage: g
-            [0 0 0 0 0 0 0 0 0 0 5]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]
             sage: g[10]
             5
             sage: f = ntl.zz_pX([10^30+1, 10^50+1], 100); f
-            [1 1]
+            [1, 1]
         """
         cdef long n
         cdef Py_ssize_t i
@@ -85,13 +87,9 @@ cdef class ntl_zz_pX:
             self.c = <ntl_zz_pContext_class>modulus
             p_sage = Integer(self.c.p)
         elif PY_TYPE_CHECK( modulus, Integer ):
-            if modulus > NTL_SP_BOUND:
-                raise ValueError, "Modulus (=%s) is too big" % modulus
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(mpz_get_si((<Integer>modulus).value))
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = modulus
         elif PY_TYPE_CHECK( modulus, long ):
-            if modulus > NTL_SP_BOUND:
-                raise ValueError, "Modulus (=%s) is too big" % modulus
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
         elif modulus is None:
@@ -99,8 +97,6 @@ cdef class ntl_zz_pX:
         else:
             try:
                 modulus = long(modulus)
-                if modulus > NTL_SP_BOUND:
-                    raise ValueError, "Modulus (=%s) is too big" % modulus
             except:
                 raise ValueError, "%s (type %s) is not a valid modulus." % (modulus, type(modulus))
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
@@ -153,12 +149,83 @@ cdef class ntl_zz_pX:
         return
 
     def __reduce__(self):
+        """
+        TESTS:
+            sage: f = ntl.zz_pX([10,10^30+1], 20)
+            sage: f == loads(dumps(f))
+            True
+        """
         return make_zz_pX, (self.list(), self.c)
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX([3,5], 17)
+            sage: f.__repr__()
+            '[3, 5]'
+        """
         return str(self.list())
 
+    def __getitem__(self, i):
+        """
+        Return the ith coefficient of f.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX(range(7), 71)
+            sage: f[3] ## indirect doctest
+            3
+
+            sage: f[-5]
+            0
+
+            sage: f[27]
+            0
+        """
+        cdef ntl_zz_p y
+        y = PY_NEW(ntl_zz_p)
+        y.c = self.c
+        if not PY_TYPE_CHECK( i, long ):
+            i = long(i)
+        y.x = zz_pX_GetCoeff(self.x, i)
+        return y
+##        return ntl_zz_p(zz_pX_GetCoeff(self, i))
+
+    def __setitem__(self, i, val):
+        """
+        Set the ith coefficient of self to val. If
+        i is out of range, raise an exception.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX([], 7)
+            sage: f[3] = 2 ; f
+            [0, 0, 0, 2]
+            sage: f[-1] = 5
+            Traceback (most recent call last):
+            ...
+            ValueError: index (=-1) is out of range
+        """
+        cdef long zero = 0L
+        if not PY_TYPE_CHECK( i, long ):
+            i = long(i)
+        if (i < zero):
+            raise ValueError, "index (=%s) is out of range"%i
+        if not PY_TYPE_CHECK( val, long ):
+            val = long(val)
+        zz_pX_SetCoeff_long(self.x, i, val)
+        return
+
     cdef ntl_zz_pX _new(self):
+        """
+        Quick and dirty method for creating a new object with the
+        same zz_pContext as self.
+
+        EXAMPLES:
+            sage: f = ntl.zz_pX([1], 20)
+            sage: f.square() ## indirect doctest
+            [1]
+        """
         cdef ntl_zz_pX y
         y = PY_NEW(ntl_zz_pX)
         y.c = self.c
@@ -166,88 +233,67 @@ cdef class ntl_zz_pX:
 
     def __add__(ntl_zz_pX self, other):
         """
+        Return self + other.
+
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: ntl.zz_pX(range(5)) + ntl.zz_pX(range(6))
-            [0 2 4 6 8 5]
+            sage: ntl.zz_pX(range(5),20) + ntl.zz_pX(range(6),20) ## indirect doctest
+            [0, 2, 4, 6, 8, 5]
+            sage: ntl.zz_pX(range(5),20) + ntl.zz_pX(range(6),50)
+            Traceback (most recent call last):
+            ...
+            ValueError: arithmetic operands must have the same modulus.
         """
+        cdef ntl_zz_pX y
         if not PY_TYPE_CHECK(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
-        self.c.restore_c()
-        _sig_off
-        return self._add_c_impl(other)
-
-    cdef ntl_zz_pX _add_c_impl(ntl_zz_pX self, ntl_zz_pX other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_pX y
         y = self._new()
-        zz_pX_add(y.x, self.x, other.x)
-        _sig_off
+        self.c.restore_c()
+        zz_pX_add(y.x, self.x, (<ntl_zz_pX>other).x)
         return y
 
     def __sub__(ntl_zz_pX self, other):
         """
+        Return self - other.
+
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: ntl.zz_pX(range(5)) - ntl.zz_pX(range(6))
-            [0 0 0 0 0 15]
+            sage: ntl.zz_pX(range(5),32) - ntl.zz_pX(range(6),32)
+            [0, 0, 0, 0, 0, 27]
+            sage: ntl.zz_pX(range(5),20) - ntl.zz_pX(range(6),50) ## indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: arithmetic operands must have the same modulus.
         """
+        cdef ntl_zz_pX y
         if not PY_TYPE_CHECK(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._sub_c_impl(other)
-
-    cdef ntl_zz_pX _sub_c_impl(ntl_zz_pX self, ntl_zz_pX other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_pX y
         y = self._new()
-        zz_pX_sub(y.x, self.x, other.x)
-        _sig_off
+        zz_pX_sub(y.x, self.x, (<ntl_zz_pX>other).x)
         return y
 
     def __mul__(ntl_zz_pX self, other):
         """
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: ntl.zz_pX(range(5)) * ntl.zz_pX(range(6))
-            [0 0 1 4 10 0 10 14 11]
+            sage: ntl.zz_pX(range(5),20) * ntl.zz_pX(range(6),20) ## indirect doctest
+            [0, 0, 1, 4, 10, 0, 10, 14, 11]
+            sage: ntl.zz_pX(range(5),20) * ntl.zz_pX(range(6),50)
+            Traceback (most recent call last):
+            ...
+            ValueError: arithmetic operands must have the same modulus.
         """
+        cdef ntl_zz_pX y
         if not PY_TYPE_CHECK(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._mul_c_impl(other)
-
-    cdef ntl_zz_pX _mul_c_impl(ntl_zz_pX self, ntl_zz_pX other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_pX y
         y = self._new()
-        zz_pX_mul(y.x, self.x, other.x)
+        _sig_on
+        zz_pX_mul(y.x, self.x, (<ntl_zz_pX>other).x)
         _sig_off
         return y
 
@@ -257,43 +303,36 @@ cdef class ntl_zz_pX:
         Otherwise an Exception is raised.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.zz_pX([1,2,3]) * ntl.zz_pX([4,5])**2
-            sage: g = ntl.zz_pX([4,5])
-            sage: f/g
-            [4 13 5 15]
-            sage: ntl.zz_pX([1,2,3]) * ntl.zz_pX([4,5])
-            [4 13 5 15]
+            sage: f = ntl.zz_pX([1,2,3],17) * ntl.zz_pX([4,5],17)**2
+            sage: g = ntl.zz_pX([4,5],17)
+            sage: f/g ## indirect doctest
+            [4, 13, 5, 15]
+            sage: ntl.zz_pX([1,2,3],17) * ntl.zz_pX([4,5],17)
+            [4, 13, 5, 15]
 
-            sage: f = ntl.zz_pX(range(10)); g = ntl.zz_pX([-1,0,1])
+            sage: f = ntl.zz_pX(range(10),17); g = ntl.zz_pX([-1,0,1],17)
             sage: f/g
             Traceback (most recent call last):
             ...
-            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
+            ArithmeticError: self (=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) is not divisible by other (=[16, 0, 1])
+            sage: ntl.zz_pX(range(5),20) / ntl.zz_pX(range(6),50)
+            Traceback (most recent call last):
+            ...
+            ValueError: arithmetic operands must have the same modulus.
         """
+        cdef long divisible
+        cdef ntl_zz_pX q
         if not PY_TYPE_CHECK(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._div_c_impl(other)
-
-    cdef ntl_zz_pX _div_c_impl(ntl_zz_pX self, ntl_zz_pX other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef long divisible
-        cdef ntl_zz_pX q
         q = self._new()
-        divisible = zz_pX_divide(q.x, self.x, other.x)
+        _sig_on
+        divisible = zz_pX_divide(q.x, self.x, (<ntl_zz_pX>other).x)
+        _sig_off
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
-        ## FIXME
         return q
 
     def __mod__(ntl_zz_pX self, other):
@@ -304,34 +343,23 @@ cdef class ntl_zz_pX:
         Exception.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.zz_pX([2,4,6]); g = ntl.zz_pX([2])
-            sage: f % g   # 0
+            sage: f = ntl.zz_pX([2,4,6],17); g = ntl.zz_pX([2],17)
+            sage: f % g   ## indirect doctest
             []
 
-            sage: f = ntl.zz_pX(range(10)); g = ntl.zz_pX([-1,0,1])
+            sage: f = ntl.zz_pX(range(10),17); g = ntl.zz_pX([-1,0,1],17)
             sage: f % g
-            [3 8]
+            [3, 8]
         """
+        cdef ntl_zz_pX y
         if not PY_TYPE_CHECK(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._mod_c_impl(other)
-
-    cdef ntl_zz_pX _mod_c_impl(ntl_zz_pX self, ntl_zz_pX other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_pX y
         y = self._new()
-        zz_pX_mod(y.x, self.x, other.x)
+        _sig_on
+        zz_pX_mod(y.x, self.x, (<ntl_zz_pX>other).x)
         _sig_off
         return y
 
@@ -340,15 +368,14 @@ cdef class ntl_zz_pX:
         Return the n-th nonnegative power of self.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: g = ntl.zz_pX([-1,0,1])
-            sage: g**10
-            [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
+            sage: g = ntl.zz_pX([-1,0,1],20)
+            sage: g**10 ## indirect doctest
+            [1, 0, 10, 0, 5, 0, 0, 0, 10, 0, 8, 0, 10, 0, 0, 0, 5, 0, 10, 0, 1]
         """
         if n < 0:
             raise ValueError, "Only positive exponents allowed."
-        _sig_on
         cdef ntl_zz_pX y = self._new()
+        _sig_on
         zz_pX_power(y.x, self.x, n)
         _sig_off
         return y
@@ -373,8 +400,8 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX q = self._new()
         cdef ntl_zz_pX r = self._new()
-        _sig_on
         self.c.restore_c()
+        _sig_on
         zz_pX_divrem(q.x, r.x, self.x, right.x)
         _sig_off
         return q, r
@@ -385,13 +412,13 @@ cdef class ntl_zz_pX:
 
         EXAMPLE:
             sage: f = ntl.zz_pX(range(10), 19); g = ntl.zz_pX([1]*5, 19)
-            sage: f // g
+            sage: f // g ## indirect doctest
             [8, 18, 18, 18, 18, 9]
 
         """
-        _sig_on
-        self.c.restore_c()
         cdef ntl_zz_pX q = self._new()
+        self.c.restore_c()
+        _sig_on
         zz_pX_div(q.x, self.x, right.x)
         _sig_off
         return q
@@ -402,7 +429,7 @@ cdef class ntl_zz_pX:
 
         EXAMPLE:
             sage: f = ntl.zz_pX([2,4,6], 17)
-            sage: f << 2
+            sage: f << 2 ## indirect doctest
             [0, 0, 2, 4, 6]
         """
         cdef ntl_zz_pX r = self._new()
@@ -415,7 +442,7 @@ cdef class ntl_zz_pX:
 
         EXAMPLE:
             sage: f = ntl.zz_pX([1,2,3], 17)
-            sage: f >> 2
+            sage: f >> 2 ## indirect doctest
             [3]
         """
         cdef ntl_zz_pX r = self._new()
@@ -452,33 +479,36 @@ cdef class ntl_zz_pX:
         """
         Return the negative of self.
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([2,0,0,1])
+            sage: f = ntl.zz_pX([2,0,0,1],20)
             sage: -f
-            [18 0 0 19]
+            [18, 0, 0, 19]
         """
-        _sig_on
         cdef ntl_zz_pX y
         y = self._new()
+        _sig_on
         zz_pX_neg(y.x, self.x)
         _sig_off
         return y
 
-    def __cmp__(ntl_zz_pX self, ntl_zz_pX other):
+    def __cmp__(ntl_zz_pX self, other):
         """
         Decide whether or not self and other are equal.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,3])
-            sage: g = ntl.zz_pX([1,2,3,0])
+            sage: f = ntl.zz_pX([1,2,3],20)
+            sage: g = ntl.zz_pX([1,2,3,0],20)
             sage: f == g
             True
-            sage: g = ntl.zz_pX([0,1,2,3])
+            sage: g = ntl.zz_pX([0,1,2,3],20)
             sage: f == g
             False
         """
-        if (NTL_zz_pX_DOUBLE_EQUALS(self.x, other.x)):
+        if not PY_TYPE_CHECK(other, ntl_zz_pX):
+            return cmp(ntl_zz_pX, other.parent())
+        if not (self.c is (<ntl_zz_pX>other).c):
+            return cmp(self.c.p, (<ntl_zz_pX>other).c.p)
+
+        if (NTL_zz_pX_DOUBLE_EQUALS(self.x, (<ntl_zz_pX>other).x)):
             return 0
         else:
             return -1
@@ -503,17 +533,16 @@ cdef class ntl_zz_pX:
         polynomial is -1.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([5,0,1])
+            sage: f = ntl.zz_pX([5,0,1],50)
             sage: f.degree()
             2
-            sage: f = ntl.zz_pX(range(100))
+            sage: f = ntl.zz_pX(range(100),50)
             sage: f.degree()
             99
-            sage: f = ntl.zz_pX()
+            sage: f = ntl.zz_pX([],10)
             sage: f.degree()
             -1
-            sage: f = ntl.zz_pX([1])
+            sage: f = ntl.zz_pX([1],77)
             sage: f.degree()
             0
         """
@@ -524,11 +553,10 @@ cdef class ntl_zz_pX:
         Return the leading coefficient of this polynomial.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([3,6,9])
+            sage: f = ntl.zz_pX([3,6,9],19)
             sage: f.leading_coefficient()
             9
-            sage: f = ntl.zz_pX()
+            sage: f = ntl.zz_pX([],21)
             sage: f.leading_coefficient()
             0
         """
@@ -539,11 +567,10 @@ cdef class ntl_zz_pX:
         Return the constant coefficient of this polynomial.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([3,6,9])
+            sage: f = ntl.zz_pX([3,6,9],127)
             sage: f.constant_term()
             3
-            sage: f = ntl.zz_pX()
+            sage: f = ntl.zz_pX([], 12223)
             sage: f.constant_term()
             0
         """
@@ -554,14 +581,12 @@ cdef class ntl_zz_pX:
         Return f*f.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.ZZ_pX([-1,0,1])
+            sage: f = ntl.zz_pX([-1,0,1],17)
             sage: f*f
-            [1 0 15 0 1]
+            [1, 0, 15, 0, 1]
         """
+        cdef ntl_zz_pX y = self._new()
         _sig_on
-        cdef ntl_zz_pX y
-        y = self._new()
         zz_pX_sqr(y.x, self.x)
         _sig_off
         return y
@@ -572,12 +597,11 @@ cdef class ntl_zz_pX:
         removing all terms of degree >= m.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,3,4,5])
+            sage: f = ntl.zz_pX([1,2,3,4,5],70)
             sage: f.truncate(3)
-            [1 2 3]
+            [1, 2, 3]
             sage: f.truncate(8)
-            [1 2 3 4 5]
+            [1, 2, 3, 4, 5]
             sage: f.truncate(1)
             [1]
             sage: f.truncate(0)
@@ -587,14 +611,13 @@ cdef class ntl_zz_pX:
             sage: f.truncate(-5)
             []
         """
-        _sig_on
-        cdef ntl_zz_pX y
-        y = self._new()
+        cdef ntl_zz_pX y = self._new()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
+            _sig_on
             zz_pX_trunc(y.x, self.x, m)
-        _sig_off
+            _sig_off
         return y
 
     def multiply_and_truncate(self, ntl_zz_pX other, long m):
@@ -602,22 +625,20 @@ cdef class ntl_zz_pX:
         Return self*other but with terms of degree >= m removed.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,3,4,5])
-            sage: g = ntl.zz_pX([10])
+            sage: f = ntl.zz_pX([1,2,3,4,5],20)
+            sage: g = ntl.zz_pX([10],20)
             sage: f.multiply_and_truncate(g, 2)
             [10]
             sage: g.multiply_and_truncate(f, 2)
             [10]
         """
-        _sig_on
-        cdef ntl_zz_pX y
-        y = self._new()
+        cdef ntl_zz_pX y = self._new()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
+            _sig_on
             zz_pX_MulTrunc(y.x, self.x, other.x, m)
-        _sig_off
+            _sig_off
         return y
 
     def square_and_truncate(self, long m):
@@ -625,21 +646,19 @@ cdef class ntl_zz_pX:
         Return self*self but with terms of degree >= m removed.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,3,4,5])
+            sage: f = ntl.zz_pX([1,2,3,4,5],20)
             sage: f.square_and_truncate(4)
-            [1 4 10]
+            [1, 4, 10]
             sage: (f*f).truncate(4)
-            [1 4 10]
+            [1, 4, 10]
         """
-        _sig_on
-        cdef ntl_zz_pX y
-        y = self._new()
+        cdef ntl_zz_pX y = self._new()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
+            _sig_on
             zz_pX_SqrTrunc(y.x, self.x, m)
-        _sig_off
+            _sig_off
         return y
 
     def invert_and_truncate(self, long m):
@@ -648,13 +667,12 @@ cdef class ntl_zz_pX:
         The constant term of self must be 1 or -1.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,3,4,5,6,7])
+            sage: f = ntl.zz_pX([1,2,3,4,5,6,7],20)
             sage: f.invert_and_truncate(20)
-            [1 18 1 0 0 0 0 8 17 2 13 0 0 0 4 0 17 10 9]
+            [1, 18, 1, 0, 0, 0, 0, 8, 17, 2, 13, 0, 0, 0, 4, 0, 17, 10, 9]
             sage: g = f.invert_and_truncate(20)
             sage: g * f
-            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 8 4 4 3]
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 4, 4, 3]
         """
         if m < 0:
             raise ArithmeticError, "m (=%s) must be positive"%m
@@ -662,14 +680,15 @@ cdef class ntl_zz_pX:
         if n != 1 and n != -1:
             raise ArithmeticError, \
                   "The constant term of self must be 1 or -1."
-        _sig_on
-        cdef ntl_zz_pX y
-        y = self._new()
+
+        cdef ntl_zz_pX y = self._new()
+
         if m <= 0:
             y.x = zz_pX_zero()
         else:
+            _sig_on
             zz_pX_InvTrunc(y.x, self.x, m)
-        _sig_off
+            _sig_off
         return y
 
 
@@ -678,13 +697,12 @@ cdef class ntl_zz_pX:
         Return True exactly if this polynomial is 0.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([0,0,0,20])
+            sage: f = ntl.zz_pX([0,0,0,20],5)
             sage: f.is_zero()
             True
-            sage: f = ntl.zz_pX([0,0,1])
+            sage: f = ntl.zz_pX([0,0,1],30)
             sage: f
-            [0 0 1]
+            [0, 0, 1]
             sage: f.is_zero()
             False
         """
@@ -695,11 +713,10 @@ cdef class ntl_zz_pX:
         Return True exactly if this polynomial is 1.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,1])
+            sage: f = ntl.zz_pX([1,1],101)
             sage: f.is_one()
             False
-            sage: f = ntl.zz_pX([1])
+            sage: f = ntl.zz_pX([1],2)
             sage: f.is_one()
             True
         """
@@ -710,16 +727,15 @@ cdef class ntl_zz_pX:
         Return True exactly if this polynomial is monic.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([2,0,0,1])
+            sage: f = ntl.zz_pX([2,0,0,1],17)
             sage: f.is_monic()
             True
             sage: g = f.reverse()
             sage: g.is_monic()
             False
             sage: g
-            [1 0 0 2]
-            sage: f = ntl.zz_pX([1,2,0,3,0,2])
+            [1, 0, 0, 2]
+            sage: f = ntl.zz_pX([1,2,0,3,0,2],717)
             sage: f.is_monic()
             False
         """
@@ -737,12 +753,11 @@ cdef class ntl_zz_pX:
         Set this polynomial to the monomial "x".
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX()
+            sage: f = ntl.zz_pX([],177)
             sage: f.set_x()
             sage: f
-            [0 1]
-            sage: g = ntl.zz_pX([0,1])
+            [0, 1]
+            sage: g = ntl.zz_pX([0,1],177)
             sage: f == g
             True
 
@@ -758,15 +773,14 @@ cdef class ntl_zz_pX:
         True if this is the polynomial "x".
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX()
+            sage: f = ntl.zz_pX([],100)
             sage: f.set_x()
             sage: f.is_x()
             True
-            sage: f = ntl.zz_pX([0,1])
+            sage: f = ntl.zz_pX([0,1],383)
             sage: f.is_x()
             True
-            sage: f = ntl.zz_pX([1])
+            sage: f = ntl.zz_pX([1],38)
             sage: f.is_x()
             False
         """
@@ -777,10 +791,9 @@ cdef class ntl_zz_pX:
         Reset this polynomial to 0.  Changes this polynomial in place.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.zz_pX([1,2,3])
+            sage: f = ntl.zz_pX([1,2,3],17)
             sage: f
-            [1 2 3]
+            [1, 2, 3]
             sage: f.clear()
             sage: f
             []
@@ -796,14 +809,13 @@ cdef class ntl_zz_pX:
         function.)
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.zz_pX([1,2,3])
+            sage: f = ntl.zz_pX([1,2,3],17)
             sage: f.preallocate_space(20)
             sage: f
-            [1 2 3]
+            [1, 2, 3]
             sage: f[10]=5  # no new memory is allocated
             sage: f
-            [1 2 3 0 0 0 0 0 0 0 5]
+            [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 5]
         """
         _sig_on
         self.x.SetMaxLength(n)
@@ -815,7 +827,7 @@ def make_zz_pX(L, context):
     """
     For unpickling.
 
-    TEST:
+    TESTS:
         sage: f = ntl.zz_pX(range(16), 12)
         sage: loads(dumps(f)) == f
         True

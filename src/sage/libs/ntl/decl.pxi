@@ -290,7 +290,6 @@ cdef extern from "ntl_wrap.h":
     void zz_p_inv "inv"(zz_p_c x, zz_p_c a)
     void zz_p_power "power"(zz_p_c x, zz_p_c a, long e)
     void zz_p_sqr "sqr"(zz_p_c x, zz_p_c a)
-    zz_p_c zz_p_square "sqr"(zz_p_c x)
     void zz_p_clear "clear"(zz_p_c x)
     void zz_p_set_zero "clear"(zz_p_c x)
     void zz_p_set_one "set"(zz_p_c x)
@@ -299,8 +298,8 @@ cdef extern from "ntl_wrap.h":
 
     bint NTL_zz_p_DOUBLE_EQUALS(zz_p_c x, zz_p_c y)
 
-    void zz_p_set_modulus "zz_p::init"(long p)
-    long zz_p_modulus "zz_p::modulus"()
+##    void zz_p_set_modulus "zz_p::init"(long p)
+##    long zz_p_modulus "zz_p::modulus"()
 
     #### zz_pContext_c
     ctypedef struct zz_pContext_c "struct zz_pContext":
@@ -347,7 +346,6 @@ cdef extern from "ntl_wrap.h":
     void zz_pX_InvTrunc "InvTrunc"(zz_pX_c x, zz_pX_c a, long n)
     void zz_pX_sqr "sqr"(zz_pX_c x, zz_pX_c a)
     void zz_pX_power "power"(zz_pX_c x, zz_pX_c a, long e)
-    void zz_pX_square "sqr"(zz_pX_c x, zz_pX_c a)
     void zz_pX_clear "clear"(zz_pX_c x)
     void zz_pX_SetX "SetX"(zz_pX_c x)
     bint zz_pX_IsX "IsX"(zz_pX_c x)
@@ -358,6 +356,7 @@ cdef extern from "ntl_wrap.h":
     void zz_pX_diff "diff"(zz_pX_c x, zz_pX_c a)
     void zz_pX_reverse "reverse"(zz_pX_c x, zz_pX_c a)
     void zz_pX_eval "eval" (zz_p_c fa, zz_pX_c f, zz_p_c a)
+    void zz_pX_MakeMonic "MakeMonic"(zz_pX_c x)
 
     long NTL_SP_BOUND
     bint NTL_zz_pX_DOUBLE_EQUALS(zz_pX_c x, zz_pX_c y)

@@ -138,6 +138,7 @@ cdef extern from "ntl_wrap.h":
     void mul_ZZX "mul"( ZZX_c x, ZZX_c a, ZZX_c b)
     void add_ZZX "add"( ZZX_c x, ZZX_c a, ZZX_c b)
     void sub_ZZX "sub"( ZZX_c x, ZZX_c a, ZZX_c b)
+    void neg_ZZX "negate"( ZZX_c x, ZZX_c a)
     void div_ZZX_ZZ "div"( ZZX_c x, ZZX_c a, ZZ_c b)
     long ZZX_deg "deg"( ZZX_c x )
     void rem_ZZX "rem"(ZZX_c r, ZZX_c a, ZZX_c b)

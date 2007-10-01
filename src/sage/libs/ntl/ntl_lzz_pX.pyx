@@ -144,8 +144,6 @@ cdef class ntl_zz_pX:
                 a = Integer(a)
                 zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
 
-##        zz_pX_SetCoeff_long(self.x, n, <long>1)
-
         return
 
     def __reduce__(self):
@@ -190,7 +188,6 @@ cdef class ntl_zz_pX:
             i = long(i)
         y.x = zz_pX_GetCoeff(self.x, i)
         return y
-##        return ntl_zz_p(zz_pX_GetCoeff(self, i))
 
     def __setitem__(self, i, val):
         """
@@ -739,11 +736,6 @@ cdef class ntl_zz_pX:
             sage: f.is_monic()
             False
         """
-        # The following line is what we should have.  However, strangely this is *broken*
-        # on PowerPC Intel in NTL, so we program around
-        # the problem.  (William Stein)
-        #return bool(ZZ_pX_is_monic(self.x))
-
         if zz_pX_IsZero(self.x):
              return False
         return ( zz_p_rep(zz_pX_LeadCoeff(self.x)) == 1 )

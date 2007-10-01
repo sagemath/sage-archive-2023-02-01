@@ -56,7 +56,7 @@ P = pari_instance   # shorthand notation
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
-cdef pari_sp mytop
+cdef pari_sp mytop, initial_bot, initial_top
 
 # keep track of the stack
 cdef pari_sp stack_avma
@@ -5474,10 +5474,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global initialized, num_primes, ZERO, ONE, TWO, avma, top, bot
+        global initialized, num_primes, ZERO, ONE, TWO, avma, top, bot, \
+               initial_bot, initial_top
+
 
         #print "Initializing PARI (size=%s, maxprime=%s)"%(size,maxprime)
         pari_init(1024, maxprime)
+        initial_bot = bot
+        initial_top = top
+        bot = 0
 
         _sig_on
         init_stack(size)
@@ -5502,10 +5507,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ONE = self(1)
         self.TWO = self(2)
 
-    def __dealloc__(self):
-        pari_close()
+    #def __dealloc__(self):
+
 
     def _unsafe_deallocate_pari_stack(self):
+        if bot:
+            sage_free(<void*>bot)
+        global top, bot
+        top = initial_top
+        bot = initial_bot
         pari_close()
 
     def __repr__(self):

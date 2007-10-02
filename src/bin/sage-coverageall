@@ -1,30 +1,35 @@
 #!/usr/bin/env python
 
+import os, sys
 
-import os
+def coverage_all(directory):
+    os.chdir(directory)
+    r = os.popen('sage -coverage * | grep SCORE').readlines()
 
-os.chdir('%s/devel/sage/sage/'%os.environ["SAGE_ROOT"])
+    s = []
+    scr = 0
+    total = 0
+    for x in r:
+        y = x.lstrip('SCORE ')
+        i = y.rfind(' of ')
+        j = y.rfind(')')
+        n = int(y[i+4:j])
 
-r = os.popen('sage -coverage * | grep SCORE').readlines()
+        i = y.rfind(':')
+        j = y.rfind('%')
+        scr += int(y[i+1:j]) * float(n)
 
-s = []
-scr = 0
-total = 0
-for x in r:
-    y = x.lstrip('SCORE ')
-    i = y.rfind(' of ')
-    j = y.rfind(')')
-    n = int(y[i+4:j])
+        total += n
 
-    i = y.rfind(':')
-    j = y.rfind('%')
-    scr += int(y[i+1:j]) * float(n)
+        s.append(y)
 
-    total += n
+    print ''.join(s)
 
-    s.append(y)
+    print "Overall weighted coverage score:  %.1f%%"%(float(scr) / total)
+    print "Total number of functions: ", total
 
-print ''.join(s)
 
-print "Overall weighted coverage score for Sage:  %.1f%%"%(float(scr) / total)
-print "Total number of functions: ", total
+if len(sys.argv) == 1:
+    coverage_all('%s/devel/sage/sage/'%os.environ["SAGE_ROOT"])
+else:
+    coverage_all(sys.argv[1])

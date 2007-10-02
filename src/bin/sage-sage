@@ -401,7 +401,7 @@ fi
 if [ $1 = "-coverageall" -o $1 = "--coverageall" ]; then
    cd "$CUR"
    shift
-   sage-coverageall
+   sage-coverageall $@
    exit $?
 fi
 

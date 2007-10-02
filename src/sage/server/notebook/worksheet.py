@@ -1807,12 +1807,14 @@ class Worksheet:
         except IOError:
             return "print 'Error loading %s -- file not found'"%filename
         else:
+            filename_orig = filename
+            filename = filename.rstrip('.txt')
             if filename.endswith('.py'):
                 t = F
             elif filename.endswith('.spyx') or filename.endswith('.pyx'):
                 cur = os.path.abspath(os.curdir)
                 try:
-                    mod, dir  = cython.cython(filename, compile_message=True, use_cache=True)
+                    mod, dir  = cython.cython(filename_orig, compile_message=True, use_cache=True)
                 except (IOError, OSError, RuntimeError), msg:
                     return "print r'''Error compiling cython file:\n%s'''"%msg
                 t  = "import sys\n"

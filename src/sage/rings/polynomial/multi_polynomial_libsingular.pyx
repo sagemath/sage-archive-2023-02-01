@@ -2404,6 +2404,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.subs(x=5)
             25*y^2 + y + 30
 
+            sage: P.<x,y,z> = PolynomialRing(GF(2),3)
+            sage: f = x + y + 1
+            sage: f.subs({x:y+1})
+            0
+            sage: f.subs(x=y)
+            1
+            sage: f.subs(x=x)
+            x + y + 1
+            sage: f.subs({x:z})
+            y + z + 1
+            sage: f.subs(x=z+1)
+            y + z
+
         TESTS:
             sage: P.<x,y,z> = QQ[]
             sage: f = y
@@ -2416,7 +2429,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         variables will be replaced by z eventually.
 
         """
-        cdef int mi, i
+        cdef int mi, i, need_map
 
         cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
         cdef ring *_ring = parent._ring
@@ -2424,6 +2437,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         cdef poly *_p = p_Copy(self._poly, _ring)
+        cdef poly *_f
+
+        cdef ideal *to_id = idInit(_ring.N,1)
+        cdef ideal *from_id
+        cdef ideal *res_id
+        need_map = 0
 
         if fixed is not None:
             for m,v in fixed.iteritems():
@@ -2438,7 +2457,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         raise TypeError, "key does not match"
                 else:
                     raise TypeError, "keys do not match self's parent"
-                _p = pSubst(_p, mi, (<MPolynomial_libsingular>parent._coerce_c(v))._poly)
+                v = parent._coerce_c(v)
+                _f = (<MPolynomial_libsingular>v)._poly
+                if _f == NULL or pNext(_f) == NULL:
+                    _p = pSubst(_p, mi, _f)
+                else:
+                    need_map = 1
+                    to_id.m[mi-1] = p_Copy(_f, _ring)
 
         gd = parent.gens_dict()
         for m,v in kw.iteritems():
@@ -2449,8 +2474,36 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
             if i > _ring.N:
                 raise TypeError, "key does not match"
-            _p = pSubst(_p, mi, (<MPolynomial_libsingular>parent._coerce_c(v))._poly)
+            v = parent._coerce_c(v)
+            _f = (<MPolynomial_libsingular>v)._poly
+            if _f == NULL or pNext(_f) == NULL:
+                _p = pSubst(_p, mi, _f)
+            else:
+                if to_id.m[mi-1] != NULL:
+                    p_Delete(&to_id.m[mi-1],_ring)
+                to_id.m[mi-1] = p_Copy(_f, _ring)
+                need_map = 1
 
+        if need_map:
+            for mi from 0 <= mi < _ring.N:
+                if to_id.m[mi] == NULL:
+                    to_id.m[mi] = p_ISet(1,_ring)
+                    p_SetExp(to_id.m[mi], mi+1, 1, _ring)
+                    p_Setm(to_id.m[mi], _ring)
+
+            from_id=idInit(1,1)
+            from_id.m[0] = _p
+
+            res_id = fast_map(from_id, _ring, to_id, _ring)
+            _p = res_id.m[0]
+
+            from_id.m[0] = NULL
+            res_id.m[0] = NULL
+
+            id_Delete(&from_id, _ring)
+            id_Delete(&res_id, _ring)
+
+        id_Delete(&to_id, _ring)
         return co.new_MP(parent,_p)
 
     def monomials(self):

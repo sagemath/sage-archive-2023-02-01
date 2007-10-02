@@ -411,7 +411,7 @@ cdef extern from "libsingular.h":
 
     int p_IsUnit(poly *p, ring *r)
 
-    # substitute value for variable given by varidx in poly
+    # substitute monomial for variable given by varidx in poly
 
     poly *pSubst(poly *p, int varidx, poly *value)
 

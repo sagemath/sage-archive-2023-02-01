@@ -282,6 +282,26 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^2 + 1)
     2.58740105196820
 
+An example from Jim Carlson:
+
+    sage: K = QQ # by the way :-)
+    sage: R.<a,b,c,d> = K[]; R
+    Polynomial Ring in a, b, c, d over Rational Field
+    sage: S.<u> = K[]; S
+    Univariate Polynomial Ring in u over Rational Field
+    sage: f = R.hom([0,0,0,u], S); f
+    Ring morphism:
+      From: Polynomial Ring in a, b, c, d over Rational Field
+      To:   Univariate Polynomial Ring in u over Rational Field
+      Defn: a |--> 0
+            b |--> 0
+            c |--> 0
+            d |--> u
+    sage: f(a+b+c+d)
+    u
+    sage: f( (a+b+c+d)^2 )
+    u^2
+
 TESTS:
     sage: H = Hom(ZZ, QQ)
     sage: H == loads(dumps(H))
@@ -379,6 +399,12 @@ class RingHomomorphism(RingMap):
             raise TypeError, "parent must be a ring homset"
         RingMap.__init__(self, parent)
 
+    def __nonzero__(self):
+        """
+        There is no zero map between rings, since 1 goes to 1.
+        """
+        return True
+
     def _repr_type(self):
         return "Ring"
 
@@ -468,9 +494,9 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             if not isinstance(im_gens, (tuple, list)):
                 im_gens = [im_gens]
             im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
-        if len(im_gens) != parent.domain().ngens():
-            raise ValueError, "number of images must equal number of generators"
         if check:
+            if len(im_gens) != parent.domain().ngens():
+                raise ValueError, "number of images must equal number of generators"
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
             if not t:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."
@@ -510,6 +536,8 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             True
             sage: f1 == R.hom([b,a])
             False
+            sage: x^3 + x + y^2
+            x^3 + y^2 + x
             sage: f1(x^3 + x + y^2)
             a - b
             sage: f2(x^3 + x + y^2)

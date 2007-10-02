@@ -173,7 +173,7 @@ class MPolynomial_element(MPolynomial):
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.element().dict().iteritems():
-            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) ])
+            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
 

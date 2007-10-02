@@ -724,17 +724,18 @@ def next_probable_prime(n):
     """
     return integer_ring.ZZ(n).next_probable_prime()
 
-def next_prime(n, proof=True):
+def next_prime(n, proof=None):
     """
     The next prime greater than the integer n.  If n is prime, then
     this function does not return n, but the next prime after n.  If
-    the optional argument proof is False (the default), this function
+    the optional argument proof is False, this function
     only returns a pseudo-prime, as defined by the PARI nextprime
-    function.
+    function.  If it is None, uses the global default
+    (see sage.structure.proof)
 
     INPUT:
         n -- integer
-        proof -- bool (default: True)
+        proof -- bool or None (default: None)
 
     EXAMPLES:
         sage: next_prime(-100)
@@ -838,7 +839,7 @@ def previous_prime_power(n):
         n -= 1
     return n
 
-def random_prime(n, pseudo=False):
+def random_prime(n, proof=None):
     """
     Returns a random prime p between 2 and n (i.e. 2 <= p <= n).
     The returned prime is chosen uniformly at random from the
@@ -846,10 +847,11 @@ def random_prime(n, pseudo=False):
 
     INPUT:
         n -- an integer >= 2.
-        pseudo -- bool (default: False) If True, the function uses
+        proof -- bool or None (default: None) If False, the function uses
                 a pseudo-primality test, which is much faster for
                 really big numbers but does not provide a proof
-                of primality.
+                of primality.  If None, uses the global default
+                (see sage.structure.proof)
 
     EXAMPLES:
         sage: random_prime(100000)
@@ -864,13 +866,15 @@ def random_prime(n, pseudo=False):
     """
     import random    # since we don't want random to get
                      # pulled when you say "from sage.arith import *".
+    from sage.structure.proof.proof import get_flag
+    proof = get_flag(proof, "arithmetic")
     n = integer_ring.ZZ(n)
     if n < 2:
         raise ValueError, "n must be >= 2."
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        if pseudo:
+        if not proof:
             prime_test = is_pseudoprime
         else:
             prime_test = is_prime
@@ -1472,7 +1476,10 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
+def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
+    if proof is None:
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "arithmetic")
     if int_:
         Z = int
     else:
@@ -1493,14 +1500,14 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
 #todo: add a limit option to factor, so it will only split off
 # primes at most a given limit.
 
-def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
+def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Returns the factorization of the integer n as a sorted list of
     tuples (p,e).
 
     INPUT:
         n -- an nonzero integer
-        proof -- bool (default: True)
+        proof -- bool or None (default: None)
         int_ -- bool (default: False) whether to return answers as Python ints
         algorithm -- string
                  * 'pari' -- (default)  use the PARI c library
@@ -1540,9 +1547,10 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-    SAGE calls PARI's factor, which has proof False by default.  SAGE
-    by default *does* check primality of each factor that is
-    returned. To turn this off, do proof False.
+    SAGE calls PARI's factor, which has proof False by default.  SAGE has
+    a global proof flag, set to True by default (see sage.structure.proof,
+    or proof.[tab]).  To override the default, call this function with
+    proof=False.
 
         sage: factor(3^89-1, proof=False)
         2 * 179 * 1611479891519807 * 5042939439565996049162197

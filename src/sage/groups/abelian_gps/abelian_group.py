@@ -713,7 +713,6 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.list()
             [1, b, b^2, a, a*b, a*b^2]
         """
-        from sage.combinat.combinat import tuples
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()

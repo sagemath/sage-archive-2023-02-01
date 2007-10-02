@@ -1312,6 +1312,7 @@ cdef extern from 'pari/pari.h':
     void    msgtimer(char *format, ...)
     GEN     newbloc(long n)
     void    pari_init(size_t parisize, ulong maxprime)
+    void    pari_close()
     GEN     reorder(GEN x)
     void    stackdummy(GEN x, long l)
     GEN     stackify(GEN x)

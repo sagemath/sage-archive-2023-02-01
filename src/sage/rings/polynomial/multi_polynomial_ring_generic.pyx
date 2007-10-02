@@ -174,6 +174,38 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def _repr_(self):
         return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
+    def repr_long(self):
+        """
+        Return structured string representation of self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
+            sage: print P.repr_long()
+            Polynomial Ring
+             Base Ring : Rational Field
+                  Size : 3 Variables
+              Block  0 : Ordering : degrevlex
+                         Names    : x
+              Block  1 : Ordering : lex
+                         Names    : y, z
+        """
+        from sage.rings.polynomial.term_order import inv_singular_name_mapping
+        n = self.ngens()
+        k = self.base_ring()
+        names = self.variable_names()
+        T = self.term_order()
+        _repr =  "Polynomial Ring\n"
+        _repr += "  Base Ring : %s\n"%(k,)
+        _repr += "       Size : %d Variables\n"%(n,)
+        offset = 0
+        i = 0
+        for order,_len in T.blocks:
+            _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order, order))
+            _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + _len]))
+            offset += _len
+            i+=1
+        return _repr
+
     def _latex_(self):
         vars = str(self.latex_variable_names()).replace('\n','').replace("'",'')
         return "%s[%s]"%(sage.misc.latex.latex(self.base_ring()), vars[1:-1])

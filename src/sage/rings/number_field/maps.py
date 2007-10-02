@@ -1,3 +1,15 @@
+"""
+
+
+
+
+
+TESTS:
+   sage: L.<cuberoot2, zeta3> = CyclotomicField(3).extension(x^3 - 2); K = L.absolute_field('a'); from_K,to_K = K.structure()
+
+"""
+
+
 from sage.structure.sage_object import SageObject
 
 import sage.rings.rational_field as rational_field
@@ -55,7 +67,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(SageObject):
         self.__K = K
         self.__R = K.polynomial_ring()
         self.__rnf = K.pari_rnf()
-        self.__B = K.base_field().absolute_field()   # base, from_base, to_base
+        self.__B = K.base_field().absolute_field('a')
 
     def _repr_(self):
         return "Isomorphism from %s to %s"%(self.__V, self.__K)
@@ -68,7 +80,8 @@ class MapRelativeVectorSpaceToRelativeNumberField(SageObject):
 
         # First, construct from w a PARI polynomial in x with coefficients
         # that are polynomials in y:
-        B, _, to_B = self.__B
+        B = self.__B
+        _, to_B = B.structure()
         # Apply to_B, so now each coefficient is in an absolute field,
         # and is expressed in terms of a polynomial in y, then make
         # the PARI poly in x.
@@ -95,7 +108,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         self.__n = K.degree()
         self.__x = pari('x')
         self.__y = pari('y')
-        self.__B = K.base_field().absolute_field()   # base, from_base, to_base
+        self.__B = K.absolute_base_field()
 
     def _repr_(self):
         return "Isomorphism from %s to %s"%(self.__K, self.__V)
@@ -116,10 +129,10 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         # The list v below has the coefficients that are the
         # components of the vector we are constructing, but each is
         # converted into polynomials in a variable x, which we will
-        # use those to define elements of the base field.
+        # use to define elements of the base field.
         (x, y) = (self.__x, self.__y)
         v = [g.polcoeff(i).subst(x,y) for i in range(self.__n)]
-        B, from_B, _ = self.__B
+        B,from_B, _ = self.__B
         w = [from_B(B(z)) for z in v]
 
         # Now w gives the coefficients.
@@ -143,6 +156,26 @@ class IdentityMap(SageObject):
         return self.__K
     def codomain(self):
         return self.__K
+
+class NameChangeMap(SageObject):
+    def __init__(self, K, L):
+        self.__K = K
+        self.__L = L
+
+    def _repr_(self):
+        return "Number field isomorphism from %s to %s given by variable name change"%(self.__K, self.__L)
+
+    def __call__(self, x):
+        y = self.__K(x)
+        z = y.__copy__()
+        z._set_parent(self.__L)
+        return z
+
+    def domain(self):
+        return self.__K
+
+    def codomain(self):
+        return self.__L
 
 class MapRelativeToAbsoluteNumberField(SageObject):
     def __init__(self, R, A):

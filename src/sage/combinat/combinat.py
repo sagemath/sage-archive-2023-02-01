@@ -5,10 +5,8 @@ AUTHORS:
         -- David Joyner (2006-07), initial implementation.
         -- William Stein (2006-07), editing of docs and code; many optimizations,
                       refinements, and bug fixes in corner cases
-        -- David Joyner (2006-09): bug fix for combinations, added
-                      permutations_iterator, combinations_iterator
-                      from Python Cookbook, edited docs.
-        -- Bobby Moretti (2007-05) added a lazy fibonacci sequence generator
+        -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
+                      combinations_iterator from Python Cookbook, edited docs.
 
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant docstrings.
@@ -17,110 +15,103 @@ Sequences:
 \begin{itemize}
 \item Bell numbers, \code{bell_number}
 
-\item Bernoulli numbers, \code{bernoulli_number} (though PARI's
-  bernoulli is better)
+\item Bernoulli numbers, \code{bernoulli_number} (though PARI's bernoulli is
+  better)
 
-\item Catalan numbers, \code{catalan_number} (not to be confused with
-  the Catalan constant)
+\item Catalan numbers, \code{catalan_number} (not to be confused with the
+  Catalan constant)
 
 \item Eulerian/Euler numbers, \code{euler_number} (Maxima)
 
-\item Fibonacci numbers, \code{fibonacci} (PARI) and
-  \code{fibonacci_number} (GAP) The PARI version is better.
+\item Fibonacci numbers, \code{fibonacci} (PARI) and \code{fibonacci_number} (GAP)
+  The PARI version is better.
 
 \item Lucas numbers, \code{lucas_number1}, \code{lucas_number2}.
 
-\item Stirling numbers, \code{stirling_number1},
-\code{stirling_number2}.
-
+\item Stirling numbers, \code{stirling_number1}, \code{stirling_number2}.
 \end{itemize}
 
 Set-theoretic constructions:
 \begin{itemize}
+\item Combinations of a multiset, \code{combinations}, \code{combinations_iterator},
+and \code{number_of_combinations}. These are unordered selections without
+repetition of k objects from a multiset S.
 
-\item Combinations of a multiset, \code{combinations},
-\code{combinations_iterator}, and \code{number_of_combinations}. These
-are unordered selections without repetition of k objects from a
-multiset S.
+\item Arrangements of a multiset, \code{arrangements} and \code{number_of_arrangements}
+  These are ordered selections without repetition of k objects from a
+  multiset S.
 
-\item Arrangements of a multiset, \code{arrangements} and
-  \code{number_of_arrangements} These are ordered selections without
-  repetition of k objects from a multiset S.
-
-\item Derangements of a multiset, \code{derangements} and
-\code{number_of_derangements}.
+\item Derangements of a multiset, \code{derangements} and \code{number_of_derangements}.
 
 \item Tuples of a multiset, \code{tuples} and \code{number_of_tuples}.
   An ordered tuple of length k of set S is a ordered selection with
   repetitions of S and is represented by a sorted list of length k
   containing elements from S.
 
-\item Unordered tuples of a set, \code{unordered_tuple} and
-  \code{number_of_unordered_tuples}.  An unordered tuple of length k
-  of set S is a unordered selection with repetitions of S and is
-  represented by a sorted list of length k containing elements from S.
+\item Unordered tuples of a set, \code{unordered_tuple} and \code{number_of_unordered_tuples}.
+  An unordered tuple of length k of set S is a unordered selection with
+  repetitions of S and is represented by a sorted list of length k
+  containing elements from S.
 
-\item Permutations of a multiset, \code{permutations},
-\code{permutations_iterator}, \code{number_of_permutations}. A
-permutation is a list that contains exactly the same elements but
+\item Permutations of a multiset, \code{permutations}, \code{permutations_iterator},
+\code{number_of_permutations}. A permutation is a list that contains exactly the same elements but
 possibly in different order.
-
 \end{itemize}
 
 Partitions:
 \begin{itemize}
+\item Partitions of a set, \code{partitions_set}, \code{number_of_partitions_set}.
+  An unordered partition of set S is a set of pairwise disjoint
+  nonempty sets with union S and is represented by a sorted list of
+  such sets.
 
-\item Partitions of a set, \code{partitions_set},
-  \code{number_of_partitions_set}.  An unordered partition of set S is
-  a set of pairwise disjoint nonempty sets with union S and is
-  represented by a sorted list of such sets.
-
-\item Partitions of an integer, \code{partitions_list},
-  \code{number_of_partitions}.  An unordered partition of n is an
-  unordered sum $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is
-  represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
-  order, i.e., $p1\geq p_2 ...\geq p_k$.
+\item Partitions of an integer, \code{partitions_list}, \code{number_of_partitions_list}.
+  An unordered partition of n is an unordered sum
+  $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is represented by
+  the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
+  $p1\geq p_2 ...\geq p_k$.
 
 \item Ordered partitions of an integer, \code{ordered_partitions},
-  \code{number_of_ordered_partitions}.  An ordered partition of n is
-  an ordered sum $n = p_1+p_2 +\ldots+ p_k$ of positive integers and
-  is represented by the list $p = [p_1,p_2,\ldots,p_k]$, in
-  nonincreasing order, i.e., $p1\geq p_2 ...\geq p_k$.
+  \code{number_of_ordered_partitions}.
+  An ordered partition of n is an ordered sum $n = p_1+p_2 +\ldots+ p_k$
+  of positive integers and is represented by
+  the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
+  $p1\geq p_2 ...\geq p_k$.
 
-\item Restricted partitions of an integer,
-  \code{partitions_restricted},
-  \code{number_of_partitions_restricted}.  An unordered restricted
-  partition of n is an unordered sum $n = p_1+p_2 +\ldots+ p_k$ of
-  positive integers $p_i$ belonging to a given set $S$, and is
-  represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
-  order, i.e., $p1\geq p_2 ...\geq p_k$.
+\item Restricted partitions of an integer, \code{partitions_restricted},
+  \code{number_of_partitions_restricted}.
+  An unordered restricted partition of n is an unordered sum
+  $n = p_1+p_2 +\ldots+ p_k$ of positive integers $p_i$ belonging to a
+  given set $S$, and is represented by the list $p = [p_1,p_2,\ldots,p_k]$,
+  in nonincreasing order, i.e., $p1\geq p_2 ...\geq p_k$.
 
-\item \code{partitions_greatest} implements a special type of
-   restricted partition.
+\item \code{partitions_greatest}
+   implements a special type of restricted partition.
 
-\item \code{partitions_greatest_eq} is another type of restricted
-partition.
+\item \code{partitions_greatest_eq} is another type of restricted partition.
 
 \item Tuples of partitions, \code{partition_tuples},
-  \code{number_of_partition_tuples}.  A $k$-tuple of partitions is
-  represented by a list of all $k$-tuples of partitions which together
-  form a partition of $n$.
+  \code{number_of_partition_tuples}.
+  A $k$-tuple of partitions is represented by a list of all $k$-tuples
+  of partitions which together form a partition of $n$.
 
-\item Powers of a partition, \code{partition_power(pi, k)}.  The power
-  of a partition corresponds to the $k$-th power of a permutation with
-  cycle structure $\pi$.
+\item Powers of a partition, \code{partition_power(pi, k)}.
+  The power of a partition corresponds to the $k$-th power of a
+  permutation with cycle structure $\pi$.
 
-\item Sign of a partition, \code{partition_sign( pi ) } This means the
-  sign of a permutation with cycle structure given by the partition
-  pi.
+\item Sign of a partition, \code{partition_sign( pi ) }
+  This means the sign of a permutation with cycle structure given by the
+  partition pi.
 
-\item Associated partition, \code{partition_associated( pi )} The
-  ``associated'' (also called ``conjugate'' in the literature)
+\item Associated partition, \code{partition_associated( pi )}
+  The ``associated'' (also called ``conjugate'' in the literature)
   partition of the partition pi which is obtained by transposing the
   corresponding Ferrers diagram.
 
-\item Ferrers diagram, \code{ferrers_diagram}.  Analogous to the Young
-  diagram of an irredicible representation of $S_n$.  \end{itemize}
+\item Ferrers diagram, \code{ferrers_diagram}.
+  Analogous to the Young diagram of an irredicible representation
+  of $S_n$.
+  \end{itemize}
 
 Related functions:
 
@@ -183,6 +174,7 @@ REFERENCES:
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>,
+#                     2007 Mike Hansen <mhansen@gmail.com>,
 #                     2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -202,29 +194,29 @@ from sage.rings.all import QQ, RR, ZZ
 from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
-
-import expnums
+from sage.rings.arith import factorial
+from random import randint
+from sage.misc.misc import prod
+from sage.structure.sage_object import SageObject
+import __builtin__
+from sage.algebras.algebra import Algebra
+from sage.algebras.algebra_element import AlgebraElement
+import sage.structure.parent_base
 import partitions as partitions_ext
 
 ######### combinatorial sequences
 
-def bell_number(n, algorithm='sage'):
+def bell_number(n):
     r"""
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
-    INPUT:
-        n -- an integer
-        algorithm -- 'sage': use N. Alexander's custom implementation in SAGE
-                     'gap': use Gap's Bell command (slow)
-
     If $n \leq 0$, returns $1$.
 
+    Wraps GAP's Bell.
 
     EXAMPLES:
         sage: bell_number(10)
-        115975
-        sage: bell_number(10, algorithm='gap')
         115975
         sage: bell_number(2)
         2
@@ -236,22 +228,9 @@ def bell_number(n, algorithm='sage'):
         Traceback (most recent call last):
         ...
         TypeError: no coercion of this rational to integer
-
-    To compute all Bell numbers up to n, use expnums:
-        sage: expnums(10,1)
-        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
-        sage: [bell_number(n) for n in range(10)]
-        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
     """
-    n = ZZ(n)
-    if n <= 0:
-        return ZZ(1)
-    if algorithm == 'sage':
-        return expnums.expnums(n+1,1)[-1]
-    elif algorithm == 'gap':
-        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
-    else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+    ans=gap.eval("Bell(%s)"%ZZ(n))
+    return ZZ(eval(ans))
 
 ## def bernoulli_number(n):
 ##     r"""
@@ -268,9 +247,6 @@ def bell_number(n, algorithm='sage'):
 def catalan_number(n):
     r"""
     Returns the n-th Catalan number
-
-    INPUT:
-        n -- an integer
 
       Catalan numbers: The $n$-th Catalan number is given directly in terms of
       binomial coefficients by
@@ -314,9 +290,6 @@ def euler_number(n):
     """
     Returns the n-th Euler number
 
-    INPUT:
-        n -- an integer
-
     IMPLEMENTATION: Wraps Maxima's euler.
 
     EXAMPLES:
@@ -341,12 +314,11 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns then n-th Fibonacci number.
-
-    The Fibonacci sequence $F_n$ is defined by the initial conditions
-    $F_1=F_2=1$ and the recurrence relation $F_{n+2} = F_{n+1} +
-    F_n$. For negative $n$ we define $F_n = (-1)^{n+1}F_{-n}$, which
-    is consistent with the recurrence relation.
+    Returns then n-th Fibonacci number. The Fibonacci sequence $F_n$
+    is defined by the initial conditions $F_1=F_2=1$ and the
+    recurrence relation $F_{n+2} = F_{n+1} + F_n$. For negative $n$ we
+    define $F_n = (-1)^{n+1}F_{-n}$, which is consistent with the
+    recurrence relation.
 
     For negative $n$, define $F_{n} = -F_{|n|}$.
 
@@ -384,98 +356,6 @@ def fibonacci(n, algorithm="pari"):
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
         raise ValueError, "no algorithm %s"%algorithm
-
-def fibonacci_sequence(start, stop=None, algorithm=None):
-    r"""
-    Returns an iterator over the Fibonacci sequence, for all fibonacci numbers
-    $f_n$ from \code{n = start} up to (but not including) \code{n = stop}
-
-    INPUT:
-        start -- starting value
-        stop -- stopping value
-        algorithm -- default (None) -- passed on to fibonacci function (or
-                     not passed on if None, i.e., use the default).
-
-
-    EXAMPLES:
-        sage: fibs = [i for i in fibonacci_sequence(10, 20)]
-        sage: fibs
-        [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
-
-        sage: sum([i for i in fibonacci_sequence(100, 110)])
-        69919376923075308730013
-
-    SEE ALSO: fibonacci_xrange
-
-    AUTHOR:
-        Bobby Moretti
-    """
-    from sage.rings.integer_ring import ZZ
-    if stop is None:
-        stop = ZZ(start)
-        start = ZZ(0)
-    else:
-        start = ZZ(start)
-        stop = ZZ(stop)
-
-    if algorithm:
-        for n in xrange(start, stop):
-            yield fibonacci(n, algorithm=algorithm)
-    else:
-        for n in xrange(start, stop):
-            yield fibonacci(n)
-
-def fibonacci_xrange(start, stop=None, algorithm='pari'):
-    r"""
-    Returns an iterator over all of the Fibonacci numbers in the given range,
-    including \code{f_n = start} up to, but not including, \code{f_n = stop}.
-
-    EXAMPLES:
-        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
-        sage: len(fibs_in_some_range)
-        4
-        sage: fibs_in_some_range
-        [14930352, 24157817, 39088169, 63245986]
-
-        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
-        sage: fibs
-        [13, 21, 34, 55, 89]
-
-        sage: list(fibonacci_xrange(13, 34))
-        [13, 21]
-
-    A solution to the second Project Euler problem:
-        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
-        1089154
-
-    SEE ALSO: fibonacci_sequence
-
-    AUTHOR:
-        Bobby Moretti
-    """
-    from sage.rings.integer_ring import ZZ
-    if stop is None:
-        stop = ZZ(start)
-        start = ZZ(0)
-    else:
-        start = ZZ(start)
-        stop = ZZ(stop)
-
-    # iterate until we've gotten high enough
-    fn = 0
-    n = 0
-    while fn < start:
-        n += 1
-        fn = fibonacci(n)
-
-    while True:
-        fn = fibonacci(n)
-        n += 1
-        if fn < stop:
-            yield fn
-        else:
-            return
-
 
 def lucas_number1(n,P,Q):
     """
@@ -580,9 +460,9 @@ def lucas_number2(n,P,Q):
 
 def stirling_number1(n,k):
     """
-    Returns the n-th Stilling number $S_1(n,k)$ of the first kind (the
-    number of permutations of n points with k cycles).  Wraps GAP's
-    Stirling1.
+    Returns the n-th Stilling number $S_1(n,k)$ of the first kind (the number of
+    permutations of n points with k cycles).
+    Wraps GAP's Stirling1.
 
     EXAMPLES:
         sage: stirling_number1(3,2)
@@ -621,6 +501,333 @@ def stirling_number2(n,k):
     """
     return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
 
+def mod_stirling(q,n,k):
+    """
+    """
+    if k>n or k<0 or n<0:
+        raise ValueError, "n (= %s) and k (= %s) must greater than or equal to 0, and n must be greater than or equal to k"
+
+    if k == 0:
+        return 1
+    elif k == 1:
+        return (n**2+(2*q+1)*n)/2
+    elif k == n:
+        return prod( [ q+i for i in range(1, n+1) ] )
+    else:
+        return mod_stirling(q,n-1,k)+(q+n)*mod_stirling(q, n-1, k-1)
+
+
+
+
+class CombinatorialObject(SageObject):
+    def __init__(self, l):
+        self.list = l
+
+    def __str__(self):
+        return str(self.list)
+
+    def __repr__(self):
+        return self.list.__repr__()
+
+    def __eq__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__eq__(other.list)
+        else:
+            return self.list.__eq__(other)
+
+    def __lt__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__lt__(other.list)
+        else:
+            return self.list.__lt__(other)
+
+    def __le__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__le__(other.list)
+        else:
+            return self.list.__le__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__gt__(other.list)
+        else:
+            return self.list.__gt__(other)
+
+    def __ge__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__ge__(other.list)
+        else:
+            return self.list.__ge__(other)
+
+    def __ne__(self, other):
+        if isinstance(other, CombinatorialObject):
+            return self.list.__ne__(other.list)
+        else:
+            return self.list.__ne__(other)
+
+    def __add__(self, other):
+        return self.list + other
+
+    def __hash__(self):
+        return str(self.list).__hash__()
+
+    #def __cmp__(self, other):
+    #    return self.list.__cmp__(other)
+
+    def __len__(self):
+        return self.list.__len__()
+
+    def __getitem__(self, key):
+        return self.list.__getitem__(key)
+
+    def __iter__(self):
+        return self.list.__iter__()
+
+    def __contains__(self, item):
+        return self.list.__contains__(item)
+
+
+    def index(self, key):
+        return self.list.index(key)
+
+
+class CombinatorialClass(SageObject):
+
+    def __len__(self):
+        return self.count()
+
+    def __getitem__(self, i):
+        return self.unrank(i)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "Combinatorial Class"
+
+    def __contains__(self, x):
+        return False
+
+    def __iter__(self):
+        return self.iterator()
+
+    def __cmp__(self, x):
+        return cmp(repr(self), repr(x))
+
+    def __count_from_iterator(self):
+        c = 0
+        for x in self.iterator():
+            c += 1
+        return c
+    count = __count_from_iterator
+
+    def __call__(self, x):
+        if x in self:
+            return self.object_class(x)
+        else:
+            raise ValueError, "%s not in %s"%(x, self)
+
+    def __list_from_iterator(self):
+        res = []
+        for x in self.iterator():
+            res.append(x)
+        return res
+
+    list  = __list_from_iterator
+
+    object_class = CombinatorialObject
+
+    def __iterator_from_next(self):
+        f = self.first()
+        yield f
+        while True:
+            try:
+                f = self.next(f)
+            except:
+                break
+
+            if f == None:
+                break
+            else:
+                yield f
+
+    def __iterator_from_previous(self):
+        l = self.last()
+        yield l
+        while True:
+            try:
+                l = self.previous(l)
+            except:
+                break
+
+            if l == None:
+                break
+            else:
+                yield l
+
+    def __iterator_from_unrank(self):
+        r = 0
+        u = self.unrank(r)
+        yield f
+        while True:
+            r += 1
+            try:
+                u = self.unrank(l)
+            except:
+                break
+
+            if u == None:
+                break
+            else:
+                yield u
+
+    def __iterator_from_list(self):
+        for x in self.list():
+            yield x
+
+    def iterator(self):
+        if ( self.first != self.__first_from_iterator and
+             self.next  != self.__next_from_iterator ):
+            return self.__iterator_from_next()
+        elif ( self.last != self.__last_from_iterator and
+               self.previous != self.__previous_from_iterator):
+            return self.__iterator_from_previous()
+        elif self.unrank != self.__unrank_from_iterator:
+            return self.__iterator_from_unrank()
+        elif self.list != self.__list_from_iterator:
+            return self.__iterator_from_list()
+        else:
+            raise NotImplementedError, "iterator called but not implemented"
+
+
+    def __list_from_unrank_and_count(self):
+        return [ self.unrank(i) for i in range(self.count()) ]
+
+    def __unrank_from_iterator(self, r):
+        counter = 0
+        for u in self.iterator():
+            if counter == r:
+                return u
+            counter += 1
+        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+
+    def __unrank_from_iterator(self, r):
+        counter = 0
+        for u in self.iterator():
+            if counter == r:
+                return u
+            counter += 1
+
+    unrank = __unrank_from_iterator
+
+    def __random_from_unrank(self):
+        c = self.count()
+        r = randint(0, c-1)
+        if hasattr(self, 'object_class'):
+            return self.object_class(self.unrank(r))
+        else:
+            return self.unrank(r)
+
+    random = __random_from_unrank
+
+
+    def __rank_from_iterator(self, obj):
+        r = 0
+        for i in self.iterator():
+            if i == obj:
+                return r
+            r += 1
+
+    rank =  __rank_from_iterator
+
+    def __first_from_iterator(self):
+        for i in self.iterator():
+            return i
+
+    first = __first_from_iterator
+
+    def __last_from_iterator(self):
+        for i in self.iterator():
+            pass
+        return i
+
+    last = __last_from_iterator
+
+    def __next_from_iterator(self, obj):
+        if hasattr(obj, 'next'):
+            res = obj.next()
+            if res:
+                return res
+            else:
+                return None
+        found = False
+        for i in self.iterator():
+            if found:
+                return i
+            if i == obj:
+                found = True
+        return None
+
+    next = __next_from_iterator
+
+    def __previous_from_iterator(self, obj):
+        if hasattr(obj, 'previous'):
+            res = obj.previous()
+            if res:
+                return res
+            else:
+                return None
+        prev = None
+        for i in self.iterator():
+            if i == obj:
+                break
+            prev = i
+        return prev
+
+    previous = __previous_from_iterator
+
+def hurwitz_zeta(s,x,N):
+    """
+    Returns the value of the $\zeta(s,x)$ to $N$ decimals, where s and x are real.
+
+    The Hurwitz zeta function is one of the many zeta functions. It defined as
+    \[
+    \zeta(s,x) = \sum_{k=0}^\infty (k+x)^{-s}.
+    \]
+    When $x = 1$, this coincides with Riemann's zeta function. The Dirichlet L-functions
+    may be expressed as a linear combination of Hurwitz zeta functions.
+
+    EXAMPLES:
+        sage: hurwitz_zeta(3,1/2,6)
+        8.41439000000000
+        sage: hurwitz_zeta(1.1,1/2,6)
+        12.1041000000000
+        sage: hurwitz_zeta(1.1,1/2,50)
+        12.103813495683744469025853545548130581952676591199
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Hurwitz_zeta_function
+
+    """
+    maxima.eval('load ("bffac")')
+    s = maxima.eval("bfhzeta (%s,%s,%s)"%(s,x,N))
+
+    #Handle the case where there is a 'b' in the string
+    #'1.2000b0' means 1.2000 and
+    #'1.2000b1' means 12.000
+    i = s.rfind('b')
+    if i == -1:
+        return sage_eval(s)
+    else:
+        if s[i+1:] == '0':
+            return sage_eval(s[:i])
+        else:
+            return sage_eval(s[:i])*10**sage_eval(s[i+1:])
+
+    return s  ## returns an odd string
+
+
+#####################################################
 #### combinatorial sets/lists
 
 def combinations(mset,k):
@@ -1755,55 +1962,3 @@ def partition_associated(pi):
     """
     ans=gap.eval("AssociatedPartition(%s)"%(pi))
     return eval(ans)
-
-## related functions
-
-def bernoulli_polynomial(x,n):
-    r"""
-    The generating function for the Bernoulli polynomials is
-    \[
-     \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!}.
-    \]
-
-    One has $B_n(x) = - n\zeta(1 - n,x)$, where $\zeta(s,x)$ is the
-    Hurwitz zeta function.  Thus, in a certain sense, the Hurwitz zeta
-    generalizes the Bernoulli polynomials to non-integer values of n.
-
-    EXAMPLES:
-        sage: y = QQ['y'].0
-        sage: bernoulli_polynomial(y,5)
-        y^5 - 5/2*y^4 + 5/3*y^3 - 1/6*y
-
-    REFERENCES:
-        http://en.wikipedia.org/wiki/Bernoulli_polynomials
-    """
-    return sage_eval(maxima.eval("bernpoly(x,%s)"%n), {'x':x})
-
-
-#def hurwitz_zeta(s,x,N):
-#    """
-#    Returns the value of the $\zeta(s,x)$ to $N$ decimals, where s and x are real.
-#
-#    The Hurwitz zeta function is one of the many zeta functions. It defined as
-#    \[
-#    \zeta(s,x) = \sum_{k=0}^\infty (k+x)^{-s}.
-#    \]
-#    When $x = 1$, this coincides with Riemann's zeta function. The Dirichlet L-functions
-#    may be expressed as a linear combination of Hurwitz zeta functions.
-#
-#    EXAMPLES:
-#        sage: hurwitz_zeta(3,1/2,6)
-#        '8.41439b0'
-#        sage: hurwitz_zeta(1.1,1/2,6)
-#        'Warning:Floattobigfloatconversionof12.1040625294406841.21041b1'
-#
-#    "b0" can be ignored, but "b1" means that the decimal point was shifted
-#    1 to the left (so the answer is not 1.21041b1 but 12.10406).
-#
-#    REFERENCES:
-#        http://en.wikipedia.org/wiki/Hurwitz_zeta_function
-#
-#    """
-#    maxima.eval('load ("bffac")')
-#    s = maxima.eval("bfhzeta (%s,%s,%s)"%(s,x,N))
-#    return s  ## returns an odd string

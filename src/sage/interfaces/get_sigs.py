@@ -1,5 +1,6 @@
 """
 Grab signal handlers back from PARI or other C libraries
+
 """
 
 import signal

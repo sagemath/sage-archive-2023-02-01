@@ -28,6 +28,7 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
+
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
@@ -585,11 +586,69 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.charpoly(*args, **kwds)
 
-    def minimal_polynomial(self, var='x'):
-        return self.minpoly(var)
+    def minimal_polynomial(self, var='x', **kwds):
+        r"""
+        This is a synonym for \code{self.minpoly}
 
-    def minpoly(self, var='x'):
-        raise NotImplementedError
+        EXAMPLES:
+            sage: a = matrix(QQ, 4, range(16))
+            sage: a.minimal_polynomial('z')
+            z^3 - 30*z^2 - 80*z
+            sage: a.minpoly()
+            x^3 - 30*x^2 - 80*x
+        """
+        return self.minpoly(var, **kwds)
+
+    def minpoly(self, var='x', **kwds):
+        r"""
+        Return the minimal polynomial of self.
+
+        This uses a simplistic -- and potentially very very slow --
+        algorithm that involves computing kernels to determine the
+        powers of the factors of the charpoly that divide the minpoly.
+
+        EXAMPLES:
+            sage: A = matrix(GF(9,'c'), 4, [1, 1, 0,0, 0,1,0,0, 0,0,5,0, 0,0,0,5])
+            sage: factor(A.minpoly())
+            (x + 1) * (x + 2)^2
+            sage: A.minpoly()(A) == 0
+            True
+            sage: factor(A.charpoly())
+            (x + 1)^2 * (x + 2)^2
+
+        The default variable name is $x$, but you can specify another name:
+            sage: factor(A.minpoly('y'))
+            (y + 1) * (y + 2)^2
+        """
+        f = self.fetch('minpoly')
+        if not f is None:
+            return f.change_variable_name(var)
+        f = self.charpoly(var=var, **kwds)
+        if f.is_squarefree():  # is_squarefree for polys much faster than factor.
+            # Then f must be the minpoly
+            self.cache('minpoly', f)
+            return f
+
+        # Now we have to work harder.  We find the power of each
+        # irreducible factor that divides the minpoly.
+        mp = f.radical()
+        for h, e in f.factor():
+            if e > 1:
+                # Find the power of B so that the dimension
+                # of the kernel equals e*deg(h)
+                B = h(self)   # this is the killer.
+                C = B
+                n = 1
+                while C.kernel().dimension() < e*h.degree():
+                    if n == e - 1:
+                        n += 1
+                        break
+                    C *= B
+                    n += 1
+                mp *= h**(n-1)
+        self.cache('minpoly', mp)
+        return mp
+
 
     def charpoly(self, var='x', algorithm="hessenberg"):
         r"""
@@ -946,6 +1005,7 @@ cdef class Matrix(matrix1.Matrix):
             raise ArithmeticError, "charpoly not defined for non-square matrix."
 
         # Replace self by its Hessenberg form
+        # (note the entries might now live in the fraction field)
         cdef Matrix H
         H = self.hessenberg_form()
 
@@ -989,7 +1049,7 @@ cdef class Matrix(matrix1.Matrix):
             Py_INCREF(o); PyList_SET_ITEM(v, i, o)
 
         R = self._base_ring[var]    # polynomial ring over the base ring
-        return R(v, check=False)
+        return R(v)
 
     #####################################################################################
     # Decomposition: kernel, image, decomposition
@@ -1424,10 +1484,8 @@ cdef class Matrix(matrix1.Matrix):
                     is irreducible.
 
         EXAMPLES:
-            sage: MS1 = MatrixSpace(ZZ,4)
-            sage: MS2 = MatrixSpace(QQ,6)
-            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
-            sage: B = MS2(range(36))
+            sage: A = matrix(ZZ, 4, [3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = matrix(QQ, 6, range(36))
             sage: B*11
             [  0  11  22  33  44  55]
             [ 66  77  88  99 110 121]
@@ -2770,7 +2828,11 @@ cdef class Matrix(matrix1.Matrix):
         return QQ(k)/QQ(nr*nc)
 
 
-cdef decomp_seq(v):
+def _dim_cmp(x,y):
+    return cmp(x[0].dimension(), y[0].dimension())
+
+def decomp_seq(v):
+    list.sort(v, _dim_cmp)
     return Sequence(v, universe=tuple, check=False, cr=True)
 
 

@@ -277,11 +277,10 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def field_extension(self, names):
         r"""
-        Takes a polynomial defined in a quotient ring, and returns
-        a tuple with three elements: the NumberField defined by the
-        same polynomial, a homomorphism from its parent to the
-	NumberField sending the generators to one another, and the
-	inverse isomorphism.
+        Given a polynomial with base ring a quotient ring, return a
+        3-tuple: a number field defined by the same polynomial, a
+        homomorphism from its parent to the number field sending the
+        generators to one another, and the inverse isomorphism.
 
         INPUT:
             -- names - name of generator of output field
@@ -367,13 +366,23 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             Traceback (most recent call last):
 ##             ...
 ##             ValueError: polynomial must be irreducible
-        F = self.parent().modulus().root_field(names)
-        alpha = F.gen()
+
+
 	R = self.parent()
 	x = R.gen()
 
+        F = R.modulus().root_field(names)
+        alpha = F.gen()
+
 	f = R.hom([alpha], F, check=False)
-	g = F.hom([x], R, check=False)
+
+        if number_field.is_RelativeNumberField(F):
+
+            base_hom = F.base_field().hom([R.base_ring().gen()])
+            g = F.Hom(R)(x, base_hom)
+
+        else:
+            g = F.hom([x], R, check=False)
 
         return F, f, g
 

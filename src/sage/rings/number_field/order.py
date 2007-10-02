@@ -73,14 +73,14 @@ class Order(DedekindDomain):
         EXAMPLES:
             sage: k.<a> = NumberField(x^2 + 5077); G = k.class_group(); G
             Class group of order 22 with structure C22 of Number Field in a with defining polynomial x^2 + 5077
-            sage: G.0
-            Fractional ideal class (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
+            sage: G.0   # random output
+            Fractional ideal class (11, a - 4) of Number Field in a with defining polynomial x^2 + 5077
             sage: Ok = k.maximal_order(); Ok
             Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 5077
-            sage: Ok*(31, a+10)
-            Fractional ideal (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
-            sage: (31, a+10) * Ok
-            Fractional ideal (31, a + 10) of Number Field in a with defining polynomial x^2 + 5077
+            sage: Ok*(11, a - 4)
+            Fractional ideal (11, a - 4) of Number Field in a with defining polynomial x^2 + 5077
+            sage: (11, a - 4) * Ok
+            Fractional ideal (11, a - 4) of Number Field in a with defining polynomial x^2 + 5077
         """
         if self.is_maximal():
             return self._K.ideal(right)
@@ -93,11 +93,11 @@ class Order(DedekindDomain):
         EXAMPLES:
             sage: k.<a> = NumberField(x^2 + 431); G = k.class_group(); G
             Class group of order 21 with structure C21 of Number Field in a with defining polynomial x^2 + 431
-            sage: G.0
+            sage: G.0   # random output
             Fractional ideal class (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
             sage: Ok = k.maximal_order(); Ok
             Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 431
-            sage: (6, 1/2*a + 11/2)*Ok
+            sage: (6, 1/2*a + 11/2)*Ok    # random output
             Fractional ideal (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
             sage: 17*Ok
             Principal ideal (17) of Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 431

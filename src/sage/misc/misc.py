@@ -5,6 +5,7 @@ AUTHOR:
     -- William Stein
     -- William Stein (2006-04-26): added workaround for Windows where
             most users's home directory has a space in it.
+    -- Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
 """
 
 ########################################################################
@@ -20,7 +21,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, socket, sys, signal, time, weakref, random, resource
+import operator, os, socket, sys, signal, time, weakref, random, resource, math
 
 from banner import version, banner
 
@@ -620,10 +621,10 @@ def assert_attribute(x, attr, init=None):
     x.__dict__[attr] = init
 
 #################################################################
-# Useful but hard to classify
+# Ranges and [1,2,..,n] notation.
 #################################################################
 
-def srange(a,b=None,step=1, include_endpoint=False):
+def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False):
     """
     Return list of numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
@@ -675,42 +676,69 @@ def srange(a,b=None,step=1, include_endpoint=False):
 
         sage: R = RealField()
         sage: srange(1,5,R('0.5'))
-        [1, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
+        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: srange(0,1,R('0.4'))
-        [0, 0.400000000000000, 0.800000000000000]
+        [0.000000000000000, 0.400000000000000, 0.800000000000000]
+        sage: srange(1.0, 5.0, include_endpoint=True)
+        [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
+
+        sage: srange(1.0, 1.1)
+        [1.00000000000000]
+        sage: srange(1.0, 1.0)
+        []
+
+        sage: V = VectorSpace(QQ, 2)
+        sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
+        [(0, 0), (2, 2), (4, 4)]
     """
-    if b is None:
-        b = a
-        try:
-            a = b.parent()(0)
-        except AttributeError:
-            a = type(b)(0)
-
-    if step == 0:
-        raise ValueError, "step size must be nonzero"
-    num_steps = int(float((b-a)/step)) + 1
-    if num_steps <= 0:
-        return []
-    v = [a] + [a + k*step for k in range(1,num_steps)]
-
-    if step > 0:
-        if v[num_steps-1] >= b:
-            if include_endpoint:
-                return v[:-1] + [b]
-            else:
-                return v[:-1]
+    from sage.structure.sequence import Sequence
+    from sage.rings.all import ZZ
+    if end is None:
+        end = start
+        start = 0
+    if check:
+        if universe is None:
+            universe = Sequence([start, end, step]).universe()
+        start, end, step = universe(start), universe(end), universe(step)
+    if include_endpoint:
+        if universe in [int, long, ZZ]:
+            if (end-start) % step == 0:
+                end += step
         else:
-            return v
-    elif step < 0:
-        if v[num_steps-1] <= b:
-            if include_endpoint:
-                return v[:-1] + [b]
-            else:
-                return v[:-1]
+            count = (end-start)/step
+            if count == int(float(count)):
+                end += step
+    if universe is int or universe is long:
+        return range(start, end, step)
+    elif universe is ZZ:
+        return ZZ.range(start, end, step)
+    else:
+        L = []
+        sign = 1 if step > 0 else -1
+        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
+        count = int(math.ceil((float((end-start)/step))))
+        if count <= 0:
+            return L
+        # we assume that a+b*c = a + b + ... + b
+        if not (start + count * step)*sign > end*sign:
+            # we won't get there by adding, perhaps comparison in the ring is bad
+            # rather than enter an infinite loop, do something sensible
+            # the 'not' is hear because incomparable items return False
+            L = [start + k*step for k in range(count)] # this is slower due to coercion and mult
+        elif step > 0:
+            while start < end:
+                L.append(start)
+                start += step
+        elif step < 0:
+            while start > end:
+                L.append(start)
+                start += step
         else:
-            return v
+            raise ValueError, "step must not be 0"
+        return L
 
-class xsrange:
+
+def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint=False):
     """
     Return an iterator over numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
@@ -740,9 +768,9 @@ class xsrange:
 
         sage: R = RealField()
         sage: list(xsrange(1, 5, R(0.5)))
-        [1, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
+        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: list(xsrange(0, 1, R('0.4')))
-        [0, 0.400000000000000, 0.800000000000000]
+        [0.000000000000000, 0.400000000000000, 0.800000000000000]
 
     Negative ranges are also allowed:
         sage: list(xrange(4,1,-1))
@@ -752,28 +780,307 @@ class xsrange:
         sage: list(sxrange(4,1,-1/2))
         [4, 7/2, 3, 5/2, 2, 3/2]
     """
-    def __init__(self, a, b=None, step=1):
-        self.__a = a
-        self.__b = b
-        if step == 0:
-            raise ValueError, 'sxrange() arg 3 must not be zero'
-        self.__step = step
+    if end is None:
+        end = start
+        start = 0
+    if step == 0:
+        raise ValueError, "step must not be 0"
+    from sage.structure.sequence import Sequence
+    from sage.rings.all import ZZ
+    if check:
+        if universe is None:
+            universe = Sequence([start, end, step]).universe()
+        start, end, step = universe(start), universe(end), universe(step)
+    if include_endpoint:
+        if universe in [int, long, ZZ]:
+            if (start-end) % step == 0:
+                end += step
+        else:
+            count = (start-end)/step
+            if count == int(float(count)):
+                end += step
+                count += 1
+    if universe is int:
+        return xrange(start, end, step)
+#    elif universe is ZZ:
+#        return ZZ.xrange(start, end, step)
+    else:
+        return generic_xsrange(start, end, step)
 
-    def __repr__(self):
-        return 'xrange(%s, %s, %s)'%(self.__a, self.__b, self.__step)
 
-    def __len__(self):
-        if self.__b is None:
-            return int(self.__a / self.__step)
-        n = int((self.__b - self.__a) / self.__step)
-        if n < 0:
-            return 0
-        return n
-
-    def __iter__(self):
-        return _xsrange(self.__a, self.__b, self.__step)
+def generic_xsrange(start, end, step):
+        sign = 1 if step > 0 else -1
+        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
+        count = int(math.ceil((float((end-start)/step))))
+        if count <= 0:
+            return
+        # we assume that a+b*c = a + b + ... + b
+        if not (start + count * step)*sign > end*sign:
+            # we won't get there by adding, perhaps comparison in the ring is bad
+            # rather than enter an infinite loop, do something sensible
+            # the 'not' is hear because incomparable items return False
+            for k in xrange(count):
+                yield start + k*step
+        elif step > 0:
+            while start < end:
+                yield start
+                start += step
+        elif step < 0:
+            while start > end:
+                yield start
+                start += step
+        else:
+            raise ValueError, "step must not be 0"
 
 sxrange = xsrange
+
+
+def ellipsis_range(*args, **kwds):
+    """
+    Return arithmatic sequence determined by the numeric arguments and
+    ellipsis. Best illistrated by examples.
+
+    Use [1,2,..,n] notation.
+
+    EXAMPLES:
+        sage: ellipsis_range(1,Ellipsis,11,100)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100]
+        sage: ellipsis_range(0,2,Ellipsis,10,Ellipsis,20)
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20)
+        [0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19]
+        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20, step=3)
+        [0, 2, 5, 8, 11, 14, 17, 20]
+        sage: ellipsis_range(10,Ellipsis,0)
+        []
+
+    TESTS:
+      These were carefully chosen tests, only to be changed if the semantics of
+      ellipsis ranges change. In otherwords, if they don't pass it's probably a
+      bug in the implementation, not in the doctest.
+
+      Note 10 only appears once (though it is in both ranges).
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+      Sometimes one or more ranges is emtpy.
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
+        [10, 12, 14, 16, 18, 20]
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
+        [0, 2, 4, 6, 8, 10]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=2)
+        []
+
+      We always start on the leftmost point of the range.
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=3)
+        [0, 3, 6, 9, 10, 13, 16, 19]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=3)
+        [10, 13, 16, 19]
+        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=3)
+        [0, 3, 6, 9]
+        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=3)
+        []
+        sage: ellipsis_range(0,1,Ellipsis,-10)
+        []
+        sage: ellipsis_range(0,1,Ellipsis,-10,step=1)
+        [0]
+        sage: ellipsis_range(100,0,1,Ellipsis,-10)
+        [100]
+
+      Note the duplicate 5 in the output.
+        sage: ellipsis_range(0,Ellipsis,5,5,Ellipsis,10)
+        [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
+
+    Examples in which the step determines the parent of the elements:
+        sage: [1..3, step=0.5]
+        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000]
+        sage: v = [1..5, step=1/1]; v
+        [1, 2, 3, 4, 5]
+        sage: parent(v[2])
+        Rational Field
+    """
+    # Use kwds so step not absorbed into *args
+    step_magic = 0
+    if len(kwds) == 0:
+        step = 1
+        if Ellipsis in args:
+            i = list(args).index(Ellipsis)
+            if i > 1:
+                step = args[i-1]-args[i-2]
+                step_magic = i
+    else:
+        step = kwds.pop('step')
+        if len(kwds) != 0:
+            TypeError, "Unexpected keywords", kwds
+
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis] + [step])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+    step = universe(step)
+
+    skip = False
+    last_end = None
+    L = []
+    for i in range(len(args)):
+        if skip:
+            skip = False
+        elif args[i] is Ellipsis:
+            start, end = args[i-1], args[i+1]
+            if i < 2 or args[i-2] is not Ellipsis:
+                L.pop()
+                if i == step_magic:
+                    L.pop()
+                    start = args[i-2]
+            more = srange(start, end, step, universe=universe, check=False, include_endpoint=True)
+            if len(more) > 0:
+                if last_end == more[0]:
+                    L.pop()
+                last_end = more[-1]
+                L += more
+            else:
+                last_end = None
+            skip = True
+        else:
+            L.append(args[i])
+            last_end = None
+    return L
+
+
+def ellipsis_iter(*args, **kwds):
+    """
+    Same as ellipsis_range, but as an iterator (and may end with an Ellipsis).
+
+    See also ellipsis_range.
+
+    Use (1,2,...) notation.
+
+    EXAMPLES:
+        sage: A = ellipsis_iter(1,2,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: A.next()
+        11
+        sage: A = ellipsis_iter(1,3,5,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+        sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
+        sage: [A.next() for _ in range(10)]
+        [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
+
+    TESTS:
+
+      These were carefully chosen tests, only to be changed if the semantics of
+      ellipsis ranges change. In otherwords, if they don't pass it's probably a
+      bug in the implementation, not in the doctest.
+
+        sage: list(1,..,10)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: list(1,3,..,10)
+        [1, 3, 5, 7, 9]
+        sage: list(1,..,10,..,20)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        sage: list(1,3,..,10,..,20)
+        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
+        sage: list(1,3,..,10,10,..,20)
+        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
+        sage: list(0,2,..,10,10,..,20,20,..,25)
+        [0, 2, 4, 6, 8, 10, 10, 12, 14, 16, 18, 20, 20, 22, 24]
+        sage: list(10,..,1)
+        []
+        sage: list(10,11,..,1)
+        []
+        sage: list(10,9,..,1)
+        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        sage: list(100,..,10,..,20)
+        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        sage: list(0,..,10,..,-20)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: list(100,..,10,..,-20)
+        []
+        sage: list(100,102,..,10,..,20)
+        [10, 12, 14, 16, 18, 20]
+    """
+    # Use kwds so step not absorbed into *args
+    step_magic = 0
+    if len(kwds) == 0:
+        step = 1
+        if Ellipsis in args:
+            i = list(args).index(Ellipsis)
+            if i > 1:
+                step = args[i-1]-args[i-2]
+                step_magic = i
+    else:
+        step = kwds.pop('step')
+        if len(kwds) != 0:
+            TypeError, "Unexpected keywords", kwds
+
+    from sage.structure.sequence import Sequence
+    S = Sequence([a for a in args if a is not Ellipsis] + [step])
+    universe = S.universe()
+    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
+    step = universe(step)
+
+    # this is a bit more complicated because we can't pop what's already been yielded
+    next = None
+    skip = False
+    last_end = None
+    # first we handle step_magic (which may require two pops if the range is empty)
+    if step_magic:
+        for i in range(step_magic-2):
+            yield args[i]
+        if len(args) > step_magic+1:
+            i = step_magic
+            more = xsrange(args[i-2], args[i+1], step, universe=universe, check=False, include_endpoint=True)
+            a = None
+            for a in more:
+                yield a
+            last_end = a
+            skip = True
+            next = None
+            step_magic += 1
+        else:
+            yield args[step_magic-2]
+
+    # now onto the rest
+    L = []
+    for i in range(step_magic, len(args)):
+        if skip:
+            skip = False
+        elif args[i] is Ellipsis:
+            if i == len(args)-1:
+                # continue forever
+                cur = args[i-1]
+                if last_end != cur:
+                    yield cur
+                while True:
+                    cur += step
+                    yield cur
+            start, end = args[i-1], args[i+1]
+            if i < 2 or args[i-2] is not Ellipsis:
+                next = None # L.pop()
+            more = xsrange(start, end, step, universe=universe, check=False, include_endpoint=True)
+            try:
+                first = more.next()
+                if last_end != first:
+                    yield first
+                for a in more:
+                    yield a
+                last_end = a
+            except StopIteration: # len(more) == 0
+                last_end = None
+            skip = True
+            next = None
+        else:
+            if next is not None:
+                yield next
+            next = args[i]
+            last_end = None
+
+
+#################################################################
+# Useful but hard to classify
+#################################################################
 
 
 def _xsrange(a,b=None,step=1):

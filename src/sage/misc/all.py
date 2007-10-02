@@ -1,4 +1,4 @@
-from misc import (alarm, srange, xsrange, sxrange, getitem,
+from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
@@ -34,6 +34,8 @@ from package import install_package, standard_packages, optional_packages, exper
 from pager import pager
 
 from sagedoc import search_src, search_doc
+
+from classgraph import class_graph
 
 from reset import reset, restore
 
@@ -120,7 +122,6 @@ from functional import (additive_order,
                         quo,
                         show,
                         isqrt,
-                        square_free_part,
                         squarefree_part,
                         transpose,
                         zero,

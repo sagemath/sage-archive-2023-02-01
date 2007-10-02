@@ -73,6 +73,8 @@ from sage.structure.sequence import Sequence
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
+from matrix2 import decomp_seq
+
 import sage.modules.free_module
 import sage.modules.free_module_element
 
@@ -332,7 +334,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self._zero_out_matrix()
             j = 0
             for i from 0 <= i < self._nrows:
-                mpz_init_set(self._entries[j], x.value)
+                mpz_set(self._entries[j], x.value)
                 j = j + self._nrows + 1
             self._initialized = True
 
@@ -1464,6 +1466,74 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 U[i,n-1] = - U[i,n-1]
         return U
 
+    def lll(self, delta=None):
+        r"""
+        Returns LLL reduced lattice R for self.
+
+        The lattice is returned as a matrix. Also the rank (and the
+        determinant) of self are cached.
+
+        More specifically, elementary row transformations are
+        performed on a copy of self so that the non-zero rows of
+        R form an LLL-reduced basis for the lattice spanned by
+        the rows of self. The default reduction parameter is
+        $\delta=3/4$, which means that the squared length of the first
+        non-zero basis vector is no more than $2^{r-1}$ times that of
+        the shortest vector in the lattice.
+
+        For a basis reduced with parameter $\delta$, the squared
+        length of the first non-zero basis vector is no more than
+        $1/(\delta-1/4)^{r-1}$ times that of the shortest vector in
+        the lattice.
+
+        If we can compute the determinant of self using this method,
+        we also cache it. Note that in general this only happens when
+        self.rank() == self.ncols().
+
+        INPUT:
+           delta -- arameter a as described above (default: 3/4)
+
+        OUTPUT:
+            a matrix over the integers
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,3,3,range(1,10))
+            sage: A.lll()
+            [ 0  0  0]
+            [ 2  1  0]
+            [-1  1  3]
+
+        ALGORITHM: Uses NTL.
+        """
+
+        import sage.libs.ntl.all
+        ntl_ZZ = sage.libs.ntl.all.ZZ
+
+        if delta is None:
+            delta = ZZ(3)/ZZ(4)
+        elif delta <= ZZ(1)/ZZ(4):
+            raise TypeError, "delta must be > 1/4"
+        elif delta > 1:
+            raise TypeError, "delta must be <= 1/4"
+
+        delta = delta/ZZ(1) # QQ(delta)
+
+        a = delta.numer()
+        b = delta.denom()
+
+        A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
+        r, det2 = A.LLL(a,b)
+        r,det2 = ZZ(r), ZZ(det2)
+
+        cdef Matrix_integer_dense R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+        self.cache("rank",r)
+        try:
+            det = ZZ(det2.sqrt_approx())
+            self.cache("det", det)
+        except TypeError:
+            pass
+        return R
+
     def prod_of_row_sums(self, cols):
         cdef Py_ssize_t c, row
         cdef mpz_t s, pr
@@ -2098,9 +2168,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             D, E = X
             D = [(W.intersection(V), t) for W, t in D]
             E = [(W.intersection(V), t) for W, t in E]
-            return D, E
+            return decomp_seq(D), decomp_seq(E)
         else:
-            return [(W.intersection(V), t) for W, t in X]
+            return decomp_seq([(W.intersection(V), t) for W, t in X])
 
 
 ###############################################################
@@ -2245,7 +2315,3 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
 ##         raise NotImplementedError
 
 
-
-
-cdef decomp_seq(v):
-    return Sequence(v, universe=tuple, check=False, cr=True)

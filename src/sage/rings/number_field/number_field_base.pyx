@@ -43,6 +43,13 @@ cdef class NumberField(Field):
     def OK(self, *args, **kwds):
         return self.maximal_order(*args, **kwds)
 
+    def is_finite(self):
+        """
+        Return False since number fields are not finite.
+        """
+        return False
+
+
     def is_absolute(self):
         """
         Return True if self is viewed as a single extension over Q.

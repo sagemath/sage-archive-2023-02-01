@@ -59,7 +59,7 @@ def fundamental_discriminant(D):
     the only square dividing it is 4.
     """
     D = Integer(D)
-    D = D.square_free_part()
+    D = D.squarefree_part()
     if D%4 == 1:
         return D
     return 4*D
@@ -71,8 +71,8 @@ def ramified_primes(a,b):
     a = Integer(a); b = Integer(b)
     if a.is_square() or b.is_square() or (a+b).is_square():
         return [ ]
-    a = a.square_free_part()
-    b = b.square_free_part()
+    a = a.squarefree_part()
+    b = b.squarefree_part()
     c = Integer(GCD(a,b))
     if c != 1:
         p = c.factor()[0][0]

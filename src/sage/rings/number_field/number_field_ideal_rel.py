@@ -28,18 +28,18 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
     An ideal of a relative number field.
 
     EXAMPLES:
-        sage: K.<a> = NumberField([x^2 + 2, x^2 + 1]); K
+        sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal(38); i
         Fractional ideal (38) of Number Field in a0 with defining polynomial x^2 + 1 over its base field
 
     BIG WARNING: Ideals in relative number fields are broken -- big warning:
-        sage: K.<a> = NumberField([x^2 + 2, x^2 + 1]); K
+        sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal([a+1]); i
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce -a to an integer
+        TypeError: Unable to coerce -a1 to an integer
     """
     def pari_rhnf(self):
         """
@@ -52,7 +52,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         try:
             return self.__pari_rhnf
         except AttributeError:
-            nf = self.number_field().absolute_field()[0].pari_nf()
+            nf = self.number_field().absolute_field('a').pari_nf()
             rnf = self.number_field().pari_rnf()
             L_hnf = self.absolute_ideal().pari_hnf()
             self.__pari_rhnf = rnf.rnfidealabstorel(nf.getattr('zk')*L_hnf)
@@ -67,7 +67,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
             return self.__absolute_ideal
         except AttributeError:
             rnf = self.number_field().pari_rnf()
-            L = self.number_field().absolute_field()[0]
+            L = self.number_field().absolute_field('a')
             R = L['x']
             nf = L.pari_nf()
             genlist = [L(R(x.polynomial())) for x in list(self.gens())]

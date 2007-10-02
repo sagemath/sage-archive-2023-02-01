@@ -47,7 +47,7 @@ import twist
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 3
+INTERRUPT_TRIES = 1
 INITIAL_NUM_CELLS = 1
 
 WARN_THRESHOLD = 100
@@ -826,8 +826,9 @@ class Worksheet:
         return """
 <select class="worksheet"  onchange="go_option(this);">
 <option title="Select a file related function" value=""  selected>File...</option>
- <option title="Create a new worksheet" value="new_worksheet();">New Worksheet</option>
- <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download</option>
+ <option title="Load a new worksheet stored in a file" value="upload_worksheet_button();">Upload worksheet from a file</option>
+ <option title="Create a new worksheet" value="new_worksheet();">New worksheet</option>
+ <option title="Save this worksheet to an sws file" value="download_worksheet('%s');">Download to a file</option>
  <option title="Print this worksheet" value="print_worksheet();">Print</option>
  <option title="Rename this worksheet" value="rename_worksheet();">Rename worksheet</option>
  <option title="Copy this worksheet" value="copy_worksheet();">Copy worksheet</option>
@@ -837,7 +838,8 @@ class Worksheet:
 <select class="worksheet"  onchange="go_option(this);" >
  <option title="Select a worksheet function" value="" selected>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
- <option title="Restart the worksheet" value="restart_sage();">Restart</option>
+ <option title="Restart the worksheet process" value="restart_sage();">Restart worksheet</option>
+ <option title="Quit the worksheet process" value="quit_sage();">Quit worksheet</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
  <option title="Hide all output" value="hide_all();">Hide All Output</option>
@@ -1325,7 +1327,7 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3, quit_on_fail=False)
+            success = S.interrupt(INTERRUPT_TRIES, quit_on_fail=False)
 
         if success:
             self.clear_queue()
@@ -1713,7 +1715,9 @@ class Worksheet:
         if not init_sage in A.keys() and os.path.exists(init_sage):
             A[init_sage] = 0
 
-        for F, tm in A.iteritems():
+        # important that this is A.items() and not A.iteritems()
+        # since we change A during the iteration.
+        for F, tm in A.items():
             try:
                 new_tm = os.path.getmtime(F)
             except OSError:
@@ -1980,35 +1984,53 @@ class Worksheet:
             except AttributeError:
                 pass
 
+__internal_test1 = '''
+def foo(x):
+    "
+    EXAMPLES:
+        sage: 2+2
+        4
+    "
+    return x
+'''.lstrip()
 
-def ignore_prompts_and_output(s):
+__internal_test2 = '''
+sage: 2 + 2
+4
+'''.lstrip()
+
+def ignore_prompts_and_output(aString):
     """
     Given a string s that defines an input block of code,
-    if any line begins in "sage:" (or ">>>"), strip out all lines
+    if the first line begins in "sage:" (or ">>>"), strip out all lines
     that don't begin in either "sage:" (or ">>>") or"...", and
     remove all "sage:" (or ">>>") and "..." from the beginning
     of the remaining lines.
-    """
-    t = s.split('\n')
-    do_strip = False
-    for I in t:
-        I2 = I.lstrip()
-        if I2.startswith('sage:') or I2.startswith('>>>'):
-            do_strip = True
-            break
-    if not do_strip:
-        return s
-    s = ''
-    for I in t:
-        I2 = I.lstrip()
-        if I2.startswith('sage:'):
-            s += after_first_word(I2).lstrip() + '\n'
-        elif I2.startswith('>>>'):
-            s += after_first_word(I2).lstrip() + '\n'
-        elif I2.startswith('...'):
-            s += after_first_word(I2) + '\n'
-    return s
 
+    TESTS:
+        sage: test1 = sage.server.notebook.worksheet.__internal_test1
+        sage: test1 == sage.server.notebook.worksheet.ignore_prompts_and_output(test1)
+        True
+
+        sage: test2 = sage.server.notebook.worksheet.__internal_test2
+        sage: sage.server.notebook.worksheet.ignore_prompts_and_output(test2)
+        '2 + 2\n'
+    """
+    s = aString.lstrip()
+    is_example = s.startswith('sage:') or s.startswith('>>>')
+    if not is_example:
+        return aString # return original, not stripped copy
+    new = ''
+    lines = s.split('\n')
+    for line in lines:
+        line = line.lstrip()
+        if line.startswith('sage:'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('>>>'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('...'):
+            new += after_first_word(line) + '\n'
+    return new
 
 def extract_text_before_first_compute_cell(text):
     """

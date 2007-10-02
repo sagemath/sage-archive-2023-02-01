@@ -23,44 +23,40 @@ __doc_exclude = []  # to include everything
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.ntl.ntl import (make_new_ZZ as ZZ,
-                 ntl_ZZ as ZZ_class,
-                               randomBnd as ZZ_random,
-                               randomBits as ZZ_random_bits,
-                 make_new_ZZ_p as ZZ_p,
-                 ntl_ZZ_p as ZZ_p_class, \
-                 set_ZZ_p_modulus as set_modulus, \
-                 ntl_ZZ_p_random as ZZ_p_random,
-
-                 make_new_ZZX as ZZX, \
-                 ntl_ZZX as ZZX_class, \
-                 zero_ZZX, one_ZZX, \
-
+from sage.libs.ntl.ntl_ZZ import (
                  ntl_setSeed, \
+                 ntl_ZZ as ZZ,
+                 randomBnd as ZZ_random,
+                 randomBits as ZZ_random_bits )
 
-                 make_new_ZZ_pX as ZZ_pX, \
-                 ntl_ZZ_pX as ZZ_pX_class, \
+from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext as ZZ_pContext
 
-                 ntl_mat_ZZ as mat_ZZ, \
+from sage.libs.ntl.ntl_ZZ_p import (
+                 ntl_ZZ_p as ZZ_p,
+                 set_ZZ_p_modulus as set_modulus,
+                 ntl_ZZ_p_random as ZZ_p_random )
 
-                 make_new_GF2X as GF2X, \
-                 ntl_GF2X as GF2X_class, \
+from sage.libs.ntl.ntl_ZZX import (
+                 ntl_ZZX as ZZX,
+                 zero_ZZX, one_ZZX )
 
-                 make_new_GF2E as GF2E, \
-                 ntl_GF2E as GF2E_class, \
+from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX as ZZ_pX
+
+from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ as mat_ZZ
+
+from sage.libs.ntl.ntl_GF2X import (
+                 ntl_GF2X as GF2X
+                  )
+
+
+from sage.libs.ntl.ntl_GF2E import (
+                 ntl_GF2E as GF2E, \
                  ntl_GF2E_random as GF2E_random, \
                  ntl_GF2E_modulus as GF2E_modulus, \
                  ntl_GF2E_modulus_degree as GF2E_degree, \
-                 ntl_GF2E_sage as GF2E_sage, \
-                 GF2X_hex_repr as hex_output, \
+                 ntl_GF2E_sage as GF2E_sage,
+                 GF2X_hex_repr as hex_output )
 
-                 make_new_GF2EX as GF2EX, \
-                 ntl_GF2EX as GF2EX_class, \
+from sage.libs.ntl.ntl_GF2EX import ntl_GF2EX as GF2EX
 
-
-                 ntl_mat_GF2E as mat_GF2E, \
-
-                 )
-
-mat_ZZ_class = mat_ZZ
-mat_GF2E_class = mat_GF2E
+from sage.libs.ntl.ntl_mat_GF2E import ntl_mat_GF2E as mat_GF2E

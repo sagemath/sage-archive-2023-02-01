@@ -3466,7 +3466,27 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return coeffs
 
+    def jacob(self):
+        """
+        Return a list of partial derivatives of self, ordered by the
+        variables of self.parent().
 
+        EXAMPLE:
+           sage: P.<x,y,z> = PolynomialRing(QQ,3)
+           sage: f= x*y + 1
+           sage: f.jacob()
+           [y, x, 0]
+        """
+        cdef ring *r
+        cdef int k
+
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
+        i = []
+        for k from 0 < k <= r.N:
+            i.append( co.new_MP(self._parent, pDiff(self._poly, k)))
+
+        return i
 
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """

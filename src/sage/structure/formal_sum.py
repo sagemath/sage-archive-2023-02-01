@@ -57,9 +57,6 @@ class FormalSums_generic(Module):
     def _repr_(self):
         return "Abelian Group of all Formal Finite Sums over %s"%self.base_ring()
 
-    def _an_element_impl(self):
-        return FormalSum([], check=False, reduce=False)
-
     def __call__(self, x, check=True, reduce=True):
         if isinstance(x, FormalSum):
             P = x.parent()

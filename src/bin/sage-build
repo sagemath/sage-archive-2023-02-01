@@ -14,15 +14,14 @@ build() {
       ## it's easier to keep track of whether or not we're
       ## switching branches, which changes what we do with
       ## the c_lib install
+      ##
+      ## that's no longer true, but it's easier to just
+      ## keep this here.
       echo ""
       echo "Installing c_lib"
       CUR=`pwd`
       cd "c_lib"
-      if [ $SWITCHING_BRANCHES = 1 ]; then
-	  scons branch_switch
-      else
-	  scons install
-      fi
+      scons -Q install
       ## make sure c_lib install went okay
       if [ $? -ne 0 ]; then
 	  echo "ERROR: There was an error building c_lib."
@@ -51,7 +50,6 @@ else
     DO_BUILD_ALL=0
 fi
 
-SWITCHING_BRANCHES=0
 
 if [ "$1" != "" ]; then
     # make devel/sage point to devel/$1
@@ -63,7 +61,6 @@ if [ "$1" != "" ]; then
         exit 1
     fi
     ln -snf "sage-$1" sage
-    SWITCHING_BRANCHES=1
 fi
 
 if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
@@ -76,9 +73,9 @@ if [ $DO_BUILD_ALL = 1 ]; then
    cd "$SAGE_ROOT/devel/sage/sage"
    echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
-   cd "$SAGE_ROOT/devel/sage/c_lib/"
-   scons -c "$SAGE_LOCAL"/lib/  # delete target
-   scons -c # delete stuff locally
+   cd ../c_lib
+   scons -Q -c install
+   cd ..
 
    cd "$CUR"
 fi

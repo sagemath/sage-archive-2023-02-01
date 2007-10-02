@@ -28,7 +28,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen adapt(self, s)
     cdef int get_var(self, v)
     cdef object GEN_to_str(self, GEN g)
-    cdef GEN toGEN(self, x) except NULL
+    cdef GEN toGEN(self, x, int i) except NULL
 
 
 

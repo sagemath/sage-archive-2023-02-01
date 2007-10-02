@@ -144,7 +144,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         cdef Rational z
 
-        if isinstance(entries, list):
+        if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError, "entries has the wrong length"
 

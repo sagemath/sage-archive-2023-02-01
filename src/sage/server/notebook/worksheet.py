@@ -1715,7 +1715,9 @@ class Worksheet:
         if not init_sage in A.keys() and os.path.exists(init_sage):
             A[init_sage] = 0
 
-        for F, tm in A.iteritems():
+        # important that this is A.items() and not A.iteritems()
+        # since we change A during the iteration.
+        for F, tm in A.items():
             try:
                 new_tm = os.path.getmtime(F)
             except OSError:

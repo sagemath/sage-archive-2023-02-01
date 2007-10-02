@@ -1411,9 +1411,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         with multiplicity 1.
             sage: x = CDF['x'].0; i = CDF.0
             sage: f = (x^2 + 2*i)^3
-            sage: f.factor()
+            sage: f.factor()    # random low order bits
             (1.0*x + -0.999994409957 + 1.00001040378*I) * (1.0*x + -0.999993785062 + 0.999989956987*I) * (1.0*x + -1.00001180498 + 0.999999639235*I) * (1.0*x + 0.999995530902 - 0.999987780431*I) * (1.0*x + 1.00001281704 - 1.00000223945*I) * (1.0*x + 0.999991652054 - 1.00000998012*I)
-            sage: f(-f.factor()[0][0][0])
+            sage: f(-f.factor()[0][0][0])   # random low order bits
             -2.38358052913e-14 - 2.57571741713e-14*I
 
 
@@ -2289,17 +2289,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CDF.0
             sage: f = x^3 + 2*i; f
             1.0*x^3 + 2.0*I
-            sage: f.roots()
+            sage: f.roots()  # random low-order bits
             [(-1.09112363597 - 0.629960524947*I, 1), (6.66133814775e-16 + 1.25992104989*I, 1), (1.09112363597 - 0.629960524947*I, 1)]
-            sage: f.roots(multiplicities=False)
+            sage: f.roots(multiplicities=False)   # random low-order bits
             [-1.09112363597 - 0.629960524947*I, 6.66133814775e-16 + 1.25992104989*I, 1.09112363597 - 0.629960524947*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)]
+            sage: [f(z) for z in f.roots(multiplicities=False)]  # random low-order bits
             [-3.10862446895e-15 - 4.4408920985e-16*I, -3.17226455498e-15 + 3.99680288865e-15*I, -5.55111512313e-16 - 8.881784197e-16*I]
             sage: f = i*x^3 + 2; f
             1.0*I*x^3 + 2.0
-            sage: f.roots()
+            sage: f.roots()     # random low-order bits
             [(-1.09112363597 + 0.629960524947*I, 1), (6.66133814775e-16 - 1.25992104989*I, 1), (1.09112363597 + 0.629960524947*I, 1)]
-            sage: f(f.roots()[0][0])
+            sage: f(f.roots()[0][0])         # random low-order bits
             -4.4408920985e-16 - 3.10862446895e-15*I
 
         NOTE: This is a note about numerical root finding when the

@@ -96,7 +96,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
     def identity(self):
        r"""
-       Return identity morphism in an endomorphism ring
+       Return identity morphism in an endomorphism ring.
 
        EXAMPLE:
 	   sage: V=VectorSpace(QQ,5)

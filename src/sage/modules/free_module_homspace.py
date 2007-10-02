@@ -94,6 +94,27 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             self.__basis = [self(x) for x in B]
             return self.__basis
 
+    def identity(self):
+       r"""
+       Return identity morphism in an endomorphism ring.
+
+       EXAMPLE:
+	   sage: V=VectorSpace(QQ,5)
+	   sage: H=V.Hom(V)
+	   sage: H.identity()
+	   Free module morphism defined by the matrix
+	   [1 0 0 0 0]
+	   [0 1 0 0 0]
+	   [0 0 1 0 0]
+	   [0 0 0 1 0]
+	   [0 0 0 0 1]
+	   Domain: Vector space of dimension 5 over Rational Field
+	   Codomain: Vector space of dimension 5 over Rational Field
+       """
+       if self.is_endomorphism_set():
+           return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
+       else:
+           raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
 
 
 

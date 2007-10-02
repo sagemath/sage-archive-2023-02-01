@@ -2113,7 +2113,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.354172680517671 + 0.874518681720170*I
+            -0.354172680517... + 0.874518681720...*I
         """
         s = C(s)
         N = self.conductor()
@@ -2144,9 +2144,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.638409959099589 + 0.715495262192901*I
+            -0.638409959099... + 0.715495262192...*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.00761216538818315 + 0.000434885704670107*I
+            -0.00761216538818... + 0.000434885704670...*I
 
         NOTE: You might also want to use Tim Dokchitser's
         L-function calculator, which is available by typing

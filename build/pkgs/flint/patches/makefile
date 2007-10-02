@@ -46,7 +46,7 @@ CC = gcc -std=c99
 
 CPP = g++
 
-CFLAGS = $(INCS) -funroll-loops -fexpensive-optimizations $(FLINT_TUNE) -O3
+CFLAGS = $(INCS) -fexpensive-optimizations $(FLINT_TUNE) -O3
 
 RM = rm -f
 

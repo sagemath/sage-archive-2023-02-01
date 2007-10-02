@@ -1,12 +1,16 @@
 #!/bin/sh
 
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
-   FLINT_TUNE="-mtune=opteron -march=opteron -fPIC"
+   FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
 elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
-   FLINT_TUNE=" -fPIC "
+   FLINT_TUNE=" -fPIC -funroll-loops "
    #FLINT_TUNE="-m64 -mcpu=970 -mtune=970 -mpowerpc64 -falign-loops=16 -falign-functions=16 -falign-labels=16 -falign-jumps=16"
-else
+elif [ "`uname -m`" = "ia64" ]; then
+   # -funroll-loops crashes the build on itanium under GCC-4.2.1, as reported by
+   # Kate Minola.
    FLINT_TUNE=" -fPIC "
+else
+   FLINT_TUNE=" -fPIC -funroll-loops  "
 fi
 
 export FLINT_TUNE

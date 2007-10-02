@@ -159,6 +159,9 @@ cdef class ntl_ZZ:
         power_ZZ(r.x, self.x, e)
         return r
 
+    def __int__(self):
+        return int(self.get_as_sage_int())
+
     cdef int get_as_int(ntl_ZZ self):
         r"""
         Returns value as C int.

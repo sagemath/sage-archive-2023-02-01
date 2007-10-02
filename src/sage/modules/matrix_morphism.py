@@ -201,6 +201,23 @@ class MatrixMorphism(sage.categories.all.Morphism):
         return self.charpoly(var).factor()
 
     def kernel(self):
+        """
+        Compute the kernel of this matrix.
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,3)
+            sage: id = V.Hom(V)(identity_matrix(QQ,3))
+            sage: null = V.Hom(V)(0*identity_matrix(QQ,3))
+            sage: id.kernel()
+            Vector space of degree 3 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+            sage: phi = V.Hom(V)(matrix(QQ,3,range(9)))
+            sage: phi.kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+        """
         V = self.matrix().kernel()
         D = self.domain()
         if not D.is_ambient():

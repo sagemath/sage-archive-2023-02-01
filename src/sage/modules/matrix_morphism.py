@@ -205,13 +205,18 @@ class MatrixMorphism(sage.categories.all.Morphism):
         Compute the kernel of this matrix.
 
         EXAMPLES:
-            sage: V=VectorSpace(QQ,3)
-            sage: id=V.Hom(V)(identity_matrix(QQ,3))
-            sage: null=V.Hom(V)(0*identity_matrix(QQ,3))
+            sage: V = VectorSpace(QQ,3)
+            sage: id = V.Hom(V)(identity_matrix(QQ,3))
+            sage: null = V.Hom(V)(0*identity_matrix(QQ,3))
             sage: id.kernel()
             Vector space of degree 3 and dimension 0 over Rational Field
             Basis matrix:
             []
+            sage: phi = V.Hom(V)(matrix(QQ,3,range(9)))
+            sage: phi.kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
         """
         V = self.matrix().kernel()
         D = self.domain()
@@ -221,7 +226,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
             V = B.row_space()
-        return self.domain().submodule(V.basis(), check=False)
+        return self.domain().submodule(V, check=False)
 
     def image(self):
         V = self.matrix().image()

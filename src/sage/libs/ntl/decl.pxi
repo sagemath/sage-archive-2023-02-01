@@ -279,7 +279,8 @@ cdef extern from "ntl_wrap.h":
     #### zz_p_c
     ctypedef struct zz_p_c "struct zz_p":
         void *rep
-##        pass
+    void zz_p_construct "Construct<zz_p>"(void *mem)
+    void zz_p_destruct "Destruct<zz_p>"(zz_p_c *mem)
     long zz_p_rep "rep"(zz_p_c x)
     void zz_p_set_from_long(zz_p_c x, long a)
     void zz_p_add "add"(zz_p_c x, zz_p_c a, zz_p_c b)
@@ -295,11 +296,7 @@ cdef extern from "ntl_wrap.h":
     void zz_p_set_one "set"(zz_p_c x)
     void zz_p_swap "swap"(zz_p_c x, zz_p_c y)
 
-
     bint NTL_zz_p_DOUBLE_EQUALS(zz_p_c x, zz_p_c y)
-
-##    void zz_p_set_modulus "zz_p::init"(long p)
-##    long zz_p_modulus "zz_p::modulus"()
 
     #### zz_pContext_c
     ctypedef struct zz_pContext_c "struct zz_pContext":
@@ -320,8 +317,8 @@ cdef extern from "ntl_wrap.h":
         void *rep
         void (* SetMaxLength)(long n)
 
-##    zz_pX_c* zz_pX_construct "Construct<zz_pX>"(void *mem)
-##    void zz_pX_destruct "Destruct<zz_pX>"(zz_pX_c *mem)
+    void zz_pX_construct "Construct<zz_pX>"(void *mem)
+    void zz_pX_destruct "Destruct<zz_pX>"(zz_pX_c *mem)
     char* zz_pX_repr(zz_pX_c* x)
     void zz_pX_SetCoeff_long "SetCoeff"(zz_pX_c x, long i, long a)
     zz_p_c zz_pX_GetCoeff "coeff"(zz_pX_c x, long i)

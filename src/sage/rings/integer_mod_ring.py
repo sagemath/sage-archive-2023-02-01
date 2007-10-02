@@ -68,6 +68,8 @@ import ideal
 import finite_field_element
 from sage.structure.parent_gens import ParentWithGens
 
+from sage.rings.arith import is_prime, factor, prime_divisors, LCM, euler_phi
+
 from sage.libs.pari.all import pari, PariError
 
 import sage.interfaces.all
@@ -354,7 +356,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         n = self.order()
         if n < 8:
             return True
-        if arith.is_prime(n):
+        if is_prime(n):
             return True
 
         # TODO -- the implementation below uses factoring, but it doesn't
@@ -362,7 +364,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         # which is easier than factoring.
 
         if n.is_perfect_power():
-            F = arith.factor(n)
+            F = factor(n)
             if len(F) > 1:
                 return False
             if F[0][0] == 2:
@@ -514,7 +516,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         if self.__factored_order != None:
             return self.__factored_order
-        self.__factored_order = arith.factor(self.__order, int_=True)
+        self.__factored_order = factor(self.__order, int_=True)
         return self.__factored_order
 
     def characteristic(self):
@@ -662,7 +664,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def __unit_gens_primecase(self, p):
         if p==2:
             return integer_mod.Mod(1,p)
-        P = arith.prime_divisors(p-1)
+        P = prime_divisors(p-1)
         ord = integer.Integer(p-1)
         one = integer_mod.Mod(1,p)
         x = 2
@@ -767,7 +769,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                     a.append(2**(r-2))
             #endif
         #endfor
-        self.__unit_group_exponent = int(arith.LCM(a))
+        self.__unit_group_exponent = int(LCM(a))
         return self.__unit_group_exponent
 
     def unit_group_order(self):
@@ -779,7 +781,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.unit_group_order()
             200
         """
-        return arith.euler_phi(self.order())
+        return euler_phi(self.order())
 
     def random_element(self, bound=None):
         """

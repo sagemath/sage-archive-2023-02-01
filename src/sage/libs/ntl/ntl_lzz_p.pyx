@@ -143,6 +143,14 @@ cdef class ntl_zz_p:
         y.c = self.c
         return y
 
+    def __new__(self, v=None, modulus=None):
+        zz_p_construct(&self.x)
+
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        zz_p_destruct(&self.x)
+
     def __reduce__(self):
         """
         For pickling.

@@ -197,7 +197,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         cdef ZZ_c y
         cdef Integer z = PY_NEW(Integer)
-        content(y, self.__poly)
+        ZZX_content(y, self.__poly)
         ZZ_to_mpz(&z.value, &y)
         return z
 

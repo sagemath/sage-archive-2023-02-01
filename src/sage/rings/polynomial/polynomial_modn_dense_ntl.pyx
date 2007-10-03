@@ -1219,7 +1219,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef ZZ_p_c coeff
         for n from 0 <= n <= ZZ_pX_deg(self.x):
             coeff = ZZ_pX_coeff(self.x, n)
-            if not ZZ_p_is_zero(&coeff):
+            if not ZZ_p_IsZero(coeff):
                 return n
         return infinity
 

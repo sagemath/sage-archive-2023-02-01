@@ -243,7 +243,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f = Fmpz_poly([1,1])
             sage: g = f**10; g
             11  1 10 45 120 210 252 210 120 45 10 1
-            sage: g.truncate()
+            sage: g.truncate(5)
             5  1 10 45 120 210
         """
         cdef Fmpz_poly g = self.__copy__()

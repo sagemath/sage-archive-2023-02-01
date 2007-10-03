@@ -3,6 +3,8 @@
 #include <NTL/ZZX.h>
 #include <NTL/ZZ_pXFactoring.h>
 #include <NTL/ZZXFactoring.h>
+#include <NTL/lzz_p.h>
+#include <NTL/lzz_pX.h>
 #include <NTL/mat_ZZ.h>
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/GF2E.h>
@@ -217,6 +219,29 @@ EXTERN void ZZ_pX_preallocate_space(struct ZZ_pX* x, long n);
 EXTERN void ZZ_pX_factor(struct ZZ_pX*** v, long** e, long* n, struct ZZ_pX* x, long verbose);
 EXTERN void ZZ_pX_linear_roots(struct ZZ_p*** v, long* n, struct ZZ_pX* f);
 
+//////// zz_p //////////
+
+#ifndef __cplusplus
+struct zz_p;
+#endif
+
+#define zz_p_set_from_long( obj1, obj2 )\
+        (obj1) = (obj2)
+#define NTL_zz_p_DOUBLE_EQUALS( obj1, obj2 )\
+        (obj1) == (obj2)
+
+EXTERN struct zz_pContext* zz_pContext_new(long p);
+EXTERN struct zz_pContext* zz_pContext_construct(void* mem, long p);
+EXTERN void zz_pContext_restore(struct zz_pContext* ctx);
+
+//////// zz_pX //////////
+
+#ifndef __cplusplus
+struct zz_pX;
+#endif
+
+#define NTL_zz_pX_DOUBLE_EQUALS( obj1, obj2 )\
+        (obj1) == (obj2)
 
 
 //////// mat_ZZ //////////

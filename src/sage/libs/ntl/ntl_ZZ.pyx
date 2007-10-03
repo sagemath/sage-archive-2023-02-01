@@ -159,6 +159,9 @@ cdef class ntl_ZZ:
         power_ZZ(r.x, self.x, e)
         return r
 
+    def __int__(self):
+        return int(self.get_as_sage_int())
+
     cdef int get_as_int(ntl_ZZ self):
         r"""
         Returns value as C int.
@@ -190,6 +193,18 @@ cdef class ntl_ZZ:
         <type 'sage.rings.integer.Integer'>
 
         AUTHOR: Joel B. Mohler
+        """
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
+
+    def _integer_(self):
+        r"""
+        Gets the value as a sage int.
+
+        sage: n=ntl.ZZ(2983)
+        sage: type(n._integer_())
+        <type 'sage.rings.integer.Integer'>
+
+        Alias for get_as_sage_int
         """
         return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 

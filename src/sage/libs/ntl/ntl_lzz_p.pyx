@@ -262,6 +262,8 @@ cdef class ntl_zz_p:
         else:
             from sage.rings.arith import generic_power
 
+            self.c.restore_c()
+
             if n == 0:
                 return self
             elif n < 0:
@@ -307,6 +309,7 @@ cdef class ntl_zz_p:
         if not (self.c is (<ntl_zz_p>other).c):
             return cmp(self.c.p, (<ntl_zz_p>other).c.p)
 
+        self.c.restore_c()
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             return -1
         if (NTL_zz_p_DOUBLE_EQUALS(self.x, (<ntl_zz_p>other).x)):
@@ -325,6 +328,7 @@ cdef class ntl_zz_p:
         """
         cdef ntl_zz_p y
         y = self._new()
+        self.c.restore_c()
         zz_p_sqr(y.x, self.x)
         return y
 
@@ -340,6 +344,7 @@ cdef class ntl_zz_p:
             sage: f.is_zero()
             False
         """
+        self.c.restore_c()
         return zz_p_rep(self.x) == long(0)
 
     def is_one(self):
@@ -354,6 +359,7 @@ cdef class ntl_zz_p:
             sage: f.is_one()
             False
         """
+        self.c.restore_c()
         return zz_p_rep(self.x) == long(1)
 
     def clear(self):
@@ -366,6 +372,7 @@ cdef class ntl_zz_p:
             sage: x.clear() ; x
             0
         """
+        self.c.restore_c()
         zz_p_clear(self.x)
 
 def make_zz_p(val, context):

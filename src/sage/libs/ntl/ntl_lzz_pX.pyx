@@ -184,6 +184,7 @@ cdef class ntl_zz_pX:
         cdef ntl_zz_p y
         y = PY_NEW(ntl_zz_p)
         y.c = self.c
+        self.c.restore_c()
         if not PY_TYPE_CHECK( i, long ):
             i = long(i)
         y.x = zz_pX_GetCoeff(self.x, i)
@@ -210,6 +211,7 @@ cdef class ntl_zz_pX:
             raise ValueError, "index (=%s) is out of range"%i
         if not PY_TYPE_CHECK( val, long ):
             val = long(val)
+        self.c.restore_c()
         zz_pX_SetCoeff_long(self.x, i, val)
         return
 
@@ -380,6 +382,7 @@ cdef class ntl_zz_pX:
         if n < 0:
             raise ValueError, "Only positive exponents allowed."
         cdef ntl_zz_pX y = self._new()
+        self.c.restore_c()
         _sig_on
         zz_pX_power(y.x, self.x, n)
         _sig_off
@@ -438,6 +441,7 @@ cdef class ntl_zz_pX:
             [0, 0, 2, 4, 6]
         """
         cdef ntl_zz_pX r = self._new()
+        self.c.restore_c()
         zz_pX_lshift(r.x, self.x, n)
         return r
 
@@ -451,6 +455,7 @@ cdef class ntl_zz_pX:
             [3]
         """
         cdef ntl_zz_pX r = self._new()
+        self.c.restore_c()
         zz_pX_rshift(r.x, self.x, n)
         return r
 
@@ -464,6 +469,7 @@ cdef class ntl_zz_pX:
             [1, 4, 9, 16, 8, 2, 15, 13, 13]
         """
         cdef ntl_zz_pX r = self._new()
+        self.c.restore_c()
         zz_pX_diff(r.x, self.x)
         return r
 
@@ -477,6 +483,7 @@ cdef class ntl_zz_pX:
             [6, 4, 2]
         """
         cdef ntl_zz_pX r = self._new()
+        self.c.restore_c()
         zz_pX_reverse(r.x, self.x)
         return r
 
@@ -490,6 +497,7 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX y
         y = self._new()
+        self.c.restore_c()
         _sig_on
         zz_pX_neg(y.x, self.x)
         _sig_off
@@ -513,6 +521,7 @@ cdef class ntl_zz_pX:
         if not (self.c is (<ntl_zz_pX>other).c):
             return cmp(self.c.p, (<ntl_zz_pX>other).c.p)
 
+        self.c.restore_c()
         if (NTL_zz_pX_DOUBLE_EQUALS(self.x, (<ntl_zz_pX>other).x)):
             return 0
         else:
@@ -530,6 +539,7 @@ cdef class ntl_zz_pX:
             <type 'int'>
         """
         cdef long i
+        self.c.restore_c()
         return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
     def degree(self):
@@ -551,6 +561,7 @@ cdef class ntl_zz_pX:
             sage: f.degree()
             0
         """
+        self.c.restore_c()
         return zz_pX_deg(self.x)
 
     def leading_coefficient(self):
@@ -565,6 +576,7 @@ cdef class ntl_zz_pX:
             sage: f.leading_coefficient()
             0
         """
+        self.c.restore_c()
         return zz_p_rep(zz_pX_LeadCoeff(self.x))
 
     def constant_term(self):
@@ -579,6 +591,7 @@ cdef class ntl_zz_pX:
             sage: f.constant_term()
             0
         """
+        self.c.restore_c()
         return zz_p_rep(zz_pX_ConstTerm(self.x))
 
     def square(self):
@@ -591,6 +604,7 @@ cdef class ntl_zz_pX:
             [1, 0, 15, 0, 1]
         """
         cdef ntl_zz_pX y = self._new()
+        self.c.restore_c()
         _sig_on
         zz_pX_sqr(y.x, self.x)
         _sig_off
@@ -617,6 +631,7 @@ cdef class ntl_zz_pX:
             []
         """
         cdef ntl_zz_pX y = self._new()
+        self.c.restore_c()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
@@ -638,6 +653,7 @@ cdef class ntl_zz_pX:
             [10]
         """
         cdef ntl_zz_pX y = self._new()
+        self.c.restore_c()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
@@ -658,6 +674,7 @@ cdef class ntl_zz_pX:
             [1, 4, 10]
         """
         cdef ntl_zz_pX y = self._new()
+        self.c.restore_c()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
@@ -688,6 +705,7 @@ cdef class ntl_zz_pX:
 
         cdef ntl_zz_pX y = self._new()
 
+        self.c.restore_c()
         if m <= 0:
             y.x = zz_pX_zero()
         else:
@@ -711,6 +729,7 @@ cdef class ntl_zz_pX:
             sage: f.is_zero()
             False
         """
+        self.c.restore_c()
         return zz_pX_IsZero(self.x)
 
     def is_one(self):
@@ -725,6 +744,7 @@ cdef class ntl_zz_pX:
             sage: f.is_one()
             True
         """
+        self.c.restore_c()
         return zz_pX_IsOne(self.x)
 
     def is_monic(self):
@@ -744,6 +764,7 @@ cdef class ntl_zz_pX:
             sage: f.is_monic()
             False
         """
+        self.c.restore_c()
         if zz_pX_IsZero(self.x):
              return False
         return ( zz_p_rep(zz_pX_LeadCoeff(self.x)) == 1 )
@@ -766,6 +787,7 @@ cdef class ntl_zz_pX:
             False
 
         """
+        self.c.restore_c()
         zz_pX_SetX(self.x)
 
     def is_x(self):
@@ -784,6 +806,7 @@ cdef class ntl_zz_pX:
             sage: f.is_x()
             False
         """
+        self.c.restore_c()
         return zz_pX_IsX(self.x)
 
     def clear(self):
@@ -798,6 +821,7 @@ cdef class ntl_zz_pX:
             sage: f
             []
         """
+        self.c.restore_c()
         zz_pX_clear(self.x)
 
     def preallocate_space(self, long n):
@@ -817,6 +841,7 @@ cdef class ntl_zz_pX:
             sage: f
             [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 5]
         """
+        self.c.restore_c()
         _sig_on
         self.x.SetMaxLength(n)
         _sig_off

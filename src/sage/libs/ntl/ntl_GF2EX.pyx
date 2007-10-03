@@ -53,8 +53,7 @@ cdef class ntl_GF2EX:
         raise NotImplementedError
 
     def __repr__(self):
-        _sig_on
-        return string_delete(GF2EX_to_str(&self.x))
+        return GF2EX_to_PyString(&self.x)
 
     def __mul__(ntl_GF2EX self, other):
         cdef ntl_GF2EX y

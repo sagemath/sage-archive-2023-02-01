@@ -67,7 +67,7 @@ cdef class ntl_ZZ_pContext_class:
         self.restore_c()
 
     cdef void restore_c(self):
-        ZZ_pContext_restore(&self.x)
+        self.x.restore()
 
     def ZZ_p(self,v = None):
         from ntl_ZZ_p import ntl_ZZ_p

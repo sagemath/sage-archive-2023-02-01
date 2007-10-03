@@ -2161,7 +2161,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the K-span of the given list of gens, where K is the
         base field of self.  Note that this span is a subspace of the
-        ambient vector space, but need not be a suspace of self.
+        ambient vector space, but need not be a subspace of self.
 
         INPUT:
             gens -- list of vectors
@@ -2337,8 +2337,28 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return FreeModule_submodule_field(self.ambient_vector_space(),[], check=False)
 
+    def quotient(self,sub):
+        r"""
+        Returns the quotient space of self modulo sub, together with a
+        map sub must be a subspace of self.
 
+        EXAMPLES:
+            sage: A=matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
+            sage: V=(A^3).kernel()
+            sage: W=A.kernel()
+            sage: U,m=V.quotient(W)
+            sage: [m(v) == 0 for v in W.gens()]
+            [True]
 
+        TODO:
+            * produce a convenient section map back from the quotient space
+            * install appropriate coercions
+        """
+        if not sub.is_subspace(self):
+            raise ArithmeticError, "sub must be a subspace of self"
+        M = sub.basis_matrix().transpose().restrict_domain(self).kernel().basis_matrix().transpose()
+        quomap = self.hom(M)
+	return quomap.codomain(),quomap
 
 ###############################################################################
 #
@@ -3603,7 +3623,6 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
             False
         """
         return False
-
 
 
 class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):

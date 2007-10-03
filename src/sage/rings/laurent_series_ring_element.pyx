@@ -81,10 +81,11 @@ cdef class LaurentSeries(AlgebraElement):
             a Laurent series
         """
         AlgebraElement.__init__(self, parent)
+
         if PY_TYPE_CHECK(f, LaurentSeries):
             n += (<LaurentSeries>f).__n
             if (<LaurentSeries>f).__u._parent is parent.power_series_ring():
-                f = (<LaurentSeries>f).__u._parent
+                f = (<LaurentSeries>f).__u
             else:
                 f = parent.power_series_ring()((<LaurentSeries>f).__u)
         elif not PY_TYPE_CHECK(f, PowerSeries):
@@ -693,6 +694,7 @@ cdef class LaurentSeries(AlgebraElement):
             True
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
+
         prec = self.common_prec(right)
         if not prec:
             return 0

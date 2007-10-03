@@ -3,6 +3,14 @@ ntl_lzz_p.pyx
 
 Wraps NTL's zz_p type for SAGE
 
+NOTE: This file is essentially useless. While we provide
+this wrapper for consistency, this should never be used in
+*production* code, i.e. anything intended to be fast. The
+reason for this is simple: this is a wrapper for a Python
+interface to the zz_p type, which is just a long! Any speed
+gains you get from working with longs will be TOTALLY
+destroyed by the overhead of having a wrapper.
+
 AUTHORS:
    - Craig Citro
 """
@@ -48,32 +56,21 @@ ZZ_sage = IntegerRing()
 
 cdef class ntl_zz_p:
     r"""
-    The class \class{zz_p} implements polynomial arithmetic modulo $p$,
+    The class \class{zz_p} implements arithmetic modulo $p$,
     for p smaller than a machine word.
 
-    Polynomial arithmetic is implemented using the FFT, combined with
-    the Chinese Remainder Theorem.  A more detailed description of the
-    techniques used here can be found in [Shoup, J. Symbolic
-    Comp. 20:363-397, 1995].
-
-    Small degree polynomials are multiplied either with classical
-    or Karatsuba algorithms.
+    NOTE: This type is provided mostly for completeness, and
+    shouldn't be used in any production code.
     """
     # See ntl_zz_p.pxd for definition of data members
     def __init__(self, a=0, modulus=None):
         """
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,2,5,-9])
+            sage: f = ntl.zz_p(5,7)
             sage: f
-            [1 2 5 11]
-            sage: g = ntl.zz_pX([0,0,0]); g
-            []
-            sage: g[10]=5
-            sage: g
-            [0 0 0 0 0 0 0 0 0 0 5]
-            sage: g[10]
             5
+            sage: g = ntl.zz_p(2,7) ; g
+            2
         """
         cdef long temp
 
@@ -81,7 +78,7 @@ cdef class ntl_zz_p:
             self.c = <ntl_zz_pContext_class>modulus
             p_sage = Integer(self.c.p)
         elif PY_TYPE_CHECK( modulus, Integer ):
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(mpz_get_si((<Integer>modulus).value))
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = modulus
         elif PY_TYPE_CHECK( modulus, long ):
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
@@ -98,15 +95,6 @@ cdef class ntl_zz_p:
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-
-        ## old code to set modulus
-##        p_long = <long>p
-##        if (p_long > NTL_SP_BOUND):
-##            raise ValueError, "Modulus (=%s) is too big"%p
-##        zz_p_set_modulus(p_long)
-
-##        p = self.c.p
-##        p_sage = Integer(self.c.p)
 
         if PY_TYPE_CHECK(a, IntegerMod_int):
             if (self.c.p == (<IntegerMod_int>a).__modulus.int32): ## this is slow
@@ -142,125 +130,112 @@ cdef class ntl_zz_p:
 
         return
 
-##    TODO: these are in ntl_ZZ_p.pyx; should I have versions
-##    here too?
-##    def __new__(self, a=None, modulus=None):
-##        zz_p_construct(&self.x)
-
-##    def __dealloc__(self):
-##        if <object>self.c is not None:
-##            self.c.restore_c()
-##        zz_p_destruct(&self.x)
-
     cdef ntl_zz_p _new(self):
+        """
+        Quick and dirty zz_p object creation.
+
+        EXAMPLES:
+            sage: x = ntl.zz_p(23,75)
+            sage: y = x*x ## indirect doctest
+        """
         cdef ntl_zz_p y
         y = PY_NEW(ntl_zz_p)
         y.c = self.c
         return y
 
+    def __new__(self, v=None, modulus=None):
+        zz_p_construct(&self.x)
+
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        zz_p_destruct(&self.x)
+
     def __reduce__(self):
-        raise NotImplementedError
+        """
+        For pickling.
+
+        TESTS:
+            sage: f = ntl.zz_p(16,244)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        return make_zz_p, (zz_p_rep(self.x), self.c)
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.zz_p(3,79).__repr__()
+            '3'
+        """
         return Integer(zz_p_rep(self.x)).__repr__()
-##        return ZZ_sage(self.x)._repr_()
-##        return str(self.list())
 
     def __add__(ntl_zz_p self, other):
         """
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: ntl.zz_pX(range(5)) + ntl.zz_pX(range(6))
-            [0 2 4 6 8 5]
+            sage: ntl.zz_p(5,23) + ntl.zz_p(6,23)
+            11
         """
+        cdef ntl_zz_p y
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._add_c_impl(other)
-
-    cdef ntl_zz_p _add_c_impl(ntl_zz_p self, ntl_zz_p other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        cdef ntl_zz_p y
         y = self._new()
-        _sig_on
-        zz_p_add(y.x, self.x, other.x)
-        _sig_off
+        zz_p_add(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
     def __sub__(ntl_zz_p self, other):
+        """
+        EXAMPLES:
+            sage: ntl.zz_p(5,23) - ntl.zz_p(6,23)
+            22
+        """
+        cdef ntl_zz_p y
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
         self.c.restore_c()
-        _sig_off
-        return self._sub_c_impl(other)
-
-    cdef ntl_zz_p _sub_c_impl(ntl_zz_p self, ntl_zz_p other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_p y
         y = self._new()
-        zz_p_sub(y.x, self.x, other.x)
-        _sig_off
+        zz_p_sub(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
     def __mul__(ntl_zz_p self, other):
+        """
+        EXAMPLES:
+            sage: ntl.zz_p(5,23) * ntl.zz_p(6,23)
+            7
+        """
+        cdef ntl_zz_p y
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-#        _sig_on
-        self.c.restore_c()
-#        _sig_off
-        return self._mul_c_impl(other)
-
-    cdef ntl_zz_p _mul_c_impl(ntl_zz_p self, ntl_zz_p other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-#        _sig_on
-        cdef ntl_zz_p y
         y = self._new()
-        zz_p_mul(y.x, self.x, other.x)
-#        _sig_off
+        self.c.restore_c()
+        zz_p_mul(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
     def __div__(ntl_zz_p self, other):
+        """
+        EXAMPLES:
+            sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
+            14
+        """
+        cdef ntl_zz_p q
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
             raise ValueError, "arithmetic operands must have the same modulus."
-        _sig_on
-        self.c.restore_c()
-        _sig_off
-        return self._div_c_impl(other)
-
-    cdef ntl_zz_p _div_c_impl(ntl_zz_p self, ntl_zz_p other):
-        """
-        Quick and dirty -- no typechecking, assumes
-        that the context is correct, and that the operands have the
-        same modulus.
-        """
-        _sig_on
-        cdef ntl_zz_p q
         q = self._new()
-        zz_p_div(q.x, self.x, other.x)
+        self.c.restore_c()
+        _sig_on
+        zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
+        _sig_off
         return q
 
     def __pow__(ntl_zz_p self, long n, ignored):
@@ -268,37 +243,73 @@ cdef class ntl_zz_p:
         Return the n-th nonnegative power of self.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: g = ntl.zz_pX([-1,0,1])
+            sage: g = ntl.zz_p(5,13)
             sage: g**10
-            [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
+            12
+            sage: g**(-1)
+            8
+            sage: g**(-5)
+            8
         """
-        ## FIXME
-        if n < 0:
-            raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_zz_p([1]))
+        cdef ntl_zz_p y
+        if self.is_zero():
+            if n == 0:
+                raise ArithmeticError, "0^0 is undefined."
+            elif n < 0:
+                raise ZeroDivisionError
+            else:
+                return self
+        else:
+            from sage.rings.arith import generic_power
+
+            self.c.restore_c()
+
+            if n == 0:
+                return self
+            elif n < 0:
+                y = PY_NEW(ntl_zz_p)
+                y.c = self.c
+                zz_p_inv(y.x, self.x)
+                return generic_power(y, -n, ntl_zz_p(1,self.c))
+            else:
+                return generic_power(self, n, ntl_zz_p(1,self.c))
 
     def __neg__(self):
         """
         Return the negative of self.
+
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([2,0,0,1])
-            sage: -f
-            [18 0 0 19]
+            sage: f = ntl.zz_p(5,234)
+            sage: -f ## indirect doctest
+            229
         """
-        _sig_on
         cdef ntl_zz_p y
         y = self._new()
         self.c.restore_c()
         zz_p_negate(y.x, self.x)
-        _sig_off
         return y
 
     def __cmp__(ntl_zz_p self, other):
-        ## TODO: typecheck, think of what cmp should
-        ## return if types are different. in the interim:
+        """
+        Decide whether or not self and other are equal.
+
+        EXAMPLES:
+            sage: f = ntl.zz_p(3,20)
+            sage: g = ntl.zz_p(2,20)
+            sage: f == g
+            False
+            sage: f == f
+            True
+            sage: g = ntl.zz_p(3,60)
+            sage: f == g
+            False
+        """
+        if not PY_TYPE_CHECK(other, ntl_zz_p):
+            return cmp(ntl_zz_p, other.parent())
+        if not (self.c is (<ntl_zz_p>other).c):
+            return cmp(self.c.p, (<ntl_zz_p>other).c.p)
+
+        self.c.restore_c()
         if not PY_TYPE_CHECK(other, ntl_zz_p):
             return -1
         if (NTL_zz_p_DOUBLE_EQUALS(self.x, (<ntl_zz_p>other).x)):
@@ -314,61 +325,66 @@ cdef class ntl_zz_p:
         Return f*f.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(17))
-            sage: f = ntl.ZZ_pX([-1,0,1])
+            sage: f = ntl.zz_p(15,23)
             sage: f*f
-            [1 0 15 0 1]
+            18
         """
-        _sig_on
         cdef ntl_zz_p y
         y = self._new()
+        self.c.restore_c()
         zz_p_sqr(y.x, self.x)
-        _sig_off
         return y
 
     def is_zero(self):
         """
-        Return True exactly if this polynomial is 0.
+        Return True exactly if this element is 0.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([0,0,0,20])
+            sage: f = ntl.zz_p(0,20)
             sage: f.is_zero()
             True
-            sage: f = ntl.zz_pX([0,0,1])
-            sage: f
-            [0 0 1]
+            sage: f = ntl.zz_p(1,20)
             sage: f.is_zero()
             False
         """
-        ## TODO
+        self.c.restore_c()
         return zz_p_rep(self.x) == 0
 
     def is_one(self):
         """
-        Return True exactly if this polynomial is 1.
+        Return True exactly if this element is 1.
 
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(20))
-            sage: f = ntl.zz_pX([1,1])
-            sage: f.is_one()
-            False
-            sage: f = ntl.zz_pX([1])
+            sage: f = ntl.zz_p(1,11)
             sage: f.is_one()
             True
+            sage: f = ntl.zz_p(5,11)
+            sage: f.is_one()
+            False
         """
+        self.c.restore_c()
         return zz_p_rep(self.x) == 1
-        ## TODO
-##        return 0
-##        return zz_pX_IsOne(self.x)
 
     def clear(self):
         """
         Reset this element to 0.
 
         EXAMPLES:
+            sage: x = ntl.zz_p(5,102) ; x
+            5
+            sage: x.clear() ; x
+            0
         """
-        ## TODO: check this
+        self.c.restore_c()
         zz_p_clear(self.x)
 
+def make_zz_p(val, context):
+    """
+    For unpickling.
 
+    TEST:
+        sage: f = ntl.zz_p(1, 12)
+        sage: loads(dumps(f)) == f
+        True
+    """
+    return ntl_zz_p(val, context)

@@ -423,7 +423,7 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        if ZZ_pX_equal(&self.x, &other.x):
+        if ZZ_pX_equal(self.x, other.x):
             return 0
         return -1
 
@@ -443,7 +443,7 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        return bool(ZZ_pX_is_zero(&self.x))
+        return bool(ZZ_pX_IsZero(self.x))
 
     def is_one(self):
         """
@@ -459,7 +459,7 @@ cdef class ntl_ZZ_pX:
             True
         """
         self.c.restore_c()
-        return bool(ZZ_pX_is_one(&self.x))
+        return bool(ZZ_pX_IsOne(self.x))
 
     def is_monic(self):
         """
@@ -485,9 +485,9 @@ cdef class ntl_ZZ_pX:
         # the problem.  (William Stein)
         #return bool(ZZ_pX_is_monic(self.x))
 
-        if ZZ_pX_is_zero(&self.x):
+        if ZZ_pX_IsZero(self.x):
              return False
-        return bool(ZZ_p_is_one(ZZ_pX_leading_coefficient(&self.x)))
+        return bool(ZZ_p_IsOne(ZZ_pX_LeadCoeff(self.x)))
 
     def __neg__(self):
         """

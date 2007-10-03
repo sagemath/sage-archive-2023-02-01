@@ -139,8 +139,7 @@ cdef class ntl_ZZ_p:
 
     def __repr__(self):
         self.c.restore_c()
-        _sig_on
-        return string_delete(ZZ_p_to_str(&self.x))
+        return ZZ_p_to_PyString(&self.x)
 
     def __richcmp__(ntl_ZZ_p self, ntl_ZZ_p other, op):
         r"""
@@ -161,7 +160,7 @@ cdef class ntl_ZZ_p:
 #            other = ntl_ZZ_p(other)
 #        y = other
         _sig_on
-        t = ZZ_p_eq(&self.x, &other.x)
+        t = ZZ_p_equal(self.x, other.x)
         _sig_off
         # t == 1 if self == other
         if op == 2:

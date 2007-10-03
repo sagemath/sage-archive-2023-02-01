@@ -108,8 +108,21 @@ cdef class ntl_mat_GF2E:
         return unpickle_mat_GF2E, (self.__nrows, self.__ncols, self.list(), ntl_GF2E_modulus())
 
     def __repr__(self):
-        _sig_on
-        return string_delete(mat_GF2E_to_str(&self.x))
+        """
+        EXAMPLES:
+            sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
+            sage: m = ntl.mat_GF2E(5,5,range(25))
+            sage: m
+            [[[] [1] [0 1] [1 1] [0 0 1]]
+            [[1 0 1] [0 1 1] [1 1 1] [0 0 0 1] [1 0 0 1]]
+            [[0 1 0 1] [1 1 0 1] [0 0 1 1] [1 0 1 1] [0 1 1 1]]
+            [[1 1 1 1] [0 0 0 0 1] [1 0 0 0 1] [0 1 0 0 1] [1 1 0 0 1]]
+            [[0 0 1 0 1] [1 0 1 0 1] [0 1 1 0 1] [1 1 1 0 1] [0 0 0 1 1]]
+            ]
+        """
+        return mat_GF2E_to_PyString(&self.x)
+        #_sig_on
+        #return string_delete(mat_GF2E_to_str(&self.x))
 
     def __mul__(ntl_mat_GF2E self, other):
         cdef ntl_mat_GF2E y
@@ -263,7 +276,7 @@ cdef class ntl_mat_GF2E:
     def is_zero(self):
         cdef long isZero
         _sig_on
-        isZero = mat_GF2E_is_zero(&self.x)
+        isZero = mat_GF2E_IsZero(self.x)
         _sig_off
         if isZero==0:
             return False

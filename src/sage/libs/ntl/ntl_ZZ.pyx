@@ -87,8 +87,9 @@ cdef class ntl_ZZ:
         ZZ_destruct(&self.x)
 
     def __repr__(self):
-        _sig_on
-        return string_delete(ZZ_to_str(&self.x))
+        return ZZ_to_PyString(&self.x)
+#        _sig_on
+#        return string_delete(ZZ_to_str(&self.x))
 
     def __reduce__(self):
         """
@@ -149,6 +150,21 @@ cdef class ntl_ZZ:
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
         ZZ_negate(r.x, self.x)
         return r
+
+    def __cmp__(ntl_ZZ self, ntl_ZZ other):
+        """
+        Decide whether or not self and other are equal.
+
+        EXAMPLES:
+            sage: f = ntl.ZZ(1)
+            sage: g = ntl.ZZ(2)
+            sage: h = ntl.ZZ(2)
+            sage: h == g
+            True
+            sage: f == g
+            False
+        """
+        return not ZZ_equal(self.x, other.x)
 
     def __pow__(ntl_ZZ self, long e, ignored):
         """

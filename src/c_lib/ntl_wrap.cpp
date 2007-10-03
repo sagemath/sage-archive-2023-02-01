@@ -12,38 +12,6 @@ void del_charstar(char* a) {
 
 //////// ZZ //////////
 
-ZZ* new_ZZ() {
-  return new ZZ();
-}
-
-void del_ZZ(ZZ* n) {
-  delete n;
-}
-
-ZZ* str_to_ZZ(const char* s) {
-  istringstream out;
-  out.str( s );// = new istringstream(s);
-  ZZ* y = new ZZ();
-  out >> *y;
-  //delete out;
-  return y;
-}
-
-/* Todo: could call into the Python C library to do this
-   more efficiently, and return a Python string or int directly.
-   This would also vastly reduce the chances of an accidental
-   memory leak.
-   Drawback: Then this wouldn't be a pure C library interface anymore.  */
-char* ZZ_to_str(const ZZ* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = (char*)malloc(n+1);
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
 /* Return value is only valid if the result should fit into an int.
    AUTHOR: David Harvey (2008-06-08) */
 int ZZ_to_int(const ZZ* x)
@@ -109,60 +77,6 @@ void ZZ_set_from_int(ZZ* x, int value)
   conv(*x, value);
 }
 
-struct ZZ* ZZ_mul(const struct ZZ* x, const struct ZZ* y)
-{
-  ZZ *z = new ZZ();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct ZZ* ZZ_add(const struct ZZ* x, const struct ZZ* y)
-{
-  ZZ *z = new ZZ();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct ZZ* ZZ_sub(const struct ZZ* x, const struct ZZ* y)
-{
-  ZZ *z = new ZZ();
-  sub(*z, *x, *y);
-  return z;
-}
-
-struct ZZ* ZZ_pow(const struct ZZ* x, long e)
-{
-  ZZ *z = new ZZ();
-  power(*z, *x, e);
-  return z;
-}
-
-int ZZ_equal(struct ZZ* x, struct ZZ* y)
-{
-  return (*x) == (*y);
-}
-
-int ZZ_is_one(struct ZZ* x)
-{
-  return IsOne(*x);
-}
-
-int ZZ_is_zero(struct ZZ* x)
-{
-  return IsZero(*x);
-}
-
-struct ZZ* ZZ_neg(struct ZZ* x)
-{
-  return new ZZ(-(*x));
-}
-
-struct ZZ* ZZ_copy(struct ZZ* x)
-{
-  ZZ *z = new ZZ(*x);
-  return z;
-}
-
 /*Random-number generation */
 
 void setSeed(const struct ZZ* n)
@@ -185,36 +99,6 @@ struct ZZ* ZZ_randomBits(long n)
 }
 
 //////// ZZ_p //////////
-
-ZZ_p* new_ZZ_p() {
-  return new ZZ_p();
-}
-
-void del_ZZ_p(ZZ_p* n) {
-  delete n;
-}
-
-ZZ_p* str_to_ZZ_p(const char* s) {
-  istringstream *out = new istringstream(s);
-  ZZ_p* y = new ZZ_p();
-  *out >> *y;
-  delete out;
-  return y;
-}
-
-/* Todo: could call into the Python C library to do this
-   more efficiently, and return a Python string or int directly.
-   This would reduce the chances of an accidental memory leak.
-   Drawback: Then this wouldn't be a pure C library interface anymore.  */
-char* ZZ_p_to_str(const ZZ_p* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
 
 /* Return value is only valid if the result should fit into an int.
    AUTHOR: David Harvey (2008-06-08) */
@@ -244,27 +128,6 @@ void ZZ_p_modulus(struct ZZ* mod, const struct ZZ_p* x)
 	(*mod) = x->modulus();
 }
 
-struct ZZ_p* ZZ_p_mul(const struct ZZ_p* x, const struct ZZ_p* y)
-{
-  ZZ_p *z = new ZZ_p();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct ZZ_p* ZZ_p_add(const struct ZZ_p* x, const struct ZZ_p* y)
-{
-  ZZ_p *z = new ZZ_p();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct ZZ_p* ZZ_p_sub(const struct ZZ_p* x, const struct ZZ_p* y)
-{
-  ZZ_p *z = new ZZ_p();
-  sub(*z, *x, *y);
-  return z;
-}
-
 struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e)
 {
   ZZ_p *z = new ZZ_p();
@@ -272,25 +135,9 @@ struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e)
   return z;
 }
 
-int ZZ_p_is_one(struct ZZ_p* x)
-{
-  return IsOne(*x);
-}
-
-int ZZ_p_is_zero(struct ZZ_p* x)
-{
-  return IsZero(*x);
-}
-
-
 void ntl_ZZ_set_modulus(ZZ* x)
 {
   ZZ_p::init(*x);
-}
-
-int ZZ_p_eq( ZZ_p* x,  ZZ_p* y)
-{
-  return (*x) == (*y);
 }
 
 ZZ_p* ZZ_p_inv(ZZ_p* x)
@@ -318,19 +165,6 @@ struct ZZ_p* ZZ_p_neg(struct ZZ_p* x)
 //////// ZZX //////////
 ///////////////////////////////////////////////
 
-struct ZZX* ZZX_init()
-{
-  return new ZZX();
-}
-
-ZZX* str_to_ZZX(const char* s) {
-  istringstream *out = new istringstream(s);
-  ZZX* x = new ZZX();
-  *out >> *x;
-  delete out;
-  return x;
-}
-
 char* ZZX_repr(struct ZZX* x)
 {
   ostringstream instore;
@@ -341,19 +175,8 @@ char* ZZX_repr(struct ZZX* x)
   return buf;
 }
 
-void ZZX_dealloc(struct ZZX* x) {
-  delete x;
-}
-
 struct ZZX* ZZX_copy(struct ZZX* x) {
   return new ZZX(*x);
-}
-
-void ZZX_setitem(struct ZZX* x, long i, const char* a)
-{
-  ZZ* b = str_to_ZZ(a);
-  SetCoeff(*x, i, *b);
-  free(b);
 }
 
 /* Sets ith coefficient of x to value.
@@ -361,12 +184,6 @@ void ZZX_setitem(struct ZZX* x, long i, const char* a)
 void ZZX_setitem_from_int(struct ZZX* x, long i, int value)
 {
   SetCoeff(*x, i, value);
-}
-
-char* ZZX_getitem(struct ZZX* x, long i)
-{
-  ZZ c = coeff(*x, i);
-  return ZZ_to_str(&c);
 }
 
 /* Returns ith coefficient of x.
@@ -386,40 +203,10 @@ void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i)
     ZZ_to_mpz(output, &z);
 }
 
-struct ZZX* ZZX_add(struct ZZX* x, struct ZZX* y)
-{
-  ZZX *z = new ZZX();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct ZZX* ZZX_sub(struct ZZX* x, struct ZZX* y)
-{
-  ZZX *z = new ZZX();
-  sub(*z, *x, *y);
-  return z;
-}
-
-struct ZZX* ZZX_mul(struct ZZX* x, struct ZZX* y)
-{
-  ZZX *z = new ZZX();
-  mul(*z, *x, *y);
-  return z;
-}
-
-
 struct ZZX* ZZX_div(struct ZZX* x, struct ZZX* y, int* divisible)
 {
   struct ZZX* z = new ZZX();
   *divisible = divide(*z, *x, *y);
-  return z;
-}
-
-
-struct ZZX* ZZX_mod(struct ZZX* x, struct ZZX* y)
-{
-  struct ZZX* z = new ZZX();
-  rem(*z, *x, *y);
   return z;
 }
 
@@ -438,24 +225,6 @@ struct ZZX* ZZX_square(struct ZZX* x)
   struct ZZX* s = new ZZX();
   sqr(*s, *x);
   return s;
-}
-
-
-int ZZX_equal(struct ZZX* x, struct ZZX* y)
-{
-  return (*x) == (*y);
-}
-
-
-int ZZX_is_zero(struct ZZX* x)
-{
-  return IsZero(*x);
-}
-
-
-int ZZX_is_one(struct ZZX* x)
-{
-  return IsOne(*x);
 }
 
 
@@ -487,15 +256,6 @@ struct ZZX* ZZX_right_shift(struct ZZX* x, long n)
   RightShift(*y, *x, n);
   return y;
 }
-
-
-char* ZZX_content(struct ZZX* x)
-{
-  struct ZZ c;
-  content(c, *x);
-  return ZZ_to_str(&c);
-}
-
 
 struct ZZX* ZZX_primitive_part(struct ZZX* x)
 {
@@ -535,19 +295,6 @@ long ZZX_degree(struct ZZX* x)
 {
   return deg(*x);
 }
-
-
-struct ZZ* ZZX_leading_coefficient(struct ZZX* x)
-{
-  return new ZZ(LeadCoeff(*x));
-}
-
-
-char* ZZX_constant_term(struct ZZX* x)
-{
-  return ZZ_to_str(&ConstTerm(*x));
-}
-
 
 void ZZX_set_x(struct ZZX* x)
 {
@@ -721,18 +468,6 @@ void ZZX_square_free_decomposition(struct ZZX*** v, long** e, long* n, struct ZZ
 ///////////////////////////////////////////////
 //////// ZZ_pX //////////
 ///////////////////////////////////////////////
-struct ZZ_pX* ZZ_pX_init()
-{
-  return new ZZ_pX();
-}
-
-ZZ_pX* str_to_ZZ_pX(const char* s) {
-  istringstream *out = new istringstream(s);
-  ZZ_pX* x = new ZZ_pX();
-  *out >> *x;
-  delete out;
-  return x;
-}
 
 char* ZZ_pX_repr(struct ZZ_pX* x)
 {
@@ -752,24 +487,11 @@ struct ZZ_pX* ZZ_pX_copy(struct ZZ_pX* x) {
   return new ZZ_pX(*x);
 }
 
-void ZZ_pX_setitem(struct ZZ_pX* x, long i, const char* a)
-{
-  ZZ_p* b = str_to_ZZ_p(a);
-  SetCoeff(*x, i, *b);
-  free(b);
-}
-
 /* Sets ith coefficient of x to value.
    AUTHOR: David Harvey (2008-06-08) */
 void ZZ_pX_setitem_from_int(struct ZZ_pX* x, long i, int value)
 {
   SetCoeff(*x, i, value);
-}
-
-char* ZZ_pX_getitem(struct ZZ_pX* x, long i)
-{
-  ZZ_p c = coeff(*x, i);
-  return ZZ_p_to_str(&c);
 }
 
 /* Returns ith coefficient of x.
@@ -835,23 +557,6 @@ struct ZZ_pX* ZZ_pX_square(struct ZZ_pX* x)
 }
 
 
-int ZZ_pX_equal(struct ZZ_pX* x, struct ZZ_pX* y)
-{
-  return (*x) == (*y);
-}
-
-
-int ZZ_pX_is_zero(struct ZZ_pX* x)
-{
-  return IsZero(*x);
-}
-
-
-int ZZ_pX_is_one(struct ZZ_pX* x)
-{
-  return IsOne(*x);
-}
-
 
 int ZZ_pX_is_monic(struct ZZ_pX* x)
 {
@@ -908,21 +613,9 @@ void ZZ_pX_plain_xgcd(struct ZZ_pX** d, struct ZZ_pX** s, struct ZZ_pX** t, stru
   PlainXGCD(**d, **s, **t, *a, *b);
 }
 
-long ZZ_pX_degree(struct ZZ_pX* x)
-{
-  return deg(*x);
-}
-
-
 ZZ_p* ZZ_pX_leading_coefficient(struct ZZ_pX* x)
 {
   return new ZZ_p(LeadCoeff(*x));
-}
-
-
-char* ZZ_pX_constant_term(struct ZZ_pX* x)
-{
-  return ZZ_p_to_str(&ConstTerm(*x));
 }
 
 
@@ -1104,47 +797,6 @@ void mat_ZZ_SetDims(struct mat_ZZ* mZZ, long nrows, long ncols){
   mZZ->SetDims(nrows, ncols);
 }
 
-mat_ZZ* new_mat_ZZ(long nrows, long ncols) {
-  mat_ZZ* x = new mat_ZZ;
-  x->SetDims(nrows, ncols);
-  return x;
-}
-
-void del_mat_ZZ(mat_ZZ* x) {
-  delete x;
-}
-
-char* mat_ZZ_to_str(mat_ZZ* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
-struct mat_ZZ* mat_ZZ_mul(const struct mat_ZZ* x, const struct mat_ZZ* y)
-{
-  mat_ZZ *z = new mat_ZZ();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct mat_ZZ* mat_ZZ_add(const struct mat_ZZ* x, const struct mat_ZZ* y)
-{
-  mat_ZZ *z = new mat_ZZ();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct mat_ZZ* mat_ZZ_sub(const struct mat_ZZ* x, const struct mat_ZZ* y)
-{
-  mat_ZZ *z = new mat_ZZ();
-  sub(*z, *x, *y);
-  return z;
-}
-
 struct mat_ZZ* mat_ZZ_pow(const struct mat_ZZ* x, long e)
 {
   mat_ZZ *z = new mat_ZZ();
@@ -1218,79 +870,12 @@ struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
  * @versions 2006-01 malb
  *           initial version (based on code by William Stein)
  */
-GF2X* new_GF2X() {
-  return new GF2X();
-}
-
-void del_GF2X(GF2X* n) {
-  delete n;
-}
-
-GF2X* str_to_GF2X(const char* s) {
-  istringstream *out = new istringstream(s);
-  GF2X* y = new GF2X();
-  *out >> *y;
-  delete out;
-  return y;
-}
-
-/* Todo: could call into the Python C library to do this
-   more efficiently, and return a Python string or int directly.
-   This would also vastly reduce the chances of an accidental
-   memory leak.
-   Drawback: Then this wouldn't be a pure C library interface anymore.  */
-char* GF2X_to_str(const GF2X* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
-
-struct GF2X* GF2X_mul(const struct GF2X* x, const struct GF2X* y)
-{
-  GF2X *z = new GF2X();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct GF2X* GF2X_add(const struct GF2X* x, const struct GF2X* y)
-{
-  GF2X *z = new GF2X();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct GF2X* GF2X_sub(const struct GF2X* x, const struct GF2X* y)
-{
-  GF2X *z = new GF2X();
-  sub(*z, *x, *y);
-  return z;
-}
 
 struct GF2X* GF2X_pow(const struct GF2X* x, long e)
 {
   GF2X *z = new GF2X();
   power(*z, *x, e);
   return z;
-}
-
-int GF2X_eq( const struct GF2X* x, const struct GF2X* y)
-{
-  return (*x) == (*y);
-}
-
-int GF2X_is_one(struct GF2X* x)
-{
-  return IsOne(*x);
-}
-
-int GF2X_is_zero(struct GF2X* x)
-{
-  return IsZero(*x);
 }
 
 struct GF2X* GF2X_neg(struct GF2X* x)
@@ -1314,26 +899,26 @@ void GF2X_hex(long h)
   GF2X::HexOutput=h;
 }
 
-char *GF2X_to_bin(const struct GF2X* x)
+PyObject* GF2X_to_bin(const struct GF2X* x)
 {
   long hex;
-  char *buf;
   hex = GF2X::HexOutput;
   GF2X::HexOutput=0;
-  buf = GF2X_to_str(x);
+  std::ostringstream instore;
+  instore << (*x);
   GF2X::HexOutput=hex;
-  return buf;
+  return PyString_FromString(instore.str().data());
 }
 
-char *GF2X_to_hex(const struct GF2X* x)
+PyObject* GF2X_to_hex(const struct GF2X* x)
 {
   long hex;
-  char *buf;
   hex = GF2X::HexOutput;
   GF2X::HexOutput=1;
-  buf = GF2X_to_str(x);
+  std::ostringstream instore;
+  instore << (*x);
   GF2X::HexOutput=hex;
-  return buf;
+  return PyString_FromString(instore.str().data());
 }
 
 
@@ -1354,59 +939,6 @@ void ntl_GF2E_set_modulus(GF2X* x)
 }
 
 
-GF2E* new_GF2E() {
-  return new GF2E();
-}
-
-void del_GF2E(GF2E* n) {
-  delete n;
-}
-
-GF2E* str_to_GF2E(const char* s) {
-  istringstream *out = new istringstream(s);
-  GF2E* y = new GF2E();
-  *out >> *y;
-  delete out;
-  return y;
-}
-
-/* Todo: could call into the Python C library to do this
-   more efficiently, and return a Python string or int directly.
-   This would also vastly reduce the chances of an accidental
-   memory leak.
-   Drawback: Then this wouldn't be a pure C library interface anymore.  */
-char* GF2E_to_str(const GF2E* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
-
-struct GF2E* GF2E_mul(const struct GF2E* x, const struct GF2E* y)
-{
-  GF2E *z = new GF2E();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct GF2E* GF2E_add(const struct GF2E* x, const struct GF2E* y)
-{
-  GF2E *z = new GF2E();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct GF2E* GF2E_sub(const struct GF2E* x, const struct GF2E* y)
-{
-  GF2E *z = new GF2E();
-  sub(*z, *x, *y);
-  return z;
-}
-
 struct GF2E* GF2E_pow(const struct GF2E* x, long e)
 {
   GF2E *z = new GF2E();
@@ -1414,21 +946,6 @@ struct GF2E* GF2E_pow(const struct GF2E* x, long e)
   return z;
 }
 
-int GF2E_eq( const struct GF2E* x, const struct GF2E* y)
-{
-  return (*x) == (*y);
-}
-
-
-int GF2E_is_one(struct GF2E* x)
-{
-  return IsOne(*x);
-}
-
-int GF2E_is_zero(struct GF2E* x)
-{
-  return IsZero(*x);
-}
 
 struct GF2E* GF2E_neg(struct GF2E* x)
 {
@@ -1473,98 +990,6 @@ const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x) {
 
 
 /**
- * GF2EX
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-
-GF2EX* new_GF2EX() {
-  return new GF2EX();
-}
-
-void del_GF2EX(GF2EX* n) {
-  delete n;
-}
-
-GF2EX* str_to_GF2EX(const char* s) {
-  istringstream *out = new istringstream(s);
-  GF2EX* y = new GF2EX();
-  *out >> *y;
-  delete out;
-  return y;
-}
-
-/* Todo: could call into the Python C library to do this
-   more efficiently, and return a Python string or int directly.
-   This would also vastly reduce the chances of an accidental
-   memory leak.
-   Drawback: Then this wouldn't be a pure C library interface anymore.  */
-char* GF2EX_to_str(const GF2EX* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
-
-struct GF2EX* GF2EX_mul(const struct GF2EX* x, const struct GF2EX* y)
-{
-  GF2EX *z = new GF2EX();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct GF2EX* GF2EX_add(const struct GF2EX* x, const struct GF2EX* y)
-{
-  GF2EX *z = new GF2EX();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct GF2EX* GF2EX_sub(const struct GF2EX* x, const struct GF2EX* y)
-{
-  GF2EX *z = new GF2EX();
-  sub(*z, *x, *y);
-  return z;
-}
-
-struct GF2EX* GF2EX_pow(const struct GF2EX* x, long e)
-{
-  GF2EX *z = new GF2EX();
-  power(*z, *x, e);
-  return z;
-}
-
-int GF2EX_is_one(struct GF2EX* x)
-{
-  return IsOne(*x);
-}
-
-int GF2EX_is_zero(struct GF2EX* x)
-{
-  return IsZero(*x);
-}
-
-struct GF2EX* GF2EX_neg(struct GF2EX* x)
-{
-  return new GF2EX(-(*x));
-}
-
-struct GF2EX* GF2EX_copy(struct GF2EX* x)
-{
-  GF2EX *z = new GF2EX(*x);
-  return z;
-}
-
-
-/**
  * mat_GF2E
  *
  * @author Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -1573,51 +998,8 @@ struct GF2EX* GF2EX_copy(struct GF2EX* x)
  *           initial version (based on code by William Stein)
  */
 
-
-
-mat_GF2E* new_mat_GF2E(long nrows, long ncols) {
-  mat_GF2E* x = new mat_GF2E;
-  x->SetDims(nrows, ncols);
-  return x;
-}
-
-void del_mat_GF2E(mat_GF2E* x) {
-  delete x;
-}
-
 void mat_GF2E_SetDims(struct mat_GF2E* m, long nrows, long ncols){
   m->SetDims(nrows, ncols);
-}
-
-char* mat_GF2E_to_str(mat_GF2E* x)
-{
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
-}
-
-struct mat_GF2E* mat_GF2E_mul(const struct mat_GF2E* x, const struct mat_GF2E* y)
-{
-  mat_GF2E *z = new mat_GF2E();
-  mul(*z, *x, *y);
-  return z;
-}
-
-struct mat_GF2E* mat_GF2E_add(const struct mat_GF2E* x, const struct mat_GF2E* y)
-{
-  mat_GF2E *z = new mat_GF2E();
-  add(*z, *x, *y);
-  return z;
-}
-
-struct mat_GF2E* mat_GF2E_sub(const struct mat_GF2E* x, const struct mat_GF2E* y)
-{
-  mat_GF2E *z = new mat_GF2E();
-  sub(*z, *x, *y);
-  return z;
 }
 
 struct mat_GF2E* mat_GF2E_pow(const struct mat_GF2E* x, long e)
@@ -1664,10 +1046,6 @@ long mat_GF2E_gauss(struct mat_GF2E *x, long w)
   }
 }
 
-long mat_GF2E_is_zero(struct mat_GF2E *x) {
-  return IsZero(*x);
-}
-
 struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x) {
   mat_GF2E *y = new mat_GF2E();
   transpose(*y,*x);
@@ -1682,9 +1060,4 @@ ZZ_pContext* ZZ_pContext_new(ZZ *p)
 ZZ_pContext* ZZ_pContext_construct(void *mem, ZZ *p)
 {
 	return new(mem) ZZ_pContext(*p);
-}
-
-void ZZ_pContext_restore(ZZ_pContext *ctx)
-{
-	ctx->restore();
 }

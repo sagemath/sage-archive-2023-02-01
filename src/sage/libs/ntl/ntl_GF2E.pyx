@@ -208,8 +208,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         return unpickle_GF2E, (self.ntl_GF2X().hex(), ntl_GF2E_modulus())
 
     def __repr__(self):
-        _sig_on
-        return string_delete(GF2E_to_str(&self.gf2e_x))
+        return GF2E_to_PyString(&self.gf2e_x)
 
     def __mul__(ntl_GF2E self, other):
         cdef ntl_GF2E y
@@ -266,7 +265,7 @@ cdef class ntl_GF2E(ntl_GF2X):
     def __cmp__(ntl_GF2E self, ntl_GF2E other):
         cdef int t
         _sig_on
-        t = GF2E_eq(&self.gf2e_x, &other.gf2e_x)
+        t = GF2E_equal(self.gf2e_x, other.gf2e_x)
         _sig_off
         if t:
             return 0
@@ -276,13 +275,13 @@ cdef class ntl_GF2E(ntl_GF2X):
         """
         Returns True if this element equals zero, False otherwise.
         """
-        return bool(GF2E_is_zero(&self.gf2e_x))
+        return bool(GF2E_IsZero(self.gf2e_x))
 
     def is_one(ntl_GF2E self):
         """
         Returns True if this element equals one, False otherwise.
         """
-        return bool(GF2E_is_one(&self.gf2e_x))
+        return bool(GF2E_IsOne(self.gf2e_x))
 
     def __copy__(self):
         cdef ntl_GF2E r = ntl_GF2E()

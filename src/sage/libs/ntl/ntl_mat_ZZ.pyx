@@ -93,8 +93,7 @@ cdef class ntl_mat_ZZ:
         mat_ZZ_destruct(&self.x)
 
     def __repr__(self):
-        _sig_on
-        return string_delete(mat_ZZ_to_str(&self.x))
+        return mat_ZZ_to_PyString(&self.x)
 
     def __mul__(ntl_mat_ZZ self, other):
         cdef ntl_mat_ZZ r = PY_NEW(ntl_mat_ZZ)

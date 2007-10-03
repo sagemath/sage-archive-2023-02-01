@@ -2,7 +2,9 @@
 FLINT wrapper
 
 AUTHORS:
-   - Robert Bradshaw (2007-09-15) Initial version.
+   -- Robert Bradshaw (2007-09-15) Initial version.
+   -- William Stein (2007-10-02) update for new flint; add arithmetic and
+          creation of coefficients of arbitrary size.
 """
 
 
@@ -48,6 +50,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef Py_ssize_t i
         cdef long c
+        cdef Integer w
         if PY_TYPE_CHECK(v, str):
             if fmpz_poly_from_string(self.poly, v):
                 return
@@ -56,8 +59,12 @@ cdef class Fmpz_poly(SageObject):
         if not PySequence_Check(v):
             v = [v]
         try:
+            fmpz_poly_set_coeff_si(self.poly, 0, 1)
+            fmpz_poly_set_coeff_si(self.poly, 0, 0)
             for i from 0 <= i < len(v):
-                fmpz_poly_set_coeff_si(self.poly, i, v[i])
+                #fmpz_poly_set_coeff_si(self.poly, i, v[i])
+                w = Integer(v[i])
+                fmpz_poly_set_coeff_mpz(self.poly, i, w.value)
         except OverflowError:
             raise ValueError, "No fmpz_poly_set_coeff_mpz() method."
 
@@ -136,26 +143,52 @@ cdef class Fmpz_poly(SageObject):
         return [self[i] for i in xrange(self.degree()+1)]
 
     def __add__(left, right):
+        """
+        Add together two Flint polynomials.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: Fmpz_poly([1,2,3]) + Fmpz_poly(range(6))
+            6  1 3 5 3 4 5
+        """
         if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        raise NotImplementedError, "no fmpz_poly_add" # fmpz_poly_add(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
+        fmpz_poly_add(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
         return res
 
     def __sub__(left, right):
+        """
+        Subtract two Flint polynomials.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: Fmpz_poly([10,2,3]) - Fmpz_poly([4,-2,1])
+            3  6 4 2
+        """
         if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        raise NotImplementedError, "no fmpz_poly_sub" # fmpz_poly_sub(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
+        fmpz_poly_sub(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
         return res
 
     def __neg__(self):
+        """
+        Return the negative of self.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: -Fmpz_poly([2,10,2,3,18,-5])
+            6  -2 -10 -2 -3 -18 5
+        """
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        raise NotImplementedError, "no _fmpz_poly_neg" #_fmpz_poly_neg(res.poly, self.poly)
+        fmpz_poly_neg(res.poly, self.poly)
         return res
 
     def __mul__(left, right):
         """
+        Return the product of left and right.
+
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([0,1]); g = Fmpz_poly([2,3,4])
@@ -173,6 +206,8 @@ cdef class Fmpz_poly(SageObject):
 
     def __pow__(self, n, dummy):
         """
+        Return self raised to the power of n.
+
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
@@ -191,16 +226,46 @@ cdef class Fmpz_poly(SageObject):
         fmpz_poly_power(res.poly, (<Fmpz_poly>self).poly, nn)
         return res
 
+    def __copy__(self):
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_set(res.poly, self.poly)
+        return res
+
     def truncate(self, n):
         """
+        Return the truncation of self at degree n.
+
+        Don't do this unless you know there are no other references to
+        this polynomial!!!!!
+
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
             sage: g = f**10; g
             11  1 10 45 120 210 252 210 120 45 10 1
-            sage: g.truncate(5); g
+            sage: g.truncate()
+            5  1 10 45 120 210
+        """
+        cdef Fmpz_poly g = self.__copy__()
+        fmpz_poly_truncate(g.poly, n)
+        return g
+
+    def _unsafe_mutate_truncate(self, n):
+        """
+        Return the truncation of self at degree n.
+
+        Don't do this unless you know there are no other references to
+        this polynomial!!!!!
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,1])
+            sage: g = f**10; g
+            11  1 10 45 120 210 252 210 120 45 10 1
+            sage: g._unsafe_mutate_truncate(5); g
             5  1 10 45 120 210
         """
         cdef long nn = n
         fmpz_poly_truncate(self.poly, nn) # mutating!
+
 

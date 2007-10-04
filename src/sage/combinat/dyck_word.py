@@ -31,7 +31,7 @@ def DyckWord(dw=None, noncrossing_partition=None):
     """
     global open_symbol, close_symbol
 
-    if noncrossing_partition != None:
+    if noncrossing_partition is not None:
         return from_noncrossing_partition(noncrossing_partition)
 
     elif isinstance(dw, str):
@@ -275,6 +275,130 @@ class DyckWord_class(CombinatorialObject):
                 close_positions.append(i+1)
         return filter(lambda x: x != [],  [ close_positions, open_positions ])
 
+    def a_statistic(self):
+        """
+        Returns the a-statistic for the Dyck word.  When viewed as a lattice
+        path, the Dyck word's a-statistic is the number of boxes
+        above the main diagonal.
+
+        EXAMPLES:
+            sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
+            sage: dw.a_statistic()
+            19
+
+            sage: DyckWord([1,1,1,1,0,0,0,0]).a_statistic()
+            6
+            sage: DyckWord([1,1,1,0,1,0,0,0]).a_statistic()
+            5
+            sage: DyckWord([1,1,1,0,0,1,0,0]).a_statistic()
+            4
+            sage: DyckWord([1,1,1,0,0,0,1,0]).a_statistic()
+            3
+            sage: DyckWord([1,0,1,1,0,1,0,0]).a_statistic()
+            2
+            sage: DyckWord([1,1,0,1,1,0,0,0]).a_statistic()
+            4
+            sage: DyckWord([1,1,0,0,1,1,0,0]).a_statistic()
+            2
+            sage: DyckWord([1,0,1,1,1,0,0,0]).a_statistic()
+            3
+            sage: DyckWord([1,0,1,1,0,0,1,0]).a_statistic()
+            1
+            sage: DyckWord([1,0,1,0,1,1,0,0]).a_statistic()
+            1
+            sage: DyckWord([1,1,0,0,1,0,1,0]).a_statistic()
+            1
+            sage: DyckWord([1,1,0,1,0,0,1,0]).a_statistic()
+            2
+            sage: DyckWord([1,1,0,1,0,1,0,0]).a_statistic()
+            3
+            sage: DyckWord([1,0,1,0,1,0,1,0]).a_statistic()
+            0
+        """
+        above = 0
+        diagonal = 0
+        a = 0
+        for move in self:
+            if move == 1:
+                above += 1
+            elif move == 0:
+                diagonal += 1
+                a += above - diagonal
+        return a
+
+    def b_statistic(self):
+        """
+        Returns the b-statistic for the Dyck word.
+
+        EXAMPLES:
+            sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
+            sage: dw.b_statistic()
+            7
+
+            sage: DyckWord([1,1,1,1,0,0,0,0]).b_statistic()
+            0
+            sage: DyckWord([1,1,1,0,1,0,0,0]).b_statistic()
+            1
+            sage: DyckWord([1,1,1,0,0,1,0,0]).b_statistic()
+            2
+            sage: DyckWord([1,1,1,0,0,0,1,0]).b_statistic()
+            3
+            sage: DyckWord([1,0,1,1,0,1,0,0]).b_statistic()
+            3
+            sage: DyckWord([1,1,0,1,1,0,0,0]).b_statistic()
+            1
+            sage: DyckWord([1,1,0,0,1,1,0,0]).b_statistic()
+            2
+            sage: DyckWord([1,0,1,1,1,0,0,0]).b_statistic()
+            1
+            sage: DyckWord([1,0,1,1,0,0,1,0]).b_statistic()
+            4
+            sage: DyckWord([1,0,1,0,1,1,0,0]).b_statistic()
+            3
+            sage: DyckWord([1,1,0,0,1,0,1,0]).b_statistic()
+            5
+            sage: DyckWord([1,1,0,1,0,0,1,0]).b_statistic()
+            4
+            sage: DyckWord([1,1,0,1,0,1,0,0]).b_statistic()
+            2
+            sage: DyckWord([1,0,1,0,1,0,1,0]).b_statistic()
+            6
+
+        """
+        x_pos = len(self)/2
+        y_pos = len(self)/2
+
+        b = 0
+
+        mode = "left"
+        makeup_steps = 0
+        l = self.list[:]
+        l.reverse()
+
+        for move in l:
+            #print x_pos, y_pos, mode, move
+            if mode == "left":
+                if move == 0:
+                    x_pos -= 1
+                elif move == 1:
+                    y_pos -= 1
+                    if x_pos == y_pos:
+                        b += x_pos
+                    else:
+                        mode = "drop"
+            elif mode == "drop":
+                if move == 0:
+                    makeup_steps += 1
+                elif move == 1:
+                    y_pos -= 1
+                    if x_pos == y_pos:
+                        b += x_pos
+                        mode = "left"
+                        x_pos -= makeup_steps
+                        makeup_steps = 0
+
+        return b
+
 
 def DyckWords(k1=None, k2=None):
     """
@@ -317,12 +441,12 @@ def DyckWords(k1=None, k2=None):
          [1, 0, 1, 1, 0],
          [1, 0, 1, 0, 1]]
     """
-    if k1 == None and k2 == None:
+    if k1 is None and k2 is None:
         return DyckWords_all()
     else:
-        if k2 != None and k1 < k2:
+        if k2 is not None and k1 < k2:
             raise ValueError, "k1 (= %s) must be >= k2 (= %s)"%(k1, k2)
-        if k2 == None:
+        if k2 is None:
             return DyckWords_size(k1, k1)
         else:
             return DyckWords_size(k1, k2)
@@ -460,24 +584,24 @@ class DyckWords_size(CombinatorialClass):
         k2 = self.k2
 
         if k1 == 0:
-            return [ DyckWord([]) ]
+            return [ DyckWord_class([]) ]
         if k2 == 0:
-            return [ DyckWord([ open_symbol for x in range(k1) ]) ]
+            return [ DyckWord_class([ open_symbol for x in range(k1) ]) ]
         if k1 == 1:
-            return [ DyckWord([ open_symbol, close_symbol ]) ]
+            return [ DyckWord_class([ open_symbol, close_symbol ]) ]
 
         dycks = []
         if k1 > k2:
-            dycks +=  map( lambda x: [open_symbol] + __builtin__.list(x), DyckWords(k1-1, k2) )
+            dycks +=  map( lambda x: [open_symbol] + x.list, DyckWords_size(k1-1, k2).list() )
 
         for i in range(k2):
-            for d1 in DyckWords(i,i):
-                for d2 in DyckWords(k1-i-1, k2-i-1):
-                    dycks.append( [open_symbol] + __builtin__.list(d1) + [close_symbol] + __builtin__.list(d2))
+            for d1 in DyckWords_size(i,i).list():
+                for d2 in DyckWords_size(k1-i-1, k2-i-1).list():
+                    dycks.append( [open_symbol] + d1.list + [close_symbol] + d2.list)
 
         dycks.sort()
         dycks.reverse()
-        return map(lambda x: DyckWord(x), dycks)
+        return map(lambda x: DyckWord_class(x), dycks)
 
 
 
@@ -495,9 +619,9 @@ def is_a_prefix(obj, k1 = None, k2 = None):
     """
     global open_symbol, close_symbol
 
-    if k1 != None and k2 == None:
+    if k1 is not None and k2 is None:
         k2 = k1
-    if k1 != None and k1 < k2:
+    if k1 is not None and k1 < k2:
         raise ValueError, "k1 (= %s) must be >= k2 (= %s)"%(k1, k2)
 
 
@@ -515,9 +639,9 @@ def is_a_prefix(obj, k1 = None, k2 = None):
         if n_opens < n_closes:
             return False
 
-        if k1 == None and k2 == None:
+        if k1 is None and k2 is None:
             return True
-        elif k2 == None:
+        elif k2 is None:
             return n_opens == k1
         else:
             return n_opens == k1 and n_closes == k2
@@ -528,9 +652,9 @@ def is_a(obj, k1 = None, k2 = None):
     """
     global open_symbol, close_symbol
 
-    if k1 != None and k2 == None:
+    if k1 is not None and k2 is None:
         k2 = k1
-    if k1 != None and k1 < k2:
+    if k1 is not None and k1 < k2:
         raise ValueError, "k1 (= %s) must be >= k2 (= %s)"%(k1, k2)
 
 
@@ -548,9 +672,9 @@ def is_a(obj, k1 = None, k2 = None):
         if n_opens < n_closes:
             return False
 
-    if k1 == None and k2 == None:
+    if k1 is None and k2 is None:
         return n_opens == n_closes
-    elif k2 == None:
+    elif k2 is None:
         return n_opens == n_closes and n_opens == k1
     else:
         return n_opens == k1 and n_closes == k2

@@ -271,6 +271,17 @@ class NumberFieldIdeal(Ideal_fractional):
         return generic_power(self, r)
 
     def _pari_(self):
+        """
+        Returns PARI Hermite Normal Form representations of this
+        ideal.
+
+        EXAMPLES:
+            sage: K.<w> = NumberField(x^2 + 23)
+            sage: I = K.class_group().0.ideal(); I
+            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
+            sage: I._pari_()
+            [2, 0; 0, 1]
+        """
         return self.pari_hnf()
 
     def pari_hnf(self):
@@ -361,6 +372,17 @@ class NumberFieldIdeal(Ideal_fractional):
         the unit ideal.
 
         ALGORITHM: Calls pari's idealred function.
+
+        EXAMPLES:
+            sage: K.<w> = NumberField(x^2 + 23)
+            sage: I = ideal(w*23^5); I
+            Fractional ideal (6436343*w) of Number Field in w with defining polynomial x^2 + 23
+            sage: I.reduce_equiv()
+            Fractional ideal (1) of Number Field in w with defining polynomial x^2 + 23
+            sage: I = K.class_group().0.ideal()^10; I
+            Fractional ideal (1024, 1/2*w + 979/2) of Number Field in w with defining polynomial x^2 + 23
+            sage: I.reduce_equiv()
+            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
         """
         K = self.number_field()
         P = K.pari_nf()

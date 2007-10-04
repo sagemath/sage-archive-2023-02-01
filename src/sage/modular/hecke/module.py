@@ -473,6 +473,11 @@ class HeckeModule_free_module(HeckeModule_generic):
     def basis(self):
         """
         Returns a basis for self.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(43)
+            sage: m.basis()
+            ((1,0), (1,31), (1,32), (1,38), (1,39), (1,40), (1,41))
         """
         try:
             return self.__basis

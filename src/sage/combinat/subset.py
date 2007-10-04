@@ -335,9 +335,8 @@ class Subsets_sk(CombinatorialClass):
         lset = __builtin__.list(self.s)
         #We use the iterator for the subwords of range(len(self.s))
         ind_set = lambda index_list: Set([lset[i] for i in index_list])
-        it = itertools.imap(ind_set, subword.Subwords(range(len(lset)),self.k))
-        for sub in it:
-            yield sub
+        for sub in choose_nk.ChooseNK(len(lset),self.k):
+            yield ind_set(sub)
 
 
 

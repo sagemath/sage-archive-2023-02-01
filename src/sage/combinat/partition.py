@@ -47,17 +47,17 @@ def Partition(l=None, exp=None, core_and_quotient=None):
     """
     number_of_arguments = 0
     for arg in ['l', 'exp', 'core_and_quotient']:
-        if eval(arg) != None:
+        if eval(arg) is not None:
             number_of_arguments += 1
 
     if number_of_arguments != 1:
         raise ValueError, "you must specify exactly one argument"
 
-    if l != None:
+    if l is not None:
         if sum(l) == 0:
             l = []
         return Partition_class(l)
-    elif exp != None:
+    elif exp is not None:
         return from_exp(exp)
     else:
         return from_core_and_quotient(*core_and_quotient)
@@ -837,7 +837,7 @@ class Partition_class(CombinatorialObject):
         if i >= len(self):
             raise ValueError, "i must be less than the length of the partition"
 
-        if j == None:
+        if j is None:
             j = self[i] - 1
 
         if [i,j] not in self.corners():
@@ -957,12 +957,11 @@ class Partition_class(CombinatorialObject):
                 res *= self.arms_legs_coeff(i,j)
         return res
 
-    def jacobi_trudy(self):
+    def jacobi_trudi(self):
         """
-
         EXAMPLES:
             sage: part = Partition([3,2,1])
-            sage: jt = part.jacobi_trudy(); jt
+            sage: jt = part.jacobi_trudi(); jt
             [h[3] h[1]    0]
             [h[4] h[2]  h[]]
             [h[5] h[3] h[1]]
@@ -973,7 +972,7 @@ class Partition_class(CombinatorialObject):
             sage: jt.det()
             h[3, 2, 1] - h[3, 3] - h[4, 1, 1] + h[5, 1]
         """
-        return sage.combinat.skew_partition.SkewPartition([ self, [] ]).jacobi_trudy()
+        return sage.combinat.skew_partition.SkewPartition([ self, [] ]).jacobi_trudi()
 
 ##################################################
 
@@ -995,7 +994,7 @@ def partitions_set(S,k=None):
 
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("PartitionsSet(%s)"%S)
     else:
         ans=gap.eval("PartitionsSet(%s,%s)"%(S,k))
@@ -1020,7 +1019,7 @@ def number_of_partitions_set(S,k):
         http://en.wikipedia.org/wiki/Partition_of_a_set
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrPartitionsSet(%s)"%S)
     else:
         ans=gap.eval("NrPartitionsSet(%s,%s)"%(S,ZZ(k)))
@@ -1063,7 +1062,7 @@ def number_of_partitions_list(n,k=None):
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
     else:
         ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
@@ -1083,14 +1082,14 @@ class OrderedPartitions_nk(CombinatorialClass):
 
     def __repr__(self):
         string = "Ordered partitions of %s "%self.n
-        if self.k != None:
+        if self.k is not None:
             string += "of length %s"%self.k
         return string
 
     def list(self):
         n = self.n
         k = self.k
-        if self.k==None:
+        if self.k is None:
             ans=gap.eval("OrderedPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("OrderedPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
@@ -1101,7 +1100,7 @@ class OrderedPartitions_nk(CombinatorialClass):
     def count(self):
         n = self.n
         k = self.k
-        if k==None:
+        if k is None:
             ans=gap.eval("NrOrderedPartitions(%s)"%(n))
         else:
             ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
@@ -1141,7 +1140,7 @@ def ordered_partitions(n,k=None):
         http://en.wikipedia.org/wiki/Ordered_partition_of_a_set
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("OrderedPartitions(%s)"%(ZZ(n)))
     else:
         ans=gap.eval("OrderedPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
@@ -1165,7 +1164,7 @@ def number_of_ordered_partitions(n,k=None):
         sage: partition.number_of_ordered_partitions(15)
         16384
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrOrderedPartitions(%s)"%(n))
     else:
         ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
@@ -1274,7 +1273,7 @@ class RestrictedPartitions(CombinatorialClass):
 
     def __repr__(self):
         string = "Partitions of %s restricted to the values %s "%(self.n, self.S)
-        if self.k != None:
+        if self.k is not None:
             string += "of length %s" % self.k
         return string
 
@@ -1301,7 +1300,7 @@ class RestrictedPartitions(CombinatorialClass):
         n = self.n
         k = self.k
         S = self.S
-        if k==None:
+        if k is None:
             ans=gap.eval("RestrictedPartitions(%s,%s)"%(n,S))
         else:
             ans=gap.eval("RestrictedPartitions(%s,%s,%s)"%(n,S,k))
@@ -1323,7 +1322,7 @@ class RestrictedPartitions(CombinatorialClass):
         n = self.n
         k = self.k
         S = self.S
-        if k==None:
+        if k is None:
             ans=gap.eval("NrRestrictedPartitions(%s,%s)"%(ZZ(n),S))
         else:
             ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))
@@ -1410,7 +1409,7 @@ class PartitionTuples_nk(CombinatorialClass):
 ##############
 
 def Partitions(n=None, **kwargs):
-    if n == None:
+    if n is None:
         return Partitions_all()
     else:
         if len(kwargs) == 0:
@@ -1419,8 +1418,30 @@ def Partitions(n=None, **kwargs):
             return Partitions_constraints(n, **kwargs)
 
 class Partitions_all(CombinatorialClass):
+    def __init__(self):
+        """
+        TESTS:
+            sage: P = Partitions()
+            sage: P == loads(dumps(P))
+            True
+        """
+        pass
+
     object_class = Partition_class
+
     def __contains__(self, x):
+        """
+        TESTS:
+            sage: P = Partitions()
+            sage: Partition([2,1]) in P
+            True
+            sage: [2,1] in P
+            True
+            sage: [3,2,1] in P
+            True
+            sage: [1,2] in P
+            False
+        """
         if isinstance(x, Partition_class):
             return True
         elif isinstance(x, __builtin__.list):
@@ -1439,22 +1460,51 @@ class Partitions_all(CombinatorialClass):
         else:
             return False
 
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Partitions())
+            'Partitions'
+        """
+        return "Partitions"
+
     def list(self):
         raise NotImplementedError
 
 class Partitions_constraints(CombinatorialClass):
     def __init__(self, n, **kwargs):
+        """
+        TESTS:
+            sage: p = Partitions(5, min_part=2)
+            sage: p == loads(dumps(p))
+            True
+        """
         self.n = n
         self.constraints = kwargs
 
     def __contains__(self, x):
+        """
+        TESTS:
+            sage: p = Partitions(5, min_part=2)
+            sage: [2,1] in p
+            False
+            sage: [2,2,1] in p
+            False
+            sage: [3,2] in p
+            True
+        """
         return x in Partitions_all() and sum(x)==self.n and misc.check_integer_list_constraints(x, singleton=True, **self.constraints)
 
     def size(self):
         return self.n
 
     def __repr__(self):
-        return "Partitions of the integer %s satisfying constraints"%self.n
+        """
+        TESTS:
+            sage: repr( Partitions(5, min_part=2) )
+            'Partitions of the integer 5 satisfying constraints min_part=2'
+        """
+        return "Partitions of the integer %s satisfying constraints %s"%(self.n, ", ".join( ["%s=%s"%(key, self.constraints[key]) for key in sorted(self.constraints.keys())] ))
 
     def iterator(self):
         """
@@ -1512,10 +1562,10 @@ class Partitions_constraints(CombinatorialClass):
             max_slope = n
         if min_slope == "-inf":
             min_slope = -n
-        if length != None:
+        if length is not None:
             min_length = length
             max_length = length
-        if outer != None:
+        if outer is not None:
             for i in range(len(outer)):
                 if outer[i] == "inf":
                     outer[i] = n
@@ -1530,36 +1580,36 @@ class Partitions_constraints(CombinatorialClass):
             #Handle the case if the user specifies
             #min_part = 0
             if min_part == 0:
-                #if length != None and len(p) < length:
+                #if length is not None and len(p) < length:
                 #    p += [0]*(len(p)-length)
-                if min_length != None and len(old_p) < min_length:
+                if min_length is not None and len(old_p) < min_length:
                     p = old_p + [0]*(min_length-len(old_p))
                 else:
                     p = old_p
             else:
                 p = old_p
 
-            #if length != None:
+            #if length is not None:
             #    if len(p) != length:
             #        meets_constraints = False
 
-            if min_length != None:
+            if min_length is not None:
                 if len(p) < min_length:
                     meets_constraints = False
 
-            if max_length != None:
+            if max_length is not None:
                 if len(p) > max_length:
                     meets_constraints = False
 
-            if max_part != None:
+            if max_part is not None:
                 if max(p) > max_part:
                     meets_constraints = False
 
-            if min_part != None:
+            if min_part is not None:
                 if min(p) < min_part:
                     meets_constraints = False
 
-            if outer != None:
+            if outer is not None:
                 if len(p) > len(outer):
                     meets_constraints = False
                 else:
@@ -1567,7 +1617,7 @@ class Partitions_constraints(CombinatorialClass):
                         if p[i] > outer[i]:
                             meets_constraints = False
 
-            if inner != None:
+            if inner is not None:
                 if len(p) < len(inner):
                     meets_constraints = False
                 else:
@@ -1576,11 +1626,11 @@ class Partitions_constraints(CombinatorialClass):
                             meets_constraints = False
 
 
-            if max_slope != None:
+            if max_slope is not None:
                 if max([p[i+1]-p[i] for i in range(0, len(p)-1)]+[-n] ) > max_slope:
                     meets_constraints = False
 
-            if min_slope != None:
+            if min_slope is not None:
                 if min([p[i+1]-p[i] for i in range(0, len(p)-1)]+[n] ) < min_slope:
                     meets_constraints = False
 
@@ -1593,15 +1643,36 @@ class Partitions_constraints(CombinatorialClass):
 class Partitions_n(CombinatorialClass):
     object_class = Partition_class
     def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Partitions(5)
+            sage: p == loads(dumps(p))
+            True
+        """
         self.n = n
 
     def __contains__(self, x):
+        """
+        TESTS:
+            sage: p = Partitions(5)
+            sage: [2,1] in p
+            False
+            sage: [2,2,1] in p
+            True
+            sage: [3,2] in p
+            True
+        """
         return x in Partitions_all() and sum(x)==self.n
 
     def size(self):
         return self.n
 
     def __repr__(self):
+        """
+        TESTS:
+            sage: repr( Partitions(5) )
+            'Partitions of the integer 5'
+        """
         return "Partitions of the integer %s"%self.n
 
     def count(self, algorithm='default'):

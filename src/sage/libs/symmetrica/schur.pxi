@@ -50,6 +50,8 @@ cdef extern from 'symmetrica/def.h':
 
     INT symmetricp(OP a)
 
+    INT scalarproduct_schur(OP a, OP b, OP c)
+
 
 def outerproduct_schur_symmetrica(parta, partb):
     """
@@ -366,6 +368,10 @@ def hall_littlewood_symmetrica(part):
     """
 
     cdef OP cpart = callocobject(), cresult = callocobject()
+    cdef OP pointer
+
+    if len(part) == 0:
+        raise TypeError, "part must be a partition of a positive integer"
 
     _op_partition(part, cpart)
 
@@ -938,3 +944,21 @@ def mult_monomial_monomial_symmetrica(m1, m2):
     return res
 
 
+
+def scalarproduct_schur_symmetrica(s1, s2):
+    cdef OP cs1 = callocobject(), cs2 = callocobject(), cresult = callocobject()
+
+    _op_schur(s1, cs1)
+    _op_schur(s2, cs2)
+
+    _sig_on
+    scalarproduct_schur(cs1, cs2, cresult)
+    _sig_off
+
+    res = _py(cresult)
+
+    freeall(cs1)
+    freeall(cs2)
+    freeall(cresult)
+
+    return res

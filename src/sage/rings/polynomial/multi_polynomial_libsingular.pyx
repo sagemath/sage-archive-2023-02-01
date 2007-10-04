@@ -2976,12 +2976,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         res = kNF(_I, NULL, p_Copy(self._poly, r))
         return co.new_MP(parent,res)
 
-    def gcd(self, right):
+    def gcd(self, right, algorithm=None):
         """
         Return the greates common divisor of self and right.
 
         INPUT:
             right -- polynomial
+            algorithm -- 'ezgcd' -- EZGCD algorithm
+                         'modular' -- multi-modular algorithm (default)
 
         EXAMPLES:
             sage: P.<x,y,z> = MPolynomialRing(QQ,3)
@@ -3004,6 +3006,18 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef MPolynomial_libsingular _right
         cdef poly *_res
         cdef ring *_ring
+
+        if algorithm is None:
+            algorithm = "modular"
+
+        if algorithm == "ezgcd":
+            Off(SW_USE_CHINREM_GCD)
+            On(SW_USE_EZGCD)
+        elif algorithm == "modular":
+            On(SW_USE_CHINREM_GCD)
+            Off(SW_USE_EZGCD)
+        else:
+            raise TypeError, "algorithm %s not supported"%(algorithm)
 
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 

@@ -50,12 +50,12 @@ def Composition(co=None, descents=None, code=None):
         [3, 1, 2, 3, 5]
     """
 
-    if descents != None:
+    if descents is not None:
         if isinstance(descents, tuple):
             return from_descents(descents[0], nps=descents[1])
         else:
             return from_descents(descents)
-    elif code != None:
+    elif code is not None:
         return from_code(code)
     else:
         if co not in Compositions():
@@ -318,7 +318,7 @@ def Compositions(n=None, **kwargs):
         sage: Compositions(4, max_slope=0).list()
         [[1, 1, 1, 1], [2, 1, 1], [2, 2], [3, 1], [4]]
     """
-    if n == None:
+    if n is None:
         return Compositions_all()
     else:
         if kwargs:
@@ -588,7 +588,7 @@ def from_descents(descents, nps=None):
         else:
             return [nps]
 
-    if nps != None:
+    if nps is not None:
         if nps < max(d):
             #Error: d is not included in [1,...,nps-1]
             return None

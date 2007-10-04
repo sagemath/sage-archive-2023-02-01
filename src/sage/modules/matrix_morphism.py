@@ -201,6 +201,23 @@ class MatrixMorphism(sage.categories.all.Morphism):
         return self.charpoly(var).factor()
 
     def kernel(self):
+        """
+        Compute the kernel of this matrix.
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,3)
+            sage: id = V.Hom(V)(identity_matrix(QQ,3))
+            sage: null = V.Hom(V)(0*identity_matrix(QQ,3))
+            sage: id.kernel()
+            Vector space of degree 3 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+            sage: phi = V.Hom(V)(matrix(QQ,3,range(9)))
+            sage: phi.kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+        """
         V = self.matrix().kernel()
         D = self.domain()
         if not D.is_ambient():
@@ -236,6 +253,8 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
         The resulting morphism has the same codomain as before, but
         a new domain.
+
+
         """
         D  = self.domain()
         B  = sub.basis()
@@ -244,6 +263,12 @@ class MatrixMorphism(sage.categories.all.Morphism):
         MS = matrix.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
         H = sub.Hom(self.codomain(), sub.category())
         return H(MS(ims))
+
+        #D  = self.domain()
+	#C  = self.codomain()
+	#M  = self.matrix()
+	#Mr = M.restrict_domain(sub)
+	#return sub.Hom(C)(Mr)
 
     def restrict(self, sub):
         """

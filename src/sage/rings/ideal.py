@@ -213,6 +213,15 @@ class Ideal_generic(MonoidElement):
     def gens(self):
         return self.__gens
 
+    def gens_reduced(self):
+        r"""
+        Same as gens().
+
+        (This method is provided so that ideals in ZZ have the method gens_reduced(),
+        just like ideals of number fields.)
+        """
+        return self.gens()
+
     def is_maximal(self):
         raise NotImplementedError
 

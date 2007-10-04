@@ -38,9 +38,9 @@ class Spec(scheme.AffineScheme):
         sage: Spec(PolynomialRing(QQ, 'x'))
         Spectrum of Univariate Polynomial Ring in x over Rational Field
         sage: Spec(PolynomialRing(QQ, 'x', 3))
-        Spectrum of Polynomial Ring in x0, x1, x2 over Rational Field
+        Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49,'a'), 3, 'x')); X
-        Spectrum of Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
+        Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
         sage: loads(X.dumps()) == X
         True
         sage: A = Spec(ZZ); B = Spec(ZZ)
@@ -120,7 +120,7 @@ class Spec(scheme.AffineScheme):
             sage: Spec(QQ).coordinate_ring()
             Rational Field
             sage: Spec(PolynomialRing(QQ,3, 'x')).coordinate_ring()
-            Polynomial Ring in x0, x1, x2 over Rational Field
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         """
         return self.__R
 

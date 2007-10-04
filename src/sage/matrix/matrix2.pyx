@@ -1148,7 +1148,7 @@ cdef class Matrix(matrix1.Matrix):
             [x1 x0]
             [x1 x0]
             sage: M.kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Polynomial Ring in x0, x1 over Rational Field
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 -1]
         """
@@ -2365,6 +2365,9 @@ cdef class Matrix(matrix1.Matrix):
 
         if not self._base_ring.is_field():
             raise ValueError, "Echelon form not defined over this base ring."
+
+        if self._base_ring.characteristic() != 0:
+            verbose("WARNING: Strassen Echelon in characteristic p is buggy!!  Do not use.", level=0)
 
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()

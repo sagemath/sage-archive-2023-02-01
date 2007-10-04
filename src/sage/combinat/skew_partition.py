@@ -179,7 +179,7 @@ class SkewPartition_class(CombinatorialObject):
         G = DiGraph()
         for row in range(len(skew)):
             for column in range(len(skew[row])):
-                if skew[row][column] != None:
+                if skew[row][column] is not None:
                     string = "%d,%d" % (row, column)
                     G.add_vertex(string)
                     #Check to see if there is a node to the right
@@ -190,7 +190,7 @@ class SkewPartition_class(CombinatorialObject):
                     #Check to see if there is anything below
                     if row != len(skew) - 1:
                         if len(skew[row+1]) > column:
-                            if skew[row+1][column] != None:
+                            if skew[row+1][column] is not None:
                                 newstring = "%d,%d" % (row+1, column)
                                 G.add_edge(string, newstring)
         return G
@@ -285,14 +285,14 @@ class SkewPartition_class(CombinatorialObject):
         """
         return SkewPartition([ self.outer().k_conjugate(k), self.inner().k_conjugate(k) ])
 
-    def jacobi_trudy(self):
+    def jacobi_trudi(self):
         """
         EXAMPLES:
-            sage: SkewPartition([[3,2,1],[2,1]]).jacobi_trudy()
+            sage: SkewPartition([[3,2,1],[2,1]]).jacobi_trudi()
             [h[1]    0    0]
             [h[3] h[1]    0]
             [h[5] h[3] h[1]]
-            sage: SkewPartition([[4,3,2],[2,1]]).jacobi_trudy()
+            sage: SkewPartition([[4,3,2],[2,1]]).jacobi_trudi()
             [h[2]  h[]    0]
             [h[4] h[2]  h[]]
             [h[6] h[4] h[2]]
@@ -363,7 +363,7 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
     """
     number_of_arguments = 0
     for arg in ['n', 'row_lengths']:
-        if eval(arg) != None:
+        if eval(arg) is not None:
             number_of_arguments += 1
 
     if number_of_arguments > 1:
@@ -372,7 +372,7 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
     if number_of_arguments == 0:
         return SkewPartitions_all()
 
-    if n != None:
+    if n is not None:
         return SkewPartitions_n(n, overlap)
     else:
         return SkewPartitions_rowlengths(row_lengths, overlap)

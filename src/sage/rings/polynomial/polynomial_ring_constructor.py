@@ -83,7 +83,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
         EXAMPLES of VARIABLE NAME CONTEXT:
             sage: R.<x,y> = PolynomialRing(QQ,2); R
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
             sage: f = x^2 - 2*y^2
 
         You can't just globally change the names of those variables.
@@ -157,13 +157,13 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     2. PolynomialRing(base_ring, names,   order='degrevlex'):
         sage: R = PolynomialRing(QQ, 'a,b,c'); R
-        Polynomial Ring in a, b, c over Rational Field
+        Multivariate Polynomial Ring in a, b, c over Rational Field
 
         sage: S = PolynomialRing(QQ, ['a','b','c']); S
-        Polynomial Ring in a, b, c over Rational Field
+        Multivariate Polynomial Ring in a, b, c over Rational Field
 
         sage: T = PolynomialRing(QQ, ('a','b','c')); T
-        Polynomial Ring in a, b, c over Rational Field
+        Multivariate Polynomial Ring in a, b, c over Rational Field
 
     All three rings are identical.
         sage: (R is S) and  (S is T)
@@ -171,9 +171,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     There is a unique polynomial ring with each term order:
         sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex'); R
-        Polynomial Ring in x, y, z over Rational Field
+        Multivariate Polynomial Ring in x, y, z over Rational Field
         sage: S = PolynomialRing(QQ, 'x,y,z', order='revlex'); S
-        Polynomial Ring in x, y, z over Rational Field
+        Multivariate Polynomial Ring in x, y, z over Rational Field
         sage: S is PolynomialRing(QQ, 'x,y,z', order='revlex')
         True
         sage: R == S
@@ -185,20 +185,20 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     If you specify a single name as a string and a number of
     variables, then variables labeled with numbers are created.
         sage: PolynomialRing(QQ, 'x', 10)
-        Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9 over Rational Field
+        Multivariate Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9 over Rational Field
 
         sage: PolynomialRing(GF(7), 'y', 5)
-        Polynomial Ring in y0, y1, y2, y3, y4 over Finite Field of size 7
+        Multivariate Polynomial Ring in y0, y1, y2, y3, y4 over Finite Field of size 7
 
         sage: PolynomialRing(QQ, 'y', 3, sparse=True)
-        Polynomial Ring in y0, y1, y2 over Rational Field
+        Multivariate Polynomial Ring in y0, y1, y2 over Rational Field
 
     It is easy in Python to create fairly aribtrary variable names.
     For example, here is a ring with generators labeled by the first
     100 primes:
 
         sage: R = PolynomialRing(ZZ, ['x%s'%p for p in primes(100)]); R
-        Polynomial Ring in x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97 over Integer Ring
+        Multivariate Polynomial Ring in x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97 over Integer Ring
 
     By calling the \code{inject_variables()} method all those variable
     names are available for interactive use:
@@ -209,7 +209,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     You can also call \code{injvar}, which is a convenient shortcut for \code{inject_variables()}.
         sage: R = PolynomialRing(GF(7),15,'w'); R
-        Polynomial Ring in w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14 over Finite Field of size 7
+        Multivariate Polynomial Ring in w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14 over Finite Field of size 7
         sage: R.injvar()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2

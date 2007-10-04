@@ -207,7 +207,7 @@ class MPolynomial_element(MPolynomial):
             sage: R.<x,y> = QQ['x,y']
             sage: f = (x + y)/3
             sage: f.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
 
         If we do the same over $\ZZ$ the result is the same as
         multiplying by 1/3 (i.e. base extension).
@@ -215,17 +215,17 @@ class MPolynomial_element(MPolynomial):
             sage: x,y = ZZ['x,y'].gens()
             sage: f = (x + y)/3
             sage: f.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
             sage: f = (x + y) * 1/3
             sage: f.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
 
         But we get a true fraction field if the denominator is not in
         the fration field of the basering.
 
             sage: f = x/y
             sage: f.parent()
-            Fraction Field of Polynomial Ring in x, y over Integer Ring
+            Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
         """
         return self.parent().fraction_field()(self.__element, right.__element)
 
@@ -466,7 +466,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             0
 
             sage: R.<x> = PolynomialRing(GF(7),1); R
-            Polynomial Ring in x over Finite Field of size 7
+            Multivariate Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             -2*x^2 + 3
             sage: f[2]
@@ -508,7 +508,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: c = f.coefficient(x*y); c
             2
             sage: c.parent()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
             sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
             True
 
@@ -523,7 +523,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         polynomial ring:
             sage: R.<x,y> = GF(389)[]
             sage: parent(R(x*y+5).coefficient(R(1)))
-            Polynomial Ring in x, y over Finite Field of size 389
+            Multivariate Polynomial Ring in x, y over Finite Field of size 389
         """
         R = self.parent()
         if mon == 1:
@@ -620,7 +620,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: g = f.homogenize('z'); g
             5*x*y^10 + x^2*z^9 + y*z^10 + z^11
             sage: g.parent()
-            Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         if self.is_homogeneous():
             return self

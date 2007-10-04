@@ -35,7 +35,7 @@ from sage.interfaces.all import gap
 from sage.graphs.graph import DiGraph
 import itertools
 import __builtin__
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 import copy
 from necklace import Necklaces
 
@@ -1531,16 +1531,31 @@ class Permutation_class(CombinatorialObject):
         EXAMPLES:
             sage: Permutation([3,5,1,4,6,2]).has_pattern([1,3,2])
             True
-
         """
         p = self
         n = len(p)
         l = len(patt)
+        if l > n:
+            return False
         for pos in subword.Subwords(range(n),l):
             if to_standard(map(lambda z: p[z] , pos)) == patt:
                 return True
         return False
 
+    def avoids(self, patt):
+        """
+        Returns True if the permutation avoid the pattern patt and False
+        otherwise.
+
+        EXAMPLES:
+            sage: Permutation([6,2,5,4,3,1]).avoids([4,2,3,1])
+            False
+            sage: Permutation([6,1,2,5,4,3]).avoids([4,2,3,1])
+            True
+            sage: Permutation([6,1,2,5,4,3]).avoids([3,4,1,2])
+            True
+        """
+        return not self.has_pattern(patt)
 
     def pattern_positions(self, patt):
         r"""
@@ -1556,6 +1571,71 @@ class Permutation_class(CombinatorialObject):
 
         return __builtin__.list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, subword.Subwords(range(len(p)), len(patt)).iterator() ))
 
+
+    def reverse(self):
+        """
+        Returns the permutation obtained by reversing the list.
+
+        EXAMPLES:
+            sage: Permutation([3,4,1,2]).reverse()
+            [2, 1, 4, 3]
+            sage: Permutation([1,2,3,4,5]).reverse()
+            [5, 4, 3, 2, 1]
+        """
+        return Permutation_class( [i for i in reversed(self)] )
+
+
+    def complement(self):
+        """
+        Returns the complement of the permutation which is obtained
+        by replacing each value x in the list with n - x + 1
+
+        EXAMPLES:
+            sage: Permutation([1,2,3]).complement()
+            [3, 2, 1]
+            sage: Permutation([1, 3, 2]).complement()
+            [3, 1, 2]
+        """
+        n = len(self)
+        return Permutation_class( map(lambda x: n - x + 1, self) )
+
+    def dict(self):
+        """
+        Returns a dictionary corresponding to the permutation.
+
+        EXAMPLES:
+            sage: p = Permutation([2,1,3])
+            sage: d = p.dict()
+            sage: d[1]
+            2
+            sage: d[2]
+            1
+            sage: d[3]
+            3
+        """
+        d = {}
+        for i in range(len(self)):
+            d[i+1] = self[i]
+        return d
+
+    def action(self, a):
+        """
+        Return the action of the permutation on a list.
+
+        EXAMPLES:
+            sage: p = Permutation([2,1,3])
+            sage: a = range(3)
+            sage: p.action(a)
+            [1, 0, 2]
+            sage: b = [1,2,3,4]
+            sage: p.action(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: len(a) must equal len(self)
+        """
+        if len(a) != len(self):
+            raise ValueError, "len(a) must equal len(self)"
+        return map(lambda i: a[self[i]-1], range(len(a)))
 
     ######################
     # Robinson-Schensted #
@@ -1651,57 +1731,7 @@ def Arrangements(mset, k):
     """
     return Arrangements_msetk(mset, k)
 
-def Permutations(n=None,k=None, **kwargs):
 
-    valid_args = ['descents', 'bruhat_smaller', 'bruhat_greater',
-                  'recoils_finer', 'recoils_fatter', 'recoils']
-
-    number_of_arguments = 0
-    if n != None:
-            number_of_arguments += 1
-    else:
-        if k != None:
-            number_of_arguments += 1
-
-
-    #Make sure that exactly one keyword was passed
-    for key in kwargs:
-        if key not in valid_args:
-            raise ValueError, "unknown keyword argument: "%key
-        number_of_arguments += 1
-
-    if number_of_arguments == 0:
-        return StandardPermutations_all()
-
-    if number_of_arguments != 1:
-        raise ValueError, "you must specify exactly one argument"
-
-    if n != None:
-        if isinstance(n, (int, Integer)):
-            if k == None:
-                return StandardPermutations_n(n)
-            else:
-                return Permutations_nk(n,k)
-        else:
-            if k == None:
-                return Permutations_mset(n)
-            else:
-                return Permutations_msetk(n,k)
-    elif 'descents' in kwargs:
-        if isinstance(kwargs['descents'], tuple):
-            return StandardPermutations_descents(*kwargs['descents'])
-        else:
-            return StandardPermutations_descents(kwargs['descents'], max(kwargs['descents'])+1)
-    elif 'bruhat_smaller' in kwargs:
-        return StandardPermutations_bruhat_smaller(Permutation(kwargs['bruhat_smaller']))
-    elif 'bruhat_greater' in kwargs:
-        return StandardPermutations_bruhat_greater(Permutation(kwargs['bruhat_greater']))
-    elif 'recoils_finer' in kwargs:
-        return StandardPermutations_recoilsfiner(kwargs['recoils_finer'])
-    elif 'recoils_fatter' in kwargs:
-        return StandardPermutations_recoilsfatter(kwargs['recoils_fatter'])
-    elif 'recoils' in kwargs:
-        return StandardPermutations_recoils(kwargs['recoils'])
 
 class Permutations_nk(CombinatorialClass):
     def __init__(self, n, k):
@@ -2952,3 +2982,561 @@ class CyclicPermutationsOfPartition_partition(CombinatorialClass):
         """
 
         return [p for p in self.iterator(distinct=distinct)]
+
+
+
+######
+#Avoiding
+
+
+class StandardPermutations_avoiding_12(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[1,2])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[1,2]))
+            'Standard permutations of 3 avoiding [1, 2]'
+        """
+        return "Standard permutations of %s avoiding [1, 2]"%self.n
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3, avoiding=[1,2]).list()
+            [[3, 2, 1]]
+        """
+        return [Permutation_class(range(self.n, 0, -1))]
+
+class StandardPermutations_avoiding_21(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[2,1])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[2,1]))
+            'Standard permutations of 3 avoiding [2, 1]'
+        """
+        return "Standard permutations of %s avoiding [2, 1]"%self.n
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3, avoiding=[2,1]).list()
+            [[1, 2, 3]]
+        """
+        return [Permutation_class(range(1, self.n+1))]
+
+
+class StandardPermutations_avoiding_132(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[1,3,2])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[1,3,2]))
+            'Standard permutations of 3 avoiding [1, 3, 2]'
+        """
+        return "Standard permutations of %s avoiding [1, 3, 2]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[1, 3, 2]).count()
+            42
+            sage: len( Permutations(5, avoiding=[1, 3, 2]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3, avoiding=[1,3,2]).list()
+            [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            sage: Permutations(4, avoiding=[1,3,2]).list()
+            [[4, 1, 3, 2],
+             [4, 2, 1, 3],
+             [4, 2, 3, 1],
+             [4, 3, 1, 2],
+             [4, 3, 2, 1],
+             [3, 4, 1, 2],
+             [3, 4, 2, 1],
+             [2, 3, 4, 1],
+             [3, 2, 4, 1],
+             [1, 3, 2, 4],
+             [2, 1, 3, 4],
+             [2, 3, 1, 4],
+             [3, 1, 2, 4],
+             [3, 2, 1, 4]]
+
+        """
+        if self.n == 0:
+            return
+
+        elif self.n < 3:
+            for p in StandardPermutations_n(self.n):
+                yield p
+            return
+
+        elif self.n == 3:
+            for p in StandardPermutations_n(self.n):
+                if p != [1, 2, 3]:
+                    yield p
+            return
+
+
+
+        #Yield all the 132 avoiding permutations to the right.
+        for right in StandardPermutations_avoiding_132(self.n - 1):
+            yield Permutation_class([self.n] + list(right))
+
+        #yi
+        for i in range(1, self.n-1):
+            for left in StandardPermutations_avoiding_132(i):
+                for right in StandardPermutations_avoiding_132(self.n-i-1):
+                    yield Permutation_class( map(lambda x: x+(self.n-i-1), left) + [self.n] + list(right) )
+
+
+        #Yield all the 132 avoiding permutations to the left
+        for left in StandardPermutations_avoiding_132(self.n - 1):
+            yield Permutation_class(list(left) + [self.n])
+
+
+class StandardPermutations_avoiding_123(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[1, 2, 3])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[1, 2, 3]))
+            'Standard permutations of 3 avoiding [1, 2, 3]'
+        """
+        return "Standard permutations of %s avoiding [1, 2, 3]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[1, 2, 3]).count()
+            42
+            sage: len( Permutations(5, avoiding=[1, 2, 3]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3, avoiding=[1, 2, 3]).list()
+             [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            sage: Permutations(2, avoiding=[1, 2, 3]).list()
+            [[1, 2], [2, 1]]
+            sage: Permutations(3, avoiding=[1, 2, 3]).list()
+            [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+        """
+        if self.n == 0:
+            return
+
+        elif self.n < 3:
+            for p in StandardPermutations_n(self.n):
+                yield p
+            return
+
+        elif self.n == 3:
+            for p in StandardPermutations_n(self.n):
+                if p != [1, 2, 3]:
+                    yield p
+            return
+
+
+        for p in StandardPermutations_avoiding_132(self.n):
+            #Convert p to a 123 avoiding permutation by
+            m = self.n+1
+            minima_pos = []
+            minima = []
+            for i in range(self.n):
+                if p[i] < m:
+                    minima_pos.append(i)
+                    minima.append(p[i])
+                    m = p[i]
+
+
+            new_p = []
+            non_minima = filter(lambda x: x not in minima, range(self.n, 0, -1))
+            a = 0
+            b = 0
+            for i in range(self.n):
+                if i in minima_pos:
+                    new_p.append( minima[a] )
+                    a += 1
+                else:
+                    new_p.append( non_minima[b] )
+                    b += 1
+
+            yield Permutation_class( new_p )
+
+
+class StandardPermutations_avoiding_321(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[3, 2, 1])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[3, 2, 1]))
+            'Standard permutations of 3 avoiding [3, 2, 1]'
+        """
+        return "Standard permutations of %s avoiding [3, 2, 1]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[3, 2, 1]).count()
+            42
+            sage: len( Permutations(5, avoiding=[3, 2, 1]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        for p in StandardPermutations_avoiding_123(self.n):
+            yield p.reverse()
+
+
+class StandardPermutations_avoiding_231(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[2, 3, 1])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[2, 3, 1]))
+            'Standard permutations of 3 avoiding [2, 3, 1]'
+        """
+        return "Standard permutations of %s avoiding [2, 3, 1]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[2, 3, 1]).count()
+            42
+            sage: len( Permutations(5, avoiding=[2, 3, 1]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        for p in StandardPermutations_avoiding_132(self.n):
+            yield p.reverse()
+
+
+class StandardPermutations_avoiding_312(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[3, 1, 2])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[3, 1, 2]))
+            'Standard permutations of 3 avoiding [3, 1, 2]'
+        """
+        return "Standard permutations of %s avoiding [3, 1, 2]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[3, 1, 2]).count()
+            42
+            sage: len( Permutations(5, avoiding=[3, 1, 2]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        for p in StandardPermutations_avoiding_132(self.n):
+            yield p.complement()
+
+
+class StandardPermutations_avoiding_213(CombinatorialClass):
+    def __init__(self, n):
+        """
+        TESTS:
+            sage: p = Permutations(3, avoiding=[2, 1, 3])
+            sage: p == loads(dumps(p))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(3, avoiding=[2, 1, 3]))
+            'Standard permutations of 3 avoiding [2, 1, 3]'
+        """
+        return "Standard permutations of %s avoiding [2, 1, 3]"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations(5, avoiding=[2, 1, 3]).count()
+            42
+            sage: len( Permutations(5, avoiding=[2, 1, 3]).list() )
+            42
+        """
+        return catalan_number(self.n)
+
+    def iterator(self):
+        for p in StandardPermutations_avoiding_132(self.n):
+            yield p.complement().reverse()
+
+
+class StandardPermutations_avoiding_generic(CombinatorialClass):
+    def __init__(self, n, a):
+        self.n = n
+        self.a = a
+
+    def __repr__(self):
+        return "Standard permutations of %s avoiding %s"%(self.n, self.a)
+
+    def iterator(self):
+        for p in StandardPermutations_n(self.n):
+            ls = map(len, self.a)
+            found = False
+            for l in ls:
+                for pos in subword.Subwords(range(self.n),l):
+                    if to_standard(map(lambda z: p[z] , pos)) in self.a:
+                        found = True
+                        break
+                if found:
+                    break
+
+            if found:
+                continue
+            else:
+                yield p
+
+
+
+
+def Permutations(n=None,k=None, **kwargs):
+    """
+    Returns a combinatorial class of permutations.
+
+    EXAMPLES:
+
+        sage: p = Permutations(3); p
+        Standard permutations of 3
+        sage: p.list()
+        [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
+        sage: p = Permutations(3, 2); p
+        Permutations of {1,...,3} of length 2
+        sage: p.list()
+        [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+
+        sage: p = Permutations(['c', 'a', 't']); p
+        Permutations of the (multi-)set ['c', 'a', 't']
+        sage: p.list()
+        [['c', 'a', 't'],
+         ['c', 't', 'a'],
+         ['a', 'c', 't'],
+         ['a', 't', 'c'],
+         ['t', 'c', 'a'],
+         ['t', 'a', 'c']]
+
+        sage: p = Permutations(['c', 'a', 't'], 2); p
+        Permutations of the (multi-)set ['c', 'a', 't'] of length 2
+        sage: p.list()
+        [['c', 'a'], ['c', 't'], ['a', 'c'], ['a', 't'], ['t', 'c'], ['t', 'a']]
+
+
+        sage: p = Permutations([1,1,2]); p
+        Permutations of the (multi-)set [1, 1, 2]
+        sage: p.list()
+        [[1, 1, 2], [1, 2, 1], [2, 1, 1]]
+
+
+        sage: p = Permutations([1,1,2], 2); p
+        Permutations of the (multi-)set [1, 1, 2] of length 2
+        sage: p.list()
+        [[1, 1], [1, 2], [2, 1]]
+
+        sage: p = Permutations(descents=[1,3]); p
+        Standard permutations of 4 with descents [1, 3]
+        sage: p.list()
+        [[1, 3, 2, 4], [1, 4, 2, 3], [2, 3, 1, 4], [2, 4, 1, 3], [3, 4, 1, 2]]
+
+        sage: p = Permutations(bruhat_smaller=[1,3,2,4]); p
+        Standard permutations that are less than or equal to [1, 3, 2, 4] in the Bruhat order
+        sage: p.list()
+        [[1, 2, 3, 4], [1, 3, 2, 4]]
+
+        sage: p = Permutations(bruhat_greater=[4,2,3,1]); p
+        Standard permutations that are greater than or equal to [4, 2, 3, 1] in the Bruhat order
+        sage: p.list()
+        [[4, 2, 3, 1], [4, 3, 2, 1]]
+
+        sage: p = Permutations(recoils_finer=[2,1]); p
+        Standard permutations whose recoils composition is finer than [2, 1]
+        sage: p.list()
+        [[1, 2, 3], [1, 3, 2], [3, 1, 2]]
+
+        sage: p = Permutations(recoils_fatter=[2,1]); p
+        Standard permutations whose recoils composition is fatter than [2, 1]
+        sage: p.list()
+        [[1, 3, 2], [3, 1, 2], [3, 2, 1]]
+
+        sage: p = Permutations(recoils=[2,1]); p
+        Standard permutations whose recoils composition is [2, 1]
+        sage: p.list()
+        [[1, 3, 2], [3, 1, 2]]
+
+        sage: p = Permutations(4, avoiding=[1,3,2]); p
+        Standard permutations of 4 avoiding [1, 3, 2]
+        sage: p.list()
+        [[4, 1, 3, 2],
+         [4, 2, 1, 3],
+         [4, 2, 3, 1],
+         [4, 3, 1, 2],
+         [4, 3, 2, 1],
+         [3, 4, 1, 2],
+         [3, 4, 2, 1],
+         [2, 3, 4, 1],
+         [3, 2, 4, 1],
+         [1, 3, 2, 4],
+         [2, 1, 3, 4],
+         [2, 3, 1, 4],
+         [3, 1, 2, 4],
+         [3, 2, 1, 4]]
+
+        sage: p = Permutations(5, avoiding=[[3,4,1,2], [4,2,3,1]]); p
+        Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
+        sage: p.count()
+        88
+        sage: p.random()
+        [1, 4, 2, 5, 3]
+
+    """
+
+    valid_args = ['descents', 'bruhat_smaller', 'bruhat_greater',
+                  'recoils_finer', 'recoils_fatter', 'recoils', 'avoiding']
+
+    number_of_arguments = 0
+    if n is not None:
+            number_of_arguments += 1
+    else:
+        if k is not None:
+            number_of_arguments += 1
+
+
+    #Make sure that exactly one keyword was passed
+    for key in kwargs:
+        if key not in valid_args:
+            raise ValueError, "unknown keyword argument: %s"%key
+        if key not in [ 'avoiding' ]:
+            number_of_arguments += 1
+
+    if number_of_arguments == 0:
+        return StandardPermutations_all()
+
+    if number_of_arguments != 1:
+        raise ValueError, "you must specify exactly one argument"
+
+    if n is not None:
+        if isinstance(n, (int, Integer)):
+            if k is None:
+                if 'avoiding' in kwargs:
+                    a = kwargs['avoiding']
+                    if a in StandardPermutations_all():
+                        if a == [1,2]:
+                            return StandardPermutations_avoiding_12(n)
+                        elif a == [2,1]:
+                            return StandardPermutations_avoiding_21(n)
+                        elif a == [1,2,3]:
+                            return StandardPermutations_avoiding_123(n)
+                        elif a == [1,3,2]:
+                            return StandardPermutations_avoiding_132(n)
+                        elif a == [2,1,3]:
+                            return StandardPermutations_avoiding_213(n)
+                        elif a == [2,3,1]:
+                            return StandardPermutations_avoiding_231(n)
+                        elif a == [3,1,2]:
+                            return StandardPermutations_avoiding_312(n)
+                        elif a == [3,2,1]:
+                            return StandardPermutations_avoiding_321(n)
+                        else:
+                            return StandardPermutations_avoiding_generic(n, [a])
+                    elif isinstance(a, __builtin__.list):
+                        return StandardPermutations_avoiding_generic(n, a)
+                    else:
+                        raise ValueError, "do not know how to avoid %s"%a
+                else:
+                    return StandardPermutations_n(n)
+            else:
+                return Permutations_nk(n,k)
+        else:
+            if k is None:
+                return Permutations_mset(n)
+            else:
+                return Permutations_msetk(n,k)
+    elif 'descents' in kwargs:
+        if isinstance(kwargs['descents'], tuple):
+            return StandardPermutations_descents(*kwargs['descents'])
+        else:
+            return StandardPermutations_descents(kwargs['descents'], max(kwargs['descents'])+1)
+    elif 'bruhat_smaller' in kwargs:
+        return StandardPermutations_bruhat_smaller(Permutation(kwargs['bruhat_smaller']))
+    elif 'bruhat_greater' in kwargs:
+        return StandardPermutations_bruhat_greater(Permutation(kwargs['bruhat_greater']))
+    elif 'recoils_finer' in kwargs:
+        return StandardPermutations_recoilsfiner(kwargs['recoils_finer'])
+    elif 'recoils_fatter' in kwargs:
+        return StandardPermutations_recoilsfatter(kwargs['recoils_fatter'])
+    elif 'recoils' in kwargs:
+        return StandardPermutations_recoils(kwargs['recoils'])

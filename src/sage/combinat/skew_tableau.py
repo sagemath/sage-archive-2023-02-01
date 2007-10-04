@@ -70,7 +70,7 @@ class SkewTableau_class(CombinatorialObject):
         """
 
         def none_str(x):
-            if x == None:
+            if x is None:
                 return "  ."
             else:
                 return "%3s"%str(x)
@@ -99,7 +99,7 @@ class SkewTableau_class(CombinatorialObject):
             [1, 1]
         """
 
-        return Partition(filter(lambda x: x != 0, [len(filter(lambda x: x==None, row)) for row in self]))
+        return Partition(filter(lambda x: x != 0, [len(filter(lambda x: x is None, row)) for row in self]))
 
     def shape(self):
         r"""
@@ -151,7 +151,7 @@ class SkewTableau_class(CombinatorialObject):
             3
 
         """
-        return sum([len(filter(lambda x: x != None,row)) for row in self])
+        return sum([len(filter(lambda x: x is not None,row)) for row in self])
 
 
 
@@ -186,7 +186,7 @@ class SkewTableau_class(CombinatorialObject):
         """
         word = []
         for row in self:
-            word += filter(lambda x: x!= None, row)
+            word += filter(lambda x: x is not None, row)
 
         return word
 
@@ -205,7 +205,7 @@ class SkewTableau_class(CombinatorialObject):
         word = []
         conj = self.conjugate()
         for row in conj:
-            word += filter(lambda x: x!= None, row)
+            word += filter(lambda x: x is not None, row)
 
         return word
 
@@ -252,7 +252,7 @@ class SkewTableau_class(CombinatorialObject):
         #Check to make sure it is increasing along the rows
         for row in t:
             for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] <= row[i-1]:
+                if row[i] is not None and row[i] <= row[i-1]:
                     return False
 
 
@@ -260,7 +260,7 @@ class SkewTableau_class(CombinatorialObject):
         conj = t.conjugate()
         for row in conj:
             for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] <= row[i-1]:
+                if row[i] is not None and row[i] <= row[i-1]:
                     return False
 
         return True
@@ -326,7 +326,7 @@ class SkewTableau_class(CombinatorialObject):
         new_st = copy.copy(self[:])
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
-        if corner != None:
+        if corner is not None:
             if corner not in inner_corners:
                 raise ValueError, "corner must be an inner corner"
         else:
@@ -409,7 +409,7 @@ class SkewTableauWithContent(SkewTableau_class):
         #Compute t which is the "minimum" skew tableau with
         #the given content
         #t = [ [0]*self.outer[i] for i in range(len(self.outer)) ]
-        if initial == None:
+        if initial is None:
             t = self.list
         else:
             t = initial
@@ -439,14 +439,14 @@ class SkewTableauWithContent(SkewTableau_class):
     def __init__(self, outer, inner, conts=None, maxrows=0):
         self.rows = len(outer)
 
-        if conts != None:
+        if conts is not None:
             self.clen = len(conts)
         else:
             self.clen = 0
         self.clen += self.rows
 
         self.conts = [0]*self.clen
-        if conts != None:
+        if conts is not None:
             for i in range(len(conts)):
                 self.conts[i] = conts[i]
 

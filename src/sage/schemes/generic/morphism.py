@@ -117,24 +117,24 @@ class SchemeMorphism(PyMorphism):
             Scheme obtained by gluing X and Y along U, where
               X: Spectrum of Univariate Polynomial Ring in x over Rational Field
               Y: Spectrum of Univariate Polynomial Ring in y over Rational Field
-              U: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+              U: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
 
             sage: a, b = P1.gluing_maps()
             sage: a
             Affine Scheme morphism:
-             From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+             From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in x over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in x over Rational Field
-                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
                       Defn: x |--> xbar
             sage: b
             Affine Scheme morphism:
-              From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+              From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in y over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in y over Rational Field
-                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
         import glue

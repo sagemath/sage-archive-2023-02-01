@@ -241,7 +241,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         EXAMPLES:
             sage: R, vars = MPolynomialRing(QQ,3, 'x').objgens()
             sage: R
-            Polynomial Ring in x0, x1, x2 over Rational Field
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             sage: vars
             (x0, x1, x2)
         """
@@ -308,7 +308,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         When we create this polynomial ring, self._assign_names is called by the constructor:
 
             sage: R = QQ['x,y,abc']; R
-            Polynomial Ring in x, y, abc over Rational Field
+            Multivariate Polynomial Ring in x, y, abc over Rational Field
             sage: R.2
             abc
 

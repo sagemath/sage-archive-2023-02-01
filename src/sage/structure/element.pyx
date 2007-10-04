@@ -2072,7 +2072,8 @@ cdef class Matrix(AlgebraElement):
             # Possibilities:
             #     left * matrix
             if PY_TYPE_CHECK(right, Matrix):
-                right = (<Matrix>right).base_base_extend_canonical_sym_c((<Matrix>left)._parent._base)
+                if (<Matrix>left)._parent._base is not (<Matrix>right)._parent._base:
+                    right = (<Matrix>right).base_base_extend_canonical_sym_c((<Matrix>left)._parent._base)
                 return (<Matrix>left)._matrix_times_matrix_c(<Matrix>right)
             #     left * vector
             if PY_TYPE_CHECK(right, Vector):

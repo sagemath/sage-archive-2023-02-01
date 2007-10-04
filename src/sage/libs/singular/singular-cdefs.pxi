@@ -14,7 +14,60 @@ include "sage/ext/cdefs.pxi"
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
+
+cdef extern from "factory.h":
+
+    #
+    # CF OPTIONS
+    #
+
+    void On( int )
+    void Off( int )
+    int isOn( int )
+
+    cdef int SW_USE_CHINREM_GCD
+    cdef int SW_USE_EZGCD
+
 cdef extern from "libsingular.h":
+
+    #
+    # OPTIONS
+    #
+
+    # We are working around a bug in Cython here. If you want to write
+    # to an external int Cython creates a local Python it to write
+    # to. We can however happyly work with pointers.
+
+    cdef int *singular_options "(&test)"
+
+    # actual options
+    cdef int OPT_PROT
+    cdef int OPT_REDSB
+    cdef int OPT_NOT_BUCKETS
+    cdef int OPT_NOT_SUGAR
+    cdef int OPT_INTERRUPT
+    cdef int OPT_SUGARCRIT
+    cdef int OPT_DEBUG
+    cdef int OPT_REDTHROUGH
+    cdef int OPT_RETURN_SB
+    cdef int OPT_FASTHC
+    cdef int OPT_OLDSTD
+    cdef int OPT_KEEPVARS
+    cdef int OPT_STAIRCASEBOUND
+    cdef int OPT_MULTBOUND
+    cdef int OPT_DEGBOUND
+    cdef int OPT_REDTAIL
+    cdef int OPT_INTSTRATEGY
+    cdef int OPT_INFREDTAIL
+    cdef int OPT_SB_1
+    cdef int OPT_NOTREGULARITY
+    cdef int OPT_WEIGHTM
+
+    # getter/setter functions
+    int Sy_bit(int)
+    int Sy_inset(int x,int s)
+    int BTEST1(int)
+    int BVERBOSE(int)
 
     #
     # STRUCTS
@@ -358,7 +411,7 @@ cdef extern from "libsingular.h":
 
     int p_IsUnit(poly *p, ring *r)
 
-    # substitute value for variable given by varidx in poly
+    # substitute monomial for variable given by varidx in poly
 
     poly *pSubst(poly *p, int varidx, poly *value)
 

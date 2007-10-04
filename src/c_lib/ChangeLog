@@ -1,9 +1,0 @@
-2006-11-24  Martin Albrecht  <martin@informatik.uni-bremen.de>
-
-	* updated to work with SAGE 1.5
-	* corrected spkg-install
-
-2006-11-15  Martin Albrecht  <malb@informatik.uni-bremen.de>
-
-	* initial release
-

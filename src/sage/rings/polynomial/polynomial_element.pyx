@@ -807,24 +807,36 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _latex_(self, name=None):
         r"""
+        Return the latex representation of this polynomial.
+
         EXAMPLES:
-			sage: x = polygen(QQ)
+        A fairly simple example over $\QQ$.
+            sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
-             x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+            x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+
+        A $p$-adic example where the coefficients are $0$ to some precision.
+            sage: K = Qp(3,20)
+            sage: R.<x> = K[]
+            sage: f = K(0,-2)*x + K(0,-1)
+            sage: f
+            (O(3^-2))*x + (O(3^-1))
+            sage: latex(f)
+            \left(O(3^{-2})\right)x + O(3^{-1})
         """
         s = " "
-        m = self.degree() + 1
+        coeffs = self.list()
+        m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
-        coeffs = self.list()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            if x != 0:
+            x = latex(x)
+            if x != '0':
                 if n != m-1:
                     s += " + "
-                x = latex(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
@@ -1411,9 +1423,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         with multiplicity 1.
             sage: x = CDF['x'].0; i = CDF.0
             sage: f = (x^2 + 2*i)^3
-            sage: f.factor()
+            sage: f.factor()    # random low order bits
             (1.0*x + -0.999994409957 + 1.00001040378*I) * (1.0*x + -0.999993785062 + 0.999989956987*I) * (1.0*x + -1.00001180498 + 0.999999639235*I) * (1.0*x + 0.999995530902 - 0.999987780431*I) * (1.0*x + 1.00001281704 - 1.00000223945*I) * (1.0*x + 0.999991652054 - 1.00000998012*I)
-            sage: f(-f.factor()[0][0][0])
+            sage: f(-f.factor()[0][0][0])   # random low order bits
             -2.38358052913e-14 - 2.57571741713e-14*I
 
 
@@ -2289,17 +2301,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CDF.0
             sage: f = x^3 + 2*i; f
             1.0*x^3 + 2.0*I
-            sage: f.roots()
+            sage: f.roots()  # random low-order bits
             [(-1.09112363597 - 0.629960524947*I, 1), (6.66133814775e-16 + 1.25992104989*I, 1), (1.09112363597 - 0.629960524947*I, 1)]
-            sage: f.roots(multiplicities=False)
+            sage: f.roots(multiplicities=False)   # random low-order bits
             [-1.09112363597 - 0.629960524947*I, 6.66133814775e-16 + 1.25992104989*I, 1.09112363597 - 0.629960524947*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)]
+            sage: [f(z) for z in f.roots(multiplicities=False)]  # random low-order bits
             [-3.10862446895e-15 - 4.4408920985e-16*I, -3.17226455498e-15 + 3.99680288865e-15*I, -5.55111512313e-16 - 8.881784197e-16*I]
             sage: f = i*x^3 + 2; f
             1.0*I*x^3 + 2.0
-            sage: f.roots()
+            sage: f.roots()     # random low-order bits
             [(-1.09112363597 + 0.629960524947*I, 1), (6.66133814775e-16 - 1.25992104989*I, 1), (1.09112363597 + 0.629960524947*I, 1)]
-            sage: f(f.roots()[0][0])
+            sage: f(f.roots()[0][0])         # random low-order bits
             -4.4408920985e-16 - 3.10862446895e-15*I
 
         NOTE: This is a note about numerical root finding when the

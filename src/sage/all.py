@@ -248,6 +248,8 @@ def quit_sage(verbose=True):
     import sage.matrix.matrix_mod2_dense
     sage.matrix.matrix_mod2_dense.free_m4ri()
 
+    pari._unsafe_deallocate_pari_stack()
+
     ### The following is removed -- since it would cleanup
     ### the tmp directory that the sage cleaner depends upon.
     # The following code close all open file descriptors,

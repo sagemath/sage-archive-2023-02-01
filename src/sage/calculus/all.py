@@ -16,6 +16,8 @@ from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpression,
                       is_SymbolicExpressionRing)
 
+from calculus import maxima as maxima_calculus
+
 
 from functional import (diff, derivative,
                         laplace, inverse_laplace,

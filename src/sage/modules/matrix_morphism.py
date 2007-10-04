@@ -257,10 +257,18 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
         """
         D  = self.domain()
-	C  = self.codomain()
-	M  = self.matrix()
-	Mr = M.restrict_domain(sub)
-	return sub.Hom(C)(Mr)
+        B  = sub.basis()
+        ims= sum([(self(D(b)).coordinate_vector()).list() for b in B],[])
+
+        MS = matrix.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
+        H = sub.Hom(self.codomain(), sub.category())
+        return H(MS(ims))
+
+        #D  = self.domain()
+	#C  = self.codomain()
+	#M  = self.matrix()
+	#Mr = M.restrict_domain(sub)
+	#return sub.Hom(C)(Mr)
 
     def restrict(self, sub):
         """

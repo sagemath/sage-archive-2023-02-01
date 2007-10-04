@@ -993,7 +993,7 @@ def sigma(n, k=1):
         return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
 
 
-def gcd(a, b=0, integer=False):
+def gcd(a, b=0, integer=False, **kwargs):
     """
     The greatest common divisor of a and b.
 
@@ -1005,6 +1005,9 @@ def gcd(a, b=0, integer=False):
         v -- vector
         integer -- (default: False); if True, do an integer GCD
             NOTE -- this is *vastly* faster than doing the generic GCD
+
+    Additional keyword arguments are passed to the respectively called
+    methods.
 
     EXAMPLES:
         sage: GCD(97,100)
@@ -1028,7 +1031,7 @@ def gcd(a, b=0, integer=False):
         return __GCD_list(a)
     if not isinstance(a, RingElement):
         a = integer_ring.ZZ(a)
-    return a.gcd(b)
+    return a.gcd(b, **kwargs)
 
 GCD = gcd
 

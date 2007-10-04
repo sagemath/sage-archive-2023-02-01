@@ -807,24 +807,36 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _latex_(self, name=None):
         r"""
+        Return the latex representation of this polynomial.
+
         EXAMPLES:
-			sage: x = polygen(QQ)
+        A fairly simple example over $\QQ$.
+            sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
-             x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+            x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+
+        A $p$-adic example where the coefficients are $0$ to some precision.
+            sage: K = Qp(3,20)
+            sage: R.<x> = K[]
+            sage: f = K(0,-2)*x + K(0,-1)
+            sage: f
+            (O(3^-2))*x + (O(3^-1))
+            sage: latex(f)
+            \left(O(3^{-2})\right)x + O(3^{-1})
         """
         s = " "
-        m = self.degree() + 1
+        coeffs = self.list()
+        m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
-        coeffs = self.list()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            if x != 0:
+            x = latex(x)
+            if x != '0':
                 if n != m-1:
                     s += " + "
-                x = latex(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:

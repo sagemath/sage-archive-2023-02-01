@@ -72,7 +72,10 @@ def is_older(file1, file2):
         return True
     return False
 
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
+include_dirs = ['%s/include'%SAGE_LOCAL, \
+		'%s/include/csage'%SAGE_LOCAL, \
+		## this is included, but doesn't actually exist
+		## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 #####################################################

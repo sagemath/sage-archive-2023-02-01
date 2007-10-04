@@ -649,7 +649,10 @@ If this all works, you can then make calls like:
         try:
             return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
         except KeyboardInterrupt:
-            self._keyboard_interrupt()
+            # DO NOT CATCH KeyboardInterrupt, as it is being caught
+            # by _eval_line
+            # In particular, do NOT call self._keyboard_interrupt()
+            raise
         except TypeError, s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 

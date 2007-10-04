@@ -185,15 +185,15 @@ def check_integer_list_constraints(l, **kwargs):
     outer = kwargs.get('outer', None)
 
     #Preprocess the constraints
-    if outer != None:
+    if outer is not None:
         max_length = len(outer)
         for i in range(max_length):
             if outer[i] == "inf":
                 outer[i] = n+1
-    if inner != None:
+    if inner is not None:
         min_length = len(inner)
 
-    if length != None:
+    if length is not None:
         max_length = length
         min_length = length
 

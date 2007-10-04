@@ -861,6 +861,39 @@ class MPolynomialIdeal_singular_repr:
         R = self.ring()
         return MPolynomialIdeal(R, [f.sage_poly(R) for f in Is.eliminate( prod(variables) ) ] )
 
+    def quotient(self, J):
+        r"""
+        Given ideals I (==self) and J of the same polynomial ring P,
+        return the ideal quotient of I by J consisting of the
+        polynomials a of P such that $\{aJ \subset I\}$.
+
+        This is also referred to as the colon ideal (I:J).
+
+        INPUT:
+            J -- multivariate polynomial ideal
+
+        EXAMPLE:
+            sage: R.<x,y,z> = PolynomialRing(GF(181),3)
+            sage: I = Ideal([x^2+x*y*z,y^2-z^3*y,z^3+y^5*x*z])
+            sage: J = Ideal([x])
+            sage: Q = I.quotient(J)
+            sage: y*z + x in I
+            False
+            sage: x in J
+            True
+            sage: x * (y*z + x) in I
+            True
+        """
+        R = self.ring()
+
+        if not isinstance(J, MPolynomialIdeal):
+            raise TypeError, "J needs to be a multivariate polynomial ideal"
+
+        if not R is J.ring() and not R == J.ring():
+            raise TypeError, "base rings do not match"
+
+        return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
+
 class MPolynomialIdeal_macaulay2_repr:
     """
     An ideal in a multivariate polynomial ring, which has an underlying
@@ -1007,6 +1040,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                          * 'singular:stdhilb' - Singular's stdhib command
                          * 'singular:stdfglm' - Singular's stdfglm command
                          * 'singular:slimgb' - Singular's slimgb command
+                         * 'libsingular:std' - libSINGULAR's std command
+                         * 'libsingular:slimgb' - libSINGULAR's slimgb command
                          * 'toy:buchberger' - SAGE's toy/educational buchberger without strategy
                          * 'toy:buchberger2' - SAGE's toy/educational buchberger with strategy
                          * 'macaulay2:gb' (if available) - Macaulay2's gb command
@@ -1099,3 +1134,31 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
+
+    def change_ring(self, P):
+        r"""
+        Return the ideal $I$ in $P$ spanned by the generators $g_1,
+        ..., g_n$ of self as returned by self.gens().
+
+        INPUT:
+            P -- a multivariate polynomial ring
+
+        EXAMPLE:
+           sage: P.<x,y,z> = PolynomialRing(QQ,3,order='lex')
+           sage: I = sage.rings.ideal.Cyclic(P)
+           sage: I
+           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Polynomial Ring in x, y, z over Rational Field
+           sage: I.groebner_basis()
+           [z^3 - 1, y^2 + y*z + z^2, x + y + z]
+
+           sage: Q.<x,y,z> = P.new_ring(order='degrevlex'); Q
+           Polynomial Ring in x, y, z over Rational Field
+           sage: Q.term_order()
+           Degree reverse lexicographic term order
+
+           sage: J = I.change_ring(Q)
+           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Polynomial Ring in x, y, z over Rational Field
+           sage: J.groebner_basis()
+           [x + y + z, y^2 + y*z + z^2, z^3 - 1]
+        """
+        return P.ideal([P(f) for f in self.gens()])

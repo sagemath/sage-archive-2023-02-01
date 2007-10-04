@@ -2366,6 +2366,9 @@ cdef class Matrix(matrix1.Matrix):
         if not self._base_ring.is_field():
             raise ValueError, "Echelon form not defined over this base ring."
 
+        if self._base_ring.characteristic() != 0:
+            verbose("WARNING: Strassen Echelon in characteristic p is buggy!!  Do not use.", level=0)
+
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()
 

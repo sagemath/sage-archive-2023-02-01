@@ -549,6 +549,9 @@ ext_modules = [ \
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']), \
 
+    Extension('sage.misc.misc_c',
+              sources = ['sage/misc/misc_c.pyx']), \
+
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']), \
 

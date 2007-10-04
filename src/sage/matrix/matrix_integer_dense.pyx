@@ -549,12 +549,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Py_ssize_t i, j, k, l, nr, nc, snc
         cdef mpz_t *v
+        cdef object parent
 
         nr = self._nrows
         nc = right._ncols
         snc = self._ncols
 
-        parent = self.matrix_space(nr, nc)
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            parent = right.parent()
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            parent = self.parent()
+        else:
+            parent = self.matrix_space(nr, nc)
 
         cdef Matrix_integer_dense M, _right
         _right = right

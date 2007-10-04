@@ -79,9 +79,9 @@ def trace_faces(graph, rot_sys):
         sage: for node in K.vertices():
         ...     rot.append(K[node])
         sage: rot
-        [[1, 3], [0, 2], [1, 3], [0, 2]]
+        [[1, 2], [0, 3], [0, 3], [1, 2]]
         sage: graph_genus1.trace_faces(K,rot)
-        [[(0, 1), (1, 2), (2, 3), (3, 0)], [(3, 2), (2, 1), (1, 0), (0, 3)]]
+        [[(0, 1), (1, 3), (3, 2), (2, 0)], [(1, 0), (0, 2), (2, 3), (3, 1)]]
     """
     from sage.sets.set import Set
 
@@ -143,7 +143,7 @@ def all_embeddings(graph):
         sage: J = Graph({'alpha':['beta', 'epsilon'], 'gamma':['beta', 'epsilon']})
         sage: J.set_boundary(['beta','alpha'])
         sage: graph_genus1.all_embeddings(J)
-        [(0, [[(0, 1), (1, 2), (2, 3), (3, 0)], [(3, 2), (2, 1), (1, 0), (0, 3)]])]
+        [(0, [[(0, 1), (1, 3), (3, 2), (2, 0)], [(1, 0), (0, 2), (2, 3), (3, 1)]])]
         sage: K23 = graphs.CompleteBipartiteGraph(2,3)
         sage: graph_genus1.all_embeddings(K23)
         [(1,

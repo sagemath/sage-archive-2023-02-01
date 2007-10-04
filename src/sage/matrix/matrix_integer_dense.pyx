@@ -549,12 +549,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Py_ssize_t i, j, k, l, nr, nc, snc
         cdef mpz_t *v
+        cdef object parent
 
         nr = self._nrows
         nc = right._ncols
         snc = self._ncols
 
-        parent = self.matrix_space(nr, nc)
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            parent = right.parent()
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            parent = self.parent()
+        else:
+            parent = self.matrix_space(nr, nc)
 
         cdef Matrix_integer_dense M, _right
         _right = right
@@ -1177,11 +1185,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: C.elementary_divisors()
             [1, 1, 1, 687]
 
+            sage: M = random_matrix(ZZ,3,2)
+            sage: M.elementary_divisors()
+            [1, 1, 0]
+
+        This returns a copy, which is safe to change:
+            sage: edivs = M.elementary_divisors()
+            sage: edivs.pop()
+            0
+            sage: M.elementary_divisors()
+            [1, 1, 0]
+
         SEE ALSO: smith_form
         """
         d = self.fetch('elementary_divisors')
         if not d is None:
-            return d
+            return d[:]
         if self._nrows == 0 or self._ncols == 0:
             d = []
         else:
@@ -1203,7 +1222,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             elif not (algorithm in ['pari', 'linbox']):
                 raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
-        return d
+        return d[:]
 
     def _elementary_divisors_linbox(self):
         self._init_linbox()

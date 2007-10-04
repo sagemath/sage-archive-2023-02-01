@@ -5,7 +5,7 @@
 ##         Craig Citro (minor edits)
 ##
 ##
-## 07 Sep 01:
+## 2007 Sep 01:
 ## I added a fix for trac ticket 555, which is to add the "install_lib"
 ## and "install_includes" below.
 ## This is not the most elegant approach, I think. The problem is this:
@@ -26,6 +26,15 @@
 ##
 ## I also edited a bunch of lines below so that they didn't go over 80 chars,
 ## because I don't like seeing wrapped lines.
+##
+## 2007 Oct 01:
+## After discussion with Gonzalo Tornaria and William Stein, we
+## decided that there's a much better solution to the above
+## problem: make $SAGE_ROOT/local/lib/libcsage.dylib. Also, we're
+## reorganizing the directory tree to have src/ and include/
+## subdirectories, and $SAGE_ROOT/local/include has a link into
+## this directory.
+##
 import os
 
 # Note that SCons's strong point is not the './configure' step of
@@ -60,40 +69,24 @@ if env['PLATFORM']=="darwin":
 
 
 ## We want the debug and optimization flags, since debug symbols are so useful, etc.
-
 env.Append( CFLAGS="-O2 -g" )
 
 # SCons doesn't automatically pull in system environment variables
 # However, we only need SAGE_LOCAL, so that's easy.
 env['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
 
-def copy_all_includes( target, source, env ):
-    path = os.environ['SAGE_LOCAL'] + "/include"
-    for f in source:
-        Copy( path, f )
-    return None
-
 # The SCons convenience function Split is the only strange thing
 # to python programmers. It just makes a list by splitting on
 # whitespace without the syntax clutter of lists of strings.
 includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.5/',
-            '$SAGE_LOCAL/include/NTL/']
+            '$SAGE_LOCAL/include/NTL/', 'include']
 cFiles = Split( "interrupt.c  mpn_pylong.c  mpz_pylong.c  stdsage.c gmp_globals.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
+srcFiles = cFiles + cppFiles
 
-includes_to_install = Split( "ZZ_pylong.h  ccobject.h  interrupt.h") + \
-                      Split( "mpn_pylong.h  mpz_pylong.h  ntl_wrap.h  stdsage.h gmp_globals.h" )
-lib = env.SharedLibrary( "csage", cFiles + cppFiles,
+lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
                          LIBS=['ntl', 'gmp'], LIBPATH=['$SAGE_LOCAL/lib'],
                          CPPPATH=includes )
 
-env.Install( "$SAGE_LOCAL/include", includes_to_install )
-env.Install( "$SAGE_LOCAL/lib", lib )
+env.Alias( "install", [ lib ] )
 
-Command( "install_includes", includes_to_install, copy_all_includes )
-Command( "install_lib", lib, Copy( env['SAGE_LOCAL'] + "/lib", lib ) )
-
-env.Alias( "install", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib"] )
-
-env.Alias( "branch_switch", ["$SAGE_LOCAL/include", "$SAGE_LOCAL/lib",
-                             "install_includes", "install_lib"] )

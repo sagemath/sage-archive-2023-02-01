@@ -436,14 +436,10 @@ cdef void late_import():
     import sage.rings.polynomial.polynomial_ring_constructor
     PolynomialRing =  sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing
 
-    import sage.rings.rational
-    Rational = sage.rings.rational.Rational
-
-    import sage.rings.rational_field
-    QQ = sage.rings.rational_field.RationalField()
-
-    import sage.rings.integer_ring
-    ZZ = sage.rings.integer_ring.IntegerRing()
+    import sage.rings.all
+    QQ = sage.rings.all.QQ
+    Rational = sage.rings.all.Rational
+    ZZ = sage.rings.all.ZZ
 
     #Symmetric Function Algebra
     import sage.combinat.sfa
@@ -505,11 +501,11 @@ cdef object _py(OP a):
 
 cdef void* _op(object a, OP result):
     late_import()
-    if isinstance(a, Integer):
+    if PyObject_TypeCheck(a, Integer):
         _op_integer(a, result)
-    elif isinstance(a, Partition_class):
+    elif PyObject_TypeCheck(a, Partition_class):
         _op_partition(a, result)
-    elif isinstance(a, Rational):
+    elif PyObject_TypeCheck(a, Rational):
         _op_fraction(a, result)
     else:
         raise TypeError, "cannot convert a (= %s) to OP"%a
@@ -694,16 +690,18 @@ cdef object _py_polynom(OP a):
 
     pointer = a
     parent_ring = _py(s_po_k(pointer)).parent()
-    P = PolynomialRing(parent_ring, maxneeded, 'x')
-    x = P.gens()
-    res = P(0)
+    if maxneeded == 1:
+        P = PolynomialRing(parent_ring, 'x')
+    else:
+        P = PolynomialRing(parent_ring, maxneeded, 'x')
+    d = {}
     while pointer != NULL:
-        exps = _py_vector(s_po_s(pointer))
-        res += _py(s_po_k(pointer)) *prod([ x[i]**exps[i] for i in range(len(exps))])
+        exps = tuple(_py_vector(s_po_s(pointer)))
+        d[ exps ] = _py(s_po_k(pointer))
         pointer = s_po_n(pointer)
 
+    return P(d)
 
-    return res
 
 cdef object _py_polynom_alphabet(OP a, object alphabet):
     late_import()
@@ -871,7 +869,7 @@ cdef object _py_schur_general(OP a):
     return d
 
 cdef void* _op_schur_general(object d, OP res):
-    if isinstance(d, dict):
+    if PyObject_TypeCheck(d, dict):
         _op_schur_general_dict(d, res)
     else:
         _op_schur_general_sf(d, res)
@@ -918,7 +916,7 @@ cdef void* _op_schur_general_dict(object d, OP res):
 #Schubert Polynomials#
 ######################
 cdef void* _op_schubert_general(object d, OP res):
-    if isinstance(d, dict):
+    if PyObject_TypeCheck(d, dict):
         _op_schubert_dict(d, res)
     else:
         _op_schubert_sp(d, res)
@@ -1006,7 +1004,7 @@ cdef object _py_matrix(OP a):
         res.append(row)
 
     #return res
-    if res == [] or res == None:
+    if res == [] or res is None:
         return res
     else:
         return matrix_constructor(res)

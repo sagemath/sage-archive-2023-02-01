@@ -1540,6 +1540,22 @@ class SemistandardTableaux_p(CombinatorialClass):
         """
         return "Semistandard tableaux of shape %s" % str(self.p)
 
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardTableaux([2,1]).count()
+            4
+            sage: SemistandardTableaux([2,2,1]).count()
+            16
+            sage: SemistandardTableaux([5]).count()
+            16
+            sage: SemistandardTableaux([3,2,1]).count()
+            96
+        """
+        c = 0
+        for comp in Compositions(sum(self.p)):
+            c += SemistandardTableaux_pmu(self.p, comp).count()
+        return c
 
     def iterator(self):
         """

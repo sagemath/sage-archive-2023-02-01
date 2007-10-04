@@ -207,11 +207,45 @@ class Ideal_generic(MonoidElement):
         Return the reduction the element of $f$ modulo the ideal $I$
         (=self).  This is an element of $R$ that is equivalent modulo
         $I$ to $f$.
+
+        EXAMPLES:
+            sage: ZZ.ideal(5).reduce(17)
+            2
+            sage: parent(ZZ.ideal(5).reduce(17))
+            Integer Ring
         """
         return f       # default
 
     def gens(self):
+        """
+        Return a set of generators / a basis of self. This is usually
+        the set of generators provided during object creation.
+
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: I = Ideal([x,y+1]); I
+            Ideal (x, y + 1) of Polynomial Ring in x, y over Rational Field
+            sage: I.gens()
+            [x, y + 1]
+
+            sage: ZZ.ideal(5,10).gens()
+            (5,)
+        """
         return self.__gens
+
+    def gens_reduced(self):
+        r"""
+        Same as gens() for this ideal, since there is currently no
+        special gens_reduced algorithm implemented for this ring.
+
+        This method is provided so that ideals in ZZ have the method
+        gens_reduced(), just like ideals of number fields.
+
+        EXAMPLES:
+            sage: ZZ.ideal(5).gens_reduced()
+            (5,)
+        """
+        return self.gens()
 
     def is_maximal(self):
         raise NotImplementedError

@@ -592,29 +592,100 @@ class CombinatorialObject(SageObject):
 
 
 class CombinatorialClass(SageObject):
-
     def __len__(self):
+        """
+        Returns the number of elements in the combinatorial class.
+
+        EXAMPLES:
+            sage: len(Partitions(5))
+            7
+        """
         return self.count()
 
     def __getitem__(self, i):
+        """
+        Returns the combinatorial object of rank i.
+
+        EXAMPLES:
+            sage: p5 = Partitions(5)
+            sage: p5[0]
+            [5]
+            sage: p5[6]
+            [1, 1, 1, 1, 1]
+            sage: p5[7]
+            Traceback (most recent call last):
+            ...
+            ValueError: the value must be between 0 and 6 inclusive
+        """
         return self.unrank(i)
 
     def __str__(self):
+        """
+        Returns a string representation of self.
+
+        EXAMPLES:
+            sage: str(Partitions(5))
+            'Partitions of the integer 5'
+        """
         return self.__repr__()
 
     def __repr__(self):
-        return "Combinatorial Class"
+        """
+        EXAMPLES:
+            sage: repr(Partitions(5))
+            'Partitions of the integer 5'
+        """
+        if hasattr(self, '_name') and self._name:
+            return self._name
+        else:
+            return "Combinatorial Class -- REDEFINE ME!"
 
     def __contains__(self, x):
-        return False
+        """
+        Tests whether or not the combinatorial class contains the
+        object x.  This raises a NotImplementedError as a default
+        since _all_ subclasses of CombinatorialClass should
+        override this.
+
+        Note that we could replace this with a default implementation
+        that just iterates through the elements of the combinatorial
+        class and checks for equality.  However, since we use __contains__
+        for type checking, this operation should be cheap and should be
+        implemented manually for each combinatorial class.
+        """
+        raise NotImplementedError
 
     def __iter__(self):
+        """
+        Allows the combinatorial class to be treated as an iterator.
+
+        EXAMPLES:
+            sage: p5 = Partitions(5)
+            sage: [i for i in p5]
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+        """
         return self.iterator()
 
     def __cmp__(self, x):
+        """
+        Compares two different combinatorial classes.  For now, the comparison
+        is done just on their repr's.
+
+        EXAMPLES:
+            sage: p5 = Partitions(5)
+            sage: p6 = Partitions(6)
+            sage: repr(p5) == repr(p6)
+            False
+            sage: p5 == p6
+            False
+        """
         return cmp(repr(self), repr(x))
 
     def __count_from_iterator(self):
+        """
+        Default implmentation of count which just goes through the iterator
+        of the combinatorial class to count the number of objects.
+        """
         c = 0
         for x in self.iterator():
             c += 1
@@ -622,22 +693,44 @@ class CombinatorialClass(SageObject):
     count = __count_from_iterator
 
     def __call__(self, x):
+        """
+        Returns x as an element of the combinatorial class's object class.
+
+        EXAMPLES:
+            sage: p5 = Partitions(5)
+            sage: a = [2,2,1]
+            sage: type(a)
+            <type 'list'>
+            sage: a = p5(a)
+            sage: type(a)
+            <class 'sage.combinat.partition.Partition_class'>
+            sage: p5([2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 1] not in Partitions of the integer 5
+        """
         if x in self:
             return self.object_class(x)
         else:
             raise ValueError, "%s not in %s"%(x, self)
 
     def __list_from_iterator(self):
-        res = []
-        for x in self.iterator():
-            res.append(x)
-        return res
+        """
+        The default implementation of list which builds the list from
+        the iterator.
+        """
+        return [x for x in self.iterator()]
 
+    #Set list to the default implementation
     list  = __list_from_iterator
 
+    #Set the default object class to be CombinatorialObject
     object_class = CombinatorialObject
 
     def __iterator_from_next(self):
+        """
+        An iterator to use when .first() and .next() are provided.
+        """
         f = self.first()
         yield f
         while True:
@@ -652,6 +745,9 @@ class CombinatorialClass(SageObject):
                 yield f
 
     def __iterator_from_previous(self):
+        """
+        An iterator to use when .last() and .previous() are provided.
+        """
         l = self.last()
         yield l
         while True:
@@ -666,6 +762,9 @@ class CombinatorialClass(SageObject):
                 yield l
 
     def __iterator_from_unrank(self):
+        """
+        An iterator to use when .unrank() is provided.
+        """
         r = 0
         u = self.unrank(r)
         yield f
@@ -682,18 +781,28 @@ class CombinatorialClass(SageObject):
                 yield u
 
     def __iterator_from_list(self):
+        """
+        An iterator to use when .list() is provided()
+        """
         for x in self.list():
             yield x
 
     def iterator(self):
+        """
+        Default implementation of iterator.
+        """
+        #Check to see if .first() and .next() are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
             return self.__iterator_from_next()
+        #Check to see if .last() and .previous() are overridden in the subclass
         elif ( self.last != self.__last_from_iterator and
                self.previous != self.__previous_from_iterator):
             return self.__iterator_from_previous()
+        #Check to see if .unrank() is overridden in the subclass
         elif self.unrank != self.__unrank_from_iterator:
             return self.__iterator_from_unrank()
+        #Finally, check to see if .list() is overridden in the subclass
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
@@ -704,6 +813,9 @@ class CombinatorialClass(SageObject):
         return [ self.unrank(i) for i in range(self.count()) ]
 
     def __unrank_from_iterator(self, r):
+        """
+        Default implementation of unrank which goes through the iterator.
+        """
         counter = 0
         for u in self.iterator():
             if counter == r:
@@ -711,16 +823,14 @@ class CombinatorialClass(SageObject):
             counter += 1
         raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
 
-    def __unrank_from_iterator(self, r):
-        counter = 0
-        for u in self.iterator():
-            if counter == r:
-                return u
-            counter += 1
-
+    #Set the default implementation of unrank
     unrank = __unrank_from_iterator
 
+
     def __random_from_unrank(self):
+        """
+        Default implementation of random which uses unrank.
+        """
         c = self.count()
         r = randint(0, c-1)
         if hasattr(self, 'object_class'):
@@ -728,6 +838,7 @@ class CombinatorialClass(SageObject):
         else:
             return self.unrank(r)
 
+    #Set the default implementation of random
     random = __random_from_unrank
 
 
@@ -785,6 +896,284 @@ class CombinatorialClass(SageObject):
         return prev
 
     previous = __previous_from_iterator
+
+    def filter(self, f, name=None):
+        """
+        Returns the combinatorial subclass of f which consists of
+        the elements x of self such that f(x) is True.
+
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: P.list()
+            [[3, 2, 1]]
+        """
+        return FilteredCombinatorialClass(self, f, name=name)
+
+    def union(self, right_cc, name=None):
+        """
+        Returns the combinatorial class representing the union
+        of self and right_cc.
+
+        EXAMPLES:
+            sage: P = Permutations(2).union(Permutations(1))
+            sage: P.list()
+            [[1, 2], [2, 1], [1]]
+        """
+        return UnionCombinatorialClass(self, right_cc, name=name)
+
+class FilteredCombinatorialClass(CombinatorialClass):
+    def __init__(self, combinatorial_class, f, name=None):
+        """
+        TESTS:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+        """
+        self.f = f
+        self.combinatorial_class = combinatorial_class
+        self._name = name
+
+    def __repr__(self):
+        if self._name:
+            return self._name
+        else:
+            return "Filtered sublass of " + repr(self.combinatorial_class)
+
+    def __contains__(self, x):
+        return x in self.combinatorial_class and self.f(x)
+
+    def count(self):
+        c = 0
+        for x in self.iterator():
+            c += 1
+        return c
+
+    def list(self):
+        res = []
+        for x in self.combinatorial_class.iterator():
+            if self.f(x):
+                res.append(x)
+        return res
+
+    def iterator(self):
+        for x in self.combinatorial_class.iterator():
+            if self.f(x):
+                yield x
+
+    def __unrank_from_iterator(self, r):
+        """
+        Default implementation of unrank which goes through the iterator.
+        """
+        counter = 0
+        for u in self.iterator():
+            if counter == r:
+                return u
+            counter += 1
+        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+
+    #Set the default implementation of unrank
+    unrank = __unrank_from_iterator
+
+
+    def __random_from_unrank(self):
+        """
+        Default implementation of random which uses unrank.
+        """
+        c = self.count()
+        r = randint(0, c-1)
+        if hasattr(self, 'object_class'):
+            return self.object_class(self.unrank(r))
+        else:
+            return self.unrank(r)
+
+    #Set the default implementation of random
+    random = __random_from_unrank
+
+
+    def __rank_from_iterator(self, obj):
+        r = 0
+        for i in self.iterator():
+            if i == obj:
+                return r
+            r += 1
+
+    rank =  __rank_from_iterator
+
+    def __first_from_iterator(self):
+        for i in self.iterator():
+            return i
+
+    first = __first_from_iterator
+
+    def __last_from_iterator(self):
+        for i in self.iterator():
+            pass
+        return i
+
+    last = __last_from_iterator
+
+    def __next_from_iterator(self, obj):
+        if hasattr(obj, 'next'):
+            res = obj.next()
+            if res:
+                return res
+            else:
+                return None
+        found = False
+        for i in self.iterator():
+            if found:
+                return i
+            if i == obj:
+                found = True
+        return None
+
+    next = __next_from_iterator
+
+    def __previous_from_iterator(self, obj):
+        if hasattr(obj, 'previous'):
+            res = obj.previous()
+            if res:
+                return res
+            else:
+                return None
+        prev = None
+        for i in self.iterator():
+            if i == obj:
+                break
+            prev = i
+        return prev
+
+    previous = __previous_from_iterator
+
+
+class UnionCombinatorialClass(CombinatorialClass):
+    def __init__(self, left_cc, right_cc, name=None):
+        """
+        TESTS:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P == loads(dumps(P))
+            True
+        """
+        self.left_cc = left_cc
+        self.right_cc = right_cc
+        self._name = name
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: print repr(Permutations(3).union(Permutations(2)))
+            Union combinatorial class of
+                Standard permutations of 3
+            and
+                Standard permutations of 2
+
+        """
+        if self._name:
+            return self._name
+        else:
+            return "Union combinatorial class of \n    %s\nand\n    %s"%(self.left_cc, self.right_cc)
+
+    def __contains__(self, x):
+        return x in self.left_cc or x in self.right_cc
+
+    def count(self):
+        return self.left_cc.count() + self.right_cc.count()
+
+    def list(self):
+        res = []
+        for x in self.left_cc.iterator():
+            res.append(x)
+        for x in self.right_cc.iterator():
+            res.append(x)
+        return res
+
+    def iterator(self):
+        for x in self.left_cc.iterator():
+            yield x
+        for x in self.right_cc.iterator():
+            yield x
+
+    def __unrank_from_iterator(self, r):
+        """
+        Default implementation of unrank which goes through the iterator.
+        """
+        counter = 0
+        for u in self.iterator():
+            if counter == r:
+                return u
+            counter += 1
+        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+
+    #Set the default implementation of unrank
+    unrank = __unrank_from_iterator
+
+    def __random_from_unrank(self):
+        """
+        Default implementation of random which uses unrank.
+        """
+        c = self.count()
+        r = randint(0, c-1)
+        if hasattr(self, 'object_class'):
+            return self.object_class(self.unrank(r))
+        else:
+            return self.unrank(r)
+
+    #Set the default implementation of random
+    random = __random_from_unrank
+
+    def __rank_from_iterator(self, obj):
+        r = 0
+        for i in self.iterator():
+            if i == obj:
+                return r
+            r += 1
+
+    rank =  __rank_from_iterator
+
+    def __first_from_iterator(self):
+        for i in self.iterator():
+            return i
+
+    first = __first_from_iterator
+
+    def __last_from_iterator(self):
+        for i in self.iterator():
+            pass
+        return i
+
+    last = __last_from_iterator
+
+    def __next_from_iterator(self, obj):
+        if hasattr(obj, 'next'):
+            res = obj.next()
+            if res:
+                return res
+            else:
+                return None
+        found = False
+        for i in self.iterator():
+            if found:
+                return i
+            if i == obj:
+                found = True
+        return None
+
+    next = __next_from_iterator
+
+    def __previous_from_iterator(self, obj):
+        if hasattr(obj, 'previous'):
+            res = obj.previous()
+            if res:
+                return res
+            else:
+                return None
+        prev = None
+        for i in self.iterator():
+            if i == obj:
+                break
+            prev = i
+        return prev
+
+    previous = __previous_from_iterator
+
 
 def hurwitz_zeta(s,x,N):
     """
@@ -1339,7 +1728,7 @@ def number_of_partitions_set(S,k):
         http://en.wikipedia.org/wiki/Partition_of_a_set
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrPartitionsSet(%s)"%S)
     else:
         ans=gap.eval("NrPartitionsSet(%s,%s)"%(S,ZZ(k)))
@@ -1380,7 +1769,7 @@ def partitions_list(n,k=None):
     n = ZZ(n)
     if n <= 0:
         raise ValueError, "n (=%s) must be a positive integer"%n
-    if k==None:
+    if k is None:
         ans=gap.eval("Partitions(%s)"%(n))
     else:
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
@@ -1478,7 +1867,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
     elif n == 0:
         return ZZ(1)
     if algorithm == 'gap' or (not k is None and algorithm=='default'):
-        if k==None:
+        if k is None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
@@ -1661,7 +2050,7 @@ def ordered_partitions(n,k=None):
         http://en.wikipedia.org/wiki/Ordered_partition_of_a_set
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("OrderedPartitions(%s)"%(ZZ(n)))
     else:
         ans=gap.eval("OrderedPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
@@ -1684,7 +2073,7 @@ def number_of_ordered_partitions(n,k=None):
         sage: number_of_ordered_partitions(15)
         16384
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrOrderedPartitions(%s)"%(n))
     else:
         ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
@@ -1754,7 +2143,7 @@ def partitions_restricted(n,S,k=None):
         sage: partitions_restricted(8,[1,3,5,7],2)
         [[5, 3], [7, 1]]
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("RestrictedPartitions(%s,%s)"%(n,S))
     else:
         ans=gap.eval("RestrictedPartitions(%s,%s,%s)"%(n,S,k))
@@ -1772,7 +2161,7 @@ def number_of_partitions_restricted(n,S,k=None):
         2
 
     """
-    if k==None:
+    if k is None:
         ans=gap.eval("NrRestrictedPartitions(%s,%s)"%(ZZ(n),S))
     else:
         ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))

@@ -21,7 +21,7 @@ EXAMPLES:
     sage: D[1][0]
     3
     sage: D[1][1]
-    Ideal (x, y) of Polynomial Ring in x, y, z over Finite Field of size 5
+    Ideal (x, y) of Multivariate Polynomial Ring in x, y, z over Finite Field of size 5
     sage: C.divisor([(3, pts[0]), (-1, pts[1]), (10,pts[5])])
     10*(x + 2*z, y + z) + 3*(x, y) - (x, z)
 """

@@ -740,8 +740,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
         D = A_denom * B_denom
-        res = Matrix_rational_dense.__new__(Matrix_rational_dense,
-                                            self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            res = Matrix_rational_dense.__new__(Matrix_rational_dense, right.parent(), 0, 0, 0)
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            res = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), 0, 0, 0)
+        else:
+            res = Matrix_rational_dense.__new__(Matrix_rational_dense, self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
             AB_row = AB._matrix[i]
             res_row = res._matrix[i]

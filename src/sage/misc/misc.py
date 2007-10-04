@@ -331,47 +331,7 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-def prod(x, z=None):
-    """
-    Return the product of the elements in the list x.  If optimal
-    argument z is not given, start the product with the first element
-    of the list, otherwise use z.  The empty product is the int 1 if z
-    is not specified, and is z if given.
-
-    EXAMPLES:
-        sage: prod([1,2,34])
-        68
-        sage: prod([2,3], 5)
-        30
-        sage: F = factor(-2006); F
-        -1 * 2 * 17 * 59
-        sage: prod(F)
-        -2006
-    """
-    try:
-        return x.prod()
-    except AttributeError:
-        try:
-            return x.mul()
-        except AttributeError:
-            pass
-
-    if not isinstance(x, list):
-        x = list(x)
-    if z is None:
-        if len(x) == 0:
-            import sage.rings.integer
-            return sage.rings.integer.Integer(1)
-        z = x[0]
-        i = 1
-    else:
-        i = 0
-
-    # TODO: Change this to use a balanced tree in some cases, e.g.,
-    # if input is a list?
-    for m in x[i:]:
-        z *= m
-    return z
+from sage.misc.misc_c import prod
 
 # alternative name for prod
 mul = prod

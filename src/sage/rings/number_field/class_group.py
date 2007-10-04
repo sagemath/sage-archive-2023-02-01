@@ -66,7 +66,7 @@ class ClassGroup(AbelianGroup_class):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^4 + 23)
-            sage: K.class_group().gens()
+            sage: K.class_group().gens()   # random gens (platform dependent)
             [Fractional ideal class (2, 1/2*a^2 - a + 3/2) of Number Field in a with defining polynomial x^4 + 23]
         """
         return self.__gens

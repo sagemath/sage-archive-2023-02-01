@@ -512,7 +512,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             from sage.structure.all import Sequence
             im_gens = Sequence(im_gens)
             codomain = im_gens.universe()
-        return self.Hom(codomain)(im_gens)
+        return self.Hom(codomain)(im_gens, check=check)
 
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):

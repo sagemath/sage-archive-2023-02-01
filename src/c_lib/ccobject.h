@@ -51,9 +51,23 @@ void Delete(T* mem){
 }
 
 template <class T>
+bool _equal(T lhs, T rhs)
+{
+    return lhs == rhs;
+}
+
+template <class T>
 void _from_str(T* dest, char* src){
   std::istringstream out(src);
   out >> *dest;
+}
+
+template <class T>
+PyObject* _to_PyString(const T *x)
+{
+  std::ostringstream instore;
+  instore << (*x);
+  return PyString_FromString(instore.str().data());
 }
 
 #endif

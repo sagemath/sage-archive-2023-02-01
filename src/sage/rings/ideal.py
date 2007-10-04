@@ -218,9 +218,16 @@ class Ideal_generic(MonoidElement):
 
     def gens(self):
         """
-        Return generators for this ideal.
+        Return a set of generators / a basis of self. This is usually
+        the set of generators provided during object creation.
 
-        EXAMPLES:
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: I = Ideal([x,y+1]); I
+            Ideal (x, y + 1) of Polynomial Ring in x, y over Rational Field
+            sage: I.gens()
+            [x, y + 1]
+
             sage: ZZ.ideal(5,10).gens()
             (5,)
         """

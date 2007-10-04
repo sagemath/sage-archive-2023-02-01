@@ -250,7 +250,7 @@ class Homset(ParentWithBase, Set_generic):
         return "Set of Morphisms from %s to %s in %s"%(
             self.__domain, self.__codomain, self.__category)
 
-    def __call__(self, x, y=None):
+    def __call__(self, x, y=None, check=True):
         """
         Construct a morphism in this homset from x if possible.
 

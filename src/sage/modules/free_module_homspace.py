@@ -64,7 +64,7 @@ def is_FreeModuleHomspace(x):
     return isinstance(x, FreeModuleHomspace)
 
 class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
-    def __call__(self, A):
+    def __call__(self, A, check=True):
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     def _coerce_impl(self, x):

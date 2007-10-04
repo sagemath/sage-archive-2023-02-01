@@ -282,6 +282,19 @@ def strassen_echelon(MatrixWindow A, cutoff):
         sage: B == C
         True
 
+    TESTS:
+        sage: A = matrix(Integers(7), 4, 4, [1,2,0,3,0,0,1,0,0,1,0,0,0,0,0,1])
+        sage: B = A.copy(); B._echelon_in_place_classical()
+        sage: C = A.copy(); C._echelon_strassen(2)
+        sage: B == C
+        True
+
+        sage: A = matrix(Integers(7), 4, 4, [1,0,5,0,2,0,3,6,5,1,2,6,4,6,1,1])
+        sage: B = A.copy(); B._echelon_in_place_classical()
+        sage: C = A.copy(); C._echelon_strassen(2)
+        sage: B == C
+        True
+
     AUTHORS:
         -- Robert Bradshaw
     """
@@ -383,13 +396,7 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
                 bottom_pivots.append(pivot + bottom_start)
             bottom_h = len(bottom_pivots)
 
-            if bottom_h + top_h == ncols:
-                top.matrix_window(0, bottom_cut, split, ncols-bottom_cut).set_to_zero()
-                # [ I 0 ]
-                # [ 0 I ]
-                # proceed to sorting
-
-            elif bottom_h == 0:
+            if bottom_h == 0:
                 pass
                 # [  I  A'B ]
                 # [  0   0  ]
@@ -403,15 +410,19 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
                 # Note: left with respect to leftmost non-zero column of bottom
                 top_left = top.matrix_window(0, bottom_start, top_h, top_cut - bottom_start)
 
-                if top_cut - bottom_start == bottom_h:
-                    clear = top_left
-                else:
-                    clear = top_left.to_matrix().matrix_from_columns(bottom_pivots_rel).matrix_window()
+                if bottom_h + top_h < ncols:
+
+                    if top_cut - bottom_start == bottom_h:
+                        clear = top_left
+                    else:
+                        clear = top_left.to_matrix().matrix_from_columns(bottom_pivots_rel).matrix_window()
 
                 # subtract off E times bottom from top right
                 if top_cut < ncols:
+
                     top_right = top.matrix_window(0, top_cut, top_h, ncols - top_cut)
                     subtract_strassen_product(top_right, clear, bottom.matrix_window(0, top_cut, bottom_h, ncols - top_cut), mul_cutoff);
+
                 # [  I  *  G - EF ]
                 # [  0  I     F   ]
 
@@ -421,8 +432,6 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
 
                 else:
                     bottom_pivot_intervals = int_range(bottom_pivots)
-                    for cols in bottom_pivot_intervals:
-                        top.matrix_window(0, cols[0], top_h, cols[1]).set_to_zero()
                     non_pivots = int_range(bottom_start, top_cut - bottom_start) - bottom_pivot_intervals - top_pivot_intervals
                     for cols in non_pivots:
                         if cols[0] == 0: continue
@@ -431,6 +440,9 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
                                                   clear.matrix_window(0, 0, top_h, prev_pivot_count),
                                                   bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
                                                   mul_cutoff)
+                    for cols in bottom_pivot_intervals:
+                        top.matrix_window(0, cols[0], top_h, cols[1]).set_to_zero()
+
                 # [  I  0  G - EF ]
                 # [  0  I     F   ]
                 # proceed to sorting

@@ -1185,6 +1185,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: C.elementary_divisors()
             [1, 1, 1, 687]
 
+            sage: M = random_matrix(ZZ,3,2)
+            sage: M.elementary_divisors()
+            [1, 1, 0]
+
+        This returns a copy, which is safe to change:
+            sage: edivs = M.elementary_divisors()
+            sage: edivs.pop()
+            0
+            sage: M.elementary_divisors()
+            [1, 1, 0]
+
         SEE ALSO: smith_form
         """
         d = self.fetch('elementary_divisors')

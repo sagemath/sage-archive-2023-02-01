@@ -205,7 +205,7 @@ is different than the one in the interactive interpreter.
 import weakref
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                            is_MPolynomial, is_MPolynomialRing,
+                            is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC,
                             QuadDoubleElement,
@@ -331,6 +331,14 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
+        """
+        EXAMPLES:
+            sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
+            sage: x+y0/y1
+            y0/y1 + x
+            sage: x.subs(x=y0/y1)
+            y0/y1
+        """
         if isinstance(x, CallableSymbolicExpression):
             return x._expr
         elif isinstance(x, SymbolicExpression):
@@ -340,6 +348,11 @@ class SymbolicExpressionRing_class(CommutativeRing):
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
+            else:
+                raise TypeError, "Basering is Symbolic Ring, please coerce in the other direction."
+        elif is_FractionFieldElement(x) and (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())):
+            if x.base_ring() != self:  # would want coercion to go the other way
+                return SymbolicPolynomial(x.numerator()) / SymbolicPolynomial(x.denominator())
             else:
                 raise TypeError, "Basering is Symbolic Ring, please coerce in the other direction."
         elif isinstance(x, (RealNumber,

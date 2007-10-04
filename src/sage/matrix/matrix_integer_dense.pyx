@@ -1189,7 +1189,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         d = self.fetch('elementary_divisors')
         if not d is None:
-            return d
+            return d[:]
         if self._nrows == 0 or self._ncols == 0:
             d = []
         else:
@@ -1211,7 +1211,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             elif not (algorithm in ['pari', 'linbox']):
                 raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
-        return d
+        return d[:]
 
     def _elementary_divisors_linbox(self):
         self._init_linbox()

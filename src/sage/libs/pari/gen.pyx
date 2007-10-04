@@ -6341,7 +6341,7 @@ class PariError (RuntimeError):
 cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     """
     TESTS:
-        sage: v = pari.listcreate(10^12)
+        sage: v = pari.listcreate(2^62 if is_64_bit else 2^30)
         Traceback (most recent call last):
         ...
         MemoryError: Unable to allocate ... bytes memory for PARI.

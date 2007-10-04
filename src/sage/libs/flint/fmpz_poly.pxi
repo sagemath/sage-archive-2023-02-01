@@ -19,14 +19,20 @@ cdef extern from "FLINT/fmpz_poly.h":
     void fmpz_poly_set_length(fmpz_poly_t poly, unsigned long length)
     void fmpz_poly_truncate(fmpz_poly_t poly, unsigned long length)
 
+    void fmpz_poly_set(fmpz_poly_t result, fmpz_poly_t poly)
     void fmpz_poly_set_coeff_si(fmpz_poly_t poly, unsigned long n, long x)
     void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, unsigned long n, unsigned long x)
+    void fmpz_poly_set_coeff_mpz(fmpz_poly_t poly, unsigned long n, mpz_t x)
 
     void fmpz_poly_get_coeff_mpz(mpz_t x, fmpz_poly_t poly, unsigned long n)
 
     void fmpz_poly_mul(fmpz_poly_t output, fmpz_poly_t input1, fmpz_poly_t input2)
     void fmpz_poly_mul_trunc_n(fmpz_poly_t output, fmpz_poly_t input1, fmpz_poly_t input2, unsigned long trunc)
     void fmpz_poly_mul_trunc_left_n(fmpz_poly_t output, fmpz_poly_t input1, fmpz_poly_t input2, unsigned long trunc)
+
+    void fmpz_poly_add(fmpz_poly_t output, fmpz_poly_t input1, fmpz_poly_t input2)
+    void fmpz_poly_sub(fmpz_poly_t output, fmpz_poly_t input1, fmpz_poly_t input2)
+    void fmpz_poly_neg(fmpz_poly_t output, fmpz_poly_t input1)
 
     void fmpz_poly_div_naive(fmpz_poly_t Q, fmpz_poly_t A, fmpz_poly_t B)
 

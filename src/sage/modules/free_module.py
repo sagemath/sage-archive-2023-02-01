@@ -2339,26 +2339,25 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def quotient(self,sub):
         r"""
-	Returns the quotient space of self modulo sub, together with a map
+        Returns the quotient space of self modulo sub, together with a
+        map sub must be a subspace of self.
 
-	sub must be a subspace of self
-
-	EXAMPLES:
-	    sage: A=matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
-	    sage: V=(A^3).kernel()
-	    sage: W=A.kernel()
-	    sage: U,m=V.quotient(W)
-	    sage: [m(v) == 0 for v in W.gens()]
-	    [True]
+        EXAMPLES:
+            sage: A=matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
+            sage: V=(A^3).kernel()
+            sage: W=A.kernel()
+            sage: U,m=V.quotient(W)
+            sage: [m(v) == 0 for v in W.gens()]
+            [True]
 
         TODO:
             * produce a convenient section map back from the quotient space
-	    * install appropriate coercions
-	"""
-	if not sub.is_subspace(self):
-	    raise ArithmeticError, "sub must be a subspace of self"
-        M=sub.basis_matrix().transpose().restrict_domain(self).kernel().basis_matrix().transpose()
-        quomap=self.hom(M)
+            * install appropriate coercions
+        """
+        if not sub.is_subspace(self):
+            raise ArithmeticError, "sub must be a subspace of self"
+        M = sub.basis_matrix().transpose().restrict_domain(self).kernel().basis_matrix().transpose()
+        quomap = self.hom(M)
 	return quomap.codomain(),quomap
 
 ###############################################################################

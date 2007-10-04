@@ -79,7 +79,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import polynomial_element_generic
 import polynomial_element
 import sage.rings.rational_field as rational_field
-from sage.rings.integer_ring import is_IntegerRing
+from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 import sage.rings.integer as integer
 import sage.rings.integer_mod_ring as integer_mod_ring
 from sage.libs.all import pari, pari_gen
@@ -92,7 +92,9 @@ import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.fraction_field_element import FractionFieldElement
 
-from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
+ZZ_sage = IntegerRing()
+
+from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_pContext as ntl_ZZ_pContext
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement, is_MagmaElement
 
@@ -452,10 +454,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the polynomial ring in variable var over the same base ring.
 
         EXAMPLES:
-        sage: R.<x> = ZZ[]; R
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: R.change_var('y')
-        Univariate Polynomial Ring in y over Integer Ring
+            sage: R.<x> = ZZ[]; R
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R.change_var('y')
+            Univariate Polynomial Ring in y over Integer Ring
         """
         return PolynomialRing(self.base_ring(), names = var, sparse=self.is_sparse())
 
@@ -464,12 +466,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Returns a multivariate polynomial ring with the same base ring but with added_names as additional variables.
 
         EXAMPLES:
-        sage: R.<x> = ZZ[]; R
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: R.extend_variables('y, z')
-        Polynomial Ring in x, y, z over Integer Ring
-        sage: R.extend_variables(('y', 'z'))
-        Polynomial Ring in x, y, z over Integer Ring
+            sage: R.<x> = ZZ[]; R
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R.extend_variables('y, z')
+            Polynomial Ring in x, y, z over Integer Ring
+            sage: R.extend_variables(('y', 'z'))
+            Polynomial Ring in x, y, z over Integer Ring
         """
         if isinstance(added_names, str):
             added_names = added_names.split(',')
@@ -980,18 +982,14 @@ class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_gen
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name="x"):
-        self.__modulus = ntl_ZZ(base_ring.order())
+        self.__modulus = base_ring.order()
         PolynomialRing_commutative.__init__(self, base_ring, name)
 
     def modulus(self):
         return self.__modulus
 
-    def _ntl_set_modulus(self):
-        set_modulus(self.__modulus)
-
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
-        set_modulus(self.__modulus)
-        if int(self.__modulus) < polynomial_modn_dense_ntl.zz_p_max:
+        if self.__modulus < ZZ_sage(polynomial_modn_dense_ntl.zz_p_max):
             return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz(self, x, check, is_gen, construct=construct)
         else:
             return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ(self, x, check, is_gen, construct=construct)
@@ -1000,12 +998,11 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,
                                  principal_ideal_domain.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x"):
-        self.__modulus = ntl_ZZ(base_ring.order())
+        self.__modulus = base_ring.order()
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name)
         self._has_singular = self._can_convert_to_singular()
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
-        set_modulus(self.__modulus)
         if is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:

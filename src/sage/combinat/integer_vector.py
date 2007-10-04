@@ -26,7 +26,7 @@ infinity = PlusInfinity()
 def list2func(l, default=None):
     """
     Given a list l, return a function that takes in a value
-    i and return l[i-1].  If default != None, then the function
+    i and return l[i-1].  If default is not None, then the function
     will return the default value for out of range i's.
 
     EXAMPLES:
@@ -115,9 +115,9 @@ def IntegerVectors(n=None, k=None, **kwargs):
         [0, 1, 4]
 
     """
-    if n == None:
+    if n is None:
         return IntegerVectors_all()
-    elif k == None:
+    elif k is None:
         return IntegerVectors_nconstraints(n,kwargs)
     else:
         if isinstance(k, builtinlist):

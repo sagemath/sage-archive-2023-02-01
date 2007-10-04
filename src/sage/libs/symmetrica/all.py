@@ -83,6 +83,8 @@ from symmetrica import t_POLYNOM_SCHUR_symmetrica as t_POLYNOM_SCHUR
 from symmetrica import t_POLYNOM_ELMSYM_symmetrica as t_POLYNOM_ELMSYM
 from symmetrica import t_POLYNOM_MONOMIAL_symmetrica as t_POLYNOM_MONOMIAL
 
+from symmetrica import scalarproduct_schur_symmetrica as scalarproduct_schur
+
 #plet
 from symmetrica import plethysm_symmetrica as plethysm
 from symmetrica import schur_schur_plet_symmetrica as schur_schur_plet

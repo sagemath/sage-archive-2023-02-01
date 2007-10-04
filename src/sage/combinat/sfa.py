@@ -158,6 +158,7 @@ from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import operator
+import hall_littlewood
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -249,7 +250,9 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             x = Integer(x)
 
         #same basis
-        if isinstance(x, eclass):
+        if x in partition.Partitions():
+            return eclass(self, {partition.Partition(x):R(1)})
+        elif isinstance(x, eclass):
             P = x.parent()
             #same base ring
             if P is self:
@@ -257,6 +260,7 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             #different base ring
             else:
                 return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
+
         #symmetric function, but different basis
         elif is_SymmetricFunction(x):
             R = self.base_ring()
@@ -280,9 +284,39 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             z = self(Integer(0))
             z._monomial_coefficients = z_elt
             return z
+        #############################
+        #Hall-Littlewood Polynomials#
+        #############################
+        #Qp: Convert to Schur basis and then convert to self
+        elif isinstance(x, hall_littlewood.HallLittlewoodElement_qp):
+            Qp = x.parent()
+            BR = self.base_ring()
+            zero = BR(0)
+            s = SFASchur(BR)
+            QpBR = Qp.base_ring()
+            if not BR.has_coerce_map_from(QpBR):
+                raise TypeError, "no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(self.QpBR, self.BR)
 
-        elif x in partition.Partitions():
-            return eclass(self, {partition.Partition(x):R(1)})
+            z_elt = {}
+            for m, c in x._monomial_coefficients.iteritems():
+                n = sum(m)
+                Qp._s_cache(n)
+                for part in Qp._qp_to_s_cache[n][m]:
+                    z_elt[part] = z_elt.get(part, zero) + BR(c*Qp._qp_to_s_cache[n][m][part])
+
+            z = s(0)
+            z._monomial_coefficients = z_elt
+            return self(z)
+        #P: Convert to monomials and then convert to self
+        elif isinstance(x, hall_littlewood.HallLittlewoodElement_p):
+            res = 0
+            for m, c in x._monomial_coefficients.iteritems():
+                n = sum(m)
+                P._m_cache(n)
+                res += c*P._p_to_m_cache[m]
+            return self(z)
+
+
         elif x in skew_partition.SkewPartitions():
             skewschur = symmetrica.part_part_skewschur(x[0], x[1])
             return self(skewschur)
@@ -449,11 +483,9 @@ class SymmetricFunctionAlgebra_generic(Algebra):
 
 
         """
-        P = partition.Partitions(n)
+        P = partition.Partitions_n(n)
         Plist = P.list()
-
         m = []
-
         for row_part in Plist:
             z = basis(self(row_part))
             m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
@@ -496,6 +528,10 @@ cache_h = Cache(SymmetricFunctionAlgebra_homogeneous)
 ############
 # Elements #
 ############
+
+def zee(part):
+    p = partition.Partition_class(part)
+    return p.centralizer_size()
 
 
 def is_SymmetricFunction(x):
@@ -709,6 +745,9 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
             z *= self
         return z
 
+    def _coefficient_fast(self, m, default):
+        return self._monomial_coefficients.get(m, default)
+
     def coefficient(self, m):
         """
         EXAMPLES:
@@ -854,15 +893,91 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         res = resPR(0)
         self_mc = self._monomial_coefficients
         for part in self_mc:
+            #if len(part) > n:
+            #    continue
             res += self_mc[part] * resPR(e(part, n, alphabet))
         return res
 
     def frobenius(self):
         raise NotImplementedError
 
-    def scalar(self):
-        raise NotImplementedError
+    def omega(self):
+        return self.frobenius()
 
+    def scalar(self, x):
+        """
+        Returns standard scalar product between self and s.
+
+        This is the default implementation that converts both self
+        and x into Schur functions and performs the scalar product
+        that basis.
+
+        EXAMPLES:
+            sage: e = SFAElementary(QQ)
+            sage: h = SFAHomogeneous(QQ)
+            sage: m = SFAMonomial(QQ)
+            sage: p4 = Partitions(4)
+            sage: matrix([ [e(a).scalar(h(b)) for a in p4] for b in p4])
+            [ 0  0  0  0  1]
+            [ 0  0  0  1  4]
+            [ 0  0  1  2  6]
+            [ 0  1  2  5 12]
+            [ 1  4  6 12 24]
+            sage: matrix([ [h(a).scalar(e(b)) for a in p4] for b in p4])
+            [ 0  0  0  0  1]
+            [ 0  0  0  1  4]
+            [ 0  0  1  2  6]
+            [ 0  1  2  5 12]
+            [ 1  4  6 12 24]
+            sage: matrix([ [m(a).scalar(e(b)) for a in p4] for b in p4])
+            [-1  2  1 -3  1]
+            [ 0  1  0 -2  1]
+            [ 0  0  1 -2  1]
+            [ 0  0  0 -1  1]
+            [ 0  0  0  0  1]
+            sage: matrix([ [m(a).scalar(h(b)) for a in p4] for b in p4])
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+
+        """
+        sp = self.parent()
+        xp = x.parent()
+        BR = sp.base_ring()
+
+        s = SFASchur(BR)
+        s_self = s(self)
+        s_x = s(x)
+        return s_self.scalar(s_x)
+
+
+    def scalar_hl(self, x, t=None):
+        R = self.parent().base_ring()
+        p = SFAPower(R)
+
+        p_self = p(self)
+        p_x    = p(x)
+
+        if len(p_self) < len(p_x):
+            smaller = p_self
+            greater = p_x
+        else:
+            smaller = p_x
+            greater = p_self
+
+        res = R(0)
+        if t is None:
+            Zt = ZZ['t'].fraction_field()
+            t = Zt.gen()
+        smcs = smaller._monomial_coefficients
+        gmcs = greater._monomial_coefficients
+        for s_part in smcs :
+            if s_part in gmcs:
+                res += smcs[s_part]*gmcs[s_part]*s_part.centralizer_size(t=t)
+
+        return res
 
 
 class SymmetricFunctionAlgebraElement_ehp(SymmetricFunctionAlgebraElement_generic):
@@ -897,7 +1012,7 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
         z_elt = {}
         for (left_m, left_c) in left._monomial_coefficients.iteritems():
             for (right_m, right_c) in right._monomial_coefficients.iteritems():
-                d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})
+                d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})._monomial_coefficients
                 for m in d:
                     if m in z_elt:
                         z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
@@ -917,6 +1032,72 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
         res._monomial_coefficients = z
         return res
 
+
+    def scalar(self, x):
+        """
+        Returns the standard scalar product between self and x.
+
+        Note that the Schur functions are self-dual with respect
+        to this scalar product. They are also lower-triangularly
+        related to the monomial symmetric functions with respect
+        to this scalar product.
+
+        EXAMPLES:
+            sage: s = SFASchur(ZZ)
+            sage: a = s([2,1])
+            sage: b = s([1,1,1])
+            sage: c = 2*s([1,1,1])
+            sage: d = a + b
+            sage: a.scalar(a)
+            1
+            sage: b.scalar(b)
+            1
+            sage: b.scalar(a)
+            0
+            sage: b.scalar(c)
+            2
+            sage: c.scalar(c)
+            4
+            sage: d.scalar(a)
+            1
+            sage: d.scalar(b)
+            1
+            sage: d.scalar(c)
+            2
+
+            sage: m = SFAMonomial(ZZ)
+            sage: p4 = Partitions(4)
+            sage: l = [ [s(p).scalar(m(q)) for q in p4] for p in p4]
+            sage: matrix(l)
+            [ 1  0  0  0  0]
+            [-1  1  0  0  0]
+            [ 0 -1  1  0  0]
+            [ 1 -1 -1  1  0]
+            [-1  2  1 -3  1]
+        """
+        R = self.parent().base_ring()
+
+        if self.parent() != x.parent():
+            try:
+                x = self.parent()( x )
+            except:
+                raise TypeError, "cannot compute the scalar product of self and x (= %s)"%x
+
+        if len(self) < len(x):
+            smaller = self
+            greater = x
+        else:
+            smaller = x
+            greater = self
+
+        res = R(0)
+        smcs = smaller._monomial_coefficients
+        gmcs = greater._monomial_coefficients
+        for s_part in smcs :
+            if s_part in gmcs:
+                res += smcs[s_part]*gmcs[s_part]
+
+        return res
 
 
 
@@ -948,6 +1129,7 @@ class SymmetricFunctionAlgebraElement_monomial(SymmetricFunctionAlgebraElement_g
         s = SFASchur(parent.base_ring())
         return parent(s(self).frobenius())
 
+
 class SymmetricFunctionAlgebraElement_elementary(SymmetricFunctionAlgebraElement_ehp):
     def frobenius(self):
         base_ring = self.parent().base_ring()
@@ -966,6 +1148,7 @@ class SymmetricFunctionAlgebraElement_homogeneous(SymmetricFunctionAlgebraElemen
         res._monomial_coefficients = mcs
         return res
 
+
 class SymmetricFunctionAlgebraElement_power(SymmetricFunctionAlgebraElement_ehp):
     def frobenius(self):
         parent = self.parent()
@@ -978,4 +1161,46 @@ class SymmetricFunctionAlgebraElement_power(SymmetricFunctionAlgebraElement_ehp)
         res._monomial_coefficients = z
         return res
 
+    def scalar(self, x):
+        """
+        Returns the standard scalar product of self and x.
 
+        Note that the power-sum symmetric functions are orthogonal
+        under this scalar product.  The value of <p_lambda, p_lambda>
+        is given by the size of the centralizer in S_n of a permutation
+        of cycle type lambda.
+
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: p4 = Partitions(4)
+            sage: matrix([ [p(a).scalar(p(b)) for a in p4] for b in p4])
+            [ 4  0  0  0  0]
+            [ 0  3  0  0  0]
+            [ 0  0  8  0  0]
+            [ 0  0  0  4  0]
+            [ 0  0  0  0 24]
+        """
+
+        R = self.parent().base_ring()
+
+        if self.parent() != x.parent():
+            try:
+                x = self.parent()( x )
+            except:
+                raise TypeError, "cannot compute the scalar product of self and x (= %s)"%x
+
+        if len(self) < len(x):
+            smaller = self
+            greater = x
+        else:
+            smaller = x
+            greater = self
+
+        res = R(0)
+        smcs = smaller._monomial_coefficients
+        gmcs = greater._monomial_coefficients
+        for s_part in smcs :
+            if s_part in gmcs:
+                res += smcs[s_part]*gmcs[s_part]*zee(s_part)
+
+        return res

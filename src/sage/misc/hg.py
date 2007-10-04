@@ -261,7 +261,10 @@ class HG:
         if filename is None:
             filename = '%R.patch'
         if not isinstance(revs, list):
-            revs = [int(revs)]
+            if revs == "tip":
+                revs = [revs]
+            else:
+                revs = [int(revs)]
         if not isinstance(filename, str):
             raise TypeError, 'filename must be a string'
         if filename[-6:] != '.patch':

@@ -1007,6 +1007,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                          * 'singular:stdhilb' - Singular's stdhib command
                          * 'singular:stdfglm' - Singular's stdfglm command
                          * 'singular:slimgb' - Singular's slimgb command
+                         * 'libsingular:std' - libSINGULAR's std command
+                         * 'libsingular:slimgb' - libSINGULAR's slimgb command
                          * 'toy:buchberger' - SAGE's toy/educational buchberger without strategy
                          * 'toy:buchberger2' - SAGE's toy/educational buchberger with strategy
                          * 'macaulay2:gb' (if available) - Macaulay2's gb command

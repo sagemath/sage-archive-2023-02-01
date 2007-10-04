@@ -54,8 +54,8 @@ def prod(x, z=None):
 
         x = list(x)
 
-    cdef int j
-    cdef int i = 0
+    cdef Py_ssize_t j
+    cdef Py_ssize_t i = 0
 
     if z is None:
         if len(x) == 0:
@@ -65,7 +65,14 @@ def prod(x, z=None):
         i = 1
 
     # TODO: Change this to use a balanced tree in some cases, e.g.,
-    # if input is a list?
+    # if input is a list.
+
+    # DEFINITELY:  Change it to a balanced tree.  It is vastly faster,
+    # e.g., when multiplying a list of integers to compute n!, doing
+    # a balanced tree makes it possible to use asymptotic multiplication,
+    # which is way way faster.  -- William Stein
+    #
+
     for j from i <= j < len(x):
         z *= x[j]
     return z

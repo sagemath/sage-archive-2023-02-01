@@ -7,6 +7,9 @@ if len(sys.argv) == 1:
     print "Give info about doctest coverage of files."
     sys.exit(1)
 
+if len(sys.argv) == 2 and sys.argv[-1] == '.':
+    sys.exit(os.system("sage-coverageall ."))
+
 def functions_without_doctests(file):
     docs  = []
     tests = []
@@ -87,13 +90,12 @@ def coverage(filename, file):
     score = int(score)
 
     if 'class' in file and 'loads' not in file:
-        score -= 10
         print "ERROR: Please define a s == loads(dumps(s)) doctest."
 
     if score < 0:
         score = 0
 
-    print "OVERALL SCORE: %s%%  (%s good, %s bad)"%(score, len(good), len(docs) + len(tests))
+    print "SCORE %s: %s%% (%s of %s)"%(filename, score, len(good), num_functions)
 
     if docs:
         print "\nMissing documentation:\n\t * %s\n"%('\n\t * '.join(docs))
@@ -104,6 +106,10 @@ def coverage(filename, file):
 
 
 def go(file):
+    if os.path.isdir(file):
+        for F in os.listdir(file):
+            go('%s/%s'%(file,F))
+        return
     if 'doctest_' in file or file.endswith('~'):
         return
     if not (file.endswith('.py') or file.endswith('.pyx')):
@@ -111,14 +117,10 @@ def go(file):
     if not os.path.exists(file):
         print "File %s does not exist."%file
         sys.exit(1)
-    if os.path.isdir(file):
-        for F in os.listdir(file):
-            go('%s/%s'%(file,F))
-        return
-    else:
-        f = open(file).read()
-        coverage(file, f)
-        print ""
+
+    f = open(file).read()
+    coverage(file, f)
+    print ""
 
 for file in sys.argv[1:]:
     go(file)

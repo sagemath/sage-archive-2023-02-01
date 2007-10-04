@@ -40,6 +40,7 @@ usage_advanced() {
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
+    echo "  -coverageall  -- give summary info about doctest coverage of all files in the Sage library"
     echo "  -experimental -- list all experimental packages that can be downloaded"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
@@ -397,6 +398,12 @@ if [ $1 = "-coverage" -o $1 = "--coverage" ]; then
    exit $?
 fi
 
+if [ $1 = "-coverageall" -o $1 = "--coverageall" ]; then
+   cd "$CUR"
+   shift
+   sage-coverageall $@
+   exit $?
+fi
 
 #####################################################################
 # Run Distributed SAGE

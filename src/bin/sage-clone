@@ -55,7 +55,16 @@ cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
 
 print "Copying over build directory."
 cmd = 'cp -r sage/build %s'%branch
+
+# IDEA -- use tar for speed?  Seems to force rebuild though...
+
+# cmd = 'cd sage && rm -f $SAGE_ROOT/tmp/build.tar && tar cf $SAGE_ROOT/tmp/build.tar build && cd $SAGE_ROOT/devel/"%s" && tar xf $SAGE_ROOT/tmp/build.tar && rm $SAGE_ROOT/tmp/build.tar'%branch
+# cmd = cmd.replace('$SAGE_ROOT','"%s"'%os.environ['SAGE_ROOT'])
+
 print cmd
+
+
+
 if os.system(cmd):
     print "Error copying build directory"
     sys.exit(1)

@@ -855,6 +855,7 @@ class Notebook(SageObject):
     def html_topbar(self, user, pub=False):
         s = ''
         entries = []
+
         if self.user_is_guest(user):
             entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
         else:
@@ -1420,7 +1421,7 @@ class Notebook(SageObject):
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
         body = ''
         body += """
-<table width="100%%">
+<table width="100%%" id="topbar">
 <tr>
   <td align=left> %s </td>   <td align=right> %s </td>
 </tr>
@@ -1488,7 +1489,8 @@ class Notebook(SageObject):
 
         else:
 
-            entries = [('/', 'Home', 'Back to your personal worksheet list'),
+            entries = [('toggle_top()', 'Toggle', 'Toggle the top bar'),
+                       ('/', 'Home', 'Back to your personal worksheet list'),
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
@@ -1513,7 +1515,7 @@ class Notebook(SageObject):
         # The blank space given by '<br>'*15  is needed so the input doesn't get
         # stuck at the bottom of the screen. This could be replaced by a region
         # such that clicking on it creates a new cell at the bottom of the worksheet.
-        body += '<br>'*15
+
         endpanespan = '</td></tr></table></span>\n'
 
 

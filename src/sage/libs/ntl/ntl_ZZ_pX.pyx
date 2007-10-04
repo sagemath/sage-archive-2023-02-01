@@ -25,7 +25,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
+cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
     _sig_off
     y = ntl_ZZ_p(modulus = ctx)
@@ -35,7 +35,8 @@ cdef make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
 
 cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_pX y
-    y = ntl_ZZ_pX(modulus = ctx)
+    y = <ntl_ZZ_pX>PY_NEW(ntl_ZZ_pX)
+    y.c = ctx
     y.x = x[0]
     ZZ_pX_delete(x)
     _sig_off
@@ -103,7 +104,7 @@ cdef class ntl_ZZ_pX:
             ZZ_pX_from_str(&self.x, s)
             _sig_off
 
-    def __new__(self, v=[], modulus=None):
+    def __new__(self, v=None, modulus=None):
         ZZ_pX_construct(&self.x)
 
     def __dealloc__(self):
@@ -402,11 +403,12 @@ cdef class ntl_ZZ_pX:
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
         """
-        self.c.restore_c()
+        ## FIXME
         if n < 0:
             raise NotImplementedError
         import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pX([1],self.c))
+        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pX([1]))
+
 
     def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
@@ -423,7 +425,7 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        if ZZ_pX_equal(&self.x, &other.x):
+        if ZZ_pX_equal(self.x, other.x):
             return 0
         return -1
 
@@ -443,7 +445,7 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        return bool(ZZ_pX_is_zero(&self.x))
+        return bool(ZZ_pX_IsZero(self.x))
 
     def is_one(self):
         """
@@ -459,7 +461,7 @@ cdef class ntl_ZZ_pX:
             True
         """
         self.c.restore_c()
-        return bool(ZZ_pX_is_one(&self.x))
+        return bool(ZZ_pX_IsOne(self.x))
 
     def is_monic(self):
         """
@@ -485,9 +487,9 @@ cdef class ntl_ZZ_pX:
         # the problem.  (William Stein)
         #return bool(ZZ_pX_is_monic(self.x))
 
-        if ZZ_pX_is_zero(&self.x):
+        if ZZ_pX_IsZero(self.x):
              return False
-        return bool(ZZ_p_is_one(ZZ_pX_leading_coefficient(&self.x)))
+        return bool(ZZ_p_IsOne(ZZ_pX_LeadCoeff(self.x)))
 
     def __neg__(self):
         """

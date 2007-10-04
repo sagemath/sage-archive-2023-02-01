@@ -70,7 +70,7 @@ cdef class ntl_ZZ_p:
     """
     def __init__(self, v=None, modulus=None):
         r"""
-        Initializes and NTL integer.
+        Initializes an NTL integer mod p.
 
         EXAMPLES:
             sage: c=ntl.ZZ_pContext(ntl.ZZ(11))
@@ -139,8 +139,7 @@ cdef class ntl_ZZ_p:
 
     def __repr__(self):
         self.c.restore_c()
-        _sig_on
-        return string_delete(ZZ_p_to_str(&self.x))
+        return ZZ_p_to_PyString(&self.x)
 
     def __richcmp__(ntl_ZZ_p self, ntl_ZZ_p other, op):
         r"""
@@ -161,7 +160,7 @@ cdef class ntl_ZZ_p:
 #            other = ntl_ZZ_p(other)
 #        y = other
         _sig_on
-        t = ZZ_p_eq(&self.x, &other.x)
+        t = ZZ_p_equal(self.x, other.x)
         _sig_off
         # t == 1 if self == other
         if op == 2:
@@ -235,6 +234,8 @@ cdef class ntl_ZZ_p:
         _sig_off
         return r
 
+    def __int__(self):
+        return self.get_as_int()
 
     cdef int get_as_int(ntl_ZZ_p self):
         r"""
@@ -286,7 +287,7 @@ cdef class ntl_ZZ_p:
     def lift(self):
         cdef ntl_ZZ r = ntl_ZZ()
         self.c.restore_c()
-        r.x = rep(self.x)
+        r.x = ZZ_p_rep(self.x)
         return r
 
     def modulus(self):
@@ -302,6 +303,11 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         ZZ_p_modulus( &r.x, &self.x )
         return r
+
+    def _integer_(self):
+        self.c.restore_c()
+        cdef ZZ_c rep = ZZ_p_rep(self.x)
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep)
 
     def _sage_(self):
         r"""

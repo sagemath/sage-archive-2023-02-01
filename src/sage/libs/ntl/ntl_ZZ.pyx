@@ -87,8 +87,9 @@ cdef class ntl_ZZ:
         ZZ_destruct(&self.x)
 
     def __repr__(self):
-        _sig_on
-        return string_delete(ZZ_to_str(&self.x))
+        return ZZ_to_PyString(&self.x)
+#        _sig_on
+#        return string_delete(ZZ_to_str(&self.x))
 
     def __reduce__(self):
         """
@@ -150,6 +151,21 @@ cdef class ntl_ZZ:
         ZZ_negate(r.x, self.x)
         return r
 
+    def __cmp__(ntl_ZZ self, ntl_ZZ other):
+        """
+        Decide whether or not self and other are equal.
+
+        EXAMPLES:
+            sage: f = ntl.ZZ(1)
+            sage: g = ntl.ZZ(2)
+            sage: h = ntl.ZZ(2)
+            sage: h == g
+            True
+            sage: f == g
+            False
+        """
+        return not ZZ_equal(self.x, other.x)
+
     def __pow__(ntl_ZZ self, long e, ignored):
         """
             sage: ntl.ZZ(23)^50
@@ -158,6 +174,9 @@ cdef class ntl_ZZ:
         cdef ntl_ZZ r = ntl_ZZ()
         power_ZZ(r.x, self.x, e)
         return r
+
+    def __int__(self):
+        return int(self.get_as_sage_int())
 
     cdef int get_as_int(ntl_ZZ self):
         r"""
@@ -190,6 +209,18 @@ cdef class ntl_ZZ:
         <type 'sage.rings.integer.Integer'>
 
         AUTHOR: Joel B. Mohler
+        """
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
+
+    def _integer_(self):
+        r"""
+        Gets the value as a sage int.
+
+        sage: n=ntl.ZZ(2983)
+        sage: type(n._integer_())
+        <type 'sage.rings.integer.Integer'>
+
+        Alias for get_as_sage_int
         """
         return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 

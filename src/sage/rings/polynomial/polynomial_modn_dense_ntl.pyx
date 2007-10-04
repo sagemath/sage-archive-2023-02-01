@@ -1308,6 +1308,10 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
     """
     A dense polynomial over the integers modulo p, where p is prime.
     """
+
+    def gcd(self, right):
+        return self._gcd(right)
+
     def _gcd(self, right):
         """
         Return the GCD of self and other, as a monic polynomial.

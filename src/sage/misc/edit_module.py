@@ -50,6 +50,7 @@ edit_template = None
 
 template_defaults = {
       'vi'       : Template('vi -c ${line} ${file}'),
+      'vim'      : Template('vim -c ${line} ${file}'),
       'emacs'    : Template('emacs ${opts} +${line} ${file}'),
       'nedit-nc' : Template('nedit-nc -line ${line} ${file}'),
       'gedit'    : Template('gedit +${line} ${file}')
@@ -127,12 +128,16 @@ def set_edit_template(template_string):
    global edit_template
 
    if template_string in template_defaults.keys():
-     template_string = template_defaults[template_string]
+      template_string = template_defaults[template_string]
    edit_template = Template(template_string)
 
-def edit(obj):
+def edit(obj, bg=False, editor=None):
    r"""
-   Open source of obj in editor of your choice.
+   Open source code of obj in editor of your choice.
+
+   INPUT:
+       bg -- bool (default: False); if True, then the
+             editor is run in the background
 
    AUTHOR:
        Nils Bruin (2007-10-03)
@@ -168,7 +173,11 @@ def edit(obj):
    global edit_template
 
    try:
-      EDITOR = os.environ['EDITOR'].split()
+      if editor:
+         ED = editor
+      else:
+         ED = os.environ['EDITOR']
+      EDITOR = ED.split()
       base = EDITOR[0]
       opts = ' '.join(EDITOR[1:])
       edit_template = template_defaults[base]
@@ -176,6 +185,7 @@ def edit(obj):
       raise ValueError, "Use set_edit_template(<template_string>) to set a default"
    filename, lineno = file_and_line(obj)
    cmd = edit_template.substitute(opts = opts, line = lineno, file = filename)
-   cmd += ' &'
+   if bg:
+      cmd += ' &'
    print cmd
    os.system(cmd)

@@ -338,6 +338,12 @@ def pushout(R, S):
     if R == S:
         return R
 
+    if isinstance(R, type):
+        R = type_to_parent(R)
+
+    if isinstance(S, type):
+        S = type_to_parent(S)
+
     R_tower = construction_tower(R)
     S_tower = construction_tower(S)
     Rs = [c[1] for c in R_tower]
@@ -626,3 +632,16 @@ def construction_tower(R):
         tower.append((f,R))
         c = R.construction()
     return tower
+
+
+
+def type_to_parent(P):
+    import sage.rings.all
+    if P in [int, long]:
+        return sage.rings.all.ZZ
+    elif P is float:
+        return sage.rings.all.RDF
+    elif P is complex:
+        return sage.rings.all.CDF
+    else:
+        raise TypeError, "Not a scalar type."

@@ -12,6 +12,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _neg_c_impl(self)
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
+    cdef truncate_c(self, long n)
+
+    # UNSAFE, only call from an inplace operator
+    # may return a new element if not possible to modify inplace
+    cdef _inplace_truncate(self, long n)
 
 cdef class Polynomial_generic_dense(Polynomial):
     cdef object __coeffs # a python list

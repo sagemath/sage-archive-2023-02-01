@@ -123,6 +123,7 @@ REFERENCES:
 import weakref
 import copy
 
+
 from sage.rings.integer import Integer
 
 from sage.rings.infinity import infinity
@@ -344,19 +345,42 @@ class AbelianGroup_class(group.AbelianGroup):
         n = Integer(n)
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
-        invs = invfac
+
         # if necessary, remove 1 from invfac first
-        for i in range(n):
-            if 1 in invs:
-                invs.remove(1)
-        self.__invariants = invs
+        while True:
+            try:
+                i = invfac.index(1)
+            except ValueError:
+                break
+            else:
+                del invfac[i]
+
+        self.__invariants = invfac
+
         # *now* define ngens
         self.__ngens = len(self.__invariants)
         self._assign_names(names)
 
 
     def invariants(self):
-        return self.__invariants
+        """
+        Return a copy of the list of invariants of this group.
+
+        It is safe to modify the returned list.
+
+        EXAMPLES:
+            sage: J = AbelianGroup([2,3])
+            sage: J.invariants()
+            [2, 3]
+            sage: v = J.invariants(); v
+            [2, 3]
+            sage: v[0] = 5
+            sage: J.invariants()
+            [2, 3]
+            sage: J.invariants() is J.invariants()
+            False
+        """
+        return list(self.__invariants)
 
     def elementary_divisors(self):
         """
@@ -368,17 +392,16 @@ class AbelianGroup_class(group.AbelianGroup):
             [2, 6]
             sage: G.elementary_divisors()
             [2, 2, 3]
-
+            sage: J = AbelianGroup([1,3,5,12])
+            sage: J.elementary_divisors()
+            [3, 3, 4, 5]
         """
         inv = self.invariants()
-        invs = copy.deepcopy(inv)
-        invs2 = copy.deepcopy(invs)
+        invs = list(inv)
+        invs2 = list(inv)
         n = len(invs)
-        for i in range(n):
-            if 1 in invs:
-                invs.remove(1)
         for a in invs:
-           if a > 1 and not is_prime_power(a):
+           if not is_prime_power(a):
                invs2.remove(a)
                facs = factor(a)
                pfacs = [facs[i][0]**facs[i][1] for i in range(len(facs))]
@@ -588,15 +611,16 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.order()
             +Infinity
         """
-        import sage.rings.all
         try:
             return self.__len
         except AttributeError:
+            from sage.rings.all import infinity, Integer
             if len(self.invariants()) < self.ngens():
-                self.__len = sage.rings.all.infinity
-            self.__len = sage.rings.all.Integer(sage.misc.misc.mul(self.invariants()))
-            if self.__len == 0:
-                self.__len = sage.rings.all.infinity
+                self.__len = infinity
+            else:
+                self.__len = Integer(prod(self.invariants()))
+                if self.__len == 0:
+                    self.__len = infinity
         return self.__len
 
     def permutation_group(self):

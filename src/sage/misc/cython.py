@@ -203,7 +203,7 @@ setup(ext_modules = ext_modules,
 
     cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && cython -p --pre-import sage.all %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
+    cmd = 'cd %s && cython -p --incref-local-binop %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)

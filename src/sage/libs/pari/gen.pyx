@@ -4353,6 +4353,21 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(nfisisom(self.g, other.g))
 
+    def nfrootsof1(self):
+        """
+        nf.nfrootsof1()
+
+        number of roots of unity and primitive root of unity in the
+        number field nf.
+
+        EXAMPLES:
+            sage: nf = pari('x^2 + 1').nfinit()
+            sage: nf.nfrootsof1()
+            [4, [0, 1]~]
+        """
+        _sig_on
+        return P.new_gen(rootsof1(self.g))
+
     def nfsubfields(self, d=0):
         """
         Find all subfields of degree d of number field nf (all

@@ -151,7 +151,48 @@ and classes are similar. There are four relevant functions.
    NotImplementedError, which will happen if no-one has supplied
    implementations of either _add_ or _add_c_impl.
 
+
+For speed, there are also {\bf inplace} version of the arithmatic commands.
+DD NOT call them directly, they may mutate the object and will be called
+when and only when it has been determined that the old object will no longer
+be accessible from the calling function after this operation.
+
+{\bf def RingElement._iadd_}
+
+   This is the function you should override to inplace implement addition
+   in a python subclass of RingElement.
+
+   WARNING: if you override this in a *pyrex* class, it won't get called.
+   You should override _iadd_c_impl instead. It is especially important to
+   keep this in mind whenever you move a class down from python to pyrex.
+
+   The two arguments to this function are guaranteed to have the
+   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   arguments.
+
+   The default implementation of this function is to call _add_c_impl,
+   so if no-one has defined a python implementation, the correct pyrex
+   implementation will get called.
+
+{\bf cdef RingElement._iadd_c_impl}
+
+   This is the function you should override to inplace implement addition
+   in a pyrex subclass of RingElement.
+
+   The two arguments to this function are guaranteed to have the
+   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   arguments.
+
+   The default implementation of this function is to call _add_c
+
 """
+
+
+cdef extern from *:
+    ctypedef struct RefPyObject "PyObject":
+        int ob_refcnt
+
+
 
 
 ##################################################################
@@ -632,7 +673,6 @@ cdef class ModuleElement(Element):
 
         See extensive documentation at the top of element.pyx.
         """
-
         # Try fast pathway if they are both ModuleElements and the parents
         # match.
 
@@ -640,9 +680,16 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
         if have_same_parent(left, right):
-            return (<ModuleElement>left)._add_c(<ModuleElement>right)
+            # If we hold the only references to this object, we can
+            # safely mutate it. NOTE the threshold is different by one
+            # for __add__ and __iadd__.
+            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+                return _iadd_c(<ModuleElement>left, <ModuleElement>right)
+            else:
+                return _add_c(<ModuleElement>left, <ModuleElement>right)
+
         global coercion_model
-        return coercion_model.bin_op_c(left, right, operator.add)
+        return coercion_model.bin_op_c(left, right, add)
 
     cdef ModuleElement _add_c(left, ModuleElement right):
         """
@@ -672,7 +719,7 @@ cdef class ModuleElement(Element):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        raise TypeError, arith_error_message(left, right, operator.add)
+        raise TypeError, arith_error_message(left, right, add)
 
 
     def _add_(ModuleElement left, ModuleElement right):
@@ -682,6 +729,22 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         return left._add_c_impl(right)
+
+    def __iadd__(ModuleElement self, right):
+        if have_same_parent(self, right):
+            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+                return _iadd_c(<ModuleElement>self, <ModuleElement>right)
+            else:
+                return _add_c(<ModuleElement>self, <ModuleElement>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op_c(self, right, iadd)
+
+    def _iadd_(self, right):
+        return self._iadd_c_impl(right)
+
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        return self._add_c(right)
 
     ##################################################
     # Subtraction
@@ -693,9 +756,12 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent(left, right):
-            return (<ModuleElement>left)._sub_c(<ModuleElement>right)
+            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+                return _isub_c(<ModuleElement>left, <ModuleElement>right)
+            else:
+                return _sub_c(<ModuleElement>left, <ModuleElement>right)
         global coercion_model
-        return coercion_model.bin_op_c(left, right, operator.sub)
+        return coercion_model.bin_op_c(left, right, sub)
 
     cdef ModuleElement _sub_c(left, ModuleElement right):
         """
@@ -734,6 +800,23 @@ cdef class ModuleElement(Element):
         """
         return left._sub_c_impl(right)
 
+
+    def __isub__(ModuleElement self, right):
+        if have_same_parent(self, right):
+            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+                return _isub_c(<ModuleElement>self, <ModuleElement>right)
+            else:
+                return _sub_c(<ModuleElement>self, <ModuleElement>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op_c(self, right, isub)
+
+    def _isub_(self, right):
+        return self._isub_c_impl(right)
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        return self._sub_c(right)
+
     ##################################################
     # Negation
     ##################################################
@@ -769,7 +852,7 @@ cdef class ModuleElement(Element):
         """
         # default implementation is to try multiplying by -1.
         global coercion_model
-        return coercion_model.bin_op_c(self._parent._base(-1), self, operator.mul)
+        return coercion_model.bin_op_c(self._parent._base(-1), self, mul)
 
 
     def _neg_(ModuleElement self):
@@ -784,7 +867,18 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        return module_element_generic_multiply_c(left, right)
+        if have_same_parent(left, right):
+            raise arith_error_message(left, right, mul)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, mul)
+
+    def __imul__(left, right):
+        if have_same_parent(left, right):
+             raise TypeError
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
 
     cdef ModuleElement _multiply_by_scalar(self, right):
         # self * right,  where right need not be a ring element in the base ring
@@ -873,30 +967,11 @@ cdef class ModuleElement(Element):
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
+
+        The coercion model will catch this error and create the
+        appropriate action.
         """
-        n = int(left)
-        if n != left:
-            raise TypeError, "left (=%s) must be an integer."%left
-        a = self
-        if n < 0:
-            a = -a
-            n = -n
-        sum = None
-        asum = a
-        while True:
-            if n&1 > 0:
-                if sum is None:
-                    sum = asum
-                else:
-                    sum += asum
-            n = n >> 1
-            if n != 0:
-                asum += asum
-            else:
-                break
-        if sum is None:
-            return self._parent(0)
-        return sum
+        raise NotImplementedError
 
     def _rmul_(self, left):
         return self._rmul_c_impl(left)
@@ -915,14 +990,23 @@ cdef class ModuleElement(Element):
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
-        Default module right scalar multiplication, which is to try to
+        Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
+
+        The coercion model will catch this error and create the
+        appropriate action.
         """
-        return self._rmul_c(right)
+        raise NotImplementedError
 
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
+
+    def _ilmul_(self, right):
+        return self._ilmul_c_impl(right)
+
+    cdef ModuleElement _ilmul_c_impl(self, RingElement right):
+        return _lmul_c(self, right)
 
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -946,54 +1030,6 @@ cdef class ModuleElement(Element):
         Return the additive order of self.
         """
         raise NotImplementedError
-
-def module_element_generic_multiply(left, right):
-    return module_element_generic_multiply_c(left, right)
-
-cdef module_element_generic_multiply_c(left, right):
-    cdef bint is_element
-    if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
-        # do left * (a module element right)
-        is_element = PY_TYPE_CHECK(left, Element)
-        if is_element  and  (<Element>left)._parent is (<ModuleElement>right)._parent._base:
-            # No coercion needed
-            return (<ModuleElement>right)._rmul_c(left)
-        else:
-            try:
-                return (<ModuleElement>right)._rmul_nonscalar_c(left)
-            except TypeError:
-                pass
-            # Otherwise we have to do an explicit canonical coercion.
-            try:
-                return (<ModuleElement>right)._rmul_c(
-                    (<Parent>(<ModuleElement>right)._parent._base)._coerce_c(left))
-            except TypeError:
-                if is_element:
-                    # that failed -- try to base extend right then do the multiply:
-                    right = right.base_extend((<RingElement>left)._parent)
-                    return (<ModuleElement>right)._rmul_c(left)
-    else:
-        # do (module element left) * right
-        # This is the symmetric case of above.
-        is_element = PY_TYPE_CHECK(right, Element)
-        if is_element  and  (<Element>right)._parent is (<ModuleElement>left)._parent._base:
-            # No coercion needed
-            return (<ModuleElement>left)._lmul_c(right)
-        else:
-            try:
-                return (<ModuleElement>left)._lmul_nonscalar_c(right)
-            except TypeError:
-                pass
-            # Otherwise we have to do an explicit canonical coercion.
-            try:
-                return (<ModuleElement>left)._lmul_c(
-                    (<Parent>(<ModuleElement>left)._parent._base)._coerce_c(right))
-            except TypeError:
-                if is_element:
-                    # that failed -- try to base extend right then do the multiply:
-                    left = left.base_extend((<RingElement>right)._parent)
-                    return (<ModuleElement>left)._rmul_c(right)
-    raise TypeError
 
 ########################################################################
 # Monoid
@@ -1022,7 +1058,7 @@ cdef class MonoidElement(Element):
         if have_same_parent(left, right):
             return (<MonoidElement>left)._mul_c(<MonoidElement>right)
         try:
-            return coercion_model.bin_op_c(left, right, operator.mul)
+            return coercion_model.bin_op_c(left, right, mul)
         except TypeError, msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
@@ -1110,38 +1146,15 @@ cdef class AdditiveGroupElement(ModuleElement):
         return self._lmul_c_impl(left)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        m = int(right)  # a little worrisome, let's check if we got the right answer.
-        if m != right:
-            raise NotImplementedError, "non-integral exponents not supported"
-        if m<0:
-            a = -self
-            m = -m
-        else:
-            a = self
-        if m==0:
-            return self.scheme()(0)
-        elif m==1:
-            return a
-        elif m==2:
-            return a+a
-        elif m==3:
-            return a+a+a
+        """
+        Default module left scalar multiplication, which is to try to
+        canonically coerce the scalar to the integers and do that
+        multiplication, which is always defined.
 
-        # One addition can be saved by starting with
-        # the smallest power needed rather than with 1
-        while m&1 == 0:
-            a = a+a
-            m = m >> 1
-        power = a
-        m = m >> 1
-
-        while m != 0:
-            a = a+a
-            if m&1 != 0:
-                power = power+a
-            m = m >> 1
-
-        return power
+        The coercion model will catch this error and create the
+        appropriate action.
+        """
+        raise NotImplementedError
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1166,7 +1179,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         if have_same_parent(left, right):
             return left._div_(right)
         global coercion_model
-        return coercion_model.bin_op_c(left, right, operator.div)
+        return coercion_model.bin_op_c(left, right, div)
 
     cdef MultiplicativeGroupElement _div_c(self, MultiplicativeGroupElement right):
         """
@@ -1213,14 +1226,13 @@ cdef class RingElement(ModuleElement):
     # Multiplication
     ##################################
 
-    # The default behavior for scalars is just to coerce into the parent ring.
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # We raise an error to invoke the default action of coercing into self
         raise NotImplementedError, "parents %s %s %s" % (parent_c(self), parent_c(right), parent_c(self) is parent_c(right))
-#        return self._mul_c(<RingElement>(self._parent._coerce_c(right)))
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        # We raise an error to invoke the default action of coercing into self
         raise NotImplementedError
-#        return (<RingElement>(self._parent._coerce_c(left)))._mul_c(self)
 
     def __mul__(self, right):
         """
@@ -1332,64 +1344,17 @@ cdef class RingElement(ModuleElement):
             TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
         """
-        global coercion_model
         # Try fast pathway if they are both RingElements and the parents match.
         # (We know at least one of the arguments is a RingElement. So if their
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via PY_TYPE_CHECK.)
         if have_same_parent(self, right):
-            return (<RingElement>self)._mul_c(<RingElement>right)
-
-        if not (PY_TYPE_CHECK(self, Element) and PY_TYPE_CHECK(right, Element)):
-            # one of self or right is not even an Element.
-            return coercion_model.bin_op_c(self, right, operator.mul)
-
-        # Always do this
-        return coercion_model.bin_op_c(self, right, operator.mul)
-
-        # Now we can assume both self and right are of a class that derives
-        # from Element (so they have a parent).  If one is a ModuleElement,
-        # do some special code.
-        if PY_TYPE_CHECK(self, ModuleElement) and PY_TYPE_CHECK(right, ModuleElement):
-            # We may assume both are module elements.
-            if (<Element>self)._parent is (<Element>right)._parent._base:
-                return (<ModuleElement>right)._rmul_c(self)
-            elif (<Element>self)._parent._base is (<Element>right)._parent:
-                return (<ModuleElement>self)._lmul_c(right)
-            if not PY_TYPE_CHECK(right, RingElement):
-                # Now self must be a ring element:
-                # If the parent is the same as the base ring, good
-                if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
-                    # this won't be executed !? (it's already dealt with above!)
-                    assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                    return (<ModuleElement>right)._rmul_c(self)
-                elif PY_TYPE_CHECK(right, Matrix):
-                    # this won't be executed !? (since Matrix subclasses RingElement)
-                    assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                    return (<Matrix>right)._rmultiply_by_scalar(self)
-                elif PY_TYPE_CHECK(right, Vector):
-                    # scalar * right
-                    right = (<Vector>right).base_base_extend_canonical_sym_c((<ModuleElement>self)._parent)
-                    return (<Vector>right)._rmultiply_by_scalar(self)
-                else:
-                    # MAYBE we should use base_extend_canonical()...
-                    # maybe the line above is good that I added for vector is good for all cases...
-                    # but I don't really want to mess with this - GT
-                    #
-                    # Otherwise we have to do an explicit canonical coercion.
-                    try:
-                        return (<ModuleElement>right)._rmul_c(
-                            (<Parent>(<ModuleElement>right)._parent._base)._coerce_c(self))
-                    except TypeError:
-                        # that failed -- try to base extend right then do the multiply:
-                        right = (<ModuleElement>right).base_extend_recursive_c((<RingElement>self)._parent)
-                        return (<ModuleElement>right)._rmul_c(self)
-            elif PY_TYPE_CHECK(right, Matrix):  # matrix is a ring element
-                right = (<Matrix>right).base_base_extend_canonical_sym_c((<ModuleElement>self)._parent)
-                return (<Matrix>right)._rmultiply_by_scalar(self)
-
-        # General case.
-        return coercion_model.bin_op_c(self, right, operator.mul)
+            if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
+                return _imul_c(<RingElement>self, <RingElement>right)
+            else:
+                return _mul_c(<RingElement>self, <RingElement>right)
+        global coercion_model
+        return coercion_model.bin_op_c(self, right, mul)
 
     cdef RingElement _mul_c(self, RingElement right):
         """
@@ -1408,7 +1373,7 @@ cdef class RingElement(ModuleElement):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        raise TypeError, arith_error_message(self, right, operator.mul)
+        raise TypeError, arith_error_message(self, right, mul)
 
     def _mul_(RingElement self, RingElement right):
         """
@@ -1416,6 +1381,24 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         return self._mul_c_impl(right)
+
+    def __imul__(left, right):
+        if have_same_parent(left, right):
+            if  (<RefPyObject *>left).ob_refcnt <= inplace_threshold:
+#                print "doing __imul__"
+                return _imul_c(<RingElement>left, <RingElement>right)
+            else:
+#                print "doing __mul__"
+                return _mul_c(<RingElement>left, <RingElement>right)
+
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
+
+    def _imul_(self, right):
+        return self._imul_c_impl(right)
+
+    cdef RingElement _imul_c_impl(RingElement self, RingElement right):
+        return _mul_c(self, right)
 
     def __pow__(self, n, dummy):
         """
@@ -1465,7 +1448,7 @@ cdef class RingElement(ModuleElement):
     def __truediv__(self, right):
         # in sage all divs are true
         if not PY_TYPE_CHECK(self, Element):
-            return coercion_model.bin_op_c(self, right, operator.div)
+            return coercion_model.bin_op_c(self, right, div)
         return self.__div__(right)
 
     def __div__(self, right):
@@ -1474,9 +1457,12 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent(self, right):
-            return (<RingElement>self)._div_c(<RingElement>right)
-        return coercion_model.bin_op_c(self, right, operator.div)
-
+            if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
+                return _idiv_c(<RingElement>self, <RingElement>right)
+            else:
+                return _div_c(<RingElement>self, <RingElement>right)
+        global coercion_model
+        return coercion_model.bin_op_c(self, right, div)
 
 
     cdef RingElement _div_c(self, RingElement right):
@@ -1502,13 +1488,32 @@ cdef class RingElement(ModuleElement):
             if not right:
                 raise ZeroDivisionError, "Cannot divide by zero"
             else:
-                raise TypeError, arith_error_message(self, right, operator.div)
+                raise TypeError, arith_error_message(self, right, div)
 
     def _div_(RingElement self, RingElement right):
         """
         Python classes should override this function to implement division.
         """
         return self._div_c_impl(right)
+
+    def __idiv__(self, right):
+        """
+        Top-level multiplication operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent(self, right):
+            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+                return _idiv_c(<RingElement>self, <RingElement>right)
+            else:
+                return _div_c(<RingElement>self, <RingElement>right)
+        global coercion_model
+        return coercion_model.bin_op_c(self, right, idiv)
+
+    def _idiv_(self, right):
+        return self._idiv_c_impl(right)
+
+    cdef RingElement _idiv_c_impl(RingElement self, RingElement right):
+        return _div_c(self, right)
 
     def __pos__(self):
         return self
@@ -1648,6 +1653,14 @@ cdef class Vector(ModuleElement):
     cdef bint is_dense_c(self):
         raise NotImplementedError
 
+    def __imul__(left, right):
+        if have_same_parent(left, right):
+            return (<Vector>left)._dot_product_c(<Vector>right)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
+
+
     def __mul__(left, right):
         """
         Multiplication of vector by vector, matrix, or scalar
@@ -1699,19 +1712,19 @@ cdef class Vector(ModuleElement):
             sage: parent(vector(ZZ[x],[1,2,3,4])*vector(ZZ[y],[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(ZZ[x],[1,2,3,4])*vector(QQ[y],[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
             sage: parent(vector(QQ[x],[1,2,3,4])*vector(ZZ[y],[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(QQ[x],[1,2,3,4])*vector(QQ[y],[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
             (vector * matrix)
 
@@ -1747,19 +1760,19 @@ cdef class Vector(ModuleElement):
             sage: parent(vector(ZZ[x],[1,2])*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(ZZ[x],[1,2])*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
             sage: parent(vector(QQ[x],[1,2])*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(QQ[x],[1,2])*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
             (vector * scalar)
 
@@ -1795,83 +1808,57 @@ cdef class Vector(ModuleElement):
             sage: parent(vector(ZZ[x],[1,2])*ZZ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(ZZ[x],[1,2])*QQ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Rational Field'
             sage: parent(vector(QQ[x],[1,2])*ZZ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(vector(QQ[x],[1,2])*QQ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
         """
-        if PY_TYPE_CHECK(left, Vector):
-            # left is the vector
-            # Possibilities:
-            #     left * matrix
-            if PY_TYPE_CHECK(right, Matrix):
-                left = (<Vector>left).base_base_extend_canonical_sym_c((<Matrix>right)._parent._base)
-                return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
-            #     left * vector
-            if PY_TYPE_CHECK(right, Vector):
-                right = (<Vector>right).base_extend_canonical_sym_c((<Vector>left)._parent)
-                return (<Vector>left)._vector_times_vector_c(<Vector>right)
-            #     left * scalar
-            if not isinstance(right, Element):
-                right = py_scalar_to_element(right)
-            left = (<Vector>left).base_base_extend_canonical_sym_c((<Element>right)._parent)
-            return (<ModuleElement>left)._multiply_by_scalar(right)
+        if have_same_parent(left, right):
+            return (<Vector>left)._dot_product_c(<Vector>right)
+        # Always do this
+        global coercion_model
+        return coercion_model.bin_op_c(left, right, imul)
 
-        else:
-            # right is the vector
-            # Possibilities:
-            #     matrix * right
-            if PY_TYPE_CHECK(left, Matrix):
-                # this won't be executed !? (see: Matrix.__mul__)
-                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                return (<Matrix>left)._matrix_times_vector_c(<Vector>right)
-            #     vector * right
-            if PY_TYPE_CHECK(left, Vector):
-                # this won't be executed !? (see: code above)
-                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                return (<Vector>left)._vector_times_vector_c(<Vector>right)
-            #     scalar * right
-            # almost not executed, except it will be used for non-sage scalars
-            # by python rules (this is same as in: RingElement.__mul__)
-            if not isinstance(left, Element):
-                left = py_scalar_to_element(left)
-            right = (<Vector>right).base_base_extend_canonical_sym_c((<Element>left)._parent)
-            return (<Vector>right)._rmultiply_by_scalar(left)
-
-    cdef Element _vector_times_vector_c(Vector left, Vector right):
+    cdef Element _dot_product_c(Vector left, Vector right):
         if left._degree != right._degree:
             raise TypeError, "incompatible degrees"
-        left, right = coercion_model.canonical_base_coercion_c(left, right)
+        elif left._parent._base is not right._parent._base:
+            global coercion_model
+            left, right = coercion_model.canonical_coercion_c(left, right)
         if HAS_DICTIONARY(left):
-            return left._vector_times_vector(right)
+            return left._dot_product(right)
         else:
-            return left._vector_times_vector_c_impl(right)
+            return left._dot_product_c_impl(right)
 
-    cdef Element _vector_times_vector_c_impl(Vector left, Vector right):
+    def _dot_product(left, right):
+        return left._dot_product_c_impl(right)
+
+    cdef Element _dot_product_c_impl(Vector left, Vector right):
         raise TypeError,arith_error_message(left, right, operator.mul)
 
     cdef Vector _pairwise_product_c(Vector left, Vector right):
-        right = right.base_extend_canonical_sym_c(left._parent)
         if left._degree != right._degree:
             raise TypeError, "incompatible degrees"
-        left, right = coercion_model.canonical_base_coercion_c(left, right)
-        return left._pairwise_product_c_impl(right)
+        elif left._parent._base is not right._parent._base:
+            global coercion_model
+            left, right = coercion_model.canonical_coercion_c(left, right)
+        if HAS_DICTIONARY(left):
+            return left._pairwise_product(right)
+        else:
+            return left._pairwise_product_c_impl(right)
 
     cdef Vector _pairwise_product_c_impl(Vector left, Vector right):
         raise TypeError, "unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right))
-
-    def  _vector_times_vector(left, right):
-        return left.vector_time_vector_c_impl(right)
 
     def __div__(self, right):
         if PY_IS_NUMERIC(right):
@@ -1888,11 +1875,8 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError, "division by zero vector"
                 else:
                     raise ArithmeticError, "vector is not in free module"
-        raise TypeError, arith_error_message(self, right, operator.div)
+        raise TypeError, arith_error_message(self, right, div)
 
-
-#cdef have_same_base(Element x, Element y):
-#    return x._parent._base is y._parent._base
 
 
 def is_Vector(x):
@@ -1904,6 +1888,13 @@ cdef class Matrix(AlgebraElement):
 
     cdef bint is_dense_c(self):
         raise NotImplementedError
+
+    def __imul__(left, right):
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op_c(left, right, imul)
 
     def __mul__(left, right):
         """
@@ -1956,19 +1947,19 @@ cdef class Matrix(AlgebraElement):
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*matrix(ZZ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*matrix(QQ[y],2,2,[1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
             (matrix * vector)
 
@@ -2004,19 +1995,19 @@ cdef class Matrix(AlgebraElement):
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*vector(ZZ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*vector(QQ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*vector(ZZ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*vector(QQ[y],[1,2]))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
             (matrix * scalar)
 
@@ -2052,124 +2043,36 @@ cdef class Matrix(AlgebraElement):
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*ZZ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*QQ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Rational Field'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*ZZ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Integer Ring'
             sage: parent(matrix(QQ[x],2,2,[1,2,3,4])*QQ[y](1))
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous base extension
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
         """
-        if PY_TYPE_CHECK(left, Matrix):
-            # left is the matrix
-            # Possibilities:
-            #     left * matrix
-            if PY_TYPE_CHECK(right, Matrix):
-                if (<Matrix>left)._parent._base is not (<Matrix>right)._parent._base:
-                    right = (<Matrix>right).base_base_extend_canonical_sym_c((<Matrix>left)._parent._base)
-                return (<Matrix>left)._matrix_times_matrix_c(<Matrix>right)
-            #     left * vector
-            if PY_TYPE_CHECK(right, Vector):
-                right = (<Vector>right).base_base_extend_canonical_sym_c((<Matrix>left)._parent._base)
-                return (<Matrix>left)._matrix_times_vector_c(<Vector>right)
-            #     left * scalar
-            if not isinstance(right, Element):
-                right = py_scalar_to_element(right)
-            left = (<Matrix>left).base_base_extend_canonical_sym_c((<Element>right)._parent)
-            return (<Matrix>left)._multiply_by_scalar(right)
-
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
         else:
-            # right is the matrix
-            # Possibilities:
-            #     matrix * right
-            if PY_TYPE_CHECK(left, Matrix):
-                # this won't be executed !? (see: code above)
-                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                return (<Matrix>left)._matrix_times_matrix_c(<Matrix>right)
-            #     vector * right
-            if PY_TYPE_CHECK(left, Vector):
-                # this won't be executed !? (see: Vector.__mul__)
-                assert False, "NOT EXECUTED -- bug in SAGE coercion code."
-                return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
-            #     scalar * right
-            # almost not executed, except it will be used for non-sage scalars
-            # by python rules (this is same as in: RingElement.__mul__)
-            if not isinstance(left, Element):
-                left = py_scalar_to_element(left)
-            right = (<Matrix>right).base_base_extend_canonical_sym_c((<Element>left)._parent)
-            return (<Matrix>right)._rmultiply_by_scalar(left)
-
-    cdef Vector _vector_times_matrix_c(matrix_right, Vector vector_left):
-        if vector_left._degree != matrix_right._nrows:
-            raise TypeError, "incompatible dimensions"
-        matrix_right, vector_left = coercion_model.canonical_base_coercion_c(matrix_right, vector_left)
-        sl = vector_left.is_sparse_c(); sr = matrix_right.is_sparse_c()
-        if sl != sr:  # one is dense and one is sparse
-            if sr:  # vector is dense and matrix is sparse
-                vector_left = vector_left.sparse_vector()
-            else:
-                # vector is sparse and matrix is dense
-                vector_left = vector_left.dense_vector()
-        if HAS_DICTIONARY(matrix_right):
-            return matrix_right._vector_times_matrix(vector_left)
-        else:
-            return matrix_right._vector_times_matrix_c_impl(vector_left)
+            global coercion_model
+            return coercion_model.bin_op_c(left, right, mul)
 
     cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left):
         raise TypeError
 
-    def _vector_times_matrix(matrix_right, vector_left):
-        return matrix_right._vector_times_matrix_c_impl(vector_left)
-
-    cdef Vector _matrix_times_vector_c(matrix_left, Vector vector_right):
-        if matrix_left._ncols != vector_right._degree:
-            raise TypeError, "incompatible dimensions"
-        matrix_left, vector_right = coercion_model.canonical_base_coercion_c(matrix_left, vector_right)
-        sl = matrix_left.is_sparse_c(); sr = vector_right.is_sparse_c()
-        if sl != sr:  # one is dense and one is sparse
-            if sl:  # vector is dense and matrix is sparse
-                vector_right = vector_right.sparse_vector()
-            else:
-                # vector is sparse and matrix is dense
-                vector_right = vector_right.dense_vector()
-        if HAS_DICTIONARY(matrix_left):
-            return matrix_left._matrix_times_vector(vector_right)
-        else:
-            return matrix_left._matrix_times_vector_c_impl(vector_right)
-
     cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right):
         raise TypeError
-    def _matrix_times_vector(matrix_left, vector_right):
-        return matrix_left._matrix_times_vector_c_impl(vector_right)
-
-
-    cdef Matrix _matrix_times_matrix_c(left, Matrix right):
-        cdef int sl, sr
-        if left._ncols != right._nrows:
-            raise TypeError, "incompatible dimensions"
-        left, right = coercion_model.canonical_base_coercion_c(left, right)
-        sl = left.is_sparse_c(); sr = right.is_sparse_c()
-        if sl != sr:  # is dense and one is sparse
-            if sr:  # left is dense
-                right = right.dense_matrix()
-            else:
-                left = left.dense_matrix()
-        if HAS_DICTIONARY(left):
-            return left._matrix_times_matrix(right)
-        else:
-            return left._matrix_times_matrix_c_impl(right)
 
     cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right):
         raise TypeError
-    def _matrix_time_matrix(left, right):
-        return left._matrix_times_matrix_c_impl(right)
+
 
 
 def is_Matrix(x):
@@ -2469,27 +2372,6 @@ include "coerce.pxi"
 
 
 #################################################################################
-# Fast (inline) dispatcher for arithmatic
-#################################################################################
-
-cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._add_(right) if HAS_DICTIONARY(left) else left._add_c_impl(right)
-
-cdef inline ModuleElement _sub_c(ModuleElement left, ModuleElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._sub_(right) if HAS_DICTIONARY(left) else left._sub_c_impl(right)
-
-cdef inline RingElement _mul_c(RingElement left, RingElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._mul_(right) if HAS_DICTIONARY(left) else left._mul_c_impl(right)
-
-cdef inline RingElement _div_c(RingElement left, RingElement right):
-    # See extensive documentation at the top of element.pyx.
-    return left._div_(right) if HAS_DICTIONARY(left) else left._div_c_impl(right)
-
-
-#################################################################################
 #
 #  Coercion of elements
 #
@@ -2603,9 +2485,9 @@ cdef bin_op_c(x, y, op):
         return op(x1,y1)
     except TypeError, msg:
         #print msg  # this can be useful for debugging.
-        if op is operator.add or op is operator.sub:
+        if op is add or op is sub:
             return addsub_op_c(x, y, op)
-        if op is operator.mul or op is operator.div:
+        if op is mul or op is div:
             return muldiv_op_c(x, y, op)
         raise TypeError, arith_error_message(x,y,op)
 
@@ -2638,7 +2520,7 @@ cdef muldiv_op_c(x, y, op):
     # If the op is multiplication, then some other algebra multiplications
     # may be defined
 
-    if op is operator.div and PY_TYPE_CHECK(y, RingElement):
+    if op is div and PY_TYPE_CHECK(y, RingElement):
         y = y.__invert__()
 
     # 2. Try scalar multiplication.
@@ -2677,7 +2559,7 @@ cdef muldiv_op_c(x, y, op):
         # Try base extending the right object by the parent of the left
 
         try:
-            return addsub_op_c(x, y, operator.mul)
+            return addsub_op_c(x, y, mul)
         except TypeError:
             pass
 

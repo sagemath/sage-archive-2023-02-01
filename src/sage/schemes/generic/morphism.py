@@ -13,7 +13,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.infinity import infinity
+
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
+
 from sage.structure.sequence  import Sequence
 
 from sage.categories.morphism import Morphism
@@ -401,6 +404,9 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
+            elif v is infinity:
+                v = [0] * (d)
+                v[1] = 1
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)

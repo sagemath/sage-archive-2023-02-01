@@ -888,12 +888,20 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        mpq_add(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        mpq_sub(self.value, self.value, (<Rational>right).value)
+        return self
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Rational x
@@ -915,6 +923,18 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
@@ -931,6 +951,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         x = <Rational> PY_NEW(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
+
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
+            raise ZeroDivisionError, "Rational division by zero"
+        mpq_div(self.value, self.value, (<Rational>right).value)
+        return self
+
 
     ################################################################
     # Other arithmetic operations.
@@ -1596,4 +1623,24 @@ cdef class Z_to_Q(Morphism):
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
         return rat
+
+    def _repr_type(self):
+        return "Natural"
+
+cdef class int_to_Q(Morphism):
+    def __init__(self):
+        import rational_field
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
+
+    cdef Element _call_c(self, a):
+        # Override this _call_c rather than _call_c_impl because a is not an Element
+        cdef Rational rat
+        rat = <Rational> PY_NEW(Rational)
+        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+        return rat
+
+    def _repr_type(self):
+        return "Native"
 

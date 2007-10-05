@@ -2603,6 +2603,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self._parent(self[:n], check=False)
 
+    cdef truncate_c(self, long n):
+        return self.truncate(n)
+
+    cdef _inplace_truncate(self, long prec):
+        return self.truncate_c(prec)
+
     def is_squarefree(self):
         """
         Return True if this polynomial is square free.
@@ -2941,6 +2947,21 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) >= len(y):
+            for i from 0 <= i < len(y):
+                x[i] += y[i]
+        else:
+            for i from 0 <= i < len(x):
+                x[i] += y[i]
+            x += y[len(x):]
+        if len(x) == len(y):
+            self.__normalize()
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
@@ -2960,6 +2981,21 @@ cdef class Polynomial_generic_dense(Polynomial):
             return res
         else:
             return self._parent(low + high, check=0)
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) >= len(y):
+            for i from 0 <= i < len(y):
+                x[i] -= y[i]
+        else:
+            for i from 0 <= i < len(x):
+                x[i] -= y[i]
+            x += [-c for c in y[len(x):]]
+        if len(x) == len(y):
+            self.__normalize()
+        return self
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
@@ -2982,6 +3018,18 @@ cdef class Polynomial_generic_dense(Polynomial):
         if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
+
+    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+        if len(self.__coeffs) == 0:
+            return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
+        cdef Py_ssize_t i, deg = len(self.__coeffs)
+        for i from 0 <= i < deg:
+            self.__coeffs[i] *= c
+        if not self.__coeffs[deg-1]:
+            self.__normalize()
+        return self
 
     def list(self, copy=True):
         """
@@ -3050,6 +3098,16 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return self._parent(self.__coeffs[:n], check=False)
 
+    def truncate_c(self, long n):
+        r"""
+        Returns the polynomial of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        return self._parent(self.__coeffs[:n], check=False)
+
+    cdef _inplace_truncate(self, long n):
+        self.__coeffs = self.__coeffs[:n]
+        return self
 
 
 def make_generic_polynomial(parent, coeffs):

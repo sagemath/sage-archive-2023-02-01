@@ -26,6 +26,7 @@ TESTS:
 import types
 import random
 import weakref
+import operator
 
 # SAGE matrix imports
 import matrix
@@ -62,6 +63,7 @@ import sage.groups.matrix_gps.matrix_group_element
 
 
 # SAGE imports
+import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
@@ -329,6 +331,29 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     def construction(self):
         from sage.categories.pushout import MatrixFunctor
         return MatrixFunctor(self.__nrows, self.__ncols), self.base_ring()
+
+    def get_action_impl(self, S, op, self_on_left):
+        try:
+            if op is operator.mul:
+                import action as matrix_action
+                if self_on_left:
+                    if is_MatrixSpace(S):
+                        return matrix_action.MatrixMatrixAction(self, S)
+                    elif sage.modules.free_module.is_FreeModule(S):
+                        return matrix_action.MatrixVectorAction(self, S)
+                    else:
+                        # action of basering
+                        return sage.structure.coerce.RightModuleAction(S, self)
+                else:
+                    if sage.modules.free_module.is_FreeModule(S):
+                        return matrix_action.VectorMatrixAction(self, S)
+                    else:
+                        # action of basering
+                        return sage.structure.coerce.LeftModuleAction(S, self)
+            else:
+                return None
+        except TypeError:
+            return None
 
     def _coerce_impl(self, x):
         """

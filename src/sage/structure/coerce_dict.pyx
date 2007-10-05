@@ -50,7 +50,7 @@ cdef class TripleDict:
         sage: L[a,b,c]
         1
         sage: L[c,b,a] = -1
-        sage: list(L.iteritems())
+        sage: list(L.iteritems())     # random order of output.
         [(('c', 'b', 'a'), -1), (('a', 'b', 'c'), 1)]
         sage: del L[a,b,c]
         sage: list(L.iteritems())

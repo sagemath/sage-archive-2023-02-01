@@ -81,7 +81,6 @@ usage_advanced() {
     echo "                           -long     -- include lines with the phrase 'long time'"
     echo "                           -verbose  -- print debuging output during the test"
     echo "  -tnew ...     -- like -t above, but only tests files modified since last commit"
-    echo "  -tsage        -- test latex document via sage (pexpect) interface"
     echo "  -testall      -- test all source, docs, and examples in your SAGE distro."
     #echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
     #echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
@@ -536,16 +535,9 @@ if [ $1 = '-tnew' ]; then
    exit $?
 fi
 
-if [ $1 = '-tsage' -o $1 = "--tsage" ]; then
-   cd "$CUR"
-   shift
-   sage-test -sage "$@"
-   exit $?
-fi
-
 if [ $1 = '-testall' -o $1 = "--testall" ]; then
    shift
-   sage-testall "$@"
+   sage-maketest "$@"
    exit $?
 fi
 

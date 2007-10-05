@@ -167,7 +167,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
-            sage: L = E.Lseries_at1(300)[0]; L
+            sage: L = E.Lseries().at1(300)[0]; L
             0.253841860855911
             sage: O = E.omega(); O
             1.269209304279553421688794616754547305219492241830608667967136921230408338613     # 32-bit
@@ -260,9 +260,9 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         EXAMPLES:
             sage: QQ.embeddings(QQ)
-            [Coercion endomorphism of Rational Field]
+            [Ring Coercion endomorphism of Rational Field]
             sage: QQ.embeddings(CyclotomicField(5))
-            [Coercion morphism:
+            [Ring Coercion morphism:
               From: Rational Field
               To:   Cyclotomic Field of order 5 and degree 4]
 
@@ -319,6 +319,14 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         EXAMPLES:
             sage: QQ.degree()
+            1
+        """
+        return 1
+
+    def absolute_degree(self):
+        """
+        EXAMPLES:
+            sage: QQ.absolute_degree()
             1
         """
         return 1

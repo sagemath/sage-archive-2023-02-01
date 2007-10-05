@@ -225,8 +225,9 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         try:
             xy = self.canonical_coercion_c(x,y)
             return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
-        except TypeError:
+        except TypeError, msg:
 #            raise
+#            print msg
             pass
 
         if op is operator.mul:

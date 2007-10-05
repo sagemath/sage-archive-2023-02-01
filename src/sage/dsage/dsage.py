@@ -114,9 +114,17 @@ class DistributedSage(object):
                     blocking=False, poll=poll, anonymous=anonymous_workers,
                     verbose=verbose)
 
-        import time
-        time.sleep(1)  # Allow the server to start completely before trying
-                       # to connect
+        while(True):
+            try:
+                import socket
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect(('localhost', port))
+                s.close()
+                break
+            except:
+                import time
+                time.sleep(0.5)
+
         d = BlockingDSage(server='localhost', port=port)
 
         return d

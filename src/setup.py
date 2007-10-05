@@ -560,6 +560,9 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfi.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
+    Extension('sage.rings.residue_field',
+              sources = ['sage/rings/residue_field.pyx']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
@@ -658,6 +661,12 @@ ext_modules = [ \
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
+
+    Extension('sage.rings.morphism',
+              sources = ['sage/rings/morphism.pyx']),
+
+    Extension('sage.structure.wrapper_parent',
+              sources = ['sage/structure/wrapper_parent.pyx']), \
 
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \

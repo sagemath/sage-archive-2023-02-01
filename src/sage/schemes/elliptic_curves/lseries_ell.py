@@ -593,7 +593,7 @@ class Lseries_ell(SageObject):
         # that Edixhoven claims the primes that appear are <= 7.
 
         t = self.E.torsion_subgroup().order()
-        omega = self.E.period_lattice()[0]
+        omega = self.E.period_lattice().basis()[0]
         d = self.E._multiple_of_degree_of_isogeny_to_optimal_curve()
         C = 8*d*t
         eps = omega / C

@@ -9,7 +9,9 @@ EXAMPLE: Natural inclusion $\Z \hookrightarrow \Q$.
     sage: phi(10)
     10
     sage: phi(3/1)
-    3
+    Traceback (most recent call last):
+    ...
+    TypeError: 3 must be coercible into Integer Ring
     sage: phi(2/3)
     Traceback (most recent call last):
     ...

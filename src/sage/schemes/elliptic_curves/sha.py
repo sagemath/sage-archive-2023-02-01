@@ -64,7 +64,7 @@ class Sha(SageObject):
         r = Integer(self.E.rank(use_database=use_database, proof=proof))
         L = self.E.Lseries().dokchitser(prec=prec)
         Lr= L.derivative(1,r)
-        Om = self.E.omega()
+        Om = self.E.period_lattice().omega()
         Reg = self.E.regulator(use_database=use_database, proof=proof)
         T = self.E.torsion_order()
         cp = self.E.tamagawa_product()
@@ -183,7 +183,7 @@ class Sha(SageObject):
 
             regulator = E.regulator(use_database=use_database)   # this could take a *long* time; and could fail...?
             T = E.torsion_subgroup().order()
-            omega = E.omega()
+            omega = E.period_lattice().omega()
             Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
                 Sha = Integer(Sha)
@@ -530,7 +530,7 @@ class Sha(SageObject):
         L1_vanishes = E.Lseries().L1_vanishes()
         if eps == 1 and L1_vanishes:
             return 0, 0        # rank even hence >= 2, so Kolyvagin gives nothing.
-        alpha = sqrt(abs(D))/(2*E.complex_area())
+        alpha = sqrt(abs(D))/(2*E.period_lattice().complex_area())
         F = E.quadratic_twist(D)
         k_E = 2*sqrt(E.conductor()) + 10
         k_F = 2*sqrt(F.conductor()) + 10

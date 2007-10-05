@@ -1147,12 +1147,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
            sage: P.<x,y,z> = PolynomialRing(QQ,3,order='lex')
            sage: I = sage.rings.ideal.Cyclic(P)
            sage: I
-           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Polynomial Ring in x, y, z over Rational Field
+           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Multivariate Polynomial Ring in x, y, z over Rational Field
            sage: I.groebner_basis()
            [z^3 - 1, y^2 + y*z + z^2, x + y + z]
 
            sage: Q.<x,y,z> = P.new_ring(order='degrevlex'); Q
-           Polynomial Ring in x, y, z over Rational Field
+           Multivariate Polynomial Ring in x, y, z over Rational Field
            sage: Q.term_order()
            Degree reverse lexicographic term order
 

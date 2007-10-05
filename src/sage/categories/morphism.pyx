@@ -54,10 +54,16 @@ cdef class Morphism(Element):
         self._domain = _slots['_domain']
         self._codomain = _slots['_codomain']
 
+    def _test_update_slots(self, _slots):
+        self._update_slots(_slots)
+
     cdef _extra_slots(self, _slots):
         _slots['_domain'] = self._domain
         _slots['_codomain'] = self._codomain
         return _slots
+
+    def _test_extra_slots(self, _slots):
+        return self._extra_slots(_slots)
 
     def __reduce__(self):
         if HAS_DICTIONARY(self):
@@ -100,11 +106,16 @@ cdef class Morphism(Element):
         raise NotImplementedError
 
     def __call__(self, x):
-        if not PY_TYPE_CHECK(x, Element) or (<Element>x)._parent is not self._domain:
+        if not PY_TYPE_CHECK(x, Element):
             try:
-                x = self._domain(x)
+                return self.pushforward(x)
             except TypeError:
-                raise TypeError, "%s must be coercible into %s"%(x,self._domain)
+                raise TypeError, "x is not an element, and the pushforward is not defined"
+        elif (<Element>x)._parent is not self._domain:
+            try:
+                x = self._domain._coerce_(x)
+            except TypeError:
+                return self.pushforward(x)
         return self._call_c(x)
 
     def _call_(self, x):
@@ -117,6 +128,9 @@ cdef class Morphism(Element):
             return self._call_c_impl(x)
 
     cdef Element _call_c_impl(self, Element x):
+        raise NotImplementedError
+
+    def pushforward(self, I):
         raise NotImplementedError
 
     def __mul__(self, right):
@@ -155,7 +169,7 @@ cdef class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    cdef Element _call_c(self, x):
+    cdef Element _call_c_impl(self, Element x):
         return self._codomain._coerce_(x)
 
 cdef class CallMorphism(Morphism):
@@ -163,7 +177,7 @@ cdef class CallMorphism(Morphism):
     def _repr_type(self):
         return "Call"
 
-    cdef Element _call_c(self, x):
+    cdef Element _call_c_impl(self, Element x):
         return self._codomain(x)
 
 cdef class IdentityMorphism(Morphism):
@@ -176,7 +190,7 @@ cdef class IdentityMorphism(Morphism):
     def _repr_type(self):
         return "Identity"
 
-    cdef Element _call_c(self, x):
+    cdef Element _call_c_impl(self, Element x):
         return x
 
     def __mul__(left, right):
@@ -204,9 +218,12 @@ cdef class FormalCompositeMorphism(Morphism):
     cdef _update_slots(self, _slots):
         self.__first = _slots['__first']
         self.__second = _slots['__second']
+        Morphism._update_slots(self, _slots)
 
     cdef _extra_slots(self, _slots):
-        return Morphism._extra_slots(self, {'__first': self.__first, '__second': self.__second})
+        _slots['__first'] = self.__first
+        _slots['__second'] = self.__second
+        return Morphism._extra_slots(self, _slots)
 
     cdef Element _call_c_impl(self, Element x):
         return self.__second(self.__first(x))

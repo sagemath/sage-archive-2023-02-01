@@ -16,7 +16,7 @@ cdef class Morphism(Element):
     cdef Element _call_c_impl(self, Element x)
 
 cdef class FormalCoercionMorphism(Morphism):
-    pass
+    cdef Element _call_c_impl(self, Element x)
 
 cdef class FormalCompositeMorphism(Morphism):
     cdef Morphism __first

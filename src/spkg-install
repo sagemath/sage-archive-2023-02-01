@@ -71,6 +71,8 @@ cd "$SAGE_ROOT/local/include/"
 rm -rf csage
 ln -s ../../devel/sage/c_lib/include csage
 
+cd "$CUR"
+
 ###########################################################
 
 
@@ -106,13 +108,11 @@ if [ -d "$DEVEL/sage-main" ]; then
     exit $?
 fi
 
+cd "$CUR"
 mkdir "$DEVEL/sage-main"
 cp -pr * .hg* "$DEVEL/sage-main/"
 
 cd "$DEVEL/sage-main"
-
-
-
 
 cd "$CUR"
 

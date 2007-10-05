@@ -115,7 +115,10 @@ cdef class Morphism(Element):
             try:
                 x = self._domain._coerce_(x)
             except TypeError:
-                return self.pushforward(x)
+                try:
+                    return self.pushforward(x)
+                except TypeError:
+                    raise TypeError, "%s must be coercible into %s"%(x, self._domain)
         return self._call_c(x)
 
     def _call_(self, x):
@@ -169,7 +172,8 @@ cdef class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    cdef Element _call_c_impl(self, Element x):
+    # We need to override _call_c in this special case so that FormalCoercionMorphisms can operate on things that are not elements.
+    cdef Element _call_c(self, x):
         return self._codomain._coerce_(x)
 
 cdef class CallMorphism(Morphism):
@@ -177,7 +181,8 @@ cdef class CallMorphism(Morphism):
     def _repr_type(self):
         return "Call"
 
-    cdef Element _call_c_impl(self, Element x):
+    # We need to override _call_c in this special case so that CallMorphisms can operate on things that are not elements.
+    cdef Element _call_c(self, x):
         return self._codomain(x)
 
 cdef class IdentityMorphism(Morphism):

@@ -496,7 +496,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             sage: f(7)
             2
             sage: f
-            Coercion morphism:
+            Ring Coercion morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 

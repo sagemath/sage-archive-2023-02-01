@@ -264,7 +264,7 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     sage: OK = K.maximal_order()
     sage: c = OK(a)
     sage: b = k(a)
-    sage: k.f(a)
+    sage: k.f(c)
     16
     sage: k(4)
     4

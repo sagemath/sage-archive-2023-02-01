@@ -16,7 +16,7 @@ AUTHORS:
     -- Alex Clemesha
     -- Tom Boothby: support for a wide range of web browsers;
        refactoring of javascript code; systematic keyboard controls
-    -- Dorian Ramier
+    -- Dorian Raymer
     -- Yi Qiang
     -- Bobby Moretti
 

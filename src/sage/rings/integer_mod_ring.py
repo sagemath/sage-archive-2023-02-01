@@ -217,7 +217,20 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._one_element = integer_mod.IntegerMod(self, 1)
 
     def krull_dimension(self):
+        """
+        EXAMPLES:
+            sage: Integers(18).krull_dimension()
+            0
+        """
         return integer.Integer(0)
+
+    def is_noetherian(self):
+        """
+        EXAMPLES:
+            sage: Integers(8).is_noetherian()
+            True
+        """
+        return True
 
     def _precompute_table(self):
         self._pyx_order.precompute_table(self)

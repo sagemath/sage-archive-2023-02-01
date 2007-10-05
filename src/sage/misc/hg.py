@@ -61,7 +61,7 @@ class HG:
             cd <SAGE_ROOT>/devel/sage/ && hg command line arguments
     \end{verbatim}
     """
-    def __init__(self, dir, name, url, target=None, cloneable=False):
+    def __init__(self, dir, name, url, target=None, cloneable=False, obj_name=''):
         """
         INPUT:
             dir -- directory that will contain the repository
@@ -78,6 +78,7 @@ class HG:
         self.__initialized = False
         self.__target = target
         self.__cloneable = cloneable
+        self.__obj_name = obj_name
 
     def __repr__(self):
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
@@ -210,8 +211,9 @@ class HG:
             options = ''
 
         print "If you get an error 'abort: unknown parent'"
-        print "this just means you need to do an x.pull(),"
-        print "where x is the hg_ object you just called this method on."
+        print "this usually means either you need to do:"
+        print "       hg_%s.pull()"%self.__obj_name
+        print "or you're applying this patch to the wrong repository."
         self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle
@@ -305,10 +307,12 @@ class HG:
 
     patch = import_patch
 
-    def incoming(self, source, options=''):
+    def incoming(self, source, options='-p'):
         """
-        Show new changesets found in the given source.  This even
-        works if the source is a bundle file (ends in .hg or .bundle).
+        Show new changesets found in the given source and display the
+        corresponding diffs.  This even works if the source is a
+        bundle file (ends in .hg or .bundle).  This is great because
+        it lets you "see inside" the myserious binary-only .hg files.
 
         Show new changesets found in the specified path/URL or the default
         pull location. These are the changesets that would be pulled if a pull
@@ -323,7 +327,8 @@ class HG:
 
         INPUT:
             filename -- string
-            options -- string '[-p] [-n] [-M] [-r REV] ...'
+            options -- (default: '-p')
+                       string '[-p] [-n] [-M] [-r REV] ...'
                          -M --no-merges     do not show merges
                          -f --force         run even when remote repository is unrelated
                             --style         display using template map file
@@ -341,7 +346,7 @@ class HG:
             source = os.path.abspath(source)
         if os.path.splitext(source)[1] in ['.hg', '.bundle']:
             source = 'bundle://%s'%source
-        self('incoming %s "%s"'%(options, source))
+        self('incoming %s "%s" | %s'%(options, source, pager()))
 
     inspect = incoming
 
@@ -655,9 +660,7 @@ class HG:
             print "You *MUST* restart SAGE in order for the changes to take effect!"
 
         print "If it says use 'hg merge' above, then you should"
-        print "type hg_sage.merge(), where hg_sage is the name"
-        print "of the repository you are using.  This might not"
-        print "work with the notebook yet."
+        print "type hg_%s.merge()."%self.__obj_name
 
     def merge(self, options=''):
         """
@@ -921,17 +924,21 @@ except KeyError:
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
                 url='%s/sage-main'%SAGE_SERVER,
-                cloneable=True)
+                cloneable=True,
+                obj_name='sage')
 
 hg_doc     = HG('%s/devel/doc'%SAGE_ROOT,
                 'SAGE Documentation',
-                url='%s/doc-main'%SAGE_SERVER)
+                url='%s/doc-main'%SAGE_SERVER,
+                obj_name='doc')
 
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'SAGE Scripts',
-                url='%s/scripts-main'%SAGE_SERVER)
+                url='%s/scripts-main'%SAGE_SERVER,
+                obj_name='scripts')
 
 hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'SAGE External System Code (e.g., PARI, MAGMA, etc.)',
-                url='%s/extcode-main'%SAGE_SERVER)
+                url='%s/extcode-main'%SAGE_SERVER,
+                obj_name='extcode')
 

@@ -60,7 +60,8 @@ def is_Parent(x):
 
 cdef class Parent(sage_object.SageObject):
     """
-    Parents are the SAGE/mathematical analogues of container objects in computer science.
+    Parents are the SAGE/mathematical analogues of container objects
+    in computer science.
     """
 
     def __init__(self, coerce_from=[], actions=[], embeddings=[]):
@@ -591,7 +592,7 @@ cdef class Parent(sage_object.SageObject):
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: R.Hom(QQ)
-            Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
+            Set of Homomorphisms from Multivariate Polynomial Ring in x, y over Rational Field to Rational Field
 
         Homspaces are defined for very general \sage objects, even elements of familiar rings.
             sage: n = 5; Hom(n,7)

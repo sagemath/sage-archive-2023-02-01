@@ -118,8 +118,8 @@ sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
           use_cache=False, create_local_c_file=False):
-    if filename[-5:] != '.spyx':
-        print "File (=%s) must have extension .spyx"%filename
+    if not filename.endswith('pyx'):
+        print "File (=%s) should have extension .pyx"%filename
 
     clean_filename = sanitize(filename)
     base = os.path.split(os.path.splitext(clean_filename)[0])[1]

@@ -46,7 +46,7 @@ class QuotientRingElement(ring_element.RingElement):
 
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S = R.quo(x^2 + y^2); S
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         sage: S.gens()
         (xbar, ybar)
 

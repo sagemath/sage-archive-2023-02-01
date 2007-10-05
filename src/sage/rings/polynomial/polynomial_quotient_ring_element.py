@@ -277,11 +277,10 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def field_extension(self, names):
         r"""
-        Takes a polynomial defined in a quotient ring, and returns
-        a tuple with three elements: the NumberField defined by the
-        same polynomial, a homomorphism from its parent to the
-	NumberField sending the generators to one another, and the
-	inverse isomorphism.
+        Given a polynomial with base ring a quotient ring, return a
+        3-tuple: a number field defined by the same polynomial, a
+        homomorphism from its parent to the number field sending the
+        generators to one another, and the inverse isomorphism.
 
         INPUT:
             -- names - name of generator of output field
@@ -315,20 +314,14 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: g(x^2 + 2)
             b^2 + 2
 
-        We do an example involving a relative number field, which
-        doesn't work since the relative extension generator doesn't
-        generate the absolute extension.
+        We do an example involving a relative number field:
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: F, g, h = b.field_extension('c')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()
 
-
-        We slightly change the example above so it works.
+        Another more awkward example:
 
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
@@ -373,21 +366,23 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             Traceback (most recent call last):
 ##             ...
 ##             ValueError: polynomial must be irreducible
-        F = self.parent().modulus().root_field(names)
-        if isinstance(F, number_field.NumberField_extension):
-            if F.gen() != F.gen_relative():
-                # The issue is that there is no way to specify a homomorphism
-                # from the relative number to the poly ring quotient that
-                # is defined over Q.
-                raise NotImplementedError, "not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()"
-            alpha = F.gen_relative()
-        else:
-            alpha = F.gen()
+
+
 	R = self.parent()
 	x = R.gen()
 
+        F = R.modulus().root_field(names)
+        alpha = F.gen()
+
 	f = R.hom([alpha], F, check=False)
-	g = F.hom([x], R, check=False)
+
+        if number_field.is_RelativeNumberField(F):
+
+            base_hom = F.base_field().hom([R.base_ring().gen()])
+            g = F.Hom(R)(x, base_hom)
+
+        else:
+            g = F.hom([x], R, check=False)
 
         return F, f, g
 

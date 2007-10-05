@@ -1399,7 +1399,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
-    def factor(self, algorithm='pari'):
+    def factor(self, algorithm='pari', proof=True):
         """
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
@@ -1409,13 +1409,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+            proof -- bool (default: True) whether or not to prove primality
+                    of each factor (only applicable for PARI).
+
 
         EXAMPLES:
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
         """
         import sage.rings.integer_ring
-        return sage.rings.integer_ring.factor(self, algorithm=algorithm)
+        return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 
     def coprime_integers(self, m):
         """
@@ -1770,6 +1773,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return mpz_sgn(self.value) != 0
+
+    def is_integral(self):
+        """
+        Return \code{True} since integers are integral, i.e., satisfy
+        a monic polynomial with integer coefficients.
+
+        EXAMPLES:
+            sage: Integer(3).is_integral()
+            True
+        """
+        return True
 
     def is_unit(self):
         r"""
@@ -2139,27 +2153,59 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
-    def square_free_part(self):
-        """
-        Return the square free part of $x$, i.e., a divisor z such that $x = z y^2$,
-        for a perfect square $y^2$.
+    def radical(self):
+        r"""
+        Return the product of the prime divisors of self.
+
+        If self is 0, returns 1.
 
         EXAMPLES:
-            sage: square_free_part(100)
+            sage: Integer(10).radical()
+            10
+            sage: Integer(20).radical()
+            10
+            sage: Integer(-20).radical()
+            -10
+            sage: Integer(0).radical()
             1
-            sage: square_free_part(12)
+            sage: Integer(36).radical()
+            6
+        """
+        if self.is_zero():
+            return ONE
+        F = self.factor()
+        n = one
+        for p, e in F:
+            n *= p
+        return n * F.unit()
+
+    def squarefree_part(self):
+        r"""
+        Return the square free part of $x$ (=self), i.e., the unique
+        integer $z$ that $x = z y^2$, with $y^2$ a perfect square and
+        $z$ square-free.
+
+        Use \code{self.radical()} for the product of the primes that
+        divide self.
+
+        If self is 0, just returns 0.
+
+        EXAMPLES:
+            sage: squarefree_part(100)
+            1
+            sage: squarefree_part(12)
             3
-            sage: square_free_part(17*37*37)
+            sage: squarefree_part(17*37*37)
             17
-            sage: square_free_part(-17*32)
+            sage: squarefree_part(-17*32)
             -34
-            sage: square_free_part(1)
+            sage: squarefree_part(1)
             1
-            sage: square_free_part(-1)
+            sage: squarefree_part(-1)
             -1
-            sage: square_free_part(-2)
+            sage: squarefree_part(-2)
             -2
-            sage: square_free_part(-4)
+            sage: squarefree_part(-4)
             -1
         """
         if self.is_zero():
@@ -2191,12 +2237,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return Integer( (self._pari_()+1).nextprime())
 
-    def next_prime(self, proof=True):
+    def next_prime(self, proof=None):
         r"""
         Returns the next prime after self.
 
         INPUT:
-            proof -- bool (default: True)
+            proof -- bool or None (default: None, see proof.arithmetic or
+                            sage.structure.proof)
+                        Note that the global Sage default is proof=True
 
         EXAMPLES:
             sage: Integer(100).next_prime()
@@ -2210,6 +2258,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
         if self < 2:   # negatives are not prime.
             return integer_ring.ZZ(2)
         if self == 2:

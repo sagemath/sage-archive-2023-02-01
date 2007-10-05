@@ -258,6 +258,8 @@ import re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.structure.sequence import Sequence
+
 from sage.structure.element import RingElement
 
 import sage.misc.misc as misc
@@ -435,7 +437,7 @@ class Singular(Expect):
             return getattr(x, '_singular_')(self)
 
         # some convenient conversions
-        if type in ("module","list") and isinstance(x,(list,tuple)):
+        if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):
             x = str(x)[1:-1]
 
         return SingularElement(self, type, x, False)
@@ -739,6 +741,15 @@ class Singular(Expect):
             SingularFunction(self,"option")("\"set\"",val)
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
+
+    def _keyboard_interrupt(self):
+        print "Interrupting %s..."%self
+        try:
+            self._expect.sendline(chr(4))
+        except pexpect.ExceptionPexpect, msg:
+            raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+        self._start()
+        raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):

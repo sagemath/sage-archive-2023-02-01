@@ -83,6 +83,7 @@ from sage.dsage.all      import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
+import sage.crypto.mq as mq
 
 from sage.plot.all       import *
 from sage.coding.all     import *
@@ -246,6 +247,8 @@ def quit_sage(verbose=True):
 
     import sage.matrix.matrix_mod2_dense
     sage.matrix.matrix_mod2_dense.free_m4ri()
+
+    pari._unsafe_deallocate_pari_stack()
 
     ### The following is removed -- since it would cleanup
     ### the tmp directory that the sage cleaner depends upon.

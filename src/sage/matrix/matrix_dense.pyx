@@ -11,6 +11,8 @@ TESTS:
 cimport matrix
 
 from   sage.structure.element    cimport Element
+import sage.matrix.matrix_space
+import sage.structure.sequence
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
@@ -158,3 +160,86 @@ cdef class Matrix_dense(matrix.Matrix):
         return self.new_matrix(nrows = nc, ncols = nr,
                                entries = f, copy=False, coerce=False)
 
+    def apply_morphism(self, phi):
+        """
+        Apply the morphism phi to the coefficients of this dense matrix.
+
+        The resulting matrix is over the codomain of phi.
+
+        INPUT:
+            phi -- a morphism, so phi is callable and phi.domain()
+                   and phi.codomain() are defined.  The codomain
+                   must be a ring.
+
+        OUTPUT:
+            a matrix over the codomain of phi
+
+
+        EXAMPLES:
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: phi = ZZ.hom(GF(5))
+            sage: m.apply_morphism(phi)
+            [0 1 2]
+            [3 4 0]
+            [1 2 3]
+            sage: parent(m.apply_morphism(phi))
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 5
+
+        We apply a morphism to a matrix over a polynomial ring:
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix(2, [x,x^2 + y, 2/3*y^2-x, x]); m
+            [          x     x^2 + y]
+            [2/3*y^2 - x           x]
+            sage: phi = R.hom([y,x])
+            sage: m.apply_morphism(phi)
+            [          y     y^2 + x]
+            [2/3*x^2 - y           y]
+
+        """
+        R = phi.codomain()
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=False)
+        return M([phi(z) for z in self.list()])
+
+    def apply_map(self, phi, R=None):
+        """
+        Apply the given map phi (an arbitrary Python function or
+        callable object) to this dense matrix.  If R is not given,
+        automatically determine the base ring of the resulting matrix.
+
+        INPUT:
+            phi -- arbitrary Python function or callable object
+            R -- (optional) ring
+
+        OUTPUT:
+            a matrix over R
+
+        EXAMPLES:
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: k.<a> = GF(9)
+            sage: f = lambda x: k(x)
+            sage: n = m.apply_map(f); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        In this example, we explicitly specify
+        the codomain.
+            sage: s = GF(3)
+            sage: f = lambda x: s(x)
+            sage: n = m.apply_map(f, k); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+        """
+        v = [phi(z) for z in self.list()]
+        if R is None:
+            v = sage.structure.sequence.Sequence(v)
+            R = v.universe()
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=False)
+        return M(v)

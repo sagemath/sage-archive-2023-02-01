@@ -224,9 +224,9 @@ class Ideal_generic(MonoidElement):
         EXAMPLE:
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: I = Ideal([x,y+1]); I
-            Ideal (x, y + 1) of Polynomial Ring in x, y over Rational Field
+            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: I.gens()
-            [x, y + 1]
+            (x, y + 1)
 
             sage: ZZ.ideal(5,10).gens()
             (5,)

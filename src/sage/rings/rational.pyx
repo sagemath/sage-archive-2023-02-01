@@ -1368,6 +1368,60 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def round(Rational self, mode = "toward"):
+        """
+        Returns the nearest integer to self.
+
+        INPUT:
+        self -- a rational number
+        mode -- a rounding mode for half integers:
+                'toward' (default) rounds toward zero
+                'away' rounds away from zero
+                'up' rounds up
+                'down' rounds down
+                'even' rounds toward the even integer
+                'odd' rounds toward the odd integer
+
+        EXAMPLES:
+        sage: n = 4/3; n.round()
+        1
+        sage: n = -17/4; n.round()
+        -4
+        sage: n = -5/2; n.round()
+        -2
+        sage: n.round("away")
+        -3
+        sage: n.round("up")
+        -2
+        sage: n.round("down")
+        -3
+        sage: n.round("even")
+        -2
+        sage: n.round("odd")
+        -3
+        """
+        if not (mode in ['toward', 'away', 'up', 'down', 'even', 'odd']):
+            raise ValueError, "rounding mode must be one of 'toward', 'away', 'up', 'down', 'even', or 'odd'"
+        if self.denominator() == 1:
+            from sage.rings.integer import Integer
+            return Integer(self)
+        if self.denominator() == 2:
+            # round down:
+            if (mode == "down") or \
+                   (mode == "toward" and self > 0) or \
+                   (mode == "away" and self < 0) or \
+                   (mode == "even" and self.numerator() % 4 == 1) or \
+                   (mode == "odd" and self.numerator() % 4 == 3):
+                return self.numerator() // self.denominator()
+            else:
+                return self.numerator() // self.denominator() + 1
+        else:
+            q, r = self.numerator().quo_rem(self.denominator())
+            if r < self.denominator() / 2:
+                return q
+            else:
+                return q+1
+
     def height(self):
         """
         The max absolute value of the numerator and denominator of self,

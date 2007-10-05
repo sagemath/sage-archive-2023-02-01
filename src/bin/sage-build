@@ -18,11 +18,7 @@ build() {
       echo "Installing c_lib"
       CUR=`pwd`
       cd "c_lib"
-      if [ $SWITCHING_BRANCHES = 1 ]; then
-	  scons branch_switch
-      else
-	  scons install
-      fi
+      scons install
       ## make sure c_lib install went okay
       if [ $? -ne 0 ]; then
 	  echo "ERROR: There was an error building c_lib."

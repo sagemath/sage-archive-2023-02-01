@@ -1156,8 +1156,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
            sage: Q.term_order()
            Degree reverse lexicographic term order
 
-           sage: J = I.change_ring(Q)
-           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Polynomial Ring in x, y, z over Rational Field
+           sage: J = I.change_ring(Q); J
+           Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Multivariate Polynomial Ring in x, y, z over Rational Field
            sage: J.groebner_basis()
            [x + y + z, y^2 + y*z + z^2, z^3 - 1]
         """

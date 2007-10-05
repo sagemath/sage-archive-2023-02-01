@@ -1,0 +1,17 @@
+#!/bin/sh
+
+cp -r sage-* .hg* "$SAGE_ROOT"/local/bin/
+cp sage-python "$SAGE_ROOT"/
+cp install "$SAGE_ROOT"/spkg/
+cp *.txt "$SAGE_ROOT"/
+cp -r ipython "$SAGE_ROOT/"
+cp matplotlibrc "$SAGE_ROOT/"
+cd "$SAGE_ROOT"/local/bin/
+
+# I think these below should moved to the relevant spkg's.
+# -- William Stein (2007-10-04)
+ln -sf python sage.bin
+ln -sf Singular sage_singular
+ln -sf gp sage_pari
+
+

@@ -74,7 +74,7 @@ cdef class ntl_GF2X:
         from sage.rings.finite_field_element import FiniteField_ext_pariElement
         from sage.rings.finite_field import FiniteField_ext_pari
         from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
-        from sage.rings.polynomial.polynomial_element_generic import Polynomial_dense_mod_p
+        from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_p
         from sage.rings.integer import Integer
 
         if isinstance(x, Integer):

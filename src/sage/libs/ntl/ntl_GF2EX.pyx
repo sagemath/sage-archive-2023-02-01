@@ -33,8 +33,7 @@ cdef class ntl_GF2EX:
     def __init__(self, x=[]):
         """
         EXAMPLES:
-            sage: ntl.set_modulus(ntl.ZZ(3))
-            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: m = ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: ntl.GF2EX('[[1 0] [2 1]]')
             [[1] [0 1]]
         """

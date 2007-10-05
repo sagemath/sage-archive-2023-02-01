@@ -31,9 +31,51 @@ if [ ! -f "$DEVEL/sage-main"/.hg/00changelog.i ]; then
    mv "$DEVEL/sage-main" "$DEVEL/old/sage-bad_delete_me"
 fi
 
+
+###########################################################
+# Setup libcsage symlinks
+
+## set up libcsage. this does two things: first,
+## we build libcsage so that we can set up links
+## to make the sage build work. second, since this
+## is a new system, we need to get rid of old
+## copies of c_lib files and put our symlinks in place
+cd c_lib
+scons -Q install
+## always kill the libcsage, we remake the link below
+rm -f "$SAGE_ROOT"/local/lib/libcsage.*
+## if any of the include files have been copied over,
+## let's go ahead and get rid of them all
+if [ -f "$SAGE_ROOT/local/include/stdsage.h" ]; then
+    rm -f "$SAGE_ROOT/local/include/ZZ_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/ccobject.h"
+    rm -f "$SAGE_ROOT/local/include/gmp_globals.h"
+    rm -f "$SAGE_ROOT/local/include/interrupt.h"
+    rm -f "$SAGE_ROOT/local/include/mpn_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/mpz_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/ntl_wrap.h"
+    rm -f "$SAGE_ROOT/local/include/stdsage.h"
+fi
+
+## now make our symlinks
+
+cd "$SAGE_ROOT"/local/lib/
+
+if [ `uname` = "Darwin" ]; then
+    ln -s ../../devel/sage/c_lib/libcsage.dylib .
+else
+    ln -s ../../devel/sage/c_lib/libcsage.so .
+fi
+
+cd "$SAGE_ROOT/local/include/"
+rm -rf csage
+ln -s ../../devel/sage/c_lib/include csage
+
+###########################################################
+
+
 if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
-    #hg pull "$SAGE_SERVER"/hg/sage-main
     # Pull in changes from the archive just downloaded.
     hg pull "$CUR"
     hg merge tip
@@ -48,7 +90,7 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx  2> /dev/null
 
-    # Delete the scons target too
+    echo "Deleting the scons target."
     cd c_lib
     scons -Q -c install
     cd ..
@@ -69,37 +111,16 @@ cp -pr * .hg* "$DEVEL/sage-main/"
 
 cd "$DEVEL/sage-main"
 
-## set up libcsage. this does two things: first,
-## we build libcsage so that we can set up links
-## to make the sage build work. second, since this
-## is a new system, we need to get rid of old
-## copies of c_lib files and put our symlinks in place
-cd c_lib
-scons -Q install
-## always kill the libcsage, we can just remake the link
-rm -f "$SAGE_ROOT/local/lib/libcsage.*"
-## if any of the include files have been copied over,
-## let's go ahead and get rid of them all
-if [ -f "$SAGE_ROOT/local/include/stdsage.h" ]; then
-    rm -f "$SAGE_ROOT/local/include/ZZ_pylong.h"
-    rm -f "$SAGE_ROOT/local/include/ccobject.h"
-    rm -f "$SAGE_ROOT/local/include/gmp_globals.h"
-    rm -f "$SAGE_ROOT/local/include/interrupt.h"
-    rm -f "$SAGE_ROOT/local/include/mpn_pylong.h"
-    rm -f "$SAGE_ROOT/local/include/mpz_pylong.h"
-    rm -f "$SAGE_ROOT/local/include/ntl_wrap.h"
-    rm -f "$SAGE_ROOT/local/include/stdsage.h"
-fi
-## now make our symlinks
-ln -s libcsage.* "$SAGE_ROOT/local/lib"
-ln -s include "$SAGE_ROOT/local/include/csage"
-cd ..
+
+
+
+cd "$CUR"
 
 # touch and build everything
 sage -b main
 
-# repeat -- this copies over all the pyx files, so they appear when
-# you use inspect.
+# repeat -- this makes certain to copy over all the pyx files, so they appear when
+# you use inspect.   (TODO: Maybe this is a hack that can be eliminated? -- William Stein, 2007-10-04)
 sage -b main
 
 if [ $? -ne 0 ]; then

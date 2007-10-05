@@ -1,12 +1,31 @@
 #!/bin/sh
 
-#sage -b
-
 # Run DSAGE unit tests
 sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log
 
 # Run SAGE library doctests, which end with a summary report.
 ./sage -t devel/sage/sage 2>&1 | tee -a test.log
+
+if [ -d $SAGE_ROOT/examples ]; then
+   cd "$SAGE_ROOT"/examples
+   ./test_all
+fi
+
+if [ -d "$SAGE_ROOT"/devel/doc ]; then
+   echo "Testing SAGE documentation"
+
+   echo "Testing SAGE tutorial"
+   cd "$SAGE_ROOT"/devel/doc/tut
+   sage -t "$@" tut.tex 2>&1 | tee -a test.log
+
+   echo "Testing SAGE programming guide"
+   cd "$SAGE_ROOT"/devel/doc/prog
+   sage -t "$@" prog.tex 2>&1 | tee -a test.log
+
+   echo "Testing SAGE constructions guide"
+   cd "$SAGE_ROOT"/devel/doc/const
+   sage -t "$@" const.tex 2>&1 | tee -a test.log
+fi
 
 # Print the small summary report for dsage unit tests, if necessary.
 # TODO -- skip this for now.

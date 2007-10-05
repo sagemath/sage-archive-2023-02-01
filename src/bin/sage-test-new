@@ -2,7 +2,6 @@
 
 import os
 
-
 print "Testing all files that have changed in the repository"
 print "that have not yet been commited using 'hg_sage.commit()'."
 

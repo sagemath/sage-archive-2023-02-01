@@ -143,17 +143,17 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             elif val != 0:
                 self._relprecs = [max(prec - val,0) for prec in self._relprecs]
                 v = [Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)]
-                self._poly.ntl_set_directly(v)
+                self._poly = self._poly.parent()(v, check=False)
                 self._valbase += val
                 self._valaddeds = [c - val for c in self._valaddeds]
             else:
-                self._poly.ntl_set_directly([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)])
+                self._poly = self._poly.parent()([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)], check=False)
             self._normalized = True
 
     def _reduce_poly(self):
         selflist = self._poly.list()
         prime_pow = self.base_ring().prime_pow
-        self._poly.ntl_set_directly([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c, e) in zip(selflist, self._relprecs)])
+        self._poly = self._poly.parent()([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c, e) in zip(selflist, self._relprecs)], check=False)
 
     def _comp_list(self):
         if self.degree() == -1 and self._valbase == infinity:

@@ -127,19 +127,61 @@ cdef class ntl_ZZ_pX:
         return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.get_modulus_context()))
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_pX([1,0,8],5)
+            sage: x
+            [1 0 3]
+            sage: x.__repr__()
+            '[1 0 3]'
+        """
         self.c.restore_c()
         return str(ZZ_pX_repr(&self.x))
 
     def __copy__(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_pX([0,5,-3],11)
+            sage: y = x.copy()
+            sage: x == y
+            True
+            sage: x is y
+            False
+        """
         cdef ntl_ZZ_pX r = self._new()
         self.c.restore_c()
         r.x = self.x
         return r
 
     def copy(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_pX([0,5,-3],11)
+            sage: y = x.copy()
+            sage: x == y
+            True
+            sage: x is y
+            False
+        """
         return self.__copy__()
 
     def get_modulus_context(self):
+        """
+        Return the modulus for self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_pX([0,5,3],17)
+            sage: c = x.get_modulus_context()
+            sage: y = ntl.ZZ_pX([5],c)
+            sage: x+y
+            [5 5 3]
+        """
         return self.c
 
     def __setitem__(self, long i, a):
@@ -234,6 +276,13 @@ cdef class ntl_ZZ_pX:
     def list(self):
         """
         Return list of entries as a list of ntl_ZZ_p.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_pX([1,3,5],11)
+            sage: x.list()
+            [1, 3, 5]
+            sage: type(x.list()[0])
+            <type 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
         """
         self.c.restore_c()
         cdef Py_ssize_t i
@@ -707,9 +756,32 @@ cdef class ntl_ZZ_pX:
         return make_ZZ_pX(ZZ_pX_derivative(&self.x), self.c)
 
     def factor(self, verbose=False):
+        """
+        Return the factorization of self. Assumes self is
+        monic.
+
+        NOTE: The roots are returned in a random order.
+
+        EXAMPLES:
+            sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
+            [([4 1], 5)]
+            sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()
+            sage: ls # random
+            [([1 1], 1), ([4 1], 1), ([3 1], 1), ([2 1], 1)]
+            sage: prod( [ x[0] for x in ls ] )
+            [4 0 0 0 1]
+            sage: ntl.ZZ_pX([3,7,0,1], 31).factor()
+            [([3 7 0 1], 1)]
+            sage: ntl.ZZ_pX([3,7,1,8], 28).factor()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be monic.
+        """
         cdef ZZ_pX_c** v
         cdef long* e
         cdef long i, n
+        if not self.is_monic():
+            raise ValueError, "self must be monic."
         _sig_on
         ZZ_pX_factor(&v, &e, &n, &self.x, verbose)
         _sig_off
@@ -722,11 +794,29 @@ cdef class ntl_ZZ_pX:
 
     def linear_roots(self):
         """
-        Assumes that input is monic, and has deg(f) distinct roots.
+        Assumes that input is monic, and has deg(f) roots.
         Returns the list of roots.
+
+        NOTE: This function will go into an infinite loop if you
+        give it a polynomial without deg(f) linear factors. Note
+        also that the result is not deterministic, i.e. the
+        order of the roots returned is random.
+
+        EXAMPLES:
+            sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).linear_roots()
+            [1, 1, 1, 1, 1]
+            sage: roots = ntl.ZZ_pX([-1,0,0,0,1],5).linear_roots()
+            sage: [ ntl.ZZ_p(i,5) in roots for i in [1..4] ]
+            [True, True, True, True]
+            sage: ntl.ZZ_pX([3,7,1,8], 28).linear_roots()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be monic.
         """
         cdef ZZ_p_c** v
         cdef long i, n
+        if not self.is_monic():
+            raise ValueError, "self must be monic."
         _sig_on
         ZZ_pX_linear_roots(&v, &n, &self.x)
         _sig_off

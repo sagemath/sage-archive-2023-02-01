@@ -136,13 +136,42 @@ cdef class ntl_ZZX:
         ZZX_destruct(&self.x)
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.ZZX([1,3,0,5]).__repr__()
+            '[1 3 0 5]'
+        """
         return str(ZZX_repr(&self.x))
 
     def copy(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZX([1,32])
+            sage: y = x.copy()
+            sage: y == x
+            True
+            sage: y is x
+            False
+        """
         _sig_on
-        return make_ZZX(ZZX_copy(&self.x))
+        return self.__copy__()
 
     def __copy__(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZX([1,32])
+            sage: y = x.copy()
+            sage: y == x
+            True
+            sage: y is x
+            False
+        """
         return make_ZZX(ZZX_copy(&self.x))
 
     def __setitem__(self, long i, a):
@@ -594,6 +623,12 @@ cdef class ntl_ZZX:
     def lcm(self, ntl_ZZX other):
         """
         Return the least common multiple of self and other.
+
+        EXAMPLES:
+            sage: x1 = ntl.ZZX([-1,0,0,1])
+            sage: x2 = ntl.ZZX([-1,0,0,0,0,0,1])
+            sage: x1.lcm(x2)
+            [-1 0 0 0 0 0 1]
         """
         g = self.gcd(other)
         return (self*other).quo_rem(g)[0]

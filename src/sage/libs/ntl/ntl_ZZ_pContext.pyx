@@ -112,6 +112,8 @@ def ntl_ZZ_pContext( v ):
         34
     """
     v = ntl_ZZ(v)
+    if (v < ntl_ZZ(2)):
+        raise ValueError, "%s is not a valid modulus."%v
     try:
         return ZZ_pContextDict[repr(v)]
     except KeyError:

@@ -318,6 +318,17 @@ cdef class ntl_zz_p:
             return -1
 
     def __int__(self):
+        """
+        Return self as an int.
+
+        EXAMPLES:
+            sage: ntl.zz_p(3,next_prime(100)).__int__()
+            3
+            sage: int(ntl.zz_p(3,next_prime(100)))
+            3
+            sage: type(int(ntl.zz_p(3,next_prime(100))))
+            <type 'int'>
+        """
         return zz_p_rep(self.x)
 
     def square(self):

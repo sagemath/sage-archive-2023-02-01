@@ -777,12 +777,12 @@ void ZZ_pX_factor(struct ZZ_pX*** v, long** e, long* n, struct ZZ_pX* x, long ve
 void ZZ_pX_linear_roots(struct ZZ_p*** v, long* n, struct ZZ_pX* f)
 {
   long i;
-  printf("1\n");
+  // printf("1\n");
   vec_ZZ_p w;
   FindRoots(w, *f);
-  printf("2\n");
+  // printf("2\n");
   *n = w.length();
-  printf("3 %s\n",*n);
+  //   printf("3 %d\n",*n);
   (*v) = (ZZ_p**) malloc(sizeof(ZZ_p*)*(*n));
   for (i=0; i<(*n); i++) {
     (*v)[i] = new ZZ_p(w[i]);

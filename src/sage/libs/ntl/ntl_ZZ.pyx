@@ -65,6 +65,10 @@ cdef class ntl_ZZ:
             223895239852389582983
             sage: ntl.ZZ('-1')
             -1
+            sage: ntl.ZZ('1L')
+            1
+            sage: ntl.ZZ('-1r')
+            -1
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
@@ -78,7 +82,15 @@ cdef class ntl_ZZ:
             self.set_from_sage_int(v)
         elif v is not None:
             v = str(v)
+            if len(v) == 0:
+                v = '0'
+            if not ((v[0].isdigit() or v[0] == '-') and \
+                    (v[1:-1].isdigit() or (len(v) <= 2)) and \
+                    (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
+               raise ValueError, "invalid integer: %s"%v
+            _sig_on
             ZZ_from_str(&self.x, v)
+            _sig_off
 
     def __new__(self, v=None):
         ZZ_construct(&self.x)
@@ -87,9 +99,14 @@ cdef class ntl_ZZ:
         ZZ_destruct(&self.x)
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.ZZ(5).__repr__()
+            '5'
+        """
         return ZZ_to_PyString(&self.x)
-#        _sig_on
-#        return string_delete(ZZ_to_str(&self.x))
 
     def __reduce__(self):
         """
@@ -99,6 +116,34 @@ cdef class ntl_ZZ:
         -7
         """
         return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
+
+    def __cmp__(self, other):
+        """
+        Compare self to other.
+
+        EXAMPLES:
+            sage: f = ntl.ZZ(1)
+            sage: g = ntl.ZZ(2)
+            sage: h = ntl.ZZ(2)
+            sage: w = ntl.ZZ(7)
+            sage: h == g
+            True
+            sage: f == g
+            False
+            sage: h > w ## indirect doctest
+            False
+            sage: h < w
+            True
+        """
+        if (type(self) != type(other)):
+            return cmp(type(self), type(other))
+        diff = self.__sub__(other)
+        if ZZ_IsZero( (<ntl_ZZ>diff).x ):
+            return 0
+        elif ZZ_sign( (<ntl_ZZ>diff).x ) == 1:
+            return 1
+        else:
+            return -1
 
     def __mul__(self, other):
         """
@@ -147,24 +192,16 @@ cdef class ntl_ZZ:
         return r
 
     def __neg__(ntl_ZZ self):
+        """
+            sage: x = ntl.ZZ(38)
+            sage: -x
+            -38
+            sage: x.__neg__()
+            -38
+        """
         cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
         ZZ_negate(r.x, self.x)
         return r
-
-    def __cmp__(ntl_ZZ self, ntl_ZZ other):
-        """
-        Decide whether or not self and other are equal.
-
-        EXAMPLES:
-            sage: f = ntl.ZZ(1)
-            sage: g = ntl.ZZ(2)
-            sage: h = ntl.ZZ(2)
-            sage: h == g
-            True
-            sage: f == g
-            False
-        """
-        return not ZZ_equal(self.x, other.x)
 
     def __pow__(ntl_ZZ self, long e, ignored):
         """
@@ -176,6 +213,20 @@ cdef class ntl_ZZ:
         return r
 
     def __int__(self):
+        """
+        Return self as an int.
+
+        EXAMPLES:
+            sage: ntl.ZZ(22).__int__()
+            22
+            sage: type(ntl.ZZ(22).__int__())
+            <type 'int'>
+
+            sage: ntl.ZZ(10^30).__int__()
+            1000000000000000000000000000000L
+            sage: type(ntl.ZZ(10^30).__int__())
+            <type 'long'>
+        """
         return int(self.get_as_sage_int())
 
     cdef int get_as_int(ntl_ZZ self):
@@ -264,9 +315,27 @@ cdef class ntl_ZZ:
     # todo: add wrapper for int_to_ZZ in wrap.cc?
 
 def unpickle_class_value(cls, x):
+    """
+    Here for unpickling.
+
+    EXAMPLES:
+        sage: sage.libs.ntl.ntl_ZZ.unpickle_class_value(ntl.ZZ, 3)
+        3
+        sage: type(sage.libs.ntl.ntl_ZZ.unpickle_class_value(ntl.ZZ, 3))
+        <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+    """
     return cls(x)
 
 def unpickle_class_args(cls, x):
+    """
+    Here for unpickling.
+
+    EXAMPLES:
+        sage: sage.libs.ntl.ntl_ZZ.unpickle_class_args(ntl.ZZ, [3])
+        3
+        sage: type(sage.libs.ntl.ntl_ZZ.unpickle_class_args(ntl.ZZ, [3]))
+        <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+    """
     return cls(*x)
 
 # Random-number generation

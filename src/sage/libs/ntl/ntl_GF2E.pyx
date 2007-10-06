@@ -21,7 +21,9 @@ include 'decl.pxi'
 from ntl_GF2X cimport ntl_GF2X
 
 cdef make_GF2X(GF2X_c *x):
-    """ These make_XXXX functions are deprecated and should be phased out."""
+    """
+    These make_XXXX functions are deprecated and should be phased out.
+    """
     cdef ntl_GF2X y
     _sig_off
     y = ntl_GF2X()
@@ -39,6 +41,8 @@ cdef make_GF2X(GF2X_c *x):
 #
 ##############################################################################
 
+cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
+
 def GF2X_hex_repr(have_hex=None):
     """
     Represent GF2X and GF2E elements in the more compact
@@ -49,6 +53,24 @@ def GF2X_hex_repr(have_hex=None):
 
     INPUT:
         have_hex if True hex representation will be used
+
+    EXAMPLES:
+        sage: m = ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+        sage: x = ntl.GF2E([1,0,1,0,1]) ; x
+        [1 0 1 0 1]
+
+        sage: ntl.hex_output() ## indirect doctest
+        False
+        sage: ntl.hex_output(True)
+        sage: ntl.hex_output()
+        True
+
+        sage: x
+        0x51
+
+        sage: ntl.hex_output(False)
+        sage: x
+        [1 0 1 0 1]
     """
     global __have_GF2X_hex_repr
 
@@ -102,6 +124,11 @@ def ntl_GF2E_modulus(p=None):
 def ntl_GF2E_modulus_degree():
     """
     Returns deg(modulus) for GF2E elements
+
+    EXAMPLES:
+        sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
+        sage: ntl.GF2E_degree()
+        8
     """
     if __have_GF2E_modulus:
         return GF2E_degree()
@@ -125,6 +152,11 @@ def ntl_GF2E_sage(names='a'):
 def ntl_GF2E_random():
     """
     Returns a random element from GF2E modulo the current modulus.
+
+    EXAMPLES:
+        sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
+        sage: ntl.GF2E_random() # random
+        [0 0 0 0 1 1 1]
     """
     cdef ntl_GF2E r = ntl_GF2E()
     _sig_on
@@ -133,6 +165,18 @@ def ntl_GF2E_random():
     return r
 
 def unpickle_GF2E(hex, mod):
+    """
+    Used for unpickling.
+
+    EXAMPLES:
+        sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+        sage: x = ntl.GF2E([1,0,1,0,1])
+        sage: y = loads(dumps(x))
+        sage: x == y
+        True
+        sage: x is y
+        False
+    """
     ntl_GF2E_modulus(mod)
     return ntl_GF2E(hex)
 
@@ -143,27 +187,32 @@ __have_GF2E_modulus = False
 
 cdef class ntl_GF2E(ntl_GF2X):
     r"""
-    The \\class{GF2E} represents a finite extension field over GF(2) using NTL.
-    Elements are represented as polynomials over GF(2) modulo \\code{ntl.GF2E_modulus()}.
+    The \\class{GF2E} represents a finite extension field
+    over GF(2) using NTL. Elements are represented as polynomials
+    over GF(2) modulo \\code{ntl.GF2E_modulus()}.
 
-    This modulus must be set using \\code{ ntl.GF2E_modulus(p) } and is unique for
-    alle elements in ntl.GF2E. So it is not possible at the moment e.g. to have elements
-    in GF(2**4) and GF(2**8) at the same time. You might however be lucky and get away
-    with not touch the elements in GF(2**4) while having the GF(2**8) modulus set and vice
-    versa.
+    This modulus must be set using \\code{ ntl.GF2E_modulus(p) }
+    and is unique for all elements in ntl.GF2E. So it is not
+    possible at the moment e.g. to have elements in GF(2**4) and
+    GF(2**8) at the same time. You might however be lucky and get
+    away with not touch the elements in GF(2**4) while having the
+    GF(2**8) modulus set and vice versa.
     """
 
     def __init__(self,x=[]):
         """
         Constructs a new  finite field element in GF(2**x).
 
-        A modulus \emph{must} have been set with \code{ntl.GF2E_modulus(ntl.GF2X(<value>))}
-        when calling this constructor.  A value may be passed to this constructor. If you pass a string
-        to the constructor please note that byte sequences and the hexadecimal notation are Little Endian in NTL.
+        A modulus \emph{must} have been set with
+        \code{ntl.GF2E_modulus(ntl.GF2X(<value>))} when calling this
+        constructor.  A value may be passed to this constructor. If
+        you pass a string to the constructor please note that byte
+        sequences and the hexadecimal notation are Little Endian in NTL.
         So e.g. '[0 1]' == '0x2' == x.
 
         INPUT:
-            x -- value to be assigned to this element. Same types as ntl.GF2X() are accepted.
+            x -- value to be assigned to this element. Same types as
+                 ntl.GF2X() are accepted.
 
         OUTPUT:
             a new ntl.GF2E element
@@ -208,9 +257,24 @@ cdef class ntl_GF2E(ntl_GF2X):
         return unpickle_GF2E, (self.ntl_GF2X().hex(), ntl_GF2E_modulus())
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: ntl.GF2E([1,1,0,1]).__repr__()
+            '[1 1 0 1]'
+        """
         return GF2E_to_PyString(&self.gf2e_x)
 
     def __mul__(ntl_GF2E self, other):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([1,1,0,1,1])
+            sage: x*y ## indirect doctest
+            [0 0 1 1 1 0 1 1]
+        """
         cdef ntl_GF2E y
         cdef ntl_GF2E r = ntl_GF2E()
         if not isinstance(other, ntl_GF2E):
@@ -222,6 +286,13 @@ cdef class ntl_GF2E(ntl_GF2X):
         return r
 
     def __sub__(ntl_GF2E self, other):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([1,1,0,1,1])
+            sage: x-y ## indirect doctest
+            [0 1 1 1]
+        """
         cdef ntl_GF2E y
         cdef ntl_GF2E r = ntl_GF2E()
         if not isinstance(other, ntl_GF2E):
@@ -233,6 +304,13 @@ cdef class ntl_GF2E(ntl_GF2X):
         return r
 
     def __add__(ntl_GF2E self, other):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([1,1,0,1,1])
+            sage: x+y ## indirect doctest
+            [0 1 1 1]
+        """
         cdef ntl_GF2E y
         cdef ntl_GF2E r = ntl_GF2E()
         if not isinstance(other, ntl_GF2E):
@@ -244,6 +322,13 @@ cdef class ntl_GF2E(ntl_GF2X):
         return r
 
     def __neg__(ntl_GF2E self):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1])
+            sage: -x ## indirect doctest
+            [1 0 1 0 1]
+        """
         cdef ntl_GF2E r = ntl_GF2E()
         _sig_on
         GF2E_negate(r.gf2e_x, self.gf2e_x)
@@ -251,11 +336,15 @@ cdef class ntl_GF2E(ntl_GF2X):
         return r
 
     def __pow__(ntl_GF2E self, long e, ignored):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1])
+            sage: x**2 ## indirect doctest
+            [0 1 0 1]
+        """
         cdef ntl_GF2E y
         cdef ntl_GF2E r
-        if not isinstance(other, ntl_GF2E):
-            other = ntl_GF2E(other)
-        y = other
         r = ntl_GF2E()
         _sig_on
         GF2E_power(r.gf2e_x, self.gf2e_x, e)
@@ -263,6 +352,15 @@ cdef class ntl_GF2E(ntl_GF2X):
         return r
 
     def __cmp__(ntl_GF2E self, ntl_GF2E other):
+        """
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([1,1,0,1,1])
+            sage: x < y ## indirect doctest
+            False
+            sage: x == x
+            True
+        """
         cdef int t
         _sig_on
         t = GF2E_equal(self.gf2e_x, other.gf2e_x)
@@ -274,16 +372,43 @@ cdef class ntl_GF2E(ntl_GF2X):
     def is_zero(ntl_GF2E self):
         """
         Returns True if this element equals zero, False otherwise.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([1,1,0,1,1,0,0,0,1])
+            sage: x.is_zero()
+            False
+            sage: y.is_zero()
+            True
         """
         return bool(GF2E_IsZero(self.gf2e_x))
 
     def is_one(ntl_GF2E self):
         """
         Returns True if this element equals one, False otherwise.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([0,1,0,1,1,0,0,0,1])
+            sage: x.is_one()
+            False
+            sage: y.is_one()
+            True
         """
         return bool(GF2E_IsOne(self.gf2e_x))
 
     def __copy__(self):
+        """
+        Returns a copy of this element.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = x.__copy__()
+            sage: x is y
+            False
+            sage: x == y
+            True
+        """
         cdef ntl_GF2E r = ntl_GF2E()
         _sig_on
         r.gf2e_x = self.gf2e_x
@@ -294,6 +419,14 @@ cdef class ntl_GF2E(ntl_GF2X):
     def copy(ntl_GF2E self):
         """
         Returns a copy of this element.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = x.copy()
+            sage: x is y
+            False
+            sage: x == y
+            True
         """
         cdef ntl_GF2E r = ntl_GF2E()
         _sig_on
@@ -305,6 +438,14 @@ cdef class ntl_GF2E(ntl_GF2X):
     def trace(ntl_GF2E self):
         """
         Returns the trace of this element.
+
+        EXAMPLES:
+            sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: x = ntl.GF2E([1,0,1,0,1]) ; y = ntl.GF2E([0,1,1,0,1,1])
+            sage: x.trace()
+            0
+            sage: y.trace()
+            1
         """
         return GF2E_trace(&self.gf2e_x)
 
@@ -344,7 +485,6 @@ cdef class ntl_GF2E(ntl_GF2X):
             sage: e = ntl.GF2E([0,1])
             sage: a = e._sage_(); a
             a
-
         """
         cdef int i
         cdef int length

@@ -30,7 +30,7 @@ from ntl_ZZ import unpickle_class_value
 #
 ##############################################################################
 
-cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
+## cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
 
 
 cdef class ntl_GF2X:
@@ -119,9 +119,22 @@ cdef class ntl_GF2X:
         return unpickle_class_value, (ntl_GF2X, self.hex())
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.GF2X(ntl.ZZ_pX([1,1,3],2)).__repr__()
+            '[1 1 1]'
+        """
         return GF2X_to_PyString(&self.gf2x_x)
 
     def __mul__(ntl_GF2X self, other):
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1])
+            sage: f*g ## indirect doctest
+            [0 1 0 1 1]
+        """
         cdef ntl_GF2X y
         cdef ntl_GF2X r = ntl_GF2X()
         if not isinstance(other, ntl_GF2X):
@@ -133,6 +146,14 @@ cdef class ntl_GF2X:
         return r
 
     def __sub__(ntl_GF2X self, other):
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1])
+            sage: f - g ## indirect doctest
+            [1 1 1 1]
+            sage: g - f
+            [1 1 1 1]
+        """
         cdef ntl_GF2X y
         cdef ntl_GF2X r = ntl_GF2X()
         if not isinstance(other, ntl_GF2X):
@@ -144,6 +165,12 @@ cdef class ntl_GF2X:
         return r
 
     def __add__(ntl_GF2X self, other):
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+            sage: f + g ## indirect doctest
+            [1 1 1 1]
+        """
         cdef ntl_GF2X y
         cdef ntl_GF2X r = ntl_GF2X()
         if not isinstance(other, ntl_GF2X):
@@ -155,6 +182,14 @@ cdef class ntl_GF2X:
         return r
 
     def __neg__(ntl_GF2X self):
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1])
+            sage: -f ## indirect doctest
+            [1 0 1 1]
+            sage: f == -f
+            True
+        """
         cdef ntl_GF2X r = ntl_GF2X()
         _sig_on
         GF2X_negate(r.gf2x_x, self.gf2x_x)
@@ -162,11 +197,13 @@ cdef class ntl_GF2X:
         return r
 
     def __pow__(ntl_GF2X self, long e, ignored):
-        cdef ntl_GF2X y
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+            sage: f**3 ## indirect doctest
+            [1 0 1 1 1 0 0 1 1 1]
+        """
         cdef ntl_GF2X r
-        if not isinstance(other, ntl_GF2X):
-            other = ntl_GF2X(other)
-        y = other
         r = ntl_GF2X()
         _sig_on
         GF2X_power(r.gf2x_x, self.gf2x_x, e)
@@ -175,6 +212,14 @@ cdef class ntl_GF2X:
 
 
     def __cmp__(ntl_GF2X self, ntl_GF2X other):
+        """
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+            sage: f == g ## indirect doctest
+            False
+            sage: f == f
+            True
+        """
         cdef int t
         _sig_on
         t = GF2X_equal(self.gf2x_x, other.gf2x_x)
@@ -186,6 +231,10 @@ cdef class ntl_GF2X:
     def degree(ntl_GF2X self):
         """
         Returns the degree of this polynomial
+
+        EXAMPLES:
+            sage: ntl.GF2X([1,0,1,1]).degree()
+            3
         """
         return GF2X_deg(self.gf2x_x)
 
@@ -264,6 +313,13 @@ cdef class ntl_GF2X:
 
         OUTPUT:
             polynomial in R
+
+        EXAMPLES:
+            sage: f = ntl.GF2X([1,0,1,1,0,1])
+            sage: f._sage_()
+            x^5 + x^3 + x^2 + 1
+            sage: f._sage_(PolynomialRing(Integers(2),'y'))
+            y^5 + y^3 + y^2 + 1
         """
         if R==None:
             from sage.rings.polynomial.polynomial_ring import PolynomialRing

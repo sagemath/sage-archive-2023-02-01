@@ -871,9 +871,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         EXAMPLE:
             sage: P.<x,y,z> = QQ[]
-            sage: hash(P)
+            sage: hash(P)      # somewhat random output
             967902441410893180 # 64-bit
-            -1767675994 # 32-bit
+            -1767675994        # 32-bit
         """
         return hash(self.__repr__())
 

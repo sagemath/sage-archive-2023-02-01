@@ -3,14 +3,18 @@ About
 This is an optional spkg to build ATLAS for Sage. It mostly intended
 for Linux, but should also work on OSX and Unixes.
 
+Maintainer: Michael Abshoff
+
 ChangeLog
+
+* 20071006: Michael Abshoff <mashoff@fsmath.mathematik.uni-dortmund.de>
+ + update to 3.7.38
 
 * 20070815: Michael Abshoff <mashoff@fsmath.mathematik.uni-dortmund.de>
  + new upstream release (3.7.37), initial release
+ + "make check" added in spkg-check
 
 ToDo
 
 * compile threading support confitionally
-* break out the "make check"
-
 

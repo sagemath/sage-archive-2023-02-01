@@ -1621,7 +1621,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2
             sage: (100000).divide_knowing_divisible_by(25)
             4000
-            sage: (100000).divide_knowing_divisible_by(26) # close
+            sage: (100000).divide_knowing_divisible_by(26) # close (random)
             3846
 
       However, often it's way off.

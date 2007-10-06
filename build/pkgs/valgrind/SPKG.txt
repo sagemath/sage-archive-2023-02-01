@@ -1,0 +1,5 @@
+Maintainer: Michael Abshoff
+
+* 2007-10-08: update to 3.3.0svn-r6959
+
+* Initial version: 3.3.0svn-r6814

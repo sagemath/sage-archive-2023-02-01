@@ -1,0 +1,28 @@
+#!/bin/sh
+###########################################
+## valrgind 3.3.0svn
+###########################################
+
+cd src/
+
+./configure --prefix=$SAGE_LOCAL
+
+if [ $? -ne 0 ]; then
+    echo "error configuring valgrind 3.3.0svn"
+    exit 1
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "error installing valgrind 3.3.0svn"
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "error installing valgrind 3.3.0svn"
+    exit 1
+fi
+

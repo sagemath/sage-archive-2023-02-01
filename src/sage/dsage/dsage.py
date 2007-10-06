@@ -114,6 +114,7 @@ class DistributedSage(object):
                     blocking=False, poll=poll, anonymous=anonymous_workers,
                     verbose=verbose)
 
+        # We want to establish a connection to the server
         while(True):
             try:
                 import socket

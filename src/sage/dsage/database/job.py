@@ -155,7 +155,7 @@ class Job(Persistent):
     def set_data(self, value):
        self.jdict['data'] = value
     data = property(fget=get_data, fset=set_data, fdel=None,
-                  doc='Job data')
+                    doc='Job data')
 
     def get_output(self):
         return self.jdict['output']

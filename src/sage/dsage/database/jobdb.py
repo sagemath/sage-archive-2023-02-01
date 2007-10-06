@@ -483,8 +483,10 @@ class JobDatabaseSQLite(JobDatabase):
 
         query = """SELECT
                 job_id,
+                name,
                 status,
                 output,
+                code,
                 result,
                 killed,
                 verifiable,

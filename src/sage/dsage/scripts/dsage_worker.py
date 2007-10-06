@@ -386,10 +386,12 @@ except:
 
         """
 
-        import shutil
-        shutil.move(self.tmp_job_dir, self.tmp_job_dir + '_failed')
-
         msg = 'Job %s failed!' % (self.job.job_id)
+        import shutil
+        failed_dir = self.tmp_job_dir + '_failed'
+        if os.path.exists(failed_dir):
+            shutil.rmtree(failed_dir)
+        shutil.move(self.tmp_job_dir, failed_dir)
         log.msg(LOG_PREFIX % self.id + msg)
         log.msg('Traceback: \n%s' % failure)
         d = self.remoteobj.callRemote('job_failed', self.job.job_id, failure)
@@ -555,7 +557,7 @@ except:
             if delta.seconds >= (3*60): # more than 3 minutes, do a hard reset
                 self.stop(hard_reset=True)
             else:
-                self.stop()
+                self.stop(hard_reset=False)
         except TypeError:
             self.stop(hard_reset=True)
         self.job_start_time = None

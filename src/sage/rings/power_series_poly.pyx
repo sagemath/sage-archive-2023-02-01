@@ -44,7 +44,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         self.__f = f
         if check and not (prec is infinity):
-            self.__f = self.__f.truncate(prec)
+            self.__f = self.__f.truncate_c(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
     def __hash__(self):
@@ -72,6 +72,10 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def degree(self):
         return self.__f.degree()
+
+    def __nonzero__(self):
+        return not not self.__f
+
 
     def __call__(self, *xs):
         """
@@ -209,6 +213,31 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right_m):
+        """
+        EXAMPLES:
+            sage: R.<x> = PowerSeriesRing(ZZ)
+            sage: f = x^4
+            sage: f += x; f
+            x + x^4
+            sage: g = x^2 + O(x^3); g
+            x^2 + O(x^3)
+            sage: f += g; f
+            x + x^2 + O(x^3)
+        """
+        cdef PowerSeries_poly right = <PowerSeries_poly>right_m
+        self.__f += right.__f
+        if self._prec is not infinity:
+            if self._prec < right._prec:
+                self.__f = self.__f._inplace_truncate(self._prec)
+            else:
+                self.__f = self.__f._inplace_truncate(right._prec)
+                self._prec = right._prec
+        elif right._prec is not infinity:
+            self.__f = self.__f._inplace_truncate(right._prec)
+            self._prec = right._prec
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
         """
         Return difference of two power series.
@@ -238,11 +267,39 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
+    cdef RingElement _imul_c_impl(self, RingElement right_r):
+        """
+        Return the product of two power series.
+
+        EXAMPLES:
+            sage: k.<w> = ZZ[[]]
+            sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
+            19*w^10 + 323*w^11 + O(w^12)
+        """
+        prec = self._mul_prec(right_r)
+        self.__f *= (<PowerSeries_poly>right_r).__f
+        if prec is not infinity:
+            self.__f = self.__f._inplace_truncate(prec)
+            self._prec = prec
+        return self
+
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
         return PowerSeries_poly(self._parent, self.__f._rmul_c(c), self._prec, check=False)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement c):
         return PowerSeries_poly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
+
+    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+#        print "f", type(self.__f), self.__f
+#        print "c", type(c), c
+#        print "f*c", type(self.__f*c), self.__f*c
+#        ff = self.__f
+        self.__f *= c
+#        ff *= c
+#        print "ff", type(ff), ff
+#        self.__f = ff
+#        self.__f = self.__f * c
+        return self
 
 
     def __floordiv__(self, denom):
@@ -278,14 +335,19 @@ cdef class PowerSeries_poly(PowerSeries):
         if prec is infinity:
             return self.__f
         else:
-            return self.__f.truncate(prec)
+            return self.__f.truncate_c(prec)
+
+    cdef _inplace_truncate(self, long prec):
+        self.__f = self.__f._inplace_truncate(prec)
+        self.prec = prec
+        return self
 
     def truncate_powerseries(self, long prec):
         r"""
         Returns the power series of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
-        return PowerSeries_poly(self._parent, self.__f.truncate(prec), self._prec if self._prec < prec else infinity, check=False)
+        return PowerSeries_poly(self._parent, self.__f.truncate_c(prec), self._prec if self._prec < prec else infinity, check=False)
 
     def copy(self):
         return PowerSeries_poly(self._parent, self.__f, self._prec, check=False)

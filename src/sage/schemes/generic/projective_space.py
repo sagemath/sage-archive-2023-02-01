@@ -28,7 +28,7 @@ as ready to use variables.
     sage: P2
     Projective Space of dimension 2 over Rational Field
     sage: x.parent()
-    Polynomial Ring in x, y, z over Rational Field
+    Multivariate Polynomial Ring in x, y, z over Rational Field
 
 For example, we use $x,y,z$ to define the intersection of two lines.
     sage: V = P2.subscheme([x+y+z, x+y-z]); V
@@ -85,7 +85,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: P = ProjectiveSpace(2, QQ, names='XYZ'); P
         Projective Space of dimension 2 over Rational Field
         sage: P.coordinate_ring()
-        Polynomial Ring in X, Y, Z over Rational Field
+        Multivariate Polynomial Ring in X, Y, Z over Rational Field
 
     The divide operator does base extension.
         sage: ProjectiveSpace(5)/GF(17)
@@ -100,7 +100,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: P = ProjectiveSpace(R); P
         Projective Space of dimension 2 over Finite Field of size 7
         sage: P.coordinate_ring()
-        Polynomial Ring in x, y, z over Finite Field of size 7
+        Multivariate Polynomial Ring in x, y, z over Finite Field of size 7
         sage: P.coordinate_ring() is R
         True
 
@@ -143,7 +143,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
           To:   Spectrum of Rational Field
           Defn: Structure map
         sage: X.coordinate_ring()
-        Polynomial Ring in x, y, z, w over Rational Field
+        Multivariate Polynomial Ring in x, y, z, w over Rational Field
 
     Loading and saving:
         sage: loads(X.dumps()) == X
@@ -171,13 +171,13 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
 
         EXAMPLES:
             sage: ProjectiveSpace(3, GF(19^2,'alpha'), 'abcd').coordinate_ring()
-            Polynomial Ring in a, b, c, d over Finite Field in alpha of size 19^2
+            Multivariate Polynomial Ring in a, b, c, d over Finite Field in alpha of size 19^2
 
             sage: ProjectiveSpace(3).coordinate_ring()
-            Polynomial Ring in x0, x1, x2, x3 over Integer Ring
+            Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring
 
             sage: ProjectiveSpace(2, QQ, ['alpha', 'beta', 'gamma']).coordinate_ring()
-            Polynomial Ring in alpha, beta, gamma over Rational Field
+            Multivariate Polynomial Ring in alpha, beta, gamma over Rational Field
         """
         try:
             return self._coordinate_ring
@@ -239,7 +239,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             sage: X.defining_polynomials ()
             (x*z^2, y^2*z, x*y^2)
             sage: I = X.defining_ideal(); I
-            Ideal (x*z^2, y^2*z, x*y^2) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (x*z^2, y^2*z, x*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: I.groebner_basis()
             [x*z^2, y^2*z, x*y^2]
             sage: X.dimension()

@@ -84,7 +84,7 @@ def FractionField(R, names=None):
         sage: FractionField(PolynomialRing(IntegerRing(),'x'))
         Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         sage: FractionField(MPolynomialRing(RationalField(),2,'x'))
-        Fraction Field of Polynomial Ring in x0, x1 over Rational Field
+        Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
 
     Dividing elements often implicitly creates elements of the fraction field.
         sage: x = PolynomialRing(RationalField(), 'x').gen()
@@ -181,9 +181,9 @@ class FractionField_generic(field.Field):
         EXAMPLES:
             sage: R = Frac(QQ['x,y'])
             sage: R
-            Fraction Field of Polynomial Ring in x, y over Rational Field
+            Fraction Field of Multivariate Polynomial Ring in x, y over Rational Field
             sage: R.ring()
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         return self.__R
 
@@ -258,7 +258,7 @@ class FractionField_generic(field.Field):
 
         EXAMPLES:
             sage: R = Frac(PolynomialRing(QQ,'z',10)); R
-            Fraction Field of Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
+            Fraction Field of Multivariate Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
             sage: R.ngens()
             10
         """
@@ -270,7 +270,7 @@ class FractionField_generic(field.Field):
 
         EXAMPLES:
             sage: R = Frac(PolynomialRing(QQ,'z',10)); R
-            Fraction Field of Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
+            Fraction Field of Multivariate Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
             sage: R.0
             z0
             sage: R.gen(3)

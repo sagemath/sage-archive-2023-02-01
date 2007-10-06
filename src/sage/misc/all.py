@@ -1,4 +1,4 @@
-from misc import (alarm, srange, xsrange, sxrange, getitem,
+from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
@@ -8,6 +8,8 @@ from misc import (alarm, srange, xsrange, sxrange, getitem,
                   pad_zeros,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, newton_method_sizes)
+
+from edit_module import edit
 
 from flatten import flatten
 
@@ -29,11 +31,13 @@ from dist import install_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
-from package import install_package, optional_packages, upgrade
+from package import install_package, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager
 
 from sagedoc import search_src, search_doc
+
+from classgraph import class_graph
 
 from reset import reset, restore
 
@@ -120,7 +124,6 @@ from functional import (additive_order,
                         quo,
                         show,
                         isqrt,
-                        square_free_part,
                         squarefree_part,
                         transpose,
                         zero,

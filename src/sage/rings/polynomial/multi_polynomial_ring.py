@@ -150,7 +150,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
     EXAMPLES:
         sage: R = MPolynomialRing(Integers(12), 'x', 5); R
-        Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
+        Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage.: loads(R.dumps()) == R     # TODO -- this currently hangs sometimes (??)
         True
     """
@@ -209,15 +209,15 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: f = R(S.0^2 - 4*S.1^3); f
             -4*y^3 + x^2
             sage: parent(f)
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
             sage: parent(S(f))
-            Polynomial Ring in x, y over Integer Ring
+            Multivariate Polynomial Ring in x, y over Integer Ring
 
         We coerce from the finite field.
             sage: f = R(T.0^2 - 4*T.1^3); f
             3*y^3 + x^2
             sage: parent(f)
-            Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Rational Field
 
         We dump and load a the polynomial ring S:
             sage: S2 = loads(dumps(S))
@@ -247,7 +247,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: type(f)
             <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: parent(f)
-            Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Rational Field
 
         A more complicated symbolic and computational mix.  Behind the scenes
         Singular and Maxima are doing the real work.
@@ -255,7 +255,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: f = (x^3 + y^3 - z^3)^10; f
             (-z^3 + y^3 + x^3)^10
             sage: g = R(f); parent(g)
-            Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: (f - g).expand()
             0
 
@@ -453,13 +453,15 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return self.base_ring().is_field()
         return False
 
-    def ideal(self, gens, coerce=True):
+    def ideal(self, *gens, **kwds):
         """
         Create an ideal in this polynomial ring.
         """
+        if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
+            gens = gens[0]
         if not self._has_singular:
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,coerce)
+            MPolynomialRing_generic.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -468,9 +470,9 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if coerce:
+        if kwds.has_key('coerce') and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
 
     def monomial_quotient(self,f, g, coeff=False):

@@ -179,7 +179,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cdef Element _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _dot_product_c_impl(self, Vector right):
         """
         Dot product of dense vectors over the integers.
 

@@ -80,7 +80,7 @@ def EllipticCurve(x, y=None):
     TESTS:
         sage: R = ZZ['u', 'v']
         sage: EllipticCurve(R, [1,1])
-        Elliptic Curve defined by y^2  = x^3 + x +1 over Polynomial Ring in u, v
+        Elliptic Curve defined by y^2  = x^3 + x +1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
     """
     # TODO - - implement

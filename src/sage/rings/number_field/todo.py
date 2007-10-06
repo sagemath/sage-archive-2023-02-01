@@ -1,22 +1,19 @@
 
 """
-[ ] The following should get implemented:
+[x] The following should get implemented:
 
-    sage: K.<a> = NumberField([x^2 + 2, x^2 + 3]); K
-    Number Field in a0 with defining polynomial x^2 + 3 over its base field
-    sage: I = K.factor_integer(14); I
-    Traceback (most recent call last):
-    ...
-    NotImplementedError
-
-[ ] Better support for relative extensions.
+[x] Better support for relative extensions.
 
 [ ] Much faster basic arithmetic based on FLINT.
 
-[ ] Orders
+[x] Orders
 
-[ ] Write relative ideals.
+[ ] Finish relative ideals.
 
 [ ] Fix cyclotomic conversions.
 
+[ ] morphism.py -- need to change it so morphisms of relative number fields
+    are specified in a sensible manner.  This will mean giving the image
+    of all the gens.  One *shortcut* will be to give morphism from the
+    base field.
 """

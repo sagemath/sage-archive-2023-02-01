@@ -258,6 +258,8 @@ import re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.structure.sequence import Sequence
+
 from sage.structure.element import RingElement
 
 import sage.misc.misc as misc
@@ -377,20 +379,19 @@ class Singular(Expect):
     def clear(self, var):
         """
         Clear the variable named var.
-
-        (Not actually done right now since it causes too many
-        problems.)
         """
         try:
             self.eval('kill %s;'%var)
         except RuntimeError:
             pass
-        # Reusing vars causes problems, because of strong typing.
+
+
+        # Reusing var names causes problems, because of strong typing.
         # If you run the multi_polynomial_ideal.py doctest you'll see this.
         ##self._available_vars.append(var)
 
         #Could be an alternative to killing, if that is a problem...
-        ##self.eval('def %s=0;'%var)
+        #self.eval('def %s=0;'%var)
 
     def _create(self, value, type='def'):
         name = self._next_var_name()
@@ -435,7 +436,7 @@ class Singular(Expect):
             return getattr(x, '_singular_')(self)
 
         # some convenient conversions
-        if type in ("module","list") and isinstance(x,(list,tuple)):
+        if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):
             x = str(x)[1:-1]
 
         return SingularElement(self, type, x, False)
@@ -609,7 +610,7 @@ class Singular(Expect):
         """
         try:
             self.eval('kill %s'%(str(vars)[1:-1]))
-        except RuntimeError, TypeError:  # error if variable is not already defined.
+        except (RuntimeError, TypeError):  # error if variable is not already defined.
             pass
         if check and isinstance(char, (int, long, sage.rings.integer.Integer)):
             if char != 0:
@@ -739,6 +740,15 @@ class Singular(Expect):
             SingularFunction(self,"option")("\"set\"",val)
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
+
+    def _keyboard_interrupt(self):
+        print "Interrupting %s..."%self
+        try:
+            self._expect.sendline(chr(4))
+        except pexpect.ExceptionPexpect, msg:
+            raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+        self._start()
+        raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):

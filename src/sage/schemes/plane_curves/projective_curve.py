@@ -283,7 +283,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
                     order computed by Singular.
 
         EXAMPLE:
-            sage: x, y, z = MPolynomialRing(GF(2), 3, 'xyz').gens()
+            sage: R.<x,y,z> = GF(2)[]
             sage: f = x^3*y + y^3*z + x*z^3
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (4, pts[0]), (0,pts[1]), (4, pts[2]) ])
@@ -293,7 +293,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         The following example illustrates that the Riemann-Roch space
         function in Singular doesn't \emph{not} work correctly.
 
-            sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: R.<x,y,z> = GF(5)[]
             sage: f = x^7 + y^7 + z^7
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])

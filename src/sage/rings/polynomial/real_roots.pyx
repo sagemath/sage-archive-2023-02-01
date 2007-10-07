@@ -2688,14 +2688,14 @@ cdef class ocean:
     to share work among multiple islands.
     """
 
-    def __init__(self, ctx, bpf, bounds):
+    def __init__(self, ctx, bpf, mapping):
         """
         Initialize an ocean from a context and a Bernstein polynomial
         factory.
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             ocean with precision 120 and 1 island(s)
         """
 
@@ -2716,14 +2716,17 @@ cdef class ocean:
 
         self.ctx = ctx
         self.bpf = bpf
-        self.orig_bounds = bounds
+        self.mapping = mapping
         self.lgap = rr_gap(zero_QQ, zero_QQ, bpf.lsign())
         rgap = rr_gap(one_QQ, one_QQ, bpf.usign())
         self.endpoint = island(None, rgap, self.lgap)
         self.msb = bpf.coeffs_bitsize()
         self.prec = 120
 
-        _ = island(self.approx_bp(self.msb - self.prec), self.lgap, rgap)
+        cdef island isle = island(self.approx_bp(self.msb - self.prec), self.lgap, rgap)
+        if isle.bp.max_variations == 0:
+            self.lgap.risland = self.endpoint
+            self.endpoint.lgap = self.lgap
 
     def __repr__(self):
         """
@@ -2731,7 +2734,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             ocean with precision 120 and 1 island(s)
         """
 
@@ -2750,7 +2753,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: str(oc.approx_bp(0))
             '<IBP: (0, -4, 2, -2) + [0 .. 1); lsign 1>'
             sage: str(oc.approx_bp(-20))
@@ -2764,13 +2767,13 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.find_roots()
             sage: oc
             ocean with precision 120 and 3 island(s)
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), lmap)
             sage: oc.find_roots()
             sage: oc
             ocean with precision 240 and 3 island(s)
@@ -2786,11 +2789,11 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc.find_roots()
             sage: oc.roots()
             [(1/32, 1/16), (1/2, 5/8), (3/4, 7/8)]
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), lmap)
             sage: oc.find_roots()
             sage: oc.roots()
             [(95761241267509487747625/9671406556917033397649408, 191522482605387719863145/19342813113834066795298816), (1496269395904347376805/151115727451828646838272, 374067366568272936175/37778931862957161709568), (31/32, 63/64)]
@@ -2809,7 +2812,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.refine_all()
@@ -2828,7 +2831,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc.all_done()
             False
             sage: oc.find_roots()
@@ -2851,7 +2854,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([-1, -1, 1]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([-1, -1, 1]), lmap)
             sage: oc.find_roots()
             sage: oc.roots()
             [(1/2, 3/4)]
@@ -2879,7 +2882,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.increase_precision()
@@ -3091,8 +3094,15 @@ cdef class island:
 
         while True:
             if rightmost and self.bp_done(bp):
-                self.bp = bp
-                self.ancestors = ancestors
+                if bp.max_variations == 0:
+                    # No roots!  Make the island disappear.
+                    self.lgap.risland = self.rgap.risland
+                    self.rgap.risland.lgap = self.lgap
+                    self.rgap.replaced_by = self.lgap
+                    self.lgap.upper = self.rgap.upper
+                else:
+                    self.bp = bp
+                    self.ancestors = ancestors
                 return
 
             # This is our heuristic for deciding when to do degree
@@ -3358,12 +3368,12 @@ cdef class island:
 
         if variations > 1:
             return False
-        if variations == 0:
-            return True
         if bp.lower == 0:
             return False
         if bp.upper == 1:
             return False
+        if variations == 0:
+            return True
         if self.target_width is not None and self.bp.upper - self.bp.lower > self.target_width:
             return False
         if bp.level == 0:
@@ -3409,7 +3419,57 @@ cdef class rr_gap:
     def region(self):
         return (self.lower, self.upper)
 
-def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational'):
+class linear_map:
+    """
+    A simple class to map linearly between original coordinates
+    (ranging from [lower .. upper]) and ocean coordinates (ranging
+    from [0 .. 1]).
+    """
+
+    def __init__(self, lower, upper):
+        self.lower = lower
+        self.upper = upper
+        self.width = upper - lower
+
+    def from_ocean(self, region):
+        (l, u) = region
+        return (self.lower + l*self.width, self.lower + u*self.width)
+
+    def to_ocean(self, region):
+        (l, u) = region
+        return ((l - self.lower) / self.width, (u - self.lower) / self.width)
+
+lmap = linear_map(0, 1)
+
+class warp_map:
+    """
+    A class to map between original coordinates and ocean coordinates.
+    If neg is False, then the original->ocean transform is
+    x -> x/(x+1), and the ocean->original transform is x/(1-x);
+    this maps between [0 .. infinity] and [0 .. 1].
+    If neg is True, then the original->ocean transform is
+    x -> -x/(1-x), and the ocean->original transform is the same thing:
+    -x/(1-x).  This maps between [0 .. -infinity] and [0 .. 1].
+    """
+
+    def __init__(self, neg):
+        self.neg = neg
+
+    def from_ocean(self, region):
+        (l, u) = region
+        if self.neg:
+            return (-u/(1-u), -l/(1-l))
+        else:
+            return (l/(1-l), u/(1-u))
+
+    def to_ocean(self, region):
+        (l, u) = region
+        if self.neg:
+            return (-u/(1-u), -l/(1-l))
+        else:
+            return (l/(l+1), u/(u+1))
+
+def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational', strategy=None):
     """
     Compute the real roots of a given polynomial with exact
     coefficients (integer and rational coefficients are supported).
@@ -3422,6 +3482,15 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     that includes exactly one root.  If retval=='algebraic_real', then
     it is returned as an algebraic_real.  In the former two cases, all
     the intervals are disjoint.
+
+    An alternate high-level algorithm can be used by selecting
+    strategy='warp'.  This affects the conversion into Bernstein
+    polynomial form, but still uses the same ocean-island algorithm
+    as the default algorithm.  The 'warp' algorithm performs the conversion
+    into Bernstein polynomial form much more quickly, but performs
+    the rest of the computation slightly slower in some benchmarks.
+    The 'warp' algorithm is particularly likely to be helpful for
+    low-degree polynomials.
 
     Part of the algorithm is randomized; the seed parameter gives a seed
     for the random number generator.  (By default, the seed comes from
@@ -3485,6 +3554,12 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: v = 2^60
         sage: real_roots((x-1) * (x-(v+1)/v), retval='interval')
         [([0.999999999999999999384711926753889 .. 1.00000000000000000001134714982004], 1), ([1.00000000000000000063798237288617 .. 1.00000000000000000565106415467358], 1)]
+        sage: real_roots((x-1) * (x-2), strategy='warp')
+        [((8109/8275, 16549/16219), 1), ((1055/993, 693/331), 1)]
+        sage: real_roots((x+3)*(x+1)*x*(x-1)*(x-2), strategy='warp')
+        [((-439/73, -183/73), 1), ((-293/219, -55/73), 1), ((0, 0), 1), ((3967/4225, 8259/8125), 1), ((1073/975, 699/325), 1)]
+        sage: real_roots((x+3)*(x+1)*x*(x-1)*(x-2), strategy='warp', retval='algebraic_real')
+        [([-3.0000000000000005 .. -2.9999999999999995], 1), ([-1.0000000000000003 .. -0.99999999999999988], 1), ([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([1.9999999999999997 .. 2.0000000000000005], 1)]
     """
     base = p.base_ring()
 
@@ -3494,6 +3569,9 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
             p = ZZx(p * p.denominator())
         else:
             raise ValueError, "Don't know how to isolate roots for " + str(p.parent())
+
+    if bounds is not None and strategy=='warp':
+        raise NotImplementedError, "Cannot set your own bounds with strategy=warp"
 
     if seed is None: seed = hash(p)
 
@@ -3510,40 +3588,57 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     cdef ocean oc
 
     for (factor, exp) in factors:
-        if bounds is None:
-            (left, right) = rational_root_bounds(factor)
+        if strategy=='warp':
+            if factor.constant_coefficient() == 0:
+                extra_roots.append(((0, 0), factor, exp, None, None))
+                x = factor.parent().gen()
+                factor = factor // x
+            b = to_bernstein_warp(factor)
+            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(False))
+            oc.find_roots()
+            oceans.append(oc)
+
+            b = copy(b)
+            for i in range(1, len(b), 2):
+                b[i] = -b[i]
+            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(True))
+            oc.find_roots()
+            oceans.append(oc)
         else:
-            (left, right) = bounds
-            # Bad things happen if the bounds are roots themselves.
-            # Avoid this by dividing out linear polynomials if
-            # the bounds are roots.
-            if factor(left) == 0:
-                extra_roots.append(((left, left), factor, exp, None, None))
-                x = factor.parent().gen()
-                factor = factor // (x * left.denominator() - left.numerator())
-            if factor(right) == 0:
-                extra_roots.append(((right, right), factor, exp, None, None))
-                x = factor.parent().gen()
-                factor = factor // (x * right.denominator() - right.numerator())
+            if bounds is None:
+                (left, right) = rational_root_bounds(factor)
+            else:
+                (left, right) = bounds
+                # Bad things happen if the bounds are roots themselves.
+                # Avoid this by dividing out linear polynomials if
+                # the bounds are roots.
+                if factor(left) == 0:
+                    extra_roots.append(((left, left), factor, exp, None, None))
+                    x = factor.parent().gen()
+                    factor = factor // (x * left.denominator() - left.numerator())
+                if factor(right) == 0:
+                    extra_roots.append(((right, right), factor, exp, None, None))
+                    x = factor.parent().gen()
+                    factor = factor // (x * right.denominator() - right.numerator())
 
-        b, _ = to_bernstein(factor, left, right)
+            b, _ = to_bernstein(factor, left, right)
 
-        oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), (left, right))
-        oc.find_roots()
-        oceans.append(oc)
+            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), linear_map(left, right))
+            oc.find_roots()
+            oceans.append(oc)
 
     while True:
         all_roots = copy(extra_roots)
 
         for i in range(len(oceans)):
             oc = oceans[i]
-            (factor, exp) = factors[i]
+            if strategy == 'warp':
+                (factor, exp) = factors[i // 2]
+            else:
+                (factor, exp) = factors[i]
             rel_roots = oc.roots()
-            (left, right) = oc.orig_bounds
 
-            width = right-left
-
-            cur_roots = [(left + l*width, left + r*width) for (l, r) in rel_roots]
+            cur_roots = [oc.mapping.from_ocean(r) for r in rel_roots]
 
             all_roots.extend([(cur_roots[j], factor, exp, oc, j) for j in range(len(cur_roots))])
 
@@ -3559,9 +3654,13 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 target_width = cur_width/16
                 for j in (i, i+1):
                     oc = all_roots[j][3]
-                    (left, right) = oc.orig_bounds
+                    target_region = (all_roots[j][0][0], all_roots[j][0][0] + target_width)
+                    if target_region[0] * target_region[1] <= 0:
+                        target_region = (all_roots[j][0][1] - target_width, all_roots[j][0][1])
+
+                    ocean_target = oc.mapping.to_ocean(target_region)
                     if oc is not None:
-                        oc.reset_root_width(all_roots[j][4], target_width / (right - left))
+                        oc.reset_root_width(all_roots[j][4], ocean_target[1] - ocean_target[0])
 
         if ok: break
 
@@ -3808,6 +3907,25 @@ def to_bernstein(p, low=0, high=1, degree=None):
     taylor_shift1_intvec(c)
     reverse_intvec(c)
     return ([c[k] / binomial(degree, k) for k in range(0, degree+1)], scale)
+
+def to_bernstein_warp(p):
+    """
+    Given a polynomial p with rational coefficients, compute the
+    exact rational Bernstein coefficients of p(x/(x+1)).
+
+    EXAMPLES:
+        sage: from sage.rings.polynomial.real_roots import *
+        sage: x = polygen(ZZ)
+        sage: to_bernstein_warp(1 + x + x^2 + x^3 + x^4 + x^5)
+        [1, 1/5, 1/10, 1/10, 1/5, 1]
+    """
+
+    c = p.list()
+
+    for i in range(len(c)):
+        c[i] = c[i] / binomial(len(c) - 1, i)
+
+    return c
 
 def bernstein_expand(Vector_integer_dense c, int d2):
     """

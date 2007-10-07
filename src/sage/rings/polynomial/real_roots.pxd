@@ -77,7 +77,7 @@ cdef class context:
 cdef class ocean:
     cdef context ctx
     cdef bpf
-    cdef orig_bounds
+    cdef mapping
     cdef island endpoint
     cdef rr_gap lgap
     cdef rr_gap rgap

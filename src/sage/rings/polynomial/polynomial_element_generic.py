@@ -477,7 +477,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         while R.degree() >= B.degree():
             aaa = (R.leading_coefficient()/B.leading_coefficient())
             bbb = X**(R.degree()-B.degree())
-            S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
+            S = aaa * bbb
             Q += S
             R -= S*B
         return (Q, R)

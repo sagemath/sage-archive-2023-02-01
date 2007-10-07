@@ -3359,11 +3359,13 @@ cdef class rr_gap:
 
 def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32):
     """
-    Compute the real roots of a given polynomial with exact coefficients
-    (integer and rational coefficients are supported).  Returns a list
-    of isolating intervals for the roots; that is, a list of pairs
-    of rationals, where each pair defines a region containing exactly
-    one root, and the regions are disjoint.
+    Compute the real roots of a given polynomial with exact
+    coefficients (integer and rational coefficients are supported).
+    Returns a list of pairs, where the first components of the pairs
+    give isolating intervals for the roots and the second components give
+    the multiplicity of the corresponding root.  (That is, the first
+    component of each pair is a pair of rationals, defining a region
+    containing exactly one root; and all these regions are disjoint.)
 
     Part of the algorithm is randomized; the seed parameter gives a seed
     for the random number generator.  (By default, the seed comes from
@@ -3393,23 +3395,26 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: real_roots(x^3 - x^2 - x - 1)
-        [(7/4, 19/8)]
+        [((7/4, 19/8), 1)]
         sage: real_roots((x-1)*(x-2)*(x-3)*(x-5)*(x-8)*(x-13)*(x-21)*(x-34))
-        [(11/16, 33/32), (11/8, 33/16), (11/4, 55/16), (77/16, 165/32), (11/2, 33/4), (11, 55/4), (165/8, 341/16), (22, 44)]
+        [((11/16, 33/32), 1), ((11/8, 33/16), 1), ((11/4, 55/16), 1), ((77/16, 165/32), 1), ((11/2, 33/4), 1), ((11, 55/4), 1), ((165/8, 341/16), 1), ((22, 44), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1)
-        [(-24395413950535/2251799813685248, 4879082867639/140737488355328), (30946953488522854294956141877/309485009821345068724781056, 61893907009780686456683953229/618970019642690137449562112), (3868369190157229020215976419/38685626227668133590597632, 241773076430762929508408717/2417851639229258349412352)]
+        [((-24395413950535/2251799813685248, 4879082867639/140737488355328), 1), ((30946953488522854294956141877/309485009821345068724781056, 61893907009780686456683953229/618970019642690137449562112), 1), ((3868369190157229020215976419/38685626227668133590597632, 241773076430762929508408717/2417851639229258349412352), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1, seed=42)
-        [(-123196838480289/18014398509481984, 293964743458749/9007199254740992), (8307259573979551907841696381986376143/83076749736557242056487941267521536, 16614519150981033789137940378745325503/166153499473114484112975882535043072), (519203723562592617581015249797434335/5192296858534827628530496329220096, 60443268924081068060312183/604462909807314587353088)]
+        [((-123196838480289/18014398509481984, 293964743458749/9007199254740992), 1), ((8307259573979551907841696381986376143/83076749736557242056487941267521536, 16614519150981033789137940378745325503/166153499473114484112975882535043072), 1), ((519203723562592617581015249797434335/5192296858534827628530496329220096, 60443268924081068060312183/604462909807314587353088), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1, wordsize=64)
-        [(-104777506338670252798675/9671406556917033397649408, 20955501267734050661123/604462909807314587353088), (132916153144038739720727624181823585867/1329227995784915872903807060280344576, 265832306428673134410997393438918308659/2658455991569831745807614120560689152), (16614519160579299336283721157136840349/166153499473114484112975882535043072, 1038407456323434644114116639080284675/10384593717069655257060992658440192)]
+        [((-104777506338670252798675/9671406556917033397649408, 20955501267734050661123/604462909807314587353088), 1), ((132916153144038739720727624181823585867/1329227995784915872903807060280344576, 265832306428673134410997393438918308659/2658455991569831745807614120560689152), 1), ((16614519160579299336283721157136840349/166153499473114484112975882535043072, 1038407456323434644114116639080284675/10384593717069655257060992658440192), 1)]
         sage: real_roots(x)
-        [(-51/512, 205/1024)]
+        [((-51/512, 205/1024), 1)]
         sage: real_roots(x * (x-1))
-        [(-117/512, 11/256), (1/2, 539/512)]
+        [((-117/512, 11/256), 1), ((1/2, 539/512), 1)]
         sage: real_roots(x-1)
-        [(493/512, 1261/1024)]
+        [((493/512, 1261/1024), 1)]
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2))
-        [(0, 0), (693/1024, 693/512), (2, 2)]
+        [((0, 0), 1), ((693/1024, 693/512), 1), ((2, 2), 1)]
+        sage: v = 2^40
+        sage: real_roots((x^2-1)^2 * (x^2 - (v+1)/v))
+        [((-60708402882081640451620340566282970039895069988610052445482137563697246615567307393/60708402882054033466233184588234965832575213720379360039119137804340758912662765568, -62165404551251599822459228739873759677048237990896244975796189749927343344863075249807/62165404551223330269422781018352605012557018849668464680057997111644937126566671941632), 1), ((-31828687130226345097944463881396534026021992382735072331944167030424509000142057998426481/31828687130226345097944463881396533766429193651030253916189694521162207808802136034115584, -63657374260452690195888927762793066145404014118510761817472219470731485598367655966324047/63657374260452690195888927762793067532858387302060507832379389042324415617604272068231168), 2), ((248661618204893321077691124073410416491044675701805517818200028447200183351276397100549/248661618204893321077691124073410420050228075398673858720231988446579748506266687766528, 7957171782556586274486115970349133555567382599851690729229466520473200009981720133809631/7957171782556586274486115970349133441607298412757563479047423630290551952200534008528896), 2), ((51422017416311072843540076084696477741481596591957563380030557/51422017416287688817342786954917203280710495801049370729644032, 12855504354077768210885019021174120095443897109375187641976733/12855504354071922204335696738729300820177623950262342682411008), 1)]
     """
     base = p.base_ring()
 
@@ -3436,31 +3441,33 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
     for (factor, exp) in factors:
         if bounds is None:
-            (left, right) = rational_root_bounds(p)
+            (left, right) = rational_root_bounds(factor)
         else:
             (left, right) = bounds
             # Bad things happen if the bounds are roots themselves.
             # Avoid this by dividing out linear polynomials if
             # the bounds are roots.
-            if p(left) == 0:
+            if factor(left) == 0:
                 extra_roots.append(((left, left), factor, exp, None, None))
-                x = p.parent().gen()
-                p = p // (x * left.denominator() - left.numerator())
-            if p(right) == 0:
+                x = factor.parent().gen()
+                factor = factor // (x * left.denominator() - left.numerator())
+            if factor(right) == 0:
                 extra_roots.append(((right, right), factor, exp, None, None))
-                x = p.parent().gen()
-                p = p // (x * right.denominator() - right.numerator())
+                x = factor.parent().gen()
+                factor = factor // (x * right.denominator() - right.numerator())
 
-        b, _ = to_bernstein(p, left, right)
+        b, _ = to_bernstein(factor, left, right)
 
         oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), (left, right))
         oc.find_roots()
         oceans.append(oc)
 
     while True:
-        all_roots = extra_roots
+        all_roots = copy(extra_roots)
 
-        for oc in oceans:
+        for i in range(len(oceans)):
+            oc = oceans[i]
+            (factor, exp) = factors[i]
             rel_roots = oc.roots()
             (left, right) = oc.orig_bounds
 
@@ -3468,7 +3475,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
             cur_roots = [(left + l*width, left + r*width) for (l, r) in rel_roots]
 
-            all_roots.extend([(cur_roots[i], factor, exp, oc, i) for i in range(len(cur_roots))])
+            all_roots.extend([(cur_roots[j], factor, exp, oc, j) for j in range(len(cur_roots))])
 
         all_roots.sort()
 
@@ -3482,7 +3489,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 target_width = cur_width/16
                 for j in (i, i+1):
                     oc = all_roots[j][3]
-                    (left, right) = oc.bounds
+                    (left, right) = oc.orig_bounds
                     if oc is not None:
                         oc.reset_root_width(all_roots[j][4], target_width / (right - left))
 
@@ -3490,7 +3497,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         for oc in oceans: oc.find_roots()
 
-    return [r[0] for r in all_roots]
+    return [(r[0], r[2]) for r in all_roots]
 
 def scale_intvec_var(Vector_integer_dense c, k):
     """

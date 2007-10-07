@@ -283,7 +283,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.real_roots()
-            [(1/2, 3/4), (1, 3/2)]
+            [((1/2, 3/4), 1), ((1, 3/2), 1)]
         """
 
         from sage.rings.polynomial.real_roots import real_roots

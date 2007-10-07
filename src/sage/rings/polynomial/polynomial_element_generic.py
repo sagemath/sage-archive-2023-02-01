@@ -786,7 +786,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = (x - 1/2) * (x - 3/4) * (x - 3/2)
             sage: f.real_roots()
-            [(879/2048, 4395/8192), (2637/4096, 6153/8192), (879/1024, 879/512)]
+            [((879/2048, 4395/8192), 1), ((2637/4096, 6153/8192), 1), ((879/1024, 879/512), 1)]
         """
 
         from sage.rings.polynomial.real_roots import real_roots

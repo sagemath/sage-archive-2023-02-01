@@ -670,6 +670,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self * self
 
+    def squarefree_decomposition(self):
+        """
+        Return the square-free decomposition of self.  This is
+        a partial factorization of self into square-free, relatively
+        prime polynomials.
+
+        This is the straightforward algorithm, using only polynomial
+        GCD and polynomial division.  Faster algorithms exist.  The
+        algorithm comes from the Wikipedia article,
+        "Square-free polynomial".
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: p = 37 * (x-1)^3 * (x-2)^3 * (x-1/3)^7 * (x-3/7)
+            sage: p.squarefree_decomposition()
+            (37*x - 111/7) * (x^2 - 3*x + 2)^3 * (x - 1/3)^7
+            sage: p = 37 * (x-2/3)^2
+            sage: p.squarefree_decomposition()
+            (37) * (x - 2/3)^2
+        """
+
+        # Wikipedia says this works for arbitrary fields of
+        # characteristic 0.
+
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError, "Squarefree decomposition not implemented for " + self.parent()
+
+        f = [self]
+        cur = self
+        while cur.degree() > 0:
+            cur = cur.gcd(cur.derivative())
+            f.append(cur)
+
+        g = []
+        for i in range(len(f) - 1):
+            g.append(f[i] // f[i+1])
+
+        a = []
+        for i in range(len(g) - 1):
+            a.append(g[i] // g[i+1])
+        a.append(g[-1])
+
+        factors = []
+        unit = f[-1]
+        for i in range(len(a)):
+            if a[i].degree() > 0:
+                factors.append((a[i], i+1))
+            else:
+                unit = unit * a[i].constant_coefficient() ** (i + 1)
+
+        return Factorization(factors, unit=unit, sort=False)
+
     def __div__(self, right):
         """
         EXAMPLES:

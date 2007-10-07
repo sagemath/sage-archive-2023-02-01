@@ -10,6 +10,14 @@ for the real roots of the polynomial.  (Polynomials with
 integer, rational, or algebraic real coefficients are supported.)
 """
 
+################################################################################
+#       Copyright (C) 2007 Carl Witty <cwitty@newtonlabs.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+################################################################################
+
 # TODO:
 # These things would almost certainly improve the speed:
 # * Use Anatole Ruslanov's register tiling versions of de Casteljau's

@@ -775,7 +775,7 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
 
         expected_err = expected_err * self.error
         if expected_err > max_err:
-            return (None, ('$', self.lsb_bit + bitsize(expected_err)))
+            return (None, ('$', self.scale_log2 + bitsize(expected_err)))
 
         if (expected_err << exp_err_shift) < max_err:
             max_err = (expected_err << exp_err_shift)
@@ -896,6 +896,26 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
             p[i] = p[i] >> bits
         return interval_bernstein_polynomial_integer(p, self.lower, self.upper, self.lsign, self.usign, -((-self.error) >> bits), self.scale_log2 + bits, self.level, self.slope_err)
 
+    def slope_range(self):
+        """
+        Compute a bound on the derivative of this polynomial, over its region.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: bp = mk_ibpi([0, 100, 400, 903], error=2)
+            sage: bp.slope_range()
+            [294.00000000000000 .. 1515.0000000000000]
+        """
+        width = self.region_width()
+        (min_diff, max_diff) = min_max_diff_intvec(self.coeffs)
+        rng = RIF(min_diff - self.error, max_diff + self.error)
+        rng = rng * (len(self.coeffs) - 1)
+        rng = rng / width
+        if self.scale_log2 >= 0:
+            rng = rng << self.scale_log2
+        else:
+            rng = rng >> (-self.scale_log2)
+        return rng
 
 def mk_ibpi(coeffs, lower=0, upper=1, lsign=0, usign=0, error=1, scale_log2=0,
             level=0, slope_err=RIF(0)):
@@ -1528,6 +1548,38 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         absolute values of the coefficients, as an integer.
         """
         return self.scale_log2 - 53 + self.bitsize
+
+    def slope_range(self):
+        """
+        Compute a bound on the derivative of this polynomial, over its region.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: bp = mk_ibpf([0.5, 0.2, -0.9, -0.7, 0.99], neg_err=-0.1, pos_err=0.01)
+            sage: bp.slope_range()
+            [-4.8400000000000017 .. 7.2000000000000011]
+        """
+        cdef unsigned int cwf
+        fpu_fix_start(&cwf)
+
+        width = self.region_width()
+        (min_diff, max_diff) = min_max_diff_doublevec(self.coeffs)
+        err = self.pos_err - self.neg_err
+        # 2 half_ulp's because subtracting two numbers with aboslute values
+        # in (-1 .. 1) can give a number in (-2 .. 2), and the subtraction
+        # can have an error of up to half an ulp in that range, which
+        # is 2 half ulps for (-1 .. 1).
+        rng = RIF(min_diff - err - 2*half_ulp, max_diff + err + 2*half_ulp)
+        rng = rng * (len(self.coeffs) - 1)
+        rng = rng / width
+        if self.scale_log2 >= 0:
+            rng = rng << self.scale_log2
+        else:
+            rng = rng >> (-self.scale_log2)
+
+        fpu_fix_end(&cwf)
+
+        return rng
 
 
 def mk_ibpf(coeffs, lower=0, upper=1, lsign=0, usign=0, neg_err=0, pos_err=0,
@@ -3927,4 +3979,64 @@ def min_max_delta_intvec(Vector_integer_dense a, Vector_integer_dense b):
     mpz_clear(tmp)
 
     return (max, min)
+
+def min_max_diff_intvec(Vector_integer_dense b):
+    """
+    Given an integer vector b = (b0, ..., bn), compute the
+    minimum and maximum values of b_{j+1} - b_j.
+
+    EXAMPLES:
+        sage: from sage.rings.polynomial.real_roots import *
+        sage: min_max_diff_intvec(vector(ZZ, [1, 7, -2]))
+        (-9, 6)
+    """
+    l = len(b)
+    assert(l > 1)
+
+    cdef Integer min_diff = b[1] - b[0]
+    cdef Integer max_diff = Integer()
+
+    cdef Integer diff = Integer()
+
+    mpz_set(max_diff.value, min_diff.value)
+
+    for i from 1 <= i < l-1:
+        mpz_sub(diff.value, b._entries[i+1], b._entries[i])
+        if mpz_cmp(diff.value, max_diff.value) > 0:
+            mpz_set(max_diff.value, diff.value)
+        if mpz_cmp(diff.value, min_diff.value) < 0:
+            mpz_set(min_diff.value, diff.value)
+
+    return (min_diff, max_diff)
+
+def min_max_diff_doublevec(RealDoubleVectorSpaceElement c):
+    """
+    Given a floating-point vector b = (b0, ..., bn), compute the
+    minimum and maximum values of b_{j+1} - b_j.
+
+    EXAMPLES:
+        sage: from sage.rings.polynomial.real_roots import *
+        sage: min_max_diff_doublevec(vector(RDF, [1, 7, -2]))
+        (-9.0, 6.0)
+    """
+    assert(c.v.stride == 1)
+
+    cdef double* cd = c.v.data
+
+    l = len(c)
+    assert(l > 1)
+
+    cdef double min_diff = cd[1] - cd[0]
+    cdef double max_diff = min_diff
+
+    cdef double diff
+
+    for i from 1 <= i < l-1:
+        diff = cd[i+1] - cd[i]
+        if diff < min_diff:
+            min_diff = diff
+        if diff > max_diff:
+            max_diff = diff
+
+    return (min_diff, max_diff)
 

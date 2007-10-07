@@ -48,6 +48,8 @@ cdef class rr_gap
 
 cdef class island:
     cdef interval_bernstein_polynomial bp
+    cdef ancestors
+    cdef target_width
     cdef rr_gap lgap
     cdef rr_gap rgap
     cdef known_done
@@ -75,6 +77,7 @@ cdef class context:
 cdef class ocean:
     cdef context ctx
     cdef bpf
+    cdef orig_bounds
     cdef island endpoint
     cdef rr_gap lgap
     cdef rr_gap rgap

@@ -677,11 +677,17 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
 
         cdef int new_err = self.error + err_inc
 
+        cdef int sign = 0
+
+        if mpz_sgn(c2._entries[0]) > 0:
+            sign = 1
+        if mpz_cmp_si(c2._entries[0], -new_err) <= 0:
+            sign = -1
+
         if msign == 0:
-            if mpz_sgn(c2._entries[0]) > 0:
-                msign = 1
-            if mpz_cmp_si(c2._entries[0], -new_err) <= 0:
-                msign = -1
+            msign = sign
+        elif sign != 0:
+            assert(msign == sign)
 
         cdef Rational absolute_mid = self.lower + mid * (self.upper - self.lower)
 
@@ -1474,20 +1480,28 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         cdef RealDoubleVectorSpaceElement c1 = c1_
         cdef RealDoubleVectorSpaceElement c2 = c2_
 
+        cdef int sign = 0
+
+        if c2.v.data[0] > -self.neg_err:
+            sign = 1
+        if c2.v.data[0] < -self.pos_err:
+            sign = -1
+
+        if msign == 0:
+            msign = sign
+        elif sign != 0:
+            assert(msign == sign)
+
         # As long as new_neg and new_pos have
         # magnitudes less than 0.5, these computations
         # are exact.  This will be the case for any sensible
         # usage of this class.
         cdef double new_neg = self.neg_err - half_ulp * err_inc
         cdef double new_pos = self.pos_err + half_ulp * err_inc
-        assert(-0.5 <= new_neg <= 0)
-        assert(0 <= new_pos <= 0.5)
 
-        if msign == 0:
-            if c2.v.data[0] > -self.neg_err:
-                msign = 1
-            if c2.v.data[0] < -self.pos_err:
-                msign = -1
+        if not (-0.5 <= new_neg <= 0 <= new_pos <= 0.5):
+            # Give up on this computation...it's horribly inaccurate anyway.
+            msign = 0
 
         cdef Rational absolute_mid = self.lower + mid * (self.upper - self.lower)
 
@@ -2496,7 +2510,7 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
         sage: from sage.rings.polynomial.real_roots import *
         sage: bp = mk_ibpi([1000000, -2000000, 3000000, -4000000, -5000000, -6000000])
         sage: ctx = mk_context()
-        sage: bps = split_for_targets(ctx, bp, [(rr_gap(1/1234567893, 1/1234567892, -1), rr_gap(1/1234567891, 1/1234567890, 1), 12), (rr_gap(1/3, 1/2, 1), rr_gap(2/3, 3/4, -1), 6)])
+        sage: bps = split_for_targets(ctx, bp, [(rr_gap(1/1234567893, 1/1234567892, 1), rr_gap(1/1234567891, 1/1234567890, 1), 12), (rr_gap(1/3, 1/2, -1), rr_gap(2/3, 3/4, -1), 6)])
         sage: str(bps[0])
         '<IBP: (999992, 999992, 999992) + [0 .. 15) over [8613397477114467984778830327/10633823966279326983230456482242756608 .. 591908168025934394813836527495938294787/730750818665451459101842416358141509827966271488]; level 2; slope_err [-192592590990.49338 .. 192592590990.49338]>'
         sage: str(bps[1])
@@ -2510,20 +2524,23 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
 
     out_of_bounds = False
 
+    cdef rr_gap l
+    cdef rr_gap r
+
     split_targets = []
     for (l,r,_) in target_list:
         if l is None:
-            split_targets += [(QQ(0), None)]
+            split_targets += [(QQ(0), None, 0)]
         else:
             lbounds = relative_bounds(bounds, l.region())
-            split_targets += [(lbounds[1], lbounds[0])]
+            split_targets += [(lbounds[1], lbounds[0], l.sign)]
             if lbounds[0] > 0:
                 out_of_bounds = True
         if r is None:
-            split_targets += [(QQ(1), None)]
+            split_targets += [(QQ(1), None, 0)]
         else:
             rbounds = relative_bounds(bounds, r.region())
-            split_targets += [(rbounds[0], rbounds[1])]
+            split_targets += [(rbounds[0], rbounds[1], r.sign)]
             if rbounds[1] < 1:
                 out_of_bounds = True
 
@@ -2545,7 +2562,7 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
 
     split = wordsize_rational(split_targets[best_index][0], split_targets[best_index][1], ctx.wordsize)
 
-    (p1_, p2_, ok) = bp.de_casteljau(split)
+    (p1_, p2_, ok) = bp.de_casteljau(split, msign=split_targets[best_index][2])
     assert(ok)
 
     cdef interval_bernstein_polynomial p1 = p1_
@@ -2619,14 +2636,14 @@ cdef class ocean:
     to share work among multiple islands.
     """
 
-    def __init__(self, ctx, bpf):
+    def __init__(self, ctx, bpf, bounds):
         """
         Initialize an ocean from a context and a Bernstein polynomial
         factory.
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             ocean with precision 120 and 1 island(s)
         """
 
@@ -2647,6 +2664,7 @@ cdef class ocean:
 
         self.ctx = ctx
         self.bpf = bpf
+        self.orig_bounds = bounds
         self.lgap = rr_gap(zero_QQ, zero_QQ, bpf.lsign())
         rgap = rr_gap(one_QQ, one_QQ, bpf.usign())
         self.endpoint = island(None, rgap, self.lgap)
@@ -2661,7 +2679,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             ocean with precision 120 and 1 island(s)
         """
 
@@ -2680,7 +2698,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: str(oc.approx_bp(0))
             '<IBP: (0, -4, 2, -2) + [0 .. 1); lsign 1>'
             sage: str(oc.approx_bp(-20))
@@ -2694,13 +2712,13 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.find_roots()
             sage: oc
             ocean with precision 120 and 3 island(s)
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), (0, 1))
             sage: oc.find_roots()
             sage: oc
             ocean with precision 240 and 3 island(s)
@@ -2716,11 +2734,11 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: oc.find_roots()
             sage: oc.roots()
             [(1/32, 1/16), (1/2, 5/8), (3/4, 7/8)]
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1, 0, -1111/2, 0, 11108889/14, 0, 0, 0, 0, -1]), (0, 1))
             sage: oc.find_roots()
             sage: oc.roots()
             [(95761241267509487747625/9671406556917033397649408, 191522482605387719863145/19342813113834066795298816), (1496269395904347376805/151115727451828646838272, 374067366568272936175/37778931862957161709568), (31/32, 63/64)]
@@ -2739,7 +2757,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.refine_all()
@@ -2758,7 +2776,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: oc.all_done()
             False
             sage: oc.find_roots()
@@ -2772,6 +2790,35 @@ cdef class ocean:
             isle = isle.rgap.risland
         return True
 
+    def reset_root_width(self, int isle_num, target_width):
+        """
+        Require that the isle_num island have a width at most target_width.
+
+        If this is followed by a call to find_roots(), then the
+        corresponding root will be refined to the specified width.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([-1, -1, 1]), (0, 1))
+            sage: oc.find_roots()
+            sage: oc.roots()
+            [(1/2, 3/4)]
+            sage: oc.reset_root_width(0, 1/2^200)
+            sage: oc.find_roots()
+            sage: oc
+            ocean with precision 240 and 1 island(s)
+            sage: RR(RealIntervalField(300)(oc.roots()[0]).absolute_diameter()).log2()
+            -232.668979560890
+        """
+        cdef island isle = self.lgap.risland
+        cdef int n = 0
+        while isle is not self.endpoint:
+            if n == isle_num:
+                isle.reset_root_width(target_width)
+
+            isle = isle.rgap.risland
+            n = n+1
+
     def increase_precision(self):
         """
         Increase the precision of the interval Bernstein polynomial held
@@ -2780,7 +2827,7 @@ cdef class ocean:
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
-            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]))
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), (0, 1))
             sage: oc
             ocean with precision 120 and 1 island(s)
             sage: oc.increase_precision()
@@ -2794,7 +2841,7 @@ cdef class ocean:
         cdef island isle = self.lgap.risland
         while isle is not self.endpoint:
             total_islands = total_islands + 1
-            if not isle.done(self.ctx):
+            if not isle.done(self.ctx) and len(isle.ancestors) == 0:
                 active_islands += [isle]
             isle = isle.rgap.risland
         if len(active_islands) > 0:
@@ -2813,7 +2860,6 @@ cdef class ocean:
 #                     isle.refine_recurse(self.ctx, bp, [], [], True)
 #                 except PrecisionError:
 #                     pass
-
 
 cdef class island:
     """
@@ -2917,6 +2963,8 @@ cdef class island:
         the left and right of the island.
         """
         self.bp = bp
+        self.ancestors = []
+        self.target_width = None
         self.lgap = lgap
         self.rgap = rgap
         self.known_done = False
@@ -2957,7 +3005,7 @@ cdef class island:
         """
         self.shrink_bp(ctx)
         try:
-            self.refine_recurse(ctx, self.bp, [], [], True)
+            self.refine_recurse(ctx, self.bp, self.ancestors, [], True)
         except PrecisionError:
             pass
 
@@ -2974,6 +3022,7 @@ cdef class island:
         """
         cdef interval_bernstein_polynomial p1, p2
         cdef rr_gap mgap
+        cdef island lisland
 
         # If you examine the description of this algorithm in the
         # class island class documentation, you see that several of
@@ -2991,6 +3040,7 @@ cdef class island:
         while True:
             if rightmost and self.bp_done(bp):
                 self.bp = bp
+                self.ancestors = ancestors
                 return
 
             # This is our heuristic for deciding when to do degree
@@ -3088,6 +3138,7 @@ cdef class island:
                         # Split the island!
                         mgap = rr_gap(p2.lower, p2.upper, p2.lsign)
                         lisland = island(p1, self.lgap, mgap)
+                        lisland.target_width = self.target_width
                         self.lgap = mgap
                         mgap.risland = self
                         if not lisland.done(ctx):
@@ -3220,7 +3271,22 @@ cdef class island:
 
                 return (ancestors, ancestor_val)
 
+        self.ancestors = []
         raise PrecisionError()
+
+    def reset_root_width(self, target_width):
+        """
+        Modify the criteria for this island to require that it is not "done"
+        until its width is less than or equal to target_width.
+        """
+
+        width = self.bp.upper - self.bp.lower
+
+        if target_width < width:
+            self.known_done = False
+
+        if self.target_width is None or target_width < self.target_width:
+            self.target_width = target_width
 
     def bp_done(self, interval_bernstein_polynomial bp):
         """
@@ -3245,6 +3311,8 @@ cdef class island:
         if bp.lower == 0:
             return False
         if bp.upper == 1:
+            return False
+        if self.target_width is not None and self.bp.upper - self.bp.lower > self.target_width:
             return False
         if bp.level == 0:
             return True
@@ -3341,7 +3409,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: real_roots(x-1)
         [(493/512, 1261/1024)]
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2))
-        [(0, 0), (2, 2), (693/1024, 693/512)]
+        [(0, 0), (693/1024, 693/512), (2, 2)]
     """
     base = p.base_ring()
 
@@ -3354,42 +3422,75 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
     if seed is None: seed = hash(p)
 
-    if not skip_squarefree:
-        gcd = p.gcd(p.derivative())
-        if gcd != 1:
-            p = p // gcd
+    if skip_squarefree:
+        factors = [(p, 1)]
+    else:
+        factors = p.squarefree_decomposition()
 
     ctx = context(do_logging, seed, wordsize)
 
     extra_roots = []
+    oceans = []
 
-    if bounds is None:
-        (left, right) = rational_root_bounds(p)
-    else:
-        (left, right) = bounds
-        # Bad things happen if the bounds are roots themselves.
-        # Avoid this by dividing out linear polynomials if
-        # the bounds are roots.
-        if p(left) == 0:
-            extra_roots.append((left, left))
-            x = p.parent().gen()
-            p = p // (x * left.denominator() - left.numerator())
-        if p(right) == 0:
-            extra_roots.append((right, right))
-            x = p.parent().gen()
-            p = p // (x * right.denominator() - right.numerator())
+    cdef ocean oc
 
+    for (factor, exp) in factors:
+        if bounds is None:
+            (left, right) = rational_root_bounds(p)
+        else:
+            (left, right) = bounds
+            # Bad things happen if the bounds are roots themselves.
+            # Avoid this by dividing out linear polynomials if
+            # the bounds are roots.
+            if p(left) == 0:
+                extra_roots.append(((left, left), factor, exp, None, None))
+                x = p.parent().gen()
+                p = p // (x * left.denominator() - left.numerator())
+            if p(right) == 0:
+                extra_roots.append(((right, right), factor, exp, None, None))
+                x = p.parent().gen()
+                p = p // (x * right.denominator() - right.numerator())
 
-    b, _ = to_bernstein(p, left, right)
+        b, _ = to_bernstein(p, left, right)
 
-    oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b))
+        oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), (left, right))
+        oc.find_roots()
+        oceans.append(oc)
 
-    oc.find_roots()
+    while True:
+        all_roots = extra_roots
 
-    rel_roots = oc.roots()
-    width = right-left
+        for oc in oceans:
+            rel_roots = oc.roots()
+            (left, right) = oc.orig_bounds
 
-    return extra_roots + [(left + l*width, left + r*width) for (l, r) in rel_roots]
+            width = right-left
+
+            cur_roots = [(left + l*width, left + r*width) for (l, r) in rel_roots]
+
+            all_roots.extend([(cur_roots[i], factor, exp, oc, i) for i in range(len(cur_roots))])
+
+        all_roots.sort()
+
+        ok = True
+
+        for i in range(len(all_roots) - 1):
+            # Check to be sure that all intervals are disjoint.
+            if all_roots[i][0][1] >= all_roots[i+1][0][0]:
+                ok = False
+                cur_width = max(all_roots[i+1][0][1] - all_roots[i+1][0][0], all_roots[i][0][1] - all_roots[i][0][0])
+                target_width = cur_width/16
+                for j in (i, i+1):
+                    oc = all_roots[j][3]
+                    (left, right) = oc.bounds
+                    if oc is not None:
+                        oc.reset_root_width(all_roots[j][4], target_width / (right - left))
+
+        if ok: break
+
+        for oc in oceans: oc.find_roots()
+
+    return [r[0] for r in all_roots]
 
 def scale_intvec_var(Vector_integer_dense c, k):
     """

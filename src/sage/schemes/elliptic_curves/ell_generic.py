@@ -793,7 +793,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def scale_curve(self, u):
         """
-        Transforms the elliptic curve using scale factor u, i.e. multiplies c_i by u^i.
+        Transforms the elliptic curve using scale factor $u$,
+        i.e. multiplies $c_i$ by $u^i$.
 
         Returns the transformed curve.
         """

@@ -878,9 +878,18 @@ class AlgebraicRealNumberRational(AlgebraicRealNumberDescr):
     """
 
     def __init__(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
+        """
+        TESTS:
+            sage: polygen(AA) / int(3)
+            1/3*x
+            sage: AA(int(7)) / AA(long(2))
+            7/2
+        """
+        if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._value = x
+        elif isinstance(x, (int, long)):
+            self._value = ZZ(x)
         else:
             raise TypeError, "Illegal initializer for algebraic number rational"
 

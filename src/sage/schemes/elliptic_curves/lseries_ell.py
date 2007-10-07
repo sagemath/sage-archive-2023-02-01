@@ -413,51 +413,51 @@ class Lseries_ell(SageObject):
             return R(0)
         return R(self.E.pari_mincurve().elllseries(s))
 
-    def extended(self, s, prec):
-        r"""
-        Returns the value of the L-series of the elliptic curve E at s
-        can be any complex number using prec terms of the power series
-        expansion.
-
-
-        WARNING: This may be slow.  Consider using \code{dokchitser()}
-        instead.
-
-        INPUT:
-            s -- complex number
-            prec -- integer
-
-        EXAMPLES:
-            sage: E = EllipticCurve('389a')
-            sage: E.Lseries().extended(1 + I, 50)
-            -0.638409959099589 + 0.715495262192901*I
-            sage: E.Lseries().extended(1 + 0.1*I, 50)
-            -0.00761216538818315 + 0.000434885704670107*I
-
-        NOTE: You might also want to use Tim Dokchitser's
-        L-function calculator, which is available by typing
-        L = E.Lseries().dokchitser(), then evaluating L.  It
-        gives the same information but is sometimes much faster.
-
-        """
-        try:
-            s = C(s)
-        except TypeError:
-            raise TypeError, "Input argument %s must be coercible to a complex number"%s
-        prec = int(prec)
-        if abs(s.imag()) < R(0.0000000000001):
-            return self(s.real())
-        N = self.E.conductor()
-        pi = R(constants.pi)
-        Gamma = transcendental.gamma
-        Gamma_inc = transcendental.gamma_inc
-        a = self.E.anlist(prec)
-        eps = self.E.root_number()
-        sqrtN = float(N.sqrt())
-        def F(n, t):
-            return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\
-               * sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
+    #def extended(self, s, prec):
+    #    r"""
+    #    Returns the value of the L-series of the elliptic curve E at s
+    #    can be any complex number using prec terms of the power series
+    #    expansion.
+    #
+    #
+    #    WARNING: This may be slow.  Consider using \code{dokchitser()}
+    #    instead.
+    #
+    #    INPUT:
+    #        s -- complex number
+    #        prec -- integer
+    #
+    #    EXAMPLES:
+    #        sage: E = EllipticCurve('389a')
+    #        sage: E.Lseries().extended(1 + I, 50)
+    #        -0.638409959099589 + 0.715495262192901*I
+    #        sage: E.Lseries().extended(1 + 0.1*I, 50)
+    #        -0.00761216538818315 + 0.000434885704670107*I
+    #
+    #    NOTE: You might also want to use Tim Dokchitser's
+    #    L-function calculator, which is available by typing
+    #    L = E.Lseries().dokchitser(), then evaluating L.  It
+    #    gives the same information but is sometimes much faster.
+    #
+    #    """
+    #    try:
+    #        s = C(s)
+    #    except TypeError:
+    #        raise TypeError, "Input argument %s must be coercible to a complex number"%s
+    #    prec = int(prec)
+    #    if abs(s.imag()) < R(0.0000000000001):
+    #        return self(s.real())
+    #    N = self.E.conductor()
+    #    pi = R(constants.pi)
+    #    Gamma = transcendental.gamma
+    #    Gamma_inc = transcendental.gamma_inc
+    #    a = self.E.anlist(prec)
+    #    eps = self.E.root_number()
+    #    sqrtN = float(N.sqrt())
+    #    def F(n, t):
+    #        return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
+    #    return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\
+    #           * sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
 
     def L1_vanishes(self):
         """

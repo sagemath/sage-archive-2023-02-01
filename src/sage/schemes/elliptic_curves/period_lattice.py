@@ -22,7 +22,7 @@ class PeriodLattice_ell(PeriodLattice):
     def __repr__(self):
         return "Period lattice associated to %s"%(self.E)
 
-    def basis(self, prec=50):
+    def basis(self, prec=None):
         r"""
         Return a basis for the period lattice of the elliptic curve
         over $\Q$ as a 2-tuple.
@@ -70,7 +70,7 @@ class PeriodLattice_ell(PeriodLattice):
         """
         return self.E.discriminant() > 0
 
-    def omega(self):
+    def omega(self, prec = None):
         """
         Returns the real period.
 
@@ -99,7 +99,7 @@ class PeriodLattice_ell(PeriodLattice):
         0.9722187714201128597944609123476510851052197203847843942390817122363562097430    # 32-bit
         0.972218771420112859794460912347651085105219720384784394239081712236356209742997418706614975461684169926902322522680064611065781315506627970517696906916220      # 64-bit
         """
-        return self.basis()[0] * self.E.real_components()
+        return self.basis(prec)[0] * self.E.real_components()
 
     def complex_area(self):
         """

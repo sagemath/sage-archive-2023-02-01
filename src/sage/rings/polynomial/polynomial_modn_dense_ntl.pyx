@@ -380,7 +380,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         Polynomial_dense_mod_n.__init__(self, parent, v, check=check, is_gen=is_gen, construct=construct)
         if check:
             R = parent.base_ring()
-            v = [a if isinstance(a, (int, long, integer.Integer, IntegerMod_abstract)) else R(a) for a in v]
+            v = [a if isinstance(a, (int, long, Integer, IntegerMod_abstract)) else R(a) for a in v]
         v = [a for a in self.__poly.list()]
         self.__poly = None # this will eventually go away
         cdef ntl_zz_pX ntl = ntl_zz_pX(v, parent.modulus()) # let it handle the hard work

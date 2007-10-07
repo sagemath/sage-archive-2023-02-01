@@ -108,12 +108,12 @@ cdef class Morphism(Element):
     def __call__(self, x):
         if not PY_TYPE_CHECK(x, Element):
             try:
-                return self.pushforward(x)
+                return self._call_c(x)
             except TypeError:
-                raise TypeError, "x is not an element, and the pushforward is not defined"
+                raise TypeError, "%s must be coercible into %s (and is not an element)"%(x, self._domain)
         elif (<Element>x)._parent is not self._domain:
             try:
-                x = self._domain._coerce_(x)
+                x = self._domain(x)
             except TypeError:
                 try:
                     return self.pushforward(x)

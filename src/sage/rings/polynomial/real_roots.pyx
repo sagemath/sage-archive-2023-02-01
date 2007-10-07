@@ -101,7 +101,7 @@ from copy import copy
 from random import Random
 import time
 
-from sage.rings.all import ZZ, QQ, RR, RealField, RIF, RDF, infinity
+from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
 from sage.rings.arith import binomial, factorial
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
@@ -3357,15 +3357,19 @@ cdef class rr_gap:
     def region(self):
         return (self.lower, self.upper)
 
-def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32):
+def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational'):
     """
     Compute the real roots of a given polynomial with exact
     coefficients (integer and rational coefficients are supported).
-    Returns a list of pairs, where the first components of the pairs
-    give isolating intervals for the roots and the second components give
-    the multiplicity of the corresponding root.  (That is, the first
-    component of each pair is a pair of rationals, defining a region
-    containing exactly one root; and all these regions are disjoint.)
+    Returns a list of pairs of a root and its multiplicity.
+
+    The root itself can be returned in one of three different ways.
+    If retval=='rational', then it is returned as a pair of rationals
+    that define a region that includes exactly one root.  If
+    retval=='interval', then it is returned as a RealIntervalFieldElement
+    that includes exactly one root.  If retval=='algebraic_real', then
+    it is returned as an algebraic_real.  In the former two cases, all
+    the intervals are disjoint.
 
     Part of the algorithm is randomized; the seed parameter gives a seed
     for the random number generator.  (By default, the seed comes from
@@ -3415,6 +3419,20 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: v = 2^40
         sage: real_roots((x^2-1)^2 * (x^2 - (v+1)/v))
         [((-60708402882081640451620340566282970039895069988610052445482137563697246615567307393/60708402882054033466233184588234965832575213720379360039119137804340758912662765568, -62165404551251599822459228739873759677048237990896244975796189749927343344863075249807/62165404551223330269422781018352605012557018849668464680057997111644937126566671941632), 1), ((-31828687130226345097944463881396534026021992382735072331944167030424509000142057998426481/31828687130226345097944463881396533766429193651030253916189694521162207808802136034115584, -63657374260452690195888927762793066145404014118510761817472219470731485598367655966324047/63657374260452690195888927762793067532858387302060507832379389042324415617604272068231168), 2), ((248661618204893321077691124073410416491044675701805517818200028447200183351276397100549/248661618204893321077691124073410420050228075398673858720231988446579748506266687766528, 7957171782556586274486115970349133555567382599851690729229466520473200009981720133809631/7957171782556586274486115970349133441607298412757563479047423630290551952200534008528896), 2), ((51422017416311072843540076084696477741481596591957563380030557/51422017416287688817342786954917203280710495801049370729644032, 12855504354077768210885019021174120095443897109375187641976733/12855504354071922204335696738729300820177623950262342682411008), 1)]
+        sage: real_roots(x^2 - 2)
+        [((-3/2, -1), 1), ((1, 3/2), 1)]
+        sage: real_roots(x^2 - 2, retval='interval')
+        [([-1.5000000000000000 .. -1.0000000000000000], 1), ([1.0000000000000000 .. 1.5000000000000000], 1)]
+        sage: ar_rts = real_roots(x^2 - 2, retval='algebraic_real'); ar_rts
+        [([-1.4142135623730952 .. -1.4142135623730949], 1), ([1.4142135623730949 .. 1.4142135623730952], 1)]
+        sage: ar_rts[0][0]^2 - 2 == 0
+        True
+        sage: v = 2^40
+        sage: real_roots((x-1) * (x-(v+1)/v), retval='interval')
+        [([0.99999999999977251 .. 1.0000000000001137], 1), ([1.0000000000004545 .. 1.0000000000018190], 1)]
+        sage: v = 2^60
+        sage: real_roots((x-1) * (x-(v+1)/v), retval='interval')
+        [([0.999999999999999999384711926753889 .. 1.00000000000000000001134714982004], 1), ([1.00000000000000000063798237288617 .. 1.00000000000000000565106415467358], 1)]
     """
     base = p.base_ring()
 
@@ -3497,7 +3515,32 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         for oc in oceans: oc.find_roots()
 
-    return [(r[0], r[2]) for r in all_roots]
+    if retval=='rational':
+        return [(r[0], r[2]) for r in all_roots]
+
+    for i in range(1000):
+        intv_bits = 53 << i
+        intv_fld = RealIntervalField(intv_bits)
+        intv_roots = [(intv_fld(r[0]), r[1], r[2], r[3], r[4]) for r in all_roots]
+        ok = True
+        for j in range(len(intv_roots) - 1):
+            # The following line should work, but does not due to a Cython
+            # bug (it calls PyObject_Cmp() for comparison operators,
+            # instead of PyObject_RichCompare()).
+            # if not (intv_roots[j][0] < intv_roots[j+1][0]):
+            if not (intv_roots[j][0].upper() < intv_roots[j+1][0].lower()):
+                ok = False
+        if ok:
+            break
+
+    if retval=='interval':
+        return [(r[0], r[2]) for r in intv_roots]
+
+    if retval=='algebraic_real':
+        return [(AA.polynomial_root(r[1], r[0]), r[2]) for r in intv_roots]
+
+    raise ValueError, "Illegal retval parameter " + retval
+
 
 def scale_intvec_var(Vector_integer_dense c, k):
     """

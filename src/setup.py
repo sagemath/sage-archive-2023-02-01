@@ -72,7 +72,10 @@ def is_older(file1, file2):
         return True
     return False
 
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
+include_dirs = ['%s/include'%SAGE_LOCAL, \
+		'%s/include/csage'%SAGE_LOCAL, \
+		## this is included, but doesn't actually exist
+		## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 #####################################################
@@ -177,6 +180,8 @@ qd = Extension('sage.rings.real_rqdf',
                        )
 
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
+
+matrix_action = Extension('sage.matrix.action', ['sage/matrix/action.pyx'])
 
 matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
                         libraries=['gmp'])
@@ -405,6 +410,7 @@ ext_modules = [ \
 
     matrix,
 
+    matrix_action,
     matrix_misc,
 
     matrix_dense,
@@ -486,6 +492,9 @@ ext_modules = [ \
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
 
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
+
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \
@@ -548,6 +557,9 @@ ext_modules = [ \
 
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']), \
+
+    Extension('sage.misc.misc_c',
+              sources = ['sage/misc/misc_c.pyx']), \
 
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']), \
@@ -918,7 +930,7 @@ def process_cython_file(f, m):
 
     if need_to_cython(f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        cmd = "cython --embed-positions -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

@@ -3139,8 +3139,8 @@ class NumberField_relative(NumberField_generic):
                 return self._element_class(self, x.polynomial())
             else:
                 return self.__base_inclusion(x)
-        else:
-            return self.__base_inclusion(self.base_field()._coerce_impl(x))
+
+        return self.__base_inclusion(self.base_field()._coerce_impl(x))
 
     def __base_inclusion(self, element):
         """

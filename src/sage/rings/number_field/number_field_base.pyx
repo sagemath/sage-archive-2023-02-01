@@ -31,21 +31,48 @@ from sage.rings.ring cimport Field
 
 cdef class NumberField(Field):
 
-    def ring_of_integers(self):
+    def ring_of_integers(self, *args, **kwds):
         r"""
-        Synomym for \code{self.maximal_order()}.
+        Synomym for \code{self.maximal_order(...)}.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.ring_of_integers()
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 1
         """
         return self.maximal_order()
 
-    def maximal_order(self):
-        raise NotImplementedError
-
     def OK(self, *args, **kwds):
+        r"""
+        Synomym for \code{self.maximal_order(...)}.
+
+        EXAMPLES:
+            sage: NumberField(x^3 - 2,'a').OK()
+            Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 2
+        """
         return self.maximal_order(*args, **kwds)
+
+    def maximal_order(self):
+        """
+        Return the maximal order, i.e., the ring of integers of this
+        number field.
+
+        EXAMPLES:
+            sage: NumberField(x^3 - 2,'b').maximal_order()
+            Order with module basis 1, b, b^2 in Number Field in b with defining polynomial x^3 - 2
+        """
+        raise NotImplementedError
 
     def is_finite(self):
         """
         Return False since number fields are not finite.
+
+            sage: z = polygen(QQ)
+            sage: K.<theta, beta> = NumberField([z^3 - 3, z^2 + 1])
+            sage: K.is_finite()
+            False
+            sage: K.order()
+            +Infinity
         """
         return False
 

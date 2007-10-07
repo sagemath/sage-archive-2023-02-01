@@ -172,7 +172,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
 
     def _repr_(self):
-        return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+        return "Multivariate Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
     def repr_long(self):
         """
@@ -480,6 +480,31 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         d = dict( zip(tuple(exponents), coeffs) )
         return self(multi_polynomial_element.MPolynomial_polydict(self, PolyDict(d)))
 
+    def new_ring(self, names=None, order=None):
+        """
+        Return a new multivariate polynomial ring which isomorphic to
+        self, but has a different ordering given by the parameter
+        'order' or names given by the parameter 'names'.
+
+        INPUT:
+            order -- a term order
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='lex')
+            sage: x > y^2
+            True
+            sage: Q.<x,y,z> = P.new_ring(order='degrevlex')
+            sage: x > y^2
+            False
+        """
+        base_ring = self.base_ring()
+        if names is None:
+            names = self.variable_names()
+        if order is None:
+            order = self.term_order()
+
+        from polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(base_ring, self.ngens(), names, order=order)
 
 ####################
 # Leave *all* old versions!

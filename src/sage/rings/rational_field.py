@@ -201,12 +201,31 @@ class RationalField(_uniq, number_field_base.NumberField):
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
     def coerce_map_from_impl(self, S):
+        """
+        EXAMPLES:
+            sage: f = QQ.coerce_map_from(ZZ); f
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: f(3)
+            3
+            sage: f(3^99) - 3^99
+            0
+            sage: f = QQ.coerce_map_from(int); f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Rational Field
+            sage: f(44)
+            44
+        """
         global ZZ
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return sage.rings.rational.Z_to_Q()
+        elif S is int:
+            return sage.rings.rational.int_to_Q()
         else:
             return field.Field.coerce_map_from_impl(self, S)
 

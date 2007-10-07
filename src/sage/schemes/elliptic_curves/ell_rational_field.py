@@ -1550,7 +1550,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.354172680517671 + 0.874518681720170*I
+            -0.354172680517... + 0.874518681720...*I
         """
         s = C(s)
         N = self.conductor()
@@ -2715,58 +2715,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             return _bound(P)
 
-
-## I removed these because some of the code they depend on --- namely kedlaya.m
-## can't be legally redistributed.
-##
-##     # This is the old version of padic_height that requires MAGMA:
-##     def padic_height_magma(self, p, P, prec=20):
-##         """
-##         Return the cyclotomic $p$-adic height of $P$, in the sense
-##         of Mazur and Tate.
-
-##         \note{This function requires that Magma to be installed on your
-##         computer.}
-
-##         INPUT:
-##             p -- prime
-##             P -- point
-##             prec -- integer (default: 20) affects the precision; the
-##                     precision is *not* guaranteed to be this high!
-##         OUTPUT:
-##             p-adic number
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         if not P in self:
-##             raise ArithmeticError, "P = (%s) must be a point on this curve"%P
-##         return padic_height.padic_height(self.a_invariants(), p, P, prec)
-
-
-##     # This is the old version of padic_regulator that requires MAGMA:
-##     def padic_regulator_magma(self, p, prec=20):
-##         """
-##         Return the cyclotomic $p$-adic regulator of $P$, in the sense
-##         of Mazur and Tate.
-
-##         \note{This function requires that Magma to be installed on your
-##         computer.}
-
-##         INPUT:
-##             p -- prime
-##             prec -- integer (default: 20) affects the precision; the
-##                     precision is *not* guaranteed to be this high!
-##         OUTPUT:
-##             p-adic number
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         return padic_height.padic_regulator(self.a_invariants(),
-##                                             p,
-##                                             self.gens(),
-##                                             prec)
-
-
-
-
     padic_regulator = padics.padic_regulator
 
     padic_height_pairing_matrix = padics.padic_height_pairing_matrix
@@ -2778,19 +2726,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     padic_E2 = padics.padic_E2
 
     matrix_of_frobenius = padics.matrix_of_frobenius
-
-
-
-
-##     # This is the old version of padic_E2 that requires MAGMA:
-##     def padic_E2_magma(self, p, prec=20):
-##         """
-##         Return the value of the $p$-adic.
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         c4, c6 = self.c_invariants()
-##         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
-
 
     # def weierstrass_p(self):
     #         # TODO: add allowing negative valuations for power series

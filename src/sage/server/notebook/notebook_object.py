@@ -47,6 +47,8 @@ class NotebookObject:
         timeout    -- (default: 0) seconds until idle worksheet sessions
                       automatically timeout, i.e., the corresponding
                       Sage session terminates.  0 means 'never timeout'.
+        server_pool -- list;   The server_pool option specifies that worksheet processes run
+                      as a separate user (chosen from the list in the server_pool -- see below).
 
     \begin{verbatim}
 
@@ -91,11 +93,17 @@ class NotebookObject:
        available to each worksheet processes to 500MB.  See help on
        the accounts option above.
 
+       Be sure to make that the sage_notebook/nb.sobj and contents
+       of sage_notebook/backups is chmod og-rwx, i.e., only readable
+       by the notebook process, since otherwise any user can read
+       nb.sobj, which contains user email addresses and account
+       information (password are stored hashed, so less worries there).
+
 
     INPUT:  (more advanced)
 
-      NOTE: The values of these two properties default to what they were
-     last time the notebook command was called.
+    NOTE: The values of these two properties default to what they were
+    last time the notebook command was called.
 
         server_pool -- (default: None), if given, should be a list like
                       ['sage1@localhost', 'sage2@localhost'], where

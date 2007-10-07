@@ -13,7 +13,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.infinity import infinity
+
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
+
 from sage.structure.sequence  import Sequence
 
 from sage.categories.morphism import Morphism
@@ -117,24 +120,24 @@ class SchemeMorphism(PyMorphism):
             Scheme obtained by gluing X and Y along U, where
               X: Spectrum of Univariate Polynomial Ring in x over Rational Field
               Y: Spectrum of Univariate Polynomial Ring in y over Rational Field
-              U: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+              U: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
 
             sage: a, b = P1.gluing_maps()
             sage: a
             Affine Scheme morphism:
-             From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+             From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in x over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in x over Rational Field
-                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
                       Defn: x |--> xbar
             sage: b
             Affine Scheme morphism:
-              From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+              From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in y over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in y over Rational Field
-                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
         import glue
@@ -401,6 +404,9 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
+            elif v is infinity:
+                v = [0] * (d)
+                v[1] = 1
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)

@@ -386,7 +386,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
                 start_row +=1
 
-                d = 0 * d
+                d = d._parent(0)
                 for i from start_row <= i < nr:
                     for j from c+1 <= j < nc:
                         if self.get_unsafe(i,j).is_constant():

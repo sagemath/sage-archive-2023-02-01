@@ -67,7 +67,7 @@ extern "C" {
 #define PY_TYPE_CHECK_EXACT(zzz_obj, zzz_type) \
   ((PyTypeObject*)PY_TYPE(zzz_obj) == (PyTypeObject*)(zzz_type))
 
-  /** Returns the type field of a python object, cast to void*. The
+/** Returns the type field of a python object, cast to void*. The
  *  returned value should only be used as an opaque object e.g. for
  *  type comparisons.
  */

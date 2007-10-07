@@ -813,24 +813,36 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _latex_(self, name=None):
         r"""
+        Return the latex representation of this polynomial.
+
         EXAMPLES:
-			sage: x = polygen(QQ)
+        A fairly simple example over $\QQ$.
+            sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
-             x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+            x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+
+        A $p$-adic example where the coefficients are $0$ to some precision.
+            sage: K = Qp(3,20)
+            sage: R.<x> = K[]
+            sage: f = K(0,-2)*x + K(0,-1)
+            sage: f
+            (O(3^-2))*x + (O(3^-1))
+            sage: latex(f)
+            \left(O(3^{-2})\right)x + O(3^{-1})
         """
         s = " "
-        m = self.degree() + 1
+        coeffs = self.list()
+        m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
-        coeffs = self.list()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            if x != 0:
+            x = latex(x)
+            if x != '0':
                 if n != m-1:
                     s += " + "
-                x = latex(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
@@ -2596,6 +2608,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self._parent(self[:n], check=False)
 
+    cdef truncate_c(self, long n):
+        return self.truncate(n)
+
+    cdef _inplace_truncate(self, long prec):
+        return self.truncate_c(prec)
+
     def is_squarefree(self):
         """
         Return True if this polynomial is square free.
@@ -2934,6 +2952,21 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) >= len(y):
+            for i from 0 <= i < len(y):
+                x[i] += y[i]
+        else:
+            for i from 0 <= i < len(x):
+                x[i] += y[i]
+            x += y[len(x):]
+        if len(x) == len(y):
+            self.__normalize()
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
@@ -2953,6 +2986,21 @@ cdef class Polynomial_generic_dense(Polynomial):
             return res
         else:
             return self._parent(low + high, check=0)
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) >= len(y):
+            for i from 0 <= i < len(y):
+                x[i] -= y[i]
+        else:
+            for i from 0 <= i < len(x):
+                x[i] -= y[i]
+            x += [-c for c in y[len(x):]]
+        if len(x) == len(y):
+            self.__normalize()
+        return self
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
         if len(self.__coeffs) == 0:
@@ -2975,6 +3023,18 @@ cdef class Polynomial_generic_dense(Polynomial):
         if not v[len(v)-1]:
             (<Polynomial_generic_dense>res).__normalize()
         return res
+
+    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+        if len(self.__coeffs) == 0:
+            return self
+        if c._parent is not (<Element>self.__coeffs[0])._parent:
+            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
+        cdef Py_ssize_t i, deg = len(self.__coeffs)
+        for i from 0 <= i < deg:
+            self.__coeffs[i] *= c
+        if not self.__coeffs[deg-1]:
+            self.__normalize()
+        return self
 
     def list(self, copy=True):
         """
@@ -3043,6 +3103,16 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return self._parent(self.__coeffs[:n], check=False)
 
+    def truncate_c(self, long n):
+        r"""
+        Returns the polynomial of degree $ < n$ which is equivalent to self
+        modulo $x^n$.
+        """
+        return self._parent(self.__coeffs[:n], check=False)
+
+    cdef _inplace_truncate(self, long n):
+        self.__coeffs = self.__coeffs[:n]
+        return self
 
 
 def make_generic_polynomial(parent, coeffs):

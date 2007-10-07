@@ -713,7 +713,7 @@ def objgens(x):
     EXAMPLES:
         sage: R, x = objgens(MPolynomialRing(QQ,3, 'x'))
         sage: R
-        Polynomial Ring in x0, x1, x2 over Rational Field
+        Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: x
         (x0, x1, x2)
     """

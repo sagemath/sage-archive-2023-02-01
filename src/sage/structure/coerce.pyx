@@ -7,8 +7,15 @@
 #*****************************************************************************
 
 
+cdef extern from *:
+    ctypedef struct RefPyObject "PyObject":
+        int ob_refcnt
+
 include "../ext/stdsage.pxi"
-include "../ext/python_tuple.pxi"
+include "../ext/interrupt.pxi"
+include "../ext/python_object.pxi"
+include "../ext/python_number.pxi"
+include "../ext/python_int.pxi"
 include "coerce.pxi"
 
 import operator
@@ -16,6 +23,23 @@ import re
 import time
 
 import sage.categories.morphism
+from sage.categories.action import InverseAction
+
+from element import py_scalar_to_element
+
+def py_scalar_parent(py_type):
+    if py_type is int or py_type is long:
+        import sage.rings.integer_ring
+        return sage.rings.integer_ring.ZZ
+    elif py_type is float:
+        import sage.rings.real_double
+        return sage.rings.real_double.RDF
+    elif py_type is complex:
+        import sage.rings.complex_double
+        return sage.rings.complex_double.CDF
+    else:
+        return None
+
 
 cdef class CoercionModel_original(CoercionModel):
     """
@@ -104,7 +128,7 @@ cdef class CoercionModel_original(CoercionModel):
             return op(x1,y1)
         except TypeError, msg:
             # print msg  # this can be useful for debugging.
-            if not op is operator.mul:
+            if not op is mul:
                 raise TypeError, arith_error_message(x,y,op)
 
         # If the op is multiplication, then some other algebra multiplications
@@ -173,10 +197,6 @@ cdef class CoercionModel_original(CoercionModel):
         raise TypeError, arith_error_message(x,y,op)
 
 
-# just so we can detect these fast to avoid action-searching
-cdef op_add, op_sub
-from operator import add as op_add, sub as op_sub
-
 cdef class CoercionModel_cache_maps(CoercionModel_original):
     """
     See also sage.categories.pushout
@@ -185,7 +205,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: f = ZZ['t','x'].0 + QQ['x'].0 + CyclotomicField(13).gen(); f
         t + x + zeta13
         sage: f.parent()
-        Polynomial Ring in t, x over Cyclotomic Field of order 13 and degree 12
+        Multivariate Polynomial Ring in t, x over Cyclotomic Field of order 13 and degree 12
         sage: ZZ['x','y'].0 + ~Frac(QQ['y']).0
         (x*y + 1)/y
         sage: MatrixSpace(ZZ['x'], 2, 2)(2) + ~Frac(QQ['x']).0
@@ -194,7 +214,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: f = ZZ['x,y,z'].0 + QQ['w,x,z,a'].0; f
         w + x
         sage: f.parent()
-        Polynomial Ring in w, x, y, z, a over Rational Field
+        Multivariate Polynomial Ring in w, x, y, z, a over Rational Field
         sage: ZZ['x,y,z'].0 + ZZ['w,x,z,a'].1
         2*x
 
@@ -202,17 +222,22 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         -- Robert Bradshaw
     """
 
-    def __init__(self):
+    def __init__(self, lookup_dict_sizes=137):
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Morphism.
-        self._coercion_maps = {}
+        self._coercion_maps = TripleDict(lookup_dict_sizes)
         # This MUST be a mapping of actions.
-        self._action_maps = {}
+        self._action_maps = TripleDict(lookup_dict_sizes)
+
+    def get_cache(self):
+        return dict(self._coercion_maps.iteritems()), dict(self._action_maps.iteritems())
+
+    def get_stats(self):
+        return self._coercion_maps.stats(), self._action_maps.stats()
 
     cdef bin_op_c(self, x, y, op):
-
-        if (op is not op_add) and (op is not op_sub):
+        if (op is not add) and (op is not sub) and (op is not iadd) and (op is not isub):
             # Actions take preference over common-parent coercions.
             xp = parent_c(x)
             yp = parent_c(y)
@@ -224,13 +249,13 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 
         try:
             xy = self.canonical_coercion_c(x,y)
-            return op(<object>PyTuple_GET_ITEM(xy, 0), <object>PyTuple_GET_ITEM(xy, 1))
-        except TypeError, msg:
+            return PyObject_CallObject(op, xy)
+        except TypeError:
 #            raise
 #            print msg
             pass
 
-        if op is operator.mul:
+        if op is mul or op is imul:
 
             # elements may also act on non-elements
             # (e.g. sequences or parents)
@@ -265,6 +290,10 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 y_elt = (<Morphism>y_map)._call_c(y)
             else:
                 y_elt = y
+            if x_elt is None:
+                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (x, type(x_map), x_map)
+            elif y_elt is None:
+                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (y, type(y_map), y_map)
             if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above
@@ -318,26 +347,13 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
     cdef coercion_maps_c(self, R, S):
         try:
-            return self._coercion_maps[R,S]
+            return self._coercion_maps.get(R, S, None)
         except KeyError:
             homs = self.discover_coercion_c(R, S)
-            if homs is not None:
-                self._coercion_maps[R,S] = homs
-                self._coercion_maps[S,R] = (homs[1], homs[0])
-            else:
-                self._coercion_maps[R,S] = self._coercion_maps[S,R] = None
-            return homs
-
-    def get_action(self, R, S, op):
-        return self.get_action_c(R, S, op)
-
-    cdef get_action_c(self, R, S, op):
-        try:
-            return self._action_maps[R,S,op]
-        except KeyError:
-            action = self.discover_action_c(R, S, op)
-            self._action_maps[R,S,op] = action
-            return action
+            swap = None if homs is None else (homs[1], homs[0])
+            self._coercion_maps.set(R, S, None, homs)
+            self._coercion_maps.set(S, R, None, swap)
+        return homs
 
     cdef discover_coercion_c(self, R, S):
         from sage.categories.homset import Hom
@@ -370,7 +386,19 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         return None
 
 
+    def get_action(self, R, S, op):
+        return self.get_action_c(R, S, op)
+
+    cdef get_action_c(self, R, S, op):
+        try:
+            return self._action_maps.get(R, S, op)
+        except KeyError:
+            action = self.discover_action_c(R, S, op)
+            self._action_maps.set(R, S, op, action)
+            return action
+
     cdef discover_action_c(self, R, S, op):
+#        print "looking", R, <int>R, op, S, <int>S
 
         if PY_TYPE_CHECK(S, Parent):
             action = (<Parent>S).get_action_c(R, op, False)
@@ -384,7 +412,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 #                print "found", action
                 return action
 
-        if op is operator.div:
+        if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
             # To return such an action, we need to verify that it would be an action for the mul
             # operator, but the action must be over a parent containing inverse elements.
@@ -398,21 +426,65 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 K = S
 
             if K is not None:
-                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, operator.mul, False) is not None:
-                    action = (<Parent>K).get_action_c(R, operator.mul, False)
+                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, mul, False) is not None:
+                    action = (<Parent>K).get_action_c(R, mul, False)
                     if action is not None and action.actor() is K:
                         try:
                             return ~action
                         except TypeError:
                             pass
 
-                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, operator.mul, True) is not None:
-                    action = (<Parent>R).get_action_c(K, operator.mul, True)
+                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, mul, True) is not None:
+                    action = (<Parent>R).get_action_c(K, mul, True)
                     if action is not None and action.actor() is K:
                         try:
                             return ~action
                         except TypeError:
                             pass
+
+
+        if PY_TYPE(R) == <void *>type:
+            sageR = py_scalar_parent(R)
+            if sageR is not None:
+                action = self.discover_action_c(sageR, S, op)
+                if action:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PyScalarAction(action)
+                    return action
+
+        if PY_TYPE(S) == <void *>type:
+            sageS = py_scalar_parent(S)
+            if sageS is not None:
+                action = self.discover_action_c(R, sageS, op)
+                if action:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PyScalarAction(action)
+                    return action
+
+        if op.__name__[0] == 'i':
+            try:
+                a = self.discover_action_c(R, S, no_inplace_op(op))
+                if a is not None:
+                    is_inverse = isinstance(a, InverseAction)
+                    if is_inverse: a = ~a
+                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                        # We want a new instance so that we don't alter the (potentially cached) original
+                        a = RightModuleAction(S, R)
+                        (<RightModuleAction>a).is_inplace = 1
+                    if is_inverse: a = ~a
+                return a
+            except KeyError:
+                pass
+
+#        if op is operator.mul:
+#            from sage.rings.integer_ring import ZZ
+#            if S in [int, long, ZZ] and not R.has_coerce_map_from(ZZ):
+#                return IntegerMulAction(S, R False)
+#
+#            if R in [int, long, ZZ] and not S.has_coerce_map_from(ZZ):
+#                return IntegerMulAction(R, S, True)
+
+        return None
 
 
 
@@ -663,24 +735,29 @@ class CoercionProfileItem:
 
 
 
+
+
 from sage.structure.element cimport Element # workaround SageX bug
 
 cdef class LAction(Action):
     """Action calls _l_action of the actor."""
     def __init__(self, G, S):
-        Action.__init__(self, G, S, True, operator.mul)
+        Action.__init__(self, G, S, True, mul)
     cdef Element _call_c_impl(self, Element g, Element a):
         return g._l_action(a)  # a * g
 
 cdef class RAction(Action):
     """Action calls _r_action of the actor."""
     def __init__(self, G, S):
-        Action.__init__(self, G, S, False, operator.mul)
+        Action.__init__(self, G, S, False, mul)
     cdef Element _call_c_impl(self, Element a, Element g):
         return g._r_action(a)  # g * a
 
 cdef class LeftModuleAction(Action):
     def __init__(self, G, S):
+        if not isinstance(G, Parent):
+            # only let Parents act
+            raise TypeError
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
@@ -696,6 +773,10 @@ cdef class LeftModuleAction(Action):
                     raise TypeError, "Actor must be coercable into base."
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
+                    if self.connecting is None:
+                        # this may happen if G is, say, int rather than a parent
+                        # TODO: let python types be valid actions
+                        raise TypeError
 
         # TODO: detect this better
         # if this is bad it will raise a type error in the subsequent lines, which we propagate
@@ -706,14 +787,14 @@ cdef class LeftModuleAction(Action):
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
 
-        Action.__init__(self, G, S, True, operator.mul)
+        Action.__init__(self, G, S, True, mul)
 
     cdef Element _call_c_impl(self, Element g, Element a):
         if self.connecting is not None:
             g = self.connecting._call_c(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._rmul_c(g)  # a * g
+        return _rmul_c(<ModuleElement>a, <RingElement>g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"
@@ -726,6 +807,9 @@ cdef class LeftModuleAction(Action):
 
 cdef class RightModuleAction(Action):
     def __init__(self, G, S):
+        if not isinstance(G, Parent):
+            # only let Parents act
+            raise TypeError
         # Objects are implemented with the assumption that
         # _lmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
@@ -751,14 +835,32 @@ cdef class RightModuleAction(Action):
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             raise TypeError
 
-        Action.__init__(self, G, S, False, operator.mul)
+        Action.__init__(self, G, S, False, mul)
+        self.is_inplace = 0
 
     cdef Element _call_c_impl(self, Element a, Element g):
+        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_c(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._lmul_c(g)  # a * g
+            # TODO: figure out where/why the polynomial constructor is caching 'a'
+            if (<RefPyObject *>a).ob_refcnt == 2:
+                b = self.extended_base(0)
+            if (<RefPyObject *>a).ob_refcnt == 1:
+                # This is a truely new object, mutate it
+                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+            else:
+                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+        else:
+            # The 3 extra refcounts are from
+            #    (1) bin_op_c stack
+            #    (2) Action._call_c stack
+            #    (3) Action._call_c_impl stack
+            if (<RefPyObject *>a).ob_refcnt < 3 + inplace_threshold + self.is_inplace:
+                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+            else:
+                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
 
     def _repr_name_(self):
         return "scalar multiplication"
@@ -768,3 +870,94 @@ cdef class RightModuleAction(Action):
             return self.extended_base
         return self.S
 
+
+
+cdef class PyScalarAction(Action):
+
+    def __init__(self, Action action):
+        Action.__init__(self, action.G, action.S, action._is_left, action.op)
+        self._action = action
+
+    cdef Element _call_c(self, a, b):
+        # Override this (BAD) because signature of _call_c_impl requires elements
+        if self._is_left:
+            a = self.G(a)
+            return self._action._call_c(a,b)
+        else:
+            b = self.G(b)
+            return self._action._call_c(a,b)
+
+    def __inverse__(self):
+        return PyScalarAction(~self._action)
+
+
+cdef class IntegerMulAction(Action):
+
+    def __init__(self, ZZ, M, is_left):
+        if PY_TYPE_CHECK(ZZ, type):
+            from sage.structure.parent import Set_PythonType
+            ZZ = Set_PythonType(ZZ)
+        test = M._an_element() + (-M._an_element()) # make sure addition and negation is allowed
+        Action.__init__(self, ZZ, M, is_left, mul)
+
+    cdef Element _call_c(self, nn, a):
+        # Override _call_c because signature of _call_c_impl requires elements
+        if not self._is_left:
+            a, nn = nn, a
+        if not PyInt_CheckExact(nn):
+            nn = PyNumber_Int(nn)
+            if not PyInt_CheckExact(nn):
+                return fast_mul(a, nn)
+
+        return fast_mul_long(a, PyInt_AS_LONG(nn))
+
+    def __inverse__(self):
+        raise TypeError, "No generic module division by Z."
+
+    def _repr_type(self):
+        return "Integer Multiplication"
+
+
+
+cdef inline fast_mul(a, n):
+    _sig_on
+    if n < 0:
+        n = -n
+        a = -a
+    pow2a = a
+    while n & 1 == 0:
+        pow2a += pow2a
+        n = n >> 1
+    sum = pow2a
+    n = n >> 1
+    while n != 0:
+        pow2a += pow2a
+        if n & 1:
+            sum += pow2a
+        n = n >> 1
+    _sig_off
+    return sum
+
+cdef inline fast_mul_long(a, long n):
+    if n < 0:
+        n = -n
+        a = -a
+    if n < 4:
+        if n == 0: return (<Element>a)._parent(0)
+        if n == 1: return a
+        if n == 2: return a+a
+        if n == 3: return a+a+a
+    _sig_on
+    pow2a = a
+    while n & 1 == 0:
+        pow2a += pow2a
+        n = n >> 1
+    sum = pow2a
+    n = n >> 1
+    while n != 0:
+        pow2a += pow2a
+        if n & 1:
+            sum += pow2a
+        n = n >> 1
+    _sig_off
+    return sum

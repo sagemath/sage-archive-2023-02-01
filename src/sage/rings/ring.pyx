@@ -59,7 +59,7 @@ cdef class Ring(ParentWithGens):
             sage: GF(17)['abc']
             Univariate Polynomial Ring in abc over Finite Field of size 17
             sage: GF(17)['a,b,c']
-            Polynomial Ring in a, b, c over Finite Field of size 17
+            Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
 
         We can also create power series rings (in one variable) by
         using double brackets:
@@ -164,11 +164,11 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y> = QQ[]
             sage: R.ideal(x,y)
-            Ideal (x, y) of Polynomial Ring in x, y over Rational Field
+            Ideal (x, y) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: R.ideal(x+y^2)
-            Ideal (y^2 + x) of Polynomial Ring in x, y over Rational Field
+            Ideal (y^2 + x) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: R.ideal( [x^3,y^3+x^3] )
-            Ideal (x^3, x^3 + y^3) of Polynomial Ring in x, y over Rational Field
+            Ideal (x^3, x^3 + y^3) of Multivariate Polynomial Ring in x, y over Rational Field
         """
         C = self._ideal_class_()
         if len(x) == 1 and isinstance(x[0], (list, tuple)):
@@ -183,9 +183,9 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y,z> = GF(7)[]
             sage: (x+y)*R
-            Ideal (x + y) of Polynomial Ring in x, y, z over Finite Field of size 7
+            Ideal (x + y) of Multivariate Polynomial Ring in x, y, z over Finite Field of size 7
             sage: (x+y,z+y^3)*R
-            Ideal (x + y, y^3 + z) of Polynomial Ring in x, y, z over Finite Field of size 7
+            Ideal (x + y, y^3 + z) of Multivariate Polynomial Ring in x, y, z over Finite Field of size 7
         """
         if isinstance(self, Ring):
             return self.ideal(x)
@@ -206,7 +206,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
             sage: R.principal_ideal(x+2*y)
-            Ideal (x + 2*y) of Polynomial Ring in x, y over Integer Ring
+            Ideal (x + 2*y) of Multivariate Polynomial Ring in x, y over Integer Ring
         """
         return self.ideal([gen], coerce=coerce)
 
@@ -601,9 +601,9 @@ cdef class CommutativeRing(Ring):
         EXAMPLES:
             sage: R = Integers(389)['x,y']
             sage: Frac(R)
-            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+            Fraction Field of Multivariate Polynomial Ring in x, y over Ring of integers modulo 389
             sage: R.fraction_field()
-            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+            Fraction Field of Multivariate Polynomial Ring in x, y over Ring of integers modulo 389
         """
         if self.is_field():
             return self
@@ -695,7 +695,7 @@ cdef class CommutativeRing(Ring):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = R.quotient((x^2, y))
             sage: S
-            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
             sage: S.gens()
             (a, 0)
             sage: a == b
@@ -718,7 +718,7 @@ cdef class CommutativeRing(Ring):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = R.quo((x^2, y))
             sage: S
-            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
             sage: S.gens()
             (a, 0)
             sage: a == b
@@ -948,7 +948,7 @@ cdef class Field(PrincipalIdealDomain):
             sage: QQ.integral_closure()
             Rational Field
             sage: Frac(ZZ['x,y']).integral_closure()
-            Fraction Field of Polynomial Ring in x, y over Integer Ring
+            Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
         """
         return self
 

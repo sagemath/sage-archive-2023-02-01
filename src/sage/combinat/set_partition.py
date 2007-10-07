@@ -56,7 +56,7 @@ def SetPartitions(s, part=None):
     else:
         set = s
 
-    if part != None:
+    if part is not None:
         if isinstance(part, (int, sage.rings.integer.Integer)):
             if len(set) < part:
                 raise ValueError, "part must be <= len(set)"
@@ -258,7 +258,7 @@ def _listbloc(n, nbrepets, listint=None):
 
 
     """
-    if isinstance(listint, (int, sage.rings.integer.Integer)) or listint==None:
+    if isinstance(listint, (int, sage.rings.integer.Integer)) or listint is None:
         listint = Set(range(1,n+1))
 
 

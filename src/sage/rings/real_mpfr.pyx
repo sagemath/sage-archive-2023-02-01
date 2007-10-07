@@ -930,7 +930,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if no_sci is None:
             no_sci = not (<RealField>self._parent).sci_not
 
-        if no_sci==True and (-exponent > digits or exponent > 2*digits):
+        if no_sci is True and (-exponent > digits or exponent > 2*digits):
             no_sci = False
 
         if no_sci==False:

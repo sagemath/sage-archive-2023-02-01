@@ -7,7 +7,7 @@ For design documentation see matrix/docs.py.
 ################################################################################
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL), version 2.
+#  Distributed under the terms of the GNU General Public License (GPL).
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
@@ -1148,7 +1148,7 @@ cdef class Matrix(matrix1.Matrix):
             [x1 x0]
             [x1 x0]
             sage: M.kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Polynomial Ring in x0, x1 over Rational Field
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 -1]
         """

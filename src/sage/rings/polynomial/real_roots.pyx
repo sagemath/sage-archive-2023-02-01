@@ -3644,6 +3644,11 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     time, and the exact intervals returned, but the results are correct
     on both 32- and 64-bit machines even if the wordsize is chosen "wrong".)
 
+    Some logging can be enabled with do_logging=True.  If logging is enabled,
+    then the normal values are not returned; instead, a pair of
+    the internal context object and a list of all the roots in their
+    internal form is returned.
+
     EXAMPLES:
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
@@ -3830,6 +3835,9 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         for oc in oceans: oc.find_roots()
 
+    if do_logging:
+        return ctx, all_roots
+
     if retval=='rational':
         return [(r[0], r[2]) for r in all_roots]
 
@@ -4008,6 +4016,12 @@ cdef class context:
         """
         if self.do_logging:
             self.be_log.append(x)
+
+    def get_dc_log(self):
+        return self.dc_log
+
+    def get_be_log(self):
+        return self.be_log
 
 def mk_context(do_logging=False, seed=0, wordsize=32):
     """

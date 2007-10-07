@@ -1604,6 +1604,8 @@ cdef Rational zero_QQ = QQ(0)
 cdef Rational one_QQ = QQ(1)
 cdef Integer zero_ZZ = ZZ(0)
 cdef Integer one_ZZ = ZZ(1)
+cdef Integer ZZ_2_31 = ZZ(2) ** 31
+cdef Integer ZZ_2_32 = ZZ(2) ** 32
 cdef RealIntervalFieldElement zero_RIF = RIF(0)
 
 def de_casteljau_doublevec(RealDoubleVectorSpaceElement c, Rational x):
@@ -3714,6 +3716,10 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         raise NotImplementedError, "Cannot set your own bounds with strategy=warp"
 
     if seed is None: seed = hash(p)
+    seed = seed % ZZ_2_32
+    if seed >= ZZ_2_31:
+        seed = seed - ZZ_2_32
+    seed = int(seed)
 
     if skip_squarefree:
         factors = [(p, 1)]

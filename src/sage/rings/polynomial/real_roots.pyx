@@ -7,7 +7,7 @@ AUTHOR:
 This is an implementation of real root isolation.  That is, given a
 polynomial with exact real coefficients, we compute isolating intervals
 for the real roots of the polynomial.  (Polynomials with
-integer or rational coefficients are supported.)
+integer, rational, or algebraic real coefficients are supported.)
 """
 
 # TODO:
@@ -2449,7 +2449,7 @@ class bernstein_polynomial_factory_intlist(bernstein_polynomial_factory):
             shift = ZZ(scale_log2)
             intv_b = [c >> shift for c in b]
 
-        return interval_bernstein_polynomial_integer((ZZ ** len(b))(intv_b), zero_QQ, one_QQ, b[0] > zero_ZZ, b[-1] > zero_ZZ, 1, scale_log2, 0, zero_RIF)
+        return interval_bernstein_polynomial_integer((ZZ ** len(b))(intv_b), zero_QQ, one_QQ, self.lsign(), self.usign(), 1, scale_log2, 0, zero_RIF)
 #        return bp_of_intlist(self.coeffs, scale_log2)
 
 class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
@@ -2529,8 +2529,111 @@ class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
         else:
             intv_b = [(numerator(c) >> scale_log2) // denominator(c) for c in b]
 
-        return interval_bernstein_polynomial_integer((ZZ ** len(b))(intv_b), zero_QQ, one_QQ, b[0] > zero_QQ, b[-1] > zero_QQ, 1, scale_log2, 0, zero_RIF)
+        return interval_bernstein_polynomial_integer((ZZ ** len(b))(intv_b), zero_QQ, one_QQ, self.lsign(), self.usign(), 1, scale_log2, 0, zero_RIF)
 #        return bp_of_ratlist(self.coeffs, scale_log2)
+
+class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
+    """
+    This class holds an exact Bernstein polynomial (represented as a
+    list of algebraic real coefficients), and returns
+    arbitrarily-precise interval approximations of this polynomial on
+    demand.
+    """
+
+    def __init__(self, poly, neg):
+        """
+        Initializes a bernstein_polynomial_factory_ar,
+        given a polynomial with algebraic real coefficients.
+        If neg is True, then gives the Bernstein polynomial for
+        the negative half-line; if neg is False, the positive.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: x = polygen(AA)
+            sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
+            sage: bernstein_polynomial_factory_ar(p, False)
+            degree 3 Bernstein factory with algebraic real coefficients
+        """
+        coeffs = to_bernstein_warp(poly)
+        if neg:
+            for i in range(1, len(coeffs), 2):
+                coeffs[i] = -coeffs[i]
+        sizes = []
+        for c in coeffs:
+            size = RIF(c).magnitude()
+            if size > 0:
+                sizes.append(size.log2().floor())
+            else:
+                sizes.append(-1000000)
+
+        self.coeffs = coeffs
+        self.sizes = sizes
+
+    def __repr__(self):
+        """
+        Return a short summary of this Bernstein polynomial factory.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: x = polygen(AA)
+            sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
+            sage: bernstein_polynomial_factory_ar(p, False)
+            degree 3 Bernstein factory with algebraic real coefficients
+        """
+
+        return "degree %d Bernstein factory with algebraic real coefficients" % (len(self.coeffs) - 1)
+
+    def coeffs_bitsize(self):
+        """
+        Computes the approximate log2 of the maximum of the absolute
+        values of the coefficients.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: x = polygen(AA)
+            sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
+            sage: bernstein_polynomial_factory_ar(p, False).coeffs_bitsize()
+            1
+        """
+        return max(self.sizes)
+
+    def bernstein_polynomial(self, scale_log2):
+        """
+        Compute an interval_bernstein_polynomial_integer that approximates
+        this polynomial, using the given scale_log2.  (Smaller scale_log2
+        values give more accurate approximations.)
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: x = polygen(AA)
+            sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
+            sage: bpf = bernstein_polynomial_factory_ar(p, False)
+            sage: bpf.bernstein_polynomial(0)
+            degree 3 IBP with 2-bit coefficients
+            sage: str(bpf.bernstein_polynomial(-20))
+            '<IBP: ((-2965821, 2181961, -1542880, 1048576) + [0 .. 1)) * 2^-20>'
+            sage: bpf = bernstein_polynomial_factory_ar(p, True)
+            sage: str(bpf.bernstein_polynomial(-20))
+            '<IBP: ((-2965821, -2181962, -1542880, -1048576) + [0 .. 1)) * 2^-20>'
+        """
+        res = (ZZ ** len(self.coeffs))(0)
+        max_err = 0
+
+        for i in range(len(self.coeffs)):
+            intv_c = RealIntervalField(max(self.sizes[i] - scale_log2 + 4, 4))(self.coeffs[i])
+            if scale_log2 < 0:
+                intv_c = intv_c << (-scale_log2)
+            else:
+                intv_c = intv_c >> scale_log2
+
+            lower = intv_c.lower().floor()
+            upper = intv_c.upper().ceil()
+
+            res[i] = lower
+            max_err = max(max_err, upper - lower)
+
+        return interval_bernstein_polynomial_integer(res, zero_QQ, one_QQ, self.lsign(), self.usign(), max_err, scale_log2, 0, zero_RIF)
+
 
 def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list, precise=False):
     """
@@ -3472,8 +3575,9 @@ class warp_map:
 def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational', strategy=None):
     """
     Compute the real roots of a given polynomial with exact
-    coefficients (integer and rational coefficients are supported).
-    Returns a list of pairs of a root and its multiplicity.
+    coefficients (integer, rational, and algebraic real coefficients
+    are supported).  Returns a list of pairs of a root and its
+    multiplicity.
 
     The root itself can be returned in one of three different ways.
     If retval=='rational', then it is returned as a pair of rationals
@@ -3500,13 +3604,23 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
     The bounds parameter lets you find roots in some proper subinterval of
     the reals; it takes a pair of a rational lower and upper bound
-    and only roots within this bound will be found.
+    and only roots within this bound will be found.  Currently, specifying
+    bounds does not work if you select strategy='warp', or if you
+    use a polynomial with algebraic real coefficients.
 
-    By default, the algorithm will do a polynomial gcd and a division
-    to get a squarefree polynomial.  The skip_squarefree parameter
+    By default, the algorithm will do a squarefree decomposition
+    to get squarefree polynomials.  The skip_squarefree parameter
     lets you skip this step.  (If this step is skipped, and the polynomial
     has a repeated real root, then the algorithm will loop forever!
     However, repeated non-real roots are not a problem.)
+
+    For integer and rational coefficients, the squarefree
+    decomposition is very fast, but it may be slow for algebraic
+    reals.  (It may trigger exact computation, so it might be
+    arbitrarily slow.  The only other way that this algorithm might
+    trigger exact computation on algebraic real coefficients is that
+    it checks the constant term of the input polynomial for equality with
+    zero.)
 
     Part of the algorithm works (approximately) by splitting numbers into
     word-size pieces (that is, pieces that fit into a machine word).
@@ -3560,15 +3674,41 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         [((-439/73, -183/73), 1), ((-293/219, -55/73), 1), ((0, 0), 1), ((3967/4225, 8259/8125), 1), ((1073/975, 699/325), 1)]
         sage: real_roots((x+3)*(x+1)*x*(x-1)*(x-2), strategy='warp', retval='algebraic_real')
         [([-3.0000000000000005 .. -2.9999999999999995], 1), ([-1.0000000000000003 .. -0.99999999999999988], 1), ([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([1.9999999999999997 .. 2.0000000000000005], 1)]
+
+    Now we play with algebraic real coefficients.
+        sage: x = polygen(AA)
+        sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
+        sage: real_roots(p)
+        [((443/581, 4125/4067), 1), ((2353/1743, 9993/6391), 1), ((5287/2905, 1467/581), 1)]
+        sage: ar_rts = real_roots(p, retval='algebraic_real'); ar_rts
+        [([0.99999999999999988 .. 1.0000000000000003], 1), ([1.4142135623730949 .. 1.4142135623730952], 1), ([1.9999999999999997 .. 2.0000000000000005], 1)]
+        sage: ar_rts[1][0]^2 == 2
+        True
+        sage: p2 = p * (p - 1/100); p2
+        x^6 + [-8.8284271247461917 .. -8.8284271247461898]*x^5 + [31.970562748477139 .. 31.970562748477143]*x^4 + [-60.779552621700475 .. -60.779552621700467]*x^3 + [63.985267632578008 .. 63.985267632578016]*x^2 + [-35.376134905855956 .. -35.376134905855948]*x + [8.0282842712474611 .. 8.0282842712474630]
+        sage: real_roots(p2, retval='interval')
+        [([0.99692246751070279 .. 1.0014506363712715], 1), ([1.0059993878175694 .. 1.0431475246290063], 1), ([1.3474460921269431 .. 1.3726874479562652], 1), ([1.3984775289123114 .. 1.5074992347719623], 1), ([1.9996252528113189 .. 2.0009000616735424], 1), ([2.0021759545569066 .. 2.0227388035607215], 1)]
+        sage: p = (x - 1) * (x - sqrt(AA(2)))^2 * (x - 2)^3 * sqrt(AA(3))
+        sage: real_roots(p, retval='interval')
+        [([0.99999999999999988 .. 1.0000000000000003], 1), ([1.4142135623730949 .. 1.4142135623730952], 2), ([1.9999999999999997 .. 2.0000000000000005], 3)]
     """
     base = p.base_ring()
+
+    ar_input = False
 
     if base is not ZZ:
         ZZx = PolynomialRing(ZZ, 'x')
         if base is QQ:
             p = ZZx(p * p.denominator())
+        elif base is AA:
+            ar_input = True
         else:
             raise ValueError, "Don't know how to isolate roots for " + str(p.parent())
+
+    if ar_input and bounds is not None:
+        raise NotImplementedError, "Cannot set your own bounds with algebraic real input"
+
+    if ar_input: strategy = 'warp'
 
     if bounds is not None and strategy=='warp':
         raise NotImplementedError, "Cannot set your own bounds with strategy=warp"
@@ -3593,15 +3733,21 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 extra_roots.append(((0, 0), factor, exp, None, None))
                 x = factor.parent().gen()
                 factor = factor // x
-            b = to_bernstein_warp(factor)
-            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(False))
+            if ar_input:
+                oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, False), warp_map(False))
+            else:
+                b = to_bernstein_warp(factor)
+                oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(False))
             oc.find_roots()
             oceans.append(oc)
 
-            b = copy(b)
-            for i in range(1, len(b), 2):
-                b[i] = -b[i]
-            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(True))
+            if ar_input:
+                oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, True), warp_map(True))
+            else:
+                b = copy(b)
+                for i in range(1, len(b), 2):
+                    b[i] = -b[i]
+                oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(True))
             oc.find_roots()
             oceans.append(oc)
         else:

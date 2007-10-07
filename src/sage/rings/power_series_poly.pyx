@@ -57,9 +57,6 @@ cdef class PowerSeries_poly(PowerSeries):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    def __nonzero__(self):
-        return True if self.__f else False
-
     def polynomial(self):
         """
         EXAMPLE:

@@ -364,6 +364,12 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
+        r"""
+        EXAMPLES:
+            sage: R = Integers(5**21) ; S.<x> = R[]
+            sage: S(1/4)
+            357627868652344
+        """
         if isinstance(v, Polynomial):
             if (<Element>v)._parent == parent:
                 Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -372,10 +378,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 return
 
         Polynomial_dense_mod_n.__init__(self, parent, v, check=check, is_gen=is_gen, construct=construct)
-#        if check:
-#            R = parent.base_ring()
-#            v = [a if isinstance(a, (int, long, integer.Integer, IntegerMod_abstract)) else R(a) for a in v]
-        v = [int(a) for a in self.__poly.list()]
+        if check:
+            R = parent.base_ring()
+            v = [a if isinstance(a, (int, long, integer.Integer, IntegerMod_abstract)) else R(a) for a in v]
+        v = [a for a in self.__poly.list()]
         self.__poly = None # this will eventually go away
         cdef ntl_zz_pX ntl = ntl_zz_pX(v, parent.modulus()) # let it handle the hard work
         self.x = ntl.x

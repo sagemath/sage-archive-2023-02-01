@@ -325,7 +325,7 @@ cdef class interval_bernstein_polynomial:
             sage: str(bp2)
             '<IBP: (-0.369375, -0.45125, -0.3275, 0.145, 0.99) + [-0.1 .. 0.01] over [1/2 .. 1]>'
         """
-        (p1, p2, ok) = self.de_casteljau(QQ_1_2)
+        (p1, p2, ok) = self.de_casteljau(ctx, QQ_1_2)
         ctx.dc_log_append(("half" + self._type_code(), self.scale_log2, self.bitsize, ok, logging_note))
         if ok:
             return (p1, p2, QQ_1_2)
@@ -381,7 +381,7 @@ cdef class interval_bernstein_polynomial:
             div = div * 2
         qdiv = div/4
         rand = Integer(ctx.random.randrange(qdiv, 3*qdiv)) / div
-        (p1, p2, ok) = self.de_casteljau(rand)
+        (p1, p2, ok) = self.de_casteljau(ctx, rand)
         ctx.dc_log_append(("div" + self._type_code(), self.scale_log2, self.bitsize, rand, ok, logging_note))
         if ok:
             return (p1, p2, rand)
@@ -640,7 +640,7 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         """
         return len(self.coeffs) - 1
 
-    def de_casteljau(self, mid, msign=0):
+    def de_casteljau(self, context ctx, mid, msign=0):
         """
         Uses de Casteljau's algorithm to compute the representation
         of this polynomial in a Bernstein basis over new regions.
@@ -655,23 +655,24 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([50, 20, -90, -70, 200], error=5)
-            sage: bp1, bp2, ok = bp.de_casteljau(1/2)
+            sage: ctx = mk_context()
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 1/2)
             sage: str(bp1)
             '<IBP: (50, 35, 0, -29, -31) + [0 .. 6) over [0 .. 1/2]>'
             sage: str(bp2)
             '<IBP: (-31, -33, -8, 65, 200) + [0 .. 6) over [1/2 .. 1]>'
-            sage: bp1, bp2, ok = bp.de_casteljau(2/3)
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 2/3)
             sage: str(bp1)
             '<IBP: (50, 30, -26, -55, -13) + [0 .. 6) over [0 .. 2/3]>'
             sage: str(bp2)
             '<IBP: (-13, 8, 47, 110, 200) + [0 .. 6) over [2/3 .. 1]>'
-            sage: bp1, bp2, ok = bp.de_casteljau(7/39)
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 7/39)
             sage: str(bp1)
             '<IBP: (50, 44, 36, 27, 17) + [0 .. 6) over [0 .. 7/39]>'
             sage: str(bp2)
             '<IBP: (17, -26, -75, -22, 200) + [0 .. 6) over [7/39 .. 1]>'
         """
-        (c1_, c2_, err_inc) = de_casteljau_intvec(self.coeffs, self.bitsize, mid)
+        (c1_, c2_, err_inc) = de_casteljau_intvec(self.coeffs, self.bitsize, mid, ctx.wordsize == 32)
         cdef Vector_integer_dense c1 = c1_
         cdef Vector_integer_dense c2 = c2_
 
@@ -932,7 +933,7 @@ def mk_ibpi(coeffs, lower=0, upper=1, lsign=0, usign=0, error=1, scale_log2=0,
     """
     return interval_bernstein_polynomial_integer(vector(ZZ, coeffs), QQ(lower), QQ(upper), lsign, usign, error, scale_log2, level, slope_err)
 
-def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x):
+def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x, int use_ints):
     """
     Given a polynomial in Bernstein form with integer coefficients
     over the region [0 .. 1], and a split point x, use de Casteljau's
@@ -951,6 +952,11 @@ def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x):
     and a+b and c+d are both powers of two, then x and y should be
     equally fast split points.
 
+    If use_ints is nonzero, then instead of checking whether numerators
+    and denominators fit in machine words, we check whether they fit in
+    ints (32 bits, even on 64-bit machines).  This slows things down, but
+    allows for identical results across machines.
+
     INPUT:
         c -- vector of coefficients of polynomial in Bernstein form
         c_bitsize -- approximate size of coefficients in c (in bits)
@@ -964,11 +970,11 @@ def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x):
     EXAMPLES:
         sage: from sage.rings.polynomial.real_roots import *
         sage: c = vector(ZZ, [1048576, 0, 0, 0, 0, 0])
-        sage: de_casteljau_intvec(c, 20, 1/2)
+        sage: de_casteljau_intvec(c, 20, 1/2, 1)
         ((1048576, 524288, 262144, 131072, 65536, 32768), (32768, 0, 0, 0, 0, 0), 1)
-        sage: de_casteljau_intvec(c, 20, 1/3)
+        sage: de_casteljau_intvec(c, 20, 1/3, 1)
         ((1048576, 699050, 466033, 310689, 207126, 138084), (138084, 0, 0, 0, 0, 0), 1)
-        sage: de_casteljau_intvec(c, 20, 7/22)
+        sage: de_casteljau_intvec(c, 20, 7/22, 1)
         ((1048576, 714938, 487457, 332357, 226607, 154505), (154505, 0, 0, 0, 0, 0), 1)
     """
     vs = c.parent()
@@ -1031,9 +1037,14 @@ def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x):
     mpq_get_den(den, x.value)
     mpz_sub(diff, den, num)
 
-    den_fits_ui = mpz_fits_ulong_p(den)
-    num_fits_ui = mpz_fits_ulong_p(num)
-    diff_fits_ui = mpz_fits_ulong_p(diff)
+    if use_ints:
+        den_fits_ui = mpz_fits_uint_p(den)
+        num_fits_ui = mpz_fits_uint_p(num)
+        diff_fits_ui = mpz_fits_uint_p(diff)
+    else:
+        den_fits_ui = mpz_fits_ulong_p(den)
+        num_fits_ui = mpz_fits_ulong_p(num)
+        diff_fits_ui = mpz_fits_ulong_p(diff)
 
     if den_fits_ui:
         den_ui = mpz_get_ui(den)
@@ -1465,7 +1476,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         """
         return len(self.coeffs) - 1
 
-    def de_casteljau(self, mid, msign=0):
+    def de_casteljau(self, context ctx, mid, msign=0):
         """
         Uses de Casteljau's algorithm to compute the representation
         of this polynomial in a Bernstein basis over new regions.
@@ -1479,18 +1490,19 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
+            sage: ctx = mk_context()
             sage: bp = mk_ibpf([0.5, 0.2, -0.9, -0.7, 0.99], neg_err=-0.1, pos_err=0.01)
-            sage: bp1, bp2, ok = bp.de_casteljau(1/2)
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 1/2)
             sage: str(bp1)
             '<IBP: (0.5, 0.35, 0.0, -0.2875, -0.369375) + [-0.1 .. 0.01] over [0 .. 1/2]>'
             sage: str(bp2)
             '<IBP: (-0.369375, -0.45125, -0.3275, 0.145, 0.99) + [-0.1 .. 0.01] over [1/2 .. 1]>'
-            sage: bp1, bp2, ok = bp.de_casteljau(2/3)
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 2/3)
             sage: str(bp1)
             '<IBP: (0.5, 0.3, -0.255555555556, -0.544444444444, -0.321728395062) + [-0.1 .. 0.01] over [0 .. 2/3]>'
             sage: str(bp2)
             '<IBP: (-0.321728395062, -0.21037037037, 0.0288888888889, 0.426666666667, 0.99) + [-0.1 .. 0.01] over [2/3 .. 1]>'
-            sage: bp1, bp2, ok = bp.de_casteljau(7/39)
+            sage: bp1, bp2, ok = bp.de_casteljau(ctx, 7/39)
             sage: str(bp1)
             '<IBP: (0.5, 0.446153846154, 0.366535174227, 0.273286805239, 0.176569270623) + [-0.1 .. 0.01] over [0 .. 7/39]>'
             sage: str(bp2)
@@ -2719,7 +2731,7 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
 
     split = wordsize_rational(split_targets[best_index][0], split_targets[best_index][1], ctx.wordsize)
 
-    (p1_, p2_, ok) = bp.de_casteljau(split, msign=split_targets[best_index][2])
+    (p1_, p2_, ok) = bp.de_casteljau(ctx, split, msign=split_targets[best_index][2])
     assert(ok)
 
     cdef interval_bernstein_polynomial p1 = p1_
@@ -3149,9 +3161,9 @@ cdef class island:
             ltarget = wordsize_rational(lbounds[1], lbounds[0], ctx.wordsize)
 
             if lbounds[0] > zero_QQ or (ltarget >= QQ_1_32 and ltarget >= one_QQ-rtarget):
-                (_, self.bp, _) = self.bp.de_casteljau(ltarget)
+                (_, self.bp, _) = self.bp.de_casteljau(ctx, ltarget)
             elif rbounds[1] < one_QQ or rtarget <= QQ_31_32:
-                (self.bp, _, _) = self.bp.de_casteljau(rtarget)
+                (self.bp, _, _) = self.bp.de_casteljau(ctx, rtarget)
             else:
                 break
 
@@ -3409,7 +3421,7 @@ cdef class island:
                 else:
                     maybe_rgap = None
                     if rel_bounds[1] < 1:
-                        (ancestor_val, _, _) = ancestor_val.de_casteljau(rel_bounds[1])
+                        (ancestor_val, _, _) = ancestor_val.de_casteljau(ctx, rel_bounds[1])
                         ctx.dc_log_append(('pull_right', rel_bounds[1]))
                         if ancestor_val.region_width() / hv_width < ~Integer(32):
                             ancestor_val = ancestor_val.down_degree_iter(ctx, target_lsb_h)
@@ -3420,7 +3432,7 @@ cdef class island:
                 ancestor_val = split_for_targets(ctx, ancestor_val, [(self.lgap, maybe_rgap, target_lsb_h)])[0]
 #                 if rel_lbounds[1] > 0:
 #                     left_split = -exact_rational(simple_wordsize_float(-rel_lbounds[1], -rel_lbounds[0]))
-#                     (_, ancestor_val, _) = ancestor_val.de_casteljau(left_split)
+#                     (_, ancestor_val, _) = ancestor_val.de_casteljau(ctx, left_split)
 #                     ctx.dc_log_append(('pull_left', left_split))
 
                 ancestor_val.lsign = bp.lsign

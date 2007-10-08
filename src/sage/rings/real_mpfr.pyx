@@ -2620,13 +2620,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return sage.rings.arith.algdep(self,n)
 
-    def nth_root(self, int n):
+    def nth_root(self, int n, int algorithm=0):
         r"""
         Returns an $n^{th}$ root of self.
 
         INPUT:
             n -- A positive number, rounded down to the nearest integer.
                  Note that $n$ should be less than $\code{sys.maxint}$.
+            algorithm -- Set this to 1 to call mpfr directly, set this
+                 to 2 to use interval arithmetic and logarithms,
+                 or leave it at the default of 0 to choose the algorithm
+                 which is estimated to be faster.
+
+        AUTHOR: Carl Witty (2007-10)
 
         EXAMPLES:
             sage: R = RealField()
@@ -2641,13 +2647,29 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(32).nth_root(-1)
             Traceback (most recent call last):
             ...
-            ValueError: n must be nonnegative
+            ValueError: n must be positive
             sage: R(32).nth_root(1.0)
             32.0000000000000
+            sage: R(4).nth_root(4)
+            1.41421356237310
+            sage: R(4).nth_root(40)
+            1.03526492384138
+            sage: R(4).nth_root(400)
+            1.00347174850950
+            sage: R(4).nth_root(4000)
+            1.00034663365385
+            sage: R(4).nth_root(4000000)
+            1.00000034657365
+            sage: R(-27).nth_root(3)
+            -3.00000000000000
+            sage: R(-4).nth_root(3999999)
+            -1.00000034657374
 
-        Note that for negative numbers, any even root returns NaN
+        Note that for negative numbers, any even root throws an exception
             sage: R(-2).nth_root(6)
-            NaN
+            Traceback (most recent call last):
+            ...
+            ValueError: taking an even root of a negative number
 
         The $n^{th}$ root of 0 is defined to be 0, for any $n$
             sage: R(0).nth_root(6)
@@ -2656,25 +2678,199 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(0).nth_root(7)
             0.000000000000000
 
-        AUTHOR: Didier Deshommes (2007-02)
-        REFEREE: David Harvey
+        TESTS:
+        The old and new algorithms should give exactly the same results
+        in all cases.
 
-        TODO: (trac \#294) the underlying mpfr_root function is unforgivably
-        slow when n is large. e.g. RealNumber(8).nth_root(100000) is very slow.
-        This should be investigated further and possibly discussed with the
-        mpfr developers.
+            sage: def check(x, n):
+            ...       answers = []
+            ...       for sign in (1, -1):
+            ...           if is_even(n) and sign == -1:
+            ...               continue
+            ...           for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ...               fld = RealField(x.prec(), rnd=rounding)
+            ...               fx = fld(sign * x)
+            ...               alg_mpfr = fx.nth_root(n, algorithm=1)
+            ...               alg_mpfi = fx.nth_root(n, algorithm=2)
+            ...               assert(alg_mpfr == alg_mpfi)
+            ...               if sign == 1: answers.append(alg_mpfr)
+            ...       return answers
+
+        Check some perfect powers (and nearby numbers).
+            sage: check(16.0, 4)
+            [2.00000000000000, 2.00000000000000, 2.00000000000000, 2.00000000000000]
+            sage: check((16.0).nextabove(), 4)
+            [2.00000000000000, 2.00000000000000, 2.00000000000001, 2.00000000000000]
+            sage: check((16.0).nextbelow(), 4)
+            [2.00000000000000, 1.99999999999999, 2.00000000000000, 1.99999999999999]
+            sage: check(((9.0 * 256)^7), 7)
+            [2304.00000000000, 2304.00000000000, 2304.00000000000, 2304.00000000000]
+            sage: check(((9.0 * 256)^7).nextabove(), 7)
+            [2304.00000000000, 2304.00000000000, 2304.00000000001, 2304.00000000000]
+            sage: check(((9.0 * 256)^7).nextbelow(), 7)
+            [2304.00000000000, 2303.99999999999, 2304.00000000000, 2303.99999999999]
+            sage: check(((5.0 / 512)^17), 17)
+            [0.00976562500000000, 0.00976562500000000, 0.00976562500000000, 0.00976562500000000]
+            sage: check(((5.0 / 512)^17).nextabove(), 17)
+            [0.00976562500000000, 0.00976562500000000, 0.00976562500000001, 0.00976562500000000]
+            sage: check(((5.0 / 512)^17).nextbelow(), 17)
+            [0.00976562500000000, 0.00976562499999999, 0.00976562500000000, 0.00976562499999999]
+
+        And check some non-perfect powers:
+            sage: check(2.0, 3)
+            [1.25992104989487, 1.25992104989487, 1.25992104989488, 1.25992104989487]
+            sage: check(2.0, 4)
+            [1.18920711500272, 1.18920711500272, 1.18920711500273, 1.18920711500272]
+            sage: check(2.0, 5)
+            [1.14869835499704, 1.14869835499703, 1.14869835499704, 1.14869835499703]
+
+        And some different precisions:
+            sage: check(RealField(20)(22/7), 19)
+            [1.0621, 1.0621, 1.0622, 1.0621]
+            sage: check(RealField(200)(e), 4)
+            [1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892176, 1.2840254166877414840734205680624364583362808652814630892175]
         """
+        if n <= 0:
+            raise ValueError, "n must be positive"
+
+        cdef int odd = (n & 1)
+
+        cdef int sgn = mpfr_sgn(self.value)
+
+        if sgn < 0 and not odd:
+            raise ValueError, "taking an even root of a negative number"
+
+        if sgn == 0 or n == 1 or not mpfr_number_p(self.value):
+            return self
+
+        cdef RealField fld = <RealField>self._parent
+
+        if algorithm == 0 and fld.__prec * n < 10000:
+            # This is a rough estimate for when it is probably
+            # faster to call mpfr directly.  (This is a pretty
+            # good estimate on one particular machine, a
+            # Core 2 Duo in 32-bit mode, but has not been tested
+            # on other machines.)
+            algorithm = 1
+
         cdef RealNumber x
 
-        if n < 0:
-            raise ValueError, "n must be nonnegative"
+        if algorithm == 1:
+            x = self._new()
+            _sig_on
+            mpfr_root(x.value, self.value, n, (<RealField>self._parent).rnd)
+            _sig_off
+            return x
 
-        x = self._new()
-        _sig_on
-        mpfr_root(x.value, self.value, n, (<RealField>self._parent).rnd)
-        _sig_off
-        return x
+        cdef mpfr_rnd_t rnd = (<RealField>self._parent).rnd
 
+        cdef Integer mantissa
+        cdef mp_exp_t exponent
+        cdef int pow2
+        cdef int exact
+
+        if rnd != GMP_RNDN:
+            # We are going to implement nth_root using interval
+            # arithmetic.  To guarantee correct rounding, we will
+            # increase the precision of the interval arithmetic until
+            # the resulting interval is small enough...until the
+            # interval is entirely within the interval represented
+            # by a single floating-point number.
+
+            # This always works, unless the correct answer is exactly
+            # on the boundary point between the intervals of two
+            # floating-point numbers.  In round-to-nearest mode, this
+            # is impossible; the boundary points are the
+            # numbers which can be exactly represented as precision-{k+1}
+            # floating-point numbers, but not precision-{k} numbers.
+            # A precision-{k} floating-point number cannot be a perfect
+            # n'th power (n >= 2) of such a number.
+
+            # However, in the directed rounding modes, the boundary points
+            # are the floating-point numbers themselves.  So in a
+            # directed rounding mode, we need to check whether this
+            # floating-point number is a perfect n'th power.
+
+            # Suppose this number is (a * 2^k)^n, for odd integer a
+            # and arbitrary integer k.  Then this number is
+            # (a^n) * 2^(k*n), where a^n is odd.
+
+            # We start by extracting the mantissa and exponent of (the
+            # absolute value of) this number.
+
+            mantissa = Integer()
+            _sig_on
+            exponent = mpfr_get_z_exp(mantissa.value, self.value)
+            _sig_off
+            mpz_abs(mantissa.value, mantissa.value)
+
+            # Now, we want to divide out any powers of two in mantissa,
+            # leaving it as an odd number.
+
+            _sig_on
+            pow2 = mpz_scan1(mantissa.value, 0)
+            _sig_off
+
+            if pow2 > 0:
+                exponent = exponent + pow2
+                _sig_on
+                mpz_fdiv_q_2exp(mantissa.value, mantissa.value, pow2)
+                _sig_off
+
+            # Our floating-point number is equal to mantissa * 2^exponent,
+            # and we know that mantissa is odd.
+
+            if exponent % n == 0:
+                # The exponent is a multiple of n, so it's possible that
+                # we have a perfect power.  Now we need to check the
+                # mantissa.
+
+                _sig_on
+                exact = mpz_root(mantissa.value, mantissa.value, n)
+                _sig_off
+
+                if exact:
+                    # Yes, we are a perfect power.  We've replaced mantissa
+                    # with its n'th root, so we can just build
+                    # the resulting floating-point number.
+
+                    x = self._new()
+
+                    _sig_on
+                    mpfr_set_z(x.value, mantissa.value, GMP_RNDN)
+                    _sig_off
+                    mpfr_mul_2si(x.value, x.value, exponent / n, GMP_RNDN)
+                    if sgn < 0:
+                        mpfr_neg(x.value, x.value, GMP_RNDN)
+
+                    return x
+
+        # If we got here, then we're not a perfect power of a boundary
+        # point, so it's safe to use the interval arithmetic technique.
+
+        from real_mpfi import RealIntervalField
+
+        cdef int prec = fld.__prec + 10
+
+        cdef RealNumber lower
+        cdef RealNumber upper
+
+        while True:
+            ifld = RealIntervalField(prec)
+            intv = ifld(self)
+            if sgn < 0:
+                intv = -intv
+            intv = (intv.log() / n).exp()
+            if sgn < 0:
+                intv = -intv
+            lower = fld(intv.lower())
+            upper = fld(intv.upper())
+
+            if mpfr_equal_p(lower.value, upper.value):
+                # Yes, we found the answer
+                return lower
+
+            prec = prec + 20
 
 RR = RealField()
 

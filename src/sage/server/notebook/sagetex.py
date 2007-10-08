@@ -21,7 +21,7 @@ def sagetex(filename, gen=True, **kwds):
         raise ValueError, "File must be a latex file (contain \\document...): '%s'"%filename
 
     if gen:
-        os.system('latex2html %s'%filename)
+        os.system('latex2html -no_images %s'%filename)
 
     base = os.path.splitext(os.path.split(filename)[1])[0]
     absp = os.path.abspath(filename)

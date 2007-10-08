@@ -20,7 +20,7 @@ void t_INT_to_ZZ ( mpz_t value, GEN g )
   limbs = lgefint(g) - 2;
 
   mpz_realloc2( value, limbs );
-  mpz_import( value, limbs, -1, sizeof(int), 0, 0, int_LSW(g) );
+  mpz_import( value, limbs, -1, sizeof(long), 0, 0, int_LSW(g) );
 
   if ( signe(g) == -1 )
     mpz_neg( value, value );
@@ -39,7 +39,7 @@ void ZZ_to_t_INT ( GEN *g, mpz_t value )
   setlgefint( *g, limbs+2 );
   setsigne( *g, mpz_sgn(value) );
 
-  mpz_export( int_LSW(*g), NULL, -1, sizeof(int), 0, 0, value );
+  mpz_export( int_LSW(*g), NULL, -1, sizeof(long), 0, 0, value );
 
   return;
 }

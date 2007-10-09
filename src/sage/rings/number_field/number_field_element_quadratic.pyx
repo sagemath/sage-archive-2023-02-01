@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Not done.
 """
 #*****************************************************************************
@@ -19,10 +19,9 @@ Not done.
 """
 Optimized Quadratic Number Field Elements
 
-NO TESTS => BROKEN!
-
 AUTHORS:
     -- Robert Bradshaw (2007-09): Initial version
+    -- David Harvey (2007-10): polishing around the edges
 """
 
 include '../../ext/interrupt.pxi'
@@ -59,11 +58,14 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
 
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
-    # (a + b sqrt(disc)) / denom
     def __init__(self, parent, f):
         """
         Construct a NumberFieldElement_quadratic object as an efficiently
         represented member of an absolute quadratic field.
+
+        Elements are stored as triples (a, b, denom) of integers,
+        where gcd(a, b, denom) == 1 and denom > 0, representing the
+        element (a + b*sqrt(disc)) / denom.
 
         TESTS:
             sage: from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -156,6 +158,30 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 mpz_set_ui(self.denom, 1)
 
+    def __copy__(self):
+        r"""
+        Returns a new copy of self.
+
+        TESTS:
+            sage: K.<a> = QuadraticField(-3)
+            sage: b = a + 3
+            sage: c = b.__copy__()
+            sage: b
+            a + 3
+            sage: c
+            a + 3
+            sage: b is c
+            False
+            sage: b == c
+            True
+        """
+        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>self._new()
+        mpz_set(x.a, self.a)
+        mpz_set(x.b, self.b)
+        mpz_set(x.denom, self.denom)
+        return x
+
+
     def __new__(self, parent=None, f=None):
         mpz_init(self.a)
         mpz_init(self.b)
@@ -228,14 +254,20 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return ad, bd
 
     cdef bint is_sqrt_disc(self):
-        return mpz_cmp_ui(self.denom, 1)==0 and mpz_cmp_ui(self.a,0)==0 and mpz_cmp_ui(self.b, 1)==0
+        r"""
+        Returns true if self is sqrt(D).
+        """
+        return mpz_cmp_ui(self.denom, 1)==0 and mpz_cmp_ui(self.a, 0)==0 and mpz_cmp_ui(self.b, 1)==0
 
 
 #########################################################
-# Arithmatic
+# Arithmetic
 #########################################################
 
     cdef void _reduce_c_(self):
+        r"""
+        Reduces into canonical form.
+        """
         cdef mpz_t gcd
         mpz_init(gcd)
         mpz_gcd(gcd, self.a, self.denom)
@@ -640,6 +672,12 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: b = (2*a+1)/6
             sage: b.denominator()
             6
+            sage: K(1).denominator()
+            1
+            sage: K(1/2).denominator()
+            2
+            sage: K(0).denominator()
+            1
         """
         # In terms of the generator...
         cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
@@ -649,7 +687,14 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(denom.value, self.denom)
             return denom
         else:
-            const, lin = self._coefficients()
+            c = self._coefficients()
+            if len(c) == 2:
+                const, lin = c
+            elif len(c) == 1:
+                const = c[0]
+                lin = Rational(0)
+            else:
+                const = lin = Rational(0)
             return const.denominator().lcm(lin.denominator())
 
     cdef bint is_rational_c(self):
@@ -737,7 +782,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         R = QQ[var]
         return R([self.norm(), -self.trace(), 1])
 
-    def minopily(self, var='x'):
+    def minpoly(self, var='x'):
         r"""
         The minimal polynomial of this element over $\Q$.
         EXAMPLES:

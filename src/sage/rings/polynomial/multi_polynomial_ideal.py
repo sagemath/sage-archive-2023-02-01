@@ -389,7 +389,11 @@ class MPolynomialIdeal_singular_repr:
 
         EXAMPLE:
             sage: P.<x,y> = PolynomialRing(QQ,2,order='neglex')
+            sage: I = P * [x^2 + y^2, x^2 - y^2]
             sage: I.vector_space_dimension()
+            Traceback (most recent call last):
+            ...
+            TypeError: ideal is not zero dimensional
             sage: J = Ideal(I.groebner_basis())
             sage: J.vector_space_dimension()
             4

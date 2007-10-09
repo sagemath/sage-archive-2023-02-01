@@ -254,6 +254,8 @@ class Worker(object):
         timeout = job.timeout
         BEGIN = "print '%s'\n\n" % (START_MARKER)
         END = "print '%s'\n\n" % (END_MARKER)
+        GO_TO_TMP_DIR = """os.chdir('%s')\n""" % self.tmp_job_dir
+        SAVE_TIME = """save((time.time()-dsage_start_time), 'cpu_time.sobj', compress=False)\n"""
         SAVE_RESULT = """try:
     save(DSAGE_RESULT, 'result.sobj', compress=True)
 except:
@@ -267,8 +269,9 @@ except:
         job_file.write("\n\n")
         job_file.write(END)
         job_file.write("\n")
+        job_file.write(GO_TO_TMP_DIR)
         job_file.write(SAVE_RESULT)
-        job_file.write("save((time.time()-dsage_start_time), 'cpu_time.sobj', compress=False)")
+        job_file.write(SAVE_TIME)
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))

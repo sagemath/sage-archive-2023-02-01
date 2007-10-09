@@ -246,7 +246,7 @@ class Worker(object):
 
         """
 
-        parsed_file = preparse_file(job.code, magic=False,
+        parsed_file = preparse_file(job.code, magic=True,
                                     do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
@@ -345,7 +345,10 @@ except:
         try:
             os.chdir(self.tmp_job_dir)
             # foo, output, new = self.sage._so_far()
+            # This sucks and is a very bad way to tell when a calculation is
+            # finished
             done, new = self.sage._get()
+            # If result.sobj exists, our calculation is done
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()

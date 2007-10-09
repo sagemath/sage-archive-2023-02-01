@@ -116,6 +116,7 @@ def usage():
     return options
 
 def write_stats(dsage_server, stats_file):
+    check_dsage_dir()
     try:
         fname = os.path.join(DSAGE_DIR, stats_file)
         f = open(fname, 'w')
@@ -245,7 +246,7 @@ def main(options):
             print 'Exception: ', msg
             if SSL:
                 print 'Error starting server with SSL enabled, please ' + \
-                      'check your configuration'
+                      'check your configuration.'
             else:
                 print 'Error starting server, please check your configuration'
             sys.exit()

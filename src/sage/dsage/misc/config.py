@@ -32,7 +32,7 @@ from sage.dsage.misc.misc import random_str
 def check_dsage_dir():
     DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
     if os.path.exists(DSAGE_DIR):
-        return
+        return True
     else:
         print "Creating " + DSAGE_DIR
         os.mkdir(DSAGE_DIR)

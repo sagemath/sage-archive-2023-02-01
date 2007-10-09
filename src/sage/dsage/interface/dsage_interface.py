@@ -225,7 +225,7 @@ class DSage(object):
 
         return wrapped_job
 
-    def eval_file(self, fname, job_name):
+    def eval_file(self, fname, job_name, async=False):
         """
         eval_file allows you to evaluate the contents of an entire file.
 
@@ -241,7 +241,10 @@ class DSage(object):
         job = Job(id_=None, code=cmd, name=job_name,
                   username=self.username, type_=type_)
 
-        wrapped_job = JobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = BlockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 

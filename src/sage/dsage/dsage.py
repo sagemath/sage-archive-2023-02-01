@@ -25,6 +25,8 @@ def spawn(cmd, verbose=True):
     if verbose:
         print 'Spawned %s (pid = %s)\n' % (cmd, process.pid)
 
+    return process.pid
+
 class DistributedSage(object):
     r"""
     Distributed SAGE allows you to do distributed computing in SAGE.
@@ -130,6 +132,27 @@ class DistributedSage(object):
 
         return d
 
+    def kill_all(self):
+        """
+        Kills the server and worker.
+
+        """
+
+        self.kill_worker()
+        self.kill_server()
+
+    def kill_worker(self):
+        try:
+            os.kill(self.worker_pid, 9)
+        except OSError, msg:
+            print 'Error killing worker: %s' % msg
+
+    def kill_server(self):
+        try:
+            os.kill(self.server_pid, 9)
+        except OSError, msg:
+            print 'Error killing server: %s' % msg
+
     def server(self, blocking=True, port=8081, log_level=0, ssl=True,
                db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
                log_file=os.path.join(DSAGE_DIR, 'server.log'),
@@ -162,7 +185,7 @@ class DistributedSage(object):
             cmd += ' --ssl'
         if not blocking:
             cmd += ' --noblock'
-            spawn(cmd, verbose=verbose)
+            self.server_pid = spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 
@@ -204,7 +227,7 @@ class DistributedSage(object):
             cmd += ' -a'
         if not blocking:
             cmd += ' --noblock'
-            spawn(cmd, verbose=verbose)
+            self.worker_pid = spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 

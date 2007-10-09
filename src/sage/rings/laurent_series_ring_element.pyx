@@ -396,9 +396,9 @@ cdef class LaurentSeries(AlgebraElement):
         cdef long m
 
         # 1. Special case when one or the other is 0.
-        if right.is_zero():
+        if not right:
             return self.add_bigoh(right.prec())
-        if self.is_zero():
+        if not self:
             return right.add_bigoh(self.prec())
 
         # 2. Align the unit parts.
@@ -406,12 +406,33 @@ cdef class LaurentSeries(AlgebraElement):
             m = self.__n
             f1 = self.__u
             f2 = right.__u << right.__n - m
-        else:
+        elif self.__n > right.__n:
             m = right.__n
             f1 = self.__u << self.__n - m
             f2 = right.__u
+        else:
+            m = self.__n
+            f1 = self.__u
+            f2 = right.__u
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
+
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right_m):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t+t
+            sage: f += t; f
+            3*t
+            sage: f += O(t^5); f
+            3*t + O(t^5)
+        """
+        cdef LaurentSeries right = <LaurentSeries>right_m
+        if self.__n == right.__n:
+            self.__u += right.__u
+            return self
+        else:
+            return self._add_c_impl(right)
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
         """
@@ -431,9 +452,9 @@ cdef class LaurentSeries(AlgebraElement):
         cdef long m
 
         # 1. Special case when one or the other is 0.
-        if right.is_zero():
+        if not right:
             return self.add_bigoh(right.prec())
-        if self.is_zero():
+        if not self:
             return -right.add_bigoh(self.prec())
 
         # 2. Align the unit parts.
@@ -504,11 +525,29 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
+    cdef RingElement _imul_c_impl(self, RingElement right_r):
+        """
+        EXAMPLES:
+            sage: x = Frac(QQ[['x']]).0
+            sage: f = 1/x^3 + x + x^2 + 3*x^4 + O(x^7)
+            sage: g = 1 - x + x^2 - x^4 + O(x^8)
+            sage: f *= g; f
+            x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
+        """
+        cdef LaurentSeries right = <LaurentSeries>right_r
+        self.__u *= right.__u
+        self.__n += right.__n
+        return self
+
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._rmul_c(c), self.__n)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._lmul_c(c), self.__n)
+
+    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+        self.__u *= c
+        return self
 
     def __pow__(_self, r, dummy):
         """

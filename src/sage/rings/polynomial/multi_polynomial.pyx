@@ -123,7 +123,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.polynomial(x)
             x^3 + (17*w^3 + 3*w)*x + w^5 + z^5
             sage: parent(f.polynomial(x))
-            Univariate Polynomial Ring in x over Polynomial Ring in w, z over Rational Field
+            Univariate Polynomial Ring in x over Multivariate Polynomial Ring in w, z over Rational Field
 
             sage: f.polynomial(w)
             w^5 + 17*x*w^3 + 3*x*w + z^5 + x^3

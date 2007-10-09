@@ -246,7 +246,8 @@ def sage_getargspec(obj):
         source = sage_getsource(obj, is_binary=True)
         if source:
             return _sage_getargspec_cython(source)
-
+        else:
+            func_obj = obj
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
     args, varargs, varkw = inspect.getargs(func_obj.func_code)

@@ -91,6 +91,7 @@ doc="""
 Integers
 """
 
+
 import operator
 
 import sys
@@ -100,6 +101,7 @@ include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
+include "../ext/python_int.pxi"
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -264,10 +266,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PyInt_Check(x):
-                mpz_set_si(self.value, x)
+            elif PyInt_CheckExact(x):
+                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
-            elif PyLong_Check(x):
+            elif PyLong_CheckExact(x):
                 mpz_set_pylong(self.value, x)
 
             elif PyString_Check(x):
@@ -732,22 +734,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-##     def _unsafe_add_in_place(self,  ModuleElement right):
-##         """
-##         Do *not* use this...  unless you really know what you
-##         are doing.
-##         """
-##         if not (right._parent is self._parent):
-##             raise TypeError
-##         mpz_add(self.value, self.value, (<Integer>right).value)
-##     cdef _unsafe_add_in_place_c(self,  ModuleElement right):
-##         """
-##         Do *not* use this...  unless you really know what you
-##         are doing.
-##         """
-##         if not (right._parent is self._parent):
-##             raise TypeError
-##         mpz_add(self.value, self.value, (<Integer>right).value)
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers, self safe to mutate
+        mpz_add(self.value, self.value, (<Integer>right).value)
+        return self
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
@@ -755,6 +745,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         x = PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        mpz_sub(self.value, self.value, (<Integer>right).value)
+        return self
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
@@ -799,6 +793,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
+
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) when the
+            # product might take a while to compute
+            _sig_on
+            mpz_mul(self.value, self.value, (<Integer>right).value)
+            _sig_off
+        else:
+            mpz_mul(self.value, self.value, (<Integer>right).value)
+        return self
 
     cdef RingElement _div_c_impl(self, RingElement right):
         r"""
@@ -1583,7 +1588,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns the integer self / right when self is divisible by right.
 
-        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+        If self is not divisible by right, the return value is undefined, and may not even be close to self/right.
         For more documentation see \code{divide_knowing_divisible_by}
 
         AUTHOR:
@@ -1607,12 +1612,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns the integer self / right when self is divisible by right.
 
-        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+        If self is not divisible by right, the return value is undefined,
+        and may not even be close to self/right for multi-word integers.
 
         EXAMPLES:
-        sage: a = 8; b = 4
-        sage: a.divide_knowing_divisible_by(b)
-        2
+            sage: a = 8; b = 4
+            sage: a.divide_knowing_divisible_by(b)
+            2
+            sage: (100000).divide_knowing_divisible_by(25)
+            4000
+            sage: (100000).divide_knowing_divisible_by(26) # close
+            3846
+
+      However, often it's way off.
+
+            sage: a = 2^70; a
+            1180591620717411303424
+            sage: a // 11  # floor divide
+            107326510974310118493
+            sage: a.divide_knowing_divisible_by(11) # way off and possibly random
+            43215361478743422388970455040
+
         """
         return self._divide_knowing_divisible_by(right)
 
@@ -1753,6 +1773,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return mpz_sgn(self.value) != 0
+
+    def is_integral(self):
+        """
+        Return \code{True} since integers are integral, i.e., satisfy
+        a monic polynomial with integer coefficients.
+
+        EXAMPLES:
+            sage: Integer(3).is_integral()
+            True
+        """
+        return True
 
     def is_unit(self):
         r"""
@@ -2122,27 +2153,59 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
-    def square_free_part(self):
-        """
-        Return the square free part of $x$, i.e., a divisor z such that $x = z y^2$,
-        for a perfect square $y^2$.
+    def radical(self):
+        r"""
+        Return the product of the prime divisors of self.
+
+        If self is 0, returns 1.
 
         EXAMPLES:
-            sage: square_free_part(100)
+            sage: Integer(10).radical()
+            10
+            sage: Integer(20).radical()
+            10
+            sage: Integer(-20).radical()
+            -10
+            sage: Integer(0).radical()
             1
-            sage: square_free_part(12)
+            sage: Integer(36).radical()
+            6
+        """
+        if self.is_zero():
+            return ONE
+        F = self.factor()
+        n = one
+        for p, e in F:
+            n *= p
+        return n * F.unit()
+
+    def squarefree_part(self):
+        r"""
+        Return the square free part of $x$ (=self), i.e., the unique
+        integer $z$ that $x = z y^2$, with $y^2$ a perfect square and
+        $z$ square-free.
+
+        Use \code{self.radical()} for the product of the primes that
+        divide self.
+
+        If self is 0, just returns 0.
+
+        EXAMPLES:
+            sage: squarefree_part(100)
+            1
+            sage: squarefree_part(12)
             3
-            sage: square_free_part(17*37*37)
+            sage: squarefree_part(17*37*37)
             17
-            sage: square_free_part(-17*32)
+            sage: squarefree_part(-17*32)
             -34
-            sage: square_free_part(1)
+            sage: squarefree_part(1)
             1
-            sage: square_free_part(-1)
+            sage: squarefree_part(-1)
             -1
-            sage: square_free_part(-2)
+            sage: squarefree_part(-2)
             -2
-            sage: square_free_part(-4)
+            sage: squarefree_part(-4)
             -1
         """
         if self.is_zero():
@@ -2174,12 +2237,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return Integer( (self._pari_()+1).nextprime())
 
-    def next_prime(self, proof=True):
+    def next_prime(self, proof=None):
         r"""
         Returns the next prime after self.
 
         INPUT:
-            proof -- bool (default: True)
+            proof -- bool or None (default: None, see proof.arithmetic or
+                            sage.structure.proof)
+                        Note that the global Sage default is proof=True
 
         EXAMPLES:
             sage: Integer(100).next_prime()
@@ -2193,6 +2258,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
         if self < 2:   # negatives are not prime.
             return integer_ring.ZZ(2)
         if self == 2:
@@ -2894,6 +2962,21 @@ def make_integer(s):
     r = PY_NEW(Integer)
     r._reduce_set(s)
     return r
+
+cdef class int_to_Z(Morphism):
+    def __init__(self):
+        import integer_ring
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
+    cdef Element _call_c(self, a):
+        # Override this _call_c rather than _call_c_impl because a is not an element
+        cdef Integer r
+        r = PY_NEW(Integer)
+        mpz_set_si(r.value, PyInt_AS_LONG(a))
+        return r
+    def _repr_type(self):
+        return "Native"
 
 
 ############### INTEGER CREATION CODE #####################

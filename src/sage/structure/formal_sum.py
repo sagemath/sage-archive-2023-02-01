@@ -48,6 +48,7 @@ from sage.modules.module import Module
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.structure.parent import Parent
 from sage.structure.parent_base import ParentWithBase
 
 class FormalSums_generic(Module):
@@ -94,7 +95,7 @@ class FormalSums_generic(Module):
     def get_action_impl(self, other, op, self_is_left):
         import operator
         from sage.structure.coerce import LeftModuleAction, RightModuleAction
-        if op is operator.mul:
+        if op is operator.mul and isinstance(other, Parent):
             if self_is_left:
                 return RightModuleAction(other, self.base_extend(other))
             else:

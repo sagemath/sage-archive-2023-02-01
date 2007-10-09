@@ -118,7 +118,7 @@ sage: my_matrix                                         # optional
 ##############################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL), Version 2.
+#  Distributed under the terms of the GNU General Public License (GPL).
 #
 #    This code is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of

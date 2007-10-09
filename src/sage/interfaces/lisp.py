@@ -124,7 +124,10 @@ class Lisp(Expect):
                     x.append(M.strip())
                     self.__in_seq = s
                 except KeyboardInterrupt:
-                    self._keyboard_interrupt()
+                    # DO NOT CATCH KeyboardInterrupt, as it is being caught
+                    # by _eval_line
+                    # In particular, do NOT call self._keyboard_interrupt()
+                    raise
                 except TypeError, s:
                     return 'error evaluating "%s":\n%s'%(code,s)
         return '\n'.join(x)

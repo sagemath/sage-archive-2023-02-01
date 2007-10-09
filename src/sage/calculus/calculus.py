@@ -1043,7 +1043,7 @@ class SymbolicExpression(RingElement):
             sage: g = f.polynomial(GF(7)); g
             3*x^35 + 2*y^35
             sage: parent(g)
-            Polynomial Ring in x, y over Finite Field of size 7
+            Multivariate Polynomial Ring in x, y over Finite Field of size 7
         """
         vars = self.variables()
         if len(vars) == 0:
@@ -3042,6 +3042,9 @@ class SymbolicArithmetic(SymbolicOperation):
                              sys_init(ops[1], system))
 
 import re
+
+def is_SymbolicVariable(x):
+    return isinstance(x, SymbolicVariable)
 
 class SymbolicVariable(SymbolicExpression):
     def __init__(self, name):

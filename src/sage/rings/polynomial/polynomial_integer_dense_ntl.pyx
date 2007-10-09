@@ -23,7 +23,7 @@ from sage.structure.element cimport ModuleElement, RingElement
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-from sage.libs.ntl.all import ZZX_class, ZZX, zero_ZZX
+from sage.libs.ntl.all import ZZX, zero_ZZX
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -44,7 +44,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
-            if isinstance(x, ZZX_class):
+            if isinstance(x, ZZX):
                 self.__poly = x
                 return
             self.__poly = ZZX(x)
@@ -67,7 +67,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             x = self._dict_to_list(x, ZZ(0))
 
 
-        elif isinstance(x, ZZX_class):
+        elif isinstance(x, ZZX):
             self.__poly = x.copy()
             return
 
@@ -109,12 +109,12 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                (self.parent(), self.list(), False, self.is_gen())
 
     def __getitem__(self, n):
-        return self.__poly[n]
+        return self.__poly[n].get_as_sage_int()
 
     def __getslice__(self, i, j):
         i = max(0,i)
         j = min(j, self.__poly.degree()+1)
-        v = [ZZ(self.__poly[k]) for k in range(i,j)]
+        v = [self.__poly[k].get_as_sage_int() for k in range(i,j)]
         P = self.parent()
         return P([0] * int(i) + v)
 
@@ -308,7 +308,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
-    def square_free_decomposition(self):
+    def squarefree_decomposition(self):
         """
         Return the square-free decomposition of self.  This is
         a partial factorization of self into square-free, relatively
@@ -319,7 +319,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         EXAMPLES:
             sage: x = polygen(ZZ)
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
-            sage: p.square_free_decomposition()
+            sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
         """
         p = self.__poly
@@ -404,8 +404,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.list()
             []
         """
-        return self.__poly.list()
-
+        return [self[i] for i in range(self.degree()+1)]
 
     def resultant(self, other):
         """

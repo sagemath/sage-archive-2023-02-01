@@ -70,10 +70,10 @@ def ToricCode(P,F):
         [J] D. Joyner, {\it Toric codes over finite fields}, Applicable Algebra in Engineering,
             Communication and Computing, 15, (2004), p. 63--79
     """
-    from sage.combinat.combinat import tuples
+    from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]
     d = len(P[0])
-    pts = tuples(mset,d)
+    pts = Tuples(mset,d).list()
     n = len(pts) ## (q-1)^d
     k = len(P)
     e = P[0]

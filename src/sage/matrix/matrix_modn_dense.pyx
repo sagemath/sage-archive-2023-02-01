@@ -38,7 +38,7 @@ EXAMPLES:
     sage: a*b
     Traceback (most recent call last):
     ...
-    TypeError: incompatible dimensions
+    TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 3 dense matrices over Ring of integers modulo 37' and 'Full MatrixSpace of 2 by 3 dense matrices over Ring of integers modulo 37'
     sage: b*a
     [15 18 21]
     [20 17 29]

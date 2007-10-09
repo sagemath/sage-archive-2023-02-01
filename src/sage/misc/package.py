@@ -55,6 +55,47 @@ def install_package(package=None, force=False):
         return X
     os.system('sage -f "%s"'%package)
 
+def standard_packages():
+    """
+    Return two lists.  The first contains the installed and the second
+    contains the not-installed standard packages that are available
+    from the SAGE repository.      You must have an internet connection.
+
+    OUTPUT:
+        -- installed standard packages (as a list)
+        -- NOT installed standard packages (as a list)
+
+    Use \code{install_package(package_name)} to install or re-install
+    a given package.
+
+    RELATED COMMANDS:
+        install_package -- list of all standard packages
+        upgrade -- upgrade to latest version of core packages
+                   (standard packages are not automatically upgraded).
+    """
+    R = os.popen('sage -standard').read()
+    X = R.split('\n')
+    try:
+        i = X.index('INSTALLED:')
+        j = X.index('NOT INSTALLED:')
+    except ValueError, msg:
+        print R
+        print "standard package list (shown above) appears to be currently not available or corrupted (network error?)."
+        return [], []
+
+    installed = []
+    for k in X[i+1:]:
+        if k == '':
+            break
+        installed.append(k)
+
+    not_installed = []
+    for k in X[j+1:]:
+        if k == '':
+            break
+        not_installed.append(k)
+    return installed, not_installed
+
 def optional_packages():
     """
     Return two lists.  The first contains the installed and the second
@@ -96,6 +137,46 @@ def optional_packages():
         not_installed.append(k)
     return installed, not_installed
 
+def experimental_packages():
+    """
+    Return two lists.  The first contains the installed and the second
+    contains the not-installed experimental packages that are available
+    from the SAGE repository.      You must have an internet connection.
+
+    OUTPUT:
+        -- installed experimental packages (as a list)
+        -- NOT installed experimental packages (as a list)
+
+    Use \code{install_package(package_name)} to install or re-install
+    a given package.
+
+    RELATED COMMANDS:
+        install_package -- list of all experimental packages
+        upgrade -- upgrade to latest version of core packages
+                   (experimental packages are not automatically upgraded).
+    """
+    R = os.popen('sage -experimental').read()
+    X = R.split('\n')
+    try:
+        i = X.index('INSTALLED:')
+        j = X.index('NOT INSTALLED:')
+    except ValueError, msg:
+        print R
+        print "experimental package list (shown above) appears to be currently not available or corrupted (network error?)."
+        return [], []
+
+    installed = []
+    for k in X[i+1:]:
+        if k == '':
+            break
+        installed.append(k)
+
+    not_installed = []
+    for k in X[j+1:]:
+        if k == '':
+            break
+        not_installed.append(k)
+    return installed, not_installed
 
 #################################################################
 # Upgrade to latest version of SAGE.

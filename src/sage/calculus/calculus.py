@@ -209,7 +209,8 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC,
                             QuadDoubleElement,
-                            PolynomialRing, ComplexField)
+                            PolynomialRing, ComplexField,
+                            algdep)
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
@@ -787,20 +788,145 @@ class SymbolicExpression(RingElement):
 
     n = numerical_approx
 
-    def minpoly(self, bits=None, degree=None):
-        if bits is None or degree is None:
-            b, d = self._minpoly_guess_complexity()
-            if bits is None: bits = b
-            if degree is None: degree = d
-        a = self.numerical_approx()
-        f = algdep(a, degree)
-        if f(self).simplify_radical() == 0:
-            return f
-        else:
-            raise ValueError, "Could not find minimal polynomial."
+    def minpoly(self, bits=None, degree=None, epsilon=0):
+        """
+        Return the minimal polynomial of self, if possible.
 
-    def _minpoly_guess_complexity(self):
-        raise NotImplementedError
+        INPUT:
+            bits    -- the number of bits to use in numerical approx
+            degree  -- the expected algebraic degree
+            epsilon -- return without error as long as f(self) < epsilon,
+                       in the case that the result cannot be proven.
+
+            All of the above parameters are optional, with epsilon=0,
+            bits and degree tested up to 1000 and 24 by default respectively.
+            If these are known, it will be faster to give them explicitly.
+
+        OUTPUT:
+            The minimal polynomial of self. This is proved symbolically if
+            epsilon=0 (default).
+
+            If the minimal polynomial could not be found, two distinct kinds
+            of errors are raised. If no reasonable candidate was found with
+            the given bit/degree parameters, a ValueError will be raised.
+            If a reasonable candidate was found but (perhaps due to limits
+            in the underlying symbolic package) was unable to be proved
+            correct, a NotImplementedError will be raised.
+
+        ALGORITHM:
+            Use the PARI algdep command on a numerical approximation of self
+            to get a candidate minpoly f. Approximate f(self) to higher
+            precision and if the result is still close enough to 0 then
+            evaluate f(self) symbolically, attempting to prove vanishing.
+            If this fails, and epsilon is non-zero, return f as long as
+            f(self) < epsilon. Otherwise raise an error.
+
+
+        NOTE: Failure of this function does not prove self is
+              not algebraic.
+
+
+        EXAMPLES:
+
+        First some simple examples:
+            sage: sqrt(2).minpoly()
+            x^2 - 2
+            sage: a = 2^(1/3)
+            sage: a.minpoly()
+            x^3 - 2
+            sage: (sqrt(2)-3^(1/3)).minpoly()
+            x^6 - 6*x^4 + 6*x^3 + 12*x^2 + 36*x + 1
+
+        Sometimes it fails.
+            sage: sin(1).minpoly()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find minimal polynomial (1000 bits, degree 24).
+
+        Note that simplification may be necessary.
+            sage: a = sqrt(2)+sqrt(3)+sqrt(5)
+            sage: f = a.minpoly(); f
+            x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
+            sage: f(a)
+            (sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2 - 40) + 352) - 960) + 576
+            sage: f(a).simplify_radical()
+            0
+
+        Here we verify it gives the same result as the abstract number field.
+            sage: (sqrt(2) + sqrt(3) + sqrt(6)).minpoly()
+            x^4 - 22*x^2 - 48*x - 23
+            sage: K.<a,b> = NumberField([x^2-2, x^2-3])
+            sage: (a+b+a*b).absolute_minpoly()
+            x^4 - 22*x^2 - 48*x - 23
+
+        Works with trig funcitons too.
+            sage: sin(pi/3).minpoly()
+            4*x^2 - 3
+
+        Here we show use of the epsilon parameter. That this result is
+        actually exact can be shown using the addition formula for sin,
+        but maxima is unable to see that.
+
+            sage: a = sin(pi/5)
+            sage: a.minpoly()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Could not prove minimal polynomial 16*x^4 - 20*x^2 + 5 (epsilon 0.00000000000000e-1)
+            sage: f = a.minpoly(epsilon=1e-100); f
+            16*x^4 - 20*x^2 + 5
+            sage: f(a).numerical_approx(100)
+            0.00000000000000000000000000000
+
+        The degree must be high enough (default tops out at 24).
+            sage: a = sqrt(3) + sqrt(2)
+            sage: a.minpoly(bits=100, degree=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find minimal polynomial (100 bits, degree 3).
+            sage: a.minpoly(bits=100, degree=10)
+            x^4 - 10*x^2 + 1
+
+        Here we solve a cubic and then recover it from its complicated radical expansion.
+            sage: f = x^3 - x + 1
+            sage: a = f.solve(x)[0].rhs(); a
+            (sqrt(3)*I/2 - 1/2)/(3*(sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)) + (sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)*(-sqrt(3)*I/2 - 1/2)
+            sage: a.minpoly()
+            x^3 - x + 1
+        """
+        bits_list = [bits] if bits else [100,200,500,1000]
+        degree_list = [degree] if degree else [2,4,8,12,24]
+
+        for bits in bits_list:
+            a = self.numerical_approx(bits)
+            check_bits = int(1.25 * bits + 80)
+            aa = self.numerical_approx(check_bits)
+
+            for degree in degree_list:
+
+                f = algdep(a, degree) # TODO: use the known_bits parameter?
+                # If indeed we have found a minimal polynomial,
+                # it should be accurate to a much higher precision.
+                error = abs(f(aa))
+                dx = ~RR(Integer(1) << (check_bits - degree - 2))
+                expected_error = abs(f.derivative()(CC(aa))) * dx
+
+                if error < expected_error:
+                    # Degree might have been an over-estimate, factor because we want (irreducible) minpoly.
+                    ff = f.factor()
+                    for g, e in ff:
+                        expected_error = abs(g.derivative()(CC(aa))) * dx
+                        error = abs(g(aa))
+                        if error < expected_error:
+                            # See if we can prove equality exactly
+                            if g(self).simplify_trig().simplify_radical() == 0:
+                                return g
+                            # Otherwise fall back to numerical guess
+                            elif epsilon and error < epsilon:
+                                return g
+                            else:
+                                raise NotImplementedError, "Could not prove minimal polynomial %s (epsilon %s)" % (g, RR(error).str(no_sci=False))
+
+        raise ValueError, "Could not find minimal polynomial (%s bits, degree %s)." % (bits, degree)
 
     def _mpfr_(self, field):
         raise TypeError
@@ -2521,14 +2647,6 @@ class Symbolic_object(SymbolicExpression):
         """
         return R(self._obj)
 
-    def _minpoly_guess_complexity(self):
-        if isinstance(self._obj, Integer):
-            return self._obj.bits() + 5, 1
-        elif isinstance(self._obj, Rational):
-            return self._obj.numer().bits() + self._obj.denom().bits() + 5, 1
-        else:
-            raise ValueError
-
     def _repr_(self, simplify=True):
         """
         EXAMPLES:
@@ -2820,21 +2938,6 @@ class SymbolicArithmetic(SymbolicOperation):
         else:
             new_ops = [op._recursive_sub_over_ring(kwds, ring=ring) for op in ops]
         return ring(self._operator(*new_ops))
-
-    def _minpoly_guess_complexity(self):
-        if self._unary:
-            bits, degree = self._operands[0]._minpoly_guess_complexity()
-            return bits+1, degree*2
-        elif self._binary:
-            l_bits, l_degree = self._operands[0]._minpoly_guess_complexity()
-            if self._operator is operator.pow:
-                exponent = QQ(self._operands[1])
-                return l_bits * exponent.numer.bits(), l_degree * exponent.denom()
-            else:
-                r_bits, r_degree = self._operands[1]._minpoly_guess_complexity()
-                return l_bits + r_bits + 1, l_degree * r_degree
-        else:
-            raise NotImplementedError
 
     def __float__(self):
         fops = [float(op) for op in self._operands]
@@ -3658,10 +3761,6 @@ class SymbolicComposition(SymbolicOperation):
     def _recursive_sub_over_ring(self, kwds, ring):
         ops = self._operands
         return ring(ops[0](ops[1]._recursive_sub_over_ring(kwds, ring=ring)))
-
-    def _minpoly_guess_complexity(self):
-        bits, degree = self._operands[1]._minpoly_guess_complexity()
-        return bits+1, degree*2
 
     def _is_atomic(self):
         return True

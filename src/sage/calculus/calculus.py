@@ -787,6 +787,21 @@ class SymbolicExpression(RingElement):
 
     n = numerical_approx
 
+    def minpoly(self, bits=None, degree=None):
+        if bits is None or degree is None:
+            b, d = self._minpoly_guess_complexity()
+            if bits is None: bits = b
+            if degree is None: degree = d
+        a = self.numerical_approx()
+        f = algdep(a, degree)
+        if f(self).simplify_radical() == 0:
+            return f
+        else:
+            raise ValueError, "Could not find minimal polynomial."
+
+    def _minpoly_guess_complexity(self):
+        raise NotImplementedError
+
     def _mpfr_(self, field):
         raise TypeError
 
@@ -2506,6 +2521,14 @@ class Symbolic_object(SymbolicExpression):
         """
         return R(self._obj)
 
+    def _minpoly_guess_complexity(self):
+        if isinstance(self._obj, Integer):
+            return self._obj.bits() + 5, 1
+        elif isinstance(self._obj, Rational):
+            return self._obj.numer().bits() + self._obj.denom().bits() + 5, 1
+        else:
+            raise ValueError
+
     def _repr_(self, simplify=True):
         """
         EXAMPLES:
@@ -2797,6 +2820,21 @@ class SymbolicArithmetic(SymbolicOperation):
         else:
             new_ops = [op._recursive_sub_over_ring(kwds, ring=ring) for op in ops]
         return ring(self._operator(*new_ops))
+
+    def _minpoly_guess_complexity(self):
+        if self._unary:
+            bits, degree = self._operands[0]._minpoly_guess_complexity()
+            return bits+1, degree*2
+        elif self._binary:
+            l_bits, l_degree = self._operands[0]._minpoly_guess_complexity()
+            if self._operator is operator.pow:
+                exponent = QQ(self._operands[1])
+                return l_bits * exponent.numer.bits(), l_degree * exponent.denom()
+            else:
+                r_bits, r_degree = self._operands[1]._minpoly_guess_complexity()
+                return l_bits + r_bits + 1, l_degree * r_degree
+        else:
+            raise NotImplementedError
 
     def __float__(self):
         fops = [float(op) for op in self._operands]
@@ -3110,6 +3148,7 @@ class SymbolicVariable(SymbolicExpression):
 
     def _sys_init_(self, system):
         return self._name
+
 
 _vars = {}
 def var(s, create=True):
@@ -3619,6 +3658,10 @@ class SymbolicComposition(SymbolicOperation):
     def _recursive_sub_over_ring(self, kwds, ring):
         ops = self._operands
         return ring(ops[0](ops[1]._recursive_sub_over_ring(kwds, ring=ring)))
+
+    def _minpoly_guess_complexity(self):
+        bits, degree = self._operands[1]._minpoly_guess_complexity()
+        return bits+1, degree*2
 
     def _is_atomic(self):
         return True

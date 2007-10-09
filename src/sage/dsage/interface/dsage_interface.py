@@ -288,7 +288,7 @@ class DSage(object):
         d_list = defer.DeferredList(deferreds)
         return d_list
 
-    def kill(self, job_id):
+    def kill(self, job_id, reason='', async=False):
         """
         Kills a job given the job id.
 
@@ -297,9 +297,15 @@ class DSage(object):
 
         """
 
-        d = self.remoteobj.callRemote('kill_job', job_id)
-        d.addCallback(self._killed_job)
-        d.addErrback(self._catch_failure)
+        if async:
+            d = self.remoteobj.callRemote('kill_job', job_id, reason)
+            d.addCallback(self._killed_job)
+            d.addErrback(self._catch_failure)
+        else:
+            job_id = blocking_call_from_thread(self.remoteobj.callRemote,
+                                               'kill_job',
+                                               job_id,
+                                               reason)
 
     def get_my_jobs(self, is_active=False, job_name=None):
         """
@@ -512,6 +518,17 @@ class BlockingDSage(DSage):
 
         return [expand_job(jdict) for jdict in jdicts]
 
+
+    def kill_all(self):
+        """
+        Kills all of your active jobs.
+
+        """
+
+        active_jobs = self.get_my_jobs(active=True)
+
+        for job in active_jobs:
+            self.kill(job.job_id)
 
     def cluster_speed(self):
         """

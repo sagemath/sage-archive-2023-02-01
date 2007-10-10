@@ -274,7 +274,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         R = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, 'x')
         return R(self.list()).complex_roots()
 
-    def real_roots(self):
+    def real_root_intervals(self):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
@@ -282,7 +282,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         We compute the roots of the characteristic polynomial of some Salem numbers:
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
-            sage: f.real_roots()
+            sage: f.real_root_intervals()
             [((1/2, 3/4), 1), ((1, 3/2), 1)]
         """
 

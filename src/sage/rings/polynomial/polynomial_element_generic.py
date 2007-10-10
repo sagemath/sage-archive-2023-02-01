@@ -778,14 +778,14 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         C = complex_field.ComplexField()
         return [C(a) for a in R]
 
-    def real_roots(self):
+    def real_root_intervals(self):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
         EXAMPLE:
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = (x - 1/2) * (x - 3/4) * (x - 3/2)
-            sage: f.real_roots()
+            sage: f.real_root_intervals()
             [((243/512, 1215/2048), 1), ((729/1024, 1701/2048), 1), ((243/256, 1011/512), 1)]
         """
 

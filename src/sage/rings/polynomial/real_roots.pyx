@@ -123,9 +123,6 @@ from http://www.sagemath.org:9001/days4schedule .
 # Extra features:
 # * Specify a minimal island width: once islands are this narrow,
 # stop even if roots are not isolated.
-# * Specify a maximum island width: keep going until islands are
-# this narrow, even if you've already isolated the roots (to
-# actually compute the roots, instead of just isolating them).
 # * Do some sort of inexact version, for inexact input polynomials.
 # (For example, given a polynomial with (non-point) interval coefficients,
 # give a set of roots such that each root is guaranteed to be a root
@@ -3623,7 +3620,7 @@ class warp_map:
         else:
             return (l/(l+1), u/(u+1))
 
-def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational', strategy=None):
+def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=False, wordsize=32, retval='rational', strategy=None, max_diameter=None):
     """
     Compute the real roots of a given polynomial with exact
     coefficients (integer, rational, and algebraic real coefficients
@@ -3681,6 +3678,16 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     time, and the exact intervals returned, but the results are correct
     on both 32- and 64-bit machines even if the wordsize is chosen "wrong".)
 
+    The precision of the results can be improved (at the expense of time,
+    of course) by specifying the max_diameter parameter.  If specified,
+    this sets the maximum diameter() of the intervals returned.
+    (SAGE defines diameter() to be the relative diameter for intervals
+    that do not contain 0, and the absolute diameter for intervals
+    containing 0.)  This directly affects the results in rational or
+    interval return mode; in algebraic_real mode, it increases the
+    precision of the intervals passed to the algebraic_real package,
+    which may speed up some operations on that algebraic_real.
+
     Some logging can be enabled with do_logging=True.  If logging is enabled,
     then the normal values are not returned; instead, a pair of
     the internal context object and a list of all the roots in their
@@ -3720,6 +3727,10 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         [((-3/2, -1), 1), ((1, 3/2), 1)]
         sage: real_roots(x^2 - 2, retval='interval')
         [([-1.5000000000000000 .. -1.0000000000000000], 1), ([1.0000000000000000 .. 1.5000000000000000], 1)]
+        sage: real_roots(x^2 - 2, max_diameter=1/2^30)
+        [((-22506280506048041472675379598886543645348790970912519198456805737131269246430553365310109/15914343565113172548972231940698266883214596825515126958094847260581103904401068017057792, -45012561012096082945350759197773086524448972309421182031053065599548946985601579935498343/31828687130226345097944463881396533766429193651030253916189694521162207808802136034115584), 1), ((45012561012096082945350759197773086524448972309421182031053065599548946985601579935498343/31828687130226345097944463881396533766429193651030253916189694521162207808802136034115584, 22506280506048041472675379598886543645348790970912519198456805737131269246430553365310109/15914343565113172548972231940698266883214596825515126958094847260581103904401068017057792), 1)]
+        sage: real_roots(x^2 - 2, retval='interval', max_diameter=1/2^500)
+        [([-1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248360558507372126441214970999358314132226659275055927557999505011527820605714701095599716059702745345968620147285174186408891986095530 .. -1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248360558507372126441214970999358314132226659275055927557999505011527820605714701095599716059702745345968620147285174186408891986095519], 1), ([1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248360558507372126441214970999358314132226659275055927557999505011527820605714701095599716059702745345968620147285174186408891986095519 .. 1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248360558507372126441214970999358314132226659275055927557999505011527820605714701095599716059702745345968620147285174186408891986095530], 1)]
         sage: ar_rts = real_roots(x^2 - 2, retval='algebraic_real'); ar_rts
         [([-1.4142135623730952 .. -1.4142135623730949], 1), ([1.4142135623730949 .. 1.4142135623730952], 1)]
         sage: ar_rts[0][0]^2 - 2 == 0
@@ -3862,21 +3873,50 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         ok = True
 
+        target_widths = [None] * len(all_roots)
+
+
+        if max_diameter is not None:
+            # Check to make sure that no intervals are too wide.
+
+            # We use half_diameter, because if we ended up with a rational
+            # interval that was exactly max_diameter, we might not
+            # be able to coerce it into an interval small enough.
+            half_diameter = max_diameter/2
+
+            for i in range(len(all_roots)):
+                root = all_roots[i][0]
+                if (root[0] <= 0) and (root[1] >= 0):
+                    cur_diam = root[1] - root[0]
+                    if cur_diam > half_diameter:
+                        target_widths[i] = half_diameter
+                        ok = False
+                else:
+                    cur_diam = (root[1] - root[0]) / abs((root[0] + root[1]) / 2)
+                    if cur_diam > half_diameter:
+                        target_widths[i] = (root[1] - root[0]) / cur_diam * half_diameter
+                        ok = False
+
+
         for i in range(len(all_roots) - 1):
             # Check to be sure that all intervals are disjoint.
             if all_roots[i][0][1] >= all_roots[i+1][0][0]:
                 ok = False
                 cur_width = max(all_roots[i+1][0][1] - all_roots[i+1][0][0], all_roots[i][0][1] - all_roots[i][0][0])
                 target_width = cur_width/16
-                for j in (i, i+1):
-                    oc = all_roots[j][3]
-                    target_region = (all_roots[j][0][0], all_roots[j][0][0] + target_width)
-                    if target_region[0] * target_region[1] <= 0:
-                        target_region = (all_roots[j][0][1] - target_width, all_roots[j][0][1])
+                target_widths[i] = target_width
+                target_widths[i+1] = target_width
 
-                    ocean_target = oc.mapping.to_ocean(target_region)
-                    if oc is not None:
-                        oc.reset_root_width(all_roots[j][4], ocean_target[1] - ocean_target[0])
+        for i in range(len(all_roots)):
+            if target_widths[i] is not None:
+                root = all_roots[i][0]
+                oc = all_roots[i][3]
+                target_region = (root[0], root[0] + target_widths[i])
+                if target_region[0] <= 0 and  target_region[1] >= 0:
+                    target_region = (root[1] - target_widths[i], root[1])
+
+                ocean_target = oc.mapping.to_ocean(target_region)
+                oc.reset_root_width(all_roots[i][4], ocean_target[1] - ocean_target[0])
 
         if ok: break
 
@@ -3893,13 +3933,22 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         intv_fld = RealIntervalField(intv_bits)
         intv_roots = [(intv_fld(r[0]), r[1], r[2], r[3], r[4]) for r in all_roots]
         ok = True
+
+        if max_diameter is not None:
+            for rt in intv_roots:
+                if rt[0].diameter() > max_diameter:
+                    ok = False
+
         for j in range(len(intv_roots) - 1):
             # The following line should work, but does not due to a Cython
             # bug (it calls PyObject_Cmp() for comparison operators,
             # instead of PyObject_RichCompare()).
+
             # if not (intv_roots[j][0] < intv_roots[j+1][0]):
+
             if not (intv_roots[j][0].upper() < intv_roots[j+1][0].lower()):
                 ok = False
+
         if ok:
             break
 

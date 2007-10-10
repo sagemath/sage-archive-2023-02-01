@@ -251,7 +251,6 @@ class Worker(object):
 
         job_filename = str(job.name) + '.py'
         job_file = open(job_filename, 'w')
-        timeout = job.timeout
         BEGIN = "print '%s'\n\n" % (START_MARKER)
         END = "print '%s'\n\n" % (END_MARKER)
         GO_TO_TMP_DIR = """os.chdir('%s')\n""" % self.tmp_job_dir
@@ -261,7 +260,7 @@ class Worker(object):
 except:
     save('No DSAGE_RESULT', 'result.sobj', compress=True)
 """
-        job_file.write("alarm(%s)\n\n" % (timeout))
+        job_file.write("alarm(%s)\n\n" % (job.timeout))
         job_file.write("import time\n\n")
         job_file.write(BEGIN)
         job_file.write('dsage_start_time = time.time()\n')

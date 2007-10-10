@@ -3678,6 +3678,8 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         [((209/256, 593/512), 1)]
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2))
         [((0, 0), 1), ((81/128, 337/256), 1), ((2, 2), 1)]
+        sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2), retval='algebraic_real')
+        [([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([2.0000000000000000 .. 2.0000000000000000], 1)]
         sage: v = 2^40
         sage: real_roots((x^2-1)^2 * (x^2 - (v+1)/v))
         [((-12855504354077768210885019021174120740504020581912910106032833/12855504354071922204335696738729300820177623950262342682411008, -6427752177038884105442509510587059395588605840418680645585479/6427752177035961102167848369364650410088811975131171341205504), 1), ((-1125899906842725/1125899906842624, -562949953421275/562949953421312), 2), ((62165404551223330269422781018352603934643403586760330761772204409982940218804935733653/62165404551223330269422781018352605012557018849668464680057997111644937126566671941632, 3885337784451458141838923813647037871787041539340705594199885610069035709862106085785/3885337784451458141838923813647037813284813678104279042503624819477808570410416996352), 2), ((509258994083853105745586001837045839749063767798922046787130823804169826426726965449697819/509258994083621521567111422102344540262867098416484062659035112338595324940834176545849344, 25711008708155536421770038042348240136257704305733983563630791/25711008708143844408671393477458601640355247900524685364822016), 1)]
@@ -3701,6 +3703,9 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         [((-1713/335, -689/335), 1), ((-2067/2029, -689/1359), 1), ((0, 0), 1), ((499/525, 1173/875), 1), ((337/175, 849/175), 1)]
         sage: real_roots((x+3)*(x+1)*x*(x-1)*(x-2), strategy='warp', retval='algebraic_real')
         [([-3.0000000000000005 .. -2.9999999999999995], 1), ([-1.0000000000000003 .. -0.99999999999999988], 1), ([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([1.9999999999999997 .. 2.0000000000000005], 1)]
+        sage: ar_rts = real_roots(x-1, retval='algebraic_real')
+        sage: ar_rts[0][0] == 1
+        True
 
     Now we play with algebraic real coefficients.
         sage: x = polygen(AA)
@@ -3710,6 +3715,9 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: ar_rts = real_roots(p, retval='algebraic_real'); ar_rts
         [([0.99999999999999988 .. 1.0000000000000003], 1), ([1.4142135623730949 .. 1.4142135623730952], 1), ([1.9999999999999997 .. 2.0000000000000005], 1)]
         sage: ar_rts[1][0]^2 == 2
+        True
+        sage: ar_rts = real_roots(x*(x-1), retval='algebraic_real')
+        sage: ar_rts[0][0] == 0
         True
         sage: p2 = p * (p - 1/100); p2
         x^6 + [-8.8284271247461917 .. -8.8284271247461898]*x^5 + [31.970562748477139 .. 31.970562748477143]*x^4 + [-60.779552621700475 .. -60.779552621700467]*x^3 + [63.985267632578008 .. 63.985267632578016]*x^2 + [-35.376134905855956 .. -35.376134905855948]*x + [8.0282842712474611 .. 8.0282842712474630]
@@ -3757,8 +3765,8 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     for (factor, exp) in factors:
         if strategy=='warp':
             if factor.constant_coefficient() == 0:
-                extra_roots.append(((0, 0), factor, exp, None, None))
                 x = factor.parent().gen()
+                extra_roots.append(((0, 0), x, exp, None, None))
                 factor = factor // x
             if ar_input:
                 oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, False), warp_map(False))
@@ -3786,13 +3794,15 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 # Avoid this by dividing out linear polynomials if
                 # the bounds are roots.
                 if factor(left) == 0:
-                    extra_roots.append(((left, left), factor, exp, None, None))
                     x = factor.parent().gen()
-                    factor = factor // (x * left.denominator() - left.numerator())
+                    linfac = (x * left.denominator() - left.numerator())
+                    extra_roots.append(((left, left), linfac, exp, None, None))
+                    factor = factor // linfac
                 if factor(right) == 0:
-                    extra_roots.append(((right, right), factor, exp, None, None))
                     x = factor.parent().gen()
-                    factor = factor // (x * right.denominator() - right.numerator())
+                    linfac = (x * right.denominator() - right.numerator())
+                    extra_roots.append(((right, right), linfac, exp, None, None))
+                    factor = factor // linfac
 
             b, _ = to_bernstein(factor, left, right)
 

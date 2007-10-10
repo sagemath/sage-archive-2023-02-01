@@ -8,6 +8,31 @@ This is an implementation of real root isolation.  That is, given a
 polynomial with exact real coefficients, we compute isolating intervals
 for the real roots of the polynomial.  (Polynomials with
 integer, rational, or algebraic real coefficients are supported.)
+
+We convert the polynomials into the Bernstein basis, and then use
+de Casteljau's algorithm and Descartes' rule of signs on the Bernstein
+basis polynomial (using interval arithmetic) to locate the roots.  The
+algorithm is similar to that in "A Descartes Algorithm for Polynomials
+with Bit-Stream Coefficients", by Eigenwillig, Kettner, Krandick, Mehlhorn,
+Schmitt, and Wolpert, but has three crucial optimizations over the
+algorithm in that paper:
+
+* Precision reduction: at certain points in the computation, we discard
+the low-order bits of the coefficients, widening the intervals.
+
+* Degree reduction: at certain points in the computation, we find
+lower-degree polynomials that are approximately equal to our
+high-degree polynomial over the region of interest.
+
+* When the intervals are too wide to continue (either because of a
+too-low initial precision, or because of precision or degree
+reduction), and we need to restart with higher precision, we recall
+which regions have already been proven not to have any roots and do
+not examine them again.
+
+The best description of the algorithms used (other than this source
+code itself) is in the slides for my SAGE Days 4 talk, currently available
+from http://www.sagemath.org:9001/days4schedule .
 """
 
 ################################################################################
@@ -67,6 +92,11 @@ integer, rational, or algebraic real coefficients are supported.)
 # When should we degree reduce?  What degrees should be targeted?
 # ** Better precision reduction heuristics
 # ** Better split point selection
+# Currently we attempt to split at 1/2, and then at a random offset.
+# We do not look at the current coefficients at all to try to select
+# a good split point.  Would it be worthwhile to do so?  (For instance,
+# it's a standard result that the polynomial in the region is bounded
+# by the convex hull of the coefficients.)
 # * Better initial transformation into Bernstein form
 # If a polynomial has roots which are very close to 0, or very large,
 # it may be better to rescale the roots (using a transformation like
@@ -91,7 +121,6 @@ integer, rational, or algebraic real coefficients are supported.)
 # instance.)
 
 # Extra features:
-# * Allow input polynomials with algebraic real coefficients.
 # * Specify a minimal island width: once islands are this narrow,
 # stop even if roots are not isolated.
 # * Specify a maximum island width: keep going until islands are
@@ -3656,6 +3685,10 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     then the normal values are not returned; instead, a pair of
     the internal context object and a list of all the roots in their
     internal form is returned.
+
+    ALGORITHM: We convert the polynomial into the Bernstein basis, and
+    then use de Casteljau's algorithm and Descartes' rule of signs
+    (using interval arithmetic) to locate the roots.
 
     EXAMPLES:
         sage: from sage.rings.polynomial.real_roots import *

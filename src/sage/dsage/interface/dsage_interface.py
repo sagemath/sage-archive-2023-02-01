@@ -198,7 +198,7 @@ class DSage(object):
         print 'Disconnecting from server.'
         self.remoteobj = None
 
-    def eval(self, cmd, globals_=None, job_name=None):
+    def eval(self, cmd, timeout=600, globals_=None, job_name=None):
         """
         eval evaluates a command
 
@@ -215,8 +215,8 @@ class DSage(object):
 
         type_ = 'sage'
 
-        job = Job(id_=None, code=cmd, name=job_name,
-                  username=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name, username=self.username,
+                  timeout=timeout, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
         if globals_ is not None:
@@ -440,7 +440,8 @@ class BlockingDSage(DSage):
 
         return d
 
-    def eval(self, cmd, globals_=None, job_name=None, async=False):
+    def eval(self, cmd, globals_=None, job_name=None, timeout=600,
+             async=False):
         """
         eval evaluates a command
 
@@ -458,8 +459,8 @@ class BlockingDSage(DSage):
 
         type_ = 'sage'
 
-        job = Job(id_=None, code=cmd, name=job_name,
-                  username=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name, username=self.username,
+                  timeout=timeout, type_=type_)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():

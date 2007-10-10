@@ -33,7 +33,7 @@ class Job(Persistent):
     """
 
     def __init__(self, id_=None, name=None, code=None, parent=None,
-                 username=None, type_='sage'):
+                 username=None, timeout=600, type_='sage'):
         """
         Creates a new job.
 
@@ -72,7 +72,7 @@ class Job(Persistent):
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
-        self.jdict['timeout'] = 600 # default timeout for jobs in seconds
+        self.jdict['timeout'] = timeout # default timeout for jobs in seconds
         self.jdict['private'] = False
         self.jdict['depends'] = {}
         # These might become deprecated

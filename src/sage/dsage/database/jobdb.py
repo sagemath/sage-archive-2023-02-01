@@ -494,6 +494,7 @@ class JobDatabaseSQLite(JobDatabase):
                 cpu_time,
                 wall_time,
                 start_time,
+                timeout,
                 failures
                 FROM jobs WHERE job_id = ?"""
 

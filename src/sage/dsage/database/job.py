@@ -72,7 +72,9 @@ class Job(Persistent):
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
-        self.jdict['timeout'] = timeout # default timeout for jobs in seconds
+        self.jdict['timeout'] = int(timeout) # default timeout for jobs in
+                                             # seconds.  Coerced to a python
+                                             # int
         self.jdict['private'] = False
         self.jdict['depends'] = {}
         # These might become deprecated
@@ -244,7 +246,10 @@ class Job(Persistent):
             return self.jdict['timeout']
         def fset(self, value):
             if not isinstance(value, int):
-                raise TypeError('Timeout must be an integer.')
+                try:
+                    value = int(value)
+                except:
+                    raise TypeError('Timeout must be an integer.')
             self.jdict['timeout']  = value
         return locals()
     timeout = property(**timeout())

@@ -162,7 +162,6 @@ class DSageServer(pb.Root):
 
         """
 
-
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, submit_job] %s' % (jdict))
         if jdict['code'] is None:

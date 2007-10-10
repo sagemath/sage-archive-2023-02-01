@@ -215,6 +215,9 @@ class DSage(object):
 
         type_ = 'sage'
 
+        # We have to convert timeout to a python int so it will not cause
+        # security exceptions with twisted.
+
         job = Job(id_=None, code=cmd, name=job_name, username=self.username,
                   timeout=timeout, type_=type_)
 

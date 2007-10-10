@@ -89,6 +89,7 @@ config()
                 --with-apint=gmp \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
+	        --with-NTL \
 	        --without-MP \
                 --without-lex \
                 --without-bison \

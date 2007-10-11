@@ -134,6 +134,7 @@ cdef extern from "mpfr.h":
     bint mpfr_inf_p (mpfr_t op)
     bint mpfr_number_p (mpfr_t op)
     bint mpfr_zero_p (mpfr_t op)
+    bint mpfr_integer_p (mpfr_t op)
 
     double mpfr_get_d (mpfr_t op, mp_rnd_t rnd)
 

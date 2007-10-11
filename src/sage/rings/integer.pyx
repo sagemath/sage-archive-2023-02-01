@@ -230,6 +230,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -901824309821093821093812093810928309183091832091
             sage: ZZ(QQ(-901824309821093821093812093810928309183091832091))
             -901824309821093821093812093810928309183091832091
+            sage: ZZ(RR(2.0)^80)
+            1208925819614629174706176
             sage: ZZ(pari('Mod(-3,7)'))
             4
             sage: ZZ('sage')
@@ -2566,7 +2568,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 1 >> 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for >>
+            ValueError: Attempt to coerce non-integral RealNumber to Integer
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):
@@ -2604,7 +2606,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 1<< 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for <<
+            ValueError: Attempt to coerce non-integral RealNumber to Integer
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):

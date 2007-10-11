@@ -476,11 +476,12 @@ except:
         """
 
         try:
-            pid = self.sage.pid()
-            cmd = 'kill -9 -%s'%pid
-            os.system(cmd)
+            self.sage.quit()
             del self.sage
         except Exception, msg:
+            pid = self.sage.pid()
+            cmd = 'kill -9 %s' % pid
+            os.system(cmd)
             log.msg(msg)
 
     def stop(self, hard_reset=False):

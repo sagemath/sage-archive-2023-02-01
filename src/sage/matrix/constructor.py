@@ -384,47 +384,26 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         if isinstance(arg0,numpy.ndarray):
             str_dtype = str(arg0.dtype)
 
+            if not( arg0.flags.c_contiguous is True or arg0.flags.f_contiguous is True):
+                raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
             if str_dtype.count('float32')==1:
-                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
-                    m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
-                    m._replace_self_with_numpy32(arg0)
-                    if arg0.flags.c_contiguous:
-                        return m
-                    else:
-                        return m.transpose()
-                else:
-                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
+                m._replace_self_with_numpy32(arg0)
+
             elif str_dtype.count('float64')==1:
-                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
-                    m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
-                    m._replace_self_with_numpy(arg0)
-                    if arg0.flags.c_contiguous:
-                        return m
-                    else:
-                        return m.transpose()
-                else:
-                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
+                m._replace_self_with_numpy(arg0)
+
             elif str_dtype.count('complex64')==1:
-                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
-                    m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
-                    m._replace_self_with_numpy32(arg0)
-                    if arg0.flags.c_contiguous:
-                        return m
-                    else:
-                        return m.transpose()
-                else:
-                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
+                m._replace_self_with_numpy32(arg0)
 
             elif str_dtype.count('complex128')==1:
-                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
-                    m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
-                    m._replace_self_with_numpy(arg0)
-                    if arg0.flags.c_contiguous:
-                        return m
-                    else:
-                        return m.transpose()
-                else:
-                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
+                m._replace_self_with_numpy(arg0)
+
+            elif str_dtype.count('int') == 1:
+                m = matrix(ZZ, map(list, list(arg0)))
 
             elif str_dtype.count('object') == 1:
                 #Get the raw nested list from the numpy array
@@ -435,6 +414,11 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
                     raise TypeError("cannot convert numpy matrix to SAGE matrix")
             else:
                 raise TypeError("cannot convert numpy matrix to SAGE matrix")
+
+            if arg0.flags.c_contiguous:
+                return m
+            else:
+                return m.transpose()
 
         else:
             raise TypeError, "unknown matrix constructor format.  Type matrix? for help"

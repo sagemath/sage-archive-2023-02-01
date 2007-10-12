@@ -444,7 +444,7 @@ class BlockingDSage(DSage):
         return d
 
     def eval(self, cmd, globals_=None, job_name=None, timeout=600,
-             async=False):
+             load_files=[], async=False):
         """
         eval evaluates a command
 
@@ -452,6 +452,9 @@ class BlockingDSage(DSage):
         cmd -- the sage command to be evaluated (str)
         globals -- a dict (see help for python's eval method)
         job_name -- an alphanumeric job name
+        timeout -- an upper limit on how long the job runs before the worker
+                   restarts itself
+        load_files -- list of files to load before executing the job
         async -- whether to use the async implementation of the method
 
         """
@@ -464,6 +467,10 @@ class BlockingDSage(DSage):
 
         job = Job(id_=None, code=cmd, name=job_name, username=self.username,
                   timeout=timeout, type_=type_)
+
+        for fname in load_files:
+            if os.path.exists(fname):
+                job.attach_file(fname)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():

@@ -159,6 +159,8 @@ class Worker(object):
             return d
 
         if completed:
+            log.msg('[Worker %s] Finished job %s' % (self.id,
+                                                     self.job.job_id))
             self.restart()
 
         return d
@@ -202,7 +204,7 @@ class Worker(object):
 
         return tmp_job_dir
 
-    def extract_job_data(self, job):
+    def extract_and_load_job_data(self, job):
         """
         Extracts all the data that is in a job object.
 
@@ -220,12 +222,15 @@ class Worker(object):
                         log.msg(msg)
                         continue
                     if kind == 'file':
+                        data = preparse_file(data, magic=True, do_time=False,
+                                             ignore_prompts=False)
                         f = open(var, 'wb')
                         f.write(data)
                         f.close()
                         if self.log_level > 2:
                             msg = 'Extracted %s' % f
                             log.msg(LOG_PREFIX % self.id + msg)
+                        self.sage.eval("execfile('%s')" % var)
                     if kind == 'object':
                         fname = var + '.sobj'
                         if self.log_level > 2:
@@ -301,7 +306,7 @@ except:
             log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
 
         self.tmp_job_dir = self.setup_tmp_dir(job)
-        self.extract_job_data(job)
+        self.extract_and_load_job_data(job)
 
         job_filename = self.write_job_file(job)
 

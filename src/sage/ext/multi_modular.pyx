@@ -379,7 +379,6 @@ cdef class MultiModularBasis_base:
 
         cdef Integer zz
         zz = PY_NEW(Integer)
-        mpz_init_set(zz.value, self.product)
         mpz_set(zz.value, self.half_product)
 
         mpz_clear(u)

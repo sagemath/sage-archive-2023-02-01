@@ -208,12 +208,23 @@ class DistributedSage(object):
                       specified in .sage/dsage/worker.conf
             port -- (integer, default: None) the port that the server
                       listens on for workers.
+            workers -- number of workers to start
+            poll -- rate (in seconds) at which the worker pings the server to
+                    check for new jobs, this value will increase if the server
+                    has no jobs
+            username -- username to use
             blocking -- (bool, default: True) whether or not to make a
                         blocking connection.
-            logfile -- only used if blocking=True; the default is
+            ssl -- (bool, default: True) whether or not to use SSL
+            log_level -- (int, default: 0) int from 0-5, 5 being most verbose
+            anonymous -- (bool, default: False) connect anonymously
+            priority -- (int, default: 20) priority of workers
+            privkey -- private key
+            pubkey -- public key
+            log_file -- only used if blocking=True; the default is
                        to log to $DOT_SAGE/dsage/worker.log
-            poll -- rate at which the worker pings the server to check for new
-                    jobs, this value will increase if the server has no jobs
+            verbose -- be more verbose about launching the workers
+
         """
 
         cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s --poll %s -l %s -f %s ' + \

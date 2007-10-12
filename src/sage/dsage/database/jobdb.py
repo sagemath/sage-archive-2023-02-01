@@ -156,12 +156,14 @@ class JobDatabaseSQLite(JobDatabase):
 
         if anonymous:
             query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0 ORDER BY priority
+                       WHERE status = 'new' AND killed = 0
+                       ORDER BY priority, creation_time
                        LIMIT 1
                     """
         else:
             query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0 ORDER BY priority
+                       WHERE status = 'new' AND killed = 0
+                       ORDER BY priority, creation_time
                        LIMIT 1
                     """
         cur = self.con.cursor()

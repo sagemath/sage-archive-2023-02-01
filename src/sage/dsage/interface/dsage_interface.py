@@ -129,13 +129,14 @@ class DSage(object):
         return passphrase
 
     def _catch_failure(self, failure):
-        from twisted.internet import error
-        if failure.check(error.ConnectionRefusedError):
-            print 'Remote server %s refused the connection.'  % (self.server)
-        else:
-            pass
-            # print "Error: ", failure.getErrorMessage()
-            # print "Traceback: ", failure.printTraceback()
+        print "Error connecting: %s" % failure.getErrorMessage()
+        # from twisted.internet import error
+        # if failure.check(error.ConnectionRefusedError):
+        #     print 'Remote server %s refused the connection.'  % (self.server)
+        # else:
+        #     pass
+        #     # print "Error: ", failure.getErrorMessage()
+        #     # print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
         if self.log_level > 0:

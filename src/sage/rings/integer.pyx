@@ -242,6 +242,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             '3b'
             sage: ZZ( ZZ(5).digits(3) , 3)
             5
+            sage: import numpy
+            sage: ZZ(numpy.int64(7^7))
+            823543
+            sage: ZZ(numpy.ubyte(-7))
+            249
         """
 
         # TODO: All the code below should somehow be in an external
@@ -310,7 +315,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set(self.value, tmp.value)
 
             else:
-                raise TypeError, "unable to coerce element to an integer"
+                import numpy
+                if isinstance(x, numpy.integer):
+                    mpz_set_pylong(self.value, x.__long__())
+                else:
+                    raise TypeError, "unable to coerce element to an integer"
 
 
     def __reduce__(self):

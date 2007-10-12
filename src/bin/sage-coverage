@@ -14,6 +14,7 @@ def functions_without_doctests(file):
     docs  = []
     tests = []
     good  = []
+    possibly_wrong = []
     while True:
         i = file.find('def ')
         if i == -1:
@@ -31,6 +32,7 @@ def functions_without_doctests(file):
                 continue
 
         function_name = ' '.join(file[i:j].lstrip('def').split())
+        bare_function_name = function_name[:function_name.find("(")]
 
         if i > 0 and file[i-1] in ['c', 'e']: # and ('\n' in file[i:j] or '(' not in file[i:j]):
             file = file[i+10:]
@@ -68,15 +70,22 @@ def functions_without_doctests(file):
                     tests.append(function_name)
                 else:
                     good.append(function_name)
+            if not (bare_function_name[0:2] == '__' and
+                    bare_function_name[-2:] == '__'):
+                d = file[q0:q1].find(bare_function_name)
+                e = file[q0:q1].find('indirect doctest')
+                if d == -1 and e == -1:
+                    possibly_wrong.append(function_name)
+
         file = file[j+3:]
     #end while
     #docs.sort()
     #tests.sort()
     #good.sort()
-    return docs, tests, good
+    return docs, tests, good, possibly_wrong
 
 def coverage(filename, file):
-    docs, tests, good = functions_without_doctests(file)
+    docs, tests, good, possibly_wrong = functions_without_doctests(file)
     num_functions = len(good+docs+tests)
     if num_functions == 0:
         print "No functions in %s"%filename
@@ -101,6 +110,10 @@ def coverage(filename, file):
         print "\nMissing documentation:\n\t * %s\n"%('\n\t * '.join(docs))
     if tests:
         print "\nMissing doctests:\n\t * %s\n"%('\n\t * '.join(tests))
+
+    if possibly_wrong:
+        print "\nPossibly wrong (function name doesn't occur in doctests):\n" + \
+              "\t * %s\n"%('\n\t * '.join(possibly_wrong))
 
     print '-'*70
 

@@ -22,7 +22,7 @@ import os
 import datetime
 from glob import glob
 
-from sage.dsage.database.jobdb import DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.job import Job
 
 class JobDatabaseSQLiteTestCase(unittest.TestCase):

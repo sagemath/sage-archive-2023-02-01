@@ -233,6 +233,7 @@ class DocHTMLProcessor(SGMLParser):
         if not self.in_verbatim_div:
             self.unknown_endtag('pre')
 
+
     def start_span(self, attrs):
         count = 0
         for name, value in attrs:

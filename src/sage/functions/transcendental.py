@@ -354,7 +354,8 @@ class PrimePi:
         try:
             return ZZ(pari(x).primepi())
         except PariError:
-            pari.init_primes(pari(x)+1)
+            from sage.rings.integer import Integer
+            pari.init_primes(pari(x)+Integer(1))
             return ZZ(pari(x).primepi())
 
     def plot(self, xmin=0, xmax=100, *args, **kwds):

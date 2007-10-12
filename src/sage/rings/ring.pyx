@@ -758,6 +758,19 @@ cdef class IntegralDomain(CommutativeRing):
         """
         return True
 
+    def is_integrally_closed(self):
+        """
+        Return True if this ring is integrally closed in its field of
+        fractions; otherwise return False.
+
+        When no algorithm is implemented for this, then this
+        function raise a NotImplementedError.
+
+        EXAMPLES:
+
+        """
+        raise NotImplementedError
+
     def is_field(self):
         """
         Return True if this ring is a field.

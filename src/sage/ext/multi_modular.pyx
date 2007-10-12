@@ -73,8 +73,12 @@ cdef class MultiModularBasis_base:
 
     def __dealloc__(self):
         sage_free(self.moduli)
+        for i from 0 <= i < self.n:
+           mpz_clear(self.partial_products[i])
         sage_free(self.partial_products)
         sage_free(self.C)
+        mpz_clear(self.product)
+        mpz_clear(self.half_product)
 
     def __init__(self, height):
         r"""

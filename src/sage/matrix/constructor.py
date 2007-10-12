@@ -23,6 +23,7 @@ import sage.matrix.matrix_space as matrix_space
 from sage.structure.sequence import Sequence
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.integer_ring import ZZ
 
 def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
     """
@@ -216,7 +217,10 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         sage: m=matrix(n)
         sage: n=numpy.array([[numpy.complex(0,1),numpy.complex(0,2)],[3,4]],complex)
         sage: m=matrix(n)
-
+        sage: a = numpy.array([[1,2],[3,4]],'int32')
+        sage: matrix(a)
+        [1 2]
+        [3 4]
 
     TESTS:
         sage: import numpy

@@ -12,6 +12,14 @@ BoolePolyRing* PBRing_construct(void* mem, BoolePolyRing::size_type nvars,
     return new(mem) BoolePolyRing(nvars, order);
 }
 
+CCuddNavigator* PBNavigator_construct(void* mem, const CCuddNavigator &d){
+    return new(mem) CCuddNavigator(d);
+}
+
+BooleSet* PBSet_construct_dd(void* mem, const BooleSet::dd_type &d) {
+    return new(mem) BooleSet(d);
+}
+
 BoolePolynomial* PBPoly_construct_dd(void* mem, const BoolePolyRing::dd_type &d) {
     return new(mem) BoolePolynomial(d);
 }

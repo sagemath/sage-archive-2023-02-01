@@ -21,6 +21,7 @@ include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
 include '../../libs/polybori/decl.pxi'
 
+from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
 
@@ -99,10 +100,62 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             gens = [self(p) for p in gens]
         return BooleanPolynomialIdeal(self, gens)
 
-cdef class BooleanPolynomial(MPolynomial):
+cdef class BooleanMonomial(MonoidElement):
     def __init__(self, parent):
-        PBPoly_construct(&self._P)
-        self._parent = <ParentWithBase>parent
+        PBMonom_construct(&self._M)
+        _parent = <ParentWithBase>parent
+
+    def __dealloc__(self):
+        PBMonom_destruct(&self._M)
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        #FIXME type check?
+        cdef comparecodes res
+
+        res = left._M.compare((<BooleanMonomial>right)._M)
+        if op == 0:
+            return res == less_than
+        elif op == 1:
+            return res == less_or_equal_max
+        elif op == 2:
+            return res == equality
+        elif op == 3:
+            return res != equality
+        elif op == 4:
+            return res == greater_than
+        elif op == 5:
+            return res == greater_or_equal_min
+
+    def __repr__(self):
+        (<BooleanPolynomialRing>self._parent)._R.activate()
+        return str(PBMonom_to_str(&self._M))
+
+    def __hash__(self):
+        return self._M.hash()
+
+cdef inline BooleanMonomial new_BM_from_PBMonom(BooleanPolynomialRing parent,
+                                                            PBMonom juice):
+    """
+    Construct a new BooleanMonomial
+    """
+    cdef BooleanMonomial m
+    m = <BooleanMonomial>PY_NEW(BooleanMonomial)
+    m._M = juice
+    m._parent = parent
+    return m
+
+cdef class BooleanPolynomial(MPolynomial):
+    def __init__(self, val, parent = None):
+        if PY_TYPE_CHECK(val, BooleanPolynomial):
+            PBPoly_construct_pbpoly(&self._P, (<BooleanPolynomial>val)._P)
+            if parent is None:
+                self._parent = (<BooleanPolynomial>val)._parent
+        else:
+            PBPoly_construct(&self._P)
+            self._parent = <ParentWithBase>parent
 
     def __dealloc__(self):
         PBPoly_destruct(&self._P)
@@ -140,8 +193,10 @@ cdef class BooleanPolynomial(MPolynomial):
             return self
         elif exp == 0:
             return self._parent._one_element
-        elif self._P.isConstant():
+        elif self._P.isOne():
             return self
+        elif self._P.isZero():
+            raise ZeroDivisionError
         else:
             raise NotImplementedError, "Negative exponents for non constant polynomials are not implemented."
 
@@ -159,7 +214,7 @@ cdef class BooleanPolynomial(MPolynomial):
     def lm(BooleanPolynomial self):
         """
         """
-        return new_BP_from_PBMonom(self._parent, self._P.lead())
+        return new_BM_from_PBMonom(self._parent, self._P.lead())
 
     def lt(BooleanPolynomial self):
         """
@@ -180,6 +235,28 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         """
         return self._P.isOne()
+
+    def is_constant(BooleanPolynomial self):
+        """
+        """
+        return self._P.isConstant()
+
+    def lm_degree(BooleanPolynomial self):
+        return self._P.lmDeg()
+
+    def __getattr__(self, name):
+        if name == 'diagram':
+            return new_DD_from_PBDD(self._P.diagram())
+        elif name == 'lead':
+            return self.lm
+        elif name == 'constant':
+            return self.is_constant
+        elif name == 'lmDeg':
+            return self.lm_degree
+        elif name == 'navigation':
+            return new_CN_from_PBNavigator(self._P.navigation())
+        else:
+            raise AttributeError, name
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __init__(self, ring, gens=[], coerce=True):
@@ -237,3 +314,70 @@ cdef inline BooleanPolynomial new_BP_from_PBMonom(BooleanPolynomialRing parent, 
     PBPoly_construct_pbmonom(&p._P,juice)
     return p
 
+cdef class DD:
+    def __call__(self):
+        return self
+
+    def __dealloc__(self):
+        PBDD_destruct(&self._D)
+
+cdef inline DD new_DD_from_PBDD(PBDD juice):
+    """
+    Construct a new DD
+    """
+    cdef DD d
+    d = <DD>PY_NEW(DD)
+    d._D = juice
+    return d
+
+cdef class BooleSet:
+    def __init__(self, param = None):
+        if PY_TYPE_CHECK(param, DD):
+            PBSet_construct_dd(&self._S, (<DD>param)._D)
+        else:
+            PBSet_construct(&self._S)
+
+    def __dealloc__(self):
+        PBSet_destruct(&self._S)
+
+    def navigation(self):
+        return new_CN_from_PBNavigator(self._S.navigation())
+
+cdef inline BooleSet new_BS_from_PBSet(PBSet juice):
+    """
+    Construct a new BooleSet
+    """
+    cdef BooleSet s
+    s = <BooleSet>PY_NEW(BooleSet)
+    s._S = juice
+    return s
+
+cdef class CCuddNavigator:
+    def __call__(self):
+        return self
+
+    def __dealloc__(self):
+        PBNavigator_destruct(&self._N)
+
+    def value(self):
+        return self._N.value()
+
+    def elseBranch(self):
+        return new_CN_from_PBNavigator(self._N.elseBranch())
+
+    def thenBranch(self):
+        return new_CN_from_PBNavigator(self._N.thenBranch())
+
+cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice):
+    """
+    Construct a new CCuddNavigator
+    """
+    cdef CCuddNavigator n
+    n = <CCuddNavigator>PY_NEW(CCuddNavigator)
+    n._N = juice
+    return n
+
+def rec_insert(CCuddNavigator n, int ind, CCuddNavigator m):
+    cdef PBSet b
+    b = recursively_insert((<CCuddNavigator>n)._N, ind, (<CCuddNavigator>m)._N)
+    return new_BS_from_PBSet(b)

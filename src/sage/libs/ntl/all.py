@@ -33,14 +33,19 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext as ZZ_pContext
 
 from sage.libs.ntl.ntl_ZZ_p import (
                  ntl_ZZ_p as ZZ_p,
-                 set_ZZ_p_modulus as set_modulus,
-                 ntl_ZZ_p_random as ZZ_p_random )
+                 ntl_ZZ_p_random_element as ZZ_p_random )
 
 from sage.libs.ntl.ntl_ZZX import (
                  ntl_ZZX as ZZX,
                  zero_ZZX, one_ZZX )
 
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX as ZZ_pX
+
+from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext as zz_pContext
+
+from sage.libs.ntl.ntl_lzz_p import ntl_zz_p as zz_p
+
+from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX as zz_pX
 
 from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ as mat_ZZ
 

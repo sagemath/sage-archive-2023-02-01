@@ -1671,7 +1671,6 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
     def __init__(self, parent, val=0, offset=0, check=True):
         CommutativeAlgebraElement.__init__(self, parent)
         if not check:
-            R = parent.base_ring()
             self._f = parent._poly_ring(val, check=False)
             return
         if isinstance(val, SpecialHyperellipticQuotientElement):
@@ -1684,7 +1683,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             val = transpose_list(val)
         self._f = parent._poly_ring(val)
         if offset != 0:
-            self._f = self._f.parent()([a << offset for a in self._f])
+            self._f = self._f.parent()([a << offset for a in self._f], check=False)
 
     def __cmp__(self, other):
       """
@@ -1895,8 +1894,8 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
 #        three_halves = Q.parent().base_ring()(Rational((3,2)))
 #        one_half = Q.parent().base_ring()(Rational((1,2)))
-        three_halves = self.base_ring()._series_ring(Rational((3,2)))
-        one_half     = self.base_ring()._series_ring(Rational((1,2)))
+        three_halves = self.base_ring()._series_ring.base_ring()(Rational((3,2)))
+        one_half     = self.base_ring()._series_ring.base_ring()(Rational((1,2)))
         half_a       = a._rmul_(one_half)
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}

@@ -51,9 +51,9 @@ import operator
 
 
 import integer_mod_ring
-import arith
+## import arith
 import rational
-from sage.libs.all import pari, PariError
+from sage.libs.pari.all import pari, PariError
 import integer_ring
 
 import commutative_ring_element

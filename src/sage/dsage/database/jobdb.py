@@ -203,6 +203,7 @@ class JobDatabaseSQLite(JobDatabase):
                 killed,
                 verifiable,
                 monitor_id,
+                worker_info,
                 cpu_time,
                 wall_time,
                 start_time,
@@ -286,6 +287,8 @@ class JobDatabaseSQLite(JobDatabase):
             # self.con.commit()
 
         for k, v in jdict.iteritems():
+            if k == 'worker_info':
+                v = str(v)
             try:
                 self._update_value(job_id, k, v)
             except (sqlite3.InterfaceError,
@@ -317,6 +320,9 @@ class JobDatabaseSQLite(JobDatabase):
         jdict['killed'] = bool(jdict['killed'])
         jdict['verifiable'] = bool(jdict['verifiable'])
 
+        # Convert worker_info from a str into a dict
+        jdict['worker_info'] = eval(jdict['worker_info'])
+
         # Convert buffer objects back to string
         try:
             jdict['data'] = str(jdict['data'])
@@ -342,6 +348,8 @@ class JobDatabaseSQLite(JobDatabase):
                    verifiable,
                    monitor_id,
                    failures,
+                   worker_info,
+                   priority,
                    update_time
                    FROM jobs
                    WHERE killed = 1 AND status <> 'completed'"""

@@ -304,6 +304,15 @@ class Job(Persistent):
         return locals()
     start_time = property(**start_time())
 
+    def priority():
+        doc = "The priority property."
+        def fget(self):
+            return self.jdict['priority']
+        def fset(self, value):
+            self.jdict['priority'] = value
+        return locals()
+    priority = property(**priority())
+
     def attach(self, var, obj, file_name=None):
         """
         Attaches an object to a job.

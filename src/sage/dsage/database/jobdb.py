@@ -107,7 +107,7 @@ class JobDatabaseSQLite(JobDatabase):
      output TEXT,
      result BLOB,
      status TEXT NOT NULL,
-     priority INTEGER DEFAULT 10,
+     priority INTEGER DEFAULT 5,
      type TEXT,
      failures INTEGER DEFAULT 0,
      creation_time timestamp NOT NULL,
@@ -156,12 +156,12 @@ class JobDatabaseSQLite(JobDatabase):
 
         if anonymous:
             query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0
+                       WHERE status = 'new' AND killed = 0 ORDER BY priority
                        LIMIT 1
                     """
         else:
             query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0
+                       WHERE status = 'new' AND killed = 0 ORDER BY priority
                        LIMIT 1
                     """
         cur = self.con.cursor()
@@ -205,6 +205,7 @@ class JobDatabaseSQLite(JobDatabase):
                 wall_time,
                 start_time,
                 timeout,
+                priority,
                 failures
                 FROM jobs WHERE job_id = ?"""
 

@@ -444,7 +444,7 @@ class BlockingDSage(DSage):
         return d
 
     def eval(self, cmd, globals_=None, job_name=None, timeout=600,
-             load_files=[], async=False):
+             load_files=[], priority=5, async=False):
         """
         eval evaluates a command
 
@@ -455,6 +455,7 @@ class BlockingDSage(DSage):
         timeout -- an upper limit on how long the job runs before the worker
                    restarts itself
         load_files -- list of files to load before executing the job
+        priority -- priority of the job created (0-5)
         async -- whether to use the async implementation of the method
 
         """
@@ -466,7 +467,7 @@ class BlockingDSage(DSage):
         type_ = 'sage'
 
         job = Job(id_=None, code=cmd, name=job_name, username=self.username,
-                  timeout=timeout, type_=type_)
+                  timeout=timeout, priority=priority, type_=type_)
 
         for fname in load_files:
             if os.path.exists(fname):

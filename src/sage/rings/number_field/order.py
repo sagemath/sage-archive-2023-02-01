@@ -5,7 +5,7 @@ AUTHORS:
     -- William Stein and Robert Bradshaw (2007-09): initial version
 """
 
-from sage.rings.ring import CommutativeRing, DedekindDomain
+from sage.rings.ring import IntegralDomain, DedekindDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
@@ -30,7 +30,7 @@ def is_NumberFieldOrder(R):
     """
     return isinstance(R, Order) or R == ZZ
 
-class Order(CommutativeRing):
+class Order(IntegralDomain):
     r"""
     An order in a number field.
 
@@ -124,6 +124,26 @@ class Order(CommutativeRing):
         if self._is_maximal is None:
             self._is_maximal = (self.discriminant() == self._K.discriminant())
         return self._is_maximal
+
+    def is_integrally_closed(self):
+        """
+        Return True if this ring is integrally closed, i.e., is equal
+        to the maximal order.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 189*x + 394)
+            sage: R = K.order(2*a)
+            sage: R.is_integrally_closed()
+            False
+            sage: R
+            Order with module basis 1, 2*a in Number Field in a with defining polynomial x^2 + 189*x + 394
+            sage: S = K.maximal_order(); S
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 189*x + 394
+            sage: S.is_integrally_closed()
+            True
+        """
+        return self.is_maximal()
+
 
     def integral_closure(self):
         """

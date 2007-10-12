@@ -222,6 +222,7 @@ class Worker(object):
                         log.msg(msg)
                         continue
                     if kind == 'file':
+                        import pdb; pdb.set_trace()
                         data = preparse_file(data, magic=True, do_time=False,
                                              ignore_prompts=False)
                         f = open(var, 'wb')

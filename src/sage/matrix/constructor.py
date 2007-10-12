@@ -216,6 +216,42 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         sage: m=matrix(n)
         sage: n=numpy.array([[numpy.complex(0,1),numpy.complex(0,2)],[3,4]],complex)
         sage: m=matrix(n)
+
+
+    TESTS:
+        sage: import numpy
+        sage: a = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float32')
+        sage: matrix(a)
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        [7.0 8.0 9.0]
+        sage: a = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float64')
+        sage: matrix(a)
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        [7.0 8.0 9.0]
+        sage: a = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex64')
+        sage: matrix(a)
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        [7.0 8.0 9.0]
+        sage: a = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex128')
+        sage: matrix(a)
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        [7.0 8.0 9.0]
+
+
+        sage: a = matrix([[1,2],[3,4]])
+        sage: b = matrix(a.numpy()); b
+        [1 2]
+        [3 4]
+        sage: a == b
+        True
+        sage: c = matrix(a.numpy('float32')); c
+        [1.0 2.0]
+        [3.0 4.0]
+
     """
     if hasattr(arg0, '_matrix_'):
         if arg1 is None:
@@ -346,7 +382,19 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
     else:
         import numpy
         if isinstance(arg0,numpy.ndarray):
-            if str(arg0.dtype).count('float')==1:
+            str_dtype = str(arg0.dtype)
+
+            if str_dtype.count('float32')==1:
+                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
+                    m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
+                    m._replace_self_with_numpy32(arg0)
+                    if arg0.flags.c_contiguous:
+                        return m
+                    else:
+                        return m.transpose()
+                else:
+                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+            elif str_dtype.count('float64')==1:
                 if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
                     m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
                     m._replace_self_with_numpy(arg0)
@@ -354,7 +402,20 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
                         return m
                     else:
                         return m.transpose()
-            elif str(arg0.dtype).count('complex')==1:
+                else:
+                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+            elif str_dtype.count('complex64')==1:
+                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
+                    m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
+                    m._replace_self_with_numpy32(arg0)
+                    if arg0.flags.c_contiguous:
+                        return m
+                    else:
+                        return m.transpose()
+                else:
+                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+
+            elif str_dtype.count('complex128')==1:
                 if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
                     m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
                     m._replace_self_with_numpy(arg0)
@@ -362,7 +423,18 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
                         return m
                     else:
                         return m.transpose()
+                else:
+                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
 
+            elif str_dtype.count('object') == 1:
+                #Get the raw nested list from the numpy array
+                #and feed it back into matrix
+                try:
+                    return matrix( map(list, list(arg0)) )
+                except TypeError:
+                    raise TypeError("cannot convert numpy matrix to SAGE matrix")
+            else:
+                raise TypeError("cannot convert numpy matrix to SAGE matrix")
 
         else:
             raise TypeError, "unknown matrix constructor format.  Type matrix? for help"

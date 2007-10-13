@@ -295,8 +295,11 @@ cdef class ntl_ZZ_pE:
         Returns value as ntl_ZZ_pX.
         """
         self.c.restore_c()
-        cdef ntl_ZZ_pX y = ntl_ZZ_pX(v = None, modulus = self.c.pc)
-        y.x = ZZ_pE_to_ZZ_pX(&self.x)[0]
+        cdef ntl_ZZ_pX y = PY_NEW(ntl_ZZ_pX)
+        y.c = self.c.pc
+        _sig_on
+        y.x = ZZ_pE_to_ZZ_pX(self.x)
+        _sig_off
         return y
 
     def get_as_ZZ_pX_doctest(self):
@@ -358,9 +361,9 @@ def make_ZZ_pE(x, c):
 
     EXAMPLES:
     sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
-    sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE(ntl.ZZ_pE, [4,3], c)
+    sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
     [4 3]
-    sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE(ntl.ZZ_pE, [4,3], c))
+    sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
     <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
     """
     return ntl_ZZ_pE(x, c)

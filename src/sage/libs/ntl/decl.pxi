@@ -176,7 +176,8 @@ cdef extern from "ntl_wrap.h":
 
     #### ZZ_pX_c
     ctypedef struct ZZ_pX_c "struct ZZ_pX":
-        pass
+        void *rep
+        void (* SetMaxLength)(long n)
 
     ZZ_pX_c* ZZ_pX_new "New<ZZ_pX>"()
     ZZ_pX_c* ZZ_pX_construct "Construct<ZZ_pX>"(void *mem)
@@ -337,6 +338,189 @@ cdef extern from "ntl_wrap.h":
 
     long NTL_SP_BOUND
     bint NTL_zz_pX_DOUBLE_EQUALS(zz_pX_c x, zz_pX_c y)
+
+
+    #### ZZ_pEContext_c
+    ctypedef struct ZZ_pEContext_c "struct ZZ_pEContext":
+        void (*restore)()
+
+    ZZ_pEContext_c* ZZ_pEContext_new "New<ZZ_pEContext>"()
+    ZZ_pEContext_c* ZZ_pEContext_construct "Construct<ZZ_pEContext>"(void *mem)
+    ZZ_pEContext_c* ZZ_pEContext_new_ZZ_pX "ZZ_pEContext_new"(ZZ_pX_c* p)
+    ZZ_pEContext_c* ZZ_pEContext_construct_ZZ_pX "ZZ_pEContext_construct"(void *mem, ZZ_pX_c* p)
+    void ZZ_pEContext_destruct "Destruct<ZZ_pEContext>"(ZZ_pEContext_c *mem)
+    void ZZ_pEContext_delete "Delete<ZZ_pEContext>"(ZZ_pEContext_c *mem)
+
+    void ZZ_pEContext_restore(ZZ_pEContext_c *c)
+
+    #### ZZ_pE_c
+    ctypedef struct ZZ_pE_c "struct ZZ_pE":
+        pass
+
+    # Some boiler-plate
+    ZZ_pE_c* ZZ_pE_new "New<ZZ_pE>"()
+    ZZ_pE_c* ZZ_pE_construct "Construct<ZZ_pE>"(void *mem)
+    void ZZ_pE_destruct "Destruct<ZZ_pE>"(ZZ_pE_c *mem)
+    void ZZ_pE_delete "Delete<ZZ_pE>"(ZZ_pE_c *mem)
+    void ZZ_pE_from_str "_from_str<ZZ_pE>"(ZZ_pE_c* dest, char* s)
+    object ZZ_pE_to_PyString "_to_PyString<ZZ_pE>"(ZZ_pE_c *x)
+    int ZZ_pE_equal "_equal<ZZ_pE>"(ZZ_pE_c x, ZZ_pE_c y)
+
+    #ZZ_pE_c* str_to_ZZ_pE(char* s)
+    #void del_ZZ_pE(ZZ_pE_c* n)
+    #void ZZ_pE_to_str(char** s, ZZ_pE_c* x)
+    void ZZ_pE_add "add"( ZZ_pE_c x, ZZ_pE_c a, ZZ_pE_c b)
+    void ZZ_pE_add_long "add"( ZZ_pE_c x, ZZ_pE_c a, long b)
+    void ZZ_pE_add_ZZ_p "add"( ZZ_pE_c x, ZZ_pE_c a, ZZ_p_c b)
+    void ZZ_pE_sub "sub"( ZZ_pE_c x, ZZ_pE_c a, ZZ_pE_c b)
+    void ZZ_pE_sub_long "add"( ZZ_pE_c x, ZZ_pE_c a, long b)
+    void ZZ_pE_sub_ZZ_p "sub"( ZZ_pE_c x, ZZ_pE_c a, ZZ_p_c b)
+    void ZZ_pE_mul "mul"( ZZ_pE_c x, ZZ_pE_c a, ZZ_pE_c b)
+    void ZZ_pE_mul_long "mul"( ZZ_pE_c x, ZZ_pE_c a, long b)
+    void ZZ_pE_mul_ZZ_p "mul"( ZZ_pE_c x, ZZ_pE_c a, ZZ_p_c b)
+    void ZZ_pE_negate "negate"(ZZ_pE_c x, ZZ_pE_c a)
+    void ZZ_pE_power "power"(ZZ_pE_c t, ZZ_pE_c x, long e)
+    int ZZ_pE_IsOne "IsOne"(ZZ_pE_c x)
+    int ZZ_pE_IsZero "IsZero"(ZZ_pE_c x)
+    ZZ_pX_c ZZ_pE_rep "rep"(ZZ_pE_c z)
+    #void ntl_ZZ_pE_set_modulus(ZZ_pX_c* x)
+    #int ZZ_pE_eq( ZZ_pE_c* x,  ZZ_pE_c* y)
+    #int ZZ_pE_eq_ZZ_p( ZZ_pE_c* x, ZZ_p_c* y)
+    void ZZ_pE_inv "inv"( ZZ_pE_c x, ZZ_pE_c a) # raises an error if a not invertible
+    void ZZ_pE_div "div"( ZZ_pE_c x, ZZ_pE_c a, ZZ_pE_c b) # raises an error if b not invertible
+    void ZZ_pE_div_ZZ_p "div"( ZZ_pE_c x, ZZ_pE_c a, ZZ_p_c b) # raises an error if b not invertible
+    void ZZ_pE_ZZ_p_div "div"( ZZ_pE_c x, ZZ_p_c a, ZZ_pE_c b) # raises an error if b not invertible
+    void ZZ_pE_random "random"( ZZ_pE_c x)
+    void ZZ_pE_trace "trace"( ZZ_p_c x, ZZ_pE_c a)
+    void ZZ_pE_norm "norm"( ZZ_p_c x, ZZ_pE_c a)
+
+    ZZ_pE_c long_to_ZZ_pE "to_ZZ_pE"(long i)
+    ZZ_pE_c ZZ_to_ZZ_pE "to_ZZ_pE"(ZZ_c i)
+    ZZ_pE_c ZZ_p_to_ZZ_pE "to_ZZ_pE"(ZZ_p_c i)
+    ZZ_pE_c ZZ_pX_to_ZZ_pE "to_ZZ_pE"(ZZ_pX_c i)
+    ZZ_pX_c ZZ_pE_to_ZZ_pX(ZZ_pE_c x)
+
+    #ZZ_pX_c rep(ZZ_pE_c x)
+
+    #### vec_ZZ_pE_c
+    ctypedef struct vec_ZZ_pE_c "struct vec_ZZ_pE":
+        pass
+
+    #### ZZ_pEX_c
+    ctypedef struct ZZ_pEX_c "struct ZZ_pEX":
+        void *rep
+        void (* SetMaxLength)(long n)
+
+    ZZ_pEX_c* ZZ_pEX_new "New<ZZ_pEX>"()
+    ZZ_pEX_c* ZZ_pEX_construct "Construct<ZZ_pEX>"(void *mem)
+    void ZZ_pEX_destruct "Destruct<ZZ_pEX>"(ZZ_pEX_c *mem)
+    void ZZ_pEX_delete "Delete<ZZ_pEX>"(ZZ_pEX_c *mem)
+    void ZZ_pEX_from_str "_from_str<ZZ_pEX>"(ZZ_pEX_c* dest, char* s)
+    object ZZ_pEX_to_PyString "_to_PyString<ZZ_pEX>"(ZZ_pEX_c *x)
+    int ZZ_pEX_equal "_equal<ZZX>"(ZZ_pEX_c x, ZZ_pEX_c y)
+
+    #ZZ_pEX_c* str_to_ZZ_pEX(char* s)
+    #char* ZZ_pEX_to_str(ZZ_pEX_c* x)
+
+    long ZZ_pEX_equal "operator=="(ZZ_pEX_c a, ZZ_pEX_c b)
+    long ZZ_pEX_IsZero "IsZero"(ZZ_pEX_c a)
+    long ZZ_pEX_IsOne "IsOne"(ZZ_pEX_c a)
+
+    void ZZ_pEX_add "add"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_add_ZZ_p "add"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_p_c b)
+    void ZZ_pEX_add_ZZ_pE "add"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pE_c b)
+    void ZZ_pEX_sub "sub"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_sub_ZZ_p "sub"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_p_c b)
+    void ZZ_pEX_sub_ZZ_pE "sub"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pE_c b)
+    void ZZ_pEX_negate "negate"(ZZ_pEX_c x, ZZ_pEX_c a)
+
+    void ZZ_pEX_mul "mul"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_mul_long "mul"( ZZ_pEX_c x, ZZ_pEX_c a, long b)
+    void ZZ_pEX_mul_ZZ_p "mul"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_p_c b)
+    void ZZ_pEX_mul_ZZ_pE "mul"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pE_c b)
+    void ZZ_pEX_sqr "sqr"( ZZ_pEX_c x, ZZ_pEX_c a)
+    void ZZ_pEX_power "power"( ZZ_pEX_c x, ZZ_pEX_c a, long e)
+
+    void ZZ_pEX_LeftShift "LeftShift"(ZZ_pEX_c x, ZZ_pEX_c a, long n)
+    void ZZ_pEX_RightShift "RightShift"(ZZ_pEX_c x, ZZ_pEX_c a, long n)
+
+    void ZZ_pEX_DivRem "DivRem"(ZZ_pEX_c q, ZZ_pEX_c r, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_div_ZZ_pEX "div"(ZZ_pEX_c q, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_div_ZZ_pE "div"(ZZ_pEX_c q, ZZ_pEX_c a, ZZ_pE_c b)
+    void ZZ_pEX_div_ZZ_p "div"(ZZ_pEX_c q, ZZ_pEX_c a, ZZ_p_c b)
+    void ZZ_pEX_div_long "div"( ZZ_pEX_c x, ZZ_pEX_c a, long b)
+    void ZZ_pEX_rem "rem"(ZZ_pEX_c r, ZZ_pEX_c a, ZZ_pEX_c b)
+    long ZZ_pEX_divide "divide"( ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b)
+
+    void ZZ_pEX_GCD "GCD"(ZZ_pEX_c r, ZZ_pEX_c a, ZZ_pEX_c b)
+    void ZZ_pEX_XGCD "XGCD"(ZZ_pEX_c d, ZZ_pEX_c s, ZZ_pEX_c t, ZZ_pEX_c a, ZZ_pEX_c b)
+
+    long ZZ_pEX_deg "deg"( ZZ_pEX_c x )
+    ZZ_pE_c ZZ_pEX_coeff "coeff"(ZZ_pEX_c a, long i)
+    ZZ_pE_c ZZ_pEX_LeadCoeff "LeadCoeff"(ZZ_pEX_c a)
+    void ZZ_pEX_SetCoeff "SetCoeff"(ZZ_pEX_c x, long i, ZZ_pE_c a)
+    void ZZ_pEX_SetCoeff_ZZ_p "SetCoeff"(ZZ_pEX_c x, long i, ZZ_p_c a)
+    void ZZ_pEX_SetCoeff_long "SetCoeff"(ZZ_pEX_c x, long i, long a)
+    void ZZ_pEX_SetCoeff_one "SetCoeff"(ZZ_pEX_c x, long i)
+    void ZZ_pEX_SetX "SetX"(ZZ_pEX_c x)
+    long ZZ_pEX_IsX "IsX"(ZZ_pEX_c x)
+    void ZZ_pEX_diff "diff"(ZZ_pEX_c x, ZZ_pEX_c a)
+    void ZZ_pEX_MakeMonic "MakeMonic"(ZZ_pEX_c x)
+    void ZZ_pEX_reverse_hi "reverse"(ZZ_pEX_c x, ZZ_pEX_c a, long hi)
+    void ZZ_pEX_reverse "reverse"(ZZ_pEX_c x, ZZ_pEX_c a)
+
+    void ZZ_pEX_random "random"(ZZ_pEX_c x, long n)
+
+    void ZZ_pEX_BuildFromRoots "BuildFromRoots"(ZZ_pEX_c x, vec_ZZ_pE_c a)
+    void ZZ_pEX_eval "eval"(ZZ_pE_c b, ZZ_pEX_c f, ZZ_pE_c a)
+    void ZZ_pEX_eval_vec "eval"(vec_ZZ_pE_c b, ZZ_pEX_c f, vec_ZZ_pE_c a)
+    void ZZ_pEX_interpolate "interpolate"(ZZ_pEX_c f, vec_ZZ_pE_c a, vec_ZZ_pE_c b)
+
+    void ZZ_pEX_trunc "trunc"(ZZ_pEX_c x, ZZ_pEX_c a, long n)
+    void ZZ_pEX_MulTrunc "MulTrunc"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b, long n)
+    void ZZ_pEX_SqrTrunc "SqrTrunc"(ZZ_pEX_c x, ZZ_pEX_c a, long n)
+    void ZZ_pEX_InvTrunc "InvTrunc"(ZZ_pEX_c x, ZZ_pEX_c a, long n)
+
+    void ZZ_pEX_MulMod "MulMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b, ZZ_pEX_c f)
+    void ZZ_pEX_SqrMod "SqrMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+    void ZZ_pEX_MulByXMod "MulByXMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+    void ZZ_pEX_InvMod "InvMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+    long ZZ_pEX_InvModStatus "InvModStatus"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+
+    ctypedef struct ZZ_pEX_Modulus_c "struct ZZ_pEXModulus":
+        pass
+    ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_new "New<ZZ_pEXModulus>"()
+    ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_construct "Construct<ZZ_pEXModulus>"(void *mem)
+    void ZZ_pEX_Modulus_destruct "Destruct<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c *mem)
+    void ZZ_pEX_Modulus_delete "Delete<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c *mem)
+    void ZZ_pEX_Modulus_from_str "_from_str<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c* dest, char* s)
+    void ZZ_pEX_Modulus_build "build"(ZZ_pEX_Modulus_c F, ZZ_pEX_c f)
+    long ZZ_pEX_Modulus_deg "deg"(ZZ_pEX_Modulus_c F)
+
+    void ZZ_pEX_MulMod_pre "MulMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c b, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_SqrMod_pre "SqrMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_PowerMod_pre "PowerMod"(ZZ_pEX_c x, ZZ_pEX_c a, long e, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_PowerMod_ZZ_pre "PowerMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_c e, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_PowerXMod_pre "PowerXMod"(ZZ_pEX_c x, long e, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_PowerXMod_ZZ_pre "PowerXMod"(ZZ_pEX_c x, ZZ_c e, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_rem_pre "rem"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_DivRem_pre "DivRem"(ZZ_pEX_c q, ZZ_pEX_c r, ZZ_pEX_c a, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_div_pre "div"(ZZ_pEX_c q, ZZ_pEX_c a, ZZ_pEX_Modulus_c F)
+
+    void ZZ_pEX_MinPolyMod "MinPolyMod"(ZZ_pEX_c h, ZZ_pEX_c g, ZZ_pEX_c f)
+    void ZZ_pEX_MinPolyMod_pre "MinPolyMod"(ZZ_pEX_c h, ZZ_pEX_c g, ZZ_pEX_Modulus_c F)
+
+    void ZZ_pEX_TraceMod "TraceMod"(ZZ_pE_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+    void ZZ_pEX_TraceMod_pre "TraceMod"(ZZ_pE_c x, ZZ_pEX_c a, ZZ_pEX_Modulus_c F)
+    void ZZ_pEX_TraceVec "TraceVec"(vec_ZZ_pE_c x, ZZ_pEX_c f)
+    void ZZ_pEX_NormMod "NormMod"(ZZ_pE_c x, ZZ_pEX_c a, ZZ_pEX_c f)
+    void ZZ_pEX_resultant "resultant"(ZZ_pE_c x, ZZ_pEX_c a, ZZ_pEX_c b)
+
+    void ZZ_pEX_clear "clear"(ZZ_pEX_c x)
+    void ZZ_pEX_set "set"(ZZ_pEX_c x)
+
+
+
 
     #### mat_ZZ_c
     ctypedef struct mat_ZZ_c "struct mat_ZZ":

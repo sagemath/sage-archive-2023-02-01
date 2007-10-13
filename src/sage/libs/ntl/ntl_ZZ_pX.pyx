@@ -61,7 +61,7 @@ cdef class ntl_ZZ_pX:
     or Karatsuba algorithms.
     """
     # See ntl_ZZ_pX.pxd for definition of data members
-    def __init__(self, v, modulus):
+    def __init__(self, v = None, modulus = None):
         """
         EXAMPLES:
             sage: c = ntl.ZZ_pContext(ntl.ZZ(20))
@@ -76,14 +76,10 @@ cdef class ntl_ZZ_pX:
             sage: g[10]
             5
         """
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
-            self.c = <ntl_ZZ_pContext_class>modulus
-        elif modulus is not None:
-            self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(ntl_ZZ(modulus))
-        else:
+        if modulus is None:
             raise ValueError, "You must specify a modulus when creating a ZZ_pX."
 
-        self.c.restore_c()
+        #self.c.restore_c()  ## the context was restored in __new__
 
         cdef ntl_ZZ_p cc
         cdef Py_ssize_t i
@@ -96,14 +92,37 @@ cdef class ntl_ZZ_pX:
                 else:
                     cc = x
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
-        else:
+        elif v is not None:
             s = str(v).replace(',',' ').replace('L','')
             _sig_on
             ZZ_pX_from_str(&self.x, s)
             _sig_off
 
     def __new__(self, v=None, modulus=None):
-        ZZ_pX_construct(&self.x)
+        #################### WARNING ###################
+        ## Before creating a ZZ_pX, you must create a ##
+        ## ZZ_pContext, and restore it.  In Python,   ##
+        ## the error checking in __init__ will prevent##
+        ## you from constructing an ntl_ZZ_p          ##
+        ## inappropriately.  However, from Cython, you##
+        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## first restoring a ZZ_pContext, which could ##
+        ## have unfortunate consequences.  See _new   ##
+        ## defined below for an example of the right  ##
+        ## way to short-circuit __init__ (or just call##
+        ## _new in your own code).                    ##
+        ################################################
+        if modulus is None:
+            ZZ_pX_construct(&self.x)
+            return
+        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+            self.c = <ntl_ZZ_pContext_class>modulus
+            self.c.restore_c()
+            ZZ_pX_construct(&self.x)
+        elif modulus is not None:
+            self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(ntl_ZZ(modulus))
+            self.c.restore_c()
+            ZZ_pX_construct(&self.x)
 
     def __dealloc__(self):
         if <object>self.c is not None:
@@ -112,7 +131,9 @@ cdef class ntl_ZZ_pX:
 
     cdef ntl_ZZ_pX _new(self):
         cdef ntl_ZZ_pX r
+        self.c.restore_c()
         r = PY_NEW(ntl_ZZ_pX)
+        ZZ_pX_construct(&r.x)
         r.c = self.c
         return r
 
@@ -151,6 +172,8 @@ cdef class ntl_ZZ_pX:
             True
             sage: x is y
             False
+            sage: x[0] = 4; y
+            [0 5 8]
         """
         cdef ntl_ZZ_pX r = self._new()
         self.c.restore_c()
@@ -168,6 +191,8 @@ cdef class ntl_ZZ_pX:
             True
             sage: x is y
             False
+            sage: x[0] = 4; y
+            [0 5 8]
         """
         return self.__copy__()
 
@@ -223,13 +248,12 @@ cdef class ntl_ZZ_pX:
 
     def __getitem__(self, unsigned int i):
         r"""
-        This method exists solely for automated testing of setitem_from_int().
+        Returns the ith entry of self.
 
         sage: c = ntl.ZZ_pContext(20)
         sage: x = ntl.ZZ_pX([2, 3, 4], c)
-        sage: x._setitem_from_int_doctest(5, 42)
-        sage: x
-         [2 3 4 0 0 2]
+        sage: x[1]
+        3
         """
         cdef ntl_ZZ_p r
         r = PY_NEW(ntl_ZZ_p)
@@ -378,10 +402,12 @@ cdef class ntl_ZZ_pX:
 
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
-        Given polynomials a, b in ZZ[X], there exist polynomials q, r
-        in QQ[X] such that a = b*q + r, deg(r) < deg(b).  This
-        function returns q if q lies in ZZ[X], and otherwise raises an
-        Exception.
+        Given polynomials a, b in ZZ_p[X], if p is prime, then there exist polynomials q, r
+        in ZZ_p[X] such that a = b*q + r, deg(r) < deg(b).  This
+        function returns r.
+
+        If p is not prime this function may raise a RuntimeError due to division by a noninvertible
+        element of ZZ_p.
 
         EXAMPLES:
             sage: c = ntl.ZZ_pContext(ntl.ZZ(17))

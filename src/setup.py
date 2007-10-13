@@ -130,6 +130,21 @@ ntl_ZZ_pX = Extension('sage.libs.ntl.ntl_ZZ_pX',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_ZZ_pEContext = Extension('sage.libs.ntl.ntl_ZZ_pEContext',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pE = Extension('sage.libs.ntl.ntl_ZZ_pE',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pE.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pEX = Extension('sage.libs.ntl.ntl_ZZ_pEX',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEX.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
 ntl_lzz_pContext = Extension('sage.libs.ntl.ntl_lzz_pContext',
                  sources = ["sage/libs/ntl/ntl_lzz_pContext.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
@@ -417,6 +432,9 @@ ext_modules = [ \
     ntl_ZZ_pContext,
     ntl_ZZ_p,
     ntl_ZZ_pX,
+    ntl_ZZ_pEContext,
+    ntl_ZZ_pE,
+    ntl_ZZ_pEX,
     ntl_lzz_pContext,
     ntl_lzz_p,
     ntl_lzz_pX,
@@ -590,6 +608,9 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfi.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
+    #Extension('sage.rings.residue_field',
+    #          sources = ['sage/rings/residue_field.pyx']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
@@ -694,6 +715,12 @@ ext_modules = [ \
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
+
+    #Extension('sage.rings.morphism',
+    #          sources = ['sage/rings/morphism.pyx']),
+
+    #Extension('sage.structure.wrapper_parent',
+    #          sources = ['sage/structure/wrapper_parent.pyx']), \
 
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \

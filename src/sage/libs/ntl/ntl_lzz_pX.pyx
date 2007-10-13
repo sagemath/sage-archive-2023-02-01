@@ -79,31 +79,19 @@ cdef class ntl_zz_pX:
             sage: f = ntl.zz_pX([10^30+1, 10^50+1], 100); f
             [1, 1]
         """
+        if modulus is None:
+            raise ValueError, "You must specify a modulus."
+
         cdef long n
         cdef Py_ssize_t i
         cdef long temp
 
-        if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
-            self.c = <ntl_zz_pContext_class>modulus
-            p_sage = Integer(self.c.p)
-        elif PY_TYPE_CHECK( modulus, Integer ):
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+        if PY_TYPE_CHECK(modulus, Integer):
             p_sage = modulus
-        elif PY_TYPE_CHECK( modulus, long ):
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
-            p_sage = Integer(self.c.p)
-        elif modulus is None:
-            raise ValueError, "You must specify a modulus."
         else:
-            try:
-                modulus = long(modulus)
-            except:
-                raise ValueError, "%s (type %s) is not a valid modulus." % (modulus, type(modulus))
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
 
-        ## now that we've determined the modulus, set that modulus.
-        self.c.restore_c()
+        #self.c.restore_c() ## We did this in __new__
 
         n = len(ls)
         if (n == 0):
@@ -145,6 +133,45 @@ cdef class ntl_zz_pX:
                 zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
 
         return
+
+    def __new__(self, v=None, modulus=None):
+        #################### WARNING ###################
+        ## Before creating a zz_pX, you must create a ##
+        ## zz_pContext, and restore it.  In Python,   ##
+        ## the error checking in __init__ will prevent##
+        ## you from constructing a zz_pX              ##
+        ## inappropriately.  However, from Cython, you##
+        ## could do r = PY_NEW(ntl_zz_pX) without     ##
+        ## first restoring a zz_pContext, which could ##
+        ## have unforetunate consequences.  See _new  ##
+        ## defined below for an example of the right  ##
+        ## way to short-circuit __init__ (or just call##
+        ## _new in your own code).                    ##
+        ################################################
+        if modulus is None:
+            zz_pX_construct(&self.x)
+            return
+        if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
+            self.c = <ntl_zz_pContext_class>modulus
+        elif PY_TYPE_CHECK( modulus, Integer ):
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+        elif PY_TYPE_CHECK( modulus, long ):
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+        else:
+            try:
+                modulus = int(modulus)
+            except:
+                raise ValueError, "%s is not a valid modulus."%modulus
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+
+        ## now that we've determined the modulus, set that modulus.
+        self.c.restore_c()
+        zz_pX_construct(&self.x)
+
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        zz_pX_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -229,14 +256,6 @@ cdef class ntl_zz_pX:
         y = PY_NEW(ntl_zz_pX)
         y.c = self.c
         return y
-
-    def __new__(self, v=None, modulus=None):
-        zz_pX_construct(&self.x)
-
-    def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
-        zz_pX_destruct(&self.x)
 
     def __add__(ntl_zz_pX self, other):
         """

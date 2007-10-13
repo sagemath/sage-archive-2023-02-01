@@ -68,6 +68,17 @@ cdef class ntl_ZZ_pContext_class:
         """
         return ntl_ZZ_pContext, (self.p,)
 
+    def __repr__(self):
+        """
+        Returns a print representation of self.
+
+        EXAMPLES:
+        sage: c = ntl.ZZ_pContext(7)
+        sage: c
+        NTL modulus 7
+        """
+        return "NTL modulus %s"%(self.p)
+
     def modulus(self):
         """
         Return the current modulus associated to this

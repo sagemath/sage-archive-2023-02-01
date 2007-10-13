@@ -89,14 +89,10 @@ cdef class ntl_ZZ_p:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
-            self.c = <ntl_ZZ_pContext_class>modulus
-        elif modulus is not None:
-            self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(ntl_ZZ(modulus))
-        else:
+        if modulus is None:
             raise ValueError, "You must specify a modulus when creating a ZZ_p."
 
-        self.c.restore_c()
+        #self.c.restore_c()  ## The context was restored in __new__
 
         cdef ZZ_c temp
         if v is not None:
@@ -117,7 +113,30 @@ cdef class ntl_ZZ_p:
             _sig_off
 
     def __new__(self, v=None, modulus=None):
-        ZZ_p_construct(&self.x)
+        #################### WARNING ###################
+        ## Before creating a ZZ_p, you must create a  ##
+        ## ZZ_pContext, and restore it.  In Python,   ##
+        ## the error checking in __init__ will prevent##
+        ## you from constructing an ntl_ZZ_p          ##
+        ## inappropriately.  However, from Cython, you##
+        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## first restoring a ZZ_pContext, which could ##
+        ## have unforetunate consequences.  See _new  ##
+        ## defined below for an example of the right  ##
+        ## way to short-circuit __init__ (or just call##
+        ## _new in your own code).                    ##
+        ################################################
+        if modulus is None:
+            ZZ_p_construct(&self.x)
+            return
+        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+            self.c = <ntl_ZZ_pContext_class>modulus
+            self.c.restore_c()
+            ZZ_p_construct(&self.x)
+        elif modulus is not None:
+            self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(modulus)
+            self.c.restore_c()
+            ZZ_p_construct(&self.x)
 
     def __dealloc__(self):
         if <object>self.c is not None:
@@ -126,6 +145,7 @@ cdef class ntl_ZZ_p:
 
     cdef ntl_ZZ_p _new(self):
         cdef ntl_ZZ_p r
+        self.c.restore_c()
         r = PY_NEW(ntl_ZZ_p)
         r.c = self.c
         return r

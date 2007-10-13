@@ -72,29 +72,17 @@ cdef class ntl_zz_p:
             sage: g = ntl.zz_p(2,7) ; g
             2
         """
-        cdef long temp
-
-        if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
-            self.c = <ntl_zz_pContext_class>modulus
-            p_sage = Integer(self.c.p)
-        elif PY_TYPE_CHECK( modulus, Integer ):
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
-            p_sage = modulus
-        elif PY_TYPE_CHECK( modulus, long ):
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
-            p_sage = Integer(self.c.p)
-        elif modulus is None:
+        if modulus is None:
             raise ValueError, "You must specify a modulus."
+
+        cdef long temp
+        if PY_TYPE_CHECK(modulus, Integer):
+            p_sage = modulus
         else:
-            try:
-                modulus = int(modulus)
-            except:
-                raise ValueError, "%s is not a valid modulus."%modulus
-            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
             p_sage = Integer(self.c.p)
 
-        ## now that we've determined the modulus, set that modulus.
-        self.c.restore_c()
+
+        #self.c.restore_c()   ## This was done in __new__
 
         if PY_TYPE_CHECK(a, IntegerMod_int):
             if (self.c.p == (<IntegerMod_int>a).__modulus.int32): ## this is slow
@@ -130,6 +118,45 @@ cdef class ntl_zz_p:
 
         return
 
+    def __new__(self, v=None, modulus=None):
+        #################### WARNING ###################
+        ## Before creating a zz_p, you must create a  ##
+        ## zz_pContext, and restore it.  In Python,   ##
+        ## the error checking in __init__ will prevent##
+        ## you from constructing a zz_p               ##
+        ## inappropriately.  However, from Cython, you##
+        ## could do r = PY_NEW(ntl_zz_p) without      ##
+        ## first restoring a zz_pContext, which could ##
+        ## have unforetunate consequences.  See _new  ##
+        ## defined below for an example of the right  ##
+        ## way to short-circuit __init__ (or just call##
+        ## _new in your own code).                    ##
+        ################################################
+        if modulus is None:
+            zz_p_construct(&self.x)
+            return
+        if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
+            self.c = <ntl_zz_pContext_class>modulus
+        elif PY_TYPE_CHECK( modulus, Integer ):
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+        elif PY_TYPE_CHECK( modulus, long ):
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+        else:
+            try:
+                modulus = int(modulus)
+            except:
+                raise ValueError, "%s is not a valid modulus."%modulus
+            self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
+
+        ## now that we've determined the modulus, set that modulus.
+        self.c.restore_c()
+        zz_p_construct(&self.x)
+
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        zz_p_destruct(&self.x)
+
     cdef ntl_zz_p _new(self):
         """
         Quick and dirty zz_p object creation.
@@ -139,17 +166,10 @@ cdef class ntl_zz_p:
             sage: y = x*x ## indirect doctest
         """
         cdef ntl_zz_p y
+        self.c.restore_c()
         y = PY_NEW(ntl_zz_p)
         y.c = self.c
         return y
-
-    def __new__(self, v=None, modulus=None):
-        zz_p_construct(&self.x)
-
-    def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
-        zz_p_destruct(&self.x)
 
     def __reduce__(self):
         """

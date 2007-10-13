@@ -3,6 +3,10 @@
 #include <NTL/ZZX.h>
 #include <NTL/ZZ_pXFactoring.h>
 #include <NTL/ZZXFactoring.h>
+#include <NTL/ZZ_p.h>
+#include <NTL/ZZ_pX.h>
+#include <NTL/ZZ_pE.h>
+#include <NTL/ZZ_pEX.h>
 #include <NTL/lzz_p.h>
 #include <NTL/lzz_pX.h>
 #include <NTL/mat_ZZ.h>
@@ -26,7 +30,6 @@ using namespace NTL;
 #include "ccobject.h"
 
 EXTERN void del_charstar(char*);
-
 
 ////////  ZZ //////////
 
@@ -198,6 +201,29 @@ struct zz_pX;
 #define NTL_zz_pX_DOUBLE_EQUALS( obj1, obj2 )\
         (obj1) == (obj2)
 
+//////// ZZ_pEContext ///////////////
+
+#ifndef __cplusplus
+struct ZZ_pEContext;
+#endif
+
+EXTERN struct ZZ_pEContext* ZZ_pEContext_new(struct ZZ_pX *f);
+EXTERN struct ZZ_pEContext* ZZ_pEContext_construct(void* mem, struct ZZ_pX *f);
+EXTERN void ZZ_pEContext_restore(struct ZZ_pEContext* ctx);
+
+//////// ZZ_pE ////////////
+
+#ifndef __cplusplus
+struct ZZ_pE;
+#endif
+
+EXTERN struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x);
+
+//////// ZZ_pEX /////////
+
+#ifndef __cplusplus
+struct ZZ_pEX;
+#endif
 
 //////// mat_ZZ //////////
 

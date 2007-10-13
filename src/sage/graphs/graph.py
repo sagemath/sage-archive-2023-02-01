@@ -2068,6 +2068,81 @@ class GenericGraph(SageObject):
             G = Graph(networkx.complement(self._nxg), pos=self._pos)
             return G
 
+
+    def line_graph(self):
+        """
+        Returns the line graph of the (di)graph.
+
+        The line graph of an undirected graph G is an undirected graph
+        H such that the vertices of H are the edges of G and two
+        vertices e and f of H are adjacent if e and f share a common
+        vertex in G.  In other words, an edge in H represents a path
+        of length 2 in G.
+
+        The line graph of a directed graph G is a directed graph H
+        such that the vertices of H are the edges of G and two
+        vertices e and f of H are adjacent if e and f share a common
+        vertex in G and the terminal vertex of e is the initial vertex
+        of f.  In other words, an edge in H represents a (directed)
+        path of length 2 in G.
+
+
+        EXAMPLE:
+            sage: g=graphs.CompleteGraph(4)
+            sage: h=g.line_graph()
+            sage: h.vertices()
+            [(0, 1, None),
+            (0, 2, None),
+            (0, 3, None),
+            (1, 2, None),
+            (1, 3, None),
+            (2, 3, None)]
+            sage: h.am()
+            [0 1 1 1 1 0]
+            [1 0 1 1 0 1]
+            [1 1 0 0 1 1]
+            [1 1 0 0 1 1]
+            [1 0 1 1 0 1]
+            [0 1 1 1 1 0]
+            sage: g=DiGraph([[1..4],lambda i,j: i<j])
+            sage: h=g.line_graph()
+            sage: h.vertices()
+            [(1, 2, None),
+            (1, 3, None),
+            (1, 4, None),
+            (2, 3, None),
+            (2, 4, None),
+            (3, 4, None)]
+            sage: h.edges()
+            [((2, 3, None), (3, 4, None), None),
+            ((1, 2, None), (2, 4, None), None),
+            ((1, 2, None), (2, 3, None), None),
+            ((1, 3, None), (3, 4, None), None)]
+
+        """
+        if self.is_directed():
+            G=DiGraph()
+            G.add_vertices(self.edges())
+            for v in self:
+                # Connect appropriate incident edges of the vertex v
+                G.add_edges([(e,f) for e in self.incoming_edge_iterator(v) \
+                             for f in self.edge_iterator(v)])
+            return G
+        else:
+            G=Graph()
+            # We must sort the edges' endpoints so that (1,2,None) is
+            # seen as the same edge as (2,1,None).
+            elist=[(min(i[0:2]),max(i[0:2]),i[2])
+                   for i in self.edge_iterator()]
+            G.add_vertices(elist)
+            for v in self:
+                elist=[(min(i[0:2]),max(i[0:2]),i[2])
+                       for i in self.edge_iterator(v)]
+                G.add_edges([(e, f) for e in elist for f in elist])
+            return G
+
+
+
     def disjoint_union(self, other):
         """
         Returns the disjoint union of self and other.
@@ -2790,13 +2865,52 @@ class Graph(GenericGraph):
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
         Graph on 5 vertices
 
-    5. A numpy matrix or ndarray:
+    5. A list of vertices and a function describing adjacencies.  Note
+       that the list of vertices and the function must be enclosed in
+       a list (i.e., [list of vertices, function]).
+
+       Construct the Paley graph over GF(13).
+
+        sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()])
+        sage: g.vertices()
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        sage: g.adjacency_matrix()
+        [0 1 0 1 1 0 0 0 0 1 1 0 1]
+        [1 0 1 0 1 1 0 0 0 0 1 1 0]
+        [0 1 0 1 0 1 1 0 0 0 0 1 1]
+        [1 0 1 0 1 0 1 1 0 0 0 0 1]
+        [1 1 0 1 0 1 0 1 1 0 0 0 0]
+        [0 1 1 0 1 0 1 0 1 1 0 0 0]
+        [0 0 1 1 0 1 0 1 0 1 1 0 0]
+        [0 0 0 1 1 0 1 0 1 0 1 1 0]
+        [0 0 0 0 1 1 0 1 0 1 0 1 1]
+        [1 0 0 0 0 1 1 0 1 0 1 0 1]
+        [1 1 0 0 0 0 1 1 0 1 0 1 0]
+        [0 1 1 0 0 0 0 1 1 0 1 0 1]
+        [1 0 1 1 0 0 0 0 1 1 0 1 0]
+
+       Construct the line graph of a complete graph.
+
+        sage: g=graphs.CompleteGraph(4)
+        sage: line_graph=Graph([g.edges(labels=false), \
+                 lambda i,j: len(set(i).intersection(set(j)))>0])
+        sage: line_graph.vertices()
+        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+        sage: line_graph.adjacency_matrix()
+        [0 1 1 1 1 0]
+        [1 0 1 1 0 1]
+        [1 1 0 0 1 1]
+        [1 1 0 0 1 1]
+        [1 0 1 1 0 1]
+        [0 1 1 1 1 0]
+
+    6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
         sage: Graph(A)
         Graph on 3 vertices
 
-    6. A graph6 or sparse6 string:
+    7. A graph6 or sparse6 string:
     SAGE automatically recognizes whether a string is in graph6 or sage6 format:
 
         sage: s = ':I`AKGsaOs`cI]Gb~'
@@ -2809,7 +2923,7 @@ class Graph(GenericGraph):
         sage: graphs_list.from_sparse6(s)
         [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
-    7. A SAGE matrix:
+    8. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
@@ -2868,6 +2982,9 @@ class Graph(GenericGraph):
                 self._nxg = data
             elif isinstance(data, networkx.Graph):
                 self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
+            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
+                # Pass XGraph a dict of lists describing the adjacencies
+                self._nxg = networkx.XGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
             else:
                 self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
         if format == 'graph6':
@@ -4824,13 +4941,38 @@ class DiGraph(GenericGraph):
         sage: g = DiGraph({0:[1,2,3], 2:[5]}); g
         Digraph on 5 vertices
 
-    5. A numpy matrix or ndarray:
+    5. A list of vertices and a function describing adjacencies.  Note
+       that the list of vertices and the function must be enclosed in
+       a list (i.e., [list of vertices, function]).
+
+       We construct a graph on the integers 1 through 12 such that
+       there is a directed edge from i to j if and only if i divides j.
+
+        sage: g=DiGraph([[1..12],lambda i,j: i!=j and i.divides(j)])
+        sage: g.vertices()
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        sage: g.adjacency_matrix()
+        [0 1 1 1 1 1 1 1 1 1 1 1]
+        [0 0 0 1 0 1 0 1 0 1 0 1]
+        [0 0 0 0 0 1 0 0 1 0 0 1]
+        [0 0 0 0 0 0 0 1 0 0 0 1]
+        [0 0 0 0 0 0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 1]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+
+
+    6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
         sage: DiGraph(A)
         Digraph on 3 vertices
 
-    6. A SAGE matrix:
+    7. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
@@ -4876,6 +5018,9 @@ class DiGraph(GenericGraph):
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
             elif isinstance(data, str):
                 format = 'dig6'
+            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
+                # Pass XGraph a dict of lists describing the adjacencies
+                self._nxg = networkx.XDiGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
             else:
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
         if format == 'adjacency_matrix':

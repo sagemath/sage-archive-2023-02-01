@@ -1975,8 +1975,23 @@ class GenericGraph(SageObject):
         """
         # TODO- Re-implement this to make an iterator instead of returning a
         # list (more efficient!)
-        import networkx
-        return networkx.bfs(self._nxg, u)
+        # This function is straight from an old version of networkx
+        if self.is_directed():
+            neighbors=self.successor_iterator
+        else:
+            neighbors=self.neighbor_iterator
+        nlist=[u] # list of nodes in a BFS order
+        seen={} # nodes seen
+        queue=[u] # FIFO queue
+        seen[u]=True
+        while queue:
+            v=queue.pop(0)  # this is expensive, should use a faster FIFO queue
+            for w in neighbors(v):
+                if w not in seen:
+                    seen[w]=True
+                    queue.append(w)
+                    nlist.append(w)
+        return nlist
 
     def depth_first_search(self, u):
         """
@@ -1997,8 +2012,23 @@ class GenericGraph(SageObject):
         """
         # TODO- Re-implement this to make an iterator instead of returning a
         # list (more efficient!)
-        import networkx
-        return networkx.dfs(self._nxg, u)
+        # This function is straight from an old version of networkx
+        if self.is_directed():
+            neighbors=self.successor_iterator
+        else:
+            neighbors=self.neighbor_iterator
+        nlist=[] # list of nodes in a DFS preorder
+        seen={} # nodes seen
+        queue=[u]  # use as LIFO queue
+        seen[u]=True
+        while queue:
+            v=queue.pop()
+            nlist.append(v)
+            for w in neighbors(v):
+                if w not in seen:
+                    seen[w]=True
+                    queue.append(w)
+        return nlist
 
     ### Constructors
 
@@ -3523,7 +3553,7 @@ class Graph(GenericGraph):
         import networkx
         return networkx.betweenness_centrality(self._nxg, normalized)
 
-    def centrality_degree(self, v=False):
+    def centrality_degree(self, v=None):
         r"""
         Returns the degree centrality (fraction of vertices connected to) as
         a dictionary of values keyed by vertex.  The degree centrality is
@@ -3551,7 +3581,7 @@ class Graph(GenericGraph):
         import networkx
         return networkx.degree_centrality(self._nxg, v)
 
-    def centrality_closeness(self, v=False):
+    def centrality_closeness(self, v=None):
         r"""
         Returns the closeness centrality (1/average distance to all vertices) as
         a dictionary of values keyed by vertex.  The degree centrality is

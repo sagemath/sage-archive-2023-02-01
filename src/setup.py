@@ -702,6 +702,10 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']), \
 
+    Extension('sage.rings.polynomial.real_roots',
+              sources = ['sage/rings/polynomial/real_roots.pyx'],
+              libraries=['mpfr', 'qd']), \
+
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
               libraries=['ntl','gmp'],
@@ -787,7 +791,7 @@ ext_modules = [ \
     Extension('sage.combinat.partitions',
               ['sage/combinat/partitions.pyx',
                'sage/combinat/partitions_c.cc'],
-              libraries = ['gmp', 'mpfr'],
+              libraries = ['qd', 'gmp', 'mpfr'],
               language='c++'
               ), \
 

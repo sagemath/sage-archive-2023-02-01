@@ -1840,6 +1840,8 @@ def number_of_partitions(n,k=None, algorithm='default'):
         37338
         sage: number_of_partitions(100)
         190569292
+        sage: number_of_partitions(100000)
+        27493510569775696512677516320986352688173429315980054758203125984302147328114964173055050741660736621590157844774296248940493063070200461792764493033510116079342457190155718943509725312466108452006369558934464248716828789832182345009262853831404597021307130674510624419227311238999702284408609370935531629697851569569892196108480158600569421098519
 
     A generating function for p(n) is given by the reciprocal of
     Euler's function:
@@ -1860,6 +1862,34 @@ def number_of_partitions(n,k=None, algorithm='default'):
     REFERENCES:
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
+    TESTS:
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 100000000 + randint(0,100000000)  # takes a long time
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 100000000 + randint(0,100000000)  # takes a long time
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 100000000 + randint(0,100000000)  # takes a long time
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
     """
     n = ZZ(n)
     if n < 0:

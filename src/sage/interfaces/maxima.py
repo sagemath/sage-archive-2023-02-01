@@ -1421,10 +1421,32 @@ class MaximaElement(ExpectElement):
             sage: len(v)
             6
         """
-        self._check_valid()
-        return int(self.parent().eval('length(%s)'%self.name()))
+        P = self._check_valid()
+        return int(P.eval('length(%s)'%self.name()))
+
+    def dot(self, other):
+        """
+        Implements the notation self . other.
+
+        EXAMPLES:
+            sage: A = maxima('matrix ([a1],[a2])')
+            sage: B = maxima('matrix ([b1, b2])')
+            sage: A.dot(B)
+            matrix([a1*b1,a1*b2],[a2*b1,a2*b2])
+        """
+        P = self._check_valid()
+        Q = P(other)
+        return P('%s . %s'%(self.name(), Q.name()))
+
 
     def __getattr__(self, attrname):
+        """
+        This is used to call a function on self.
+
+        EXAMPLES:
+            sage: maxima('%pi/2').sin()
+            1
+        """
         if attrname[:1] == "_":
             raise AttributeError
         return MaximaFunctionElement(self, attrname)

@@ -207,6 +207,9 @@ include "../ext/python.pxi"
 import operator
 import sys
 
+cdef MethodType
+from types import MethodType
+
 from sage.structure.parent      cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens import is_ParentWithGens
@@ -560,7 +563,7 @@ cdef class Element(sage_object.SageObject):
             try:
                 _left, _right = coercion_model.canonical_coercion_c(left, right)
                 if PY_IS_NUMERIC(_left):
-                    r = cmp(_left, _right)
+                    return _rich_to_bool(op, cmp(_left, _right))
                 else:
                     return _left._richcmp_(_right, op)
             except (TypeError, NotImplementedError):
@@ -577,32 +580,24 @@ cdef class Element(sage_object.SageObject):
                 from sage.rings.integer import Integer
                 try:
                     if PY_TYPE_CHECK(left, Element) and isinstance(right, (int, float, Integer)) and not right:
-                        r = cmp(left, (<Element>left)._parent(right))
+                        right = (<Element>left)._parent(right)
                     elif PY_TYPE_CHECK(right, Element) and isinstance(left, (int, float, Integer)) and not left:
-                        r = cmp((<Element>right)._parent(left), right)
+                        left = (<Element>right)._parent(left)
+                    else:
+                        return _rich_to_bool(op, r)
                 except TypeError:
-                    pass
-        else:
-            if HAS_DICTIONARY(left):   # fast check
-                r = left.__cmp__(right)
-            else:
-                return left._richcmp_c_impl(right, op)
+                    return _rich_to_bool(op, r)
 
-        return left._rich_to_bool(op, r)
+        if HAS_DICTIONARY(left):   # fast check
+            left_cmp = left.__cmp__
+            if PY_TYPE_CHECK(left_cmp, MethodType):
+                # it must have been overriden
+                return _rich_to_bool(op, left_cmp(right))
+
+        return left._richcmp_c_impl(right, op)
 
     cdef _rich_to_bool(self, int op, int r):
-        if op == 0:  #<
-            return (r  < 0)
-        elif op == 2: #==
-            return (r == 0)
-        elif op == 4: #>
-            return (r  > 0)
-        elif op == 1: #<=
-            return (r <= 0)
-        elif op == 3: #!=
-            return (r != 0)
-        elif op == 5: #>=
-            return (r >= 0)
+        return _rich_to_bool(op, r)
 
     ####################################################################
     # For a derived Cython class, you **must** put the following in
@@ -639,12 +634,34 @@ cdef class Element(sage_object.SageObject):
         return (<Element>left)._cmp(right)
 
     cdef _richcmp_c_impl(left, Element right, int op):
+        if (<Element>left)._richcmp_c_impl == Element._richcmp_c_impl and \
+               (<Element>left)._cmp_c_impl == Element._cmp_c_impl:
+            # Not implemented, try some basic defaults
+            if op == Py_EQ:
+                 return left is right
+            elif op == Py_NE:
+                return left is not right
         return left._rich_to_bool(op, left._cmp_c_impl(right))
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         ### For derived SAGEX code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
         raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
+
+cdef inline bint _rich_to_bool(int op, int r):
+    if op == Py_LT:  #<
+        return (r  < 0)
+    elif op == Py_EQ: #==
+        return (r == 0)
+    elif op == Py_GT: #>
+        return (r  > 0)
+    elif op == Py_LE: #<=
+        return (r <= 0)
+    elif op == Py_NE: #!=
+        return (r != 0)
+    elif op == Py_GE: #>=
+        return (r >= 0)
+
 
 def is_ModuleElement(x):
     """

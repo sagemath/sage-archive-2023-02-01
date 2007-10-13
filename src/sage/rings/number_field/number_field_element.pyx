@@ -1360,7 +1360,7 @@ cdef class NumberFieldElement(FieldElement):
         of this number field.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: K.<a> = NumberField(x^2 + 23)
             sage: a.is_integral()
             True
             sage: t = (1+a)/2
@@ -1373,8 +1373,15 @@ cdef class NumberFieldElement(FieldElement):
             False
             sage: t.minpoly()
             x^2 + 23/4
+
+        An example in a relative extension:
+            sage: K.<a,b> = NumberField([x^2+1, x^2+3])
+            sage: (a+b).is_integral()
+            True
+            sage: ((a-b)/2).is_integral()
+            False
         """
-        return all([a in ZZ for a in self.minpoly()])
+        return all([a in ZZ for a in self.absolute_minpoly()])
 
     def matrix(self, base=None):
         r"""

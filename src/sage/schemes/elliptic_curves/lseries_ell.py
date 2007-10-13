@@ -1,3 +1,8 @@
+"""
+Complex Elliptic Curve L-series
+
+"""
+
 from sage.structure.sage_object import SageObject
 from sage.rings.all import (
     RealField,
@@ -11,8 +16,63 @@ C = ComplexField()
 import sage.functions.constants as constants
 
 class Lseries_ell(SageObject):
+    """
+    An elliptic curve $L$-series.
+
+    EXAMPLES:
+
+    """
     def __init__(self, E):
-        self.E = E
+        """
+        Create an elliptic curve $L$-series.
+
+        EXAMPLES:
+            sage: EllipticCurve([1..5]).Lseries()
+            Complex L-series of the Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
+        """
+        self.__E = E
+
+    def elliptic_curve(self):
+        """
+        Return the elliptic curve that this L-series is attached to.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: L = E.Lseries()
+            sage: L.elliptic_curve ()
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+        """
+        return self.__E
+
+    def taylor_series(self, a=1, prec=53, series_prec=6, var='z'):
+        """
+        Return the Taylor series of this $L$-series about $a$ to
+        the given precision (in bits) and the number of terms.
+
+        The output is a series in var, where you should view var as
+        equal to s-a.  Thus this function returns the formal power
+        series whose coefficients are L^{(n)}(a)/n!.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: L = E.Lseries()
+            sage: L.taylor_series(series_prec=3)
+            -1.28158145691931e-23 + (7.26268290635587e-24)*z + 0.759316500288427*z^2 + O(z^3)
+        """
+        D = self.dokchitser(prec)
+        return D.taylor_series(a, series_prec, var)
+
+    def _repr_(self):
+        """
+        Return string representation of this L-series.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: L = E.Lseries()
+            sage: L._repr_()
+            'Complex L-series of the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field'
+        """
+        return "Complex L-series of the %s"%self.__E
 
     def dokchitser(self, prec=53,
                    max_imaginary_part=0,
@@ -45,22 +105,30 @@ class Lseries_ell(SageObject):
         """
         if algorithm == 'magma':
             from sage.interfaces.all import magma
-            return magma(self.E).LSeries(Precision = prec)
+            return magma(self.__E).LSeries(Precision = prec)
 
         from sage.lfunctions.all import Dokchitser
-        L = Dokchitser(conductor = self.E.conductor(),
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        try:
+            return self.__dokchitser[key]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__dokchitser = {}
+        L = Dokchitser(conductor = self.__E.conductor(),
                        gammaV = [0,1],
                        weight = 2,
-                       eps = self.E.root_number(),
+                       eps = self.__E.root_number(),
                        poles = [],
                        prec = prec)
         gp = L.gp()
-        s = 'e = ellinit(%s);'%self.E.minimal_model().a_invariants()
+        s = 'e = ellinit(%s);'%self.__E.minimal_model().a_invariants()
         s += 'a(k) = ellak(e, k);'
         L.init_coeffs('a(k)', 1, pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
-        L.rename('Dokchitser L-function associated to %s'%self.E)
+        L.rename('Dokchitser L-function associated to %s'%self.__E)
+        self.__dokchitser[key] = L
         return L
 
     def sympow(self, n, prec):
@@ -81,14 +149,15 @@ class Lseries_ell(SageObject):
         command takes a long time to run.}
 
         EXAMPLES:
-            sage.: E = EllipticCurve('37a')
-            sage.: a = E.Lseries().sympow(2,16); a
+            sage: E = EllipticCurve('37a')
+            sage: a = E.Lseries().sympow(2,16)   # optional -- requires precomputing "sympow('-new_data 2')"
+            sage: a      # optional
             '2.492262044273650E+00'
-            sage.: RR(a)
+            sage: RR(a)                      # optional
             2.4922620442736498
         """
         from sage.lfunctions.sympow import sympow
-        return sympow.L(self.E, n, prec)
+        return sympow.L(self.__E, n, prec)
 
     def sympow_derivs(self, n, prec, d):
         r"""
@@ -109,8 +178,8 @@ class Lseries_ell(SageObject):
         commands have to be run.}
 
         EXAMPLES:
-            sage.: E = EllipticCurve('37a')
-            sage.: E.Lseries().sympow_derivs(1,16,2)
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries().sympow_derivs(1,16,2)      # optional -- requires precomputing "sympow('-new_data 2')"
             ...
             1n0: 3.837774351482055E-01
             1w0: 3.777214305638848E-01
@@ -120,7 +189,7 @@ class Lseries_ell(SageObject):
             1w2: 1.545605024269432E-01
         """
         from sage.lfunctions.sympow import sympow
-        return sympow.Lderivs(self.E, n, prec, d)
+        return sympow.Lderivs(self.__E, n, prec, d)
 
     def zeros(self, n):
         """
@@ -140,7 +209,7 @@ class Lseries_ell(SageObject):
             -- Uses Rubinstein's L-functions calculator.
         """
         from sage.lfunctions.lcalc import lcalc
-        return lcalc.zeros(n, L=self.E)
+        return lcalc.zeros(n, L=self.__E)
 
     def zeros_in_interval(self, x, y, stepsize):
         r"""
@@ -166,7 +235,7 @@ class Lseries_ell(SageObject):
             [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
-        return lcalc.zeros_in_interval(x, y, stepsize, L=self.E)
+        return lcalc.zeros_in_interval(x, y, stepsize, L=self.__E)
 
     def values_along_line(self, s0, s1, number_samples):
         """
@@ -195,7 +264,7 @@ class Lseries_ell(SageObject):
         from sage.lfunctions.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
                                        s1-RationalField()('1/2'),
-                                       number_samples, L=self.E)
+                                       number_samples, L=self.__E)
 
     def twist_values(self, s, dmin, dmax):
         r"""
@@ -225,7 +294,7 @@ class Lseries_ell(SageObject):
             0
         """
         from sage.lfunctions.lcalc import lcalc
-        return lcalc.twist_values(s - RationalField()('1/2'), dmin, dmax, L=self.E)
+        return lcalc.twist_values(s - RationalField()('1/2'), dmin, dmax, L=self.__E)
 
     def twist_zeros(self, n, dmin, dmax):
         r"""
@@ -251,7 +320,7 @@ class Lseries_ell(SageObject):
             {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc
-        return lcalc.twist_zeros(n, dmin, dmax, L=self.E)
+        return lcalc.twist_zeros(n, dmin, dmax, L=self.__E)
 
     def at1(self, k=0):
         r"""
@@ -302,12 +371,12 @@ class Lseries_ell(SageObject):
             sage: E.Lseries().at1(100)
             (0.725681061936153, 1.52437502288743e-45)
         """
-        if self.E.root_number() == -1:
+        if self.__E.root_number() == -1:
             return 0
-        sqrtN = float(self.E.conductor().sqrt())
+        sqrtN = float(self.__E.conductor().sqrt())
         k = int(k)
         if k == 0: k = int(math.ceil(sqrtN))
-        an = self.E.anlist(k)           # list of SAGE ints
+        an = self.__E.anlist(k)           # list of SAGE ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         z = exp(-2*pi/sqrtN)
@@ -366,11 +435,11 @@ class Lseries_ell(SageObject):
             sage: E.Lseries().deriv_at1(100)
             (0.305999773834879, 1.52437502288740e-45)
         """
-        if self.E.root_number() == 1: return 0
+        if self.__E.root_number() == 1: return 0
         k = int(k)
-        sqrtN = float(self.E.conductor().sqrt())
+        sqrtN = float(self.__E.conductor().sqrt())
         if k == 0: k = int(math.ceil(sqrtN))
-        an = self.E.anlist(k)           # list of C ints
+        an = self.__E.anlist(k)           # list of C ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         v = transcendental.exponential_integral_1(2*pi/sqrtN, k)
@@ -391,27 +460,15 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
-            sage: E.Lseries()(1)
-            0.000000000000000
-            sage: E.Lseries()(1.1)       # long time (!)
+            sage: L = E.Lseries()
+            sage: L(1)
+            0
+            sage: L(1.1)
             0.285491007678148
-
-        TODO: Planned massive improvement -- use Micheal Rubinstein's
-        L-functions package and/or Tim Dokchitser's.  Both are already
-        available via other function calls.  Note that Dokchitser's
-        program is vastly faster than PARI, e.g., at computing
-        E.Lseries()(1.1) above, even with all the startup overhead, etc,
-        e.g., 10 seconds versus 0.25 seconds.
+            sage: L(1.1 + I)
+            0.174851377216615 + 0.816965038124457*I
         """
-        try:
-            s = R(s)
-        except TypeError:
-            raise TypeError, "for non-real input, use self.extended instead."
-        if s <= 0 and s.frac() == 0:
-            # The L-series vanishes at negative integers, but PARI
-            # is broken for this.
-            return R(0)
-        return R(self.E.pari_mincurve().elllseries(s))
+        return self.dokchitser()(s)
 
     #def extended(self, s, prec):
     #    r"""
@@ -447,12 +504,12 @@ class Lseries_ell(SageObject):
     #    prec = int(prec)
     #    if abs(s.imag()) < R(0.0000000000001):
     #        return self(s.real())
-    #    N = self.E.conductor()
+    #    N = self.__E.conductor()
     #    pi = R(constants.pi)
     #    Gamma = transcendental.gamma
     #    Gamma_inc = transcendental.gamma_inc
-    #    a = self.E.anlist(prec)
-    #    eps = self.E.root_number()
+    #    a = self.__E.anlist(prec)
+    #    eps = self.__E.root_number()
     #    sqrtN = float(N.sqrt())
     #    def F(n, t):
     #        return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
@@ -552,11 +609,11 @@ class Lseries_ell(SageObject):
         except AttributeError:
             pass
 
-        if not self.E.is_minimal():
-            self.__lratio = self.E.minimal_model().Lseries().L_ratio()
+        if not self.__E.is_minimal():
+            self.__lratio = self.__E.minimal_model().Lseries().L_ratio()
             return self.__lratio
 
-        if self.E.root_number() == -1:
+        if self.__E.root_number() == -1:
             self.__lratio = Q(0)
             return self.__lratio
 
@@ -592,23 +649,23 @@ class Lseries_ell(SageObject):
         # be a divisible by an arbitrary power of that prime, except
         # that Edixhoven claims the primes that appear are <= 7.
 
-        t = self.E.torsion_subgroup().order()
-        omega = self.E.period_lattice().basis()[0]
-        d = self.E._multiple_of_degree_of_isogeny_to_optimal_curve()
+        t = self.__E.torsion_subgroup().order()
+        omega = self.__E.period_lattice().basis()[0]
+        d = self.__E._multiple_of_degree_of_isogeny_to_optimal_curve()
         C = 8*d*t
         eps = omega / C
         # coercion of 10**(-15) to our real field is needed to
         # make unambiguous comparison
         if eps < R(10**(-15)):  # liberal bound on precision of float
             raise RuntimeError, "Insufficient machine precision (=%s) for computation."%eps
-        sqrtN = 2*int(sqrt(self.E.conductor()))
+        sqrtN = 2*int(sqrt(self.__E.conductor()))
         k = sqrtN + 10
         while True:
             L1, error_bound = self.at1(k)
             if error_bound < eps:
                 n = int(round(L1*C/omega))
                 quo = Q(n) / Q(C)
-                self.__lratio = quo / self.E.real_components()
+                self.__lratio = quo / self.__E.real_components()
                 return self.__lratio
             k += sqrtN
             misc.verbose("Increasing precision to %s terms."%k)

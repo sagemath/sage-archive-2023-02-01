@@ -58,6 +58,12 @@ class ClassGroup(AbelianGroup_class):
         return FractionalIdealClass(self.__number_field.ideal(*args, **kwds), self)
 
     def _coerce_impl(self, x):
+        """
+        Canonical coercion of x into this class group.
+
+        EXAMPLES:
+
+        """
         return self(x)
 
     def gens(self):

@@ -209,7 +209,27 @@ def numerical_integral(func, a, b=None,
       _sig_off
 
    elif algorithm=="qag":
-      if a!="-inf" and b!="inf":
+      if a=="-inf" and b =="inf":
+         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _sig_on
+         gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
+         _sig_off
+
+      elif a=="-inf":
+         _b=b
+         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _sig_on
+         gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+         _sig_off
+
+      elif b=="inf":
+         _a=a
+         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _sig_on
+         gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
+         _sig_off
+
+      else:
          _a=a
          _b=b
          W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
@@ -217,23 +237,6 @@ def numerical_integral(func, a, b=None,
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
          _sig_off
 
-      if a=="-inf" and b =="inf":
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
-         gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
-      elif a!="-inf" and b=="inf":
-         _a=a
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
-         gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
-      elif a=="-inf" and b!="inf":
-         _b=b
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
-         gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
    else:
       raise TypeError, "invalid integration algorithm"
 

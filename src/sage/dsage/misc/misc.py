@@ -45,3 +45,27 @@ def timedelta_to_seconds(d):
     seconds = float(days*24*60*60 + d.seconds + (d.microseconds/10.0**6))
 
     return seconds
+
+def find_open_port(server='localhost', low=8081):
+    """
+    Tries to find an open port on your machine to use.
+
+    """
+
+    import socket
+
+    port = low
+    while(True):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((server, port))
+            s.close()
+            port += 1
+        except socket.error, msg:
+            if msg[0] == 61: # Error code for connection refused
+                port = port
+                break
+            else:
+                port += 1
+
+    return port

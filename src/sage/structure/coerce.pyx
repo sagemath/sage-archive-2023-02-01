@@ -252,6 +252,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             return PyObject_CallObject(op, xy)
         except TypeError:
 #            raise
+#            print msg
             pass
 
         if op is mul or op is imul:

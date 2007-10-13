@@ -130,7 +130,7 @@ EXAMPLE: Inclusion of GF(2) into GF(4,'a').
     sage: k = GF(2)
     sage: i = k.hom(GF(4, 'a'))
     sage: i
-    Coercion morphism:
+    Ring Coercion morphism:
       From: Finite Field of size 2
       To:   Finite Field in a of size 2^2
     sage: i(0)
@@ -141,7 +141,7 @@ EXAMPLE: Inclusion of GF(2) into GF(4,'a').
 We next compose the inclusion with reduction from the integers to GF(2).
     sage: pi = ZZ.hom(k)
     sage: pi
-    Coercion morphism:
+    Ring Coercion morphism:
       From: Integer Ring
       To:   Finite Field of size 2
     sage: f = i * pi
@@ -149,11 +149,11 @@ We next compose the inclusion with reduction from the integers to GF(2).
     Composite morphism:
       From: Integer Ring
       To:   Finite Field in a of size 2^2
-      Defn:   Coercion morphism:
+      Defn:   Ring Coercion morphism:
               From: Integer Ring
               To:   Finite Field of size 2
             then
-              Coercion morphism:
+              Ring Coercion morphism:
               From: Finite Field of size 2
               To:   Finite Field in a of size 2^2
     sage: a = f(5); a
@@ -164,7 +164,7 @@ We next compose the inclusion with reduction from the integers to GF(2).
 EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
     sage: phi = QQ.hom(Qp(3, print_mode = 'series'))
     sage: phi
-    Coercion morphism:
+    Ring Coercion morphism:
       From: Rational Field
       To:   3-adic Field with capped relative precision 20
     sage: phi.codomain()
@@ -327,15 +327,18 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.all import Morphism, is_Homset, Sets
+include "../ext/cdefs.pxi"
+include "../ext/stdsage.pxi"
+
+from sage.categories.all import is_Homset, Sets
 import ideal
 
 import homset
 
 def is_RingHomomorphism(phi):
-    return isinstance(phi, RingHomomorphism)
+    return PY_TYPE_CHECK(phi, RingHomomorphism)
 
-class RingMap(Morphism):
+cdef class RingMap(Morphism):
     """
     Set-theoretic map between rings.
     """
@@ -345,14 +348,7 @@ class RingMap(Morphism):
     def _repr_type(self):
         return "Set-theoretic ring"
 
-    def __call__(self, x):
-        if ideal.is_Ideal(x):
-            R = self.codomain()
-            return R.ideal([self(y) for y in x.gens()])
-        return Morphism.__call__(self, x)
-
-
-class RingMap_lift(RingMap):
+cdef class RingMap_lift(RingMap):
     r"""
     Given rings $R$ and $S$ such that for any $x \in R$ the function
     \code{x.lift()} is an element that naturally coerces to $S$, this
@@ -373,24 +369,32 @@ class RingMap_lift(RingMap):
     def __init__(self, R, S):
         H = R.Hom(S, Sets())
         RingMap.__init__(self, H)
-        self.__S = S  # for efficiency
+        self.S = S  # for efficiency
         try:
             S._coerce_(R(0).lift())
         except TypeError:
             raise TypeError, "No natural lift map"
 
+    cdef _update_slots(self, _slots):
+        self.S = _slots['S']
+        Morphism._update_slots(self, _slots)
+
+    cdef _extra_slots(self, _slots):
+        _slots['S'] = self.S
+        return Morphism._extra_slots(self, _slots)
+
     def __cmp__(self, other):
-        if not isinstance(other, RingMap_lift):
+        if not PY_TYPE_CHECK(other, RingMap_lift):
             return cmp(type(self), type(other))
         return 0
 
     def _repr_defn(self):
         return "Choice of lifting map"
 
-    def _call_(self, x):
-        return self.__S._coerce_(x.lift())
+    cdef Element _call_c_impl(self, Element x):
+        return self.S._coerce_c(x.lift())
 
-class RingHomomorphism(RingMap):
+cdef class RingHomomorphism(RingMap):
     """
     Homomorphism of rings.
     """
@@ -409,13 +413,25 @@ class RingHomomorphism(RingMap):
         return "Ring"
 
     def _set_lift(self, lift):
-        if not isinstance(lift, RingMap):
+        if not PY_TYPE_CHECK(lift, RingMap):
             raise TypeError, "lift must be a RingMap"
         if lift.domain() != self.codomain():
             raise TypeError, "lift must have correct domain"
         if lift.codomain() != self.domain():
             raise TypeError, "lift must have correct codomain"
-        self.__lift = lift
+        self._lift = lift
+
+    cdef _update_slots(self, _slots):
+        if _slots.has_key('_lift'):
+            self._lift = _slots['_lift']
+        Morphism._update_slots(self, _slots)
+
+    cdef _extra_slots(self, _slots):
+        try:
+            _slots['_lift'] = self._lift
+        except AttributeError:
+            pass
+        return Morphism._extra_slots(self, _slots)
 
     def is_injective(self):
         ## TODO -- actually implement this in some generality (!)
@@ -456,6 +472,16 @@ class RingHomomorphism(RingMap):
         """
         return self(self.domain()(1)) == self.codomain()(0)
 
+    def pushforward(self, I):
+        """
+        Returns the pushforward of the ideal $I$ under this ring
+        homomorphism.
+        """
+        if not ideal.is_Ideal(I):
+            raise TypeError, "I must be an ideal"
+        R = self.codomain()
+        return R.ideal([self(y) for y in I.gens()])
+
     def inverse_image(self, I):
         """
         Return the inverse image of the ideal $I$ under this ring
@@ -471,20 +497,30 @@ class RingHomomorphism(RingMap):
         If x is not None, return the value of the lift morphism on x.
         """
         if not (x is None):
-            return self.lift()(x)
+            try:
+                return self._lift(x)
+            except AttributeError:
+                raise ValueError, "No lift map defined."
         try:
-            return self.__lift
+            return self._lift
         except AttributeError:
             raise ValueError, "No lift map defined."
 
+cdef class RingHomomorphism_coercion(RingHomomorphism):
+    def __init__(self, parent):
+        RingHomomorphism.__init__(self, parent)
+        if not self.codomain().has_coerce_map_from(self.domain()):
+            raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
 
-from sage.categories.morphism import FormalCoercionMorphism
-class RingHomomorphism_coercion(FormalCoercionMorphism, RingHomomorphism):
-    pass
+    def _repr_type(self):
+        return "Ring Coercion"
+
+    cdef Element _call_c_impl(self, Element x):
+        return self.codomain()._coerce_(x)
 
 import sage.structure.all
 
-class RingHomomorphism_im_gens(RingHomomorphism):
+cdef class RingHomomorphism_im_gens(RingHomomorphism):
     """
     A ring homomorphism determined by the images of generators.
     """
@@ -504,6 +540,14 @@ class RingHomomorphism_im_gens(RingHomomorphism):
 
     def im_gens(self):
         return self.__im_gens
+
+    cdef _update_slots(self, _slots):
+        self.__im_gens = _slots['__im_gens']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef _extra_slots(self, _slots):
+        _slots['__im_gens'] = self.__im_gens
+        return RingHomomorphism._extra_slots(self, _slots)
 
     def __cmp__(self, other):
         """
@@ -547,9 +591,9 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             sage: loads(dumps(f2)) == f2
             True
         """
-        if not isinstance(other, RingHomomorphism_im_gens):
+        if not PY_TYPE_CHECK(other, RingHomomorphism_im_gens):
             return cmp(type(self), type(other))
-        return cmp(self.__im_gens, other.__im_gens)
+        return cmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens)
 
     def _repr_defn(self):
         D = self.domain()
@@ -557,10 +601,10 @@ class RingHomomorphism_im_gens(RingHomomorphism):
         return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                        i in range(D.ngens())])
 
-    def _call_(self, x):
+    cdef Element _call_c_impl(self, Element x):
         return x._im_gens_(self.codomain(), self.im_gens())
 
-class RingHomomorphism_cover(RingHomomorphism):
+cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
     A homomorphism induced by quotienting a ring out by an ideal.
 
@@ -578,7 +622,7 @@ class RingHomomorphism_cover(RingHomomorphism):
     def __init__(self, parent):
         RingHomomorphism.__init__(self, parent)
 
-    def _call_(self, x):
+    cdef Element _call_c_impl(self, Element x):
         return self.codomain()(x)
 
     def _repr_defn(self):
@@ -598,11 +642,11 @@ class RingHomomorphism_cover(RingHomomorphism):
             sage: phi == R.quo(x^2 + y^3).cover()
             False
         """
-        if not isinstance(other, RingHomomorphism_cover):
+        if not PY_TYPE_CHECK(other, RingHomomorphism_cover):
             return cmp(type(self), type(other))
-        return 0  # since parents are the same, i.e., both cover maps with same domain and codomain
+        return cmp(self.parent(), other.parent())
 
-class RingHomomorphism_from_quotient(RingHomomorphism):
+cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     r"""
     A ring homomorphism with domain a generic quotient ring.
 
@@ -643,24 +687,36 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
     def __init__(self, parent, phi):
         RingHomomorphism.__init__(self, parent)
         R = parent.domain()
-        pi = R.cover()  # the covering map
+        pi = R.cover()  # the covering map, which should be a RingHomomorphism
+        if not PY_TYPE_CHECK(pi, RingHomomorphism):
+            raise TypeError, "pi should be a ring homomorphism"
+        if not PY_TYPE_CHECK(phi, RingHomomorphism):
+            raise TypeError, "phi should be a ring homomorphism"
         if pi.domain() != phi.domain():
             raise ValueError, "Domain of phi must equal domain of covering (%s != %s)."%(pi.domain(), phi.domain())
         for x in pi.kernel().gens():
             if phi(x) != 0:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."
-        self.__lift = pi.lift()
-        self.__phi = phi
+        self._lift = pi.lift()
+        self.phi = phi
+
+    cdef _update_slots(self, _slots):
+        self.phi = _slots['phi']
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef _extra_slots(self, _slots):
+        _slots['phi'] = self.phi
+        return RingHomomorphism._extra_slots(self, _slots)
 
     def _phi(self):
         """
         Underlying morphism used to define this quotient map (i.e.,
         morphism from the cover of the domain).
         """
-        return self.__phi
+        return self.phi
 
     def morphism_from_cover(self):
-        return self.__phi
+        return self.phi
 
     def __cmp__(self, other):
         """
@@ -675,18 +731,18 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
             sage: phi == f
             True
         """
-        if not isinstance(other, RingHomomorphism_from_quotient):
+        if not PY_TYPE_CHECK(other, RingHomomorphism_from_quotient):
             return cmp(type(self), type(other))
-        return cmp(self.__phi, other.__phi)
+        return cmp(self.phi, (<RingHomomorphism_from_quotient>other).phi)
 
     def _repr_defn(self):
         D = self.domain()
-        ig = self.__phi.im_gens()
+        ig = self.phi.im_gens()
         return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                           i in range(D.ngens())])
 
-    def _call_(self, x):
-        return self.__phi(self.__lift(x))
+    cdef Element _call_c_impl(self, Element x):
+        return self.phi(self.lift(x))
 
 
 

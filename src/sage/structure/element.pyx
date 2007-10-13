@@ -281,6 +281,10 @@ cdef class Element(sage_object.SageObject):
     cdef _set_parent_c(self, ParentWithBase parent):
         self._parent = parent
 
+    def _make_new_with_parent_c(self, ParentWithBase parent):
+        self._parent = parent
+        return self
+
     def _repr_(self):
         return "Generic element of a structure"
 

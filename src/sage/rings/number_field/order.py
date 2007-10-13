@@ -5,9 +5,10 @@ AUTHORS:
     -- William Stein and Robert Bradshaw (2007-09): initial version
 """
 
-from sage.rings.ring import DedekindDomain
+from sage.rings.ring import IntegralDomain, DedekindDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
+from sage.structure.element import is_Element
 
 from number_field_element import OrderElement_absolute, OrderElement_relative
 from sage.rings.monomials import monomials
@@ -29,7 +30,7 @@ def is_NumberFieldOrder(R):
     """
     return isinstance(R, Order) or R == ZZ
 
-class Order(DedekindDomain):
+class Order(IntegralDomain):
     r"""
     An order in a number field.
 
@@ -65,6 +66,7 @@ class Order(DedekindDomain):
         """
         self._K = K
         self._is_maximal = is_maximal
+        DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
 
     def __mul__(self, right):
         """
@@ -123,6 +125,45 @@ class Order(DedekindDomain):
             self._is_maximal = (self.discriminant() == self._K.discriminant())
         return self._is_maximal
 
+    def is_integrally_closed(self):
+        """
+        Return True if this ring is integrally closed, i.e., is equal
+        to the maximal order.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 189*x + 394)
+            sage: R = K.order(2*a)
+            sage: R.is_integrally_closed()
+            False
+            sage: R
+            Order with module basis 1, 2*a in Number Field in a with defining polynomial x^2 + 189*x + 394
+            sage: S = K.maximal_order(); S
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 + 189*x + 394
+            sage: S.is_integrally_closed()
+            True
+        """
+        return self.is_maximal()
+
+
+    def integral_closure(self):
+        """
+        Return the integral closure of this order.
+
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(5)
+            sage: O2 = K.order(2*a); O2
+            Order with module basis 1, 2*a in Number Field in a with defining polynomial x^2 - 5
+            sage: O2.integral_closure()
+            Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 - 5
+            sage: OK = K.maximal_order()
+            sage: OK is OK.integral_closure()
+            True
+        """
+        if self.is_maximal():
+            return self
+        else:
+            return self.number_field().maximal_order()
+
     def gen(self, i):
         """
         Return i-th module generator of this order.
@@ -174,7 +215,7 @@ class Order(DedekindDomain):
             sage: O.ngens()
             3
         """
-        return len(self.basis())
+        return self.absolute_degree()
 
     def basis(self):  # this must be defined in derived class
         """
@@ -260,6 +301,28 @@ class Order(DedekindDomain):
         """
         return self._K
 
+    def residue_field(self, prime, name = None, check = False):
+        """
+        Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
+
+        INPUT:
+            prime -- a prime ideal of the maximal order in this number field.
+            name -- the name of the variable in the residue field
+            check -- whether or not to check the primality of prime.
+        OUTPUT:
+            The residue field at this prime.
+
+        EXAMPLES:
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^4+3*x^2-17)
+        sage: P = K.ideal(61).factor()[0][0]
+        sage: OK = K.maximal_order()
+        sage: OK.residue_field(P)
+        Residue field of Fractional ideal (-2*a^2 + 1) of Number Field in a with defining polynomial x^4 + 3*x^2 - 17
+        """
+        import sage.rings.residue_field
+        return sage.rings.residue_field.ResidueField(prime)
+
 
     def fraction_field(self):
         """
@@ -267,11 +330,11 @@ class Order(DedekindDomain):
         ambient number field.
 
         EXAMPLES:
-            sage: K.<b> = NumberField(x^4 + 17*x^2 + 17)
-            sage: O = K.order(17*b); O
-            Order with module basis 1, 17*b, 289*b^2, 4913*b^3 in Number Field in b with defining polynomial x^4 + 17*x^2 + 17
-            sage: O.fraction_field()
-            Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+        sage: K.<b> = NumberField(x^4 + 17*x^2 + 17)
+        sage: O = K.order(17*b); O
+        Order with module basis 1, 17*b, 289*b^2, 4913*b^3 in Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+        sage: O.fraction_field()
+        Number Field in b with defining polynomial x^4 + 17*x^2 + 17
         """
         return self._K
 
@@ -281,12 +344,12 @@ class Order(DedekindDomain):
         of this order as a $\ZZ$-module.
 
         EXAMPLES:
-            sage: k.<c> = NumberField(x^3 + x^2 - 2*x+8)
-            sage: o = k.maximal_order()
-            sage: o.degree()
-            3
-            sage: o.rank()
-            3
+        sage: k.<c> = NumberField(x^3 + x^2 - 2*x+8)
+        sage: o = k.maximal_order()
+        sage: o.degree()
+        3
+        sage: o.rank()
+        3
         """
         return self._K.degree()
 
@@ -400,6 +463,57 @@ class Order(DedekindDomain):
             return cmp(self._K, other._K)
         return cmp(self._module_rep, other._module_rep)
 
+    def absolute_degree(self):
+        """
+        Returns the absolute degree of this order, ie the degree of this order over ZZ.
+
+        EXAMPLES:
+        sage: K.<a> = NumberField(x^3 + 2)
+        sage: O = K.maximal_order()
+        sage: O.absolute_degree()
+        3
+        sage: K.<a> = NumberField([x^3 + 2, x^2 - 3])
+        sage: O = K.maximal_order()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+        """
+        return self.number_field().absolute_degree()
+
+##     def absolute_polynomial(self):
+##         """
+##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
+
+##         EXAMPLES:
+##         sage: K.<a, b> = NumberField([x^2 + 1, x^3 + x + 1]); OK = K.maximal_order()
+##         Traceback (most recent call last):
+##         ...
+##         NotImplementedError
+
+##         #sage: OK.absolute_polynomial()
+##         #x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
+##         """
+##         return self.number_field().absolute_polynomial()
+
+##     def polynomial(self):
+##         """
+##         Returns the polynomial defining the number field that contains self.
+##         """
+##         return self.number_field().polynomial()
+
+##     def polynomial_ntl(self):
+##         """
+##         Return defining polynomial of the parent number field as a
+##         pair, an ntl polynomial and a denominator.
+
+##         This is used mainly to implement some internal arithmetic.
+
+##         EXAMPLES:
+##             sage: NumberField(x^2 + 1,'a').maximal_order().polynomial_ntl()
+##             ([1 0 1], 1)
+##         """
+##         return self.number_field().polynomial_ntl()
+
 class AbsoluteOrder(Order):
 
     def __init__(self, K, module_rep, is_maximal=None, check=True):
@@ -443,8 +557,12 @@ class AbsoluteOrder(Order):
             Order with module basis 1, 3*z in Number Field in z with defining polynomial x^2 - 389
             sage: m(6*z)
             6*z
+            sage: k(m(6*z))
+            6*z
         """
-        if x.parent() is not self._K:
+        if is_Element(x) and x.parent() is self:
+            return x
+        if not is_Element(x) or x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()
         if not embedding(x) in self._module_rep:
@@ -680,11 +798,11 @@ class RelativeOrder(Order):
         x = self._absolute_order(x) # will test membership
         return OrderElement_relative(self, x)
 
-    def _repr_(self, x):
+    def _repr_(self):
         """
         Return print representation of this relative order.
         """
-        return "Order with module basis %s in %r" % (", ".join([str(b) for b in self.basis()]), self._K)
+        return "Relative Order with ZZ-module basis %s in %s" % (", ".join([str(b) for b in self.basis()]), self._K)
 
     def absolute_order(self):
         """
@@ -699,13 +817,51 @@ class RelativeOrder(Order):
         of elements that generate this order over the base order.
 
         WARNING: For now this basis is actually just a basis over ZZ.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2+1, x^2+3])
+            sage: O = K.order([a,b])
+            sage: O.basis()
+            [(-1/2*b - 5/2)*a + 3/2*b - 1/2,
+             (-1/2*b - 7/2)*a + 2*b - 1,
+             (-b)*a + -2,
+             (-5)*a + 3*b]
+            sage: z = O.0; z
+            (-1/2*b - 5/2)*a + 3/2*b - 1/2
+            sage: z.absolute_minpoly()
+            x^4 + 2*x^3 + 26*x^2 - 20*x + 4
         """
-        return self._absolute_order.basis()
+        try:
+            return self.__basis
+        except AttributeError:
+            pass
+        O = self._absolute_order
+        K = O.number_field()
+        from_K, _ = K.structure()
+        self.__basis = [from_K(a) for a in O.basis()]
+        return self.__basis
 
     def __add__(left, right):
         """
         Add two relative orders or a relative order to an absolute
         order (which always results in an absolute order).
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2+1, x^2+3])
+            sage: O2 = K.order([2*a]); O2.absolute_discriminant()
+            2304
+            sage: O3 = K.order([3*a, 2*b]); O3.absolute_discriminant()
+            11664
+            sage: O = (O2 + O3); O
+            Relative Order with ZZ-module basis (-1/2*b - 5/2)*a + 3/2*b - 1/2, (-1/2*b - 7/2)*a + 2*b - 1, (-b)*a + -2, (-5)*a + 3*b in Number Field in a with defining polynomial x^2 + 1 over its base field
+            sage: O.absolute_discriminant()
+            144
+            sage: O.is_suborder(O2)
+            False
+            sage: O2.is_suborder(O)
+            True
+            sage: O3.is_suborder(O)
+            True
         """
         if isinstance(left, AbsoluteOrder):
             return left + right._absolute_order
@@ -716,7 +872,8 @@ class RelativeOrder(Order):
                 raise TypeError, "Number fields don't match."
             if left._base != right._base:
                 raise TypeError, "Bases don't match."
-            return RelativeOrder(left._absolute_order + right._absolute_order, left._base, left._embedding, False)
+            return RelativeOrder(left._K, left._absolute_order + right._absolute_order,
+                                 left._base, check=False)
         else:
             raise NotImplementedError
 
@@ -734,15 +891,22 @@ class RelativeOrder(Order):
                 raise TypeError, "Number fields don't match."
             if left._base != right._base:
                 raise TypeError, "Bases don't match."
-            return RelativeOrder(left._absolute_order & right._absolute_order, left._base, left._embedding, False)
+            return RelativeOrder(left._K, left._absolute_order & right._absolute_order,
+                                 left._base, check=False)
         else:
             raise NotImplementedError
+
+    def absolute_discriminant(self):
+        return self.absolute_order().discriminant()
+
+    def is_suborder(self, other):
+        return self.absolute_order().is_suborder(other.absolute_order())
 
 
 def each_is_integral(v):
     """
-    Return True if each element of the list v of elements
-    of a number field is integral.
+    Return True if each element of the list v of elements of a number
+    field is integral.
 
     EXAMPLES:
         sage: W.<sqrt5> = NumberField(x^2 - 5)
@@ -959,12 +1123,15 @@ def relative_order_from_ring_generators(gens, base,
 
     # The top number field that contains the order.
     K = gens.universe()
-    Kabs = K.absolute_field()[0]
+
+    # The absolute version of that field.
+    Kabs = K.absolute_field('z')
+    from_Kabs, to_Kabs = Kabs.structure()
 
     n = K.degree()
-    module_gens = gens
-    if check_contain_base:
-        module_gens = gens + base.gens()
+    module_gens = [to_Kabs(a) for a in gens]
+    if ensure_contain_base:
+        module_gens = module_gens + [to_Kabs(a) for a in base.gens()]
     absolute_order_module_gens = monomials(module_gens, n)
 
     abs_order =  absolute_order_from_module_generators(absolute_order_module_gens,

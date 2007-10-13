@@ -2888,6 +2888,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.factor(2)
             (y + z) * (x - 1)^2
 
+            sage: R.<x,w,v,u> = QQ['x','w','v','u']
+            sage: p = (4*v^4*u^2 - 16*v^2*u^4 + 16*u^6 - 4*v^4*u + 8*v^2*u^3 + v^4)
+            sage: p.factor()
+            (-2*v^2*u + 4*u^3 + v^2)^2
         """
         cdef ring *_ring
         cdef intvec *iv

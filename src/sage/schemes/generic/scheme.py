@@ -300,7 +300,7 @@ class AffineScheme(Scheme):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
         """

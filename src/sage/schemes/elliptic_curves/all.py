@@ -30,3 +30,5 @@ from cm import ( cm_j_invariants,
                  hilbert_class_polynomial )
 
 import monsky_washnitzer
+
+from ec_database import elliptic_curves

@@ -159,6 +159,8 @@ class Worker(object):
             return d
 
         if completed:
+            log.msg('[Worker %s] Finished job %s' % (self.id,
+                                                     self.job.job_id))
             self.restart()
 
         return d
@@ -202,7 +204,7 @@ class Worker(object):
 
         return tmp_job_dir
 
-    def extract_job_data(self, job):
+    def extract_and_load_job_data(self, job):
         """
         Extracts all the data that is in a job object.
 
@@ -220,12 +222,15 @@ class Worker(object):
                         log.msg(msg)
                         continue
                     if kind == 'file':
+                        data = preparse_file(data, magic=True, do_time=False,
+                                             ignore_prompts=False)
                         f = open(var, 'wb')
                         f.write(data)
                         f.close()
                         if self.log_level > 2:
                             msg = 'Extracted %s' % f
                             log.msg(LOG_PREFIX % self.id + msg)
+                        self.sage.eval("execfile('%s')" % var)
                     if kind == 'object':
                         fname = var + '.sobj'
                         if self.log_level > 2:
@@ -246,20 +251,21 @@ class Worker(object):
 
         """
 
-        parsed_file = preparse_file(job.code, magic=False,
+        parsed_file = preparse_file(job.code, magic=True,
                                     do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
         job_file = open(job_filename, 'w')
-        timeout = job.timeout
         BEGIN = "print '%s'\n\n" % (START_MARKER)
         END = "print '%s'\n\n" % (END_MARKER)
+        GO_TO_TMP_DIR = """os.chdir('%s')\n""" % self.tmp_job_dir
+        SAVE_TIME = """save((time.time()-dsage_start_time), 'cpu_time.sobj', compress=False)\n"""
         SAVE_RESULT = """try:
     save(DSAGE_RESULT, 'result.sobj', compress=True)
 except:
     save('No DSAGE_RESULT', 'result.sobj', compress=True)
 """
-        job_file.write("alarm(%s)\n\n" % (timeout))
+        job_file.write("alarm(%s)\n\n" % (job.timeout))
         job_file.write("import time\n\n")
         job_file.write(BEGIN)
         job_file.write('dsage_start_time = time.time()\n')
@@ -267,8 +273,9 @@ except:
         job_file.write("\n\n")
         job_file.write(END)
         job_file.write("\n")
+        job_file.write(GO_TO_TMP_DIR)
         job_file.write(SAVE_RESULT)
-        job_file.write("save((time.time()-dsage_start_time), 'cpu_time.sobj', compress=False)")
+        job_file.write(SAVE_TIME)
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
@@ -299,7 +306,7 @@ except:
             log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
 
         self.tmp_job_dir = self.setup_tmp_dir(job)
-        self.extract_job_data(job)
+        self.extract_and_load_job_data(job)
 
         job_filename = self.write_job_file(job)
 
@@ -345,7 +352,10 @@ except:
         try:
             os.chdir(self.tmp_job_dir)
             # foo, output, new = self.sage._so_far()
+            # This sucks and is a very bad way to tell when a calculation is
+            # finished
             done, new = self.sage._get()
+            # If result.sobj exists, our calculation is done
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
@@ -471,11 +481,12 @@ except:
         """
 
         try:
-            pid = self.sage.pid()
-            cmd = 'kill -9 -%s'%pid
-            os.system(cmd)
+            self.sage.quit()
             del self.sage
         except Exception, msg:
+            pid = self.sage.pid()
+            cmd = 'kill -9 %s' % pid
+            os.system(cmd)
             log.msg(msg)
 
     def stop(self, hard_reset=False):

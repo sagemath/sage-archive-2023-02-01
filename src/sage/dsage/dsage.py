@@ -15,15 +15,20 @@ from sage.dsage.misc.constants import DSAGE_DIR
 
 def spawn(cmd, verbose=True):
     """
-    Spawns a process and registers it with the SAGE cleaner.
+    Spawns a process and registers it with the SAGE.
     """
 
     null = open('/dev/null', 'a')
-    proc = '%s/%s' % (SAGE_ROOT + '/local/bin', cmd)
-    process = subprocess.Popen(proc, shell=True, stdout=null, stderr=null)
+    cmdl = cmd.split(' ')
+    exe = SAGE_ROOT + '/local/bin/' + cmdl[0] # path to the .py file
+    cmdl = cmdl[1:]
+    proc = [exe] + cmdl + ['&']
+    process = subprocess.Popen(proc, shell=False, stdout=null, stdin=null)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
     if verbose:
         print 'Spawned %s (pid = %s)\n' % (cmd, process.pid)
+
+    return process.pid
 
 class DistributedSage(object):
     r"""
@@ -99,7 +104,7 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, workers=2, log_level=0, poll=1.0,
+    def start_all(self, port=None, workers=2, log_level=0, poll=1.0,
                   anonymous_workers=False, verbose=True):
         """
         Start the server and worker and returns a connection to the server.
@@ -107,7 +112,10 @@ class DistributedSage(object):
         """
 
         from sage.dsage.interface.dsage_interface import BlockingDSage
+        from sage.dsage.misc.misc import find_open_port
 
+        if port is None:
+            port = find_open_port()
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,
@@ -129,6 +137,27 @@ class DistributedSage(object):
         d = BlockingDSage(server='localhost', port=port)
 
         return d
+
+    def kill_all(self):
+        """
+        Kills the server and worker.
+
+        """
+
+        self.kill_worker()
+        self.kill_server()
+
+    def kill_worker(self):
+        try:
+            os.kill(self.worker_pid, 9)
+        except OSError, msg:
+            print 'Error killing worker: %s' % msg
+
+    def kill_server(self):
+        try:
+            os.kill(self.server_pid, 9)
+        except OSError, msg:
+            print 'Error killing server: %s' % msg
 
     def server(self, blocking=True, port=8081, log_level=0, ssl=True,
                db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
@@ -162,7 +191,7 @@ class DistributedSage(object):
             cmd += ' --ssl'
         if not blocking:
             cmd += ' --noblock'
-            spawn(cmd, verbose=verbose)
+            self.server_pid = spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 
@@ -185,12 +214,23 @@ class DistributedSage(object):
                       specified in .sage/dsage/worker.conf
             port -- (integer, default: None) the port that the server
                       listens on for workers.
+            workers -- number of workers to start
+            poll -- rate (in seconds) at which the worker pings the server to
+                    check for new jobs, this value will increase if the server
+                    has no jobs
+            username -- username to use
             blocking -- (bool, default: True) whether or not to make a
                         blocking connection.
-            logfile -- only used if blocking=True; the default is
+            ssl -- (bool, default: True) whether or not to use SSL
+            log_level -- (int, default: 0) int from 0-5, 5 being most verbose
+            anonymous -- (bool, default: False) connect anonymously
+            priority -- (int, default: 20) priority of workers
+            privkey -- private key
+            pubkey -- public key
+            log_file -- only used if blocking=True; the default is
                        to log to $DOT_SAGE/dsage/worker.log
-            poll -- rate at which the worker pings the server to check for new
-                    jobs, this value will increase if the server has no jobs
+            verbose -- be more verbose about launching the workers
+
         """
 
         cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s --poll %s -l %s -f %s ' + \
@@ -204,7 +244,7 @@ class DistributedSage(object):
             cmd += ' -a'
         if not blocking:
             cmd += ' --noblock'
-            spawn(cmd, verbose=verbose)
+            self.worker_pid = spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 

@@ -313,13 +313,17 @@ cdef class PowerSeries_poly(PowerSeries):
             return PowerSeries_poly(self._parent,
                                              self.__f // denom, self._prec)
 
-    def __lshift__(_self, n):
-        cdef PowerSeries_poly self = _self
-        return PowerSeries_poly(self._parent, self.__f << n, self._prec + n)
+    def __lshift__(PowerSeries_poly self, n):
+        if n:
+            return PowerSeries_poly(self._parent, self.__f << n, self._prec + n)
+        else:
+            return self
 
-    def __rshift__(_self, n):
-        cdef PowerSeries_poly self = _self
-        return PowerSeries_poly(self._parent, self.__f >> n, self._prec - n)
+    def __rshift__(PowerSeries_poly self, n):
+        if n:
+            return PowerSeries_poly(self._parent, self.__f >> n, self._prec - n)
+        else:
+            return self
 
     def truncate(self, prec=infinity):
         """

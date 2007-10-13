@@ -33,18 +33,22 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
 ZZ_sage = IntegerRing()
 
-def set_ZZ_p_modulus(ntl_ZZ p):
-    ntl_ZZ_set_modulus(&p.x)
-
-def ntl_ZZ_p_random():
+def ntl_ZZ_p_random_element(v):
     """
     Return a random number modulo p.
+
+    EXAMPLES:
+        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(2) # random
+        1
     """
-    cdef ntl_ZZ_p y = ntl_ZZ_p()
+    cdef ntl_ZZ_p y
+    v = ntl_ZZ_pContext(v)
+    y = ntl_ZZ_p(0,v)
     _sig_on
     ZZ_p_random(y.x)
     _sig_off
     return y
+
 
 
 ##############################################################################
@@ -70,17 +74,17 @@ cdef class ntl_ZZ_p:
     """
     def __init__(self, v=None, modulus=None):
         r"""
-        Initializes and NTL integer.
+        Initializes an NTL integer mod p.
 
         EXAMPLES:
-            sage: c=ntl.ZZ_pContext(ntl.ZZ(11))
-            sage: c.ZZ_p(12r)
+            sage: c = ntl.ZZ_pContext(11)
+            sage: ntl.ZZ_p(12r, c)
             1
-            sage: c.ZZ_p(Integer(95413094))
+            sage: ntl.ZZ_p(Integer(95413094), c)
             7
-            sage: c.ZZ_p(long(223895239852389582988))
+            sage: ntl.ZZ_p(long(223895239852389582988), c)
             5
-            sage: c.ZZ_p('-1')
+            sage: ntl.ZZ_p('-1', c)
             10
 
         AUTHOR: Joel B. Mohler (2007-06-14)
@@ -135,20 +139,40 @@ cdef class ntl_ZZ_p:
         return unpickle_class_args, (ntl_ZZ_p, (self.lift(), self.get_modulus_context()))
 
     def get_modulus_context(self):
+        """
+        Return the modulus for self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,17)
+            sage: c = x.get_modulus_context()
+            sage: y = ntl.ZZ_p(3,c)
+            sage: x+y
+            8
+            sage: c == y.get_modulus_context()
+            True
+            sage: c == ntl.ZZ_p(7,17).get_modulus_context()
+            True
+        """
         return self.c
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.ZZ_p(7,192).__repr__()
+            '7'
+        """
         self.c.restore_c()
-        _sig_on
-        return string_delete(ZZ_p_to_str(&self.x))
+        return ZZ_p_to_PyString(&self.x)
 
     def __richcmp__(ntl_ZZ_p self, ntl_ZZ_p other, op):
         r"""
         EXAMPLES:
-            sage: c=ntl.ZZ_pContext(ntl.ZZ(11))
-            sage: c.ZZ_p(12r)==c.ZZ_p(1)
+            sage: c = ntl.ZZ_pContext(11)
+            sage: ntl.ZZ_p(12r, c) == ntl.ZZ_p(1, c)
             True
-            sage: c.ZZ_p(35r)==c.ZZ_p(1)
+            sage: ntl.ZZ_p(35r, c) == ntl.ZZ_p(1, c)
             False
         """
         self.c.restore_c()
@@ -161,7 +185,7 @@ cdef class ntl_ZZ_p:
 #            other = ntl_ZZ_p(other)
 #        y = other
         _sig_on
-        t = ZZ_p_eq(&self.x, &other.x)
+        t = ZZ_p_equal(self.x, other.x)
         _sig_off
         # t == 1 if self == other
         if op == 2:
@@ -172,7 +196,7 @@ cdef class ntl_ZZ_p:
     def __invert__(ntl_ZZ_p self):
         r"""
         EXAMPLES:
-            sage: c=ntl.ZZ_pContext(ntl.ZZ(11))
+            sage: c=ntl.ZZ_pContext(11)
             sage: ~ntl.ZZ_p(2r,modulus=c)
             6
         """
@@ -184,6 +208,12 @@ cdef class ntl_ZZ_p:
         return r
 
     def __mul__(ntl_ZZ_p self, other):
+        """
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,31) ; y = ntl.ZZ_p(8,31)
+            sage: x*y ## indirect doctest
+            9
+        """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = self._new()
         if not PY_TYPE_CHECK(other, ntl_ZZ_p):
@@ -196,6 +226,14 @@ cdef class ntl_ZZ_p:
         return r
 
     def __sub__(ntl_ZZ_p self, other):
+        """
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,31) ; y = ntl.ZZ_p(8,31)
+            sage: x-y ## indirect doctest
+            28
+            sage: y-x
+            3
+        """
         if not PY_TYPE_CHECK(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
@@ -206,6 +244,12 @@ cdef class ntl_ZZ_p:
         return r
 
     def __add__(ntl_ZZ_p self, other):
+        """
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,31) ; y = ntl.ZZ_p(8,31)
+            sage: x+y ## indirect doctest
+            13
+        """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = ntl_ZZ_p(modulus=self.c)
         if not PY_TYPE_CHECK(other, ntl_ZZ_p):
@@ -220,6 +264,12 @@ cdef class ntl_ZZ_p:
         return r
 
     def __neg__(ntl_ZZ_p self):
+        """
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,31)
+            sage: -x ## indirect doctest
+            26
+        """
         cdef ntl_ZZ_p r = ntl_ZZ_p(modulus=self.c)
         _sig_on
         self.c.restore_c()
@@ -228,6 +278,12 @@ cdef class ntl_ZZ_p:
         return r
 
     def __pow__(ntl_ZZ_p self, long e, ignored):
+        """
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(5,31)
+            sage: x**3 ## indirect doctest
+            1
+        """
         cdef ntl_ZZ_p r = ntl_ZZ_p(modulus=self.c)
         _sig_on
         self.c.restore_c()
@@ -235,6 +291,18 @@ cdef class ntl_ZZ_p:
         _sig_off
         return r
 
+    def __int__(self):
+        """
+        Return self as an int.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(3,8)
+            sage: x.__int__()
+            3
+            sage: type(x.__int__())
+            <type 'int'>
+        """
+        return self.get_as_int()
 
     cdef int get_as_int(ntl_ZZ_p self):
         r"""
@@ -246,17 +314,18 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         return ZZ_p_to_int(self.x)
 
-    def get_as_int_doctest(self):
+    def _get_as_int_doctest(self):
         r"""
         This method exists solely for automated testing of get_as_int().
 
-        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
-        sage: x = ntl.ZZ_p(42,modulus=c)
-        sage: i = x.get_as_int_doctest()
-        sage: print i
-        2
-        sage: print type(i)
-         <type 'int'>
+        EXAMPLES:
+            sage: c = ntl.ZZ_pContext(20)
+            sage: x = ntl.ZZ_p(42,modulus=c)
+            sage: i = x._get_as_int_doctest()
+            sage: print i
+            2
+            sage: print type(i)
+            <type 'int'>
         """
         self.c.restore_c()
         return self.get_as_int()
@@ -270,49 +339,82 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         self.x = int_to_ZZ_p(value)
 
-    def set_from_int_doctest(self, value):
+    def _set_from_int_doctest(self, value):
         r"""
         This method exists solely for automated testing of set_from_int().
 
-        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
-        sage: x = ntl.ZZ_p(modulus=c)
-        sage: x.set_from_int_doctest(42)
-        sage: x
-         2
+        EXAMPLES:
+            sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
+            sage: x = ntl.ZZ_p(modulus=c)
+            sage: x._set_from_int_doctest(42)
+            sage: x
+            2
+            sage: x = ntl.ZZ_p(7,81)
+            sage: x._set_from_int_doctest(int(3))
+            sage: x
+            3
         """
         self.c.restore_c()
         self.set_from_int(int(value))
 
     def lift(self):
+        """
+        Return a lift of self as an ntl.ZZ object.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(8,18)
+            sage: x.lift()
+            8
+            sage: type(x.lift())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+        """
         cdef ntl_ZZ r = ntl_ZZ()
         self.c.restore_c()
-        r.x = rep(self.x)
+        r.x = ZZ_p_rep(self.x)
         return r
 
     def modulus(self):
         r"""
         Returns the modulus as an NTL ZZ.
 
-        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
-        sage: n=ntl.ZZ_p(2983,c)
-        sage: n.modulus()
-        20
+        EXAMPLES:
+            sage: c = ntl.ZZ_pContext(ntl.ZZ(20))
+            sage: n = ntl.ZZ_p(2983,c)
+            sage: n.modulus()
+            20
         """
         cdef ntl_ZZ r = ntl_ZZ()
         self.c.restore_c()
         ZZ_p_modulus( &r.x, &self.x )
         return r
 
+    def _integer_(self):
+        """
+        Return a lift of self as a SAGE integer.
+
+        EXAMPLES:
+            sage: x = ntl.ZZ_p(8,188)
+            sage: x._integer_()
+            8
+
+            sage: type(x._integer_())
+            <type 'sage.rings.integer.Integer'>
+        """
+        self.c.restore_c()
+        cdef ZZ_c rep = ZZ_p_rep(self.x)
+        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep)
+
     def _sage_(self):
         r"""
         Returns the value as a sage IntegerModRing.
 
-        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
-        sage: n=ntl.ZZ_p(2983,c)
-        sage: type(n._sage_())
-        <type 'sage.rings.integer_mod.IntegerMod_int'>
-        sage: n
-        3
+        EXAMPLES:
+            sage: c = ntl.ZZ_pContext(20)
+            sage: n = ntl.ZZ_p(2983, c)
+            sage: type(n._sage_())
+            <type 'sage.rings.integer_mod.IntegerMod_int'>
+            sage: n
+            3
 
         AUTHOR: Joel B. Mohler
         """

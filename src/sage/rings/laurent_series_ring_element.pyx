@@ -56,8 +56,11 @@ from sage.rings.integer import Integer
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
 
+include "../ext/stdsage.pxi"
+
 def is_LaurentSeries(x):
     return isinstance(x, LaurentSeries)
+
 
 cdef class LaurentSeries(AlgebraElement):
     """
@@ -78,14 +81,19 @@ cdef class LaurentSeries(AlgebraElement):
             a Laurent series
         """
         AlgebraElement.__init__(self, parent)
-        if isinstance(f, LaurentSeries):
+
+        if PY_TYPE_CHECK(f, LaurentSeries):
             n += (<LaurentSeries>f).__n
-            f = parent.power_series_ring()((<LaurentSeries>f).__u)
-        elif not isinstance(f, power_series_ring_element.PowerSeries):
+            if (<LaurentSeries>f).__u._parent is parent.power_series_ring():
+                f = (<LaurentSeries>f).__u
+            else:
+                f = parent.power_series_ring()((<LaurentSeries>f).__u)
+        elif not PY_TYPE_CHECK(f, PowerSeries):
             f = parent.power_series_ring()(f)
 
         # self is that t^n * u:
-        if f.is_zero():
+        cdef long val
+        if not f:
             if n == infinity:
                 self.__n = 0
                 self.__u = parent.power_series_ring()(0)
@@ -93,8 +101,13 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__n = n
                 self.__u = f
         else:
-            self.__n = n + f.valuation()    # power of the variable
-            self.__u = f.valuation_zero_part()        # unit part
+            val = f.valuation()
+            if val == 0:
+                self.__n = n    # power of the variable
+                self.__u = f    # unit part
+            else:
+                self.__n = n + val
+                self.__u = f >> val
 
     def __reduce__(self):
         return make_element_from_parent, (self._parent, self.__u, self.__n)
@@ -720,6 +733,7 @@ cdef class LaurentSeries(AlgebraElement):
             True
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
+
         prec = self.common_prec(right)
         if not prec:
             return 0

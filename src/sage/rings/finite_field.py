@@ -125,7 +125,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
         sage: f = K.modulus(); f
         x^5 + 4*x + 1
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
+        <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
 
     The modulus must be irreducible:
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )

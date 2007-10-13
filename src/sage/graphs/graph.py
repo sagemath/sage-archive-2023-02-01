@@ -4483,7 +4483,8 @@ class Graph(GenericGraph):
     def show3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
                edge_colors=None, edge_size=0.02,
-               pos3d=None, iterations=50, color_by_label=False, **kwds):
+               pos3d=None, iterations=50, color_by_label=False,
+               **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -4524,7 +4525,7 @@ class Graph(GenericGraph):
         self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
                     edge_colors=edge_colors, vertex_size=vertex_size,
                     edge_size=edge_size, iterations=iterations,
-                    color_by_label=color_by_label).show(**kwds)
+                    color_by_label=color_by_label, **kwds).show()
 
     ### Connected components
 

@@ -322,7 +322,10 @@ class JobDatabaseSQLite(JobDatabase):
         jdict['verifiable'] = bool(jdict['verifiable'])
 
         # Convert worker_info from a str into a dict
-        jdict['worker_info'] = eval(jdict['worker_info'])
+        try:
+            jdict['worker_info'] = eval(jdict['worker_info'])
+        except TypeError:
+            jdict['worker_info'] = {}
 
         # Convert buffer objects back to string
         try:

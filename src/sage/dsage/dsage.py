@@ -104,7 +104,7 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, workers=2, log_level=0, poll=1.0,
+    def start_all(self, port=None, workers=2, log_level=0, poll=1.0,
                   anonymous_workers=False, verbose=True):
         """
         Start the server and worker and returns a connection to the server.
@@ -112,7 +112,10 @@ class DistributedSage(object):
         """
 
         from sage.dsage.interface.dsage_interface import BlockingDSage
+        from sage.dsage.misc.misc import find_open_port
 
+        if port is None:
+            port = find_open_port()
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,

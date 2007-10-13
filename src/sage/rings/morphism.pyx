@@ -549,7 +549,10 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    def __cmp__(self, other):
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(self, Element other) except -2:
         """
         EXAMPLES:
         A single variate quotient over QQ.

@@ -4,7 +4,8 @@ on their system:
 
 WARNING: Currently these non-blocking startups leave processes
 hanging around!
-   sage: port = randint(8000, 9000)
+   sage: from sage.dsage.misc.misc import find_open_port
+   sage: port = find_open_port()
    sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
    sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
    sage: sleep(2.0)

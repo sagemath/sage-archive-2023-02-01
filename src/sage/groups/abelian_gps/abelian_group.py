@@ -123,6 +123,7 @@ REFERENCES:
 import weakref
 import copy
 
+
 from sage.rings.integer import Integer
 
 from sage.rings.infinity import infinity
@@ -318,7 +319,7 @@ class AbelianGroup_class(group.AbelianGroup):
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
         Multiplicative Abelian Group isomorphic to C5 x C5 x C7 x C8 x C9
         sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); F
-        Multiplicative Abelian Group isomorphic to C2 x C3 x C3 x C3 x C4 x C4 x C5 x C8 x C8
+        Multiplicative Abelian Group isomorphic to C2 x C4 x C12 x C24 x C120
         sage: F.elementary_divisors()
         [2, 3, 3, 3, 4, 4, 5, 8, 8]
 
@@ -344,42 +345,63 @@ class AbelianGroup_class(group.AbelianGroup):
         n = Integer(n)
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
-        invs = invfac
+
         # if necessary, remove 1 from invfac first
-        for i in range(n):
-            if 1 in invs:
-                invs.remove(1)
-        invs.sort()
-        self.__invariants = invs
+        while True:
+            try:
+                i = invfac.index(1)
+            except ValueError:
+                break
+            else:
+                del invfac[i]
+
+        self.__invariants = invfac
+
         # *now* define ngens
         self.__ngens = len(self.__invariants)
         self._assign_names(names)
 
 
     def invariants(self):
-        return self.__invariants
+        """
+        Return a copy of the list of invariants of this group.
+
+        It is safe to modify the returned list.
+
+        EXAMPLES:
+            sage: J = AbelianGroup([2,3])
+            sage: J.invariants()
+            [2, 3]
+            sage: v = J.invariants(); v
+            [2, 3]
+            sage: v[0] = 5
+            sage: J.invariants()
+            [2, 3]
+            sage: J.invariants() is J.invariants()
+            False
+        """
+        return list(self.__invariants)
 
     def elementary_divisors(self):
         """
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,6])
             sage: G
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C3
+            Multiplicative Abelian Group isomorphic to C2 x C6
             sage: G.invariants()
             [2, 6]
             sage: G.elementary_divisors()
             [2, 2, 3]
-
+            sage: J = AbelianGroup([1,3,5,12])
+            sage: J.elementary_divisors()
+            [3, 3, 4, 5]
         """
         inv = self.invariants()
-        invs = copy.deepcopy(inv)
-        invs2 = copy.deepcopy(invs)
+        invs = list(inv)
+        invs2 = list(inv)
         n = len(invs)
-        for i in range(n):
-            if 1 in invs:
-                invs.remove(1)
         for a in invs:
-           if a > 1 and not is_prime_power(a):
+           if not is_prime_power(a):
                invs2.remove(a)
                facs = factor(a)
                pfacs = [facs[i][0]**facs[i][1] for i in range(len(facs))]
@@ -444,18 +466,20 @@ class AbelianGroup_class(group.AbelianGroup):
 ##         return s
 
     def _repr_(self):
-        eldv = self.elementary_divisors()
-        if eldv == []:
+        eldv = self.invariants()
+        if len(eldv) == 0:
             return "Trivial Abelian Group"
+        g = self._group_notation(eldv)
+        return "Multiplicative Abelian Group isomorphic to " + g
+
+    def _group_notation(self, eldv):
         v = []
         for x in eldv:
             if x:
                 v.append("C%s"%x)
             else:
                 v.append("Z")
-        gp = ' x '.join(v)
-        s = "Multiplicative Abelian Group isomorphic to "+gp
-        return s
+        return ' x '.join(v)
 
     def _latex_(self):
         r"""
@@ -587,15 +611,16 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.order()
             +Infinity
         """
-        import sage.rings.all
         try:
             return self.__len
         except AttributeError:
+            from sage.rings.all import infinity, Integer
             if len(self.invariants()) < self.ngens():
-                self.__len = sage.rings.all.infinity
-            self.__len = sage.rings.all.Integer(sage.misc.misc.mul(self.invariants()))
-            if self.__len == 0:
-                self.__len = sage.rings.all.infinity
+                self.__len = infinity
+            else:
+                self.__len = Integer(prod(self.invariants()))
+                if self.__len == 0:
+                    self.__len = infinity
         return self.__len
 
     def permutation_group(self):
@@ -659,13 +684,14 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
             sage: a,b,c,d,e = F.gens()
             sage: F.subgroup([a,b])
-            Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a, b]
+            Multiplicative Abelian Group isomorphic to Z x Z, which is
+            the subgroup of Multiplicative Abelian Group isomorphic to
+            Z x Z x C30 x C64 x C729 generated by [a, b]
             sage: F.subgroup([c,e])
-            Multiplicative Abelian Group isomorphic to C2 x C3 x C5 x C729, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [c, e]
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C5 x
+            C729, which is the subgroup of Multiplicative Abelian
+            Group isomorphic to Z x Z x C30 x C64 x C729 generated by
+            [c, e]
          """
         if not isinstance(gensH, (list, tuple)):
             raise TypeError, "gensH = (%s) must be a list or tuple"%(gensH)
@@ -711,7 +737,6 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.list()
             [1, b, b^2, a, a*b, a*b^2]
         """
-        from sage.combinat.combinat import tuples
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()
@@ -759,37 +784,46 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: a,b,c,d,e = F.gens()
             sage: F.subgroup([a^3,b])
             Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
+            Multiplicative Abelian Group isomorphic to Z x Z x C30 x C64 x C729
             generated by [a^3, b]
+
             sage: F.subgroup([c])
             Multiplicative Abelian Group isomorphic to C2 x C3 x C5, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
+            Multiplicative Abelian Group isomorphic to Z x Z x C30 x C64 x C729
             generated by [c]
+
             sage: F.subgroup([a,c])
-            Multiplicative Abelian Group isomorphic to Z x C2 x C3 x C5, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a, c]
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C5 x
+            Z, which is the subgroup of Multiplicative Abelian Group
+            isomorphic to Z x Z x C30 x C64 x C729 generated by [a, c]
+
             sage: F.subgroup([a,b*c])
-            Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a, b*c]
+            Multiplicative Abelian Group isomorphic to Z x Z, which is
+            the subgroup of Multiplicative Abelian Group isomorphic to
+            Z x Z x C30 x C64 x C729 generated by [a, b*c]
+
             sage: F.subgroup([b*c,d])
-            Multiplicative Abelian Group isomorphic to Z x C64, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [b*c, d]
+            Multiplicative Abelian Group isomorphic to C64 x Z, which
+            is the subgroup of Multiplicative Abelian Group isomorphic
+            to Z x Z x C30 x C64 x C729 generated by [b*c, d]
+
             sage: F.subgroup([a*b,c^6,d],names = list("xyz"))
-            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a*b, c^6, d]
+            Multiplicative Abelian Group isomorphic to C5 x C64 x Z,
+            which is the subgroup of Multiplicative Abelian Group
+            isomorphic to Z x Z x C30 x C64 x C729 generated by [a*b,
+            c^6, d]
+
             sage: H.<x,y,z> = F.subgroup([a*b, c^6, d]); H
-            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a*b, c^6, d]
-            sage: G = F.subgroup([a*b,c^6,d],names = list("xyz"))
-            sage: G
-            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
-            generated by [a*b, c^6, d]
+            Multiplicative Abelian Group isomorphic to C5 x C64 x Z,
+            which is the subgroup of Multiplicative Abelian Group
+            isomorphic to Z x Z x C30 x C64 x C729 generated by [a*b,
+            c^6, d]
+
+            sage: G = F.subgroup([a*b,c^6,d],names = list("xyz")); G
+            Multiplicative Abelian Group isomorphic to C5 x C64 x Z,
+            which is the subgroup of Multiplicative Abelian Group
+            isomorphic to Z x Z x C30 x C64 x C729 generated by [a*b,
+            c^6, d]
             sage: x,y,z = G.gens()
             sage: x.order()
             +Infinity
@@ -828,21 +862,22 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             24266473210027
             sage: A = AbelianGroup(4,[1008, 2003, 3001, 4001], names = "abcd")
             sage: a,b,c,d = A.gens()
-            sage: B = A.subgroup([a^3,b,c,d])
-            sage: B
-            Multiplicative Abelian Group isomorphic to C3 x C7 x C16 x C2003 x C3001 x C4001, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to C7 x C9 x C16 x C2003 x C3001 x C4001
-            generated by [a^3, b, c, d]
+            sage: B = A.subgroup([a^3,b,c,d]); B
+            Multiplicative Abelian Group isomorphic to C3 x C7 x C16 x
+            C2003 x C3001 x C4001, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C1008 x C2003 x
+            C3001 x C4001 generated by [a^3, b, c, d]
 
         Infinite groups can also be handled:
             sage: G = AbelianGroup([3,4,0], names = "abc")
             sage: a,b,c = G.gens()
             sage: F = G.subgroup([a,b^2,c]); F
-            Multiplicative Abelian Group isomorphic to Z x C3 x C4, which is the subgroup of
-            Multiplicative Abelian Group isomorphic to Z x C3 x C4
-            generated by [a, b^2, c]
+            Multiplicative Abelian Group isomorphic to C2 x C3 x Z,
+            which is the subgroup of Multiplicative Abelian Group
+            isomorphic to C3 x C4 x Z generated by [a, b^2, c]
+
             sage: F.invariants()
-            [0, 3, 4]
+            [2, 3, 0]
             sage: F.gens()
             [a, b^2, c]
             sage: F.order()

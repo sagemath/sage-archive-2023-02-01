@@ -12,7 +12,7 @@ EXAMPLES:
 ################################################################################
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL), version 2.
+#  Distributed under the terms of the GNU General Public License (GPL).
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
@@ -831,8 +831,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: b = a*a
             sage: latex(b)
             \left(\begin{array}{rr}
-            z_{0}^{2} + z_{1}z_{2}&z_{0}z_{1} + z_{1}z_{3}\\
-            z_{0}z_{2} + z_{2}z_{3}&z_{1}z_{2} + z_{3}^{2}
+            z_{0}^{2} + z_{1}z_{2} & z_{0}z_{1} + z_{1}z_{3} \\
+            z_{0}z_{2} + z_{2}z_{3} & z_{1}z_{2} + z_{3}^{2}
             \end{array}\right)
         """
         cdef Py_ssize_t nr, nc, r, c
@@ -857,7 +857,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if c == nc-1:
                     sep=""
                 else:
-                    sep="&"
+                    sep=" & "
                 entry = latex(S[r*nc+c])
                 if c == 0:
                     m = max(m, len(entry))
@@ -870,7 +870,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         tmp = []
         for row in rows:
             tmp.append(str(row))
-        s = "\\\\\n".join(tmp)
+        s = " \\\\\n".join(tmp)
 
         tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
         format = '|'.join(tmp)
@@ -1965,7 +1965,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b*c; d
             Traceback (most recent call last):
             ...
-            TypeError: No base extension defined
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7' and 'Full MatrixSpace of 2 by 2 dense matrices over Rational Field'
             sage: d = b*c.change_ring(GF(7)); d
             [2 3]
             [6 4]
@@ -2015,7 +2015,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a*v
             Traceback (most recent call last):
             ...
-            TypeError: incompatible dimensions
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 3 dense matrices over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Integer Ring'
 
         This illustrates how coercion works:
             sage: V = QQ^2

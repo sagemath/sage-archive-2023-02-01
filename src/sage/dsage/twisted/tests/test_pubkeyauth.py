@@ -27,6 +27,9 @@ from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from twisted.conch.ssh import keys
 
+from twisted.internet import base
+base.DelayedCall.debug = True
+
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
@@ -87,7 +90,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(
                                       self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
-        self.hostname = 'localhost'
+        self.hostname = '127.0.0.1'
         self.r = reactor.listenTCP(0, self.client_factory)
         self.port = self.r.getHost().port
 
@@ -170,7 +173,6 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                               None,
                                               self.data,
                                               self.signature)
-
         d = factory.login(bad_creds, None)
         d.addErrback(self._BadLoginFailure)
 

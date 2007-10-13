@@ -1043,7 +1043,7 @@ class SymbolicExpression(RingElement):
             sage: g = f.polynomial(GF(7)); g
             3*x^35 + 2*y^35
             sage: parent(g)
-            Polynomial Ring in x, y over Finite Field of size 7
+            Multivariate Polynomial Ring in x, y over Finite Field of size 7
         """
         vars = self.variables()
         if len(vars) == 0:
@@ -2988,13 +2988,19 @@ class SymbolicArithmetic(SymbolicOperation):
                 s[0] = '(%s)'%s[0]
             return '%s%s' % (symbols[op], s[0])
 
-    def _latex_(self):
+    def _latex_(self, simplify=True):
         # if we are not simplified, return the latex of a simplified version
-        if not self.is_simplified():
+        if simplify and not self.is_simplified():
             return self.simplify()._latex_()
         op = self._operator
         ops = self._operands
-        s = [x._latex_() for x in self._operands]
+        s = []
+        for x in self._operands:
+            try:
+                s.append(x._latex_(simplify=simplify))
+            except TypeError:
+                s.append(x._latex_())
+        ## what it used to be --> s = [x._latex_() for x in self._operands]
 
         if op is operator.add:
             return '%s + %s' % (s[0], s[1])
@@ -3036,6 +3042,9 @@ class SymbolicArithmetic(SymbolicOperation):
                              sys_init(ops[1], system))
 
 import re
+
+def is_SymbolicVariable(x):
+    return isinstance(x, SymbolicVariable)
 
 class SymbolicVariable(SymbolicExpression):
     def __init__(self, name):

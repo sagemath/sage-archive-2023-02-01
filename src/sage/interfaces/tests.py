@@ -1,3 +1,34 @@
+"""
+TESTS:
+
+We test coercions:
+
+sage: 2 * gp('2')
+4
+sage: a = 2 * gp('2'); a
+4
+sage: parent(a)
+GP/PARI interpreter
+sage: a = 2 * gap('2'); a
+4
+sage: parent(a)
+Gap
+sage: a = 2 * maxima('2'); a
+4
+sage: parent(a)
+Maxima
+"""
+
+#
+# THIS IS BROKEN (2007-10-04):
+#
+#sage: a = 2 * singular('2'); a   # seg faults
+#4
+#sage: parent(a)
+#Singular
+#
+
+
 from all import *
 from sage.misc.misc import cputime, walltime
 import sys

@@ -53,7 +53,7 @@ def notebook_twisted(self,
              server_pool = None,
              ulimit      = None,
 
-             timeout     = None,
+             timeout     = 0,
 
              open_viewer = True):
     if not os.path.exists(directory):
@@ -66,6 +66,8 @@ def notebook_twisted(self,
         print "Make sure you know what you are doing."
 
     nb = notebook.load_notebook(directory)
+
+    nb.conf()['idle_timeout'] = int(timeout)
 
     if nb.user_exists('root') and not nb.user_exists('admin'):
         # This is here only for backward compatibility with one
@@ -89,7 +91,7 @@ def notebook_twisted(self,
             print "\n"
             if secure:
                 print "Login to the SAGE notebook as admin with the password you specified above."
-        nb.del_user('root')
+        #nb.del_user('root')
 
     if not server_pool is None:
         nb.set_server_pool(server_pool)
@@ -124,7 +126,7 @@ def notebook_twisted(self,
                 address, port, secure)
 
         if open_viewer:
-            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s)"%(address, port, secure)
+            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s, '%s')"%(address, port, secure, '')
         else:
             open_page = ''
 

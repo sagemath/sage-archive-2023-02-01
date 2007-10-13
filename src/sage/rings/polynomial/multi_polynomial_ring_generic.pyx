@@ -27,7 +27,24 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         ParentWithGens.__init__(self, base_ring, names)
 
     def is_integral_domain(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x,y'].is_integral_domain()
+            True
+            sage: Integers(8)['x,y'].is_integral_domain()
+            False
+        """
         return self.base_ring().is_integral_domain()
+
+    def is_noetherian(self):
+        """
+        EXAMPLES:
+            sage: ZZ['x,y'].is_noetherian()
+            True
+            sage: Integers(8)['x,y'].is_noetherian()
+            True
+        """
+        return self.base_ring().is_noetherian()
 
     def construction(self):
         """
@@ -155,7 +172,39 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
 
     def _repr_(self):
-        return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+        return "Multivariate Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+
+    def repr_long(self):
+        """
+        Return structured string representation of self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
+            sage: print P.repr_long()
+            Polynomial Ring
+             Base Ring : Rational Field
+                  Size : 3 Variables
+              Block  0 : Ordering : degrevlex
+                         Names    : x
+              Block  1 : Ordering : lex
+                         Names    : y, z
+        """
+        from sage.rings.polynomial.term_order import inv_singular_name_mapping
+        n = self.ngens()
+        k = self.base_ring()
+        names = self.variable_names()
+        T = self.term_order()
+        _repr =  "Polynomial Ring\n"
+        _repr += "  Base Ring : %s\n"%(k,)
+        _repr += "       Size : %d Variables\n"%(n,)
+        offset = 0
+        i = 0
+        for order,_len in T.blocks:
+            _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order, order))
+            _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + _len]))
+            offset += _len
+            i+=1
+        return _repr
 
     def _latex_(self):
         vars = str(self.latex_variable_names()).replace('\n','').replace("'",'')
@@ -431,6 +480,31 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         d = dict( zip(tuple(exponents), coeffs) )
         return self(multi_polynomial_element.MPolynomial_polydict(self, PolyDict(d)))
 
+    def new_ring(self, names=None, order=None):
+        """
+        Return a new multivariate polynomial ring which isomorphic to
+        self, but has a different ordering given by the parameter
+        'order' or names given by the parameter 'names'.
+
+        INPUT:
+            order -- a term order
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='lex')
+            sage: x > y^2
+            True
+            sage: Q.<x,y,z> = P.new_ring(order='degrevlex')
+            sage: x > y^2
+            False
+        """
+        base_ring = self.base_ring()
+        if names is None:
+            names = self.variable_names()
+        if order is None:
+            order = self.term_order()
+
+        from polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(base_ring, self.ngens(), names, order=order)
 
 ####################
 # Leave *all* old versions!

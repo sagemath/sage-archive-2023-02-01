@@ -36,6 +36,8 @@ from parent_gens import (ParentWithGens,
                          is_ParentWithMultiplicativeAbelianGens,
                          localvars)
 
+import proof.all as proof
+
 from formal_sum  import FormalSums, FormalSum
 
 from mutability  import Mutability

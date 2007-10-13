@@ -33,7 +33,6 @@ Arithmetic obeys the usual coercion rules.
 
 import math
 import types
-from sage.misc.misc import xsrange
 import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
@@ -47,16 +46,17 @@ include '../../ext/stdsage.pxi'
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
-pari_instance = PariInstance(100000000, 500000)
+#pari_instance = PariInstance(100000000, 500000)
 #pari_instance = PariInstance(75000000, 500000)
 #pari_instance = PariInstance(50000000, 500000)
+pari_instance = PariInstance(8000000, 500000)
 P = pari_instance   # shorthand notation
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
-cdef pari_sp mytop
+cdef pari_sp mytop, initial_bot, initial_top
 
 # keep track of the stack
 cdef pari_sp stack_avma
@@ -70,26 +70,27 @@ pari = pari_instance
 
 # temp variables
 cdef GEN t0,t1,t2,t3,t4
+t0heap = [0]*5
 
 cdef t0GEN(x):
     global t0
-    t0 = P.toGEN(x)
+    t0 = P.toGEN(x, 0)
 
 cdef t1GEN(x):
     global t1
-    t1 = P.toGEN(x)
+    t1 = P.toGEN(x, 1)
 
 cdef t2GEN(x):
     global t2
-    t2 = P.toGEN(x)
+    t2 = P.toGEN(x, 2)
 
 cdef t3GEN(x):
     global t3
-    t3 = P.toGEN(x)
+    t3 = P.toGEN(x, 3)
 
 cdef t4GEN(x):
     global t4
-    t4 = P.toGEN(x)
+    t4 = P.toGEN(x, 4)
 
 cdef class gen(sage.structure.element.RingElement):
     """
@@ -2937,7 +2938,7 @@ cdef class gen(sage.structure.element.RingElement):
             -4.348708749867516799575863067 - 5.387448826971091267230878827*I        # 32-bit
             -4.3487087498675167995758630674661864255 - 5.3874488269710912672308788273655523057*I  # 64-bit
 
-            sage.: pari('2+I').besselk(300, flag=1)
+            sage: pari('2+I').besselk(300, flag=1)   # long time
             3.742246033197275082909500148 E-132 + 2.490710626415252262644383350 E-134*I      # 32-bit
             3.7422460331972750829095001475885825717 E-132 + 2.4907106264152522626443833495225745762 E-134*I   # 64-bit
 
@@ -3167,7 +3168,7 @@ cdef class gen(sage.structure.element.RingElement):
         Volunteers?
 
         EXAMPLES:
-            sage.: pari(1).hyperu(2,3)
+            sage: pari(1).hyperu(2,3)           # long time
             0.3333333333333333333333333333              # 32-bit
             0.33333333333333333333333333333333333333    # 64-bit
         """
@@ -3193,7 +3194,7 @@ cdef class gen(sage.structure.element.RingElement):
             gen -- value of the incomplete Gamma function at s.
 
         EXAMPLES:
-            sage.: pari('1+I').incgam('3-I')
+            sage: pari('1+I').incgam('3-I')             # long time
             -0.04582978599199457259586742326 + 0.04336968187266766812050474478*I        # 32-bit
             -0.045829785991994572595867423261490338705 + 0.043369681872667668120504744775954724733*I    # 64-bit
         """
@@ -4201,6 +4202,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
 
+    def idealred(self, I, vdir=0):
+        t0GEN(I); t1GEN(vdir)
+        _sig_on
+        return self.new_gen(ideallllred(self.g, t0, t1, prec))
+
     def idealadd(self, x, y):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -4346,6 +4352,40 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return P.new_gen(nfisisom(self.g, other.g))
+
+    def nfrootsof1(self):
+        """
+        nf.nfrootsof1()
+
+        number of roots of unity and primitive root of unity in the
+        number field nf.
+
+        EXAMPLES:
+            sage: nf = pari('x^2 + 1').nfinit()
+            sage: nf.nfrootsof1()
+            [4, [0, 1]~]
+        """
+        _sig_on
+        return P.new_gen(rootsof1(self.g))
+
+    def nfsubfields(self, d=0):
+        """
+        Find all subfields of degree d of number field nf (all
+        subfields if d is null or omitted). Result is a vector of
+        subfields, each being given by [g,h], where g is an absolute
+        equation and h expresses one of the roots of g in terms of the
+        root x of the polynomial defining nf.
+
+        INPUT:
+            self -- nf number field
+            d -- integer
+        """
+        if d == 0:
+            _sig_on
+            return self.new_gen(subfields0(self.g, <GEN>0))
+        t0GEN(d)
+        _sig_on
+        return self.new_gen(subfields0(self.g, t0))
 
     def rnfcharpoly(self, T, a, v='x'):
         t0GEN(T); t1GEN(a); t2GEN(v)
@@ -4744,6 +4784,22 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
 
+    def qflll(self, long flag=0):
+        """
+        qflll(x,{flag=0}): LLL reduction of the vectors forming the
+        matrix x (gives the unimodular transformation matrix). The
+        columns of x must be linearly independent, unless specified
+        otherwise below. flag is optional, and can be 0: default, 1:
+        assumes x is integral, columns may be dependent, 2: assumes x
+        is integral, returns a partially reduced basis, 4: assumes x
+        is integral, returns [K,I] where K is the integer kernel of x
+        and I the LLL reduced image, 5: same as 4 but x may have
+        polynomial coefficients, 8: same as 0 but x may have
+        polynomial coefficients.
+        """
+        _sig_on
+        return self.new_gen(qflll0(self.g,flag,prec)).Mat()
+
     def qflllgram(self, long flag=0):
         """
         qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
@@ -5031,20 +5087,34 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     # polarit2.c
     ###########################################
-    def factor(gen self, limit=-1):
+    def factor(gen self, limit=-1, bint proof=1):
         """
         Return the factorization of x.
 
-        lim is optional and can be set whenever x is of (possibly
-        recursive) rational type. If lim is set return partial
-        factorization, using primes up to lim (up to primelimit if
-        lim=0).
+        INPUT:
+            limit -- (default: -1) is optional and can be set whenever
+                     x is of (possibly recursive) rational type. If limit
+                     is set return partial factorization, using primes
+                     up to limit (up to primelimit if limit=0).
+
+            proof -- (default: True) optional.  If False (not the default),
+                     returned factors $<10^{15}$ may only be pseudoprimes.
+
+        NOTE: In the standard PARI/GP interpreter and C-library the
+        factor command *always* has proof=False, so beware!
 
         EXAMPLES:
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
             sage: pari(2^100-1).factor()
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+            sage: pari(2^100-1).factor(proof=False)
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+
+        We illustrate setting a limit:
+            sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
+            [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
+
 
         PARI doesn't have an algorithm for factoring multivariate polynomials:
 
@@ -5053,6 +5123,16 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError: sorry, (15)
         """
+        cdef int r
+        if limit == -1 and typ(self.g) == t_INT and proof:
+            _sig_on
+            r = factorint_withproof_sage(&t0, self.g, ten_to_15)
+            _sig_off
+            z = P.new_gen(t0)
+            if not r:
+                return z
+            else:
+                return _factor_int_when_pari_factor_failed(self, z)
         _sig_on
         return P.new_gen(factor0(self.g, limit))
 
@@ -5409,10 +5489,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global initialized, num_primes, ZERO, ONE, TWO, avma, top, bot
+        global initialized, num_primes, ZERO, ONE, TWO, avma, top, bot, \
+               initial_bot, initial_top
+
 
         #print "Initializing PARI (size=%s, maxprime=%s)"%(size,maxprime)
         pari_init(1024, maxprime)
+        initial_bot = bot
+        initial_top = top
+        bot = 0
 
         _sig_on
         init_stack(size)
@@ -5437,9 +5522,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ONE = self(1)
         self.TWO = self(2)
 
-    def __dealloc__(self):
-        # TODO -- add pari free here
-        pass
+    #def __dealloc__(self):
+
+
+    def _unsafe_deallocate_pari_stack(self):
+        if bot:
+            sage_free(<void*>bot)
+        global top, bot
+        top = initial_top
+        bot = initial_bot
+        pari_close()
 
     def __repr__(self):
         return "Interface to the PARI C library"
@@ -5479,11 +5571,18 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         return int(self.default('debug'))
 
-    cdef GEN toGEN(self, x) except NULL:
+    cdef GEN toGEN(self, x, int i) except NULL:
         cdef gen _x
-        if isinstance(x, gen):
+        if PY_TYPE_CHECK(x, gen):
             _x = x
             return _x.g
+
+        t0heap[i] = self(x)
+        _x = t0heap[i]
+        return _x.g
+
+        # TODO: Refactor code out of __call__ so it...
+
         s = str(x)
         cdef GEN g
         _sig_on
@@ -5554,7 +5653,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Create a new gen, but don't free any memory on the stack and
         don't call _sig_off.
         """
-        return _new_gen(x)
+        z = _new_gen(x)
+        _sig_off
+        return z
 
     def double_to_gen(self, x):
         cdef double dx
@@ -5648,7 +5749,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except AttributeError:
             pass
         if isinstance(s, (types.ListType, types.XRangeType,
-                            types.TupleType, xsrange)):
+                            types.TupleType, types.GeneratorType)):
             v = self.vector(len(s))
             for i, x in enumerate(s):
                 v[i] = self(x)
@@ -5662,7 +5763,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         t = str(s)
         _sig_str('evaluating PARI string')
         g = gp_read_str(t)
-        _sig_off
         return self.new_gen(g)
 
     cdef _coerce_c_impl(self, x):
@@ -5733,6 +5833,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef object GEN_to_str(self, GEN g):
         cdef char* c
         cdef int n
+        _sig_off
         _sig_on
         c = GENtostr(g)
         _sig_off
@@ -5745,13 +5846,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     # Initialization
     ############################################################
 
-    def allocatemem(self, silent=False):
+    def allocatemem(self, s=0, silent=False):
         r"""
         Double the \emph{PARI} stack.
         """
-        if not silent:
+        if s == 0 and not silent:
             print "Doubling the PARI stack."
-        init_stack(0)
+        s = int(s)
+        cdef size_t a = s
+        if int(a) != s:
+            raise ValueError, "s must be nonnegative and not too big."
+        init_stack(s)
 
     def pari_version(self):
         return str(PARIVERSION)
@@ -5994,7 +6099,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen v
         _sig_on
         v = self.new_gen(zerovec(n))
-        if entries != None:
+        if entries is not None:
             if len(entries) != n:
                 raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
                       (len(entries), n)
@@ -6066,45 +6171,58 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         s = self.new_gen(g)*self.ONE.Mod(p)
         return s.Mod(f).charpoly(var)
 
+##############################################
+# Used in integer factorization -- must be done
+# after the pari_instance creation above:
 
-    ##############################################
+cdef gen _tmp = pari('1000000000000000')
+cdef GEN ten_to_15 = _tmp.g
+
+##############################################
+
 
 
 cdef int init_stack(size_t size) except -1:
     cdef size_t s
+    cdef pari_sp cur_stack_size
 
     global top, bot, avma, stack_avma, mytop
+
+
+    err = False    # whether or not a memory allocation error occured.
+
 
     # delete this if get core dumps and change the 2* to a 1* below.
     if bot:
         sage_free(<void*>bot)
 
+    prev_stack_size = top - bot
     if size == 0:
         size = 2*(top-bot)
 
-    # if size == -1, then allocate the biggest chunk possible
-    if size == -1:
-        s = 4294967295
-        while True:
-            s = fix_size(s)
-            bot = <pari_sp> sage_malloc(s)
-            if bot:
-                break
-            s = s/2
-    else:
-        # Decide on size
-        s = fix_size(size)
-        # Alocate memory for new stack using Python's memory allocator.
-        # As explained in the python/C api reference, using this instead
-        # of malloc is much better (and more platform independent, etc.)
+    # Decide on size
+    s = fix_size(size)
+
+    # Alocate memory for new stack using Python's memory allocator.
+    # As explained in the python/C api reference, using this instead
+    # of malloc is much better (and more platform independent, etc.)
+    bot = <pari_sp> sage_malloc(s)
+
+    while not bot:
+        err = True
+        s = fix_size(prev_stack_size)
         bot = <pari_sp> sage_malloc(s)
         if not bot:
-            raise MemoryError, "Unable to allocate %s bytes memory for PARI."%(<long>size)
+            prev_stack_size /= 2
+
     #endif
     top = bot + s
     mytop = top
     avma = top
     stack_avma = avma
+
+    if err:
+        raise MemoryError, "Unable to allocate %s bytes memory for PARI."%size
 
 
 def _my_sigpipe(signum, frame):
@@ -6150,11 +6268,9 @@ cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
-    _sig_on
     h = deepcopy_to_python_heap(x, &address)
     y = PY_NEW(gen)
     y.init(h, address)
-    _sig_off
     return y
 
 cdef gen xxx_new_gen(GEN x):
@@ -6203,6 +6319,10 @@ cdef extern from "pari/pari.h":
     int errpile
     int noer
 
+cdef extern from "misc.h":
+    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
+    int     gcmp_sage(GEN x, GEN y)
+
 def __errmessage(d):
     if d <= 0 or d > noer:
         return "unknown"
@@ -6236,23 +6356,27 @@ class PariError (RuntimeError):
 cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     """
     TESTS:
-        sage: v = pari.listcreate(10^9)
+        sage: v = pari.listcreate(2^62 if is_64_bit else 2^30)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times.
+        MemoryError: Unable to allocate ... bytes memory for PARI.
     """
+    _sig_off
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
-        P.allocatemem()
-        raise RuntimeError, "The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
+        P.allocatemem(silent=True)
 
+        #raise RuntimeError, "The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
         #print "Stack overflow! (%d retries so far)"%retries
         #print " enlarge the stack."
-        P.allocatemem(silent=True)
+
     elif errno == user:
+
         raise Exception, "PARI user exception"
+
     else:
+
         raise PariError, errno
 
 
@@ -6267,3 +6391,39 @@ def vecsmall_to_intlist(gen v):
     if typ(v.g) != t_VECSMALL:
         raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
     return [v.g[k+1] for k in range(glength(v.g))]
+
+
+
+cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
+    """
+    This is called by factor when PARI's factor tried to factor, got
+    the failed_factorization, and it turns out that one of the factors
+    in there is not proved prime.  At this point, we don't care too
+    much about speed (so don't write everything below using the PARI C
+    library), since the probability this function ever gets called is
+    infinitesimal.  (That said, we of course did test this function by
+    forcing a fake failure in the code in misc.h.)
+    """
+    P = failed_factorization[0]  # 'primes'
+    E = failed_factorization[1]  # exponents
+    if len(P) == 1 and E[0] == 1:
+        # Major problem -- factor can't split the integer at all, but it's composite.  We're stuffed.
+        print "BIG WARNING: The number %s wasn't split at all by PARI, but it's definitely composite."%(P[0])
+        print "This is probably an infinite loop..."
+    w = []
+    for i in range(len(P)):
+        p = P[i]
+        e = E[i]
+        if not p.isprime():
+            # Try to factor further -- assume this works.
+            F = p.factor(proof=True)
+            for j in range(len(F[0])):
+                w.append((F[0][j], F[1][j]))
+        else:
+            w.append((p, e))
+    m = pari.matrix(len(w), 2)
+    for i in range(len(w)):
+        m[i,0] = w[i][0]
+        m[i,1] = w[i][1]
+    return m
+

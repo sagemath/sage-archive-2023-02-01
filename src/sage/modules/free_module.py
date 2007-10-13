@@ -57,7 +57,7 @@ Base ring:
     sage: R.<x,y> = MPolynomialRing(QQ,2)
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
-    Polynomial Ring in x, y over Rational Field
+    Multivariate Polynomial Ring in x, y over Rational Field
 
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
@@ -668,7 +668,7 @@ class FreeModule_generic(module.Module):
             sage: R.<x,y> = QQ[]
             sage: M = FreeModule(R,2)
             sage: M.ambient_module()
-            Ambient free module of rank 2 over the integral domain Polynomial Ring in x, y over Rational Field
+            Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y over Rational Field
 
             sage: V = FreeModule(QQ, 4).span([[1,2,3,4], [1,0,0,0]]); V
             Vector space of degree 4 and dimension 2 over Rational Field
@@ -1440,25 +1440,25 @@ class FreeModule_generic_pid(FreeModule_generic):
             self.__basis_matrix = A
             return A
 
-    def index(self, other):
+    def index_in(self, other):
         """
-        Return the lattice index [self : other] which is an element
-        of the base field.  When other is contained in self, the lattice
-        index is the usual index.  If the index is infinite, then this
-        function returns infinity.
+        Return the lattice index [other:self] of self in other, as an
+        element of the base field.  When self is contained in other,
+        the lattice index is the usual index.  If the index is
+        infinite, then this function returns infinity.
 
         EXAMPLES:
             sage: L1 = span(ZZ, [[1,2]])
             sage: L2 = span(ZZ, [[3,6]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             3
 
         Note that the free modules being compared need not be integral.
             sage: L1 = span(ZZ, [['1/2','1/3'], [4,5]])
             sage: L2 = span(ZZ, [[1,2], [3,4]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             12/7
-            sage: L2.index(L1)
+            sage: L1.index_in(L2)
             7/12
             sage: L1.discriminant() / L2.discriminant()
             49/144
@@ -1466,7 +1466,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         The index of a lattice of infinite index is infinite.
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span(ZZ, [[1,2]])
-            sage: L1.index(L2)
+            sage: L2.index_in(L1)
             +Infinity
         """
         if not isinstance(other, FreeModule_generic):
@@ -1478,21 +1478,20 @@ class FreeModule_generic_pid(FreeModule_generic):
         if self.base_ring() != other.base_ring():
             raise NotImplementedError, "lattice index only defined for modules over the same base ring."
 
-        if self.base_ring().is_field():
+        if other.base_ring().is_field():
             if self == other:
                 return sage.rings.integer.Integer(1)
             else:
-                if other.is_subspace(self):
+                if self.is_subspace(other):
                     return sage.rings.infinity.infinity
-            raise ArithmeticError, "other must be contained in the vector space spanned by self."
+            raise ArithmeticError, "self must be contained in the vector space spanned by other."
 
         try:
-            C = [self.coordinates(b) for b in other.basis()]
+            C = [other.coordinates(b) for b in self.basis()]
         except ArithmeticError:
             raise
-#            raise ArithmeticError, "other must be contained in the vector space spanned by self."
 
-        if other.rank() < self.rank():
+        if self.rank() < other.rank():
             return sage.rings.infinity.infinity
 
         A = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C)
@@ -1649,7 +1648,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             1/6
         """
         # TODO: There is probably a much faster algorithm in this case.
-        return self.saturation().index(self)
+        return self.index_in(self.saturation())
 
     def saturation(self):
         r"""
@@ -2162,7 +2161,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the K-span of the given list of gens, where K is the
         base field of self.  Note that this span is a subspace of the
-        ambient vector space, but need not be a suspace of self.
+        ambient vector space, but need not be a subspace of self.
 
         INPUT:
             gens -- list of vectors
@@ -2338,8 +2337,28 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return FreeModule_submodule_field(self.ambient_vector_space(),[], check=False)
 
+    def quotient(self,sub):
+        r"""
+        Returns the quotient space of self modulo sub, together with a
+        map sub must be a subspace of self.
 
+        EXAMPLES:
+            sage: A=matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
+            sage: V=(A^3).kernel()
+            sage: W=A.kernel()
+            sage: U,m=V.quotient(W)
+            sage: [m(v) == 0 for v in W.gens()]
+            [True]
 
+        TODO:
+            * produce a convenient section map back from the quotient space
+            * install appropriate coercions
+        """
+        if not sub.is_subspace(self):
+            raise ArithmeticError, "sub must be a subspace of self"
+        M = sub.basis_matrix().transpose().restrict_domain(self).kernel().basis_matrix().transpose()
+        quomap = self.hom(M)
+	return quomap.codomain(),quomap
 
 ###############################################################################
 #
@@ -3030,12 +3049,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M._latex_()
-            '\\mbox{\\rm RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1&2&3\\\\\n4&5&6\n\\end{array}\\right)'
+            '\\mbox{\\rm RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1 & 2 & 3 \\\\\n4 & 5 & 6\n\\end{array}\\right)'
         """
         return "\\mbox{\\rm RowSpan}_{%s}%s"%(latex.latex(self.base_ring()), latex.latex(self.basis_matrix()))
-        #return "\\mbox{\\rm Span}_{%s}(%s)"%(latex.latex(self.base_ring()), latex.latex(self.basis()))
-#        return "\\text{Free module over %s spanned by the rows of:}%s."%(
-#            latex.latex(self.base_ring()),latex.latex(self.basis_matrix()))
 
 
     def ambient_module(self):
@@ -3607,7 +3623,6 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
             False
         """
         return False
-
 
 
 class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):

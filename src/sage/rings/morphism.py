@@ -81,7 +81,7 @@ EXAMPLE: Inclusion map from the reals to the complexes:
 EXAMPLE: A map from a multivariate polynomial ring to itself:
     sage: R.<x,y,z> = PolynomialRing(QQ,3)
     sage: phi = R.hom([y,z,x^2]); phi
-    Ring endomorphism of Polynomial Ring in x, y, z over Rational Field
+    Ring endomorphism of Multivariate Polynomial Ring in x, y, z over Rational Field
       Defn: x |--> y
             y |--> z
             z |--> x^2
@@ -93,7 +93,7 @@ EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
     sage: S.<a,b> = quo(R, ideal(1 + y^2))
     sage: phi = S.hom([a^2, -b])
     sage: phi
-    Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + 1)
+    Ring endomorphism of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (y^2 + 1)
       Defn: a |--> a^2
             b |--> -b
     sage: phi(b)
@@ -282,6 +282,26 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^2 + 1)
     2.58740105196820
 
+An example from Jim Carlson:
+
+    sage: K = QQ # by the way :-)
+    sage: R.<a,b,c,d> = K[]; R
+    Multivariate Polynomial Ring in a, b, c, d over Rational Field
+    sage: S.<u> = K[]; S
+    Univariate Polynomial Ring in u over Rational Field
+    sage: f = R.hom([0,0,0,u], S); f
+    Ring morphism:
+      From: Multivariate Polynomial Ring in a, b, c, d over Rational Field
+      To:   Univariate Polynomial Ring in u over Rational Field
+      Defn: a |--> 0
+            b |--> 0
+            c |--> 0
+            d |--> u
+    sage: f(a+b+c+d)
+    u
+    sage: f( (a+b+c+d)^2 )
+    u^2
+
 TESTS:
     sage: H = Hom(ZZ, QQ)
     sage: H == loads(dumps(H))
@@ -344,8 +364,8 @@ class RingMap_lift(RingMap):
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
-          From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2, y)
-          To:   Polynomial Ring in x, y over Rational Field
+          From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2, y)
+          To:   Multivariate Polynomial Ring in x, y over Rational Field
           Defn: Choice of lifting map
         sage: S.lift() == 0
         False
@@ -378,6 +398,12 @@ class RingHomomorphism(RingMap):
         if not homset.is_RingHomset(parent):
             raise TypeError, "parent must be a ring homset"
         RingMap.__init__(self, parent)
+
+    def __nonzero__(self):
+        """
+        There is no zero map between rings, since 1 goes to 1.
+        """
+        return True
 
     def _repr_type(self):
         return "Ring"
@@ -468,9 +494,9 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             if not isinstance(im_gens, (tuple, list)):
                 im_gens = [im_gens]
             im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
-        if len(im_gens) != parent.domain().ngens():
-            raise ValueError, "number of images must equal number of generators"
         if check:
+            if len(im_gens) != parent.domain().ngens():
+                raise ValueError, "number of images must equal number of generators"
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
             if not t:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."
@@ -510,6 +536,8 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             True
             sage: f1 == R.hom([b,a])
             False
+            sage: x^3 + x + y^2
+            x^3 + y^2 + x
             sage: f1(x^3 + x + y^2)
             a - b
             sage: f2(x^3 + x + y^2)
@@ -541,8 +569,8 @@ class RingHomomorphism_cover(RingHomomorphism):
         sage: S.<a,b> = R.quo(x^2 + y^2)
         sage: phi = S.cover(); phi
         Ring morphism:
-          From: Polynomial Ring in x, y over Rational Field
-          To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+          From: Multivariate Polynomial Ring in x, y over Rational Field
+          To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
           Defn: Natural quotient map
         sage: phi(x+y)
         a + b
@@ -595,7 +623,7 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
         sage: R.<x, y, z> = PolynomialRing(QQ, 3)
         sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
         sage: phi = S.hom([b, c, a]); phi
-        Ring endomorphism of Quotient of Polynomial Ring in x, y, z over Rational Field by the ideal (x^3 + y^3 + z^3)
+        Ring endomorphism of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by the ideal (x^3 + y^3 + z^3)
           Defn: a |--> b
                 b |--> c
                 c |--> a

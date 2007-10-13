@@ -39,6 +39,8 @@ JSMATH = True
 
 vbar = '<span class="vbar"></span>'
 
+DOC_TIMEOUT = 120
+
 class Notebook(SageObject):
     def __init__(self,
                  dir='sage_notebook',
@@ -186,9 +188,6 @@ class Notebook(SageObject):
             email -- the email address
             account_type -- one of 'user', 'admin', or 'guest'
         """
-        if username == 'root':
-            raise ValueError, "The 'root'' account is banned."
-
         if not self.get_accounts() and not force:
             raise ValueError, "creating new accounts disabled."
 
@@ -741,6 +740,13 @@ class Notebook(SageObject):
 
     def quit_idle_worksheet_processes(self):
         timeout = self.conf()['idle_timeout']
+        if timeout == 0:
+            # Quit only the doc browser worksheets
+            for W in self.__worksheets.itervalues():
+                if W.docbrowser() and W.compute_process_has_been_started():
+                    W.quit_if_idle(DOC_TIMEOUT)
+            return
+
         for W in self.__worksheets.itervalues():
             if W.compute_process_has_been_started():
                 W.quit_if_idle(timeout)
@@ -997,10 +1003,13 @@ class Notebook(SageObject):
         for w in worksheets:
             k = '<tr>'
             k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
+            name = self.html_worksheet_link(w, pub)
+            if w.compute_process_has_been_started():
+                name = '(active) %s'%name
             if w.is_active(user):
-                k += '<td class="worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
+                k += '<td class="worksheet_link">%s</td>'%name
             else:
-                k += '<td class="archived_worksheet_link">%s</td>'%self.html_worksheet_link(w, pub)
+                k += '<td class="archived_worksheet_link">%s</td>'%name
             k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user, typ)
             k += '<td class="last_edited">%s</td>'%w.html_time_since_last_edited()
             k += '</tr>'
@@ -1663,7 +1672,7 @@ function save_worksheet_and_close() {
 
         s +="""
         <br>        <br>
-        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Ramier.
+        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Raymer.
         </center>
         </body>
         </html>
@@ -1680,7 +1689,7 @@ function save_worksheet_and_close() {
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
               %s
-              <h1><font size=+1>Upload your Worksheet</font></h1>
+              <h1><font size=+1>Upload worksheet from your computer to the Sage Notebook</font></h1>
               <hr>
               <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">

@@ -532,7 +532,7 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
             s += "; usign %d" % self.usign
         if self.level != 0:
             s += "; level %d" % self.level
-        if self.slope_err != 0:
+        if not (self.slope_err == 0):
             s += "; slope_err %s" % self.slope_err
         return s + ">"
 

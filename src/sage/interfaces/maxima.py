@@ -351,7 +351,7 @@ from pexpect import EOF
 #import random
 from random import randrange
 
-import sage.rings.all
+##import sage.rings.all
 import sage.rings.complex_number
 
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT

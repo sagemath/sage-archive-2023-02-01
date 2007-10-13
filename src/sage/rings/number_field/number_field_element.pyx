@@ -281,7 +281,7 @@ cdef class NumberFieldElement(FieldElement):
         for i from 0 <= i <= ZZX_deg(self.__numerator):
             tmp = ZZX_coeff(self.__numerator, i)
             ZZX_SetCoeff(result, i*rel, tmp)
-        rem_ZZX(x.__numerator, result, _num.x)
+        ZZX_rem(x.__numerator, result, _num.x)
         return x
 
     def __reduce__(self):
@@ -436,7 +436,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
-        return not (ZZX_equal(&left.__numerator, &_right.__numerator) and ZZ_equal(&left.__denominator, &_right.__denominator))
+        return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 
     def __abs__(self):
         r"""
@@ -677,13 +677,13 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c gcd
         cdef ZZ_c t1
         cdef ZZX_c t2
-        content(t1, self.__numerator)
-        GCD_ZZ(gcd, t1, self.__denominator)
-        if sign(gcd) != sign(self.__denominator):
+        ZZX_content(t1, self.__numerator)
+        ZZ_GCD(gcd, t1, self.__denominator)
+        if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
             ZZ_negate(t1, gcd)
             gcd = t1
         div_ZZX_ZZ(t2, self.__numerator, gcd)
-        div_ZZ_ZZ(t1, self.__denominator, gcd)
+        div_ZZ(t1, self.__denominator, gcd)
         self.__numerator = t2
         self.__denominator = t1
 
@@ -742,11 +742,11 @@ cdef class NumberFieldElement(FieldElement):
         else:
             mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
             mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
-            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
                 mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
                 mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
-                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
                 mul_ZZ(x.__denominator, x.__denominator, parent_den)
                 mul_ZZ(x.__denominator, x.__denominator, temp1)
         _sig_off
@@ -803,11 +803,11 @@ cdef class NumberFieldElement(FieldElement):
         else:
             mul_ZZ(x.__denominator, self.__denominator, inv_den)
             mul_ZZX(x.__numerator, self.__numerator, inv_num)
-            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
                 mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
                 mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
-                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
                 mul_ZZ(x.__denominator, x.__denominator, parent_den)
                 mul_ZZ(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
@@ -957,7 +957,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c a, b
         mul_ZZX_ZZ( a, self.__numerator, parent_den )
         mul_ZZX_ZZ( b, parent_num, self.__denominator )
-        XGCD_ZZX( den[0], num[0],  t, a, b, 1 )
+        ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
         mul_ZZX_ZZ( num[0], num[0], parent_den )
         mul_ZZX_ZZ( num[0], num[0], self.__denominator )
 

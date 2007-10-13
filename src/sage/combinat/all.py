@@ -24,7 +24,7 @@ import partition
 from partition import Partition, Partitions, PartitionsInBox, OrderedPartitions, RestrictedPartitions, PartitionTuples, PartitionsGreatestLE, PartitionsGreatestEQ
 import skew_partition
 from skew_partition import SkewPartition, SkewPartitions
-from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk
+from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
 #Tableaux
 from tableau import Tableau, Tableaux, StandardTableaux, SemistandardTableaux

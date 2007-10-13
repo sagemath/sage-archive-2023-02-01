@@ -130,6 +130,36 @@ ntl_ZZ_pX = Extension('sage.libs.ntl.ntl_ZZ_pX',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_ZZ_pEContext = Extension('sage.libs.ntl.ntl_ZZ_pEContext',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pE = Extension('sage.libs.ntl.ntl_ZZ_pE',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pE.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pEX = Extension('sage.libs.ntl.ntl_ZZ_pEX',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEX.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_pContext = Extension('sage.libs.ntl.ntl_lzz_pContext',
+                 sources = ["sage/libs/ntl/ntl_lzz_pContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_p = Extension('sage.libs.ntl.ntl_lzz_p',
+                 sources = ["sage/libs/ntl/ntl_lzz_p.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_pX = Extension('sage.libs.ntl.ntl_lzz_pX',
+                 sources = ["sage/libs/ntl/ntl_lzz_pX.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
 ntl_GF2X = Extension('sage.libs.ntl.ntl_GF2X',
                  sources = ["sage/libs/ntl/ntl_GF2X.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
@@ -402,6 +432,12 @@ ext_modules = [ \
     ntl_ZZ_pContext,
     ntl_ZZ_p,
     ntl_ZZ_pX,
+    ntl_ZZ_pEContext,
+    ntl_ZZ_pE,
+    ntl_ZZ_pEX,
+    ntl_lzz_pContext,
+    ntl_lzz_p,
+    ntl_lzz_pX,
     ntl_GF2X,
     ntl_GF2E,
     ntl_GF2EX,
@@ -635,6 +671,12 @@ ext_modules = [ \
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 
+    Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
+                 sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
+                 language = 'c++',
+                 include_dirs=['sage/libs/ntl/']), \
+
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 
@@ -659,6 +701,10 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']), \
+
+    Extension('sage.rings.polynomial.real_roots',
+              sources = ['sage/rings/polynomial/real_roots.pyx'],
+              libraries=['mpfr', 'qd']), \
 
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],

@@ -1,13 +1,10 @@
 """nodoctest
 These test that DSage is *really* working for normal users locally
 on their system:
-
-WARNING: Currently these non-blocking startups leave processes
-hanging around!
    sage: from sage.dsage.misc.misc import find_open_port
    sage: port = find_open_port()
    sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
-   sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+   sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1)
    sage: sleep(2.0)
    sage: d = DSage(port=port, ssl=False)
    sage: sleep(2.0)

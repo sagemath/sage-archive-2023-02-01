@@ -1512,10 +1512,6 @@ class Notebook(SageObject):
 
             body += '<div class="worksheet" id="worksheet">%s</div>'%worksheet_html
 
-        # The blank space given by '<br>'*15  is needed so the input doesn't get
-        # stuck at the bottom of the screen. This could be replaced by a region
-        # such that clicking on it creates a new cell at the bottom of the worksheet.
-
         endpanespan = '</td></tr></table></span>\n'
 
 

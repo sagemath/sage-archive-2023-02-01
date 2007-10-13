@@ -1958,29 +1958,28 @@ class GenericGraph(SageObject):
 
     def breadth_first_search(self, u):
         """
-        Returns a list of vertices in a breadth-first ordering.
+        Returns an iterator over vertices in a breadth-first ordering.
 
         EXAMPLES:
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: G.breadth_first_search(0)
+            sage: list(G.breadth_first_search(0))
             [0, 1, 4, 2, 3]
-            sage: G.depth_first_search(0)
+            sage: list(G.depth_first_search(0))
             [0, 4, 3, 2, 1]
             sage: D = DiGraph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: D.breadth_first_search(0)
+            sage: list(D.breadth_first_search(0))
             [0, 1, 2, 3, 4]
-            sage: D.depth_first_search(0)
+            sage: list(D.depth_first_search(0))
             [0, 1, 2, 3, 4]
 
         """
-        # TODO- Re-implement this to make an iterator instead of returning a
-        # list (more efficient!)
         # This function is straight from an old version of networkx
         if self.is_directed():
             neighbors=self.successor_iterator
         else:
             neighbors=self.neighbor_iterator
-        nlist=[u] # list of nodes in a BFS order
+        # nlist=[u] # list of nodes in a BFS order
+        yield u
         seen={} # nodes seen
         queue=[u] # FIFO queue
         seen[u]=True
@@ -1990,45 +1989,45 @@ class GenericGraph(SageObject):
                 if w not in seen:
                     seen[w]=True
                     queue.append(w)
-                    nlist.append(w)
-        return nlist
+                    # nlist.append(w)
+                    yield w
+        # return nlist
 
     def depth_first_search(self, u):
         """
-        Returns a list of vertices in a depth-first ordering.
+        Returns an iterator over vertices in a depth-first ordering.
 
         EXAMPLES:
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: G.breadth_first_search(0)
+            sage: list(G.breadth_first_search(0))
             [0, 1, 4, 2, 3]
-            sage: G.depth_first_search(0)
+            sage: list(G.depth_first_search(0))
             [0, 4, 3, 2, 1]
             sage: D = DiGraph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: D.breadth_first_search(0)
+            sage: list(D.breadth_first_search(0))
             [0, 1, 2, 3, 4]
-            sage: D.depth_first_search(0)
+            sage: list(D.depth_first_search(0))
             [0, 1, 2, 3, 4]
 
         """
-        # TODO- Re-implement this to make an iterator instead of returning a
-        # list (more efficient!)
         # This function is straight from an old version of networkx
         if self.is_directed():
             neighbors=self.successor_iterator
         else:
             neighbors=self.neighbor_iterator
-        nlist=[] # list of nodes in a DFS preorder
+        # nlist=[] # list of nodes in a DFS preorder
         seen={} # nodes seen
         queue=[u]  # use as LIFO queue
         seen[u]=True
         while queue:
             v=queue.pop()
-            nlist.append(v)
+            # nlist.append(v)
+            yield v
             for w in neighbors(v):
                 if w not in seen:
                     seen[w]=True
                     queue.append(w)
-        return nlist
+        # return nlist
 
     ### Constructors
 

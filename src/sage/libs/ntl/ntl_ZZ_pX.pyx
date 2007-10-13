@@ -138,7 +138,10 @@ cdef class ntl_ZZ_pX:
             '[1 0 3]'
         """
         self.c.restore_c()
-        return str(ZZ_pX_repr(&self.x))
+        cdef char* s = ZZ_pX_repr(&self.x)
+        t = str(s)
+        free(s)
+        return t
 
     def __copy__(self):
         """

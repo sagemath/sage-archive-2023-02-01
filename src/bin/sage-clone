@@ -48,7 +48,7 @@ def cpdir(src, dest):
         else:
             ext = os.path.splitext(F)[-1]
             if ext in ['.h', '.c', '.cpp']:
-                if 'Pyrex' in open(src + '/' + F).readline():
+                if 'Cython' in open(src + '/' + F).readline():
                     shutil.copy(src + '/' + F, dest + '/' +F)
 
 cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))

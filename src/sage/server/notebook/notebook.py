@@ -1578,12 +1578,10 @@ function save_worksheet_and_close() {
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body
-        body += '<pre class="plaintext">'
         body += """
-        <textarea class="plaintextedit" id="cell_intext" name="textfield">%s</textarea>
-        </pre>
+        <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>
         </form>
-        """%t
+        """%(t.count("\n")+1,t)
 
         return """
         <html>

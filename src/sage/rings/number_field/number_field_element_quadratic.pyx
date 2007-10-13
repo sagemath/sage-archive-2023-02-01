@@ -131,8 +131,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         elif PY_TYPE_CHECK_EXACT(f, tuple) and len(f) == 2:
             NumberFieldElement_absolute.__init__(self, parent, None)
             ad, bd = f
-            mpz_set(self.a, a.value)
-            mpz_set(self.b, b.value)
             mpz_lcm(self.denom, mpq_denref(ad.value), mpq_denref(bd.value))
             mpz_divexact(self.a, self.denom, mpq_denref(ad.value))
             mpz_mul(self.a, self.a, mpq_numref(ad.value))

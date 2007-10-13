@@ -35,7 +35,15 @@ class DSageThread(threading.Thread):
     def run(self):
         from twisted.internet import reactor
         if not reactor.running:
-            reactor.run(installSignalHandlers=0)
+            try:
+                reactor.run(installSignalHandlers=0)
+            except AttributeError, msg:
+                pass
+                # This is a temporary workaround for a weird bug in reactor during
+                # shutdown that one sees doing doctests (on some systems?).
+                #if not 'NoneType' in msg:
+                #    raise
+
 
 class DSage(object):
     """

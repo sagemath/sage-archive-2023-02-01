@@ -4212,6 +4212,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(idealadd(self.g, t0, t1))
 
+    def idealappr(self, x, long flag=0):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(idealappr(self.g, t0))
+
     def idealdiv(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -4257,6 +4262,11 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(x); t1GEN(p)
         _sig_on
         return idealval(self.g, t0, t1)
+
+    def elementval(self, x, p):
+        t0GEN(x); t1GEN(p)
+        _sig_on
+        return element_val(self.g, t0, t1)
 
     def modreverse(self):
         """

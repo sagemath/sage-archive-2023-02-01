@@ -364,15 +364,14 @@ class FiniteField_ext_pari(FiniteField_generic):
         if F[0][1] > 1:
             base_ring = FiniteField(F[0][0])
         else:
-            base_ring = self
+            raise ValueError, "The size of the finite field must not be prime."
+            #base_ring = self
 
         ParentWithGens.__init__(self, base_ring, name, normalize=True)
 
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = F[0][1]
-        if F[0][1] <= 1:
-            raise ValueError, "The size of the finite field must not be prime."
         self.__order = q
         self.__is_field = True
         if modulus is None:

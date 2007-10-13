@@ -8,6 +8,7 @@ AUTHORS:
 from sage.rings.ring import DedekindDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
+from sage.structure.element import is_Element
 
 from number_field_element import OrderElement_absolute, OrderElement_relative
 from sage.rings.monomials import monomials
@@ -65,6 +66,7 @@ class Order(DedekindDomain):
         """
         self._K = K
         self._is_maximal = is_maximal
+        DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
 
     def __mul__(self, right):
         """
@@ -174,7 +176,7 @@ class Order(DedekindDomain):
             sage: O.ngens()
             3
         """
-        return len(self.basis())
+        return self.absolute_degree()
 
     def basis(self):  # this must be defined in derived class
         """
@@ -260,6 +262,28 @@ class Order(DedekindDomain):
         """
         return self._K
 
+    def residue_field(self, prime, name = None, check = False):
+        """
+        Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
+
+        INPUT:
+            prime -- a prime ideal of the maximal order in this number field.
+            name -- the name of the variable in the residue field
+            check -- whether or not to check the primality of prime.
+        OUTPUT:
+            The residue field at this prime.
+
+        EXAMPLES:
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^4+3*x^2-17)
+        sage: P = K.ideal(61).factor()[0][0]
+        sage: OK = K.maximal_order()
+        sage: OK.residue_field(P)
+        Residue field of Fractional ideal (-2*a^2 + 1) of Number Field in a with defining polynomial x^4 + 3*x^2 - 17
+        """
+        import sage.rings.residue_field
+        return sage.rings.residue_field.ResidueField(prime)
+
 
     def fraction_field(self):
         """
@@ -267,11 +291,11 @@ class Order(DedekindDomain):
         ambient number field.
 
         EXAMPLES:
-            sage: K.<b> = NumberField(x^4 + 17*x^2 + 17)
-            sage: O = K.order(17*b); O
-            Order with module basis 1, 17*b, 289*b^2, 4913*b^3 in Number Field in b with defining polynomial x^4 + 17*x^2 + 17
-            sage: O.fraction_field()
-            Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+        sage: K.<b> = NumberField(x^4 + 17*x^2 + 17)
+        sage: O = K.order(17*b); O
+        Order with module basis 1, 17*b, 289*b^2, 4913*b^3 in Number Field in b with defining polynomial x^4 + 17*x^2 + 17
+        sage: O.fraction_field()
+        Number Field in b with defining polynomial x^4 + 17*x^2 + 17
         """
         return self._K
 
@@ -281,12 +305,12 @@ class Order(DedekindDomain):
         of this order as a $\ZZ$-module.
 
         EXAMPLES:
-            sage: k.<c> = NumberField(x^3 + x^2 - 2*x+8)
-            sage: o = k.maximal_order()
-            sage: o.degree()
-            3
-            sage: o.rank()
-            3
+        sage: k.<c> = NumberField(x^3 + x^2 - 2*x+8)
+        sage: o = k.maximal_order()
+        sage: o.degree()
+        3
+        sage: o.rank()
+        3
         """
         return self._K.degree()
 
@@ -400,6 +424,57 @@ class Order(DedekindDomain):
             return cmp(self._K, other._K)
         return cmp(self._module_rep, other._module_rep)
 
+    def absolute_degree(self):
+        """
+        Returns the absolute degree of this order, ie the degree of this order over ZZ.
+
+        EXAMPLES:
+        sage: K.<a> = NumberField(x^3 + 2)
+        sage: O = K.maximal_order()
+        sage: O.absolute_degree()
+        3
+        sage: K.<a> = NumberField([x^3 + 2, x^2 - 3])
+        sage: O = K.maximal_order()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+        """
+        return self.polynomial().degree() * self.base_ring().absolute_degree()
+
+    def absolute_polynomial(self):
+        """
+        Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
+
+        EXAMPLES:
+        sage: K.<a, b> = NumberField([x^2 + 1, x^3 + x + 1]); OK = K.maximal_order()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+
+        #sage: OK.absolute_polynomial()
+        #x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
+        """
+        return self.number_field().absolute_polynomial()
+
+    def polynomial(self):
+        """
+        Returns the polynomial defining self (current the polynomial defining self.number_field()
+        """
+        return self.number_field().polynomial()
+
+    def polynomial_ntl(self):
+        """
+        Return defining polynomial of this number field
+        as a pair, an ntl polynomial and a denominator.
+
+        This is used mainly to implement some internal arithmetic.
+
+        EXAMPLES:
+        sage: NumberField(x^2 + 1,'a').maximal_order().polynomial_ntl()
+        ([1 0 1], 1)
+        """
+        return self.number_field().polynomial_ntl()
+
 class AbsoluteOrder(Order):
 
     def __init__(self, K, module_rep, is_maximal=None, check=True):
@@ -443,8 +518,12 @@ class AbsoluteOrder(Order):
             Order with module basis 1, 3*z in Number Field in z with defining polynomial x^2 - 389
             sage: m(6*z)
             6*z
+            sage: k(m(6*z))
+            6*z
         """
-        if x.parent() is not self._K:
+        if is_Element(x) and x.parent() is self:
+            return x
+        if not is_Element(x) or x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()
         if not embedding(x) in self._module_rep:

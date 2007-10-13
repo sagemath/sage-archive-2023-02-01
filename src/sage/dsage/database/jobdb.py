@@ -24,6 +24,7 @@ import string
 import sqlite3
 
 from twisted.python import log
+from twisted.enterprise import adbapi
 
 from BTrees import OOBTree
 import transaction

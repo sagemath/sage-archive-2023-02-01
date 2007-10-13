@@ -477,7 +477,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         while R.degree() >= B.degree():
             aaa = (R.leading_coefficient()/B.leading_coefficient())
             bbb = X**(R.degree()-B.degree())
-            S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
+            S = aaa * bbb
             Q += S
             R -= S*B
         return (Q, R)
@@ -777,6 +777,21 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         R = self.__poly.polroots(flag)
         C = complex_field.ComplexField()
         return [C(a) for a in R]
+
+    def real_root_intervals(self):
+        """
+        Returns isolating intervals for the real roots of this polynomial.
+
+        EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = (x - 1/2) * (x - 3/4) * (x - 3/2)
+            sage: f.real_root_intervals()
+            [((243/512, 1215/2048), 1), ((729/1024, 1701/2048), 1), ((243/256, 1011/512), 1)]
+        """
+
+        from sage.rings.polynomial.real_roots import real_roots
+
+        return real_roots(self)
 
     def copy(self):
         """

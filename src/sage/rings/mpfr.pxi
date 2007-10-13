@@ -54,6 +54,7 @@ cdef extern from "mpfr.h":
 
     void mpfr_get_z(mpz_t rop, mpfr_t op, mp_rnd_t rnd)
     mp_exp_t mpfr_get_z_exp(mpz_t rop, mpfr_t op)
+    mp_exp_t mpfr_get_exp(mpfr_t op)
 
     void mpfr_urandomb(mpfr_t rop, void* rnd_state)
 

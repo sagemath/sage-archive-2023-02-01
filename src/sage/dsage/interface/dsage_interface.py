@@ -129,13 +129,14 @@ class DSage(object):
         return passphrase
 
     def _catch_failure(self, failure):
-        from twisted.internet import error
-        if failure.check(error.ConnectionRefusedError):
-            print 'Remote server %s refused the connection.'  % (self.server)
-        else:
-            pass
-            # print "Error: ", failure.getErrorMessage()
-            # print "Traceback: ", failure.printTraceback()
+        print "Error connecting: %s" % failure.getErrorMessage()
+        # from twisted.internet import error
+        # if failure.check(error.ConnectionRefusedError):
+        #     print 'Remote server %s refused the connection.'  % (self.server)
+        # else:
+        #     pass
+        #     # print "Error: ", failure.getErrorMessage()
+        #     # print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
         if self.log_level > 0:
@@ -198,7 +199,7 @@ class DSage(object):
         print 'Disconnecting from server.'
         self.remoteobj = None
 
-    def eval(self, cmd, globals_=None, job_name=None):
+    def eval(self, cmd, timeout=600, globals_=None, job_name=None):
         """
         eval evaluates a command
 
@@ -215,8 +216,11 @@ class DSage(object):
 
         type_ = 'sage'
 
-        job = Job(id_=None, code=cmd, name=job_name,
-                  username=self.username, type_=type_)
+        # We have to convert timeout to a python int so it will not cause
+        # security exceptions with twisted.
+
+        job = Job(id_=None, code=cmd, name=job_name, username=self.username,
+                  timeout=timeout, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
         if globals_ is not None:
@@ -225,7 +229,7 @@ class DSage(object):
 
         return wrapped_job
 
-    def eval_file(self, fname, job_name):
+    def eval_file(self, fname, job_name, async=False):
         """
         eval_file allows you to evaluate the contents of an entire file.
 
@@ -241,7 +245,10 @@ class DSage(object):
         job = Job(id_=None, code=cmd, name=job_name,
                   username=self.username, type_=type_)
 
-        wrapped_job = JobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = BlockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 
@@ -285,7 +292,7 @@ class DSage(object):
         d_list = defer.DeferredList(deferreds)
         return d_list
 
-    def kill(self, job_id):
+    def kill(self, job_id, reason='', async=False):
         """
         Kills a job given the job id.
 
@@ -294,9 +301,15 @@ class DSage(object):
 
         """
 
-        d = self.remoteobj.callRemote('kill_job', job_id)
-        d.addCallback(self._killed_job)
-        d.addErrback(self._catch_failure)
+        if async:
+            d = self.remoteobj.callRemote('kill_job', job_id, reason)
+            d.addCallback(self._killed_job)
+            d.addErrback(self._catch_failure)
+        else:
+            job_id = blocking_call_from_thread(self.remoteobj.callRemote,
+                                               'kill_job',
+                                               job_id,
+                                               reason)
 
     def get_my_jobs(self, is_active=False, job_name=None):
         """
@@ -431,7 +444,8 @@ class BlockingDSage(DSage):
 
         return d
 
-    def eval(self, cmd, globals_=None, job_name=None, async=False):
+    def eval(self, cmd, globals_=None, job_name=None, timeout=600,
+             load_files=[], priority=5, async=False):
         """
         eval evaluates a command
 
@@ -439,6 +453,10 @@ class BlockingDSage(DSage):
         cmd -- the sage command to be evaluated (str)
         globals -- a dict (see help for python's eval method)
         job_name -- an alphanumeric job name
+        timeout -- an upper limit on how long the job runs before the worker
+                   restarts itself
+        load_files -- list of files to load before executing the job
+        priority -- priority of the job created (0-5)
         async -- whether to use the async implementation of the method
 
         """
@@ -449,8 +467,12 @@ class BlockingDSage(DSage):
 
         type_ = 'sage'
 
-        job = Job(id_=None, code=cmd, name=job_name,
-                  username=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name, username=self.username,
+                  timeout=timeout, priority=priority, type_=type_)
+
+        for fname in load_files:
+            if os.path.exists(fname):
+                job.attach_file(fname)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():
@@ -509,6 +531,17 @@ class BlockingDSage(DSage):
 
         return [expand_job(jdict) for jdict in jdicts]
 
+
+    def kill_all(self):
+        """
+        Kills all of your active jobs.
+
+        """
+
+        active_jobs = self.get_my_jobs(active=True)
+
+        for job in active_jobs:
+            self.kill(job.job_id)
 
     def cluster_speed(self):
         """

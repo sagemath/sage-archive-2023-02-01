@@ -94,6 +94,10 @@ class PBClientFactory(pb.PBClientFactory):
 
         return d
 
+    # We should override this in the future to do something useful...
+    # def startedConnecting(self, connector):
+    #     pass
+
 class _SSHKeyPortalRoot(pb._PortalRoot):
     def rootObject(self, broker):
         return _SSHKeyPortalWrapper(self.portal, broker)

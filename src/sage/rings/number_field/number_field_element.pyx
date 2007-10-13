@@ -61,6 +61,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.all import pari_gen
 from sage.libs.pari.gen import PariError
+from sage.structure.element cimport Element
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -190,9 +191,23 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(parent, number_field.NumberField_relative):
             ppr = parent.base_field().polynomial_ring()
 
+        cdef long i
         if isinstance(f, pari_gen):
-            f = f.lift()
-            f = ppr(f)
+            if f.type() == "t_COL":
+                newf = ppr(0)
+                Zbasis = self.parent().pari_nf().getattr('zk')
+                # Note that this integral basis is not the same as that returned by parent.integral_basis() !
+                for i from 0 <= i < parent.degree():
+                    if f[i] != 0:
+                        newf += QQ(f[i]) * ppr(Zbasis[i])
+                f = newf
+            else:
+                if f.type() == "t_POLMOD":
+                    f = f.lift()
+                if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
+                    f = ppr(f)
+                else:
+                    raise TypeError, "Unsupported Pari type"
         if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
             f = ppr(f)
         if f.degree() >= parent.absolute_degree():
@@ -207,7 +222,6 @@ cdef class NumberFieldElement(FieldElement):
         den = f.denominator()
         (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
 
-        cdef long i
         num = f * den
         for i from 0 <= i <= num.degree():
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
@@ -267,7 +281,7 @@ cdef class NumberFieldElement(FieldElement):
         for i from 0 <= i <= ZZX_deg(self.__numerator):
             tmp = ZZX_coeff(self.__numerator, i)
             ZZX_SetCoeff(result, i*rel, tmp)
-        rem_ZZX(x.__numerator, result, _num.x)
+        ZZX_rem(x.__numerator, result, _num.x)
         return x
 
     def __reduce__(self):
@@ -422,7 +436,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
-        return not (ZZX_equal(&left.__numerator, &_right.__numerator) and ZZ_equal(&left.__denominator, &_right.__denominator))
+        return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 
     def __abs__(self):
         r"""
@@ -663,13 +677,13 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c gcd
         cdef ZZ_c t1
         cdef ZZX_c t2
-        content(t1, self.__numerator)
-        GCD_ZZ(gcd, t1, self.__denominator)
-        if sign(gcd) != sign(self.__denominator):
+        ZZX_content(t1, self.__numerator)
+        ZZ_GCD(gcd, t1, self.__denominator)
+        if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
             ZZ_negate(t1, gcd)
             gcd = t1
         div_ZZX_ZZ(t2, self.__numerator, gcd)
-        div_ZZ_ZZ(t1, self.__denominator, gcd)
+        div_ZZ(t1, self.__denominator, gcd)
         self.__numerator = t2
         self.__denominator = t1
 
@@ -728,11 +742,11 @@ cdef class NumberFieldElement(FieldElement):
         else:
             mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
             mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
-            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
                 mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
                 mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
-                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
                 mul_ZZ(x.__denominator, x.__denominator, parent_den)
                 mul_ZZ(x.__denominator, x.__denominator, temp1)
         _sig_off
@@ -789,11 +803,11 @@ cdef class NumberFieldElement(FieldElement):
         else:
             mul_ZZ(x.__denominator, self.__denominator, inv_den)
             mul_ZZX(x.__numerator, self.__numerator, inv_num)
-            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
                 mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
                 mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,LeadCoeff_ZZX(temp),ZZX_degree(&x.__numerator)-ZZX_degree(&parent_num)+1)
-                PseudoRem_ZZX(x.__numerator, x.__numerator, temp)
+                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
                 mul_ZZ(x.__denominator, x.__denominator, parent_den)
                 mul_ZZ(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
@@ -943,7 +957,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c a, b
         mul_ZZX_ZZ( a, self.__numerator, parent_den )
         mul_ZZX_ZZ( b, parent_num, self.__denominator )
-        XGCD_ZZX( den[0], num[0],  t, a, b, 1 )
+        ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
         mul_ZZX_ZZ( num[0], num[0], parent_den )
         mul_ZZX_ZZ( num[0], num[0], self.__denominator )
 
@@ -1346,7 +1360,7 @@ cdef class NumberFieldElement(FieldElement):
         of this number field.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: K.<a> = NumberField(x^2 + 23)
             sage: a.is_integral()
             True
             sage: t = (1+a)/2
@@ -1359,8 +1373,15 @@ cdef class NumberFieldElement(FieldElement):
             False
             sage: t.minpoly()
             x^2 + 23/4
+
+        An example in a relative extension:
+            sage: K.<a,b> = NumberField([x^2+1, x^2+3])
+            sage: (a+b).is_integral()
+            True
+            sage: ((a-b)/2).is_integral()
+            False
         """
-        return all([a in ZZ for a in self.minpoly()])
+        return all([a in ZZ for a in self.absolute_minpoly()])
 
     def matrix(self, base=None):
         r"""
@@ -1458,6 +1479,32 @@ cdef class NumberFieldElement(FieldElement):
             M = sage.matrix.matrix_space.MatrixSpace(k, d)
             self.__matrix = M(v)
         return self.__matrix
+
+    def valuation(self, P):
+        """
+        Returns the valuation of self at a given prime ideal P.
+
+        INPUT:
+           P -- a prime ideal of the parent of self
+
+        EXAMPLES:
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^4+3*x^2-17)
+        sage: P = K.ideal(61).factor()[0][0]
+        sage: b = a^2 + 30
+        sage: b.valuation(P)
+        1
+        """
+        from number_field_ideal import is_NumberFieldIdeal
+        if not is_NumberFieldIdeal(P):
+            if is_NumberFieldElement(P):
+                P = self.parent().ideal(P)
+            else:
+                raise TypeError, "P must be an ideal"
+        if not P.is_prime():
+            # We always check this because it caches the pari prime representation of this ideal.
+            raise ValueError, "P must be prime"
+        return self.parent()._pari_().elementval(self._pari_(), P._pari_prime)
 
     def _matrix_over_base(self, L):
         K = self.parent()
@@ -1774,6 +1821,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         K = order.number_field()
         NumberFieldElement_absolute.__init__(self, K, f)
         self._order = order
+        (<Element>self)._parent = order
 
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
@@ -1783,7 +1831,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         K = order.number_field()
         NumberFieldElement_relative.__init__(self, K, f)
         self._order = order
-
+        (<Element>self)._parent = order
 
 
 

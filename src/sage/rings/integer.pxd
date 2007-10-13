@@ -13,6 +13,8 @@ cdef class Integer(EuclideanDomainElement):
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
 
+    cdef _pari_c(self)
+
     cdef _lshift(self, long int n)
     cdef _rshift(Integer self, long int n)
     cdef _and(Integer self, Integer other)

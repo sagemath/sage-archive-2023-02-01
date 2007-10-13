@@ -26,7 +26,8 @@ cdef extern from "stdio.h":
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!
-
+    double ldexp(double x, int exp)
+    double frexp(double x, int *exp)
 
 cdef extern from "gmp.h":
     ctypedef void* mpq_t
@@ -44,6 +45,7 @@ cdef extern from "gmp.h":
     void mpz_add (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_add_ui (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
+    void mpz_addmul_ui (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_and (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_clear(mpz_t integer)
@@ -86,6 +88,7 @@ cdef extern from "gmp.h":
     void mpz_mod (mpz_t r, mpz_t n, mpz_t d)
     void mpz_mul (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_mul_si (mpz_t rop, mpz_t op1, long int op2)
+    void mpz_mul_ui (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_neg(mpz_t rop, mpz_t op)
     void mpz_nextprime(mpz_t next_prime, mpz_t prime)
     bint mpz_probab_prime_p(mpz_t n, int reps)
@@ -102,6 +105,7 @@ cdef extern from "gmp.h":
     void mpz_sqrtrem (mpz_t rop, mpz_t rem, mpz_t op)
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
+    void mpz_swap (mpz_t op1, mpz_t op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
 
     void mpz_import (mpz_t rop, size_t count, int order, int size, int endian, size_t nails, void *op)

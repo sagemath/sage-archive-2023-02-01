@@ -1122,14 +1122,14 @@ class Schemes_abstract(Category_uniq):
 
         We create a scheme morphism from a ring homomorphism.x
             sage: phi = ZZ.hom(QQ); phi
-            Coercion morphism:
+            Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
             sage: f = S(phi); f
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -1141,7 +1141,7 @@ class Schemes_abstract(Category_uniq):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
 

@@ -112,12 +112,10 @@ cdef class RealQuadDoubleField_class(Field):
     # so it is possible to make weakrefs to this finite field
     cdef object __weakref__
     # round-to-double bit
-    cdef unsigned int *cwf
 
 cdef class QuadDoubleElement(FieldElement):
     cdef qd *initptr #
     # round-to-double bit
-    cdef unsigned int *cw
 
     cdef _set(self,x)
     cdef _new(self)

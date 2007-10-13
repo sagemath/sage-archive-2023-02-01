@@ -654,7 +654,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def __nonzero__(self):
         """
-        Return True if this power series equals 0.
+        Return True if this power series is not equal to 0.
 
         EXAMPLES:
             sage: R.<q> = ZZ[[ ]]; R

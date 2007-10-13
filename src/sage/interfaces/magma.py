@@ -540,6 +540,57 @@ class Magma(Expect):
         mlist = self(L)
         return self("ideal<%s|%s>"%(Pn,mlist.name()))
 
+    def set_verbose(self, type, level):
+        """
+        Set the verbosity level for a given algorithm, class, etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner')
+            level -- integer >= 0
+
+        """
+        self.SetVerbose(type,level)
+
+    def SetVerbose(self, type, level):
+        """
+        Set the verbosity level for a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+            level -- integer >= 0
+
+        NOTE: This method is provided to be consistent with the MAGMA
+        naming convention.
+        """
+        if level < 0:
+            raise TypeError, "level must be >= 0"
+        self.eval('SetVerbose("%s",%d)'%(type,level))
+
+    def get_verbose(self, type):
+        """
+        Get the verbosity level of a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+        """
+        return self.GetVerbose(type)
+
+    def GetVerbose(self, type):
+        """
+        Get the verbosity level of a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+
+        NOTE: This method is provided to be consistent with the MAGMA
+        naming convention.
+        """
+        return int(self.eval('GetVerbose("%s")'%type))
+
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
         nvals = 1

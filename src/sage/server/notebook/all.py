@@ -12,3 +12,5 @@
 
 from notebook_object import notebook
 
+
+from sagetex import sagetex

@@ -4514,6 +4514,70 @@ class Graph(GenericGraph):
         import networkx
         return networkx.component.node_connected_component(self._nxg, vertex)
 
+    ### Coloring
+
+    def bipartite_color(self):
+        """
+        Returns a dictionary with vertices as the keys and the color
+        class as the values.  Fails with an error if the graph is not
+        bipartite.
+
+        EXAMPLE:
+
+            sage: graphs.CycleGraph(4).bipartite_color()
+            {0: 1, 1: 0, 2: 1, 3: 0}
+            sage: graphs.CycleGraph(5).bipartite_color()
+            Traceback (most recent call last):
+            ...
+            NetworkXError: graph is not bipartite
+
+        """
+        import networkx.generators.bipartite
+        return networkx.generators.bipartite.bipartite_color(self._nxg)
+
+
+    def bipartite_sets(self):
+        """
+        Returns (X,Y) where X and Y are the nodes in each bipartite
+        set of graph G.  Fails with an error if graph is not
+        bipartite.
+
+        EXAMPLE:
+
+            sage: graphs.CycleGraph(4).bipartite_sets()
+            ([0, 2], [1, 3])
+            sage: graphs.CycleGraph(5).bipartite_sets()
+            Traceback (most recent call last):
+            ...
+            NetworkXError: graph is not bipartite
+
+        """
+        import networkx.generators.bipartite
+        return networkx.generators.bipartite.bipartite_sets(self._nxg)
+
+
+    def is_bipartite(self):
+        """
+        Returns True if graph G is bipartite, False if not.
+
+        Traverse the graph G with depth-first-search and color nodes.
+        This function uses the corresponding NetworkX function.
+
+        EXAMPLE:
+
+            sage: graphs.CycleGraph(4).is_bipartite()
+            True
+            sage: graphs.CycleGraph(5).is_bipartite()
+            False
+
+
+        """
+        import networkx.generators.bipartite
+        return networkx.generators.bipartite.is_bipartite(self._nxg)
+
+
+
+
     ### Automorphism and isomorphism
 
     def automorphism_group(self, partition=None, translation=False,

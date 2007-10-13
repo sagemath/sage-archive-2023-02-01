@@ -2761,13 +2761,52 @@ class Graph(GenericGraph):
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
         Graph on 5 vertices
 
-    5. A numpy matrix or ndarray:
+    5. A list of vertices and a function describing adjacencies.  Note
+       that the list of vertices and the function must be enclosed in
+       a list (i.e., [list of vertices, function]).
+
+       Construct the Paley graph over GF(13).
+
+        sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()])
+        sage: g.vertices()
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        sage: g.adjacency_matrix()
+        [0 1 0 1 1 0 0 0 0 1 1 0 1]
+        [1 0 1 0 1 1 0 0 0 0 1 1 0]
+        [0 1 0 1 0 1 1 0 0 0 0 1 1]
+        [1 0 1 0 1 0 1 1 0 0 0 0 1]
+        [1 1 0 1 0 1 0 1 1 0 0 0 0]
+        [0 1 1 0 1 0 1 0 1 1 0 0 0]
+        [0 0 1 1 0 1 0 1 0 1 1 0 0]
+        [0 0 0 1 1 0 1 0 1 0 1 1 0]
+        [0 0 0 0 1 1 0 1 0 1 0 1 1]
+        [1 0 0 0 0 1 1 0 1 0 1 0 1]
+        [1 1 0 0 0 0 1 1 0 1 0 1 0]
+        [0 1 1 0 0 0 0 1 1 0 1 0 1]
+        [1 0 1 1 0 0 0 0 1 1 0 1 0]
+
+       Construct the line graph of a complete graph.
+
+        sage: g=graphs.CompleteGraph(4)
+        sage: line_graph=Graph([g.edges(labels=false), \
+                 lambda i,j: len(set(i).intersection(set(j)))>0])
+        sage: line_graph.vertices()
+        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+        sage: line_graph.adjacency_matrix()
+        [0 1 1 1 1 0]
+        [1 0 1 1 0 1]
+        [1 1 0 0 1 1]
+        [1 1 0 0 1 1]
+        [1 0 1 1 0 1]
+        [0 1 1 1 1 0]
+
+    6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
         sage: Graph(A)
         Graph on 3 vertices
 
-    6. A graph6 or sparse6 string:
+    7. A graph6 or sparse6 string:
     SAGE automatically recognizes whether a string is in graph6 or sage6 format:
 
         sage: s = ':I`AKGsaOs`cI]Gb~'
@@ -2780,7 +2819,7 @@ class Graph(GenericGraph):
         sage: graphs_list.from_sparse6(s)
         [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
-    7. A SAGE matrix:
+    8. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
@@ -2839,6 +2878,9 @@ class Graph(GenericGraph):
                 self._nxg = data
             elif isinstance(data, networkx.Graph):
                 self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
+            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
+                # Pass XGraph a dict of lists describing the adjacencies
+                self._nxg = networkx.XGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
             else:
                 self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
         if format == 'graph6':
@@ -4731,13 +4773,38 @@ class DiGraph(GenericGraph):
         sage: g = DiGraph({0:[1,2,3], 2:[5]}); g
         Digraph on 5 vertices
 
-    5. A numpy matrix or ndarray:
+    5. A list of vertices and a function describing adjacencies.  Note
+       that the list of vertices and the function must be enclosed in
+       a list (i.e., [list of vertices, function]).
+
+       We construct a graph on the integers 1 through 12 such that
+       there is a directed edge from i to j if and only if i divides j.
+
+        sage: g=DiGraph([[1..12],lambda i,j: i!=j and i.divides(j)])
+        sage: g.vertices()
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        sage: g.adjacency_matrix()
+        [0 1 1 1 1 1 1 1 1 1 1 1]
+        [0 0 0 1 0 1 0 1 0 1 0 1]
+        [0 0 0 0 0 1 0 0 1 0 0 1]
+        [0 0 0 0 0 0 0 1 0 0 0 1]
+        [0 0 0 0 0 0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 1]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0]
+
+
+    6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
         sage: DiGraph(A)
         Digraph on 3 vertices
 
-    6. A SAGE matrix:
+    7. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
@@ -4783,6 +4850,9 @@ class DiGraph(GenericGraph):
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
             elif isinstance(data, str):
                 format = 'dig6'
+            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
+                # Pass XGraph a dict of lists describing the adjacencies
+                self._nxg = networkx.XDiGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
             else:
                 self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
         if format == 'adjacency_matrix':

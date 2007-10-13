@@ -458,7 +458,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: a.polynomial()
             1
             sage: type(a.polynomial())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
+            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
         """
         from polynomial.polynomial_ring import PolynomialRing
         R = PolynomialRing(self.parent(), var)

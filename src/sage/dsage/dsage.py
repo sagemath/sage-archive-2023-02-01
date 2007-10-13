@@ -15,12 +15,15 @@ from sage.dsage.misc.constants import DSAGE_DIR
 
 def spawn(cmd, verbose=True):
     """
-    Spawns a process and registers it with the SAGE cleaner.
+    Spawns a process and registers it with the SAGE.
     """
 
     null = open('/dev/null', 'a')
-    proc = '%s/%s' % (SAGE_ROOT + '/local/bin', cmd)
-    process = subprocess.Popen(proc, shell=True, stdout=null, stderr=null)
+    cmdl = cmd.split(' ')
+    exe = SAGE_ROOT + '/local/bin/' + cmdl[0] # path to the .py file
+    cmdl = cmdl[1:]
+    proc = [exe] + cmdl + ['&']
+    process = subprocess.Popen(proc, shell=False, stdout=null, stdin=null)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
     if verbose:
         print 'Spawned %s (pid = %s)\n' % (cmd, process.pid)

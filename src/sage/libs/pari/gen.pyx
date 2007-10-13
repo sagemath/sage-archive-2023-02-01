@@ -5745,7 +5745,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def __call__(self, s):
         """
-        Create the PARI object got by evaluating s using PARI.
+        Create the PARI object obtained by evaluating s using PARI.
         """
         cdef pari_sp prev_avma
         global avma
@@ -5793,7 +5793,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def new_with_prec(self, s, long precision=0):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with at lest precision decimal \emph{digits} of precision.
+        with at least \code{precision} decimal \emph{digits} of precision.
         """
         global prec
         cdef unsigned long old_prec
@@ -6274,7 +6274,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
 
 # The first one makes a separate copy on the heap, so the stack
 # won't overflow -- but this costs more time...
-cdef gen _new_gen(GEN x):
+cdef gen _new_gen (GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y

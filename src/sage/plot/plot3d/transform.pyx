@@ -181,7 +181,7 @@ def rotate_arbitrary(v, double theta):
             sage: m = rotZ(-s) * m
             sage: m = rotX(-t) * m
             sage: for ij in ix: m[ij] = m[ij].simplify_rational()
-            sage: m  # or show(m)
+            sage.: m  # currently broken output.
             [                                       (1 - cos(theta))*x^2 + cos(theta) -(sin(theta)*abs(z)^3 + (cos(theta) - 1)*x*z^2*sqrt(-z^2 - x^2 + 1))/z^2  (sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z)^3 + (1 - cos(theta))*x*z^4)/z^3]
             [             sin(theta)*abs(z) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                          (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1     -(sin(theta)*x*abs(z) + (cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1))/z]
             [    -(sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z) + (cos(theta) - 1)*x*z^2)/z     -((cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1) - sin(theta)*x*abs(z))/z                                        (1 - cos(theta))*z^2 + cos(theta)]

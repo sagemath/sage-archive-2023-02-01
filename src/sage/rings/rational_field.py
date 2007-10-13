@@ -167,9 +167,9 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
-            sage: L = E.Lseries_at1(300)[0]; L
+            sage: L = E.Lseries().at1(300)[0]; L
             0.253841860855911
-            sage: O = E.omega(); O
+            sage: O = E.period_lattice().omega(); O
             1.269209304279553421688794616754547305219492241830608667967136921230408338613     # 32-bit
             1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075        # 64-bit
             sage: t = L/O; t
@@ -201,12 +201,31 @@ class RationalField(_uniq, number_field_base.NumberField):
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
     def coerce_map_from_impl(self, S):
+        """
+        EXAMPLES:
+            sage: f = QQ.coerce_map_from(ZZ); f
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: f(3)
+            3
+            sage: f(3^99) - 3^99
+            0
+            sage: f = QQ.coerce_map_from(int); f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Rational Field
+            sage: f(44)
+            44
+        """
         global ZZ
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return sage.rings.rational.Z_to_Q()
+        elif S is int:
+            return sage.rings.rational.int_to_Q()
         else:
             return field.Field.coerce_map_from_impl(self, S)
 
@@ -254,46 +273,160 @@ class RationalField(_uniq, number_field_base.NumberField):
           yield n
           yield -n
 
+    def embeddings(self, K):
+        """
+        Return list of the one embedding of QQ into K, if it exists.
+
+        EXAMPLES:
+            sage: QQ.embeddings(QQ)
+            [Ring Coercion endomorphism of Rational Field]
+            sage: QQ.embeddings(CyclotomicField(5))
+            [Ring Coercion morphism:
+              From: Rational Field
+              To:   Cyclotomic Field of order 5 and degree 4]
+
+        K must have characteristic 0:
+            sage: QQ.embeddings(GF(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: no embeddings of the rational field into K.
+        """
+        if K.characteristic() != 0:
+            raise ValueError, "no embeddings of the rational field into K."
+        return [self.hom(K)]
+
     def complex_embedding(self, prec=53):
+        """
+        Return embedding of the rational numbers into the complex numbers.
+
+        EXAMPLES:
+            sage: QQ.complex_embedding()
+            Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 53 bits of precision
+              Defn: 1 |--> 1.00000000000000
+            sage: QQ.complex_embedding(20)
+            Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 20 bits of precision
+              Defn: 1 |--> 1.0000
+        """
         import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
     def gens(self):
+        """
+        EXAMPLES:
+            sage: QQ.gens()
+            (1,)
+        """
         return (self(1), )
 
     def gen(self, n=0):
+        """
+        EXAMPLES:
+            sage: QQ.gen()
+            1
+        """
         if n == 0:
             return self(1)
         else:
             raise IndexError, "n must be 0"
 
     def degree(self):
+        """
+        EXAMPLES:
+            sage: QQ.degree()
+            1
+        """
+        return 1
+
+    def absolute_degree(self):
+        """
+        EXAMPLES:
+            sage: QQ.absolute_degree()
+            1
+        """
         return 1
 
     def ngens(self):
+        """
+        EXAMPLES:
+            sage: QQ.ngens()
+            1
+        """
         return 1
 
+    def is_absolute(self):
+        """
+        QQ is an absolute extension of QQ.
+
+        EXAMPLES:
+            sage: QQ.is_absolute()
+            True
+        """
+        return True
+
     def is_subring(self, K):
+        """
+        Return True if QQ is a subring of K.
+
+        We are only able to determine this in some cases, e.g., when K
+        is a field or of positive characteristic.
+
+        EXAMPLES:
+            sage: QQ.is_subring(QQ)
+            True
+            sage: QQ.is_subring(QQ['x'])
+            True
+            sage: QQ.is_subring(GF(7))
+            False
+            sage: QQ.is_subring(CyclotomicField(7))
+            True
+            sage: QQ.is_subring(ZZ)
+            False
+            sage: QQ.is_subring(Frac(ZZ))
+            True
+        """
         if K.is_field():
             return K.characteristic() == 0
         if K.characteristic() != 0:
             return False
-        raise NotImplementedError
+        try:
+            self.embeddings(K)
+        except (TypeError, ValueError):
+            return False
+        return True
 
     def is_field(self):
         """
         Return True, since the rational field is a field.
+
+        EXAMPLES:
+            sage: QQ.is_field()
+            True
         """
         return True
 
     def is_finite(self):
         """
         Return False, since the rational field is not finite.
+
+        EXAMPLES:
+            sage: QQ.is_finite()
+            False
         """
         return False
 
     def is_prime_field(self):
+        """
+        Return True, since QQ is a prime field.
+
+        EXAMPLES:
+            sage: QQ.is_prime_field()
+            True
+        """
         return True
 
     def is_atomic_repr(self):
@@ -311,10 +444,48 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sage.rings.integer.Integer(0)
 
-    def number_field(self, poly_var='x', nf_var='a'):
+    def maximal_order(self):
+        """
+        Return the maximal order of the rational numbers,
+        i.e., the ring ZZ of integers.
+
+        EXAMPLES:
+            sage: QQ.maximal_order()
+            Integer Ring
+            sage: QQ.ring_of_integers ()
+            Integer Ring
+        """
+        from integer_ring import ZZ
+        return ZZ
+
+    def number_field(self):
+        """
+        Return the number field associated to QQ.  Since QQ
+        is a number field, this just returns QQ again.
+
+        EXAMPLES:
+            sage: QQ.number_field() is QQ
+            True
+        """
+        return self
+
+    def extension(self, poly, names, check=True):
+        """
+        EXAMPLES:
+        We make a single absolute extension:
+            sage: K.<a> = QQ.extension(x^3 + 5); K
+            Number Field in a with defining polynomial x^3 + 5
+
+        We make an extension generated by roots of two polynomials:
+            sage: K.<a,b> = QQ.extension([x^3 + 5, x^2 + 3]); K
+            Number Field in a with defining polynomial x^3 + 5 over its base field
+            sage: b^2
+            -3
+            sage: a^3
+            -5
+        """
         from sage.rings.number_field.all import NumberField
-        x = sage.rings.polynomial.polynomial_ring.PolynomialRing(self, poly_var).gen()
-        return NumberField(x-1, nf_var)
+        return NumberField(poly, names=names, check=check)
 
     def order(self):
         """

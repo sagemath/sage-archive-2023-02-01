@@ -30,26 +30,27 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-import sage.rings.ring as ring
-import sage.rings.all as rings
 from ell_field import EllipticCurve_field
 import ell_point
-import constructor
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.ring import Ring
 from sage.rings.arith import lcm
-
 from sage.misc.misc import prod
-
 import sage.databases.cremona
 
 from gp_simon import simon_two_descent
-from sage.libs.pari.all import pari
+from constructor import EllipticCurve
+from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldIdeal
+from sage.misc.misc import verbose
+from sage.misc.functional import ideal
+from kodaira_symbol import KodairaSymbol
+from sage.rings.integer import Integer
+from sage.structure.element import Element
+
 
 
 class EllipticCurve_number_field(EllipticCurve_field):
     """
-    Elliptic curve over a padic field.
+    Elliptic curve over a number field.
     """
     def __init__(self, x, y=None):
         if y is None:
@@ -60,17 +61,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             if isinstance(y, str):
                 field = x
                 X = sage.databases.cremona.CremonaDatabase()[y]
-                ainvs = [field(a) for a in X.a_invariants()]
+                ainvs = X.a_invariants()
             else:
                 field = x
                 ainvs = y
-        if not (isinstance(field, ring.Ring) and isinstance(ainvs,list)):
+        if not (isinstance(field, Ring) and isinstance(ainvs,list)):
             raise TypeError
 
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-
         self._point_class = ell_point.EllipticCurvePoint_field
-        self._genus = 1
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -129,15 +128,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: v = E.simon_two_descent(); v  # long time
             (1, -1, [])
         """
-
+        #Should this really be here?
+        #if self.torsion_order() % 2 == 0:
+        #    raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
         F = self.integral_weierstrass_model()
         a1,a2,a3,a4,a6 = F.a_invariants()
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(a2,a4,a6,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
-        prob_rank = rings.Integer(t[0])
-        two_selmer_rank = rings.Integer(t[1])
+        prob_rank = Integer(t[0])
+        two_selmer_rank = Integer(t[1])
         prob_gens = [F(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
 
@@ -148,7 +149,452 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 prod([r**((e+5)//6) for r, e in a6.denominator().factor()]))
         # do transformation x -> x/d^2
         #                   y -> y/d^3
-        return constructor.EllipticCurve([a4 * d**4, a6 * d**6])
+        return EllipticCurve([a4 * d**4, a6 * d**6])
 
+    def _tidy_model(self):
+        """
+        Transforms the elliptic curve to a model in which a1, a2, a3 are reduced modulo 2, 3, 2 respectively.
 
+        This only works on integral models, ie it requires that a1, a2 and a3 lie in the ring of integers of the base field.
+        """
+        ## Ported from John Cremona's code implementing Tate's algorithm.
+        ZK = self.base_ring().maximal_order()
+        (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
+        # N.B. Must define s, r, t in the right order.
+        s = ZK([(a/2).round('away') for a in a1.list()])
+        r = ZK([(a/3).round('away') for a in (a2 - s*a1 -s*s).list()])
+        t = ZK([(a/2).round('away') for a in (a3 + r*a1)])
+        return self.rst_transform(r, s, t)
+
+    def local_information(self, P=None, proof = None):
+        """
+        Tate's algorithm for an elliptic curve over a number field.
+
+        If a prime P of the base field is specified, computes local
+        reduction data at the prime ideal P and a local minimal model.
+        If no P is specified, computes local information at all bad primes.
+
+        The model is not required to be integral on input.
+        If P is principal, uses a generator as uniformizer, so it will not affect
+        integrality or minimality at other primes.
+        If P is not principal, the minimal model returned will preserve integrality
+        at other primes, but not minimality.
+
+        INPUT:
+        self -- an elliptic curve over a number field.
+        P    -- either None or a prime ideal of the base field of self.
+        proof -- whether to only use provably correct methods (default controled by
+                 global proof module).  Note that the proof module is number_field,
+                 not elliptic_curves, since the functions that actually need the flag
+                 are in number fields.
+        OUTPUT:
+        If P specified, returns a 6-tuple with the following data:
+          Emin -- a model (integral and) minimal at P
+          p    -- the residue characteristic
+          vpd  -- the valuation of the local minimal discriminant
+          fp   -- valuation of the conductor
+          KS   -- Kodaira symbol
+          cp   -- Tamagawa number
+        Otherwise, for all primes dividing the discriminant, returns a pair with the first
+        member of the pair being that prime P, and the second being a tuple with the above
+        data for that P.
+        """
+        if proof is None:
+            import sage.structure.proof.proof
+            # We use the "number_field" flag because the actual proof dependence is in Pari's number field functions.
+            proof = sage.structure.proof.proof.get_flag(None, "number_field")
+        if P is None:
+            primes = [f[0] for f in self.base_ring().ideal(self.discriminant()).factor()]
+            return [(P, self._tate(P, proof)) for pr in primes]
+        if not (is_NumberFieldIdeal(P) and P.is_prime() # and P.order() == self.base_ring().integers()
+                or is_NumberFieldElement(P) and P.parent().ideal(P).is_prime()
+                or self.base_ring() is QQ and (isinstance(P, Integer) and P.is_prime()
+                                               or is_Ideal(P) and P.base_ring() is ZZ and P.is_prime())):
+            raise TypeError, "second argument must be a prime ideal"
+        if isinstance(P, Element):
+            P = ideal(P)
+        return self._tate(P, proof)
+
+    def conductor(self):
+        """
+        Returns the conductor of this elliptic curve as a fractional ideal of the base field.
+        """
+        ## Ported from John Cremona's code implementing Tate's algorithm.
+        primes = [f[0] for f in self.base_ring().ideal(self.discriminant()).factor()]
+        ans = self.base_ring().ideal(1)
+        for P in primes:
+            ans *= P**(self._tate(P)[3])
+        return ans
+
+    def global_minimal_model(self, proof = None):
+        """
+        Returns a model of self that is minimal at all primes, and the conductor of self.
+
+        Note that this only works for class number 1.
+        INPUT:
+        self -- an elliptic curve over a number field of class number
+        proof -- whether to only use provably correct methods (default controled by
+                 global proof module).  Note that the proof module is number_field,
+                 not elliptic_curves, since the functions that actually need the flag
+                 are in number fields.
+        OUTPUT:
+        An ordered pair consisting of a global minimal model, and the conductor of self as a
+        fractional ideal of the base field.
+        """
+        ## Ported from John Cremona's code implementing Tate's algorithm.
+        if proof is None:
+            import sage.structure.proof.proof
+            # We use the "number_field" flag because the actual proof dependence is in Pari's number field functions.
+            proof = sage.structure.proof.proof.get_flag(None, "number_field")
+        K = self.base_ring()
+        if K.class_number() != 1:
+            raise ValueError, "global minimal models only exist in general for class number 1"
+        primes = [f[0] for f in self.base_ring().ideal(self.discriminant()).factor()]
+        N = K.ideal(1)
+        E = self
+        for P in primes:
+            local_info = E._tate(P, proof)
+            N *= local_info[3]
+            E = local_info[0]
+        return (E._tidy_model(), N)
+
+    def _tate(self, P, proof = None):
+        """
+        Tate's algorithm for an elliptic curve over a number field:
+        computes local reduction data at the prime ideal P and a local minimal model.
+
+        The model is not required to be integral on input.
+        If P is principal, uses a generator as uniformizer, so it will not affect
+        integrality or minimality at other primes.
+        If P is not principal, the minimal model returned will preserve integrality
+        at other primes, but not minimality.
+
+        INPUT:
+        self -- an elliptic curve over a number field.
+        P    -- a prime ideal of the base field of self.
+        OUTPUT:
+        Emin -- a model (integral and) minimal at P
+        p    -- the residue characteristic
+        vpd  -- the valuation of the local minimal discriminant
+        fp   -- valuation of the conductor
+        KS   -- Kodaira symbol
+        cp   -- Tamagawa number
+        """
+        ## Ported from John Cremona's code implementing Tate's algorithm.
+        K = self.base_ring()
+        OK = K.maximal_order()
+        t = verbose("Running Tate's algorithm with P = %s"%P, level=1)
+        F = OK.residue_field(P)
+        p = F.characteristic()
+        if P.is_principal():
+            pi = P.gens_reduced()[0]
+            verbose("P is principal, generator pi = %s"%pi, t, 1)
+        else:
+            pi = K.uniformizer(P, 'negative')
+            verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
+
+        def val(x):
+            return K.ideal(x).valuation(P)
+        def pdiv(x):
+            return val(x) > 0
+        def inv_mod(x):
+            return F.lift(~F(x))
+        def root_mod(x, e):
+            L = F(x).nth_root(e, extend = False, all = True)
+            if len(L) > 0:
+                return F.lift(L[0])
+            return OK(Integer(0))
+        def red_mod(x):
+            return F.lift(F(x))
+        def roots_exist(a, b, c):
+            #returns true if ax^2 + bx + c has roots.
+            (a, b, c) = (F(a), F(b), F(c))
+            if a == 0:
+                return (b != 0) or (c == 0)
+            elif p == 2:
+                return len(PolynomialRing(F, "x")([c,b,a]).roots()) > 0
+            else:
+                return (b**2 - 4*a*c).is_square()
+        def nroots_cubic(b, c, d):
+            # returns the number of roots of x^3 + b*x^2 + c*x + d
+            roots = PolynomialRing(F, 'x')([d, c, b, 1]).roots()
+            ans = 0
+            for L in roots:
+                ans += L[1]
+            return ans
+        def pad_A(A):
+            return (0, A[0], A[1], A[2], A[3], 0, A[4])
+
+        if p == 2:
+            halfmodp = OK(Integer(0))
+        else:
+            halfmodp = inv_mod(Integer(2))
+
+        A = pad_A(self.a_invariants())
+        indices = [1,2,3,4,6]
+        if min([val(a) for a in A if a != 0]) < 0:
+            verbose("Non-integral model at P: valuations are %s; making integral"%([val(a) for a in A if a != 0]), t, 1)
+            e = 0
+            for i in range(7):
+                if A[i] != 0:
+                    e = max(e, (-val(A[i])/i).ceil())
+            pie = pi**e
+            for i in range(7):
+                if A[i] != 0:
+                    A[i] *= pie**i
+            verbose("P-integral model is %s, with valuations %s"%([A[i] for i in indices], [val(A[i]) for i in indices]), t, 1)
+
+        (a1, a2, a3, a4, a6) = (A[1], A[2], A[3], A[4], A[6])
+        while True:
+            C = EllipticCurve([a1, a2, a3, a4, a6]);
+            (b2, b4, b6, b8) = C.b_invariants()
+            (c4, c6) = C.c_invariants()
+            delta = C.discriminant()
+            vpd = val(delta)
+
+            if vpd == 0:
+                ## Good reduction already
+                cp = 1
+                fp = 0
+                KS = KodairaSymbol("I0")
+                break #return
+
+            # Otherwise, we change coordinates so that p | a3, a4, a6
+            if p == 2:
+                if pdiv(b2):
+                    r = root_mod(a4, 2)
+                    t = root_mod(((r + a2)*r + a4)*r + a6, 2)
+                else:
+                    temp = inv_mod(a1)
+                    r = temp * a3
+                    t = temp * (a4 + r*r)
+            elif p == 3:
+                if pdiv(b2):
+                    r = root_mod(-b6, 3)
+                else:
+                    r = -inv_mod(b2) * b4
+                t = a1 * r + a3
+            else:
+                if pdiv(c4):
+                    r = -inv_mod(12) * b2
+                else:
+                    r = -inv_mod(12*c4) * (c6 + b2 * c4)
+                t = -halfmodp * (a1 * r + a3)
+            r = red_mod(r)
+            t = red_mod(t)
+            # print "Before first tranform C = %s"%C
+            # print "[a1,a2,a3,a4,a6] = %s"%([a1, a2, a3, a4, a6])
+            C = C.rst_transform(r, 0, t)
+            (a1, a2, a3, a4, a6) = C.a_invariants()
+            (b2, b4, b6, b8) = C.b_invariants()
+            if min(val(a1), val(a2), val(a3), val(a4), val(a6)) < 0:
+                raise RuntimeError, "Non-integral model after first transform!"
+            verbose("After first transform %s\n, [a1,a2,a3,a4,a6] = %s\n, valuations = %s"%([r, 0, t], [a1, a2, a3, a4, a6], [val(a1), val(a2), val(a3), val(a4), val(a6)]), t, 2)
+            if val(a3) == 0:
+                raise RuntimeError, "p does not divide a3 after first transform!"
+            if val(a4) == 0:
+                raise RuntimeError, "p does not divide a4 after first transform!"
+            if val(a6) == 0:
+                raise RuntimeError, "p does not divide a6 after first transform!"
+
+            # Now we test for Types In, II, III, IV
+            # Do we not have to update the c invariants?
+            if not pdiv(c4):
+                ## Type In (n = vpd)
+                if roots_exist(1, a1, -a2):
+                    cp = vpd
+                elif Integer(2).divides(vpd):
+                    cp = 2
+                else:
+                    cp = 1
+                KS = KodairaSymbol("I%s"%vpd)
+                fp = 1
+                break #return
+            if val(a6) < 2:
+                ## Type II
+                KS = KodairaSymbol("II")
+                fp = vpd
+                cp = 1
+                break #return
+            if val(b8) < 3:
+                ## Type III
+                KS = KodairaSymbol("III")
+                fp = vpd - 1
+                cp = 2
+                break #return
+            if val(b6) < 3:
+                ## Type IV
+                if roots_exist(1, a3 / pi, -a6/(pi*pi)):
+                    cp = 3
+                else:
+                    cp = 1
+                KS = KodairaSymbol("IV")
+                fp = vpd - 2
+                break #return
+
+            # If our curve is none of these types, we change types so that p | a1, a2 and p^2 | a3, a4 and p^3 | a6
+            if p == 2:
+                s = root_mod(a2, 2)
+                t = pi*root_mod(a6/(pi*pi), 2)
+            elif p == 3:
+                s = a1
+                t = a3
+            else:
+                s = -a1*halfmodp
+                t = -a3*halfmodp
+            C = C.rst_transform(0, s, t)
+            A = pad_A(C.a_invariants())
+            (b2, b4, b6, b8) = C.b_invariants()
+            verbose("After second transform %s\n[a1, a2, a3, a4, a6] = %s\nValuations: %s"%([0, s, t], [a1,a2,a3,a4,a6],[val(a1),val(a2),val(a3),val(a4),val(a6)]), t, 2)
+            if val(a1) == 0:
+                raise RuntimeError, "p does not divide a1 after second transform!"
+            if val(a2) == 0:
+                raise RuntimeError, "p does not divide a2 after second transform!"
+            if val(a3) < 2:
+                raise RuntimeError, "p^2 does not divide a3 after second transform!"
+            if val(a4) < 2:
+                raise RuntimeError, "p^2 does not divide a4 after second transform!"
+            if val(a6) < 3:
+                raise RuntimeError, "p^3 does not divide a6 after second transform!"
+            if min(val(a1), val(a2), val(a3), val(a4), val(a6)) < 0:
+                raise RuntimeError, "Non-integral model after second transform!"
+
+            # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0, where b = a2/p, c = a4/p^2, d = a6/p^3
+            b = a2/pi
+            c = a4/(pi*pi)
+            d = a6/(pi**3)
+            bb = b*b
+            cc = b*c
+            bc = b*c
+            w = 27*d*d - bb*cc + 4*b*bb*d - 18*bc*d + 4*c*cc
+            x = 3*c - bb
+            if pdiv(w):
+                if pdiv(x):
+                    sw = 3
+                else:
+                    sw = 2
+            else:
+                sw = 1
+            verbose("Analyzing roots of cubic T^3 + %s*T^2 + %s*T + %s, case %s"%(b, c, d, sw), t, 1)
+            if sw == 1:
+                ## Three distinct roots - Type I*0
+                KS = Kodaira("I0*")
+                cp = 1 + nroots_cubic(b, c, d)
+                fp = vpd - 4
+                break #return
+            elif sw == 2:
+                ## One double root - Type I*m for some m
+                ## Change coords so that the double root is T = 0 mod p
+                if p == 2:
+                    r = root_mod(c, 2)
+                elif p == 3:
+                    r = c * inv_mod(b)
+                else:
+                    r = (bc - 9*d)*inv_mod(2*x)
+                r = pi * red_mod(r)
+                C = C.rst_transform(r, 0, 0)
+                (a1, a2, a3, a4, a6) = C.a_invariants()
+                (b2, b4, b6, b8) = C.b_invariants()
+                ix = 3; iy = 3; mx = pi*pi; my = pi*pi
+                while True:
+                    a2t = a2 / pi
+                    a3t = a3 / my
+                    a4t = a4 / (pi*mx)
+                    a6t = a6 / (mx*my)
+                    if pdiv(a3t*a3t + 4*a6t):
+                        if p == 2:
+                            t = my*root_mod(a6t, 2)
+                        else:
+                            t = my*red_mod(-a3t*halfmodp)
+                        C = C.rst_transform(0, 0, t)
+                        (a1, a2, a3, a4, a6) = C.a_invariants()
+                        (b2, b4, b6, b8) = C.b_invariants()
+                        my = my*pi
+                        iy += 1
+                        a2t = a2/pi
+                        a3t = a3/my
+                        a4t = a4/(pi*mx)
+                        a6t = a6/(mx*my)
+                        if pdiv(a4t*a4t - 4*a6t*a2t):
+                            if p == 2:
+                                r = mx*root_mod(a6t*inv_mod(a2t), 2)
+                            else:
+                                r = mx*red_mod(-a4t*inv_mod(2*a2t))
+                            C = C.rst_transform(r, 0, 0)
+                            (a1, a2, a3, a4, a6) = C.a_invariants()
+                            (b2, b4, b6, b8) = C.b_invariants()
+                            mx = mx*pi
+                            ix += 1 # and stay in loop
+                        else:
+                            if roots_exist(a2t, a4t, a6t):
+                                cp = 4
+                            else:
+                                cp = 2
+                            break # exit loop
+                    else:
+                        if roots_exist(1, a3t, -a6t):
+                            cp = 4
+                        else:
+                            cp = 2
+                        break
+                KS = KodairaSymbol("I%s*"%(ix+iy-5))
+                fp = vpd - ix - iy + 1
+                break #return
+            else: # sw == 3
+                ## The cubic has a triple root
+                ## First we change coordinates so that T = 0 mod p
+                if p == 2:
+                    r = b
+                elif p == 3:
+                    r = root_mod(-d, 3)
+                else:
+                    r = -b * inv_mod(3)
+                r = pi*red_mod(r)
+                C = C.rst_transform(r, 0, 0)
+                (a1, a2, a3, a4, a6) = C.a_invariants()
+                (b2, b4, b6, b8) = C.b_invariants()
+                verbose("After third transform %s\n[a1,a2,a3,a4,a6] = %s\nValuations: %s"%([r,0,0],[a1,a2,a3,a4,a6],[val(ai) for ai in [a1,a2,a3,a4,a6]]), t, 2)
+                if min(val(ai) for ai in [a1,a2,a3,a4,a6]) < 0:
+                    raise RuntimeError, "Non-integral model after third transform!"
+                if val(a2) < 2 or val(a4) < 3 or val(a6) < 4:
+                    raise RuntimeError, "Cubic after transform does not have a triple root at 0"
+                a3t = a3/(pi*pi)
+                a6t = a6/(pi**4)
+                # We test for Type IV*
+                if not pdiv(a3t*a3t + 4*a6t):
+                    if roots_exist(1, a3t, temp):
+                        cp = 3
+                    else:
+                        cp = 1
+                    KS = KodairaSymbol("IV*")
+                    fp = vpd - 6
+                    break #return
+                # Now change coordinates so that p^3|a3, p^5|a6
+                if p == 2:
+                    t = -pi*pi*root_mod(a6t, 2)
+                else:
+                    t = pi*pi*red_mod(-a3t*halfmodp)
+                C = C.rst_transform(0, 0, t)
+                (a1, a2, a3, a4, a6) = C.a_invariants()
+                (b2, b4, b6, b8) = C.b_invariants()
+                # We test for types III* and II*
+                if val(a4) < 4:
+                    ## Type III*
+                    KS = KodairaSymbol("III*")
+                    fp = vpd - 7
+                    cp = 2
+                    break #return
+                if val(a6) < 6:
+                    ## Type II*
+                    KS = KodairaSymbol("II*")
+                    fp = vpd - 8
+                    cp = 1
+                    break #return
+                a1 /= pi
+                a2 /= pi**2
+                a3 /= pi**3
+                a4 /= pi**4
+                a6 /= pi**6
+                verbose("Non-minimal equation, dividing out...\nNew model is %s"%([a1, a2, a3, a4, a6]), t, 1)
+        return (C, p, vpd, fp, KS, cp)
 

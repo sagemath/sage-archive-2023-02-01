@@ -148,13 +148,15 @@ def format_src(s):
 
 ###############################
 
-def search_src(s, extra=''):
+def search_src(s, extra='', interact=True):
     """
     Search sage source code for lines containing s.  The search is not
     case sensitive.
     """
     cmd = 'sage -grep "%s" | grep "%s"'%(s,extra)
     r = os.popen(cmd).read()
+    if not interact:
+        return r
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
         print format_search_as_html('Source Code', r, s + extra)

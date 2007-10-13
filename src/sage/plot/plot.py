@@ -1909,7 +1909,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     A purple plot of the Hasse-Weil $L$-function $L(E, 1 + it)$, $-1<t<10$:
 
         sage: E = EllipticCurve('37a')
-        sage: vals = E.Lseries_values_along_line(1-I, 1+10*I, 100) # critical line
+        sage: vals = E.Lseries().values_along_line(1-I, 1+10*I, 100) # critical line
         sage: L = [(z[1].real(), z[1].imag()) for z in vals]
         sage: p = line(L, rgbcolor=(3/4,1/2,5/8))
         sage: p.save('sage.png')

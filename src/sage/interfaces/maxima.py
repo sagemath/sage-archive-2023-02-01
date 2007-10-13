@@ -348,7 +348,8 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from pexpect import EOF
 
-import random
+#import random
+from random import randrange
 
 import sage.rings.all
 import sage.rings.complex_number
@@ -588,7 +589,7 @@ class Maxima(Expect):
             4
         """
         if self._expect is None: return
-        r = random.randrange(2147483647)
+        r = randrange(2147483647)
         s = str(r+1)
         cmd = "1+%s;\n"%r
         self._sendstr(cmd)
@@ -1066,7 +1067,7 @@ class Maxima(Expect):
 ##         # Take square-free part so sqrt(n) doesn't get simplified further by maxima
 ##         # (The original version of this function would yield wrong answers if
 ##         # n is not squarefree.)
-##         n = Integer(n).square_free_part()
+##         n = Integer(n).squarefree_part()
 ##         if n < 1:
 ##             raise ValueError, "n (=%s) must be >= 1"%n
 ##         s = str(self('qunit(%s)'%n)).lower()
@@ -1420,10 +1421,32 @@ class MaximaElement(ExpectElement):
             sage: len(v)
             6
         """
-        self._check_valid()
-        return int(self.parent().eval('length(%s)'%self.name()))
+        P = self._check_valid()
+        return int(P.eval('length(%s)'%self.name()))
+
+    def dot(self, other):
+        """
+        Implements the notation self . other.
+
+        EXAMPLES:
+            sage: A = maxima('matrix ([a1],[a2])')
+            sage: B = maxima('matrix ([b1, b2])')
+            sage: A.dot(B)
+            matrix([a1*b1,a1*b2],[a2*b1,a2*b2])
+        """
+        P = self._check_valid()
+        Q = P(other)
+        return P('%s . %s'%(self.name(), Q.name()))
+
 
     def __getattr__(self, attrname):
+        """
+        This is used to call a function on self.
+
+        EXAMPLES:
+            sage: maxima('%pi/2').sin()
+            1
+        """
         if attrname[:1] == "_":
             raise AttributeError
         return MaximaFunctionElement(self, attrname)

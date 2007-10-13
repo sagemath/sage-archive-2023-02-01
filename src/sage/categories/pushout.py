@@ -316,13 +316,13 @@ def pushout(R, S):
             ...
             TypeError: Ambiguous Base Extension
             sage: pushout(ZZ['x,y,z'], QQ['w,x,z,t'])
-            Polynomial Ring in w, x, y, z, t over Rational Field
+            Multivariate Polynomial Ring in w, x, y, z, t over Rational Field
 
         Some other examples
             sage: pushout(Zp(7)['y'], Frac(QQ['t'])['x,y,z'])
-            Polynomial Ring in x, y, z over Fraction Field of Univariate Polynomial Ring in t over 7-adic Field with capped relative precision 20
+            Multivariate Polynomial Ring in x, y, z over Fraction Field of Univariate Polynomial Ring in t over 7-adic Field with capped relative precision 20
             sage: pushout(ZZ['x,y,z'], Frac(ZZ['x'])['y'])
-            Polynomial Ring in y, z over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            Multivariate Polynomial Ring in y, z over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
             sage: pushout(MatrixSpace(RDF, 2, 2), Frac(ZZ['x']))
             Full MatrixSpace of 2 by 2 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Real Double Field
             sage: pushout(ZZ, MatrixSpace(ZZ[['x']], 3, 3))
@@ -337,6 +337,12 @@ def pushout(R, S):
     """
     if R == S:
         return R
+
+    if isinstance(R, type):
+        R = type_to_parent(R)
+
+    if isinstance(S, type):
+        S = type_to_parent(S)
 
     R_tower = construction_tower(R)
     S_tower = construction_tower(S)
@@ -626,3 +632,16 @@ def construction_tower(R):
         tower.append((f,R))
         c = R.construction()
     return tower
+
+
+
+def type_to_parent(P):
+    import sage.rings.all
+    if P in [int, long]:
+        return sage.rings.all.ZZ
+    elif P is float:
+        return sage.rings.all.RDF
+    elif P is complex:
+        return sage.rings.all.CDF
+    else:
+        raise TypeError, "Not a scalar type."

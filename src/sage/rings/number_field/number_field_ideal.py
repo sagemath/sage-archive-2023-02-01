@@ -270,6 +270,23 @@ class NumberFieldIdeal(Ideal_fractional):
         """
         return generic_power(self, r)
 
+    def _pari_(self):
+        """
+        Returns PARI Hermite Normal Form representations of this
+        ideal.
+
+        EXAMPLES:
+            sage: K.<w> = NumberField(x^2 + 23)
+            sage: I = K.class_group().0.ideal(); I
+            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
+            sage: I._pari_()
+            [2, 0; 0, 1]
+        """
+        return self.pari_hnf()
+
+    def _pari_init_(self):
+        return str(self._pari_())
+
     def pari_hnf(self):
         """
         Return PARI's representation of this ideal in Hermite normal form.
@@ -345,10 +362,36 @@ class NumberFieldIdeal(Ideal_fractional):
             for i, p in enumerate(P):
                 prime, alpha = p.getattr('gen')
                 I = K.ideal([ZZ(prime), K(zk_basis * alpha)])
-                I.__pari_prime = p
+                I._pari_prime = p
                 A.append((I,ZZ(exps[i])))
             self.__factorization = Factorization(A)
             return self.__factorization
+
+    def reduce_equiv(self):
+        """
+        Return a small ideal that is equivalent to self in the group
+        of fractional ideals modulo principal ideals.  Very often (but
+        not always) if self is principal then this function returns
+        the unit ideal.
+
+        ALGORITHM: Calls pari's idealred function.
+
+        EXAMPLES:
+            sage: K.<w> = NumberField(x^2 + 23)
+            sage: I = ideal(w*23^5); I
+            Fractional ideal (6436343*w) of Number Field in w with defining polynomial x^2 + 23
+            sage: I.reduce_equiv()
+            Fractional ideal (1) of Number Field in w with defining polynomial x^2 + 23
+            sage: I = K.class_group().0.ideal()^10; I
+            Fractional ideal (1024, 1/2*w + 979/2) of Number Field in w with defining polynomial x^2 + 23
+            sage: I.reduce_equiv()
+            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
+        """
+        K = self.number_field()
+        P = K.pari_nf()
+        hnf = P.idealred(self.pari_hnf())
+        gens = self.__elements_from_hnf(hnf)
+        return K.ideal(gens)
 
     def gens_reduced(self, proof=None):
         r"""
@@ -370,7 +413,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J.gens_reduced()
             (i + 1,)
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             ## Compute the single generator, if it exists
             dummy = self.is_principal(proof)
@@ -493,19 +537,20 @@ class NumberFieldIdeal(Ideal_fractional):
             False
         """
         try:
-            return self.__pari_prime is not None
+            return self._pari_prime is not None
         except AttributeError:
             if self.is_zero():
-                self.__pari_prime = []
+                self._pari_prime = []
                 return True
             K = self.number_field()
             F = list(K.pari_nf().idealfactor(self.pari_hnf()))
+            ### We should definitely cache F as the factorization of self
             P, exps = F[0], F[1]
             if len(P) != 1 or exps[0] != 1:
-                self.__pari_prime = None
+                self._pari_prime = None
             else:
-                self.__pari_prime = P[0]
-            return self.__pari_prime is not None
+                self._pari_prime = P[0]
+            return self._pari_prime is not None
 
     def is_principal(self, proof=None):
         r"""
@@ -524,7 +569,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.is_principal()
             True
         """
-        proof = number_field.proof_flag(proof)
+        from sage.structure.proof.proof import get_flag
+        proof = get_flag(proof, "number_field")
         try:
             return self.__is_principal
         except AttributeError:
@@ -613,7 +659,7 @@ class NumberFieldIdeal(Ideal_fractional):
         if self.is_zero():
             raise ValueError, "The ideal (=%s) is zero"%self
         if self.is_prime():
-            return ZZ(self.__pari_prime.getattr('e'))
+            return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the ideal (= %s) is not prime"%self
 
     def residue_class_degree(self):
@@ -635,7 +681,7 @@ class NumberFieldIdeal(Ideal_fractional):
         if self.is_zero():
             raise ValueError, "The ideal (=%s) is zero"%self
         if self.is_prime():
-            return ZZ(self.__pari_prime.getattr('f'))
+            return ZZ(self._pari_prime.getattr('f'))
         raise ValueError, "the ideal (= %s) is not prime"%self
 
     def smallest_integer(self):
@@ -656,7 +702,7 @@ class NumberFieldIdeal(Ideal_fractional):
             return self.__smallest_integer
         except AttributeError:
             if self.is_prime():
-                self.__smallest_integer = ZZ(self.__pari_prime.getattr('p'))
+                self.__smallest_integer = ZZ(self._pari_prime.getattr('p'))
                 return self.__smallest_integer
             if self.is_integral():
                 factors = self.factor()
@@ -707,7 +753,7 @@ class NumberFieldIdeal(Ideal_fractional):
         if p.ring() != self.number_field():
             raise ValueError, "p (= %s) must be an ideal in %s"%self.number_field()
         nf = self.number_field().pari_nf()
-        return ZZ(nf.idealval(self.pari_hnf(), p.__pari_prime))
+        return ZZ(nf.idealval(self.pari_hnf(), p._pari_prime))
 
 
 

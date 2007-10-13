@@ -93,7 +93,7 @@ class pAdicLseries(SageObject):
         crla = parse_cremona_label(E.label())
         cr0 = Integer(crla[0]).str() + crla[1] + '1'
         E0 = EllipticCurve(cr0)
-        q = E0.period_lattice()[0]/E.period_lattice()[0]*E0.real_components()/E.real_components()
+        q = E0.period_lattice().basis()[0]/E.period_lattice().basis()[0]*E0.real_components()/E.real_components()
         self._quotient_of_periods = QQ(gp.bestappr(q,200))
 
         self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
@@ -248,7 +248,7 @@ class pAdicLseries(SageObject):
             self._alpha[prec] = a
             return a
 
-    def order_of_vanishing(self, proof=True):
+    def order_of_vanishing(self):
         """
         Return the order of vanishing of this $p$-adic $L$-series.
 

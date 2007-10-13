@@ -160,6 +160,12 @@ def FiniteField(order, name=None, modulus=None, names=None,
         sage: k.<a> = GF(2^8,repr='int')
         sage: a
         2
+
+    The order of a finite field must be a prime power:
+        sage: GF(100)
+        Traceback (most recent call last):
+        ...
+        ValueError: order of finite field must be a prime power
     """
     if not names is None: name = names
     order = int(order)
@@ -176,6 +182,8 @@ def FiniteField(order, name=None, modulus=None, names=None,
     if arith.is_prime(order):
         K = FiniteField_prime_modn(order,*args,**kwds)
     else:
+        if not arith.is_prime_power(order):
+            raise ValueError, "order of finite field must be a prime power"
         if check_irreducible and polynomial_element.is_Polynomial(modulus):
             if modulus.parent().base_ring().characteristic() == 0:
                 p = arith.factor(order)[0][0]
@@ -356,15 +364,14 @@ class FiniteField_ext_pari(FiniteField_generic):
         if F[0][1] > 1:
             base_ring = FiniteField(F[0][0])
         else:
-            base_ring = self
+            raise ValueError, "The size of the finite field must not be prime."
+            #base_ring = self
 
         ParentWithGens.__init__(self, base_ring, name, normalize=True)
 
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = F[0][1]
-        if F[0][1] <= 1:
-            raise ValueError, "The size of the finite field must not be prime."
         self.__order = q
         self.__is_field = True
         if modulus is None:
@@ -536,7 +543,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         Multivariate polynomials also coerce:
             sage: R = k['x,y,z']; R
-            Polynomial Ring in x, y, z over Finite Field in a of size 5^2
+            Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
             sage: k(R(2))
             2
             sage: R = QQ['x,y,z']

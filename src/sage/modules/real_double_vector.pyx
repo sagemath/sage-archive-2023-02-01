@@ -189,7 +189,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             raise RuntimeError, "error subtracting real double vectors"
         return self._new_c(v)
 
-    cdef Element _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _dot_product_c_impl(self, Vector right):
         """
         Dot product of self and right.
 

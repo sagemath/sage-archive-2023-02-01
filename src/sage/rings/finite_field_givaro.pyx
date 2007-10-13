@@ -1370,6 +1370,55 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         else:
             raise ValueError, "must be a perfect square."
 
+    def nth_root(self, int n, extend = False, all = False):
+        r"""
+        Returns an nth root of self.
+
+        INPUT:
+            n -- integer >= 1 (must fit in C int type)
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+
+        OUTPUT:
+           If self has an nth root, returns one (if all == False) or a list of
+           all of them (if all == True).  Otherwise, raises a ValueError (if
+           extend = False) or a NotImplementedError (if extend = True).
+
+        AUTHOR:
+           -- David Roe (2007-10-3)
+
+        EXAMPLES:
+        sage: k.<a> = GF(29^2)
+        sage: b = a^2 + 5*a + 1
+        sage: b.nth_root(11)
+        3*a + 20
+        sage: b.nth_root(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: no nth root
+        sage: b.nth_root(5, all = True)
+        []
+        sage: b.nth_root(3, all = True)
+        [14*a + 18, 10*a + 13, 5*a + 27]
+        """
+        if extend:
+            raise NotImplementedError
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(self.parent(), "x")
+        f = R([-self] + [self.parent()(Integer(0))] * (n - 1) + [self.parent()(1)])
+        L = f.roots()
+        if all:
+            return [x[0] for x in L]
+        else:
+            if len(L) == 0:
+                raise ValueError, "no nth root"
+            else:
+                return L[0][0]
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two elements.
@@ -1486,7 +1535,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         ALGORITHM:
             Givaro objects are stored as integers $i$ such that $self=a^i$, where
-            $a$ is a generator of $K$ (though necissarily the one returned by K.gens()).
+            $a$ is a generator of $K$ (though not necessarily the one returned by K.gens()).
             Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
             mod the multiplicative order of $K$.
 
@@ -1512,6 +1561,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
         elif (field.objectptr).isZero(self.element):
+            if exp < 0:
+                raise ZeroDivisionError
             return make_FiniteField_givaroElement(field, field.objectptr.zero)
 
         order = (field.order_c()-1)
@@ -1966,9 +2017,14 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return hash(self.log_to_int())
 
-    def vector(FiniteField_givaroElement self):
+    def vector(FiniteField_givaroElement self, reverse=False):
         """
-        Return a vector in self.parent().vector_space() matching self.
+        Return a vector in self.parent().vector_space() matching
+        self. The most significant bit is to the right.
+
+        INPUT:
+            reverse -- reverse the order of the bits
+                       from little endian to big endian.
 
         EXAMPLES:
             sage: k.<a> = GF(2^4)
@@ -1987,6 +2043,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(v)
             2*a^2 + 1
 
+        You can also compute the vector in the other order:
+            sage: e.vector(reverse=True)
+            (0, 2, 0, 1)
         """
         cdef FiniteField_givaro k = <FiniteField_givaro>self._parent
 
@@ -1998,6 +2057,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             coeff = quo%b
             ret.append(coeff)
             quo = quo/b
+        if reverse:
+            ret = list(reversed(ret))
         return k.vector_space()(ret)
 
     def __reduce__(FiniteField_givaroElement self):
@@ -2018,7 +2079,6 @@ def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     cdef FiniteField_givaroElement y
-    cdef PyObject** w
 
     if parent._array is None:
         #y = FiniteField_givaroElement(parent)

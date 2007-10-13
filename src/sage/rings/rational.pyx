@@ -530,6 +530,24 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
 
+    def squarefree_part(self):
+        """
+        Return the square free part of $x$, i.e., an integer z such that $x = z y^2$,
+        for a perfect square $y^2$.
+
+        EXAMPLES:
+            sage: a = 1/2
+            sage: a.squarefree_part()
+            2
+            sage: b = a/a.squarefree_part()
+            sage: b, b.is_square()
+            (1/4, True)
+            sage: a = 24/5
+            sage: a.squarefree_part()
+            30
+        """
+        return self.numer().squarefree_part() * self.denom().squarefree_part()
+
     def sqrt_approx(self, prec=None, all=False):
         """
         EXAMPLES:
@@ -870,12 +888,20 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        mpq_add(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        mpq_sub(self.value, self.value, (<Rational>right).value)
+        return self
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Rational x
@@ -897,6 +923,18 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(self.value, self.value, (<Rational>right).value)
+        return self
+
     cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
@@ -913,6 +951,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         x = <Rational> PY_NEW(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
+
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
+            raise ZeroDivisionError, "Rational division by zero"
+        mpq_div(self.value, self.value, (<Rational>right).value)
+        return self
+
 
     ################################################################
     # Other arithmetic operations.
@@ -1350,6 +1395,60 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def round(Rational self, mode = "toward"):
+        """
+        Returns the nearest integer to self.
+
+        INPUT:
+        self -- a rational number
+        mode -- a rounding mode for half integers:
+                'toward' (default) rounds toward zero
+                'away' rounds away from zero
+                'up' rounds up
+                'down' rounds down
+                'even' rounds toward the even integer
+                'odd' rounds toward the odd integer
+
+        EXAMPLES:
+        sage: n = 4/3; n.round()
+        1
+        sage: n = -17/4; n.round()
+        -4
+        sage: n = -5/2; n.round()
+        -2
+        sage: n.round("away")
+        -3
+        sage: n.round("up")
+        -2
+        sage: n.round("down")
+        -3
+        sage: n.round("even")
+        -2
+        sage: n.round("odd")
+        -3
+        """
+        if not (mode in ['toward', 'away', 'up', 'down', 'even', 'odd']):
+            raise ValueError, "rounding mode must be one of 'toward', 'away', 'up', 'down', 'even', or 'odd'"
+        if self.denominator() == 1:
+            from sage.rings.integer import Integer
+            return Integer(self)
+        if self.denominator() == 2:
+            # round down:
+            if (mode == "down") or \
+                   (mode == "toward" and self > 0) or \
+                   (mode == "away" and self < 0) or \
+                   (mode == "even" and self.numerator() % 4 == 1) or \
+                   (mode == "odd" and self.numerator() % 4 == 3):
+                return self.numerator() // self.denominator()
+            else:
+                return self.numerator() // self.denominator() + 1
+        else:
+            q, r = self.numerator().quo_rem(self.denominator())
+            if r < self.denominator() / 2:
+                return q
+            else:
+                return q+1
+
     def height(self):
         """
         The max absolute value of the numerator and denominator of self,
@@ -1578,4 +1677,24 @@ cdef class Z_to_Q(Morphism):
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
         return rat
+
+    def _repr_type(self):
+        return "Natural"
+
+cdef class int_to_Q(Morphism):
+    def __init__(self):
+        import rational_field
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
+
+    cdef Element _call_c(self, a):
+        # Override this _call_c rather than _call_c_impl because a is not an Element
+        cdef Rational rat
+        rat = <Rational> PY_NEW(Rational)
+        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+        return rat
+
+    def _repr_type(self):
+        return "Native"
 

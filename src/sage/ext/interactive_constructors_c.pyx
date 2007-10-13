@@ -195,7 +195,7 @@ def quotient(R, I, names, inject=True):
         sage: R = PolynomialRing(QQ, 'x,y')
         sage: S = quo(R, (x^3, x^2 + y^2), 'a,b')
         sage: S
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^3, x^2 + y^2)
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^3, x^2 + y^2)
         sage: a^2
         -b^2
         sage: a^3

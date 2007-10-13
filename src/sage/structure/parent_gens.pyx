@@ -59,6 +59,7 @@ This example illustrates generators for a free module over $\Z$.
 import sage.misc.defaults
 import sage.misc.latex
 import gens_py
+import parent
 
 include '../ext/stdsage.pxi'
 
@@ -193,6 +194,11 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 ##                                       self._has_coerce_map_from,
 ##                                       self._names))
 
+    # First n generators, for n <= ngens:
+    def _first_ngens(self, n):
+        v = self.gens()
+        return v[:n]
+
     # Derived class *must* define ngens method.
     def ngens(self):
         raise NotImplementedError, "Number of generators not known."
@@ -235,7 +241,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         EXAMPLES:
             sage: R, vars = MPolynomialRing(QQ,3, 'x').objgens()
             sage: R
-            Polynomial Ring in x0, x1, x2 over Rational Field
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             sage: vars
             (x0, x1, x2)
         """
@@ -302,7 +308,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         When we create this polynomial ring, self._assign_names is called by the constructor:
 
             sage: R = QQ['x,y,abc']; R
-            Polynomial Ring in x, y, abc over Rational Field
+            Multivariate Polynomial Ring in x, y, abc over Rational Field
             sage: R.2
             abc
 
@@ -490,7 +496,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             sage: f(7)
             2
             sage: f
-            Coercion morphism:
+            Ring Coercion morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 
@@ -500,7 +506,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ...
             TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
         """
-        if not isinstance(im_gens, (tuple, list)):
+        if isinstance(im_gens, parent.Parent):
             return self.Hom(im_gens).natural_map()
         if codomain is None:
             from sage.structure.all import Sequence

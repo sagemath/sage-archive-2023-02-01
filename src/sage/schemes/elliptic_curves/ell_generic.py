@@ -776,6 +776,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         import constructor
         return constructor.EllipticCurve(self.base_ring(), ap)
 
+    def rst_transform(self, r, s, t):
+        """
+        Transforms the elliptic curve using the unimodular (u=1) transform with standard parameters [r,s,t].
+
+        Returns the transformed curve.
+        """
+        ##Ported from John Cremona's code implementing Tate's algorithm.
+        (a1, a2, a3, a4, a6) = self.a_invariants()
+        a6 += r*(a4 + r*(a2 + r)) - t*(a3 + r*a1 + t)
+        a4 += -s*a3 + 2*r*a2 - (t + r*s)*a1 + 3*r*r - 2*s*t
+        a3 += r*a1 + 2*t
+        a2 += -s*a1 + 3*r - s*s
+        a1 += 2*s
+        return constructor.EllipticCurve([a1, a2, a3, a4, a6])
+
+    def scale_curve(self, u):
+        """
+        Transforms the elliptic curve using scale factor $u$,
+        i.e. multiplies $c_i$ by $u^i$.
+
+        Returns the transformed curve.
+        """
+        ##Ported from John Cremona's code implementing Tate's algorithm.
+        (a1,a2,a3,a4,a6) = self.a_invariants()
+        a1 *= u
+        a2 *= u^2
+        a3 *= u^3
+        a4 *= u^4
+        a6 *= u^6
+        return constructor.EllipticCurve([a1, a2, a3, a4, a6])
+
     def discriminant(self):
         """
         Returns the discriminant of this elliptic curve.
@@ -1297,7 +1328,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return (-(a1*z + a3) + sqrt(abs(d(z))))/2
         def f2(z):
             return (-(a1*z + a3) - sqrt(abs(d(z))))/2
-        r = [t.real() for t in d.roots() if t.imag() == 0]
+        r = d.roots(multiplicities=False)
         r.sort()
         if xmax is None:
             xmax = r[-1] + 2

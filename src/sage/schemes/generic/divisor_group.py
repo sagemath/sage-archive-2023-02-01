@@ -49,7 +49,7 @@ class DivisorGroup_generic(FormalSums_generic):
         raise TypeError
 
     def __cmp__(self, right):
-        if not isinstance(right, DivisorGroup):
+        if not isinstance(right, DivisorGroup_generic):
             return -1
         return cmp(self.__scheme, right.__scheme)
 

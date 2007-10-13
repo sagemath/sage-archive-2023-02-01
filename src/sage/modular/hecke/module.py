@@ -473,6 +473,11 @@ class HeckeModule_free_module(HeckeModule_generic):
     def basis(self):
         """
         Returns a basis for self.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(43)
+            sage: m.basis()
+            ((1,0), (1,31), (1,32), (1,38), (1,39), (1,40), (1,41))
         """
         try:
             return self.__basis
@@ -481,7 +486,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         return self.__basis
 
     def decomposition(self, bound=None, anemic=True, compute_dual=False,
-                      height_guess=1, proof=True):
+                      height_guess=1, proof=None):
         """
         Returns the maximal decomposition of this Hecke module under
         the action of Hecke operators of index coprime to the level.

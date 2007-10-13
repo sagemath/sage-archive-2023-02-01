@@ -116,7 +116,7 @@ class FractionFieldElement(field_element.FieldElement):
             True
             sage: q = 1/(t^3+1) + 2/(t^2+2) + 3/(t-3)^5
             sage: whole, parts = q.partial_fraction_decomposition(); parts
-            [1/3/(t + 1), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243)]
+            [1/3/(t + 1), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2)]
             sage: sum(parts) == q
             True
 

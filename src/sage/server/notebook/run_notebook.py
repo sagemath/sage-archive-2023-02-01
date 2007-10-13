@@ -53,9 +53,12 @@ def notebook_twisted(self,
              server_pool = None,
              ulimit      = None,
 
-             timeout     = None,
+             timeout     = 0,
 
-             open_viewer = True):
+             open_viewer = True,
+
+             sagetex_path = "",
+             start_path = ""):
     if not os.path.exists(directory):
         os.makedirs(directory)
     port = int(port)
@@ -66,6 +69,8 @@ def notebook_twisted(self,
         print "Make sure you know what you are doing."
 
     nb = notebook.load_notebook(directory)
+
+    nb.conf()['idle_timeout'] = int(timeout)
 
     if nb.user_exists('root') and not nb.user_exists('admin'):
         # This is here only for backward compatibility with one
@@ -124,7 +129,7 @@ def notebook_twisted(self,
                 address, port, secure)
 
         if open_viewer:
-            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s)"%(address, port, secure)
+            open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s, '%s')"%(address, port, secure, start_path)
         else:
             open_page = ''
 
@@ -139,6 +144,7 @@ sage.server.notebook.notebook.JSMATH=True
 import sage.server.notebook.notebook as notebook
 import sage.server.notebook.twist as twist
 twist.notebook = notebook.load_notebook(%s)
+twist.SAGETEX_PATH = "%s"
 twist.OPEN_MODE = %s
 twist.SID_COOKIE = str(hash("%s"))
 twist.init_updates()
@@ -177,7 +183,8 @@ application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 %s
 s.setServiceParent(application)
-"""%(notebook_opts, not secure, os.path.abspath(directory), strport, open_page))
+"""%(notebook_opts, sagetex_path,
+     not secure, os.path.abspath(directory), strport, open_page))
 
 
         config.close()

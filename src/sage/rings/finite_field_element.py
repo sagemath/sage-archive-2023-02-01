@@ -205,10 +205,17 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         a = self**(n // 2)
         return a == 1 or a == 0
 
-    def square_root(self, extend=False):
+    def square_root(self, extend=False, all=False):
         """
-        Return a square root of this finite field element in its
-        finite field, if there is one.  Otherwise, raise a ValueError.
+        The square root function.
+
+        INPUT:
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
 
         EXAMPLES:
           sage: from sage.rings.finite_field import FiniteField_ext_pari
@@ -226,16 +233,23 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
           Traceback (most recent call last):
           ...
           ValueError: must be a perfect square.
-
         """
+        if extend:
+            raise NotImplementedError
         R = self.parent()['x']
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
-            return -g[0][0][0]
-        raise ValueError, "must be a perfect square."
+            if all:
+                return [-g[0][0][0], g[0][0][0]]
+            else:
+                return -g[0][0][0]
+        if all:
+            return []
+        else:
+            raise ValueError, "must be a perfect square."
 
-    def sqrt(self, extend=False):
+    def sqrt(self, extend=False, all = False):
         """
         See self.square_root().
 
@@ -243,8 +257,54 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
            extend -- ignored
 
         """
-        return self.square_root(extend=extend)
+        return self.square_root(extend=extend, all=all)
 
+    def nth_root(self, n, extend = False, all = False):
+        r"""
+        Returns an nth root of self.
+
+        INPUT:
+            n -- integer >= 1 (must fit in C int type)
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+
+        OUTPUT:
+           If self has an nth root, returns one (if all == False) or a list of
+           all of them (if all == True).  Otherwise, raises a ValueError (if
+           extend = False) or a NotImplementedError (if extend = True).
+
+        AUTHOR:
+           -- David Roe (2007-10-3)
+
+        EXAMPLES:
+        sage: k.<a> = GF(29^5)
+        sage: b = a^2 + 5*a + 1
+        sage: b.nth_root(5)
+        19*a^4 + 2*a^3 + 2*a^2 + 16*a + 3
+        sage: b.nth_root(7)
+        Traceback (most recent call last):
+        ...
+        ValueError: no nth root
+        sage: b.nth_root(4, all=True)
+        []
+        """
+        if extend:
+            raise NotImplementedError
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(self.parent(), "x")
+        f = R([-self] + [self.parent()(0)] * (n - 1) + [self.parent()(1)])
+        L = f.roots()
+        if all:
+            return [x[0] for x in L]
+        else:
+            if len(L) == 0:
+                raise ValueError, "no nth root"
+            else:
+                return L[0][0]
 
     def rational_reconstruction(self):
         """

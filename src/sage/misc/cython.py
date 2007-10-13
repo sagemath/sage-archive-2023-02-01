@@ -31,11 +31,12 @@ def cblas():
         return 'gslcblas'
 
 
-include_dirs = ['%s/local/include'%SAGE_ROOT,  \
-                '%s/local/include/python%s'%(SAGE_ROOT, sys.version[:3]), \
-                '%s/devel/sage/sage/ext'%SAGE_ROOT, \
+include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
+                '%s/local/include/'%SAGE_ROOT,  \
+                '%s/local/include/python%s/'%(SAGE_ROOT, sys.version[:3]), \
+                '%s/devel/sage/sage/ext/'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
-                '%s/devel/sage/sage/gsl'%SAGE_ROOT]
+                '%s/devel/sage/sage/gsl/'%SAGE_ROOT]
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
@@ -118,8 +119,8 @@ sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
           use_cache=False, create_local_c_file=False):
-    if filename[-5:] != '.spyx':
-        print "File (=%s) must have extension .spyx"%filename
+    if not filename.endswith('pyx'):
+        print "File (=%s) should have extension .pyx"%filename
 
     clean_filename = sanitize(filename)
     base = os.path.split(os.path.splitext(clean_filename)[0])[1]
@@ -203,7 +204,7 @@ setup(ext_modules = ext_modules,
 
     cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && cython -p %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
+    cmd = 'cd %s && cython -p --incref-local-binop %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)

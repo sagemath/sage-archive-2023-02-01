@@ -2039,6 +2039,81 @@ class GenericGraph(SageObject):
             G = Graph(networkx.complement(self._nxg), pos=self._pos)
             return G
 
+
+    def line_graph(self):
+        """
+        Returns the line graph of the (di)graph.
+
+        The line graph of an undirected graph G is an undirected graph
+        H such that the vertices of H are the edges of G and two
+        vertices e and f of H are adjacent if e and f share a common
+        vertex in G.  In other words, an edge in H represents a path
+        of length 2 in G.
+
+        The line graph of a directed graph G is a directed graph H
+        such that the vertices of H are the edges of G and two
+        vertices e and f of H are adjacent if e and f share a common
+        vertex in G and the terminal vertex of e is the initial vertex
+        of f.  In other words, an edge in H represents a (directed)
+        path of length 2 in G.
+
+
+        EXAMPLE:
+            sage: g=graphs.CompleteGraph(4)
+            sage: h=g.line_graph()
+            sage: h.vertices()
+            [(0, 1, None),
+            (0, 2, None),
+            (0, 3, None),
+            (1, 2, None),
+            (1, 3, None),
+            (2, 3, None)]
+            sage: h.am()
+            [0 1 1 1 1 0]
+            [1 0 1 1 0 1]
+            [1 1 0 0 1 1]
+            [1 1 0 0 1 1]
+            [1 0 1 1 0 1]
+            [0 1 1 1 1 0]
+            sage: g=DiGraph([[1..4],lambda i,j: i<j])
+            sage: h=g.line_graph()
+            sage: h.vertices()
+            [(1, 2, None),
+            (1, 3, None),
+            (1, 4, None),
+            (2, 3, None),
+            (2, 4, None),
+            (3, 4, None)]
+            sage: h.edges()
+            [((2, 3, None), (3, 4, None), None),
+            ((1, 2, None), (2, 4, None), None),
+            ((1, 2, None), (2, 3, None), None),
+            ((1, 3, None), (3, 4, None), None)]
+
+        """
+        if self.is_directed():
+            G=DiGraph()
+            G.add_vertices(self.edges())
+            for v in self:
+                # Connect appropriate incident edges of the vertex v
+                G.add_edges([(e,f) for e in self.incoming_edge_iterator(v) \
+                             for f in self.edge_iterator(v)])
+            return G
+        else:
+            G=Graph()
+            # We must sort the edges' endpoints so that (1,2,None) is
+            # seen as the same edge as (2,1,None).
+            elist=[(min(i[0:2]),max(i[0:2]),i[2])
+                   for i in self.edge_iterator()]
+            G.add_vertices(elist)
+            for v in self:
+                elist=[(min(i[0:2]),max(i[0:2]),i[2])
+                       for i in self.edge_iterator(v)]
+                G.add_edges([(e, f) for e in elist for f in elist])
+            return G
+
+
+
     def disjoint_union(self, other):
         """
         Returns the disjoint union of self and other.

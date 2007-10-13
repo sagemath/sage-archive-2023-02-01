@@ -73,6 +73,7 @@ ORGANIZATION:
             - PetersenGraph
             - ThomsenGraph
         Families of Graphs:
+            - CirculantGraph
             - CompleteGraph
             - CompleteBipartiteGraph
             - CubeGraph
@@ -178,6 +179,7 @@ class GraphGenerators():
             - PetersenGraph
             - ThomsenGraph
         Families of Graphs:
+            - CirculantGraph
             - CompleteGraph
             - CompleteBipartiteGraph
             - CubeGraph
@@ -1575,6 +1577,113 @@ class GraphGenerators():
 ################################################################################
 #   Families of Graphs
 ################################################################################
+
+    def CirculantGraph(self, n, adjacency):
+        r"""
+        Returns a circulant graph with n nodes.
+
+        A circulant graph has the property that the vertex i is
+        connected with the vertices i+j and i-j for each j in adj.
+
+        This constructor is dependant on vertices numbered 0 through n-1
+        in NetworkX \code{cycle_graph()}
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override
+        the spring-layout algorithm. By convention, each circulant graph will
+        be displayed with the first (0) node at the top, with the rest
+        following in a counterclockwise manner.
+
+        The circulant graph is a good opportunity to compare efficiency of
+        filling a position dictionary vs. using the spring-layout algorithm
+        for plotting.  Because the circulant graph is very symmetric, the
+        resulting plots should be similar (in cases of small n).
+
+        Filling the position dictionary in advance adds O(n) to the
+        constructor.
+
+        EXAMPLES:
+        Compare plotting using the predefined layout and networkx:
+            sage: import networkx
+            sage: n = networkx.cycle_graph(23)
+            sage: spring23 = Graph(n)
+            sage: posdict23 = graphs.CirculantGraph(23,2)
+            sage.: spring23.show()
+            sage.: posdict23.show()
+
+        We next view many cycle graphs as a SAGE graphics array.
+        First we use the \code{CirculantGraph} constructor, which fills in
+        the position dictionary:
+
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.CirculantGraph(i+3,i)
+            ...    g.append(k)
+            ...
+            sage.: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage.: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+
+        Compare to plotting with the spring-layout algorithm:
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    spr = networkx.cycle_graph(i+3)
+            ...    k = Graph(spr)
+            ...    g.append(k)
+            ...
+            sage.: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+            ...    j.append(n)
+            ...
+            sage.: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+
+            Passing a 1 into adjacency should give the cycle.
+
+            sage: graphs.CirculantGraph(6,1)==graphs.CycleGraph(6)
+            True
+            sage: graphs.CirculantGraph(7,[1,3]).edges(labels=false)
+            [(0, 1),
+            (0, 3),
+            (0, 4),
+            (0, 6),
+            (1, 2),
+            (1, 4),
+            (1, 5),
+            (2, 3),
+            (2, 5),
+            (2, 6),
+            (3, 4),
+            (3, 6),
+            (4, 5),
+            (5, 6)]
+
+        """
+        if not isinstance(adjacency,list):
+            adjacency=[adjacency]
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
+            pos_dict[i] = [x,y]
+        G=graph.Graph(name="Circulant graph ("+str(adjacency)+")")
+        G.add_vertices(xrange(n))
+        G._pos=pos_dict
+        for v in G:
+            G.add_edges([[v,(v+j)%n] for j in adjacency])
+            G.add_edges([[v,(v-j)%n] for j in adjacency])
+        return G
+
+
 
     def CompleteGraph(self, n):
         """

@@ -2601,10 +2601,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             128
             sage: int(32) << 2
             128
-            sage: 1 >> 2.5
+            sage: 1 << 2.5
             Traceback (most recent call last):
             ...
-            ValueError: Attempt to coerce non-integral RealNumber to Integer
+            TypeError: unsupported operands for <<
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):
@@ -2639,10 +2639,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             8
             sage: int(32) >> 2
             8
-            sage: 1<< 2.5
+            sage: 1 >> 2.5
             Traceback (most recent call last):
             ...
-            ValueError: Attempt to coerce non-integral RealNumber to Integer
+            TypeError: unsupported operands for >>
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):

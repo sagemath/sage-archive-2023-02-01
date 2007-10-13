@@ -62,7 +62,8 @@ def find_open_port(server='localhost', low=8081):
             s.close()
             port += 1
         except socket.error, msg:
-            if msg[0] == 61: # Error code for connection refused
+            if msg[1] == 'Connection refused': # Error code for connection
+                                               # refused
                 port = port
                 break
             else:

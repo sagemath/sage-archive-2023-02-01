@@ -1789,16 +1789,16 @@ def number_of_partitions(n,k=None, algorithm='default'):
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
         algorithm -- (default: 'default')
-            'bober' -- use Jonathon Bober's implementation (*very* fast,
-                      but new and not well tested yet).
+            'default' -- if k is given use Gap.
+                         Otherwise, on x86 when n > 3000, use 'bober'
+                         On non x86 use 'pari'.
+            'bober' -- use Jonathon Bober's implementation
             'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
                       outputs numbpart(147007)%1000 as 536, but it
                       should be 533!.  So do not use this option.
-            'default' -- 'bober' when k is not specified; otherwise
-                      use 'gap'.
 
     IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
@@ -1918,6 +1918,8 @@ def number_of_partitions(n,k=None, algorithm='default'):
     elif algorithm == 'default':
         if bober_is_good:
             algorithm = 'bober'
+        elif PROCESSOR in ['x86', 'Power Macintosh']:
+            algorithm = 'pari'
         else:
             algorithm = 'gap'
 

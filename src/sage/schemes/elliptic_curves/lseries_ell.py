@@ -56,8 +56,8 @@ class Lseries_ell(SageObject):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: L = E.Lseries()
-            sage: L.taylor_series(series_prec=3)
-            -1.28158145691931e-23 + (7.26268290635587e-24)*z + 0.759316500288427*z^2 + O(z^3)
+            sage: L.taylor_series(series_prec=3)[2:]
+            0.759316500288427*z^2 + O(z^3)
         """
         D = self.dokchitser(prec)
         return D.taylor_series(a, series_prec, var)

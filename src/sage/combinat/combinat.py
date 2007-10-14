@@ -189,6 +189,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
+
 from sage.interfaces.all import gap, maxima
 from sage.rings.all import QQ, RR, ZZ
 from sage.rings.arith import binomial
@@ -1775,6 +1777,8 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
+first_warning = True
+
 def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
@@ -1814,8 +1818,6 @@ def number_of_partitions(n,k=None, algorithm='default'):
         sage: number_of_partitions(5, algorithm='gap')
         7
         sage: number_of_partitions(5, algorithm='pari')
-        7
-        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ValueError is raised.
@@ -1863,7 +1865,12 @@ def number_of_partitions(n,k=None, algorithm='default'):
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
     TESTS:
-        sage:
+        sage: n = 500 + randint(0,500)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1500 + randint(0,1500)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
         sage: n = 1000000 + randint(0,1000000)
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
@@ -1901,22 +1908,43 @@ def number_of_partitions(n,k=None, algorithm='default'):
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    if algorithm == 'gap' or (not k is None and algorithm=='default'):
+    global first_warning
+
+    PROCESSOR = os.uname()[-1]
+    bober_is_good = n > 3000 and 'x86' in PROCESSOR
+
+    if k is not None:
+        algorithm = 'gap'
+    elif algorithm == 'default':
+        if bober_is_good:
+            algorithm = 'bober'
+        else:
+            algorithm = 'gap'
+
+    if algorithm == 'gap':
         if k is None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
-    if not k is None:
+
+    if k is not None:
         raise ValueError, "only the GAP algorithm works if k is specified."
-    if algorithm == 'default' and k is None:
+
+    if algorithm == 'bober':
+        if not bober_is_good:
+            if first_warning:
+                print "*WARNING*: bober's implementation is broken on this platform or this size of n."
+                first_warning=False
         return partitions_ext.number_of_partitions(n)
-    elif algorithm == 'bober' and k is None:
-        return partitions_ext.number_of_partitions(n)
+
     elif algorithm == 'pari':
-        if not k is None:
-            raise ValueError, "cannot specify second argument k if the algorithm is PARI"
+        if n > 3000 and 'x86_64' in PROCESSOR:
+            if first_warning:
+                print "*WARNING*: Pari's numbpart is very buggy on x86_64 (fixed in svn, so don't report to pari-dev)"
+                first_warning = False
         return ZZ(pari(ZZ(n)).numbpart())
+
     raise ValueError, "unknown algorithm '%s'"%algorithm
 
 def partitions(n):

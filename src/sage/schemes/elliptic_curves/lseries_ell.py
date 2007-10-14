@@ -56,6 +56,8 @@ class Lseries_ell(SageObject):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: L = E.Lseries()
+            sage: L.taylor_series(series_prec=3)      # random nearly 0 constant and linear terms
+            -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + O(z^3)
             sage: L.taylor_series(series_prec=3)[2:]
             0.759316500288427*z^2 + O(z^3)
         """

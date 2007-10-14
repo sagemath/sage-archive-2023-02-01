@@ -160,6 +160,11 @@ ntl_lzz_pX = Extension('sage.libs.ntl.ntl_lzz_pX',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_GF2 = Extension('sage.libs.ntl.ntl_GF2',
+                 sources = ["sage/libs/ntl/ntl_GF2.pyx"],
+                 libraries = ["csage", "ntl", "stdc++"],
+                 language='c++')
+
 ntl_GF2X = Extension('sage.libs.ntl.ntl_GF2X',
                  sources = ["sage/libs/ntl/ntl_GF2X.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
@@ -445,6 +450,7 @@ ext_modules = [ \
     ntl_lzz_pContext,
     ntl_lzz_p,
     ntl_lzz_pX,
+    ntl_GF2,
     ntl_GF2X,
     ntl_GF2E,
     ntl_GF2EX,

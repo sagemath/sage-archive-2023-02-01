@@ -55,6 +55,9 @@ from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX as zz_pX
 
 from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ as mat_ZZ
 
+from sage.libs.ntl.ntl_GF2 import ntl_GF2 as GF2
+
+
 from sage.libs.ntl.ntl_GF2X import (
                  ntl_GF2X as GF2X
                   )

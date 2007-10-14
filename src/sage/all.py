@@ -282,6 +282,9 @@ def quit_sage(verbose=True):
     sage.rings.integer.free_integer_pool()
     sage.rings.integer.clear_mpz_globals()
 
+    from sage.libs.all import symmetrica
+    symmetrica.end()
+
 def _quit_sage_(self):
     import sage.misc.preparser_ipython
     if sage.misc.preparser_ipython.interface != None:

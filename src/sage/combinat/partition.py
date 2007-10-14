@@ -1707,8 +1707,6 @@ class Partitions_n(CombinatorialClass):
             7
             sage: Partitions(5).count(algorithm='pari')
             7
-            sage: Partitions(5).count(algorithm='bober')
-            7
 
         The input must be a nonnegative integer or a ValueError is raised.
             sage: Partitions(10).count()

@@ -105,7 +105,7 @@ def test_file(F):
     base, ext = os.path.splitext(F)
     if use_sage_only or ext == '.sage':
         return test(F, 'doctest_tex ' + opts)
-    elif ext in ['.py', '.pyx', '.tex']:
+    elif ext in ['.py', '.pyx', '.tex', '.pxi']:
         return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not '/notes' in F:

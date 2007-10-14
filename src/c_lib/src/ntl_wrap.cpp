@@ -515,7 +515,7 @@ EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a)
 }
 */
 
-void ZZX_square_free_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x)
+void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x)
 {
   vec_pair_ZZX_long factors;
   SquareFreeDecomp(factors, *x);

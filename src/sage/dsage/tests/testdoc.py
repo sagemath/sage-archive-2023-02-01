@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 These test that DSage is *really* working for normal users locally
 on their system:
 

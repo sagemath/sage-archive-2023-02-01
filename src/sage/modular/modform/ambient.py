@@ -390,7 +390,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage.: M = ModularForms(17,4)
             sage.: N = M.new_subspace(); N
             Modular Forms subspace of dimension 4 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(17) of weight 4 over Rational Field
-            sage: N.basis()
+            sage.: N.basis()
             [
             q + 2*q^5 + O(q^6),
             q^2 - 3/2*q^5 + O(q^6),
@@ -404,12 +404,12 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             NotImplementedError: computation of new submodule currently not implemented.
 
 
-        Unfortunaely (TODO) -- $p$-new submodules aren't yet implemented:
-            sage: m.new_submodule(3)
+        Unfortunately (TODO) -- $p$-new submodules aren't yet implemented:
+            sage.: m.new_submodule(3)
             Traceback (most recent call last):
             ...
             NotImplementedError
-            sage: m.new_submodule(11)
+            sage.: m.new_submodule(11)
             Traceback (most recent call last):
             ...
             NotImplementedError

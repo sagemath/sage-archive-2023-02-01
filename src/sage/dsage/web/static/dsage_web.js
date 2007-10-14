@@ -23,4 +23,26 @@ function beginrefresh(){
     }
 }
 
-window.onload=beginrefresh
+function add_row() {
+    var jobs_table = document.getElementById("jobs_table");
+    top_row = jobs_table.insertRow(-1);
+    top_row.className = 'tr0'
+    first_cell = top_row.insertCell(0)
+    first_cell.innerHTML= 'Woot'
+}
+
+function init() {
+    add_row()
+    beginrefresh()
+}
+
+new Ajax.Request("/get_details?job_id=fooo",
+  {
+    method:'post',
+    onSuccess: function(transport){
+      var response = transport.responseText || "no response text";
+      alert("Success! \n\n" + response);
+    },
+    onFailure: function(){ alert('Something went wrong...') }
+  });
+window.onload=init()

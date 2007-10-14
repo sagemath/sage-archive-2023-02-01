@@ -28,6 +28,7 @@ DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
 CSS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.css')
 JS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.js')
 PROTOTYPE = os.path.join(DSAGE_LOCAL,'web/static/prototype.js')
+INDEX = os.path.join(DSAGE_LOCAL,'web/static/index.html')
 
 def create_jobs_table(jdicts):
     """
@@ -92,11 +93,13 @@ class Toplevel(resource.Resource):
     def render(self, ctx):
         jobs = self.dsage_server.jobdb.get_all_jobs()
         jobs_html = create_jobs_table(jobs)
-
-        return http.Response(stream=self.header + jobs_html + self.footer)
+        f = open(INDEX)
+        return http.Response(stream=f.read())
+        # return http.Response(stream=self.header + jobs_html + self.footer)
 setattr(Toplevel, 'child_dsage_web.css', static.File(CSS_FILE))
 setattr(Toplevel, 'child_dsage_web.js', static.File(JS_FILE))
 setattr(Toplevel, 'child_prototype.js', static.File(PROTOTYPE))
+# setattr(Toplevel, 'child_index.html', static.File(INDEX))
 
 class GetJobDetails(resource.PostableResource):
     """

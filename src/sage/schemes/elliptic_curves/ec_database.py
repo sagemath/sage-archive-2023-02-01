@@ -23,7 +23,7 @@ class EllipticCurves:
             sage: elliptic_curves.rank(n=5, rank=0, tors=5, labels=True)
             ['11a1', '11a3', '38b1', '50b1', '50b2']
             sage: elliptic_curves.rank(n=5, rank=1, tors=7, labels=True)
-            ['574i1', '4730k1', '6378c1', '10766h1', '15918w1']
+            ['574i1', '4730k1', '6378c1']
         """
         db = "%s/ellcurves/"%os.environ['SAGE_DATA']
         data = '%s/rank%s'%(db,rank)

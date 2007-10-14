@@ -127,6 +127,9 @@ cdef class NumberFieldElement(FieldElement):
         x._parent = self._parent
         return x
 
+    cdef number_field(self):
+        return self._parent
+
     def __init__(self, parent, f):
         """
         INPUT:
@@ -310,7 +313,8 @@ cdef class NumberFieldElement(FieldElement):
             '2/3*a + 3/5'
         """
         x = self.polynomial()
-        return str(x).replace(x.parent().variable_name(),self.parent().variable_name())
+        K = self.number_field()
+        return str(x).replace(x.parent().variable_name(), K.variable_name())
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -915,25 +919,6 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
         raise NotImplementedError, "NumberFieldElement subclasses must override _parent_poly_c_()"
-        cdef long i
-        cdef ZZ_c coeff
-        cdef ntl_ZZX _num
-        cdef ntl_ZZ _den
-        if isinstance(self.parent(), number_field.NumberField_relative):
-            # ugly temp code
-            f = self.parent().absolute_polynomial()
-
-            __den = f.denominator()
-            (<Integer>ZZ(__den))._to_ZZ(den)
-
-            __num = f * __den
-            for i from 0 <= i <= __num.degree():
-                (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
-                ZZX_SetCoeff( num[0], i, coeff )
-        else:
-            _num, _den = self.parent().polynomial_ntl()
-            num[0] = _num.x
-            den[0] = _den.x
 
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
         """
@@ -1332,6 +1317,31 @@ cdef class NumberFieldElement(FieldElement):
             return QQ(self._pari_('x').norm())
         return self.matrix(K).determinant()
 
+    def vector(self):
+        """
+        Return vector representation of self in terms of the
+        basis for the ambient number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: (2/3*a - 5/6).vector()
+            (-5/6, 2/3)
+            sage: (-5/6, 2/3)
+            (-5/6, 2/3)
+            sage: O = K.order(2*a)
+            sage: (O.1).vector()
+            (0, 2)
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: (a + b).vector()
+            (b, 1)
+            sage: O = K.order([a,b])
+            sage: (O.1).vector()
+            (-b, 1)
+            sage: (O.2).vector()
+            (1, -b)
+        """
+        return self.number_field().vector_space()[2](self)
+
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
 
@@ -1466,7 +1476,7 @@ cdef class NumberFieldElement(FieldElement):
         # whose rows are the coefficients of the result,
         # and transpose.
         if self.__matrix is None:
-            K = self.parent()
+            K = self.number_field()
             v = []
             x = K.gen()
             a = K(1)
@@ -1728,30 +1738,15 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         return h
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
-        cdef long i
-        cdef ZZ_c coeff
-        cdef ntl_ZZX _num
-        cdef ntl_ZZ _den
-        # ugly temp code
         f = self.parent().absolute_polynomial()
-
-        __den = f.denominator()
-        (<Integer>ZZ(__den))._to_ZZ(den)
-
-        __num = f * __den
-        for i from 0 <= i <= __num.degree():
-            (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
-            ZZX_SetCoeff( num[0], i, coeff )
+        _ntl_poly(f, num, den)
 
     def __repr__(self):
-        K = self.parent()
+        K = self.number_field()
         # Compute representation of self in terms of relative vector space.
         w = self.vector()
         R = K.base_field()[K.variable_name()]
         return repr(R(w.list()))
-
-    def vector(self):
-        return self.parent().vector_space()[2](self)
 
     def charpoly(self, var='x'):
         r"""
@@ -1815,24 +1810,36 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     Element of an order in an absolute number field.
 
     EXAMPLES:
-        sage: k.<a> = NumberField(x^2 + 1)
+        sage: K.<a> = NumberField(x^2 + 1)
+        sage: O2 = K.order(2*a)
+        sage: ?
     """
     def __init__(self, order, f):
         K = order.number_field()
         NumberFieldElement_absolute.__init__(self, K, f)
         self._order = order
-        (<Element>self)._parent = order
+        self._number_field = K
+
+    cdef number_field(self):
+        return self._number_field
+
 
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
     Element of an order in a relative number field.
+
+    EXAMPLES:
+
     """
     def __init__(self, order, f):
         K = order.number_field()
         NumberFieldElement_relative.__init__(self, K, f)
         self._order = order
         (<Element>self)._parent = order
+        self._number_field = K
 
+    cdef number_field(self):
+        return self._number_field
 
 
 class CoordinateFunction:
@@ -1850,4 +1857,24 @@ class CoordinateFunction:
 
     def __call__(self, x):
         return self.__W.coordinates(self.__to_V(self.__K(x)))
+
+
+
+
+#################
+
+cdef void _ntl_poly(f, ZZX_c *num, ZZ_c *den):
+    cdef long i
+    cdef ZZ_c coeff
+    cdef ntl_ZZX _num
+    cdef ntl_ZZ _den
+
+    __den = f.denominator()
+    (<Integer>ZZ(__den))._to_ZZ(den)
+
+    __num = f * __den
+    for i from 0 <= i <= __num.degree():
+        (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
+        ZZX_SetCoeff( num[0], i, coeff )
+
 

@@ -4,16 +4,16 @@ This module implements residue fields for various kinds of rings.
 We can take the residue field of prime ideals in maximal order of number fields:
 
 EXAMPLES:
-sage: K.<a> = NumberField(x^3-7)
-sage: P = K.ideal(29).factor()[0][0]
-sage: k = K.residue_field(P)
-sage: k
-Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
-sage: k.order()
-841
+    sage: K.<a> = NumberField(x^3-7)
+    sage: P = K.ideal(29).factor()[0][0]
+    sage: k = K.residue_field(P)
+    sage: k
+    Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
+    sage: k.order()
+    841
 
 Authors:
---David Roe (2007-10-3)
+    -- David Roe (2007-10-3)
 """
 
 #*****************************************************************************
@@ -54,14 +54,14 @@ def ResidueField(p, name = None, check = True):
       The residue field at the prime p.
 
     EXAMPLES:
-    sage: from sage.rings.residue_field import ResidueField
-    sage: K.<a> = NumberField(x^3-7)
-    sage: P = K.ideal(29).factor()[0][0]
-    sage: k = K.residue_field(P)
-    sage: k
-    Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
-    sage: k.order()
-    841
+        sage: from sage.rings.residue_field import ResidueField
+        sage: K.<a> = NumberField(x^3-7)
+        sage: P = K.ideal(29).factor()[0][0]
+        sage: k = K.residue_field(P)
+        sage: k
+        Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
+        sage: k.order()
+        841
     """
     key = (p, name)
     if residue_field_cache.has_key(key):
@@ -117,9 +117,9 @@ class ResidueField_generic(Field):
            intp -- the rational prime that p lives over.
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-17)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k = K.residue_field(P) # indirect doctest
+            sage: K.<a> = NumberField(x^3-17)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k = K.residue_field(P) # indirect doctest
         """
         self.p = p
         self.f = f
@@ -131,11 +131,11 @@ class ResidueField_generic(Field):
         Returns a string describing this residue field.
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-7)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k =K.residue_field(P)
-        sage: k
-        Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k =K.residue_field(P)
+            sage: k
+            Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
         """
         return "Residue field of %s"%(self.p)
 
@@ -144,16 +144,16 @@ class ResidueField_generic(Field):
         Returns a lift of x to the Order, returning a "polynomial" in the generator with coefficients between 0 and p-1.
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-7)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k =K.residue_field(P)
-        sage: OK = K.maximal_order()
-        sage: c = OK(a)
-        sage: b = k(a)
-        sage: k.lift(13*b + 5)
-        13*a + 5
-        sage: k.lift(12821*b+918)
-        3*a + 19
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k =K.residue_field(P)
+            sage: OK = K.maximal_order()
+            sage: c = OK(a)
+            sage: b = k(a)
+            sage: k.lift(13*b + 5)
+            13*a + 5
+            sage: k.lift(12821*b+918)
+            3*a + 19
         """
         if self.f is None:
             return x.lift()
@@ -165,13 +165,13 @@ class ResidueField_generic(Field):
         Compares two residue fields: they are equal iff the primes defining them are equal.
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-11)
-        sage: F = K.ideal(37).factor(); F
-        (Fractional ideal (37, a + 12) of Number Field in a with defining polynomial x^3 - 11) * (Fractional ideal (-2*a + 5) of Number Field in a with defining polynomial x^3 - 11) * (Fractional ideal (37, a + 9) of Number Field in a with defining polynomial x^3 - 11)
-        sage: k =K.residue_field(F[0][0])
-        sage: l =K.residue_field(F[1][0])
-        sage: k == l
-        False
+            sage: K.<a> = NumberField(x^3-11)
+            sage: F = K.ideal(37).factor(); F
+            (Fractional ideal (37, a + 12) of Number Field in a with defining polynomial x^3 - 11) * (Fractional ideal (-2*a + 5) of Number Field in a with defining polynomial x^3 - 11) * (Fractional ideal (37, a + 9) of Number Field in a with defining polynomial x^3 - 11)
+            sage: k =K.residue_field(F[0][0])
+            sage: l =K.residue_field(F[1][0])
+            sage: k == l
+            False
         """
         if type(self) == type(x):
             return self.p.__cmp__(x.p)
@@ -182,21 +182,21 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
     The class representing a homomorphism from the order of a number field to the residue field at a given prime.
 
     EXAMPLES:
-    sage: K.<a> = NumberField(x^3-7)
-    sage: P = K.ideal(29).factor()[0][0]
-    sage: k =K.residue_field(P)
-    sage: OK = K.maximal_order()
-    sage: k.coerce_map_from(OK)
-    Composite morphism:
-      From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
-      To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
-      Defn:   Call morphism:
-              From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
-              To:   Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
-            then
-              Ring morphism:
-              From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
-              To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
+        sage: K.<a> = NumberField(x^3-7)
+        sage: P = K.ideal(29).factor()[0][0]
+        sage: k =K.residue_field(P)
+        sage: OK = K.maximal_order()
+        sage: k.coerce_map_from(OK)
+        Composite morphism:
+          From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+          To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
+          Defn:   Call morphism:
+                  From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+                  To:   Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+                then
+                  Ring morphism:
+                  From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+                  To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
     """
     def __init__(self, k, p, im_gen):
         """
@@ -214,12 +214,12 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
         Applies this morphism to an element
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-x+8)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k =K.residue_field(P)
-        sage: OK = K.maximal_order()
-        sage: k.coerce_map_from(OK)(OK(a)^7)
-        13*a^2 + 7*a + 21
+            sage: K.<a> = NumberField(x^3-x+8)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k =K.residue_field(P)
+            sage: OK = K.maximal_order()
+            sage: k.coerce_map_from(OK)(OK(a)^7)
+            13*a^2 + 7*a + 21
         """
         y = x.polynomial().change_ring(self.codomain().base_ring())(self.im_gen)  #polynomial should change to absolute_polynomial?
         (<Element>y)._set_parent_c(self.codomain())
@@ -230,17 +230,17 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
         Returns a lift of x to the Order, returning a "polynomial" in the generator with coefficients between 0 and p-1.
 
         EXAMPLES:
-        sage: K.<a> = NumberField(x^3-7)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k =K.residue_field(P)
-        sage: OK = K.maximal_order()
-        sage: f = k.coerce_map_from(OK).second()
-        sage: c = OK(a)
-        sage: b = k(a)
-        sage: f.lift(13*b + 5)
-        13*a + 5
-        sage: f.lift(12821*b+918)
-        3*a + 19
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k =K.residue_field(P)
+            sage: OK = K.maximal_order()
+            sage: f = k.coerce_map_from(OK).second()
+            sage: c = OK(a)
+            sage: b = k(a)
+            sage: f.lift(13*b + 5)
+            13*a + 5
+            sage: f.lift(12821*b+918)
+            3*a + 19
         """
         if self.domain() is ZZ:
             return x.lift()
@@ -252,26 +252,26 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     The class representing residue fields of number fields that have prime order.
 
     EXAMPLES:
-    sage: R.<x> = QQ[]
-    sage: K.<a> = NumberField(x^3-7)
-    sage: P = K.ideal(29).factor()[1][0]
-    sage: from sage.rings.residue_field import ResidueField
-    sage: k = ResidueField(P)
-    sage: k
-    Residue field of Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^3 - 7
-    sage: k.order()
-    29
-    sage: OK = K.maximal_order()
-    sage: c = OK(a)
-    sage: b = k(a)
-    sage: k.f(c)
-    16
-    sage: k(4)
-    4
-    sage: k(c + 5)
-    21
-    sage: b + c
-    3
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3-7)
+        sage: P = K.ideal(29).factor()[1][0]
+        sage: from sage.rings.residue_field import ResidueField
+        sage: k = ResidueField(P)
+        sage: k
+        Residue field of Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^3 - 7
+        sage: k.order()
+        29
+        sage: OK = K.maximal_order()
+        sage: c = OK(a)
+        sage: b = k(a)
+        sage: k.f(c)
+        16
+        sage: k(4)
+        4
+        sage: k(c + 5)
+        21
+        sage: b + c
+        3
     """
     def __init__(self, p, name, im_gen = None, intp = None):
         """
@@ -282,9 +282,9 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
            intp -- the rational prime that p lies over.
 
         EXAMPLES:
-        sage: from sage.rings.residue_field import ResidueField
-        sage: ResidueField(17)
-        Residue field of 17
+            sage: from sage.rings.residue_field import ResidueField
+            sage: ResidueField(17)
+            Residue field of 17
         """
         self.p = p # Here because we have to create a NFResidueFieldHomomorphism before calling ResidueField_generic.__init__(self,...)
         if im_gen is None:
@@ -299,18 +299,19 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
         """
         INPUT:
            x -- something to cast in to self.
+
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^3-7)
-        sage: P = K.ideal(29).factor()[1][0]
-        sage: from sage.rings.residue_field import ResidueField
-        sage: k = ResidueField(P)
-        sage: k
-        Residue field of Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^3 - 7
-        sage: OK = K.maximal_order()
-        sage: c = OK(a)
-        sage: b = k(a); b
-        16
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[1][0]
+            sage: from sage.rings.residue_field import ResidueField
+            sage: k = ResidueField(P)
+            sage: k
+            Residue field of Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^3 - 7
+            sage: OK = K.maximal_order()
+            sage: c = OK(a)
+            sage: b = k(a); b
+            16
         """
         try:
             return self.coerce_map_from(self.f.domain())(self.f.domain()(x))
@@ -322,19 +323,19 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
     The class representing residue fields of number fields that have non-prime order >= 2^16.
 
     EXAMPLES:
-    sage: R.<x> = QQ[]
-    sage: K.<a> = NumberField(x^3-7)
-    sage: P = K.ideal(923478923).factor()[0][0]
-    sage: k =K.residue_field(P)
-    sage: k.degree()
-    2
-    sage: OK = K.maximal_order()
-    sage: c = OK(a)
-    sage: b = k(c)
-    sage: b+c
-    2*a
-    sage: b*c
-    664346875*a + 535606347
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3-7)
+        sage: P = K.ideal(923478923).factor()[0][0]
+        sage: k =K.residue_field(P)
+        sage: k.degree()
+        2
+        sage: OK = K.maximal_order()
+        sage: c = OK(a)
+        sage: b = k(c)
+        sage: b+c
+        2*a
+        sage: b*c
+        664346875*a + 535606347
     """
     def __init__(self, p, q, name, g, intp):
         FiniteField_ext_pari.__init__(self, q, name, g)
@@ -352,19 +353,19 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     The class representing residue fields of number fields that have non-prime order < 2**16.
 
     EXAMPLES:
-    sage: R.<x> = QQ[]
-    sage: K.<a> = NumberField(x^3-7)
-    sage: P = K.ideal(29).factor()[0][0]
-    sage: k =K.residue_field(P)
-    sage: k.degree()
-    2
-    sage: OK = K.maximal_order()
-    sage: c = OK(a)
-    sage: b = k(c)
-    sage: b*c^2
-    7
-    sage: b*c
-    13*a + 5
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3-7)
+        sage: P = K.ideal(29).factor()[0][0]
+        sage: k =K.residue_field(P)
+        sage: k.degree()
+        2
+        sage: OK = K.maximal_order()
+        sage: c = OK(a)
+        sage: b = k(c)
+        sage: b*c^2
+        7
+        sage: b*c
+        13*a + 5
     """
     def __init__(self, p, q, name, g, intp):
         """
@@ -376,10 +377,10 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
            intp -- the rational prime that p lies over.
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: k =K.residue_field(P)
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: k =K.residue_field(P)
         """
         FiniteField_givaro.__init__(self, q, name, g)
         self.f = NFResidueFieldHomomorphism(self, p, GF(q, name = name, modulus = g).gen(0))
@@ -391,12 +392,12 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
           x -- Something to cast into self.
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: k =K.residue_field(P)
-        sage: k(77*a^7+4)
-        2*a + 4
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: k =K.residue_field(P)
+            sage: k(77*a^7+4)
+            2*a + 4
         """
         try:
             return self.coerce_map_from(self.f.domain())(self.f.domain()(x))

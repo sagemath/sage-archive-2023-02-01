@@ -1077,7 +1077,7 @@ class NumberField_generic(number_field_base.NumberField):
         if f.degree() <= 0:
             return self._element_class(self, f[0])
         # todo: more general coercion if embedding have been asserted
-        raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        raise TypeError, "Cannot coerce element into this number field"
 
     def _coerce_non_number_field_element_in(self, x):
         """
@@ -3011,6 +3011,36 @@ class NumberField_relative(NumberField_generic):
             2
         """
         return self.absolute_polynomial().degree()
+
+    def maximal_order(self):
+        """
+        Return the maximal order, i.e., the ring of integers of this
+        number field.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order(); OK.basis()
+            [1, 1/2*a + -1/2*b, (-1/2*b)*a + 1/2, a]
+            sage: charpoly(OK.1)
+            x^2 + b*x + 1
+            sage: charpoly(OK.2)
+            x^2 + (-1)*x + 1
+            sage: O2 = K.order([3*a, 2*b])
+            sage: O2.index_in(OK)
+            36
+        """
+        try:
+            return self.__maximal_order
+        except AttributeError:
+            pass
+        K = self.absolute_field('a')
+        from_K,_ = K.structure()
+        O = K.maximal_order()
+        B = [from_K(z) for z in O.basis()]
+        OK = self.order(B, check_is_integral=False, check_rank=False)
+        self.__maximal_order = OK
+        return OK
+
 
     def __reduce__(self):
         """

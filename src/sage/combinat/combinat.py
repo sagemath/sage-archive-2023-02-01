@@ -1863,6 +1863,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
     TESTS:
+        sage:
         sage: n = 1000000 + randint(0,1000000)
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
@@ -1890,6 +1891,10 @@ def number_of_partitions(n,k=None, algorithm='default'):
         sage: n = 100000000 + randint(0,100000000)  # takes a long time
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
+
+    Another consistency test for n up to 500:
+        sage: len([n for n in [1..500] if number_of_partitions(n) != number_of_partitions(n,algorithm='pari')])
+        0
     """
     n = ZZ(n)
     if n < 0:

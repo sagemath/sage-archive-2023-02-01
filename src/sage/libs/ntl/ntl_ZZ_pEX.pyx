@@ -45,7 +45,7 @@ cdef class ntl_ZZ_pEX:
     r"""
     The class \class{ZZ_pEX} implements polynomials over finite ring extensions of $\Z / p\Z$.
 
-    It can be used, for example, for arithmentic in GF(p^n)[X].
+    It can be used, for example, for arithmentic in $GF(p^n)[X]$.
     However, except where mathematically necessary (e.g., GCD computations),
     ZZ_pE need not be a field.
     """

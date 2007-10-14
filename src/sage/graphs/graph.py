@@ -2104,8 +2104,8 @@ class GenericGraph(SageObject):
             [1 1 0 0 1 1]
             [1 0 1 1 0 1]
             [0 1 1 1 1 0]
-            sage: g=DiGraph([[1..4],lambda i,j: i<j])
-            sage: h=g.line_graph()
+            sage: g = DiGraph([[1..4],lambda i,j: i<j])
+            sage: h = g.line_graph()
             sage: h.vertices()
             [(1, 2, None),
             (1, 3, None),
@@ -2114,11 +2114,10 @@ class GenericGraph(SageObject):
             (2, 4, None),
             (3, 4, None)]
             sage: h.edges()
-            [((2, 3, None), (3, 4, None), None),
-            ((1, 2, None), (2, 4, None), None),
-            ((1, 2, None), (2, 3, None), None),
-            ((1, 3, None), (3, 4, None), None)]
-
+            [((1, 2, None), (2, 3, None), None),
+             ((1, 2, None), (2, 4, None), None),
+             ((1, 3, None), (3, 4, None), None),
+             ((2, 3, None), (3, 4, None), None)]
         """
         if self.is_directed():
             G=DiGraph()
@@ -3322,13 +3321,19 @@ class Graph(GenericGraph):
         """
         self._nxg.delete_multiedge(u, v)
 
-    def edges(self, labels=True):
+    def edges(self, labels=True, sort=True):
         """
-        Return a list of edges. Each edge is a triple (u,v,l) where u and v are
-        vertices and l is a label.
+        Return a list of edges. Each edge is a triple (u,v,l) where u
+        and v are vertices and l is a label.
 
         INPUT:
-        labels -- if False, each edge is a tuple (u,v) of vertices.
+            labels -- (bool; default: True) if False, each edge is a
+                      tuple (u,v) of vertices.
+            sort -- (bool; default: True) if True, ensure that the list
+                    of edges is sorted.
+
+        OUTPUT:
+            A list of tuples.  It is safe to change the returned list.
 
         EXAMPLES:
             sage: graphs.DodecahedralGraph().edges()
@@ -3336,16 +3341,15 @@ class Graph(GenericGraph):
 
             sage: graphs.DodecahedralGraph().edges(labels=False)
             [(0, 1), (0, 10), (0, 19), (1, 8), (1, 2), (2, 3), (2, 6), (3, 19), (3, 4), (4, 17), (4, 5), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 16), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
-
         """
         L = self._nxg.edges()
+        if sort:
+            L.sort()
         if labels:
             return L
         else:
-            K = []
-            for u,v,l in L:
-                K.append((u,v))
-            return K
+            return [(u,v) for u,v,_ in L]
+
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
@@ -4512,7 +4516,8 @@ class Graph(GenericGraph):
     def show3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
                edge_colors=None, edge_size=0.02,
-               pos3d=None, iterations=50, color_by_label=False, **kwds):
+               pos3d=None, iterations=50, color_by_label=False,
+               **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -4553,7 +4558,7 @@ class Graph(GenericGraph):
         self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
                     edge_colors=edge_colors, vertex_size=vertex_size,
                     edge_size=edge_size, iterations=iterations,
-                    color_by_label=color_by_label).show(**kwds)
+                    color_by_label=color_by_label, **kwds).show()
 
     ### Connected components
 
@@ -5301,13 +5306,20 @@ class DiGraph(GenericGraph):
         """
         self._nxg.delete_multiedge(u, v)
 
-    def edges(self, labels=True):
+    def edges(self, labels=True, sort=True):
         """
         Return a list of edges. Each edge is a triple (u,v,l) where the edge is
         from u to v, with label l.
 
         INPUT:
-        labels -- if False, each edge is a tuple (u,v) of vertices.
+            labels -- (bool; default: True) if False, each edge is a
+                      tuple (u,v) of vertices.
+            sort -- (bool; default: True) if True, ensure that the list
+                    of edges is sorted.
+
+        OUTPUT:
+            A list of tuples.  It is safe to change the returned list.
+
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph().to_directed()
@@ -5318,13 +5330,12 @@ class DiGraph(GenericGraph):
 
         """
         L = self._nxg.edges()
+        if sort:
+            L.sort()
         if labels:
             return L
         else:
-            K = []
-            for u,v,l in L:
-                K.append((u,v))
-            return K
+            return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """

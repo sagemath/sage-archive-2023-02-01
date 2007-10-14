@@ -118,25 +118,32 @@ def ceil(x):
     except AttributeError:
         return sage.rings.all.ceil(x)
 
-def charpoly(x, var):
+def characteristic_polynomial(x, var='x'):
     """
     Return the characteristic polynomial of x in the given variable.
 
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
-        sage: charpoly(A, 'x')
+        sage: charpoly(A)
         x^3 - 15*x^2 - 18*x
+        sage: charpoly(A, 't')
+        t^3 - 15*t^2 - 18*t
 
         sage: k.<alpha> = GF(7^10); k
         Finite Field in alpha of size 7^10
         sage: alpha.charpoly('T')
+        T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
+        sage: characteristic_polynomial(alpha, 'T')
         T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
     """
     try:
         return x.charpoly(var)
     except AttributeError:
         raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
+
+charpoly = characteristic_polynomial
+
 
 def coerce(P, x):
     try:
@@ -603,11 +610,24 @@ def log(x,b=None):
             return x.log(b)
         return RDF(x).log(b)
 
-def minimal_polynomial(x):
+def minimal_polynomial(x, var='x'):
     """
     Return the minimal polynomial of x.
+
+    EXAMPLES:
+        sage: a = matrix(ZZ, 2, [1..4])
+        sage: minpoly(a)
+        x^2 - 5*x - 2
+        sage: minpoly(a,'t')
+        t^2 - 5*t - 2
+        sage: minimal_polynomial(a)
+        x^2 - 5*x - 2
+        sage: minimal_polynomial(a,'theta')
+        theta^2 - 5*theta - 2
     """
-    return x.minimal_polynomial()
+    return x.minimal_polynomial(var=var)
+
+minpoly = minimal_polynomial
 
 
 def multiplicative_order(x):

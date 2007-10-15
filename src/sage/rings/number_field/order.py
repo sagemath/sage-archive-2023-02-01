@@ -147,6 +147,18 @@ class Order(IntegralDomain):
         self._is_maximal = is_maximal
         DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
 
+    def base(self):
+        r"""
+        Return the base order of this absolute order, which is always the ring $\ZZ$ of integers.
+
+        EXAMPLES:
+            sage: R = EquationOrder(x^5 + 17838*x + 1, 'a'); R
+            Order in Number Field in a with defining polynomial x^5 + 17838*x + 1
+            sage: R.base()
+            Integer Ring
+        """
+        return ZZ
+
     def __mul__(self, right):
         """
         Create an ideal in this order using the notation Ok*gens
@@ -926,6 +938,20 @@ class RelativeOrder(Order):
         self._base = base
         self._module_rep = absolute_order._module_rep
 
+    def base(self):
+        """
+        Return the base order of this relative order.
+
+        EXAMPLES:
+            sage: R = EquationOrder( [x^4 + 2, x^2 - 3], 'alpha'); R
+            Relative Order in Number Field in alpha0 with defining polynomial x^4 + 2 over its base field
+            sage: R.base()
+            Maximal Order in Number Field in alpha1 with defining polynomial x^2 - 3
+            sage: R.base().base()
+            Integer Ring
+        """
+        return self._base
+
     def __call__(self, x):
         """
         Coerce an element into this relative order.
@@ -952,6 +978,12 @@ class RelativeOrder(Order):
         Return underlying absolute order associated to this relative
         order.
 
+        INPUT:
+            names -- string (default: 'z'); name of generator of absolute extension.
+
+        NOTE: There *is* a default variable name, since this absolute
+        order is frequently used for internal algorithms.
+
         EXAMPLES:
             sage: R = EquationOrder([x^2 + 1, x^2 - 5], 'i,g'); R
             Relative Order in Number Field in i with defining polynomial x^2 + 1 over its base field
@@ -961,8 +993,17 @@ class RelativeOrder(Order):
             Order in Number Field in z with defining polynomial x^4 - 8*x^2 + 36
             sage: S.basis()
             [1/4*z^3 + 1/4*z^2 + 1/2, 11/24*z^3 + 1/4*z^2 + 1/12*z, 1/2*z^2, 1/2*z^3]
+
+        We compute a relative order in alpha0, alpha1, then make the number field
+        that contains the absolute order be called gamma.
+            sage: R = EquationOrder( [x^2 + 2, x^2 - 3], 'alpha'); R
+            Relative Order in Number Field in alpha0 with defining polynomial x^2 + 2 over its base field
+            sage: R.absolute_order('gamma')
+            Order in Number Field in gamma with defining polynomial x^4 - 2*x^2 + 25
+            sage: R.absolute_order('gamma').basis()
+            [1/2*gamma^2 + 1/2, 7/10*gamma^3 + 1/10*gamma, gamma^2, gamma^3]
         """
-        if var == 'z':
+        if names == 'z' or names == ('z',):
             return self._absolute_order
         else:
             return self._absolute_order.change_names(names)
@@ -1219,10 +1260,11 @@ def absolute_order_from_module_generators(gens,
         an absolute order
 
     EXAMPLES:
-        sage: K.<a> = NumberField(x^4 - 5)
-
-    We have to explicitly import the function, since it isn't meant for regular usage:
+    We have to explicitly import the function, since it isn't meant
+    for regular usage:
         sage: from sage.rings.number_field.order import absolute_order_from_module_generators
+
+        sage: K.<a> = NumberField(x^4 - 5)
         sage: O = K.maximal_order(); O
         Maximal Order in Number Field in a with defining polynomial x^4 - 5
         sage: O.basis()
@@ -1344,7 +1386,23 @@ def relative_order_from_ring_generators(gens, base,
         is_maximal -- bool (or None); set if maximality of the generated order is known
 
     EXAMPLES:
+    We have to explicitly import this function, since it isn't meant
+    for regular usage:
 
+        sage: from sage.rings.number_field.order import relative_order_from_ring_generators
+        sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 17])
+        sage: R = K.base_field().maximal_order()
+        sage: S = relative_order_from_ring_generators([i,a], R); S
+        Relative Order in Number Field in i with defining polynomial x^2 + 1 over its base field
+
+    Basis for the relative order, which is obtained by computing the algebra generated
+    by i and a.
+        sage: S.basis()
+        [(-1/2*a + 25/2)*i + -7/2*a + 9/2, (-1/2*a + 7/2)*i + -a + 4, (-a)*i + 8, 25*i + -7*a]
+
+    The base order of the relative order.
+        sage: S.base()
+        Maximal Order in Number Field in a with defining polynomial x^2 - 17
     """
     if check_is_integral and not each_is_integral(gens):
         raise ValueError, "each generator must be integral"

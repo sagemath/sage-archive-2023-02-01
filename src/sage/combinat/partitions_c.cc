@@ -148,7 +148,7 @@ const unsigned int min_precision = DBL_MANT_DIG;                            // T
 const unsigned int double_precision = DBL_MANT_DIG;                         // The assumed precision of a double.
 
 
-const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? 100 : LDBL_MANT_DIG;
+const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? double_precision : LDBL_MANT_DIG;
                                                                             // The assumed precision of a long double.
                                                                             // Note: On many systems double_precision = long_double_precision. This is OK, as
                                                                             // the long double stage of the computation will just be skipped.

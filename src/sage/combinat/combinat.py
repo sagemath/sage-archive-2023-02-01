@@ -1777,8 +1777,6 @@ def partitions_list(n,k=None):
         ans=gap.eval("Partitions(%s,%s)"%(n,k))
     return eval(ans.replace('\n',''))
 
-first_warning = True
-
 def number_of_partitions(n,k=None, algorithm='default'):
     r"""
     Returns the size of partitions_list(n,k).
@@ -1789,9 +1787,10 @@ def number_of_partitions(n,k=None, algorithm='default'):
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
         algorithm -- (default: 'default')
-            'default' -- if k is given use Gap.
-                         Otherwise, on x86 when n > 3000, use 'bober'
-                         On non x86 use 'pari'.
+            'default' -- If k is not None, then use Gap (very slow).
+                         If k is None, use Jon Bober's highly
+                         optimized implementation (this is the fastest
+                         code in the world for this problem).
             'bober' -- use Jonathon Bober's implementation
             'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
@@ -1891,14 +1890,11 @@ def number_of_partitions(n,k=None, algorithm='default'):
         sage: n = 1000000 + randint(0,1000000)
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
-        sage: n = 100000000 + randint(0,100000000)  # takes a long time
+        sage: n = 100000000 + randint(0,100000000)
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
-        sage: n = 100000000 + randint(0,100000000)  # takes a long time
-        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
-        True
-        sage: n = 100000000 + randint(0,100000000)  # takes a long time
-        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        sage: n = 1000000000 + randint(0,1000000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0      # takes a long time
         True
 
     Another consistency test for n up to 500:
@@ -1910,18 +1906,10 @@ def number_of_partitions(n,k=None, algorithm='default'):
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    global first_warning
 
-    PROCESSOR = os.uname()[-1]
-    bober_is_good = 'x86' in PROCESSOR
-
-    if k is not None:
-        algorithm = 'gap'
-    elif algorithm == 'default':
-        if bober_is_good:
+    if algorithm == 'default':
+        if k is None:
             algorithm = 'bober'
-        elif PROCESSOR in ['x86', 'Power Macintosh']:
-            algorithm = 'pari'
         else:
             algorithm = 'gap'
 
@@ -1936,17 +1924,9 @@ def number_of_partitions(n,k=None, algorithm='default'):
         raise ValueError, "only the GAP algorithm works if k is specified."
 
     if algorithm == 'bober':
-        if not bober_is_good:
-            if first_warning:
-                print "*WARNING*: bober's implementation is broken on this platform or this size of n."
-                first_warning=False
         return partitions_ext.number_of_partitions(n)
 
     elif algorithm == 'pari':
-        if n > 3000 and 'x86_64' in PROCESSOR:
-            if first_warning:
-                print "*WARNING*: Pari's numbpart is very buggy on x86_64 (fixed in svn, so don't report to pari-dev)"
-                first_warning = False
         return ZZ(pari(ZZ(n)).numbpart())
 
     raise ValueError, "unknown algorithm '%s'"%algorithm

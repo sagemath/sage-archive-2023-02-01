@@ -76,8 +76,31 @@ def EquationOrder(f, names):
         sage: O.1
         (-3)*a + 2*b
 
+    Of course the input polynomial must be integral:
+        sage: R = EquationOrder(x^3 + x + 1/3, 'alpha'); R
+        Traceback (most recent call last):
+        ...
+        ValueError: each generator must be integral
+
+        sage: R = EquationOrder( [x^3 + x + 1, x^2 + 1/2], 'alpha'); R
+        Traceback (most recent call last):
+        ...
+        ValueError: each generator must be integral
     """
     from number_field import NumberField
+    R = ZZ['x']
+    if isinstance(f, (list, tuple)):
+        for g in f:
+            try:
+                R(g)
+            except TypeError:
+                raise ValueError, 'each generator must be integral'
+    else:
+        try:
+            R(f)
+        except TypeError:
+            raise ValueError, 'each generator must be integral'
+
     K = NumberField(f, names=names)
     return K.order(K.gens())
 
@@ -720,6 +743,26 @@ class AbsoluteOrder(Order):
 
     absolute_discriminant = discriminant
 
+    def change_names(self, names):
+        """
+        Return a new order isomorphic to this one in the number field with
+        given variable names.
+
+        EXAMPLES:
+            sage: R = EquationOrder(x^3 + x + 1, 'alpha'); R
+            Order in Number Field in alpha with defining polynomial x^3 + x + 1
+            sage: R.basis()
+            [1, alpha, alpha^2]
+            sage: S = R.change_names('gamma'); S
+            Order in Number Field in gamma with defining polynomial x^3 + x + 1
+            sage: S.basis()
+            [1, gamma, gamma^2]
+        """
+        K = self.number_field().change_names(names)
+        _, to_K = K.structure()
+        B = [to_K(a) for a in self.basis()]
+        return K.order(B, check_is_integral=False, check_rank=False, allow_subfield=True)
+
     def index_in(self, other):
         """
         Return the index of self in other.  This is a lattice index,
@@ -904,12 +947,25 @@ class RelativeOrder(Order):
         #", ".join([str(b) for b in self.basis()]),
         return "%sRelative Order in %r" % ("Maximal " if self._is_maximal else "", self._K)
 
-    def absolute_order(self):
+    def absolute_order(self, names='z'):
         """
         Return underlying absolute order associated to this relative
         order.
+
+        EXAMPLES:
+            sage: R = EquationOrder([x^2 + 1, x^2 - 5], 'i,g'); R
+            Relative Order in Number Field in i with defining polynomial x^2 + 1 over its base field
+            sage: R.basis()
+            [(-1/2*g + 7/2)*i + -1/2*g + 3/2, (-1/2*g + 13/2)*i + -g + 1, (-g)*i + 2, 7*i + -g]
+            sage: S = R.absolute_order(); S
+            Order in Number Field in z with defining polynomial x^4 - 8*x^2 + 36
+            sage: S.basis()
+            [1/4*z^3 + 1/4*z^2 + 1/2, 11/24*z^3 + 1/4*z^2 + 1/12*z, 1/2*z^2, 1/2*z^3]
         """
-        return self._absolute_order
+        if var == 'z':
+            return self._absolute_order
+        else:
+            return self._absolute_order.change_names(names)
 
     def basis(self):
         """
@@ -997,9 +1053,44 @@ class RelativeOrder(Order):
             raise NotImplementedError
 
     def absolute_discriminant(self):
+        """
+        Return the absolute discriminant of self, which is the discriminant
+        of the absolute order associated to self.
+
+        OUTPUT:
+            an integer
+
+        EXAMPLES:
+            sage: R = EquationOrder([x^2 + 1, x^3 + 2], 'a,b')
+            sage: d = R.absolute_discriminant(); d
+            -746496
+            sage: d is R.absolute_discriminant()
+            True
+            sage: factor(d)
+            -1 * 2^10 * 3^6
+        """
         return self.absolute_order().discriminant()
 
     def is_suborder(self, other):
+        """
+        Returns true if self is a subset of the order other.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^3 + 2])
+            sage: R1 = K.order([a,b])
+            sage: R2 = K.order([2*a,b])
+            sage: R3 = K.order([a + b, b + 2*a])
+            sage: R1.is_suborder(R2)
+            False
+            sage: R2.is_suborder(R1)
+            True
+            sage: R3.is_suborder(R1)
+            True
+            sage: R1.is_suborder(R3)
+            True
+            sage: R1 == R3
+            True
+        """
         return self.absolute_order().is_suborder(other.absolute_order())
 
     def index_in(self, other):
@@ -1015,7 +1106,13 @@ class RelativeOrder(Order):
             a rational number
 
         EXAMPLES:
-
+            sage: K.<a,b> = NumberField([x^3 + x + 3, x^2 + 1])
+            sage: R1 = K.order([3*a, 2*b])
+            sage: R2 = K.order([a, 4*b])
+            sage: R1.index_in(R2)
+            729
+            sage: R2.index_in(R1)
+            1/729
         """
         if not isinstance(other, Order):
             raise TypeError, "other must be an absolute order."

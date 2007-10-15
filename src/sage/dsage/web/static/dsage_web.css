@@ -10,6 +10,8 @@ table.jobs_table, table.job_details {
     border-right: solid #000 1px;
     border-collapse: collapse;
     width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 table.jobs_table tr.tr0, table.job_details tr.tr0 {
     font-size:14px;
@@ -41,19 +43,25 @@ table.jobs_table A:visited, table.job_details A:link {
     font-size:18px;
     font-family: 'verdana';
 }
+
 #header {
     width:100%;
-    height:60px;
+    height:80px;
     background-color:#284907;
+    margin-left: auto;
+    margin-right: auto;
 }
 
+#header form {
+    color:#FFFFFF;
+}
 #header h1{
     font-size:24px;
     font-family: 'lucida grande', verdana, lucida, sans-serif;
     color:#FFFFFF;
     letter-spacing:0.04cm;
-    padding-top:15px;
-    padding-bottom:15px;
+    padding-top:10px;
+    padding-bottom:10px;
     margin:0px;
 }
 

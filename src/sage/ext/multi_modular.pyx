@@ -131,6 +131,7 @@ cdef class MultiModularBasis_base:
         mpz_init(height)
         mpz_mul_2exp(height, height0, 1)
         if mpz_cmp(height, self.partial_products[self.n-1]) <= 0:
+            mpz_clear(height)
             return self.n
         cdef int i
         new_moduli = []

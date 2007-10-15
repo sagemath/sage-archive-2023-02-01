@@ -146,7 +146,10 @@ const bool debugt = false;                                      // Same for the 
 
 const unsigned int min_precision = DBL_MANT_DIG;                            // The minimum precision that we will ever use.
 const unsigned int double_precision = DBL_MANT_DIG;                         // The assumed precision of a double.
-const unsigned int long_double_precision = LDBL_MANT_DIG;                   // The assumed precision of a long double.
+
+
+const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? 100 : LDBL_MANT_DIG;
+                                                                            // The assumed precision of a long double.
                                                                             // Note: On many systems double_precision = long_double_precision. This is OK, as
                                                                             // the long double stage of the computation will just be skipped.
                                                                             //
@@ -461,6 +464,14 @@ unsigned int compute_current_precision(unsigned int n, unsigned int N, unsigned 
     //
     // extra should probably have been set by a call to compute_extra_precision()
     // before this function was called.
+
+
+    // n = the number for which we are computing p(n)
+    // N = the number of terms that have been computed so far
+
+    // if N is 0, then we can't use the above formula (because we would be
+    // dividing by 0).
+    if(N == 0) return compute_initial_precision(n) + extra;
 
     mpfr_t A, B, C;
     mpfr_init2(A, 32);

@@ -1819,6 +1819,8 @@ def number_of_partitions(n,k=None, algorithm='default'):
         7
         sage: number_of_partitions(5, algorithm='pari')
         7
+        sage: number_of_partitions(5, algorithm='bober')
+        7
 
     The input must be a nonnegative integer or a ValueError is raised.
         sage: number_of_partitions(-5)
@@ -1911,7 +1913,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
     global first_warning
 
     PROCESSOR = os.uname()[-1]
-    bober_is_good = n > 3000 and 'x86' in PROCESSOR
+    bober_is_good = 'x86' in PROCESSOR
 
     if k is not None:
         algorithm = 'gap'

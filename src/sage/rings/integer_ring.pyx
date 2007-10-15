@@ -526,6 +526,23 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
+    def extension(self, poly, name=None):
+        """
+        Returns the order in the number field defined by poly generated
+        (as a ring) by a root of poly.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: ZZ.extension(x^2-5, 'a')
+            Order with module basis 1, a in Number Field in a with defining polynomial x^2 - 5
+        """
+        if name is None:
+            name = str(poly.parent().gen(0))
+        from sage.rings.number_field.number_field import NumberField
+        K = NumberField(poly, name)
+        gen = K(str(name))
+        return K.order(gen)
+
     def quotient(self, I, names=None):
         r"""
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.

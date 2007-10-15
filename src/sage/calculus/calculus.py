@@ -861,7 +861,7 @@ class SymbolicExpression(RingElement):
 
         Works with trig funcitons too.
             sage: sin(pi/3).minpoly()
-            4*x^2 - 3
+            x^2 - 3/4
 
         Here we show use of the epsilon parameter. That this result is
         actually exact can be shown using the addition formula for sin,
@@ -871,9 +871,9 @@ class SymbolicExpression(RingElement):
             sage: a.minpoly()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Could not prove minimal polynomial 16*x^4 - 20*x^2 + 5 (epsilon 0.00000000000000e-1)
+            NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
             sage: f = a.minpoly(epsilon=1e-100); f
-            16*x^4 - 20*x^2 + 5
+            x^4 - 5/4*x^2 + 5/16
             sage: f(a).numerical_approx(100)
             0.00000000000000000000000000000
 
@@ -914,6 +914,9 @@ class SymbolicExpression(RingElement):
                     # Degree might have been an over-estimate, factor because we want (irreducible) minpoly.
                     ff = f.factor()
                     for g, e in ff:
+                        lead = g.leading_coefficient()
+                        if lead != 1:
+                            g = g / lead
                         expected_error = abs(g.derivative()(CC(aa))) * dx
                         error = abs(g(aa))
                         if error < expected_error:

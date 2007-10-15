@@ -665,7 +665,7 @@ cdef class NumberFieldElement(FieldElement):
 
         """
         # For now, use pari's factoring abilities
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self._parent, 't')
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.number_field(), 't')
         f = R([-self, 0, 1])
         roots = f.roots()
         if all:

@@ -367,7 +367,7 @@ cdef class MultiModularBasis_base:
         for j from 0 <= j < vc:
             i = s
             if offset == 0:
-                mpz_init_set_ui(z[j], b[0][j])
+                mpz_set_ui(z[j], b[0][j])
                 if b[0][j] == 0:
                     while i < len and b[i][j] == 0: # fast forward to first non-zero
                         i += 1
@@ -426,13 +426,13 @@ cdef class MultiModularBasis_base:
             raise IndexError, "beyond bound for multi-modular prime list"
         cdef Integer z
         z = PY_NEW(Integer)
-        mpz_init_set(z.value, self.partial_products[n-1])
+        mpz_set(z.value, self.partial_products[n-1])
         return z
 
     def prod(self):
         cdef Integer z
         z = PY_NEW(Integer)
-        mpz_init_set(z.value, self.partial_products[self.n-1])
+        mpz_set(z.value, self.partial_products[self.n-1])
         return z
 
     def list(self):

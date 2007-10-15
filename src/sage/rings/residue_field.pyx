@@ -12,7 +12,7 @@ EXAMPLES:
     sage: k.order()
     841
 
-Authors:
+AUTHORS:
     -- David Roe (2007-10-3)
 """
 
@@ -179,23 +179,28 @@ class ResidueField_generic(Field):
 
 cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
     """
-    The class representing a homomorphism from the order of a number field to the residue field at a given prime.
+    The class representing a homomorphism from the order of a number
+    field to the residue field at a given prime.
 
     EXAMPLES:
         sage: K.<a> = NumberField(x^3-7)
-        sage: P = K.ideal(29).factor()[0][0]
-        sage: k =K.residue_field(P)
+        sage: P  = K.ideal(29).factor()[0][0]
+        sage: k  = K.residue_field(P)
         sage: OK = K.maximal_order()
+        sage: abar = k(OK.1); abar
+        a
+        sage: (1+abar)^179
+        24*a + 12
         sage: k.coerce_map_from(OK)
         Composite morphism:
-          From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+          From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
           To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
           Defn:   Call morphism:
-                  From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
-                  To:   Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+                  From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
+                  To:   Maximal Order in Number Field in a with defining polynomial x^3 - 7
                 then
                   Ring morphism:
-                  From: Order with module basis 1, a, a^2 in Number Field in a with defining polynomial x^3 - 7
+                  From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
                   To:   Residue field of Fractional ideal (2*a^2 + 3*a - 10) of Number Field in a with defining polynomial x^3 - 7
     """
     def __init__(self, k, p, im_gen):

@@ -117,7 +117,7 @@ cdef class NumberFieldElement(FieldElement):
         sage: a^3
         -a - 1
     """
-    cdef NumberFieldElement _new(self):
+    cdef _new(self):
         """
         Quickly creates a new initialized NumberFieldElement with the
         same parent as self.
@@ -129,6 +129,9 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef number_field(self):
         return self._parent
+
+    def _number_field(self):
+        return self.number_field()
 
     def __init__(self, parent, f):
         """
@@ -1816,14 +1819,30 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         sage: w = O2.1; w
         2*a
         sage: parent(w)
-        Order with module basis 1, 2*a in Number Field in a with defining polynomial x^2 + 1
+        Order in Number Field in a with defining polynomial x^2 + 1
     """
     def __init__(self, order, f):
         K = order.number_field()
         NumberFieldElement_absolute.__init__(self, K, f)
-        self._order = order
         self._number_field = K
         (<Element>self)._parent = order
+
+    cdef _new(self):
+        """
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
+
+        EXAMPLES:
+        This is called implicitly in multiplication:
+            sage: O = EquationOrder(x^3 + 18, 'a')
+            sage: O.1 * O.1 * O.1
+            -18
+        """
+        cdef OrderElement_absolute x
+        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        x._parent = self._parent
+        x._number_field = self._parent.number_field()
+        return x
 
     cdef number_field(self):
         return self._number_field
@@ -1834,18 +1853,39 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     Element of an order in a relative number field.
 
     EXAMPLES:
-
+        sage: O = EquationOrder([x^2 + x + 1, x^3 - 2],'a,b')
+        sage: c = O.1; c
+        (-2*b^2 - 2)*a + -2*b^2 - b
+        sage: type(c)
+        <type 'sage.rings.number_field.number_field_element.OrderElement_relative'>
     """
     def __init__(self, order, f):
         K = order.number_field()
         NumberFieldElement_relative.__init__(self, K, f)
-        self._order = order
         (<Element>self)._parent = order
         self._number_field = K
 
     cdef number_field(self):
         return self._number_field
 
+    cdef _new(self):
+        """
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
+
+        EXAMPLES:
+        This is called implicitly in multiplication:
+            sage: O = EquationOrder([x^2 + 18, x^3 + 2], 'a,b')
+            sage: c = O.1 * O.2; c
+            (-23321*b^2 - 9504*b + 10830)*a + 10152*b^2 - 104562*b - 110158
+            sage: parent(c) == O
+            True
+        """
+        cdef OrderElement_relative x
+        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        x._parent = self._parent
+        x._number_field = self._parent.number_field()
+        return x
 
 class CoordinateFunction:
     def __init__(self, NumberFieldElement alpha, W, to_V):

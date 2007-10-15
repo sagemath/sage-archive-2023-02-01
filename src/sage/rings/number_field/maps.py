@@ -50,8 +50,8 @@ class MapNumberFieldToVectorSpace(SageObject):
         return "Isomorphism from %s to %s"%(self.__K, self.__V)
 
     def __call__(self, x):
-        x = self.__K(x)
-        v = x._coefficients()
+        y = self.__K(x)
+        v = y._coefficients()
         w = v + [self.__zero]*(self.__n - len(v))
         return self.__V(w)
 

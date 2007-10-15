@@ -15,7 +15,7 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __pari
     cdef object __matrix
 
-    cdef NumberFieldElement _new(self)
+    cdef _new(self)
 
     cdef number_field(self)
 
@@ -41,9 +41,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 # TODO: cyclotomic and/or quadratic classes? (Both for differing implementations and speed).
 
 cdef class OrderElement_absolute(NumberFieldElement_absolute):
-    cdef object _order
     cdef object _number_field
 
 cdef class OrderElement_relative(NumberFieldElement_relative):
-    cdef object _order
     cdef object _number_field

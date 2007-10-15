@@ -1017,14 +1017,18 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in a with defining polynomial x^3 + 17
         """
         if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() is self:
+            K = x.parent()
+            if K is self:
                 return x
-            elif x.parent() == self:
+            elif K == self:
                 return self._element_class(self, x.polynomial())
-            elif isinstance(x, number_field_element.OrderElement_absolute) or isinstance(x, number_field_element.OrderElement_relative):
-                if x.parent().number_field() is self:
+            elif isinstance(x, (number_field_element.OrderElement_absolute,
+                                number_field_element.OrderElement_relative,
+                                number_field_element_quadratic.OrderElement_quadratic)):
+                L = K.number_field()
+                if L is self:
                     return self._element_class(self, x)
-                x = x.parent().number_field()(x)
+                x = L(x)
             return self._coerce_from_other_number_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
@@ -2503,7 +2507,7 @@ class NumberField_absolute(NumberField_generic):
             sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
             sage: o = k.maximal_order()
             sage: o
-            Order with module basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            Maximal Order in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
         """
         try:
             return self.__maximal_order
@@ -2537,9 +2541,9 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
             sage: k.order(2*i)
-            Order with module basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(10*i)
-            Order with module basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(3)
             Traceback (most recent call last):
             ...

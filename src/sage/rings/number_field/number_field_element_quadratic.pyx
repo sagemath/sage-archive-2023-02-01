@@ -1,5 +1,9 @@
 """
-Not done.
+Optimized Quadratic Number Field Elements
+
+AUTHORS:
+    -- Robert Bradshaw (2007-09): Initial version
+    -- David Harvey (2007-10): fix up a few bugs, polish around the edges
 """
 #*****************************************************************************
 #     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -15,14 +19,6 @@ Not done.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-"""
-Optimized Quadratic Number Field Elements
-
-AUTHORS:
-    -- Robert Bradshaw (2007-09): Initial version
-    -- David Harvey (2007-10): fix up a few bugs, polish around the edges
-"""
 
 include '../../ext/interrupt.pxi'
 include "../../ext/stdsage.pxi"
@@ -118,6 +114,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic gen
 
         if PY_TYPE_CHECK(f, NumberFieldElement_quadratic):
+            self._parent = parent   # NOTE: We do *not* call NumberFieldElement_absolute.__init__, for speed reasons.
             mpz_set(self.a, (<NumberFieldElement_quadratic>f).a)
             mpz_set(self.b, (<NumberFieldElement_quadratic>f).b)
             mpz_set(self.denom, (<NumberFieldElement_quadratic>f).denom)
@@ -161,6 +158,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 mpz_set_ui(self.denom, 1)
 
+    cdef number_field(self):
+        return self._parent
 
     def __copy__(self):
         r"""
@@ -677,7 +676,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             [1/5, 3]
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
         cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
         ad, bd = self.parts()
         if not self:
@@ -709,7 +708,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             1
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
         cdef Integer denom
         if gen.is_sqrt_disc():
             denom = PY_NEW(Integer)
@@ -879,3 +878,27 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return R([-self._rational_(), 1])
         else:
             return self.charpoly()
+
+
+cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
+    """
+    Element of an order in a quadratic field.
+
+    EXAMPLES:
+        sage: K.<a> = NumberField(x^2 + 1)
+        sage: O2 = K.order(2*a)
+        sage: w = O2.1; w
+        2*a
+        sage: parent(w)
+        Order in Number Field in a with defining polynomial x^2 + 1
+    """
+    def __init__(self, order, f):
+        K = order.number_field()
+        NumberFieldElement_quadratic.__init__(self, K, f)
+        (<Element>self)._parent = order
+
+    cdef number_field(self):
+        # So few functions actually use self.number_field() for quadratic elements, so
+        # it is better *not* to return a cached value (since the call to _parent.number_field())
+        # is expensive.
+        return self._parent.number_field()

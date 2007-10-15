@@ -8,7 +8,7 @@ EXAMPLES:
     sage: J = I * I; J
     Fractional ideal class (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
     sage: O = K.OK(); O
-    Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 23
+    Maximal Order in Number Field in a with defining polynomial x^2 + 23
     sage: O*(2, 1/2*a + 1/2)
     Fractional ideal (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
     sage: (O*(2, 1/2*a + 1/2)).is_principal()

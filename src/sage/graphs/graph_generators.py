@@ -1585,19 +1585,15 @@ class GraphGenerators():
         A circulant graph has the property that the vertex i is
         connected with the vertices i+j and i-j for each j in adj.
 
-        This constructor is dependant on vertices numbered 0 through n-1
-        in NetworkX \code{cycle_graph()}
+        INPUT:
+            n -- number of vertices in the graph
+            adjacency -- the list of j values
 
         PLOTTING:
         Upon construction, the position dictionary is filled to override
         the spring-layout algorithm. By convention, each circulant graph will
         be displayed with the first (0) node at the top, with the rest
         following in a counterclockwise manner.
-
-        The circulant graph is a good opportunity to compare efficiency of
-        filling a position dictionary vs. using the spring-layout algorithm
-        for plotting.  Because the circulant graph is very symmetric, the
-        resulting plots should be similar (in cases of small n).
 
         Filling the position dictionary in advance adds O(n) to the
         constructor.

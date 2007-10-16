@@ -125,7 +125,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             absprec = min(absprec, val + relprec)
             self.set_precs(mpz_get_ui((<Integer>absprec).value))
             tmp = PY_NEW(Integer)
-            mpz_set(tmp.value, self.prime_pow.modulus)
+            mpz_set(tmp.value, self.prime_pow.top_power)
             tmp = <Integer> x % tmp
             self.set_value_from_mpz(tmp.value)
             return
@@ -157,8 +157,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         Assuming that self.absprec is set, sets self.value
         """
-        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.dense_list[self.absprec]) >= 0:
-            mpz_mod(self.value, value, self.prime_pow.dense_list[self.absprec])
+        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.pow_mpz_t_tmp(self.absprec)) >= 0:
+            mpz_mod(self.value, value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
         else:
             mpz_set(self.value, value)
 
@@ -206,7 +206,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef pAdicCappedAbsoluteElement ans
         ans = self._new_c()
         ans.absprec = self.absprec
-        mpz_sub(ans.value, self.prime_pow.dense_list[self.absprec], self.value)
+        mpz_sub(ans.value, self.prime_pow.pow_mpz_t_tmp(self.absprec), self.value)
         return ans
 
     def __pow__(pAdicCappedAbsoluteElement self, right, dummy):
@@ -231,12 +231,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 absprec = <Integer> min(self.precision_relative() + new * val, preccap)
                 ans.set_precs(mpz_get_ui(absprec.value))
                 _sig_on
-                mpz_powm(ans.value, self.value, new.value, self.prime_pow.dense_list[ans.absprec])
+                mpz_powm(ans.value, self.value, new.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec))
                 _sig_off
         else:
             ans.absprec = self.absprec
             _sig_on
-            mpz_powm(ans.value, self.value, new.value, self.prime_pow.dense_list[self.absprec])
+            mpz_powm(ans.value, self.value, new.value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
             _sig_off
         return ans
 
@@ -249,8 +249,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             ans.absprec = right.absprec
         mpz_add(ans.value, self.value, right.value)
-        if mpz_cmp(ans.value, self.prime_pow.dense_list[ans.absprec]) >= 0:
-            mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
+        if mpz_cmp(ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)) >= 0:
+            mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec))
         return ans
 
     cdef RingElement _div_c_impl(self, RingElement right):
@@ -312,9 +312,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             if ansprec > prec_cap:
                 ansprec = prec_cap
             ans.set_precs(ansprec)
-            mpz_mul(ans.value, self.value, self.prime_pow.dense_list[shift])
-            if mpz_cmp(ans.value, ans.prime_pow.modulus) >= 0:
-                mpz_mod(ans.value, ans.value, ans.prime_pow.modulus)
+            mpz_mul(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift))
+            if mpz_cmp(ans.value, ans.prime_pow.top_power) >= 0:
+                mpz_mod(ans.value, ans.value, ans.prime_pow.top_power)
             return ans
         else:
             return self
@@ -362,7 +362,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             ansprec = self.absprec - shift
             ans.set_precs(ansprec)
-            mpz_fdiv_q(ans.value, self.value, self.prime_pow.dense_list[shift])
+            mpz_fdiv_q(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift))
             return ans
         else:
             return self
@@ -395,7 +395,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             else:
                 ans.set_precs(prec2)
         mpz_mul(ans.value, self.value, right.value)
-        mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
+        mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec))
         return ans
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
@@ -407,8 +407,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             ans.absprec = right.absprec
         mpz_sub(ans.value, self.value, right.value)
-        if mpz_sgn(ans.value) == -1 or mpz_cmp(ans.value, self.prime_pow.dense_list[ans.absprec]) >= 0:
-            mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
+        if mpz_sgn(ans.value) == -1 or mpz_cmp(ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)) >= 0:
+            mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec))
         return ans
 
     def add_bigoh(pAdicCappedAbsoluteElement self, absprec):
@@ -461,8 +461,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             ans.set_precs(newprec)
             mpz_set(ans.value, self.value)
-            if mpz_cmp(ans.value, self.prime_pow.dense_list[ans.absprec]) >= 0:
-                mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
+            if mpz_cmp(ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)) >= 0:
+                mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec))
             return ans
 
     def copy(pAdicCappedAbsoluteElement self):
@@ -502,7 +502,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_init(tmp)
         cdef unsigned long aprec
         aprec = mpz_get_ui(_absprec.value)
-        mpz_mod(tmp, self.value, self.prime_pow.dense_list[aprec])
+        mpz_mod(tmp, self.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         if mpz_sgn(tmp) == 0:
             mpz_clear(tmp)
             return True
@@ -542,8 +542,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef mpz_t tmp1, tmp2
         mpz_init(tmp1)
         mpz_init(tmp2)
-        mpz_mod(tmp1, self.value, self.prime_pow.dense_list[aprec])
-        mpz_mod(tmp2, (<pAdicCappedAbsoluteElement>right).value, self.prime_pow.dense_list[aprec])
+        mpz_mod(tmp1, self.value, self.prime_pow.pow_mpz_t_tmp(aprec))
+        mpz_mod(tmp2, (<pAdicCappedAbsoluteElement>right).value, self.prime_pow.pow_mpz_t_tmp(aprec))
         if mpz_cmp(tmp1, tmp2) == 0:
             mpz_clear(tmp1)
             mpz_clear(tmp2)
@@ -616,7 +616,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef object teichmuller_list(pAdicCappedAbsoluteElement self):
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
         cdef unsigned long curpower
-        cdef mpz_t tmp
+        cdef mpz_t tmp, tmp2
         cdef pAdicCappedAbsoluteElement list_elt
         ans = PyList_New(0)
         curpower = self.absprec
@@ -626,10 +626,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             list_elt = self._new_c()
             list_elt.set_precs(curpower)
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, self.prime_pow.dense_list[curpower])
+            tmp2 = self.prime_pow.pow_mpz_t(curpower)
+            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
+            if curpower > self.prime_pow.cache_limit and curpower != self.prime_pow.prec_cap:
+                mpz_clear(tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
-            mpz_mod(tmp, tmp, self.prime_pow.dense_list[curpower])
+            mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower))
             PyList_Append(ans, list_elt)
         mpz_clear(tmp)
         return ans
@@ -645,7 +648,10 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if aprec > self.prime_pow._cache_limit:
             aprec = self.prime_pow._cache_limit
         self.set_precs(aprec)
-        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, self.prime_pow.dense_list[self.absprec])
+        cdef mpz_t tmp2 = self.prime_pow.pow_mpz_t(self.absprec)
+        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp2)
+        if self.absprec > self.prime_pow.cache_limit and self.absprec != self.prime_pow.prec_cap:
+            mpz_clear(tmp2)
 
     def log_artin_hasse(self):
         raise NotImplementedError
@@ -668,13 +674,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(tmp)
-        mpz_sub_ui(tmp, self.prime_pow.dense_list[self.absprec], 1)
+        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_t_tmp(self.absprec), 1)
         if mpz_cmp(self.value, tmp) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.dense_list[self.absprec])
+        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
         if mpz_cmp(tmp, self.value) == 0:
             mpz_clear(tmp)
             return self.residue(1).multiplicative_order()

@@ -17,6 +17,7 @@ include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
+import weakref
 
 ZZ_pContextDict = {}
 
@@ -52,7 +53,6 @@ cdef class ntl_ZZ_pContext_class:
 
     def __new__(self, ntl_ZZ v):
         ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
-        ZZ_pContextDict[repr(<ntl_ZZ>v)] = self
         self.p = v
         self.p_bits = self.p._integer_().bits()
 
@@ -125,7 +125,10 @@ def ntl_ZZ_pContext( v ):
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
         raise ValueError, "%s is not a valid modulus."%v
-    try:
-        return ZZ_pContextDict[repr(v)]
-    except KeyError:
-        return ntl_ZZ_pContext_class(v)
+    if ZZ_pContextDict.has_key(v):
+        context = ZZ_pContextDict[v]()
+        if context is not None:
+            return context
+    context = ntl_ZZ_pContext_class(v)
+    ZZ_pContextDict[v] = weakref.ref(context)
+    return context

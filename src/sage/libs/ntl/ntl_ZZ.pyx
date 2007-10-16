@@ -72,7 +72,9 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
-        if PY_TYPE_CHECK(v, ntl_ZZ):
+        if PY_TYPE_CHECK(v, ZZ_c):
+            self.x = v
+        elif PY_TYPE_CHECK(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
             ZZ_conv_int(self.x, v)

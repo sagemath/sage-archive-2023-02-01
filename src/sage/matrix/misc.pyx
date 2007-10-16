@@ -74,6 +74,7 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
         L_row.num_nonzero = A_row.num_nonzero
         if L_row.entries == NULL:
             raise MemoryError, "error allocating space for sparse vector during sparse lift"
+        sage_free(L_row.positions)
         L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
         if L_row.positions == NULL:
             sage_free(L_row.entries)

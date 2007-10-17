@@ -14,18 +14,18 @@
     <script src='sorttable.js' type='text/javascript'></script>
 </head>
 <body>
+    <div id='page'>
     <div id='header'>
-        <div id='title'><h1>DSAGE Job Status</h1></div>
-        <form name="show_jobs" method="POST">
-        <b>Show</b>
-        <input type="radio" name="filter" value="all" checked="true"> all
-        <input type="radio" name="filter" value="completed"> completed
-        <input type="radio" name="filter" value="new"> new
-        <input type="radio" name="filter" value="processing"> processing
-        </form>
+        Distributed SAGE
     </div>
-
-    <table id='jobs_table' class='sortable' >
-    </table>
+    <center>
+    <ul id="tabnav">
+    	<li class="tab1"><a href="#">Job Status</a></li>
+    	<li class="tab2"><a href="#">Server Status</a></li>
+    	<li class="tab3"><a href="#">Submit Job</a></li>
+    	<li class="tab4"><a href="#">Help</a></li>
+    </ul>
+    </center>
+    </div>
 </body>
 </html>

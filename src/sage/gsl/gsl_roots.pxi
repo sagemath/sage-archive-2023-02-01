@@ -40,8 +40,7 @@ cdef extern from "gsl/gsl_roots.h":
   double gsl_root_fsolver_x_upper ( gsl_root_fsolver * s)
 
 
-  gsl_root_fdfsolver *
-  gsl_root_fdfsolver_alloc ( gsl_root_fdfsolver_type * T)
+  gsl_root_fdfsolver * gsl_root_fdfsolver_alloc ( gsl_root_fdfsolver_type * T)
 
   int gsl_root_fdfsolver_set (gsl_root_fdfsolver * s,
                            gsl_function_fdf * fdf, double root)
@@ -57,8 +56,7 @@ cdef extern from "gsl/gsl_roots.h":
 
   int gsl_root_test_residual (double f, double epsabs)
 
-  int
-  gsl_root_test_delta (double x1, double x0, double epsabs, double epsrel)
+  int gsl_root_test_delta (double x1, double x0, double epsabs, double epsrel)
 
   gsl_root_fsolver_type  * gsl_root_fsolver_bisection
   gsl_root_fsolver_type  * gsl_root_fsolver_brent

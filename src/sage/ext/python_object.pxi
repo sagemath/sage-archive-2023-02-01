@@ -72,6 +72,8 @@ cdef extern from "Python.h":
     # otherwise. This is the equivalent of the Python expression "o1
     # op o2", where op is the operator corresponding to opid.
 
+    int Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+
     int PyObject_Cmp(object o1, object o2, int *result)
     # Compare the values of o1 and o2 using a routine provided by o1,
     # if one exists, otherwise with a routine provided by o2. The

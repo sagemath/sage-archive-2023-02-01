@@ -162,7 +162,6 @@ class DSageServer(pb.Root):
 
         """
 
-
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, submit_job] %s' % (jdict))
         if jdict['code'] is None:
@@ -282,6 +281,9 @@ class DSageServer(pb.Root):
             s = ['[DSage, job_failed] Job %s failed ' % (job_id),
                  '%s times. ' % (job.failures)]
             log.msg(''.join(s))
+            if job.status == 'failed':
+                msg = '%s failed, removing from queue.' % (job_id)
+                log.msg(msg)
 
         return self.jobdb.store_job(job.reduce())
 

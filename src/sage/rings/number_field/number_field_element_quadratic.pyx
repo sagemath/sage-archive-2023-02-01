@@ -1,5 +1,9 @@
-"""nodoctest
-Not done.
+"""
+Optimized Quadratic Number Field Elements
+
+AUTHORS:
+    -- Robert Bradshaw (2007-09): Initial version
+    -- David Harvey (2007-10): fix up a few bugs, polish around the edges
 """
 #*****************************************************************************
 #     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -15,15 +19,6 @@ Not done.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-"""
-Optimized Quadratic Number Field Elements
-
-NO TESTS => BROKEN!
-
-AUTHORS:
-    -- Robert Bradshaw (2007-09): Initial version
-"""
 
 include '../../ext/interrupt.pxi'
 include "../../ext/stdsage.pxi"
@@ -41,10 +36,15 @@ cdef object QQ, ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 
-cdef mpz_to_str(mpz_t z):
-    cdef Integer zz = PY_NEW(Integer)
-    mpz_set(zz.value, z)
-    return str(zz)
+
+# TODO: this doesn't belong here, but robert thinks it would be nice
+# to have globally available....
+#
+# cdef mpz_to_str(mpz_t z):
+#     cdef Integer zz = PY_NEW(Integer)
+#     mpz_set(zz.value, z)
+#     return str(zz)
+
 
 def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
     """
@@ -59,11 +59,14 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
 
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
-    # (a + b sqrt(disc)) / denom
     def __init__(self, parent, f):
         """
         Construct a NumberFieldElement_quadratic object as an efficiently
         represented member of an absolute quadratic field.
+
+        Elements are represented internally as triples (a, b, denom) of integers,
+        where gcd(a, b, denom) == 1 and denom > 0, representing the element
+        (a + b*sqrt(disc)) / denom.
 
         TESTS:
             sage: from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -111,6 +114,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic gen
 
         if PY_TYPE_CHECK(f, NumberFieldElement_quadratic):
+            self._parent = parent   # NOTE: We do *not* call NumberFieldElement_absolute.__init__, for speed reasons.
             mpz_set(self.a, (<NumberFieldElement_quadratic>f).a)
             mpz_set(self.b, (<NumberFieldElement_quadratic>f).b)
             mpz_set(self.denom, (<NumberFieldElement_quadratic>f).denom)
@@ -124,8 +128,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         elif PY_TYPE_CHECK_EXACT(f, tuple) and len(f) == 2:
             NumberFieldElement_absolute.__init__(self, parent, None)
             ad, bd = f
-            mpz_set(self.a, a.value)
-            mpz_set(self.b, b.value)
             mpz_lcm(self.denom, mpq_denref(ad.value), mpq_denref(bd.value))
             mpz_divexact(self.a, self.denom, mpq_denref(ad.value))
             mpz_mul(self.a, self.a, mpq_numref(ad.value))
@@ -156,15 +158,45 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 mpz_set_ui(self.denom, 1)
 
+    cdef number_field(self):
+        return self._parent
+
+    def __copy__(self):
+        r"""
+        Returns a new copy of self.
+
+        TESTS:
+            sage: K.<a> = QuadraticField(-3)
+            sage: b = a + 3
+            sage: c = b.__copy__()
+            sage: b
+            a + 3
+            sage: c
+            a + 3
+            sage: b is c
+            False
+            sage: b == c
+            True
+        """
+        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>self._new()
+        mpz_set(x.a, self.a)
+        mpz_set(x.b, self.b)
+        mpz_set(x.denom, self.denom)
+        x.disc = self.disc
+        return x
+
+
     def __new__(self, parent=None, f=None):
         mpz_init(self.a)
         mpz_init(self.b)
         mpz_init(self.denom)
 
+
     def __dealloc__(self):
         mpz_clear(self.a)
         mpz_clear(self.b)
         mpz_clear(self.denom)
+
 
     def __reduce__(self):
         """
@@ -183,10 +215,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic0, (self._parent, a, b, denom)
 
+
     def parts(self):
         """
-        This function returns the internal representation of self as
-        a pair of rationals $a$ and $b$, where self = $a+b\sqrt{D}$.
+        This function returns a pair of rationals $a$ and $b$ such that
+        self = $a+b\sqrt{D}$.
 
         This is much closer to the internal storage format of the
         elements, unless the generator is equal to $\sqrt{D}$ will
@@ -228,15 +261,24 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return ad, bd
 
     cdef bint is_sqrt_disc(self):
-        return mpz_cmp_ui(self.denom, 1)==0 and mpz_cmp_ui(self.a,0)==0 and mpz_cmp_ui(self.b, 1)==0
+        r"""
+        Returns true if self is sqrt(D).
+        """
+        return mpz_cmp_ui(self.denom, 1)==0 and mpz_cmp_ui(self.a, 0)==0 and mpz_cmp_ui(self.b, 1)==0
 
 
 #########################################################
-# Arithmatic
+# Arithmetic
 #########################################################
 
     cdef void _reduce_c_(self):
+        r"""
+        Reduces into canonical form.
+
+        WARNING: this mutates self.
+        """
         cdef mpz_t gcd
+        # cancel out common factors
         mpz_init(gcd)
         mpz_gcd(gcd, self.a, self.denom)
         mpz_gcd(gcd, gcd, self.b)
@@ -244,7 +286,13 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_divexact(self.a, self.a, gcd)
             mpz_divexact(self.b, self.b, gcd)
             mpz_divexact(self.denom, self.denom, gcd)
+        # make denominator positive
+        if mpz_sgn(self.denom) < 0:
+            mpz_neg(self.denom, self.denom)
+            mpz_neg(self.a, self.a)
+            mpz_neg(self.b, self.b)
         mpz_clear(gcd)
+
 
     cdef ModuleElement _add_c_impl(self, ModuleElement other_m):
         """
@@ -302,6 +350,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement other_m):
         """
         EXAMPLES:
@@ -348,6 +397,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
+
     def __neg__(self):
         """
         EXAMPLES:
@@ -366,6 +416,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
         return res
+
 
     cdef RingElement _mul_c_impl(self, RingElement other_m):
         """
@@ -420,11 +471,10 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_clear(tmp)
             _sig_off
 
-
         mpz_mul(res.denom, self.denom, other.denom)
         res._reduce_c_()
-
         return res
+
 
     cdef ModuleElement _rmul_c_impl(self, RingElement _c):
         """
@@ -442,6 +492,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
+
     cdef ModuleElement _lmul_c_impl(self, RingElement _c):
         """
         EXAMPLE:
@@ -458,6 +509,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
+
     cdef RingElement _div_c_impl(self, RingElement other):
         """
         EXAMPLES:
@@ -472,6 +524,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             5*a + 2/7
         """
         return self * ~other
+
 
     def __invert__(self):
         """
@@ -524,6 +577,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
+
     cdef NumberFieldElement conjugate_c(self):
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         res.disc = self.disc
@@ -531,6 +585,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
         return res
+
 
 #################################################################################
 # We must override everything that makes uses of self.__numerator/__denominator
@@ -552,6 +607,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             or not mpz_cmp(self.b, right.b)==0  \
             or not mpz_cmp(self.denom, right.denom) == 0
 
+
     def __nonzero__(self):
         """
         EXAMPLES:
@@ -562,6 +618,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
         """
         return mpz_cmp_ui(self.a, 0) != 0 or mpz_cmp_ui(self.b, 0) != 0
+
 
     def _integer_(self):
         """
@@ -581,6 +638,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             res = PY_NEW(Integer)
             mpz_set(res.value, self.a)
             return res
+
 
     def _rational_(self):
         """
@@ -603,6 +661,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
+
     def _coefficients(self):
         """
         EXAMPLES:
@@ -617,7 +676,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             [1/5, 3]
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
         cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
         ad, bd = self.parts()
         if not self:
@@ -631,6 +690,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             scale = bd/beta
             return [ad - scale*alpha, scale]
 
+
     def denominator(self):
         """
         EXAMPLES:
@@ -640,20 +700,35 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: b = (2*a+1)/6
             sage: b.denominator()
             6
+            sage: K(1).denominator()
+            1
+            sage: K(1/2).denominator()
+            2
+            sage: K(0).denominator()
+            1
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self._parent.gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
         cdef Integer denom
         if gen.is_sqrt_disc():
             denom = PY_NEW(Integer)
             mpz_set(denom.value, self.denom)
             return denom
         else:
-            const, lin = self._coefficients()
+            c = self._coefficients()
+            if len(c) == 2:
+                const, lin = c
+            elif len(c) == 1:
+                const = c[0]
+                lin = Rational(0)
+            else:
+                const = lin = Rational(0)
             return const.denominator().lcm(lin.denominator())
+
 
     cdef bint is_rational_c(self):
         return mpz_cmp_ui(self.b, 0) == 0
+
 
 #########################################################
 # Some things are so much easier to compute
@@ -677,6 +752,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             6
             sage: (a+4).trace()
             8
+            sage: (a/3+1).trace()
+            2
         """
         # trace = 2*self.a / self.denom
         cdef Rational res = <Rational>PY_NEW(Rational)
@@ -686,7 +763,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             mpz_set(mpq_numref(res.value), self.a)
             mpz_divexact_ui(mpq_denref(res.value), self.denom, 2)
+        mpq_canonicalize(res.value)
         return res
+
 
     def norm(self):
         """
@@ -720,6 +799,51 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpq_canonicalize(res.value)
         return res
 
+
+    def is_integral(self):
+        r"""
+        Returns whether this element is an algebraic integer.
+
+        TESTS:
+            sage: K.<a> = QuadraticField(-1)
+            sage: a.is_integral()
+            True
+            sage: K(1).is_integral()
+            True
+            sage: K(1/2).is_integral()
+            False
+            sage: K(a/2).is_integral()
+            False
+            sage: K((a+1)/2).is_integral()
+            False
+            sage: K(a/3).is_integral()
+            False
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: a.is_integral()
+            True
+            sage: K(1).is_integral()
+            True
+            sage: K(1/2).is_integral()
+            False
+            sage: K(a/2).is_integral()
+            False
+            sage: ((a+1)/2).is_integral()
+            True
+        """
+        if mpz_cmp_ui(self.denom, 1) == 0:
+            return True
+        if mpz_cmp_ui(self.denom, 3) >= 0:
+            return False
+        # if the denominator is exactly 2, need to check discriminant
+        if mpz_even_p(self.disc.value):
+            return bool(mpz_even_p(self.a))
+        if mpz_even_p(self.a):
+            return bool(mpz_even_p(self.b))
+        else:
+            return bool(mpz_odd_p(self.b))
+
+
     def charpoly(self, var='x'):
         r"""
         The characteristic polynomial of this element over $\Q$.
@@ -737,9 +861,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         R = QQ[var]
         return R([self.norm(), -self.trace(), 1])
 
-    def minopily(self, var='x'):
+
+    def minpoly(self, var='x'):
         r"""
         The minimal polynomial of this element over $\Q$.
+
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+13)
             sage: a.minpoly()
@@ -747,9 +873,32 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: (a+1/2-a).minpoly()
             x - 1/2
         """
-
         if self.is_rational_c():
             R = QQ[var]
             return R([-self._rational_(), 1])
         else:
             return self.charpoly()
+
+
+cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
+    """
+    Element of an order in a quadratic field.
+
+    EXAMPLES:
+        sage: K.<a> = NumberField(x^2 + 1)
+        sage: O2 = K.order(2*a)
+        sage: w = O2.1; w
+        2*a
+        sage: parent(w)
+        Order in Number Field in a with defining polynomial x^2 + 1
+    """
+    def __init__(self, order, f):
+        K = order.number_field()
+        NumberFieldElement_quadratic.__init__(self, K, f)
+        (<Element>self)._parent = order
+
+    cdef number_field(self):
+        # So few functions actually use self.number_field() for quadratic elements, so
+        # it is better *not* to return a cached value (since the call to _parent.number_field())
+        # is expensive.
+        return self._parent.number_field()

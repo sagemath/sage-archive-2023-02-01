@@ -45,6 +45,7 @@ from sage.dsage.server.server import DSageServer
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.config import check_dsage_dir
+from sage.dsage.misc.misc import find_open_port
 
 def usage():
     """
@@ -116,6 +117,7 @@ def usage():
     return options
 
 def write_stats(dsage_server, stats_file):
+    check_dsage_dir()
     try:
         fname = os.path.join(DSAGE_DIR, stats_file)
         f = open(fname, 'w')
@@ -200,62 +202,34 @@ def main(options):
     tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
     tsk1.start(2.0, now=False)
 
+    SERVER_PORT = find_open_port()
     attempts = 0
-    err_msg = "Could not find an open port after 50 attempts."
-    NEW_CLIENT_PORT = CLIENT_PORT
-    while True:
-        if attempts > 50:
-            log.err(err_msg)
-            log.err('Last attempted port: %s' % (NEW_CLIENT_PORT))
-            sys.exit(-1)
-        try:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect(('', NEW_CLIENT_PORT))
-                port_used = True
-            except socket.error, msg:
-                port_used = False
-            if not port_used:
-                if SSL:
-                    ## This for OpenSSL, SAGE uses GNUTLS now
-                    ## ssl_context = ssl.DefaultOpenSSLContextFactory(
-                    ##                 SSL_PRIVKEY, SSL_CERT)
-                    ## reactor.listenSSL(NEW_CLIENT_PORT,
-                    ##                   client_factory,
-                    ##                   contextFactory = ssl_context)
-                    cert = X509Certificate(open(SSL_CERT).read())
-                    key = X509PrivateKey(open(SSL_PRIVKEY).read())
-                    cred = X509Credentials(cert, key)
-                    cred.verify_peer = False # Do not verify certs
-                    cred.session_params.compressions = (COMP_LZO,
-                                                        COMP_DEFLATE,
-                                                        COMP_NULL)
-                    reactor.listenTLS(NEW_CLIENT_PORT, client_factory, cred)
-                    break
-                else:
-                    reactor.listenTCP(NEW_CLIENT_PORT, client_factory)
-                    break
-            else:
-                raise SystemError('Trying to bind to open port: '
-                                  + '%s.' % (NEW_CLIENT_PORT))
-        except (SystemError, error.CannotListenError):
-            attempts += 1
-            NEW_CLIENT_PORT += 1
-        except Exception, msg:
-            print 'Exception: ', msg
-            if SSL:
-                print 'Error starting server with SSL enabled, please ' + \
-                      'check your configuration'
-            else:
-                print 'Error starting server, please check your configuration'
-            sys.exit()
-
-    if CLIENT_PORT != NEW_CLIENT_PORT:
-        log.msg(DELIMITER)
-        log.msg("***NOTICE***")
-        log.msg("Changing listening port " +
-                "to %s" % (NEW_CLIENT_PORT))
-        log.msg(DELIMITER)
+    try:
+        if SSL:
+            ## This for OpenSSL, SAGE uses GNUTLS now
+            ## ssl_context = ssl.DefaultOpenSSLContextFactory(
+            ##                 SSL_PRIVKEY, SSL_CERT)
+            ## reactor.listenSSL(NEW_CLIENT_PORT,
+            ##                   client_factory,
+            ##                   contextFactory = ssl_context)
+            cert = X509Certificate(open(SSL_CERT).read())
+            key = X509PrivateKey(open(SSL_PRIVKEY).read())
+            cred = X509Credentials(cert, key)
+            cred.verify_peer = False # Do not verify certs
+            cred.session_params.compressions = (COMP_LZO,
+                                                COMP_DEFLATE,
+                                                COMP_NULL)
+            reactor.listenTLS(SERVER_PORT, client_factory, cred)
+        else:
+            reactor.listenTCP(SERVER_PORT, client_factory)
+    except Exception, msg:
+        print 'Exception: ', msg
+        if SSL:
+            print 'Error starting server with SSL enabled, please ' + \
+                  'check your configuration.'
+        else:
+            print 'Error starting server, please check your configuration'
+        sys.exit()
 
     log.msg(DELIMITER)
     log.msg('DSAGE Server')
@@ -264,7 +238,7 @@ def main(options):
         log.msg('Using SSL: True')
     else:
         log.msg('Using SSL: False')
-    log.msg('Listening on port: %s' % (NEW_CLIENT_PORT))
+    log.msg('Listening on port: %s' % (SERVER_PORT))
     log.msg(DELIMITER)
 
     # Code below can be turned on to do countrefs

@@ -967,8 +967,17 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bug
         return _n
 
-
     def _replace_self_with_numpy(self,numpy_matrix):
+        """
+        EXAMPLES:
+            sage: import numpy
+            sage: a = numpy.array([[1,2],[3,4]], 'float64')
+            sage: m = matrix(RDF,2,2,0)
+            sage: m._replace_self_with_numpy(a)
+            sage: m
+            [1.0 2.0]
+            [3.0 4.0]
+        """
         if self._nrows == 0 or self._ncols == 0:
             return
         cdef ndarray n
@@ -976,6 +985,31 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         n = numpy_matrix
         p=<double *>n.data
         memcpy(self._matrix.data,p,sizeof(double)*self._nrows*self._ncols)
+
+
+    def _replace_self_with_numpy32(self,numpy_matrix):
+        """
+        EXAMPLES:
+            sage: import numpy
+            sage: a = numpy.array([[1,2],[3,4]], 'float32')
+            sage: m = matrix(RDF,2,2,0)
+            sage: m._replace_self_with_numpy32(a)
+            sage: m
+            [1.0 2.0]
+            [3.0 4.0]
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return
+        cdef ndarray n
+        cdef float *nd
+        cdef double *md
+        cdef int i
+
+        n = numpy_matrix
+        nd = <float *>n.data
+        md = <double *>self._matrix.data
+        for i from 0 <= i < self._nrows*self._ncols:
+            md[i] = <double> nd[i]
 
 
 

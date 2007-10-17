@@ -189,6 +189,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
+
 from sage.interfaces.all import gap, maxima
 from sage.rings.all import QQ, RR, ZZ
 from sage.rings.arith import binomial
@@ -1785,16 +1787,17 @@ def number_of_partitions(n,k=None, algorithm='default'):
              cardinality of the set of all (unordered) partitions of
              the positive integer n into sums with k summands.
         algorithm -- (default: 'default')
-            'bober' -- use Jonathon Bober's implementation (*very* fast,
-                      but new and not well tested yet).
+            'default' -- If k is not None, then use Gap (very slow).
+                         If k is None, use Jon Bober's highly
+                         optimized implementation (this is the fastest
+                         code in the world for this problem).
+            'bober' -- use Jonathon Bober's implementation
             'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*
                       PARI has a bug, e.g., on 64-bit Linux PARI-2.3.2
                       outputs numbpart(147007)%1000 as 536, but it
                       should be 533!.  So do not use this option.
-            'default' -- 'bober' when k is not specified; otherwise
-                      use 'gap'.
 
     IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
@@ -1840,6 +1843,8 @@ def number_of_partitions(n,k=None, algorithm='default'):
         37338
         sage: number_of_partitions(100)
         190569292
+        sage: number_of_partitions(100000)
+        27493510569775696512677516320986352688173429315980054758203125984302147328114964173055050741660736621590157844774296248940493063070200461792764493033510116079342457190155718943509725312466108452006369558934464248716828789832182345009262853831404597021307130674510624419227311238999702284408609370935531629697851569569892196108480158600569421098519
 
     A generating function for p(n) is given by the reciprocal of
     Euler's function:
@@ -1860,28 +1865,70 @@ def number_of_partitions(n,k=None, algorithm='default'):
     REFERENCES:
         http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
+    TESTS:
+        sage: n = 500 + randint(0,500)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1500 + randint(0,1500)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000 + randint(0,1000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 100000000 + randint(0,100000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
+        True
+        sage: n = 1000000000 + randint(0,1000000000)
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0      # takes a long time
+        True
+
+    Another consistency test for n up to 500:
+        sage: len([n for n in [1..500] if number_of_partitions(n) != number_of_partitions(n,algorithm='pari')])
+        0
     """
     n = ZZ(n)
     if n < 0:
         raise ValueError, "n (=%s) must be a nonnegative integer"%n
     elif n == 0:
         return ZZ(1)
-    if algorithm == 'gap' or (not k is None and algorithm=='default'):
+
+    if algorithm == 'default':
+        if k is None:
+            algorithm = 'bober'
+        else:
+            algorithm = 'gap'
+
+    if algorithm == 'gap':
         if k is None:
             ans=gap.eval("NrPartitions(%s)"%(ZZ(n)))
         else:
             ans=gap.eval("NrPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
         return ZZ(ans)
-    if not k is None:
+
+    if k is not None:
         raise ValueError, "only the GAP algorithm works if k is specified."
-    if algorithm == 'default' and k is None:
+
+    if algorithm == 'bober':
         return partitions_ext.number_of_partitions(n)
-    elif algorithm == 'bober' and k is None:
-        return partitions_ext.number_of_partitions(n)
+
     elif algorithm == 'pari':
-        if not k is None:
-            raise ValueError, "cannot specify second argument k if the algorithm is PARI"
         return ZZ(pari(ZZ(n)).numbpart())
+
     raise ValueError, "unknown algorithm '%s'"%algorithm
 
 def partitions(n):

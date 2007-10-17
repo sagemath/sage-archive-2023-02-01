@@ -68,7 +68,12 @@ def setup_client(testing=False):
     print "Just hit enter when prompted for a passphrase"
     print DELIMITER
     cmd = ["ssh-keygen", "-q", "-trsa", "-f%s" % key_file]
-    p = subprocess.call(cmd)
+    ld = os.environ['LD_LIBRARY_PATH']
+    try:
+        del os.environ['LD_LIBRARY_PATH']
+        p = subprocess.call(cmd)
+    finally:
+        os.environ['LD_LIBRARY_PATH'] = ld
     print "\n"
     print "Client configuration finished.\n"
 

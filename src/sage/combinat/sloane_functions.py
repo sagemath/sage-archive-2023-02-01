@@ -23,7 +23,7 @@ The input must be a positive integer:
     sage: a(1/3)
     Traceback (most recent call last):
     ...
-    TypeError: no coercion of this rational to integer
+    TypeError: input must be an int, long, or Integer
 
 You can also change how a sequence prints:
     sage: a = sloane.A000005; a
@@ -101,6 +101,7 @@ from sage.rings.integer_ring import ZZ
 import sage.calculus.all as calculus
 from sage.functions.transcendental import prime_pi
 import partition
+from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ
 
@@ -126,6 +127,8 @@ class SloaneSequence(SageObject):
         return cmp(repr(self), repr(other))
 
     def __call__(self, n):
+        if not isinstance(n, (int, long, Integer_class)):
+            raise TypeError, "input must be an int, long, or Integer"
         m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
@@ -510,7 +513,7 @@ class A003418(SloaneSequence):
         sage: a(20.0)
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce element to an integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-31)
@@ -654,7 +657,7 @@ class A008277(SloaneSequence):
         sage: a(4.0)
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce element to an integer
+        TypeError: input must be an int, long, or Integer
         sage: a.list(15)
         [1, 1, 1, 1, 3, 1, 1, 7, 6, 1, 1, 15, 25, 10, 1]
 
@@ -771,7 +774,7 @@ class A000010(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
 
     AUTHOR:
@@ -839,7 +842,7 @@ class A005843(SloaneSequence):
         sage: a(0.0)
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce element to an integer
+        TypeError: input must be an int, long, or Integer
         sage: a(1)
         2
         sage: a(2)
@@ -880,7 +883,7 @@ class A000035(SloaneSequence):
         sage: a(0.0)
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce element to an integer
+        TypeError: input must be an int, long, or Integer
         sage: a(1)
         1
         sage: a(2)
@@ -1135,7 +1138,7 @@ class A000326(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-26)
@@ -2693,7 +2696,7 @@ class A000045(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -2976,7 +2979,7 @@ class A000583(SloaneSequence):
         sage: a(0.0)
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce element to an integer
+        TypeError: input must be an int, long, or Integer
         sage: a(1)
         1
         sage: a(2)
@@ -4390,7 +4393,7 @@ class A000203(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -6505,7 +6508,7 @@ class A111774(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -6629,7 +6632,7 @@ class A111775(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: input must be an int, long, or Integer
 
     AUTHOR:
         -- Jaap Spies (2006-12-09)

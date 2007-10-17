@@ -878,9 +878,18 @@ class AlgebraicRealNumberRational(AlgebraicRealNumberDescr):
     """
 
     def __init__(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
+        """
+        TESTS:
+            sage: polygen(AA) / int(3)
+            1/3*x
+            sage: AA(int(7)) / AA(long(2))
+            7/2
+        """
+        if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._value = x
+        elif isinstance(x, (int, long)):
+            self._value = ZZ(x)
         else:
             raise TypeError, "Illegal initializer for algebraic number rational"
 
@@ -1242,6 +1251,59 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
         return AlgebraicRealNumber(AlgebraicRealNumberRoot(poly, RIF(result_min, result_max)))
+
+    def __hash__(self):
+        """
+        Compute a hash code for this number (equal algebraic reals will
+        have the same hash code, different algebraic reals are likely
+        to have different hash codes).
+
+        This may trigger exact computation, but that is very unlikely.
+
+        TESTS:
+        The hash code is stable, even when the representation changes.
+            sage: two = sqrt(AA(4))
+            sage: two
+            [1.9999999999999997 .. 2.0000000000000005]
+            sage: h1 = hash(two)
+            sage: two == 2
+            True
+            sage: two
+            2
+            sage: h2 = hash(two)
+            sage: h1 == h2
+            True
+
+        Unfortunately, the hash code for algebraic reals which are close
+        enough to each other are the same.  (This is inevitable, if
+        equal algebraic reals give the same hash code and hashing does
+        not trigger exact computation.)
+            sage: h1 = hash(AA(0))
+            sage: h2 = hash(AA(1/2^100))
+            sage: hash(h1) == hash(h2)
+            True
+        """
+
+        # The only way I can think of to hash algebraic reals without
+        # always triggering exact computation is to use interval_exact().
+        # However, interval_exact() always triggers exact computation
+        # if the number is exactly representable in floating point, which
+        # is presumably not too unlikely (algebraic reals like 0, 1/2,
+        # 1, or 2 are presumably not uncommon).
+
+        # So I modify the algebraic real by adding 1/123456789 to it before
+        # calling interval_exact().  Then, exact computation will be triggered
+        # by algebraic reals which are sufficiently close to
+        # (some floating point number minus 1/123456789).  Hopefully,
+        # -1/123456789 comes up in algebraic real computations far less
+        # often than 0 does.
+
+        # All of this effort to avoid exact computation is probably wasted,
+        # anyway... in almost all uses of hash codes, if the hash codes
+        # match, the next step is to compare for equality; and comparing
+        # for equality always triggers exact computation.
+
+        return hash((self + AA_1_123456789).interval_exact(RIF))
 
     def sqrt(self):
         return self.__pow__(~ZZ(2))
@@ -2214,3 +2276,6 @@ ax = AAPoly.gen()
 def pari_nf_hack(k):
     f = k.pari_polynomial().subst('x','y')
     return f.nfinit(1)
+
+AA_1_123456789 = AA(~ZZ(123456789))
+

@@ -27,7 +27,7 @@ cdef make_GF2X(GF2X_c *x):
     cdef ntl_GF2X y
     _sig_off
     y = ntl_GF2X()
-    y.gf2x_x = x[0]
+    y.x = x[0]
     GF2X_delete(x)
     return y
 
@@ -78,9 +78,9 @@ def GF2X_hex_repr(have_hex=None):
         return __have_GF2X_hex_repr
 
     if have_hex==True:
-        GF2X_hex(1)
+        G2XHaveHexOutput = 1
     else:
-        GF2X_hex(0)
+        G2XHaveHexOutput = 0
     __have_GF2X_hex_repr=have_hex
 
 def ntl_GF2E_modulus(p=None):
@@ -118,7 +118,7 @@ def ntl_GF2E_modulus(p=None):
     if(elem.degree()<1):
         raise "DegreeToSmall"
 
-    ntl_GF2E_set_modulus(<GF2X_c*>&elem.gf2x_x)
+    ntl_GF2E_set_modulus(<GF2X_c*>&elem.x)
     __have_GF2E_modulus = True
 
 def ntl_GF2E_modulus_degree():
@@ -236,7 +236,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         s = str(ntl_GF2X(x))
         _sig_on
         GF2E_from_str(&self.gf2e_x, s)
-        self.gf2x_x = GF2E_rep(self.gf2e_x)
+        self.x = GF2E_rep(self.gf2e_x)
         _sig_off
 
     def __new__(self, x=[]):
@@ -412,7 +412,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         cdef ntl_GF2E r = ntl_GF2E()
         _sig_on
         r.gf2e_x = self.gf2e_x
-        r.gf2x_x = self.gf2x_x
+        r.x = self.x
         _sig_off
         return r
 
@@ -431,7 +431,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         cdef ntl_GF2E r = ntl_GF2E()
         _sig_on
         r.gf2e_x = self.gf2e_x
-        r.gf2x_x = self.gf2x_x
+        r.x = self.x
         _sig_off
         return r
 
@@ -462,7 +462,7 @@ cdef class ntl_GF2E(ntl_GF2X):
             [1 0 0 0 0 0 1 1]
         """
         cdef ntl_GF2X x = ntl_GF2X()
-        x.gf2x_x = self.gf2x_x
+        x.x = self.x
         return x
 
     def _sage_(ntl_GF2E self, k=None, cache=None):

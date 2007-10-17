@@ -1,5 +1,6 @@
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -18,7 +19,13 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+cdef extern from "ntl_wrap.h":
+    pass
+
+from sage.rings.integer cimport Integer
+
 from ntl_ZZ import unpickle_class_value
+from ntl_GF2 cimport ntl_GF2
 
 ##############################################################################
 #
@@ -27,11 +34,10 @@ from ntl_ZZ import unpickle_class_value
 # AUTHORS:
 #  - Martin Albrecht <malb@informatik.uni-bremen.de>
 #    2006-01: initial version (based on code by William Stein)
+#  - Martin Albrecht <malb@informatik.uni-bremen.de>
+#    2007-10: adapted to new conventions
 #
 ##############################################################################
-
-## cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
-
 
 cdef class ntl_GF2X:
     """
@@ -70,41 +76,54 @@ cdef class ntl_GF2X:
             [1 0 1 1 1 0 0 0 1]
             sage: ntl.GF2X(2)
             [0 1]
+            sage: ntl.GF2X(ntl.GF2(1))
+            [1]
         """
+
         from sage.rings.finite_field_element import FiniteField_ext_pariElement
         from sage.rings.finite_field import FiniteField_ext_pari
         from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
         from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_p
-        from sage.rings.integer import Integer
 
-        if isinstance(x, Integer):
+        cdef long _x
+
+        if PY_TYPE_CHECK(x,ntl_GF2):
+            GF2X_conv_GF2(self.x,(<ntl_GF2>x).x)
+            return
+        elif PY_TYPE_CHECK(x,ntl_GF2X):
+            self.x = (<ntl_GF2X>x).x
+            return
+        elif PY_TYPE_CHECK(x,int):
+            _x = x
+            GF2XFromBytes(self.x, <unsigned char *>(&_x),sizeof(long))
+            return
+
+        if PY_TYPE_CHECK(x, Integer):
             #binary repr, reversed, and "["..."]" added
             x="["+x.binary()[::-1].replace(""," ")+"]"
-        elif type(x) == int:
-            #hex repr, "0x" stripped, reversed (!)
-            x="0x"+hex(x)[2:][::-1]
-        elif isinstance(x, Polynomial_dense_mod_p):
+        elif PY_TYPE_CHECK(x, Polynomial_dense_mod_p):
             if x.base_ring().characteristic():
                 x=x._Polynomial_dense_mod_n__poly
-        elif isinstance(x, (FiniteField_ext_pari,FiniteField_givaro)):
+        elif PY_TYPE_CHECK(x, FiniteField_ext_pari) or PY_TYPE_CHECK(x,FiniteField_givaro):
             if x.characteristic() == 2:
                 x= list(x.modulus())
-        elif isinstance(x, FiniteField_ext_pariElement):
+        elif PY_TYPE_CHECK(x, FiniteField_ext_pariElement):
             if x.parent().characteristic() == 2:
                 x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
                 x="0x"+hex(x)[2:][::-1]
-        elif isinstance(x, FiniteField_givaroElement):
+        elif PY_TYPE_CHECK(x, FiniteField_givaroElement):
             x = "0x"+hex(int(x))[2:][::-1]
         s = str(x).replace(","," ")
         _sig_on
-        GF2X_from_str(&self.gf2x_x, s)
+        # TODO: this is very slow, but we wait until somebody complains
+        GF2X_from_str(&self.x, s)
         _sig_off
 
     def __new__(self, x=[]):
-        GF2X_construct(&self.gf2x_x)
+        GF2X_construct(&self.x)
 
     def __dealloc__(self):
-        GF2X_destruct(&self.gf2x_x)
+        GF2X_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -116,7 +135,7 @@ cdef class ntl_GF2X:
             sage: loads(dumps(f)) == f
             True
         """
-        return unpickle_class_value, (ntl_GF2X, self.hex())
+        return unpickle_class_value, (ntl_GF2X, hex(self))
 
     def __repr__(self):
         """
@@ -126,7 +145,7 @@ cdef class ntl_GF2X:
             sage: ntl.GF2X(ntl.ZZ_pX([1,1,3],2)).__repr__()
             '[1 1 1]'
         """
-        return GF2X_to_PyString(&self.gf2x_x)
+        return GF2X_to_PyString(&self.x)
 
     def __mul__(ntl_GF2X self, other):
         """
@@ -135,14 +154,84 @@ cdef class ntl_GF2X:
             sage: f*g ## indirect doctest
             [0 1 0 1 1]
         """
-        cdef ntl_GF2X y
-        cdef ntl_GF2X r = ntl_GF2X()
-        if not isinstance(other, ntl_GF2X):
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
-        y = other
-        _sig_on
-        GF2X_mul(r.gf2x_x, self.gf2x_x, y.gf2x_x)
-        _sig_off
+        GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
+        return r
+
+    def __div__(ntl_GF2X self, b):
+        """
+        EXAMPLES:
+            sage: a = ntl.GF2X(4)
+            sage: a / ntl.GF2X(2)
+            [0 1]
+            sage: a / ntl.GF2X(3)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[0 0 1]) is not divisible by b (=[1 1])
+        """
+        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
+        cdef int divisible
+
+        if not PY_TYPE_CHECK(b, ntl_GF2X):
+            b = ntl_GF2X(b)
+
+        divisible = GF2X_divide(q.x, self.x, (<ntl_GF2X>b).x)
+        if not divisible:
+            raise ArithmeticError, "self (=%s) is not divisible by b (=%s)"%(self, b)
+        return q
+
+    def quo_rem(ntl_GF2X self, b):
+        """
+        EXAMPLES:
+            sage: a = ntl.GF2X(4)
+            sage: a.quo_rem( ntl.GF2X(2) )
+            ([0 1], [])
+            sage: a.quo_rem( ntl.GF2X(3) )
+            ([1 1], [1])
+        """
+        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+
+        if not PY_TYPE_CHECK(b, ntl_GF2X):
+            b = ntl_GF2X(b)
+
+        GF2X_DivRem(q.x, r.x, self.x, (<ntl_GF2X>b).x)
+        return q,r
+
+    def __floordiv__(ntl_GF2X self, b):
+        """
+        EXAMPLES:
+            sage: a = ntl.GF2X(4)
+            sage: a // ntl.GF2X(2)
+            [0 1]
+            sage: a // ntl.GF2X(3)
+            [1 1]
+        """
+        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
+
+        if not PY_TYPE_CHECK(b, ntl_GF2X):
+            b = ntl_GF2X(b)
+
+        GF2X_div(q.x, self.x, (<ntl_GF2X>b).x)
+        return q
+
+    def __mod__(ntl_GF2X self, b):
+        """
+        EXAMPLES:
+            sage: a = ntl.GF2X(4)
+            sage: a % ntl.GF2X(2)
+            []
+            sage: a % ntl.GF2X(3)
+            [1]
+        """
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+
+        if not PY_TYPE_CHECK(b, ntl_GF2X):
+            b = ntl_GF2X(b)
+
+        GF2X_rem(r.x, self.x, (<ntl_GF2X>b).x)
         return r
 
     def __sub__(ntl_GF2X self, other):
@@ -154,14 +243,10 @@ cdef class ntl_GF2X:
             sage: g - f
             [1 1 1 1]
         """
-        cdef ntl_GF2X y
-        cdef ntl_GF2X r = ntl_GF2X()
-        if not isinstance(other, ntl_GF2X):
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
-        y = other
-        _sig_on
-        GF2X_sub(r.gf2x_x, self.gf2x_x, y.gf2x_x)
-        _sig_off
+        GF2X_sub(r.x, self.x, (<ntl_GF2X>other).x)
         return r
 
     def __add__(ntl_GF2X self, other):
@@ -171,14 +256,10 @@ cdef class ntl_GF2X:
             sage: f + g ## indirect doctest
             [1 1 1 1]
         """
-        cdef ntl_GF2X y
-        cdef ntl_GF2X r = ntl_GF2X()
-        if not isinstance(other, ntl_GF2X):
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
-        y = other
-        _sig_on
-        GF2X_add(r.gf2x_x, self.gf2x_x, y.gf2x_x)
-        _sig_off
+        GF2X_add(r.x, self.x, (<ntl_GF2X>other).x)
         return r
 
     def __neg__(ntl_GF2X self):
@@ -190,10 +271,8 @@ cdef class ntl_GF2X:
             sage: f == -f
             True
         """
-        cdef ntl_GF2X r = ntl_GF2X()
-        _sig_on
-        GF2X_negate(r.gf2x_x, self.gf2x_x)
-        _sig_off
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        GF2X_negate(r.x, self.x)
         return r
 
     def __pow__(ntl_GF2X self, long e, ignored):
@@ -203,11 +282,8 @@ cdef class ntl_GF2X:
             sage: f**3 ## indirect doctest
             [1 0 1 1 1 0 0 1 1 1]
         """
-        cdef ntl_GF2X r
-        r = ntl_GF2X()
-        _sig_on
-        GF2X_power(r.gf2x_x, self.gf2x_x, e)
-        _sig_off
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        GF2X_power(r.x, self.x, e)
         return r
 
 
@@ -221,12 +297,94 @@ cdef class ntl_GF2X:
             True
         """
         cdef int t
-        _sig_on
-        t = GF2X_equal(self.gf2x_x, other.gf2x_x)
-        _sig_off
+        t = GF2X_equal(self.x, other.x)
         if t:
             return 0
         return 1
+
+    def __lshift__(ntl_GF2X self, int i):
+        """
+        Return left shift of self by i bits ( == multiplication by
+        $X^i$).
+
+        INPUT:
+            i -- offset/power of X
+
+        EXAMPLES:
+            sage: a = ntl.GF2X(4); a
+            [0 0 1]
+            sage: a << 2
+            [0 0 0 0 1]
+        """
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        GF2X_LeftShift(r.x, self.x, <long>i)
+        return r
+
+    def __rshift__(ntl_GF2X self, int offset):
+        """
+        Return right shift of self by i bits ( == floor division by
+        $X^i$).
+
+        INPUT:
+            i -- offset/power of X
+
+        EXAMPLES:
+            sage: a = ntl.GF2X(4); a
+            [0 0 1]
+            sage: a >> 1
+            [0 1]
+        """
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        GF2X_RightShift(r.x, self.x, <long>offset)
+        return r
+
+    def gcd(ntl_GF2X self, other):
+        """
+        Return gcd of self and other.
+
+        INPUT:
+            other -- ntl.GF2X
+
+        EXAMPLE:
+            sage: a = ntl.GF2X(10)
+            sage: b = ntl.GF2X(4)
+            sage: a.gcd(b)
+            [0 1]
+        """
+        cdef ntl_GF2X gcd = PY_NEW(ntl_GF2X)
+
+        if not PY_TYPE_CHECK(other, ntl_GF2X):
+            other = ntl_GF2X(other)
+
+        gcd.x = GF2X_GCD(self.x, (<ntl_GF2X>other).x)
+        return gcd
+
+    def xgcd(ntl_GF2X self, other):
+        """
+        Return the extended gcd of self and other, i.e., elements r, s, t such that
+
+            r = s  * self + t  * other.
+
+        INPUT:
+            other -- ntl.GF2X
+
+        EXAMPLE:
+            sage: a = ntl.GF2X(10)
+            sage: b = ntl.GF2X(4)
+            sage: r,s,t = a.xgcd(b)
+            sage: r == a*s + t*b
+            True
+
+        """
+        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X s = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X t = PY_NEW(ntl_GF2X)
+
+        if not PY_TYPE_CHECK(other, ntl_GF2X):
+            other = ntl_GF2X(other)
+
+        GF2X_XGCD(r.x, s.x, t.x, self.x, (<ntl_GF2X>other).x)
+        return r,s,t
 
     def degree(ntl_GF2X self):
         """
@@ -236,7 +394,7 @@ cdef class ntl_GF2X:
             sage: ntl.GF2X([1,0,1,1]).degree()
             3
         """
-        return GF2X_deg(self.gf2x_x)
+        return GF2X_deg(self.x)
 
     def list(ntl_GF2X self):
         """
@@ -255,8 +413,10 @@ cdef class ntl_GF2X:
              polynomial representation
         """
         #yields e.g. "[1 1 0 0 1 1 0 1]"
-        #_sig_on
-        s = GF2X_to_bin(&self.gf2x_x)
+        cdef long _hex = GF2XHexOutput
+        GF2XHexOutput = 0
+        s = GF2X_to_PyString(&self.x)
+        GF2XHexOutput = _hex
 
         #yields e.g. [1,1,0,0,1,1,0,1]
         return map(int,list(s[1:][:len(s)-2].replace(" ","")))
@@ -278,9 +438,13 @@ cdef class ntl_GF2X:
         OUTPUT:
             string representing this element in binary digits
         """
-        return GF2X_to_bin(&self.gf2x_x)
+        cdef long _hex = GF2XHexOutput
+        GF2XHexOutput = 0
+        s = GF2X_to_PyString(&self.x)
+        GF2XHexOutput = _hex
+        return s
 
-    def hex(ntl_GF2X self):
+    def __hex__(ntl_GF2X self):
         """
         Returns hexadecimal representation of this element. It is
         the same as setting \code{ntl.hex_output(True)} and
@@ -297,7 +461,11 @@ cdef class ntl_GF2X:
             string representing this element in hexadecimal
 
         """
-        return GF2X_to_hex(&self.gf2x_x)
+        cdef long _hex = GF2XHexOutput
+        GF2XHexOutput = 1
+        s = GF2X_to_PyString(&self.x)
+        GF2XHexOutput = _hex
+        return s
 
     def _sage_(ntl_GF2X self,R=None,cache=None):
         """

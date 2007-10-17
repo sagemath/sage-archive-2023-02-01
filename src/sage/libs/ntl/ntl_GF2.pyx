@@ -48,7 +48,7 @@ cdef class ntl_GF2:
         if PY_TYPE_CHECK(v, ntl_GF2):
             self.x = (<ntl_GF2>v).x
         elif PyInt_Check(v) or PyLong_Check(v) or PY_TYPE_CHECK(v, Integer):
-            GF2_conv_int(self.x, int(v) % 2)
+            GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
             v = str(v)
             _sig_on

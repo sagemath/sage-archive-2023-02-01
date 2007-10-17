@@ -721,10 +721,13 @@ cdef extern from "ntl_wrap.h":
     void GF2_power "power"(GF2_c t, GF2_c x, long e)
     long GF2_deg "deg"(GF2_c x)
 
-    void GF2_conv_int "conv" (GF2_c x, long i)
+    void GF2_conv_long "conv" (GF2_c x, long i)
     long GF2_conv_to_long "rep" (GF2_c x)
 
     #### GF2X_c
+
+    long GF2XHexOutput "GF2X::HexOutput"
+
     ctypedef struct GF2X_c "struct GF2X":
         pass
 
@@ -745,10 +748,21 @@ cdef extern from "ntl_wrap.h":
     void GF2X_power "power"(GF2X_c t, GF2X_c x, long e)
     long GF2X_deg "deg"(GF2X_c x)
 
-    GF2X_c* GF2X_copy(GF2X_c* x)
-    void GF2X_hex(long h)
-    object GF2X_to_bin(GF2X_c* x)
-    object GF2X_to_hex(GF2X_c* x)
+    void GF2X_conv_long "conv" (GF2X_c x, long a)
+    void GF2X_conv_GF2 "conv" (GF2X_c x, GF2_c a)
+
+    void GF2X_LeftShift "LeftShift"( GF2X_c r, GF2X_c a, long offset)
+    void GF2X_RightShift "RightShift"( GF2X_c r, GF2X_c a, long offset)
+
+    void GF2X_DivRem "DivRem"(GF2X_c q, GF2X_c r, GF2X_c a, GF2X_c b)
+    void GF2X_div "div" (GF2X_c q, GF2X_c a, GF2X_c b)
+    void GF2X_rem "rem" (GF2X_c r, GF2X_c a, GF2X_c b)
+    long GF2X_divide "divide"(GF2X_c q, GF2X_c a, GF2X_c b)
+
+    GF2X_c GF2X_GCD "GCD" (GF2X_c a, GF2X_c b)
+    void GF2X_XGCD "XGCD" (GF2X_c r, GF2X_c s, GF2X_c t, GF2X_c a, GF2X_c b)
+
+    void GF2XFromBytes(GF2X_c a, unsigned char *p, long n)
 
     #### GF2E_c
     ctypedef struct GF2E_c "struct GF2E":

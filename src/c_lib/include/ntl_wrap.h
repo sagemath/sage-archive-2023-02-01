@@ -12,7 +12,6 @@
 #include <NTL/mat_ZZ.h>
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/GF2E.h>
-#include <NTL/GF2X.h>
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
@@ -245,51 +244,10 @@ EXTERN struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A);
 EXTERN long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x, long a, long b, long verbose);
 EXTERN long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, long a, long b, long verbose);
 
-/* //////// ZZ_p ////////// */
-/* #ifndef __cplusplus */
-/* struct ZZ_p; */
-/* #endif */
-
-/* EXTERN void ZZ_p_set_modulus(const struct ZZ* p); */
-/* EXTERN struct ZZ_p* new_ZZ_p(void); */
-/* EXTERN void del_ZZ_p(struct ZZ_p* x); */
-/* EXTERN struct ZZ_p* ZZ_p_add(const struct ZZ_p* x, const struct ZZ_p* y); */
-/* EXTERN struct ZZ_p* ZZ_p_sub(const struct ZZ_p* x, const struct ZZ_p* y); */
-/* EXTERN struct ZZ_p* ZZ_p_mul(const struct ZZ_p* x, const struct ZZ_p* y); */
-/* EXTERN struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e); */
-/* EXTERN int ZZ_p_is_zero(struct ZZ_p*x ); */
-/* EXTERN int ZZ_p_is_one(struct ZZ_p*x ); */
-
-
 //////// ZZ_pE //////////
 #ifndef __cplusplus
 struct ZZ_pE;
 #endif
-
-// EXTERN struct ZZ_pE* new_ZZ_pE
-
-
-
-//////// ZZ_pEX //////////
-
-//#ifndef __cplusplus
-//struct ZZ_pEX;
-//#endif
-
-//EXTERN struct ZZ_pEX* new_ZZ_pEX
-
-/////// GF2X ////////////////
-#ifndef __cplusplus
-struct GF2X;
-#endif
-
-EXTERN struct GF2X* GF2X_pow(const struct GF2X* x, long e);
-EXTERN struct GF2X* GF2X_neg(struct GF2X* x);
-EXTERN long GF2X_deg(struct GF2X* x);
-EXTERN void GF2X_hex(long h);
-EXTERN PyObject* GF2X_to_bin(const struct GF2X* x);
-EXTERN PyObject* GF2X_to_hex(const struct GF2X* x);
-
 
 /////// GF2E ////////////////
 

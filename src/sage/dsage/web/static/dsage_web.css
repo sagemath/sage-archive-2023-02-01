@@ -14,12 +14,12 @@ table.jobs_table, table.job_details {
     margin-right: auto;
 }
 table.jobs_table tr.tr0, table.job_details tr.tr0 {
-    font-size:14px;
-    background-color: #595441;
+    font-size:16px;
+    background-color: #FFFFFF;
 }
 table.jobs_table tr.tr1, table.job_details tr.tr1 {
-    font-size:14px;
-    background-color: #B9B09D;
+    font-size:16px;
+    background-color: #D8CAA8;
 }
 table.jobs_table tr.thead, table.job_details tr.thead {
     width:100%;

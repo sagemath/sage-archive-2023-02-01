@@ -999,7 +999,9 @@ setup(name        = 'sage',
       data_files = [('dsage/web/static',
                      ['sage/dsage/web/static/dsage_web.css',
                       'sage/dsage/web/static/dsage_web.js',
-                      'sage/dsage/web/static/prototype.js'])],
+                      'sage/dsage/web/static/prototype.js',
+                      'sage/dsage/web/static/sorttable.js',
+                      'sage/dsage/web/static/index.html'])],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

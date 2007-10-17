@@ -1297,7 +1297,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return (-(a1*z + a3) + sqrt(abs(d(z))))/2
         def f2(z):
             return (-(a1*z + a3) - sqrt(abs(d(z))))/2
-        r = [t.real() for t in d.roots() if t.imag() == 0]
+        r = d.roots(multiplicities=False)
         r.sort()
         if xmax is None:
             xmax = r[-1] + 2

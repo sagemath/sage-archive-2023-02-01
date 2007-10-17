@@ -247,7 +247,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr
-        if S in [ZZ, QQ, RDF] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
+        if S in [int, float, ZZ, QQ, RDF] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
             return FloatToCDF(S)
         return sage.rings.ring.Field.coerce_map_from_c(self, S)
 
@@ -1486,13 +1486,48 @@ cdef class ComplexDoubleElement(FieldElement):
 
 
 cdef class FloatToCDF(Morphism):
+    """
+    Fast morphism from anything with a __float__ method to an RDF element.
+
+    EXAMPLES:
+        sage: f = CDF.coerce_map_from(ZZ); f
+        Native morphism:
+          From: Integer Ring
+          To:   Complex Double Field
+        sage: f(4)
+        4.0
+        sage: f = CDF.coerce_map_from(QQ); f
+        Native morphism:
+          From: Rational Field
+          To:   Complex Double Field
+        sage: f(1/2)
+        0.5
+        sage: f = CDF.coerce_map_from(int); f
+        Native morphism:
+          From: Set of Python objects of type 'int'
+          To:   Complex Double Field
+        sage: f(3r)
+        3.0
+        sage: f = CDF.coerce_map_from(float); f
+        Native morphism:
+          From: Set of Python objects of type 'float'
+          To:   Complex Double Field
+        sage: f(3.5)
+        3.5
+    """
     def __init__(self, R):
         from sage.categories.homset import Hom
+        if isinstance(R, type):
+            from sage.structure.parent import Set_PythonType
+            R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
-    cdef Element _call_c_impl(self, Element x):
+    cdef Element _call_c(self, x):
+        # Override this _call_c rather than _call_c_impl because a may not be an Element
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex = gsl_complex_rect(PyFloat_AsDouble(x), 0)
         return z
+    def _repr_type(self):
+        return "Native"
 
 #####################################################
 # Create new ComplexDoubleElement from a

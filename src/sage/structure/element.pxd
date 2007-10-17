@@ -48,6 +48,11 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _lmul_c_impl(self, RingElement right)   # OK to override, but do *NOT* call directly
     cdef ModuleElement _rmul_c_impl(self, RingElement left)    # OK to override, but do *NOT* call directly
 
+    # Inplace operations, override, do *NOT* call directly
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right)
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right)
+    cdef ModuleElement _ilmul_c_impl(self, RingElement right)
+
     # Coerce x to the base ring of self and return the result.
     cdef RingElement coerce_to_base_ring(self, x)
 
@@ -82,6 +87,10 @@ cdef class RingElement(ModuleElement):
 
     cdef RingElement _mul_c_impl(self, RingElement right)     # OK to override, but do *NOT* call directly
     cdef RingElement _div_c_impl(self, RingElement right)     # OK to override, but do *NOT* call directly
+
+    # Inplace operations, override, do *NOT* call directly
+    cdef RingElement _imul_c_impl(self, RingElement right)
+    cdef RingElement _idiv_c_impl(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -120,9 +129,9 @@ cdef class InfinityElement(RingElement):
 cdef class Vector(ModuleElement):
     cdef Py_ssize_t _degree
 
-    # These return the doct product.
-    cdef Element _vector_times_vector_c(Vector left, Vector right)     # do *NOT* override, but OK to call directly
-    cdef Element _vector_times_vector_c_impl(Vector left, Vector right)  # OK to override, but do *NOT* call directly
+    # These return the dot product, using the simple metric $e_i \cdot e_j = \delta_{ij}$.
+    cdef Element _dot_product_c(Vector left, Vector right)     # do *NOT* override, but OK to call directly
+    cdef Element _dot_product_c_impl(Vector left, Vector right)  # OK to override, but do *NOT* call directly
 
     cdef Vector _pairwise_product_c(Vector left, Vector right) # do *NOT* override, but OK to call directly
     cdef Vector _pairwise_product_c_impl(Vector left, Vector right) # OK to override, but do *NOT* call directly
@@ -132,16 +141,13 @@ cdef class Vector(ModuleElement):
 
 
 cdef class Matrix(AlgebraElement):
+    # All matrix classes must be written in Cython
     cdef Py_ssize_t _nrows
     cdef Py_ssize_t _ncols
 
-    cdef Vector _vector_times_matrix_c(matrix_right, Vector vector_left)    # do *NOT* override, but OK to call directly
-    cdef Vector _matrix_times_vector_c(matrix_left, Vector vector_right)    # do *NOT* override, but OK to call directly
-    cdef Matrix _matrix_times_matrix_c(left, Matrix right)                  # do *NOT* override, but OK to call directly
-
-    cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left)    # OK to override, but do *NOT* call directly
-    cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right)    # OK to override, but do *NOT* call directly
-    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)                  # OK to override, but do *NOT* call directly
+    cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left)    # OK to override, AND call directly
+    cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right)    # OK to override, AND call directly
+    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)                  # OK to override, AND call directly
 
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)

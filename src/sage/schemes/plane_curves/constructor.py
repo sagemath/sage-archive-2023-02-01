@@ -109,7 +109,7 @@ def Curve(F):
         sage: X.dimension()
         0
         sage: I = X.defining_ideal(); I
-        Ideal (x^3 + y^3 + z^3, x^4 + y^4 + z^4) of Polynomial Ring in x, y, z over Rational Field
+        Ideal (x^3 + y^3 + z^3, x^4 + y^4 + z^4) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
     EXAMPLE: In three variables, the defining equation must be homogeneous.
 

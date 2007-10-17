@@ -13,8 +13,8 @@ import os
 
 from   sage.misc.viewer     import browser
 
-def print_open_msg(address, port, secure=False):
-    s = "Open your web browser to http%s://%s:%s"%('s' if secure else '', address, port)
+def print_open_msg(address, port, secure=False, path=""):
+    s = "Open your web browser to http%s://%s:%s%s"%('s' if secure else '', address, port, path)
     t = len(s)
     if t%2:
         t += 1
@@ -45,12 +45,12 @@ def find_next_available_port(start, max_tries=100, verbose=True):
     raise RuntimeError, "no available port."
 
 
-def open_page(address, port, secure):
+def open_page(address, port, secure, path=""):
     if secure:
         rsrc = 'https'
     else:
         rsrc = 'http'
 
-    cmd = 'echo `%s %s://%s:%s 1>&2 >/dev/null` &'%(browser(), rsrc, address, port)
+    cmd = 'echo `%s %s://%s:%s%s 1>&2 >/dev/null` &'%(browser(), rsrc, address, port, path)
     os.system(cmd)
 

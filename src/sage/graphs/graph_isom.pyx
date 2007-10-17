@@ -761,7 +761,7 @@ def _term_pnest_graph(G, PartitionStack nu):
     H.relabel(d)
     return H
 
-def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0):
+def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity=0):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -776,7 +776,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     valid for digraphs and graphs with loops.
         dict--      if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
-        proof--     if True, return the automorphism between G and its canonical
+        certify--     if True, return the automorphism between G and its canonical
     label. Forces lab=True.
         verbosity-- 0 - print nothing
                     1 - display state trace
@@ -786,18 +786,18 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
 
     STATE DIAGRAM:
         sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
-        sage: SD.set_arc_label(1, 18, 'discrete')
-        sage: SD.set_arc_label(4, 7, 'discrete')
-        sage: SD.set_arc_label(2, 5, 'h = 0')
-        sage: SD.set_arc_label(7, 18, 'h = 0')
-        sage: SD.set_arc_label(7, 10, 'aut')
-        sage: SD.set_arc_label(8, 10, 'aut')
-        sage: SD.set_arc_label(8, 9, 'label')
-        sage: SD.set_arc_label(8, 6, 'no label')
-        sage: SD.set_arc_label(13, 17, 'k > h')
-        sage: SD.set_arc_label(13, 14, 'k = h')
-        sage: SD.set_arc_label(17, 15, 'v_k finite')
-        sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
+        sage: SD.set_edge_label(1, 18, 'discrete')
+        sage: SD.set_edge_label(4, 7, 'discrete')
+        sage: SD.set_edge_label(2, 5, 'h = 0')
+        sage: SD.set_edge_label(7, 18, 'h = 0')
+        sage: SD.set_edge_label(7, 10, 'aut')
+        sage: SD.set_edge_label(8, 10, 'aut')
+        sage: SD.set_edge_label(8, 9, 'label')
+        sage: SD.set_edge_label(8, 6, 'no label')
+        sage: SD.set_edge_label(13, 17, 'k > h')
+        sage: SD.set_edge_label(13, 14, 'k = h')
+        sage: SD.set_edge_label(17, 15, 'v_k finite')
+        sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
         sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
         sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
@@ -888,7 +888,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         120
 
         sage: D = graphs.DodecahedralGraph()
-        sage: a,b,c = search_tree(D, [range(20)], proof=True)
+        sage: a,b,c = search_tree(D, [range(20)], certify=True)
         sage: from sage.plot.plot import GraphicsArray # long time
         sage: import networkx # long time
         sage: position_D = networkx.spring_layout(D._nxg) # long time
@@ -1207,7 +1207,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             H = G.copy()
         if dict:
             ddd = {}
-        if proof:
+        if certify:
             dd = {}
             if dict:
                 return [[]], ddd, H, dd
@@ -1222,7 +1222,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         else:
             return [[]]
 
-    if proof:
+    if certify:
         lab=True
 
     # create to and from mappings to relabel vertices
@@ -1287,7 +1287,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             M[i][j] = 1
             M[j][i] = 1
     elif isinstance(G, DiGraph):
-        for i, j, la in G.arc_iterator():
+        for i, j, la in G.edge_iterator():
             M[i][j] = 1
 
     # set up the rest of the variables
@@ -1760,7 +1760,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             else:
                 ddd[v] = n
 
-    if proof:
+    if certify:
         dd = {}
         for i from 0 <= i < n:
             dd[_rho.entries[i]] = i
@@ -1916,7 +1916,7 @@ def all_labeled_digraphs_with_loops(n):
         b = '0'*(m-len(b)) + b
         for j in range(m):
             if int(b[j]):
-                G.add_arc(TE[j])
+                G.add_edge(TE[j])
         Glist.append(G)
     return Glist
 
@@ -1972,7 +1972,7 @@ def all_labeled_digraphs(n):
         b = '0'*(m-len(b)) + b
         for j in range(m):
             if int(b[j]):
-                G.add_arc(TE[j])
+                G.add_edge(TE[j])
         Glist.append(G)
     return Glist
 

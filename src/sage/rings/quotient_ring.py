@@ -85,7 +85,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: S.<a,b> = R.quo(1 + y^2)
         sage: T.<c,d> = S.quo(a)
         sage: T
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
         sage: T.gens()
         (0, d)
     """
@@ -138,8 +138,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x
             sage: l = pi.lift(); l
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y^2)
-              To:   Polynomial Ring in x, y over Rational Field
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: l(x+y^3)
             x
@@ -163,13 +163,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S = R.quotient(x^2 + y^2)
             sage: pi = S.cover(); pi
             Ring morphism:
-              From: Polynomial Ring in x, y over Rational Field
-              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              From: Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               Defn: Natural quotient map
             sage: L = S.lift(); L
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-              To:   Polynomial Ring in x, y over Rational Field
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: L(S.0)
             x
@@ -225,19 +225,21 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     def cover_ring(self):
         return self.__R
 
-    def ideal(self, gens, coerce=False):
+    def ideal(self, *gens, **kwds):
+        if len(gens) == 1:
+            gens = gens[0]
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,coerce)
+            MPolynomialRing_generic.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if coerce:
+        if kwds.has_key('coerce') and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
     def _can_convert_to_singular(self):
         return self.__R._can_convert_to_singular()

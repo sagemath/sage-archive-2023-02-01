@@ -1040,6 +1040,12 @@ class Worksheet_restart_sage(WorksheetResource, resource.Resource):
         self.worksheet.restart_sage()
         return http.Response(stream='done')
 
+class Worksheet_quit_sage(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        # TODO -- this must not block long (!)
+        self.worksheet.quit()
+        return http.Response(stream='done')
+
 class Worksheet_interrupt(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)

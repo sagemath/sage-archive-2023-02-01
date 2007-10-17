@@ -310,6 +310,110 @@ cdef class Matrix_sparse(matrix.Matrix):
             A.set_unsafe(self._ncols-j-1, self._nrows-i-1,self.get_unsafe(i,j))
         return A
 
+    def charpoly(self, var='x', **kwds):
+        """
+        Return the characteristic polynomial of this matrix.
+
+        Note -- the generic sparse charpoly implementation in Sage is
+        to just compute the charpoly of the corresponding dense
+        matrix, so this could use a lot of memory.  In particular,
+        for this matrix, the charpoly will be computed using a dense
+        algorithm.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 4, range(16), sparse=True)
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
+            sage: A.charpoly('y')
+            y^4 - 30*y^3 - 80*y^2
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
+        """
+        f = self.fetch('charpoly')
+        if f is not None:
+            return f.change_variable_name(var)
+        f = self.dense_matrix().charpoly(var=var, **kwds)
+        self.cache('charpoly', f)
+        return f
+
+    def apply_morphism(self, phi):
+        """
+        Apply the morphism phi to the coefficients of this sparse matrix.
+
+        The resulting matrix is over the codomain of phi.
+
+        INPUT:
+            phi -- a morphism, so phi is callable and phi.domain()
+                   and phi.codomain() are defined.  The codomain
+                   must be a ring.
+
+        OUTPUT:
+            a matrix over the codomain of phi
+
+        EXAMPLES:
+            sage: m = matrix(ZZ, 3, range(9), sparse=True)
+            sage: phi = ZZ.hom(GF(5))
+            sage: m.apply_morphism(phi)
+            [0 1 2]
+            [3 4 0]
+            [1 2 3]
+            sage: m.apply_morphism(phi).parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Finite Field of size 5
+        """
+        R = phi.codomain()
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=True)
+        return M(dict([(ij,phi(z)) for ij,z in self.dict().iteritems()]))
+
+    def apply_map(self, phi, R=None):
+        """
+        Apply the given map phi (an arbitrary Python function or
+        callable object) to this matrix.  If R is not given,
+        automatically determine the base ring of the resulting matrix.
+
+        INPUT:
+            phi -- arbitrary Python function or callable object
+            R -- (optional) ring
+
+        OUTPUT:
+            a matrix over R
+
+        EXAMPLES:
+            sage: m = matrix(ZZ, 10000, {(1,2): 17}, sparse=True)
+            sage: k.<a> = GF(9)
+            sage: f = lambda x: k(x)
+            sage: n = m.apply_map(f)
+            sage: n.parent()
+            Full MatrixSpace of 10000 by 3 sparse matrices over Finite Field in a of size 3^2
+            sage: n[1,2]
+            2
+
+        An example where the codomain is explicitly specified.
+            sage: n = m.apply_map(lambda x:x%3, GF(3))
+            sage: n.parent()
+            Full MatrixSpace of 10000 by 3 sparse matrices over Finite Field of size 3
+            sage: n[1,2]
+            2
+
+        If we didn't specify the codomain, the resulting matrix in the
+        above case ends up over ZZ again:
+            sage: n = m.apply_map(lambda x:x%3)
+            sage: n.parent()
+            Full MatrixSpace of 10000 by 3 sparse matrices over Integer Ring
+            sage: n[1,2]
+            2
+        """
+        v = [(ij, phi(z)) for ij,z in self.dict().iteritems()]
+        if R is None:
+            w = [x for _, x in v]
+            w = sage.structure.sequence.Sequence(w)
+            R = w.universe()
+            v = dict([(v[i][0],w[i]) for i in range(len(v))])
+        else:
+            v = dict(v)
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=True)
+        return M(v)
 
 
 ##     def _echelon_in_place_classical(self):

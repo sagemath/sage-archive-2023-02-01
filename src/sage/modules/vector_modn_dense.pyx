@@ -215,7 +215,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._p + self._entries[i] - r._entries[i]) % self._p
         return z
 
-    cdef Element _vector_times_vector_c_impl(self, Vector right):
+    cdef Element _dot_product_c_impl(self, Vector right):
         cdef Py_ssize_t i
         cdef IntegerMod_int n
         cdef Vector_modn_dense r = right

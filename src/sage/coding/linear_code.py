@@ -189,7 +189,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
-from sage.combinat.combinat import partitions_set
+from sage.combinat.set_partition import SetPartitions
 
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
@@ -1521,9 +1521,10 @@ class LinearCode(module.Module):
             return 0
         if i>n-dp and i<=n:
             return binomial(n,i)*(q**(i+k-n) -1)/(q-1)
-        P = partitions_set(J,2)
+        P = SetPartitions(J,2).list()
         b = QQ(0)
         for p in P:
+            p = list(p)
             S = p[0]
             if len(S)==n-i:
                 C_S = self.shortened(S)

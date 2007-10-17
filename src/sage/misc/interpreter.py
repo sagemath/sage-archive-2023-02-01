@@ -176,17 +176,17 @@ def do_prefilter_paste(line, continuation):
 
     line = line.rstrip()
 
-    if not line[:7] == 'attach ' and not line[:5] == 'load ':
+    if not line.startswith('attach ') and not line.startswith('load '):
         for F in attached.keys():
             tm = attached[F]
             if os.path.exists(F) and os.path.getmtime(F) > tm:
                 # Reload F.
                 try:
-                    if F[-3:] == '.py':
+                    if F.endswith('.py'):
                         _ip.magic('run -i "%s"'%F)
-                    elif F[-5:] == '.sage':
+                    elif F.endswith('.sage'):
                         _ip.magic('run -i "%s"'%process_file(F))
-                    elif F[-5:] == '.spyx':
+                    elif F.endswith('.spyx') or F.endswith('.pyx'):
                         X = load_cython(F)
                         __IPYTHON__.push(X)
                     else:
@@ -267,25 +267,25 @@ def do_prefilter_paste(line, continuation):
             name = remote_file.get_remote_file(name)
         if isinstance(name, str):
             if not os.path.exists(name):
-                raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .spyx extension)"%name
-            elif name[-3:] == '.py':
+                raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .pyx extension)"%name
+            elif name.endswith('.py'):
                 try:
                     line = '%run -i "' + name + '"'
                 except IOError, s:
                     print s
                     raise ImportError, "Error loading '%s'"%name
-            elif name[-5:] == '.sage':
+            elif name.endswith('.sage'):
                 try:
                     line = '%run -i "' + process_file(name) + '"'
                 except IOError, s:
                     print s
                     raise ImportError, "Error loading '%s'"%name
                     line = ""
-            elif name[-5:] == '.spyx':
+            elif name.endswith('.spyx') or name.endswith('.pyx'):
                 line = load_cython(name)
             else:
                 line = 'load("%s")'%name
-                #raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+                #raise ImportError, "Loading of '%s' not implemented (load .py, .pyx, and .sage files)"%name
                 #line = ''
 
     elif line[:13] == 'save_session(':
@@ -312,7 +312,7 @@ def do_prefilter_paste(line, continuation):
     # as above.  This is like the MAGMA attach, but in some ways
     # better.  It is very nice for interactive code development.
 
-    if line[:7] == 'attach ':
+    if line.startswith('attach '):
         # The -i so the file is run with the same environment,
         # e.g., including the "from sage import *"
         try:
@@ -321,20 +321,20 @@ def do_prefilter_paste(line, continuation):
             name = str(line[7:].strip())
         name = os.path.abspath(name)
         if not os.path.exists(name):
-            raise ImportError, "File '%s' not found  (be sure to give .sage, .py, or .spyx extension)."%name
-        elif name[-3:] == '.py':
+            raise ImportError, "File '%s' not found  (be sure to give .sage, .py, or .pyx extension)."%name
+        elif name.endswith('.py'):
             try:
                 line = '%run -i "' + name + '"'
                 attached[name] = os.path.getmtime(name)
             except IOError, OSError:
                 raise ImportError, "File '%s' not found."%name
-        elif name[-5:] == '.sage':
+        elif name.endswith('.sage'):
             try:
                 line = '%run -i "' + process_file(name) + '"'
                 attached[name] = os.path.getmtime(name)
             except IOError, OSError:
                 raise ImportError, "File '%s' not found."%name
-        elif name[-5:] == '.spyx':
+        elif name.endswith('.pyx') or name.endswith('.spyx'):
             try:
                 line = load_cython(name)
                 attached[name] = os.path.getmtime(name)
@@ -343,7 +343,7 @@ def do_prefilter_paste(line, continuation):
                 line = ''
         else:
             #line = 'load("%s")'%name
-            raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+            raise ImportError, "Attaching of '%s' not implemented (load .py, .pyx, and .sage files)"%name
 
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line, not continuation)

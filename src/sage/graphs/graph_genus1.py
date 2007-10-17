@@ -181,7 +181,7 @@ def all_embeddings(graph):
             (0, 3),
             (3, 1)]])]
     """
-    from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+    from sage.combinat.all import CyclicPermutationsOfPartition
 
     graph = nice_copy(graph)
 
@@ -193,7 +193,7 @@ def all_embeddings(graph):
     for node in graph.vertices():
         part.append(graph.neighbors(node))
     all_perms = []
-    for p in cyclic_permutations_of_partition_iterator(part):
+    for p in CyclicPermutationsOfPartition(part):
         all_perms.append(p)
 
     embeddings = []
@@ -278,7 +278,7 @@ def planar_embeddings(graph):
           [[(1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 0), (0, 1)],
            [(5, 4), (4, 3), (3, 2), (2, 1), (1, 0), (0, 8), (8, 7), (7, 6), (6, 5)]])]
     """
-    from sage.combinat.combinat import cyclic_permutations_of_partition_iterator
+    from sage.combinat.all import CyclicPermutationsOfPartition
 
     graph = nice_copy(graph)
 
@@ -290,7 +290,7 @@ def planar_embeddings(graph):
     for node in graph.vertices():
         part.append(graph.neighbors(node))
     all_perms = []
-    for p in cyclic_permutations_of_partition_iterator(part):
+    for p in CyclicPermutationsOfPartition(part):
         all_perms.append(p)
 
     # planar embeddings

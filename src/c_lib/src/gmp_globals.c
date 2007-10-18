@@ -1,6 +1,7 @@
 #include "gmp_globals.h"
 
-mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2;
+mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2;
+//changed sqr to ssqr due to a collision with ntl
 mpq_t tmp;
 
 mpz_t a1, a2, mod1, mod2, g, s, t, xx;
@@ -17,7 +18,7 @@ void init_mpz_globals() {
   mpz_init(v0); mpz_init(v1); mpz_init(v2);
   mpz_init(t0); mpz_init(t1); mpz_init(t2);
   mpz_init(x);  mpz_init(y);
-  mpz_init(sqr);  mpz_init(m2);
+  mpz_init(ssqr);  mpz_init(m2);
   mpq_init(tmp);
 
   mpz_init(a1); mpz_init(a2); mpz_init(mod1); mpz_init(mod2);
@@ -36,7 +37,7 @@ void clear_mpz_globals() {
   mpz_clear(v0); mpz_clear(v1); mpz_clear(v2);
   mpz_clear(t0); mpz_clear(t1); mpz_clear(t2);
   mpz_clear(x);  mpz_clear(y);
-  mpz_clear(sqr);  mpz_clear(m2);
+  mpz_clear(ssqr);  mpz_clear(m2);
   mpq_clear(tmp);
 
   mpz_clear(a1); mpz_clear(a2); mpz_clear(mod1); mpz_clear(mod2);

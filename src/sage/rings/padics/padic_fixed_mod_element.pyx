@@ -135,15 +135,15 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         #        x.set_precision_absolute(absprec)
         #    except PrecisionError:
         #        pass
-        #    if mpz_cmp((<pAdicLazyElement>x).value, self.top_power) >= 0:
-        #        mpz_mod(self.value, (<pAdicLazyElement>x).value, self.top_power)
+        #    if mpz_cmp((<pAdicLazyElement>x).value, self.prime_pow.top_power) >= 0:
+        #        mpz_mod(self.value, (<pAdicLazyElement>x).value, self.prime_pow.top_power)
         #    else:
         #        mpz_set(self.value, (<pAdicLazyElement>x).value)
         #    return
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             tmp = <Integer> x.lift()
-            if mpz_cmp(tmp.value, self.prime_pow.top_power) >= 0:
-                mpz_mod(self.value, tmp.value, self.prime_pow.top_power)
+            if mpz_cmp(tmp.value, self.prime_pow.pow_mpz_top()[0]) >= 0:
+                mpz_mod(self.value, tmp.value, self.prime_pow.pow_mpz_top()[0])
             else:
                 mpz_set(self.value, tmp.value)
             return
@@ -199,8 +199,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return make_pAdicFixedModElement, (self.parent(), self.lift())
 
     cdef void set_from_mpz(pAdicFixedModElement self, mpz_t value):
-        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.top_power) >= 0:
-            mpz_mod(self.value, value, self.prime_pow.top_power)
+        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.pow_mpz_top()[0]) >= 0:
+            mpz_mod(self.value, value, self.prime_pow.pow_mpz_top()[0])
         else:
             mpz_set(self.value, value)
 
@@ -242,7 +242,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         else:
             ans = self._new_c()
             _sig_on
-            mpz_invert(ans.value, self.value, self.prime_pow.top_power)
+            mpz_invert(ans.value, self.value, self.prime_pow.pow_mpz_top()[0])
             _sig_off
             return ans
 
@@ -258,11 +258,11 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return ans
         elif shift > 0:
             ans = self._new_c()
-            if mpz_cmp(self.value, self.prime_pow.pow_mpz_t_tmp(prec_cap - shift)) >= 0:
-                mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(prec_cap - shift))
+            if mpz_cmp(self.value, self.prime_pow.pow_mpz_t_tmp(prec_cap - shift)[0]) >= 0:
+                mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(prec_cap - shift)[0])
             else:
                 mpz_set(ans.value, self.value)
-            mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(shift))
+            mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(shift)[0])
             return ans
         else:
             return self
@@ -289,7 +289,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return ans
         elif shift > 0:
             ans = self._new_c()
-            mpz_fdiv_q(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift))
+            mpz_fdiv_q(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift)[0])
             return ans
         else:
             return self
@@ -317,10 +317,10 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return self
         cdef pAdicFixedModElement ans
         ans = self._new_c()
-        mpz_sub(ans.value, self.prime_pow.top_power, self.value)
+        mpz_sub(ans.value, self.prime_pow.pow_mpz_top()[0], self.value)
         return ans
 
-    def __pow__(pAdicFixedModElement self, right, m): # NOTE: m ignored, always use self.prime_pow.top_power
+    def __pow__(pAdicFixedModElement self, right, m): # NOTE: m ignored, always use self.prime_pow.pow_mpz_top()[0]
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right) #Need to make sure that this works for p-adic exponents
         if not right and not self:
@@ -328,7 +328,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         _sig_on
-        mpz_powm(ans.value, self.value, (<Integer>right).value, self.prime_pow.top_power)
+        mpz_powm(ans.value, self.value, (<Integer>right).value, self.prime_pow.pow_mpz_top()[0])
         _sig_off
         return ans
 
@@ -348,8 +348,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         mpz_add(ans.value, self.value, (<pAdicFixedModElement>right).value)
-        if mpz_cmp(ans.value, self.prime_pow.top_power) >= 0:
-            mpz_sub(ans.value, ans.value, self.prime_pow.top_power)
+        if mpz_cmp(ans.value, self.prime_pow.pow_mpz_top()[0]) >= 0:
+            mpz_sub(ans.value, ans.value, self.prime_pow.pow_mpz_top()[0])
         return ans
 
     cdef RingElement _mul_c_impl(self, RingElement right):
@@ -366,7 +366,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         mpz_mul(ans.value, self.value, (<pAdicFixedModElement>right).value)
-        mpz_fdiv_r(ans.value, ans.value, self.prime_pow.top_power)
+        mpz_fdiv_r(ans.value, ans.value, self.prime_pow.pow_mpz_top()[0])
         return ans
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -386,7 +386,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         ans = self._new_c()
         mpz_sub(ans.value, self.value, (<pAdicFixedModElement>right).value)
         if mpz_sgn(ans.value) == -1:
-            mpz_add(ans.value, ans.value, self.prime_pow.top_power)
+            mpz_add(ans.value, ans.value, self.prime_pow.pow_mpz_top()[0])
         return ans
 
     cdef RingElement _div_c_impl(self, RingElement right):
@@ -414,9 +414,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         else:
             ans = self._new_c()
             _sig_on
-            mpz_invert(ans.value, (<pAdicFixedModElement>right).value, self.prime_pow.top_power)
+            mpz_invert(ans.value, (<pAdicFixedModElement>right).value, self.prime_pow.pow_mpz_top()[0])
             mpz_mul(ans.value, ans.value, self.value)
-            mpz_fdiv_r(ans.value, ans.value, self.prime_pow.top_power)
+            mpz_fdiv_r(ans.value, ans.value, self.prime_pow.pow_mpz_top()[0])
             _sig_off
             return ans
 
@@ -441,7 +441,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow._cache_limit) >= 0:
             return self
         ans = self._new_c()
-        mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(mpz_get_ui((<Integer>absprec).value)))
+        mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(mpz_get_ui((<Integer>absprec).value))[0])
         return ans
 
     def copy(self):
@@ -477,7 +477,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return mpz_sgn(self.value) == 0
         cdef mpz_t tmp
         mpz_init(tmp)
-        mpz_mod(tmp, self.value, self.prime_pow.pow_mpz_t_tmp(aprec))
+        mpz_mod(tmp, self.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         if mpz_sgn(tmp) == 0:
             mpz_clear(tmp)
             return True
@@ -510,8 +510,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef mpz_t tmp1, tmp2
         mpz_init(tmp1)
         mpz_init(tmp2)
-        mpz_mod(tmp1, self.value, self.prime_pow.pow_mpz_t_tmp(aprec))
-        mpz_mod(tmp2, (<pAdicFixedModElement>right).value, self.prime_pow.pow_mpz_t_tmp(aprec))
+        mpz_mod(tmp1, self.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_mod(tmp2, (<pAdicFixedModElement>right).value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         if mpz_cmp(tmp1, tmp2) == 0:
             mpz_clear(tmp1)
             mpz_clear(tmp2)
@@ -583,13 +583,13 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             curpower -= 1
             list_elt = self._new_c()
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-            tmp2 = self.prime_pow.pow_mpz_t(preccap)
+            tmp2 = self.prime_pow.pow_mpz_t(preccap)[0]
             sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
             if preccap > self.prime_pow.cache_limit and preccap != self.prime_pow.prec_cap:
                 mpz_clear(tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
-            mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower))
+            mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
             PyList_Append(ans, list_elt)
         mpz_clear(tmp)
         return ans
@@ -605,7 +605,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         aprec = mpz_get_ui(absprec.value)
         if aprec > self.prime_pow._cache_limit:
             aprec = self.prime_pow._cache_limit
-        tmp = self.prime_pow.pow_mpz_t(aprec)
+        tmp = self.prime_pow.pow_mpz_t(aprec)[0]
         sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp)
         if aprec > self.prime_pow.cache_limit and aprec != self.prime_pow.prec_cap:
             mpz_clear(tmp)
@@ -628,13 +628,13 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(tmp)
-        mpz_sub_ui(tmp, self.prime_pow.top_power, 1)
+        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_top()[0], 1)
         if mpz_cmp(self.value, tmp) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.top_power)
+        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_top()[0])
         if mpz_cmp(tmp, self.value) == 0:
             mpz_clear(tmp)
             return self.residue(1).multiplicative_order()
@@ -730,7 +730,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             mpz_pow_ui(modulus.value, self.prime_pow.prime.value, aprec)
             _sig_off
         else:
-            mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
+            mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         return Mod(selfvalue, modulus)
 
     #def square_root(self):

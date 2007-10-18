@@ -113,7 +113,7 @@ long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
 
     if (compare(src, 0) == 0)
     {
-        if src != dest
+        if (src != dest)
            dest = src;
         return 0;
     }
@@ -155,10 +155,10 @@ long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
         if (compare(rem, 0) == 0)
         {
             pwr += 1 << p;
-            dest = x
+            dest = x;
         }
     }
-    return pwr
+    return pwr;
 }
 
 //////// ZZ_p //////////

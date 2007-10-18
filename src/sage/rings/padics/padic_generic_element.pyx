@@ -958,8 +958,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 mpz_sub(tmp, tmp, list_elt.value)
                 mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
                 if neg == 1:
-                    if mpz_cmp(tmp, self.prime_pow.dense_list[curpower]) >= 0:
-                        mpz_sub(tmp, tmp, self.prime_pow.dense_list[curpower])
+                    if mpz_cmp(tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0]) >= 0:
+                        mpz_sub(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
                 PyList_Append(ans, list_elt)
             mpz_clear(halfp)
         else:

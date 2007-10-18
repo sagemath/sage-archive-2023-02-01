@@ -47,7 +47,7 @@ EXTERN void ZZ_set_from_int(struct ZZ* x, int value);
 //EXTERN struct ZZ* ZZ_randomBnd(const struct ZZ* x);
 //EXTERN struct ZZ* ZZ_randomBits(long n);
 
-EXTERN long ZZ_remove(struct ZZ& x, struct ZZ& a, struct ZZ& p);
+EXTERN long ZZ_remove(struct ZZ x, const struct ZZ a, const struct ZZ p);
 
 
 ////////  ZZ_p //////////

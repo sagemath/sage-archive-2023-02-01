@@ -620,8 +620,9 @@ ext_modules = [ \
               libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.padics.pow_computer',
-              sources = ['sage/rings/padics/pow_computer.pyx'],
-              libraries=['gmp']),
+              sources = ['sage/rings/padics/pow_computer.pyx', 'sage/rings/padics/pow_computer.cpp'],
+              libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+              language='c++'),
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
     Extension('sage.rings.padics.padic_generic_element',

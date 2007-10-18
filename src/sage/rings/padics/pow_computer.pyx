@@ -47,13 +47,16 @@ cdef class PowComputer_class(SageObject):
         _sig_off
         return ans
 
-    cdef mpz_t pow_mpz_t(self, unsigned long n):
+    cdef mpz_t* pow_mpz_t(self, unsigned long n):
         raise NotImplementedError
 
-    cdef mpz_t pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         raise NotImplementedError
 
     cdef ZZ_c pow_ZZ(self, unsigned long n):
+        raise NotImplementedError
+
+    cdef mpz_t* pow_mpz_top(self):
         raise NotImplementedError
 
     def _prime(self):
@@ -196,7 +199,10 @@ cdef class PowComputer_base(PowComputer_class):
             mpz_pow_ui(ans.value, self.prime.value, n)
         return ans
 
-    cdef mpz_t pow_mpz_t(self, unsigned long n):
+    cdef mpz_t* pow_mpz_top(self):
+        return &self.top_power
+
+    cdef mpz_t* pow_mpz_t(self, unsigned long n):
         #################### WARNING ######################
         ## If you use this function, you MAY need to     ##
         ## call mpz_clear on the returned value after    ##
@@ -208,30 +214,30 @@ cdef class PowComputer_base(PowComputer_class):
         ## cdef PowComputer_base ppow                    ##
         ## ppow = PowComputer(5, 10, 1000)               ##
         ## cdef unsigned long n = get_long_somehow()     ##
-        ## cdef mpz_t foo = ppow.pow_mpz_t(n)            ##
+        ## cdef mpz_t foo = ppow.pow_mpz_t(n)[0]         ##
         ## # Do stuff with foo                           ##
         ## # Now done with foo                           ##
         ## if n > ppow.cache_limit and n != ppow.prec_cap##
         ##     mpz_clear(foo)                            ##
         ###################################################
         if n <= self.cache_limit:
-            return self.small_powers[n]
+            return &(self.small_powers[n])
         if n == self.prec_cap:
-            return self.top_power
+            return &(self.top_power)
         cdef mpz_t ans
         mpz_init(ans)
         mpz_pow_ui(ans, self.prime.value, n)
-        return ans
+        return &ans
 
-    cdef mpz_t pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         ## Solves the problem noted in the above warning by storing the returned mpz_t in a temporary variable
         ## Each call to this function overwrites that temporary variable.
         if n <= self.cache_limit:
-            return self.small_powers[n]
+            return &(self.small_powers[n])
         if n == self.prec_cap:
-            return self.top_power
+            return &(self.top_power)
         mpz_pow_ui(self.temp, self.prime.value, n)
-        return self.temp
+        return &(self.temp)
 
 
     cdef ZZ_c pow_ZZ(self, unsigned long n):

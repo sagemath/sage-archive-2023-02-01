@@ -625,7 +625,10 @@ def minimal_polynomial(x, var='x'):
         sage: minimal_polynomial(a,'theta')
         theta^2 - 5*theta - 2
     """
-    return x.minimal_polynomial(var=var)
+    try:
+        return x.minpoly(var=var)
+    except AttributeError:
+        return x.minimal_polynomial(var=var)
 
 minpoly = minimal_polynomial
 

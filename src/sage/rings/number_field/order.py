@@ -147,6 +147,15 @@ class Order(IntegralDomain):
         self._is_maximal = is_maximal
         DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
 
+    def fractional_ideal(self, *args, **kwds):
+        return self.number_field().fractional_ideal(*args, **kwds)
+
+    def ideal(self, *args, **kwds):
+        I = self.number_field().fractional_ideal(*args, **kwds)
+        if not I.is_integral():
+            raise ValueError, "ideal must be integral; use fractional_ideal to create a non-integral ideal."
+        return I
+
     def base(self):
         r"""
         Return the base order of this absolute order, which is always the ring $\ZZ$ of integers.

@@ -199,6 +199,9 @@ class NumberFieldIdeal(Ideal_fractional):
         R = K.polynomial().parent()
         return [ K(R(x)) for x in convert_from_zk_basis(K, hnf) ]
 
+    def __repr__(self):
+        return "Fractional ideal %s"%self._repr_short()
+
     def _repr_short(self):
         """
         Efficient string representation of this fraction ideal.

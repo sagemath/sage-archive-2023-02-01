@@ -148,9 +148,45 @@ class Order(IntegralDomain):
         DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
 
     def fractional_ideal(self, *args, **kwds):
+        """
+        Return the fractional ideal of the maximal order with given
+        generators.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: R = K.maximal_order()
+            sage: R.fractional_ideal(2/3 + 7*a, a)
+            Fractional ideal (-1/3*a)
+        """
         return self.number_field().fractional_ideal(*args, **kwds)
 
     def ideal(self, *args, **kwds):
+        """
+        Return the integral ideal with given generators.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 7)
+            sage: R = K.maximal_order()
+            sage: R.ideal(2/3 + 7*a, a)
+            Traceback (most recent call last):
+            ...
+            ValueError: ideal must be integral; use fractional_ideal to create a non-integral ideal.
+            sage: R.ideal(7*a, 77 + 28*a)
+            Fractional ideal (7)
+            sage: R = K.order(4*a)
+            sage: R.ideal(8)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ideals of non-maximal orders not yet supported.
+
+        This function is called implicitly below:
+            sage: R = EquationOrder(x^2 + 2, 'a'); R
+            Order in Number Field in a with defining polynomial x^2 + 2
+            sage: (3,15)*R
+            Fractional ideal (3)
+        """
+        if not self.is_maximal():
+            raise NotImplementedError, "ideals of non-maximal orders not yet supported."
         I = self.number_field().fractional_ideal(*args, **kwds)
         if not I.is_integral():
             raise ValueError, "ideal must be integral; use fractional_ideal to create a non-integral ideal."
@@ -180,9 +216,9 @@ class Order(IntegralDomain):
             sage: Ok = k.maximal_order(); Ok
             Maximal Order in Number Field in a with defining polynomial x^2 + 5077
             sage: Ok*(11, a - 4)
-            Fractional ideal (11, a - 4) of Number Field in a with defining polynomial x^2 + 5077
+            Fractional ideal (11, a - 4)
             sage: (11, a - 4) * Ok
-            Fractional ideal (11, a - 4) of Number Field in a with defining polynomial x^2 + 5077
+            Fractional ideal (11, a - 4)
         """
         if self.is_maximal():
             return self._K.ideal(right)
@@ -196,13 +232,13 @@ class Order(IntegralDomain):
             sage: k.<a> = NumberField(x^2 + 431); G = k.class_group(); G
             Class group of order 21 with structure C21 of Number Field in a with defining polynomial x^2 + 431
             sage: G.0   # random output
-            Fractional ideal class (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
+            Fractional ideal class (6, 1/2*a + 11/2)
             sage: Ok = k.maximal_order(); Ok
             Maximal Order in Number Field in a with defining polynomial x^2 + 431
             sage: (6, 1/2*a + 11/2)*Ok    # random output
-            Fractional ideal (6, 1/2*a + 11/2) of Number Field in a with defining polynomial x^2 + 431
+            Fractional ideal (6, 1/2*a + 11/2)
             sage: 17*Ok
-            Principal ideal (17) of Maximal Order in Number Field in a with defining polynomial x^2 + 431
+            Fractional ideal (17)
         """
         return self.__mul__(left)
 
@@ -431,7 +467,7 @@ class Order(IntegralDomain):
             sage: P = K.ideal(61).factor()[0][0]
             sage: OK = K.maximal_order()
             sage: OK.residue_field(P)
-            Residue field of Fractional ideal (-2*a^2 + 1) of Number Field in a with defining polynomial x^4 + 3*x^2 - 17
+            Residue field of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime)

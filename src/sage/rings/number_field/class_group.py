@@ -158,8 +158,8 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         Return string representation of this fractional ideal class.
         """
         if self.is_principal():
-            return 'Trivial principal fractional ideal class of %s'%self.__ideal.number_field()
-        return 'Fractional ideal class %s of %s'%(self.__ideal._repr_short(), self.__ideal.number_field())
+            return 'Trivial principal fractional ideal class' #%self.__ideal.number_field()
+        return 'Fractional ideal class %s'%self.__ideal._repr_short() #, self.__ideal.number_field())
 
     def __cmp__(self, other):
         q = self.__ideal / other.__ideal

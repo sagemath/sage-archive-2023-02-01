@@ -4288,6 +4288,36 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(nfbasis0(self.g, flag, g))
 
+    def nfbasis_d(self, long flag=0, p=0):
+        """
+        nfbasis_d(x): Return a basis of the number field defined over
+        QQ by x and its discriminant.
+
+        EXAMPLES:
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: F._pari_()[0].nfbasis_d()
+            ([1, x, x^2], -108)
+
+            sage: G = NumberField(x^5-11,'beta')
+            sage: G._pari_()[0].nfbasis_d()
+            ([1, x, x^2, x^3, x^4], 45753125)
+
+            sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
+            ([1, x, x^2], -108)
+        """
+        cdef gen _p, d
+        cdef GEN g
+        if p != 0:
+            _p = self.pari(p)
+            g = _p.g
+        else:
+            g = <GEN>NULL
+        d = self.pari(0)
+        _sig_on
+        nfb = self.new_gen(nfbasis(self.g, &d.g, flag, g))
+        _sig_off
+        return nfb, d.__int__()
+
     def nfdisc(self, long flag=0, p=0):
         """
         nfdisc(x): Return the discriminant of the number field
@@ -4632,6 +4662,10 @@ cdef class gen(sage.structure.element.RingElement):
         else:
             t0GEN(fa)
             return self.new_gen(polred0(self.g, flag, t0))
+
+    def polredabs(self, flag=0):
+        _sig_on
+        return self.new_gen(polredabs0(self.g, flag))
 
     def polresultant(self, y, var=-1, flag=0):
         t0GEN(y)

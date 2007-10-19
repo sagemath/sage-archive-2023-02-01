@@ -210,7 +210,7 @@ Coercing the sum of a bunch of the constants to many different floating point ri
 
 import math, operator
 
-from sage.rings.all import CommutativeRing, RealField, Integer, RingElement
+from sage.rings.all import CommutativeRing, RealField, Integer, RingElement, QQ
 import sage.interfaces.all
 import sage.rings.all
 from sage.libs.pari.all import pari
@@ -510,6 +510,9 @@ class I_class(Constant):
     def _latex_(self):
         return "i"
 
+    def minpoly(self, bits=None, degree=None, epsilon=0):
+        return QQ['x'].gen(0)**2 + 1
+
     def _mathml_(self):
         return "<mi>&i;</mi>"
 
@@ -667,6 +670,10 @@ class GoldenRatio(Constant):
 
     def _latex_(self):
         return '\\phi'
+
+    def minpoly(self, bits=None, degree=None, epsilon=0):
+        x = QQ['x'].gen(0)
+        return x**2 - x - 1
 
     def __float__(self):
         return float(0.5)*(float(1.0)+math.sqrt(float(5.0)))

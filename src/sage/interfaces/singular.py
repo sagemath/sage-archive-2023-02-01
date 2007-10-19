@@ -1084,6 +1084,47 @@ class SingularElement(ExpectElement):
     def _singular_(self):
         return self
 
+    def attrib(self, name, value=None):
+        """
+        Get and set attributs for self.
+
+        INPUT:
+            name -- string to choose the attribute
+            value -- boolean value or None for reading, (default:None)
+
+        VALUES:
+            isSB -- the standard basis property is set by all commands
+                    computing a standard basis like groebner, std, stdhilb
+                    etc.; used by lift, dim, degree, mult, hilb, vdim, kbase
+            isHomog -- the weight vector for homogeneous or quasihomogeneous
+                       ideals/modules
+            isCI -- complete intersection property
+            isCM -- Cohen-Macaulay property
+            rank -- set the rank of a module (see nrows)
+            withSB  -- value of type ideal, resp. module, is std
+            withHilb -- value of type intvec is hilb(_,1) (see hilb)
+            withRes  -- value of type list is a free resolution
+            withDim  -- value of type int is the dimension (see dim)
+            withMult -- value of type int is the multiplicity (see mult)
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([z^2, y*z, y^2, x*z, x*y, x^2])
+            sage: Ibar = I._singular_()
+            sage: Ibar.attrib('isSB')
+            0
+            sage: singular.eval('vdim(%s)'%Ibar.name()) # sage7 name is random
+            // ** sage7 is no standard basis
+            4
+            sage: Ibar.attrib('isSB',1)
+            sage: singular.eval('vdim(%s)'%Ibar.name())
+            '4'
+        """
+        if value is None:
+            return int(self.parent().eval('attrib(%s,"%s")'%(self.name(),name)))
+        else:
+            self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
+
 class SingularFunction(ExpectFunction):
      def _sage_doc_(self):
          return "The SAGE interface to the Singular help system is not implemented."

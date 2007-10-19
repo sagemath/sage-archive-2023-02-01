@@ -917,6 +917,8 @@ class MPolynomialIdeal_singular_repr:
         for i in range(M.nrows()):
             if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
                 return False
+
+        self._singular_().attrib('isSB',1)
         return True
 
     def transformed_basis(self,algorithm="gwalk", other_ring=None):

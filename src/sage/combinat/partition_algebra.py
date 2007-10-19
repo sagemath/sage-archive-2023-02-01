@@ -18,11 +18,11 @@ from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElem
 import set_partition
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
-from sage.rings.arith import factorial
+from sage.rings.arith import factorial, binomial
 from permutation import Permutations
 from sage.rings.all import Integer, is_RealNumber
 from sage.calculus.all import floor, ceil
-
+from subset import Subsets
 
 def create_set_partitions_function(letter):
     """
@@ -985,6 +985,305 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
 
 
+SetPartitionsRk = create_set_partitions_function("R")
+SetPartitionsRk.__doc__ = """
+"""
+class SetPartitionsRk_k(SetPartitionsAk_k):
+    def __init__(self, k):
+        """
+        TESTS:
+           sage: R3 = SetPartitionsRk(3); R3
+           Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block
+           sage: R3 == loads(dumps(R3))
+           True
+        """
+        self.k = k
+        SetPartitionsAk_k.__init__(self, k)
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SetPartitionsRk(3))
+            'Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block'
+        """
+        return SetPartitionsAk_k.__repr__(self) + " with at most 1 positive and negative entry in each block"
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: R3 = SetPartitionsRk(3)
+            sage: A3 = SetPartitionsAk(3)
+            sage: all([ sp in R3 for sp in R3])
+            True
+            sage: len(filter(lambda x: x in R3, A3))
+            34
+            sage: R3.count()
+            34
+        """
+        if not SetPartitionsAk_k.__contains__(self, x):
+            return False
+
+        for block in x:
+            if len(block) > 2:
+                return False
+
+            negatives = 0
+            positives = 0
+            for i in block:
+                if i < 0:
+                    negatives += 1
+                else:
+                    positives += 1
+
+                if negatives > 1 or positives > 1:
+                    return False
+
+        return True
+
+    def count(self):
+        """
+        TESTS:
+            sage: SetPartitionsRk(2).count()
+            7
+            sage: SetPartitionsRk(3).count()
+            34
+            sage: SetPartitionsRk(4).count()
+            209
+            sage: SetPartitionsRk(5).count()
+            1546
+        """
+        return sum( [ binomial(self.k, l)**2*factorial(l) for l in range(self.k + 1) ] )
+
+    def iterator(self):
+        """
+        TESTS:
+            sage: len(SetPartitionsRk(3).list() ) == SetPartitionsRk(3).count()
+            True
+        """
+        #The number of blocks with at most two things
+        positives = Set(range(1, self.k+1))
+        negatives = Set( [ -i for i in positives ] )
+
+        yield to_set_partition([],self.k)
+        for n in range(1,self.k+1):
+            for top in Subsets(positives, n):
+                t = list(top)
+                for bottom in Subsets(negatives, n):
+                    b = list(bottom)
+                    for permutation in Permutations(n):
+                        l = [ [t[i], b[ permutation[i] - 1 ] ] for i in range(n) ]
+                        yield to_set_partition(l, k=self.k)
+
+class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: A3 = SetPartitionsAk(3)
+            sage: R2p5 = SetPartitionsRk(2.5)
+            sage: all([ sp in R2p5 for sp in R2p5 ])
+            True
+            sage: len(filter(lambda x: x in R2p5, A3))
+            7
+            sage: R2p5.count()
+            7
+        """
+        if not SetPartitionsAkhalf_k.__contains__(self, x):
+            return False
+
+        for block in x:
+            if len(block) > 2:
+                return False
+
+            negatives = 0
+            positives = 0
+            for i in block:
+                if i < 0:
+                    negatives += 1
+                else:
+                    positives += 1
+
+                if negatives > 1 or positives > 1:
+                    return False
+
+
+        return True
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SetPartitionsRk(2.5))
+            'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with at most 1 positive and negative entry in each block'
+        """
+        return SetPartitionsAkhalf_k.__repr__(self) + " and with at most 1 positive and negative entry in each block"
+
+    def count(self):
+        """
+        TESTS:
+            sage: SetPartitionsRk(2.5).count()
+            7
+            sage: SetPartitionsRk(3.5).count()
+            34
+            sage: SetPartitionsRk(4.5).count()
+            209
+        """
+        return sum( [ binomial(self.k, l)**2*factorial(l) for l in range(self.k + 1) ] )
+
+    def iterator(self):
+        """
+        TESTS:
+
+        """
+        positives = Set(range(1, self.k+1))
+        negatives = Set( [ -i for i in positives ] )
+
+        yield to_set_partition([[self.k+1, -self.k-1]], self.k+1)
+        for n in range(1,self.k+1):
+            for top in Subsets(positives, n):
+                t = list(top)
+                for bottom in Subsets(negatives, n):
+                    b = list(bottom)
+                    for permutation in Permutations(n):
+                        l = [ [t[i], b[ permutation[i] - 1 ] ] for i in range(n) ] + [ [self.k+1, -self.k-1] ]
+                        yield to_set_partition(l, k=self.k+1)
+
+
+SetPartitionsPRk = create_set_partitions_function("PR")
+SetPartitionsPRk.__doc__ = """
+"""
+class SetPartitionsPRk_k(SetPartitionsRk_k):
+    def __init__(self, k):
+        """
+        TESTS:
+           sage: PR3 = SetPartitionsPRk(3); PR3
+           Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block and that are planar
+           sage: PR3 == loads(dumps(PR3))
+           True
+        """
+        self.k = k
+        SetPartitionsRk_k.__init__(self, k)
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SetPartitionsPRk(3))
+            'Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block and that are planar'
+        """
+        return SetPartitionsRk_k.__repr__(self) + " and that are planar"
+
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: PR3 = SetPartitionsPRk(3)
+            sage: A3 = SetPartitionsAk(3)
+            sage: all([ sp in PR3 for sp in PR3])
+            True
+            sage: len(filter(lambda x: x in PR3, A3))
+            20
+            sage: PR3.count()
+            20
+        """
+        if not SetPartitionsRk_k.__contains__(self, x):
+            return False
+
+        if not is_planar(x):
+            return False
+
+        return True
+
+    def count(self):
+        """
+        TESTS:
+            sage: SetPartitionsPRk(2).count()
+            6
+            sage: SetPartitionsPRk(3).count()
+            20
+            sage: SetPartitionsPRk(4).count()
+            70
+            sage: SetPartitionsPRk(5).count()
+            252
+        """
+        return binomial(2*self.k, self.k)
+
+    def iterator(self):
+        """
+        TESTS:
+            sage: len(SetPartitionsPRk(3).list() ) == SetPartitionsPRk(3).count()
+            True
+        """
+        #The number of blocks with at most two things
+        positives = Set(range(1, self.k+1))
+        negatives = Set( [ -i for i in positives ] )
+
+        yield to_set_partition([], self.k)
+        for n in range(1,self.k+1):
+            for top in Subsets(positives, n):
+                t = list(top)
+                t.sort()
+                for bottom in Subsets(negatives, n):
+                    b = list(bottom)
+                    b.sort(reverse=True)
+                    l = [ [t[i], b[ i ] ] for i in range(n) ]
+                    yield to_set_partition(l, k=self.k)
+
+class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: A3 = SetPartitionsAk(3)
+            sage: PR2p5 = SetPartitionsPRk(2.5)
+            sage: all([ sp in PR2p5 for sp in PR2p5 ])
+            True
+            sage: len(filter(lambda x: x in PR2p5, A3))
+            6
+            sage: PR2p5.count()
+            6
+        """
+        if not SetPartitionsRkhalf_k.__contains__(self, x):
+            return False
+
+        if not is_planar(x):
+            return False
+
+        return True
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(SetPartitionsPRk(2.5))
+            'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with at most 1 positive and negative entry in each block and that are planar'
+        """
+        return SetPartitionsRkhalf_k.__repr__(self) + " and that are planar"
+
+    def count(self):
+        """
+        TESTS:
+            sage: SetPartitionsPRk(2.5).count()
+            6
+            sage: SetPartitionsPRk(3.5).count()
+            20
+            sage: SetPartitionsPRk(4.5).count()
+            70
+        """
+        return binomial(2*self.k, self.k)
+
+    def iterator(self):
+        """
+        TESTS:
+
+        """
+        positives = Set(range(1, self.k+1))
+        negatives = Set( [ -i for i in positives ] )
+
+        yield to_set_partition([[self.k+1, -self.k-1]],k=self.k+1)
+        for n in range(1,self.k+1):
+            for top in Subsets(positives, n):
+                t = list(top)
+                t.sort()
+                for bottom in Subsets(negatives, n):
+                    b = list(bottom)
+                    b.sort(reverse=True)
+                    l = [ [t[i], b[ i ] ] for i in range(n) ] + [ [self.k+1, -self.k-1] ]
+                    yield to_set_partition(l, k=self.k+1)
 
 #########################################################
 #Algebras
@@ -1049,6 +1348,20 @@ class PartitionAlgebra_tk(PartitionAlgebra_generic):
             name = "Partition algebra T_%s(%s)"%(k, n)
         cclass = SetPartitionsTk(k)
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="T")
+
+class PartitionAlgebra_rk(PartitionAlgebra_generic):
+    def __init__(self, R, k, n, name=None):
+        if name is None:
+            name = "Partition algebra R_%s(%s)"%(k, n)
+        cclass = SetPartitionsRk(k)
+        PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="R")
+
+class PartitionAlgebra_prk(PartitionAlgebra_generic):
+    def __init__(self, R, k, n, name=None):
+        if name is None:
+            name = "Partition algebra PR_%s(%s)"%(k, n)
+        cclass = SetPartitionsPRk(k)
+        PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="PR")
 
 ##########################################################
 
@@ -1257,7 +1570,10 @@ def to_set_partition(l,k=None):
         True
     """
     if k == None:
-        k = max( map( lambda x: max( map(abs, x) ), l) )
+        if l == []:
+            return Set([])
+        else:
+            k = max( map( lambda x: max( map(abs, x) ), l) )
 
     to_be_added = Set( range(1, k+1) + map(lambda x: -1*x, range(1, k+1) ) )
 

@@ -855,6 +855,7 @@ class Notebook(SageObject):
     def html_topbar(self, user, pub=False):
         s = ''
         entries = []
+
         if self.user_is_guest(user):
             entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
         else:
@@ -1420,7 +1421,7 @@ class Notebook(SageObject):
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
         body = ''
         body += """
-<table width="100%%">
+<table width="100%%" id="topbar">
 <tr>
   <td align=left> %s </td>   <td align=right> %s </td>
 </tr>
@@ -1488,7 +1489,8 @@ class Notebook(SageObject):
 
         else:
 
-            entries = [('/', 'Home', 'Back to your personal worksheet list'),
+            entries = [('toggle_top()', 'Toggle', 'Toggle the top bar'),
+                       ('/', 'Home', 'Back to your personal worksheet list'),
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
@@ -1510,10 +1512,6 @@ class Notebook(SageObject):
 
             body += '<div class="worksheet" id="worksheet">%s</div>'%worksheet_html
 
-        # The blank space given by '<br>'*15  is needed so the input doesn't get
-        # stuck at the bottom of the screen. This could be replaced by a region
-        # such that clicking on it creates a new cell at the bottom of the worksheet.
-        body += '<br>'*15
         endpanespan = '</td></tr></table></span>\n'
 
 
@@ -1578,12 +1576,10 @@ function save_worksheet_and_close() {
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body
-        body += '<pre class="plaintext">'
         body += """
-        <textarea class="plaintextedit" id="cell_intext" name="textfield">%s</textarea>
-        </pre>
+        <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>
         </form>
-        """%t
+        """%(t.count("\n")+1,t)
 
         return """
         <html>

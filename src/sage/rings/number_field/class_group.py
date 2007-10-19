@@ -8,7 +8,7 @@ EXAMPLES:
     sage: J = I * I; J
     Fractional ideal class (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
     sage: O = K.OK(); O
-    Order with module basis 1/2*a + 1/2, a in Number Field in a with defining polynomial x^2 + 23
+    Maximal Order in Number Field in a with defining polynomial x^2 + 23
     sage: O*(2, 1/2*a + 1/2)
     Fractional ideal (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
     sage: (O*(2, 1/2*a + 1/2)).is_principal()
@@ -58,6 +58,12 @@ class ClassGroup(AbelianGroup_class):
         return FractionalIdealClass(self.__number_field.ideal(*args, **kwds), self)
 
     def _coerce_impl(self, x):
+        """
+        Canonical coercion of x into this class group.
+
+        EXAMPLES:
+
+        """
         return self(x)
 
     def gens(self):
@@ -152,8 +158,8 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         Return string representation of this fractional ideal class.
         """
         if self.is_principal():
-            return 'Trivial principal fractional ideal class of %s'%self.__ideal.number_field()
-        return 'Fractional ideal class %s of %s'%(self.__ideal._repr_short(), self.__ideal.number_field())
+            return 'Trivial principal fractional ideal class' #%self.__ideal.number_field()
+        return 'Fractional ideal class %s'%self.__ideal._repr_short() #, self.__ideal.number_field())
 
     def __cmp__(self, other):
         q = self.__ideal / other.__ideal

@@ -136,7 +136,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef int i
         for i from 0 <= i < self._nrows:
             clear_c_vector_modint(&self.rows[i])
-
+        sage_free(self.rows)
 
     def __init__(self, parent, entries, copy, coerce):
         """

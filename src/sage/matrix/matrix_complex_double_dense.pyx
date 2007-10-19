@@ -718,6 +718,20 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def _replace_self_with_numpy(self,numpy_matrix):
+        """
+        Replaces the entries of self with the elements of a numpy array with
+        dtype = 'complex128'.
+
+        EXAMPLES:
+            sage: import numpy
+            sage: j = numpy.complex(0,1)
+            sage: a = numpy.array([[1*j, 2*j],[3*j, 4*j]], 'complex128')
+            sage: m = matrix(CDF, 2, 2, 0)
+            sage: m._replace_self_with_numpy(a)
+            sage: m
+            [1.0*I 2.0*I]
+            [3.0*I 4.0*I]
+        """
         if self._nrows == 0 or self._ncols == 0:
             return self
 
@@ -726,6 +740,36 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         n=numpy_matrix
         p=<double *>n.data
         memcpy(self._matrix.data,p,sizeof(double)*self._nrows*self._ncols*2)
+
+    def _replace_self_with_numpy32(self,numpy_matrix):
+        """
+        Replaces the entries of self with the elements of a numpy array with
+        dtype = 'complex64'.
+
+        EXAMPLES:
+            sage: import numpy
+            sage: j = numpy.complex(0,1)
+            sage: a = numpy.array([[1*j, 2*j],[3*j, 4*j]], 'complex64')
+            sage: m = matrix(CDF, 2, 2, 0)
+            sage: m._replace_self_with_numpy32(a)
+            sage: m
+            [1.0*I 2.0*I]
+            [3.0*I 4.0*I]
+        """
+
+        if self._nrows == 0 or self._ncols == 0:
+            return
+
+        cdef ndarray n
+        cdef float *nd
+        cdef double *md
+        cdef int i
+
+        n = numpy_matrix
+        nd = <float *>n.data
+        md = <double *>self._matrix.data
+        for i from 0 <= i < self._nrows*self._ncols*2:
+            md[i] = <double> nd[i]
 
     cdef Vector _matrix_times_vector_c_impl(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:

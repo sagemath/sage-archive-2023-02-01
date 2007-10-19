@@ -136,13 +136,42 @@ cdef class ntl_ZZX:
         ZZX_destruct(&self.x)
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ntl.ZZX([1,3,0,5]).__repr__()
+            '[1 3 0 5]'
+        """
         return str(ZZX_repr(&self.x))
 
     def copy(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZX([1,32])
+            sage: y = x.copy()
+            sage: y == x
+            True
+            sage: y is x
+            False
+        """
         _sig_on
-        return make_ZZX(ZZX_copy(&self.x))
+        return self.__copy__()
 
     def __copy__(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: x = ntl.ZZX([1,32])
+            sage: y = x.copy()
+            sage: y == x
+            True
+            sage: y is x
+            False
+        """
         return make_ZZX(ZZX_copy(&self.x))
 
     def __setitem__(self, long i, a):
@@ -336,8 +365,16 @@ cdef class ntl_ZZX:
             sage: f % g
             [20 25]
         """
+        cdef ntl_ZZX r = PY_NEW(ntl_ZZX)
+        if not PY_TYPE_CHECK(self, ntl_ZZX):
+            self = ntl_ZZX(self)
+        if not PY_TYPE_CHECK(other, ntl_ZZX):
+            other = ntl_ZZX(other)
         _sig_on
-        return make_ZZX(ZZX_mod(&self.x, &other.x))
+        ZZX_rem(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        _sig_off
+        return r
+        _sig_on
 
     def quo_rem(self, ntl_ZZX other):
         """
@@ -396,7 +433,7 @@ cdef class ntl_ZZX:
             sage: f == g
             False
         """
-        if ZZX_equal(&self.x, &other.x):
+        if ZZX_equal(self.x, other.x):
             return 0
         return -1
 
@@ -414,7 +451,7 @@ cdef class ntl_ZZX:
             sage: f.is_zero()
             False
         """
-        return bool(ZZX_is_zero(&self.x))
+        return bool(ZZX_IsZero(self.x))
 
     def is_one(self):
         """
@@ -428,7 +465,7 @@ cdef class ntl_ZZX:
             sage: f.is_one()
             True
         """
-        return bool(ZZX_is_one(&self.x))
+        return bool(ZZX_IsOne(self.x))
 
     def is_monic(self):
         """
@@ -444,9 +481,11 @@ cdef class ntl_ZZX:
             sage: g
             [1 0 0 2]
         """
-        if ZZX_is_zero(&self.x):
+        if ZZX_IsZero(self.x):
              return False
-        return bool(ZZ_is_one(ZZX_leading_coefficient(&self.x)))
+        cdef ZZ_c lc
+        lc = ZZX_LeadCoeff(self.x)
+        return <bint>ZZ_IsOne(lc)
 
         # return bool(ZZX_is_monic(&self.x))
 
@@ -518,9 +557,9 @@ cdef class ntl_ZZX:
             sage: f.content()
             0
         """
-        cdef char* t
-        t = ZZX_content(&self.x)
-        return int(string(t))
+        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        ZZX_content(r.x, self.x)
+        return r
 
     def primitive_part(self):
         """
@@ -584,6 +623,12 @@ cdef class ntl_ZZX:
     def lcm(self, ntl_ZZX other):
         """
         Return the least common multiple of self and other.
+
+        EXAMPLES:
+            sage: x1 = ntl.ZZX([-1,0,0,1])
+            sage: x2 = ntl.ZZX([-1,0,0,0,0,0,1])
+            sage: x1.lcm(x2)
+            [-1 0 0 0 0 0 1]
         """
         g = self.gcd(other)
         return (self*other).quo_rem(g)[0]
@@ -660,7 +705,9 @@ cdef class ntl_ZZX:
             sage: f.leading_coefficient()
             0
         """
-        return make_ZZ(ZZX_leading_coefficient(&self.x))
+        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        r.x = ZZX_LeadCoeff(self.x)
+        return r
 
     def constant_term(self):
         """
@@ -674,9 +721,9 @@ cdef class ntl_ZZX:
             sage: f.constant_term()
             0
         """
-        cdef char* t
-        t = ZZX_constant_term(&self.x)
-        return int(string(t))
+        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        r.x = ZZX_ConstTerm(self.x)
+        return r
 
     def set_x(self):
         """
@@ -694,7 +741,6 @@ cdef class ntl_ZZX:
         Though f and g are equal, they are not the same objects in memory:
             sage: f is g
             False
-
         """
         ZZX_set_x(&self.x)
 
@@ -821,7 +867,7 @@ cdef class ntl_ZZX:
         if m < 0:
             raise ArithmeticError, "m (=%s) must be positive"%m
         n = self.constant_term()
-        if n != 1 and n != -1:
+        if n != ntl_ZZ(1) and n != ntl_ZZ(-1):
             raise ArithmeticError, \
                   "The constant term of self must be 1 or -1."
         _sig_on

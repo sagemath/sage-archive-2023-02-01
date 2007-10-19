@@ -34,6 +34,7 @@ Mixing of symbolic an quad double elements:
 
 """
 
+
 #*****************************************************************************
 #
 #   SAGE: System for Algebra and Geometry Experimentation
@@ -84,8 +85,6 @@ from sage.rings.real_mpfr cimport RealNumber
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
-
-cdef extern from "rqdf_fix.h": pass
 
 cdef qd *qd_from_mpz(mpz_t z):
     cdef double d[4]
@@ -148,10 +147,10 @@ cdef class RealQuadDoubleField_class(Field):
     """
 
     def __init__(self):
-        fpu_fix_start(self.cwf)
+        pass
 
     def __dealloc__(self):
-        fpu_fix_end(self.cwf)
+        pass
 
     def is_exact(self):
         return False
@@ -315,7 +314,10 @@ cdef class RealQuadDoubleField_class(Field):
 
         s = <char*>PyMem_Malloc(63+8) # See docs for write()
         _sig_on
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         z._pi.write(s,63,0,0)
+        fpu_fix_end(&cw)
         _sig_off
         t = str(s)
         PyMem_Free(s)
@@ -331,12 +333,15 @@ cdef class RealQuadDoubleField_class(Field):
         """
         cdef qd z
         cdef char *s
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         s = <char*>PyMem_Malloc(63+8) # See docs for write()
         _sig_on
         z._log2.write(s,63,0,0)
         _sig_off
         t = str(s)
         PyMem_Free(s)
+        fpu_fix_end(&cw)
         return QuadDoubleElement(t)
 
     def e(self):
@@ -349,7 +354,8 @@ cdef class RealQuadDoubleField_class(Field):
         """
         cdef qd z
         cdef char *s
-
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         s = <char*>PyMem_Malloc(63+8) # See docs for write()
         _sig_on
         z._e.write(s,63,0,0)
@@ -357,6 +363,7 @@ cdef class RealQuadDoubleField_class(Field):
         t = str(s)
 
         PyMem_Free(s)
+        fpu_fix_end(&cw)
         return QuadDoubleElement(t)
 
     def NaN(self):
@@ -405,20 +412,21 @@ cdef class QuadDoubleElement(FieldElement):
     cdef _new(self):
         cdef QuadDoubleElement q
         q = PY_NEW(QuadDoubleElement)
-        fpu_fix_start(self.cw)
         q.initptr = new_qd_real()
         return q
 
     cdef _new_c(self, qd a):
         cdef QuadDoubleElement q
         q = PY_NEW(QuadDoubleElement)
-        fpu_fix_start(self.cw)
         q.initptr =  qd_from_qd(a.x[0],a.x[1],a.x[2],a.x[3])
         return q
 
     def __dealloc__(self):
-        fpu_fix_end(self.cw)
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         delete(self.initptr)
+        fpu_fix_end(&cw)
+        pass
 
     def __new__(self, x=None):
         # explicit cast required for C++
@@ -456,10 +464,11 @@ cdef class QuadDoubleElement(FieldElement):
             sage: RQDF(RR('1091.34342'))
             1091.343420000000000000000000000000000000000000000000000000000000
         """
-        fpu_fix_start(self.cw)
         self._set(x)
 
     cdef _set(self, x):
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         cdef qd *n,*d
 
         if PY_TYPE_CHECK(x, RealNumber):
@@ -497,7 +506,9 @@ cdef class QuadDoubleElement(FieldElement):
             _sig_off
 
         else:
+            fpu_fix_end(&cw)
             raise TypeError, "Cannot coerce %s (parent %s) into a quad double" % (x, x.parent())
+        fpu_fix_end(&cw)
 
     def get_doubles(self):
         """
@@ -648,13 +659,18 @@ cdef class QuadDoubleElement(FieldElement):
             if x < 0: return "-inf"
             return "inf"
         if self.is_NaN(): return "NaN"
-
-        if 0.0 == x: return self.__str_no_scientific()
-        if 1e-12 < x and x < 1e12:
-            return self.__str_no_scientific()
-        if -1e-12 > x and x > -1e12:
-            return self.__str_no_scientific()
-        return self.__str_scientific()
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
+        if 0.0 == x:
+            result = self.__str_no_scientific()
+        elif 1e-12 < x and x < 1e12:
+            result = self.__str_no_scientific()
+        elif -1e-12 > x and x > -1e12:
+            result =  self.__str_no_scientific()
+        else:
+            result = self.__str_scientific()
+        fpu_fix_end(&cw)
+        return result
 
     def parent(self):
         """
@@ -687,10 +703,13 @@ cdef class QuadDoubleElement(FieldElement):
 
         """
         if 0 == self: return Integer("0")
-
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         s = self.__str_no_scientific()
         num = s.split('.')[0]
-        return Integer(num)
+        result = Integer(num)
+        fpu_fix_end(&cw)
+        return result
 
     ########################
     #   Basic Arithmetic
@@ -705,9 +724,12 @@ cdef class QuadDoubleElement(FieldElement):
             3.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_npwr(self.initptr.x,-1,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -719,10 +741,12 @@ cdef class QuadDoubleElement(FieldElement):
             sage: RQDF(1/3) + RQDF(1)
             1.333333333333333333333333333333333333333333333333333333333333333
         """
-
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_add(self.initptr.x,(<QuadDoubleElement>right).initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -734,8 +758,11 @@ cdef class QuadDoubleElement(FieldElement):
             -0.666666666666666666666666666666666666666666666666666666666666666
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_sub(self.initptr.x,(<QuadDoubleElement>right).initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     cdef RingElement _mul_c_impl(self, RingElement right):
@@ -747,8 +774,11 @@ cdef class QuadDoubleElement(FieldElement):
             13.00000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_mul(self.initptr.x,(<QuadDoubleElement>right).initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     cdef RingElement _div_c_impl(self, RingElement right):
@@ -760,8 +790,11 @@ cdef class QuadDoubleElement(FieldElement):
             0.00333333333333333333333333333333333333333333333333333333333333333
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_div(self.initptr.x,(<QuadDoubleElement>right).initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     cdef ModuleElement _neg_c_impl(self):
@@ -773,21 +806,27 @@ cdef class QuadDoubleElement(FieldElement):
             -0.0560000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)          # This might not be needed here.
         res = self._new()
         c_qd_neg(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     def __abs__(self):
         """
-        Negates a quad double number.
+        Returns the absolute value of a quad double number.
 
         EXAMPLES:
             sage: abs(RQDF('-0.45'))
             0.450000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_abs(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res
 
     def __lshift__(self, n):
@@ -838,15 +877,19 @@ cdef class QuadDoubleElement(FieldElement):
             1.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         if self.frac() < 0.5:
             _sig_on
             c_qd_floor(self.initptr.x,res.initptr.x)
+            fpu_fix_end(&cw)
             _sig_off
             return res
 
         _sig_on
         c_qd_ceil(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -864,8 +907,11 @@ cdef class QuadDoubleElement(FieldElement):
             -3
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_floor(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res.integer_part()
 
     def ceil(self):
@@ -883,8 +929,11 @@ cdef class QuadDoubleElement(FieldElement):
             <type 'sage.rings.integer.Integer'>
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         c_qd_ceil(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         return res.integer_part()
 
     def ceiling(self):
@@ -942,7 +991,10 @@ cdef class QuadDoubleElement(FieldElement):
             -23.789999999999999
         """
         cdef double d
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         d = qd_to_double(qd_deref(self.initptr))
+        fpu_fix_end(&cw)
         return d
 
     def __int__(self):
@@ -956,7 +1008,10 @@ cdef class QuadDoubleElement(FieldElement):
             -23
         """
         cdef int i
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         i = qd_to_int(qd_deref(self.initptr))
+        fpu_fix_end(&cw)
         return i
 
     def __long__(self):
@@ -1210,12 +1265,16 @@ cdef class QuadDoubleElement(FieldElement):
             NaN
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         if self.initptr.x[0] > 0:
             c_qd_sqrt(self.initptr.x, res.initptr.x)
+            fpu_fix_end(&cw)
             return res
         else:
             res = self._new_c(self.initptr._nan)
+            fpu_fix_end(&cw)
             return res
 
     def cube_root(self):
@@ -1234,7 +1293,7 @@ cdef class QuadDoubleElement(FieldElement):
     def nth_root(self, int n):
         """
         Returns the $n^{th}$ root of self.
-        Returns NaN if self is negative
+        Returns NaN if self is negative and $n$ is even.
 
         EXAMPLES:
             sage: r = RQDF(125.0); r.nth_root(3)
@@ -1247,6 +1306,8 @@ cdef class QuadDoubleElement(FieldElement):
 
         cdef QuadDoubleElement res
         cdef double neg[4]
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         if self.initptr.is_negative() and n % 2 == 1:
@@ -1255,14 +1316,18 @@ cdef class QuadDoubleElement(FieldElement):
             c_qd_neg(res.initptr.x, res.initptr.x)
         else:
             c_qd_nroot(self.initptr.x, n, res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
     def __pow(self, n, modulus):
         cdef QuadDoubleElement res, n2
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_npwr(self.initptr.x, n, res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1279,8 +1344,10 @@ cdef class QuadDoubleElement(FieldElement):
         """
         if not isinstance(n,(Integer, int)):
             res = n * self.log()
-            return res.exp()
-        return self.__pow(n,d)
+            res = res.exp()
+        else:
+            res = self.__pow(n,d)
+        return res
 
     def log(self):
         """
@@ -1297,18 +1364,20 @@ cdef class QuadDoubleElement(FieldElement):
             NaN
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         if self.initptr.x[0] < 0.0:
             res = self._new_c(self.initptr._nan)
-            return res
         elif self.initptr.x[0] == 0.0:
             res = self._new()
             res.initptr = qd_from_double(-INFINITY)
-            return res
+        else:
+            res = self._new()
+            _sig_on
+            c_qd_log(self.initptr.x,res.initptr.x)
+            _sig_off
+        fpu_fix_end(&cw)
 
-        res = self._new()
-        _sig_on
-        c_qd_log(self.initptr.x,res.initptr.x)
-        _sig_off
         return res
 
     def log10(self):
@@ -1327,18 +1396,20 @@ cdef class QuadDoubleElement(FieldElement):
 
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         if self.initptr.x[0] < 0.0:
             res = self._new_c(self.initptr._nan)
-            return res
         elif self.initptr.x[0] == 0.0:
             res = self._new()
             res.initptr = qd_from_double(-INFINITY)
-            return res
+        else:
+            res = self._new()
+            _sig_on
+            c_qd_log10(self.initptr.x,res.initptr.x)
+            _sig_off
+        fpu_fix_end(&cw)
 
-        res = self._new()
-        _sig_on
-        c_qd_log10(self.initptr.x,res.initptr.x)
-        _sig_off
         return res
 
     def exp(self):
@@ -1355,10 +1426,13 @@ cdef class QuadDoubleElement(FieldElement):
             True
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_exp(self.initptr.x,res.initptr.x)
         _sig_off
+        fpu_fix_end(&cw)
         return res
 
     def cos(self):
@@ -1373,9 +1447,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_cos(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1388,9 +1465,12 @@ cdef class QuadDoubleElement(FieldElement):
             2.29792739447387129688852462923399363132147373173602668183970676e-63
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_sin(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1407,9 +1487,12 @@ cdef class QuadDoubleElement(FieldElement):
             0.577350269189625764509148780501957455647601751270126876018602326
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_tan(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1437,9 +1520,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_acos(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1456,9 +1542,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_asin(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1475,9 +1564,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_atan(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1491,9 +1583,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.034465640095510565271865251179886560959831568117717546138668562
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_cosh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1507,9 +1602,12 @@ cdef class QuadDoubleElement(FieldElement):
              -0.264800227602270757698096543949405541727737186661923151601337992
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_sinh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1523,9 +1621,12 @@ cdef class QuadDoubleElement(FieldElement):
             0.255977789245684539459617840766661476446446454939881314446181622
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_tanh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1543,9 +1644,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_acosh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1562,9 +1666,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_asinh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 
@@ -1581,9 +1688,12 @@ cdef class QuadDoubleElement(FieldElement):
             1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
+        cdef unsigned int cw
+        fpu_fix_start(&cw)
         res = self._new()
         _sig_on
         c_qd_atanh(self.initptr.x,res.initptr.x)
+        fpu_fix_end(&cw)
         _sig_off
         return res
 

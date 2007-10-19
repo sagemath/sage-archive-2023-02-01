@@ -1,2 +1,2 @@
-from mpolynomialsystem import MPolynomialSystem, MPolynomialRoundSystem
+from mpolynomialsystem import MPolynomialSystem, MPolynomialRoundSystem, is_MPolynomialSystem, is_MPolynomialRoundSystem
 from sr import SR

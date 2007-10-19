@@ -150,8 +150,8 @@ def bernoulli_mod_p(int p):
     fudge = fudgeInv = 1
 
     cdef ntl_ZZ_pX G, J
-    G = ntl.ZZ_pX(modulus = ntl.ZZ(p))
-    J = ntl.ZZ_pX(modulus = ntl.ZZ(p))
+    G = ntl.ZZ_pX([], ntl.ZZ(p))
+    J = ntl.ZZ_pX([], ntl.ZZ(p))
     G.preallocate_space((p-1)/2)
     J.preallocate_space((p-1)/2)
 

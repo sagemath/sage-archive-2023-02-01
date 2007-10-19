@@ -601,16 +601,6 @@ class LinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.minimum_distance()
             3
-            sage: C = RandomLinearCode(10,5,GF(4,'a'))
-            sage: C.gen_mat()                ## random
-	    [    1     0     0     0     0 x + 1     1     0     0     0]
-	    [x + 1     1     0     1     0 x + 1     1     1     0     0]
-	    [    0 x + 1     0 x + 1     0     x x + 1 x + 1 x + 1     0]
-	    [    1     0     x     0     1     0     0     0     0     1]
-	    [    0     0     1     1     0     0     0     0     x x + 1]
-            sage: C.minimum_distance()       ## random
-            2
-
         """
         #sage: C.minimum_distance_upper_bound()  # optional (net connection)
         #5

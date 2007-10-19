@@ -920,10 +920,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         # TODO: lots of testing
         return 100
 
-    # TODO: TEMPORARILY DISABLED due to bug on 64-bit sage.math:
-    #  A = matrix(Integers(389),4,range(16)); A._echelon_strassen(4)
-    # *** glibc detected *** free(): invalid next size (fast): 0x0000000000fb15e0 ***
-    # due to error in set_to memcpy on 64-bit
     cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
                         Py_ssize_t nrows, Py_ssize_t ncols):
         """

@@ -227,6 +227,18 @@ robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^15000   # 15 thousand character string (note that normal Singular input must be at most 10000)
     sage: a = singular.eval(t)
     sage: a = singular(t)
+
+TESTS:
+We test an automatic coercion:
+    sage: a = 3*singular('2'); a
+    6
+    sage: type(a)
+    <class 'sage.interfaces.singular.SingularElement'>
+    sage: a = singular('2')*3; a
+    6
+    sage: type(a)
+    <class 'sage.interfaces.singular.SingularElement'>
+
 """
 
 #We could also do these calculations without using the singular

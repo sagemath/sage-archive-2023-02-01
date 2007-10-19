@@ -125,10 +125,11 @@ def ntl_ZZ_pContext( v ):
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
         raise ValueError, "%s is not a valid modulus."%v
-    if ZZ_pContextDict.has_key(v):
-        context = ZZ_pContextDict[v]()
+    key = repr(v)
+    if ZZ_pContextDict.has_key(key):
+        context = ZZ_pContextDict[key]()
         if context is not None:
             return context
     context = ntl_ZZ_pContext_class(v)
-    ZZ_pContextDict[v] = weakref.ref(context)
+    ZZ_pContextDict[key] = weakref.ref(context)
     return context

@@ -1,17 +1,6 @@
 from sage.rings.integer cimport Integer
 
 """
-A class for computing and caching powers of the same integer.
-
-This class is designed to be used as a field of p-adic rings and fields.  Since elements of p-adic rings and fields need to use powers of p over and over, this class precomputes and stores powers of p.  There is no reason that the base has to be prime however.
-
-EXAMPLES:
-sage: X = PowComputer(3, 4)
-sage: X(3)
-27
-sage: X(20) == 3^20
-True
-
 AUTHOR:
     -- David Roe
 """

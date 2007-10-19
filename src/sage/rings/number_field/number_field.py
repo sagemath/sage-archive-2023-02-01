@@ -1897,11 +1897,21 @@ class NumberField_generic(number_field_base.NumberField):
         self.__galois_group[pari_group, use_kash] = H
         return H
 
+    def _normalize_prime_list(self, v):
+        if v is None:
+            v = []
+        elif not isinstance(v, (list, tuple)):
+            v = [v]
+        return tuple([ZZ(x) for x in v])
 
-    def integral_basis(self):
+    def integral_basis(self, v=None):
         """
         Return a list of elements of this number field that are a basis
         for the full ring of integers.
+
+        INPUT:
+            v -- None, a prime, or a list of primes.  See
+            the documentation for self.maximal_order.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^5 + 10*x + 1)
@@ -1915,14 +1925,31 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.integral_basis()
             [1, a, 1/2*a^2 + 1/2*a]
         """
+        v = self._normalize_prime_list(v)
+
         try:
-            return self.__integral_basis
+            return self.__integral_basis[v]
         except AttributeError:
-            f = self.pari_polynomial()
+            self.__integral_basis = {}
+        except KeyError:
+            pass
+        f = self.pari_polynomial()
+
+        if len(v) == 0:
             B = f.nfbasis()
-            R = self.polynomial().parent()
-            self.__integral_basis = [self(R(g).list()) for g in B]
-        return self.__integral_basis
+        else:
+            m = pari.matrix(len(v), 2)
+            d = f.poldisc()
+            for i in range(len(v)):
+                p = pari(ZZ(v[i]))
+                m[i,0] = p
+                m[i,1] = d.valuation(p)
+            B = f.nfbasis(p = m)
+
+        R = self.polynomial().parent()
+        basis = [self(R(g).list()) for g in B]
+        self.__integral_basis[v] = basis
+        return basis
 
     def narrow_class_group(self, proof=None):
         r"""
@@ -2495,30 +2522,71 @@ class NumberField_absolute(NumberField_generic):
         return ans
 
 
-    def maximal_order(self):
+    def maximal_order(self, v=None):
         """
         Return the maximal order, i.e., the ring of integers, associated
         to this number field.
 
-        EXAMPLES:
+        INPUT:
+            v -- (default: None) None, a prime, or a list of primes.
+                 * if v is None, return the maximal order.
+                 * if v is a prime, return an order that is p-maximal.
+                 * if v is a list, return an order that is maximal at
+                   each prime in the list v.
 
+        EXAMPLES:
         In this example, the maximal order cannot be generated
         by a single element.
             sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
             sage: o = k.maximal_order()
             sage: o
             Maximal Order in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+
+        We compute $p$-maximal orders for several $p$.  Note that computing
+        a $p$-maximal order is much faster in general than computing
+        the maximal order:
+            sage: p = next_prime(10^22); q = next_prime(10^23)
+            sage: K.<a> = NumberField(x^3 - p*q)
+            sage: K.maximal_order([3]).basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+            sage: K.maximal_order([2]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([p]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([q]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([p,3]).basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+
+        An example with bigger discriminant:
+            sage: p = next_prime(10^97); q = next_prime(10^99)
+            sage: K.<a> = NumberField(x^3 - p*q)
+            sage: K.maximal_order(prime_range(10000)).basis()
+            [1, a, a^2]
         """
+        v = self._normalize_prime_list(v)
+
         try:
-            return self.__maximal_order
+            return self.__maximal_order[v]
         except AttributeError:
-            B = self.integral_basis()
-            import sage.rings.number_field.order as order
-            O = order.absolute_order_from_module_generators(B,
-                     check_integral=False, check_rank=False,
-                     check_is_ring=False, is_maximal=True)
-            self.__maxima_order = O
-            return O
+            self.__maximal_order = {}
+        except KeyError:
+            pass
+
+        B = self.integral_basis(v = v)
+
+        if len(v) == 0 or v is None:
+            is_maximal = True
+        else:
+            is_maximal = False
+
+        import sage.rings.number_field.order as order
+        O = order.absolute_order_from_module_generators(B,
+                 check_integral=False, check_rank=False,
+                 check_is_ring=False, is_maximal = is_maximal)
+
+        self.__maximal_order[v] = O
+        return O
 
     def order(self, *gens, **kwds):
         r"""

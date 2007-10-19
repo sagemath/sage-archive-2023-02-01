@@ -1017,14 +1017,18 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in a with defining polynomial x^3 + 17
         """
         if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() is self:
+            K = x.parent()
+            if K is self:
                 return x
-            elif x.parent() == self:
+            elif K == self:
                 return self._element_class(self, x.polynomial())
-            elif isinstance(x, number_field_element.OrderElement_absolute) or isinstance(x, number_field_element.OrderElement_relative):
-                if x.parent().number_field() is self:
+            elif isinstance(x, (number_field_element.OrderElement_absolute,
+                                number_field_element.OrderElement_relative,
+                                number_field_element_quadratic.OrderElement_quadratic)):
+                L = K.number_field()
+                if L is self:
                     return self._element_class(self, x)
-                x = x.parent().number_field()(x)
+                x = L(x)
             return self._coerce_from_other_number_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
@@ -1077,7 +1081,7 @@ class NumberField_generic(number_field_base.NumberField):
         if f.degree() <= 0:
             return self._element_class(self, f[0])
         # todo: more general coercion if embedding have been asserted
-        raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        raise TypeError, "Cannot coerce element into this number field"
 
     def _coerce_non_number_field_element_in(self, x):
         """
@@ -2400,7 +2404,7 @@ class NumberField_absolute(NumberField_generic):
         return self._subfields_helper(degree=degree,name=name,
                                       both_maps=both_maps,optimize=True)
 
-    def change_name(self, names):
+    def change_names(self, names):
         r"""
         Return number field isomorphic to self but with the given
         generator name.
@@ -2415,7 +2419,7 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: K.<z> = NumberField(x^2 + 3); K
             Number Field in z with defining polynomial x^2 + 3
-            sage: L.<ww> = K.change_name()
+            sage: L.<ww> = K.change_names()
             sage: L
             Number Field in ww with defining polynomial x^2 + 3
             sage: L.structure()[0]
@@ -2503,7 +2507,7 @@ class NumberField_absolute(NumberField_generic):
             sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
             sage: o = k.maximal_order()
             sage: o
-            Order with module basis 1, 1/2*a^2 + 1/2*a, a^2 in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+            Maximal Order in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
         """
         try:
             return self.__maximal_order
@@ -2537,9 +2541,9 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
             sage: k.order(2*i)
-            Order with module basis 1, 2*i in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(10*i)
-            Order with module basis 1, 10*i in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1
             sage: k.order(3)
             Traceback (most recent call last):
             ...
@@ -2923,7 +2927,7 @@ class NumberField_relative(NumberField_generic):
         self.__gens = tuple(v)
 
 
-    def change_name(self, names):
+    def change_names(self, names):
         r"""
         Return relative number field isomorphic to self but with the
         given generator names.
@@ -2940,7 +2944,7 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
             Number Field in a with defining polynomial x^4 + 3 over its base field
-            sage: L.<c,d> = K.change_name()
+            sage: L.<c,d> = K.change_names()
             sage: L
             Number Field in c with defining polynomial x^4 + 3 over its base field
             sage: L.base_field()
@@ -2949,7 +2953,7 @@ class NumberField_relative(NumberField_generic):
         An example with a 3-level tower:
             sage: K.<a,b,c> = NumberField([x^2 + 17, x^2 + x + 1, x^3 - 2]); K
             Number Field in a with defining polynomial x^2 + 17 over its base field
-            sage: L.<m,n,r> = K.change_name()
+            sage: L.<m,n,r> = K.change_names()
             sage: L
             Number Field in m with defining polynomial x^2 + 17 over its base field
             sage: L.base_field()
@@ -2962,7 +2966,7 @@ class NumberField_relative(NumberField_generic):
             names = self.variable_names()
         elif isinstance(names, str):
             names = names.split(',')
-        K = self.base_field().change_name(tuple(names[1:]))
+        K = self.base_field().change_names(tuple(names[1:]))
         L = K.extension(self.defining_polynomial(), names=names[0])
         return L
 
@@ -3011,6 +3015,36 @@ class NumberField_relative(NumberField_generic):
             2
         """
         return self.absolute_polynomial().degree()
+
+    def maximal_order(self):
+        """
+        Return the maximal order, i.e., the ring of integers of this
+        number field.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order(); OK.basis()
+            [1, 1/2*a + -1/2*b, (-1/2*b)*a + 1/2, a]
+            sage: charpoly(OK.1)
+            x^2 + b*x + 1
+            sage: charpoly(OK.2)
+            x^2 + (-1)*x + 1
+            sage: O2 = K.order([3*a, 2*b])
+            sage: O2.index_in(OK)
+            36
+        """
+        try:
+            return self.__maximal_order
+        except AttributeError:
+            pass
+        K = self.absolute_field('a')
+        from_K,_ = K.structure()
+        O = K.maximal_order()
+        B = [from_K(z) for z in O.basis()]
+        OK = self.order(B, check_is_integral=False, check_rank=False)
+        self.__maximal_order = OK
+        return OK
+
 
     def __reduce__(self):
         """

@@ -134,7 +134,7 @@ sage: f = y^4 - 3*y^2 + 1
 sage: f
 y^4 + (-3)*y^2 + 1
 sage: factor(f)
-(y + -a) * (y + -a + 1) * (y + a - 1) * (y + a)
+(y - a) * (y - a + 1) * (y + a - 1) * (y + a
 
 sage: # (YES) Factorize  x^4-3*x^2+1 mod 5.
 sage: k.< x > = GF(5) [ ]

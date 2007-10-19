@@ -16,7 +16,7 @@ We test coercion in a particularly complicated situation:
     sage: a = m.charpoly()
     sage: R.<x> = WZ[]
     sage: R(a)
-    x^2 + ((-1)*z^2 + -1)*x
+    x^2 + ((-1)*z^2 - 1)*x
 """
 
 ################################################################################

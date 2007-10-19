@@ -83,15 +83,16 @@ cdef class Ring(ParentWithGens):
             sage: QQ[sqrt(2)]
             Number Field in sqrt2 with defining polynomial x^2 - 2
             sage: QQ[sqrt(2),sqrt(3)]
-            Number Field in sqrt3 with defining polynomial x^2 + -3 over its base field
+            Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+
 
         and orders in number fields:
             sage: ZZ[I]
-            Order with module basis 1, I in Number Field in I with defining polynomial x^2 + 1
+            Order in Number Field in I with defining polynomial x^2 + 1
             sage: ZZ[sqrt(5)]
-            Order with module basis 1, sqrt5 in Number Field in sqrt5 with defining polynomial x^2 - 5
+            Order in Number Field in sqrt5 with defining polynomial x^2 - 5
             sage: ZZ[sqrt(2)+sqrt(3)]
-            Order with module basis 1, a, a^2, a^3 in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+            Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
         """
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -125,7 +126,8 @@ cdef class Ring(ParentWithGens):
                         names.append(n)
                 else:
                     w = minpolys
-                    names, name_chr = gen_name(repr(v[0]), name_chr)
+                    name, name_chr = gen_name(repr(v[0]), name_chr)
+                    names = [name]
 
                 names = tuple(names)
                 if len(w) > 1:
@@ -799,7 +801,7 @@ cdef class CommutativeRing(Ring):
             sage: R = QQ['x']
             sage: y = polygen(R)
             sage: R.extension(y^2-5, 'a')
-            Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 + -5
+            Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
         """
         if name is None:
             name = str(poly.parent().gen(0))
@@ -1598,12 +1600,19 @@ def is_Ring(x):
     return isinstance(x, Ring)
 
 
+from sage.structure.parent_gens import _certify_names
+
 def gen_name(x, name_chr):
-    name = repr(x)
+    from sage.calculus.all import is_SymbolicVariable
+    if is_SymbolicVariable(x):
+        return repr(x), name_chr
+    name = str(x)
     m = re.match('^sqrt\((\d+)\)$', name)
     if m:
         name = "sqrt%s" % m.groups()[0]
-    elif not re.match('^[a-zA-Z0-9]$', name):
+    try:
+        _certify_names([name])
+    except ValueError, msg:
         name = chr(name_chr)
         name_chr += 1
     return name, name_chr

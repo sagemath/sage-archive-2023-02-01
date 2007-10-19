@@ -4,17 +4,17 @@ The class group of a number field.
 EXAMPLES:
     sage: K.<a> = NumberField(x^2 + 23)
     sage: I = K.class_group().gen(); I
-    Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23
+    Fractional ideal class (2, 1/2*a - 1/2)
     sage: J = I * I; J
-    Fractional ideal class (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
+    Fractional ideal class (2, 1/2*a + 1/2)
     sage: O = K.OK(); O
     Maximal Order in Number Field in a with defining polynomial x^2 + 23
     sage: O*(2, 1/2*a + 1/2)
-    Fractional ideal (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
+    Fractional ideal (2, 1/2*a + 1/2)
     sage: (O*(2, 1/2*a + 1/2)).is_principal()
     False
     sage: (O*(2, 1/2*a + 1/2))^3
-    Fractional ideal (1/2*a - 3/2) of Number Field in a with defining polynomial x^2 + 23
+    Fractional ideal (1/2*a - 3/2)
 """
 
 from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
@@ -47,13 +47,13 @@ class ClassGroup(AbelianGroup_class):
             sage: K.<b> = NumberField(x^2 + 389)
             sage: C = K.class_group()
             sage: C(K.ideal(b))
-            Trivial principal fractional ideal class of Number Field in b with defining polynomial x^2 + 389
+            Trivial principal fractional ideal class
             sage: C(K.ideal(59049, b + 35312))
-            Fractional ideal class (59049, b + 35312) of Number Field in b with defining polynomial x^2 + 389
+            Fractional ideal class (59049, b + 35312)
             sage: C((59049, b + 35312))
-            Fractional ideal class (59049, b + 35312) of Number Field in b with defining polynomial x^2 + 389
+            Fractional ideal class (59049, b + 35312)
             sage: C(59049, b + 35312)
-            Fractional ideal class (59049, b + 35312) of Number Field in b with defining polynomial x^2 + 389
+            Fractional ideal class (59049, b + 35312)
         """
         return FractionalIdealClass(self.__number_field.ideal(*args, **kwds), self)
 
@@ -73,7 +73,7 @@ class ClassGroup(AbelianGroup_class):
         EXAMPLES:
             sage: K.<a> = NumberField(x^4 + 23)
             sage: K.class_group().gens()   # random gens (platform dependent)
-            [Fractional ideal class (2, 1/2*a^2 - a + 3/2) of Number Field in a with defining polynomial x^4 + 23]
+            [Fractional ideal class (2, 1/2*a^2 - a + 3/2)]
         """
         return self.__gens
 
@@ -97,9 +97,9 @@ class ClassGroup(AbelianGroup_class):
             sage: C = NumberField(x^2 + 120071, 'a').class_group(); C
             Class group of order 500 with structure C250 x C2 of Number Field in a with defining polynomial x^2 + 120071
             sage: C.gen(0)
-            Fractional ideal class (130, 1/2*a + 137/2) of Number Field in a with defining polynomial x^2 + 120071
+            Fractional ideal class (130, 1/2*a + 137/2)
             sage: C.gen(1)
-            Fractional ideal class (7, a) of Number Field in a with defining polynomial x^2 + 120071
+            Fractional ideal class (7, a)
         """
         if i < 0 or i >= len(self.__gens):
             raise IndexError
@@ -140,11 +140,11 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         sage: G = NumberField(x^2 + 23,'a').class_group(); G
         Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
         sage: I = G.0; I
-        Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23
+        Fractional ideal class (2, 1/2*a - 1/2)
         sage: I*I
-        Fractional ideal class (2, 1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
+        Fractional ideal class (2, 1/2*a + 1/2)
         sage: I*I*I
-        Trivial principal fractional ideal class of Number Field in a with defining polynomial x^2 + 23
+        Trivial principal fractional ideal class
     """
     def __init__(self, ideal, class_group):
         """
@@ -182,11 +182,11 @@ class FractionalIdealClass(MultiplicativeGroupElement):
             sage: k.<a> = NumberField(x^2 + 20072); G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
             sage: I = G.0; I
-            Fractional ideal class (41, a + 10) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (41, a + 10)
             sage: J = G(I.ideal()^5); J
-            Fractional ideal class (115856201, 1/2*a + 40407883) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (115856201, 1/2*a + 40407883)
             sage: J.reduce()
-            Fractional ideal class (57, 1/2*a + 44) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (57, 1/2*a + 44)
         """
         return self.parent()(self.__ideal.reduce_equiv())
 

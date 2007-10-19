@@ -136,7 +136,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
 
         sage: L.<cuberoot2, zeta3> = CyclotomicField(3).extension(x^3 - 2)
         sage: phi = L.hom([cuberoot2 * zeta3]); phi
-        Relative number field endomorphism of Number Field in cuberoot2 with defining polynomial x^3 + -2 over its base field
+        Relative number field endomorphism of Number Field in cuberoot2 with defining polynomial x^3 - 2 over its base field
           Defn: cuberoot2 |--> zeta3*cuberoot2
                 zeta3 |--> zeta3
         sage: phi(cuberoot2 + zeta3)
@@ -226,7 +226,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             ...
             Relative number field endomorphism of Number Field in a with defining polynomial x^2 + x + 1 over its base field
               Defn: a |--> a
-                    b |--> (-b)*a + -b
+                    b |--> (-b)*a - b
             ]
         """
         try:

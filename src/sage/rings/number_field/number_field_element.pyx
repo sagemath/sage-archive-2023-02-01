@@ -1286,7 +1286,7 @@ cdef class NumberFieldElement(FieldElement):
         In all other cases, the norm is the absolute norm down to QQ.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^3 + x^2 + x + -132/7); K
+            sage: K.<a> = NumberField(x^3 + x^2 + x - 132/7); K
             Number Field in a with defining polynomial x^3 + x^2 + x - 132/7
             sage: a.norm()
             132/7
@@ -1309,7 +1309,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a+b+c).norm()
             121
             sage: (a+b+c).norm(L)
-            2*c*b + -7
+            2*c*b - 7
             sage: (a+b+c).norm(M)
             -11
 
@@ -1360,7 +1360,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: R.<X> = K['X']
             sage: L.<b> = K.extension(X^2-(22 + a))
             sage: b.minpoly('t')
-            t^2 + -a - 22
+            t^2 - a - 22
             sage: b.absolute_minpoly('t')
             t^4 - 44*t^2 + 487
             sage: b^2 - (22+a)
@@ -1444,7 +1444,7 @@ cdef class NumberFieldElement(FieldElement):
 
         More complicated relative number field:
             sage: L.<b> = K.extension(K['x'].0^2 - a); L
-            Number Field in b with defining polynomial x^2 + -a over its base field
+            Number Field in b with defining polynomial x^2 - a over its base field
             sage: M = b.matrix(); M
             [0 1]
             [a 0]
@@ -1701,7 +1701,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: a.list()
             [0, 1, 0]
             sage: v = (K.base_field().0 + a)^2 ; v
-            a^2 + 2*b*a + -1
+            a^2 + 2*b*a - 1
             sage: v.list()
             [-1, 2*b, 1]
         """
@@ -1855,7 +1855,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     EXAMPLES:
         sage: O = EquationOrder([x^2 + x + 1, x^3 - 2],'a,b')
         sage: c = O.1; c
-        (-2*b^2 - 2)*a + -2*b^2 - b
+        (-2*b^2 - 2)*a - 2*b^2 - b
         sage: type(c)
         <type 'sage.rings.number_field.number_field_element.OrderElement_relative'>
     """

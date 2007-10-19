@@ -581,12 +581,14 @@ cdef class ntl_mat_ZZ:
             sage: M.LLL_FP()
             2
             sage: M
-            [[0 0 0]
+            [
+            [0 0 0]
             [2 1 0]
             [-1 1 3]
             ]
             sage: M=ntl.mat_ZZ(4,4,[-6,9,-15,-18,4,-6,10,12,10,-16,18,35,-24,36,-46,-82]); M
-            [[-6 9 -15 -18]
+            [
+            [-6 9 -15 -18]
             [4 -6 10 12]
             [10 -16 18 35]
             [-24 36 -46 -82]
@@ -594,14 +596,15 @@ cdef class ntl_mat_ZZ:
             sage: M.LLL_FP()
             3
             sage: M
-            [[0 0 0 0]
+            [
+            [0 0 0 0]
             [0 -2 0 0]
             [-2 1 -5 -6]
             [0 -1 -7 5]
             ]
 
-        WARNING: This method modifies self. So after applying this method your matrix
-        will be a vector of vectors.
+        WARNING: This method modifies self. So after applying this
+        method your matrix will be a vector of vectors.
         """
         cdef ntl_mat_ZZ U
         if return_U:

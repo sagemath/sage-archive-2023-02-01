@@ -705,16 +705,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
-            x^2 + (-1*y^2 - x)*x + -x^2*y + x*y^2
+            x^2 + (-1*y^2 - x)*x - x^2*y + x*y^2
 
         It's a little difficult to distinguish the variables.  To fix this,
         we temporarily view the indeterminate as $Z$:
             sage: with localvars(f.parent(), 'Z'): print f
-            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
+            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
-            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
+            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
         """
         D = self.fetch('charpoly')
         if not D is None:

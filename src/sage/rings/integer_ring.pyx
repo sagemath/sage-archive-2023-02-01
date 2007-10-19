@@ -544,8 +544,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         EXAMPLES:
             sage: ZZ.extension(x^2-5, 'a')
-            Order with module basis 1, a in Number Field in a with defining polynomial x^2 - 5
-
+            Order in Number Field in a with defining polynomial x^2 - 5
             sage: ZZ.extension([x^2 + 1, x^2 + 2], 'a,b')
             Relative Order in Number Field in a with defining polynomial x^2 + 1 over its base field
         """

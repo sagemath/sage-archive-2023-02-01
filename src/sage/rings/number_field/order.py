@@ -519,6 +519,16 @@ class Order(IntegralDomain):
         """
         return self.degree()
 
+    def class_number(self, proof=None):
+        """
+        EXAMPLES:
+            sage: ZZ[2^(1/3)].class_number()
+            1
+            sage: ZZ[sqrt(-23)].class_number()
+            3
+        """
+        return self.number_field().class_number(proof=proof)
+
     def class_group(self, proof=None, names='c'):
         r"""
         Return the class group of this order.

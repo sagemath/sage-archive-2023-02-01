@@ -649,7 +649,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             aprec = self.prime_pow.prec_cap
         self.set_precs(aprec)
         cdef mpz_t tmp2
-        mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+        mpz_init_set(tmp2, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
         sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp2)
         mpz_clear(tmp2)
 

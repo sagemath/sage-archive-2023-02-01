@@ -4,10 +4,10 @@ A class for computing and caching powers of the same integer.
 This class is designed to be used as a field of p-adic rings and fields.  Since elements of p-adic rings and fields need to use powers of p over and over, this class precomputes and stores powers of p.  There is no reason that the base has to be prime however.
 
 EXAMPLES:
-sage: X = PowComputer(3, 4)
+sage: X = PowComputer(3, 4, 10)
 sage: X(3)
 27
-sage: X(20) == 3^20
+sage: X(10) == 3^10
 True
 
 AUTHOR:
@@ -35,9 +35,11 @@ include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 
 cdef class PowComputer_class(SageObject):
-    def __init__(self, Integer prime, bint in_field):
+    def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field):
         self.prime = prime
         self.in_field = in_field
+        self.cache_limit = cache_limit
+        self.prec_cap = prec_cap
         self._initialized = 1
 
     cdef Integer pow_Integer(self, unsigned long n):
@@ -64,7 +66,7 @@ cdef class PowComputer_class(SageObject):
         Returns the base that the PowComputer is exponentiating.
 
         EXAMPLES:
-        sage: P = PowComputer(6, 10)
+        sage: P = PowComputer(6, 10, 15)
         sage: P._prime()
         6
         """
@@ -105,9 +107,6 @@ cdef class PowComputer_base(PowComputer_class):
         cdef Py_ssize_t i
         cdef Integer x
 
-        self.cache_limit = cache_limit
-        self.prec_cap = prec_cap
-
         mpz_init_set_ui(self.small_powers[0], 1)
 
         if cache_limit > 0:
@@ -117,7 +116,7 @@ cdef class PowComputer_base(PowComputer_class):
             mpz_init(self.small_powers[i])
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
-        PowComputer_class.__init__(self, prime, in_field)
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, in_field)
         (<PowComputer_class>self)._initialized = 1
 
     def __dealloc__(self):
@@ -154,8 +153,7 @@ cdef class PowComputer_base(PowComputer_class):
 
     def __reduce__(self):
         """
-        sage: P = PowComputer(5, 7)
-        sage: Q = PowComputer(5, 10)
+        sage: P = PowComputer(5, 7, 10)
         sage: R = loads(dumps(P))
         sage: P == R
         True
@@ -268,7 +266,7 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         PC = pow_comp_cache[key]()
         if PC is not None:
             return PC
-    PC = PowComputer_class(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), in_field)
+    PC = PowComputer_base(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), in_field)
     pow_comp_cache[key] = weakref.ref(PC)
     return PC
 
@@ -286,7 +284,7 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
     cache_limit -- A positive integer that you want to cache powers up to.
 
     EXAMPLES:
-    sage: PC = PowComputer(3, 5)
+    sage: PC = PowComputer(3, 5, 10)
     sage: PC(4)
     81
     sage: PC(6)

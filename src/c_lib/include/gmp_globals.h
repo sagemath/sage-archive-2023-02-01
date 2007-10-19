@@ -19,6 +19,6 @@ EXTERN mpz_t rand_val, rand_n, rand_n1;
 
 EXTERN gmp_randstate_t rand_state;
 
-void init_mpz_globals();
-void clear_mpz_globals();
+EXTERN void init_mpz_globals();
+EXTERN void clear_mpz_globals();
 

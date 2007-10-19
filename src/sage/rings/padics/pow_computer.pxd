@@ -11,6 +11,9 @@ cdef class PowComputer_class(SageObject):
     cdef bint in_field
     cdef int _initialized
 
+    cdef unsigned long cache_limit
+    cdef unsigned long prec_cap
+
     cdef Integer pow_Integer(self, unsigned long n)
     cdef mpz_t* pow_mpz_top(self)
     cdef mpz_t* pow_mpz_t(self, unsigned long n)
@@ -19,8 +22,6 @@ cdef class PowComputer_class(SageObject):
 
 cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t* small_powers
-    cdef unsigned long cache_limit
     cdef mpz_t top_power
-    cdef unsigned long prec_cap
     cdef mpz_t temp
     cdef object __weakref__

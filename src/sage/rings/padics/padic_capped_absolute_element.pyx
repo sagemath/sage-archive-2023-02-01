@@ -25,7 +25,7 @@ cimport sage.rings.padics.padic_generic_element
 cimport sage.rings.rational
 cimport sage.rings.padics.pow_computer
 from sage.rings.rational cimport Rational
-from sage.rings.padics.pow_computer cimport PowComputer_class
+from sage.rings.padics.pow_computer cimport PowComputer_base
 
 import sage.rings.padics.padic_generic_element
 import sage.rings.padics.padic_lazy_element
@@ -288,7 +288,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             if mpz_sgn((<Integer>shift).value) == 1:
-                ans.set_precs(self.prime_pow._cache_limit)
+                ans.set_precs(self.prime_pow.prec_cap)
             else:
                 ans.set_precs(0)
             return ans
@@ -300,7 +300,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef PowComputer_class powerer
         if shift < 0:
             return self._rshift_c(-shift)
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         if shift >= prec_cap: # if we ever start caching valuation, this check should change
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
@@ -341,7 +341,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             if mpz_sgn((<Integer>shift).value) == -1:
-                ans.set_precs(self.prime_pow._cache_limit)
+                ans.set_precs(self.prime_pow.prec_cap)
             else:
                 ans.set_precs(0)
             return ans
@@ -352,7 +352,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef pAdicCappedAbsoluteElement ans
         if shift < 0:
             return self._lshift_c(-shift)
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         if shift >= self.absprec:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
@@ -378,7 +378,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef pAdicCappedAbsoluteElement right = <pAdicCappedAbsoluteElement> _right
         cdef unsigned long sval, rval, prec1, prec2, prec_cap
         ans = self._new_c()
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         sval = self.valuation_c()
         rval = right.valuation_c()
         # Need to think about the possibility that the following overflows (too big for long).
@@ -569,7 +569,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long prec_cap
         cdef unsigned long dest_prec
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
@@ -621,19 +621,19 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         ans = PyList_New(0)
         curpower = self.absprec
         mpz_init_set(tmp, self.value)
+        mpz_init(tmp2)
         while mpz_sgn(tmp) != 0:
             curpower -= 1
             list_elt = self._new_c()
             list_elt.set_precs(curpower)
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-            tmp2 = self.prime_pow.pow_mpz_t(curpower)[0]
+            mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
             sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
-            if curpower > self.prime_pow.cache_limit and curpower != self.prime_pow.prec_cap:
-                mpz_clear(tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
             mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
             PyList_Append(ans, list_elt)
+        mpz_clear(tmp2)
         mpz_clear(tmp)
         return ans
 
@@ -641,17 +641,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_set(self.value, n.value)
         cdef unsigned long aprec
         if mpz_fits_ulong_p(absprec.value) == 0:
-            aprec = self.prime_pow._cache_limit
+            aprec = self.prime_pow.prec_cap
         if mpz_sgn(absprec.value) != 1:
             raise ValueError, "can only compute to positive precision"
         aprec = mpz_get_ui(absprec.value)
-        if aprec > self.prime_pow._cache_limit:
-            aprec = self.prime_pow._cache_limit
+        if aprec > self.prime_pow.prec_cap:
+            aprec = self.prime_pow.prec_cap
         self.set_precs(aprec)
-        cdef mpz_t tmp2 = self.prime_pow.pow_mpz_t(self.absprec)[0]
+        cdef mpz_t tmp2
+        mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
         sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp2)
-        if self.absprec > self.prime_pow.cache_limit and self.absprec != self.prime_pow.prec_cap:
-            mpz_clear(tmp2)
+        mpz_clear(tmp2)
 
     def log_artin_hasse(self):
         raise NotImplementedError

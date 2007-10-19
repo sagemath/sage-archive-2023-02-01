@@ -28,7 +28,7 @@ cimport sage.rings.rational
 cimport sage.rings.padics.pow_computer
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.padics.pow_computer cimport PowComputer_class
+from sage.rings.padics.pow_computer cimport PowComputer_base
 
 #import sage.rings.padics.padic_ring_generic_element
 #import sage.rings.padics.padic_field_generic_element
@@ -251,7 +251,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef unsigned long prec_cap
         if shift < 0:
             return self._rshift_c(-shift)
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         if shift >= prec_cap:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
@@ -282,7 +282,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef unsigned long prec_cap
         if shift < 0:
             return self._lshift_c(-shift)
-        prec_cap = self.prime_pow._cache_limit
+        prec_cap = self.prime_pow.prec_cap
         if shift >= prec_cap:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
@@ -438,7 +438,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef pAdicFixedModElement ans
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow._cache_limit) >= 0:
+        if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return self
         ans = self._new_c()
         mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(mpz_get_ui((<Integer>absprec).value))[0])
@@ -473,7 +473,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             absprec = Integer(absprec)
         cdef unsigned long aprec
         aprec = mpz_get_ui((<Integer>absprec).value)
-        if aprec >= self.prime_pow._cache_limit:
+        if aprec >= self.prime_pow.prec_cap:
             return mpz_sgn(self.value) == 0
         cdef mpz_t tmp
         mpz_init(tmp)
@@ -505,7 +505,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return True
         cdef unsigned long aprec
         aprec = mpz_get_ui((<Integer>absprec).value)
-        if aprec >= self.prime_pow._cache_limit:
+        if aprec >= self.prime_pow.prec_cap:
             return mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0
         cdef mpz_t tmp1, tmp2
         mpz_init(tmp1)
@@ -576,22 +576,22 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef mpz_t tmp, tmp2
         cdef pAdicFixedModElement list_elt
         ans = PyList_New(0)
-        preccap = self.prime_pow._cache_limit
+        preccap = self.prime_pow.prec_cap
         curpower = preccap
         mpz_init_set(tmp, self.value)
+        mpz_init(tmp2)
         while mpz_sgn(tmp) != 0:
             curpower -= 1
             list_elt = self._new_c()
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-            tmp2 = self.prime_pow.pow_mpz_t(preccap)[0]
+            mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(preccap)[0])
             sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
-            if preccap > self.prime_pow.cache_limit and preccap != self.prime_pow.prec_cap:
-                mpz_clear(tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
             mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
             PyList_Append(ans, list_elt)
         mpz_clear(tmp)
+        mpz_clear(tmp2)
         return ans
 
     def _teichmuller_set(self, Integer n, Integer absprec):
@@ -599,16 +599,16 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef mpz_t tmp
         mpz_set(self.value, n.value)
         if mpz_fits_ulong_p(absprec.value) == 0:
-            aprec = self.prime_pow._cache_limit
+            aprec = self.prime_pow.prec_cap
         if mpz_sgn(absprec.value) != 1:
             raise ValueError, "can only compute to positive precision"
         aprec = mpz_get_ui(absprec.value)
-        if aprec > self.prime_pow._cache_limit:
-            aprec = self.prime_pow._cache_limit
-        tmp = self.prime_pow.pow_mpz_t(aprec)[0]
+        if aprec > self.prime_pow.prec_cap:
+            aprec = self.prime_pow.prec_cap
+        mpz_init_set(tmp, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp)
-        if aprec > self.prime_pow.cache_limit and aprec != self.prime_pow.prec_cap:
-            mpz_clear(tmp)
+        mpz_clear(tmp)
+
 
     def multiplicative_order(self):
         r"""
@@ -695,7 +695,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef unsigned long diff
         cdef Integer ans
         ans = PY_NEW(Integer)
-        diff = self.prime_pow._cache_limit - self.valuation_c()
+        diff = self.prime_pow.prec_cap - self.valuation_c()
         mpz_set_si(ans.value, diff)
         return ans
 
@@ -725,7 +725,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             raise ValueError, "When calling residue, use the exponent of p, not the integer p^exp."
         else:
             aprec = mpz_get_ui((<Integer>absprec).value)
-        if aprec > self.prime_pow._cache_limit:
+        if aprec > self.prime_pow.prec_cap:
             _sig_on
             mpz_pow_ui(modulus.value, self.prime_pow.prime.value, aprec)
             _sig_off
@@ -872,7 +872,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     cdef unsigned long valuation_c(self):
         if mpz_sgn(self.value) == 0:
-            return self.prime_pow._cache_limit
+            return self.prime_pow.prec_cap
         cdef mpz_t tmp
         cdef unsigned long ans
         mpz_init(tmp)

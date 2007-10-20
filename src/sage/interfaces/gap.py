@@ -576,9 +576,9 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     if os.path.exists(WORKSPACE):
         os.unlink(WORKSPACE)
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
-    for pkg in ['sonata', 'guava', 'factint', \
+    for pkg in ['ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna']:
+                'toric', 'laguna', 'hap', 'braid']:
         try:
             g.load_package(pkg, verbose=verbose)
         except RuntimeError, msg:

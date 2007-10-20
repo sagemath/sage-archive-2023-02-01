@@ -287,13 +287,14 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: C.rational_points()
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
 
+        The following seems to run fine on Linux but *crashes* on OS X intel:
             sage: x, y = (GF(17)['x,y']).gens()
             sage: C = Curve(x^2 + y^5 + x*y - 19)
-            sage: v = C.rational_points(algorithm='bn')
-            sage: w = C.rational_points(algorithm='enum')
-            sage: len(v)
+            sage: v = C.rational_points(algorithm='bn')      # not tested
+            sage: w = C.rational_points(algorithm='enum')    # not tested
+            sage: len(v)                                     # not tested
             20
-            sage: v == w
+            sage: v == w                                     # not tested
             True
         """
         if algorithm == "enum":

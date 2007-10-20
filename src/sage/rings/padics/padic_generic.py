@@ -71,7 +71,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         #    self.prime_pow = PowComputer(p, prec, prec, self.is_field())
         #else:
         #    self.prime_pow = PowComputer(p, 3, prec, self.is_field())
-        self.prime_pow = PowComputer(p, prec, self.is_field())
+        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
         self.__set_print_mode(print_mode)
         self._element_class = element_class
 

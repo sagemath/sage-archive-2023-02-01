@@ -12,6 +12,7 @@ cdef extern from "gmp.h":
 cdef extern from "ntl_wrap.h":
 
     # really, this is from NTL/ZZ.h
+    #### ZZ_c
     ctypedef struct ZZ_c "struct ZZ":
         pass
 
@@ -29,28 +30,94 @@ cdef extern from "ntl_wrap.h":
     void ZZ_conv_int "conv"(ZZ_c x, int i)
     void ZZ_conv_to_long "conv"(long l, ZZ_c x)
     void conv_ZZ_int "conv"(ZZ_c x, int i)
-    void add_ZZ "add"( ZZ_c x, ZZ_c a, ZZ_c b)
-    void sub_ZZ "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
-    void mul_ZZ "mul"( ZZ_c x, ZZ_c a, ZZ_c b)
-    void mul_ZZ_long "mul"( ZZ_c x, ZZ_c a, long b)
-    void power_ZZ "power"(ZZ_c t, ZZ_c x, long e)
-    void div_ZZ "div"( ZZ_c x, ZZ_c a, ZZ_c b)
-    void ZZ_GCD "GCD"(ZZ_c d, ZZ_c a, ZZ_c b)
-    void ZZ_negate "negate"(ZZ_c x, ZZ_c a)
-    long ZZ_sign "sign"(ZZ_c d)
-
-    #### ZZ_c
-    int ZZ_IsOne "IsOne"(ZZ_c x)
-    int ZZ_IsZero "IsZero"(ZZ_c x)
-    # Random-number generation
-    void setSeed(ZZ_c* x)
-    ZZ_c* ZZ_randomBnd(ZZ_c* x)
-    ZZ_c* ZZ_randomBits(long n)
     void ZZ_to_mpz(mpz_t* output, ZZ_c* x)
     void mpz_to_ZZ(ZZ_c *output, mpz_t* x)
     cdef int ZZ_to_int(ZZ_c* x)
     cdef ZZ_c* int_to_ZZ(int value)
     cdef void ZZ_set_from_int(ZZ_c* x, int value)
+
+    long ZZ_sign "sign"(ZZ_c a)
+    long ZZ_IsZero "IsZero"(ZZ_c a)
+    long ZZ_IsOne "IsOne"(ZZ_c a)
+    long ZZ_compare "compare"(ZZ_c a, ZZ_c b)
+    void ZZ_add "add"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_sub "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_negate "negate"(ZZ_c x, ZZ_c a)
+    void ZZ_abs "abs"(ZZ_c x, ZZ_c a)
+
+    void ZZ_mul "mul"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_mul_long "mul"( ZZ_c x, ZZ_c a, long b)
+    void ZZ_sqr "sqr"(ZZ_c x, ZZ_c a)
+
+    void ZZ_DivRem "DivRem"(ZZ_c q, ZZ_c r, ZZ_c a, ZZ_c b)
+    void ZZ_div "div"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_rem "rem"( ZZ_c r, ZZ_c a, ZZ_c b)
+    long ZZ_DivRem_long "DivRem"(ZZ_c q, ZZ_c q, long b)
+    long ZZ_rem_long "rem"(ZZ_c a, long b)
+    long ZZ_divide "divide"(ZZ_c q, ZZ_c a, ZZ_c b)
+    long ZZ_divide_long "divide"(ZZ_c q, ZZ_c a, long b)
+    long ZZ_divide_test "divide"(ZZ_c a, ZZ_c b)
+    long ZZ_divide_test_long "divide"(ZZ_c a, long b)
+
+    void ZZ_GCD "GCD"(ZZ_c d, ZZ_c a, ZZ_c b)
+    void ZZ_XGCD "XGCD"(ZZ_c d, ZZ_c s, ZZ_c t, ZZ_c a, ZZ_c b)
+
+    void ZZ_AddMod "AddMod"(ZZ_c x, ZZ_c a, ZZ_c b, ZZ_c n)
+    void ZZ_SubMod "SubMod"(ZZ_c x, ZZ_c a, ZZ_c b, ZZ_c n)
+    void ZZ_NegateMod "NegateMod"(ZZ_c x, ZZ_c a, ZZ_c n)
+    void ZZ_MulMod "MulMod"(ZZ_c x, ZZ_c a, ZZ_c b, ZZ_c n)
+    void ZZ_SqrMod "SqrMod"(ZZ_c x, ZZ_c a, ZZ_c n)
+    void ZZ_InvMod "InvMod"(ZZ_c x, ZZ_c a, ZZ_c n)
+    void ZZ_InvModStatus "InvModStatus"(ZZ_c x, ZZ_c a, ZZ_c n)
+    void ZZ_PowerMod "PowerMod"(ZZ_c x, ZZ_c a, ZZ_c e, ZZ_c n)
+    void ZZ_PowerMod_long "PowerMod"(ZZ_c x, ZZ_c a, long e, ZZ_c n)
+
+    void ZZ_LeftShift "LeftShift"(ZZ_c x, ZZ_c a, long n)
+    void ZZ_RightShift "RightShift"(ZZ_c x, ZZ_c a, long n)
+
+    long ZZ_MakeOdd "MakeOdd"(ZZ_c x)
+    long ZZ_NumTwos "NumTwos"(ZZ_c x)
+    long ZZ_IsOdd "IsOdd"(ZZ_c a)
+    long ZZ_NumBits "NumBits"(ZZ_c a)
+    long ZZ_bit "bit"(ZZ_c a, long k)
+    void ZZ_trunc "trunc"(ZZ_c x, ZZ_c a, long k)
+    void ZZ_SetBit "SetBit"(ZZ_c x, long p)
+    void ZZ_SwitchBit "SwitchBit"(ZZ_c x, long p)
+    void ZZ_weight "weight"(ZZ_c a)
+    void ZZ_bit_and "bit_and"(ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_bit_or "bit_or"(ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_bit_xor "bit_xor"(ZZ_c x, ZZ_c a, ZZ_c b)
+
+    void ZZ_SetSeed "SetSeed"(ZZ_c s)
+    void ZZ_RandomBnd "RandomBnd"(ZZ_c x, ZZ_c n)
+    void ZZ_RandomBits "RandomBits"(ZZ_c x, long l)
+
+    long ZZ_CRT "CRT"(ZZ_c a, ZZ_c p, ZZ_c A, ZZ_c P)
+
+    long ZZ_ReconstructRational "ReconstructRational"(ZZ_c a, ZZ_c b, ZZ_c x, ZZ_c m, ZZ_c a_bound, ZZ_c b_bound)
+
+    void ZZ_GenPrime "GenPrime"(ZZ_c n, long l, long err)
+    void ZZ_GenGermainPrime "GenGermainPrime"(ZZ_c n, long l, long err)
+    long ZZ_ProbPrime "ProbPrime"(ZZ_c n, long NumTrials)
+    void ZZ_RandomPrime "RandomPrime"(ZZ_c n, long l, long NumTrials)
+    void ZZ_NextPrime "NextPrime"(ZZ_c n, ZZ_c m, long NumTrials)
+    long ZZ_MillerWitness "MillerWitness"(ZZ_c n, ZZ_c w)
+
+    void ZZ_power "power"(ZZ_c t, ZZ_c x, long e)
+    void ZZ_power2 "power2"(ZZ_c x, long e)
+
+    void ZZ_SqrRoot "SqrRoot"(ZZ_c x, ZZ_c a)
+
+    long ZZ_Jacobi "Jacobi"(ZZ_c a, ZZ_c n)
+    void ZZ_SqrRootMod "SqrRootMod"(ZZ_c x, ZZ_c a, ZZ_c n)
+
+    long ZZ_remove(ZZ_c x, ZZ_c a, ZZ_c p) # a la mpz_remove.  Written in ntl_wrap.cpp.
+
+    # Random-number generation
+    #void setSeed(ZZ_c* x)
+    #ZZ_c* ZZ_randomBnd(ZZ_c* x)
+    #ZZ_c* ZZ_randomBits(long n)
+
 
     #### ZZ_pContext_c
     ctypedef struct ZZ_pContext_c "struct ZZ_pContext":
@@ -98,6 +165,10 @@ cdef extern from "ntl_wrap.h":
 
     ZZ_c ZZ_p_rep "rep"(ZZ_p_c x)
 
+    #### vec_ZZ_p_c
+    ctypedef struct vec_ZZ_p_c "struct vec_ZZ_p":
+        pass
+
     #### ZZX_c
 
     # really, this is from NTL/ZZX.h
@@ -120,14 +191,14 @@ cdef extern from "ntl_wrap.h":
     void ZZX_SetCoeff "SetCoeff"(ZZX_c x, long i, ZZ_c a)
     long IsZero_ZZX "IsZero"(ZZX_c a)
     # f must be monic!
-    void MulMod_ZZX "MulMod"(ZZX_c x, ZZX_c a, ZZX_c b, ZZX_c f)
-    void mul_ZZX_long "mul"( ZZX_c x, ZZX_c a, long b)
-    void mul_ZZX_ZZ "mul"( ZZX_c x, ZZX_c a, ZZ_c b)
-    void mul_ZZX "mul"( ZZX_c x, ZZX_c a, ZZX_c b)
-    void add_ZZX "add"( ZZX_c x, ZZX_c a, ZZX_c b)
-    void sub_ZZX "sub"( ZZX_c x, ZZX_c a, ZZX_c b)
-    void neg_ZZX "negate"( ZZX_c x, ZZX_c a)
-    void div_ZZX_ZZ "div"( ZZX_c x, ZZX_c a, ZZ_c b)
+    void ZZX_MulMod "MulMod"(ZZX_c x, ZZX_c a, ZZX_c b, ZZX_c f)
+    void ZZX_mul_long "mul"( ZZX_c x, ZZX_c a, long b)
+    void ZZX_mul_ZZ "mul"( ZZX_c x, ZZX_c a, ZZ_c b)
+    void ZZX_mul "mul"( ZZX_c x, ZZX_c a, ZZX_c b)
+    void ZZX_add "add"( ZZX_c x, ZZX_c a, ZZX_c b)
+    void ZZX_sub "sub"( ZZX_c x, ZZX_c a, ZZX_c b)
+    void ZZX_negate "negate"( ZZX_c x, ZZX_c a)
+    void ZZX_div_ZZ "div"( ZZX_c x, ZZX_c a, ZZ_c b)
     long ZZX_deg "deg"( ZZX_c x )
     void ZZX_rem "rem"(ZZX_c r, ZZX_c a, ZZX_c b)
     void ZZX_XGCD "XGCD"(ZZ_c r, ZZX_c s, ZZX_c t, ZZX_c a, ZZX_c b, long deterministic)
@@ -185,73 +256,150 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_delete "Delete<ZZ_pX>"(ZZ_pX_c *mem)
     void ZZ_pX_from_str "_from_str<ZZ_pX>"(ZZ_pX_c* dest, char* s)
     object ZZ_pX_to_PyString "_to_PyString<ZZ_pX>"(ZZ_pX_c *x)
-    int ZZ_pX_equal "_equal<ZZ_pX>"(ZZ_pX_c x, ZZ_pX_c y)
+    #int ZZ_pX_equal "_equal<ZZ_pX>"(ZZ_pX_c x, ZZ_pX_c y)
 
+    long ZZ_pX_equal "operator=="(ZZ_pX_c a, ZZ_pX_c b)
+    long ZZ_pX_IsZero "IsZero"(ZZ_pX_c a)
+    long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
+
+    void ZZ_pX_add "add"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_sub "sub"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_negate "negate"(ZZ_pX_c x, ZZ_pX_c a)
+
+    void ZZ_pX_mul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_mul_long "mul"( ZZ_pX_c x, ZZ_pX_c a, long b)
     void ZZ_pX_mul_ZZ "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_c b)
-    void ZZ_pX_mul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_rmul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_p_c b)
     void ZZ_pX_sqr "sqr"( ZZ_pX_c x, ZZ_pX_c a)
     long ZZ_pX_power "power"( ZZ_pX_c x, ZZ_pX_c a, long e)
-    void ZZ_pX_add "add"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
-    void ZZ_pX_sub "sub"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
-    void ZZ_pX_MulMod "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b, ZZ_pX_c f)
-    void ZZ_pX_div_ZZ "div"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
-    void ZZ_pX_div "div"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
-    long ZZ_pX_divide "divide"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
-    long ZZ_pX_deg "deg"( ZZ_pX_c x )
-    void ZZ_pX_rem "rem"(ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_c b)
+
+    void ZZ_pX_LeftShift "LeftShift"(ZZ_pX_c x, ZZ_pX_c a, long n)
+    void ZZ_pX_RightShift "RightShift"(ZZ_pX_c x, ZZ_pX_c a, long n)
+
     void ZZ_pX_DivRem "DivRem"(ZZ_pX_c q, ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_c b)
-    void ZZ_pX_lshift "LeftShift"(ZZ_pX_c x, ZZ_pX_c a, long n)
-    void ZZ_pX_rshift "RightShift"(ZZ_pX_c x, ZZ_pX_c a, long n)
-    void ZZ_pX_diff "diff"(ZZ_pX_c x, ZZ_pX_c a)
-    void ZZ_pX_eval "eval"(ZZ_p_c fx, ZZ_pX_c f, ZZ_p_c x)
-    void ZZ_pX_reverse_v "reverse"(ZZ_pX_c x, ZZ_pX_c a)
-    ZZ_p_c ZZ_pX_coeff "coeff"(ZZ_pX_c a, long i)
-    void ZZ_pX_SetCoeff "SetCoeff"(ZZ_pX_c x, long i, ZZ_p_c a)
-    void ZZ_pX_SetCoeff_long "SetCoeff"(ZZ_pX_c x, long i, long a)
-    ZZ_p_c ZZ_pX_LeadCoeff "LeadCoeff"(ZZ_pX_c x)
-    ZZ_p_c ZZ_pX_ConstTerm "ConstTerm"(ZZ_pX_c x)
-    long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
-    long ZZ_pX_IsZero "IsZero"(ZZ_pX_c a)
-    long ZZ_pX_IsX "IsX"(ZZ_pX_c a)
-    void ZZ_pX_negate "negate"(ZZ_pX_c x, ZZ_pX_c a)
-    void ZZ_pX_trunc "trunc"(ZZ_pX_c x, ZZ_pX_c a, long n)
-    void ZZ_pX_clear "clear"(ZZ_pX_c x)
-    void ZZ_pX_GCD "GCD"(ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_div_ZZ "div"( ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_div "div"( ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_c b)
+    long ZZ_pX_divide "divide"( ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_rem "rem"(ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_c b)
+
+    void ZZ_pX_GCD "GCD"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_PlainXGCD "PlainXGCD"(ZZ_pX_c d, ZZ_pX_c s, ZZ_pX_c t, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_XGCD "XGCD"(ZZ_pX_c d, ZZ_pX_c s, ZZ_pX_c t, ZZ_pX_c a, ZZ_pX_c b)
 
-    char* ZZ_pX_repr(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_copy(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_mod(ZZ_pX_c* x, ZZ_pX_c* y)
-    void ZZ_pX_quo_rem(ZZ_pX_c* x, ZZ_pX_c* other, ZZ_pX_c** r, ZZ_pX_c** q)
-    ZZ_pX_c* ZZ_pX_square(ZZ_pX_c* x)
-    int ZZ_pX_is_monic(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_neg(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_left_shift(ZZ_pX_c* x, long n)
-    ZZ_pX_c* ZZ_pX_right_shift(ZZ_pX_c* x, long n)
-    ZZ_pX_c* ZZ_pX_gcd(ZZ_pX_c* x, ZZ_pX_c* y)
-    ZZ_pX_c* ZZ_pX_xgcd(ZZ_pX_c** d, ZZ_pX_c** s, ZZ_pX_c** t, ZZ_pX_c* a, ZZ_pX_c* b)
-    ZZ_pX_c* ZZ_pX_plain_xgcd(ZZ_pX_c** d, ZZ_pX_c** s, ZZ_pX_c** t, ZZ_pX_c* a, ZZ_pX_c* b)
-    void ZZ_pX_set_x(ZZ_pX_c* x)
-    int ZZ_pX_is_x(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_derivative(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_reverse(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_reverse_hi(ZZ_pX_c* x, long hi)
-    ZZ_pX_c* ZZ_pX_truncate(ZZ_pX_c* x, long m)
-    ZZ_pX_c* ZZ_pX_multiply_and_truncate(ZZ_pX_c* x, ZZ_pX_c* y, long m)
-    ZZ_pX_c* ZZ_pX_square_and_truncate(ZZ_pX_c* x, long m)
-    ZZ_pX_c* ZZ_pX_invert_and_truncate(ZZ_pX_c* x, long m)
-    ZZ_pX_c* ZZ_pX_multiply_mod(ZZ_pX_c* x, ZZ_pX_c* y,  ZZ_pX_c* modulus)
-    ZZ_p_c* ZZ_pX_trace_mod(ZZ_pX_c* x, ZZ_pX_c* y)
+    long ZZ_pX_deg "deg"( ZZ_pX_c x )
+    ZZ_p_c ZZ_pX_coeff "coeff"(ZZ_pX_c a, long i)
+    ZZ_p_c ZZ_pX_LeadCoeff "LeadCoeff"(ZZ_pX_c x)
+    ZZ_p_c ZZ_pX_ConstTerm "ConstTerm"(ZZ_pX_c x)
+    void ZZ_pX_SetCoeff "SetCoeff"(ZZ_pX_c x, long i, ZZ_p_c a)
+    void ZZ_pX_SetCoeff_long "SetCoeff"(ZZ_pX_c x, long i, long a)
+    void ZZ_pX_SetX "SetX"(ZZ_pX_c x)
+    long ZZ_pX_IsX "IsX"(ZZ_pX_c a)
+    void ZZ_pX_diff "diff"(ZZ_pX_c x, ZZ_pX_c a)
+    void ZZ_pX_MakeMonic "MakeMonic"(ZZ_pX_c x)
+    void ZZ_pX_reverse_hi "reverse"(ZZ_pX_c x, ZZ_pX_c a, long hi)
+    void ZZ_pX_reverse "reverse"(ZZ_pX_c x, ZZ_pX_c a)
+    void ZZ_pX_VectorCopy "VectorCopy"(vec_ZZ_p_c x, ZZ_pX_c a, long n)
+
+    void ZZ_pX_random "random"(ZZ_pX_c x, long n)
+
+    void ZZ_pX_BuildFromRoots "BuildFromRoots"(ZZ_pX_c x, vec_ZZ_p_c a)
+    void ZZ_pX_eval "eval"(ZZ_p_c fa, ZZ_pX_c f, ZZ_p_c a)
+    void ZZ_pX_eval_vec "eval"(vec_ZZ_p_c fa, ZZ_pX_c f, vec_ZZ_p_c a)
+    void ZZ_pX_interpolate "interpolate"(ZZ_pX_c f, vec_ZZ_p_c a, vec_ZZ_p_c b)
+
+    void ZZ_pX_trunc "trunc"(ZZ_pX_c x, ZZ_pX_c a, long n)
+    void ZZ_pX_MulTrunc "MulTrunc"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b, long n)
+    void ZZ_pX_SqrTrunc "SqrTrunc"(ZZ_pX_c x, ZZ_pX_c a, long n)
+    void ZZ_pX_InvTrunc "InvTrunc"(ZZ_pX_c x, ZZ_pX_c a, long n)
+
+    void ZZ_pX_MulMod "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b, ZZ_pX_c f)
+    void ZZ_pX_SqrMod "SqrMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
+    void ZZ_pX_MulByXMod "MulByXMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
+    void ZZ_pX_InvMod "InvMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
+    long ZZ_pX_InvModStatus "InvModStatus"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
+
+    ctypedef struct ZZ_pX_Modulus_c "struct ZZ_pXModulus":
+        void (* val) ( )
+    ZZ_pX_Modulus_c* ZZ_pX_Modulus_new "New<ZZ_pXModulus>"()
+    ZZ_pX_Modulus_c* ZZ_pX_Modulus_construct "Construct<ZZ_pXModulus>"(void *mem)
+    void ZZ_pX_Modulus_destruct "Destruct<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
+    void ZZ_pX_Modulus_delete "Delete<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
+    void ZZ_pX_Modulus_from_str "_from_str<ZZ_pXModulus>"(ZZ_pX_Modulus_c* dest, char* s)
+    void ZZ_pX_Modulus_build "build"(ZZ_pX_Modulus_c F, ZZ_pX_c f) # MUST be called before using the modulus
+    long ZZ_pX_Modulus_deg "deg"(ZZ_pX_Modulus_c F)
+
+    void ZZ_pX_MulMod_pre "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b, ZZ_pX_Modulus_c F)
+    void ZZ_pX_SqrMod_pre "SqrMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerMod_pre "PowerMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_c e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerMod_long_pre "PowerMod"(ZZ_pX_c x, ZZ_pX_c a, long e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerXMod_pre "PowerXMod"(ZZ_pX_c x, ZZ_c e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerXMod_long_pre "PowerXMod"(ZZ_pX_c x, long e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerXPlusAMod_pre "PowerXPlusAMod"(ZZ_pX_c x, ZZ_p_c a, ZZ_c e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_PowerXPlusAMod_long_pre "PowerXPlusAMod"(ZZ_pX_c x, ZZ_p_c a, long e, ZZ_pX_Modulus_c F)
+    void ZZ_pX_rem_pre "rem"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_DivRem_pre "DivRem"(ZZ_pX_c q, ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_div_pre "div"(ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+
+    ctypedef struct ZZ_pX_Multiplier_c "struct ZZ_pXMultiplier":
+        void (* val) ( )
+    ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_new "New<ZZ_pXMultiplier>"()
+    ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_construct "Construct<ZZ_pXMultiplier>"(void *mem)
+    void ZZ_pX_Multiplier_destruct "Destruct<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
+    void ZZ_pX_Multiplier_delete "Delete<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
+    void ZZ_pX_Multiplier_from_str "_from_str<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c* dest, char* s)
+    void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b) # MUST be called before using the multiplier
+    void ZZ_pX_MulMod_premul "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Multiplier_c B, ZZ_pX_Modulus_c F)
+
+    void ZZ_pX_CompMod "CompMod"(ZZ_pX_c x, ZZ_pX_c g, ZZ_pX_c h, ZZ_pX_Modulus_c F)
+    # Add other composition functions here
+    # Add power projection routines
+    # Add minimum polynomials of recurrence sequences
+    void ZZ_pX_MinPolyMod "MinPolyMod"(ZZ_pX_c h, ZZ_pX_c g, ZZ_pX_c f)
+    void ZZ_pX_MinPolyMod_pre "MinPolyMod"(ZZ_pX_c h, ZZ_pX_c g, ZZ_pX_Modulus_c F)
+
+    void ZZ_pX_TraceMod "TraceMod"(ZZ_p_c x, ZZ_pX_c a, ZZ_pX_c f)
+    void ZZ_pX_TraceMod_pre "TraceMod"(ZZ_p_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_TraceVec "TraceVec"(vec_ZZ_p_c S, ZZ_pX_c f)
+    void ZZ_pX_NormMod "NormMod"(ZZ_p_c x, ZZ_pX_c a, ZZ_pX_c f)
+    void ZZ_pX_resultant "resultant"(ZZ_p_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_CharPolyMod "CharPolyMod"(ZZ_pX_c g, ZZ_pX_c a, ZZ_pX_c f)
+
+    void ZZ_pX_clear "clear"(ZZ_pX_c x)
+    void ZZ_pX_set "set"(ZZ_pX_c x)
+
+    void ZZ_pX_to_ZZX "conv"(ZZX_c x, ZZ_pX_c a)
+    void ZZX_to_ZZ_pX "conv"(ZZ_pX_c x, ZZX_c a)
+
+    #char* ZZ_pX_repr(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_copy(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_mod(ZZ_pX_c* x, ZZ_pX_c* y)
+    #void ZZ_pX_quo_rem(ZZ_pX_c* x, ZZ_pX_c* other, ZZ_pX_c** r, ZZ_pX_c** q)
+    #ZZ_pX_c* ZZ_pX_square(ZZ_pX_c* x)
+    #int ZZ_pX_is_monic(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_neg(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_left_shift(ZZ_pX_c* x, long n)
+    #ZZ_pX_c* ZZ_pX_right_shift(ZZ_pX_c* x, long n)
+    #ZZ_pX_c* ZZ_pX_gcd(ZZ_pX_c* x, ZZ_pX_c* y)
+    #ZZ_pX_c* ZZ_pX_xgcd(ZZ_pX_c** d, ZZ_pX_c** s, ZZ_pX_c** t, ZZ_pX_c* a, ZZ_pX_c* b)
+    #ZZ_pX_c* ZZ_pX_plain_xgcd(ZZ_pX_c** d, ZZ_pX_c** s, ZZ_pX_c** t, ZZ_pX_c* a, ZZ_pX_c* b)
+    #void ZZ_pX_set_x(ZZ_pX_c* x)
+    #int ZZ_pX_is_x(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_derivative(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_reverse(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_reverse_hi(ZZ_pX_c* x, long hi)
+    #ZZ_pX_c* ZZ_pX_truncate(ZZ_pX_c* x, long m)
+    #ZZ_pX_c* ZZ_pX_multiply_and_truncate(ZZ_pX_c* x, ZZ_pX_c* y, long m)
+    #ZZ_pX_c* ZZ_pX_square_and_truncate(ZZ_pX_c* x, long m)
+    #ZZ_pX_c* ZZ_pX_invert_and_truncate(ZZ_pX_c* x, long m)
+    #ZZ_pX_c* ZZ_pX_multiply_mod(ZZ_pX_c* x, ZZ_pX_c* y,  ZZ_pX_c* modulus)
+    #ZZ_p_c* ZZ_pX_trace_mod(ZZ_pX_c* x, ZZ_pX_c* y)
     char* ZZ_pX_trace_list(ZZ_pX_c* x)
-    ZZ_p_c* ZZ_pX_resultant(ZZ_pX_c* x, ZZ_pX_c* y)
-    ZZ_p_c* ZZ_pX_norm_mod(ZZ_pX_c* x, ZZ_pX_c* y)
-    ZZ_p_c* ZZ_pX_discriminant(ZZ_pX_c* x)
-    ZZ_pX_c* ZZ_pX_charpoly_mod(ZZ_pX_c* x, ZZ_pX_c* y)
-    ZZ_pX_c* ZZ_pX_minpoly_mod(ZZ_pX_c* x, ZZ_pX_c* y)
-    void ZZ_pX_preallocate_space(ZZ_pX_c* x, long n)
+    #ZZ_p_c* ZZ_pX_resultant(ZZ_pX_c* x, ZZ_pX_c* y)
+    #ZZ_p_c* ZZ_pX_norm_mod(ZZ_pX_c* x, ZZ_pX_c* y)
+    #ZZ_p_c* ZZ_pX_discriminant(ZZ_pX_c* x)
+    #ZZ_pX_c* ZZ_pX_charpoly_mod(ZZ_pX_c* x, ZZ_pX_c* y)
+    #ZZ_pX_c* ZZ_pX_minpoly_mod(ZZ_pX_c* x, ZZ_pX_c* y)
+    #void ZZ_pX_preallocate_space(ZZ_pX_c* x, long n)
 
     void ZZ_pX_factor(ZZ_pX_c*** v, long** e, long* n, ZZ_pX_c* x, long verbose)
     void ZZ_pX_linear_roots(ZZ_p_c*** v, long* n, ZZ_pX_c* x)
@@ -312,9 +460,9 @@ cdef extern from "ntl_wrap.h":
     long zz_pX_divide "divide"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
     void zz_pX_mod "rem"(zz_pX_c x, zz_pX_c a, zz_pX_c b)
     void zz_pX_divrem "DivRem"(zz_pX_c q, zz_pX_c r, zz_pX_c a, zz_pX_c b)
-    void zz_pX_lshift "LeftShift"(zz_pX_c x, zz_pX_c a, long b)
-    void zz_pX_rshift "RightShift"(zz_pX_c x, zz_pX_c a, long b)
-    void zz_pX_neg "negate"(zz_pX_c x, zz_pX_c a)
+    void zz_pX_LeftShift "LeftShift"(zz_pX_c x, zz_pX_c a, long b)
+    void zz_pX_RightShift "RightShift"(zz_pX_c x, zz_pX_c a, long b)
+    void zz_pX_negate "negate"(zz_pX_c x, zz_pX_c a)
     zz_p_c zz_pX_LeadCoeff "LeadCoeff"(zz_pX_c x)
     zz_p_c zz_pX_ConstTerm "ConstTerm" (zz_pX_c x)
     void zz_pX_negate "negate"(zz_pX_c x, zz_pX_c a)
@@ -417,7 +565,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pEX_delete "Delete<ZZ_pEX>"(ZZ_pEX_c *mem)
     void ZZ_pEX_from_str "_from_str<ZZ_pEX>"(ZZ_pEX_c* dest, char* s)
     object ZZ_pEX_to_PyString "_to_PyString<ZZ_pEX>"(ZZ_pEX_c *x)
-    int ZZ_pEX_equal "_equal<ZZX>"(ZZ_pEX_c x, ZZ_pEX_c y)
+    #int ZZ_pEX_equal "_equal<ZZX>"(ZZ_pEX_c x, ZZ_pEX_c y)
 
     #ZZ_pEX_c* str_to_ZZ_pEX(char* s)
     #char* ZZ_pEX_to_str(ZZ_pEX_c* x)
@@ -488,7 +636,7 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pEX_InvModStatus "InvModStatus"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
 
     ctypedef struct ZZ_pEX_Modulus_c "struct ZZ_pEXModulus":
-        pass
+        ZZ_pEX_c val()
     ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_new "New<ZZ_pEXModulus>"()
     ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_construct "Construct<ZZ_pEXModulus>"(void *mem)
     void ZZ_pEX_Modulus_destruct "Destruct<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c *mem)

@@ -79,6 +79,7 @@ void ZZ_set_from_int(ZZ* x, int value)
 
 /*Random-number generation */
 
+/*
 void setSeed(const struct ZZ* n)
 {
   SetSeed(*n);
@@ -96,6 +97,68 @@ struct ZZ* ZZ_randomBits(long n)
   ZZ *z = new ZZ();
   RandomBits(*z,n);
   return z;
+}
+*/
+
+long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
+{
+    // Based on the code for mpz_remove
+    ZZ fpow[40];            // inexaustible...until year 2020 or so
+    ZZ x, rem;
+    long pwr;
+    int p;
+
+    if (compare(f, 1) <= 0)
+        Error("Division by zero");
+
+    if (compare(src, 0) == 0)
+    {
+        if (src != dest)
+           dest = src;
+        return 0;
+    }
+
+    if (compare(f, 2) == 0)
+    {
+        dest = src;
+        return MakeOdd(dest);
+    }
+
+    /* We could perhaps compute mpz_scan1(src,0)/mpz_scan1(f,0).  It is an
+     upper bound of the result we're seeking.  We could also shift down the
+     operands so that they become odd, to make intermediate values smaller.  */
+
+    pwr = 0;
+    fpow[0] = ZZ(f);
+    dest = src;
+    rem = ZZ();
+    x = ZZ();
+
+    /* Divide by f, f^2, ..., f^(2^k) until we get a remainder for f^(2^k).  */
+    for (p = 0;;p++)
+    {
+        DivRem(x, rem, dest, fpow[p]);
+        if (compare(rem, 0) != 0)
+            break;
+        fpow[p+1] = ZZ();
+        mul(fpow[p+1], fpow[p], fpow[p]);
+        dest = x;
+    }
+
+    pwr = (1 << p) - 1;
+
+    /* Divide by f^(2^(k-1)), f^(2^(k-2)), ..., f for all divisors that give a
+       zero remainder.  */
+    while (--p >= 0)
+    {
+        DivRem(x, rem, dest, fpow[p]);
+        if (compare(rem, 0) == 0)
+        {
+            pwr += 1 << p;
+            dest = x;
+        }
+    }
+    return pwr;
 }
 
 //////// ZZ_p //////////

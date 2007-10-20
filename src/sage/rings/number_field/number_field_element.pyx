@@ -690,8 +690,8 @@ cdef class NumberFieldElement(FieldElement):
         if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
             ZZ_negate(t1, gcd)
             gcd = t1
-        div_ZZX_ZZ(t2, self.__numerator, gcd)
-        div_ZZ(t1, self.__denominator, gcd)
+        ZZX_div_ZZ(t2, self.__numerator, gcd)
+        ZZ_div(t1, self.__denominator, gcd)
         self.__numerator = t2
         self.__denominator = t1
 
@@ -699,11 +699,11 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         cdef ZZX_c t1, t2
-        mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
-        mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
-        add_ZZX(x.__numerator, t1, t2)
+        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
+        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_add(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
 
@@ -711,11 +711,11 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         cdef ZZX_c t1, t2
-        mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
-        mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
-        sub_ZZX(x.__numerator, t1, t2)
+        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
+        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_sub(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
 
@@ -745,18 +745,18 @@ cdef class NumberFieldElement(FieldElement):
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
         if ZZX_is_monic( &parent_num ):
-            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-            MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+            ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, parent_num)
         else:
-            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
+            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+            ZZX_mul(x.__numerator, self.__numerator, _right.__numerator)
             if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
-                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
+                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                mul_ZZ(x.__denominator, x.__denominator, parent_den)
-                mul_ZZ(x.__denominator, x.__denominator, temp1)
+                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, temp1)
         _sig_off
         x._reduce_c_()
         return x
@@ -806,18 +806,18 @@ cdef class NumberFieldElement(FieldElement):
         _sig_on
         _right._invert_c_(&inv_num, &inv_den)
         if ZZX_is_monic( &parent_num ):
-            mul_ZZ(x.__denominator, self.__denominator, inv_den)
-            MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+            ZZ_mul(x.__denominator, self.__denominator, inv_den)
+            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, parent_num)
         else:
-            mul_ZZ(x.__denominator, self.__denominator, inv_den)
-            mul_ZZX(x.__numerator, self.__numerator, inv_num)
+            ZZ_mul(x.__denominator, self.__denominator, inv_den)
+            ZZX_mul(x.__numerator, self.__numerator, inv_num)
             if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
-                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
+                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                mul_ZZ(x.__denominator, x.__denominator, parent_den)
-                mul_ZZ(x.__denominator, x.__denominator, temp1)
+                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
         _sig_off
         return x
@@ -861,7 +861,7 @@ cdef class NumberFieldElement(FieldElement):
     cdef ModuleElement _neg_c_impl(self):
         cdef NumberFieldElement x
         x = self._new()
-        mul_ZZX_long(x.__numerator, self.__numerator, -1)
+        ZZX_mul_long(x.__numerator, self.__numerator, -1)
         x.__denominator = self.__denominator
         return x
 
@@ -944,11 +944,11 @@ cdef class NumberFieldElement(FieldElement):
 
         cdef ZZX_c t # unneeded except to be there
         cdef ZZX_c a, b
-        mul_ZZX_ZZ( a, self.__numerator, parent_den )
-        mul_ZZX_ZZ( b, parent_num, self.__denominator )
+        ZZX_mul_ZZ( a, self.__numerator, parent_den )
+        ZZX_mul_ZZ( b, parent_num, self.__denominator )
         ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
-        mul_ZZX_ZZ( num[0], num[0], parent_den )
-        mul_ZZX_ZZ( num[0], num[0], self.__denominator )
+        ZZX_mul_ZZ( num[0], num[0], parent_den )
+        ZZX_mul_ZZ( num[0], num[0], self.__denominator )
 
     def __invert__(self):
         """

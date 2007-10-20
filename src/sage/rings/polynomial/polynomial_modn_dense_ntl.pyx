@@ -564,7 +564,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         self.c.restore_c()
         if zz_pX_IsX(self.x):
-            zz_pX_lshift(r.x, self.x, e-1)
+            zz_pX_LeftShift(r.x, self.x, e-1)
         else:
             do_sig = zz_pX_deg(self.x) *e > 1000
             if do_sig: _sig_on
@@ -680,7 +680,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x^8 + 2*x^4 + x^3
         """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        zz_pX_lshift(r.x, self.x, n)
+        zz_pX_LeftShift(r.x, self.x, n)
         return r
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
@@ -692,7 +692,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x^2
         """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        zz_pX_rshift(r.x, self.x, n)
+        zz_pX_RightShift(r.x, self.x, n)
         return r
 
     def derivative(self):
@@ -1038,7 +1038,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         self.c.restore_c()
         if ZZ_pX_IsX(self.x):
-            ZZ_pX_lshift(r.x, self.x, e - 1)
+            ZZ_pX_LeftShift(r.x, self.x, e - 1)
         else:
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: _sig_on
@@ -1154,7 +1154,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             x^8 + 2*x^4 + x^3
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_lshift(r.x, self.x, n)
+        ZZ_pX_LeftShift(r.x, self.x, n)
         return r
 
     def __rshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
@@ -1166,7 +1166,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             x^2
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_rshift(r.x, self.x, n)
+        ZZ_pX_RightShift(r.x, self.x, n)
         return r
 
     def derivative(self):
@@ -1199,7 +1199,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             x^2 + 1
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_reverse_v(r.x, self.x)
+        ZZ_pX_reverse(r.x, self.x)
         return r
 
     def is_gen(self):

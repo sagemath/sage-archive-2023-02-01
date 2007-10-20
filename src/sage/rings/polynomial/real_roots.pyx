@@ -2254,12 +2254,16 @@ def root_bounds(p):
         (-99.9949998749937, 141.414284992713)
         sage: root_bounds(x^995 * (x^2 - 9999) + 1)
         (-141.414284992712, 99.9949998749938)
+
+    If we can see that the polynomial has no real roots, return None.
+        sage: root_bounds(x^2 + 1) is None
+        True
     """
     n = p.degree()
     if p[n] < 0: p = -p
     cl = [RIF(x) for x in p.list()]
 
-    zero_roots = 0
+    cdef int zero_roots = 0
     while cl[0] == 0:
         cl.pop(0)
         zero_roots = zero_roots + 1
@@ -2274,6 +2278,12 @@ def root_bounds(p):
         neg_cl[j] = -neg_cl[j]
 
     lb = -cl_maximum_root(neg_cl)
+
+    if ub == 0 and lb == 0:
+        if zero_roots == 0:
+            return None
+        else:
+            return (lb, ub)
 
     if ub == 0 and zero_roots == 0:
         swap_neg_cl = copy(neg_cl)
@@ -2309,6 +2319,10 @@ def rational_root_bounds(p):
         (-100, 1000/7)
         sage: rational_root_bounds(x^995 * (x^2 - 9999) + 1)
         (-142, 213/2)
+
+    If we can see that the polynomial has no real roots, return None.
+        sage: rational_root_bounds(x^2 + 7) is None
+        True
     """
 
     # There are two stages to the root isolation process.  First,
@@ -2331,7 +2345,10 @@ def rational_root_bounds(p):
         return (QQ(-1), QQ(1))
 
     sqrtd = sqrt(RR(p.degree()))
-    (lb, ub) = root_bounds(p)
+    bounds = root_bounds(p)
+    if bounds is None:
+        return None
+    (lb, ub) = bounds
 
     if lb == ub:
         # The code below would give overly precise bounds in this case,
@@ -3719,7 +3736,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2))
         [((0, 0), 1), ((81/128, 337/256), 1), ((2, 2), 1)]
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2), retval='algebraic_real')
-        [([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([2.0000000000000000 .. 2.0000000000000000], 1)]
+        [([0.00000000000000000 .. 0.00000000000000000], 1), ([1.0000000000000000 .. 1.0000000000000000], 1), ([2.0000000000000000 .. 2.0000000000000000], 1)]
         sage: v = 2^40
         sage: real_roots((x^2-1)^2 * (x^2 - (v+1)/v))
         [((-12855504354077768210885019021174120740504020581912910106032833/12855504354071922204335696738729300820177623950262342682411008, -6427752177038884105442509510587059395588605840418680645585479/6427752177035961102167848369364650410088811975131171341205504), 1), ((-1125899906842725/1125899906842624, -562949953421275/562949953421312), 2), ((62165404551223330269422781018352603934643403586760330761772204409982940218804935733653/62165404551223330269422781018352605012557018849668464680057997111644937126566671941632, 3885337784451458141838923813647037871787041539340705594199885610069035709862106085785/3885337784451458141838923813647037813284813678104279042503624819477808570410416996352), 2), ((509258994083853105745586001837045839749063767798922046787130823804169826426726965449697819/509258994083621521567111422102344540262867098416484062659035112338595324940834176545849344, 25711008708155536421770038042348240136257704305733983563630791/25711008708143844408671393477458601640355247900524685364822016), 1)]
@@ -3750,6 +3767,10 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: ar_rts = real_roots(x-1, retval='algebraic_real')
         sage: ar_rts[0][0] == 1
         True
+
+    If the polynomial has no real roots, we get an empty list.
+        sage: (x^2 + 1).real_root_intervals()
+        []
 
     Now we play with algebraic real coefficients.
         sage: x = polygen(AA)
@@ -3818,7 +3839,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 b = to_bernstein_warp(factor)
                 oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(False))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
 
             if ar_input:
                 oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, True), warp_map(True))
@@ -3828,10 +3849,14 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                     b[i] = -b[i]
                 oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(True))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
         else:
             if bounds is None:
-                (left, right) = rational_root_bounds(factor)
+                bounds = rational_root_bounds(factor)
+                if bounds is None:
+                    continue
+                else:
+                    (left, right) = bounds
             else:
                 (left, right) = bounds
                 # Bad things happen if the bounds are roots themselves.
@@ -3852,17 +3877,12 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
             oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), linear_map(left, right))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
 
     while True:
         all_roots = copy(extra_roots)
 
-        for i in range(len(oceans)):
-            oc = oceans[i]
-            if strategy == 'warp':
-                (factor, exp) = factors[i // 2]
-            else:
-                (factor, exp) = factors[i]
+        for (oc, factor, exp) in oceans:
             rel_roots = oc.roots()
 
             cur_roots = [oc.mapping.from_ocean(r) for r in rel_roots]
@@ -3920,7 +3940,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         if ok: break
 
-        for oc in oceans: oc.find_roots()
+        for (oc, factor, exp) in oceans: oc.find_roots()
 
     if do_logging:
         return ctx, all_roots

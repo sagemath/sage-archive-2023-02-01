@@ -684,7 +684,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         To recreate the large database from the files in the current
         directory, do the following:
 
-            sage: d = sage.databases.LargeCremonaDatabase(read_only=True)   # not tested
+            sage: d = sage.databases.cremona.LargeCremonaDatabase(read_only=False)   # not tested
             sage: d._init_from_ftpdata('.')                                 # not tested
         """
         if self.read_only:

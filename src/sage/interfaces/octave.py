@@ -88,8 +88,45 @@ For example,
 The Octave interface reads in even very long input (using files)
 in a robust manner:
     sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = octave.eval(t)      # < 1/100th of a second
+    sage: a = octave.eval(t + ';')      # < 1/100th of a second
     sage: a = octave(t)
+
+Note that actually reading a back out takes forever.  This *must* be
+fixed ASAP -- see http://trac.sagemath.org/sage_trac/ticket/940/.
+
+\subsection{Tutorial}
+EXAMPLES:
+    sage: octave('4+10')                     # optional
+    14
+    sage: octave('date')                    # optional; random output
+    18-Oct-2007
+    sage: octave('5*10 + 6')                 # optional
+    56
+    sage: octave('(6+6)/3')                  # optional
+    4
+    sage: octave('9')^2                      # optional
+    81
+    sage: a = octave(10); b = octave(20); c = octave(30)    # optional
+    sage: avg = (a+b+c)/3                    # optional
+    sage: avg                                # optional
+    20
+    sage: parent(avg)                        # optional
+    Octave
+
+    sage: my_scalar = octave('3.1415')       # optional
+    sage: my_scalar                          # optional
+    3.1415
+    sage: my_vector1 = octave('[1,5,7]')     # optional
+    sage: my_vector1                         # optional
+    1     5     7
+    sage: my_vector2 = octave('[1;5;7]')     # optional
+    sage: my_vector2                         # optional
+    1
+    5
+    7
+    sage: my_vector1 * my_vector2            # optional
+    75
+
 """
 
 #*****************************************************************************
@@ -400,8 +437,8 @@ def octave_version():
     Return the version of Octave installed.
 
     EXAMPLES:
-        sage: octave_version()    # optional octave package
-        '2.1.73'
+        sage: octave_version()    # optional -- requires octave; and output is random
+        '2.9.12'
     """
     return str(octave('version')).strip()
 

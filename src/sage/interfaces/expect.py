@@ -703,7 +703,11 @@ If this all works, you can then make calls like:
         s = '_%s_'%self.name()
         if s == '_pari_':
             s = '_gp_'
-        return (x.__getattribute__(s))(self)
+        try:
+            return (x.__getattribute__(s))(self)
+        except (AttributeError, TypeError), msg:
+            return self(x._interface_init_())
+
 
     def _coerce_impl(self, x, use_special=True):
         if use_special:

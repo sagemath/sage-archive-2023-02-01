@@ -175,8 +175,8 @@ TESTS:
         TypeError: Brun's constant only available up to 41 bits
 
 
-Coercing the sum of a bunch of the constants to many different floating point rings:
-
+Coercing the sum of a bunch of the constants to many different
+floating point rings:
     sage: a = pi + e + golden_ratio + log2 + euler_gamma + catalan + khinchin + twinprime + merten; a
     twinprime + merten + khinchin + euler_gamma + catalan + log(2) + pi + e + (sqrt(5) + 1)/2
     sage: parent(a)

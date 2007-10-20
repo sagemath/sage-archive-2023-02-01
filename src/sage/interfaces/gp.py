@@ -236,6 +236,20 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
+    def quit(self, verbose=False, timeout=0.25):
+        """
+        EXAMPLES:
+            sage: a = gp('10'); a
+            10
+            sage: gp.quit()
+            sage: a
+            (invalid object -- defined in terms of closed session)
+            sage: gp(pi)
+            3.1415926535897932384626433832795028842
+        """
+        self.__var_store_len = 0
+        Expect.quit(self, verbose=verbose, timeout=timeout)
+
     def console(self):
         gp_console()
 

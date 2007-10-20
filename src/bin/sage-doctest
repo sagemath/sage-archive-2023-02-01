@@ -57,24 +57,27 @@ signal.signal(signal.SIGALRM, __mysig__)
 signal.alarm(%s)
 """%TIMEOUT
 
-NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4
+NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5
 
 def comment_modifier(s):
     L = s.lower()
+    v = []
     if ('optional' in L) or ('known bug' in L):
-        return OPTIONAL
-    elif 'long time' in L:
-        return LONG_TIME
-    elif 'todo: not implemented' in L:
-        return NOT_IMPLEMENTED
-    elif 'random' in L:
+        v.append(OPTIONAL)
+    if 'long time' in L:
+        v.append(LONG_TIME)
+    if 'not implemented' in L:
+        v.append(NOT_IMPLEMENTED)
+    if 'not tested' in L:
+        v.append(NOT_TESTED)
+    if 'random' in L:
         i = L.rfind('#')
         j = L.rfind('random')
         if j > i:
-            return RANDOM
+            v.append(RANDOM)
         if L.find("=") == -1 and L.find("print") == -1:
-            return RANDOM
-    return NONE
+            v.append(RANDOM)
+    return v
 
 def preparse_line_with_prompt(L):
     i = L.find(':')
@@ -96,36 +99,34 @@ def doc_preparse(s):
         return ''
 
     # Deal with code whose output should be ignored.
-    s = s.replace("sage.:", "\nsage.:")
     t = []
     for L in s.split('\n'):
         begin = L.lstrip()[:5]
         if begin == 'sage:':
             c = comment_modifier(L)
             line = ''
-            if c == LONG_TIME:
-                if long_time:
-                    line = preparse_line_with_prompt(L)
-                else:
-                    line = '\n'  # extra line so output ignored
-            elif c == RANDOM:
+            if LONG_TIME in c and not long_time:
+                L = '\n'  # extra line so output ignored
+            if RANDOM in c:
                 L = L.replace('sage:', 'sage: _=')
-                line = preparse_line_with_prompt(L) + '\n'   # extra line so output ignored
-            elif c == NOT_IMPLEMENTED:
-                line = '\n'   # not tested
-            elif c == OPTIONAL:
-                if optional:
-                    line = preparse_line_with_prompt(L)
-                else:
-                    line = '\n'
-            else:
-                line = preparse_line_with_prompt(L)
+            if NOT_TESTED in c:
+                L = '\n'   # not tested
+            if NOT_IMPLEMENTED in c:
+                L = '\n'   # not tested
+            if OPTIONAL in c and not optional:
+                L = '\n'
+            line = preparse_line_with_prompt(L)
+            if RANDOM in c:
+                line += '\n'    # extra line so output ignored
             t.append(line)
 
-        elif begin[:3] == '...':
+        elif begin.startswith('...'):
+
             i = L.find('.')
             t.append(L[:i+3] + sage.misc.preparser.preparse(L[i+3:]))
+
         else:
+
             t.append(L)
     return '\n'.join(t)
 
@@ -179,6 +180,7 @@ def extract_doc(file_name, module):
     n = 0
     i = 0
     s =  "from sage.all_cmdline import *; \n"
+    s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
 
     while True:
         i = F.find('"""')

@@ -458,7 +458,7 @@ cdef class ntl_ZZ_pEX:
 
     def square(self):
         """
-        Return f^2.
+        Return $f^2$.
 
         EXAMPLES:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))

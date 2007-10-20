@@ -12,10 +12,9 @@ def get_remote_file(filename, verbose=True):
         absolute path to that file.
 
     EXAMPLES:
-        sage: g = get_remote_file("http://sage.math.washington.edu/home/novoselt/lp/K3vertices", verbose=False)   # optional -- requires an internet connection
-        sage: L = lattice_polytope.read_all_polytopes(g, "K3 %4d")                    # optional
-        sage: L[0]                                                                    # optional
-        K3    0: 3-dimensional, 4 vertices.
+        sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional -- requires the internet
+        sage: len(open(g).read())   # optional and randomly growing.
+        10198
     """
     if verbose:
         print "Attempting to load remote file: " + filename

@@ -102,7 +102,7 @@ Control-C interruption works well with the axiom interface,
 because of the excellent implementation of axiom.  For example,
 try the following sum but with a much bigger range, and hit
 control-C.
-    sage.:  f = axiom('(x^5 - y^5)^10000')       # optional
+    sage:  f = axiom('(x^5 - y^5)^10000')       # not tested
     Interrupting Axiom...
     ...
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom

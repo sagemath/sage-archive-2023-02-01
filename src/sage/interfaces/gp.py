@@ -52,8 +52,31 @@ of integrals.
 
 Note that gp ASCII plots \emph{do} work in SAGE, as follows:
 
-    sage.: print gp.eval("plot(x=0,6,sin(x))")
-    [ plot of sin(x) ]
+    sage: print gp.eval("plot(x=0,6,sin(x))")
+    <BLANKLINE>
+    0.9988963 |''''''''''''_x"...x_''''''''''''''''''''''''''''''''''''''''''|
+              |          x"        "x                                        |
+              |        _"            "_                                      |
+              |       x                x                                     |
+              |      "                  "                                    |
+              |     "                    "                                   |
+              |   _"                      "_                                 |
+              |  _                          _                                |
+              | _                            _                               |
+              |_                              _                              |
+              _,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+              |                                "                             |
+              |                                 "                            |
+              |                                  "                           |
+              |                                   "                          "
+              |                                    "_                      _"|
+              |                                      _                    _  |
+              |                                       _                  _   |
+              |                                        x                x    |
+              |                                         "_            _"     |
+              |                                           x_        _x       |
+    -0.998955 |............................................."x____x".........|
+              0                                                              6
 
 The GP interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.

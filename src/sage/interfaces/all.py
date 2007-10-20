@@ -8,7 +8,7 @@ from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElemen
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan
 from gp import gp, gp_console, gp_version, is_GpElement, Gp
-#from gnuplot import gnuplot, gnuplot_console
+from gnuplot import gnuplot, gnuplot_console
 from kash import  kash, kash_console, kash_version, is_KashElement, Kash
 #from lisp import lisp, lisp_console, Lisp
 from magma import magma, magma_console, magma_version, Magma, is_MagmaElement

@@ -381,25 +381,26 @@ cdef class ntl_mat_ZZ:
         TIMINGS:
         NTL isn't very good compared to MAGMA, unfortunately:
 
-            sage.: import ntl
-            sage.: a=MatrixSpace(Q,200).random_element()    # -2 to 2
-            sage.: A=ntl.mat_ZZ(200,200)
-            sage.: for i in xrange(a.nrows()):
-               ....:     for j in xrange(a.ncols()):
-               ....:         A[i,j] = a[i,j]
-               ....:
-            sage.: time d=A.determinant()
-            Time.: 3.89 seconds
-            sage.: time B=A.HNF(d)
-            Time.: 27.59 seconds
+            sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
+            sage: A = ntl.mat_ZZ(200,200)
+            sage: for i in xrange(a.nrows()):
+            ...     for j in xrange(a.ncols()):
+            ...         A[i,j] = a[i,j]
+            ...
+            sage: t = cputime(); d = A.determinant()
+            sage: cputime(t)
+            0.33201999999999998
+            sage: t = cputime(); B = A.HNF(d)
+            sage: cputime(t)
+            6.4924050000000006
 
         In comparison, MAGMA does this much more quickly:
         \begin{verbatim}
-            > A := MatrixAlgebra(Z,200)![Random(-2,2) : i in [1..200^2]];
+            > A := MatrixAlgebra(IntegerRing(),200)![Random(-2,2) : i in [1..200^2]];
             > time d := Determinant(A);
-            Time: 0.710
+            Time: 0.140
             > time H := HermiteForm(A);
-            Time: 3.080
+            Time: 0.290
         \end{verbatim}
 
         Also, PARI is also faster than NTL if one uses the flag 1 to

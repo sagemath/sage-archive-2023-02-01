@@ -301,7 +301,7 @@ def matlab_console():
     your PATH, but no optional \sage packages need be installed.
 
     EXAMPLES:
-        sage.: matlab_console()                               # optional
+        sage: matlab_console()                               # optional and not tested
                                        < M A T L A B >
                            Copyright 1984-2006 The MathWorks, Inc.
         ...

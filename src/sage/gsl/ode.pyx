@@ -118,16 +118,20 @@ class ode_solver(object):
 
          In code,
 
-         sage: f = lambda t,y:[y[1],-y[0]]
-         sage: T.function=f
+            sage: f = lambda t,y:[y[1],-y[0]]
+            sage: T.function=f
 
          For some algorithms the jacobian must be supplied as well,
-         the form of this should be a function return a list of lists of the form
-         [ [df_1/dy_1,...,df_1/dy_n], ..., [df_n/dy_1,...,df_n,dy_n],
-         [df_1/dt,...,df_n/dt] ]. There are examples below, if your jacobian was the function my_jacobian
-         you would do.
+         the form of this should be a function return a list of lists
+         of the form
 
-         sage.: T.jacobian = my_jacobian
+         [ [df_1/dy_1,...,df_1/dy_n], ..., [df_n/dy_1,...,df_n,dy_n],
+         [df_1/dt,...,df_n/dt] ].
+
+         There are examples below, if your jacobian was the function
+         my_jacobian you would do.
+
+             sage: T.jacobian = my_jacobian     # not tested, since it doesn't make sense to test this
 
 
          There are a variety of algorithms available for different types of systems. Possible algorithms are
@@ -143,12 +147,12 @@ class ode_solver(object):
 
          The default algorithm if rkf45. If you instead wanted to use bsimp you would do
 
-         sage: T.algorithm="bsimp"
+            sage: T.algorithm="bsimp"
 
          The user should supply initial conditions in y_0. For example
          if your initial conditions are y_0=1,y_1=1, do
 
-         sage: T.y_0=[1,1]
+            sage: T.y_0=[1,1]
 
          The actual solver is invoked by the method ode_solve.
          It has arguments t_span, y_0,num_points, params.
@@ -181,7 +185,7 @@ class ode_solver(object):
 
          This data is stored in the variable solutions
 
-         sage.: T.solution
+             sage: T.solution               # not tested
 
          Examples:
          Consider solving the Van der pol oscillator x''(t) + ux'(t)(x(t)^2-1)+x(t)=0 between t=0 and t= 100.
@@ -264,15 +268,16 @@ class ode_solver(object):
                  dfdt[1]=0
                  return GSL_SUCCESS
 
-         After executing the above block of code you can do the following (WARNING: this is
-         *not* automatically doctested):
+         After executing the above block of code you can do the
+         following (WARNING: the following is *not* automatically
+         doctested):
 
-         sage.: T=ode_solver()
-         sage.: T.algorithm="bsimp"
-         sage.: vander = van_der_pol()
-         sage.: T.function=vander
-	 sage.: T.ode_solve(y_0=[1,0],t_span=[0,2000],num_points=1000)
-	 sage.: T.plot_solution(i=0, filename='sage.png')
+         sage: T = ode_solver()                     # not tested
+         sage: T.algorithm = "bsimp"                # not tested
+         sage: vander = van_der_pol()               # not tested
+         sage: T.function=vander                    # not tested
+	 sage: T.ode_solve(y_0 = [1,0], t_span=[0,2000], num_points=1000)   # not tested
+	 sage: T.plot_solution(i=0, filename=SAGE_TMP + '/test.png')        # not tested
 
 
    """

@@ -267,22 +267,22 @@ class MPolynomialIdeal_singular_repr:
         Implicit plotting in 2-d:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
-            sage.: I.plot()        # cusp         (optional surf)
+            sage: I.plot()        # cusp         (optional surf)
             sage: I = R.ideal([y^2 - x^2 - 1])
-            sage.: I.plot()        # hyperbola    (optional surf)
+            sage: I.plot()        # hyperbola    (optional surf)
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
-            sage.: I.plot()        # ellipse      (optional surf)
+            sage: I.plot()        # ellipse      (optional surf)
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
-            sage.: I.plot()        # elliptic curve  (optional surf)
+            sage: I.plot()        # elliptic curve  (optional surf)
 
         Implicit plotting in 3-d:
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: I = R.ideal([y^2 + x^2*(1/4) - z])
-            sage.: I.plot()          # a cone         (optional surf)
+            sage: I.plot()          # a cone         (optional surf)
             sage: I = R.ideal([y^2 + z^2*(1/4) - x])
-            sage.: I.plot()          # same code, from a different angle  (optional surf)
+            sage: I.plot()          # same code, from a different angle  (optional surf)
             sage: I = R.ideal([x^2*y^2+x^2*z^2+y^2*z^2-16*x*y*z])
-            sage.: I.plot()          # Steiner surface   (optional surf)
+            sage: I.plot()          # Steiner surface   (optional surf)
 
         AUTHOR:
             -- David Joyner (2006-02-12)

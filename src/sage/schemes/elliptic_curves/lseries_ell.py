@@ -101,8 +101,8 @@ class Lseries_ell(SageObject):
             sage: L = E.Lseries().dokchitser()
             sage: L(2)
             0.381575408260711
-            sage.: L = E.Lseries().dokchitser(algorithm='magma')         # optional  (not auto tested)
-            sage.: L.Evaluate(2)                                       # optional  (not auto tested)
+            sage: L = E.Lseries().dokchitser(algorithm='magma')         # optional
+            sage: L.Evaluate(2)                                     # optional
             0.38157540826071121129371040958008663667709753398892116
         """
         if algorithm == 'magma':
@@ -156,7 +156,7 @@ class Lseries_ell(SageObject):
             sage: a      # optional
             '2.492262044273650E+00'
             sage: RR(a)                      # optional
-            2.4922620442736498
+            2.49226204427365
         """
         from sage.lfunctions.sympow import sympow
         return sympow.L(self.__E, n, prec)
@@ -181,14 +181,27 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().sympow_derivs(1,16,2)      # optional -- requires precomputing "sympow('-new_data 2')"
-            ...
-            1n0: 3.837774351482055E-01
-            1w0: 3.777214305638848E-01
-            1n1: 3.059997738340522E-01
-            1w1: 3.059997738340524E-01
-            1n2: 1.519054910249753E-01
-            1w2: 1.545605024269432E-01
+            sage: print E.Lseries().sympow_derivs(1,16,2)      # optional -- requires precomputing "sympow('-new_data 2')"
+            sympow 1.018 RELEASE  (c) Mark Watkins --- see README and COPYING for details
+            Minimal model of curve  is [0,0,1,-1,0]
+            At 37: Inertia Group is  C1 MULTIPLICATIVE REDUCTION
+            Conductor is 37
+            sp 1: Conductor at 37 is 1+0, root number is 1
+            sp 1: Euler factor at 37 is 1+1*x
+            1st sym power conductor is 37, global root number is -1
+            NT 1d0: 35
+            NT 1d1: 32
+            NT 1d2: 28
+            Maximal number of terms is 35
+            Done with small primes 1049
+            Computed:  1d0  1d1  1d2
+            Checked out:  1d1
+             1n0: 3.837774351482055E-01
+             1w0: 3.777214305638848E-01
+             1n1: 3.059997738340522E-01
+             1w1: 3.059997738340524E-01
+             1n2: 1.519054910249753E-01
+             1w2: 1.545605024269432E-01
         """
         from sage.lfunctions.sympow import sympow
         return sympow.Lderivs(self.__E, n, prec, d)

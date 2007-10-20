@@ -352,26 +352,7 @@ In addition to requiring a prime power as the first argument,
 One can specify this name as follows:
 
 
-sage: R.<c> = Zq(125, prec = 20)
-sage.: R
-Unramified Extension of 5-adic Ring with capped absolute precision 20 in c
-defined by (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
-
-
-\section{New Versions of the $p$-adics}
-
-The code for $p$-adics is fairly rapidly changing.  If there's a bug
-you want fixed, let me know and I'll try to fix it.  Once I do, you'll
-need to get the latest version of $p$-adics with the bug fixed.  If
-you don't want to wait for the next version of SAGE to come out, you
-can do the following to get the most recent version:
-
-
-sage.: hg_sage.pull()
-sage.: hg_sage.apply('http://sage.math.washington.edu/home/padicgroup/development-version.hg')
-sage.: quit
-localhost:~$ sage
-sage.: run code that generated bug.
-
-If you want a slightly more stable but older version, use \verb/semistable-version.hg/ instead.
+    sage: R.<c> = Zq(125, prec = 20); R
+    Unramified Extension of 5-adic Ring with capped absolute precision 20
+    in c defined by (1 + O(5^20))*x^3 + (3 + O(5^20))*x + (3 + O(5^20))
 """

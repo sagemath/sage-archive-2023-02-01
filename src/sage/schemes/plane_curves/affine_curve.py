@@ -287,17 +287,13 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: C.rational_points()
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
 
-        This next example crashes Singular with an out of memory error
-        when run from doctests (so it is currently not run), though it
-        works fine from the command line.  (TODO)
-
             sage: x, y = (GF(17)['x,y']).gens()
             sage: C = Curve(x^2 + y^5 + x*y - 19)
-            sage.: v = C.rational_points(algorithm='bn')
-            sage.: w = C.rational_points(algorithm='enum')
-            sage.: len(v)
+            sage: v = C.rational_points(algorithm='bn')
+            sage: w = C.rational_points(algorithm='enum')
+            sage: len(v)
             20
-            sage.: v == w
+            sage: v == w
             True
         """
         if algorithm == "enum":

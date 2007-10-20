@@ -1479,8 +1479,8 @@ cdef class FiniteField(Field):
             bound -- ignored
 
         EXAMPLES:
-            sage.: k = GF(2^10, 'a')
-            sage.: k.random_element()
+            sage: k = GF(2^10, 'a')
+            sage: k.random_element()
             a^9 + a
         """
         if self.degree() == 1:

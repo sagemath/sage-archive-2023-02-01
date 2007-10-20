@@ -351,9 +351,9 @@ class Octave(Expect):
             a gnuplot window appears
 
         EXAMPLES:
-           sage.: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])
+           sage: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])  # not tested -- does this actually work (on OS X it fails for me -- William Stein, 2007-10)
 
-        This yields the two plots $(t,x(t)), (t,y(t))$ on the same graph
+        This should yield the two plots $(t,x(t)), (t,y(t))$ on the same graph
         (the $t$-axis is the horizonal axis) of the system of ODEs
         $$
           x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,
@@ -417,7 +417,7 @@ def octave_console():
     your PATH, but no optional \sage packages need be installed.
 
     EXAMPLES:
-        sage.: octave_console()
+        sage: octave_console()         # not tested
         GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
         Copyright (C) 2006 John W. Eaton.
         ...

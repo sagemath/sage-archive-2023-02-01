@@ -198,18 +198,19 @@ Gr\"obner basis for some ideal, using Singular through \sage.
             //                        : names    a b c d e f
             //        block   2 : ordering C
     sage: I = singular.ideal('cyclic(6)')
-    sage.: g = singular('groebner(I)')
+    sage: g = singular('groebner(I)')
     Traceback (most recent call last):
     ...
     TypeError: Singular error:
-       ? `I` is undefined
-       ? error occurred in standard.lib::groebner line 164: `parameter def i; parameter  list #;  `
-       ? leaving standard.lib::groebner
-       skipping text from `;` error at token `)`
-    sage.: g = I.groebner()             # not tested since crashes doctest system
-    sage.: g
-       f^48-2554*f^42-15674*f^36+12326*f^30-12326*f^18+15674*f^12+2554*f^6-1,
-       ...
+    ...
+
+We restart everything and try again, but correctly.
+    sage: singular.quit()
+    sage: singular.lib('poly.lib'); R = singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
+    sage: I = singular.ideal('cyclic(6)')
+    sage: I.groebner()
+    f^48-2554*f^42-15674*f^36+12326*f^30-12326*f^18+15674*f^12+2554*f^6-1,
+    ...
 
 It's important to understand why the first attempt at computing a
 basis failed.  The line where we gave singular the input 'groebner(I)'

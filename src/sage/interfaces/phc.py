@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Interface to PHC.
 
 PHC computes numerical information about systems of polynomials over
@@ -15,11 +15,12 @@ AUTHOR:
    -- Marshall Hampton -- second version of interface to PHC
 
 TODO:
-    This either needs to be able to handle arbitrary PHCpack command options, or have
-    enough special purpose functions added to get the full functionality.  One important
-    missing special case is having a root-counting function that could do mixed volumes and
-    structured Bezout counts.
-    Another nice feature to have would be a graphical output of the path-tracking, as has been done for Maple.
+    This either needs to be able to handle arbitrary PHCpack command
+    options, or have enough special purpose functions added to get the
+    full functionality.  One important missing special case is having
+    a root-counting function that could do mixed volumes and
+    structured Bezout counts.  Another nice feature to have would be a
+    graphical output of the path-tracking, as has been done for Maple.
 """
 
 ########################################################################
@@ -42,8 +43,9 @@ from sage.rings.all import CC
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
     '''
-    Returns a list of dictionaries of variable:value (key:value) pairs.
-    Only used internally; see the solution_dict function in the PHC_Object class definition for details.
+    Returns a list of dictionaries of variable:value (key:value)
+    pairs.  Only used internally; see the solution_dict function in
+    the PHC_Object class definition for details.
     '''
     output_list = output_file_contents.splitlines()
     test = 'False'
@@ -83,7 +85,8 @@ def get_variable_list(output_file_contents):
 
 class PHC_Object:
     """
-    A container for data from the PHCpack program - lists of float solutions, etc.
+    A container for data from the PHCpack program - lists of float
+    solutions, etc.
     """
     def __init__(self, output_file_contents, input_ring):
 	'''
@@ -99,11 +102,19 @@ class PHC_Object:
         Returns a list of solutions in dictionary form: variable:value.
 
 	INPUT:
-	    self: for access to self_out_file_contents, the string of raw PHCpack output.
-	    get_failures (optional): a boolean.  The default (False) is to not process failed homotopies.  These either lie on positive-dimensional components or at infinity.
+            self -- for access to self_out_file_contents, the string
+	    of raw PHCpack output.
+
+            get_failures (optional) -- a boolean.  The default (False)
+	    is to not process failed homotopies.  These either lie on
+	    positive-dimensional components or at infinity.
 
         OUTPUT:
-	    solution_dicts: a list of dictionaries.  Each dictionary element is of the form variable:value, where the variable is an element of the input_ring, and the value is in ComplexField.
+
+	    solution_dicts: a list of dictionaries.  Each dictionary
+	    element is of the form variable:value, where the variable
+	    is an element of the input_ring, and the value is in
+	    ComplexField.
 
         """
         try:
@@ -119,8 +130,11 @@ class PHC_Object:
 	Returns a list of solutions in the ComplexField.  Use the variable_list function to get the order of variables used by PHCpack, which is usually different than the term order of the input_ring.
 
 	INPUT:
-	    self: for access to self_out_file_contents, the string of raw PHCpack output.
-	    get_failures (optional): a boolean.  The default (False) is to not process failed homotopies.  These either lie on positive-dimensional components or at infinity.
+	    self -- for access to self_out_file_contents, the string
+	    of raw PHCpack output.
+	    get_failures (optional) -- a boolean.  The default (False)
+	    is to not process failed homotopies.  These either lie on
+	    positive-dimensional components or at infinity.
 
         OUTPUT:
 	    solutions: a list of lists of ComplexField-valued solutions.
@@ -137,7 +151,8 @@ class PHC_Object:
 
     def variable_list(self):
         """
-	Returns the variables, as strings, in the order in which PHCpack has processed them.
+	Returns the variables, as strings, in the order in which
+	PHCpack has processed them.
         """
         try:
             return self.__var_list
@@ -149,80 +164,21 @@ class PHC_Object:
 
 class PHC:
     """
-    A class to interface with PHCpack, for computing numerical homotopies and root counts.
+    A class to interface with PHCpack, for computing numerical
+    homotopies and root counts.
 
     EXAMPLES:
         sage: from sage.interfaces.phc import phc
-        sage: R.<x,y> = PolynomialRing(QQ,2)
+        sage: R.<x,y> = PolynomialRing(CDF,2)
 	sage: testsys = [x^2 + 1, x*y - 1]
         sage: v = phc.blackbox(testsys, R)     # optional -- you must have phc install
 	sage: v.solutions()
-	[[1.00000000000000*I, -1.00000000000000*I], [-1.00000000000000*I, 1.00000000000000*I]]
+        [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
 	sage: v.solution_dicts()
-	[{y: 1.00000000000000*I, x: -1.00000000000000*I}, {y: -1.00000000000000*I, x: 1.00000000000000*I}]
-	sage: residuals = [[test_equation.subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]
+        [{x: -1.00000000000000*I, y: 1.00000000000000*I}, {x: 1.00000000000000*I, y: -1.00000000000000*I}]
+	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]
 	sage: residuals
 	[[0, 0], [0, 0]]
-        sage: print v
-         2
-        x^2+ 1;
-        x*y-1;
-        <BLANKLINE>
-        THE SOLUTIONS :
-        <BLANKLINE>
-        2 2
-        ===========================================================================
-        solution 1 :    start residual :  1.225E-16   #iterations : 1   success
-        t :  0.00000000000000E+00   0.00000000000000E+00
-        m : 1
-        the solution for t :
-         x :  0.00000000000000E+00  -1.00000000000000E+00
-         y :  0.00000000000000E+00   1.00000000000000E+00
-        == err :  1.225E-16 = rco :  3.333E-01 = res :  0.000E+00 = complex regular ==
-        solution 2 :    start residual :  1.225E-16   #iterations : 1   success
-        t :  0.00000000000000E+00   0.00000000000000E+00
-        m : 1
-        the solution for t :
-         x :  0.00000000000000E+00   1.00000000000000E+00
-         y :  0.00000000000000E+00  -1.00000000000000E+00
-        == err :  1.225E-16 = rco :  3.333E-01 = res :  0.000E+00 = complex regular ==
-        ===========================================================================
-        A list of 2 solutions has been refined :
-        Number of regular solutions   : 2.
-        Number of singular solutions  : 0.
-        Number of real solutions      : 0.
-        Number of complex solutions   : 2.
-        Number of clustered solutions : 0.
-        Number of failures            : 0.
-        ===========================================================================
-        Frequency tables for correction, residual, condition, and distances :
-        FreqCorr :  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 : 2
-        FreqResi :  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 : 2
-        FreqCond :  2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 : 2
-        FreqDist :  2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 : 2
-        Small correction terms and residuals counted to the right.
-        Well conditioned and distinct roots counted to the left.
-        <BLANKLINE>
-        TIMING INFORMATION for Solving the polynomial system
-        The elapsed time in seconds was                  0.013681000 =  0h 0m 0s 14ms
-	User time in seconds was                         0.011680000 =  0h 0m 0s 12ms
-	System CPU time in seconds was                   0.002001000 =  0h 0m 0s  2ms
-        Non-I/O page faults was                          0
-        I/O page faults was                              0
-        Signals delivered was                            0
-        Swaps was                                        0
-        Total context switches was                       0
-        <BLANKLINE>
-	  ---------------------------------------------------------------------
- 	  |                    TIMING INFORMATION SUMMARY                     |
-	  ---------------------------------------------------------------------
-	  |   root counts  |  start system  |  continuation  |   total time   |
-	  ---------------------------------------------------------------------
-	  |  0h 0m 0s  0ms |  0h 0m 0s  0ms |  0h 0m 0s  0ms |  0h 0m 0s 12ms |
-	  ---------------------------------------------------------------------
-        PHC ran from 3 July 2007, 11:33:02 till 3 July 2007, 11:33:02.
-        The total elapsed time is 0 seconds.
-        <BLANKLINE>
     """
     def _input_file(self, polys):
         """

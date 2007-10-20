@@ -122,7 +122,7 @@ def set_edit_template(template_string):
    EXAMPLE:
       sage: from sage.misc.edit_module import set_edit_template
       sage: set_edit_template("echo EDIT ${file}:${line}")
-      sage.: edit(sage)      # not automatically tested.
+      sage: edit(sage)      # not tested
       EDIT /usr/local/sage/default/devel/sage/sage/__init__.py:1
    """
    global edit_template
@@ -146,8 +146,8 @@ def edit(obj, bg=False, editor=None):
 
    This is a typical example of how to use this routine.
 
-      sage.: # make some object obj
-      sage.: edit(obj)
+      # make some object obj
+      sage: edit(obj)    # not tested
 
    Now for more details and customization:
 
@@ -168,7 +168,7 @@ def edit(obj, bg=False, editor=None):
 
    To edit the source of an object, just type something like:
 
-      sage.: edit(edit) #not automatically tested
+      sage: edit(edit)           # not tested
    """
    global edit_template
 

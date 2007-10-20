@@ -1,5 +1,5 @@
 """
-Bug reporting1
+Bug reporting
 """
 
 def bug():
@@ -7,7 +7,7 @@ def bug():
     Simple script for putting a bug report in a standard format.
 
     EXAMPLES:
-`        sage.: bug()
+`       sage: bug()   # not tested
         We will now create a bug report in a standard format.
         Bug in command (one line)? bug
         Expected output (one line)? bugs
@@ -15,9 +15,7 @@ def bug():
         Comments or suggestions (one line)? help!
                 ******************************
                 Please copy and paste the following output into an email (edit
-                it further) and send it to sage-support@lists.sourceforge.net,
-                if you are a list member; otherwise send it to William Stein
-                (wstein@gmail.com) and David Joyner (wdjoyner@gmail.com).
+                it further) and send it to sage-support@lists.sourceforge.net.
                 ******************************
         From: was
         Machine specs: Linux sha 2.6.16.16 #15 SMP Sun May 14 12:40:14 PDT 2006 i686
@@ -35,9 +33,7 @@ def bug():
     report = """
         ******************************
         Please copy and paste the following output into an email (edit
-        it further) and send it to sage-support@lists.sourceforge.net,
-        if you are a list member; otherwise send it to William Stein
-        (wstein@gmail.com) and David Joyner (wdjoyner@gmail.com).
+        it further) and send it to sage-support@lists.sourceforge.net.
         ******************************
     \n"""
     try:

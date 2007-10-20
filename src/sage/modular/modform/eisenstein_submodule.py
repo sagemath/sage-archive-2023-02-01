@@ -136,7 +136,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             sage: eps = DirichletGroup(13).0^2
             sage: ModularForms(eps,2).eisenstein_series()
             [
-            -7/13*zeta6 - 11/13 + q + (2*zeta6 + 1)*q^2 + (-3*zeta6 + 1)*q^3 + (6*zeta6 - 3)*q^4 + -4*q^5 + O(q^6),
+            -7/13*zeta6 - 11/13 + q + (2*zeta6 + 1)*q^2 + (-3*zeta6 + 1)*q^3 + (6*zeta6 - 3)*q^4 - 4*q^5 + O(q^6),
             q + (zeta6 + 2)*q^2 + (-zeta6 + 3)*q^3 + (3*zeta6 + 3)*q^4 + 4*q^5 + O(q^6)
             ]
 
@@ -252,11 +252,11 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
 
 	sage: M.basis()
         [
-        1 + -3*zeta3*q^6 + (-2*zeta3 + 2)*q^9 + O(q^10),
+        1 - 3*zeta3*q^6 + (-2*zeta3 + 2)*q^9 + O(q^10),
         q + (5*zeta3 + 5)*q^7 + O(q^10),
-        q^2 + -2*zeta3*q^8 + O(q^10),
+        q^2 - 2*zeta3*q^8 + O(q^10),
         q^3 + (zeta3 + 2)*q^6 + 3*q^9 + O(q^10),
-        q^4 + -2*zeta3*q^7 + O(q^10),
+        q^4 - 2*zeta3*q^7 + O(q^10),
         q^5 + (zeta3 + 1)*q^8 + O(q^10)
         ]
 

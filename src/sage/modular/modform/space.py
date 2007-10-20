@@ -151,7 +151,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M = ModularForms(DirichletGroup(13).0^2)
             sage: M.set_precision(10)
             sage: M.cuspidal_subspace().0
-            q + (-zeta6 - 1)*q^2 + (2*zeta6 - 2)*q^3 + zeta6*q^4 + (-2*zeta6 + 1)*q^5 + (-2*zeta6 + 4)*q^6 + (2*zeta6 - 1)*q^8 + -zeta6*q^9 + O(q^10)
+            q + (-zeta6 - 1)*q^2 + (2*zeta6 - 2)*q^3 + zeta6*q^4 + (-2*zeta6 + 1)*q^5 + (-2*zeta6 + 4)*q^6 + (2*zeta6 - 1)*q^8 - zeta6*q^9 + O(q^10)
         """
         self.ambient().set_precision(new_prec)
 

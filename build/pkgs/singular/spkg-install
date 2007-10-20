@@ -4,31 +4,9 @@
 ## Singular
 ###########################################
 
-# work-around patch
+# work-around patches
 cp patches/assert.h src/factory/
-
-# modified buildscript nolns and libSINGULAR patches
 cp patches/kernel.Makefile.in src/kernel/Makefile.in
-cp patches/libfac.Makefile.in src/libfac/Makefile.in
-cp patches/omalloc.Makefile.in src/omalloc/Makefile.in
-cp patches/Singular.Makefile.in src/Singular/Makefile.in
-cp patches/singuname.sh src/singuname.sh
-
-# libSINGULAR patches
-cp patches/libsingular.h src/Singular/
-
-# trick to drop dependencies on flex and bison
-#touch src/factory/readcf.y
-#touch src/Singular/grammar.y
-#touch src/Singular/libparse.l
-#touch src/Singular/scanner.l
-#sleep 1
-#cp patches/factory.readcf.cc src/factory/readcf.cc
-#cp patches/Singular.grammar.cc src/Singular/grammar.cc
-#cp patches/Singular.grammar.h src/Singular/grammar.h
-#cp patches/Singular.libparse.cc src/Singular/libparse.cc
-#cp patches/Singular.libparse.h src/Singular/libparse.h
-#cp patches/Singular.scanner.cc src/Singular/scanner.cc
 
 # Build
 

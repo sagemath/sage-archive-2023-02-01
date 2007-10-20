@@ -10,6 +10,11 @@ algorithms and packages within a common framework. polymake is
 flexible and continuously expanding. The software supplies C++ and
 perl interfaces which make it highly adaptable to individual needs.'
 
+NOTE: If you have trouble with this module do
+        sage: !polymake --reconfigure   # not tested
+at the command line.
+
+
 AUTHOR:
     -- Ewgenij Gawrilow, Michael Joswig: main authors of polymake
     -- William Stein: SAGE interface
@@ -42,6 +47,17 @@ if os.path.exists(path):
 tmp_file = '%s/tmp.poly'%SAGE_TMP
 
 class Polytope(SageObject):
+    """
+    Create a polytope.
+
+    EXAMPLES:
+        sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional: needs polymake
+
+    NOTE: If you have trouble with this module do
+            sage: !polymake --reconfigure   # not tested
+    at the command line.
+
+    """
     def __init__(self, datafile, desc):
         self.__data = datafile
         self.__desc = desc

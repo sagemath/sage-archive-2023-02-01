@@ -289,7 +289,7 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        add_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_add(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         return r
 
     def __sub__(ntl_ZZX self, ntl_ZZX other):
@@ -303,7 +303,7 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        sub_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_sub(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         return r
 
     def __mul__(ntl_ZZX self, ntl_ZZX other):
@@ -318,7 +318,7 @@ cdef class ntl_ZZX:
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
         _sig_on
-        mul_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_mul(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         _sig_off
         return r
 

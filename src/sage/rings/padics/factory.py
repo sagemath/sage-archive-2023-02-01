@@ -223,8 +223,10 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
        17-adic Ring with capped relative precision 5
        sage: Zp(17, 5)(-1)
        16 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5)
-       sage: Zp(next_prime(10^50), 1000)
-       100000000000000000000000000000000000000000000000151-adic Ring with capped relative precision 1000
+
+    It works even with a fairly huge cap:
+       sage: Zp(next_prime(10^50), 100000)
+       100000000000000000000000000000000000000000000000151-adic Ring with capped relative precision 100000
 
     We create each type of ring:
         sage: Zp(7, 20, 'capped-rel')

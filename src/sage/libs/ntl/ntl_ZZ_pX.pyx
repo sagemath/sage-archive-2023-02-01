@@ -84,7 +84,9 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_p cc
         cdef Py_ssize_t i
 
-        if PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
+        if PY_TYPE_CHECK(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
+            self.x = (<ntl_ZZ_pX>v).x
+        elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
             for i from 0 <= i < len(v):
                 x = v[i]
                 if not PY_TYPE_CHECK(x, ntl_ZZ_p):
@@ -159,10 +161,11 @@ cdef class ntl_ZZ_pX:
             '[1 0 3]'
         """
         self.c.restore_c()
-        cdef char* s = ZZ_pX_repr(&self.x)
-        t = str(s)
-        free(s)
-        return t
+        #cdef char* s = ZZ_pX_repr(&self.x)
+        #t = str(s)
+        #free(s)
+        return ZZ_pX_to_PyString(&self.x)
+        #return t
 
     def __copy__(self):
         """
@@ -179,7 +182,7 @@ cdef class ntl_ZZ_pX:
             [0 5 8]
         """
         cdef ntl_ZZ_pX r = self._new()
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         r.x = self.x
         return r
 
@@ -297,7 +300,7 @@ cdef class ntl_ZZ_pX:
         sage: print x._getitem_as_int_doctest(15)
          0
         """
-        self.c.restore_c()
+        # self.c.restore_c() # restored in getitem_as_int()
         return self.getitem_as_int(i)
 
     def list(self):
@@ -311,6 +314,7 @@ cdef class ntl_ZZ_pX:
             sage: type(x.list()[0])
             <type 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
         """
+        # could be sped up.
         self.c.restore_c()
         cdef Py_ssize_t i
         return [self[i] for i from 0 <= i <= self.degree()]
@@ -326,7 +330,7 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         ZZ_pX_add(r.x, self.x, other.x)
         _sig_off
         return r
@@ -342,7 +346,7 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         ZZ_pX_sub(r.x, self.x, other.x)
         _sig_off
         return r
@@ -366,7 +370,7 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        self.c.restore_c()
+        # self.c.restore_c() # restored in _new()
         ZZ_pX_mul(r.x, self.x, other.x)
         _sig_off
         return r
@@ -396,7 +400,7 @@ cdef class ntl_ZZ_pX:
         cdef int divisible
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         divisible = ZZ_pX_divide(r.x, self.x, other.x)
         _sig_off
         if not divisible:
@@ -426,7 +430,7 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         ZZ_pX_rem(r.x, self.x, other.x)
         _sig_off
         return r
@@ -450,7 +454,7 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r = self._new()
         cdef ntl_ZZ_pX q = self._new()
         _sig_on
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
         ZZ_pX_DivRem(q.x, r.x, self.x, other.x)
         _sig_off
         return q,r
@@ -465,9 +469,12 @@ cdef class ntl_ZZ_pX:
             sage: f*f
             [1 0 15 0 1]
         """
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
+        cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        return make_ZZ_pX(ZZ_pX_square(&self.x), self.c)
+        ZZ_pX_sqr(r.x, self.x)
+        _sig_off
+        return r
 
     def __pow__(ntl_ZZ_pX self, long n, ignored):
         """
@@ -479,12 +486,14 @@ cdef class ntl_ZZ_pX:
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
         """
-        ## FIXME
         if n < 0:
             raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pX([1],self.c))
-
+        #self.c.restore_c() # restored in _new()
+        cdef ntl_ZZ_pX r = self._new()
+        _sig_on
+        ZZ_pX_power(r.x, self.x, n)
+        _sig_off
+        return r
 
     def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
@@ -558,11 +567,6 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        # The following line is what we should have.  However, strangely this is *broken*
-        # on PowerPC Intel in NTL, so we program around
-        # the problem.  (William Stein)
-        #return bool(ZZ_pX_is_monic(self.x))
-
         if ZZ_pX_IsZero(self.x):
              return False
         return bool(ZZ_p_IsOne(ZZ_pX_LeadCoeff(self.x)))
@@ -600,8 +604,12 @@ cdef class ntl_ZZ_pX:
             sage: f.left_shift(-2)
             [0 1]
         """
-        self.c.restore_c()
-        return make_ZZ_pX(ZZ_pX_left_shift(&self.x, n), self.c)
+        #self.c.restore_c() # restored in _new()
+        cdef ntl_ZZ_pX r = self._new()
+        _sig_on
+        ZZ_pX_LeftShift(r.x, self.x, n)
+        _sig_off
+        return r
 
     def right_shift(self, long n):
         """
@@ -620,8 +628,12 @@ cdef class ntl_ZZ_pX:
             sage: f.right_shift(-2)
             [0 0 2 0 0 1]
         """
-        self.c.restore_c()
-        return make_ZZ_pX(ZZ_pX_right_shift(&self.x, n), self.c)
+        #self.c.restore_c() # restored in _new()
+        cdef ntl_ZZ_pX r = self._new()
+        _sig_on
+        ZZ_pX_RightShift(r.x, self.x, n)
+        _sig_off
+        return r
 
     def gcd(self, ntl_ZZ_pX other):
         """
@@ -637,9 +649,12 @@ cdef class ntl_ZZ_pX:
             sage: g.gcd(f)
             [6 12 1]
         """
-        self.c.restore_c()
+        #self.c.restore_c() # restored in _new()
+        cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        return make_ZZ_pX(ZZ_pX_gcd(&self.x, &other.x), self.c)
+        ZZ_pX_GCD(r.x, self.x, other.x)
+        _sig_off
+        return r
 
     def xgcd(self, ntl_ZZ_pX other, plain=True):
         """
@@ -711,6 +726,7 @@ cdef class ntl_ZZ_pX:
             0
         """
         self.c.restore_c()
+        #return ZZ_pX_LeadCoeff(self.x)
         cdef long i
         i = ZZ_pX_deg(self.x)
         return self[i]
@@ -729,6 +745,7 @@ cdef class ntl_ZZ_pX:
             0
         """
         self.c.restore_c()
+        #return ZZ_pX_ConstTerm(self.x)
         return self[0]
 
     def set_x(self):
@@ -750,8 +767,9 @@ cdef class ntl_ZZ_pX:
             False
         """
         self.c.restore_c()
-        ZZ_pX_clear(self.x)
-        ZZ_pX_SetCoeff_long(self.x, 1, 1)
+        ZZ_pX_SetX(self.x)
+        #ZZ_pX_clear(self.x)
+        #ZZ_pX_SetCoeff_long(self.x, 1, 1)
 
     def is_x(self):
         """
@@ -770,7 +788,7 @@ cdef class ntl_ZZ_pX:
             sage: f.is_x()
             False
         """
-        return bool(ZZ_pX_is_x(&self.x))
+        return bool(ZZ_pX_IsX(self.x))
 
     def derivative(self):
         """
@@ -782,7 +800,11 @@ cdef class ntl_ZZ_pX:
             sage: f.derivative()
             [7 0 19]
         """
-        return make_ZZ_pX(ZZ_pX_derivative(&self.x), self.c)
+        cdef ntl_ZZ_pX r = self._new() #restores context
+        _sig_on
+        ZZ_pX_diff(r.x, self.x)
+        _sig_off
+        return r
 
     def factor(self, verbose=False):
         """
@@ -806,7 +828,9 @@ cdef class ntl_ZZ_pX:
             ...
             ValueError: self must be monic.
         """
+        self.c.restore_c()
         cdef ZZ_pX_c** v
+        cdef ntl_ZZ_pX r
         cdef long* e
         cdef long i, n
         if not self.is_monic():
@@ -816,7 +840,10 @@ cdef class ntl_ZZ_pX:
         _sig_off
         F = []
         for i from 0 <= i < n:
-            F.append((make_ZZ_pX(v[i], self.c), e[i]))
+            r = self._new()
+            r.x = v[i][0]
+            F.append((r, e[i]))
+            #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         free(v)
         free(e)
         return F
@@ -842,7 +869,9 @@ cdef class ntl_ZZ_pX:
             ...
             ValueError: self must be monic.
         """
+        self.c.restore_c()
         cdef ZZ_p_c** v
+        cdef ntl_ZZ_p r
         cdef long i, n
         if not self.is_monic():
             raise ValueError, "self must be monic."
@@ -851,7 +880,11 @@ cdef class ntl_ZZ_pX:
         _sig_off
         F = []
         for i from 0 <= i < n:
-            F.append(make_ZZ_p(v[i], self.c))
+            r = PY_NEW(ntl_ZZ_p)
+            r.c = self.c
+            r.x = v[i][0]
+            F.append(r)
+            #F.append(make_ZZ_p(v[i], self.c))
         free(v)
         return F
 
@@ -873,10 +906,12 @@ cdef class ntl_ZZ_pX:
             sage: f.reverse(hi=-2)
             []
         """
-        if not (hi is None):
-            return make_ZZ_pX(ZZ_pX_reverse_hi(&self.x, int(hi)), self.c)
+        cdef ntl_ZZ_pX r = self._new()
+        if hi is None:
+            ZZ_pX_reverse(r.x, self.x)
         else:
-            return make_ZZ_pX(ZZ_pX_reverse(&self.x), self.c)
+            ZZ_pX_reverse_hi(r.x, self.x, int(hi))
+        return r
 
     def truncate(self, long m):
         """
@@ -899,10 +934,13 @@ cdef class ntl_ZZ_pX:
             sage: f.truncate(-5)
             []
         """
+        cdef ntl_ZZ_pX r = self._new()
         if m <= 0:
-            return self._new()
+            return r
         _sig_on
-        return make_ZZ_pX(ZZ_pX_truncate(&self.x, m), self.c)
+        ZZ_pX_trunc(r.x, self.x, m)
+        _sig_off
+        return r
 
     def multiply_and_truncate(self, ntl_ZZ_pX other, long m):
         """
@@ -917,9 +955,13 @@ cdef class ntl_ZZ_pX:
             sage: g.multiply_and_truncate(f, 2)
             [10]
         """
+        cdef ntl_ZZ_pX r = self._new()
         if m <= 0:
-            return self._new()
-        return make_ZZ_pX(ZZ_pX_multiply_and_truncate(&self.x, &other.x, m), self.c)
+            return r
+        _sig_on
+        ZZ_pX_MulTrunc(r.x, self.x, other.x, m)
+        _sig_off
+        return r
 
     def square_and_truncate(self, long m):
         """
@@ -933,14 +975,18 @@ cdef class ntl_ZZ_pX:
             sage: (f*f).truncate(4)
             [1 4 10]
         """
-        if m < 0:
-            return self._new()
-        return make_ZZ_pX(ZZ_pX_square_and_truncate(&self.x, m), self.c)
+        cdef ntl_ZZ_pX r = self._new()
+        if m <= 0:
+            return r
+        _sig_on
+        ZZ_pX_SqrTrunc(r.x, self.x, m)
+        _sig_off
+        return r
 
     def invert_and_truncate(self, long m):
         """
         Compute and return the inverse of self modulo $x^m$.
-        The constant term of self must be 1 or -1.
+        The constant term of self must be a unit.
 
         EXAMPLES:
             sage: c = ntl.ZZ_pContext(20)
@@ -953,12 +999,12 @@ cdef class ntl_ZZ_pX:
         """
         if m < 0:
             raise ArithmeticError, "m (=%s) must be positive"%m
-        n = self.constant_term()
-        if n != ntl_ZZ_p(1,self.c) and n != ntl_ZZ_p(-1,self.c):
-            raise ArithmeticError, \
-                  "The constant term of self must be 1 or -1."
         _sig_on
-        return make_ZZ_pX(ZZ_pX_invert_and_truncate(&self.x, m), self.c)
+        cdef ntl_ZZ_pX r = self._new()
+        _sig_on
+        ZZ_pX_InvTrunc(r.x, self.x, m)
+        _sig_off
+        return r
 
     def multiply_mod(self, ntl_ZZ_pX other, ntl_ZZ_pX modulus):
         """
@@ -973,7 +1019,6 @@ cdef class ntl_ZZ_pX:
             sage: h.multiply_mod(g, modulus)
             [10 6 4]
         """
-        self.c.restore_c()
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
         ZZ_pX_MulMod(r.x, self.x, other.x, modulus.x)
@@ -994,8 +1039,12 @@ cdef class ntl_ZZ_pX:
             3
         """
         self.c.restore_c()
+        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        r.c = self.c
         _sig_on
-        return make_ZZ_p(ZZ_pX_trace_mod(&self.x, &modulus.x), self.c)
+        ZZ_pX_TraceMod(r.x, self.x, modulus.x)
+        _sig_off
+        return r
 
     def trace_list(self):
         """
@@ -1017,6 +1066,7 @@ cdef class ntl_ZZ_pX:
             ...
             ValueError: polynomial must be monic.
         """
+        # This function should be redone to use TraceVec, which requires improving the wrapper for vec_ZZ_p
         self.c.restore_c()
         if not self.is_monic():
             raise ValueError, "polynomial must be monic."
@@ -1037,8 +1087,12 @@ cdef class ntl_ZZ_pX:
             0
         """
         self.c.restore_c()
+        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        r.c = self.c
         _sig_on
-        return make_ZZ_p(ZZ_pX_resultant(&self.x, &other.x), self.c)
+        ZZ_pX_resultant(r.x, self.x, other.x)
+        _sig_off
+        return r
 
     def norm_mod(self, ntl_ZZ_pX modulus):
         """
@@ -1058,8 +1112,12 @@ cdef class ntl_ZZ_pX:
             [11 1 8 14 1]
         """
         self.c.restore_c()
+        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        r.c = self.c
         _sig_on
-        return make_ZZ_p(ZZ_pX_norm_mod(&self.x, &modulus.x), self.c)
+        ZZ_pX_NormMod(r.x, self.x, modulus.x)
+        _sig_off
+        return r
 
     def discriminant(self):
         r"""
@@ -1097,9 +1155,11 @@ cdef class ntl_ZZ_pX:
             sage: f.charpoly_mod(mod)
             [11 1 8 14 1]
         """
-        self.c.restore_c()
+        cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        return make_ZZ_pX(ZZ_pX_charpoly_mod(&self.x, &modulus.x), self.c)
+        ZZ_pX_CharPolyMod(r.x, self.x, modulus.x)
+        _sig_off
+        return r
 
     def minpoly_mod(self, ntl_ZZ_pX modulus):
         """
@@ -1119,9 +1179,11 @@ cdef class ntl_ZZ_pX:
             sage: f.minpoly_mod(g)
             [0 0 1]
         """
-        self.c.restore_c()
+        cdef ntl_ZZ_pX r = self._new()
         _sig_on
-        return make_ZZ_pX(ZZ_pX_minpoly_mod(&self.x, &modulus.x), self.c)
+        ZZ_pX_MinPolyMod(r.x, self.x, modulus.x)
+        _sig_off
+        return r
 
     def clear(self):
         """
@@ -1159,7 +1221,8 @@ cdef class ntl_ZZ_pX:
         """
         self.c.restore_c()
         _sig_on
-        ZZ_pX_preallocate_space(&self.x, n)
+        self.x.SetMaxLength(n)
+        #ZZ_pX_preallocate_space(&self.x, n)
         _sig_off
 
 

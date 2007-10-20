@@ -670,7 +670,7 @@ def jacobi(sym,x,m):
         0.724009721659
         sage: jsn = jacobi("sn",x,1)
         sage: P = plot(jsn,0,1)
-        sage.: P.show()
+        sage: P.show()
     """
     _init()
     return meval("jacobi_%s(%s,%s)"%(sym, x, m))

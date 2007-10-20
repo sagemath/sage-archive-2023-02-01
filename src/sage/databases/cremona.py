@@ -675,11 +675,10 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         is available from Cremona's website.  I.e., just wget Cremona's
         database to a local directory.
 
-        NOTE: For data up to level 70000, this function takes about 10
-        minutes on a Thinkpad T42p 1.8Ghz Pentium-M laptop.  The
-        resulting database occupies 36MB disk space.  Creating the
-        database uses a LOT of memory.  Use a machine with at least
-        1GB RAM.
+        NOTE: For data up to level 130000, this function takes about
+        30 minutes on a 1.8Ghz Opteron laptop.  The resulting database
+        occupies 36MB disk space.  Creating the database uses a LOT of
+        memory.  Use a machine with at *least* 2GB RAM.
 
         To recreate the large database from the files in the current
         directory, do the following:

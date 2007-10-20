@@ -135,6 +135,7 @@ from sage.structure.sage_object import SageObject
 DEFAULT_FIGSIZE=[6, 5]
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
+DOCTEST_MODE = False
 SHOW_DEFAULT = False
 
 def show_default(default=None):
@@ -625,22 +626,25 @@ class Graphics(SageObject):
 
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
-            sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         To correct the apect ratio of certain graphics, it is necessary
         to show with a 'figsize' of square dimensions.
 
-            sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You can either turn off the drawing of the axes:
 
-            sage.: show(plot(sin,-4,4), axes=False)
+            sage: show(plot(sin,-4,4), axes=False)
 
         Or you can turn on the drawing of a frame around the plots:
 
-            sage.: show(plot(sin,-4,4), frame=True)
+            sage: show(plot(sin,-4,4), frame=True)
 
         """
+        if DOCTEST_MODE:
+            self.save('test.png', xmin, xmax, ymin, ymax, figsize,
+                    dpi=dpi, axes=axes, axes_label=axes_label,frame=frame)
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
                     dpi=dpi, axes=axes, axes_label=axes_label,frame=frame)
@@ -2764,6 +2768,9 @@ class GraphicsArray(SageObject):
             frame -- (default: False) draw a MATLAB-like frame around the image
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
+        if DOCTEST_MODE:
+            self.save('test.png', dpi=dpi, figsize=self._figsize, axes = axes, **args)
+            return
         if EMBEDDED_MODE:
             self.save(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
@@ -2851,8 +2858,9 @@ def float_to_html(r,g,b):
     for matplotlib. This may not seem necessary, but there are some odd
     cases where matplotlib is just plain schizophrenic- for an example, do
 
-    sage.: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
-    sage.: graphs.DodecahedralGraph().show(vertex_colors=vertex_colors)
+    EXAMPLES:
+        sage: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+        sage: graphs.DodecahedralGraph().show(vertex_colors=vertex_colors)
 
     Notice how the colors don't respect the partition at all.....
     """ # TODO: figure out WTF

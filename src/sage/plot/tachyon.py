@@ -216,6 +216,9 @@ class Tachyon(SageObject):
 
     def show(self, verbose=0, extra_opts=''):
         import sage.server.support
+        if sage.server.support.DOCTEST_MODE:
+            filename = sage.misc.misc.graphics_filename()
+            self.save('test.png', verbose=verbose, extra_opts=extra_opts)
         if sage.server.support.EMBEDDED_MODE:
             filename = sage.misc.misc.graphics_filename()
             self.save(filename, verbose=verbose, extra_opts=extra_opts)

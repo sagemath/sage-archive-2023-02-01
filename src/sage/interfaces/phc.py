@@ -172,12 +172,12 @@ class PHC:
         sage: R.<x,y> = PolynomialRing(CDF,2)
 	sage: testsys = [x^2 + 1, x*y - 1]
         sage: v = phc.blackbox(testsys, R)     # optional -- you must have phc install
-	sage: v.solutions()
+	sage: v.solutions()                    # optional
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
-	sage: v.solution_dicts()
+	sage: v.solution_dicts()               # optional
         [{x: -1.00000000000000*I, y: 1.00000000000000*I}, {x: 1.00000000000000*I, y: -1.00000000000000*I}]
-	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]
-	sage: residuals
+	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
+	sage: residuals                             # optional
 	[[0, 0], [0, 0]]
     """
     def _input_file(self, polys):

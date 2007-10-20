@@ -388,10 +388,10 @@ cdef class ntl_mat_ZZ:
             ...         A[i,j] = a[i,j]
             ...
             sage: t = cputime(); d = A.determinant()
-            sage: cputime(t)
+            sage: cputime(t)          # random
             0.33201999999999998
             sage: t = cputime(); B = A.HNF(d)
-            sage: cputime(t)
+            sage: cputime(t)          # random
             6.4924050000000006
 
         In comparison, MAGMA does this much more quickly:

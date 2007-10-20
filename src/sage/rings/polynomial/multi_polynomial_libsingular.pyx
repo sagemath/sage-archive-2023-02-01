@@ -2090,6 +2090,29 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
+    def __iter__(self):
+        """
+        Facilitates iterating over the monomials of self,
+        returning tuples of the form (coeff, mon) for each
+        non-zero monomial.
+
+        NOTE: This function creates the entire list upfront because
+              Cython doesn't (yet) support iterators.
+
+        EXAMPLES:
+            sage: P.<x,y,z> = PolynomialRing(QQ,3)
+            sage: f = 3*x^3*y + 16*x + 7
+            sage: [(c,m) for c,m in f]
+            [(3, x^3*y), (16, x), (7, 1)]
+            sage: f = P.random_element(12,14)
+            sage: sum(c*m for c,m in f) == f
+            True
+        """
+        # TODO: re-implement actually using yield when yield added to cython
+        D = self.dict()
+        L = [(c, MPolynomial_polydict(self._parent, {exp: 1})) for exp, c in D.items()]
+        return iter(L)
+
     def __getitem__(self,x):
         """
         same as self.monomial_coefficent but for exponent vectors.

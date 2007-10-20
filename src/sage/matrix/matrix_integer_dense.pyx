@@ -1794,19 +1794,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Determinante
 
-    def determinant(self):
+    def determinant(self, algorithm=None):
         """
         Return the determinant of this matrix.
 
-        ALGORITHM: Uses linbox.
+        INPUT:
+            algorithm -- 'linbox', 'ntl' or None (default: None)
+
+        ALGORITHM: Uses LinBox or NTL.
 
         EXAMPLES:
+            sage: A = matrix(ZZ,8,8,[3..66])
+            sage: A.determinant()
+            0
+
+            sage: A = random_matrix(ZZ,20,20)
+            sage: D1 = A.determinant()
+            sage: A._clear_cache()
+            sage: D2 = A.determinant(algorithm='ntl')
+            sage: D1 == D2
+            True
 
         """
         d = self.fetch('det')
         if not d is None:
             return d
-        d = self._det_linbox()
+
+        if algorithm is None:
+            algorithm = 'ntl'
+
+        if algorithm == 'linbox':
+            d = self._det_linbox()
+        elif algorithm == 'ntl':
+            d = self._det_ntl()
+        else:
+            raise TypeError, "algorithm '%s' not understood"%(algorithm)
+
         self.cache('det', d)
         return d
 
@@ -1817,6 +1840,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._init_linbox()
         _sig_on
         d = linbox.det()
+        _sig_off
+        return Integer(d)
+
+    def _det_ntl(self):
+        """
+        Compute the determinant of this matrix using NTL.
+        """
+        _sig_on
+        d = self._ntl_().determinant()
         _sig_off
         return Integer(d)
 

@@ -1019,7 +1019,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         known as the hermit normal form (HNF).
 
         INPUT:
-            algorithm -- 'pari', 'ntl' or 'default' == 'ntl'
+            algorithm -- 'pari', 'ntl' or 'default';
+                  the default is ntl if self is square and of full rank;
+                  otherwise, it is ntl.
             cutoff -- ignored currently
             include_zero_rows -- (default: True)
                                  if False, don't include zero rows
@@ -1082,7 +1084,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_integer_dense H_m
 
         if algorithm == 'default':
-            algorithm = 'ntl'
+            if nr <= nc and self.rank() == nr:
+                algorithm = 'ntl'
+            else:
+                algorithm = 'pari'
 
         if algorithm == 'pari':
             # The following complicated sequence of column reversals

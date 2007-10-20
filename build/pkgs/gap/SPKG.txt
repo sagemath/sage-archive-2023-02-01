@@ -1,3 +1,10 @@
+
+Upgraded to gap-4.4.10.  Had to change files in the patches directory that
+hard code gap-4.4.9.
+
+--------------------
+
+
 This is a stripped-down version of GAP.  The databases, which are arch
 independent, are in a separate package and doc and tests are removed.
 

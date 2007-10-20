@@ -4,7 +4,7 @@
 ## GAP
 ###########################################
 
-TARGET="gap-4.4.9"  #NOTE: Be sure to also update patches/gap*
+TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 
 
 # If we're on an Itanium Linux box, we overwite configure.out with a slightly
@@ -64,6 +64,20 @@ build()
     $MKDIR $INSTALL_DIR
     $CP -r * $INSTALL_DIR
 
+    # building Leon's code
+    # This doesn't work
+    # cd pkg/guava3.1
+    # ./configure ../../ --enable-libsuffix=64
+    # if [ $? -ne 0 ]; then
+    #    echo "Error configuring Guava"
+    #    exit 1
+    # fi
+    # $MAKE
+    # if [ $? -ne 0 ]; then
+    #    echo "Error building Guava"
+    #    exit 1
+    # fi
+
     cd "$SAGE_LOCAL/bin"
     $RM -f gap
     if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then
@@ -83,18 +97,13 @@ build()
         echo "Error copying customized gap startup script."
         exit 1
     fi
-
-    # We do not do this anymore, since it is (1) bad as it changes
-    # files outside the scope of the build, and (2) not useful,
-    # because now the workspace gets generated automatically
-    # in .sage.
-    ## echo "Running SAGE and resetting the GAP workspace."
-    ## echo "gap_reset_workspace()" | sage
 }
 
 build
 
 if [ $? -eq 0 ]; then
+    # Delete the old version if it is still there.
+    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.9
     exit 0
 else
     echo "Something went wrong when building GAP."

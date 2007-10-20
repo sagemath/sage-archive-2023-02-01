@@ -895,7 +895,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: position_b = {} # long time
         sage: for vert in position_D: # long time
         ...    position_b[c[vert]] = position_D[vert]
-        sage: GraphicsArray([D.plot(pos=position_D), b.plot(pos=position_b)]).show()
+        sage: graphics_array([D.plot(pos=position_D), b.plot(pos=position_b)]).show()  # long time
         sage: c
         {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18}
 
@@ -1822,7 +1822,7 @@ def all_labeled_graphs(n):
         ...        Giso[n].append(b)
         sage: print n, len(Giso[n]) # long time
         5 34
-        sage.: graphs_list.show_graphs(Giso[4])
+        sage: graphs_list.show_graphs(Giso[4])
     """
     TE = []
     for i in range(n):
@@ -1886,19 +1886,19 @@ def all_labeled_digraphs_with_loops(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage.: for n in range(1,4):
-        ...    Glist[n] = all_labeled_digraphs_with_loops(n)
-        ...    Giso[n] = []
-        ...    for g in Glist[n]:
-        ...        a, b = search_tree(g, [range(n)], dig=True)
-        ...        inn = False
-        ...        for gi in Giso[n]:
-        ...            if enum(b) == enum(gi):
-        ...                inn = True
-        ...        if not inn:
-        ...            Giso[n].append(b)
-        sage.: for n in Giso:
-        ...    print n, len(Giso[n])
+        sage: for n in range(1,4):                        # not tested since it seg faults
+        ...    Glist[n] = all_labeled_digraphs_with_loops(n)  # not tested since it seg faults
+        ...    Giso[n] = []                               # not tested since it seg faults
+        ...    for g in Glist[n]:                         # not tested since it seg faults
+        ...        a, b = search_tree(g, [range(n)], dig=True)   # not tested since it seg faults
+        ...        inn = False                            # not tested since it seg faults
+        ...        for gi in Giso[n]:                     # not tested since it seg faults
+        ...            if enum(b) == enum(gi):            # not tested since it seg faults
+        ...                inn = True                     # not tested since it seg faults
+        ...        if not inn:                            # not tested since it seg faults
+        ...            Giso[n].append(b)                  # not tested since it seg faults
+        sage: for n in Giso:                              # not tested
+        ...    print n, len(Giso[n])                      # not tested
         1 2
         2 10
         3 127
@@ -1944,21 +1944,21 @@ def all_labeled_digraphs(n):
         1 1
         2 3
         3 16
-        sage.: n = 4 # long time (4 minutes)
-        sage.: Glist[n] = all_labeled_digraphs(n) # long time
-        sage.: Giso[n] = [] # long time
-        sage.: for g in Glist[n]: # long time
-        ...       a, b = search_tree(g, [range(n)], dig=True)
-        ...       inn = False
-        ...       for gi in Giso[n]:
-        ...           if enum(b) == enum(gi):
-        ...               inn = True
-        ...       if not inn:
-        ...           Giso[n].append(b)
-        sage.: print n, len(Giso[n]) # long time
-        4 218
-
     """
+
+##         sage: n = 4 # long time (4 minutes)
+##         sage: Glist[n] = all_labeled_digraphs(n) # long time
+##         sage: Giso[n] = [] # long time
+##         sage: for g in Glist[n]: # long time
+##         ...       a, b = search_tree(g, [range(n)], dig=True)
+##         ...       inn = False
+##         ...       for gi in Giso[n]:
+##         ...           if enum(b) == enum(gi):
+##         ...               inn = True
+##         ...       if not inn:
+##         ...           Giso[n].append(b)
+##         sage: print n, len(Giso[n]) # long time
+##         4 218
     TE = []
     for i in range(n):
         for j in range(n):

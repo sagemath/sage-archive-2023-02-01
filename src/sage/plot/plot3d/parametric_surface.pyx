@@ -16,7 +16,7 @@ EXAMPLES:
     sage: S = MobiusStrip(1,.2)
     sage: S.is_enclosed()
     False
-    sage.: S.show()
+    sage: S.show()
 
 NOTE:
     One may override \code{eval()} or \code{eval_c()} in a subclass

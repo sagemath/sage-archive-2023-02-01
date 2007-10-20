@@ -208,7 +208,8 @@ class Animation(SageObject):
         G = self.__frames
         for i in range(len(G)):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
-.save            G[i].save(filename + '.png', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, **self.__kwds)
+            G[i].save(filename + '.png',
+                      xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, **self.__kwds)
         self.__png_dir = d
         return d
 

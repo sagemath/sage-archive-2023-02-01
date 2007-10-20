@@ -346,7 +346,7 @@ class Tachyon(SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
-            sage.: t.show()
+            sage: t.show()
 
         Plotting with Smooth Triangles (requires explicit gradient function):
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
@@ -355,7 +355,7 @@ class Tachyon(SageObject):
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, grad_f = g)  # increase min_depth for better picture
-            sage.: t.show()
+            sage: t.show()
 
         Preconditions: f is a scalar function of two variables, grad_f is None or a triple-valued
                        function of two variables, min_x != max_x, min_y != max_y

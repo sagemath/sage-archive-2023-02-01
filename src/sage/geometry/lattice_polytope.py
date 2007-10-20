@@ -722,7 +722,7 @@ class LatticePolytopeClass(SageObject):
         This call is used internally for computing NEF-partitions:
             sage: o = lattice_polytope.octahedron(3)
             sage: s = o.nef_x("-N -Lv -p")
-            sage.: print s                      # output contains random time
+            sage: s                         # output contains random time
             M:27 8 N:7 6  #part=5
             3 6 Vertices in N-lattice:
                 0    0    0    1   -1    0

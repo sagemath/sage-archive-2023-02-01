@@ -12,7 +12,7 @@ EXAMPLES:
     sage: def f(x,y): return math.exp(x/5)*math.cos(y)
     sage: P = plot3d(f,(-5,5),(-5,5), ['red','yellow'], max_depth=10)
     sage: cape_man = P.scale(.2)+S.translate(1,0,0)
-    sage.: cape_man.show()
+    sage: cape_man.show()
 
 
 AUTHOR:

@@ -1581,6 +1581,24 @@ cdef class RingElement(ModuleElement):
             return True
         raise NotImplementedError
 
+    def abs(self):
+        """
+        Return the absolute value of self.  (This just calls the __abs__
+        method, so it is equivalent to the abs() built-in function.)
+
+        EXAMPLES:
+            sage: RR(-1).abs()
+            1.00000000000000
+            sage: ZZ(-1).abs()
+            1
+            sage: CC(I).abs()
+            1.00000000000000
+            sage: Mod(-15, 37).abs()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: absolute valued not defined on integers modulo n.
+        """
+        return self.__abs__()
 
 
 

@@ -64,26 +64,26 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage: a.plot().save('sage.png',ymin=0)
+        sage: a.plot().show(ymin=0)
         sage: a.forward_transform()
-        sage: a.plot().save('sage.png',)
+        sage: a.plot().show()
         sage: a = WaveletTransform(128,'haar',2)
         sage: for i in range(1, 11): a[i] = 1; a[128-i] = 1
         sage: a.forward_transform()
-        sage: a.plot().save('sage.png',ymin=0)
+        sage: a.plot().show(ymin=0)
         sage: a = WaveletTransform(128,'bspline_centered',103)
         sage: for i in range(1, 11): a[i] = 1; a[100+i] = 1
         sage: a.forward_transform()
-        sage: a.plot().save('sage.png',ymin=0)
+        sage: a.plot().show(ymin=0)
 
     This example gives a simple example of wavelet compression.
         sage: a = DWT(2048,'daubechies',6)
         sage: for i in range(2048): a[i]=float(sin((i*5/2048)**2))
-        sage: a.plot().save('sage.png')
+        sage: a.plot().show()
         sage: a.forward_transform()
         sage: for i in range(1800): a[2048-i-1] = 0
         sage: a.backward_transform()
-        sage: a.plot().save('sage.png')
+        sage: a.plot().show()
     """
     cdef size_t _n, _k
     _n = int(n)

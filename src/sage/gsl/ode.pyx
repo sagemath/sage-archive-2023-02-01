@@ -232,11 +232,11 @@ class ode_solver(object):
          You can interpolate y_i through the keyword argument i.
 
          sage: f = T.interpolate_solution()
-         sage: plot(f,0,12).save('sage.png')
+         sage: plot(f,0,12).show()
          sage: f = T.interpolate_solution(i=1)
-         sage: plot(f,0,12).save('sage2.png')
+         sage: plot(f,0,12).show()
          sage: f = T.interpolate_solution(i=2)
-         sage: plot(f,0,12).save('sage3.png')
+         sage: plot(f,0,12).show()
          sage: f = T.interpolate_solution()
          sage: f(pi)                # slightly random precision
          0.53794722843358245

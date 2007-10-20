@@ -261,7 +261,7 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
         sage: pts = eulers_method(5*x+y-5,0,1,1/2,1,method="none")
         sage: P1 = list_plot(pts)
         sage: P2 = line(pts)
-        sage: (P1+P2).save('a.png')
+        sage: (P1+P2).show()
 
     AUTHOR: David Joyner
     """

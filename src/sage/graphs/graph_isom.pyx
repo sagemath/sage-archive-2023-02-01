@@ -895,7 +895,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: position_b = {} # long time
         sage: for vert in position_D: # long time
         ...    position_b[c[vert]] = position_D[vert]
-        sage: GraphicsArray([D.plot(pos=position_D), b.plot(pos=position_b)]).save('sage.png') # long time
+        sage: GraphicsArray([D.plot(pos=position_D), b.plot(pos=position_b)]).show()
         sage: c
         {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18}
 

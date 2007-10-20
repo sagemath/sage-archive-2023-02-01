@@ -38,9 +38,9 @@ def FastFourierTransform(size, base_ring=None):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage: a.plot().save('a.png', ymin=0)
+        sage: a.plot().show(ymin=0)
         sage: a.forward_transform()
-        sage: a.plot().save('a.png')
+        sage: a.plot().show()
     """
     return FastFourierTransform_complex(int(size))
 

@@ -1892,22 +1892,22 @@ def all_labeled_digraphs_with_loops(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,4):                        # not tested since it seg faults
-        ...    Glist[n] = all_labeled_digraphs_with_loops(n)  # not tested since it seg faults
-        ...    Giso[n] = []                               # not tested since it seg faults
-        ...    for g in Glist[n]:                         # not tested since it seg faults
-        ...        a, b = search_tree(g, [range(n)], dig=True)   # not tested since it seg faults
-        ...        inn = False                            # not tested since it seg faults
-        ...        for gi in Giso[n]:                     # not tested since it seg faults
-        ...            if enum(b) == enum(gi):            # not tested since it seg faults
-        ...                inn = True                     # not tested since it seg faults
-        ...        if not inn:                            # not tested since it seg faults
-        ...            Giso[n].append(b)                  # not tested since it seg faults
-        sage: for n in Giso:                              # not tested
-        ...    print n, len(Giso[n])                      # not tested
+        sage: for n in range(1,4):
+        ...    Glist[n] = all_labeled_digraphs_with_loops(n)
+        ...    Giso[n] = []
+        ...    for g in Glist[n]:
+        ...        a, b = search_tree(g, [range(n)], dig=True)
+        ...        inn = False
+        ...        for gi in Giso[n]:
+        ...            if enum(b) == enum(gi):
+        ...                inn = True
+        ...        if not inn:
+        ...            Giso[n].append(b)
+        sage: for n in Giso:
+        ...    print n, len(Giso[n])
         1 2
         2 10
-        3 127
+        3 104
     """
     TE = []
     for i in range(n):

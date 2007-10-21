@@ -1,6 +1,8 @@
 #!/bin/sh
 
-INCLUDES="-I$SAGE_LOCAL/include/ -I$SAGE_LOCAL/include/python2.5/ -I$SAGE_LOCAL/include/NTL/"
+cd src
+
+INCLUDES="-I$SAGE_LOCAL/include/"
 
 CFLAGS="$CFLAGS -fPIC $INCLUDES"
 CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES"
@@ -11,7 +13,7 @@ export CPPFLAGS
 
 ./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/fplll
 
-f [ $? -ne 0 ]; then
+if [ $? -ne 0 ]; then
     echo "Error configuring libcsage"
     exit 1
 fi

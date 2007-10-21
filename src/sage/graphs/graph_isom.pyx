@@ -430,7 +430,7 @@ cdef class PartitionStack:
 
     def sort_by_function(self, start, degrees, k, n):
         cdef int i
-        cdef int *degs = <int *> sage_malloc( 3 * n * sizeof(int) )
+        cdef int *degs = <int *> sage_malloc( ( 3 * n + 1 ) * sizeof(int) )
         if not degs:
             raise MemoryError("Couldn't allocate...")
         for i from 0 <= i < len(degrees):
@@ -440,14 +440,14 @@ cdef class PartitionStack:
 
     cdef int _sort_by_function(self, int start, int *degrees, int k, int n):
         cdef int i, j, m = 2*n, max, max_location
-        cdef int *counts = degrees + n, *output = degrees + 2*n
+        cdef int *counts = degrees + n, *output = degrees + 2*n + 1
 #        print '|'.join(['%02d'%self.entries[iii] for iii in range(n)])
 #        print '|'.join(['%02d'%self.levels[iii] for iii in range(n)])
 #        print '|'.join(['%02d'%degrees[iii] for iii in range(n)])
 #        print '|'.join(['%02d'%counts[iii] for iii in range(n)])
 #        print '|'.join(['%02d'%output[iii] for iii in range(n)])
 
-        for i from 0 <= i < n:
+        for i from 0 <= i <= n:
             counts[i] = 0
         i = 0
         while self.levels[i+start] > k:
@@ -458,7 +458,7 @@ cdef class PartitionStack:
         # i+start is the right endpoint of the cell now
         max = counts[0]
         max_location = 0
-        for j from 0 < j < n:
+        for j from 0 < j <= n:
             if counts[j] > max:
                 max = counts[j]
                 max_location = j
@@ -474,7 +474,7 @@ cdef class PartitionStack:
             self.entries[start+j] = output[j]
 
         j = 1
-        while j < n and counts[j] <= i:
+        while j <= n and counts[j] <= i:
             if counts[j] > 0:
                 self.levels[start + counts[j] - 1] = k
             self._percolate(start + counts[j-1], start + counts[j] - 1)
@@ -498,7 +498,7 @@ cdef class PartitionStack:
     def refine_by_square_matrix(self, G_matrix, k, alpha, n, dig):
         cdef int *_alpha, i, j
         cdef int **G
-        _alpha = <int *> sage_malloc( 4 * n * sizeof(int) )
+        _alpha = <int *> sage_malloc( ( 4 * n + 1 )* sizeof(int) )
         if not _alpha:
             raise MemoryError("Memory!")
         G = <int **> sage_malloc( n * sizeof(int*) )
@@ -516,6 +516,10 @@ cdef class PartitionStack:
         for i from 0 <= i < n:
             for j from 0 <= j < n:
                 G[i][j] = G_matrix[i][j]
+        # note -- one could memcopy or memmove for the above loop,
+        # but this function is only a python interface to a C function
+        # that gets called by other functions which have already allocated
+        # memory
         for i from 0 <= i < len(alpha):
             _alpha[i] = alpha[i]
         _alpha[len(alpha)] = -1
@@ -542,7 +546,7 @@ cdef class PartitionStack:
             # Pi, and the partition nest nu. Since the function will execute
             # exactly the same way regardless of the labelling, anything that
             # does not depend on self.entries goes... at least, anything cheap
-        cdef int *degrees = alpha + n # alpha assumed to be length 4*n for
+        cdef int *degrees = alpha + n # alpha assumed to be length 4*n + 1 for
                                       # extra scratch space
         while not self._is_discrete(k) and alpha[m] != -1:
             invariant += 1
@@ -717,7 +721,7 @@ cdef class PartitionStack:
 # Important note: the enumeration should be kept abstract, and only comparison
 # functions should be written. This takes up too much memory and time. Simply
 # iterate starting with the most significant digit in the matrix, and return
-# as soon a contradiction is encountered.
+# as soon as a contradiction is encountered.
 
     cdef _enumerate_graph_from_discrete(self, int **G, int n):
         cdef int i, j
@@ -1251,19 +1255,19 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     Lambda_mpz = <mpz_t *> sage_malloc( 3 * (n+2) * sizeof(mpz_t) )
     if not Lambda_mpz:
         sage_free(_W)
-        sage_free(_gamma)
         raise MemoryError("Error allocating memory. Perhaps you are out?")
     zf_mpz = Lambda_mpz + n + 2
     zb_mpz = Lambda_mpz + 2*n + 4
 
     # allocate arrays
-    _gamma = <int *> sage_malloc( n * ( 2 * (n + L) + 7 ) * sizeof(int) )
+    _gamma = <int *> sage_malloc( ( n * ( 2 * (n + L) + 7 ) + 1 ) * sizeof(int) )
     if not _gamma:
         sage_free(_W)
+        sage_free(Lambda_mpz)
         raise MemoryError("Error allocating memory. Perhaps you are out?")
     _alpha = _gamma + n*( 2*(n + L) + 1 )
-    _v = _alpha + 4*n
-    _e = _v + n
+    _v = _alpha + 4*n + 1
+    _e = _v + n + 1
     for i from 0 <= i < n:
         _W[i] = _gamma + n + n*i
         M[i] = _gamma + n*( 1 + n + 2*L + i )
@@ -1273,6 +1277,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         mpz_init(Lambda_mpz[i])
         mpz_init_set_si(zf_mpz[i], -1) # correspond to default values of
         mpz_init_set_si(zb_mpz[i], -1) # "infinity"
+        # Note that there is a potential memory leak here - if a particular
+        # mpz fails to allocate, this is not checked for
     for i from 0 <= i < L:
         Phi[i] = _gamma + n*( 1 + n + i )
         Omega[i] = _gamma + n*( 1 + n + i + L )
@@ -1886,22 +1892,22 @@ def all_labeled_digraphs_with_loops(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,4):                        # not tested since it seg faults
-        ...    Glist[n] = all_labeled_digraphs_with_loops(n)  # not tested since it seg faults
-        ...    Giso[n] = []                               # not tested since it seg faults
-        ...    for g in Glist[n]:                         # not tested since it seg faults
-        ...        a, b = search_tree(g, [range(n)], dig=True)   # not tested since it seg faults
-        ...        inn = False                            # not tested since it seg faults
-        ...        for gi in Giso[n]:                     # not tested since it seg faults
-        ...            if enum(b) == enum(gi):            # not tested since it seg faults
-        ...                inn = True                     # not tested since it seg faults
-        ...        if not inn:                            # not tested since it seg faults
-        ...            Giso[n].append(b)                  # not tested since it seg faults
-        sage: for n in Giso:                              # not tested
-        ...    print n, len(Giso[n])                      # not tested
+        sage: for n in range(1,4):
+        ...    Glist[n] = all_labeled_digraphs_with_loops(n)
+        ...    Giso[n] = []
+        ...    for g in Glist[n]:
+        ...        a, b = search_tree(g, [range(n)], dig=True)
+        ...        inn = False
+        ...        for gi in Giso[n]:
+        ...            if enum(b) == enum(gi):
+        ...                inn = True
+        ...        if not inn:
+        ...            Giso[n].append(b)
+        sage: for n in Giso:
+        ...    print n, len(Giso[n])
         1 2
         2 10
-        3 127
+        3 104
     """
     TE = []
     for i in range(n):

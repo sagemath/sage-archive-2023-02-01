@@ -14,7 +14,7 @@ from transcendental import (exponential_integral_1,
 #                        ElementaryFunctionRing)
 
 from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                        hypergeometric_U,
+                        hypergeometric_U, Bessel,
                         spherical_bessel_J, spherical_bessel_Y,
                         spherical_hankel1, spherical_hankel2,
                         spherical_harmonic, jacobi,

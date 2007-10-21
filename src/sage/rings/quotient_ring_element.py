@@ -30,6 +30,8 @@ import operator
 import ring_element
 import quotient_ring
 
+from sage.interfaces.singular import singular as singular_default
+
 class QuotientRingElement(ring_element.RingElement):
     """
     An element of a quotient ring $R/I$.
@@ -164,3 +166,32 @@ class QuotientRingElement(ring_element.RingElement):
 
     def monomials(self):
         return [QuotientRingElement(self.parent(),m) for m in self.__rep.monomials()]
+
+    def _singular_(self, singular=singular_default):
+        """
+        Return Singular representation of self.
+
+        INPUT:
+            singular -- a non-standard interpreter may be provided
+
+        EXAMPLE:
+            sage: P.<x,y>  = PolynomialRing(GF(2),2)
+            sage: I = sage.rings.ideal.FieldIdeal(P)
+            sage: Q = P.quo(I)
+            sage: Q._singular_()
+            //   characteristic : 2
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=x2+x
+            _[2]=y2+y
+            sage: xbar = Q(x); xbar
+            xbar
+            sage: xbar._singular_()
+            x
+            sage: Q(xbar._singular_()) # a round-trip
+            xbar
+        """
+        return self.__rep._singular_(singular=singular)

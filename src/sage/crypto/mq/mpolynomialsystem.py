@@ -707,11 +707,14 @@ class MPolynomialSystem_generic(SageObject):
         """
         return len(self.variables())
 
-    def coefficient_matrix(self):
+    def coefficient_matrix(self, sparse=True):
         """
         Return tuple (A,v) where A is the coefficent matrix of self
         and v the matching monomial vector. Monomials are order w.r.t.
         the term ordering of self.ring() in reverse order.
+
+        INPUT:
+            sparse -- construct a sparse matrix (default: True)
 
         EXAMPLE:
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
@@ -761,7 +764,7 @@ class MPolynomialSystem_generic(SageObject):
         #construct dictionary for fast lookups
         v = dict( zip( m , range(len(m)) ) )
 
-        A = Matrix( R.base_ring(), nf, nm )
+        A = Matrix( R.base_ring(), nf, nm, sparse=sparse )
 
         for x in range( nf ):
             poly = f[x]

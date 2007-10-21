@@ -95,6 +95,7 @@ if [ -d "$DEVEL/sage-main" ]; then
     echo "Deleting the scons target."
     cd c_lib
     scons -Q -c install
+    scons -c "$SAGE_LOCAL"/include/
     cd ..
 
     # We also delete the build directory, since it could contain

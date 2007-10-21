@@ -65,18 +65,17 @@ build()
     $CP -r * $INSTALL_DIR
 
     # building Leon's code
-    # This doesn't work
-    # cd pkg/guava3.1
-    # ./configure ../../ --enable-libsuffix=64
-    # if [ $? -ne 0 ]; then
-    #    echo "Error configuring Guava"
-    #    exit 1
-    # fi
-    # $MAKE
-    # if [ $? -ne 0 ]; then
-    #    echo "Error building Guava"
-    #    exit 1
-    # fi
+    cd pkg/guava3.1
+    ./configure ../../ --enable-libsuffix=64
+    if [ $? -ne 0 ]; then
+       echo "Error configuring Guava"
+       exit 1
+    fi
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo "Error building Guava"
+        exit 1
+    fi
 
     cd "$SAGE_LOCAL/bin"
     $RM -f gap

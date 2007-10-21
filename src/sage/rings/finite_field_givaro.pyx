@@ -1433,6 +1433,21 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
                                               (<FiniteField_givaroElement>right).element )
         return make_FiniteField_givaroElement(parent_object(self),r)
 
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        """
+        Add two elements inplace.
+
+        EXAMPLE:
+            sage: k.<b> = GF(9**2)
+            sage: b^10 + 2*b
+            2*b^3 + 2*b^2 + 2*b + 1
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.add(r, self.element ,
+                                                         (<FiniteField_givaroElement>right).element )
+        return self
+
+
     cdef RingElement _mul_c_impl(self, RingElement right):
         """
         Multiply two elements:
@@ -1448,6 +1463,23 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         r = parent_object(self).objectptr.mul(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
+
+
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        """
+        Multiply two elements inplace.
+
+        EXAMPLE:
+            sage: k.<c> = GF(7**4)
+            sage: 3*c
+            3*c
+            sage: c*c
+            c^2
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.mul(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
@@ -1470,6 +1502,28 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
 
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        """
+        Divide two elements inplace
+
+        EXAMPLE:
+            sage: k.<g> = GF(2**8)
+            sage: g/g
+            1
+
+            sage: k(1) / k(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
+        """
+
+        cdef int r
+        if (<FiniteField_givaroElement>right).element == 0:
+            raise ZeroDivisionError, 'division by zero in finite field.'
+        self.element = parent_object(self).objectptr.div(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         Subtract two elements
@@ -1485,6 +1539,22 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         r = parent_object(self).objectptr.sub(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        """
+        Subtract two elements inplace
+
+        EXAMPLE:
+            sage: k.<a> = GF(3**4)
+            sage: k(3) - k(1)
+            2
+            sage: 2*a - a^2
+            2*a^2 + 2*a
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.sub(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
 
     def __neg__(FiniteField_givaroElement self):
         """

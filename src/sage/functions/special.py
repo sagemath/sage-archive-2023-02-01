@@ -440,9 +440,6 @@ def bessel_J(nu,z,alg="pari",prec=53):
     "Bessel function, 1st kind", with
     index (or "order") nu and argument z.
 
-    WARNING: The pari and maxima definitions of ``the'' J-Bessel
-    function are different (see below).
-
     \begin{verbatim}
     Defn:
     Maxima:
@@ -480,17 +477,21 @@ def bessel_J(nu,z,alg="pari",prec=53):
         sage: bessel_J(0,1)    # last few digits are random
         0.765197686557966605
 
-    We illustrate that the pari and maxima definitions differ:
-        sage: bessel_J(3,10,"maxima")   # last few digits are random
+    We check consistency of PARI and Maxima:
+        sage: n(bessel_J(3,10,"maxima"))   # last few digits are random
         0.0583793793051869
-        sage: bessel_J(3,10,"pari")     # last few digits are random
-        0.0000129283516457158
-
+        sage: n(bessel_J(3,10,"pari"))     # last few digits are random
+        0.0583793793051868
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
-        R,a = _setup(prec)
-        b = R(pari(nu).besselj(z))
+        nu = pari(nu)
+        z = pari(z)
+        if nu.imag() or z.imag():
+            K,a = _setup_CC(prec)
+        else:
+            K,a = _setup(prec)
+        b = K(nu.besselj(z))
         pari.set_real_precision(a)
         return b
     else:

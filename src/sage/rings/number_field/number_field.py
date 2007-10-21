@@ -2735,12 +2735,12 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 - 2)
             sage: L = K.galois_closure(); L
-            Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
             sage: K.embeddings(L)[0]
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
-              To:   Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
-              Defn: a |--> 1/84*b1^4 + 13/42*b1
+              To:   Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+              Defn: a |--> 1/84*a1^4 + 13/42*a1
             sage: K.embeddings(L)  is K.embeddings(L)
             True
 

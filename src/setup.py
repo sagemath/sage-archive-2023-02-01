@@ -258,6 +258,13 @@ libsingular = Extension('sage.libs.singular.singular',
                         include_dirs=[SAGE_ROOT +'/local/include/singular']
                         )
 
+fplll = Extension('sage.libs.fplll.fplll',
+                        sources = ['sage/libs/fplll/fplll.pyx'],
+                        libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
+                        language="c++",
+                        include_dirs=[SAGE_ROOT +'/local/include/fplll']
+                        )
+
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
@@ -482,6 +489,8 @@ ext_modules = [ \
      givaro_gfq, \
 
      libsingular, \
+
+     fplll, \
 
 ##     matrix_rational_sparse,
 
@@ -1061,6 +1070,7 @@ setup(name        = 'sage',
                      'sage.lfunctions',
 
                      'sage.libs',
+                     'sage.libs.fplll',
                      'sage.libs.hanke',
                      'sage.libs.linbox',
                      'sage.libs.mwrank',

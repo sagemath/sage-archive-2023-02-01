@@ -1547,21 +1547,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 U[i,n-1] = - U[i,n-1]
         return U
 
-    def LLL(self, delta=None, algorithm=None, **kwargs):
+    def LLL(self, delta=None, eta=None, algorithm=None, fp=None, prec=0, early_red = False, use_givens = False):
         r"""
         Returns LLL reduced or approximated LLL reduced lattice R for
         self.
 
         The lattice is returned as a matrix. Also the rank (and the
-        determinant) of self are cached.
+        determinant) of self are cached if those are computed during
+        the reduction.
 
         More specifically, elementary row transformations are
         performed on a copy of self so that the non-zero rows of R
         form an LLL-reduced basis for the lattice spanned by the rows
-        of self. The default reduction parameter is $\delta=3/4$,
-        which means that the squared length of the first non-zero
-        basis vector is no more than $2^{r-1}$ times that of the
-        shortest vector in the lattice.
+        of self. The default reduction parameters are $\delta=3/4$ and
+        $eta=0.501$.
 
         For a basis reduced with parameter $\delta$, the squared
         length of the first non-zero basis vector is no more than
@@ -1573,26 +1572,31 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.rank() == self.ncols() and the exact algorithm is used.
 
         INPUT:
-            delta -- arameter a as described above (default: 3/4)
-            algorithm -- string, one of the algorithms mentioned above
+            delta -- parameter as described above (default: 3/4)
+            eta -- parameter as described above (default: 0.501), ignored
+                   by NTL
+            algorithm -- string, one of the algorithms mentioned below
                         or None (default: None)
+            fp -- None -- NTL's exact reduction or fpLLL's wrapper
+               'fp' -- double precision: NTL's FP or fpLLL's double
+               'qd' -- quad doubles: NTL's QP
+               'xd' -- extended exponent: NTL's XD or fpLLL's dpe
+               'rr' -- arbitrary precision: NTL'RR or fpLLL's MPFR
+            prec -- precision, ignored by NTL (default: auto choose)
+            early_red -- perform early reduction, ignored by NTL (default: False)
             use_givens -- use Givens orthogonalization (default: False)
                           only applicable to approximate reductions and NTL.
                           This is more stable but slower.
+
 
         Also, if the verbose level is >= 2, some more verbose output
         is printed during the calculation if NTL is used.
 
         AVAILABLE ALGORITHMS:
-            NTL:LLL -- default, exact reduction
-            NTL:LLL_FP -- approximate reduction over double precision
-                          floating point numbers.
-            NTL:LLL_QP -- approximate reduction over quad precision
-                          floating point numbers.
-            NTL:LLL_XD -- approximate reduction over extended exponent
-                          double precision floating point numbers.
-            NTL:LLL_RR -- approximate reduction over arbitrary precision
-                          floating point numbers.
+            NTL:LLL -- NTL's LLL + fp
+            fpLLL:heuristic -- fpLLL's heuristic + fp
+            fpLLL:fast -- fpLLL's fast
+            fpLLL:wrapper -- fpLLL's automatic choice (default)
 
         OUTPUT:
             a matrix over the integers
@@ -1604,22 +1608,49 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 2  1  0]
             [-1  1  3]
 
-        ALGORITHM: Uses NTL.
+        ALGORITHM: Uses NTL or fpLLL.
 
         REFERENCES:
-            ntl.mat_ZZ for details on the used algorithms.
+            ntl.mat_ZZ or sage.libs.fplll.fplll for details on the
+            used algorithms.
         """
 
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ
 
+        from sage.libs.fplll.fplll import FP_LLL
+
         if get_verbose() >= 2: verb = True
         else: verb = False
 
-        use_givens = kwargs.get("use_givens",False)
+        # auto choice
 
         if algorithm is None:
-            algorithm = "NTL:LLL"
+            algorithm = "fpLLL:wrapper"
+
+        # FP choice
+        if algorithm == 'NTL:LLL':
+            if fp == None:
+                algorithm = 'NTL:LLL_FP'
+            elif fp == 'fp':
+                algorithm = 'NTL:LLL_FP'
+            elif fp == 'qd':
+                algorithm = 'NTL:LLL_QD'
+            elif fp == 'xd':
+                algorithm = 'NTL:LLL_XD'
+            elif fp == 'rr':
+                algorithn = 'NTL:LLL_RR'
+        elif algorithm == 'fpLLL:heuristic':
+            if fp == None:
+                raise TypeError, "if 'fpLLL:heuristic' is chosen, a floating point number implementation must be chosen"
+            elif fp == 'fp':
+                fp = 'double'
+            elif fp == 'qd':
+                raise TypeError, "fpLLL does not support quad doubles."
+            elif fp == 'xd':
+                fp = 'dpe'
+            elif fp == 'rr':
+                fp = 'mpfr'
 
         if algorithm == "NTL:LLL":
             if delta is None:
@@ -1628,57 +1659,89 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise TypeError, "delta must be > 1/4"
             elif delta > 1:
                 raise TypeError, "delta must be <= 1"
-
-            delta = QQ(delta) # QQ(delta)
+            delta = QQ(delta)
             a = delta.numer()
             b = delta.denom()
 
-        elif algorithm in ("NTL:LLL_FP","NTL:LLL_QP","NTL:LLL_XD","NTL:LLL_RR"):
+        else:
             if delta is None:
                 delta = 0.99
-            elif delta < 0.5:
-                raise TypeError, "delta must be >= 0.5"
+            elif delta <= 0.25:
+                raise TypeError, "delta must be > 0.25"
             elif delta > 1:
                 raise TypeError, "delta must be <= 1"
             delta = float(delta)
 
-        A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
+            if eta is None:
+                eta = 0.501
+            elif eta < 0.5:
+                raise TypeError, "eta must be >= 0.5"
 
-        if algorithm == "NTL:LLL":
-            r, det2 = A.LLL(a,b, verbose=verb)
-            det2 = ZZ(det2)
-            try:
-                det = ZZ(det2.sqrt_approx())
-                self.cache("det", det)
-            except TypeError:
-                pass
-        elif algorithm == "NTL:LLL_FP":
-            if use_givens:
-                r = A.G_LLL_FP(delta, verbose=verb)
+        if prec < 0:
+            raise TypeError, "precision prec must be >= 0"
+        int(prec)
+
+        if algorithm.startswith('NTL:'):
+            A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
+
+            if algorithm == "NTL:LLL":
+                r, det2 = A.LLL(a,b, verbose=verb)
+                det2 = ZZ(det2)
+                try:
+                    det = ZZ(det2.sqrt_approx())
+                    self.cache("det", det)
+                except TypeError:
+                    pass
+            elif algorithm == "NTL:LLL_FP":
+                if use_givens:
+                    r = A.G_LLL_FP(delta, verbose=verb)
+                else:
+                    r = A.LLL_FP(delta, verbose=verb)
+            elif algorithm == "NTL:LLL_QP":
+                if use_givens:
+                    r = A.G_LLL_QP(delta, verbose=verb)
+                else:
+                    r = A.LLL_QP(delta, verbose=verb)
+            elif algorithm == "NTL:LLL_XD":
+                if use_givens:
+                    r = A.G_LLL_XD(delta, verbose=verb)
+                else:
+                    r = A.LLL_XD(delta, verbose=verb)
+            elif algorithm == "NTL:LLL_RR":
+                if use_givens:
+                    r = A.G_LLL_RR(delta, verbose=verb)
+                else:
+                    r = A.LLL_XD(delta, verbose=verb)
             else:
-                r = A.LLL_FP(delta, verbose=verb)
-        elif algorithm == "NTL:LLL_QP":
-            if use_givens:
-                r = A.G_LLL_QP(delta, verbose=verb)
+                raise TypeError, "algorithm %s not supported"%algorithm
+
+            r = ZZ(r)
+
+            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            self.cache("rank",r)
+
+        elif algorithm.startswith('fpLLL:'):
+
+            A = sage.libs.fplll.fplll.FP_LLL(self)
+            if algorithm == 'fpLLL:wrapper':
+                A.wrapper(prec, eta, delta)
+            elif algorithm == 'fpLLL:heuristic':
+                if early_red:
+                    A.heuristic_early_red(prec,eta,delta,fp)
+                else:
+                    A.heuristic(prec,eta,delta,fp)
+            elif algorithm == 'fpLLL:fast':
+                if early_red:
+                    A.fast_early_red(prec,eta,delta)
+                else:
+                    A.fast(prec,eta,delta)
+            elif algorithm == 'fpLLL:proved':
+                A.proved(prec,eta,delta)
             else:
-                r = A.LLL_QP(delta, verbose=verb)
-        elif algorithm == "NTL:LLL_XD":
-            if use_givens:
-                r = A.G_LLL_XD(delta, verbose=verb)
-            else:
-                r = A.LLL_XD(delta, verbose=verb)
-        elif algorithm == "NTL:LLL_RR":
-            if use_givens:
-                r = A.G_LLL_RR(delta, verbose=verb)
-            else:
-                r = A.LLL_XD(delta, verbose=verb)
+                raise TypeError, "algorithm %s not supported"%algorithm
+            R = A._sage_()
         else:
             raise TypeError, "algorithm %s not supported"%algorithm
-
-        r = ZZ(r)
-
-        cdef Matrix_integer_dense R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
-        self.cache("rank",r)
 
         return R
 

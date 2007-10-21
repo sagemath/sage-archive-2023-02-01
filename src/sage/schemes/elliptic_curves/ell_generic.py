@@ -1,5 +1,16 @@
 """
 Elliptic curves over a general ring
+
+EXAMPLES:
+We construct an elliptic curve over an elaborate base ring:
+    sage: p = 97; a=1; b=3
+    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
+    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: T = S.fraction_field()
+    sage: E = EllipticCurve(T, [a, b]); E
+    Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
+    sage: latex(E)
+    y^2  = x^3 + x + 3
 """
 
 #*****************************************************************************
@@ -121,81 +132,81 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             with defining polynomial x^3 - 17
         """
         #return "Elliptic Curve with a-invariants %s over %s"%(self.ainvs(), self.base_ring())
-        a = self.ainvs()
+        b = self.ainvs()
         #return "y^2 + %s*x*y + %s*y = x^3 + %s*x^2 + %s*x + %s"%\
         #       (a[0], a[2], a[1], a[3], a[4])
-        a = [z._coeff_repr() for z in a]
+        a = [z._coeff_repr() for z in b]
         s = "Elliptic Curve defined by "
         s += "y^2 "
         if a[0] == "-1":
             s += "- x*y "
         elif a[0] == '1':
             s += "+ x*y "
-        elif a[0] != '0':
+        elif b[0]:
             s += "+ %s*x*y "%a[0]
         if a[2] == "-1":
             s += " - y"
         elif a[2] == '1':
             s += "+ y"
-        elif a[2] != '0':
+        elif b[2]:
             s += "+ %s*y"%a[2]
         s += " = x^3 "
         if a[1] == "-1":
             s += "- x^2 "
         elif a[1] == '1':
             s += "+ x^2 "
-        elif a[1] != '0':
+        elif b[1]:
             s += "+ %s*x^2 "%a[1]
         if a[3] == "-1":
             s += "- x "
         elif a[3] == '1':
             s += "+ x "
-        elif a[3] != '0':
+        elif b[3]:
             s += "+ %s*x "%a[3]
         if a[4] == '-1':
             s += "-1 "
         elif a[4] == '1':
             s += "+1 "
-        elif a[4] != '0':
+        elif b[4]:
             s += "+ %s "%a[4]
         s = s.replace("+ -","- ")
         s += "over %s"%self.base_ring()
         return s
 
     def _latex_(self):
-        a = self.ainvs()
-        a = [z._latex_coeff_repr() for z in a]
+        b = self.ainvs()
+        a = [z._latex_coeff_repr() for z in b]
         s = "y^2 "
         if a[0] == '-1':
             s += "- xy "
         elif a[0] == '1':
             s += "+ xy "
-        elif a[0] != '0':
+        elif b[0]:
             s += "+ %sxy "%a[0]
         if a[2] == '-1':
             s += " - y"
         elif a[2] == '1':
             s += "+ y"
-        elif a[2] != '0':
+        elif b[2]:
             s += "+ %sy"%a[2]
         s += " = x^3 "
         if a[1] == '-1':
             s += "- x^2 "
         elif a[1] == '1':
             s += "+ x^2 "
-        elif a[1] != '0':
+        elif b[1]:
             s += "+ %sx^2 "%a[1]
         if a[3] == '-1':
             s += "- x "
         elif a[3] == '1':
             s += "+ x "
-        elif a[3] != '0':
+        elif b[3]:
             s += "+ %sx "%a[3]
         if a[4] == '-1':
             s += "-1 "
         elif a[4] == '1':
             s += "+1 "
-        elif a[4] != '0':
+        elif b[4]:
             s += "+ %s "%a[4]
         s = s.replace("+ -","- ")
         return s

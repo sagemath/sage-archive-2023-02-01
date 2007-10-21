@@ -453,7 +453,7 @@ class MPolynomialIdeal_singular_repr:
             raise TypeError, "dimension must be zero"
 
         Ibar = I._singular_()
-        Ibar.attrib('"isSB"',1)
+        Ibar.attrib('isSB',1)
 
         singular = Ibar.parent()
         singular.lib("triang")

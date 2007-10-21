@@ -1180,9 +1180,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef int l = -1 # current index for storing values in Phi and Omega-
                     # we start at -1 so that when we increment first,
                     # the first place we write to is 0.
-    cdef int **_W # for each k, _W[k] is a list of the vertices to be searched
+    cdef int **W # for each k, W[k] is a list of the vertices to be searched
                   # down from the current partition nest, at k
-                  # Phi and Omega are ultimately used to make the size of _W
+                  # Phi and Omega are ultimately used to make the size of W
                   # as small as possible
 
     cdef PartitionStack _nu, _zeta, _rho
@@ -1248,17 +1248,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     Pi = Pi2
 
     # allocate pointers
-    _W = <int **> sage_malloc( 2 * (n + L) * sizeof(int *) )
-    if not _W:
+    W = <int **> sage_malloc( 2 * (n + L) * sizeof(int *) )
+    if not W:
         raise MemoryError("Error allocating memory. Perhaps you are out?")
-    M = _W + n
-    Phi = _W + 2*n
-    Omega = _W + 2*n + L
+    M = W + n
+    Phi = W + 2*n
+    Omega = W + 2*n + L
 
     # allocate pointers for GMP ints
     Lambda_mpz = <mpz_t *> sage_malloc( 3 * (n+2) * sizeof(mpz_t) )
     if not Lambda_mpz:
-        sage_free(_W)
+        sage_free(W)
         raise MemoryError("Error allocating memory. Perhaps you are out?")
     zf_mpz = Lambda_mpz + n + 2
     zb_mpz = Lambda_mpz + 2*n + 4
@@ -1266,14 +1266,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     # allocate arrays
     _gamma = <int *> sage_malloc( ( n * ( 2 * (n + L) + 7 ) + 1 ) * sizeof(int) )
     if not _gamma:
-        sage_free(_W)
+        sage_free(W)
         sage_free(Lambda_mpz)
         raise MemoryError("Error allocating memory. Perhaps you are out?")
     _alpha = _gamma + n*( 2*(n + L) + 1 )
     _v = _alpha + 4*n + 1
-    _e = _v + n + 1
+    _e = _v + n
     for i from 0 <= i < n:
-        _W[i] = _gamma + n + n*i
+        W[i] = _gamma + n + n*i
         M[i] = _gamma + n*( 1 + n + 2*L + i )
 
     # allocate GMP ints
@@ -1291,7 +1291,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     for i from 0 <= i < n:
         for j from 0 <= j < n:
             M[i][j] = 0
-            _W[i][j] = 0
+            W[i][j] = 0
     if isinstance(G, Graph):
         for i, j, la in G.edge_iterator():
             M[i][j] = 1
@@ -1366,7 +1366,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            _v[k] = _nu._first_smallest_nontrivial(_W[k], k, n)
+            _v[k] = _nu._first_smallest_nontrivial(W[k], k, n)
             mpz_set_ui(Lambda_mpz[k], 0)
             _e[k] = 0 # see state 12, and 17
             state = 2
@@ -1426,7 +1426,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            _v[k] = _nu._first_smallest_nontrivial(_W[k], k, n)
+            _v[k] = _nu._first_smallest_nontrivial(W[k], k, n)
 
             if _dig or not _nu._sat_225(k, n): hh = k + 1
             _e[k] = 0 # see state 12, and 17
@@ -1607,8 +1607,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # another, hence only one must be investigated.
             if _e[k] == 1:
                 for j from 0 <= j < n:
-                    if _W[k][j] and not Omega[l][j]:
-                        _W[k][j] = 0
+                    if W[k][j] and not Omega[l][j]:
+                        W[k][j] = 0
             state = 13
 
         elif state == 13: # hub state
@@ -1631,7 +1631,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # set tvc and tvh to the minimum cell representative of W[k]
             # (see states 10 and 14)
             for i from 0 <= i < n:
-                if _W[k][i]:
+                if W[k][i]:
                     tvc = i
                     break
             tvh = tvc
@@ -1648,7 +1648,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
             # find the next v[k] in W[k]
             i = _v[k] + 1
-            while i < n and not _W[k][i]:
+            while i < n and not W[k][i]:
                 i += 1
             if i < n:
                 _v[k] = i
@@ -1687,7 +1687,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                           # information relevant to Theorem 2.33
             j = 0
             for i from 0 <= i < n:
-                if _W[k][i]: j += 1
+                if W[k][i]: j += 1
             if j == index and ht == k+1: ht = k
             size = size*index
             index = 0
@@ -1708,13 +1708,13 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                     # if so, only check the minimal orbit representatives
                     if j == k:
                         for j from 0 <= j < n:
-                            if _W[k][j] and not Omega[i][j]:
-                                _W[k][j] = 0
+                            if W[k][j] and not Omega[i][j]:
+                                W[k][j] = 0
             _e[k] = 1 # see state 12
 
             # see if there is a relevant vertex to split on:
             i = _v[k] + 1
-            while i < n and not _W[k][i]:
+            while i < n and not W[k][i]:
                 i += 1
             if i < n:
                 _v[k] = i
@@ -1756,7 +1756,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         mpz_clear(zf_mpz[i])
         mpz_clear(zb_mpz[i])
 
-    sage_free(_W)
+    sage_free(W)
     sage_free(Lambda_mpz)
     sage_free(_gamma)
 

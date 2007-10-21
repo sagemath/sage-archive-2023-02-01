@@ -514,6 +514,11 @@ cdef class ntl_GF2X:
 
     def __getitem__(self, int i):
         """
+            sage: e = ntl.GF2X([0,1,0,1])
+            sage: e[0] # indirect doctest
+            0
+            sage: e[1]
+            1
         """
         cdef ntl_GF2 c = PY_NEW(ntl_GF2)
         c.x = GF2X_coeff(self.x, i)

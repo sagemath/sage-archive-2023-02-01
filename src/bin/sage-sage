@@ -328,7 +328,8 @@ fi
 if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     cd "$CUR"
     shift
-    M2 "$@"
+    # It is critical to use an exact path for any optional packages.
+    "$SAGE_LOCAL"/bin/M2 "$@"
     exit $?
 fi
 

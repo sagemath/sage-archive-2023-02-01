@@ -67,9 +67,9 @@ generators of a polynomial ring, so the eval command works.
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
     sage: R = gap.PolynomialRing('Rationals', 2); R
-    PolynomialRing(..., [ x, x_2 ])
+    PolynomialRing(..., [ x_1, x_2 ])
     sage: I = R.IndeterminatesOfPolynomialRing(); I
-    [ x, x_2 ]
+    [ x_1, x_2 ]
 
 In order to eval $g$ in GAP, we need to tell GAP to view the variables
 \code{x0} and \code{x1} as the two generators of $R$.  This is the
@@ -84,7 +84,7 @@ one tricky part.  In the GAP interpreter the object \code{I} has its
 
         sage: R.<x,y> = MPolynomialRing(QQ,2)
         sage: f = gap(str(g)); f
-        -x^5+x_2^2
+        -x_1^5+x_2^2
 
     We can call GAP functions on $f$.  For example, we evaluate
     the GAP \code{Value} function, which evaluates $f$ at the point $(1,2)$.
@@ -578,7 +578,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     for pkg in ['ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'hap', 'braid']:
+                'toric', 'laguna', 'braid']:   # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)
         except RuntimeError, msg:

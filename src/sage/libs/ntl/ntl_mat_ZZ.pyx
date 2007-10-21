@@ -560,7 +560,7 @@ cdef class ntl_mat_ZZ:
         The optional argument 'delta' is the reduction parameter, and
         may be set so that 0.50 <= delta < 1.  Setting it close to 1
         yields shorter vectors, and also improves the stability, but
-        increases the running time.  Recommended value: delta =
+        increases the running time.  Recommended value: delta =
         0.99.
 
         The optional parameter 'verbose' can be set to see all kinds

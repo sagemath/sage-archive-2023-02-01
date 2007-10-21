@@ -636,9 +636,9 @@ def hypergeometric_U(alpha,beta,x,prec=53):
     xy'' + (b-x)y' - ay = 0.
     \]
     This satisfies $U(a,b,x) \sim x^{-a}$, as $x\rightarrow \infty$,
-    and is sometimes denoted $x^{-a}2_F_0(a,1+a-b,-1/x)$.
+    and is sometimes denoted \verb|x^{-a}2_F_0(a,1+a-b,-1/x)|.
     This is not the same as Kummer's $M$-hypergeometric
-    function, denoted sometimes as $_1F_1(alpha,beta,x)$, though
+    function, denoted sometimes as \verb|_1F_1(alpha,beta,x)|, though
     it satisfies the same DE that $U$ does.
 
     WARNING:
@@ -650,12 +650,11 @@ def hypergeometric_U(alpha,beta,x,prec=53):
         0.59634736232319407
         sage: hypergeometric_U(1,1,1,70)   ## random output
         0.59634736232319407434152
-
+    """
     ## For commented out code below,
     ##   f = lambda x: hypergeometric_U(1,1,x)
     ##   P = plot(f,0.1,1)
     ## seems to hang. I don't know why.
-    """
     from sage.libs.pari.all import pari
     from sage.interfaces.gp import Gp,gp
     R,a = _setup(prec)

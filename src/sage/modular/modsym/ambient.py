@@ -1214,12 +1214,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
 
     def twisted_winding_element(self, i, eps):
-        """
+        r"""
         Given a space of modular symbols, an integer 0 <= i <= k-2,
         and a Dirichlet character eps, return the so-called
         'twisted winding element':
-        $\sum_{a \in (\mathbb{Z}/m\mathbb{Z})^\times} \
-        eps(a) * [ i, 0, a/m ]$.
+        $$
+          \sum_{a \in (\ZZ/m\ZZ)^\times} \eps(a) * [ i, 0, a/m ].
+        $$
         """
 
         if not dirichlet.is_DirichletCharacter(eps):

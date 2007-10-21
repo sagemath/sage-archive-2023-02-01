@@ -452,6 +452,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.minors(2)
             [x0*x1*x2 + 16*x0*x1 - x0*x2, 5*x0*x1^2 + x0*x1*x2 - x1*x2, 5*x0*x1 + x0*x2 - x1*x2 - 16*x1]
         """
+        from sage.combinat.combinat import combinations_iterator
         all_rows = range(self.nrows())
         all_cols = range(self.ncols())
         m = []

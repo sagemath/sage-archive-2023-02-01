@@ -726,10 +726,10 @@ cdef extern from "ntl_wrap.h":
 
     #### GF2X_c
 
-    long GF2XHexOutput "GF2X::HexOutput"
-
     ctypedef struct GF2X_c "struct GF2X":
         pass
+
+    long *GF2XHexOutput "(&GF2X::HexOutput)"
 
     GF2X_c* GF2X_new "New<GF2X>"()
     GF2X_c* GF2X_construct "Construct<GF2X>"(void *mem)
@@ -763,6 +763,19 @@ cdef extern from "ntl_wrap.h":
     void GF2X_XGCD "XGCD" (GF2X_c r, GF2X_c s, GF2X_c t, GF2X_c a, GF2X_c b)
 
     void GF2XFromBytes(GF2X_c a, unsigned char *p, long n)
+    void BytesFromGF2X "BytesFromGF2X" (unsigned char *p, GF2X_c a, long n)
+
+    GF2_c GF2X_coeff "coeff"(GF2X_c a, long i)
+    GF2_c GF2X_LeadCoeff "LeadCoeff"(GF2X_c a)
+    GF2_c GF2X_ConstTerm "ConstTerm"(GF2X_c a)
+    void GF2X_SetCoeff "SetCoeff"(GF2X_c x, long i, GF2_c a)
+
+    GF2X_c GF2X_diff "diff"(GF2X_c a)
+    GF2X_c GF2X_reverse "reverse"(GF2X_c a, long hi)
+
+    long GF2X_weight "weight"(GF2X_c a)
+    long GF2X_NumBits "NumBits" (GF2X_c a)
+    long GF2X_NumBytes "NumBytes"(GF2X_c a)
 
     #### GF2E_c
     ctypedef struct GF2E_c "struct GF2E":
@@ -788,7 +801,7 @@ cdef extern from "ntl_wrap.h":
 
     void ntl_GF2E_set_modulus(GF2X_c *x)
     GF2E_c *GF2E_copy(GF2E_c *x)
-    long GF2E_degree()
+    long GF2E_degree "GF2E::degree"()
     GF2X_c *GF2E_modulus()
     long  GF2E_trace(GF2E_c *x)
     GF2X_c *GF2E_ntl_GF2X(GF2E_c *x)

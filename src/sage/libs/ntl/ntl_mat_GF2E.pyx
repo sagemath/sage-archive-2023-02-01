@@ -423,7 +423,7 @@ cdef class ntl_mat_GF2E:
         else:
             return True
 
-    def _sage_(ntl_mat_GF2E self, k=None, cache=None):
+    def _sage_(ntl_mat_GF2E self, k=None):
         """
         Returns a \class{Matrix} over a FiniteField representation
         of this element.
@@ -431,7 +431,6 @@ cdef class ntl_mat_GF2E:
         INPUT:
             self  -- \class{mat_GF2E} element
             k     -- optional GF(2**deg)
-            cache -- optional NTL to SAGE conversion dictionary
 
         OUTPUT:
             Matrix over k
@@ -452,7 +451,7 @@ cdef class ntl_mat_GF2E:
             k = ntl_GF2E_sage()
         l = []
         for elem in self.list():
-            l.append(elem._sage_(k, cache))
+            l.append(elem._sage_(k))
 
         from sage.matrix.constructor import Matrix
         return Matrix(k,self.nrows(),self.ncols(),l)

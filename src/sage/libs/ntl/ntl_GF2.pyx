@@ -82,7 +82,7 @@ cdef class ntl_GF2:
         """
         return unpickle_class_value, (ntl_GF2, int(self))
 
-    def __cmp__(ntl_GF2 self, ntl_GF2 other):
+    def __richcmp__(self, other, op):
         """
         Compare self to other.
 
@@ -92,11 +92,21 @@ cdef class ntl_GF2:
             sage: a == b
             False
         """
+        if op != 2 and op != 3:
+            raise TypeError, "elements in GF(2) are not ordered."
+
+        if not PY_TYPE_CHECK(other, ntl_GF2):
+            other = ntl_GF2(other)
+
+        if not PY_TYPE_CHECK(self, ntl_GF2):
+            self = ntl_GF2(self)
+
         cdef int t
-        t = GF2_equal(self.x, other.x)
-        if t:
-            return 0
-        return 1
+        t = GF2_equal((<ntl_GF2>self).x, (<ntl_GF2>other).x)
+        if op == 2:
+            return t == 1
+        elif op == 3:
+            return t == 0
 
     def __mul__(self, other):
         """

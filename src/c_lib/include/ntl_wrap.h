@@ -258,7 +258,6 @@ struct GF2E;
 EXTERN struct GF2E* GF2E_pow(const struct GF2E* x, long e);
 EXTERN struct GF2E* GF2E_neg(struct GF2E* x);
 EXTERN void ntl_GF2E_set_modulus(struct GF2X* x);
-EXTERN long GF2E_degree();
 EXTERN const struct GF2X *GF2E_modulus();
 EXTERN struct GF2E *GF2E_random(void);
 EXTERN long GF2E_trace(struct GF2E *x);

@@ -971,12 +971,6 @@ long GF2E_trace(struct GF2E* x)
   return rep(trace(*x));
 }
 
-
-long GF2E_degree()
-{
-  return GF2E::degree();
-}
-
 const struct GF2X* GF2E_modulus()
 {
   GF2XModulus mod = GF2E::modulus();

@@ -41,8 +41,6 @@ cdef make_GF2X(GF2X_c *x):
 #
 ##############################################################################
 
-cdef bint __have_GF2X_hex_repr = False # hex representation of GF2X
-
 def GF2X_hex_repr(have_hex=None):
     """
     Represent GF2X and GF2E elements in the more compact
@@ -72,16 +70,13 @@ def GF2X_hex_repr(have_hex=None):
         sage: x
         [1 0 1 0 1]
     """
-    global __have_GF2X_hex_repr
-
     if have_hex==None:
-        return __have_GF2X_hex_repr
+        return bool(GF2XHexOutput[0])
 
     if have_hex==True:
-        G2XHaveHexOutput = 1
+        GF2XHexOutput[0] = 1
     else:
-        G2XHaveHexOutput = 0
-    __have_GF2X_hex_repr=have_hex
+        GF2XHexOutput[0] = 0
 
 def ntl_GF2E_modulus(p=None):
     """
@@ -98,13 +93,13 @@ def ntl_GF2E_modulus(p=None):
 
     EXAMPLES:
         sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
-        sage: ntl.GF2E_modulus().hex()
+        sage: hex(ntl.GF2E_modulus())
         '0xb11'
     """
     global __have_GF2E_modulus
     cdef ntl_GF2X elem
 
-    if p==None:
+    if p is None:
         if __have_GF2E_modulus:
             return make_GF2X(<GF2X_c*>GF2E_modulus())
         else:
@@ -115,7 +110,7 @@ def ntl_GF2E_modulus(p=None):
     else:
         elem = p
 
-    if(elem.degree()<1):
+    if(elem.deg()<1):
         raise "DegreeToSmall"
 
     ntl_GF2E_set_modulus(<GF2X_c*>&elem.x)
@@ -254,7 +249,7 @@ cdef class ntl_GF2E(ntl_GF2X):
             sage: loads(dumps(a)) == a
             True
         """
-        return unpickle_GF2E, (self.ntl_GF2X().hex(), ntl_GF2E_modulus())
+        return unpickle_GF2E, (hex(self.ntl_GF2X()), ntl_GF2E_modulus())
 
     def __repr__(self):
         """
@@ -465,7 +460,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         x.x = self.x
         return x
 
-    def _sage_(ntl_GF2E self, k=None, cache=None):
+    def _sage_(ntl_GF2E self, k=None):
         """
         Returns a \class{FiniteFieldElement} representation
         of this element. If a \class{FiniteField} k is provided
@@ -475,7 +470,6 @@ cdef class ntl_GF2E(ntl_GF2X):
         INPUT:
             self  -- \class{GF2E} element
             k     -- optional GF(2**deg)
-            cache -- optional NTL to SAGE conversion dictionary
 
         OUTPUT:
             FiniteFieldElement over k
@@ -490,16 +484,10 @@ cdef class ntl_GF2E(ntl_GF2X):
         cdef int length
         deg= GF2E_degree()
 
-        if k==None:
+        if k is None:
             from sage.rings.finite_field import FiniteField
             f = ntl_GF2E_modulus()._sage_()
             k = FiniteField(2**deg,name='a',modulus=f)
-
-        if cache != None:
-            try:
-                return cache[self.hex()]
-            except KeyError:
-                pass
 
         a=k.gen()
         l = self.list()
@@ -510,8 +498,5 @@ cdef class ntl_GF2E(ntl_GF2X):
         for i from 0 <= i < length:
             if l[i]==1:
                 ret = ret + a**i
-
-        if cache != None:
-            cache[self.hex()] = ret
 
         return ret

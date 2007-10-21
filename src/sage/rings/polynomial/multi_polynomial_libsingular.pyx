@@ -1539,6 +1539,34 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
+    cdef ModuleElement _iadd_c_impl( left, ModuleElement right):
+        """
+        Add left and right inplace.
+
+        EXAMPLE:
+            sage: P.<x,y,z>=MPolynomialRing(QQ,3)
+            sage: 3/2*x + 1/2*y + 1
+            3/2*x + 1/2*y + 1
+
+        """
+        cdef MPolynomial_libsingular res
+
+        cdef poly *_l, *_r, *_p
+        cdef ring *_ring
+
+        _ring = (<MPolynomialRing_libsingular>left._parent)._ring
+
+        if(_ring != currRing): rChangeCurrRing(_ring)
+
+        _l = left._poly
+        _r = p_Copy((<MPolynomial_libsingular>right)._poly, _ring)
+
+        _p= p_Add_q(_l, _r, _ring)
+
+        p_Normalize(_p,_ring)
+        left._poly = _p
+        return left
+
     cdef ModuleElement _sub_c_impl( left, ModuleElement right):
         """
         Subtract left and right.
@@ -1564,6 +1592,31 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
+    cdef ModuleElement _isub_c_impl( left, ModuleElement right):
+        """
+        Subtract left and right inplace.
+
+        EXAMPLE:
+            sage: P.<x,y,z>=MPolynomialRing(QQ,3)
+            sage: 3/2*x - 1/2*y - 1
+            3/2*x - 1/2*y - 1
+
+        """
+        cdef MPolynomial_libsingular res
+
+        cdef poly *_l, *_r, *_p
+        cdef ring *_ring
+
+        _ring = (<MPolynomialRing_libsingular>left._parent)._ring
+
+        _l = left._poly
+        _r = p_Copy((<MPolynomial_libsingular>right)._poly, _ring)
+
+        if(_ring != currRing): rChangeCurrRing(_ring)
+        _p= p_Add_q(_l, p_Neg(_r, _ring), _ring)
+        p_Normalize(_p,_ring)
+        left._poly = _p
+        return left
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
         """
@@ -1614,6 +1667,27 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(_ring != currRing): rChangeCurrRing(_ring)
         _p = pp_Mult_qq(left._poly, (<MPolynomial_libsingular>right)._poly, _ring)
         return co.new_MP(left._parent,_p)
+
+    cdef RingElement  _imul_c_impl(left, RingElement right):
+        # all currently implemented rings are commutative
+        """
+        Multiply left and right inplace.
+
+        EXAMPLE:
+            sage: P.<x,y,z>=MPolynomialRing(QQ,3)
+            sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1)
+            9/4*x^2 - 1/4*y^2 - y - 1
+        """
+        cdef poly *_l, *_r, *_p
+        cdef ring *_ring
+
+        _ring = (<MPolynomialRing_libsingular>left._parent)._ring
+
+        if(_ring != currRing): rChangeCurrRing(_ring)
+        _p = pp_Mult_qq(left._poly, (<MPolynomial_libsingular>right)._poly, _ring)
+        p_Delete(&left._poly, _ring)
+        left._poly = _p
+        return left
 
     cdef RingElement  _div_c_impl(left, RingElement right):
         """

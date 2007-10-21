@@ -511,6 +511,11 @@ def prime_powers(start, stop=None):
         [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
         sage: a == b
         True
+
+    TESTS:
+        sage: v = prime_powers(10)
+        sage: type(v[0])      # trac #922
+        <type 'sage.rings.integer.Integer'>
     """
     if stop is None:
         start, stop = 1, integer.Integer(start)

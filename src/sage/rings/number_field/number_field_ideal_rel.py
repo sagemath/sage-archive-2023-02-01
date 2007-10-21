@@ -31,7 +31,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal(38); i
-        Fractional ideal (38) of Number Field in a0 with defining polynomial x^2 + 1 over its base field
+        Fractional ideal (38)
 
     BIG WARNING: Ideals in relative number fields are broken -- big warning:
         sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
@@ -124,8 +124,12 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
-            sage: L.ideal(b).norm()
-            Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 6
+            sage: N = L.ideal(b).norm(); N
+            Fractional ideal (-a)
+            sage: N.parent()
+            Monoid of ideals of Number Field in a with defining polynomial x^2 + 6
+            sage: N.ring()
+            Number Field in a with defining polynomial x^2 + 6
         """
         L = self.number_field()
         K = L.base_field()

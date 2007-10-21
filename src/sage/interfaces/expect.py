@@ -703,9 +703,19 @@ If this all works, you can then make calls like:
         s = '_%s_'%self.name()
         if s == '_pari_':
             s = '_gp_'
-        return (x.__getattribute__(s))(self)
+        try:
+            return (x.__getattribute__(s))(self)
+        except AttributeError:
+            return self(x._interface_init_())
+
 
     def _coerce_impl(self, x, use_special=True):
+        if isinstance(x, (int, long)):
+            import sage.rings.all
+            return self(sage.rings.all.Integer(x))
+        elif isinstance(x, float):
+            import sage.rings.all
+            return self(sage.rings.all.RDF(x))
         if use_special:
             try:
                 return self._coerce_from_special_method(x)

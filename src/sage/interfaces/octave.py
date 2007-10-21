@@ -88,8 +88,45 @@ For example,
 The Octave interface reads in even very long input (using files)
 in a robust manner:
     sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = octave.eval(t)      # < 1/100th of a second
+    sage: a = octave.eval(t + ';')      # < 1/100th of a second
     sage: a = octave(t)
+
+Note that actually reading a back out takes forever.  This *must* be
+fixed ASAP -- see http://trac.sagemath.org/sage_trac/ticket/940/.
+
+\subsection{Tutorial}
+EXAMPLES:
+    sage: octave('4+10')                     # optional
+    14
+    sage: octave('date')                    # optional; random output
+    18-Oct-2007
+    sage: octave('5*10 + 6')                 # optional
+    56
+    sage: octave('(6+6)/3')                  # optional
+    4
+    sage: octave('9')^2                      # optional
+    81
+    sage: a = octave(10); b = octave(20); c = octave(30)    # optional
+    sage: avg = (a+b+c)/3                    # optional
+    sage: avg                                # optional
+    20
+    sage: parent(avg)                        # optional
+    Octave
+
+    sage: my_scalar = octave('3.1415')       # optional
+    sage: my_scalar                          # optional
+    3.1415
+    sage: my_vector1 = octave('[1,5,7]')     # optional
+    sage: my_vector1                         # optional
+    1     5     7
+    sage: my_vector2 = octave('[1;5;7]')     # optional
+    sage: my_vector2                         # optional
+    1
+    5
+    7
+    sage: my_vector1 * my_vector2            # optional
+    75
+
 """
 
 #*****************************************************************************
@@ -314,9 +351,9 @@ class Octave(Expect):
             a gnuplot window appears
 
         EXAMPLES:
-           sage.: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])
+           sage: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])  # not tested -- does this actually work (on OS X it fails for me -- William Stein, 2007-10)
 
-        This yields the two plots $(t,x(t)), (t,y(t))$ on the same graph
+        This should yield the two plots $(t,x(t)), (t,y(t))$ on the same graph
         (the $t$-axis is the horizonal axis) of the system of ODEs
         $$
           x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,
@@ -380,7 +417,7 @@ def octave_console():
     your PATH, but no optional \sage packages need be installed.
 
     EXAMPLES:
-        sage.: octave_console()
+        sage: octave_console()         # not tested
         GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
         Copyright (C) 2006 John W. Eaton.
         ...
@@ -400,8 +437,8 @@ def octave_version():
     Return the version of Octave installed.
 
     EXAMPLES:
-        sage: octave_version()    # optional octave package
-        '2.1.73'
+        sage: octave_version()    # optional -- requires octave; and output is random
+        '2.9.12'
     """
     return str(octave('version')).strip()
 

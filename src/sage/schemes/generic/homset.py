@@ -186,7 +186,7 @@ class SchemeHomset_generic(HomsetWithBase):
         """
         EXAMPLES:
             sage: f = ZZ.hom(QQ); f
-            Coercion morphism:
+            Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
 
@@ -197,7 +197,7 @@ class SchemeHomset_generic(HomsetWithBase):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
         """

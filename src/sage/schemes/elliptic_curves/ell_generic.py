@@ -1,5 +1,16 @@
 """
 Elliptic curves over a general ring
+
+EXAMPLES:
+We construct an elliptic curve over an elaborate base ring:
+    sage: p = 97; a=1; b=3
+    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
+    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: T = S.fraction_field()
+    sage: E = EllipticCurve(T, [a, b]); E
+    Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
+    sage: latex(E)
+    y^2  = x^3 + x + 3
 """
 
 #*****************************************************************************
@@ -121,81 +132,81 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             with defining polynomial x^3 - 17
         """
         #return "Elliptic Curve with a-invariants %s over %s"%(self.ainvs(), self.base_ring())
-        a = self.ainvs()
+        b = self.ainvs()
         #return "y^2 + %s*x*y + %s*y = x^3 + %s*x^2 + %s*x + %s"%\
         #       (a[0], a[2], a[1], a[3], a[4])
-        a = [z._coeff_repr() for z in a]
+        a = [z._coeff_repr() for z in b]
         s = "Elliptic Curve defined by "
         s += "y^2 "
         if a[0] == "-1":
             s += "- x*y "
         elif a[0] == '1':
             s += "+ x*y "
-        elif a[0] != '0':
+        elif b[0]:
             s += "+ %s*x*y "%a[0]
         if a[2] == "-1":
             s += " - y"
         elif a[2] == '1':
             s += "+ y"
-        elif a[2] != '0':
+        elif b[2]:
             s += "+ %s*y"%a[2]
         s += " = x^3 "
         if a[1] == "-1":
             s += "- x^2 "
         elif a[1] == '1':
             s += "+ x^2 "
-        elif a[1] != '0':
+        elif b[1]:
             s += "+ %s*x^2 "%a[1]
         if a[3] == "-1":
             s += "- x "
         elif a[3] == '1':
             s += "+ x "
-        elif a[3] != '0':
+        elif b[3]:
             s += "+ %s*x "%a[3]
         if a[4] == '-1':
             s += "-1 "
         elif a[4] == '1':
             s += "+1 "
-        elif a[4] != '0':
+        elif b[4]:
             s += "+ %s "%a[4]
         s = s.replace("+ -","- ")
         s += "over %s"%self.base_ring()
         return s
 
     def _latex_(self):
-        a = self.ainvs()
-        a = [z._latex_coeff_repr() for z in a]
+        b = self.ainvs()
+        a = [z._latex_coeff_repr() for z in b]
         s = "y^2 "
         if a[0] == '-1':
             s += "- xy "
         elif a[0] == '1':
             s += "+ xy "
-        elif a[0] != '0':
+        elif b[0]:
             s += "+ %sxy "%a[0]
         if a[2] == '-1':
             s += " - y"
         elif a[2] == '1':
             s += "+ y"
-        elif a[2] != '0':
+        elif b[2]:
             s += "+ %sy"%a[2]
         s += " = x^3 "
         if a[1] == '-1':
             s += "- x^2 "
         elif a[1] == '1':
             s += "+ x^2 "
-        elif a[1] != '0':
+        elif b[1]:
             s += "+ %sx^2 "%a[1]
         if a[3] == '-1':
             s += "- x "
         elif a[3] == '1':
             s += "+ x "
-        elif a[3] != '0':
+        elif b[3]:
             s += "+ %sx "%a[3]
         if a[4] == '-1':
             s += "-1 "
         elif a[4] == '1':
             s += "+1 "
-        elif a[4] != '0':
+        elif b[4]:
             s += "+ %s "%a[4]
         s = s.replace("+ -","- ")
         return s
@@ -775,6 +786,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                   + 11664*D**3*a[2]**2 + 46656*D**3*a[4])
         import constructor
         return constructor.EllipticCurve(self.base_ring(), ap)
+
+    def rst_transform(self, r, s, t):
+        """
+        Transforms the elliptic curve using the unimodular (u=1) transform with standard parameters [r,s,t].
+
+        Returns the transformed curve.
+        """
+        ##Ported from John Cremona's code implementing Tate's algorithm.
+        (a1, a2, a3, a4, a6) = self.a_invariants()
+        a6 += r*(a4 + r*(a2 + r)) - t*(a3 + r*a1 + t)
+        a4 += -s*a3 + 2*r*a2 - (t + r*s)*a1 + 3*r*r - 2*s*t
+        a3 += r*a1 + 2*t
+        a2 += -s*a1 + 3*r - s*s
+        a1 += 2*s
+        return constructor.EllipticCurve([a1, a2, a3, a4, a6])
+
+    def scale_curve(self, u):
+        """
+        Transforms the elliptic curve using scale factor $u$,
+        i.e. multiplies $c_i$ by $u^i$.
+
+        Returns the transformed curve.
+        """
+        ##Ported from John Cremona's code implementing Tate's algorithm.
+        (a1,a2,a3,a4,a6) = self.a_invariants()
+        a1 *= u
+        a2 *= u^2
+        a3 *= u^3
+        a4 *= u^4
+        a6 *= u^6
+        return constructor.EllipticCurve([a1, a2, a3, a4, a6])
 
     def discriminant(self):
         """

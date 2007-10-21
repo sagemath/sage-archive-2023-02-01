@@ -195,8 +195,10 @@ class Magma(Expect):
     anything, otherwise you'll get an error.  (nvals is the number
     of return values.)
 
-        sage.: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
-
+        sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
+        sage: magma.eval('1.1')   # optional
+        '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None, user_config=False):
@@ -539,6 +541,57 @@ class Magma(Expect):
             self.eval("%s := %s"%(i,o))
         mlist = self(L)
         return self("ideal<%s|%s>"%(Pn,mlist.name()))
+
+    def set_verbose(self, type, level):
+        """
+        Set the verbosity level for a given algorithm, class, etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner')
+            level -- integer >= 0
+
+        """
+        self.SetVerbose(type,level)
+
+    def SetVerbose(self, type, level):
+        """
+        Set the verbosity level for a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+            level -- integer >= 0
+
+        NOTE: This method is provided to be consistent with the MAGMA
+        naming convention.
+        """
+        if level < 0:
+            raise TypeError, "level must be >= 0"
+        self.eval('SetVerbose("%s",%d)'%(type,level))
+
+    def get_verbose(self, type):
+        """
+        Get the verbosity level of a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+        """
+        return self.GetVerbose(type)
+
+    def GetVerbose(self, type):
+        """
+        Get the verbosity level of a given algorithm class etc. in
+        MAGMA.
+
+        INPUT:
+            type -- string (e.g. 'Groebner'), see MAGMA documentation
+
+        NOTE: This method is provided to be consistent with the MAGMA
+        naming convention.
+        """
+        return int(self.eval('GetVerbose("%s")'%type))
 
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):

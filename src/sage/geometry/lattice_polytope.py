@@ -149,7 +149,7 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
         True
 
     We draw a pretty picture of the polytype in 3-dimensional space:
-        sage: p.plot().save('sage.png')       # or do p.show()
+        sage: p.plot().show()
 
     Now we add an extra point to the matrix...
         sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
@@ -722,7 +722,7 @@ class LatticePolytopeClass(SageObject):
         This call is used internally for computing NEF-partitions:
             sage: o = lattice_polytope.octahedron(3)
             sage: s = o.nef_x("-N -Lv -p")
-            sage.: print s                      # output contains random time
+            sage: s                         # output contains random time
             M:27 8 N:7 6  #part=5
             3 6 Vertices in N-lattice:
                 0    0    0    1   -1    0
@@ -816,7 +816,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
             sage: o = lattice_polytope.octahedron(3)
-            sage: o.plot().save('sage.png')
+            sage: o.plot().show()
         """
         if self.dim() != 3:
             raise ValueError, "Polytope must have dimension 3!"

@@ -1015,12 +1015,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True):
         r"""
-        Return the echelon form of this matrix over the integers.
+        Return the echelon form of this matrix over the integers also
+        known as the hermit normal form (HNF).
 
         INPUT:
-            algorithm, cutoff -- ignored currently
-            include_zero_rows -- (default: True) if False,
-                                 don't include zero rows.
+            algorithm -- 'pari', 'ntl' or 'default';
+                  the default is ntl if self is square and of full rank;
+                  otherwise, it is ntl.
+            cutoff -- ignored currently
+            include_zero_rows -- (default: True)
+                                 if False, don't include zero rows
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1056,6 +1060,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: m = matrix(ZZ,0,0,[])
             sage: m.echelon_form()
             []
+
+        NOTE: If 'ntl' is chosen for a non square matrix we silently
+        fall back to the 'pari' implementation. Also, if the matrix's
+        rank is not sufficient for 'ntl' we silently fall back to
+        'pari'.
         """
         x = self.fetch('echelon_form')
         if not x is None:
@@ -1068,41 +1077,90 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self
 
         cdef Py_ssize_t nr, nc, n, i
-        nr = self._nrows
-        nc = self._ncols
-
-        # The following complicated sequence of column reversals
-        # and transposes is needed since PARI's Hermite Normal Form
-        # does column operations instead of row operations.
-        n = nc
-        r = []
-        for i from 0 <= i < n:
-            r.append(n-i)
-        v = self._pari_()
-        v = v.vecextract(r) # this reverses the order of columns
-        v = v.mattranspose()
-        w = v.mathnf(1)
+        cdef int nr = self._nrows
+        cdef int nc = self._ncols
+        cdef int i, j
 
         cdef Matrix_integer_dense H_m
-        H = convert_parimatrix(w[0])
-        # if H=[] may occur if we start with a column of zeroes
-        if nc == 1 and H!=[]:
-            H = [H]
 
-        # We do a 'fast' change of the above into a list of ints,
-        # since we know all entries are ints:
-        num_missing_rows = (nr*nc - len(H)) / nc
-        rank = nr - num_missing_rows
+        if algorithm == 'default':
+            if nr <= nc and self.rank() == nr:
+                algorithm = 'ntl'
+            else:
+                algorithm = 'pari'
 
-        if include_zero_rows:
-            H = H + ['0']*(num_missing_rows*nc)
-            H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+        if algorithm == 'pari':
+            # The following complicated sequence of column reversals
+            # and transposes is needed since PARI's Hermite Normal Form
+            # does column operations instead of row operations.
+            n = nc
+            r = []
+            for i from 0 <= i < n:
+                r.append(n-i)
+            v = self._pari_()
+            v = v.vecextract(r) # this reverses the order of columns
+            v = v.mattranspose()
+            w = v.mathnf(1)
+
+            H = convert_parimatrix(w[0])
+            # if H=[] may occur if we start with a column of zeroes
+            if nc == 1 and H!=[]:
+                H = [H]
+
+            # We do a 'fast' change of the above into a list of ints,
+            # since we know all entries are ints:
+            num_missing_rows = (nr*nc - len(H)) / nc
+            rank = nr - num_missing_rows
+
+            if include_zero_rows:
+                H = H + ['0']*(num_missing_rows*nc)
+                H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+            else:
+                H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
+
+        elif algorithm == 'ntl':
+
+            if nr != nc:
+                # fail back to pari gracefully
+                return self.echelon_form(algorithm='pari',
+                                         include_zero_rows=include_zero_rows,
+                                         cutoff=cutoff)
+
+            import sage.libs.ntl.ntl_mat_ZZ
+            v =  sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ(self._nrows,self._ncols)
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    v[i,j] = self.get_unsafe(nr-i-1,nc-j-1)
+
+            try:
+                w = v.HNF()
+            except RuntimeError: # HNF may fail if a nxm matrix has rank < m
+                return self.echelon_form(algorithm='pari',
+                                         include_zero_rows=include_zero_rows,
+                                         cutoff=cutoff)
+
+            rank = w.nrows()
+
+            if include_zero_rows:
+                H_m = self.new_matrix()
+            else:
+                H_m = self.new_matrix(nrows=w.nrows())
+
+            nr = w.nrows()
+            nc = w.ncols()
+
+            for i from 0 <= i < w.nrows():
+                for j from 0 <= j < w.ncols():
+                    H_m[i,j] = w[nr-i-1,nc-j-1]
+            H_m.set_immutable()
+
         else:
-            H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
+            raise TypeError, "algorithm '%s' not understood"%(algorithm)
 
         H_m.set_immutable()
         H_m.cache('rank', rank)
         self.cache('rank',rank)
+
         H_m.cache('echelon_form',H_m)
         self.cache('echelon_form',H_m)
         return H_m
@@ -1415,17 +1473,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         r"""
         ntl.mat_ZZ representation of self.
 
+        EXAMPLE:
+            sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
+            sage: A = a._ntl_()
+
         \note{NTL only knows dense matrices, so if you provide a
         sparse matrix NTL will allocate memory for every zero entry.}
         """
-        import sage.libs.ntl.ntl
-        return sage.libs.ntl.ntl.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
+        import sage.libs.ntl.ntl_mat_ZZ
+        return sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
 
 
     ####################################################################################
     # LLL
     ####################################################################################
-    def lllgram(self):
+    def LLL_gram(self):
         """
         LLL reduction of the lattice whose gram matrix is self.
 
@@ -1446,7 +1508,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: M = Matrix(ZZ, 2, 2, [5,3,3,2]) ; M
             [5 3]
             [3 2]
-            sage: U = M.lllgram(); U
+            sage: U = M.LLL_gram(); U
             [-1  1]
             [ 1 -2]
             sage: U.transpose() * M * U
@@ -1455,11 +1517,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Semidefinite and indefinite forms raise a ValueError:
 
-            sage: Matrix(ZZ,2,2,[2,6,6,3]).lllgram()
+            sage: Matrix(ZZ,2,2,[2,6,6,3]).LLL_gram()
             Traceback (most recent call last):
             ...
             ValueError: not a definite matrix
-            sage: Matrix(ZZ,2,2,[1,0,0,-1]).lllgram()
+            sage: Matrix(ZZ,2,2,[1,0,0,-1]).LLL_gram()
             Traceback (most recent call last):
             ...
             ValueError: not a definite matrix
@@ -1485,20 +1547,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 U[i,n-1] = - U[i,n-1]
         return U
 
-    def lll(self, delta=None):
+    def LLL(self, delta=None, algorithm=None, **kwargs):
         r"""
-        Returns LLL reduced lattice R for self.
+        Returns LLL reduced or approximated LLL reduced lattice R for
+        self.
 
         The lattice is returned as a matrix. Also the rank (and the
         determinant) of self are cached.
 
         More specifically, elementary row transformations are
-        performed on a copy of self so that the non-zero rows of
-        R form an LLL-reduced basis for the lattice spanned by
-        the rows of self. The default reduction parameter is
-        $\delta=3/4$, which means that the squared length of the first
-        non-zero basis vector is no more than $2^{r-1}$ times that of
-        the shortest vector in the lattice.
+        performed on a copy of self so that the non-zero rows of R
+        form an LLL-reduced basis for the lattice spanned by the rows
+        of self. The default reduction parameter is $\delta=3/4$,
+        which means that the squared length of the first non-zero
+        basis vector is no more than $2^{r-1}$ times that of the
+        shortest vector in the lattice.
 
         For a basis reduced with parameter $\delta$, the squared
         length of the first non-zero basis vector is no more than
@@ -1507,50 +1570,116 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         If we can compute the determinant of self using this method,
         we also cache it. Note that in general this only happens when
-        self.rank() == self.ncols().
+        self.rank() == self.ncols() and the exact algorithm is used.
 
         INPUT:
-           delta -- arameter a as described above (default: 3/4)
+            delta -- arameter a as described above (default: 3/4)
+            algorithm -- string, one of the algorithms mentioned above
+                        or None (default: None)
+            use_givens -- use Givens orthogonalization (default: False)
+                          only applicable to approximate reductions and NTL.
+                          This is more stable but slower.
+
+        Also, if the verbose level is >= 2, some more verbose output
+        is printed during the calculation if NTL is used.
+
+        AVAILABLE ALGORITHMS:
+            NTL:LLL -- default, exact reduction
+            NTL:LLL_FP -- approximate reduction over double precision
+                          floating point numbers.
+            NTL:LLL_QP -- approximate reduction over quad precision
+                          floating point numbers.
+            NTL:LLL_XD -- approximate reduction over extended exponent
+                          double precision floating point numbers.
+            NTL:LLL_RR -- approximate reduction over arbitrary precision
+                          floating point numbers.
 
         OUTPUT:
             a matrix over the integers
 
         EXAMPLE:
             sage: A = Matrix(ZZ,3,3,range(1,10))
-            sage: A.lll()
+            sage: A.LLL()
             [ 0  0  0]
             [ 2  1  0]
             [-1  1  3]
 
         ALGORITHM: Uses NTL.
+
+        REFERENCES:
+            ntl.mat_ZZ for details on the used algorithms.
         """
 
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ
 
-        if delta is None:
-            delta = ZZ(3)/ZZ(4)
-        elif delta <= ZZ(1)/ZZ(4):
-            raise TypeError, "delta must be > 1/4"
-        elif delta > 1:
-            raise TypeError, "delta must be <= 1/4"
+        if get_verbose() >= 2: verb = True
+        else: verb = False
 
-        delta = delta/ZZ(1) # QQ(delta)
+        use_givens = kwargs.get("use_givens",False)
 
-        a = delta.numer()
-        b = delta.denom()
+        if algorithm is None:
+            algorithm = "NTL:LLL"
+
+        if algorithm == "NTL:LLL":
+            if delta is None:
+                delta = ZZ(3)/ZZ(4)
+            elif delta <= ZZ(1)/ZZ(4):
+                raise TypeError, "delta must be > 1/4"
+            elif delta > 1:
+                raise TypeError, "delta must be <= 1"
+
+            delta = QQ(delta) # QQ(delta)
+            a = delta.numer()
+            b = delta.denom()
+
+        elif algorithm in ("NTL:LLL_FP","NTL:LLL_QP","NTL:LLL_XD","NTL:LLL_RR"):
+            if delta is None:
+                delta = 0.99
+            elif delta < 0.5:
+                raise TypeError, "delta must be >= 0.5"
+            elif delta > 1:
+                raise TypeError, "delta must be <= 1"
+            delta = float(delta)
 
         A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
-        r, det2 = A.LLL(a,b)
-        r,det2 = ZZ(r), ZZ(det2)
+
+        if algorithm == "NTL:LLL":
+            r, det2 = A.LLL(a,b, verbose=verb)
+            det2 = ZZ(det2)
+            try:
+                det = ZZ(det2.sqrt_approx())
+                self.cache("det", det)
+            except TypeError:
+                pass
+        elif algorithm == "NTL:LLL_FP":
+            if use_givens:
+                r = A.G_LLL_FP(delta, verbose=verb)
+            else:
+                r = A.LLL_FP(delta, verbose=verb)
+        elif algorithm == "NTL:LLL_QP":
+            if use_givens:
+                r = A.G_LLL_QP(delta, verbose=verb)
+            else:
+                r = A.LLL_QP(delta, verbose=verb)
+        elif algorithm == "NTL:LLL_XD":
+            if use_givens:
+                r = A.G_LLL_XD(delta, verbose=verb)
+            else:
+                r = A.LLL_XD(delta, verbose=verb)
+        elif algorithm == "NTL:LLL_RR":
+            if use_givens:
+                r = A.G_LLL_RR(delta, verbose=verb)
+            else:
+                r = A.LLL_XD(delta, verbose=verb)
+        else:
+            raise TypeError, "algorithm %s not supported"%algorithm
+
+        r = ZZ(r)
 
         cdef Matrix_integer_dense R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
         self.cache("rank",r)
-        try:
-            det = ZZ(det2.sqrt_approx())
-            self.cache("det", det)
-        except TypeError:
-            pass
+
         return R
 
     def prod_of_row_sums(self, cols):
@@ -1670,19 +1799,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Determinante
 
-    def determinant(self):
+    def determinant(self, algorithm=None):
         """
         Return the determinant of this matrix.
 
-        ALGORITHM: Uses linbox.
+        INPUT:
+            algorithm -- 'linbox', 'ntl' or None (default: None)
+
+        ALGORITHM: Uses LinBox or NTL.
 
         EXAMPLES:
+            sage: A = matrix(ZZ,8,8,[3..66])
+            sage: A.determinant()
+            0
+
+            sage: A = random_matrix(ZZ,20,20)
+            sage: D1 = A.determinant()
+            sage: A._clear_cache()
+            sage: D2 = A.determinant(algorithm='ntl')
+            sage: D1 == D2
+            True
 
         """
         d = self.fetch('det')
         if not d is None:
             return d
-        d = self._det_linbox()
+
+        if algorithm is None:
+            algorithm = 'ntl'
+
+        if algorithm == 'linbox':
+            d = self._det_linbox()
+        elif algorithm == 'ntl':
+            d = self._det_ntl()
+        else:
+            raise TypeError, "algorithm '%s' not understood"%(algorithm)
+
         self.cache('det', d)
         return d
 
@@ -1693,6 +1845,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._init_linbox()
         _sig_on
         d = linbox.det()
+        _sig_off
+        return Integer(d)
+
+    def _det_ntl(self):
+        """
+        Compute the determinant of this matrix using NTL.
+        """
+        _sig_on
+        d = self._ntl_().determinant()
         _sig_off
         return Integer(d)
 

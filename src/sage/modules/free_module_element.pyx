@@ -531,8 +531,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         EXAMPLES:
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
-            sage: plot(v, eps=eps, xmax=5, hue=0).save('sage.png')
-            sage: v.plot(eps=eps, xmax=5, hue=0).save('sage.png')
+            sage: plot(v, eps=eps, xmax=5, hue=0).show()
+            sage: v.plot(eps=eps, xmax=5, hue=0).show()
         """
         if res is None:
             res = self.degree()

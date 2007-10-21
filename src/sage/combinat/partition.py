@@ -29,7 +29,7 @@ import __builtin__
 from sage.functions.constants import pi
 ceil = Function_ceil()
 sinh = Function_sinh()
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass, CombinatorialObject, number_of_partitions
 import partitions as partitions_ext
 from sage.libs.all import pari
 
@@ -1689,7 +1689,6 @@ class Partitions_n(CombinatorialClass):
                 'default' -- 'bober' when k is not specified; otherwise
                           use 'gap'.
 
-        IMPLEMENTATION: Wraps GAP's NrPartitions or PARI's numbpart function.
 
         Use the function \code{partitions(n)} to return a generator over
         all partitions of $n$.
@@ -1747,21 +1746,7 @@ class Partitions_n(CombinatorialClass):
             http://en.wikipedia.org/wiki/Partition_%28number_theory%29
 
         """
-        n = ZZ(self.n)
-        if n < 0:
-            raise ValueError, "n (=%s) must be a nonnegative integer"%n
-        elif n == 0:
-            return ZZ(1)
-        if algorithm == 'gap':
-            ans=gap.eval("NrPartitions(%s)"%(n))
-            return ZZ(ans)
-        if algorithm == 'default':
-            return partitions_ext.number_of_partitions(n)
-        elif algorithm == 'bober':
-            return partitions_ext.number_of_partitions(n)
-        elif algorithm == 'pari':
-            return ZZ(pari(n).numbpart())
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        return number_of_partitions(self.n, algorithm=algorithm)
 
     def first(self):
         """

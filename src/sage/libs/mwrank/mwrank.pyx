@@ -3,7 +3,7 @@ EXAMPLES:
     sage: from sage.libs.mwrank.mwrank import _Curvedata, _mw
     sage: c = _Curvedata(1,2,3,4,5)
 
-    sage.: print c
+    sage: print c
     [1,2,3,4,5]
     b2 = 9       b4 = 11         b6 = 29         b8 = 35
     c4 = -183           c6 = -3429
@@ -108,18 +108,13 @@ def initprimes(filename, verb=False):
         verb -- (bool: default False) verbose or not?
 
     EXAMPLES:
-        sage.: mwrank_initprimes("PRIMES", True)
-        Computed 78519 primes, largest is 1000253
-        reading primes from file PRIMES
-        read extra prime 10000000019
-        finished reading primes from file PRIMES
-        Extra primes in list: 10000000019
-        sage.: mwrank_initprimes("PRIMES", False)
-
-        sage: mwrank_initprimes("xPRIMES", True)
+        sage: file= SAGE_TMP + '/PRIMES'
+        sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^6)]))
+        sage: mwrank_initprimes(file, verb=False)
+        sage: mwrank_initprimes("x" + file, True)
         Traceback (most recent call last):
         ...
-        IOError: No such file or directory: xPRIMES
+        IOError: No such file or directory: ...
     """
     if not os.path.exists(filename):
         raise IOError, 'No such file or directory: %s'%filename

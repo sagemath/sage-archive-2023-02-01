@@ -293,8 +293,8 @@ class GSets(uniq1, Category):
 
     EXAMPLES:
         sage: S = SymmetricGroup(3)
-        sage.: GSets(S)
-        Category of G-sets for Symmetric group of order 3! as a permutation group
+        sage: GSets(S)
+        Category of G-sets for SymmetricGroup(3)
     """
     def __init__(self, G):
         Category.__init__(self, "G-sets")
@@ -307,8 +307,8 @@ class GSets(uniq1, Category):
         """
         EXAMPLES:
             sage: S8 = SymmetricGroup(8)
-            sage.: C = GSets(S8)
-            sage.: loads(C.dumps()) == C
+            sage: C = GSets(S8)
+            sage: loads(C.dumps()) == C
             True
         """
         return GSets, (self.__G, )
@@ -1122,14 +1122,14 @@ class Schemes_abstract(Category_uniq):
 
         We create a scheme morphism from a ring homomorphism.x
             sage: phi = ZZ.hom(QQ); phi
-            Coercion morphism:
+            Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
             sage: f = S(phi); f
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -1141,7 +1141,7 @@ class Schemes_abstract(Category_uniq):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Coercion morphism:
+              Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
 

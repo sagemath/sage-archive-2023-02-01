@@ -424,15 +424,15 @@ class Kash(Expect):
     def _read_in_file_command(self,filename):
         return 'Read("%s");'%filename
 
-    def _eval_line_using_file(self, line, tmp):
-        F = open(self._local_tmp_file(), 'w')
+    def _eval_line_using_file(self, line):
+        F = open(self._local_tmpfile(), 'w')
         F.write(line)
         F.close()
         tmp_to_use = self._local_tmpfile()
         if self.is_remote():
             self._send_tmpfile_to_server()
             tmp_to_use = self._remote_tmpfile()
-        return self._eval_line(self._read_inf_file_command(tmp_to_use),
+        return self._eval_line(self._read_in_file_command(tmp_to_use),
                                allow_use_file=False)
 
     # Change the default for KASH, since eval using a file doesn't

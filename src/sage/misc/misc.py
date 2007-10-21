@@ -192,10 +192,11 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         also returns cputime()
 
     EXAMPLE:
-        sage.: set_verbose(1)
-        sage.: t = cputime()
-        sage.: t = verbose("This is SAGE.", t, level=1, caller_name="william")
+        sage: set_verbose(1)
+        sage: t = cputime()
+        sage: t = verbose("This is SAGE.", t, level=1, caller_name="william")       # not tested
         VERBOSE1 (william): This is SAGE. (time = 0.0)
+        sage: set_verbose(0)
     """
     if level>LEVEL:
         return cputime()
@@ -251,13 +252,14 @@ def set_verbose(level, files='all'):
         possibly appends to the list of files that are verbose.
 
     EXAMPLES:
-        sage.: set_verbose(2)
-        sage.: _ = verbose("This is SAGE.", level=1)
+        sage: set_verbose(2)
+        sage: verbose("This is SAGE.", level=1)  # not tested
         VERBOSE1 (?): This is SAGE.
-        sage.: _ = verbose("This is SAGE.", level=2)
+        sage: verbose("This is SAGE.", level=2)  # not tested
         VERBOSE2 (?): This is SAGE.
-        sage.: _ = verbose("This is SAGE.", level=3)
+        sage: verbose("This is SAGE.", level=3)  # not tested
         [no output]
+        sage: set_verbose(0)
     """
     if isinstance(level, str):
         set_verbose_files([level])
@@ -390,13 +392,13 @@ def union(x, y=None):
         list
 
     EXAMPLES:
-        sage.: union([1,2,3,4], [5,6])
+        sage: union([1,2,3,4], [5,6])        # random order
         [1, 3, 2, 5, 4, 6]
-        sage.: union([1,2,3,4,5,6], [5,6])
+        sage: union([1,2,3,4,5,6], [5,6])    # random order
         [1, 3, 2, 5, 4, 6]
-        sage.: union((1,2,3,4,5,6), [5,6])
+        sage: union((1,2,3,4,5,6), [5,6])    # random order
         [1, 3, 2, 5, 4, 6]
-        sage.: union((1,2,3,4,5,6), set([5,6]))
+        sage: union((1,2,3,4,5,6), set([5,6]))   # random order
         [1, 3, 2, 5, 4, 6]
     """
     if y == None:
@@ -1073,10 +1075,10 @@ def random_sublist(X, s):
         list
 
     EXAMPLES:
-        sage.: S = [1,7,3,4,18]
-        sage.: random_sublist(S, 0.5)
+        sage: S = [1,7,3,4,18]
+        sage: random_sublist(S, 0.5)
         [7]
-        sage.: random_sublist(S, 0.5)
+        sage: random_sublist(S, 0.5)
         [1, 7, 3]
     """
     return [a for a in X if random.random() <= s]

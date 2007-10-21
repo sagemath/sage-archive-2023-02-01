@@ -702,5 +702,5 @@ cdef bint _register_pair(x, y) except -1:
 cdef void _unregister_pair(x, y):
     try:
         _coerce_test_list.remove(EltPair(x,y))
-    except ValueError:
+    except (ValueError, NotImplementedError):
         pass

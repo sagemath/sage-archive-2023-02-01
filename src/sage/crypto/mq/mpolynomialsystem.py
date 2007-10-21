@@ -20,31 +20,57 @@ symmetric algebraic cryptanalysis. The most prominent examples of these
 kind of systems are: SR (AES), Flurry/Curry, and CTC(2).
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
+
+TESTS:
+    sage: P.<x,y> = PolynomialRing(QQ)
+    sage: I = [[x^2 + y^2], [x^2 - y^2]]
+    sage: F = mq.MPolynomialSystem(P,I)
+    sage: loads(dumps(F)) == F
+    True
 """
 
 from sage.structure.sage_object import SageObject
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
-from sage.rings.finite_field import GF
-from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 
 from sage.rings.integer_ring import ZZ
+from sage.rings.finite_field import GF
+
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import Matrix
 
-from sage.misc.misc import uniq
+from sage.interfaces.singular import singular
+from sage.interfaces.magma import magma
+
 
 def is_MPolynomialSystem(F):
     """
     Return True if F is an MPolynomialSystem
+
+    EXAMPLE:
+       sage: P.<x,y> = PolynomialRing(QQ)
+       sage: I = [[x^2 + y^2], [x^2 - y^2]]
+       sage: F = mq.MPolynomialSystem(P,I); F
+       Polynomial System with 2 Polynomials in 2 Variables
+       sage: mq.is_MPolynomialSystem(F)
+       True
     """
     return isinstance(F,MPolynomialSystem_generic)
 
 def is_MPolynomialRoundSystem(F):
     """
     Return True if F is an MPolynomialRoundSystem
+
+    EXAMPLE:
+       sage: P.<x,y> = PolynomialRing(QQ)
+       sage: I = [[x^2 + y^2], [x^2 - y^2]]
+       sage: F = mq.MPolynomialSystem(P,I); F
+       Polynomial System with 2 Polynomials in 2 Variables
+       sage: mq.is_MPolynomialRoundSystem(F.round(0))
+       True
     """
     return isinstance(F,MPolynomialRoundSystem_generic)
 
@@ -78,8 +104,8 @@ def MPolynomialSystem(arg1, arg2=None):
         sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
         sage: I = sage.rings.ideal.Katsura(P)
 
-        If a list of MPolynomialRoundSystems is provided those
-        form the rounds.
+        If a list of MPolynomialRoundSystems is provided those form
+        the rounds.
 
         sage: mq.MPolynomialSystem(I.ring(), [mq.MPolynomialRoundSystem(I.ring(),I.gens())])
         Polynomial System with 4 Polynomials in 4 Variables
@@ -89,8 +115,8 @@ def MPolynomialSystem(arg1, arg2=None):
         sage: mq.MPolynomialSystem(I)
         Polynomial System with 4 Polynomials in 4 Variables
 
-        If a list of polynomials is provided the system has only
-        one round.
+        If a list of polynomials is provided the system has only one
+        round.
 
         sage: mq.MPolynomialSystem(I.ring(), I.gens())
         Polynomial System with 4 Polynomials in 4 Variables
@@ -142,44 +168,94 @@ class MPolynomialRoundSystem_generic(SageObject):
         else:
             self._gens = list(gens)
 
+    def __cmp__(self, other):
+        """
+        The internal dictionaries are compared.
+        """
+        return cmp(self.__dict__, other.__dict__)
+
     def ring(self):
         """
         Return the base ring.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R0 = F.round(0)
+            sage: print R0.ring().repr_long()
+            Polynomial Ring
+             Base Ring : Finite Field of size 2
+                  Size : 20 Variables
+              Block  0 : Ordering : degrevlex
+                         Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003
+              Block  1 : Ordering : degrevlex
+                         Names    : k000, k001, k002, k003
         """
         return self._ring
 
     def ngens(self):
         """
         Return number of polynomials in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R0 = F.round(0)
+            sage: R0.ngens()
+            4
         """
         return len(self._gens)
 
     def gens(self):
         """
         Return list of polynomials in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: l = R1.gens()
+            sage: l[0]
+            k000^2 + k000
         """
         return list(self)
-
-
-    def ideal(self):
-        """
-        Return the ideal spanned by the polynomials in self.
-        """
-        return self._ring.ideal(self.gens())
 
     def variables(self):
         """
         Return unordered list of variables apprearing in polynomials
         in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: sorted(R1.variables())
+            [k003, k002, k001, k000]
+
         """
-        return uniq(sum([f.variables() for f in self._gens],[]))
+        V = set()
+        for f in self._gens:
+            for v in f.variables():
+                V.add(v)
+        return list(V)
 
     def monomials(self):
         """
         Return unordered list of monomials appearing in polynomials
         in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: sorted(R1.monomials())
+            [k003, k002, k001, k000, k003^2, k002^2, k001^2, k000^2]
         """
-        return uniq(sum([f.monomials() for f in self._gens],[]))
+        M = set()
+        for f in self._gens:
+            for m in f.monomials():
+                M.add(m)
+        return list(M)
 
     def subs(self, *args, **kwargs):
         """
@@ -189,51 +265,158 @@ class MPolynomialRoundSystem_generic(SageObject):
         INPUT:
             args -- arguments to be passed to MPolynomial.subs
             kwargs -- keyword arguments to be passed to MPolynomial.subs
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: R1.subs(s) # the solution
+            sage: R1
+            [0, 0, 0, 0]
         """
         for i in range(len(self._gens)):
             self._gens[i] = self._gens[i].subs(*args,**kwargs)
 
     def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
+            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
+            sage: str(F) # indirect doctest
+            '[x*y + 1, z + 1]'
+        """
         return "%s"%self._gens
 
     def __getitem__(self, i):
+        """
+        Return the i-th generator of self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
+            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
+            sage: F[0] # indirect doctest
+            x*y + 1
+        """
         return self._gens[i]
 
     def __add__(self, right):
+        """
+        Addition is the union of generators.
+
+        INPUT:
+            right -- MPolynomialSystem, list or tuple
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: len(R1 + F.round(2)) # indirect doctest
+            28
+            sage: len(R1 + list(F.round(2)))
+            28
+
+        """
         if is_MPolynomialRoundSystem(right) and self.ring() == right.ring():
             return MPolynomialRoundSystem(self.ring(), self._gens + right.gens())
-        if isinstance(right, (list,tuple)) and self.ring() == right[0]:
+        if isinstance(right, (list,tuple)) and self.ring() == right[0].parent():
             return MPolynomialRoundSystem(self.ring(), self._gens + right)
         else:
             raise ArithmeticError, "Cannot add MPolynomialRoundSystem and %s"%type(right)
 
     def __contains__(self, element):
+        """
+        Return True if element is in the list of generators for self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: P = F.ring()
+            sage: f = P('k000^2 + k000')
+            sage: f in R1
+            True
+            sage: f+1 in R1
+            False
+        """
         return (element in self._gens)
 
     def __list__(self):
+        """
+        Return a list of generators for self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
+            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
+            sage: list(F) # indirect doctest
+            [x*y + 1, z + 1]
+        """
         return list(self._gens)
 
     def __len__(self):
         """
         Return self.ngens().
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
+            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
+            sage: len(F)
+            2
+
         """
         return len(self._gens)
 
     def __iter__(self):
         """
-        Iterate over the polynomials of self.
+        Iterate over the generators of self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
+            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
+            sage: for f in F:
+            ...     print f
+            x*y + 1
+            z + 1
         """
         return iter(self._gens)
 
     def _singular_(self):
         """
         Return SINGULAR ideal representation of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: R1._singular_()
+            k000^2+k000,
+            k001^2+k001,
+            k002^2+k002,
+            k003^2+k003
         """
         return singular.ideal(self._gens)
 
     def _magma_(self):
         """
         Return MAGMA ideal representation of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
+            sage: F,s = sr.polynomial_system()
+            sage: R1 = F.round(1)
+            sage: R1._magma_() # optional, requires MAGMA
+
+            Ideal of Polynomial ring of rank 20 over GF(2)
+            Graded Reverse Lexicographical Order
+            Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
+            Basis:
+            [
+            k000^2 + k000,
+            k001^2 + k001,
+            k002^2 + k002,
+            k003^2 + k003
+            ]
         """
         return magma.ideal(self._gens)
 
@@ -292,21 +475,53 @@ class MPolynomialSystem_generic(SageObject):
             else:
                 raise TypeError, "parameter not supported"
 
+    def __cmp__(self, other):
+        """
+        The internal dictionaries are compared.
+        """
+        return cmp(self.__dict__, other.__dict__)
+
     def ring(self):
         """
         Return base ring.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: print F.ring().repr_long()
+            Polynomial Ring
+             Base Ring : Finite Field of size 2
+                  Size : 20 Variables
+              Block  0 : Ordering : degrevlex
+                         Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003
+              Block  1 : Ordering : degrevlex
+                         Names    : k000, k001, k002, k003
+
         """
         return self._ring
 
     def ngens(self):
         """
         Return number polynomials in self
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
+            sage: F,s = sr.polynomial_system()
+            sage: F.ngens()
+            56
         """
         return sum([e.ngens() for e in self._rounds])
 
     def gens(self):
         """
         Return list of polynomials in self
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: l = F.gens()
+            sage: len(l), type(l)
+            (40, <type 'list'>)
         """
         return list(self)
 
@@ -323,7 +538,7 @@ class MPolynomialSystem_generic(SageObject):
 
             $ij$-th polynomial overall
 
-            sage: F[0]
+            sage: F[0] # indirect doctest
             a + 2*b + 2*c + 2*d - 1
 
             $i$-th to $j$-th polynomial overall
@@ -341,22 +556,51 @@ class MPolynomialSystem_generic(SageObject):
     def nrounds(self):
         """
         Return number of rounds of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.nrounds()
+            4
         """
         return len(self._rounds)
 
     def rounds(self):
         """
         Return list of rounds of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: l = F.rounds()
+            sage: len(l)
+            4
         """
         return list(self._rounds)
 
     def round(self, i):
         """
         Return $i$-th round of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: R0 = F.round(1)
+            sage: R0
+            [k000^2 + k001, k001^2 + k002, k002^2 + k003, k003^2 + k000]
         """
         return self._rounds[i]
 
     def __iter__(self):
+        """
+        Iterate over the generators of self round by round.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: type(iter(F))
+            <type 'generator'>
+        """
         for b in self._rounds:
             for e in b:
                 yield e
@@ -364,28 +608,71 @@ class MPolynomialSystem_generic(SageObject):
     def ideal(self):
         """
         Return SAGE ideal spanned by self.gens()
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: P = F.ring()
+            sage: I = F.ideal()
+            sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103')) # random result
+            Ideal (k002 + (a)*k003 + (a^3 + 1), k001 + (a^2 + 1)*k002
+            + (a^3 + a + 1), k000 + (a^3 + a^2 + 1)*k003 + (a^3 + a^2
+            + a), k103 + (a^2 + 1)*k000 + (a + 1)*k001 + (a^3 +
+            a^2)*k002 + (a^2 + 1)*k003 + 1, k102 + (a^3 + a)*k103 +
+            (a^2 + 1)*k001 + (a)*k002 + (a^2 + a + 1)*k003 + (a^3 + a
+            + 1), k101 + (a^2 + 1)*k102 + (a^2 + a)*k103 + (a^2 +
+            1)*k002 + (a), k100 + (a^2 + a)*k102 + (a^3 + a^2)*k103 +
+            (a^3 + a^2)*k003 + (a^3 + a + 1), k003^2 + k000) of
+            Multivariate Polynomial Ring in k100, k101, k102, k103,
+            x100, x101, x102, x103, w100, w101, w102, w103, s000,
+            s001, s002, s003, k000, k001, k002, k003 over Finite Field
+            in a of size 2^4
         """
         return self._ring.ideal(self.gens())
 
     def groebner_basis(self, *args, **kwargs):
         """
-        Compute and return a  Groebner basis for self.
+        Compute and return a Groebner basis for self.
 
         INPUT:
             args -- list of arguments passed to MPolynomialIdeal.groebner_basis call
             kwargs -- dictionary of arguments passed to MPolynomialIdeal.groebner_basis call
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: gb = F.groebner_basis()
+            sage: Ideal(gb).basis_is_groebner()
+            True
         """
         return self.ideal().groebner_basis(*args, **kwargs)
 
     def monomials(self):
         """
         Return a list of monomials in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: len(F.monomials())
+            49
         """
-        return uniq(sum([r.monomials() for r in self._rounds],[]))
+        M = set()
+        for r in self._rounds:
+            for f in r._gens:
+                for m in f.monomials():
+                    M.add(m)
+        return list(M)
 
     def nmonomials(self):
         """
         Return the number of monomials present in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.nmonomials()
+            49
         """
         return len(self.monomials())
 
@@ -393,16 +680,34 @@ class MPolynomialSystem_generic(SageObject):
         """
         Return all variables present in self. This list may or may not
         be equal to the generators of the ring of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.variables()[:10]
+            [x101, x100, x103, x102, s002, w100, w101, w102, w103, k100]
         """
-        return uniq(sum([r.variables() for r in self._rounds],[]))
+        V = set()
+        for r in self._rounds:
+            for f in r._gens:
+                for v in f.variables():
+                    V.add(v)
+        return list(V)
+
 
     def nvariables(self):
         """
         Return number of variables present in self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.nvariables()
+            20
         """
         return len(self.variables())
 
-    def coeff_matrix(self):
+    def coefficient_matrix(self):
         """
         Return tuple (A,v) where A is the coefficent matrix of self
         and v the matching monomial vector. Monomials are order w.r.t.
@@ -416,7 +721,7 @@ class MPolynomialSystem_generic(SageObject):
             + 2*c*d - b, b^2 + 2*a*c + 2*b*d - c)
 
             sage: F = mq.MPolynomialSystem(I)
-            sage: A,v = F.coeff_matrix()
+            sage: A,v = F.coefficient_matrix()
             sage: A
             [  0   0   0   0   0   0   0   0   0   1   2   2   2 126]
             [  1   0   2   0   0   2   0   0   2 126   0   0   0   0]
@@ -470,6 +775,14 @@ class MPolynomialSystem_generic(SageObject):
         Substitute variables for every polynomial in self. See
         MPolynomial.subs for calling convention.
 
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system(); F
+            Polynomial System with 40 Polynomials in 20 Variables
+            sage: F.subs(s); F
+            Polynomial System with 40 Polynomials in 16 Variables
+
         INPUT:
             args -- arguments to be passed to MPolynomial.subs
             kwargs -- keyword arguments to be passed to MPolynomial.subs
@@ -490,6 +803,9 @@ class MPolynomialSystem_generic(SageObject):
         return magma.ideal(list(self))
 
     def _repr_(self):
+        """
+        Return a string representation of self.
+        """
         return "Polynomial System with %d Polynomials in %d Variables"%(self.ngens(),self.nvariables())
 
     def __add__(self, right):
@@ -534,9 +850,22 @@ class MPolynomialSystem_generic(SageObject):
         """
         Return a list of self where all polynomials in self are
         presented in order as they appear in self.
-        """
-        return sum([list(e) for e in self._rounds],[])
 
+        EXAMPLE:
+            sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: F = mq.MPolynomialSystem(P,I.gens())
+            sage: list(F)
+            [x0 + 2*x1 + 2*x2 + 2*x3 - 1,
+            x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0,
+            2*x0*x1 + 2*x1*x2 + 2*x2*x3 - x1,
+            x1^2 + 2*x0*x2 + 2*x1*x3 - x2]
+        """
+        L = []
+        for r in self._rounds:
+            for f in r:
+              L.append(f)
+        return L
 
 class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     """
@@ -633,7 +962,4 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
         result += [e**2 + e for e in result_ring.gens()]
 
         return MPolynomialSystem(result_ring,result)
-
-
-
 

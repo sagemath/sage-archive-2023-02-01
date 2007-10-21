@@ -224,6 +224,9 @@ class Graphics3d(SageObject):
         """
 	Show this Graphics3d image with the default image viewer.
         """
+        if plot.DOCTEST_MODE:
+            self.save(sage.misc.misc.SAGE_TMP + '/test.png', xmin, xmax, ymin, ymax, zmin, zmax, figsize, dpi=dpi)
+            return
         if plot.EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, zmin, zmax, figsize, dpi=dpi)
             return
@@ -552,7 +555,7 @@ class Point3dFactory(Graphic3dPrimitiveFactory_from_point_list):
         sage: for i in srange(0,k,0.1):
         ...    G += point3d((i,sin(i),cos(i)), rgbcolor=(i/k,1-i/k,0))
         ...
-        sage: G.save('sage.png')
+        sage: G.show()
     """
     def _reset(self):
         self.options = {'alpha':1, 'pointsize':10,'faceted':False,'rgbcolor':(0,0,0)}

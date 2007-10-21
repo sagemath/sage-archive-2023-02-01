@@ -438,8 +438,7 @@ cdef class PowerSeries(AlgebraElement):
                     first = False
         # end
 
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
         if not (self._prec is infinity):
@@ -460,7 +459,7 @@ cdef class PowerSeries(AlgebraElement):
 
         EXAMPLES:
             sage: R.<t> = QQ[[]]
-            sage: f = -1/2 * t + 2/3*t^2 + -9/7 * t^15 + O(t^20); f
+            sage: f = -1/2 * t + 2/3*t^2 - 9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
             -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(t^{20})
@@ -496,8 +495,7 @@ cdef class PowerSeries(AlgebraElement):
                     s += repr(x)
                 first = False
 
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        s = s.replace(" + -", " - ")
         s = s.replace(" -1|", " -")
         s = s.replace(" 1|"," ")
         s = s.replace("|","")
@@ -654,7 +652,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def __nonzero__(self):
         """
-        Return True if this power series equals 0.
+        Return True if this power series is not equal to 0.
 
         EXAMPLES:
             sage: R.<q> = ZZ[[ ]]; R
@@ -902,13 +900,13 @@ cdef class PowerSeries(AlgebraElement):
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(QQ['y'], 't', 5)
             sage: f = ~(1+t); f
-            1 + -t + t^2 + -t^3 + t^4 + O(t^5)
+            1 - t + t^2 - t^3 + t^4 + O(t^5)
             sage: f.shift(3)
-            t^3 + -t^4 + t^5 + -t^6 + t^7 + O(t^8)
+            t^3 - t^4 + t^5 - t^6 + t^7 + O(t^8)
             sage: f >> 2
-            1 + -t + t^2 + O(t^3)
+            1 - t + t^2 + O(t^3)
             sage: f << 10
-            t^10 + -t^11 + t^12 + -t^13 + t^14 + O(t^15)
+            t^10 - t^11 + t^12 - t^13 + t^14 + O(t^15)
             sage: t << 29
             t^30
 
@@ -1010,7 +1008,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: u^2
             2 + t
             sage: u.parent()
-            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus x^2 + -2 - t
+            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus x^2 - 2 - t
             sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
             sage: sqrt(1+2*t+t^2)
             1 + t
@@ -1025,7 +1023,7 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: K.<t> = PowerSeriesRing(CDF, 5)
             sage: v = sqrt(-1 + t + t^3, all=True); v
-            [1.0*I + -0.5*I*t + -0.125*I*t^2 + -0.5625*I*t^3 + -0.2890625*I*t^4 + O(t^5),
+            [1.0*I - 0.5*I*t - 0.125*I*t^2 - 0.5625*I*t^3 - 0.2890625*I*t^4 + O(t^5),
              -1.0*I + 0.5*I*t + 0.125*I*t^2 + 0.5625*I*t^3 + 0.2890625*I*t^4 + O(t^5)]
             sage: [a^2 for a in v]
             [-1.0 + 1.0*t + 1.0*t^3 + O(t^5), -1.0 + 1.0*t + 1.0*t^3 + O(t^5)]
@@ -1038,7 +1036,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: s^2
             2*t + t^3 + O(t^4)
             sage: parent(s)
-            Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 + -2*t - t^3 + O(t^4)
+            Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 - 2*t - t^3 + O(t^4)
 
         AUTHORS:
             -- Robert Bradshaw

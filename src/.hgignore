@@ -23,6 +23,7 @@ pull
 \.sobj$
 \.bak$
 \.BAK$
+\.dylib$
 \.fig$
 \.png$
 \.eps$

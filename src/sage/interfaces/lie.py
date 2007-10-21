@@ -468,6 +468,8 @@ class LiE(Expect):
         else:
             return self.__trait_names_list
 
+    def _an_element_impl(self):
+        return self(0)
 
     def read(self, filename):
         # [[implement loading of the contents of filename into the system]]
@@ -642,6 +644,19 @@ class LiEElement(ExpectElement):
             return R(eval(str(self)))
         else:
             raise ValueError, "not a vector"
+
+    def __cmp__(self, other):
+        P = self.parent()
+        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+                                 other.name())) == P._true_symbol():
+            return 0
+        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+            return -1
+        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+            return 1
+        else:
+            return -1  # everything is supposed to be comparable in Python, so we define
+                       # the comparison thus when no comparable in interfaced system.
 
     def sage(self):
         t = self.type()

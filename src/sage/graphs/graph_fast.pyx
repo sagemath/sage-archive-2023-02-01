@@ -232,14 +232,13 @@ def binary(n, length=None):
     """
     A quick python int to binary string conversion.
 
-    sage.: timeit sage.graphs.graph_fast.binary(389)
-    100000 loops, best of 3: 11.4 [micro]s per loop
-    sage.: timeit Integer(389).binary()
-    10000 loops, best of 3: 16.8 [micro]s per loop
-
     EXAMPLE:
-    sage: sage.graphs.graph_fast.binary(2007)
-    '11111010111'
+        sage: sage.graphs.graph_fast.binary(389)
+        '110000101'
+        sage: Integer(389).binary()
+        '110000101'
+        sage: sage.graphs.graph_fast.binary(2007)
+        '11111010111'
     """
     cdef mpz_t i
     mpz_init(i)

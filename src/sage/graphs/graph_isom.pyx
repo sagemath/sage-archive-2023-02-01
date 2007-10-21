@@ -824,10 +824,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: DodecAut.character_table() # long time
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
-        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
+        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
         [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
@@ -836,10 +836,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: DodecAut2.character_table() # long time
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
-        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
+        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
         [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
@@ -1170,13 +1170,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef OrbitPartition Theta, OP
     cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
 
-    cdef int L = 100 # memory limit for storing values from fix and mcr
-    cdef int **Phi # stores results from fix
-    cdef int **Omega # stores results from mcr
-    cdef int l = -1 # current index for storing values from fix and mcr-
+    cdef int L = 100 # memory limit for storing values from fix and mcr:
+                     # Phi and Omega store specific information about some
+                     # of the automorphisms we already know about, and they
+                     # are arrays of length L
+    cdef int **Phi # stores the fixed point sets of each automorphism
+    cdef int **Omega # stores the minimal elements of each cell of the
+                     # orbit partition
+    cdef int l = -1 # current index for storing values in Phi and Omega-
                     # we start at -1 so that when we increment first,
                     # the first place we write to is 0.
-    cdef int **_W # which vertices are relevant in light of the above
+    cdef int **_W # for each k, _W[k] is a list of the vertices to be searched
+                  # down from the current partition nest, at k
+                  # Phi and Omega are ultimately used to make the size of _W
+                  # as small as possible
 
     cdef PartitionStack _nu, _zeta, _rho
     cdef int k_rho # the number of partitions in rho
@@ -1226,10 +1233,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         else:
             return [[]]
 
-    if certify:
-        lab=True
-
-    # create to and from mappings to relabel vertices
+    # create to and from mappings to relabel vertices to the set {0,...,n-1}
     listto = G.vertices()
     ffrom = {}
     for vvv in listto:
@@ -1303,6 +1307,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     _output = []
     if dig: _dig = 1
     else: _dig = 0
+    if certify:
+        lab=True
 
     if verbosity > 1:
         t = cputime()
@@ -1753,8 +1759,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     sage_free(_W)
     sage_free(Lambda_mpz)
     sage_free(_gamma)
-    #mpz_clear(G_enum[0])
 
+    # use to and from mappings to relabel vertices back from the set {0,...,n-1}
     if lab:
         H = _term_pnest_graph(G, _rho)
     G.relabel(to)
@@ -1766,6 +1772,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             else:
                 ddd[v] = n
 
+    # prepare output
     if certify:
         dd = {}
         for i from 0 <= i < n:

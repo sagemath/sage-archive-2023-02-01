@@ -8,6 +8,7 @@ from sage.structure.element cimport MonoidElement
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _R
+    cdef public _monom_monoid
 
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _P
@@ -23,3 +24,7 @@ cdef class DD:
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _M
+
+cdef class BooleanMonomialIterator:
+    cdef PBMonom _obj
+    cdef PBMonomIter _iter

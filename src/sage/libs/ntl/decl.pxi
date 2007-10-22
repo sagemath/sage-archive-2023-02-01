@@ -204,7 +204,7 @@ cdef extern from "ntl_wrap.h":
     void ZZX_XGCD "XGCD"(ZZ_c r, ZZX_c s, ZZX_c t, ZZX_c a, ZZX_c b, long deterministic)
     void ZZX_content "content"(ZZ_c d, ZZX_c f)
 
-    void ZZX_square_free_decomposition(ZZX_c*** v, long** e, long* n, ZZX_c* x)
+    void ZZX_squarefree_decomposition(ZZX_c*** v, long** e, long* n, ZZX_c* x)
 
     char* ZZX_repr(ZZX_c* x)
     ZZX_c* ZZX_copy(ZZX_c* x)

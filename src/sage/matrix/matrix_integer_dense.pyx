@@ -1015,12 +1015,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True):
         r"""
-        Return the echelon form of this matrix over the integers.
+        Return the echelon form of this matrix over the integers also
+        known as the hermit normal form (HNF).
 
         INPUT:
-            algorithm, cutoff -- ignored currently
-            include_zero_rows -- (default: True) if False,
-                                 don't include zero rows.
+            algorithm -- 'pari', 'ntl' or 'default';
+                  the default is ntl if self is square and of full rank;
+                  otherwise, it is ntl.
+            cutoff -- ignored currently
+            include_zero_rows -- (default: True)
+                                 if False, don't include zero rows
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1056,6 +1060,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: m = matrix(ZZ,0,0,[])
             sage: m.echelon_form()
             []
+
+        NOTE: If 'ntl' is chosen for a non square matrix we silently
+        fall back to the 'pari' implementation. Also, if the matrix's
+        rank is not sufficient for 'ntl' we silently fall back to
+        'pari'.
         """
         x = self.fetch('echelon_form')
         if not x is None:
@@ -1068,41 +1077,90 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self
 
         cdef Py_ssize_t nr, nc, n, i
-        nr = self._nrows
-        nc = self._ncols
-
-        # The following complicated sequence of column reversals
-        # and transposes is needed since PARI's Hermite Normal Form
-        # does column operations instead of row operations.
-        n = nc
-        r = []
-        for i from 0 <= i < n:
-            r.append(n-i)
-        v = self._pari_()
-        v = v.vecextract(r) # this reverses the order of columns
-        v = v.mattranspose()
-        w = v.mathnf(1)
+        cdef int nr = self._nrows
+        cdef int nc = self._ncols
+        cdef int i, j
 
         cdef Matrix_integer_dense H_m
-        H = convert_parimatrix(w[0])
-        # if H=[] may occur if we start with a column of zeroes
-        if nc == 1 and H!=[]:
-            H = [H]
 
-        # We do a 'fast' change of the above into a list of ints,
-        # since we know all entries are ints:
-        num_missing_rows = (nr*nc - len(H)) / nc
-        rank = nr - num_missing_rows
+        if algorithm == 'default':
+            if nr <= nc and self.rank() == nr:
+                algorithm = 'ntl'
+            else:
+                algorithm = 'pari'
 
-        if include_zero_rows:
-            H = H + ['0']*(num_missing_rows*nc)
-            H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+        if algorithm == 'pari':
+            # The following complicated sequence of column reversals
+            # and transposes is needed since PARI's Hermite Normal Form
+            # does column operations instead of row operations.
+            n = nc
+            r = []
+            for i from 0 <= i < n:
+                r.append(n-i)
+            v = self._pari_()
+            v = v.vecextract(r) # this reverses the order of columns
+            v = v.mattranspose()
+            w = v.mathnf(1)
+
+            H = convert_parimatrix(w[0])
+            # if H=[] may occur if we start with a column of zeroes
+            if nc == 1 and H!=[]:
+                H = [H]
+
+            # We do a 'fast' change of the above into a list of ints,
+            # since we know all entries are ints:
+            num_missing_rows = (nr*nc - len(H)) / nc
+            rank = nr - num_missing_rows
+
+            if include_zero_rows:
+                H = H + ['0']*(num_missing_rows*nc)
+                H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+            else:
+                H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
+
+        elif algorithm == 'ntl':
+
+            if nr != nc:
+                # fail back to pari gracefully
+                return self.echelon_form(algorithm='pari',
+                                         include_zero_rows=include_zero_rows,
+                                         cutoff=cutoff)
+
+            import sage.libs.ntl.ntl_mat_ZZ
+            v =  sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ(self._nrows,self._ncols)
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    v[i,j] = self.get_unsafe(nr-i-1,nc-j-1)
+
+            try:
+                w = v.HNF()
+            except RuntimeError: # HNF may fail if a nxm matrix has rank < m
+                return self.echelon_form(algorithm='pari',
+                                         include_zero_rows=include_zero_rows,
+                                         cutoff=cutoff)
+
+            rank = w.nrows()
+
+            if include_zero_rows:
+                H_m = self.new_matrix()
+            else:
+                H_m = self.new_matrix(nrows=w.nrows())
+
+            nr = w.nrows()
+            nc = w.ncols()
+
+            for i from 0 <= i < w.nrows():
+                for j from 0 <= j < w.ncols():
+                    H_m[i,j] = w[nr-i-1,nc-j-1]
+            H_m.set_immutable()
+
         else:
-            H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
+            raise TypeError, "algorithm '%s' not understood"%(algorithm)
 
         H_m.set_immutable()
         H_m.cache('rank', rank)
         self.cache('rank',rank)
+
         H_m.cache('echelon_form',H_m)
         self.cache('echelon_form',H_m)
         return H_m
@@ -1415,11 +1473,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         r"""
         ntl.mat_ZZ representation of self.
 
+        EXAMPLE:
+            sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
+            sage: A = a._ntl_()
+
         \note{NTL only knows dense matrices, so if you provide a
         sparse matrix NTL will allocate memory for every zero entry.}
         """
-        import sage.libs.ntl.ntl
-        return sage.libs.ntl.ntl.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
+        import sage.libs.ntl.ntl_mat_ZZ
+        return sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
 
 
     ####################################################################################
@@ -1737,19 +1799,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Determinante
 
-    def determinant(self):
+    def determinant(self, algorithm=None):
         """
         Return the determinant of this matrix.
 
-        ALGORITHM: Uses linbox.
+        INPUT:
+            algorithm -- 'linbox', 'ntl' or None (default: None)
+
+        ALGORITHM: Uses LinBox or NTL.
 
         EXAMPLES:
+            sage: A = matrix(ZZ,8,8,[3..66])
+            sage: A.determinant()
+            0
+
+            sage: A = random_matrix(ZZ,20,20)
+            sage: D1 = A.determinant()
+            sage: A._clear_cache()
+            sage: D2 = A.determinant(algorithm='ntl')
+            sage: D1 == D2
+            True
 
         """
         d = self.fetch('det')
         if not d is None:
             return d
-        d = self._det_linbox()
+
+        if algorithm is None:
+            algorithm = 'ntl'
+
+        if algorithm == 'linbox':
+            d = self._det_linbox()
+        elif algorithm == 'ntl':
+            d = self._det_ntl()
+        else:
+            raise TypeError, "algorithm '%s' not understood"%(algorithm)
+
         self.cache('det', d)
         return d
 
@@ -1760,6 +1845,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._init_linbox()
         _sig_on
         d = linbox.det()
+        _sig_off
+        return Integer(d)
+
+    def _det_ntl(self):
+        """
+        Compute the determinant of this matrix using NTL.
+        """
+        _sig_on
+        d = self._ntl_().determinant()
         _sig_off
         return Integer(d)
 

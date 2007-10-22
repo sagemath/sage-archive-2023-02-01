@@ -29,7 +29,7 @@ sage: print RealField(150)(a)
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
 sage: # NOTE -- we get a different answer than yacas
-sage: bessel_J(2.0,1.0+I)
+sage: bessel_J(1.0+I, 2.0)
 0.874211097673326 - 0.222469792478650*I
 
 sage: # Obtain period of decimal fraction 1/7=0.(142857).

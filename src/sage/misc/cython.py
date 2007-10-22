@@ -144,7 +144,7 @@ def cython(filename, verbose=False, compile_message=False,
         if not os.path.isdir(G):
             os.unlink(G)
 
-    cmd = 'cd "%s"; ln -s "%s"/* .'%(build_dir, abs_base)
+    cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
     os.system(cmd)
 
     if compile_message:

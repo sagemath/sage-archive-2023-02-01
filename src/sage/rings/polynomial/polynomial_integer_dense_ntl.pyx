@@ -646,7 +646,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return pari(self.list()).Polrev(variable)
 
 
-    def square_free_decomposition(self):
+    def squarefree_decomposition(self):
         """
         Return the square-free decomposition of self.  This is
         a partial factorization of self into square-free, relatively
@@ -657,7 +657,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         EXAMPLES:
             sage: R.<x> = PolynomialRing(ZZ)
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
-            sage: p.square_free_decomposition()
+            sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
         """
 
@@ -670,7 +670,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef long* e
         cdef long i, n
         cdef Polynomial_integer_dense_ntl z
-        ZZX_square_free_decomposition(&v, &e, &n, &p.__poly)
+        ZZX_squarefree_decomposition(&v, &e, &n, &p.__poly)
         F = []
         for i from 0 <= i < n:
             z = self._new()

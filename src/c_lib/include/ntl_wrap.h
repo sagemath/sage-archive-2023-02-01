@@ -125,7 +125,7 @@ EXTERN void ZZX_preallocate_space(struct ZZX* x, long n);
 //         e -- point to list of e longs (the exponents)
 //         n -- length of above two lists
 //  The lists v and e are mallocd, and must be freed by the calling code.
-EXTERN void ZZX_square_free_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x);
+EXTERN void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x);
 
 
 //////// ZZ_pX //////////

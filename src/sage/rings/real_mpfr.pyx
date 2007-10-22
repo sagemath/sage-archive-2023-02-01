@@ -280,17 +280,28 @@ cdef class RealField(sage.rings.ring.Field):
             True
             sage: RealField(10,rnd='RNDN') == RealField(10,rnd='RNDZ')
             False
+
+        Scientific notation affects only printing, not mathematically
+        how the field works, so this does not affect equality testing.
             sage: RealField(10,sci_not=True) == RealField(10,sci_not=False)
-            False
+            True
             sage: RealField(10) == IntegerRing()
             False
+
+            sage: RS = RealField(sci_not=True)
+            sage: RR == RS
+            True
+            sage: RS.scientific_notation(False)
+            sage: RR == RS
+            True
+
         """
         if not isinstance(other, RealField):
             return -1
         cdef RealField _other
         _other = other  # to access C structure
-        if self.__prec == _other.__prec and self.rnd == _other.rnd \
-               and self.sci_not == _other.sci_not:
+        if self.__prec == _other.__prec and self.rnd == _other.rnd: \
+               #and self.sci_not == _other.sci_not:
             return 0
         return 1
 

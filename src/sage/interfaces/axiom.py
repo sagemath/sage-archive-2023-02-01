@@ -67,9 +67,7 @@ In some cases you can see a normal linear representation of any Axiom
 object x, using \code{str(x)}.  This can be useful for moving axiom
 data to other systems.
     sage: a = axiom('2/3'); a          # optional
-    2
-    -
-    3
+    2/3
     sage: str(a)                       # optional
     '2/3'
     sage: a = axiom('x^2 + 3/7')       # optional
@@ -92,8 +90,7 @@ the factor method on it.  Notice that the notation \code{f.factor()}
 is consistent with how the rest of \sage works.
     sage: f = axiom('x^5 - y^5')                  # optional
     sage: f^2                                     # optional
-     10     5 5    10
-    y   - 2x y  + x
+    y**10+(-2*x**5*y**5)+x**10
     sage: f.factor()                              # optional
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
@@ -108,10 +105,7 @@ control-C.
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
 
     sage: axiom('1/100 + 1/101')                  # optional
-       201
-      -----
-      10100
-
+    201/10100
     sage: a = axiom('(1 + sqrt(2))^5'); a         # optional
          +-+
       29\|2  + 41
@@ -400,8 +394,11 @@ class AxiomElement(ExpectElement):
         """
         P = self._check_valid()
         s = P.eval('unparse(%s::InputForm)'%self._name)
-        if 'translation error' in s:
-            raise RuntimeError, s
+        if 'translation error' in s or 'Cannot convert' in s:
+            try:
+                return P.get(self._name)
+            except:
+                raise RuntimeError, s
         s = multiple_replace({'\r\n':'', # fix stupid Fortran-ish
                               'DSIN(':'sin(',
                               'DCOS(':'cos(',
@@ -417,8 +414,7 @@ class AxiomElement(ExpectElement):
         return self.str()
 
     def __str__(self):
-        P = self._check_valid()
-        return P.get(self._name)
+        return self.str()
 
     def type(self):
         P = self._check_valid()
@@ -456,11 +452,9 @@ class AxiomElement(ExpectElement):
 
         EXAMPLES:
             sage: v = axiom('[i*x^i for i in 0..5]'); v          # optional
-                   2   3   4   5
-            [0,x,2x ,3x ,4x ,5x ]
+            [0,x,2*x*x,3*x**3,4*x**4,5*x**5]
             sage: v[4]                                           # optional
-              3
-            3x
+            3*x**3
             sage: v[1]                                           # optional
             0
             sage: v[10]                                          # optional

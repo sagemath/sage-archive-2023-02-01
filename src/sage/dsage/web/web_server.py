@@ -242,4 +242,22 @@ class GetJobDetails(resource.PostableResource):
             """ % jdict['code']
         except (sqlite3.InterfaceError, TypeError):
             html = 'Invalid job id.'
-        return http.Response(stream=self.header % (job_id) + html + self.footer)
+        html = self.header % (job_id) + html + self.footer
+        return http.Response(stream=html)
+
+class GetServerDetails(resource.Resource):
+    """
+    Returns an XML file containing the server resources.
+
+    """
+
+    def __init__(self, dsage_server):
+        self.dsage_server = dsage_server
+
+    def render(self):
+        """
+        Asks the server to generate stats and returns it in an XML file.
+
+        """
+
+        return self.dsage_server.generate_xml_stats()

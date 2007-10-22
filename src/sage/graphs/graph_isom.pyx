@@ -1205,7 +1205,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef int **M # for the square adjacency matrix
     cdef int *gamma # for storing permutations
     cdef int *alpha # for storing pointers to cells of nu[k]:
-                     # allocated to be length 4*n for scratch (see functions
+                     # allocated to be length 4*n + 1 for scratch (see functions
                      # _sort_by_function and _refine_by_square_matrix)
     cdef int *v # list of vertices determining nu
     cdef int *e # 0 or 1, see states 12 and 17
@@ -1247,34 +1247,66 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         Pi2.append([ffrom[c] for c in cell])
     Pi = Pi2
 
-    # allocate pointers
-    W = <int **> sage_malloc( 2 * (n + L) * sizeof(int *) )
-    if not W:
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    M = W + n
-    Phi = W + 2*n
-    Omega = W + 2*n + L
+    # allocate int pointers
+    W = <int **> sage_malloc( n * sizeof(int *) )
+    M = <int **> sage_malloc( n * sizeof(int *) )
+    Phi = <int **> sage_malloc( L * sizeof(int *) )
+    Omega = <int **> sage_malloc( L * sizeof(int *) )
 
-    # allocate pointers for GMP ints
-    Lambda_mpz = <mpz_t *> sage_malloc( 3 * (n+2) * sizeof(mpz_t) )
-    if not Lambda_mpz:
-        sage_free(W)
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    zf_mpz = Lambda_mpz + n + 2
-    zb_mpz = Lambda_mpz + 2*n + 4
+    # allocate GMP int pointers
+    Lambda_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
+    zf_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
+    zb_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
 
-    # allocate arrays
-    gamma = <int *> sage_malloc( ( n * ( 2 * (n + L) + 7 ) + 1 ) * sizeof(int) )
-    if not gamma:
-        sage_free(W)
+    # check for memory errors
+    if not (W and M and Phi and Omega and Lambda_mpz and zf_mpz and zb_mpz):
         sage_free(Lambda_mpz)
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    alpha = gamma + n*( 2*(n + L) + 1 )
-    v = alpha + 4*n + 1
-    e = v + n
-    for i from 0 <= i < n:
-        W[i] = gamma + n + n*i
-        M[i] = gamma + n*( 1 + n + 2*L + i )
+        sage_free(zf_mpz)
+        sage_free(zb_mpz)
+        sage_free(W)
+        sage_free(M)
+        sage_free(Phi)
+        sage_free(Omega)
+        raise MemoryError("Error allocating memory.")
+
+    # allocate int arrays
+    gamma = <int *> sage_malloc( n * sizeof(int) )
+    W[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
+    M[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
+    Phi[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
+    Omega[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
+    alpha = <int *> sage_malloc( (4*n + 1) * sizeof(int) )
+    v = <int *> sage_malloc( n * sizeof(int) )
+    e = <int *> sage_malloc( n * sizeof(int) )
+
+    # check for memory errors
+    if not (gamma and W[0] and M[0] and Phi[0] and Omega[0] and alpha and v and e):
+        sage_free(gamma)
+        sage_free(W[0])
+        sage_free(M[0])
+        sage_free(Phi[0])
+        sage_free(Omega[0])
+        sage_free(alpha)
+        sage_free(v)
+        sage_free(e)
+        sage_free(Lambda_mpz)
+        sage_free(zf_mpz)
+        sage_free(zb_mpz)
+        sage_free(W)
+        sage_free(M)
+        sage_free(Phi)
+        sage_free(Omega)
+        raise MemoryError("Error allocating memory.")
+
+    # setup double index arrays
+    for i from 0 < i < n:
+        W[i] = W[0] + n*i
+    for i from 0 < i < n:
+        M[i] = M[0] + n*i
+    for i from 0 < i < L:
+        Phi[i] = Phi[0] + n*i
+    for i from 0 < i < L:
+        Omega[i] = Omega[0] + n*i
 
     # allocate GMP ints
     for i from 0 <= i < n+2:
@@ -1283,11 +1315,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         mpz_init_set_si(zb_mpz[i], -1) # "infinity"
         # Note that there is a potential memory leak here - if a particular
         # mpz fails to allocate, this is not checked for
-    for i from 0 <= i < L:
-        Phi[i] = gamma + n*( 1 + n + i )
-        Omega[i] = gamma + n*( 1 + n + i + L )
 
-    # create the dense boolean matrix
+    # initialize M and W
     for i from 0 <= i < n:
         for j from 0 <= j < n:
             M[i][j] = 0
@@ -1748,15 +1777,32 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             qzb = 0 # Lambda[k] == zb[k], so...
             state = 13
 
-    # deallocate the MP integers
+    # free the GMP ints
     for i from 0 <= i < n:
         mpz_clear(Lambda_mpz[i])
         mpz_clear(zf_mpz[i])
         mpz_clear(zb_mpz[i])
 
-    sage_free(W)
-    sage_free(Lambda_mpz)
+    # free int arrays
     sage_free(gamma)
+    sage_free(W[0])
+    sage_free(M[0])
+    sage_free(Phi[0])
+    sage_free(Omega[0])
+    sage_free(alpha)
+    sage_free(v)
+    sage_free(e)
+
+    # free GMP int pointers
+    sage_free(Lambda_mpz)
+    sage_free(zf_mpz)
+    sage_free(zb_mpz)
+
+    # free int pointers
+    sage_free(W)
+    sage_free(M)
+    sage_free(Phi)
+    sage_free(Omega)
 
     # use to and from mappings to relabel vertices back from the set {0,...,n-1}
     if lab:

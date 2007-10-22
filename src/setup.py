@@ -2,7 +2,13 @@
 DEVEL = False
 
 import distutils.sysconfig, os, sys
-from distutils.core import setup, Extension
+# from distutils.core import setup, Extension
+
+# TODO: Is this what we want here?
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
+
 
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py

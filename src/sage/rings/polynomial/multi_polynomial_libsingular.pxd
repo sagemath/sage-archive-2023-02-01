@@ -1,6 +1,7 @@
 include "../../libs/singular/singular-cdefs.pxi"
 
-cimport sage.rings.polynomial.multi_polynomial
+#cimport sage.rings.polynomial.multi_polynomial
+cimport multi_polynomial
 from sage.rings.polynomial.multi_polynomial_ring_generic cimport MPolynomialRing_generic
 from sage.structure.parent cimport Parent
 
@@ -20,5 +21,4 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     cdef object __minpoly
     cdef ring *_ring
     cdef int _cmp_c_impl(left, Parent right) except -2
-
 

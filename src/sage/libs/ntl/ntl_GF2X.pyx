@@ -36,6 +36,43 @@ from ntl_GF2 cimport ntl_GF2
 #
 ##############################################################################
 
+def GF2XHexOutput(have_hex=None):
+    """
+    Represent GF2X and GF2E elements in the more compact
+    hexadecimal form to the user.
+
+    If no parameter is provided the currently set value will be
+    returned.
+
+    INPUT:
+        have_hex if True hex representation will be used
+
+    EXAMPLES:
+        sage: m = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+        sage: x = ntl.GF2E([1,0,1,0,1], m) ; x
+        [1 0 1 0 1]
+
+        sage: ntl.GF2XHexOutput() ## indirect doctest
+        False
+        sage: ntl.GF2XHexOutput(True)
+        sage: ntl.GF2XHexOutput()
+        True
+
+        sage: x
+        0x51
+
+        sage: ntl.GF2XHexOutput(False)
+        sage: x
+        [1 0 1 0 1]
+    """
+    if have_hex==None:
+        return bool(GF2XHexOutput_c[0])
+
+    if have_hex==True:
+        GF2XHexOutput_c[0] = 1
+    else:
+        GF2XHexOutput_c[0] = 0
+
 cdef class ntl_GF2X:
     """
     Univariate Polynomials over GF(2) via NTL.
@@ -424,7 +461,7 @@ cdef class ntl_GF2X:
     def bin(ntl_GF2X self):
         """
         Returns binary representation of this element. It is
-        the same as setting \code{ntl.hex_output(False)} and
+        the same as setting \code{ntl.GF2XHexOutput(False)} and
         representing this element afterwards. However it should be
         faster and preserves the HexOutput state as opposed to
         the above code.
@@ -437,16 +474,16 @@ cdef class ntl_GF2X:
         OUTPUT:
             string representing this element in binary digits
         """
-        cdef long _hex = GF2XHexOutput[0]
-        GF2XHexOutput[0] = 0
+        cdef long _hex = GF2XHexOutput_c[0]
+        GF2XHexOutput_c[0] = 0
         s = GF2X_to_PyString(&self.x)
-        GF2XHexOutput[0] = _hex
+        GF2XHexOutput_c[0] = _hex
         return s
 
     def __hex__(ntl_GF2X self):
         """
         Returns hexadecimal representation of this element. It is
-        the same as setting \code{ntl.hex_output(True)} and
+        the same as setting \code{ntl.GF2XHexOutput(True)} and
         representing this element afterwards. However it should be
         faster and preserves the HexOutput state as opposed to
         the above code.
@@ -460,10 +497,10 @@ cdef class ntl_GF2X:
             string representing this element in hexadecimal
 
         """
-        cdef long _hex = GF2XHexOutput[0]
-        GF2XHexOutput[0] = 1
+        cdef long _hex = GF2XHexOutput_c[0]
+        GF2XHexOutput_c[0] = 1
         s = GF2X_to_PyString(&self.x)
-        GF2XHexOutput[0] = _hex
+        GF2XHexOutput_c[0] = _hex
         return s
 
     def _sage_(ntl_GF2X self, R=None):

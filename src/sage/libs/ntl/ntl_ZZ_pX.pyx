@@ -147,7 +147,7 @@ cdef class ntl_ZZ_pX:
             sage: loads(dumps(f)) == f
             True
         """
-        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.get_modulus_context()))
+        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.modulus_context()))
 
     def __repr__(self):
         """
@@ -202,13 +202,13 @@ cdef class ntl_ZZ_pX:
         """
         return self.__copy__()
 
-    def get_modulus_context(self):
+    def modulus_context(self):
         """
         Return the modulus for self.
 
         EXAMPLES:
             sage: x = ntl.ZZ_pX([0,5,3],17)
-            sage: c = x.get_modulus_context()
+            sage: c = x.modulus_context()
             sage: y = ntl.ZZ_pX([5],c)
             sage: x+y
             [5 5 3]

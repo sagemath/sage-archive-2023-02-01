@@ -932,128 +932,25 @@ struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
 }
 
 /**
- * GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
+ * GF2EContext
  */
 
-
-void ntl_GF2E_set_modulus(GF2X* x)
+GF2EContext* GF2EContext_construct(void *mem, const GF2X *p)
 {
-  GF2E::init(*x);
+  return new(mem) GF2EContext(*p);
 }
 
 
-struct GF2E* GF2E_pow(const struct GF2E* x, long e)
+GF2EContext* GF2EContext_new(const GF2X *p)
 {
-  GF2E *z = new GF2E();
-  power(*z, *x, e);
-  return z;
+  return new GF2EContext(*p);
 }
 
-
-struct GF2E* GF2E_neg(struct GF2E* x)
-{
-  return new GF2E(-(*x));
-}
-
-struct GF2E* GF2E_copy(struct GF2E* x)
-{
-  GF2E *z = new GF2E(*x);
-  return z;
-}
-
-long GF2E_trace(struct GF2E* x)
-{
-  return rep(trace(*x));
-}
-
-const struct GF2X* GF2E_modulus()
-{
-  GF2XModulus mod = GF2E::modulus();
-  GF2X *z = new GF2X(mod.val());
-  return z;
-}
-
-struct GF2E *GF2E_random(void)
-{
-  GF2E *z = new GF2E();
-  random(*z);
-  return z;
-}
-
-const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x) {
-  GF2X *r = new GF2X(rep(*x));
-  return r;
-}
-
-
-/**
- * mat_GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-void mat_GF2E_SetDims(struct mat_GF2E* m, long nrows, long ncols){
-  m->SetDims(nrows, ncols);
-}
-
-struct mat_GF2E* mat_GF2E_pow(const struct mat_GF2E* x, long e)
-{
-  mat_GF2E *z = new mat_GF2E();
-  power(*z, *x, e);
-  return z;
-}
-
-long mat_GF2E_nrows(const struct mat_GF2E* x)
-{
-  return x->NumRows();
-}
-
-
-long mat_GF2E_ncols(const struct mat_GF2E* x)
-{
-  return x->NumCols();
-}
 
 void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
   (*x)[i][j] = *z;
 }
-
-struct GF2E* mat_GF2E_getitem(const struct mat_GF2E* x, int i, int j)
-{
-  return new GF2E((*x)(i,j));
-}
-
-struct GF2E* mat_GF2E_determinant(const struct mat_GF2E* x)
-{
-  GF2E* d = new GF2E();
-  determinant(*d, *x);
-  return d;
-}
-
-long mat_GF2E_gauss(struct mat_GF2E *x, long w)
-{
-  if(w==0) {
-    return gauss(*x);
-  } else {
-    return gauss(*x, w);
-  }
-}
-
-struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x) {
-  mat_GF2E *y = new mat_GF2E();
-  transpose(*y,*x);
-  return y;
-}
-
 
 
 ZZ_pContext* ZZ_pContext_new(ZZ *p)

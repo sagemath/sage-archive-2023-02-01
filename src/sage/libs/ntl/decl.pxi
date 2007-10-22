@@ -729,7 +729,7 @@ cdef extern from "ntl_wrap.h":
     ctypedef struct GF2X_c "struct GF2X":
         pass
 
-    long *GF2XHexOutput "(&GF2X::HexOutput)"
+    long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
     GF2X_c* GF2X_new "New<GF2X>"()
     GF2X_c* GF2X_construct "Construct<GF2X>"(void *mem)
@@ -777,9 +777,31 @@ cdef extern from "ntl_wrap.h":
     long GF2X_NumBits "NumBits" (GF2X_c a)
     long GF2X_NumBytes "NumBytes"(GF2X_c a)
 
+    #### GF2XModulus_c
+    ctypedef struct GF2XModulus_c "struct GF2XModulus":
+        pass
+
+    GF2X_c GF2XModulus_GF2X "GF2X" (GF2XModulus_c m)
+
+    #### GF2EContext_c
+
+    ctypedef struct GF2EContext_c "struct GF2EContext":
+        void (*restore)()
+
+    GF2EContext_c* GF2EContext_new "New<GF2EContext>"()
+    GF2EContext_c* GF2EContext_construct "Construct<GF2EContext>"(void *mem)
+    GF2EContext_c* GF2EContext_new_GF2X "GF2EContext_new"(GF2X_c* p)
+    GF2EContext_c* GF2EContext_construct_GF2X "GF2EContext_construct"(void *mem, GF2X_c* p)
+    void GF2EContext_destruct "Destruct<GF2EContext>"(GF2EContext_c *mem)
+    void GF2EContext_delete "Delete<GF2EContext>"(GF2EContext_c *mem)
+
     #### GF2E_c
     ctypedef struct GF2E_c "struct GF2E":
         pass
+
+    void GF2E_init "GF2E::init"(GF2X_c x)
+    long GF2E_degree "GF2E::degree"()
+    GF2XModulus_c GF2E_modulus "GF2E::modulus"()
 
     GF2E_c* GF2E_new "New<GF2E>"()
     GF2E_c* GF2E_construct "Construct<GF2E>"(void *mem)
@@ -794,17 +816,19 @@ cdef extern from "ntl_wrap.h":
     void GF2E_add "add"( GF2E_c x, GF2E_c a, GF2E_c b)
     void GF2E_sub "sub"( GF2E_c x, GF2E_c a, GF2E_c b)
     void GF2E_mul "mul"( GF2E_c x, GF2E_c a, GF2E_c b)
-    void GF2E_negate "negate"(GF2E_c x, GF2E_c a)
+    void GF2E_div "div"( GF2E_c x, GF2E_c a, GF2E_c b)
     void GF2E_power "power"(GF2E_c t, GF2E_c x, long e)
-    GF2E_c GF2E_random "random_GF2E"()
+    long GF2E_deg "deg"(GF2E_c x)
+
+    void GF2E_conv_GF2X "conv" (GF2E_c out, GF2X_c inp)
+    void GF2E_conv_long "conv" (GF2E_c out, long inp)
+    void GF2E_conv_ZZ "conv" (GF2E_c out, ZZ_c inp)
+    void GF2E_conv_GF2 "conv" (GF2E_c out, GF2_c inp)
     GF2X_c GF2E_rep "rep"(GF2E_c x)
 
-    void ntl_GF2E_set_modulus(GF2X_c *x)
-    GF2E_c *GF2E_copy(GF2E_c *x)
-    long GF2E_degree "GF2E::degree"()
-    GF2X_c *GF2E_modulus()
-    long  GF2E_trace(GF2E_c *x)
-    GF2X_c *GF2E_ntl_GF2X(GF2E_c *x)
+    GF2E_c GF2E_random "random_GF2E"()
+
+    GF2_c GF2E_trace "trace"(GF2E_c x)
 
     #### GF2EX_c
     ctypedef struct GF2EX_c "struct GF2EX":
@@ -825,9 +849,23 @@ cdef extern from "ntl_wrap.h":
     int GF2EX_IsOne "IsOne"(GF2EX_c x)
     int GF2EX_IsZero "IsZero"(GF2EX_c x)
 
+    #### vec_GF2E_c
+    ctypedef struct vec_GF2E_c "struct vec_GF2E":
+        pass
+
+    vec_GF2E_c* vec_GF2E_new "New<vec_GF2E>"()
+    vec_GF2E_c* vec_GF2E_construct "Construct<vec_GF2E>"(void *mem)
+    void vec_GF2E_destruct "Destruct<vec_GF2E>"(vec_GF2E_c *mem)
+    void vec_GF2E_delete "Delete<vec_GF2E>"(vec_GF2E_c *mem)
+    void vec_GF2E_from_str "_from_str<vec_GF2E>"(vec_GF2E_c* dest, char* s)
+    object vec_GF2E_to_PyString "_to_PyString<vec_GF2E>"(vec_GF2E_c *x)
+
     #### mat_GF2E_c
     ctypedef struct mat_GF2E_c "struct mat_GF2E":
-        pass
+        void (*SetDims)(long nrows, long ncols)
+        long (*NumRows)()
+        long (*NumCols)()
+        GF2E_c (*get "operator()") (long i, long j)
 
     mat_GF2E_c* mat_GF2E_new "New<mat_GF2E>"()
     mat_GF2E_c* mat_GF2E_construct "Construct<mat_GF2E>"(void *mem)
@@ -844,14 +882,22 @@ cdef extern from "ntl_wrap.h":
     GF2E_c mat_GF2E_determinant "determinant"(mat_GF2E_c m)
     void mat_GF2E_transpose "transpose"(mat_GF2E_c r, mat_GF2E_c m)
     long mat_GF2E_IsZero "IsZero"(mat_GF2E_c x)
-
-    void mat_GF2E_SetDims(mat_GF2E_c* mGF2E, long nrows, long ncols)
-    long mat_GF2E_nrows(mat_GF2E_c* x)
-    long mat_GF2E_ncols(mat_GF2E_c* x)
     void mat_GF2E_setitem(mat_GF2E_c* x, int i, int j, GF2E_c* z)
-    GF2E_c* mat_GF2E_getitem(mat_GF2E_c* x, int i, int j)
-    long mat_GF2E_gauss(mat_GF2E_c *x, long w)
 
+    long mat_GF2E_gauss "gauss"(mat_GF2E_c A, long w)
+    void mat_GF2E_solve "solve"(GF2E_c d, vec_GF2E_c X, mat_GF2E_c A, vec_GF2E_c b)
+    void mat_GF2E_inv "inv" (mat_GF2E_c X, mat_GF2E_c A)
+
+
+    long mat_GF2E_IsIdent "IsIdent"(mat_GF2E_c A, long n)
+    long mat_GF2E_IsDiag "IsDiag"(mat_GF2E_c A, long n, GF2E_c d)
+
+
+    void mat_GF2E_image "image"(mat_GF2E_c X, mat_GF2E_c A)
+    void mat_GF2E_kernel "kernel" (mat_GF2E_c X, mat_GF2E_c A)
+
+    void vec_GF2E_conv_mat_GF2E "conv" (vec_GF2E_c out, mat_GF2E_c inp)
+    void mat_GF2E_conv_vec_GF2E(mat_GF2E_c out, vec_GF2E_c inp)
 
 cdef extern from "ZZ_pylong.h":
     object ZZ_get_pylong(ZZ_c z)

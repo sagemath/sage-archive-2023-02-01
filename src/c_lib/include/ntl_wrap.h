@@ -249,19 +249,20 @@ EXTERN long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, lo
 struct ZZ_pE;
 #endif
 
-/////// GF2E ////////////////
+/////// GF2X ////////////////
 
 #ifndef __cplusplus
-struct GF2E;
+struct GF2X;
 #endif
 
-EXTERN struct GF2E* GF2E_pow(const struct GF2E* x, long e);
-EXTERN struct GF2E* GF2E_neg(struct GF2E* x);
-EXTERN void ntl_GF2E_set_modulus(struct GF2X* x);
-EXTERN const struct GF2X *GF2E_modulus();
-EXTERN struct GF2E *GF2E_random(void);
-EXTERN long GF2E_trace(struct GF2E *x);
-EXTERN const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x);
+/////// GF2EContext ////////////////
+
+#ifndef __cplusplus
+struct GF2EContext;
+#endif
+
+EXTERN struct GF2EContext* GF2EContext_new(struct GF2X_c* p);
+EXTERN struct GF2EContext* GF2EContext_construct(void *mem, const struct GF2X *p);
 
 //////// mat_GF2E //////////
 

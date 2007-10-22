@@ -1778,7 +1778,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             state = 13
 
     # free the GMP ints
-    for i from 0 <= i < n:
+    for i from 0 <= i < n+2:
         mpz_clear(Lambda_mpz[i])
         mpz_clear(zf_mpz[i])
         mpz_clear(zb_mpz[i])

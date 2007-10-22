@@ -190,7 +190,7 @@ cdef class BooleanMonomial(MonoidElement):
 
     def __repr__(self):
         (<BooleanPolynomialRing>self._parent._ring)._R.activate()
-        return str(PBMonom_to_str(&self._M))
+        return PBMonom_to_str(&self._M)
 
     def __hash__(self):
         return self._M.hash()
@@ -255,7 +255,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __repr__(self):
         (<BooleanPolynomialRing>self._parent)._R.activate()
-        return str(PBPoly_to_str(&self._P))
+        return PBPoly_to_str(&self._P)
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\

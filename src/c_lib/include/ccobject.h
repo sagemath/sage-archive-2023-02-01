@@ -38,6 +38,18 @@ T* Construct(void* mem){
   return new(mem) T();
 }
 
+/* Construct with one parameter */
+template <class T, class P>
+T* Construct_p(void* mem, const P &d){
+  return new(mem) T(d);
+}
+
+/* Construct with two parameters */
+template <class T, class P, class R>
+T* Construct_pp(void* mem, const P &d, const R &e){
+  return new(mem) T(d, e);
+}
+
 /* Destruct */
 template <class T>
 void Destruct(T* mem){

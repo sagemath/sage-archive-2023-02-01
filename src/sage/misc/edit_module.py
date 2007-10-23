@@ -46,15 +46,17 @@ from string import Template
 #by default we do not have an edit template
 edit_template = None
 
-#we can set some defaults, however. Add
+#we can set some defaults, however. Add your own if you like.
 
 template_defaults = {
       'vi'       : Template('vi -c ${line} ${file}'),
       'vim'      : Template('vim -c ${line} ${file}'),
       'emacs'    : Template('emacs ${opts} +${line} ${file}'),
       'nedit-nc' : Template('nedit-nc -line ${line} ${file}'),
-      'gedit'    : Template('gedit +${line} ${file}')
-   }
+      'nedit-client' : Template('nedit-client -line ${line} ${file}'),
+      'ncl'      : Template('ncl -line ${line} ${file}'),
+      'gedit'    : Template('gedit +${line} ${file} &'),
+      'kate'     : Template('kate -u --line +${line} ${file} &')   }
 
 def file_and_line(obj):
    r"""
@@ -106,6 +108,33 @@ def file_and_line(obj):
 
    return filename, lineno+1
 
+def template_fields(template):
+   r"""
+   Given a String.Template object, returns the fields.
+
+   AUTHOR:
+      Nils Bruin (2007-10-22)
+
+   EXAMPLE:
+      sage: from sage.misc.edit_module import template_fields
+      sage: from string import Template
+      sage: t=Template("Template ${one} with ${two} and ${three}")
+      sage: template_fields(t)
+      ['three', 'two', 'one']
+   """
+   dict={}
+   dummy=None
+   while not(dummy):
+      try:
+         dummy=template.substitute(dict)
+      except KeyError, inst:
+         dict[inst.args[0]]=None
+   return dict.keys()
+
+## The routine set_edit_template should only do some consistency checks on template_string
+## It should not do any magic. This routine should give the user full control over what is
+## going on.
+
 def set_edit_template(template_string):
    r"""
    Sets default edit template string.
@@ -127,17 +156,48 @@ def set_edit_template(template_string):
    """
    global edit_template
 
-   if template_string in template_defaults.keys():
-      template_string = template_defaults[template_string]
-   edit_template = Template(template_string)
+   if not(isinstance(template_string,Template)):
+      template_string = Template(template_string)
+   fields = set(template_fields(template_string))
+   if not(fields <= set(['file','line']) and ('file' in fields)):
+     raise ValueError, "Only ${file} and ${line} are allowed as template variables, and ${file} must occur."
+   edit_template = template_string
 
-def edit(obj, bg=False, editor=None):
+## The routine set_editor is for convenience and hence is allowed to apply magic. Given an editor name
+## and possibly some options, it should try to set an editor_template that is as appropriate as possible
+## for the situation. If it's necessary to query the environment for 'DISPLAY' to figure out if
+## certain editors should be run in the background, this is where the magic should go.
+
+def set_editor(editor_name,opts=''):
+   r"""
+   Sets the editor to be used by the edit command by basic editor name.
+
+   Currently, the system only knows appropriate call strings for a limited number
+   of editors. If you want to use another editor, you should set the
+   whole edit template via set_edit_template.
+
+   AUTHOR:
+      Nils Bruin (2007-10-05)
+
+   EXAMPLE:
+      sage: from sage.misc.edit_module import set_editor
+      sage: set_editor('vi')
+      sage: sage.misc.edit_module.edit_template.template
+      'vi -c ${line} ${file}'
+   """
+
+   if sage.misc.edit_module.template_defaults.has_key(editor_name):
+      set_edit_template(Template(template_defaults[editor_name].safe_substitute(opts=opts)))
+   else:
+      raise ValueError, "editor_name not known. Try set_edit_template(<template_string>) instead."
+
+def edit(obj, editor=None):
    r"""
    Open source code of obj in editor of your choice.
 
    INPUT:
-       bg -- bool (default: False); if True, then the
-             editor is run in the background
+       editor -- str (default: None); If given, use specified editor.
+                 Choice is stored for next time.
 
    AUTHOR:
        Nils Bruin (2007-10-03)
@@ -156,11 +216,11 @@ def edit(obj, bg=False, editor=None):
 
    In fact, since vi is a well-known editor, you could also just use
 
-      sage: m.set_edit_template("vi")
+      sage: m.set_editor("vi")
 
    To illustrate:
 
-      sage: m.edit_template.template.template
+      sage: m.edit_template.template
       'vi -c ${line} ${file}'
 
    And if your environment variable EDITOR is set to a recognised
@@ -172,20 +232,21 @@ def edit(obj, bg=False, editor=None):
    """
    global edit_template
 
-   try:
-      if editor:
-         ED = editor
-      else:
+   if editor:
+      set_editor(editor)
+   elif not(edit_template):
+      try:
          ED = os.environ['EDITOR']
-      EDITOR = ED.split()
-      base = EDITOR[0]
-      opts = ' '.join(EDITOR[1:])
-      edit_template = template_defaults[base]
-   except (KeyError, IndexError):
+         EDITOR = ED.split()
+         base = EDITOR[0]
+         opts = ' '.join(EDITOR[1:])   #for future use
+         set_editor(base,opts=opts)
+      except (ValueError, KeyError, IndexError):
+         raise ValueError, "Use set_edit_template(<template_string>) to set a default"
+
+   if not(edit_template):
       raise ValueError, "Use set_edit_template(<template_string>) to set a default"
+
    filename, lineno = file_and_line(obj)
-   cmd = edit_template.substitute(opts = opts, line = lineno, file = filename)
-   if bg:
-      cmd += ' &'
-   print cmd
+   cmd = edit_template.substitute(line = lineno, file = filename)
    os.system(cmd)

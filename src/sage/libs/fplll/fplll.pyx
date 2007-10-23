@@ -56,6 +56,7 @@ cdef class FP_LLL:
             sage: from sage.libs.fplll.fplll import FP_LLL
             sage: A = random_matrix(ZZ,10,10)
             sage: FP_LLL(A)
+            fpLLL wrapper acting on a 10 x 10 matrix
 
         """
         cdef int i,j
@@ -144,10 +145,32 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
-            sage: f.wrapper()
-            sage: B = A._sage_(); B # result random
+            sage: W = random_matrix(ZZ,10,10)
+            sage: W # result random
+            [ -3  -1  -1  -2  -1   7  -1   1  -1  -2]
+            [  1   4  -1  -1  -1  -1  -1   3   1   1]
+            [ -4  -1   1   1  -3  -2  -5   1   4  -1]
+            [  1   1  -1  -1  -1  -2   3  -2  -1   1]
+            [  4  -1 -12   1  -1   2   1  -2  -2   1]
+            [ -2   2  -1  -2   6  -5   5   1  -1  -1]
+            [ -1  -1  -1  -2  -2  -4   9   1   3   1]
+            [  2  -2   1  -1  -1  -1   1  -1 -22  -1]
+            [ -1   1   1  -1  -1 -49  20   2 -16   2]
+            [  1  30   1  -1   1  -1  -8  -3  -1  -1]
+            sage: F = FP_LLL(W)
+            sage: F.wrapper()
+            sage: W = F._sage_()
+            sage: W # result random
+            [ 1  1 -1 -1 -1 -2  3 -2 -1  1]
+            [ 1  4 -1 -1 -1 -1 -1  3  1  1]
+            [-3  0  0  0 -4 -4 -2 -1  3  0]
+            [ 4 -2 -2  2 -4 -4 -2 -1  0 -2]
+            [-2  0 -2 -3 -2  5  2 -1 -2 -1]
+            [-1 -1 -4 -2  1 -2  2  1 -2 -5]
+            [-2 -2  0 -1 -1 -2  6  3  4  0]
+            [ 0  2 -4 -2  6  3  1 -4  2 -3]
+            [ 1 -5 -3  5  0 -1  1  1 -3  6]
+            [-5  5 -1  6 -2  2  2 -3  1 -3]
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -179,10 +202,35 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
-            sage: f.proved()
-            sage: B = A._sage_(); B # result random
+            sage: P = random_matrix(ZZ,10,10)
+            sage: P # result random
+            [   10     1     1    22     1    -1     3    -1 -3974    -2]
+            [   -3     3    -3    -1     4    -1     4    -1     1     1]
+            [    1    10     2     2    -1    -3    -2    -2   -12     2]
+            [   -7    -1   -14    -3    17    -5    -9    -1   -82     1]
+            [  -11     1     5     1    -1    -1     1     3    -4     1]
+            [    8    -1    -2    -2     1    -6     3    -1     2    -1]
+            [    1    -1    -1    -3    22     3     1     1     1    -2]
+            [    1    -2    -1    32    -1    -1     2     1     1    -1]
+            [    2    -5    -2    -1     2    -1    -7    -2   -10    -1]
+            [   -4    -3    -2 -1188     2     1    -1    50     1     1]
+            sage: F = FP_LLL(P)
+            sage: F.proved()
+            sage: P = F._sage_()
+            sage: P # result random
+            [  -3    3   -3   -1    4   -1    4   -1    1    1]
+            [  -3    0    3   -1    0   -7    4    2   -2    0]
+            [  -8    1    2    2   -1    6   -3    1   -2    1]
+            [  -1   -2   -5   -2    6   -2   -3   -3   -9    0]
+            [   2   12    7    4   -7   -1    1    1   -3    2]
+            [   2   -2   10   -1   12   -1    4    7    7   -3]
+            [   1   -6   -4    0   -2   10   17   13   -7   -2]
+            [  -2    1   -4   31    3   -2    6    0    2    0]
+            [   0   17  -15  -11    0   -4  -14   37    6  -13]
+            [ -18   31    5   -4  -14    9   12  -33   -3 -152]
+
+
+
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -231,10 +279,32 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
+            sage: F = random_matrix(ZZ,10,10)
+            sage: F # result random
+            [ -1 -20   1  12   2   2   4   1   1  -1]
+            [  1  -2  -9   1   2   3  -1  -4 -60  -1]
+            [ -4 -15  -8   1   3   2 -60  -1  -2   6]
+            [ -5  -7  -1  -2   1   1   1   6   3   1]
+            [  5  -6  -2  -1  -2   1   2  -4  -3  -1]
+            [  3   1   3  -1  10  -2   1  -1  -2  -1]
+            [  4   2 -15   3   1  -9 -12   1  -1  -1]
+            [  1   4  16  -1   3   1  -1  -2  -1 -75]
+            [-56   1  -1  -1   1   1  -4   3   1   2]
+            [  2  -9  -4  -1  -1  -3   4   7  -2   3]
+            sage: f = FP_LLL(F)
             sage: f.fast()
-            sage: B = A._sage_(); B # result random
+            sage: F = f._sage_()
+            sage: F # result random
+            [  2   4  -1   2   0  -5   1   5  -2   3]
+            [  5  -6  -2  -1  -2   1   2  -4  -3  -1]
+            [ -5  -7  -1  -2   1   1   1   6   3   1]
+            [  3   1   3  -1  10  -2   1  -1  -2  -1]
+            [ -1  -7   4  15   3   0   1  -1   1  -1]
+            [  2  -2 -14   1   1  -4 -13  -4   1  -4]
+            [-24  -7  -7   0   2  -8   6 -10 -20   2]
+            [  3   1   0  -2  -5  22 -13  11 -25  -5]
+            [  7  -6  12 -12  -2 -16 -18 -12   9  20]
+            [  8  -7  17  -9  -9 -30 -12  15   5 -41]
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -270,11 +340,26 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
-            sage: f.fast_early_red()
-            sage: B = A._sage_(); B # result random
+            sage: FE = random_matrix(ZZ,10,10)
+            sage: FE # result random
+            [  2  -1  -1  -1  -3   1  -1 -32  -1  -1]
+            [  1   2  -1  -1   1   1  -1  -1   8   1]
+            [  1  -2  -2  -2  -6  -6   2  -1   1  -1]
+            [  3   3  -1   1   1   6   1   1  -1  -1]
+            [ -1  -1   1  -1  -2   3   1  -2   1  25]
+            [ -1   1   1 -10  -1  -1   1   1  -1   1]
+            [  1   1  25  -1   1  -4   4   5  -2   3]
+            [  3  -2   2  -6  -4   1  -1  -3  -1   1]
+            [  1  -4   2   3   1   1   1   2   3  -1]
+            [  6  -8   1  -1 -16   2 -25  -1  -2   2]
+
+            sage: F = FP_LLL(FE)
+            sage: F.fast_early_red()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: BUG: fast early reduction segfaults
         """
+        raise RuntimeError, "BUG: fast early reduction segfaults"
         self._check_precision(precision)
         self._check_eta(eta)
         self._check_delta(delta)
@@ -304,10 +389,32 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
-            sage: f.heuristic()
-            sage: B = A._sage_(); B # result random
+            sage: H = random_matrix(ZZ,10,10)
+            sage: H # result random
+            [  2   1  -1  -6  -3  -8  -4  -4   1   3]
+            [ -2   3  -1  -1  -2   1   1  -1   5 -11]
+            [ -1  -1   1  -1  -2  -3   1   2  -7  -1]
+            [-22  -1  -1  13   5  -3   1   1   2   1]
+            [  4  -1  -6   3  -1   2  59   1   1  -1]
+            [ -2  -1  -2  -1  -1  20   6   1  -2  -1]
+            [ -1   2  -1  -1  -2   1  -3  -2   2  -1]
+            [ -1  -3  -1 -10   1  -1  -1 -35   1  -1]
+            [  5  -2  -1   1 -44  -1  -4  -1  -1   3]
+            [ -1  -1  -4  -1  -1   3  -1 -15   1   1]
+            sage: F = FP_LLL(H)
+            sage: F.heuristic()
+            sage: H = F._sage_()
+            sage: H # result random
+            [ -1   2  -1  -1  -2   1  -3  -2   2  -1]
+            [ -2   1   0  -2  -4  -2  -2   0  -5  -2]
+            [  3  -1   0  -5  -1  -9  -1  -2  -1   4]
+            [ -1   1   0   0   0   0   4   1   3 -10]
+            [ -1  -1   7  -3   4   2  -2  -4  -3   3]
+            [  0  -3  -3   0   1   2   2 -13  -1   2]
+            [  1  -2  -2  -6  -2  11   5  -1  -3   3]
+            [-15  -3  -4  -2   3  -7   7  -5   7   3]
+            [  6  19  13   8  -8   2   9   1  -3   2]
+            [  4  -6  17  12 -21   3   2  -1   6  -2]
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -362,10 +469,33 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: A = random_matrix(ZZ,10,10); A # result random
-            sage: f = FP_LLL(A)
-            sage: f.heuristic_early_red()
-            sage: B = A._sage_(); B # result random
+            sage: HE = random_matrix(ZZ,10,10)
+            sage: HE # result random
+            [ 11   1  -1   3  -4  -1   1   7   8   2]
+            [  5  -1  -1   3  -1  37   1  -4   6   1]
+            [ -1   3  -1  -4   1  -1  -1   1   3   1]
+            [  3  -1   1   1   1  -2   1   6   1  -5]
+            [ -2 -12  10  -3  -1  10   1   1   1  -6]
+            [  1   1  -1   1  -3   1  -1  -5   1   2]
+            [ -3  11   1  -2  -2   3   6  -1  -1  -9]
+            [ 11  10   1  -1   1  -1   3   2   1   7]
+            [ -1   1  30  -1   2   1  -1   2  -2  -1]
+            [ -5   3   3  -2   1   1   1 -77  -1  -1]
+
+            sage: F = FP_LLL(HE)
+            sage: F.heuristic_early_red()
+            sage: HE = F._sage_()
+            sage: HE # result random
+            [  4   0   0   2  -2  -1   0   1   2  -3]
+            [ -1   3  -1  -4   1  -1  -1   1   3   1]
+            [ -1  -1   1  -1   3  -1   1   5  -1  -2]
+            [  4  -2   0   3  -1   2   2   4   1   7]
+            [  4   9   2  -2   3  -1   2  -4  -5   2]
+            [ -7   0  -1   1  -4   7   6   6   3  -1]
+            [  5   0  11  -7   1   7   2  -1   1  -6]
+            [ -2   5  17   5  -3  -7  -5   0   3   5]
+            [  1   6   8   6   8   9 -12   4   6  -2]
+            [  0  -2  -4   3  12  -8  16 -11  13   0]
         """
         self._check_precision(precision)
         self._check_eta(eta)

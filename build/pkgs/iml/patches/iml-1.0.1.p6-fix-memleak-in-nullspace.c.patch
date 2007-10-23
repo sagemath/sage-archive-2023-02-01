@@ -1,0 +1,11 @@
+--- src/src/nullspace.c.orig	2007-10-23 08:58:57.000000000 -0700
++++ src/src/nullspace.c	2007-10-23 08:59:19.000000000 -0700
+@@ -251,7 +251,7 @@
+ 	    for (i = 0; i < m; i++) {
+ 		for (j = 0; j < m; j++)
+ 		    mpz_init_set_ui(mp_N[i * m + j], 0);
+-		mpz_init_set_ui(mp_N[i * m + i], 1);
++		mpz_set_ui(mp_N[i * m + i], 1);
+ 	    }
+ 	    *mp_N_pass = mp_N;
+ 	} else {		/* r>0 and s>0 */

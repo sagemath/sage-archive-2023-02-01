@@ -1,0 +1,2 @@
+* upgraded to sympy-0.5.5
+* upgraded to sympy-0.5.3

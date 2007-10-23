@@ -2763,21 +2763,83 @@ class GenericGraph(SageObject):
                 return False
         return True
 
-    def independent_set(self, vertices=None):
-        r"""
-        Returns True if the set of vertices defines an independent set and False otherwise.  If no vertices are passed, then we assume the whole graph.
+    ### Substructures
+
+    def is_clique(self, vertices=None, directed_clique=False):
+        """
+        Returns True if the set \code{vertices} is a clique, False if not.  A
+        clique is a set of vertices such that there is an edge between
+        any two vertices.
+
+        INPUT:
+
+        vertices -- Vertices can be a single vertex or an iterable
+        container of vertices, e.g. a list, set, graph, file or
+        numeric array.  If not passed, defaults to the entire graph.
+
+        directed_clique -- (default False) If set to False, only
+        consider the underlying undirected graph.  If set to True and the
+        graph is directed, only return True if all possible edges in
+        _both_ directions exist.
 
         EXAMPLE:
-            sage: G = graphs.EmptyGraph()
-            sage: G.add_vertices([0..10])
-            sage: G.independent_set()
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.is_clique([1,2,3])
             True
-            sage: graphs.PathGraph(3).independent_set([0,2])
+            sage: g.is_clique()
             True
-            sage: graphs.PathGraph(3).independent_set([0,1])
+            sage: h = graphs.CycleGraph(4)
+            sage: h.is_clique([1,2])
+            True
+            sage: h.is_clique([1,2,3])
+            False
+            sage: h.is_clique()
+            False
+            sage: i = graphs.CompleteGraph(4).to_directed()
+            sage: i.delete_edge([0,1])
+            sage: i.is_clique()
+            True
+            sage: i.is_clique(directed_clique=True)
             False
         """
+
+        if directed_clique and self.is_directed():
+            subgraph=self.subgraph(vertices)
+            subgraph.loops(False)
+            subgraph.multiple_edges(False)
+            n=subgraph.order()
+            return subgraph.size()==n*(n-1)
+        else:
+            subgraph=self.subgraph(vertices).to_simple()
+            n=subgraph.order()
+            return subgraph.size()==n*(n-1)/2
+
+
+    def is_independent_set(self, vertices=None):
+        """
+        Returns True if the set \code{vertices} is an independent set, False
+        if not.  An independent set is a set of vertices such that
+        there is no edge between any two vertices.
+
+        INPUT:
+
+        vertices -- Vertices can be a single vertex or an iterable
+        container of vertices, e.g. a list, set, graph, file or
+        numeric array.  If not passed, defaults to the entire graph.
+
+
+        EXAMPLE:
+
+            sage: graphs.CycleGraph(4).is_independent_set([1,3])
+            True
+            sage: graphs.CycleGraph(4).is_independent_set([1,2,3])
+            False
+        """
+
         return self.subgraph(vertices).to_simple().size()==0
+
+
 
 class Graph(GenericGraph):
     r"""

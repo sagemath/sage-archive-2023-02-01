@@ -1,6 +1,13 @@
 AUTHORS:
    -- William Stein (2007-02-14)
 
+* 1.0.1.p7 - mabshoff - 2007-12-23
+
+  - apply memleak patch in nullspace.c (which has been send to the IML autors)
+  - add .hgignore
+
+* Earlier:
+
 Get it from
   http://www.cs.uwaterloo.ca/~z4chen/iml.html
 

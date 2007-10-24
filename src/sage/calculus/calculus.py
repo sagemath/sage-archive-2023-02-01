@@ -3804,6 +3804,11 @@ class SymbolicComposition(SymbolicOperation):
         if not self.is_simplified():
             return self.simplify()._latex_()
         ops = self._operands
+
+        #Check to see if the function has a _latex_composition method
+        if hasattr(ops[0], '_latex_composition'):
+            return ops[0]._latex_composition(ops[1])
+
         # certain functions (such as \sqrt) need braces in LaTeX
         if (ops[0]).tex_needs_braces():
             return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
@@ -4019,7 +4024,17 @@ class Function_abs(PrimitiveFunction):
         return "abs"
 
     def _latex_(self):
-        return "\\abs"
+        return "\\mathrm{abs}"
+
+    def _latex_composition(self, x):
+        """
+        sage: f = sage.calculus.calculus.Function_abs()
+        sage: latex(f)
+        \mathrm{abs}
+        sage: latex(abs(x))
+        \left| x \right|
+        """
+        return "\\left| " + latex(x) + " \\right|"
 
     def _approx_(self, x):
         return float(x.__abs__())

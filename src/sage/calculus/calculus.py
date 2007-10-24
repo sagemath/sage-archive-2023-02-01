@@ -1742,6 +1742,10 @@ class SymbolicExpression(RingElement):
             Traceback (most recent call last):
             ...
             ValueError: Integral is divergent.
+            sage: integrate(1/x^3,x,-1,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integral is divergent.
 
         NOTE: Above, putting assume(n == -1) does not yield the right behavior.
         Directly in maxima, doing
@@ -1817,7 +1821,7 @@ class SymbolicExpression(RingElement):
                 return self.parent()(self._maxima_().integrate(v, a, b))
             except TypeError, error:
                 s = str(error)
-                if "divergent" in s:
+                if "divergent" in s or 'Principal Value' in s:
                     raise ValueError, "Integral is divergent."
                 else:
                     raise TypeError, error

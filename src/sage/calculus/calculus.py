@@ -435,35 +435,11 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
-        """
-        EXAMPLES:
-        sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
-        sage: pol.is_zero()
-        True
-
-        sage: f = sin(x)^2 + cos(x)^2 - 1
-        sage: f.is_zero()
-        True
-        """
         try:
             return self.__nonzero
         except AttributeError:
-            pass
-
-        ans = True
-        #Try some simplifications to try
-        #to get ans to be False
-        simp_list = [self.simplify, self.simplify_log, self.simplify_rational, self.simplify_exp,self.simplify_radical,self.simplify_trig]
-        for f in simp_list:
-            try:
-                if repr( f() ) == "0":
-                    ans = False
-                    break
-            except:
-                pass
-
-        self.__nonzero = ans
+            ans = not bool(self == SR.zero_element())
+            self.__nonzero = ans
         return ans
 
     def __str__(self):

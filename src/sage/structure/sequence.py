@@ -445,27 +445,3 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
 seq = Sequence
 
-
-def _combinations(sequence, number):
-    """
-    Generate all combinations of \code{number} elements from list
-    \code{sequence}.
-
-    Based on code from \code{test/test_generators.py}.
-
-    AUTHOR:
-        -- Jaap Spies (2006-02-18)
-    """
-    if number > len(sequence):
-	return
-    if number == 0:
-	yield []
-    else:
-	first, rest = sequence[0], sequence[1:]
-        # first in combination
-	for result in _combinations(rest, number-1):
-	    result.insert(0, first)
-	    yield result
-        # first not in combination
-	for result in _combinations(rest, number):
-	    yield result

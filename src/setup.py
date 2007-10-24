@@ -130,8 +130,48 @@ ntl_ZZ_pX = Extension('sage.libs.ntl.ntl_ZZ_pX',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_ZZ_pEContext = Extension('sage.libs.ntl.ntl_ZZ_pEContext',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pE = Extension('sage.libs.ntl.ntl_ZZ_pE',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pE.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_ZZ_pEX = Extension('sage.libs.ntl.ntl_ZZ_pEX',
+                 sources = ["sage/libs/ntl/ntl_ZZ_pEX.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_pContext = Extension('sage.libs.ntl.ntl_lzz_pContext',
+                 sources = ["sage/libs/ntl/ntl_lzz_pContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_p = Extension('sage.libs.ntl.ntl_lzz_p',
+                 sources = ["sage/libs/ntl/ntl_lzz_p.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_lzz_pX = Extension('sage.libs.ntl.ntl_lzz_pX',
+                 sources = ["sage/libs/ntl/ntl_lzz_pX.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_GF2 = Extension('sage.libs.ntl.ntl_GF2',
+                 sources = ["sage/libs/ntl/ntl_GF2.pyx"],
+                 libraries = ["csage", "ntl", "stdc++"],
+                 language='c++')
+
 ntl_GF2X = Extension('sage.libs.ntl.ntl_GF2X',
                  sources = ["sage/libs/ntl/ntl_GF2X.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
+ntl_GF2EContext = Extension('sage.libs.ntl.ntl_GF2EContext',
+                 sources = ["sage/libs/ntl/ntl_GF2EContext.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
@@ -226,6 +266,13 @@ libsingular = Extension('sage.libs.singular.singular',
                         libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
                         language="c++",
                         include_dirs=[SAGE_ROOT +'/local/include/singular']
+                        )
+
+fplll = Extension('sage.libs.fplll.fplll',
+                        sources = ['sage/libs/fplll/fplll.pyx'],
+                        libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
+                        language="c++",
+                        include_dirs=[SAGE_ROOT +'/local/include/fplll']
                         )
 
 
@@ -402,7 +449,15 @@ ext_modules = [ \
     ntl_ZZ_pContext,
     ntl_ZZ_p,
     ntl_ZZ_pX,
+    ntl_ZZ_pEContext,
+    ntl_ZZ_pE,
+    ntl_ZZ_pEX,
+    ntl_lzz_pContext,
+    ntl_lzz_p,
+    ntl_lzz_pX,
+    ntl_GF2,
     ntl_GF2X,
+    ntl_GF2EContext,
     ntl_GF2E,
     ntl_GF2EX,
     ntl_mat_ZZ,
@@ -446,6 +501,8 @@ ext_modules = [ \
      givaro_gfq, \
 
      libsingular, \
+
+     fplll, \
 
 ##     matrix_rational_sparse,
 
@@ -572,6 +629,9 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfi.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
+    Extension('sage.rings.residue_field',
+              sources = ['sage/rings/residue_field.pyx']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
@@ -582,7 +642,8 @@ ext_modules = [ \
 
     Extension('sage.rings.padics.pow_computer',
               sources = ['sage/rings/padics/pow_computer.pyx'],
-              libraries=['gmp']),
+              libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+              language='c++'),
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
     Extension('sage.rings.padics.padic_generic_element',
@@ -632,6 +693,12 @@ ext_modules = [ \
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 
+    Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
+                 sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
+                 language = 'c++',
+                 include_dirs=['sage/libs/ntl/']), \
+
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
 
@@ -657,6 +724,10 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']), \
 
+    Extension('sage.rings.polynomial.real_roots',
+              sources = ['sage/rings/polynomial/real_roots.pyx'],
+              libraries=['mpfr', 'qd']), \
+
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
               libraries=['ntl','gmp'],
@@ -670,6 +741,12 @@ ext_modules = [ \
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
+
+    Extension('sage.rings.morphism',
+              sources = ['sage/rings/morphism.pyx']),
+
+    Extension('sage.structure.wrapper_parent',
+              sources = ['sage/structure/wrapper_parent.pyx']), \
 
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
@@ -736,7 +813,7 @@ ext_modules = [ \
     Extension('sage.combinat.partitions',
               ['sage/combinat/partitions.pyx',
                'sage/combinat/partitions_c.cc'],
-              libraries = ['gmp', 'mpfr'],
+              libraries = ['qd', 'gmp', 'mpfr'],
               language='c++'
               ), \
 
@@ -1005,6 +1082,7 @@ setup(name        = 'sage',
                      'sage.lfunctions',
 
                      'sage.libs',
+                     'sage.libs.fplll',
                      'sage.libs.hanke',
                      'sage.libs.linbox',
                      'sage.libs.mwrank',

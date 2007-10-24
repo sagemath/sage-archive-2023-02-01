@@ -26,7 +26,7 @@ AUTHORS:
 EXAMPLES:
     sage: matlab('4+10')                     # optional
     14
-    sage.: matlab('date')                    # optional -- random output
+    sage: matlab('date')                    # optional; random output
     18-Oct-2006
     sage: matlab('5*10 + 6')                 # optional
     56
@@ -301,7 +301,7 @@ def matlab_console():
     your PATH, but no optional \sage packages need be installed.
 
     EXAMPLES:
-        sage.: matlab_console()                               # optional
+        sage: matlab_console()                               # optional and not tested
                                        < M A T L A B >
                            Copyright 1984-2006 The MathWorks, Inc.
         ...

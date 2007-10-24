@@ -25,39 +25,42 @@ class Profiler:
     It's probably not a good idea to use this class in an inner loop :-)
 
     EXAMPLE:
-        sage.: def f():
-        sage.:    p = Profiler()
+        sage: def f():                 # not tested
+        ...      p = Profiler()        # not tested
 
         Calling p(message) creates a checkpoint:
-        sage.:    p("try factoring 15")
+        sage:    p("try factoring 15")        # not tested
 
         Do something time-consuming:
-        sage.:    x = factor(15)
+        sage:    x = factor(15)               # not tested
 
         You can create a checkpoints without a string; the Profiler
         will use the source code instead:
-        sage.:    p()
+        sage:    p()                          # not tested
 
-        sage.:    y = factor(25)
-        sage.:    p("last step")
-        sage.:    z = factor(35)
-        sage.:    p()
+        sage:    y = factor(25)               # not tested
+        sage:    p("last step")               # not tested
+        sage:    z = factor(35)               # not tested
+        sage:    p()                          # not tested
 
         This will give a nice list of timings between checkpoints:
-        sage.:    print p
+        sage:    print p                      # not tested
 
         Let's try it out:
-        sage.: f()
+        sage: f()                            # not tested
             3.020s -- try factoring 15
            15.240s -- line 17: y = factor(25)
          5000.190s -- last step
 
     TODO:
-        -- Add pyrex source code inspection (I assume it doesn't currently do this)
+        -- Add pyrex source code inspection (I assume it doesn't
+           currently do this)
         -- Add ability to sort output by time
-        -- Add option to constructor to print timing immediately when checkpoint is reached
+        -- Add option to constructor to print timing immediately when
+           checkpoint is reached
         -- Migrate to pyrex?
-        -- Add ability to return timings in a more machine-friendly format
+        -- Add ability to return timings in a more machine-friendly
+           format
 
     AUTHOR:
         -- David Harvey (August 2006)

@@ -1370,6 +1370,55 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         else:
             raise ValueError, "must be a perfect square."
 
+    def nth_root(self, int n, extend = False, all = False):
+        r"""
+        Returns an nth root of self.
+
+        INPUT:
+            n -- integer >= 1 (must fit in C int type)
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+
+        OUTPUT:
+           If self has an nth root, returns one (if all == False) or a list of
+           all of them (if all == True).  Otherwise, raises a ValueError (if
+           extend = False) or a NotImplementedError (if extend = True).
+
+        AUTHOR:
+           -- David Roe (2007-10-3)
+
+        EXAMPLES:
+        sage: k.<a> = GF(29^2)
+        sage: b = a^2 + 5*a + 1
+        sage: b.nth_root(11)
+        3*a + 20
+        sage: b.nth_root(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: no nth root
+        sage: b.nth_root(5, all = True)
+        []
+        sage: b.nth_root(3, all = True)
+        [14*a + 18, 10*a + 13, 5*a + 27]
+        """
+        if extend:
+            raise NotImplementedError
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(self.parent(), "x")
+        f = R([-self] + [self.parent()(Integer(0))] * (n - 1) + [self.parent()(1)])
+        L = f.roots()
+        if all:
+            return [x[0] for x in L]
+        else:
+            if len(L) == 0:
+                raise ValueError, "no nth root"
+            else:
+                return L[0][0]
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two elements.
@@ -1383,6 +1432,21 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         r = parent_object(self).objectptr.add(r, self.element ,
                                               (<FiniteField_givaroElement>right).element )
         return make_FiniteField_givaroElement(parent_object(self),r)
+
+    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+        """
+        Add two elements inplace.
+
+        EXAMPLE:
+            sage: k.<b> = GF(9**2)
+            sage: b^10 + 2*b
+            2*b^3 + 2*b^2 + 2*b + 1
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.add(r, self.element ,
+                                                         (<FiniteField_givaroElement>right).element )
+        return self
+
 
     cdef RingElement _mul_c_impl(self, RingElement right):
         """
@@ -1399,6 +1463,23 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         r = parent_object(self).objectptr.mul(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
+
+
+    cdef RingElement _imul_c_impl(self, RingElement right):
+        """
+        Multiply two elements inplace.
+
+        EXAMPLE:
+            sage: k.<c> = GF(7**4)
+            sage: 3*c
+            3*c
+            sage: c*c
+            c^2
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.mul(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
@@ -1421,6 +1502,28 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
 
+    cdef RingElement _idiv_c_impl(self, RingElement right):
+        """
+        Divide two elements inplace
+
+        EXAMPLE:
+            sage: k.<g> = GF(2**8)
+            sage: g/g
+            1
+
+            sage: k(1) / k(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
+        """
+
+        cdef int r
+        if (<FiniteField_givaroElement>right).element == 0:
+            raise ZeroDivisionError, 'division by zero in finite field.'
+        self.element = parent_object(self).objectptr.div(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         Subtract two elements
@@ -1436,6 +1539,22 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         r = parent_object(self).objectptr.sub(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
+
+    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+        """
+        Subtract two elements inplace
+
+        EXAMPLE:
+            sage: k.<a> = GF(3**4)
+            sage: k(3) - k(1)
+            2
+            sage: 2*a - a^2
+            2*a^2 + 2*a
+        """
+        cdef int r
+        self.element = parent_object(self).objectptr.sub(r, self.element,
+                                                         (<FiniteField_givaroElement>right).element)
+        return self
 
     def __neg__(FiniteField_givaroElement self):
         """
@@ -1666,7 +1785,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
+            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """
@@ -1994,7 +2113,8 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(v)
             2*a^2 + 1
 
-        You can also compute the vector in the other order:
+            You can also compute the vector in the other order:
+
             sage: e.vector(reverse=True)
             (0, 2, 0, 1)
         """
@@ -2030,7 +2150,6 @@ def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     cdef FiniteField_givaroElement y
-    cdef PyObject** w
 
     if parent._array is None:
         #y = FiniteField_givaroElement(parent)

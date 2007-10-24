@@ -23,7 +23,7 @@ import zlib
 import bz2
 import os
 import copy
-
+from getpass import getuser
 from persistent import Persistent
 
 class Job(Persistent):
@@ -33,18 +33,20 @@ class Job(Persistent):
     """
 
     def __init__(self, id_=None, name=None, code=None, parent=None,
-                 username=None, type_='sage'):
+                 username=getuser(), timeout=600, priority=5, type_='sage'):
         """
         Creates a new job.
 
         Parameters:
-        name -- job name
-        id -- job id (must be unique)
-        code -- job code
-        parent -- sets if the job is a parent job
-        username -- author of the job (not neccesarily unique)
-        type -- the type of the job (file, string, generator)
-                defaults to string
+        id -- (str, default: None) job id (must be unique)
+        name -- (str, default: None) job name
+        code -- (str, default: None) literal string of the code to execute
+        parent -- (str, default: None) a job's parent job
+        username -- (str, default: $USER) username of person who created job
+        timeout -- (int, default: 600) how long to wait before a job timesout
+        priority -- (int, default: 5) 0 to 5, 0 = highest and 5 = lowest
+        type -- (str, default: 'sage') type of the job (file, string,
+                generator) defaults to string
 
         """
 
@@ -72,7 +74,10 @@ class Job(Persistent):
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
-        self.jdict['timeout'] = 600 # default timeout for jobs in seconds
+        self.jdict['timeout'] = int(timeout) # default timeout for jobs in
+                                             # seconds.  Coerced to a python
+                                             # int
+        self.jdict['priority'] = int(priority)
         self.jdict['private'] = False
         self.jdict['depends'] = {}
         # These might become deprecated
@@ -155,7 +160,7 @@ class Job(Persistent):
     def set_data(self, value):
        self.jdict['data'] = value
     data = property(fget=get_data, fset=set_data, fdel=None,
-                  doc='Job data')
+                    doc='Job data')
 
     def get_output(self):
         return self.jdict['output']
@@ -244,7 +249,10 @@ class Job(Persistent):
             return self.jdict['timeout']
         def fset(self, value):
             if not isinstance(value, int):
-                raise TypeError('Timeout must be an integer.')
+                try:
+                    value = int(value)
+                except:
+                    raise TypeError('Timeout must be an integer.')
             self.jdict['timeout']  = value
         return locals()
     timeout = property(**timeout())
@@ -295,6 +303,15 @@ class Job(Persistent):
             self.jdict['start_time'] = value
         return locals()
     start_time = property(**start_time())
+
+    def priority():
+        doc = "The priority property."
+        def fget(self):
+            return self.jdict['priority']
+        def fset(self, value):
+            self.jdict['priority'] = value
+        return locals()
+    priority = property(**priority())
 
     def attach(self, var, obj, file_name=None):
         """

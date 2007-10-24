@@ -33,7 +33,7 @@ substitutes = [('\\item', '*'), \
                ('\\rm', ''), \
                ('cdots', '...'), \
                ('\\cdot', ' *'), \
-               ('$',''), ('\\',''), ('sage.:', 'sage:'), ('backslash','\\'), \
+               ('$',''), ('\\',''), ('backslash','\\'), \
                ('begin{enumerate}',''), ('end{enumerate}',''), \
                ('begin{itemize}',''), ('end{itemize}',''), \
                ('begin{verbatim}',''), ('end{verbatim}',''), \

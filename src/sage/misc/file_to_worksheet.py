@@ -7,10 +7,8 @@ def file_to_worksheet(filename):
     r = open(filename).readlines()
     for i in range(len(r)):
         s = r[i].lstrip()
-        if s[:5] == 'sage:':
+        if s.startswith('sage:'):
             r[i] = '{{{%s}}}\n'%(s[5:].rstrip())
-        elif s[:6] == 'sage.:':
-            r[i] = '{{{%s}}}\n'%(s[6:].rstrip())
 
     s = '<pre>' + ''.join(r) + '</pre>'
     open(os.path.abspath(filename) + '.ws', 'w').write(s)

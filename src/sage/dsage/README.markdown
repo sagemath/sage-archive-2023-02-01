@@ -1,12 +1,12 @@
 META
-----
+====
 
-Last Updated: 12/14/06
+Last Updated: 10/09/07
 Contact Info: yqiang ATNOSPAM gmail.com
 
 
 INTRODUCTION
-------------
+============
 
 Distributed SAGE is a framework that allows one to do distributed
 computing from within SAGE. It includes a server, client and workers as
@@ -15,14 +15,14 @@ computation jobs.
 
 
 REQUIREMENTS
-------------
+============
 
 * [**SAGE 2.6**](http://www.sagemath.org)
 * [**OpenSSH**](http://www.openssh.org)
 
 
 OVERVIEW
---------
+========
 
 There are 3 distinct parts of Distributed SAGE:
 
@@ -40,7 +40,7 @@ There are 3 distinct parts of Distributed SAGE:
 
 
 QUICK-START
------------
+===========
 
 1.  Launch sage
 2.  Run
@@ -77,8 +77,70 @@ QUICK-START
     converted into a JobWrapper object and performed by a worker.
 
 
+EXAMPLES
+========
+
+All examples below assume that you already have a connection to the DSAGE
+server and have workers up and running. You can get to that stage by doing the
+following from SAGE:
+
+    sage: D = dsage.start_all()
+
+Example 1:
+----------
+
+In this example we have written some code in a separate file, called
+**dsage.sage** and would like to send that file as a job to a worker. The
+contents of the file are simply:
+
+    DSAGE_RESULT = factor(randint(10^20, 10^30))
+
+Our session looks like this:
+
+    sage: j = D.eval_file('dsage.sage', 'test_job')
+    sage: j
+    No output.
+    sage: j.result
+    2 * 5 * 7 * 23 * 743 * 877 * 1213 * 462270878024426767
+
+
+Example 2:
+----------
+The above example is not very useful because rarely do you want to send just
+**ONE** job to a worker. A more likely situation is if you want to factor a
+list of 1000 integers over one hundred workers. We are going to use list
+comprehension for the following example:
+
+
+INCREASING YOUR COMPUTING POWER
+===============================
+
+At some point you will want to add more workers to your worker pool. To do
+this is very easy, since authentication is done with public keys. You can find
+your public/private key pair in:
+
+    $HOME/.sage/dsage/dsage_key
+    $HOME/.sage/dsage/dsage_key.pub
+
+We have a DSAGE server *A* and a DSAGE worker *B* which are on separate
+machines.
+
+Copy your public/private key pair from *A* to *B* using the same
+path. Now, in a session on *B* issue the following command to connect to *A*:
+
+    sage: dsage.worker(server=**hostname of *A***, port=**port of server A**)
+
+Alternatively, you can also connect as an **anonymous** worker by issuing the following command:
+
+    sage: dsage.worker(server=**hostname of *A***, port=**port of server A**,
+                       anonymous=True)
+
+Please note that some jobs will not be processed by anonymous workers because
+of the security setting of the job, which will be explained in the Jobs
+sections.
+
 FILES
------
+=====
 
 All **DSAGE** related files are in `$HOME/.sage/dsage`.
 
@@ -88,7 +150,7 @@ All **DSAGE** related files are in `$HOME/.sage/dsage`.
 
 
 SETUP
------
+=====
 
 Setting up DSAGE is done through the configuration utility `dsage.setup()` and
 the related utilities `dsage.setup_client()`, `dsage.setup_worker()` and
@@ -96,7 +158,7 @@ the related utilities `dsage.setup_client()`, `dsage.setup_worker()` and
 
 
 CONFIGURATION
--------------
+=============
 
 As of **SAGE 2.6**, **DSAGE** does not use configuration files anymore.
 Everything can be configured on the fly by passing in parameters to the
@@ -108,7 +170,7 @@ method definitions of `dsage.server()`, `dsage.worker()`, and `DSage()`.
 
 
 USAGE (NOT ACCURATE)
------
+=====
 
 1.  Client
 2.  Monitor
@@ -116,7 +178,7 @@ USAGE (NOT ACCURATE)
 
 
 ADVANCED USAGE
---------------
+==============
 
 More complicated usage of **DSAGE** will require the user to write some code.
 We have tried to make this as simple as possible by providing most of the
@@ -131,9 +193,11 @@ these examples in
 
 
 BUGS
-----
+====
+
 Send bug reports to yqiang atNOSPAM gmail.com
 
 AUTHORS
--------
+=======
+
 [Yi Qiang](http://www.yiqiang.org)

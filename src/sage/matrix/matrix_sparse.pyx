@@ -277,7 +277,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         EXAMPLES:
         We create a matrix, compute its transpose, and note that the
         original matrix is not changed.
-            sage: M = MatrixSpace(QQ,  2)
+            sage: M = MatrixSpace(QQ,  2, sparse=True)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
             sage: print B

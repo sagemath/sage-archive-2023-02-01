@@ -164,7 +164,8 @@ class WorksheetFile(resource.Resource):
             css_href = DOC + directory + css_href
         W = doc_worksheet()
         W.edit_save(doc_page)
-        s = notebook.html(worksheet_filename = W.filename(),  username = self.username)
+        s = notebook.html(worksheet_filename = W.filename(),
+                          username = self.username)
         return http.Response(stream=s)
 
     def childFactory(self, request, name):
@@ -179,6 +180,7 @@ class WorksheetFile(resource.Resource):
 ############################
 
 DOC = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
+
 class DocStatic(resource.Resource):
     addSlash = True
     def render(self, ctx):
@@ -213,6 +215,25 @@ class Doc(resource.Resource):
     def childFactory(self, request, name):
         if name == "live":
             return DocLive(username = self.username)
+
+
+############################
+# SageTex browser
+############################
+SAGETEX_PATH = ""
+
+
+class SageTex(resource.Resource):
+    def __init__(self, username):
+        self.username = username
+
+    def render(self, ctx):
+        s = notebook.html_doc(username = self.username)
+        return http.Response(stream=s)
+
+    def childFactory(self, request, name):
+        return WorksheetFile('%s/%s'%(SAGETEX_PATH,name),
+                             username = self.username)
 
 
 ############################
@@ -1674,6 +1695,7 @@ class UserToplevel(Toplevel):
     # NOTE: If you overload childFactory in any derived class, you
     # better call userchildFactory it in the base class (Toplevel)!
     userchild_doc = Doc
+    userchild_sagetex = SageTex
     userchild_help = Help
     userchild_history = History
     userchild_home = Worksheets

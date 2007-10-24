@@ -4212,6 +4212,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(idealadd(self.g, t0, t1))
 
+    def idealappr(self, x, long flag=0):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(idealappr(self.g, t0))
+
     def idealdiv(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -4258,6 +4263,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return idealval(self.g, t0, t1)
 
+    def elementval(self, x, p):
+        t0GEN(x); t1GEN(p)
+        _sig_on
+        return element_val(self.g, t0, t1)
+
     def modreverse(self):
         """
         modreverse(x): reverse polymod of the polymod x, if it exists.
@@ -4277,6 +4287,36 @@ cdef class gen(sage.structure.element.RingElement):
             g = <GEN>NULL
         _sig_on
         return self.new_gen(nfbasis0(self.g, flag, g))
+
+    def nfbasis_d(self, long flag=0, p=0):
+        """
+        nfbasis_d(x): Return a basis of the number field defined over
+        QQ by x and its discriminant.
+
+        EXAMPLES:
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: F._pari_()[0].nfbasis_d()
+            ([1, x, x^2], -108)
+
+            sage: G = NumberField(x^5-11,'beta')
+            sage: G._pari_()[0].nfbasis_d()
+            ([1, x, x^2, x^3, x^4], 45753125)
+
+            sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
+            ([1, x, x^2], -108)
+        """
+        cdef gen _p, d
+        cdef GEN g
+        if p != 0:
+            _p = self.pari(p)
+            g = _p.g
+        else:
+            g = <GEN>NULL
+        d = self.pari(0)
+        _sig_on
+        nfb = self.new_gen(nfbasis(self.g, &d.g, flag, g))
+        _sig_off
+        return nfb, d.__int__()
 
     def nfdisc(self, long flag=0, p=0):
         """
@@ -4622,6 +4662,10 @@ cdef class gen(sage.structure.element.RingElement):
         else:
             t0GEN(fa)
             return self.new_gen(polred0(self.g, flag, t0))
+
+    def polredabs(self, flag=0):
+        _sig_on
+        return self.new_gen(polredabs0(self.g, flag))
 
     def polresultant(self, y, var=-1, flag=0):
         t0GEN(y)
@@ -5735,7 +5779,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def __call__(self, s):
         """
-        Create the PARI object got by evaluating s using PARI.
+        Create the PARI object obtained by evaluating s using PARI.
         """
         cdef pari_sp prev_avma
         global avma
@@ -5783,7 +5827,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def new_with_prec(self, s, long precision=0):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with at lest precision decimal \emph{digits} of precision.
+        with at least \code{precision} decimal \emph{digits} of precision.
         """
         global prec
         cdef unsigned long old_prec
@@ -6264,7 +6308,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
 
 # The first one makes a separate copy on the heap, so the stack
 # won't overflow -- but this costs more time...
-cdef gen _new_gen(GEN x):
+cdef gen _new_gen (GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y

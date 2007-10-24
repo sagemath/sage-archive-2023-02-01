@@ -61,14 +61,14 @@ Multiplication:
     sage: 'sage'*Integer(3)
     'sagesagesage'
 
-Coercions:
+COERCIONS:
     Returns version of this integer in the multi-precision floating
     real field R.
 
-        sage: n = 9390823
-        sage: RR = RealField(200)
-        sage: RR(n)
-        9390823.0000000000000000000000000000000000000000000000000000
+    sage: n = 9390823
+    sage: RR = RealField(200)
+    sage: RR(n)
+    9390823.0000000000000000000000000000000000000000000000000000
 
 """
 
@@ -102,6 +102,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
 include "../ext/python_int.pxi"
+include "../libs/pari/decl.pxi"
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -109,8 +110,11 @@ cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
 
+cdef extern from "convert.h":
+    cdef void t_INT_to_ZZ( mpz_t value, long *g )
+    cdef void ZZ_to_t_INT( long **g, mpz_t value )
 
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
@@ -230,6 +234,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -901824309821093821093812093810928309183091832091
             sage: ZZ(QQ(-901824309821093821093812093810928309183091832091))
             -901824309821093821093812093810928309183091832091
+            sage: ZZ(RR(2.0)^80)
+            1208925819614629174706176
             sage: ZZ(pari('Mod(-3,7)'))
             4
             sage: ZZ('sage')
@@ -242,6 +248,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             '3b'
             sage: ZZ( ZZ(5).digits(3) , 3)
             5
+            sage: import numpy
+            sage: ZZ(numpy.int64(7^7))
+            823543
+            sage: ZZ(numpy.ubyte(-7))
+            249
         """
 
         # TODO: All the code below should somehow be in an external
@@ -272,25 +283,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PyLong_CheckExact(x):
                 mpz_set_pylong(self.value, x)
 
+            elif PY_TYPE_CHECK(x, pari_gen):
+
+                if x.type() == 't_INT':
+                    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
+
+                else:
+                    if x.type() == 't_INTMOD':
+                        x = x.lift()
+                    # TODO: figure out how to convert to pari integer in base 16 ?
+
+                    # todo: having this "s" variable around here is causing
+                    # pyrex to play games with refcount for the None object, which
+                    # seems really stupid.
+
+                    s = hex(x)
+                    if mpz_set_str(self.value, s, 16) != 0:
+                        raise TypeError, "Unable to coerce PARI %s to an Integer."%x
+
             elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
                 if mpz_set_str(self.value, x, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
-            # Similarly for "sage.libs.pari.all.pari_gen"
-            elif PY_TYPE_CHECK(x, pari_gen):
-                if x.type() == 't_INTMOD':
-                    x = x.lift()
-                # TODO: figure out how to convert to pari integer in base 16 ?
-
-                # todo: having this "s" variable around here is causing
-                # pyrex to play games with refcount for the None object, which
-                # seems really stupid.
-
-                s = hex(x)
-                if mpz_set_str(self.value, s, 16) != 0:
-                    raise TypeError, "Unable to coerce PARI %s to an Integer."%x
             elif PyObject_HasAttrString(x, "_integer_"):
                 # todo: Note that PyObject_GetAttrString returns NULL if
                 # the attribute was not found. If we could test for this,
@@ -310,7 +326,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set(self.value, tmp.value)
 
             else:
-                raise TypeError, "unable to coerce element to an integer"
+                import numpy
+                if isinstance(x, numpy.integer):
+                    mpz_set_pylong(self.value, x.__long__())
+                else:
+                    raise TypeError, "unable to coerce element to an integer"
 
 
     def __reduce__(self):
@@ -573,6 +593,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str(2)
 
+    def bits(self, int base=2):
+        """
+        Return the number of bits in self.
+
+        EXAMPLES:
+            sage: 500.bits()
+            9
+            sage: 5.bits()
+            3
+            sage: 12345.bits() == len(12345.binary())
+            True
+        """
+        return int(mpz_sizeinbase(self.value, 2))
+
     def digits(self, int base=2, digits=None):
         """
         Return a list of digits for self in the given base in little
@@ -592,7 +626,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         """
         if base < 2:
-            raise TypeError, "base must be >= 2"
+            raise ValueError, "base must be >= 2"
 
         cdef mpz_t mpz_value
         cdef mpz_t mpz_base
@@ -1621,7 +1655,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2
             sage: (100000).divide_knowing_divisible_by(25)
             4000
-            sage: (100000).divide_knowing_divisible_by(26) # close
+            sage: (100000).divide_knowing_divisible_by(26) # close (random)
             3846
 
       However, often it's way off.
@@ -1948,61 +1982,72 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns \code{True} if there is an integer b with $self = n^b$.
 
         EXAMPLES:
-        sage: Integer(64).is_power_of(4)
-        True
-        sage: Integer(64).is_power_of(16)
-        False
+            sage: Integer(64).is_power_of(4)
+            True
+            sage: Integer(64).is_power_of(16)
+            False
 
         TESTS:
-        sage: Integer(-64).is_power_of(-4)
-        True
-        sage: Integer(-32).is_power_of(-2)
-        True
-        sage: Integer(1).is_power_of(1)
-        True
-        sage: Integer(-1).is_power_of(-1)
-        True
-        sage: Integer(0).is_power_of(1)
-        False
-        sage: Integer(0).is_power_of(0)
-        True
-        sage: Integer(1).is_power_of(0)
-        True
-        sage: Integer(1).is_power_of(8)
-        True
-        sage: Integer(-8).is_power_of(2)
-        False
+
+            sage: Integer(-64).is_power_of(-4)
+            True
+            sage: Integer(-32).is_power_of(-2)
+            True
+            sage: Integer(1).is_power_of(1)
+            True
+            sage: Integer(-1).is_power_of(-1)
+            True
+            sage: Integer(0).is_power_of(1)
+            False
+            sage: Integer(0).is_power_of(0)
+            True
+            sage: Integer(1).is_power_of(0)
+            True
+            sage: Integer(1).is_power_of(8)
+            True
+            sage: Integer(-8).is_power_of(2)
+            False
 
         NOTES:
-        For large integers self, is_power_of() is faster than is_power().  The following examples gives some indication of how much faster.
-        sage.: b = lcm(range(1,10000))
-        sage.: b.exact_log(2)
-        14446
-        sage.: time for a in range(2, 1000): k = b.is_power()
-        CPU times: user 1.68 s, sys: 0.01 s, total: 1.69 s
-        Wall time: 1.71
-        sage.: time for a in range(2, 1000): k = b.is_power_of(2)
-        CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-        Wall time: 0.01
-        sage.: time for a in range(2, 1000): k = b.is_power_of(3)
-        CPU times: user 0.05 s, sys: 0.00 s, total: 0.05 s
-        Wall time: 0.05
 
-        sage.: b = lcm(range(1, 1000))
-        sage.: b.exact_log(2)
-        1437
-        sage.: time for a in range(2, 10000): k = b.is_power() # note that we change the range from the example above
-        CPU times: user 0.40 s, sys: 0.00 s, total: 0.40 s
-        Wall time: 0.40
-        sage.: for a in range(2, 10000): k = b.is_power_of(TWO)
-        CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
-        Wall time: 0.03
-        sage.: time for a in range(2, 10000): k = b.is_power_of(3)
-        CPU times: user 0.11 s, sys: 0.01 s, total: 0.12 s
-        Wall time: 0.13
-        sage.: time for a in range(2, 10000): k = b.is_power_of(a)
-        CPU times: user 0.08 s, sys: 0.01 s, total: 0.09 s
-        Wall time: 0.10
+        For large integers self, is_power_of() is faster than is_power().
+        The following examples gives some indication of how much faster.
+
+            sage: b = lcm(range(1,10000))
+            sage: b.exact_log(2)
+            14446
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power()
+            sage: cputime(t)      # random
+            0.53203299999999976
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power_of(2)
+            sage: cputime(t)      # random
+            0.0
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power_of(3)
+            sage: cputime(t)      # random
+            0.032002000000000308
+
+            sage: b = lcm(range(1, 1000))
+            sage: b.exact_log(2)
+            1437
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power() # note that we change the range from the example above
+            sage: cputime(t)      # random
+            0.17201100000000036
+            sage: t=cputime(); TWO=int(2)
+            sage: for a in range(2, 10000): k = b.is_power_of(TWO)
+            sage: cputime(t)      # random
+            0.0040000000000000036
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power_of(3)
+            sage: cputime(t)      # random
+            0.040003000000000011
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power_of(a)
+            sage: cputime(t)      # random
+            0.02800199999999986
         """
         if not PY_TYPE_CHECK(n, Integer):
             n = Integer(n)
@@ -2350,7 +2395,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # TODO: (I could just think carefully about raw bytes and make this all much faster...)
             #self._pari = sage.libs.pari.all.pari(str(self))
         #return self._pari
-        return sage.libs.pari.all.pari(str(self))
+##        return sage.libs.pari.all.pari(str(self))
+
+        return self._pari_c()
+
+    cdef _pari_c(self):
+
+        cdef GEN z
+        cdef pari_sp sp
+        global avma
+        cdef PariInstance P
+
+        sp = avma
+        P = sage.libs.pari.gen.pari
+
+        ZZ_to_t_INT(&z, self.value)
+        x = P.new_gen_noclear(z)
+        avma = sp
+
+        return x
 
     def _interface_init_(self):
         """
@@ -2549,10 +2612,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             128
             sage: int(32) << 2
             128
-            sage: 1 >> 2.5
+            sage: 1 << 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for >>
+            TypeError: unsupported operands for <<
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):
@@ -2587,10 +2650,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             8
             sage: int(32) >> 2
             8
-            sage: 1<< 2.5
+            sage: 1 >> 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for <<
+            TypeError: unsupported operands for >>
         """
         try:
             if not PY_TYPE_CHECK(x, Integer):

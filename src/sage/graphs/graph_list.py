@@ -218,10 +218,10 @@ def to_graphics_arrays(list, **kwds):
         sage: garray = graphs_list.to_graphics_arrays(glist)
 
     Display the first graphics array in the list.
-        sage.: garray[0].show()
+        sage: garray[0].show()
 
     Display the last graphics array in the list.
-        sage.: garray[len(garray)-1].show()
+        sage: garray[len(garray)-1].show()
 
     See the .plot() or .show() documentation for an individual graph for
     options, all of which are available from to_graphics_arrays
@@ -321,21 +321,21 @@ def show_graphs(list, **kwds):
         14
 
     Show the graphs in a graphics array:
-        sage.: graphs_list.show_graphs(glist)
+        sage: graphs_list.show_graphs(glist)
 
     Here's an example where more than one graphics array is used:
         sage: graphs_query = GraphDatabase()
         sage: g = graphs_query.get_list(num_vertices=5)
         sage: len(g)
         34
-        sage.: graphs_list.show_graphs(g)
+        sage: graphs_list.show_graphs(g)
 
     See the .plot() or .show() documentation for an individual graph for
     options, all of which are available from to_graphics_arrays
         sage: glist = []
         sage: for _ in range(10):
         ...       glist.append(graphs.RandomLobster(41, .3, .4))
-        sage.: graphs_list.show_graphs(L, layout='spring', vertex_size=20)
+        sage: graphs_list.show_graphs(glist, layout='spring', vertex_size=20)
 
     """
     ga_list = to_graphics_arrays(list, **kwds)

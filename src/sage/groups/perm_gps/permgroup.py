@@ -956,7 +956,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = SymmetricGroup(5)
             sage: G.homology(7)                              # requires optional gap_packages
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C3 x C4 x C5
+            Multiplicative Abelian Group isomorphic to C2 x C2 x C4 x C3 x C5
             sage: G.homology(7,2)                              # requires optional gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C2 x C2 x C2
             sage: G.homology(7,3)                              # requires optional gap_packages

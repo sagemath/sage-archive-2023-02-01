@@ -101,7 +101,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<Z> = R[ ]; S
             Univariate Polynomial Ring in Z over Univariate Polynomial Ring in x over Integer Ring
             sage: f = Z^3 + (x^2-2*x+1)*Z - 3; f
-            Z^3 + (x^2 - 2*x + 1)*Z + -3
+            Z^3 + (x^2 - 2*x + 1)*Z - 3
             sage: f*f
             Z^6 + (2*x^2 - 4*x + 2)*Z^4 + (-6)*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
             sage: f^3 == f*f*f
@@ -383,6 +383,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 result = result(other_args)
             else:
                 raise TypeError, "Wrong number of arguments"
+
+        if d == -1:
+            try:
+                return a.parent()(0)
+            except AttributeError:
+                return result
 
         if d == 0:
             try:
@@ -670,6 +676,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self * self
 
+    def squarefree_decomposition(self):
+        """
+        Return the square-free decomposition of self.  This is
+        a partial factorization of self into square-free, relatively
+        prime polynomials.
+
+        This is the straightforward algorithm, using only polynomial
+        GCD and polynomial division.  Faster algorithms exist.  The
+        algorithm comes from the Wikipedia article,
+        "Square-free polynomial".
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: p = 37 * (x-1)^3 * (x-2)^3 * (x-1/3)^7 * (x-3/7)
+            sage: p.squarefree_decomposition()
+            (37*x - 111/7) * (x^2 - 3*x + 2)^3 * (x - 1/3)^7
+            sage: p = 37 * (x-2/3)^2
+            sage: p.squarefree_decomposition()
+            (37) * (x - 2/3)^2
+        """
+
+        # Wikipedia says this works for arbitrary fields of
+        # characteristic 0.
+
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError, "Squarefree decomposition not implemented for " + self.parent()
+
+        f = [self]
+        cur = self
+        while cur.degree() > 0:
+            cur = cur.gcd(cur.derivative())
+            f.append(cur)
+
+        g = []
+        for i in range(len(f) - 1):
+            g.append(f[i] // f[i+1])
+
+        a = []
+        for i in range(len(g) - 1):
+            a.append(g[i] // g[i+1])
+        a.append(g[-1])
+
+        factors = []
+        unit = f[-1]
+        for i in range(len(a)):
+            if a[i].degree() > 0:
+                factors.append((a[i], i+1))
+            else:
+                unit = unit * a[i].constant_coefficient() ** (i + 1)
+
+        return Factorization(factors, unit=unit, sort=False)
+
     def __div__(self, right):
         """
         EXAMPLES:
@@ -782,8 +840,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        #if atomic_repr:
+        s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
         if s==" ":
@@ -846,8 +904,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        #if atomic_repr:
+        s = s.replace(" + -", " - ")
         s = s.replace(" 1|"," ")
         s = s.replace(" -1|", " -")
         s = s.replace("|","")
@@ -1382,15 +1440,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: C = ComplexField(100)
             sage: R.<x> = C[]
             sage: F = factor(x^2+3); F
-            (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
+            (1.0000000000000000000000000000*x - 1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
             sage: expand(F)
             1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
-            (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
+            (1.0000000000000000000000000000*x - 1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: f = C.0 * (x^2 + 1) ; f
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
             sage: F = factor(f); F
-            (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
+            (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x - 1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
 
@@ -1405,7 +1463,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: len(F)
             4
             sage: F[:2]
-            [(T + -a, 1), (T + -40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
+            [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
             sage: expand(F)
             T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
 
@@ -1503,7 +1561,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
         elif is_NumberField(R) or is_FiniteField(R):
-
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())

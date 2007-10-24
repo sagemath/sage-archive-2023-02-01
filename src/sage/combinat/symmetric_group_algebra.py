@@ -67,6 +67,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         return left * right
 
     def _coerce_start(self, x):
+        if x == []:
+            return self( self._one )
         if len(x) < self.n and x in permutation.Permutations():
             return self( list(x) + range(len(x)+1, self.n+1) )
         raise TypeError
@@ -219,7 +221,12 @@ def pi_ik(itab, ktab, csn=False):
             p[ kt[i][j] -1 ] = it[i][j]
 
     QSn = SymmetricGroupAlgebra(QQ, it.size())
-    return QSn(p)
+    po = permutation.PermutationOptions()
+    p = permutation.Permutation(p)
+    if po['mult'] == 'l2r':
+        return QSn(p.inverse())
+    else:
+        return QSn(p)
 
 
 def kappa(alpha):
@@ -244,6 +251,7 @@ def e(tableau, star=0):
         n = t.size()
 
         QSn = SymmetricGroupAlgebra(QQ, n)
+
         res = 0
         for h in rs:
             for v in cs:
@@ -259,7 +267,7 @@ def e_hat(tab, star=0):
     if t in ehat_cache:
         return ehat_cache[t]
     else:
-        return e(t)*(1/kappa(t.shape()))
+        return (1/kappa(t.shape()))*e(t)
 
 e_ik_cache = {}
 def e_ik(itab, ktab, star=0):

@@ -141,7 +141,7 @@ class Gnuplot(SageObject):
              title   -- (string) title of the graph.
 
         EXAMPLES:
-            sage.: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')   # optional
+            sage: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')   # optional -- requires gnuplot  (not tested, since something pops up).
         """
         if title is None:
             title = str(f)

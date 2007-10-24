@@ -29,7 +29,7 @@ sage: print RealField(150)(a)
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
 sage: # NOTE -- we get a different answer than yacas
-sage: bessel_J(2.0,1.0+I)
+sage: bessel_J(1.0+I, 2.0)
 0.874211097673326 - 0.222469792478650*I
 
 sage: # Obtain period of decimal fraction 1/7=0.(142857).
@@ -134,7 +134,7 @@ sage: f = y^4 - 3*y^2 + 1
 sage: f
 y^4 + (-3)*y^2 + 1
 sage: factor(f)
-(y + -a) * (y + -a + 1) * (y + a - 1) * (y + a)
+(y - a) * (y - a + 1) * (y + a - 1) * (y + a)
 
 sage: # (YES) Factorize  x^4-3*x^2+1 mod 5.
 sage: k.< x > = GF(5) [ ]

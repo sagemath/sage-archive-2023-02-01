@@ -448,6 +448,26 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         return self.element().dict()
 
+    def __iter__(self):
+        """
+        Facilitates iterating over the monomials of self,
+        returning tuples of the form (coeff, mon) for each
+        non-zero monomial.
+
+        EXAMPLES:
+            sage: R = ZZ['t']
+            sage: P.<x,y,z> = PolynomialRing(R,3)
+            sage: f = 3*x^3*y + 16*x + 7
+            sage: [(c,m) for c,m in f]
+            [(3, x^3*y), (16, x), (7, 1)]
+            sage: f = P.random_element(10,10)
+            sage: sum(c*m for c,m in f) == f
+            True
+        """
+        exps = self.element().exponents()
+        parent = self.parent()
+        for exp in exps:
+            yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
 
     def __getitem__(self, x):
         """

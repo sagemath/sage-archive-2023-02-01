@@ -261,7 +261,10 @@ class HG:
         if filename is None:
             filename = '%R.patch'
         if not isinstance(revs, list):
-            revs = [int(revs)]
+            if revs == "tip":
+                revs = [revs]
+            else:
+                revs = [int(revs)]
         if not isinstance(filename, str):
             raise TypeError, 'filename must be a string'
         if filename[-6:] != '.patch':
@@ -415,7 +418,7 @@ class HG:
     mv = rename
 
     def log(self, branches=None, keyword=None, limit=None,
-                  rev=None, merges=False, only_merges=False,
+                  rev=None, merges=True, only_merges=False,
                   patch=None, template=False, include=None,
                   exclude=None, verbose=False):
         """
@@ -432,7 +435,7 @@ class HG:
             limit    -- (integer, default: None, or 20 in notebook mdoe)
                         limit number of changes displayed
             rev      -- (integer) show the specified revision
-            merges   -- (bool, default: False) whether or not to show merges
+            merges   -- (bool, default: True) whether or not to show merges
             only_merges -- (bool, default: False) if true, show only merges
             patch    -- (string, default: None) show given patch
             template -- (string, default: None) display with template
@@ -779,11 +782,11 @@ class HG:
         then <SAGE_ROOT>/devel/sage will point to sage-testing, and
         when you next restart SAGE that's the version you'll be using.
 
-            sage.: hg_sage.clone('testing')
+            sage: hg_sage.clone('testing')    # not tested
             ...
 
         Make a clone of the repository as it was at revision 1328.
-            sage.: hg_sage.clone('testing', 1328)
+            sage: hg_sage.clone('testing', 1328)    # not tested
             ...
         """
         if not self.__cloneable:

@@ -16,7 +16,8 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-from sage.structure.sequence import _combinations, Sequence
+from sage.structure.sequence import Sequence
+from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
@@ -274,7 +275,7 @@ cdef class Matrix(matrix1.Matrix):
 
         from sage.rings.arith import binomial
         for r from 1 <= r < m+1:
-            lst = _combinations(range(n), r)
+            lst = combinations_iterator(range(n), r)
             tmp = []
             for cols in lst:
                 tmp.append(self.prod_of_row_sums(cols))
@@ -362,10 +363,11 @@ cdef class Matrix(matrix1.Matrix):
 
         k = int(k)
         pm = 0
-        for cols in _combinations(range(n),k):
-            for rows in _combinations(range(m),k):
+        for cols in combinations_iterator(range(n),k):
+            for rows in combinations_iterator(range(m),k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
+
 
     def rook_vector(self, check = False):
         r"""
@@ -422,6 +424,44 @@ cdef class Matrix(matrix1.Matrix):
             tmp.append(self.permanental_minor(k))
         return tmp
 
+    def minors(self,k):
+        """
+        Return the list of all k-minors of self.
+
+        Let A be an m x n matrix and k an integer with 0 < k, k <= m, and
+        k <= n. A k x k minor of A is the determinant of a k x k matrix
+        obtained from A by deleting m - k rows and n - k columns.
+
+        The returned list is sorted in lexicographical row major ordering,
+        e.g., if A is a 3 x 3 matrix then the minors returned are with
+        for these rows/columns:  [ [0, 1]x[0, 1], [0, 1]x[0, 2],
+        [0, 1]x[1, 2], [0, 2]x[0, 1], [0, 2]x[0, 2], [0, 2]x[1, 2],
+        [1, 2]x[0, 1], [1, 2]x[0, 2], [1, 2]x[1, 2] ].
+
+        INPUT:
+            k -- integer
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,2,3,[1,2,3,4,5,6]); A
+            [1 2 3]
+            [4 5 6]
+            sage: A.minors(2)
+            [-3, -6, -3]
+
+            sage: k = GF(37)
+            sage: P.<x0,x1,x2> = PolynomialRing(k)
+            sage: A = Matrix(P,2,3,[x0*x1, x0, x1, x2, x2 + 16, x2 + 5*x1 ])
+            sage: A.minors(2)
+            [x0*x1*x2 + 16*x0*x1 - x0*x2, 5*x0*x1^2 + x0*x1*x2 - x1*x2, 5*x0*x1 + x0*x2 - x1*x2 - 16*x1]
+        """
+        from sage.combinat.combinat import combinations_iterator
+        all_rows = range(self.nrows())
+        all_cols = range(self.ncols())
+        m = []
+        for rows in combinations_iterator(all_rows,k):
+            for cols in combinations_iterator(all_cols,k):
+                m.append(self.matrix_from_rows_and_columns(rows,cols).determinant())
+        return m
 
     def determinant(self, algorithm="hessenberg"):
         r"""
@@ -705,16 +745,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
-            x^2 + (-1*y^2 - x)*x + -x^2*y + x*y^2
+            x^2 + (-1*y^2 - x)*x - x^2*y + x*y^2
 
         It's a little difficult to distinguish the variables.  To fix this,
         we temporarily view the indeterminate as $Z$:
             sage: with localvars(f.parent(), 'Z'): print f
-            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
+            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
-            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
+            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
         """
         D = self.fetch('charpoly')
         if not D is None:
@@ -2826,6 +2866,40 @@ cdef class Matrix(matrix1.Matrix):
                 if not self.get_unsafe(x,y).is_zero():
                     k+=1
         return QQ(k)/QQ(nr*nc)
+
+
+    def inverse(self):
+        """
+        Returns the inverse of self, without changing self.
+
+        Note that one can use the Python inverse operator ~
+        to obtain the inverse as well.
+
+        EXAMPLES:
+            sage: m = matrix([[1,2],[3,4]])
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+            sage: m = matrix([[1,2],[3,4]], sparse=True)
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        """
+        return self.__invert__()
 
 
 def _dim_cmp(x,y):

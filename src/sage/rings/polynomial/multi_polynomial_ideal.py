@@ -267,22 +267,22 @@ class MPolynomialIdeal_singular_repr:
         Implicit plotting in 2-d:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
-            sage.: I.plot()        # cusp         (optional surf)
+            sage: I.plot()        # cusp         (optional surf)
             sage: I = R.ideal([y^2 - x^2 - 1])
-            sage.: I.plot()        # hyperbola    (optional surf)
+            sage: I.plot()        # hyperbola    (optional surf)
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
-            sage.: I.plot()        # ellipse      (optional surf)
+            sage: I.plot()        # ellipse      (optional surf)
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
-            sage.: I.plot()        # elliptic curve  (optional surf)
+            sage: I.plot()        # elliptic curve  (optional surf)
 
         Implicit plotting in 3-d:
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: I = R.ideal([y^2 + x^2*(1/4) - z])
-            sage.: I.plot()          # a cone         (optional surf)
+            sage: I.plot()          # a cone         (optional surf)
             sage: I = R.ideal([y^2 + z^2*(1/4) - x])
-            sage.: I.plot()          # same code, from a different angle  (optional surf)
+            sage: I.plot()          # same code, from a different angle  (optional surf)
             sage: I = R.ideal([x^2*y^2+x^2*z^2+y^2*z^2-16*x*y*z])
-            sage.: I.plot()          # Steiner surface   (optional surf)
+            sage: I.plot()          # Steiner surface   (optional surf)
 
         AUTHOR:
             -- David Joyner (2006-02-12)
@@ -313,10 +313,10 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: pd = I.complete_primary_decomposition(); pd
-            [(Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field), (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field), (Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
 
             sage: I.complete_primary_decomposition(algorithm = 'gtz')
-            [(Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field), (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field), (Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
         """
         try:
             return self.__complete_primary_decomposition[algorithm]
@@ -344,10 +344,135 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.primary_decomposition()
-            [Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
         """
         return [I for I, _ in self.complete_primary_decomposition(algorithm)]
+
+    def triangular_decomposition(self, algorithm=None):
+        """
+        Decompose zero-dimensional ideal self into triangular sets.
+
+        This requires that the given basis is reduced w.r.t. to the lexicographical
+        monomial ordering. If the basis of self does not have this property, the
+        required Groebner basis is computed implicitly.
+
+        INPUT:
+            algorithm -- string or None (default: None)
+
+        ALGORITHMS:
+            singular:triangL -- decomposition of self into triangular systems (Lazard).
+            singular:triangLfak -- decomp. of self into tri. systems plus factorization.
+            singular:triangM -- decomposition of self into triangular systems (Moeller).
+
+        OUTPUT:
+            a list T of lists t such that the variety of self is the union of the varieties
+            of t in L and each t is in triangular form.
+
+        EXAMPLE:
+            sage: P.<e,d,c,b,a> = PolynomialRing(QQ,5,order='lex')
+            sage: I = sage.rings.ideal.Cyclic(P)
+            sage: GB = Ideal(I.groebner_basis('singular:stdfglm'))
+            sage: GB.triangular_decomposition('singular:triangLfak')
+            [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3, e
+            + b^3 + b^2 + b + 1) of Multivariate Polynomial Ring in e,
+            d, c, b, a over Rational Field,
+            Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a^4 + a^3 + a^2 + a + 1, b - 1, c + a^3 + a^2 + a +
+            1, d - a^3, e - a^2) of Multivariate Polynomial Ring in e,
+            d, c, b, a over Rational Field, Ideal (a^4 + a^3 + a^2 + a
+            + 1, b - a, c - a, d^2 + 3*d*a + a^2, e + d + 3*a) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2,
+            d + c + 3*a, e - a) of Multivariate Polynomial Ring in e,
+            d, c, b, a over Rational Field,
+            Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2
+            + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 +
+            b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a -
+            a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b +
+            3*a, d - a, e - a) of Multivariate Polynomial Ring in e,
+            d, c, b, a over Rational Field,
+            Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 -
+            10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24,
+            11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 +
+            25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1, 11*b^2 - 6*b*a^3 +
+            26*b*a^2 - 41*b*a + 4*b + 8*a^3 - 31*a^2 + 40*a + 24, 11*c
+            + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2 + 26*a
+            - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field,
+            Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3) of
+            Multivariate Polynomial Ring in e, d, c, b, a over
+            Rational Field, Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d
+            - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b,
+            a over Rational Field]
+            """
+
+        P = self.ring()
+
+        is_groebner = self.basis_is_groebner()
+
+        # make sure to work w.r.t. 'lex'
+        if P.term_order() != 'lex':
+            Q = P.new_ring(order='lex')
+        else:
+            Q = P
+
+        if is_groebner:
+            if Q == P:
+                I = MPolynomialIdeal(P, self.reduced_basis()) # reduce only
+            else:
+                I = MPolynomialIdeal(P, self.reduced_basis())
+                I = MPolynomialIdeal(P, I.transformed_basis('fglm')) # -> 'lex'
+                I = I.change_ring(Q) # transform to 'lex' GB
+        else:
+            if Q == P:
+                I = MPolynomialIdeal(P, self.groebner_basis())
+                I = MPolynomialIdeal(P, I.reduced_basis())
+            else:
+                I = self.change_ring(Q) # transform to 'lex' GB
+                I = MPolynomialIdeal(Q, I.groebner_basis())
+                I = MPolynomialIdeal(Q, I.reduced_basis())
+
+        if I.dimension() != 0:
+            raise TypeError, "dimension must be zero"
+
+        Ibar = I._singular_()
+        Ibar.attrib('isSB',1)
+
+        singular = Ibar.parent()
+        singular.lib("triang")
+
+        if algorithm is None:
+            algorithm = "singular:triangL"
+
+        if algorithm == "singular:triangL":
+            Tbar = Ibar.triangL()
+        elif algorithm == "singular:triangLfak":
+            Tbar = Ibar.triangLfak()
+        elif algorithm == "singular:triangM":
+            Tbar = Ibar.triangM()
+        else:
+            raise TypeError, "algorithm '%s' unknown"%algorithm
+
+        T = Sequence([ MPolynomialIdeal(Q,[f._sage_(Q) for f in t]) for t in Tbar ])
+
+        return T
 
     def associated_primes(self, algorithm='sy'):
         """
@@ -356,7 +481,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.associated_primes()
-            [Ideal (y + 1, z^2 + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 - y, y*z + 2, y^2 + 2*z) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^2 - y, y*z + 2, y^2 + 2*z) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (y + 1, z^2 + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field]
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
@@ -375,6 +500,35 @@ class MPolynomialIdeal_singular_repr:
                 v = [0]
             self.__dimension = Integer(singular(v,"ideal").dim())
         return self.__dimension
+
+    def vector_space_dimension(self):
+        """
+        Return the vector space dimension of the ring modulo the ideal
+        generated by the initial terms of the generators of self.
+
+        If the generators form a standard basis, this is the same as
+        the vector space dimension of the ring modulo the ideal.  If
+        the ideal is not zero-dimensional, a TypeError is raised.
+
+        ALGORITHM: Uses Singular.
+
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(QQ,2,order='neglex')
+            sage: I = P * [x^2 + y^2, x^2 - y^2]
+            sage: I.vector_space_dimension()
+            Traceback (most recent call last):
+            ...
+            TypeError: ideal is not zero dimensional
+            sage: J = Ideal(I.groebner_basis())
+            sage: J.vector_space_dimension()
+            4
+        """
+
+        vdim = Integer(self._singular_().vdim())
+        if vdim == -1:
+            raise TypeError, "ideal is not zero dimensional"
+        else:
+            return vdim
 
     def _groebner_basis_using_singular(self, algorithm="groebner"):
         """
@@ -539,7 +693,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (z^3 + 2, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^2 + 1, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -763,6 +917,8 @@ class MPolynomialIdeal_singular_repr:
         for i in range(M.nrows()):
             if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
                 return False
+
+        self._singular_().attrib('isSB',1)
         return True
 
     def transformed_basis(self,algorithm="gwalk", other_ring=None):
@@ -893,6 +1049,78 @@ class MPolynomialIdeal_singular_repr:
             raise TypeError, "base rings do not match"
 
         return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
+
+    def variety(self):
+        """
+        Return the variety of self.
+
+        Given a zero-dimensional ideal I (== self) of a polynomial ring P
+        whose order is lexicographic, return the variety of I over its
+        coefficient field K as a list of dictionaries with (variable, value)
+        pairs.
+
+        These dictionaries have cardinality equal to the number of
+        variables in P and represent assignments of values to these
+        variables such that all polynomials in I vanish.
+
+        EXAMPLE:
+            sage: K.<w> = GF(27) # this example is from the MAGMA handbook
+            sage: P.<x, y> = PolynomialRing(K, 2, order='lex')
+            sage: I = Ideal([ x^8 + y + 2, y^6 + x*y^5 + x^2 ])
+            sage: I = Ideal(I.groebner_basis()); I
+            Ideal (y^48 + y^41 - y^40 + y^37 - y^36 - y^33 + y^32 - y^29 + y^28 -
+            y^25 + y^24 + y^2 + y + 1, x - y^47 - y^45 + y^44 - y^43 + y^41 - y^39 -
+            y^38 - y^37 - y^36 + y^35 - y^34 - y^33 + y^32 - y^31 + y^30 + y^28 +
+            y^27 + y^26 + y^25 - y^23 + y^22 + y^21 - y^19 - y^18 - y^16 + y^15 +
+            y^13 + y^12 - y^10 + y^9 + y^8 + y^7 - y^6 + y^4 + y^3 + y^2 + y - 1) of
+            Multivariate Polynomial Ring in x, y over Finite Field in w of size 3^3
+
+            sage: V = I.variety(); V
+            [{y: w^2 + 2, x: 2*w}, {y: w^2 + 2*w, x: 2*w + 2}, {y: w^2 + w, x: 2*w + 1}]
+
+            sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
+            [0, 0, 0, 0, 0, 0]
+
+            However, we only account for solutions in the ground field and
+            not in the algebraic closure.
+
+            sage: I.vector_space_dimension()
+            48
+
+        ALGORITHM: Uses triangular decomposition.
+        """
+        def _variety(T, V, v=None):
+            if v is None: v = {}
+            found = False
+            for f in T:
+                if f.is_univariate() and not f.is_constant():
+                    T.remove(f); found = True; break
+
+            if found is False:
+                V.append(v)
+                return V
+
+            variable = f.variable(0)
+            roots = f.univariate_polynomial().roots()
+
+            for root,multiplicity in roots:
+                vbar = v.copy()
+                vbar[variable] = root
+                Tbar = [ f.subs({variable:root}) for f in T ]
+                _variety(Tbar,V,vbar)
+
+            return V
+
+        P = self.ring()
+        T = self.triangular_decomposition('singular:triangLfak')
+
+        V = []
+        for t in T:
+            Vbar = _variety(list(t.gens()),[])
+
+            for v in Vbar:
+                V.append(dict([(P(var),val) for var,val in v.iteritems()]))
+        return Sequence(V)
 
 class MPolynomialIdeal_macaulay2_repr:
     """
@@ -1162,3 +1390,4 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
            [x + y + z, y^2 + y*z + z^2, z^3 - 1]
         """
         return P.ideal([P(f) for f in self.gens()])
+

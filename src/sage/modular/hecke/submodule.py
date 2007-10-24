@@ -313,8 +313,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: B = M[1] + M[2]
             sage: A.dimension(), B.dimension()
             (2, 3)
-
-            sage.: C = A.intersection(B); C.dimension()
+            sage: C = A.intersection(B); C.dimension()
             1
         """
         if self.ambient_hecke_module() != other.ambient_hecke_module():

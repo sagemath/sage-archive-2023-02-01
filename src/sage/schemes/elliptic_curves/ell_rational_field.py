@@ -9,6 +9,7 @@ AUTHORS:
             padic_regulator methods.
    -- David Harvey (2007-02): reworked padic-height related code
    -- Christian Wuthrich (2007): added padic sha computation
+   -- David Roe (2007-9): moved sha, l-series and p-adic functionality to separate files.
 """
 
 #*****************************************************************************
@@ -29,7 +30,7 @@ AUTHORS:
 import ell_point
 import formal_group
 import rational_torsion
-from ell_field import EllipticCurve_field
+from ell_number_field import EllipticCurve_number_field
 
 import sage.groups.all
 import sage.rings.arith as arith
@@ -59,6 +60,9 @@ from sage.interfaces.all import gp
 
 import ell_modular_symbols
 import padic_lseries
+import padics
+
+from lseries_ell import Lseries_ell
 
 import mod5family
 
@@ -71,9 +75,6 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import gp_cremona
-import padic_height
-import monsky_washnitzer
-import sage.schemes.hyperelliptic_curves.frobenius
 import sea
 
 from gp_simon import simon_two_descent
@@ -93,7 +94,7 @@ R = RealField()
 
 _MAX_HEIGHT=21
 
-class EllipticCurve_rational_field(EllipticCurve_field):
+class EllipticCurve_rational_field(EllipticCurve_number_field):
     """
     Elliptic curve over the Rational Field.
     """
@@ -103,14 +104,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if isinstance(ainvs, str):
             label = ainvs
             X = sage.databases.cremona.CremonaDatabase()[label]
-            EllipticCurve_field.__init__(self, [Q(a) for a in X.a_invariants()])
+            EllipticCurve_number_field.__init__(self, Q, X.a_invariants())
             for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
                          'modular_degree', 'gens', 'regulator']:
                 s = "_EllipticCurve_rational_field__"+attr
                 if hasattr(X,s):
                     setattr(self, s, getattr(X, s))
             return
-        EllipticCurve_field.__init__(self, [Q(x) for x in ainvs])
+        EllipticCurve_number_field.__init__(self, Q, ainvs)
         self.__np = {}
         self.__gens = {}
         self.__rank = {}
@@ -236,21 +237,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     #  Access to PARI curves related to this curve.
     ####################################################################
 
-    def __pari_double_prec(self):
-        """
-        Double the precision of computations with this curve.
-        """
-        self.pari_curve()
-        prec = 2 * self.__pari_curve[1]
-        self.__pari_curve = (pari(self.ainvs()).ellinit(precision=prec), prec)
-        try:
-            del self.__pari_mincurve
-        except AttributeError:
-            pass
-
-    def pari_curve(self):
+    def pari_curve(self, prec = None):
         """
         Return the PARI curve corresponding to this elliptic curve.
+
+        INPUT:
+        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
+                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0,1,-1,0])
@@ -269,16 +262,31 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e[:5]
             [0, 0, 0, 1/3, 2/3]
         """
+        if prec is None:
+            try:
+                L = self.__pari_curve.keys()
+                L.sort()
+                return self.__pari_curve[L[len(L) - 1]]
+            except AttributeError:
+                pass
         try:
-            return self.__pari_curve[0]
+            return self.__pari_curve[prec]
         except AttributeError:
-            self.__pari_curve = (pari(self.a_invariants()).ellinit(precision=10), 10)
-        return self.__pari_curve[0]
+            prec = 10
+            self.__pari_curve = {}
+        except KeyError:
+            pass
+        self.__pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+        return self.__pari_curve[prec]
 
-    def pari_mincurve(self):
+    def pari_mincurve(self, prec = None):
         """
         Return the PARI curve corresponding to a minimal model
         for this elliptic curve.
+
+        INPUT:
+        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
+                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
 
         EXAMPLES:
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
@@ -290,14 +298,25 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.ellglobalred()
             [47232, [1, 0, 0, 0], 2]
         """
+        if prec is None:
+            try:
+                L = self.__pari_mincurve.keys()
+                L.sort()
+                return self.__pari_mincurve[L[len(L) - 1]]
+            except AttributeError:
+                pass
         try:
-            return self.__pari_mincurve
+            return self.__pari_mincurve[prec]
         except AttributeError:
-            e = self.pari_curve()
-            mc, change = e.ellminimalmodel()
-            self.__pari_mincurve = mc
-            # self.__min_transform = change
-        return self.__pari_mincurve
+            prec = 10
+            self.__pari_mincurve = {}
+        except KeyError:
+            pass
+        e = self.pari_curve(prec)
+        mc, change = e.ellminimalmodel()
+        self.__pari_mincurve[prec] = mc
+        # self.__min_transform = change
+        return mc
 
     def database_curve(self):
         """
@@ -376,12 +395,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         p = rings.Integer(p)
         return sea.ellsea(self.minimal_model().a_invariants(), p, early_abort=early_abort)
 
-    def __pari_double_prec(self):
-        EllipticCurve_field._EllipticCurve__pari_double_prec(self)
-        try:
-            del self.__pari_mincurve
-        except AttributeError:
-            pass
+    #def __pari_double_prec(self):
+    #    EllipticCurve_number_field._EllipticCurve__pari_double_prec(self)
+    #    try:
+    #        del self.__pari_mincurve
+    #    except AttributeError:
+    #        pass
 
     ####################################################################
     #  Access to mwrank
@@ -455,6 +474,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: type(e.aplist(13, python_ints=True)[0])
             <type 'int'>
         """
+        # How is this result dependant on the real precision in pari?  At all?
         e = self.pari_mincurve()
         v = e.ellaplist(n, python_ints=True)
         if python_ints:
@@ -488,6 +508,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
         """
         n = int(n)
+        # How is this result dependent on the real precision in Pari?  At all?
         e = self.pari_mincurve()
         if n >= 2147483648:
             raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
@@ -640,80 +661,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         self.__modular_symbol[typ] = M
         return M
 
-    def padic_lseries(self, p, normalize=True):
-        r"""
-        Return the $p$-adic $L$-series of self at $p$, which is an object
-        whose approx method computes approximation to the true $p$-adic
-        $L$-series to any deesired precision.
-
-        INPUT:
-            p -- prime
-            normalize -- (default: True); if True the p-adic L-series
-            is normalized correctly (up to multiplication by -1 and
-            2); otherwise it isn't, but computation of the series is
-            quicker.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: L = E.padic_lseries(5); L
-            5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: type(L)
-            <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
-
-        We compute the $3$-adic $L$-series of two curves of rank $0$
-        and in each case verify the interpolation property for their
-        leading coefficient (i.e., value at 0):
-            sage: e = EllipticCurve('11a')
-            sage: ms = e.modular_symbol()
-            sage: [ms(1/11), ms(1/3), ms(0), ms(oo)]
-            [0, -3/10, 1/5, 0]
-            sage: ms(0)
-            1/5
-            sage: L = e.padic_lseries(3)
-            sage: P = L.series(5)
-            sage: P(0)
-            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7)
-            sage: alpha = L.alpha(9); alpha
-            2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + O(3^9)
-            sage: R.<x> = QQ[]
-            sage: f = x^2 - e.ap(3)*x + 3
-            sage: f(alpha)
-            O(3^9)
-            sage: r = e.L_ratio(); r
-            1/5
-            sage: (1 - alpha^(-1))^2 * r
-            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + O(3^9)
-            sage: P(0)
-            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7)
-
-        Next consider the curve 37b:
-            sage: e = EllipticCurve('37b')
-            sage: L = e.padic_lseries(3)
-            sage: P = L.series(5)
-            sage: alpha = L.alpha(9); alpha
-            1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + O(3^9)
-            sage: r = e.L_ratio(); r
-            1/3
-            sage: (1 - alpha^(-1))^2 * r
-            3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
-            sage: P(0)
-            3 + 3^2 + 2*3^4 + 2*3^5 + O(3^6)
-        """
-        key = (p, normalize)
-        try:
-            return self._padic_lseries[key]
-        except AttributeError:
-            self._padic_lseries = {}
-        except KeyError:
-            pass
-        if self.ap(p) % p != 0:
-            Lp = padic_lseries.pAdicLseriesOrdinary(self, p,
-                                  normalize = normalize)
-        else:
-            Lp = padic_lseries.pAdicLseriesSupersingular(self, p,
-                                  normalize = normalize)
-        self._padic_lseries[key] = Lp
-        return Lp
+    padic_lseries = padics.padic_lseries
 
     def newform(self):
         r"""
@@ -1017,13 +965,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             N = self.conductor()
             prec = int(4*float(sqrt(N))) + 10
             if self.root_number() == 1:
-                L, err = self.Lseries_at1(prec)
+                L, err = self.Lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 0 because L(E,1)=%s"%L)
                     self.__rank[proof] = 0
                     return self.__rank[proof]
             else:
-                Lprime, err = self.Lseries_deriv_at1(prec)
+                Lprime, err = self.Lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
                     self.__rank[proof] = 1
@@ -1440,7 +1388,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
-        return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
+        return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
 
     def minimal_model(self):
         r"""
@@ -1473,15 +1421,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Local Kodaira type of the elliptic curve at $p$.
 
-        1 means good reduction (type $I_0$), 2, 3 and 4 mean types II,
-        III and IV, respectively, $4 + \\nu$ with $\\nu > 0$ means
-        type $I_{\\nu}$; finally the opposite values -1, -2,
-        etc. refer to the starred types $I_0^*$, $II^*$, etc.
+        INPUT:
+           -- p, an integral prime
+        OUTPUT:
+           -- the kodaira type of this elliptic curve at p, as a KodairaSymbol.
 
         EXAMPLES:
             sage: E = EllipticCurve('124a')
             sage: E.kodaira_type(2)
-            '4'
+            IV
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
@@ -1492,46 +1440,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__tamagawa_number = {}
         if not self.__kodaira_type.has_key(p):
             v = self.pari_mincurve().elllocalred(p)
-            self.__kodaira_type[p] = str(v[1])
+            from kodaira_symbol import KodairaSymbol
+            self.__kodaira_type[p] = KodairaSymbol(v[1])
             self.__tamagawa_number[p] = Integer(v[3])
         return self.__kodaira_type[p]
-
-    def kodaira_type_string(self, p):
-        """
-        Local Kodaira type of the elliptic curve at $p$ as a string of the form '$I_0$'...
-
-
-        EXAMPLES:
-            sage: E = EllipticCurve('124a')
-            sage: E.kodaira_type_string(2)
-            '$IV$'
-        """
-        if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
-        kodtype = Integer(self.kodaira_type(p))
-        if kodtype == 1:
-            st = '$I_0$'
-        if kodtype == 2:
-            st = '$II$'
-        if kodtype == 3:
-            st = '$III$'
-        if kodtype == 4:
-            st = '$IV$'
-        if kodtype > 4:
-            nu = kodtype - 4
-            st = '$I_{' + nu.str() + '}$'
-        if kodtype == -1:
-            st = '$I_0^{*}$'
-        if kodtype == -2:
-            st = '$II^{*}$'
-        if kodtype == -3:
-            st = '$III^{*}$'
-        if kodtype == -4:
-            st = '$IV^{*}$'
-        if kodtype < -4:
-            nu = -kodtype + 4
-            st = '$I_' + nu.str() + '^{*}$'
-        return st
 
     def tamagawa_number(self, p):
         """
@@ -1607,498 +1519,23 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def period_lattice(self):
         r"""
-        Return a basis for the period lattice of the elliptic curve
-        over $\Q$ as a 2-tuple.
-
-        The basis has the form $[\omega_1, \omega_2]$, where
-        $\Im(\omega_1/\omega_2) > 0$ and $\omega_1$ is real.
-
-        TODO: The precision is determined by the state of the PARI C
-        library, which is not good.
-
-        INPUT:
-            -- an elliptic curve
-        OUTPUT:
-            omega_1 -- complex number
-            omega_2 -- complex number
+        Returns the period lattice of the elliptic curve.
 
         EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.period_lattice ()
-            (2.993458646231959629832009979452508177797583791370132985340523378563250356987, 2.451389381986790060854224831866525225349617289144796614656471406129152899999*I)    # 32-bit
-            (2.99345864623195962983200997945250817779758379137013298534052337856325035698668290412039406739705147343584052710494728819414438723737202525437537667109326, 2.45138938198679006085422483186652522534961728914479661465647140612915289999925689289113212802918108871268421886966184797547519986661675580167893816478303*I)   # 64-bit
+        sage: E = EllipticCurve('37a')
+        sage: E.period_lattice()
+        Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         """
-        return tuple(self.pari_curve().omega().python())
+        from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
+        return PeriodLattice_ell(self)
 
-    def period_lattice_is_rectangular(self):
-        r"""
-        Return True precisely if the period lattice of self
-        is rectangular.
-
-        EXAMPLES:
-            sage: f = EllipticCurve('11a')
-            sage: f.period_lattice()
-            (1.269209304279553421688794616754547305219492241830608667967136921230408338613, 0.6346046521397767108443973083772736526097461209153043339835684606152041693064 + 1.458816616938495229330889612903675257159243428952665161469618762450537896609*I)                                     # 32-bit
-            (1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075, 0.634604652139776710844397308377273652609746120915304333983568460615204169306388861345181152960756303655822648139160643718640850164238421988246357005285375 + 1.45881661693849522933088961290367525715924342895266516146961876245053789660902872639765673368315820172095257526042401249237362183079269125313009041993832*I)             # 64-bit
-
-            sage: f.period_lattice_is_rectangular()
-            False
-            sage: f = EllipticCurve('37b')
-            sage: f.period_lattice()
-            (1.088521592904229173504308311539594823105140504301377799086597419750048367573, 1.767610670233789475881323144497815233734289378984139837146363810096739201810*I) # 32-bit
-            (1.08852159290422917350430831153959482310514050430137779908659741975004836757281196724615591294512604175793056433512324867543024134734839104934760089947025, 1.76761067023378947588132314449781523373428937898413983714636381009673920180953691706599273805495417094215579677634900614786897226142483706622542207437740*I) # 64-bit
-            sage: f.period_lattice_is_rectangular()
-            True
-
-        ALGORITHM:
-           The period lattice is rectangular precisely if the
-           discriminant of the Weierstrass equation is positive.
-        """
-        return self.discriminant() > 0
-
-    def omega(self):
-        """
-        Returns the real period.
-
-        If self is given by a \emph{minimal Weierstrass equation} then
-        this is the correct period in the BSD conjecture, i.e., it is
-        the least real period * 2 when the period lattice is
-        rectangular.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.omega()
-            5.986917292463919259664019958905016355595167582740265970681046757126500713973     # 32-bit
-            5.98691729246391925966401995890501635559516758274026597068104675712650071397336580824078813479410294687168105420989457638828877447474405050875075334218652        # 64-bit
-
-
-        This is not a minimal model.
-            sage: E = EllipticCurve([0,-432*6^2])
-            sage: E.omega()
-            0.4861093857100564298972304561738255425526098601923921971195408561181781048715    # 32-bit
-            0.486109385710056429897230456173825542552609860192392197119540856118178104871498709353307487730842084963451161261340032305532890657753313985258848453458110       # 64-bit
-
-        If you were to plug the above omega into the BSD conjecture, you
-        would get nonsense.   The following works though:
-            sage: F = E.minimal_model()
-            sage: F.omega()
-            0.9722187714201128597944609123476510851052197203847843942390817122363562097430    # 32-bit
-             0.972218771420112859794460912347651085105219720384784394239081712236356209742997418706614975461684169926902322522680064611065781315506627970517696906916220      # 64-bit
-        """
-        return self.period_lattice()[0] * self.real_components()
-
-    def complex_area(self):
-        """
-        Return the area of a fundamental domain for the period lattice
-        of the elliptic curve.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.complex_area()
-            7.338132740789576739070721003332305588006176586123733717543180156079096606979     # 32-bit
-            7.33813274078957673907072100333230558800617658612373371754318015607909660697945809438214607592923817142863798604406024044503049908233884534256274529672707        # 64-bit
-        """
-        w1,w2 = self.period_lattice()
-        return (w1*w2.imag()).real()
-
-    def Lseries_dokchitser(self, prec=53,
-                           max_imaginary_part=0,
-                           max_asymp_coeffs=40,
-                           algorithm='gp'):
-        r"""
-        Return interface to Tim Dokchitser's program for computing
-        with the L-series of this elliptic curve; this provides a way
-        to compute Taylor expansions and higher derivatives of
-        $L$-series.
-
-        INPUT:
-            prec -- integer (bits precision)
-            max_imaginary_part -- real number
-            max_asymp_coeffs -- integer
-            algorithm -- string: 'gp' or 'magma'
-
-        \note{If algorithm='magma', then the precision is in digits rather
-        than bits and the object returned is a Magma L-series, which has
-        different functionality from the SAGE L-series.}
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: L = E.Lseries_dokchitser()
-            sage: L(2)
-            0.381575408260711
-            sage.: L = E.Lseries_dokchitser(algorithm='magma')         # optional  (not auto tested)
-            sage.: L.Evaluate(2)                                       # optional  (not auto tested)
-            0.38157540826071121129371040958008663667709753398892116
-        """
-        if algorithm == 'magma':
-            from sage.interfaces.all import magma
-            return magma(self).LSeries(Precision = prec)
-
-        from sage.lfunctions.all import Dokchitser
-        L = Dokchitser(conductor = self.conductor(),
-                       gammaV = [0,1],
-                       weight = 2,
-                       eps = self.root_number(),
-                       poles = [],
-                       prec = prec)
-        gp = L.gp()
-        s = 'e = ellinit(%s);'%self.minimal_model().a_invariants()
-        s += 'a(k) = ellak(e, k);'
-        L.init_coeffs('a(k)', 1, pari_precode = s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        L.rename('Dokchitser L-function associated to %s'%self)
-        return L
-
-    def Lseries_sympow(self, n, prec):
-        r"""
-        Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
-        of precision.
-
-        INPUT:
-            n -- integer
-            prec -- integer
-
-        OUTPUT:
-            string -- real number to prec digits of precision as a string.
-
-        \note{Before using this function for the first time for
-        a given $n$, you may have to type \code{sympow('-new_data <n>')},
-        where \code{<n>} is replaced by your value of $n$.  This
-        command takes a long time to run.}
-
-        EXAMPLES:
-            sage.: E = EllipticCurve('37a')
-            sage.: a = E.Lseries_sympow(2,16); a
-            '2.492262044273650E+00'
-            sage.: RR(a)
-            2.4922620442736498
-        """
-        from sage.lfunctions.sympow import sympow
-        return sympow.L(self, n, prec)
-
-    def Lseries_sympow_derivs(self, n, prec, d):
-        r"""
-        Return $0$th to $d$th derivatives of $L(\Sym^{(n)}(E,
-        \text{edge}))$ to prec digits of precision.
-
-        INPUT:
-            n -- integer
-            prec -- integer
-            d -- integer
-
-        OUTPUT:
-            a string, exactly as output by sympow
-
-        \note{To use this function you may have to run a few commands
-        like \code{sympow('-new_data 1d2')}, each which takes a few
-        minutes.  If this function fails it will indicate what
-        commands have to be run.}
-
-        EXAMPLES:
-            sage.: E = EllipticCurve('37a')
-            sage.: E.Lseries_sympow_derivs(1,16,2)
-            ...
-            1n0: 3.837774351482055E-01
-            1w0: 3.777214305638848E-01
-            1n1: 3.059997738340522E-01
-            1w1: 3.059997738340524E-01
-            1n2: 1.519054910249753E-01
-            1w2: 1.545605024269432E-01
-        """
-        from sage.lfunctions.sympow import sympow
-        return sympow.Lderivs(self, n, prec, d)
-
-    def Lseries_zeros(self, n):
-        """
-        Return the imaginary parts of the first $n$ nontrivial zeros
-        on the critical line of the L-function in the upper half
-        plane, as 32-bit reals.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_zeros(2)
-            [0.000000000, 5.00317001]
-
-            sage: a = E.Lseries_zeros(20)             # long time
-            sage: point([(1,x) for x in a]).save()    # graph  (long time)
-
-        AUTHOR:
-            -- Uses Rubinstein's L-functions calculator.
-        """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.zeros(n, L=self)
-
-    def Lseries_zeros_in_interval(self, x, y, stepsize):
-        r"""
-        Return the imaginary parts of (most of) the nontrivial zeros
-        on the critical line $\Re(s)=1$ with positive imaginary part
-        between $x$ and $y$, along with a technical quantity for each.
-
-        INPUT:
-            x, y, stepsize -- positive floating point numbers
-
-        OUTPUT:
-            list of pairs (zero, S(T)).
-
-        Rubinstein writes: The first column outputs the imaginary part
-        of the zero, the second column a quantity related to S(T) (it
-        increases roughly by 2 whenever a sign change, i.e. pair of
-        zeros, is missed). Higher up the critical strip you should use
-        a smaller stepsize so as not to miss zeros.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
-            [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
-        """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.zeros_in_interval(x, y, stepsize, L=self)
-
-    def Lseries_values_along_line(self, s0, s1, number_samples):
-        """
-        Return values of $L(E, s)$ at \code{number_samples}
-        equally-spaced sample points along the line from $s_0$ to
-        $s_1$ in the complex plane.
-
-        \note{The L-series is normalized so that the center of the
-        critical strip is 1.}
-
-        INPUT:
-            s0, s1 -- complex numbers
-            number_samples -- integer
-
-        OUTPUT:
-            list -- list of pairs (s, zeta(s)), where the s are
-                    equally spaced sampled points on the line from
-                    s0 to s1.
-
-        EXAMPLES:
-            sage: I = CC.0
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
-            [(0.500000000, 0), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
-        """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.values_along_line(s0-RationalField()('1/2'),
-                                       s1-RationalField()('1/2'),
-                                       number_samples, L=self)
-
-    def Lseries_twist_values(self, s, dmin, dmax):
-        r"""
-        Return values of $L(E, s, \chi_d)$ for each quadratic
-        character $\chi_d$ for $d_{\min} \leq d \leq d_{\max}$.
-
-        \note{The L-series is normalized so that the center of the
-        critical strip is 1.}
-
-        INPUT:
-            s -- complex numbers
-            dmin -- integer
-            dmax -- integer
-
-        OUTPUT:
-            list -- list of pairs (d, L(E, s,chi_d))
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_twist_values(1, -12, -4)    # slightly random output depending on architecture
-            [(-11, 1.4782434171), (-8, 0), (-7, 1.8530761916), (-4, 2.4513893817)]
-            sage: F = E.quadratic_twist(-8)
-            sage: F.rank()
-            1
-            sage: F = E.quadratic_twist(-7)
-            sage: F.rank()
-            0
-        """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.twist_values(s - RationalField()('1/2'), dmin, dmax, L=self)
-
-    def Lseries_twist_zeros(self, n, dmin, dmax):
-        r"""
-        Return first $n$ real parts of nontrivial zeros of
-        $L(E,s,\chi_d)$ for each quadratic character $\chi_d$ with
-        $d_{\min} \leq d \leq d_{\max}$.
-
-        \note{The L-series is normalized so that the center of the
-        critical strip is 1.}
-
-        INPUT:
-            n -- integer
-            dmin -- integer
-            dmax -- integer
-
-        OUTPUT:
-            dict -- keys are the discriminants $d$, and
-                    values are list of corresponding zeros.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_twist_zeros(3, -4, -3)         # long
-            {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
-        """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.twist_zeros(n, dmin, dmax, L=self)
-
-    def Lseries_at1(self, k=0):
-        r"""
-        Compute $L(E,1)$ using $k$ terms of the series for $L(E,1)$ as
-        explained on page 406 of Henri Cohen's book"A Course in Computational
-        Algebraic Number Theory".  If the argument $k$ is not specified,
-        then it defaults to $\sqrt(N)$, where $N$ is the conductor.
-
-        The real precision used in each step of the computation is the
-        precision of machine floats.
-
-        INPUT:
-            k -- (optional) an integer, defaults to sqrt(N).
-
-        OUTPUT:
-            float -- L(E,1)
-            float -- a bound on the error in the approximation; this
-                     is a proveably correct upper bound on the sum
-                     of the tail end of the series used to compute L(E,1).
-
-        This function is disjoint from the PARI \code{elllseries}
-        command, which is for a similar purpose.  To use that command
-        (via the PARI C library), simply type
-                \code{E.pari_mincurve().elllseries(1)}
-
-        ALGORITHM:
-        \begin{enumerate}
-            \item Compute the root number eps.  If it is -1, return 0.
-
-            \item Compute the Fourier coefficients a_n, for n up to and
-               including k.
-
-            \item Compute the sum
-            $$
-                 2 * sum_{n=1}^{k} (a_n / n) * exp(-2*pi*n/Sqrt(N)),
-            $$
-               where N is the conductor of E.
-
-            \item Compute a bound on the tail end of the series, which is
-            $$
-                 2 * e^(-2 * pi * (k+1) / sqrt(N)) / (1 - e^(-2*pi/sqrt(N))).
-            $$
-               For a proof see [Grigov-Jorza-Patrascu-Patrikis-Stein].
-        \end{enumerate}
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37b')
-            sage: E.Lseries_at1(100)
-            (0.725681061936153, 1.52437502288743e-45)
-        """
-        if self.root_number() == -1:
-            return 0
-        sqrtN = float(self.conductor().sqrt())
-        k = int(k)
-        if k == 0: k = int(math.ceil(sqrtN))
-        an = self.anlist(k)           # list of SAGE ints
-        # Compute z = e^(-2pi/sqrt(N))
-        pi = 3.14159265358979323846
-        z = exp(-2*pi/sqrtN)
-        zpow = z
-        s = 0.0
-        for n in xrange(1,k+1):
-            s += (zpow * float(an[n]))/n
-            zpow *= z
-
-        error = 2*zpow / (1 - z)
-
-        return R(2*s), R(error)
-
-    def Lseries_deriv_at1(self, k=0):
-        r"""
-        Compute $L'(E,1)$ using$ k$ terms of the series for $L'(E,1)$.
-
-        The algorithm used is from page 406 of Henri Cohen's book ``A
-        Course in Computational Algebraic Number Theory.''
-
-        The real precision of the computation is the precision of
-        Python floats.
-
-        INPUT:
-            k -- int; number of terms of the series
-
-        OUTPUT:
-            real number -- an approximation for L'(E,1)
-            real number -- a bound on the error in the approximation
-
-        ALGORITHM:
-        \begin{enumerate}
-            \item Compute the root number eps.  If it is 1, return 0.
-
-            \item Compute the Fourier coefficients $a_n$, for $n$ up to and
-                  including $k$.
-
-            \item Compute the sum
-               $$
-                 2 * \sum_{n=1}^{k} (a_n / n) * E_1(2 \pi n/\sqrt{N}),
-               $$
-               where $N$ is the conductor of $E$, and $E_1$ is the
-               exponential integral function.
-
-            \item Compute a bound on the tail end of the series, which is
-               $$
-                 2 * e^{-2 \pi (k+1) / \sqrt{N}} / (1 - e^{-2 \ pi/\sqrt{N}}).
-               $$
-               For a proof see [Grigorov-Jorza-Patrascu-Patrikis-Stein].  This
-               is exactly the same as the bound for the approximation to
-               $L(E,1)$ produced by \code{Lseries_at1}.
-        \end{enumerate}
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.Lseries_deriv_at1(100)
-            (0.305999773834879, 1.52437502288740e-45)
-        """
-        if self.root_number() == 1: return 0
-        k = int(k)
-        sqrtN = float(self.conductor().sqrt())
-        if k == 0: k = int(math.ceil(sqrtN))
-        an = self.anlist(k)           # list of C ints
-        # Compute z = e^(-2pi/sqrt(N))
-        pi = 3.14159265358979323846
-        v = transcendental.exponential_integral_1(2*pi/sqrtN, k)
-        L = 2*float(sum([ (v[n-1] * an[n])/n for n in xrange(1,k+1)]))
-        error = 2*exp(-2*pi*(k+1)/sqrtN)/(1-exp(-2*pi/sqrtN))
-        return R(L), R(error)
-
-    def Lseries(self, s):
-        r"""
-        Returns the value of the L-series of the elliptic curve E at s, where s
-        must be a real number.
-
-        Use self.Lseries_extended for s complex.
-
-        \note{If the conductor of the curve is large, say $>10^{12}$,
-        then this function will take a very long time, since it uses
-        an $O(\sqrt{N})$ algorithm.}
-
-        EXAMPLES:
-            sage: E = EllipticCurve([1,2,3,4,5])
-            sage: E.Lseries(1)
-            0.000000000000000
-            sage: E.Lseries(1.1)       # long time (!)
-            0.285491007678148
-
-        TODO: Planned massive improvement -- use Micheal Rubinstein's
-        L-functions package and/or Tim Dokchitser's.  Both are already
-        available via other function calls.  Note that Dokchitser's
-        program is vastly faster than PARI, e.g., at computing
-        E.Lseries(1.1) above, even with all the startup overhead, etc,
-        e.g., 10 seconds versus 0.25 seconds.
-        """
+    def Lseries(self):
         try:
-            s = R(s)
-        except TypeError:
-            raise TypeError, "for non-real input, use self.Lseries_extended instead."
-        if s <= 0 and s.frac() == 0:
-            # The L-series vanishes at negative integers, but PARI
-            # is broken for this.
-            return R(0)
-        return R(self.pari_mincurve().elllseries(s))
+            return self.__lseries
+        except AttributeError:
+            from lseries_ell import Lseries_ell
+            self.__lseries = Lseries_ell(self)
+            return self.__lseries
 
     def Lambda(self, s, prec):
         r"""
@@ -2127,71 +1564,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
 
-    def Lseries_extended(self, s, prec):
-        r"""
-        Returns the value of the L-series of the elliptic curve E at s
-        can be any complex number using prec terms of the power series
-        expansion.
-
-
-        WARNING: This may be slow.  Consider using \code{Lseries_dokchitser()}
-        instead.
-
-        INPUT:
-            s -- complex number
-            prec -- integer
-
-        EXAMPLES:
-            sage: E = EllipticCurve('389a')
-            sage: E.Lseries_extended(1 + I, 50)
-            -0.638409959099... + 0.715495262192...*I
-            sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.00761216538818... + 0.000434885704670...*I
-
-        NOTE: You might also want to use Tim Dokchitser's
-        L-function calculator, which is available by typing
-        L = E.Lseries_dokchitser(), then evaluating L.  It
-        gives the same information but is sometimes much faster.
-
-        """
-        try:
-            s = C(s)
-        except TypeError:
-            raise TypeError, "Input argument %s must be coercible to a complex number"%s
-        prec = int(prec)
-        if abs(s.imag()) < R(0.0000000000001):
-            return self.Lseries(s.real())
-        N = self.conductor()
-        pi = R(constants.pi)
-        Gamma = transcendental.gamma
-        Gamma_inc = transcendental.gamma_inc
-        a = self.anlist(prec)
-        eps = self.root_number()
-        sqrtN = float(N.sqrt())
-        def F(n, t):
-            return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\
-               * sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
-
-    def sigma(self, z, flag=0):
-        """
-        Returns the value of the Weierstrass sigma function of the lattice
-        associated to this elliptic curve E.
-
-        INPUT:
-            z -- a complex number
-            flag -- 0 - default ???
-                    1 - computes an arbitrary determination of log(sigma(z))
-                    2, 3 - same using the product expansion instead of theta series.
-                           ???
-        OUTPUT:
-            a complex number
-
-        NOTE: The reason for the ???'s above, is that the PARI documentation for
-              ellsigma is very vague.
-        """
-        return self.pari_curve().ellsigma(z, flag)
-
     def weierstrass_model(self):
         r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
@@ -2204,7 +1576,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         $a,b\in\ZZ$.
         """
         F = self.minimal_model()
-        return EllipticCurve_field.weierstrass_model(F)
+        return EllipticCurve_number_field.weierstrass_model(F)
 
     def integral_weierstrass_model(self):
         r"""
@@ -2445,7 +1817,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Return the global minimal model of the quadratic twist of this curve by D.
         """
-        return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
+        return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
 
 
     ##########################################################
@@ -2563,7 +1935,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ...    if not already:
             ...        LL.append(G)
             ...
-            sage.: graphs_list.show_graphs(LL)
+            sage: graphs_list.show_graphs(LL)
 
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
@@ -3036,589 +2408,31 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ans.append(s.python())
         return ans
 
-    ########################################################################
-    # Functions related to the BSD conjecture.
-    ########################################################################
 
-    def sha_an_numerical(self, prec = 53,
-                         use_database=False, proof=None):
-        """
-        Return the numerical analytic order of Sha, which is
-        a floating point number in all cases.
-
-        INPUT:
-            prec -- integer (default: 53) bits precision -- just used
-                    for the L-series computation; not for regulator, etc.
-            use_database -- whether the rank and regulator should
-                    be looked up in the database if possible.
-            proof -- bool or None (default: None, see proof.[tab] or
-                           sage.structure.proof) proof option passed
-                    onto regulator and rank computation.
-
-        NOTE: See also the sha_an() command, which will return a
-        provably correct integer when the rank is 0 or 1.
-
-        EXAMPLES:
-            sage: EllipticCurve('11a').sha_an_numerical()
-            1.00000000000000
-            sage: EllipticCurve('37a').sha_an_numerical()
-            1.00000000000000
-            sage: EllipticCurve('389a').sha_an_numerical()    # random low order bits
-            1.00000000000000
-            sage: EllipticCurve('66b3').sha_an_numerical()
-            4.00000000000000
-            sage: EllipticCurve('5077a').sha_an_numerical()   # random low bit
-            1.00000000000000
-
-        A rank 4 curve:
-            sage: EllipticCurve([1, -1, 0, -79, 289]).sha_an_numerical()   # long time
-            1.00000000000000
-
-    A rank 5 curve:
-            sage.: EllipticCurve([0, 0, 1, -79, 342]).sha_an_numerical(prec=10, proof=False)          # long time -- about 1 minute!
-                1.0
-        """
+    def L_series(self):
         try:
-            return self.__sha_an_numerical
+            return self.__lseries
         except AttributeError:
-            pass
-        r = Integer(self.rank(use_database=use_database, proof=proof))
-        L = self.Lseries_dokchitser(prec=prec)
-        Lr= L.derivative(1,r)
-        Om = self.omega()
-        Reg = self.regulator(use_database=use_database, proof=proof)
-        T = self.torsion_order()
-        cp = self.tamagawa_product()
-        Sha = Lr*T*T/(r.factorial()*Om*cp*Reg)
-        self.__sha_an_numerical = Sha
-        return Sha
-
-    def sha_an(self, use_database=False):
-        """
-        Returns the Birch and Swinnerton-Dyer conjectural order of Sha
-        as a provably corret integer, unless the analytic rank is > 1,
-        in which case this function returns a numerical value.
-
-        This result is proved correct if the order of vanishing is 0
-        and the Manin constant is <= 2.
-
-        If the optional parameter use_database is True (default:
-        False), this function returns the analytic order of Sha as
-        listed in Cremona's tables, if this curve appears in Cremona's
-        tables.
-
-        EXAMPLES:
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.sha_an()
-            1
-            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.sha_an()
-            1
-
-            sage: EllipticCurve('14a4').sha_an()
-            1
-            sage: EllipticCurve('14a4').sha_an(use_database=True)  # optional -- requires large Cremona database package
-            1
-
-        The smallest conductor curve with nontrivial Sha:
-            sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66b3
-            sage: E.sha_an()
-            4
-
-        The four optimal quotients with nontrivial Sha and conductor <= 1000:
-            sage: E = EllipticCurve([0, -1, 1, -929, -10595])       # 571A
-            sage: E.sha_an()
-            4
-            sage: E = EllipticCurve([1, 1, 0, -1154, -15345])       # 681B
-            sage: E.sha_an()
-            9
-            sage: E = EllipticCurve([0, -1, 0, -900, -10098])       # 960D
-            sage: E.sha_an()
-            4
-            sage: E = EllipticCurve([0, 1, 0, -20, -42])            # 960N
-            sage: E.sha_an()
-            4
-
-        The smallest conductor curve of rank > 1:
-            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
-            sage: E.sha_an()
-            0.999999999999998
-
-        The following are examples that require computation of the Mordell-Weil
-        group and regulator:
-
-            sage: E = EllipticCurve([0, 0, 1, -1, 0])                     # 37A  (rank 1)
-            sage: E.sha_an()
-            1
-
-            sage: E = EllipticCurve("1610f3")
-            sage: E.sha_an()
-            4
-
-        In this case the input curve is not minimal, and if this function didn't
-        transform it to be minimal, it would give nonsense:
-            sage: E = EllipticCurve([0,-432*6^2])
-            sage: E.sha_an()
-            1
-        """
-#            sage: e = EllipticCurve([1, 0, 0, -19491080, -33122512122])   # 15834T2
-#            sage: e.sha_an()                          # takes a long time (way too long!!)
-#            25
-        if hasattr(self, '__sha_an'):
-            return self.__sha_an
-        if use_database:
-            try:
-                self.__sha_an = int(round(float(self.database_curve().db_extra[4])))
-                return self.__sha_an
-            except RuntimeError, AttributeError:
-                pass
-
-        # it's critical to switch to the minimal model.
-        E = self.minimal_model()
-        eps = E.root_number()
-        if eps == 1:
-            L1_over_omega = E.L_ratio()
-            if L1_over_omega == 0:
-                return self.sha_an_numerical(use_database=use_database)
-            T = E.torsion_subgroup().order()
-            Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
-            try:
-                Sha = Integer(Sha)
-            except ValueError:
-                raise RuntimeError, \
-                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
-            if not arith.is_square(Sha):
-                raise RuntimeError, \
-                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
-            E.__sha_an = Sha
-            self.__sha_an = Sha
-            return Sha
-
-        else:  # rank > 0  (Not provably correct)
-            L1, error_bound = E.Lseries_deriv_at1(10*sqrt(E.conductor()) + 10)
-            if abs(L1) < error_bound:
-                s = self.sha_an_numerical()
-                E.__sha_an = s
-                self.__sha_an = s
-                return s
-
-            regulator = E.regulator(use_database=use_database)   # this could take a *long* time; and could fail...?
-            T = E.torsion_subgroup().order()
-            omega = E.omega()
-            Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
-            try:
-                Sha = Integer(Sha)
-            except ValueError:
-                raise RuntimeError, \
-                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
-            if not arith.is_square(Sha):
-                raise RuntimeError, \
-                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
-            E.__sha_an = Sha
-            self.__sha_an = Sha
-            return Sha
-
-    def sha_an_padic(self, p, prec=0):
-        r"""
-        Returns the conjectural order of Sha(E), according to the
-        $p$-adic analogue of the BSD conjecture.
-
-        INPUT:
-            p -- a prime > 3
-            prec (optional) -- the precision used in the computation of the
-            p-adic L-Series
-
-        OUTPUT:
-            p-adic number -- that conjecturally equals $\#Sha(E)(p)$ or $-\#Sha(E)(p)$.
-
-        NOTE:
-            If prec is set to zero (default) then the precision is set so that
-            at least the first p-adic digit of conjectural $\#Sha(E)(p)$ is
-            determined.
-
-        BUG:
-            Currently for supersingular primes for curves of rank > 0, only the
-            first digit will be correct. More is hard to compute anyway.
-
-        EXAMPLES:
-
-        Good ordinary examples:
-
-            sage: EllipticCurve('11a1').sha_an_padic(5)  #rank 0
-            1 + O(5^2)
-            sage: EllipticCurve('43a1').sha_an_padic(5)  #rank 1
-            1 + O(5)
-            sage: EllipticCurve('389a1').sha_an_padic(5,4) #rank 2   (long time)
-            1 + O(5^3)
-            sage: EllipticCurve('858k2').sha_an_padic(7)  #rank 0, non trivial sha  (long time)
-            7^2 + O(7^3)
-
-        Exceptional cases:
-
-            sage: EllipticCurve('11a1').sha_an_padic(11) #rank 0
-            1 + O(11)
-
-        NOTE: the following doctest is DISABLED. When I put in the fix for
-        trac \#635, this strangely switched sign to become 40 + O(41).
-        I'm not sure whether this indicates a bug, possibly a normalisation issue.
-            sage.: EllipticCurve('123a1').sha_an_padic(41) #rank 1    (long time)
-            1 + O(41)
-            sage: EllipticCurve('817a1').sha_an_padic(43) #rank 2    (long time)
-            42 + O(43)
-
-        Supersingular cases:
-
-            sage: EllipticCurve('34a1').sha_an_padic(5) # rank 0     (long time)
-            1 + O(5^3)
-            sage.: EllipticCurve('43a1').sha_an_padic(7) # rank 1    (very long time -- not tested)
-            1 + O(7)
-            sage: EllipticCurve('1483a1').sha_an_padic(5) # rank 2   (long time)
-            1 + O(5)
-        """
-        try:
-            return self.__sha_an_padic[(p,prec)]
-        except AttributeError:
-            self.__sha_an_padic = {}
-        except KeyError:
-            pass
-
-        if self.has_cm():
-            raise NotImplementedError, "I don't know about curves with complex multiplication."
-
-        tam = self.tamagawa_product()
-        tors = self.torsion_order()**2
-        reg = self.padic_regulator(p)
-        r = self.rank()
-
-        #         shortcut to introduce later ::
-        #   ( also we could avoid the computation of the modular symbols altogether )
-        # if r == 0:
-        #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
-        #    sha = lstar/bsdp
-        #    sha = lstar/bsdp[0] in the supersingular case
-
-        lp = self.padic_lseries(p)
-
-        if self.is_ordinary(p):
-            K = reg.parent()
-            lg = log(K(1+p))
-
-            if (self.is_good(p) or self.ap(p) == -1):
-                eps = (1-1/lp.alpha())**2
-                # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
-                bsdp = tam * reg * eps/tors/lg**r
-            else:
-                r += 1   # exceptional zero
-                eq = self.tate_curve(p)
-                Li = eq.L_invariant()
-
-                # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
-                # this should be equal to the leading term of the p-adic L-series:
-                bsdp = tam * reg * Li/tors/lg**r
-
-
-            v = bsdp.valuation()
-            if v > 0:
-                verbose("the prime is irregular.")
-
-            # determine how much prec we need to prove at least the triviality of
-            # the p-primary part od Sha
-
-            if prec == 0:
-                n = max(v,2)
-                bounds = lp._prec_bounds(n,r+1)
-                while bounds[r] <= v:
-                    n += 1
-                    bounds = lp._prec_bounds(n,r+1)
-                verbose("set precision to %s"%n)
-            else:
-                n = max(2,prec)
-
-            not_yet_enough_prec = True
-            while not_yet_enough_prec:
-                lps = lp.series(n,prec=r+1)
-                lstar = lps[r]
-                if (lstar != 0) or (prec != 0):
-                    not_yet_enough_prec = False
-                else:
-                    n += 1
-                    verbose("increased precision to %s"%n)
-
-            shan = lstar/bsdp
-
-        elif self.is_supersingular(p):
-            K = reg[0].parent()
-            lg = log(K(1+p))
-
-
-            # according to the p-adic BSD this should be equal to the leading term of the D_p - valued
-            # L-series :
-            bsdp = tam /tors/lg**r * reg
-            # note this is an element in Q_p^2
-
-            verbose("the algebraic leading terms : %s"%bsdp)
-
-            v = [bsdp[0].valuation(),bsdp[1].valuation()]
-
-            if prec == 0:
-                n = max(min(v)+2,3)
-            else:
-                n = max(3,prec)
-
-            verbose("...computing the p-adic L-series")
-            not_yet_enough_prec = True
-            while not_yet_enough_prec:
-                lps = lp.Dp_valued_series(n,prec=r+1)
-                lstar = [lps[0][r],lps[1][r]]
-                verbose("the leading terms : %s"%lstar)
-                if (lstar[0] != 0 or lstar[1] != 0) or ( prec != 0):
-                    not_yet_enough_prec = False
-                else:
-                    n += 1
-                    verbose("increased precision to %s"%n)
-
-            verbose("...putting things together")
-            if bsdp[0] != 0:
-                shan0 = lstar[0]/bsdp[0]
-            else:
-                shan0 = 0   # this should actully never happen
-            if bsdp[1] != 0:
-                shan1 = lstar[1]/bsdp[1]
-            else:
-                shan1 = 0   # this should conjecturally only happen when the rank is 0
-            verbose("the two values for Sha : %s"%[shan0,shan1])
-
-            # check consistency (the first two are only here to avoid a bug in the p-adic L-series
-            # (namely the coefficients of zero-relative precision are treated as zero)
-            if shan0 != 0 and shan1 != 0 and (shan0 - shan1 != 0 and shan0 + shan1 != 0):
-                raise RuntimeError, "There must be a bug in the supersingular routines for the p-adic BSD."
-
-            #take the better
-            if shan1 == 0 or shan0.precision_relative() > shan1.precision_relative():
-                shan = shan0
-            else:
-                shan = shan1
-
-        else:
-            raise ValueError, "The curve has to have semi-stable reduction at p."
-
-        self.__sha_an_padic[(p,prec)] = shan
-        return shan
-
-
-    def sha_p_primary_bound(self, p):
-        r"""
-        Returns an upper bound of $\#Sha(E)(p)$.
-
-        INPUT:
-            p -- a prime > 3
-
-        OUTPUT:
-            integer -- power of p that bounds #Sha(E)(p) from above
-
-        NOTE:
-            The result is a proven upper bound on the order of $Sha(E)(p)$.
-            So in particular it proves it finiteness even if the rank of
-            the curve is larger than 1. Note also that this bound is sharp
-            if one assumes the main conjecture of Iwasawa theory of
-            elliptic curves (and this is known in certain cases).
-
-        EXAMPLES:
-            sage: e = EllipticCurve('858k2')
-            sage: e.sha_p_primary_bound(3)           # long time
-            0
-            sage: e.sha_p_primary_bound(7)           # long time
-            2
-        """
-
-        if self.is_ordinary(p) or self.is_good(p):
-            shan = self.sha_an_padic(p,prec = 0)
-            if shan == 0:
-                raise RuntimeError, "There is a bug in sha_an_padic."
-            S = shan.valuation()
-            if not self.is_surjective(p) and not self.is_reducible(p):
-                raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try sha_an_padic for a conjectural bound."
-        else:
-            raise ValueError, "The curve has to have semi-stable reduction at p."
-
-        return S
+            self.__lseries = Lseries_ell(self)
+            return self.__lseries
 
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
         M = self.isogeny_class()[1]
         return Integer(misc.prod([x for x in M[0] if x], 1))
 
-    def L_ratio(self):
-        r"""
-        Returns the ratio $L(E,1)/\Omega$ as an exact rational
-        number. The result is \emph{provably} correct if the Manin
-        constant of the associated optimal quotient is $\leq 2$.  This
-        hypothesis on the Manin constant is true for all semistable
-        curves (i.e., squarefree conductor), by a theorem of Mazur
-        from his \emph{Rational Isogenies of Prime Degree} paper.
-
-        EXAMPLES:
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.L_ratio()
-            1/5
-            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.L_ratio()
-            1/25
-            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
-            sage: E.L_ratio()
-            0
-            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
-            sage: E.L_ratio()
-            0
-            sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
-            sage: E.L_ratio()
-            0
-            sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
-            sage: E.L_ratio()
-            1
-            sage: E = EllipticCurve(RationalField(), [1, 0, 0, 1/24624, 1/886464])
-            sage: E.L_ratio()
-            2
-
-        WARNING: It's conceivable that machine floats are not large
-        enough precision for the computation; if this could be the
-        case a RuntimeError is raised.  The curve's real period would
-        have to be very small for this to occur.
-
-        ALGORITHM: Compute the root number.  If it is -1 then L(E,s)
-        vanishes to odd order at 1, hence vanishes.  If it is +1, use
-        a result about modular symbols and Mazur's "Rational Isogenies"
-        paper to determine a provably correct bound (assuming Manin
-        constant is <= 2) so that we can determine whether L(E,1) = 0.
-
-        AUTHOR: William Stein, 2005-04-20.
-        """
-        try:
-            return self.__lratio
-        except AttributeError:
-            pass
-
-        if not self.is_minimal():
-            self.__lratio = self.minimal_model().L_ratio()
-            return self.__lratio
-
-        if self.root_number() == -1:
-            self.__lratio = Q(0)
-            return self.__lratio
-
-        # Even root number.  Decide if L(E,1) = 0.  If E is a modular
-        # *OPTIMAL* quotient of J_0(N) elliptic curve, we know that T *
-        # L(E,1)/omega is an integer n, where T is the order of the
-        # image of the rational torsion point (0)-(oo) in E(Q), and
-        # omega is the least real Neron period.  (This is proved in my
-        # Ph.D. thesis, but is probably well known.)  We can easily
-        # compute omega to very high precision using AGM.  So to prove
-        # that L(E,1) = 0 we compute T/omega * L(E,1) to sufficient
-        # precision to determine it as an integer.  If eps is the
-        # error in computation of L(E,1), then the error in computing
-        # the product is (2T/Omega_E) * eps, and we need this to be
-        # less than 0.5, i.e.,
-        #          (2T/Omega_E) * eps < 0.5,
-        # so
-        #          eps < 0.5 * Omega_E / (2T) = Omega_E / (4*T).
-        #
-        # Since in general E need not be optimal, we have to choose
-        # eps = Omega_E/(8*t*B), where t is the exponent of E(Q)_tor,
-        # and is a multiple of the degree of an isogeny between E
-        # and the optimal curve.
-        #
-        # NOTES: We *do* have to worry about the Manin constant, since
-        # we are using the Neron model to compute omega, not the
-        # newform.  My theorem replaces the omega above by omega/c,
-        # where c is the Manin constant, and the bound must be
-        # correspondingly smaller.  If the level is square free, then
-        # the Manin constant is 1 or 2, so there's no problem (since
-        # we took 8 instead of 4 in the denominator).  If the level
-        # is divisible by a square, then the Manin constant could
-        # be a divisible by an arbitrary power of that prime, except
-        # that Edixhoven claims the primes that appear are <= 7.
-
-        t = self.torsion_subgroup().order()
-        omega = self.period_lattice()[0]
-        d = self._multiple_of_degree_of_isogeny_to_optimal_curve()
-        C = 8*d*t
-        eps = omega / C
-        # coercion of 10**(-15) to our real field is needed to
-        # make unambiguous comparison
-        if eps < R(10**(-15)):  # liberal bound on precision of float
-            raise RuntimeError, "Insufficient machine precision (=%s) for computation."%eps
-        sqrtN = 2*int(sqrt(self.conductor()))
-        k = sqrtN + 10
-        while True:
-            L1, error_bound = self.Lseries_at1(k)
-            if error_bound < eps:
-                n = int(round(L1*C/omega))
-                quo = Q(n) / Q(C)
-                self.__lratio = quo / self.real_components()
-                return self.__lratio
-            k += sqrtN
-            misc.verbose("Increasing precision to %s terms."%k)
-
-
-    def L1_vanishes(self):
-        """
-        Returns whether or not L(E,1) = 0. The result is provably
-        correct if the Manin constant of the associated optimal
-        quotient is <= 2.  This hypothesis on the Manin constant
-        is true for all curves of conductor <= 40000 (by Cremona) and
-        all semistable curves (i.e., squarefree conductor).
-
-        EXAMPLES:
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.L1_vanishes()
-            False
-            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.L1_vanishes()
-            False
-            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
-            sage: E.L1_vanishes()
-            True
-            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
-            sage: E.L1_vanishes()
-            True
-            sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
-            sage: E.L1_vanishes()
-            True
-            sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
-            sage: E.L1_vanishes()
-            False
-
-        WARNING: It's conceivable that machine floats are not large
-        enough precision for the computation; if this could be the
-        case a RuntimeError is raised.  The curve's real period would
-        have to be very small for this to occur.
-
-        ALGORITHM: Compute the root number.  If it is -1 then L(E,s)
-        vanishes to odd order at 1, hence vanishes.  If it is +1, use
-        a result about modular symbols and Mazur's "Rational Isogenies"
-        paper to determine a provably correct bound (assuming Manin
-        constant is <= 2) so that we can determine whether L(E,1) = 0.
-
-        AUTHOR: William Stein, 2005-04-20.
-        """
-        return self.L_ratio() == 0
-
     ########################################################################
     # Functions related to bounding the order of Sha (provably correctly!)
     # Heegner points and Kolyvagin's theorem
     ########################################################################
-    def two_selmer_shabound(self):
-        """
-        Returns a bound on the dimension of Sha(E)[2], computed using
-        a 2-descent.
-        """
-        S = self.selmer_rank_bound()
-        r = self.rank()
-        t = self.two_torsion_rank()
-        b = S - r - t
-        if b % 2 != 0:
-            raise ArithmeticError, "There is a bug in two_selmer_shabound since it's %s, but it must be even."%b
-        return b
+
+    def sha(self):
+        try:
+            return self.__sha
+        except AttributeError:
+            from sha import Sha
+            self.__sha = Sha(self)
+            return self.__sha
 
     def satisfies_heegner_hypothesis(self, D):
         """
@@ -3678,10 +2492,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if D == -3 or D == -4:
             raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
         eps = self.root_number()
-        L1_vanishes = self.L1_vanishes()
+        L1_vanishes = self.Lseries().L1_vanishes()
         if eps == 1 and L1_vanishes:
             return IR(0) # rank even hence >= 2, so Heegner point is torsion.
-        alpha = R(sqrt(abs(D)))/(2*self.complex_area())
+        alpha = R(sqrt(abs(D)))/(2*self.period_lattice().complex_area())
         F = self.quadratic_twist(D)
         E = self
         k_E = prec*sqrt(E.conductor()) + 20
@@ -3693,15 +2507,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                             # this should be made more intelligent / rigorous relative
                              # to the rest of the system.
         if eps == 1:   # E has even rank
-            LF1, err_F = F.Lseries_deriv_at1(k_F)
-            LE1, err_E = E.Lseries_at1(k_E)
+            LF1, err_F = F.Lseries().deriv_at1(k_F)
+            LE1, err_E = E.Lseries().at1(k_E)
             err_F = max(err_F, MIN_ERR)
             err_E = max(err_E, MIN_ERR)
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
         else:          # E has odd rank
-            LE1, err_E = E.Lseries_deriv_at1(k_E)
-            LF1, err_F = F.Lseries_at1(k_F)
+            LE1, err_E = E.Lseries().deriv_at1(k_E)
+            LF1, err_F = F.Lseries().at1(k_F)
             err_F = max(err_F, MIN_ERR)
             err_E = max(err_E, MIN_ERR)
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
@@ -3901,1288 +2715,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         else:
             return _bound(P)
 
+    padic_regulator = padics.padic_regulator
 
-    def shabound_kolyvagin(self, D=0, regulator=None,
-                           ignore_nonsurj_hypothesis=False):
-        """
-        Given a fundamental discriminant D (!= -3,-4) that satisfies the
-        Heegner hypothesis, return a list of primes so that
-        Kolyvagin's theorem (as in Gross's paper) implies that any
-        prime divisor of $\#Sha$ is in this list.
+    padic_height_pairing_matrix = padics.padic_height_pairing_matrix
 
-        INPUT:
-            D -- (optional) a fundamental discriminant < -4 that satisfies the
-                 Heegner hypothesis for E; if not given, use the first such D
+    padic_height = padics.padic_height
 
-            regulator -- (optional) regulator of E(K); if not given, will
-                         be computed (which could take a long time)
+    padic_sigma = padics.padic_sigma
 
+    padic_E2 = padics.padic_E2
 
-            ignore_nonsurj_hypothesis (optional: default False) --
-                      If True, then gives the bound coming from Heegner point
-                      index, but without any hypothesis on surjectivity
-                      of the mod-p representation.
-
-
-        OUTPUT:
-            bound and index
-
-        More precisely:
-
-                0 -- if E/K has complex multiplication or analytic rank >= 2
-            or
-                B -- list of primes such that if p divides Sha(E/K), then p
-                     is in B.
-
-            and
-
-                I -- the odd part of the index of the Heegner point in the full
-                     group of K-rational points on E.  (If E has CM, returns 0.)
-
-        REMARKS:
-            (1) We do not have to assume that the Manin constant is 1
-                (or a power of 2).  If the Manin constant were
-                divisible by a prime, that prime would get included in
-                the list of bad primes.
-
-            (2) We assume the Gross-Zagier theorem is True under the
-                hypothesis that gcd(N,D) = 1, instead of the stronger
-                hypothesis gcd(2*N,D)=1 that is in the original
-                Gross-Zagier paper.  That Gross-Zagier is true when
-                gcd(N,D)=1 is"well-known" to the experts, but doesn't
-                seem to written up well in the literature.
-
-            (3) Correctness of the computation is guaranteed using
-                interval arithmetic, under the assumption that the
-                regulator, square root, and period lattice are
-                computed to precision at least $10^{-10}$, i.e., they are
-                correct up to addition or a real number with absolute
-                value less than $10^{-10}$.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: E.shabound_kolyvagin()
-            ([2], 1)
-            sage: E = EllipticCurve('141a')
-            sage: E.sha_an()
-            1
-            sage: E.shabound_kolyvagin()
-            ([2, 7], 49)
-
-        We get no information the curve has rank $2$.
-            sage: E = EllipticCurve('389a')
-            sage: E.shabound_kolyvagin()
-            (0, 0)
-            sage: E = EllipticCurve('681b')
-            sage: E.sha_an()
-            9
-            sage: E.shabound_kolyvagin()
-            ([2, 3], 9)
-
-        """
-        if self.has_cm():
-            return 0, 0
-
-        if D == 0:
-            D = -5
-            while not self.satisfies_heegner_hypothesis(D):
-                D -= 1
-
-        if not self.satisfies_heegner_hypothesis(D):
-            raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
-        if D == -3 or D == -4:
-            raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
-        eps = self.root_number()
-        L1_vanishes = self.L1_vanishes()
-        if eps == 1 and L1_vanishes:
-            return 0, 0        # rank even hence >= 2, so Kolyvagin gives nothing.
-        alpha = sqrt(abs(D))/(2*self.complex_area())
-        F = self.quadratic_twist(D)
-        E = self
-        k_E = 2*sqrt(E.conductor()) + 10
-        k_F = 2*sqrt(F.conductor()) + 10
-        #k_E = 2
-        #k_F = 2
-
-        MIN_ERR = 1e-10   # we assume that regulator and
-                          # discriminant, etc., computed to this accuracy.
-        tries = 0
-        while True:
-            tries += 1
-            if tries >= 6:
-                raise RuntimeError, "Too many precision increases in shabound_kolyvagin"
-            if eps == 1:   # E has even rank
-                misc.verbose("Conductor of twist = %s"%F.conductor())
-                LF1, err_F = F.Lseries_deriv_at1(k_F)
-                LE1, err_E = E.Lseries_at1(k_E)
-                err_F = max(err_F, MIN_ERR)
-                err_E = max(err_E, MIN_ERR)
-                if regulator != None:
-                    hZ = regulator/2
-                else:
-                    hZ = F.regulator(use_database=True)/2
-                #print  alpha * LE1 * LF1 / hZ
-                I = IR(alpha) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F) / hZ
-                #print I
-
-            else:          # E has odd rank
-
-                if regulator != None:
-                    hZ = regulator/2
-                else:
-                    hZ = self.regulator(use_database=True)/2
-                LE1, err_E = E.Lseries_deriv_at1(k_E)
-                LF1, err_F = F.Lseries_at1(k_F)
-                err_F = max(err_F, MIN_ERR)
-                err_E = max(err_E, MIN_ERR)
-                #I = alpha * LE1 * LF1 / hZ
-
-                I = IR(alpha) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F) / hZ
-
-            misc.verbose('interval = %s'%I)
-            t, n = I.is_int()
-            if t:
-                break
-            elif I.absolute_diameter() < 1:
-                raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not an integer -- D=%s, I=%s."%(D,I)
-            misc.verbose("Doubling bounds")
-            k_E *= 2
-            k_F *= 2
-        # end while
-
-        # We include 2 since Kolyvagin (in Gross) says nothing there
-        if n == 0:  return 0, 0  # no bound
-        F = factor(n)
-        B = [2]
-        for p, e in factor(n):
-            if p > 2:
-                if e%2 != 0:
-                    raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not a perfect square!  D=%s, I=%s, n=%s, e=%s."%(D,I,n,e)
-                B.append(p)
-            else:
-                n /= 2**e  # replace n by its odd part
-        if not ignore_nonsurj_hypothesis:
-            for p, _ in self.non_surjective():
-                B.append(p)
-        B = list(set([int(x) for x in B]))
-        B.sort()
-        return B, n
-
-
-    def shabound_kato(self):
-        """
-        Returns a list p of primes such that the theorems of Kato's
-        and others (e.g., as explained in a paper/thesis of Grigor
-        Grigorov) imply that if p divides $\\#Sha(E)$ then $p$ is in
-        the list.
-
-        If L(E,1) = 0, then Kato's theorem gives no information, so
-        this function returns False.
-
-        THEOREM (Kato): Suppose p >= 5 is a prime so the p-adic
-        representation rho_{E,p} is surjective.  Then $ord_p(\\#Sha(E))$
-        divides $ord_p(L(E,1)/Omega_E)$.
-
-        EXAMPLES:
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.shabound_kato()
-            [2, 3, 5]
-            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.shabound_kato()
-            [2, 3, 5]
-            sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66B3
-            sage: E.shabound_kato()
-            [2, 3]
-
-        For the following curve one really has 25 | $\\#Sha$ (by Grigorov-Stein paper):
-            sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
-            sage: E.shabound_kato()                 # long time (about 1 second)
-            [2, 3, 5]
-            sage: E.non_surjective()                # long time (about 1 second)
-            []
-
-        For this one, Sha is divisible by 7.
-            sage: E = EllipticCurve([0, 0, 0, -4062871, -3152083138])   # 3364C1
-            sage: E.shabound_kato()                 # long time (< 10 seconds)
-            [2, 3, 7]
-
-        No information about curves of rank > 0:
-            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
-            sage: E.shabound_kato()
-            False
-        """
-        if self.has_cm():
-            return False
-        if self.L1_vanishes():
-            return False
-        B = [2,3]
-        for p, _ in self.non_surjective():   # for p >= 5, mod-p surj => p-adic surj
-            if p > 3:
-                B.append(p)
-
-        # The only other p that might divide B are those that divide
-        # the integer 2*#E(Q)_tor^2 * L(E,1)/omega.  So we compute
-        # that to sufficient precision to determine it.  Note that
-        # we have to assume the Manin constant is <=2 in order to provably
-        # compute L(E,1)/omega.
-        for p, n in factor(self.sha_an()):
-            if n >= 2:    # use parity of Sha
-                B.append(int(p))
-        B = list(set(B))
-        B.sort()
-        return B
-
-    def shabound(self):
-        """
-        Compute a provably correct bound on the order of the Shafarevich-Tate
-        group of this curve. The bound is a either False (no bound) or a list
-        B of primes such that any divisor of Sha is in this list.
-        """
-        if self.L1_vanishes():
-            B = self.shabound_kolyvagin()
-        else:
-            B = self.shabound_kato()
-        return B
-
-    def __check_padic_hypotheses(self, p):
-        p = rings.Integer(p)
-        if not p.is_prime():
-            raise ValueError, "p = (%s) must be prime"%p
-        if p == 2:
-            raise ValueError, "p must be odd"
-        if self.conductor() % p == 0 or self.ap(p) % p == 0:
-            raise ArithmeticError, "p must be a good ordinary prime"
-        return p
-
-## I removed these because some of the code they depend on --- namely kedlaya.m
-## can't be legally redistributed.
-##
-##     # This is the old version of padic_height that requires MAGMA:
-##     def padic_height_magma(self, p, P, prec=20):
-##         """
-##         Return the cyclotomic $p$-adic height of $P$, in the sense
-##         of Mazur and Tate.
-
-##         \note{This function requires that Magma to be installed on your
-##         computer.}
-
-##         INPUT:
-##             p -- prime
-##             P -- point
-##             prec -- integer (default: 20) affects the precision; the
-##                     precision is *not* guaranteed to be this high!
-##         OUTPUT:
-##             p-adic number
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         if not P in self:
-##             raise ArithmeticError, "P = (%s) must be a point on this curve"%P
-##         return padic_height.padic_height(self.a_invariants(), p, P, prec)
-
-
-##     # This is the old version of padic_regulator that requires MAGMA:
-##     def padic_regulator_magma(self, p, prec=20):
-##         """
-##         Return the cyclotomic $p$-adic regulator of $P$, in the sense
-##         of Mazur and Tate.
-
-##         \note{This function requires that Magma to be installed on your
-##         computer.}
-
-##         INPUT:
-##             p -- prime
-##             prec -- integer (default: 20) affects the precision; the
-##                     precision is *not* guaranteed to be this high!
-##         OUTPUT:
-##             p-adic number
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         return padic_height.padic_regulator(self.a_invariants(),
-##                                             p,
-##                                             self.gens(),
-##                                             prec)
-
-    def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
-        r"""
-        Computes the cyclotomic p-adic regulator of this curve.
-
-        This curve must be in minimal weierstrass form.
-
-        INPUT:
-            p -- prime >= 5
-            prec -- answer will be returned modulo p^prec
-            height -- precomputed height function. If not supplied, this
-                 function will call padic_height to compute it.
-            check_hypotheses -- boolean, whether to check that this is a
-                 curve for which the p-adic height makes sense
-
-        OUTPUT:
-            The p-adic cyclotomic regulator of this curve, to the requested
-            precision.
-
-            If the rank is 0, we output 1.
-
-        TODO:
-            -- remove restriction that curve must be in minimal weierstrass
-            form. This is currently required for E.gens().
-
-        AUTHORS:
-            -- Liang Xiao, original implementation at the 2006 MSRI graduate
-            workshop on modular forms
-            -- David Harvey (2006-09-13), cleaned up and integrated into SAGE,
-            removed some redundant height computations
-            -- chris wuthrich (22/05/2007), added multiplicative and supersingular cases
-            -- David Harvey (2007-09-20), fixed some precision loss that was occurring
-
-        EXAMPLES:
-            sage: E = EllipticCurve("37a")
-            sage: E.padic_regulator(5, 10)
-            4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
-
-        An anomalous case:
-            sage: E.padic_regulator(53, 10)
-            27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + O(53^9)
-
-        An anomalous case where the precision drops some:
-            sage: E = EllipticCurve("5077a")
-            sage: E.padic_regulator(5, 10)
-            4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + 3*5^9 + O(5^10)
-
-        Check that answers agree over a range of precisions:
-            sage: max_prec = 30    # make sure we get past p^2    # long time
-            sage: full = E.padic_regulator(5, max_prec)           # long time
-            sage: for prec in range(1, max_prec):                 # long time
-            ...       assert E.padic_regulator(5, prec) == full   # long time
-
-        """
-        if check_hypotheses:
-            if not p.is_prime():
-                raise ValueError, "p = (%s) must be prime"%p
-            if p == 2:
-                raise ValueError, "p must be odd"   # todo
-            if self.conductor() % (p**2) == 0:
-                raise ArithmeticError, "p must be a semi-stable prime"
-
-        if self.conductor() % p == 0:
-            Eq = self.tate_curve(p)
-            reg = Eq.padic_regulator(prec=prec)
-            return reg
-        elif self.ap(p) % p == 0:
-            lp = self.padic_lseries(p)
-            reg = lp.Dp_valued_regulator(prec=prec)
-            return reg
-        else:
-            if height is None:
-                height = self.padic_height(p, prec, check_hypotheses=False)
-            d = self.padic_height_pairing_matrix(p=p, prec=prec, height=height, check_hypotheses=False)
-            if d.nrows() == 0:
-                return d.base_ring()(1)
-            return d.determinant()
-
-
-    def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=True):
-        r"""
-        Computes the cyclotomic $p$-adic height pairing matrix of this
-        curve with respect to the basis self.gens() for the
-        Mordell-Weil group for a given odd prime p of good ordinary reduction.
-
-        This curve must be in minimal weierstrass form.
-
-        INPUT:
-            p -- prime >= 5
-            prec -- answer will be returned modulo p^prec
-            height -- precomputed height function. If not supplied, this
-                 function will call padic_height to compute it.
-            check_hypotheses -- boolean, whether to check that this is a
-                 curve for which the p-adic height makes sense
-
-        OUTPUT:
-            The p-adic cyclotomic height pairing matrix of this curve
-            to the given precision.
-
-        TODO:
-            -- remove restriction that curve must be in minimal weierstrass
-            form. This is currently required for E.gens().
-
-        AUTHORS:
-            -- David Harvey, Liang Xiao, Robert Bradshaw, Jennifer
-            Balakrishnan, original implementation at the 2006 MSRI
-            graduate workshop on modular forms
-            -- David Harvey (2006-09-13), cleaned up and integrated into SAGE,
-            removed some redundant height computations
-
-        EXAMPLES:
-            sage: E = EllipticCurve("37a")
-            sage: E.padic_height_pairing_matrix(5, 10)
-            [4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)]
-
-
-        A rank two example:
-            sage: e =EllipticCurve('389a')
-            sage: e._set_gens([e(-1, 1), e(1,0)])  # avoid platform dependent gens
-            sage: e.padic_height_pairing_matrix(5,10)
-            [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^10)           4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + 2*5^9 + O(5^10)]
-            [          4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + 2*5^9 + O(5^10)             5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^6 + 4*5^9 + O(5^10)]
-
-        An anomalous rank 3 example:
-            sage: e = EllipticCurve("5077a")
-            sage: e._set_gens([e(-1,3), e(2,0), e(4,6)])
-            sage: e.padic_height_pairing_matrix(5,4)
-            [                1 + 5 + O(5^4)       1 + 4*5 + 2*5^3 + O(5^4)           2*5 + 3*5^3 + O(5^4)]
-            [      1 + 4*5 + 2*5^3 + O(5^4)       2 + 5^2 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4)]
-            [          2*5 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4) 4 + 5 + 3*5^2 + 3*5^3 + O(5^4)]
-        """
-        if check_hypotheses:
-            p = self.__check_padic_hypotheses(p)
-
-        K = Qp(p, prec=prec)
-
-        rank = self.rank()
-        M = matrix.matrix(K, rank, rank, 0)
-        if rank == 0:
-            return M
-
-        basis = self.gens()
-
-        if height is None:
-            height = self.padic_height(p, prec, check_hypotheses=False)
-
-        # Use <P, Q> =1/2*( h(P + Q) - h(P) - h(Q) )
-
-        point_height = [height(P) for P in basis]
-        for i in range(rank):
-            for j in range(i+1, rank):
-                M[i, j] = M[j, i] = ( height(basis[i] + basis[j]) - point_height[i] - point_height[j] ) / 2
-        for i in range(rank):
-            M[i,i] = point_height[i]
-        return M
-
-
-
-    class _DivPolyContext:
-        r"""
-        This class implements the algorithm in Section 3 of "Efficient
-        Computation of p-adic Heights" (David Harvey, still in draft form).
-
-        The constructor takes as input an elliptic curve $E/\QQ$ with integer
-        coefficients, a rational point $P$ that reduces to a non-singular
-        point at all primes, and a ring $R$ in which $2$ is invertible.
-        Typically $R$ will be $\ZZ/R\ZZ$ for some positive integer $R$.
-
-        One then calls triple(m) for an integer $m \geq 1$; it returns a
-        triple $(a', b', d')$ such that if the point $mQ$ has coordinates
-        $(a/d^2, b/d^3)$, then we have $a' \equiv a$, $b' \equiv \pm b$,
-        $d' \equiv \pm d$ all modulo $R$.
-
-        Note the ambiguity of signs for $b'$ and $d'$. There's not much one
-        can do about this, but at least one can say that the sign for $b'$
-        will match the sign for $d'$.
-
-        Complexity is soft $O(\log R \log^2 m)$.
-
-        AUTHOR:
-            -- David Harvey (2007-02)
-
-        EXAMPLES:
-
-        37a has trivial tamagawa numbers so all points have nonsingular
-        reduction at all primes:
-            sage: E = EllipticCurve("37a")
-            sage: P = E([0,-1]); P
-            (0 : -1 : 1)
-            sage: 19*P
-            (-59997896/67387681 : 88075171080/553185473329 : 1)
-            sage: R = Integers(625)
-            sage: C = E._DivPolyContext(E, R, P)
-            sage: C.triple(19)
-            (229, 170, 541)
-            sage: -59997896 % 625
-            229
-            sage: 67387681.sqrt()
-            8209
-            sage: -8209 % 625          # note sign is flipped
-            541
-            sage: 641260644409 % 625   # sign flipped here too
-            34
-
-        Test over a range of $n$ for a single curve with fairly random
-        coefficients:
-            sage: R = Integers(625)
-            sage: E = EllipticCurve([4, -11, 17, -8, -10])
-            sage: P = E.gens()[0] * LCM(E.tamagawa_numbers())
-            sage: C = E._DivPolyContext(E, R, P)
-            sage: Q = E(0)
-            sage: for n in range(1, 25):
-            ...      Q = Q + P
-            ...      naive = R(Q[0].numerator()),  \
-            ...              R(Q[1].numerator()),  \
-            ...              R(Q[0].denominator().sqrt())
-            ...      triple = C.triple(n)
-            ...      assert (triple[0] == naive[0]) and ( \
-            ...        (triple[1] == naive[1] and triple[2] == naive[2]) or \
-            ...        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
-            ...           "_DivPolyContext.triple() gave an incorrect answer"
-
-        """
-        def __init__(self, E, R, P):
-            alpha = R(P[0].numerator())
-            beta = R(P[1].numerator())
-            d = R(P[0].denominator().sqrt())
-
-            a1 = R(E.a1()) * d
-            a3 = R(E.a3()) * d**3
-
-            b2 = R(E.b2()) * d**2
-            b4 = R(E.b4()) * d**4
-            b6 = R(E.b6()) * d**6
-            b8 = R(E.b8()) * d**8
-
-            B4 = 6*alpha**2 + b2*alpha + b4
-            B6 = 4*alpha**3 + b2*alpha**2 + 2*b4*alpha + b6
-            B8 = 3*alpha**4 + b2*alpha**3 + 3*b4*alpha**2 + 3*b6*alpha + b8
-
-            self.E = E
-            self.R = R
-            self.alpha = alpha
-            self.beta = beta
-            self.d = d
-            self.a1 = a1
-            self.a3 = a3
-            self.b2 = b2
-            self.b4 = b4
-            self.b6 = b6
-            self.b8 = b8
-            self.B4 = B4
-            self.B6 = B6
-            self.B6_sqr = B6*B6
-            self.B8 = B8
-            self.T = 2*beta + a1*alpha + a3
-
-            self.g_cache = \
-                  {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
-            self.psi_cache = {}
-            self.theta_cache = {}
-            self.omega_cache = {1 : beta}
-
-
-        def g(self, n):
-            r"""
-            Returns $\hat g_n(P)$ as defined in the paper mentioned above.
-            """
-            # try to get cached value
-            try:
-                return self.g_cache[n]
-            except KeyError:
-                pass
-
-            # didn't work, have to compute it
-            g = self.g
-            m = n // 2
-            if n & 1:
-                prod1 = g(m+2) * g(m)**3
-                prod2 = g(m-1) * g(m+1)**3
-
-                if m & 1:
-                    X = prod1 - self.B6_sqr * prod2
-                else:
-                    X = self.B6_sqr * prod1 - prod2
-            else:
-                X = g(m) * (g(m-2) * g(m+1)**2 - g(m+2) * g(m-1)**2)
-
-            self.g_cache[n] = X
-            return X
-
-
-        def psi(self, n):
-            r"""
-            Returns $\hat \psi_n(P)$ as defined in the paper mentioned above.
-            """
-            # try to get cached value
-            try:
-                return self.psi_cache[n]
-            except KeyError:
-                assert n >= 0
-
-            # didn't work, have to compute it
-            X = self.g(n)
-            if n & 1 == 0:
-                X = X * self.T
-
-            self.psi_cache[n] = X
-            return X
-
-
-        def theta(self, n):
-            r"""
-            Returns $\hat \theta g_n(P)$ as defined in the paper mentioned above.
-            """
-            # try to get cached value
-            try:
-                return self.theta_cache[n]
-            except KeyError:
-                assert n >= 1
-
-            # didn't work, have to compute it
-            X = self.alpha * self.psi(n)**2 - self.psi(n-1) * self.psi(n+1)
-            self.theta_cache[n] = X
-            return X
-
-
-        def omega(self, n):
-            r"""
-            Returns $\hat \omega g_n(P)$ as defined in the paper mentioned above.
-            """
-            # try to get cached value
-            try:
-                return self.omega_cache[n]
-            except KeyError:
-                assert n >= 2
-
-            # didn't work, have to compute it
-            X = self.g(n-2) * self.g(n+1)**2 - self.g(n+2) * self.g(n-1)**2
-            if n & 1 == 1:
-                X = X * self.T
-            X = (X + (self.a1 * self.theta(n) + self.a3 * self.psi(n)**2) \
-                                                          * self.psi(n)) / -2
-
-            self.omega_cache[n] = X
-            return X
-
-
-        def triple(self, n):
-            assert n >= 1
-            return self.theta(n), self.omega(n), self.psi(n) * self.d
-
-
-    def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
-        r"""
-        Computes the cyclotomic p-adic height.
-
-        The equation of the curve must be minimal at $p$.
-
-        INPUT:
-            p -- prime >= 5 for which the curve has semi-stable reduction
-            prec -- integer >= 1, desired precision of result
-            sigma -- precomputed value of sigma. If not supplied, this function
-                 will call padic_sigma to compute it.
-            check_hypotheses -- boolean, whether to check that this is a
-                 curve for which the p-adic height makes sense
-
-        OUTPUT:
-            A function that accepts two parameters:
-              * a Q-rational point on the curve whose height should be computed
-              * optional boolean flag "check": if False, it skips some
-                input checking,
-            and returns the p-adic height of that point to the desired
-            precision.
-
-        AUTHORS:
-            -- Jennifer Balakrishnan: original code developed at the 2006
-            MSRI graduate workshop on modular forms
-            -- David Harvey (2006-09-13): integrated into SAGE, optimised
-            to speed up repeated evaluations of the returned height function,
-            addressed some thorny precision questions
-            -- David Harvey (2006-09-30): rewrote to use division polynomials
-            for computing denominator of $nP$.
-            -- David Harvey (2007-02): cleaned up according to algorithms
-            in "Efficient Computation of p-adic Heights"
-            -- chris wuthrich (05/2007): added supersingular and multiplicative heights
-
-        EXAMPLES:
-            sage: E = EllipticCurve("37a")
-            sage: P = E.gens()[0]
-            sage: h = E.padic_height(5, 10)
-            sage: h(P)
-            4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
-
-        An anomalous case:
-            sage: h = E.padic_height(53, 10)
-            sage: h(P)
-            27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
-
-        Boundary case:
-            sage: E.padic_height(5, 3)(P)
-            4*5 + 3*5^2 + O(5^3)
-
-        A case that works the division polynomial code a little harder:
-            sage: E.padic_height(5, 10)(5*P)
-            4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 4*5^7 + 5^8 + O(5^10)
-
-        Check that answers agree over a range of precisions:
-            sage: max_prec = 30    # make sure we get past p^2    # long time
-            sage: full = E.padic_height(5, max_prec)(P)           # long time
-            sage: for prec in range(1, max_prec):                 # long time
-            ...       assert E.padic_height(5, prec)(P) == full   # long time
-
-        A supersingular prime for a curve:
-            sage: E = EllipticCurve('37a')
-            sage: E.is_supersingular(3)
-            True
-            sage: h = E.padic_height(3, 5)
-            sage: h(E.gens()[0])
-            (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^7))
-            sage: E.padic_regulator(5)
-            4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^20)
-            sage: E.padic_regulator(3, 5)
-            (2*3 + O(3^3), 2*3^2 + O(3^4))
-
-        A torsion point in both the good and supersingular cases:
-            sage: E = EllipticCurve('11a')
-            sage: P = E.torsion_subgroup().gens()[0]; P
-            (5 : 5 : 1)
-            sage: h = E.padic_height(19, 5)
-            sage: h(P)
-            0
-            sage: h = E.padic_height(5, 5)
-            sage: h(P)
-            0
-        """
-        if check_hypotheses:
-            if not p.is_prime():
-                raise ValueError, "p = (%s) must be prime"%p
-            if p == 2:
-                raise ValueError, "p must be odd"   # todo
-            if self.conductor() % (p**2) == 0:
-                raise ArithmeticError, "p must be a semi-stable prime"
-
-        prec = int(prec)
-        if prec < 1:
-            raise ValueError, "prec (=%s) must be at least 1" % prec
-
-        if self.conductor() % p == 0:
-            Eq = self.tate_curve(p,prec=prec)
-            return Eq.height(prec=prec)
-        elif self.ap(p) % p == 0:
-            lp = self.padic_lseries(p)
-            return lp.Dp_valued_height(prec=prec)
-
-        # else good ordinary case
-
-        # For notation and definitions, see "Efficient Computation of
-        # p-adic Heights", David Harvey (unpublished)
-
-        n1 = self.change_ring(rings.GF(p)).cardinality()
-        n2 = arith.LCM(self.tamagawa_numbers())
-        n = arith.LCM(n1, n2)
-        m = int(n / n2)
-
-        adjusted_prec = prec + 2 * arith.valuation(n, p)   # this is M'
-        R = rings.Integers(p ** adjusted_prec)
-
-        if sigma is None:
-            sigma = self.padic_sigma(p, adjusted_prec, check_hypotheses=False)
-
-        # K is the field for the final result
-        K = Qp(p, prec=adjusted_prec-1)
-        E = self
-
-        def height(P, check=True):
-            if P.is_finite_order():
-                return K(0)
-
-            if check:
-                assert P.curve() == E, "the point P must lie on the curve " \
-                       "from which the height function was created"
-
-            Q = n2 * P
-            C = E._DivPolyContext(E, R, Q)
-
-            alpha, beta, d = C.triple(m)
-
-            assert beta.lift() % p != 0, "beta should be a unit!"
-            assert d.lift() % p == 0, "d should not be a unit!"
-
-            t = -d * alpha / beta
-
-            total = R(1)
-            t_power = t
-            for k in range(2, adjusted_prec + 1):
-                total = total + t_power * sigma[k].lift()
-                t_power = t_power * t
-            total = (-alpha / beta) * total
-
-            L = Qp(p, prec=adjusted_prec)
-            total = L(total.lift(), adjusted_prec)   # yuck... get rid of this lift!
-            answer = total.log() * 2 / n**2
-
-            if check:
-                assert answer.precision_absolute() >= prec, "we should have got an " \
-                       "answer with precision at least prec, but we didn't."
-            return K(answer)
-
-
-        # (man... I love python's local function definitions...)
-        return height
-
-
-
-    def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
-        r"""
-        Computes the p-adic sigma function with respect to the standard
-        invariant differential $dx/(2y + a_1 x + a_3)$, as defined by
-        Mazur and Tate, as a power series in the usual uniformiser $t$ at the
-        origin.
-
-        The equation of the curve must be minimal at $p$.
-
-        INPUT:
-            p -- prime >= 5 for which the curve has good ordinary reduction
-            N -- integer >= 1, indicates precision of result; see OUTPUT
-                 section for description
-            E2 -- precomputed value of E2. If not supplied, this function will
-                 call padic_E2 to compute it. The value supplied must be
-                 correct mod $p^{N-2}$.
-            check -- boolean, whether to perform a consistency check (i.e.
-                 verify that the computed sigma satisfies the defining
-                 differential equation -- note that this does NOT guarantee
-                 correctness of all the returned digits, but it comes pretty
-                 close :-))
-            check_hypotheses -- boolean, whether to check that this is a
-                 curve for which the p-adic sigma function makes sense
-
-        OUTPUT:
-            A power series $t + \cdots$ with coefficients in $\Z_p$.
-
-            The output series will be truncated at $O(t^{N+1})$, and the
-            coefficient of $t^n$ for $n \geq 1$ will be correct to precision
-            $O(p^{N-n+1})$.
-
-            In practice this means the following. If $t_0 = p^k u$, where
-            $u$ is a $p$-adic unit with at least $N$ digits of precision,
-            and $k \geq 1$, then the returned series may be used to compute
-            $\sigma(t_0)$ correctly modulo $p^{N+k}$ (i.e. with $N$ correct
-            $p$-adic digits).
-
-        ALGORITHM:
-           Described in ``Efficient Computation of p-adic Heights''
-           (David Harvey), which is basically an optimised version of the
-           algorithm from ``p-adic Heights and Log Convergence'' (Mazur,
-           Stein, Tate).
-
-           Running time is soft-$O(N^2 \log p)$, plus whatever time is
-           necessary to compute $E_2$.
-
-        AUTHOR:
-            -- David Harvey (2006-09-12)
-            -- David Harvey (2007-02): rewrote
-
-        EXAMPLES:
-            sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
-
-          Run it with a consistency check:
-            sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
-
-          Boundary cases:
-            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
-             (1 + O(5))*t + O(t^2)
-            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
-             (1 + O(5^2))*t + (3 + O(5))*t^2 + O(t^3)
-
-          Supply your very own value of E2:
-            sage: X = EllipticCurve("37a")
-            sage: my_E2 = X.padic_E2(5, 8)
-            sage: my_E2 = my_E2 + 5**5    # oops!!!
-            sage: X.padic_sigma(5, 10, E2=my_E2)
-            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
-
-          Check that sigma is ``weight 1''.
-            sage: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
-            sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
-            sage: t = f.parent().gen()
-            sage: f(2*t)/2
-            (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
-            sage: g
-            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (4 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
-            sage: f(2*t)/2 -g
-            O(t^11)
-
-          Test that it returns consistent results over a range of precision:
-            sage: max_N = 30   # get up to at least p^2         # long time
-            sage: E = EllipticCurve([1, 1, 1, 1, 1])            # long time
-            sage: p = 5                                         # long time
-            sage: E2 = E.padic_E2(5, max_N)                     # long time
-            sage: max_sigma = E.padic_sigma(p, max_N, E2=E2)    # long time
-            sage: for N in range(3, max_N):                     # long time
-            ...      sigma = E.padic_sigma(p, N, E2=E2)         # long time
-            ...      assert sigma == max_sigma
-        """
-        if check_hypotheses:
-            p = self.__check_padic_hypotheses(p)
-
-        # todo: implement the p == 3 case
-        # NOTE: If we ever implement p == 3, it's necessary to check over
-        # the precision loss estimates (below) vey carefully; I think it
-        # may become necessary to compute E2 to an even higher precision.
-        if p < 5:
-            raise NotImplementedError, "p (=%s) must be at least 5" % p
-
-        N = int(N)
-        if N <= 2:
-            # a few special cases for small N
-            if N < 1:
-                raise ValueError, "N (=%s) must be at least 1" % prec
-
-            if N == 1:
-                # return simply t + O(t^2)
-                K = Qp(p, 2)
-                return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
-
-
-            if N == 2:
-                # return t + a_1/2 t^2 + O(t^3)
-                K = Qp(p, 3)
-                return PowerSeriesRing(K, "t")([K(0), K(1, 2),
-                                                K(self.a1()/2, 1)], prec=3)
-
-        if self.discriminant().valuation(p) != 0:
-            raise NotImplementedError, "equation of curve must be minimal at p"
-
-        if E2 is None:
-            E2 = self.padic_E2(p, N-2, check_hypotheses=False)
-        elif E2.precision_absolute() < N-2:
-            raise ValueError, "supplied E2 has insufficient precision"
-
-        QQt = LaurentSeriesRing(RationalField(), "x")
-
-        R = rings.Integers(p**(N-2))
-        X = self.change_ring(R)
-        c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
-
-        f = X.formal_group().differential(N+2)   # f = 1 + ... + O(t^{N+2})
-        x = X.formal_group().x(N)                # x = t^{-2} + ... + O(t^N)
-
-        Rt = x.parent()
-
-        A  = (x + c) * f
-        # do integral over QQ, to avoid divisions by p
-        A = Rt(QQt(A).integral())
-        A = (-X.a1()/2 - A) * f
-
-        # Convert to a power series and remove the -1/x term.
-        # Also we artifically bump up the accuracy from N-2 to to N-1 digits;
-        # the constant term needs to be known to N-1 digits, so we compute
-        # it directly
-        assert A.valuation() == -1 and A[-1] == 1
-        A = A - A.parent().gen() ** (-1)
-        A = A.power_series().list()
-        R = rings.Integers(p**(N-1))
-        A = [R(u) for u in A]
-        A[0] = self.change_ring(R).a1()/2     # fix constant term
-        A = PowerSeriesRing(R, "x")(A, len(A))
-
-        theta = _brent(A, p, N)
-        sigma = theta * theta.parent().gen()
-
-        # Convert the answer to power series over p-adics; drop the precision
-        # of the $t^k$ coefficient to $p^(N-k+1)$.
-        # [Note: there are actually more digits available, but it's a bit
-        # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
-        # for p-adic height purposes anyway]
-        K = rings.pAdicField(p, N + 1)
-
-        sigma = sigma.padded_list(N+1)
-
-        sigma[0] = K(0, N +1)
-        sigma[1] = K(1, N)
-        for n in range(2, N+1):
-            sigma[n] = K(sigma[n].lift(), N - n + 1)
-
-        S = rings.PowerSeriesRing(K, "t", N+1)
-        sigma = S(sigma, N+1)
-
-        # if requested, check that sigma satisfies the appropriate
-        # differential equation
-        if check:
-            R = rings.Integers(p**N)
-            X = self.change_ring(R)
-            x = X.formal_group().x(N+5)       # few extra terms for safety
-            f = X.formal_group().differential(N+5)
-            c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
-
-            # convert sigma to be over Z/p^N
-            s = f.parent()(sigma)
-
-            # apply differential equation
-            temp = (s.derivative() / s / f).derivative() / f + c + x
-
-            # coefficient of t^k in the result should be zero mod p^(N-k-2)
-            for k in range(N-2):
-                assert temp[k].lift().valuation(p) >= N - k - 2, \
-                            "sigma correctness check failed!"
-
-        return sigma
-
-
-
-    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
-        r"""
-        Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
-        where $\omega$ is the usual invariant differential
-        $dx/(2y + a_1 x + a_3)$.
-
-        INPUT:
-            p -- prime (>= 5) for which $E$ is good and ordinary
-            prec -- (relative) p-adic precision (>= 1) for result
-            check -- boolean, whether to perform a consistency check.
-                 This will slow down the computation by a constant factor < 2.
-                 (The consistency check is to compute the whole matrix of
-                 frobenius on Monsky-Washnitzer cohomology, and verify that
-                 its trace is correct to the specified precision. Otherwise,
-                 the trace is used to compute one column from the other one
-                 (possibly after a change of basis).)
-            check_hypotheses -- boolean, whether to check that this is a
-                 curve for which the p-adic sigma function makes sense
-            algorithm -- one of "standard", "sqrtp", or "auto". This
-                 selects which version of Kedlaya's algorithm is used. The
-                 "standard" one is the one described in Kedlaya's paper.
-                 The "sqrtp" one has better performance for large $p$, but
-                 only works when $p > 6N$ ($N=$ prec). The "auto" option
-                 selects "sqrtp" whenever possible.
-
-                 Note that if the "sqrtp" algorithm is used, a consistency
-                 check will automatically be applied, regardless of the
-                 setting of the "check" flag.
-
-        OUTPUT:
-            p-adic number to precision prec
-
-        NOTES:
-            -- If the discriminant of the curve has nonzero valuation at p,
-               then the result will not be returned mod $p^\text{prec}$, but
-               it still *will* have prec *digits* of precision.
-
-        TODO:
-            -- Once we have a better implementation of the "standard"
-               algorithm, the algorithm selection strategy for "auto"
-               needs to be revisited.
-
-        AUTHOR:
-            -- David Harvey (2006-09-01): partly based on code written by
-               Robert Bradshaw at the MSRI 2006 modular forms workshop
-
-        ACKNOWLEDGMENT:
-           -- discussion with Eyal Goren that led to the trace trick.
-
-        EXAMPLES:
-        Here is the example discussed in the paper ``Computation of p-adic
-        Heights and Log Convergence'' (Mazur, Stein, Tate):
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5)
-            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + O(5^20)
-
-        Let's try to higher precision (this is the same answer the MAGMA
-        implementation gives):
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 100)
-            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + 2*5^30 + 5^31 + 4*5^33 + 3*5^34 + 4*5^35 + 5^36 + 4*5^37 + 4*5^38 + 3*5^39 + 4*5^41 + 2*5^42 + 3*5^43 + 2*5^44 + 2*5^48 + 3*5^49 + 4*5^50 + 2*5^51 + 5^52 + 4*5^53 + 4*5^54 + 3*5^55 + 2*5^56 + 3*5^57 + 4*5^58 + 4*5^59 + 5^60 + 3*5^61 + 5^62 + 4*5^63 + 5^65 + 3*5^66 + 2*5^67 + 5^69 + 2*5^70 + 3*5^71 + 3*5^72 + 5^74 + 5^75 + 5^76 + 3*5^77 + 4*5^78 + 4*5^79 + 2*5^80 + 3*5^81 + 5^82 + 5^83 + 4*5^84 + 3*5^85 + 2*5^86 + 3*5^87 + 5^88 + 2*5^89 + 4*5^90 + 4*5^92 + 3*5^93 + 4*5^94 + 3*5^95 + 2*5^96 + 4*5^97 + 4*5^98 + 2*5^99 + O(5^100)
-
-        Check it works at low precision too:
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
-            2 + O(5)
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
-            2 + 4*5 + O(5^2)
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
-            2 + 4*5 + O(5^3)
-
-        TODO: With the old(-er), i.e., <= sage-2.4 p-adics we
-        got $5 + O(5^2)$ as output, i.e., relative precision 1, but
-        with the newer p-adics we get relative precision 0 and
-        absolute precision 1.
-            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-            O(5^1)
-
-        Check it works for different models of the same curve (37a),
-        even when the discriminant changes by a power of p (note that
-        E2 depends on the differential too, which is why it gets scaled
-        in some of the examples below):
-
-            sage: X1 = EllipticCurve([-1, 1/4])
-            sage: X1.j_invariant(), X1.discriminant()
-             (110592/37, 37)
-            sage: X1.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-            sage: X2 = EllipticCurve([0, 0, 1, -1, 0])
-            sage: X2.j_invariant(), X2.discriminant()
-             (110592/37, 37)
-            sage: X2.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-            sage: X3 = EllipticCurve([-1*(2**4), 1/4*(2**6)])
-            sage: X3.j_invariant(), X3.discriminant() / 2**12
-             (110592/37, 37)
-            sage: 2**(-2) * X3.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-            sage: X4 = EllipticCurve([-1*(7**4), 1/4*(7**6)])
-            sage: X4.j_invariant(), X4.discriminant() / 7**12
-             (110592/37, 37)
-            sage: 7**(-2) * X4.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-            sage: X5 = EllipticCurve([-1*(5**4), 1/4*(5**6)])
-            sage: X5.j_invariant(), X5.discriminant() / 5**12
-             (110592/37, 37)
-            sage: 5**(-2) * X5.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-            sage: X6 = EllipticCurve([-1/(5**4), 1/4/(5**6)])
-            sage: X6.j_invariant(), X6.discriminant() * 5**12
-             (110592/37, 37)
-            sage: 5**2 * X6.padic_E2(5, 10)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
-
-        Test check=True vs check=False:
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=False)
-            2 + O(5)
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=True)
-            2 + O(5)
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=False)
-            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
-            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=True)
-            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
-
-        Here's one using the $p^{1/2}$ algorithm:
-            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")
-            1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
-
-        """
-        if self.conductor() % p == 0:
-            if not self.conductor() % (p**2) == 0:
-                eq = self.tate_curve(p,prec=prec)
-                return  eq.E2(prec=prec)
-
-        frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
-
-        frob_p_n = frob_p**prec
-
-        # todo: think about the sign of this. Is it correct?
-        output_ring = rings.pAdicField(p, prec)
-
-        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
-                  + O(p**prec)
-
-        # Take into account the coordinate change.
-        X = self.weierstrass_model()
-        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
-
-        # todo: here I should be able to write:
-        #  return E2_of_X / fudge_factor
-        # However, there is a bug in SAGE (#51 on trac) which makes this
-        # crash sometimes when prec == 1. For example,
-        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-        # makes it crash. I haven't figured out exactly what the bug
-        # is yet, but for now I use the following workaround:
-        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
-        return output_ring(E2_of_X * fudge_factor_inverse)
-
-
-    def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
-        """
-        See the parameters and documentation for padic_E2.
-        """
-        # TODO change the basis back to the original euqation.
-        # TODO, add lots of comments like the above
-        if check_hypotheses:
-            p = self.__check_padic_hypotheses(p)
-
-        if algorithm == "auto":
-            algorithm = "standard" if p < 6*prec else "sqrtp"
-        elif algorithm == "sqrtp" and p < 6*prec:
-            raise ValueError, "sqrtp algorithm is only available when p > 6*prec"
-
-        if algorithm not in ["standard", "sqrtp"]:
-            raise ValueError, "unknown algorithm '%s'" % algorithm
-
-        # todo: maybe it would be good if default prec was None, and then
-        # it selects an appropriate precision based on how large the prime
-        # is
-
-        # todo: implement the p == 3 case
-        if p < 5:
-            raise NotImplementedError, "p (=%s) must be at least 5" % p
-
-        prec = int(prec)
-        if prec < 1:
-            raise ValueError, "prec (=%s) must be at least 1" % prec
-
-        # To run matrix_of_frobenius(), we need to have the equation in the
-        # form y^2 = x^3 + ax + b, whose discriminant is invertible mod p.
-        # When we change coordinates like this, we might scale the invariant
-        # differential, so we need to account for this. We do this by
-        # comparing discriminants: if the discrimimants differ by u^12,
-        # then the differentials differ by u. There's a sign ambiguity here,
-        # but it doesn't matter because E2 changes by u^2 :-)
-
-        # todo: the weierstrass_model() function is overkill here, because
-        # it finds a *minimal* model. I imagine it has to do some factoring
-        # to do this. We only need a model that's minimal at p.
-
-        # todo: In fact, there should be available a function that returns
-        # exactly *which* coordinate change was used. If I had that I could
-        # avoid the discriminant circus at the end.
-
-        # todo: The following strategy won't work at all for p = 2, 3.
-
-        X = self.weierstrass_model()
-
-        assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
-               "The discriminant of the weierstrass model should be a unit " \
-               " at p."
-
-        if algorithm == "standard":
-            # Need to increase precision a little to compensate for precision
-            # losses during the computation. (See monsky_washnitzer.py
-            # for more details.)
-            adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
-
-            if check:
-                trace = None
-            else:
-                trace = self.ap(p)
-
-            base_ring = rings.Integers(p**adjusted_prec)
-            output_ring = rings.pAdicField(p, prec)
-
-            R, x = rings.PolynomialRing(base_ring, 'x').objgen()
-            Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
-            frob_p = monsky_washnitzer.matrix_of_frobenius(
-                             Q, p, adjusted_prec, trace)
-
-
-        else:   # algorithm == "sqrtp"
-            p_to_prec = p**prec
-            R = rings.PolynomialRing(Integers(), "x")
-            Q = R([X.a6() % p_to_prec, X.a4() % p_to_prec, 0, 1])
-            frob_p = sage.schemes.hyperelliptic_curves.frobenius.frobenius(p, prec, Q)
-
-            # let's force a trace-check since this algorithm is fairly new
-            # and we don't want to get caught with our pants down...
-            trace = self.ap(p)
-            check = True
-
-
-        return frob_p
-
-        if check:
-            trace_of_frobenius = frob_p.trace().lift() % p**prec
-            correct_trace = self.ap(p) % p**prec
-            assert trace_of_frobenius == correct_trace, \
-                    "Consistency check failed! (correct = %s, actual = %s)" % \
-                    (correct_trace, trace_of_frobenius)
-
-        return frob_p.change_ring(Zp(p, prec))
-
-
-##     # This is the old version of padic_E2 that requires MAGMA:
-##     def padic_E2_magma(self, p, prec=20):
-##         """
-##         Return the value of the $p$-adic.
-##         """
-##         p = self.__check_padic_hypotheses(p)
-##         c4, c6 = self.c_invariants()
-##         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
-
+    matrix_of_frobenius = padics.matrix_of_frobenius
 
     # def weierstrass_p(self):
     #         # TODO: add allowing negative valuations for power series
@@ -5268,77 +2811,3 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
-def _brent(F, p, N):
-    r"""
-    This is an internal function; it is used by padic_sigma().
-
-    $F$ is a assumed to be a power series over $R = \Z/p^{N-1}\Z$.
-
-    It solves the differential equation $G'(t)/G(t) = F(t)$ using Brent's
-    algorithm, with initial condition $G(0) = 1$. It is assumed that the
-    solution $G$ has $p$-integral coefficients.
-
-    More precisely, suppose that $f(t)$ is a power series with genuine
-    $p$-adic coefficients, and suppose that $g(t)$ is an exact solution to
-    $g'(t)/g(t) = f(t)$. Let $I$ be the ideal $(p^N, p^{N-1} t, \ldots,
-    p t^{N-1}, t^N)$. The input $F(t)$ should be a finite-precision
-    approximation to $f(t)$, in the sense that $\int (F - f) dt$ should lie
-    in $I$. Then the function returns a series $G(t)$ such that $(G - g)(t)$
-    lies in $I$.
-
-    Complexity should be about $O(N^2 \log^2 N \log p)$, plus some log-log
-    factors.
-
-    For more information, and a proof of the precision guarantees,
-    see Lemma 4 in ``Efficient Computation of p-adic Heights'' (David
-    Harvey).
-
-    AUTHOR:
-        -- David Harvey (2007-02)
-
-    EXAMPLES:
-    Carefully test the precision guarantees:
-        sage: brent = sage.schemes.elliptic_curves.ell_rational_field._brent
-        sage: for p in [2, 3, 5]:
-        ...     for N in [2, 3, 10, 50]:
-        ...       R = Integers(p**(N-1))
-        ...       Rx, x = PowerSeriesRing(R, "x").objgen()
-        ...       for _ in range(5):
-        ...         g = [R.random_element() for i in range(N)]
-        ...         g[0] = R(1)
-        ...         g = Rx(g, len(g))
-        ...         f = g.derivative() / g
-        ...         # perturb f by something whose integral is in I
-        ...         err = [R.random_element() * p**(N-i) for i in range(N+1)]
-        ...         err = Rx(err, len(err))
-        ...         err = err.derivative()
-        ...         F = f + err
-        ...         # run brent() and compare output modulo I
-        ...         G = brent(F, p, N)
-        ...         assert G.prec() >= N, "not enough output terms"
-        ...         err = (G - g).list()
-        ...         for i in range(len(err)):
-        ...           assert err[i].lift().valuation(p) >= (N - i), \
-        ...                  "incorrect precision output"
-
-    """
-    Rx = F.parent()           # Rx = power series ring over Z/p^{N-1} Z
-    R = Rx.base_ring()        # R = Z/p^{N-1} Z
-    Qx = PowerSeriesRing(RationalField(), "x")
-
-    # initial approximation:
-    G = Rx(1)
-
-    # loop over an appropriate increasing sequence of lengths s
-    for s in misc.newton_method_sizes(N):
-        # zero-extend to s terms
-        # todo: there has to be a better way in SAGE to do this...
-        G = Rx(G.list(), s)
-
-        # extend current approximation to be correct to s terms
-        H = G.derivative() / G - F
-        # Do the integral of H over QQ[x] to avoid division by p problems
-        H = Rx(Qx(H).integral())
-        G = G * (1 - H)
-
-    return G

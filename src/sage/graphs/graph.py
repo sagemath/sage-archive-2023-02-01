@@ -3,7 +3,7 @@ Graph Theory
 
 This module implements many graph theoretic operations and concepts.
 
-AUTHOR:
+AUTHORS:
     -- Robert L. Miller (2006-10-22): initial version
     -- William Stein (2006-12-05): Editing
     -- Robert L. Miller (2007-01-13): refactoring, adjusting for
@@ -3159,6 +3159,11 @@ class Graph(GenericGraph):
             s = data[:n]
             n, s = graph_fast.N_inverse(s)
             m = graph_fast.R_inverse(s, n)
+            expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
+            if len(m) > expected:
+                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long.")
+            elif len(m) < expected:
+                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short.")
             d = {}
             k = 0
             for i in range(n):

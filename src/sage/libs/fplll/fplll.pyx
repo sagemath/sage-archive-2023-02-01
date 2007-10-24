@@ -160,7 +160,7 @@ cdef class FP_LLL:
             sage: F = FP_LLL(W)
             sage: F.wrapper()
             sage: W = F._sage_()
-            sage: W # result random
+            sage: W # result depending on random input
             [ 1  1 -1 -1 -1 -2  3 -2 -1  1]
             [ 1  4 -1 -1 -1 -1 -1  3  1  1]
             [-3  0  0  0 -4 -4 -2 -1  3  0]
@@ -217,7 +217,7 @@ cdef class FP_LLL:
             sage: F = FP_LLL(P)
             sage: F.proved()
             sage: P = F._sage_()
-            sage: P # result random
+            sage: P # result depending on random input
             [  -3    3   -3   -1    4   -1    4   -1    1    1]
             [  -3    0    3   -1    0   -7    4    2   -2    0]
             [  -8    1    2    2   -1    6   -3    1   -2    1]
@@ -294,7 +294,7 @@ cdef class FP_LLL:
             sage: f = FP_LLL(F)
             sage: f.fast()
             sage: F = f._sage_()
-            sage: F # result random
+            sage: F # result depending on random input
             [  2   4  -1   2   0  -5   1   5  -2   3]
             [  5  -6  -2  -1  -2   1   2  -4  -3  -1]
             [ -5  -7  -1  -2   1   1   1   6   3   1]
@@ -342,24 +342,33 @@ cdef class FP_LLL:
             sage: from sage.libs.fplll.fplll import FP_LLL
             sage: FE = random_matrix(ZZ,10,10)
             sage: FE # result random
-            [  2  -1  -1  -1  -3   1  -1 -32  -1  -1]
-            [  1   2  -1  -1   1   1  -1  -1   8   1]
-            [  1  -2  -2  -2  -6  -6   2  -1   1  -1]
-            [  3   3  -1   1   1   6   1   1  -1  -1]
-            [ -1  -1   1  -1  -2   3   1  -2   1  25]
-            [ -1   1   1 -10  -1  -1   1   1  -1   1]
-            [  1   1  25  -1   1  -4   4   5  -2   3]
-            [  3  -2   2  -6  -4   1  -1  -3  -1   1]
-            [  1  -4   2   3   1   1   1   2   3  -1]
-            [  6  -8   1  -1 -16   2 -25  -1  -2   2]
+            [  -4    3    2   -1    1   -1    6    2   -4  -15]
+            [   1   -1    6    4   -1    4   -6   -1    2    2]
+            [   1   -1   -1   -7    1    1   -3   -2    1    5]
+            [ 232   -2   -1   -1   -4   -1   -6    1    1    1]
+            [  -6    4    1   -1   -1   -1    4    3   -2   -2]
+            [  -2   -1   -2   -2    6   -2   -2    1    4   -1]
+            [  20   -1  -61    1   -2    1    1    2    1    3]
+            [   9   -2   -2   -9   -2  -37   11    1   -1    1]
+            [  -1   -8    1 -108    1    8    1   -1  -35   -5]
+            [  -1   -1   48    2    1    1    8    4    7   -4]
 
             sage: F = FP_LLL(FE)
             sage: F.fast_early_red()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: BUG: fast early reduction segfaults
-        """
-        raise RuntimeError, "BUG: fast early reduction segfaults"
+            sage: FE = F._sage_()
+            sage: FE # result depending on random input
+            [ -2  -1  -2  -2   6  -2  -2   1   4  -1]
+            [  1  -1  -1  -7   1   1  -3  -2   1   5]
+            [ -6   4   1  -1  -1  -1   4   3  -2  -2]
+            [ -5   3   7   3  -2   3  -2   2   0   0]
+            [  3  -2   0  -7   3   1  -1  -3  -1  -8]
+            [  2   6  -1  -1   1   6   4  12  11   1]
+            [  2  12  -9  -4 -12  -8 -13   8   1  -5]
+            [  6 -17   4  -6   0  -2  -3  16 -13   1]
+            [ -6   1 -17  -2   6  26   3  -1  -3  -5]
+            [ 32  45  11  10  37  -8 -10  17 -35  12]
+
+         """
         self._check_precision(precision)
         self._check_eta(eta)
         self._check_delta(delta)
@@ -404,7 +413,7 @@ cdef class FP_LLL:
             sage: F = FP_LLL(H)
             sage: F.heuristic()
             sage: H = F._sage_()
-            sage: H # result random
+            sage: H # result depending on random input
             [ -1   2  -1  -1  -2   1  -3  -2   2  -1]
             [ -2   1   0  -2  -4  -2  -2   0  -5  -2]
             [  3  -1   0  -5  -1  -9  -1  -2  -1   4]
@@ -485,7 +494,7 @@ cdef class FP_LLL:
             sage: F = FP_LLL(HE)
             sage: F.heuristic_early_red()
             sage: HE = F._sage_()
-            sage: HE # result random
+            sage: HE # result depending on random input
             [  4   0   0   2  -2  -1   0   1   2  -3]
             [ -1   3  -1  -4   1  -1  -1   1   3   1]
             [ -1  -1   1  -1   3  -1   1   5  -1  -2]

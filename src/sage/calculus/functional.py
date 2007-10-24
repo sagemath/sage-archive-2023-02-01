@@ -173,8 +173,12 @@ def integral(f, *args, **kwds):
     """
     try:
         return f.integral(*args, **kwds)
+    except ValueError, err:
+        raise err
     except AttributeError:
         pass
+
+
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
     return f.integral(*args, **kwds)

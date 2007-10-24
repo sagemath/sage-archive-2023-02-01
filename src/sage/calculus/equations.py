@@ -450,29 +450,14 @@ class SymbolicEquation(SageObject):
         Return True if this equality is definitely true.  Return False
         if it is false or the algorithm for testing equality is
         inconclusive.
-
-        EXAMPLES:
-            sage: k = var('k')
-            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
-            sage: bool(pol == 0)
-            True
-            sage: f = sin(x)^2 + cos(x)^2 - 1
-            sage: bool(f == 0)
-            True
         """
         m = self._maxima_()
-
         try:
             s = m.parent()._eval_line('is (%s)'%m.name())
         except TypeError, msg:
             #raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
             return cmp(self._left._maxima_() , self._right._maxima_()) == 0
-
-        if not (self._left - self._right).__nonzero__():
-            return True
-        else:
-            return s == 'true'
-
+        return s == 'true'
 
     def _maxima_init_(self, maxima=maxima, assume=False):
         l = self._left._maxima_init_()

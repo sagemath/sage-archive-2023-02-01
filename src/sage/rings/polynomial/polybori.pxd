@@ -28,3 +28,7 @@ cdef class BooleanMonomial(MonoidElement):
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj
     cdef PBMonomIter _iter
+
+cdef class BooleanPolynomialIterator:
+    cdef BooleanPolynomial _obj
+    cdef PBPolyIter _iter

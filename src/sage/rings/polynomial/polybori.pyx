@@ -281,6 +281,9 @@ cdef class BooleanPolynomial(MPolynomial):
         p._P.imul( (<BooleanPolynomial>right)._P )
         return p
 
+    def __iter__(self):
+        return new_BPI_from_PBPolyIter(self, self._P.orderedBegin())
+
     def __pow__(BooleanPolynomial self, int exp, ignored):
         """
         """
@@ -361,6 +364,29 @@ cdef class BooleanPolynomial(MPolynomial):
             return new_CN_from_PBNavigator(self._P.navigation())
         else:
             raise AttributeError, name
+
+cdef class BooleanPolynomialIterator:
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        cdef PBMonom val
+        if self._iter.equal(self._obj._P.orderedEnd()):
+            raise StopIteration
+        val = self._iter.value()
+        self._iter.next()
+        return new_BM_from_PBMonom(self._obj._parent._monom_monoid, val)
+
+cdef inline BooleanPolynomialIterator new_BPI_from_PBPolyIter(\
+                            BooleanPolynomial parent, PBPolyIter juice):
+    """
+    Construct a new BooleanMonomialIterator
+    """
+    cdef BooleanPolynomialIterator m
+    m = <BooleanPolynomialIterator>PY_NEW(BooleanPolynomialIterator)
+    m._iter = juice
+    m._obj = parent
+    return m
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __init__(self, ring, gens=[], coerce=True):

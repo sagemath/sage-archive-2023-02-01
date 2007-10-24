@@ -74,7 +74,12 @@ cdef extern from "pb_wrap.h":
             "Construct_p<BoolePolynomial, BooleMonomial::dd_type>" (void *mem, PBDD m)
     void PBMonom_destruct "Destruct<BooleMonomial>"(PBMonom *mem)
 
-    ctypedef struct PBPoly "struct BoolePolynomial":
+    ctypedef struct PBPolyIter "BoolePolynomial::ordered_iterator":
+        PBMonom (* value "operator*")()
+        int (* next "operator++")()
+        bint (* equal)(PBPolyIter rhs)
+
+    ctypedef struct PBPoly "BoolePolynomial":
         int (* deg)()
         int (* lmDeg)()
         bint (* isZero)()
@@ -85,6 +90,8 @@ cdef extern from "pb_wrap.h":
         PBMonom (* usedVariables)()
         PBDD (* diagram)()
         PBNavigator (* navigation)()
+        PBPolyIter (* orderedBegin)()
+        PBPolyIter (* orderedEnd)()
         void (* iadd "operator+=")(PBPoly right)
         void (* imul "operator*=")(PBPoly right)
         void (* imul_monom "operator*=")(PBMonom right)

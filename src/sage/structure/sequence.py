@@ -187,12 +187,19 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     """
     def __init__(self, x, universe=None, check=True,
-                 immutable=False, cr=False):
+                 immutable=False, cr=False, cr_str=None):
         if not isinstance(x, (list, tuple)):
             x = list(x)
             #raise TypeError, "x must be a list or tuple"
         self.__hash = None
+
+
         self.__cr = cr
+        if cr_str is None:
+            self.__cr_str = cr
+        else:
+            self.__cr_str = cr_str
+
         if isinstance(x, Sequence):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
@@ -392,7 +399,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             sage: str(s)
             '[\n1,\n2,\n3\n]'
         """
-        if self.__cr:
+        if self.__cr_str:
             return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
         else:
             return list.__str__(self)

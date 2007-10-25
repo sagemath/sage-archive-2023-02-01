@@ -683,5 +683,5 @@ objs = sage.categories.all.Objects()
 def string_to_list_of_solutions(s):
     from sage.calculus.calculus import symbolic_expression_from_maxima_string
     v = symbolic_expression_from_maxima_string(s, equals_sub=True)
-    return Sequence(v, universe=objs)
+    return Sequence(v, universe=objs, cr_str=True)
 

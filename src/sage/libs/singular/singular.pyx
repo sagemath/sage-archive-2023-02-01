@@ -13,6 +13,7 @@ TODO: Figure out how to do the cdef public/extern stuff with C++
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
+include "sage/libs/ntl/decl.pxi"
 include "sage/ext/stdsage.pxi"
 include "singular-cdefs.pxi"
 
@@ -22,7 +23,7 @@ cdef extern from "limits.h":
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
-from sage.rings.finite_field import FiniteField_ext_pari
+from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.libs.pari.all import pari
 
 from sage.structure.parent_base cimport ParentWithBase
@@ -127,6 +128,41 @@ cdef class Conversion:
             z = napIter(z)
         return (<FiniteField_givaroElement>base._zero_element)._new_c(ret)
 
+    cdef public FiniteField_ntl_gf2eElement si2sa_GFqNTLGF2E(self, number *n, ring *_ring, FiniteField_ntl_gf2e base):
+        """
+        Convert a SINGULAR finite extension field element to a SAGE
+        finite extension field element implemented via NTL's GF2E
+
+        INPUT:
+            n -- SINGULAR representation
+            _ring -- SINGULAR ring
+            base -- SAGE GF(q)
+
+        OUTPUT:
+            An Element in GF(q).
+
+        """
+        cdef napoly *z
+        cdef int c, e
+        cdef FiniteField_ntl_gf2eElement a
+        cdef FiniteField_ntl_gf2eElement ret
+
+        if naIsZero(n):
+            return base._zero_element
+        elif naIsOne(n):
+            return base._one_element
+        z = (<lnumber*>n).z
+
+        a = base.gen()
+        ret = base._zero_element
+
+        while z:
+            c = <long>napGetCoeff(z)
+            e = napGetExp(z,1)
+            ret += c * a**e
+            z = napIter(z)
+        return ret
+
     cdef public object si2sa_GFqPari(self, number *n, ring *_ring, object base):
         """
         Convert a SINGULAR finite extension field element to a SAGE
@@ -214,6 +250,42 @@ cdef class Conversion:
         naDelete(&a, _ring)
         return n1
 
+    cdef number *sa2si_GFqNTLGF2E(self, FiniteField_ntl_gf2eElement elem, ring *_ring):
+        """
+        """
+        cdef int i
+        cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+
+        rChangeCurrRing(_ring)
+
+        cdef GF2X_c rep = GF2E_rep(elem.x)
+
+        if GF2X_deg(rep) >= 1:
+            n1 = naInit(0)
+            a = naPar(1)
+            apow1 = naInit(1)
+
+            for i from 0 <= i <= GF2X_deg(rep):
+                coeff = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)))
+
+                if not naIsZero(coeff):
+                    n2 = naAdd( naMult(coeff, apow1),  n1)
+                    naDelete(&n1, _ring);
+                    n1= n2
+
+                apow2 = naMult(apow1, a)
+                naDelete(&apow1, _ring)
+                apow1 = apow2
+
+                naDelete(&coeff, _ring)
+
+            naDelete(&apow1, _ring)
+            naDelete(&a, _ring)
+        else:
+            n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)))
+
+        return n1
+
     cdef number *sa2si_GFqPari(self, object elem, ring *_ring):
         """
         """
@@ -275,6 +347,9 @@ cdef class Conversion:
         elif PY_TYPE_CHECK(base, FiniteField_ext_pari):
             return self.si2sa_GFqPari(n, _ring, base)
 
+        elif PY_TYPE_CHECK(base, FiniteField_ntl_gf2e):
+            return self.si2sa_GFqNTLGF2E(n, _ring, base)
+
         else:
             raise ValueError, "cannot convert from SINGULAR number"
 
@@ -291,6 +366,10 @@ cdef class Conversion:
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
             return self.sa2si_GFqPari(elem, _ring)
+
+        elif PY_TYPE_CHECK(elem._parent, FiniteField_ntl_gf2e):
+            return self.sa2si_GFqNTLGF2E(elem, _ring)
+
         else:
             raise ValueError, "cannot convert to SINGULAR number"
 

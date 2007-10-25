@@ -664,8 +664,10 @@ cdef class ntl_GF2X:
     def __int__(self):
         """
             sage: e = ntl.GF2X([1,0,1,1,0])
-            sage: int(e)
-            13
+
+        Note that the int representation depends on the endianess of the platform.
+            sage: int(e) == (13 if sys.byteorder == "little" else 218103808)
+            True
             sage: 2^0 + 2^2 + 2^3
             13
         """

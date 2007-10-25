@@ -112,7 +112,6 @@ cdef extern from "mpz_pylong.h":
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
-    cdef void ZZ_to_t_INT( long **g, mpz_t value )
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
@@ -2373,36 +2372,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(m)
             <type 'sage.libs.pari.gen.gen'>
 
-        ALGORITHM: Use base 10 Python string conversion, hence very
-        very slow for large integers. If you can figure out how to
-        input a number into PARI in hex, or otherwise optimize this,
-        please implement it and send me a patch.
+        TESTS:
+            sage: n = 10^1000000
+            sage: m = n._pari_() ## crash from trac 875
         """
-        #if self._pari is None:
-            # better to do in hex, but I can't figure out
-            # how to input/output a number in hex in PARI!!
-            # TODO: (I could just think carefully about raw bytes and make this all much faster...)
-            #self._pari = sage.libs.pari.all.pari(str(self))
-        #return self._pari
-##        return sage.libs.pari.all.pari(str(self))
-
         return self._pari_c()
 
     cdef _pari_c(self):
 
-        cdef GEN z
-        cdef pari_sp sp
-        global avma
         cdef PariInstance P
-
-        sp = avma
         P = sage.libs.pari.gen.pari
-
-        ZZ_to_t_INT(&z, self.value)
-        x = P.new_gen_noclear(z)
-        avma = sp
-
-        return x
+        return P.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self):
         """
@@ -3121,7 +3101,7 @@ global_dummy_Integer = Integer()
 #
 # Eventually this may be rendered obsolete by a change in SageX allowing
 # non-reference counted extension types.
-cdef long mpz_t_offset
+cdef public long mpz_t_offset
 
 
 # stores the GMP alloc function

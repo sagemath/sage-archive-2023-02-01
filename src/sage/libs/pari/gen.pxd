@@ -20,6 +20,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen ZERO, ONE, TWO
     cdef gen new_gen(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)
+    cdef gen new_gen_from_mpz_t(self, mpz_t value)
+    cdef gen new_gen_from_int(self, int value)
     cdef void clear_stack(self)
     cdef gen double_to_gen_c(self, double)
     cdef GEN double_to_GEN(self, double)

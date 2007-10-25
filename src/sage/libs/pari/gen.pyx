@@ -43,6 +43,11 @@ include 'pari_err.pxi'
 include 'setlvalue.pxi'
 include '../../ext/stdsage.pxi'
 
+cdef extern from "convert.h":
+    cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
+
+cdef extern long mpz_t_offset
+
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
@@ -91,6 +96,18 @@ cdef t3GEN(x):
 cdef t4GEN(x):
     global t4
     t4 = P.toGEN(x, 4)
+
+cdef object Integer
+
+cdef void late_import():
+    global Integer
+
+    if Integer is not None:
+        return
+
+    import sage.rings.integer
+    Integer = sage.rings.integer.Integer
+
 
 cdef class gen(sage.structure.element.RingElement):
     """
@@ -531,6 +548,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         """
         cdef gen x
+        print "hi from __setitem__"
         _sig_on
         x = pari(y)
         if isinstance(n, tuple):
@@ -2226,6 +2244,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
         """
         cdef gen _p
+        print "hi from padicprec"
         _p = pari(p)
         if typ(_p.g) != t_INT:
             raise TypeError, "p (=%s) must be of type t_INT, but is of type %s."%(
@@ -3424,6 +3443,7 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(n)
         _sig_on
         ans = P.new_gen_noclear(gsqrtn(x.g, t0, &zetan, prec))
+        _sig_off
         return ans, P.new_gen(zetan)
 
     def tan(gen x):
@@ -4280,6 +4300,7 @@ cdef class gen(sage.structure.element.RingElement):
     def nfbasis(self, long flag=0, p=0):
         cdef gen _p
         cdef GEN g
+        print "hi from nfbasis"
         if p != 0:
             _p = self.pari(p)
             g = _p.g
@@ -4310,6 +4331,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef gen _p
         cdef GEN g
+        print "hi from nfdisc"
         if p != 0:
             _p = self.pari(p)
             g = _p.g
@@ -5444,6 +5466,7 @@ cdef class gen(sage.structure.element.RingElement):
     # classes that derive from gen.
     ##################################################
     cdef gen pari(self, object x):
+        print "hi from pari"
         return pari(x)
 
     cdef gen new_gen(self, GEN x):
@@ -5528,12 +5551,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         initialized = 1
         stack_avma = avma
         num_primes = maxprime
-        self.ZERO = self(0)    # todo: gen_0
-        self.ONE = self(1)
-        self.TWO = self(2)
+        ## todo: gen_0
+        self.ZERO = self.new_gen_from_int(0)
+        self.ONE = self.new_gen_from_int(1)
+        self.TWO = self.new_gen_from_int(2)
+
 
     #def __dealloc__(self):
-
 
     def _unsafe_deallocate_pari_stack(self):
         if bot:
@@ -5664,8 +5688,38 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         don't call _sig_off.
         """
         z = _new_gen(x)
-        _sig_off
         return z
+
+    cdef gen new_gen_from_mpz_t(self, mpz_t value):
+        cdef GEN z
+        cdef long limbs = 0
+
+        limbs = mpz_size(value)
+
+        if (limbs > 500):
+            _sig_on
+        z = cgetg( limbs+2, t_INT )
+        setlgefint( z, limbs+2 )
+        setsigne( z, mpz_sgn(value) )
+        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+        ## should be safe to _sig_off no matter what
+        _sig_off
+        return self.new_gen(z)
+
+    cdef gen new_gen_from_int(self, int value):
+        cdef GEN z
+        cdef long sign = 0
+
+        z = cgetg( 3, t_INT )
+        setlgefint( z, 3 )
+        if (value > 0):
+            sign = 1
+            z[2] = value
+        elif (value < 0):
+            sign = -1
+            z[2] = -value
+        setsigne( z, sign )
+        return _new_gen(z)
 
     def double_to_gen(self, x):
         cdef double dx
@@ -5739,6 +5793,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return p
 
     cdef gen adapt(self, s):
+        print "hi from adapt"
         if isinstance(s, gen):
             return s
         return pari(s)
@@ -5747,13 +5802,14 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create the PARI object obtained by evaluating s using PARI.
         """
-        cdef pari_sp prev_avma
-        global avma
 
-        prev_avma = avma
+        late_import()
 
         if isinstance(s, gen):
             return s
+        elif PY_TYPE_CHECK(s, Integer):
+            return self.new_gen_from_mpz_t(<mpz_t>(<void *>s + mpz_t_offset))
+
         try:
             return s._pari_()
         except AttributeError:
@@ -5966,6 +6022,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Return the primes <= n as a pari list.
         """
+        print "hi from primes_up_to_n"
         if n <= 1:
             return pari([])
         self.init_primes(n+1)
@@ -6185,8 +6242,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 # Used in integer factorization -- must be done
 # after the pari_instance creation above:
 
-cdef gen _tmp = pari('1000000000000000')
-cdef GEN ten_to_15 = _tmp.g
+##cdef gen _tmp = pari('1000000000000000')
+##cdef GEN ten_to_15 = _tmp.g
+cdef GEN ten_to_15 = gp_read_str('1000000000000000')
 
 ##############################################
 

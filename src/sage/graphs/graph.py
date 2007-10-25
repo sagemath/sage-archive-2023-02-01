@@ -4919,6 +4919,13 @@ class Graph(GenericGraph):
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
 
+        INPUT:
+            partition -- if given, the canonical label with respect to this
+                partition will be computed. The default is the unit partition.
+            certify -- if True, a dictionary mapping from the graph to its
+                canonical label will be given.
+            verbosity -- gets passed to nice: prints helpful output.
+
         EXAMPLE:
             sage: D = graphs.DodecahedralGraph()
             sage: E = D.canonical_label(); E

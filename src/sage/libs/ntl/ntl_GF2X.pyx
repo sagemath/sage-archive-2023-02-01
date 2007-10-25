@@ -533,7 +533,7 @@ cdef class ntl_GF2X:
 
     def coeff(self, int i):
         """
-        Return the coefficient of the monomial X^i in self.
+        Return the coefficient of the monomial $X^i$ in self.
 
         INPUT:
             i -- degree of X
@@ -652,7 +652,7 @@ cdef class ntl_GF2X:
 
     def weight(self):
         """
-        Return the # of nonzero coefficients in self.
+        Return the number of nonzero coefficients in self.
 
         EXAMPLE:
             sage: e = ntl.GF2X([1,0,1,1,0])

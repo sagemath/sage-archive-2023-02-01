@@ -105,6 +105,9 @@ if [ -d "$DEVEL/sage-main" ]; then
     "$SAGE_ROOT/sage" -b main
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."
+    else
+        # repeat -- this makes certain to copy over all the pyx files for inspect.
+        "$SAGE_ROOT/sage" -b main
     fi
     exit $?
 fi

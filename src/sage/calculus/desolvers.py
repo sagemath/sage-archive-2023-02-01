@@ -203,7 +203,7 @@ def desolve_system(des,vars,ics=None):
     dess = [de._repr_() + "=0" for de in des]
     for i in range(d):
         cmd="de:" + dess[int(i)] + ";"
-        maxima(cmd)
+        maxima.eval(cmd)
     desstr = "[" + ",".join(dess) + "]"
     d = len(vars)
     varss = list(vars[i] + "(" + vars[0] + ")" for i in range(1,d))
@@ -212,7 +212,7 @@ def desolve_system(des,vars,ics=None):
         #d = len(ics) ## must be same as len(des)
         for i in range(1,d):
             ic = "atvalue(" + vars[int(i)] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[int(i)]) + ")"
-            maxima(ic)
+            maxima.eval(ic)
     cmd = "desolve(" + desstr + "," + varstr + ");"
     soln = maxima(cmd)
     return [f.rhs()._maxima_init_() for f in soln]

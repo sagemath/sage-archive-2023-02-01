@@ -379,7 +379,23 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return list.__repr__(self)
 
     def __str__(self):
-        return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+        """
+        EXAMPLES:
+            sage: s = Sequence([1,2,3], cr=False)
+            sage: str(s)
+            '[1, 2, 3]'
+            sage: repr(s)
+            '[1, 2, 3]'
+            sage: print s
+            [1, 2, 3]
+            sage: s = Sequence([1,2,3], cr=True)
+            sage: str(s)
+            '[\n1,\n2,\n3\n]'
+        """
+        if self.__cr:
+            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+        else:
+            return list.__str__(self)
 
     def category(self):
         import sage.categories.all

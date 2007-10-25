@@ -121,6 +121,14 @@ EXAMPLES:
         sage: float(f(pi))             # random low order bits
         6.1232339957367663e-16
 
+    Another example:
+        sage: f = integrate(1/sqrt(9+x^2), x); f
+        asinh(x/3)
+        sage: f(3)
+        asinh(1)
+        sage: f.diff(x)
+        1/(3*sqrt(x^2/9 + 1))
+
 COERCION EXAMPLES:
 
 We coerce various symbolic expressions into the complex numbers:
@@ -5107,7 +5115,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 i = msg.find("'")
                 j = msg.rfind("'")
                 nm = msg[i+1:j]
-                syms[nm] = var(nm)
+
+                res = re.match(nm + '\s*\(.*\)', s)
+                if res:
+                    syms[nm] = function(nm)
+                else:
+                    syms[nm] = var(nm)
             else:
                 break
         if isinstance(w, (list, tuple)):

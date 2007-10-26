@@ -947,7 +947,7 @@ class GenericGraph(SageObject):
                 int_verts.append(v)
         return sorted(bdy_verts) + sorted(int_verts)
 
-    def relabel(self, perm, quick=False, inplace=True):
+    def relabel(self, perm, inplace=True):
         r"""
         Uses a dictionary, list, or permutation to relabel the (di)graph.
         If perm is a dictionary d, each old vertex v is a key in the
@@ -963,8 +963,8 @@ class GenericGraph(SageObject):
 
 
         INPUT:
-            quick -- if True, simply return the enumeration of the new graph
-        without constructing it. Requires that perm is of type list.
+            inplace -- default is True. If True, modifies the graph and returns
+                nothing. If False, returns a relabeled copy of the graph.
 
         EXAMPLES:
             sage: G = graphs.PathGraph(3)
@@ -997,19 +997,9 @@ class GenericGraph(SageObject):
         """
         if not inplace:
             G = self.copy()
-            G.relabel(perm, quick, True)
+            G.relabel(perm, True)
             return G
         if type(perm) == list:
-            if quick:
-                n = self.order()
-                numbr = 0
-                if isinstance(self, Graph):
-                    for i,j,l in self.edge_iterator():
-                        numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
-                        numbr += 1<<((n-(perm[j]+1))*n + n-(perm[i]+1))
-                elif isinstance(self, DiGraph):
-                    for i,j,l in self.edge_iterator():
-                        numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
             if isinstance(self, Graph):
                 oldd = self._nxg.adj
                 newd = {}

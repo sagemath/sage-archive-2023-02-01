@@ -3017,7 +3017,7 @@ cdef class int_to_Z(Morphism):
     cdef Element _call_c(self, a):
         # Override this _call_c rather than _call_c_impl because a is not an element
         cdef Integer r
-        r = PY_NEW(Integer)
+        r = <Integer>PY_NEW(Integer)
         mpz_set_si(r.value, PyInt_AS_LONG(a))
         return r
     def _repr_type(self):

@@ -85,6 +85,19 @@ AUTHORS:
                 Looped multi-graph on 10 vertices
                 sage: G.plot().show()    # or G.show()
 
+                Note that the \ character is an escape character in Python, and
+                also a character used by graph6 strings:
+
+                sage: G = Graph('Ihe\n@GUA')
+                Traceback (most recent call last):
+                ...
+                RuntimeError: The string (Ihe) seems corrupt: for n = 10, the string is too short.
+
+                In Python, the escaped character \ is represented by \\:
+
+                sage: G = Graph('Ihe\\n@GUA')
+                sage: G.plot().show()    # or G.show()
+
                 \item adjacency matrix In an adjacency matrix, each column and each row represent
                 a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
 
@@ -3156,14 +3169,14 @@ class Graph(GenericGraph):
             n = data.find('\n')
             if n == -1:
                 n = len(data)
-            s = data[:n]
-            n, s = graph_fast.N_inverse(s)
+            ss = data[:n]
+            n, s = graph_fast.N_inverse(ss)
             m = graph_fast.R_inverse(s, n)
             expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
             if len(m) > expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long.")
+                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short.")
+                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
             d = {}
             k = 0
             for i in range(n):

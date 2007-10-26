@@ -246,7 +246,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: k.<w> = ZZ[]
             sage: R.<t> = k[[]]
             sage: w*t^2 -w*t +13 - (w*t^2 + w*t)
-            13 + -2*w*t
+            13 - 2*w*t
         """
         cdef PowerSeries_poly right = <PowerSeries_poly>right_m
         return PowerSeries_poly(self._parent, self.__f - right.__f, \

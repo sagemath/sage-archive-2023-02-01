@@ -22,7 +22,7 @@ def trace(code, preparse=True):
     want to step through each line of execution of, e.g.,"factor(100)",
     type
 
-        sage.: trace("factor(100)")
+        sage: trace("factor(100)")             # not tested
 
     then at the (Pdb) prompt type "s" (or "step"), then press return
     over and over to step through every line of Python that is called

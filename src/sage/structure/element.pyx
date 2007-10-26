@@ -1581,6 +1581,24 @@ cdef class RingElement(ModuleElement):
             return True
         raise NotImplementedError
 
+    def abs(self):
+        """
+        Return the absolute value of self.  (This just calls the __abs__
+        method, so it is equivalent to the abs() built-in function.)
+
+        EXAMPLES:
+            sage: RR(-1).abs()
+            1.00000000000000
+            sage: ZZ(-1).abs()
+            1
+            sage: CC(I).abs()
+            1.00000000000000
+            sage: Mod(-15, 37).abs()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: absolute valued not defined on integers modulo n.
+        """
+        return self.__abs__()
 
 
 
@@ -2355,6 +2373,48 @@ cdef class FiniteFieldElement(FieldElement):
         """
         return self.minpoly(var)
 
+    def matrix(self, reverse=False):
+        """
+        Return the matrix of right multiplication by the element on
+        the power basis $1, x, x^2, \ldots, x^{d-1}$ for the field
+        extension.  Thus the {\em rows} of this matrix give the images
+        of each of the $x^i$.
+
+        INPUT:
+            reverse -- if True act on vectors in reversed order
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^4)
+            sage: a.vector(reverse=True), a.matrix(reverse=True) * a.vector(reverse=True)
+            ((0, 0, 1, 0), (0, 1, 0, 0))
+            sage: a.vector(), a.matrix() * a.vector()
+            ((0, 1, 0, 0), (0, 0, 1, 0))
+        """
+        import sage.matrix.matrix_space
+
+        K = self.parent()
+        a = K.gen()
+        x = K(1)
+        d = K.degree()
+
+        columns = []
+
+        if not reverse:
+            l = xrange(d)
+        else:
+            l = reversed(range(d))
+
+        for i in l:
+            columns.append( (self * x).vector() )
+            x *= a
+
+        k = K.base_ring()
+        M = sage.matrix.matrix_space.MatrixSpace(k, d)
+
+        if reverse:
+            return M(columns)
+        else:
+            return M(columns).transpose()
 
 def is_AlgebraElement(x):
     """

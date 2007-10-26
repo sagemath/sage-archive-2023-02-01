@@ -113,8 +113,8 @@ class JonesDatabase:
             that the number fields are in the default directory above:
             From a cold start of SAGE:
 
-                sage.: J = JonesDatabase()
-                sage.: J._init()
+                sage: J = JonesDatabase()
+                sage: J._init()   # not tested
                 ...
             This takes about 5 seconds.
         """

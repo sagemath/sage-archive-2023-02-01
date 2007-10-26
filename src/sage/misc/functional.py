@@ -625,7 +625,10 @@ def minimal_polynomial(x, var='x'):
         sage: minimal_polynomial(a,'theta')
         theta^2 - 5*theta - 2
     """
-    return x.minimal_polynomial(var=var)
+    try:
+        return x.minpoly(var=var)
+    except AttributeError:
+        return x.minimal_polynomial(var=var)
 
 minpoly = minimal_polynomial
 
@@ -686,7 +689,8 @@ def numerical_approx(x, prec=None, digits=None):
     Return a numerical approximation of x with at least prec bits of
     precision.
 
-    NOTE: N is an alias for numerical_approx.
+    NOTE: Both upper case N and lower case n are aliases
+    for numerical_approx.
 
     INPUT:
         x -- an object that has a numerical_approx method, or can
@@ -705,6 +709,8 @@ def numerical_approx(x, prec=None, digits=None):
         sage: numerical_approx(pi^2 + e, digits=20)
         12.587886229548403854
         sage: n(pi^2 + e)
+        12.5878862295484
+        sage: N(pi^2 + e)
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
         12.5878862295484038541947784712288136330709465009407
@@ -727,6 +733,7 @@ def numerical_approx(x, prec=None, digits=None):
             return sage.rings.complex_field.ComplexField(prec)(x)
 
 n = numerical_approx
+N = numerical_approx
 
 def objgens(x):
     """

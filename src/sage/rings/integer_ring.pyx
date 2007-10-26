@@ -1,4 +1,3 @@
-
 r"""
 \protect{Ring $\Z$ of Integers}
 
@@ -199,26 +198,38 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Return the ring ZZ[...] got by adjoing to the integers
         an element of several elements.
 
+        EXAMPLES:
+            sage: ZZ[ sqrt(2), sqrt(3) ]
+            Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+            sage: ZZ[x]
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: ZZ['x,y']
+            Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: R = ZZ[ sqrt(5) + 1]; R
+            Order in Number Field in a with defining polynomial x^2 - 2*x - 4
+            sage: R.is_maximal()
+            False
+            sage: R = ZZ[ (1+sqrt(5))/2 ]; R
+            Order in Number Field in a with defining polynomial x^2 - x - 1
+            sage: R.is_maximal()
+            True
+
         """
         if x in self:
             return self
         if isinstance(x, str):
             return PrincipalIdealDomain.__getitem__(self, x)
         from sage.calculus.all import is_SymbolicVariable
+
         if is_SymbolicVariable(x):
             return PrincipalIdealDomain.__getitem__(self, repr(x))
+
         from sage.rings.number_field.all import is_NumberFieldElement
+
         if is_NumberFieldElement(x):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())
 
-        if isinstance(x, tuple) and len(x) > 0:
-            for y in x:
-                if not is_NumberFieldElement(y):
-                    return PrincipalIdealDomain.__getitem__(self, x)
-            x = Sequence(x)
-            K = x.universe()
-            return K.order(x, allow_subfield=True)
         return PrincipalIdealDomain.__getitem__(self, x)
 
     def __call__(self, x, base=0):
@@ -525,6 +536,20 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def fraction_field(self):
         return sage.rings.rational_field.Q
+
+    def extension(self, poly, names=None):
+        """
+        Returns the order in the number field defined by poly generated
+        (as a ring) by a root of poly.
+
+        EXAMPLES:
+            sage: ZZ.extension(x^2-5, 'a')
+            Order in Number Field in a with defining polynomial x^2 - 5
+            sage: ZZ.extension([x^2 + 1, x^2 + 2], 'a,b')
+            Relative Order in Number Field in a with defining polynomial x^2 + 1 over its base field
+        """
+        from sage.rings.number_field.order import EquationOrder
+        return EquationOrder(poly, names)
 
     def quotient(self, I, names=None):
         r"""

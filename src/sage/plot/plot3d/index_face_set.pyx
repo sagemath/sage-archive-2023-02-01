@@ -127,14 +127,14 @@ cdef class IndexFaceSet(PrimativeObject):
 
         sage: def make_face(n): return [(0,0,n),(0,1,n),(1,1,n),(1,0,n)]
         sage: S = IndexFaceSet([make_face(n) for n in range(10)])
-        sage.: S.show()
+        sage: S.show()
 
         sage: point_list = [(1,0,0),(0,1,0)] + [(0,0,n) for n in range(10)]
         sage: face_list = [[0,1,n] for n in range(2,10)]
         sage: S = IndexFaceSet(face_list, point_list, color='red')
         sage: S.face_list()
         [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
-        sage.: S.show()
+        sage: S.show()
     """
 
     def __new__(self, faces, point_list=None, enclosde=False, **kwds):
@@ -530,8 +530,8 @@ cdef class IndexFaceSet(PrimativeObject):
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')
             sage: S = B.stickers(['red','yellow','blue'], 0.1, 0.05)
-            sage.: S.show()
-            sage.: (S+B).show()
+            sage: S.show()
+            sage: (S+B).show()
         """
         all = []
         n = self.fcount; ct = len(colors)

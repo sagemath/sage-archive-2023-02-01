@@ -14,7 +14,7 @@ class Attach:
     You attach a file, e.g., foo.sage or foo.py or foo.spyx, to a
     running SAGE session by typing
 
-        sage.: attach foo.sage   # or foo.py   or foo.spyx
+        sage: attach foo.sage   # or foo.py   or foo.spyx  (not tested)
 
     The contents of the file are then loaded, which means they are
     read into the running SAGE session.  For example, if foo.sage

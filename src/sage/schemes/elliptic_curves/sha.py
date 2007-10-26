@@ -54,8 +54,8 @@ class Sha(SageObject):
             1.00000000000000
 
     A rank 5 curve:
-            sage.: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=10, proof=False)          # long time -- about 1 minute!
-                1.0
+            sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=4, proof=False)          # long time -- about 30 seconds.
+            1.0
         """
         try:
             return self.__an_numerical
@@ -240,7 +240,7 @@ class Sha(SageObject):
             NOTE: the following doctest is DISABLED. When I put in the fix for
             trac #635, this strangely switched sign to become 40 + O(41).
             I'm not sure whether this indicates a bug, possibly a normalisation issue.
-            sage.: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
+            sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
             1 + O(41)
             sage: EllipticCurve('817a1').sha().an_padic(43) #rank 2    (long time)
             42 + O(43)
@@ -249,7 +249,7 @@ class Sha(SageObject):
 
             sage: EllipticCurve('34a1').sha().an_padic(5) # rank 0     (long time)
             1 + O(5^3)
-            sage.: EllipticCurve('43a1').sha().an_padic(7) # rank 1    (very long time -- not tested)
+            sage: EllipticCurve('43a1').sha().an_padic(7) # rank 1    (very long time -- nearly a minute)
             1 + O(7)
             sage: EllipticCurve('1483a1').sha().an_padic(5) # rank 2   (long time)
             1 + O(5)

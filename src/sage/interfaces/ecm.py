@@ -300,11 +300,11 @@ class ECM:
 
             sage: n = next_prime(11^23)*next_prime(11^37)
 
-            sage.: ecm.time(n, 20)
+            sage: ecm.time(n, 20)                  # not tested
             Expected curves: 77     Expected time: 7.21s
-            sage.: ecm.time(n, 25)
+            sage: ecm.time(n, 25)                  # not tested
             Expected curves: 206    Expected time: 1.56m
-            sage.: ecm.time(n, 30, verbose=1)
+            sage: ecm.time(n, 30, verbose=1)       # not tested
             GMP-ECM 6.0.1 [powered by GMP 4.2] [ECM]
 
             Input number is 304481639541418099574459496544854621998616257489887231115912293 (63 digits)

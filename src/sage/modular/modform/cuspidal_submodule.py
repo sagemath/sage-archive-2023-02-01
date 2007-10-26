@@ -143,13 +143,13 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
 
         sage: S.basis()
         [
-        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)
+        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 - 14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)
         ]
         sage: f = S.0
         sage: f.qexp()
-        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)
+        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 - 14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6)
         sage: f.qexp(7)
-        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + 12*q^6 + O(q^7)
+        q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 - 14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + 12*q^6 + O(q^7)
         sage: f.qexp(3)
         q + (-zeta4 - 1)*q^2 + O(q^3)
         sage: f.qexp(2)

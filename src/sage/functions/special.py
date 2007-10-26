@@ -2,7 +2,9 @@ r"""
 Special Functions
 
 AUTHORS:
-   -- David Joyner (2006-13-06)
+   -- David Joyner (2006-13-06), initial version
+   --          "   (2006-30-10), bug fixes to pari wrappers of Bessel
+                                 functions, hypergeometric_U
 
 This module provides easy access to many of Maxima and PARI's
 special functions.
@@ -292,6 +294,7 @@ Methods implemented:
     * complete/incomplete elliptic integrals
     * hyperbolic trig functions (for completeness, since
       they are special cases of elliptic functions)
+    * Kummer confluent $U$-hypergeometric functions.
 
 REFERENCE:
     * Abramowitz and Stegun: Handbook of Mathematical Functions,
@@ -306,6 +309,9 @@ REFERENCE:
     * Online Encyclopedia of Special Function
       http://algo.inria.fr/esf/index.html
 \end{verbatim}
+
+TODO:
+    Resolve weird bug in commented out code in hypergeometric_U below.
 
 """
 
@@ -326,7 +332,7 @@ REFERENCE:
 #*****************************************************************************
 
 import copy
-import sage.plot.plot
+from sage.plot.plot import plot
 import sage.interfaces.all
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
@@ -422,7 +428,7 @@ def bessel_I(nu,z,alg = "pari",prec=53):
     if alg=="pari":
         from sage.libs.pari.all import pari
         R,a = _setup(prec)
-        b = R(pari(z).besseli(nu))
+        b = R(pari(nu).besseli(z))
         pari.set_real_precision(a)
         return b
     else:
@@ -433,9 +439,6 @@ def bessel_J(nu,z,alg="pari",prec=53):
     Return value of the "J-Bessel function", or
     "Bessel function, 1st kind", with
     index (or "order") nu and argument z.
-
-    WARNING: The pari and maxima definitions of ``the'' J-Bessel
-    function are different (see below).
 
     \begin{verbatim}
     Defn:
@@ -474,19 +477,21 @@ def bessel_J(nu,z,alg="pari",prec=53):
         sage: bessel_J(0,1)    # last few digits are random
         0.765197686557966605
 
-    We illustrate that the pari and maxima definitions differ:
-        sage: bessel_J(3,10,"maxima")   # last few digits are random
+    We check consistency of PARI and Maxima:
+        sage: n(bessel_J(3,10,"maxima"))   # last few digits are random
         0.0583793793051869
-        sage: bessel_J(3,10,"pari")     # last few digits are random
-        0.0000129283516457158
-
+        sage: n(bessel_J(3,10,"pari"))     # last few digits are random
+        0.0583793793051868
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
-        K,a = _setup(prec)
-        if not (z in K):
-            K, a = _setup_CC(prec)
-        b = K(pari(z).besselj(nu))
+        nu = pari(nu)
+        z = pari(z)
+        if nu.imag() or z.imag():
+            K,a = _setup_CC(prec)
+        else:
+            K,a = _setup(prec)
+        b = K(nu.besselj(z))
         pari.set_real_precision(a)
         return b
     else:
@@ -518,7 +523,7 @@ def bessel_K(nu,z,prec=53):
     """
     from sage.libs.pari.all import pari
     RR,a = _setup(prec)
-    b = RR(pari(z).besselk(nu))
+    b = RR(pari(nu).besselk(z))
     pari.set_real_precision(a)
     return b
 
@@ -550,28 +555,154 @@ def bessel_Y(nu,z):
     """
     return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
 
-def hypergeometric_U(alpha,beta,x,prec=53):
-    r"""
-    Implements, for $x>0$, the confluent hypergeometric function
-    $y = U(a,b,x)$ is defined to be the solution to Kummer's
-    differential equation
-
-    \[
-    xy'' + (b-x)y' - ay = 0,
-    \]
-    which satisfies $U(a,b,x) \sim x^{-a}$, as $x\rightarrow \infty$.
+class Bessel():
+    """
+    A class implementing all Bessel functions.
 
     EXAMPLES:
-        sage: hypergeometric_U(1,1,1)
-        0.596347362323194
-        sage: hypergeometric_U(1,1,1,70)
-        0.59634736232319407434
+        sage: g = Bessel(2)
+        sage: g
+        J_{2}
+        sage: print g
+        J-Bessel function of order 2
+        sage: g.plot(0,10)
+        Graphics object consisting of 1 graphics primitive
+
+    Now type show(g.plot(0,10)) to view this.
     """
+    def __init__(self, nu, type = "J", alg = "pari", prec = 53):
+        self._order = nu
+        self._system = alg
+        self._type = type
+        self._prec = prec
+
+    def __str__(self):
+        return self.type()+"-Bessel function of order "+str(self.order())
+
+    def __repr__(self):
+        return self.type()+"_{"+str(self.order())+"}"
+
+    def type(self):
+        return self._type
+
+    def prec(self):
+        return self._prec
+
+    def order(self):
+        return self._order
+
+    def system(self):
+        return self._system
+
+    def __call__(self,z):
+        nu = self.order()
+        t = self.type()
+        s = self.system()
+        p = self.prec()
+        if t == "I":
+            return bessel_I(nu,z,s,p)
+        if t == "J":
+            return bessel_J(nu,z,s,p)
+        if t == "K":
+            return bessel_K(nu,z,p)
+        if t == "Y":
+            return bessel_J(nu,z)
+
+    def plot(self,a,b):
+        nu = self.order()
+        s = self.system()
+        t = self.type()
+        if t == "I":
+            f = lambda z: bessel_I(nu,z,s)
+            P = plot(f,a,b)
+        if t == "J":
+            f = lambda z: bessel_J(nu,z,s)
+            P = plot(f,a,b)
+        if t == "K":
+            f = lambda z: bessel_K(nu,z,s)
+            P = plot(f,a,b)
+        if t == "Y":
+            f = lambda z: bessel_Y(nu,z,s)
+            P = plot(f,a,b)
+        return P
+
+def hypergeometric_U(alpha,beta,x,prec=53):
+    r"""
+    Wraps Pari's hyperu(alpha,beta,x) function.
+
+    The confluent hypergeometric function $y = U(a,b,x)$ is defined
+    to be the solution to Kummer's differential equation
+
+    \[
+    xy'' + (b-x)y' - ay = 0.
+    \]
+    This satisfies $U(a,b,x) \sim x^{-a}$, as $x\rightarrow \infty$,
+    and is sometimes denoted \verb|x^{-a}2_F_0(a,1+a-b,-1/x)|.
+    This is not the same as Kummer's $M$-hypergeometric
+    function, denoted sometimes as \verb|_1F_1(alpha,beta,x)|, though
+    it satisfies the same DE that $U$ does.
+
+    WARNING:
+        In the literature, both are called "Kummer confluent hypergeometric"
+        functions.
+
+    EXAMPLES:
+        sage: hypergeometric_U(1,1,1)      ## random output
+        0.59634736232319407
+        sage: hypergeometric_U(1,1,1,70)   ## random output
+        0.59634736232319407434152
+    """
+    ## For commented out code below,
+    ##   f = lambda x: hypergeometric_U(1,1,x)
+    ##   P = plot(f,0.1,1)
+    ## seems to hang. I don't know why.
     from sage.libs.pari.all import pari
+    from sage.interfaces.gp import Gp,gp
     R,a = _setup(prec)
-    b = R(pari(x).hyperu(alpha,beta))
-    pari.set_real_precision(a)
-    return b
+    #b = R(pari(alpha).hyperu(beta,x))
+    #pari.set_real_precision(a)
+    #return b
+    #above has weird bug
+    ans = gp.eval("hyperu(%s,%s,%s)"%(alpha,beta,x))
+    return R(ans)
+
+#### already implemented in transcendental.py
+#def incomplete_gamma(s,x,prec=53):
+#    r"""
+#    Implements the incomplete Gamma function.
+#
+#    INPUT:
+#        s, x -- ocmplex numbers.
+#        prec -- bits of precision.
+#
+#    The argument x and s are complex numbers
+#    (x must be a positive real number if s = 0).
+#    The result returned is $\int_x^\infty e^{-t}t^{s-1}dt$, so if
+#    x>0 is very small and s>1 is an integer then
+#    incomplete_gamma(s,x) is nearly equal to factorial(s-1).
+#
+#    EXAMPLES:
+#        sage: from sage.functions.special import incomplete_gamma
+#        sage: incomplete_gamma(0.1,6,200)    ## random digits
+#        119.99999984701215693242493354706493878953914933130704861011488
+#        sage: incomplete_gamma(0,6,200))     ## random output
+#        120.00000000000000000000000000000000000000000000000000000000000
+#        sage: incomplete_gamma(0.3,6,200))   ## random output
+#        119.99990598341125737887779259683594390225182610507857843438320
+#        sage: incomplete_gamma(0.3,6))       ## random output
+#        119.99990598341125
+#        sage: incomplete_gamma(0.5,6))       ## random output
+#        119.99830020752132
+#        sage: incomplete_gamma(0.5,6,100))   ## random output
+#        119.99830020752131890111421425093
+#        sage: factorial(6-1)
+#        120
+#    """
+#    from sage.libs.pari.all import pari
+#    R,a = _setup(prec)
+#    b = R(pari(x).incgam(s))
+#    pari.set_real_precision(a)
+#    return b
 
 def spherical_bessel_J(n, var):
     r"""
@@ -670,7 +801,8 @@ def jacobi(sym,x,m):
         0.724009721659
         sage: jsn = jacobi("sn",x,1)
         sage: P = plot(jsn,0,1)
-        sage.: P.show()
+
+    To view this, type P.show().
     """
     _init()
     return meval("jacobi_%s(%s,%s)"%(sym, x, m))

@@ -406,11 +406,11 @@ class GroebnerFan(SageObject):
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
-            sage: G.render('a.fig')
+            sage: G.render(SAGE_TMP + '/test.fig')
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
-            sage.: G.render('a.fig', show=True, larger=True)
+            sage: G.render(SAGE_TMP + '/test.fig', show=False, larger=True)
         """
         cmd = 'render'
         if shift:
@@ -583,7 +583,7 @@ class ReducedGroebnerBasis(SageObject, list):
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
-            sage.: G[0].interactive()
+            sage: G[0].interactive()      # not tested
             Initializing gfan interactive mode
             *********************************************
             *     Press control-C to return to SAGE     *

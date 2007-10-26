@@ -1,4 +1,4 @@
-"""
+r"""
 Further Examples.
 
 Compute the Christoffel symbol.
@@ -52,7 +52,7 @@ A polynomial over a symbolic base ring:
     sage: f
     1/(4*sqrt(2))*x + 1/sqrt(2)
     sage: -f
-    (-1/(4*sqrt(2)))*x + -1/sqrt(2)
+    (-1/(4*sqrt(2)))*x - 1/sqrt(2)
     sage: (-f).degree()
     1
 
@@ -139,8 +139,8 @@ can do, but SAGE currently can't do:
     sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this
     integrate(e^(-x^2)*log(x), x)
 
-    sage.: # Todo -- Mathematica can do this and gets pi^2/15
-    sage.: # integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
+Todo -- Mathematica can do this and gets $\pi^2/15$.
+    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)  # not tested
     [boom!]
     Integral is divergent
 

@@ -278,9 +278,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R = GF(17)[['y']]
             sage: latex(R)
             \mathbf{F}_{17}[[y]]
-            sage.: view(R)            # display typeset form
         """
-
         return "%s[[%s]]"%(latex.latex(self.base_ring()), self.variable_name())
 
     def __call__(self, f, prec=infinity, check=True):

@@ -15,7 +15,7 @@
 #*****************************************************************************
 
 from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
-from sage.rings.integer import Integer
+from sage.rings.all import Integer, is_MPolynomial, MPolynomialRing
 import permutation
 import sage.libs.symmetrica.all as symmetrica
 
@@ -67,8 +67,30 @@ class SchubertPolynomial_class(CombinatorialAlgebraElement):
             x0
             sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
+
+        TESTS:
+          Calling .expand() should always return an element of an MPolynomialRing
+
+            sage: X = SchubertPolynomialRing(ZZ)
+            sage: f = X([1]); f
+            X[1]
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.expand()
+            1
+            sage: f = X([1,2])
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f = X([1,3,2,4])
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+
         """
-        return symmetrica.t_SCHUBERT_POLYNOM(self)
+        p = symmetrica.t_SCHUBERT_POLYNOM(self)
+        if not is_MPolynomial(p):
+            R = MPolynomialRing(self.parent().base_ring(), 1, 'x')
+            p = R(p)
+        return p
 
     def divided_difference(self, i):
         if isinstance(i, Integer):
@@ -139,3 +161,6 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
 
     def _multiply_basis(self, left, right):
         return symmetrica.mult_schubert_schubert(left, right).monomial_coefficients()
+
+    def is_commutative(self):
+        return self.base_ring().is_commutative()

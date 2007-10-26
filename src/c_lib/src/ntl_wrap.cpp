@@ -79,6 +79,7 @@ void ZZ_set_from_int(ZZ* x, int value)
 
 /*Random-number generation */
 
+/*
 void setSeed(const struct ZZ* n)
 {
   SetSeed(*n);
@@ -96,6 +97,68 @@ struct ZZ* ZZ_randomBits(long n)
   ZZ *z = new ZZ();
   RandomBits(*z,n);
   return z;
+}
+*/
+
+long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
+{
+    // Based on the code for mpz_remove
+    ZZ fpow[40];            // inexaustible...until year 2020 or so
+    ZZ x, rem;
+    long pwr;
+    int p;
+
+    if (compare(f, 1) <= 0)
+        Error("Division by zero");
+
+    if (compare(src, 0) == 0)
+    {
+        if (src != dest)
+           dest = src;
+        return 0;
+    }
+
+    if (compare(f, 2) == 0)
+    {
+        dest = src;
+        return MakeOdd(dest);
+    }
+
+    /* We could perhaps compute mpz_scan1(src,0)/mpz_scan1(f,0).  It is an
+     upper bound of the result we're seeking.  We could also shift down the
+     operands so that they become odd, to make intermediate values smaller.  */
+
+    pwr = 0;
+    fpow[0] = ZZ(f);
+    dest = src;
+    rem = ZZ();
+    x = ZZ();
+
+    /* Divide by f, f^2, ..., f^(2^k) until we get a remainder for f^(2^k).  */
+    for (p = 0;;p++)
+    {
+        DivRem(x, rem, dest, fpow[p]);
+        if (compare(rem, 0) != 0)
+            break;
+        fpow[p+1] = ZZ();
+        mul(fpow[p+1], fpow[p], fpow[p]);
+        dest = x;
+    }
+
+    pwr = (1 << p) - 1;
+
+    /* Divide by f^(2^(k-1)), f^(2^(k-2)), ..., f for all divisors that give a
+       zero remainder.  */
+    while (--p >= 0)
+    {
+        DivRem(x, rem, dest, fpow[p]);
+        if (compare(rem, 0) == 0)
+        {
+            pwr += 1 << p;
+            dest = x;
+        }
+    }
+    return pwr;
 }
 
 //////// ZZ_p //////////
@@ -452,7 +515,7 @@ EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a)
 }
 */
 
-void ZZX_square_free_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x)
+void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x)
 {
   vec_pair_ZZX_long factors;
   SquareFreeDecomp(factors, *x);
@@ -868,200 +931,26 @@ struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
   return f;
 }
 
-
-
 /**
- * GF2X
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
+ * GF2EContext
  */
 
-struct GF2X* GF2X_pow(const struct GF2X* x, long e)
+GF2EContext* GF2EContext_construct(void *mem, const GF2X *p)
 {
-  GF2X *z = new GF2X();
-  power(*z, *x, e);
-  return z;
+  return new(mem) GF2EContext(*p);
 }
 
-struct GF2X* GF2X_neg(struct GF2X* x)
+
+GF2EContext* GF2EContext_new(const GF2X *p)
 {
-  return new GF2X(-(*x));
+  return new GF2EContext(*p);
 }
 
-struct GF2X* GF2X_copy(struct GF2X* x)
-{
-  GF2X *z = new GF2X(*x);
-  return z;
-}
-
-long GF2X_deg(struct GF2X* x)
-{
-  return deg(*x);
-}
-
-void GF2X_hex(long h)
-{
-  GF2X::HexOutput=h;
-}
-
-
-
-PyObject* GF2X_to_bin(const struct GF2X* x)
-{
-  long hex;
-  hex = GF2X::HexOutput;
-  GF2X::HexOutput=0;
-  std::ostringstream instore;
-  instore << (*x);
-  GF2X::HexOutput=hex;
-  return PyString_FromString(instore.str().data());
-}
-
-PyObject* GF2X_to_hex(const struct GF2X* x)
-{
-  long hex;
-  hex = GF2X::HexOutput;
-  GF2X::HexOutput=1;
-  std::ostringstream instore;
-  instore << (*x);
-  GF2X::HexOutput=hex;
-  return PyString_FromString(instore.str().data());
-}
-
-
-
-/**
- * GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-
-void ntl_GF2E_set_modulus(GF2X* x)
-{
-  GF2E::init(*x);
-}
-
-
-struct GF2E* GF2E_pow(const struct GF2E* x, long e)
-{
-  GF2E *z = new GF2E();
-  power(*z, *x, e);
-  return z;
-}
-
-
-struct GF2E* GF2E_neg(struct GF2E* x)
-{
-  return new GF2E(-(*x));
-}
-
-struct GF2E* GF2E_copy(struct GF2E* x)
-{
-  GF2E *z = new GF2E(*x);
-  return z;
-}
-
-long GF2E_trace(struct GF2E* x)
-{
-  return rep(trace(*x));
-}
-
-
-long GF2E_degree()
-{
-  return GF2E::degree();
-}
-
-const struct GF2X* GF2E_modulus()
-{
-  GF2XModulus mod = GF2E::modulus();
-  GF2X *z = new GF2X(mod.val());
-  return z;
-}
-
-struct GF2E *GF2E_random(void)
-{
-  GF2E *z = new GF2E();
-  random(*z);
-  return z;
-}
-
-const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x) {
-  GF2X *r = new GF2X(rep(*x));
-  return r;
-}
-
-
-/**
- * mat_GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-void mat_GF2E_SetDims(struct mat_GF2E* m, long nrows, long ncols){
-  m->SetDims(nrows, ncols);
-}
-
-struct mat_GF2E* mat_GF2E_pow(const struct mat_GF2E* x, long e)
-{
-  mat_GF2E *z = new mat_GF2E();
-  power(*z, *x, e);
-  return z;
-}
-
-long mat_GF2E_nrows(const struct mat_GF2E* x)
-{
-  return x->NumRows();
-}
-
-
-long mat_GF2E_ncols(const struct mat_GF2E* x)
-{
-  return x->NumCols();
-}
 
 void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
   (*x)[i][j] = *z;
 }
-
-struct GF2E* mat_GF2E_getitem(const struct mat_GF2E* x, int i, int j)
-{
-  return new GF2E((*x)(i,j));
-}
-
-struct GF2E* mat_GF2E_determinant(const struct mat_GF2E* x)
-{
-  GF2E* d = new GF2E();
-  determinant(*d, *x);
-  return d;
-}
-
-long mat_GF2E_gauss(struct mat_GF2E *x, long w)
-{
-  if(w==0) {
-    return gauss(*x);
-  } else {
-    return gauss(*x, w);
-  }
-}
-
-struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x) {
-  mat_GF2E *y = new mat_GF2E();
-  transpose(*y,*x);
-  return y;
-}
-
 
 
 ZZ_pContext* ZZ_pContext_new(ZZ *p)

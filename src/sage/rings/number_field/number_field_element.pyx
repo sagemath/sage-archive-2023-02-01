@@ -690,8 +690,8 @@ cdef class NumberFieldElement(FieldElement):
         if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
             ZZ_negate(t1, gcd)
             gcd = t1
-        div_ZZX_ZZ(t2, self.__numerator, gcd)
-        div_ZZ(t1, self.__denominator, gcd)
+        ZZX_div_ZZ(t2, self.__numerator, gcd)
+        ZZ_div(t1, self.__denominator, gcd)
         self.__numerator = t2
         self.__denominator = t1
 
@@ -699,11 +699,11 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         cdef ZZX_c t1, t2
-        mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
-        mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
-        add_ZZX(x.__numerator, t1, t2)
+        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
+        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_add(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
 
@@ -711,11 +711,11 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         cdef ZZX_c t1, t2
-        mul_ZZX_ZZ(t1, self.__numerator, _right.__denominator)
-        mul_ZZX_ZZ(t2, _right.__numerator, self.__denominator)
-        sub_ZZX(x.__numerator, t1, t2)
+        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
+        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_sub(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
 
@@ -745,18 +745,18 @@ cdef class NumberFieldElement(FieldElement):
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
         if ZZX_is_monic( &parent_num ):
-            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-            MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+            ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, parent_num)
         else:
-            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
-            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
+            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+            ZZX_mul(x.__numerator, self.__numerator, _right.__numerator)
             if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
-                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
+                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                mul_ZZ(x.__denominator, x.__denominator, parent_den)
-                mul_ZZ(x.__denominator, x.__denominator, temp1)
+                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, temp1)
         _sig_off
         x._reduce_c_()
         return x
@@ -806,18 +806,18 @@ cdef class NumberFieldElement(FieldElement):
         _sig_on
         _right._invert_c_(&inv_num, &inv_den)
         if ZZX_is_monic( &parent_num ):
-            mul_ZZ(x.__denominator, self.__denominator, inv_den)
-            MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+            ZZ_mul(x.__denominator, self.__denominator, inv_den)
+            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, parent_num)
         else:
-            mul_ZZ(x.__denominator, self.__denominator, inv_den)
-            mul_ZZX(x.__numerator, self.__numerator, inv_num)
+            ZZ_mul(x.__denominator, self.__denominator, inv_den)
+            ZZX_mul(x.__numerator, self.__numerator, inv_num)
             if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                mul_ZZX_ZZ( x.__numerator, x.__numerator, parent_den )
-                mul_ZZX_ZZ( temp, parent_num, x.__denominator )
-                power_ZZ(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
+                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                mul_ZZ(x.__denominator, x.__denominator, parent_den)
-                mul_ZZ(x.__denominator, x.__denominator, temp1)
+                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
         _sig_off
         return x
@@ -861,7 +861,7 @@ cdef class NumberFieldElement(FieldElement):
     cdef ModuleElement _neg_c_impl(self):
         cdef NumberFieldElement x
         x = self._new()
-        mul_ZZX_long(x.__numerator, self.__numerator, -1)
+        ZZX_mul_long(x.__numerator, self.__numerator, -1)
         x.__denominator = self.__denominator
         return x
 
@@ -944,11 +944,11 @@ cdef class NumberFieldElement(FieldElement):
 
         cdef ZZX_c t # unneeded except to be there
         cdef ZZX_c a, b
-        mul_ZZX_ZZ( a, self.__numerator, parent_den )
-        mul_ZZX_ZZ( b, parent_num, self.__denominator )
+        ZZX_mul_ZZ( a, self.__numerator, parent_den )
+        ZZX_mul_ZZ( b, parent_num, self.__denominator )
         ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
-        mul_ZZX_ZZ( num[0], num[0], parent_den )
-        mul_ZZX_ZZ( num[0], num[0], self.__denominator )
+        ZZX_mul_ZZ( num[0], num[0], parent_den )
+        ZZX_mul_ZZ( num[0], num[0], self.__denominator )
 
     def __invert__(self):
         """
@@ -1286,7 +1286,7 @@ cdef class NumberFieldElement(FieldElement):
         In all other cases, the norm is the absolute norm down to QQ.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^3 + x^2 + x + -132/7); K
+            sage: K.<a> = NumberField(x^3 + x^2 + x - 132/7); K
             Number Field in a with defining polynomial x^3 + x^2 + x - 132/7
             sage: a.norm()
             132/7
@@ -1309,7 +1309,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a+b+c).norm()
             121
             sage: (a+b+c).norm(L)
-            2*c*b + -7
+            2*c*b - 7
             sage: (a+b+c).norm(M)
             -11
 
@@ -1360,7 +1360,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: R.<X> = K['X']
             sage: L.<b> = K.extension(X^2-(22 + a))
             sage: b.minpoly('t')
-            t^2 + -a - 22
+            t^2 - a - 22
             sage: b.absolute_minpoly('t')
             t^4 - 44*t^2 + 487
             sage: b^2 - (22+a)
@@ -1444,7 +1444,7 @@ cdef class NumberFieldElement(FieldElement):
 
         More complicated relative number field:
             sage: L.<b> = K.extension(K['x'].0^2 - a); L
-            Number Field in b with defining polynomial x^2 + -a over its base field
+            Number Field in b with defining polynomial x^2 - a over its base field
             sage: M = b.matrix(); M
             [0 1]
             [a 0]
@@ -1701,7 +1701,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: a.list()
             [0, 1, 0]
             sage: v = (K.base_field().0 + a)^2 ; v
-            a^2 + 2*b*a + -1
+            a^2 + 2*b*a - 1
             sage: v.list()
             [-1, 2*b, 1]
         """
@@ -1855,7 +1855,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     EXAMPLES:
         sage: O = EquationOrder([x^2 + x + 1, x^3 - 2],'a,b')
         sage: c = O.1; c
-        (-2*b^2 - 2)*a + -2*b^2 - b
+        (-2*b^2 - 2)*a - 2*b^2 - b
         sage: type(c)
         <type 'sage.rings.number_field.number_field_element.OrderElement_relative'>
     """

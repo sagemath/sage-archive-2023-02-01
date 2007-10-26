@@ -731,10 +731,10 @@ cdef class hanke_Matrix:
             [ 0, 0, 10, 0 ]
             [ 0, 0, 0, 14 ]
 
-            sage.: D.local_constant(3,10)
+            sage: D.local_constant(3,10)         # not tested
             '15/2'
 
-            sage.: D.local_constant(3,30)
+            sage: D.local_constant(3,30)         # not tested
             '153/20'
 
         TODO: How long does this take?  I tried running the above

@@ -11,7 +11,8 @@
 
 ############ The following is the "one global set of vars"
 cdef extern from "gmp_globals.h":
-    cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, sqr, m2
+    cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2
+    # changed sqr to ssqr due to a collision with ntl
     cdef mpq_t tmp
 
     cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
@@ -117,8 +118,8 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     mpz_set_si(v0,0); mpz_set_si(v1,1); mpz_set(v2,v)
     mpz_fdiv_q_ui(m2, m, 2)
     while 1:
-        mpz_mul(sqr, v2, v2)
-        if mpz_cmp(sqr, m2) <= 0:
+        mpz_mul(ssqr, v2, v2)
+        if mpz_cmp(ssqr, m2) <= 0:
             break
         mpz_fdiv_q(q, u2, v2)                  # q = floor of u2/v2
         mpz_mul(x, q, v0); mpz_sub(t0, u0, x)  # t0 = u0-q*v0
@@ -131,9 +132,9 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     mpz_set(y, v2)
     if mpz_sgn(v1)<0:
         mpz_neg(y, y)
-    mpz_mul(sqr, x, x)
+    mpz_mul(ssqr, x, x)
     mpz_gcd(q, x, y)
-    if mpz_cmp(sqr, m2) <= 0 and mpz_cmp_si(q, 1) == 0:
+    if mpz_cmp(ssqr, m2) <= 0 and mpz_cmp_si(q, 1) == 0:
         # return y/x
         mpq_set_z(answer, y)
         mpq_set_z(tmp, x)

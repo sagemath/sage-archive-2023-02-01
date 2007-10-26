@@ -1942,7 +1942,7 @@ def partitions(n):
     \code{number_of_partitions(n)}.
 
     EXAMPLES:
-        sage.: partitions(3)
+        sage: partitions(3)          # random location
         <generator object at 0xab3b3eac>
         sage: list(partitions(3))
         [(1, 1, 1), (1, 2), (3,)]

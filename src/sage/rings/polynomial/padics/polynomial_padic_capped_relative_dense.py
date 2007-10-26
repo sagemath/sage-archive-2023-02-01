@@ -832,10 +832,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         NOTE:  Need to write this function for integer polynomials before this works.
 
         EXAMPLES:
-        sage.: K = Zp(13, 5)
-        sage.: R.<t> = K[]
-        sage.: f = t^3 + K(13, 3) * t
-        sage.: f.rescale(2)
+            sage: K = Zp(13, 5)
+            sage: R.<t> = K[]
+            sage: f = t^3 + K(13, 3) * t
+            sage: f.rescale(2)    # todo: not tested -- in fact, is broken!
         """
         negval = False
         try:

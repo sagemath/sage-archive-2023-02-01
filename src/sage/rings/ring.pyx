@@ -24,6 +24,8 @@ AUTHORS:
 include "../ext/stdsage.pxi"
 include "../ext/python_bool.pxi"
 
+import re
+
 from sage.structure.parent_gens cimport ParentWithGens
 from random import randint, randrange
 
@@ -50,6 +52,9 @@ cdef class Ring(ParentWithGens):
         Create a polynomial or power series ring over self and inject
         the variables into the global module scope.
 
+        If x is an algebraic element, this will return an extension of self
+        that contains x.
+
         EXAMPLES:
         We create several polynomial rings.
             sage: ZZ['x']
@@ -72,12 +77,68 @@ cdef class Ring(ParentWithGens):
             sage: Frac(QQ[['t']])
             Laurent Series Ring in t over Rational Field
 
+        This can be used to create number fields too:
+            sage: QQ[I]
+            Number Field in I with defining polynomial x^2 + 1
+            sage: QQ[sqrt(2)]
+            Number Field in sqrt2 with defining polynomial x^2 - 2
+            sage: QQ[sqrt(2),sqrt(3)]
+            Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+
+
+        and orders in number fields:
+            sage: ZZ[I]
+            Order in Number Field in I with defining polynomial x^2 + 1
+            sage: ZZ[sqrt(5)]
+            Order in Number Field in sqrt5 with defining polynomial x^2 - 5
+            sage: ZZ[sqrt(2)+sqrt(3)]
+            Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
         """
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(x):
             x = str(x)
 
+        if not isinstance(x, str):
+            if isinstance(x, tuple):
+                v = x
+            else:
+                v = (x,)
+
+            minpolys = None
+            try:
+                minpolys = [a.minpoly() for a in v]
+            except (AttributeError, NotImplementedError, ValueError, TypeError), err:
+                pass
+
+            if minpolys:
+                R = self
+                # how to pass in names?
+                # TODO: set up embeddings
+                name_chr = 97 # a
+
+                if len(minpolys) > 1:
+                    w = []
+                    names = []
+                    for poly, var in zip(minpolys, v):
+                        w.append(poly)
+                        n, name_chr = gen_name(repr(var), name_chr)
+                        names.append(n)
+                else:
+                    w = minpolys
+                    name, name_chr = gen_name(repr(v[0]), name_chr)
+                    names = [name]
+
+                names = tuple(names)
+                if len(w) > 1:
+                    try:
+                        # Doing the extension all at once is best, if possible.
+                        return R.extension(w, names)
+                    except (TypeError, ValueError):
+                        pass
+                for poly, var in zip(w, names):
+                    R = R.extension(poly, var)
+                return R
 
         if not isinstance(x, list):
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
@@ -91,6 +152,8 @@ cdef class Ring(ParentWithGens):
             x = (str(x[0]), )
             from sage.rings.power_series_ring import PowerSeriesRing
             P = PowerSeriesRing
+
+        # TODO: is this code ever used? Should it be?
 
         elif isinstance(x, (tuple, str)):
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
@@ -725,6 +788,26 @@ cdef class CommutativeRing(Ring):
             False
         """
         return self.quotient(I, names=names)
+
+    def extension(self, poly, name=None):
+        """
+        Algebraically extends self by taking the quotient self[x] / (f(x)).
+
+        INPUT:
+            poly -- A polynomial whose coefficients are coercable into self
+            name -- (optional) name for the root of f
+
+        EXAMPLES:
+            sage: R = QQ['x']
+            sage: y = polygen(R)
+            sage: R.extension(y^2-5, 'a')
+            Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
+        """
+        if name is None:
+            name = str(poly.parent().gen(0))
+        R = self[str(name)]
+        I = R.ideal(R(poly.list()))
+        return R.quotient(I, name)
 
     def __div__(self, I):
         """
@@ -1396,8 +1479,8 @@ cdef class FiniteField(Field):
             bound -- ignored
 
         EXAMPLES:
-            sage.: k = GF(2^10, 'a')
-            sage.: k.random_element()
+            sage: k = GF(2^10, 'a')
+            sage: k.random_element()
             a^9 + a
         """
         if self.degree() == 1:
@@ -1516,4 +1599,21 @@ def is_Ring(x):
     """
     return isinstance(x, Ring)
 
+
+from sage.structure.parent_gens import _certify_names
+
+def gen_name(x, name_chr):
+    from sage.calculus.all import is_SymbolicVariable
+    if is_SymbolicVariable(x):
+        return repr(x), name_chr
+    name = str(x)
+    m = re.match('^sqrt\((\d+)\)$', name)
+    if m:
+        name = "sqrt%s" % m.groups()[0]
+    try:
+        _certify_names([name])
+    except ValueError, msg:
+        name = chr(name_chr)
+        name_chr += 1
+    return name, name_chr
 

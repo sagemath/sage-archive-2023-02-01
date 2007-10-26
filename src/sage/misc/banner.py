@@ -8,8 +8,8 @@ def version():
        str
 
     EXAMPLES:
-       sage.: print version()
-       SAGE Version x.y.z, Release Date: xxxx-xx-xx-xxxx
+       sage: version()
+       'SAGE Version ..., Release Date: ...'
     """
     import sage.version
     return 'SAGE Version %s, Release Date: %s'%(sage.version.version, sage.version.date)

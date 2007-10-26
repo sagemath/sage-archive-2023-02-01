@@ -101,10 +101,10 @@ class Sympow(SageObject):
         when running this function, just type \code{set_verbose(2)}.
 
         EXAMPLES:
-            sage.: a = sympow.L(EllipticCurve('11a'), 2, 16); a
+            sage: a = sympow.L(EllipticCurve('11a'), 2, 16); a   # optional
             '1.057599244590958E+00'
-            sage.: RR(a)
-            1.0575992445909579
+            sage: RR(a)                    # optional -- requires precomputations
+            1.05759924459096
         """
         if n % 2 == 1:
             raise ValueError, "n (=%s) must be even"%n
@@ -142,7 +142,7 @@ class Sympow(SageObject):
         commands have to be run.}
 
         EXAMPLES:
-            sage.: print sympow.Lderivs(EllipticCurve('11a'), 1, 16, 2)
+            sage: print sympow.Lderivs(EllipticCurve('11a'), 1, 16, 2)  # not tested
             ...
              1n0: 2.538418608559107E-01
              1w0: 2.538418608559108E-01

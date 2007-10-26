@@ -61,14 +61,14 @@ Multiplication:
     sage: 'sage'*Integer(3)
     'sagesagesage'
 
-Coercions:
+COERCIONS:
     Returns version of this integer in the multi-precision floating
     real field R.
 
-        sage: n = 9390823
-        sage: RR = RealField(200)
-        sage: RR(n)
-        9390823.0000000000000000000000000000000000000000000000000000
+    sage: n = 9390823
+    sage: RR = RealField(200)
+    sage: RR(n)
+    9390823.0000000000000000000000000000000000000000000000000000
 
 """
 
@@ -1981,61 +1981,72 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns \code{True} if there is an integer b with $self = n^b$.
 
         EXAMPLES:
-        sage: Integer(64).is_power_of(4)
-        True
-        sage: Integer(64).is_power_of(16)
-        False
+            sage: Integer(64).is_power_of(4)
+            True
+            sage: Integer(64).is_power_of(16)
+            False
 
         TESTS:
-        sage: Integer(-64).is_power_of(-4)
-        True
-        sage: Integer(-32).is_power_of(-2)
-        True
-        sage: Integer(1).is_power_of(1)
-        True
-        sage: Integer(-1).is_power_of(-1)
-        True
-        sage: Integer(0).is_power_of(1)
-        False
-        sage: Integer(0).is_power_of(0)
-        True
-        sage: Integer(1).is_power_of(0)
-        True
-        sage: Integer(1).is_power_of(8)
-        True
-        sage: Integer(-8).is_power_of(2)
-        False
+
+            sage: Integer(-64).is_power_of(-4)
+            True
+            sage: Integer(-32).is_power_of(-2)
+            True
+            sage: Integer(1).is_power_of(1)
+            True
+            sage: Integer(-1).is_power_of(-1)
+            True
+            sage: Integer(0).is_power_of(1)
+            False
+            sage: Integer(0).is_power_of(0)
+            True
+            sage: Integer(1).is_power_of(0)
+            True
+            sage: Integer(1).is_power_of(8)
+            True
+            sage: Integer(-8).is_power_of(2)
+            False
 
         NOTES:
-        For large integers self, is_power_of() is faster than is_power().  The following examples gives some indication of how much faster.
-        sage.: b = lcm(range(1,10000))
-        sage.: b.exact_log(2)
-        14446
-        sage.: time for a in range(2, 1000): k = b.is_power()
-        CPU times: user 1.68 s, sys: 0.01 s, total: 1.69 s
-        Wall time: 1.71
-        sage.: time for a in range(2, 1000): k = b.is_power_of(2)
-        CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-        Wall time: 0.01
-        sage.: time for a in range(2, 1000): k = b.is_power_of(3)
-        CPU times: user 0.05 s, sys: 0.00 s, total: 0.05 s
-        Wall time: 0.05
 
-        sage.: b = lcm(range(1, 1000))
-        sage.: b.exact_log(2)
-        1437
-        sage.: time for a in range(2, 10000): k = b.is_power() # note that we change the range from the example above
-        CPU times: user 0.40 s, sys: 0.00 s, total: 0.40 s
-        Wall time: 0.40
-        sage.: for a in range(2, 10000): k = b.is_power_of(TWO)
-        CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
-        Wall time: 0.03
-        sage.: time for a in range(2, 10000): k = b.is_power_of(3)
-        CPU times: user 0.11 s, sys: 0.01 s, total: 0.12 s
-        Wall time: 0.13
-        sage.: time for a in range(2, 10000): k = b.is_power_of(a)
-        CPU times: user 0.08 s, sys: 0.01 s, total: 0.09 s
-        Wall time: 0.10
+        For large integers self, is_power_of() is faster than is_power().
+        The following examples gives some indication of how much faster.
+
+            sage: b = lcm(range(1,10000))
+            sage: b.exact_log(2)
+            14446
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power()
+            sage: cputime(t)      # random
+            0.53203299999999976
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power_of(2)
+            sage: cputime(t)      # random
+            0.0
+            sage: t=cputime()
+            sage: for a in range(2, 1000): k = b.is_power_of(3)
+            sage: cputime(t)      # random
+            0.032002000000000308
+
+            sage: b = lcm(range(1, 1000))
+            sage: b.exact_log(2)
+            1437
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power() # note that we change the range from the example above
+            sage: cputime(t)      # random
+            0.17201100000000036
+            sage: t=cputime(); TWO=int(2)
+            sage: for a in range(2, 10000): k = b.is_power_of(TWO)
+            sage: cputime(t)      # random
+            0.0040000000000000036
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power_of(3)
+            sage: cputime(t)      # random
+            0.040003000000000011
+            sage: t=cputime()
+            sage: for a in range(2, 10000): k = b.is_power_of(a)
+            sage: cputime(t)      # random
+            0.02800199999999986
         """
         if not PY_TYPE_CHECK(n, Integer):
             n = Integer(n)

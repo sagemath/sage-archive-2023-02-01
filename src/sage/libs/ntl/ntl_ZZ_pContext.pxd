@@ -6,3 +6,4 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self)
     cdef p
     cdef double p_bits
+    cdef object __weakref__

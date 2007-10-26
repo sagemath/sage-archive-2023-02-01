@@ -289,7 +289,7 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        add_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_add(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         return r
 
     def __sub__(ntl_ZZX self, ntl_ZZX other):
@@ -303,7 +303,7 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        sub_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_sub(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         return r
 
     def __mul__(ntl_ZZX self, ntl_ZZX other):
@@ -318,7 +318,7 @@ cdef class ntl_ZZX:
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
         _sig_on
-        mul_ZZX(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
+        ZZX_mul(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         _sig_off
         return r
 
@@ -1077,7 +1077,7 @@ cdef class ntl_ZZX:
         ZZX_preallocate_space(&self.x, n)
         _sig_off
 
-    def square_free_decomposition(self):
+    def squarefree_decomposition(self):
         """
         Returns the square-free decomposition of self (a partial
         factorization into square-free, relatively prime polynomials)
@@ -1087,14 +1087,14 @@ cdef class ntl_ZZX:
 
         EXAMPLES:
             sage: f = ntl.ZZX([0, 1, 2, 1])
-            sage: f.square_free_decomposition()
+            sage: f.squarefree_decomposition()
             [([0 1], 1), ([1 1], 2)]
         """
         cdef ZZX_c** v
         cdef long* e
         cdef long i, n
         _sig_on
-        ZZX_square_free_decomposition(&v, &e, &n, &self.x)
+        ZZX_squarefree_decomposition(&v, &e, &n, &self.x)
         _sig_off
         F = []
         for i from 0 <= i < n:

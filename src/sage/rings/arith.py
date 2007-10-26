@@ -511,9 +511,14 @@ def prime_powers(start, stop=None):
         [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
         sage: a == b
         True
+
+    TESTS:
+        sage: v = prime_powers(10)
+        sage: type(v[0])      # trac #922
+        <type 'sage.rings.integer.Integer'>
     """
     if stop is None:
-        start, stop = 1, int(start)
+        start, stop = 1, integer.Integer(start)
     from math import log
     from bisect import bisect
     v = prime_range(stop)
@@ -525,7 +530,7 @@ def prime_powers(start, stop=None):
     else:
         w = list(v)
     if start <= 1:
-        w.insert(0, 1)
+        w.insert(0, integer.Integer(1))
     log_stop = log(stop)
     for p in v:
         q = p*p

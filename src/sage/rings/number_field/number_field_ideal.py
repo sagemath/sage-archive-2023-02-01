@@ -63,7 +63,7 @@ def is_NumberFieldIdeal(x):
         False
         sage: k.<a> = NumberField(x^2 + 2)
         sage: I = k.ideal([a + 1]); I
-        Fractional ideal (a + 1) of Number Field in a with defining polynomial x^2 + 2
+        Fractional ideal (a + 1)
         sage: is_NumberFieldIdeal(I)
         True
     """
@@ -82,7 +82,7 @@ def convert_from_zk_basis(field, hnf):
         sage: from sage.rings.number_field.number_field_ideal import convert_from_zk_basis
         sage: k.<a> = NumberField(x^2 + 23)
         sage: I = k.factor_integer(3)[0][0]; I
-        Fractional ideal (3, -1/2*a + 1/2) of Number Field in a with defining polynomial x^2 + 23
+        Fractional ideal (3, -1/2*a + 1/2)
         sage: hnf = I.pari_hnf(); hnf
         [3, 0; 0, 1]
         sage: convert_from_zk_basis(k, hnf)
@@ -103,7 +103,7 @@ class NumberFieldIdeal(Ideal_fractional):
 
         EXAMPLES:
             sage: NumberField(x^2 + 1, 'a').ideal(7)
-            Fractional ideal (7) of Number Field in a with defining polynomial x^2 + 1
+            Fractional ideal (7)
         """
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
@@ -119,7 +119,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^2 + 3); K
             Number Field in a with defining polynomial x^2 + 3
             sage: f = K.factor_integer(15); f
-            (Fractional ideal (1/2*a - 3/2) of Number Field in a with defining polynomial x^2 + 3)^2 * (Fractional ideal (5) of Number Field in a with defining polynomial x^2 + 3)
+            (Fractional ideal (1/2*a - 3/2))^2 * (Fractional ideal (5))
             sage: cmp(f[0][0], f[1][0])
             -1
             sage: cmp(f[0][0], f[0][0])
@@ -146,7 +146,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^2 + 23); K
             Number Field in a with defining polynomial x^2 + 23
             sage: I = K.factor_integer(13)[0][0]; I
-            Fractional ideal (13, a - 4) of Number Field in a with defining polynomial x^2 + 23
+            Fractional ideal (13, a - 4)
             sage: a in I
             False
             sage: 13 in I
@@ -160,7 +160,7 @@ class NumberFieldIdeal(Ideal_fractional):
             Number Field in a with defining polynomial x^4 + 3
             sage: I = K.factor_integer(13)[0][0]
             sage: I  # random sign in output
-            Fractional ideal (-2*a^2 - 1) of Number Field in a with defining polynomial x^4 + 3
+            Fractional ideal (-2*a^2 - 1)
             sage: 2/3 in I
             False
             sage: 1 in I
@@ -170,7 +170,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: 1 in I*I^(-1)
             True
             sage: I   # random sign in output
-            Fractional ideal (-2*a^2 - 1) of Number Field in a with defining polynomial x^4 + 3
+            Fractional ideal (-2*a^2 - 1)
         """
         # For now, $x \in I$ if and only if $\langle x \rangle + I = I$.
         # Is there a better way to do this?
@@ -186,7 +186,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^3 + 389); K
             Number Field in a with defining polynomial x^3 + 389
             sage: I = K.factor_integer(17)[0][0]; I
-            Fractional ideal (-100*a^2 + 730*a - 5329) of Number Field in a with defining polynomial x^3 + 389
+            Fractional ideal (-100*a^2 + 730*a - 5329)
             sage: hnf = I.pari_hnf(); hnf
             [17, 0, 13; 0, 17, 8; 0, 0, 1]
             sage: I._NumberFieldIdeal__elements_from_hnf(hnf)
@@ -199,6 +199,9 @@ class NumberFieldIdeal(Ideal_fractional):
         R = K.polynomial().parent()
         return [ K(R(x)) for x in convert_from_zk_basis(K, hnf) ]
 
+    def __repr__(self):
+        return "Fractional ideal %s"%self._repr_short()
+
     def _repr_short(self):
         """
         Efficient string representation of this fraction ideal.
@@ -207,7 +210,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^4 + 389); K
             Number Field in a with defining polynomial x^4 + 389
             sage: I = K.factor_integer(17)[0][0]; I
-            Fractional ideal (17, a^2 - 6) of Number Field in a with defining polynomial x^4 + 389
+            Fractional ideal (17, a^2 - 6)
             sage: I._repr_short()
             '(17, a^2 - 6)'
         """
@@ -223,9 +226,9 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I = K.ideal(2/(5+a))
             sage: J = K.ideal(17+a)
             sage: I/J
-            Fractional ideal (-17/1420*a + 1/284) of Number Field in a with defining polynomial x^2 - 5
+            Fractional ideal (-17/1420*a + 1/284)
             sage: (I/J) * J
-            Fractional ideal (-1/5*a) of Number Field in a with defining polynomial x^2 - 5
+            Fractional ideal (-1/5*a)
             sage: (I/J) * J == I
             True
         """
@@ -240,11 +243,11 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^3 - 2)
             sage: I = K.ideal(2/(5+a))
             sage: ~I
-            Fractional ideal (1/2*a + 5/2) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (1/2*a + 5/2)
             sage: 1/I
-            Fractional ideal (1/2*a + 5/2) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (1/2*a + 5/2)
             sage: (1/I) * I
-            Fractional ideal (1) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (1)
         """
         if self.is_zero():
             raise ZeroDivisionError
@@ -266,7 +269,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J = I^2
             sage: K = I^(-2)
             sage: J*K
-            Fractional ideal (1) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (1)
         """
         return generic_power(self, r)
 
@@ -278,7 +281,7 @@ class NumberFieldIdeal(Ideal_fractional):
         EXAMPLES:
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = K.class_group().0.ideal(); I
-            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
+            Fractional ideal (2, 1/2*w - 1/2)
             sage: I._pari_()
             [2, 0; 0, 1]
         """
@@ -316,7 +319,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = CyclotomicField(11); K
             Cyclotomic Field of order 11 and degree 10
             sage: I = K.factor_integer(31)[0][0]; I
-            Fractional ideal (-3*a^7 - 4*a^5 - 3*a^4 - 3*a^2 - 3*a - 3) of Cyclotomic Field of order 11 and degree 10
+            Fractional ideal (-3*a^7 - 4*a^5 - 3*a^4 - 3*a^2 - 3*a - 3)
             sage: I.divides(I)
             True
             sage: I.divides(31)
@@ -338,15 +341,15 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^4 + 23); K
             Number Field in a with defining polynomial x^4 + 23
             sage: I = K.ideal(19); I
-            Fractional ideal (19) of Number Field in a with defining polynomial x^4 + 23
+            Fractional ideal (19)
             sage: F = I.factor(); F
-            (Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^4 + 23) * (Fractional ideal (a^2 - 2*a + 2) of Number Field in a with defining polynomial x^4 + 23)
+            (Fractional ideal (a^2 + 2*a + 2)) * (Fractional ideal (a^2 - 2*a + 2))
             sage: type(F)
             <class 'sage.structure.factorization.Factorization'>
             sage: list(F)
-            [(Fractional ideal (a^2 + 2*a + 2) of Number Field in a with defining polynomial x^4 + 23, 1), (Fractional ideal (a^2 - 2*a + 2) of Number Field in a with defining polynomial x^4 + 23, 1)]
+            [(Fractional ideal (a^2 + 2*a + 2), 1), (Fractional ideal (a^2 - 2*a + 2), 1)]
             sage: F.prod()
-            Fractional ideal (19) of Number Field in a with defining polynomial x^4 + 23
+            Fractional ideal (19)
         """
         try:
             return self.__factorization
@@ -379,13 +382,13 @@ class NumberFieldIdeal(Ideal_fractional):
         EXAMPLES:
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = ideal(w*23^5); I
-            Fractional ideal (6436343*w) of Number Field in w with defining polynomial x^2 + 23
+            Fractional ideal (6436343*w)
             sage: I.reduce_equiv()
-            Fractional ideal (1) of Number Field in w with defining polynomial x^2 + 23
+            Fractional ideal (1)
             sage: I = K.class_group().0.ideal()^10; I
-            Fractional ideal (1024, 1/2*w + 979/2) of Number Field in w with defining polynomial x^2 + 23
+            Fractional ideal (1024, 1/2*w + 979/2)
             sage: I.reduce_equiv()
-            Fractional ideal (2, 1/2*w - 1/2) of Number Field in w with defining polynomial x^2 + 23
+            Fractional ideal (2, 1/2*w - 1/2)
         """
         K = self.number_field()
         P = K.pari_nf()
@@ -463,7 +466,7 @@ class NumberFieldIdeal(Ideal_fractional):
             False
             sage: J,d = I.integral_split()
             sage: J
-            Fractional ideal (-1/2*a + 5/2) of Number Field in a with defining polynomial x^2 - 5
+            Fractional ideal (-1/2*a + 5/2)
             sage: J.is_integral()
             True
             sage: d
@@ -610,7 +613,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^4 + 23); K
             Number Field in a with defining polynomial x^4 + 23
             sage: I = K.ideal(19); I
-            Fractional ideal (19) of Number Field in a with defining polynomial x^4 + 23
+            Fractional ideal (19)
             sage: factor(I.norm())
             19^4
             sage: F = I.factor()
@@ -646,7 +649,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^2 + 2); K
             Number Field in a with defining polynomial x^2 + 2
             sage: f = K.factor_integer(2); f
-            (Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 2)^2
+            (Fractional ideal (-a))^2
             sage: f[0][0].ramification_index()
             2
             sage: K.ideal(13).ramification_index()
@@ -654,7 +657,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.ideal(17).ramification_index()
             Traceback (most recent call last):
             ...
-            ValueError: the ideal (= Fractional ideal (17) of Number Field in a with defining polynomial x^2 + 2) is not prime
+            ValueError: the ideal (= Fractional ideal (17)) is not prime
         """
         if self.is_zero():
             raise ValueError, "The ideal (=%s) is zero"%self
@@ -674,7 +677,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^5 + 2); K
             Number Field in a with defining polynomial x^5 + 2
             sage: f = K.factor_integer(19); f
-            (Fractional ideal (a^2 + a - 3) of Number Field in a with defining polynomial x^5 + 2) * (Fractional ideal (-2*a^4 - a^2 + 2*a - 1) of Number Field in a with defining polynomial x^5 + 2) * (Fractional ideal (a^2 + a - 1) of Number Field in a with defining polynomial x^5 + 2)
+            (Fractional ideal (a^2 + a - 3)) * (Fractional ideal (-2*a^4 - a^2 + 2*a - 1)) * (Fractional ideal (a^2 + a - 1))
             sage: [i.residue_class_degree() for i, _ in f]
             [2, 2, 1]
         """
@@ -734,7 +737,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^5 + 2); K
             Number Field in a with defining polynomial x^5 + 2
             sage: i = K.ideal(38); i
-            Fractional ideal (38) of Number Field in a with defining polynomial x^5 + 2
+            Fractional ideal (38)
             sage: i.valuation(K.factor_integer(19)[0][0])
             1
             sage: i.valuation(K.factor_integer(2)[0][0])
@@ -744,7 +747,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: i.valuation(0)
             Traceback (most recent call last):
             ...
-            ValueError: p (= Fractional ideal (0) of Number Field in a with defining polynomial x^5 + 2) must be a nonzero prime
+            ValueError: p (= Fractional ideal (0)) must be a nonzero prime
         """
         if not isinstance(p, NumberFieldIdeal):
             p = self.number_field().ideal(p)

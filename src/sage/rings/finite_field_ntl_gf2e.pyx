@@ -919,11 +919,29 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
     def __pow__(FiniteField_ntl_gf2eElement self, exp, other):
         """
+            sage: k.<a> = GF(2^63)
+            sage: a^2
+            a^2
+            sage: a^64
+            a^25 + a^24 + a^23 + a^18 + a^17 + a^16 + a^12 + a^10 + a^9 + a^5 + a^4 + a^3 + a^2 + a
+            sage: a^(2^64)
+            a^2
+            sage: a^(2^128)
+            a^4
         """
+        cdef int exp_int
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
-        cdef FiniteField_ntl_gf2eElement o = (<FiniteField_ntl_gf2eElement>self)._parent._one_element
-        GF2E_power(r.x, (<FiniteField_ntl_gf2eElement>self).x, exp)
-        return r
+
+        try:
+            exp_int = exp
+            if exp != exp_int:
+                raise OverflowError
+            GF2E_power(r.x, (<FiniteField_ntl_gf2eElement>self).x, exp_int)
+            return r
+        except OverflowError:
+            # we could try to factor out the order first
+            from  sage.rings.arith import generic_power
+            return generic_power(self,exp)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

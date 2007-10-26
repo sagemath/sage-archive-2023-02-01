@@ -5736,8 +5736,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         setlgefint( z, limbs+2 )
         setsigne( z, mpz_sgn(value) )
         mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
-        ## should be safe to _sig_off no matter what
-        _sig_off
         return self.new_gen(z)
 
     cdef gen new_gen_from_int(self, int value):

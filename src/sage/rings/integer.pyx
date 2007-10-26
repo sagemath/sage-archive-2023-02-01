@@ -2384,8 +2384,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.libs.pari.gen.gen'>
 
         TESTS:
-            sage: n = 10^1000000
+            sage: n = 10^10000000
             sage: m = n._pari_() ## crash from trac 875
+            sage: len(m)
+            1038103
         """
         return self._pari_c()
 

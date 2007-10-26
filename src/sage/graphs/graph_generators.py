@@ -2681,7 +2681,7 @@ def canaug_traverse(g, aut_gens, max_verts, property):
         31
         sage: graphs_list.show_graphs(L)
 
-    Generate all bipartite graphs on up to 7, 8 vertices:
+    Generate all bipartite graphs on up to 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
         sage: len(L)
         133

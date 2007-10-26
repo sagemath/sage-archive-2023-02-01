@@ -548,7 +548,6 @@ cdef class gen(sage.structure.element.RingElement):
 
         """
         cdef gen x
-        print "hi from __setitem__"
         _sig_on
         x = pari(y)
         if isinstance(n, tuple):
@@ -2244,7 +2243,6 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
         """
         cdef gen _p
-        print "hi from padicprec"
         _p = pari(p)
         if typ(_p.g) != t_INT:
             raise TypeError, "p (=%s) must be of type t_INT, but is of type %s."%(
@@ -3443,7 +3441,6 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(n)
         _sig_on
         ans = P.new_gen_noclear(gsqrtn(x.g, t0, &zetan, prec))
-        _sig_off
         return ans, P.new_gen(zetan)
 
     def tan(gen x):
@@ -4300,7 +4297,6 @@ cdef class gen(sage.structure.element.RingElement):
     def nfbasis(self, long flag=0, p=0):
         cdef gen _p
         cdef GEN g
-        print "hi from nfbasis"
         if p != 0:
             _p = self.pari(p)
             g = _p.g
@@ -4361,7 +4357,6 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef gen _p
         cdef GEN g
-        print "hi from nfdisc"
         if p != 0:
             _p = self.pari(p)
             g = _p.g
@@ -5500,7 +5495,6 @@ cdef class gen(sage.structure.element.RingElement):
     # classes that derive from gen.
     ##################################################
     cdef gen pari(self, object x):
-        print "hi from pari"
         return pari(x)
 
     cdef gen new_gen(self, GEN x):
@@ -5825,7 +5819,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return p
 
     cdef gen adapt(self, s):
-        print "hi from adapt"
         if isinstance(s, gen):
             return s
         return pari(s)
@@ -6054,7 +6047,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Return the primes <= n as a pari list.
         """
-        print "hi from primes_up_to_n"
         if n <= 1:
             return pari([])
         self.init_primes(n+1)

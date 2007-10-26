@@ -450,14 +450,47 @@ class SymbolicEquation(SageObject):
         Return True if this equality is definitely true.  Return False
         if it is false or the algorithm for testing equality is
         inconclusive.
+
+        EXAMPLES:
+            sage: k = var('k')
+            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+            sage: bool(pol == 0)
+            True
+            sage: f = sin(x)^2 + cos(x)^2 - 1
+            sage: bool(f == 0)
+            True
         """
         m = self._maxima_()
+
+        #Handle some basic cases first
+        if repr(m) in ['0=0']:
+            return True
+        elif repr(m) in ['0#0', '1#1']:
+            return False
+
         try:
             s = m.parent()._eval_line('is (%s)'%m.name())
         except TypeError, msg:
             #raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
             return cmp(self._left._maxima_() , self._right._maxima_()) == 0
-        return s == 'true'
+
+        if s == 'true':
+            return True
+
+        difference = self._left - self._right
+        if repr(difference) == '0':
+            return True
+
+        #Try to apply some simplifications to see if left - right == 0
+        simp_list = [difference.simplify, difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+        for f in simp_list:
+            try:
+                if repr( f() ).strip() == "0":
+                    return True
+                    break
+            except:
+                pass
+        return False
 
     def _maxima_init_(self, maxima=maxima, assume=False):
         l = self._left._maxima_init_()

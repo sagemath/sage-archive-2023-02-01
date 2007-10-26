@@ -191,7 +191,7 @@ def set_editor(editor_name,opts=''):
    else:
       raise ValueError, "editor_name not known. Try set_edit_template(<template_string>) instead."
 
-def edit(obj, editor=None):
+def edit(obj, editor=None, bg=None):
    r"""
    Open source code of obj in editor of your choice.
 
@@ -249,4 +249,10 @@ def edit(obj, editor=None):
 
    filename, lineno = file_and_line(obj)
    cmd = edit_template.substitute(line = lineno, file = filename)
+
+   if bg is True and cmd[-1] != '&':
+      cmd=cmd+'&'
+   if bg is False and cmd[-1] == '&':
+      cmd=cmd[:-1]
+
    os.system(cmd)

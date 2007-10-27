@@ -251,14 +251,19 @@ class GenericGraph(SageObject):
 
     def __cmp__(self, other):
         """
-        Comparison of self and other. Must be in the same class, have the same
-        settings for loops and multiedges, output the same vertex list (in order)
-        and the same adjacency matrix.
+        Comparison of self and other. For equality, must be in the same class,
+        have the same settings for loops and multiedges, output the same
+        vertex list (in order) and the same adjacency matrix.
 
         Note that this is _not_ an isomorphism test.
 
         Note that the less-than and greater-than value returned here
-        doesn't mean much.  The equality test is the useful thing.
+        reflects an arbitrary enumeration set up on all GenericGraphs, under
+        which, in decreasing priority, DiGraphs are "larger" than Graphs, then
+        multigraphs are "larger" than non, then looped graphs are "larger"
+        than non, vertex lists are lexicographically compared, then edges are
+        compared, according to whether we are paying attention to multiple
+        edges, or edge weightings or not.
 
         EXAMPLES:
             sage: G = graphs.EmptyGraph()
@@ -282,29 +287,85 @@ class GenericGraph(SageObject):
             sage: H = graphs.RandomGNP(9,.3).to_directed()
             sage: G == H # random output (most often false)
             False
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edge(0,1)
+            sage: H = G.copy()
+            sage: H.add_edge(0,1)
+            sage: G == H
+            False
 
         """
-        # If the graphs have different properties, they are not equal.
-        if type(self) != type(other):
+        weighted = ( self._weighted and other._weighted )
+        # inputs must be (di)graphs:
+        if not isinstance(other, GenericGraph):
+            raise TypeError("Input (%s) must be a graph."%str(other))
+        # DiGraphs are "larger" than Graphs:
+        g1_is_graph = isinstance(self, Graph)
+        g2_is_graph = isinstance(other, Graph)
+        if g1_is_graph and not g2_is_graph: return -1
+        if not g1_is_graph and g2_is_graph: return 1
+        # Multigraphs are "larger" than not:
+        g1_m_e = self.multiple_edges()
+        g2_m_e = other.multiple_edges()
+        if g1_m_e and not g2_m_e:
             return 1
-        elif self.loops() != other.loops():
-            return 1
-        elif self.multiple_edges() != other.multiple_edges():
-            return 1
-
-        # If the vertices have different labels, the graphs are not equal.
-        if self.vertices() != other.vertices():
-            return 1
-
-        # Check that the edges are the same.
-        comp = enum(self) - enum(other)
-        if comp < 0:
+        if not g1_m_e and g2_m_e:
             return -1
-        elif comp == 0:
-            return 0
-        elif comp > 0:
+        # Looped graphs are "larger" than not:
+        g1_l = self.loops()
+        g2_l = other.loops()
+        if g1_l and not g2_l:
             return 1
-
+        if not g1_l and g2_l:
+            return -1
+        # Next, we compare sorted vertex lists:
+        v1 = self.vertices()
+        v2 = other.vertices()
+        compare_verts = cmp(v1, v2)
+        if compare_verts != 0:
+            return compare_verts
+        # Finally, we are prepared to check edges:
+        if not (g1_m_e or weighted):
+            for i in v1:
+                for j in v2:
+                    compare_edges = cmp(self.has_edge(i,j), other.has_edge(i,j))
+                    if compare_edges != 0:
+                        return compare_edges
+            return 0
+        elif not weighted:
+            nxgd1 = self._nxg.adj
+            nxgd2 = other._nxg.adj
+            for i in v1:
+                for j in v2:
+                    if nxgd1[i].has_key(j):
+                        edges1 = nxgd1[i][j]
+                    else:
+                        edges1 = []
+                    if nxgd2[i].has_key(j):
+                        edges2 = nxgd2[i][j]
+                    else:
+                        edges2 = []
+                    compare_edges = cmp(len(edges1),len(edges2))
+                    if compare_edges != 0:
+                        return compare_edges
+            return 0
+        else:
+            nxgd1 = self._nxg.adj
+            nxgd2 = other._nxg.adj
+            for i in v1:
+                for j in v2:
+                    if nxgd1[i].has_key(j):
+                        edges1 = nxgd1[i][j]
+                    else:
+                        edges1 = []
+                    if nxgd2[i].has_key(j):
+                        edges2 = nxgd2[i][j]
+                    else:
+                        edges2 = []
+                    compare_edges = cmp(sorted(edges1, reverse=True),sorted(edges2, reverse=True))
+                    if compare_edges != 0:
+                        return compare_edges
+            return 0
 
     def __contains__(self, vertex):
         """
@@ -535,6 +596,41 @@ class GenericGraph(SageObject):
             else:
                 self._nxg.ban_multiedges()
         else: return self._nxg.multiedges
+
+    def weighted(self, new=None):
+        """
+        Returns whether the (di)graph is to be considered as a weighted (di)graph.
+
+        Note that edge weightings can still exist for (di)graphs G where
+        G.weighted() is False, but equality is tested differently.
+
+        EXAMPLE:
+        Here we have two graphs with different labels, but weighted is False
+        for both, so we just check for the presence of edges:
+            sage: G = Graph({0:{1:'a'}})
+            sage: H = Graph({0:{1:'b'}})
+            sage: G == H
+            True
+
+        Now one is weighted and the other is not, so the comparison is done as
+        if neither is weighted:
+            sage: G.weighted(True)
+            sage: H.weighted()
+            False
+            sage: G == H
+            True
+
+        However, if both are weighted, then we finally compare 'a' to 'b'.
+            sage: H.weighted(True)
+            sage: G == H
+            False
+
+        """
+        if new is not None:
+            if new:
+                self._weighted = new
+        else:
+            return self._weighted
 
     def density(self):
         """
@@ -2859,6 +2955,8 @@ class Graph(GenericGraph):
             instance of the Graph class)
         multiedges -- boolean, whether to allow multiple edges (ignored if
             data is an instance of the Graph class)
+        weighted -- whether graph thinks of itself as weighted or not. See
+            self.weighted()
         format -- if None, Graph tries to guess- can be several values,
             including:
             'graph6' -- Brendan McKay's graph6 format, in a string (if the
@@ -2868,7 +2966,8 @@ class Graph(GenericGraph):
             'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal
                 to the number of edges \{i,j\}
             'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
-                equal to the weight of the single edge \{i,j\}
+                equal to the weight of the single edge \{i,j\}. Given this
+                format, weighted is ignored (assumed True).
             'incidence_matrix' -- a SAGE matrix, with one column C for each
                 edge, where if C represents \{i, j\}, C[i] is -1 and C[j] is 1
             'elliptic_curve_congruence' -- data must be an iterable container
@@ -3019,9 +3118,10 @@ class Graph(GenericGraph):
         Graph on 6 vertices
 
     """
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], weighted=False, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
+        self._weighted = weighted
         if format is None:
             if isinstance(data, str):
                 if data[:10] == ">>graph6<<":
@@ -3124,6 +3224,7 @@ class Graph(GenericGraph):
                     e.append((i,j))
             self._nxg.add_edges_from(e)
         elif format == 'weighted_adjacency_matrix':
+            self._weighted = True
             d = {}
             for i in range(data.nrows()):
                 d[i] = {}
@@ -3965,7 +4066,7 @@ class Graph(GenericGraph):
         M = matrix(D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=False, boundary_first=False):
+    def kirchhoff_matrix(self, weighted=None, boundary_first=False):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
@@ -4007,6 +4108,9 @@ class Graph(GenericGraph):
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import IntegerRing
+
+        if weighted is None:
+            weighted = self._weighted
 
         if weighted:
             M = self.weighted_adjacency_matrix(boundary_first=boundary_first)
@@ -4888,7 +4992,7 @@ class Graph(GenericGraph):
                     if bb == a[vert]:
                         map[vert] = aa
                         break
-            if enum(b) == enum(d):
+            if b == d:
                 return True, map
             else:
                 return False, None
@@ -4902,7 +5006,7 @@ class Graph(GenericGraph):
             from sage.graphs.graph_isom import search_tree
             b = self.canonical_label(verbosity=verbosity)
             d = other.canonical_label(verbosity=verbosity)
-            return enum(b) == enum(d)
+            return b == d
 
     def canonical_label(self, partition=None, certify=False, verbosity=0):
         """
@@ -4965,11 +5069,16 @@ class DiGraph(GenericGraph):
                  the DiGraph class)
         multiedges -- boolean, whether to allow multiple edges (ignored if data is
         an instance of the DiGraph class)
+        weighted -- whether digraph thinks of itself as weighted or not. See
+            self.weighted()
         format -- if None, DiGraph tries to guess- can be several values, including:
             'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the number
                                   of edges \{i,j\}
             'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
                                   if C represents \{i, j\}, C[i] is -1 and C[j] is 1
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+                equal to the weight of the single edge \{i,j\}. Given this
+                format, weighted is ignored (assumed True).
         boundary -- a list of boundary vertices, if none, digraph is considered as a 'digraph
                     without boundary'
     EXAMPLES:
@@ -5077,9 +5186,10 @@ class DiGraph(GenericGraph):
 
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=[], weighted=False, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
+        self._weighted = weighted
         if format is None:
             if is_Matrix(data):
                 if data.is_square():
@@ -5116,6 +5226,7 @@ class DiGraph(GenericGraph):
                     e.append((i,j))
             self._nxg.add_edges_from(e)
         elif format == 'weighted_adjacency_matrix':
+            self._weighted = True
             d = {}
             for i in range(data.nrows()):
                 d[i] = {}
@@ -6254,7 +6365,7 @@ class DiGraph(GenericGraph):
                 return False, None
             b,a = self.canonical_label(certify=True, verbosity=verbosity)
             d,c = other.canonical_label(certify=True, verbosity=verbosity)
-            if enum(b) == enum(d):
+            if b == d:
                 map = {}
                 cc = c.items()
                 for vert in self.vertices():
@@ -6277,7 +6388,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.graph_isom import search_tree
             b = self.canonical_label(verbosity=verbosity)
             d = other.canonical_label(verbosity=verbosity)
-            return enum(b) == enum(d)
+            return b == d
 
     def canonical_label(self, partition=None, certify=False, verbosity=0):
         """

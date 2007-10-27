@@ -139,7 +139,7 @@ class FreeAlgebra_generic(Algebra):
         x*y*x*y*x*y*x*y*x*y*x*y + x*y*z*x*y*z*x*y*z*x*y*z
 
         sage: (2 + x*z + x^2)^2 + (x - y)^2
-        4 + 3*x^2 - x*y + 2*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
+        4 + 5*x^2 - x*y + 4*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
     """
     def __init__(self, R, n, names):
         """

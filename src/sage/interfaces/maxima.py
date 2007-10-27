@@ -1227,7 +1227,7 @@ class MaximaElement(ExpectElement):
             sage: CC(maxima('2342.23482943872+234*%i'))
              2342.23482943872 + 234.000000000000*I
             sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
-             2300 + 230*I
+             2300. + 230.*I
         """
         return sage.rings.complex_number.ComplexNumber( CC, self.real(), self.imag() )
 

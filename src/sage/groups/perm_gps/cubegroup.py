@@ -1189,7 +1189,7 @@ class RubiksCube(SageObject):
         """
         sage: C = RubiksCube().move("R*U")
         sage: C.plot3d()
-        <class 'sage.plot.plot3d.base.TransformGroup'>
+        <class 'base.TransformGroup'>
         sage: C.plot()
         Graphics object consisting of 55 graphics primitives
         """

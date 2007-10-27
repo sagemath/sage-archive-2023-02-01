@@ -404,7 +404,7 @@ class Maxima(Expect):
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+']
-        self._error_re = re.compile('(debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
+        self._error_re = re.compile('(Principal Value|debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
 

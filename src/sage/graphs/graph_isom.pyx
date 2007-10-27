@@ -824,10 +824,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: DodecAut.character_table() # long time
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
-        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
+        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
         [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
@@ -836,10 +836,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: DodecAut2.character_table() # long time
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
-        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
+        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
         [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
@@ -1170,15 +1170,22 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef OrbitPartition Theta, OP
     cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
 
-    cdef int L = 100 # memory limit for storing values from fix and mcr
-    cdef int **Phi # stores results from fix
-    cdef int **Omega # stores results from mcr
-    cdef int l = -1 # current index for storing values from fix and mcr-
+    cdef int L = 100 # memory limit for storing values from fix and mcr:
+                     # Phi and Omega store specific information about some
+                     # of the automorphisms we already know about, and they
+                     # are arrays of length L
+    cdef int **Phi # stores the fixed point sets of each automorphism
+    cdef int **Omega # stores the minimal elements of each cell of the
+                     # orbit partition
+    cdef int l = -1 # current index for storing values in Phi and Omega-
                     # we start at -1 so that when we increment first,
                     # the first place we write to is 0.
-    cdef int **_W # which vertices are relevant in light of the above
+    cdef int **W # for each k, W[k] is a list of the vertices to be searched
+                  # down from the current partition nest, at k
+                  # Phi and Omega are ultimately used to make the size of W
+                  # as small as possible
 
-    cdef PartitionStack _nu, _zeta, _rho
+    cdef PartitionStack nu, zeta, rho
     cdef int k_rho # the number of partitions in rho
     cdef int k = 0 # the number of partitions in nu
     cdef int h = -1 # longest common ancestor of zeta and nu:
@@ -1196,12 +1203,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef int hzb = -1 # the max height for which Lambda and zb agree
 
     cdef int **M # for the square adjacency matrix
-    cdef int *_gamma # for storing permutations
-    cdef int *_alpha # for storing pointers to cells of nu[k]:
-                     # allocated to be length 4*n for scratch (see functions
+    cdef int *gamma # for storing permutations
+    cdef int *alpha # for storing pointers to cells of nu[k]:
+                     # allocated to be length 4*n + 1 for scratch (see functions
                      # _sort_by_function and _refine_by_square_matrix)
-    cdef int *_v # list of vertices determining nu
-    cdef int *_e # 0 or 1, see states 12 and 17
+    cdef int *v # list of vertices determining nu
+    cdef int *e # 0 or 1, see states 12 and 17
     cdef int state # keeps track of place in algorithm
     cdef int _dig, tvc, tvh, n = G.order()
 
@@ -1226,10 +1233,76 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         else:
             return [[]]
 
-    if certify:
-        lab=True
+    # allocate int pointers
+    W = <int **> sage_malloc( n * sizeof(int *) )
+    M = <int **> sage_malloc( n * sizeof(int *) )
+    Phi = <int **> sage_malloc( L * sizeof(int *) )
+    Omega = <int **> sage_malloc( L * sizeof(int *) )
 
-    # create to and from mappings to relabel vertices
+    # allocate GMP int pointers
+    Lambda_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
+    zf_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
+    zb_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
+
+    # check for memory errors
+    if not (W and M and Phi and Omega and Lambda_mpz and zf_mpz and zb_mpz):
+        sage_free(Lambda_mpz)
+        sage_free(zf_mpz)
+        sage_free(zb_mpz)
+        sage_free(W)
+        sage_free(M)
+        sage_free(Phi)
+        sage_free(Omega)
+        raise MemoryError("Error allocating memory.")
+
+    # allocate int arrays
+    gamma = <int *> sage_malloc( n * sizeof(int) )
+    W[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
+    M[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
+    Phi[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
+    Omega[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
+    alpha = <int *> sage_malloc( (4*n + 1) * sizeof(int) )
+    v = <int *> sage_malloc( n * sizeof(int) )
+    e = <int *> sage_malloc( n * sizeof(int) )
+
+    # check for memory errors
+    if not (gamma and W[0] and M[0] and Phi[0] and Omega[0] and alpha and v and e):
+        sage_free(gamma)
+        sage_free(W[0])
+        sage_free(M[0])
+        sage_free(Phi[0])
+        sage_free(Omega[0])
+        sage_free(alpha)
+        sage_free(v)
+        sage_free(e)
+        sage_free(Lambda_mpz)
+        sage_free(zf_mpz)
+        sage_free(zb_mpz)
+        sage_free(W)
+        sage_free(M)
+        sage_free(Phi)
+        sage_free(Omega)
+        raise MemoryError("Error allocating memory.")
+
+    # setup double index arrays
+    for i from 0 < i < n:
+        W[i] = W[0] + n*i
+    for i from 0 < i < n:
+        M[i] = M[0] + n*i
+    for i from 0 < i < L:
+        Phi[i] = Phi[0] + n*i
+    for i from 0 < i < L:
+        Omega[i] = Omega[0] + n*i
+
+    # allocate GMP ints
+    for i from 0 <= i < n+2:
+        mpz_init(Lambda_mpz[i])
+        mpz_init_set_si(zf_mpz[i], -1) # correspond to default values of
+        mpz_init_set_si(zb_mpz[i], -1) # "infinity"
+        # Note that there is a potential memory leak here - if a particular
+        # mpz fails to allocate, this is not checked for
+
+    # create to and from mappings to relabel vertices to the set {0,...,n-1}
     listto = G.vertices()
     ffrom = {}
     for vvv in listto:
@@ -1243,51 +1316,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         Pi2.append([ffrom[c] for c in cell])
     Pi = Pi2
 
-    # allocate pointers
-    _W = <int **> sage_malloc( 2 * (n + L) * sizeof(int *) )
-    if not _W:
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    M = _W + n
-    Phi = _W + 2*n
-    Omega = _W + 2*n + L
-
-    # allocate pointers for GMP ints
-    Lambda_mpz = <mpz_t *> sage_malloc( 3 * (n+2) * sizeof(mpz_t) )
-    if not Lambda_mpz:
-        sage_free(_W)
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    zf_mpz = Lambda_mpz + n + 2
-    zb_mpz = Lambda_mpz + 2*n + 4
-
-    # allocate arrays
-    _gamma = <int *> sage_malloc( ( n * ( 2 * (n + L) + 7 ) + 1 ) * sizeof(int) )
-    if not _gamma:
-        sage_free(_W)
-        sage_free(Lambda_mpz)
-        raise MemoryError("Error allocating memory. Perhaps you are out?")
-    _alpha = _gamma + n*( 2*(n + L) + 1 )
-    _v = _alpha + 4*n + 1
-    _e = _v + n + 1
-    for i from 0 <= i < n:
-        _W[i] = _gamma + n + n*i
-        M[i] = _gamma + n*( 1 + n + 2*L + i )
-
-    # allocate GMP ints
-    for i from 0 <= i < n+2:
-        mpz_init(Lambda_mpz[i])
-        mpz_init_set_si(zf_mpz[i], -1) # correspond to default values of
-        mpz_init_set_si(zb_mpz[i], -1) # "infinity"
-        # Note that there is a potential memory leak here - if a particular
-        # mpz fails to allocate, this is not checked for
-    for i from 0 <= i < L:
-        Phi[i] = _gamma + n*( 1 + n + i )
-        Omega[i] = _gamma + n*( 1 + n + i + L )
-
-    # create the dense boolean matrix
+    # initialize M and W
     for i from 0 <= i < n:
         for j from 0 <= j < n:
             M[i][j] = 0
-            _W[i][j] = 0
+            W[i][j] = 0
     if isinstance(G, Graph):
         for i, j, la in G.edge_iterator():
             M[i][j] = 1
@@ -1297,37 +1330,39 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             M[i][j] = 1
 
     # set up the rest of the variables
-    _nu = PartitionStack(Pi)
+    nu = PartitionStack(Pi)
     Theta = OrbitPartition(n)
     G_enum = _enumerate_graph(M, n)
-    _output = []
+    output = []
     if dig: _dig = 1
     else: _dig = 0
+    if certify:
+        lab=True
 
     if verbosity > 1:
         t = cputime()
     if verbosity > 2:
-        _rho = PartitionStack(n)
-        _zeta = PartitionStack(n)
+        rho = PartitionStack(n)
+        zeta = PartitionStack(n)
     state = 1
     while state != -1:
         if verbosity > 0:
             print '-----'
             print 'state:', state
-            print '_nu'
-            print [_nu.entries[iii] for iii in range(n)]
-            print [_nu.levels[iii] for iii in range(n)]
+            print 'nu'
+            print [nu.entries[iii] for iii in range(n)]
+            print [nu.levels[iii] for iii in range(n)]
             if verbosity > 1:
                 t = cputime(t)
                 print 'time:', t
             if verbosity > 2:
                 print 'k: ' + str(k)
-                print '_zeta:'
-                print [_zeta.entries[iii] for iii in range(n)]
-                print [_zeta.levels[iii] for iii in range(n)]
-                print '_rho'
-                print [_rho.entries[iii] for iii in range(n)]
-                print [_rho.levels[iii] for iii in range(n)]
+                print 'zeta:'
+                print [zeta.entries[iii] for iii in range(n)]
+                print [zeta.levels[iii] for iii in range(n)]
+                print 'rho'
+                print [rho.entries[iii] for iii in range(n)]
+                print [rho.levels[iii] for iii in range(n)]
             if verbosity > 3:
                 Thetarep = []
                 for i from 0 <= i < n:
@@ -1344,37 +1379,35 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         if state == 1: # Entry point to algorithm
             # get alpha to point to cells of nu
             j = 1
-            _alpha[0] = 0
+            alpha[0] = 0
             for i from 0 < i < n:
-                if _nu.levels[i-1] == 0:
-                    _alpha[j] = i
+                if nu.levels[i-1] == 0:
+                    alpha[j] = i
                     j += 1
-            _alpha[j] = -1
+            alpha[j] = -1
 
             # "nu[0] := R(G, Pi, Pi)"
-            _nu._refine_by_square_matrix(k, _alpha, n, M, _dig)
+            nu._refine_by_square_matrix(k, alpha, n, M, _dig)
 
             if not _dig:
-                if _nu._sat_225(k, n): hh = k
-            if _nu._is_discrete(k): state = 18; continue
+                if nu._sat_225(k, n): hh = k
+            if nu._is_discrete(k): state = 18; continue
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            _v[k] = _nu._first_smallest_nontrivial(_W[k], k, n)
+            v[k] = nu._first_smallest_nontrivial(W[k], k, n)
             mpz_set_ui(Lambda_mpz[k], 0)
-            _e[k] = 0 # see state 12, and 17
+            e[k] = 0 # see state 12, and 17
             state = 2
 
         elif state == 2: # Move down the search tree one level by refining nu
             k += 1
 
             # "nu[k] := nu[k-1] perp v[k-1]"
-            _nu._clear(k)
-
-            _alpha[0] = _nu._split_vertex(_v[k-1], k)
-            _alpha[1] = -1
-
-            i = _nu._refine_by_square_matrix(k, _alpha, n, M, _dig)
+            nu._clear(k)
+            alpha[0] = nu._split_vertex(v[k-1], k)
+            alpha[1] = -1
+            i = nu._refine_by_square_matrix(k, alpha, n, M, _dig)
 
             # add one, then multiply by the invariant
             mpz_add_ui(Lambda_mpz[k], Lambda_mpz[k-1], 1)
@@ -1416,14 +1449,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
         elif state == 4: # at this point we have -not- ruled out the presence
                          # of automorphisms
-            if _nu._is_discrete(k): state = 7; continue
+            if nu._is_discrete(k): state = 7; continue
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            _v[k] = _nu._first_smallest_nontrivial(_W[k], k, n)
+            v[k] = nu._first_smallest_nontrivial(W[k], k, n)
 
-            if _dig or not _nu._sat_225(k, n): hh = k + 1
-            _e[k] = 0 # see state 12, and 17
+            if _dig or not nu._sat_225(k, n): hh = k + 1
+            e[k] = 0 # see state 12, and 17
             state = 2 # continue down the tree
 
         elif state == 5: # alternative to 3: since we have not yet gotten
@@ -1471,9 +1504,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             for i from 0 <= i < n:
                 Omega[l][i] = 0 # changed Lambda to Omega
                 Phi[l][i] = 0
-                if _nu._is_min_cell_rep(i, hh):
+                if nu._is_min_cell_rep(i, hh):
                     Omega[l][i] = 1
-                    if _nu._is_fixed(i, hh):
+                    if nu._is_fixed(i, hh):
                         Phi[l][i] = 1
 
             state = 12
@@ -1493,14 +1526,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             if k < hzf: state = 8; continue
 
             # get the permutation corresponding to this terminal node
-            _nu._get_permutation_from(_zeta, _gamma)
+            nu._get_permutation_from(zeta, gamma)
 
             if verbosity > 3:
                 print 'automorphism discovered:'
-                print [_gamma[iii] for iii in range(n)]
+                print [gamma[iii] for iii in range(n)]
 
             # if G^gamma == G, the permutation is an automorphism, goto 10
-            if G_enum == _enumerate_graph_with_permutation(M, n, _gamma):
+            if G_enum == _enumerate_graph_with_permutation(M, n, gamma):
                 state = 10
             else:
                 state = 8
@@ -1521,23 +1554,23 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # if G(nu) > G(rho), goto 9
             # if G(nu) < G(rho), goto 6
             # if G(nu) == G(rho), get the automorphism and goto 10
-            m1 = _nu._enumerate_graph_from_discrete(M, n)
-            m2 = _rho._enumerate_graph_from_discrete(M, n)
+            m1 = nu._enumerate_graph_from_discrete(M, n)
+            m2 = rho._enumerate_graph_from_discrete(M, n)
 
             if m1 > m2:
                 state = 9; continue
             if m1 < m2:
                 state = 6; continue
 
-            _rho._get_permutation_from(_nu, _gamma)
+            rho._get_permutation_from(nu, gamma)
             if verbosity > 3:
                 print 'automorphism discovered:'
-                print [_gamma[iii] for iii in range(n)]
+                print [gamma[iii] for iii in range(n)]
             state = 10
 
         elif state == 9: # entering this state, nu is a best-so-far guess at
                          # the canonical label
-            _rho = PartitionStack(_nu)
+            rho = PartitionStack(nu)
             k_rho = k
 
             qzb = 0
@@ -1557,7 +1590,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # information
             # TODO: this step could be optimized. The variable OP is not
             # really necessary
-            OP = _orbit_partition_from_list_perm(_gamma, n)
+            OP = _orbit_partition_from_list_perm(gamma, n)
             for i from 0 <= i < n:
                 Omega[l][i] = OP._is_min_cell_rep(i)
                 Phi[l][i] = OP._is_fixed(i)
@@ -1571,7 +1604,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             Theta._vee_with(OP, n)
 
             # record the automorphism
-            _output.append([ Integer(_gamma[i]) for i from 0 <= i < n ])
+            output.append([ Integer(gamma[i]) for i from 0 <= i < n ])
 
             # The variable tvc was set to be the minimum element of W[k]
             # the last time we were at state 13 and at a node descending to
@@ -1599,10 +1632,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # to explore. In this case, intersect W[k] with Omega[l], since
             # there may be an automorphism mapping one element of W[k] to
             # another, hence only one must be investigated.
-            if _e[k] == 1:
+            if e[k] == 1:
                 for j from 0 <= j < n:
-                    if _W[k][j] and not Omega[l][j]:
-                        _W[k][j] = 0
+                    if W[k][j] and not Omega[l][j]:
+                        W[k][j] = 0
             state = 13
 
         elif state == 13: # hub state
@@ -1625,7 +1658,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # set tvc and tvh to the minimum cell representative of W[k]
             # (see states 10 and 14)
             for i from 0 <= i < n:
-                if _W[k][i]:
+                if W[k][i]:
                     tvc = i
                     break
             tvh = tvc
@@ -1637,25 +1670,25 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # the last time we were at state 13 and at a node descending to
             # zeta. If this is in the same cell of Theta as v[k], increment
             # index (see Theorem 2.33 in [1])
-            if Theta._find(_v[k]) == Theta._find(tvh):
+            if Theta._find(v[k]) == Theta._find(tvh):
                 index += 1
 
             # find the next v[k] in W[k]
-            i = _v[k] + 1
-            while i < n and not _W[k][i]:
+            i = v[k] + 1
+            while i < n and not W[k][i]:
                 i += 1
             if i < n:
-                _v[k] = i
+                v[k] = i
             else:
                 # there is no new vertex to consider at this level
-                _v[k] = -1
+                v[k] = -1
                 state = 16
                 continue
 
             # if the new v[k] is not a minimum cell representative of Theta,
             # then we already considered that rep., and that subtree was
             # isomorphic to the one corresponding to v[k]
-            if Theta.elements[_v[k]] != -1: state = 14
+            if Theta.elements[v[k]] != -1: state = 14
             else:
                 # otherwise, we do have a vertex to consider
                 state = 15
@@ -1681,7 +1714,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                           # information relevant to Theorem 2.33
             j = 0
             for i from 0 <= i < n:
-                if _W[k][i]: j += 1
+                if W[k][i]: j += 1
             if j == index and ht == k+1: ht = k
             size = size*index
             index = 0
@@ -1690,32 +1723,32 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
         elif state == 17: # you have just finished coming up the search tree,
                           # and must now consider going back down.
-            if _e[k] == 0:
+            if e[k] == 0:
                 # intersect W[k] with each Omega[i] such that {v_0,...,v_(k-1)}
                 # is contained in Phi[i]
                 for i from 0 <= i <= l:
                     # check if {v_0,...,v_(k-1)} is contained in Phi[i]
                     # i.e. fixed pointwise by the automorphisms so far seen
                     j = 0
-                    while j < k and Phi[i][_v[j]]:
+                    while j < k and Phi[i][v[j]]:
                         j += 1
                     # if so, only check the minimal orbit representatives
                     if j == k:
                         for j from 0 <= j < n:
-                            if _W[k][j] and not Omega[i][j]:
-                                _W[k][j] = 0
-            _e[k] = 1 # see state 12
+                            if W[k][j] and not Omega[i][j]:
+                                W[k][j] = 0
+            e[k] = 1 # see state 12
 
             # see if there is a relevant vertex to split on:
-            i = _v[k] + 1
-            while i < n and not _W[k][i]:
+            i = v[k] + 1
+            while i < n and not W[k][i]:
                 i += 1
             if i < n:
-                _v[k] = i
+                v[k] = i
                 state = 15
                 continue
             else:
-                _v[k] = -1
+                v[k] = -1
 
             # otherwise backtrack one level
             k -= 1
@@ -1729,12 +1762,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             ht = k # nodes descended from zeta[ht] are all equivalent
             hzf = k # max such that indicators for zeta and nu agree
 
-            _zeta = PartitionStack(_nu)
+            zeta = PartitionStack(nu)
 
             k -= 1
             if not lab: state = 13; continue
 
-            _rho = PartitionStack(_nu)
+            rho = PartitionStack(nu)
 
             # initialize counters for rho:
             k_rho = k # number of partitions in rho
@@ -1744,45 +1777,63 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             qzb = 0 # Lambda[k] == zb[k], so...
             state = 13
 
-    # deallocate the MP integers
-    for i from 0 <= i < n:
+    # free the GMP ints
+    for i from 0 <= i < n+2:
         mpz_clear(Lambda_mpz[i])
         mpz_clear(zf_mpz[i])
         mpz_clear(zb_mpz[i])
 
-    sage_free(_W)
-    sage_free(Lambda_mpz)
-    sage_free(_gamma)
-    #mpz_clear(G_enum[0])
+    # free int arrays
+    sage_free(gamma)
+    sage_free(W[0])
+    sage_free(M[0])
+    sage_free(Phi[0])
+    sage_free(Omega[0])
+    sage_free(alpha)
+    sage_free(v)
+    sage_free(e)
 
+    # free GMP int pointers
+    sage_free(Lambda_mpz)
+    sage_free(zf_mpz)
+    sage_free(zb_mpz)
+
+    # free int pointers
+    sage_free(W)
+    sage_free(M)
+    sage_free(Phi)
+    sage_free(Omega)
+
+    # use to and from mappings to relabel vertices back from the set {0,...,n-1}
     if lab:
-        H = _term_pnest_graph(G, _rho)
+        H = _term_pnest_graph(G, rho)
     G.relabel(to)
     if dict:
         ddd = {}
-        for v in G.vertices():
-            if ffrom[v] != 0:
-                ddd[v] = ffrom[v]
+        for vvv in G.vertices(): # v is a C variable
+            if ffrom[vvv] != 0:
+                ddd[vvv] = ffrom[vvv]
             else:
-                ddd[v] = n
+                ddd[vvv] = n
 
+    # prepare output
     if certify:
         dd = {}
         for i from 0 <= i < n:
-            dd[_rho.entries[i]] = i
+            dd[rho.entries[i]] = i
             # NOTE - this should take the relabeling into account!
         if dict:
-            return _output, ddd, H, dd
+            return output, ddd, H, dd
         else:
-            return _output, H, dd
+            return output, H, dd
     if lab and dict:
-        return _output, ddd, H
+        return output, ddd, H
     elif lab:
-        return _output, H
+        return output, H
     elif dict:
-        return _output, ddd
+        return output, ddd
     else:
-        return _output
+        return output
 
 # Benchmarking functions
 

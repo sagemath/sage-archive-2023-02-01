@@ -453,7 +453,7 @@ class MPolynomialIdeal_singular_repr:
             raise TypeError, "dimension must be zero"
 
         Ibar = I._singular_()
-        Ibar.attrib('"isSB"',1)
+        Ibar.attrib('isSB',1)
 
         singular = Ibar.parent()
         singular.lib("triang")
@@ -917,6 +917,8 @@ class MPolynomialIdeal_singular_repr:
         for i in range(M.nrows()):
             if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
                 return False
+
+        self._singular_().attrib('isSB',1)
         return True
 
     def transformed_basis(self,algorithm="gwalk", other_ring=None):
@@ -1074,7 +1076,7 @@ class MPolynomialIdeal_singular_repr:
             Multivariate Polynomial Ring in x, y over Finite Field in w of size 3^3
 
             sage: V = I.variety(); V
-            [{y: w^2 + 2, x: 2*w}, {y: w^2 + 2*w, x: 2*w + 2}, {y: w^2 + w, x: 2*w + 1}]
+            [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
 
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
@@ -1118,6 +1120,7 @@ class MPolynomialIdeal_singular_repr:
 
             for v in Vbar:
                 V.append(dict([(P(var),val) for var,val in v.iteritems()]))
+        V.sort()
         return Sequence(V)
 
 class MPolynomialIdeal_macaulay2_repr:

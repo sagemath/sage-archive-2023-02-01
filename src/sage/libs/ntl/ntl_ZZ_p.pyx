@@ -156,21 +156,21 @@ cdef class ntl_ZZ_p:
         sage: loads(dumps(a)) == a
         True
         """
-        return unpickle_class_args, (ntl_ZZ_p, (self.lift(), self.get_modulus_context()))
+        return unpickle_class_args, (ntl_ZZ_p, (self.lift(), self.modulus_context()))
 
-    def get_modulus_context(self):
+    def modulus_context(self):
         """
         Return the modulus for self.
 
         EXAMPLES:
             sage: x = ntl.ZZ_p(5,17)
-            sage: c = x.get_modulus_context()
+            sage: c = x.modulus_context()
             sage: y = ntl.ZZ_p(3,c)
             sage: x+y
             8
-            sage: c == y.get_modulus_context()
+            sage: c == y.modulus_context()
             True
-            sage: c == ntl.ZZ_p(7,17).get_modulus_context()
+            sage: c == ntl.ZZ_p(7,17).modulus_context()
             True
         """
         return self.c

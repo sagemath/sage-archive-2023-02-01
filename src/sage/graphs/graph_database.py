@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Graph Database Module
 
 INFO:
@@ -1309,6 +1309,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM', 'SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1334,18 +1337,17 @@ class GraphDatabase(GenericSQLDatabase):
         print "<html>"
         print '<table bgcolor=lightgrey cellpadding=0>'
 
-        for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
+        from sage.misc.multireplace import multiple_replace
+        to_bool = {'0':"False", '1':"True"}
 
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+        print b
+        for i in range(len(b)):
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="7"><img src="cell://%s.png"><br>%s</td>'%(i,graph6list[i])
             print '<td bgcolor=white align=left><font color=black> Vertices: %s </font></td>'%(b[i][1])
@@ -1607,6 +1609,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1638,19 +1643,16 @@ class GraphDatabase(GenericSQLDatabase):
             elif ( tables[j] == 'graph_data' ): rows += 3
             elif ( tables[j] == 'aut_grp' or tables[j] == 'degrees' or tables[j] == 'spectrum' ): rows += 2
 
-        for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
+        from sage.misc.multireplace import multiple_replace
+        to_bool = {'0':"False", '1':"True"}
 
-            # do normal thing
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+        for i in range(len(b)):
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="%d"><img src="cell://%s.png"><br>%s</td>'%(rows,i,graph6list[i])
             top_row = True
@@ -1932,6 +1934,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1974,20 +1979,16 @@ class GraphDatabase(GenericSQLDatabase):
         print "<html>"
         print '<table bgcolor=lightgrey cellpadding=0>'
 
+        from sage.misc.multireplace import multiple_replace
         to_bool = {'0':"False", '1':"True"}
 
         for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
-
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="%d"><img src="cell://%s.png"><br>%s</td>'%(rows,i,graph6list[i])
 

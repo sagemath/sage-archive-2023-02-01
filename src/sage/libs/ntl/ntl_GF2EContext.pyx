@@ -19,68 +19,59 @@ include 'misc.pxi'
 include 'decl.pxi'
 import weakref
 
-ZZ_pContextDict = {}
-
-from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
-
-from sage.rings.integer_ring import IntegerRing
-
-ZZ_sage = IntegerRing()
+GF2EContextDict = {}
 
 
-cdef class ntl_ZZ_pContext_class:
-    def __init__(self, ntl_ZZ v):
+cdef class ntl_GF2EContext_class:
+    def __init__(self, ntl_GF2X v):
         """
         EXAMPLES:
             # You can construct contexts manually.
-            sage: c = ntl.ZZ_pContext(11)
-            sage: n1 = ntl.ZZ_p(12,c)
+            sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1]))
+            sage: n1 = ntl.GF2E([1,1],ctx)
             sage: n1
-            1
+            [1 1]
 
             # or You can construct contexts implicitly.
-            sage: n2 = ntl.ZZ_p(12, 7)
+            sage: n2 = ntl.GF2E([0,1], ntl.GF2X([1,1,0,1]))
             sage: n2
-            5
-            sage: ntl.ZZ_p(2,3)+ntl.ZZ_p(1,3)
-            0
-            sage: n2+n1  # Mismatched moduli:  It will go BOOM!
+            [0 1]
+            sage: ntl.GF2E(2, GF(2^8,'a'))+ntl.GF2E([0,1],ctx)
             Traceback (most recent call last):
             ...
-            ValueError: You can not perform arithmetic with elements of different moduli.
+            ValueError: You can not perform arithmetic with elements in different fields.
+
+            sage: n2+n1  # Mismatched moduli:  It will go BOOM!
+            [1]
         """
         pass
 
-    def __new__(self, ntl_ZZ v):
-        ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
-        self.p = v
-        self.p_bits = self.p._integer_().bits()
+    def __new__(self, ntl_GF2X v):
+        GF2EContext_construct_GF2X(&self.x, &((<ntl_GF2X>v).x))
+        self.m = v
 
     def __dealloc__(self):
-        ZZ_pContext_destruct(&self.x)
+        GF2EContext_destruct(&self.x)
 
     def __reduce__(self):
         """
         EXAMPLES:
-            sage: c = ntl.ZZ_pContext(13)
+            sage: c = ntl.GF2EContext(GF(2^5,'b'))
             sage: loads(dumps(c)) is c
             True
         """
-        return ntl_ZZ_pContext, (self.p,)
+        return ntl_GF2EContext, (self.m,)
 
     def __repr__(self):
         """
         Returns a print representation of self.
 
         EXAMPLES:
-        sage: c = ntl.ZZ_pContext(7)
+        sage: c = ntl.GF2EContext(GF(2^16,'a'))
         sage: c
-        NTL modulus 7
+        NTL modulus [1 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
         """
-        return "NTL modulus %s"%(self.p)
-
-    def __hash__(self):
-        return hash(self.p)
+        return "NTL modulus %s"%(self.m)
 
     def modulus(self):
         """
@@ -88,50 +79,45 @@ cdef class ntl_ZZ_pContext_class:
         context.
 
         EXAMPLES:
-            sage: c = ntl.ZZ_pContext(7)
+            sage: c = ntl.GF2EContext(GF(2^7,'foo'))
             sage: c.modulus()
-            7
-
-            sage: c = ntl.ZZ_pContext(10^30)
-            sage: type(c.modulus())
-            <type 'sage.rings.integer.Integer'>
-            sage: c.modulus() == 10^30
-            True
+            [1 1 0 0 0 0 0 1]
         """
-        return ZZ_sage(self.p)
+        return self.m
 
 
     def restore(self):
         """
         EXAMPLES:
-            sage: c1 = ntl.ZZ_p(5,92) ; c2 = ntl.ZZ_p(7,92)
+            sage: c1 = ntl.GF2E([0,1],GF(2^4,'a')) ; c2 = ntl.GF2E([1,0,1],GF(2^4,'a'))
             sage: c1+c2
-            12
-            sage: d1 = ntl.ZZ_p(38,91) ; d2 = ntl.ZZ_p(3,91)
+            [1 1 1]
+            sage: d1 = ntl.GF2E([0,1],GF(2^5,'a')) ; d2 = ntl.GF2E([0,0,1],GF(2^5,'a'))
             sage: d1*d2 ## indirect doctest
-            23
+            [0 0 0 1]
         """
         self.restore_c()
 
     cdef void restore_c(self):
         self.x.restore()
 
-def ntl_ZZ_pContext( v ):
+def ntl_GF2EContext( v ):
     """
-    Create a new ZZ_pContext.
+    Create a new GF2EContext.
     EXAMPLES:
-        sage: c = ntl.ZZ_pContext(178)
-        sage: n1 = ntl.ZZ_p(212,c)
+        sage: c = ntl.GF2EContext(GF(2^2,'a'))
+        sage: n1 = ntl.GF2E([0,1],c)
         sage: n1
-        34
+        [0 1]
     """
-    v = ntl_ZZ(v)
-    if (v < ntl_ZZ(2)):
+    v = ntl_GF2X(v)
+    if (GF2X_deg((<ntl_GF2X>v).x) < 1):
         raise ValueError, "%s is not a valid modulus."%v
-    if ZZ_pContextDict.has_key(v):
-        context = ZZ_pContextDict[v]()
+    key = hash(v)
+    if GF2EContextDict.has_key(key):
+        context = GF2EContextDict[key]()
         if context is not None:
             return context
-    context = ntl_ZZ_pContext_class(v)
-    ZZ_pContextDict[v] = weakref.ref(context)
+    context = ntl_GF2EContext_class(v)
+    GF2EContextDict[key] = weakref.ref(context)
     return context

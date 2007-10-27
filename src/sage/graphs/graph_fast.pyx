@@ -312,7 +312,7 @@ def R_inverse(s, n):
         a = binary(ord(s[i])-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
-    return m[:(n*(n-1)/2)]
+    return m
 
 def D_inverse(s, n):
     """

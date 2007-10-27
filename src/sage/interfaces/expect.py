@@ -26,9 +26,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+
 import os
 import weakref
 import time
+import gc
 
 ########################################################
 # Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
@@ -72,6 +75,58 @@ tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
 # run a directory name!
 p = os.environ['PATH'].split(':')
 os.environ['PATH'] = ':'.join([v for v in p if v.strip() != '.'])
+
+# The subprocess is a shared resource.  In a multi-threaded
+# environment, there would have to be a lock to control access to the
+# subprocess.  Fortunately, SAGE does not use Python threads.
+# Unfortunately, the combination of the garbage collector and __del__
+# methods gives rise to the same issues.  So, in places where we need
+# to do a sequence of operations on the subprocess and make sure
+# nothing else intervenes (for example, when we write a command and
+# then read back the result) we need to disable the garbage collector.
+# See TRAC #955 for a more detailed description of this problem.
+
+# This class is intended to be used with the "with" statement found
+# in Python 2.5 and above.  To use it, add the following line at the top
+# of your file:
+#   from __future__ import with_statement
+# Then to turn off the garbage collector for a particular region of code,
+# do:
+#   with gc_disabled():
+#       ... your code goes here ...
+# The garbage collector will be returned to its original state
+# whenever the code exits by any means (falling off the end, executing
+# "return", "break", or "continue", raising an exception, ...)
+
+class gc_disabled(object):
+    """
+    This is a "with" statement context manager.  Garbage collection is
+    disabled within its scope.  Nested usage is properly handled.
+
+    EXAMPLES:
+        sage: import gc
+        sage: from sage.interfaces.expect import gc_disabled
+        sage: gc.isenabled()
+        True
+        sage: with gc_disabled():
+        ...       print gc.isenabled()
+        ...       with gc_disabled():
+        ...           print gc.isenabled()
+        ...       print gc.isenabled()
+        False
+        False
+        False
+        sage: gc.isenabled()
+        True
+    """
+    def __enter__(self):
+        self._enabled = gc.isenabled()
+        gc.disable()
+
+    def __exit__(self, ty, val, tb):
+        if self._enabled:
+            gc.enable()
+        return False
 
 class AsciiArtString(str):
     def __init__(self, x):
@@ -407,12 +462,13 @@ If this all works, you can then make calls like:
             print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
-        if block_during_init:
-            for X in self.__init_code:
-                self.eval(X)
-        else:
-            for X in self.__init_code:
-                self._send(X)
+        with gc_disabled():
+            if block_during_init:
+                for X in self.__init_code:
+                    self.eval(X)
+            else:
+                for X in self.__init_code:
+                    self._send(X)
 
     def clear_prompts(self):
         while True:
@@ -647,7 +703,8 @@ If this all works, you can then make calls like:
             raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:
-            return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
+            with gc_disabled():
+                return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
         except KeyboardInterrupt:
             # DO NOT CATCH KeyboardInterrupt, as it is being caught
             # by _eval_line

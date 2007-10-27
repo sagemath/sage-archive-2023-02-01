@@ -443,6 +443,18 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+        sage: k = var('k')
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol.is_zero()
+        True
+
+        sage: f = sin(x)^2 + cos(x)^2 - 1
+        sage: f.is_zero()
+        True
+        """
+
         try:
             return self.__nonzero
         except AttributeError:

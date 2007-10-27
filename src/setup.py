@@ -2,7 +2,13 @@
 DEVEL = False
 
 import distutils.sysconfig, os, sys
-from distutils.core import setup, Extension
+# from distutils.core import setup, Extension
+
+# TODO: Is this what we want here?
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
+
 
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
@@ -206,12 +212,15 @@ pari = Extension('sage.libs.pari.gen',
                  libraries = ['pari', 'gmp'])
 
 
-givaro_gfq = Extension('sage.rings.finite_field_givaro',
+finite_field_givaro = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
                        libraries = ['givaro', 'gmpxx', 'gmp', 'm', 'stdc++', ],   # this order is needed to compile under windows.
                        language='c++'
                        )
-
+finite_field_ntl_gf2e = Extension('sage.rings.finite_field_ntl_gf2e',
+			 sources = ['sage/rings/finite_field_ntl_gf2e.pyx'],
+			 libraries = ['ntl', 'gmp'],
+			 language = 'c++')
 
 qd = Extension('sage.rings.real_rqdf',
                        sources = ["sage/rings/real_rqdf.pyx"],
@@ -498,7 +507,8 @@ ext_modules = [ \
      matrix_mod2_dense,
      matrix_mpolynomial_dense, \
 
-     givaro_gfq, \
+     finite_field_givaro, \
+     finite_field_ntl_gf2e, \
 
      libsingular, \
 
@@ -573,6 +583,10 @@ ext_modules = [ \
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
+
+    Extension('sage.rings.polynomial.cyclotomic',
+              sources = ['sage/rings/polynomial/cyclotomic.pyx']
+              ), \
 
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']
@@ -998,8 +1012,7 @@ def process_cython_file(f, m):
 
     if need_to_cython(f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        # Touch the input file first, to avoid clock skew problems...
-        cmd = "touch %s; cython --embed-positions --incref-local-binop -I%s -o %s %s"%(f, os.getcwd(), outfile, f)
+        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

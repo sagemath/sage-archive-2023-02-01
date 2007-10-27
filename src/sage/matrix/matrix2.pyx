@@ -171,13 +171,13 @@ cdef class Matrix(matrix1.Matrix):
         AUTHOR:
             -- Jaap Spies (2006-02-18)
         """
-        cdef Py_ssize_t c, row
+        cdef int c, row
         pr = 1
         for row from 0 <= row < self._nrows:
             tmp = []
             for c in cols:
-                if c<0 or c >= self._ncols:
-                    raise IndexError, "matrix column index out of range"
+#               if c<0 or c >= self._ncols:
+#                   raise IndexError, "matrix column index out of range"
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
@@ -261,10 +261,8 @@ cdef class Matrix(matrix1.Matrix):
                 Copyright (C) 2006 William Stein <wstein@gmail.com>
             -- Jaap Spies (2006-02-21): added definition of permanent
 
-        NOTES:
-            -- Currently optimized for dense matrices over QQ.
         """
-        cdef Py_ssize_t m, n, r
+        cdef int m, n, r
         cdef int sn
 
         perm = 0
@@ -273,7 +271,6 @@ cdef class Matrix(matrix1.Matrix):
         if not m <= n:
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
 
-        from sage.rings.arith import binomial
         for r from 1 <= r < m+1:
             lst = _choose(n, r)
             tmp = []
@@ -285,7 +282,7 @@ cdef class Matrix(matrix1.Matrix):
                 sn = 1
             else:
                 sn = -1
-            perm = perm + sn * binomial(n-r, m-r) * s
+            perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
 
@@ -2955,4 +2952,28 @@ def _choose(int n, int t):
         c[j] = c[j]+1
 
     return x
+
+def _binomial(int n, int k):
+    """
+    Fast and unchecked implementation of binomial(n,k)
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-26)
+
+    """
+    cdef int i
+
+    if k > (n/2):
+        k = n-k
+    if k == 0:
+        return 1
+
+    result = n
+    n, k = n-1, k-1
+    i = 2
+    while k > 0:
+        result = (result*n)/i
+        i, n, k = i+1, n-1, k-1
+    return result
+
 

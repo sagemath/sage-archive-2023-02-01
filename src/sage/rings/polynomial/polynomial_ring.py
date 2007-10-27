@@ -91,6 +91,7 @@ import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.fraction_field_element import FractionFieldElement
+import cyclotomic
 
 ZZ_sage = IntegerRing()
 
@@ -541,7 +542,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the nth cyclotomic polynomial as a polynomial in this polynomial ring.
 
         EXAMPLES:
-            sage: R = QQ['x']
+            sage: R = ZZ['x']
             sage: R.cyclotomic_polynomial(8)
             x^4 + 1
             sage: R.cyclotomic_polynomial(12)
@@ -552,16 +553,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         if n <= 0:
             raise ArithmeticError, "n=%s must be positive"%n
-        f = pari.polcyclo(n)
-        C = self.__polynomial_class
-        if C == polynomial_element_generic.Polynomial_rational_dense:
-            return self(f, construct=True)
-        coeffs = str(f.Vec())
-        if C == polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl:
-            return self(coeffs, construct=True)
-
-        coeffs = eval(coeffs)
-        return self(coeffs, check=True)
+        return self(cyclotomic.cyclotomic_coeffs(n), check=True)
 
     def gen(self, n=0):
         """

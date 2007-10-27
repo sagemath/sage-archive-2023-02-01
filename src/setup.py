@@ -584,6 +584,10 @@ ext_modules = [ \
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
 
+    Extension('sage.rings.polynomial.cyclotomic',
+              sources = ['sage/rings/polynomial/cyclotomic.pyx']
+              ), \
+
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']
               ), \

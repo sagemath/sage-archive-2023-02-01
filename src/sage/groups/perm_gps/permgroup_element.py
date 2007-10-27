@@ -312,7 +312,18 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: g(5)
             4
         """
-        return int(gap.eval('%s^%s'%(i, self._gap_().name())))
+        if isinstance(i,(list,tuple,str)):
+            s = gap.eval('OnTuples(%s,%s)'%(range(1,len(i)+1), self._gap_().name()))
+            s = s[1:-1].replace(' ','')
+            l = [i[int(j)-1] for j in s.split(',')]
+            if isinstance(i,list):
+                return l
+            if isinstance(i,tuple):
+                return tuple(l)
+            else:
+                return ''.join(l)
+        else:
+            return int(gap.eval('%s^%s'%(i, self._gap_().name())))
 
     #def __mul__(self, other):
     #    """

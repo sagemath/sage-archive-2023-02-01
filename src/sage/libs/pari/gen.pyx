@@ -46,7 +46,10 @@ include '../../ext/stdsage.pxi'
 cdef extern from "convert.h":
     cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
 
-cdef extern long mpz_t_offset
+# Make sure we don't use mpz_t_offset before initializing it by
+# putting in a value that's likely to provoke a segmentation fault,
+# rather than silently corrupting memory.
+cdef long mpz_t_offset = 1000000000
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
@@ -108,6 +111,8 @@ cdef void late_import():
     import sage.rings.integer
     Integer = sage.rings.integer.Integer
 
+    global mpz_t_offset
+    mpz_t_offset = sage.rings.integer.mpz_t_offset_python
 
 cdef class gen(sage.structure.element.RingElement):
     """

@@ -196,9 +196,11 @@ loaded.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
+from __future__ import with_statement
+
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 
 import pexpect
 
@@ -377,22 +379,23 @@ command-line version of Maple (alternatively, you could use a remote connection 
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         line += ';'
-        z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
-                wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
-        if z.lower().find("error") != -1:
-            # The following was very tricky to figure out.
-            # When an error occurs using Maple, unfortunately,
-            # Maple also dumps one into the line where the
-            # error occured with that line copied in.  This
-            # totally messes up the pexpect interface.  However,
-            # I think the following few lines successfully
-            # "clear things out", i.e., delete the text from
-            # the edit buffer and get a clean prompt.
-            e = self.expect()
-            e.sendline('%s__sage__;'%(chr(8)*len(line)))
-            e.expect('__sage__;')
-            e.expect(self._prompt)
-            raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
+        with gc_disabled():
+            z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
+                    wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
+            if z.lower().find("error") != -1:
+                # The following was very tricky to figure out.
+                # When an error occurs using Maple, unfortunately,
+                # Maple also dumps one into the line where the
+                # error occured with that line copied in.  This
+                # totally messes up the pexpect interface.  However,
+                # I think the following few lines successfully
+                # "clear things out", i.e., delete the text from
+                # the edit buffer and get a clean prompt.
+                e = self.expect()
+                e.sendline('%s__sage__;'%(chr(8)*len(line)))
+                e.expect('__sage__;')
+                e.expect(self._prompt)
+                raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
         return z
 
     def cputime(self, t=None):

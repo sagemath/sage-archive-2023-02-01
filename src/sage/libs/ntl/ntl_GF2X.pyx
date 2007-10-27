@@ -506,6 +506,9 @@ cdef class ntl_GF2X:
         GF2XHexOutput_c[0] = _hex
         return s
 
+    def __hash__(self):
+        return hash(hex(self))
+
     def _sage_(ntl_GF2X self, R=None):
         """
         Returns a SAGE polynomial over GF(2) equivalent to

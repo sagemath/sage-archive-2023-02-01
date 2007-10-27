@@ -5579,11 +5579,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         initialized = 1
         stack_avma = avma
         num_primes = maxprime
-        ## todo: gen_0
-        self.ZERO = self.new_gen_from_int(0)
-        self.ONE = self.new_gen_from_int(1)
-        self.TWO = self.new_gen_from_int(2)
-
+        self.ZERO = self.new_gen(gen_0)
+        self.ONE = self.new_gen(gen_1)
+        self.TWO = self.new_gen(gen_2)
 
     #def __dealloc__(self):
 
@@ -6266,9 +6264,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 # Used in integer factorization -- must be done
 # after the pari_instance creation above:
 
-##cdef gen _tmp = pari('1000000000000000')
-##cdef GEN ten_to_15 = _tmp.g
-cdef GEN ten_to_15 = gp_read_str('1000000000000000')
+cdef GEN ten_to_15 = P.new_gen(gp_read_str('1000000000000000')).g
 
 ##############################################
 

@@ -49,9 +49,11 @@ AUTHORS:
 #
 ##########################################################################
 
+from __future__ import with_statement
+
 import random
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.misc.misc import verbose, UNAME, is_64bit
 from sage.structure.element import RingElement
 
@@ -103,34 +105,35 @@ class Lisp(Expect):
         self.__in_seq = 1
 
     def eval(self, code, strip=True):
-        self._synchronize()
-        code = str(code)
-        code = code.strip()
-        code = code.replace('\n',' ')
-        x = []
-        for L in code.split('\n'):
-            if L != '':
-                try:
-                    s = self.__in_seq + 1
-                    pr = '\[%s\]>'%s
-                    M = self._eval_line(L, wait_for_prompt=self._prompt)
-                    if is_64bit_linux:
-                        phrase = '[C\x1b[C\n'
-                    else:
-                        phrase = L
-                    i = M.rfind(phrase)
-                    if i > 1:
-                        M = M[i+len(phrase):]
-                    x.append(M.strip())
-                    self.__in_seq = s
-                except KeyboardInterrupt:
-                    # DO NOT CATCH KeyboardInterrupt, as it is being caught
-                    # by _eval_line
-                    # In particular, do NOT call self._keyboard_interrupt()
-                    raise
-                except TypeError, s:
-                    return 'error evaluating "%s":\n%s'%(code,s)
-        return '\n'.join(x)
+        with gc_disabled():
+            self._synchronize()
+            code = str(code)
+            code = code.strip()
+            code = code.replace('\n',' ')
+            x = []
+            for L in code.split('\n'):
+                if L != '':
+                    try:
+                        s = self.__in_seq + 1
+                        pr = '\[%s\]>'%s
+                        M = self._eval_line(L, wait_for_prompt=self._prompt)
+                        if is_64bit_linux:
+                            phrase = '[C\x1b[C\n'
+                        else:
+                            phrase = L
+                        i = M.rfind(phrase)
+                        if i > 1:
+                            M = M[i+len(phrase):]
+                        x.append(M.strip())
+                        self.__in_seq = s
+                    except KeyboardInterrupt:
+                        # DO NOT CATCH KeyboardInterrupt, as it is being caught
+                        # by _eval_line
+                        # In particular, do NOT call self._keyboard_interrupt()
+                        raise
+                    except TypeError, s:
+                        return 'error evaluating "%s":\n%s'%(code,s)
+            return '\n'.join(x)
 
     def set(self, var, value):
         """

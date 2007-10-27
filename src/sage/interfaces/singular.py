@@ -358,22 +358,17 @@ class Singular(Expect):
         # code that involves the singular interfaces.  Everything goes
         # through here.
         #print "input: %s"%x
-        import gc
-        try:
-            gc.disable()
-            x = str(x).rstrip().rstrip(';')
-            x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
-            if not allow_semicolon and x.find(";") != -1:
-                raise TypeError, "singular input must not contain any semicolons:\n%s"%x
-            if len(x) == 0 or x[len(x) - 1] != ';':
-                x += ';'
+        x = str(x).rstrip().rstrip(';')
+        x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
+        if not allow_semicolon and x.find(";") != -1:
+            raise TypeError, "singular input must not contain any semicolons:\n%s"%x
+        if len(x) == 0 or x[len(x) - 1] != ';':
+            x += ';'
 
-            s = Expect.eval(self, x)
+        s = Expect.eval(self, x)
 
-            if s.find("error") != -1 or s.find("Segment fault") != -1:
-                raise RuntimeError, 'Singular error:\n%s'%s
-        finally:
-            gc.enable()
+        if s.find("error") != -1 or s.find("Segment fault") != -1:
+            raise RuntimeError, 'Singular error:\n%s'%s
         return s
 
     def set(self, type, name, value):

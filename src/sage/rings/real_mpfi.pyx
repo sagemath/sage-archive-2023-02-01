@@ -689,7 +689,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLE: Rounding
             sage: w = RealIntervalField(3)(5/2)
             sage: RealIntervalField(2)(w).str(2)
-            '[10 .. 11]'
+            '[10. .. 11.]'
 
         Type:
             RealIntervalField?

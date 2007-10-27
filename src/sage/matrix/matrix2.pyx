@@ -171,13 +171,13 @@ cdef class Matrix(matrix1.Matrix):
         AUTHOR:
             -- Jaap Spies (2006-02-18)
         """
-        cdef Py_ssize_t c, row
+        cdef int c, row
         pr = 1
         for row from 0 <= row < self._nrows:
             tmp = []
             for c in cols:
-                if c<0 or c >= self._ncols:
-                    raise IndexError, "matrix column index out of range"
+#               if c<0 or c >= self._ncols:
+#                   raise IndexError, "matrix column index out of range"
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
@@ -261,10 +261,8 @@ cdef class Matrix(matrix1.Matrix):
                 Copyright (C) 2006 William Stein <wstein@gmail.com>
             -- Jaap Spies (2006-02-21): added definition of permanent
 
-        NOTES:
-            -- Currently optimized for dense matrices over QQ.
         """
-        cdef Py_ssize_t m, n, r
+        cdef int m, n, r
         cdef int sn
 
         perm = 0
@@ -273,9 +271,8 @@ cdef class Matrix(matrix1.Matrix):
         if not m <= n:
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
 
-        from sage.rings.arith import binomial
         for r from 1 <= r < m+1:
-            lst = combinations_iterator(range(n), r)
+            lst = _choose(n, r)
             tmp = []
             for cols in lst:
                 tmp.append(self.prod_of_row_sums(cols))
@@ -285,7 +282,7 @@ cdef class Matrix(matrix1.Matrix):
                 sn = 1
             else:
                 sn = -1
-            perm = perm + sn * binomial(n-r, m-r) * s
+            perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
 
@@ -363,8 +360,8 @@ cdef class Matrix(matrix1.Matrix):
 
         k = int(k)
         pm = 0
-        for cols in combinations_iterator(range(n),k):
-            for rows in combinations_iterator(range(m),k):
+        for cols in _choose(n,k):
+            for rows in _choose(m,k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
@@ -2929,3 +2926,54 @@ def cmp_pivots(x,y):
         return 0
     else:
         return -1
+
+def _choose(int n, int t):
+    """
+    Returns all possible sublists of length t from range(n)
+
+    Based on algoritm L from Knuth's taocp part 4: 7.2.1.3 p.4
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-22)
+    """
+
+    x = []
+    c = range(t)
+    c.append(n)
+    c.append(0)
+    j = 0
+
+    while j < t:
+        x.append(c[:t])
+        j = 0
+        while c[j]+1 == c[j+1]:
+           c[j] = j
+           j = j+1
+        c[j] = c[j]+1
+
+    return x
+
+def _binomial(int n, int k):
+    """
+    Fast and unchecked implementation of binomial(n,k)
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-26)
+
+    """
+    cdef int i
+
+    if k > (n/2):
+        k = n-k
+    if k == 0:
+        return 1
+
+    result = n
+    n, k = n-1, k-1
+    i = 2
+    while k > 0:
+        result = (result*n)/i
+        i, n, k = i+1, n-1, k-1
+    return result
+
+

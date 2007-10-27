@@ -86,7 +86,8 @@ sage: (x^2-4)/(x^2+4*x+4) == (x-2)/(x+2)
 True
 sage: restore('x')
 
-sage: # (NO -- Maxima doesn't consider them equal.)
+sage: # (YES -- Maxima doesn't consider them equal,
+sage: # but SAGE does additional testing to show that they are)
 sage: # (Exp(x)-1)/(Exp(x/2)+1)=Exp(x/2)-1.
 sage: f = (exp(x)-1)/(exp(x/2)+1)
 sage: g = exp(x/2)-1
@@ -97,7 +98,7 @@ e^(x/2) - 1
 sage: print f(10.0), g(10.0)
 147.4131591025766 147.4131591025766
 sage: print bool(f == g)
-False
+True
 
 sage: # (YES) Expand (1+x)^20, take derivative and factorize.
 sage: # first do it is using algebraic polys
@@ -220,13 +221,12 @@ sage: print a
 sage: print bool(a == 0)
 True
 
-sage: # (NO) Sqrt(99983)-99983^3^(1/6)=0
-sage: # For some reason Maxima decides its not zero because of the factorization.
+sage: # (YES) Sqrt(99983)-99983^3^(1/6)=0
 sage: a = sqrt(99983) - (99983^3)^(1/6)
 sage: print a
                        sqrt(99983) - sqrt(13) sqrt(7691)
 sage: print bool(a==0)
-False
+True
 sage: float(a)    # random low order bits
 1.13686837722e-13
 sage: print 13*7691
@@ -239,7 +239,7 @@ sage: print a
 		       1/3    1/3 3	  1/3	 1/3
         	     (4	   + 2	 )  - 6 (4    + 2   ) - 6
 sage: print bool(a==0)
-False
+True
 sage: print float(a)
 3.5527136788e-15
 sage: ## but we can do it using number fields.

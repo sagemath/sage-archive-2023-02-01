@@ -2415,6 +2415,171 @@ cdef class FiniteFieldElement(FieldElement):
             return M(columns)
         else:
             return M(columns).transpose()
+    def _latex_(self):
+        r"""
+        Return the latex representation of self, which is just the
+        latex representation of the polynomial representation of self.
+
+        EXAMPLES:
+            sage: k.<b> = GF(5^2); k
+            Finite Field in b of size 5^2
+            sage: b._latex_()
+            'b'
+            sage: (b^2+1)._latex_()
+            'b + 4'
+        """
+        if self.parent().degree()>1:
+            return self.polynomial()._latex_()
+        else:
+            return str(self)
+
+    def _pari_init_(self, var=None):
+        """
+        Return string that when evaluated in PARI defines this element.
+
+        EXAMPLES:
+            sage: S.<b> = GF(5^2); S
+            Finite Field in b of size 5^2
+            sage: b._pari_init_()
+            'Mod(b, Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
+            sage: (2*b+3)._pari_init_()
+            'Mod(2*b + 3, Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
+        """
+        g = self.parent()._finite_field_ext_pari_modulus_as_str()
+        f = str(self.polynomial())
+        s = 'Mod(%s, %s)'%(f, g)
+        if var is None:
+            return s
+        return s.replace(self.parent().variable_name(), var)
+
+    def charpoly(self, var='x'):
+        """
+        Return the characteristic polynomial of self as a polynomial with given variable.
+
+        EXAMPLES:
+            sage: k.<a> = GF(19^2)
+            sage: parent(a)
+            Finite Field in a of size 19^2
+            sage: a.charpoly('X')
+            X^2 + 18*X + 2
+            sage: a^2 + 18*a + 2
+            0
+        """
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        R = PolynomialRing(self.parent().prime_subfield(), var)
+        return R(self._pari_().charpoly('x').lift())
+
+    def norm(self):
+        """
+        Return the norm of self down to the prime subfield.
+
+        This is the product of the Galois conjugates of self.
+
+        EXAMPLES:
+            sage: S.<b> = GF(5^2); S
+            Finite Field in b of size 5^2
+            sage: b.norm()
+            2
+            sage: b.charpoly('t')
+            t^2 + 4*t + 2
+
+        Next we consider a cubic extension:
+            sage: S.<a> = GF(5^3); S
+            Finite Field in a of size 5^3
+            sage: a.norm()
+            2
+            sage: a.charpoly('t')
+            t^3 + 3*t + 3
+            sage: a * a^5 * (a^25)
+            2
+        """
+        f = self.charpoly('x')
+        n = f[0]
+        if f.degree() % 2 != 0:
+            return -n
+        else:
+            return n
+
+    def trace(self):
+        """
+        Return the trace of this element, which is the sum of the
+        Galois conjugates.
+
+        EXAMPLES:
+            sage: S.<a> = GF(5^3); S
+            Finite Field in a of size 5^3
+            sage: a.trace()
+            0
+            sage: a.charpoly('t')
+            t^3 + 3*t + 3
+            sage: a + a^5 + a^25
+            0
+            sage: z = a^2 + a + 1
+            sage: z.trace()
+            2
+            sage: z.charpoly('t')
+            t^3 + 3*t^2 + 2*t + 2
+            sage: z + z^5 + z^25
+            2
+        """
+        return self.parent().prime_subfield()(self._pari_().trace().lift())
+
+    def multiplicative_order(self):
+        """
+        Return the multiplicative order of this field element.
+
+        """
+        import sage.rings.arith
+
+        if self.is_zero():
+            return ArithmeticError, "Multiplicative order of 0 not defined."
+        n = self._parent.order() - 1
+        order = 1
+        for p, e in sage.rings.arith.factor(n):
+            # Determine the power of p that divides the order.
+            a = self**(n/(p**e))
+            while a != 1:
+                order = order * p
+                a = a**p
+
+        return order
+
+    def nth_root(self, int n, extend = False, all = False):
+        r"""
+        Returns an nth root of self.
+
+        INPUT:
+            n -- integer >= 1 (must fit in C int type)
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+
+        OUTPUT:
+           If self has an nth root, returns one (if all == False) or a list of
+           all of them (if all == True).  Otherwise, raises a ValueError (if
+           extend = False) or a NotImplementedError (if extend = True).
+
+        AUTHOR:
+           -- David Roe (2007-10-3)
+
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.integer import Integer
+        if extend:
+            raise NotImplementedError
+        R = PolynomialRing(self.parent(), "x")
+        f = R([-self] + [self.parent()(Integer(0))] * (n - 1) + [self.parent()(1)])
+        L = f.roots()
+        if all:
+            return [x[0] for x in L]
+        else:
+            if len(L) == 0:
+                raise ValueError, "no nth root"
+            else:
+                return L[0][0]
 
 def is_AlgebraElement(x):
     """

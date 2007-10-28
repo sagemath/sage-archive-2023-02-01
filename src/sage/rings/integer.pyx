@@ -3482,6 +3482,9 @@ cdef hook_fast_tp_functions():
     cdef RichPyObject* o
     o = <RichPyObject*>global_dummy_Integer
 
+    # Make sure this never, ever gets collected
+    Py_INCREF(global_dummy_Integer)
+
     # By default every object created in Pyrex is garbage
     # collected. This means it may have references to other objects
     # the Garbage collector has to look out for. We remove this flag

@@ -1,7 +1,3 @@
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, int len)
-    int PyObject_TypeCheck(object o, object type)
-
 cdef extern from 'symmetrica/macro.h':
     pass
 
@@ -254,8 +250,6 @@ cdef extern from 'symmetrica/def.h':
     OBJECTKIND s_o_k(OP a)
     void* c_o_k(OP a, OBJECTKIND k)
 
-
-    void* println(OP a)
 
     #Integers
     void* m_i_i(INT n, OP a)

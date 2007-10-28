@@ -15,7 +15,6 @@ TODO: Figure out how to do the cdef public/extern stuff with C++
 
 include "sage/libs/ntl/decl.pxi"
 include "sage/ext/stdsage.pxi"
-include "singular-cdefs.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX

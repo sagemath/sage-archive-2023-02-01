@@ -29,7 +29,5 @@ cdef class Integer(EuclideanDomainElement):
 
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
-cdef extern int set_mpz(Integer self, mpz_t value)
-
 cdef class int_to_Z(Morphism):
     pass

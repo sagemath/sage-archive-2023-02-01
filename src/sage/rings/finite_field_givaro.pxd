@@ -5,11 +5,6 @@ from sage.structure.element cimport FiniteFieldElement, Element, RingElement, Mo
 from sage.structure.parent  cimport Parent
 
 
-cdef extern from "Python.h":
-    ctypedef struct PyTypeObject
-    ctypedef struct PyObject
-    int PyObject_TypeCheck(object o, PyTypeObject *t)
-
 cdef extern from "givaro/givconfig.h":
     pass
 

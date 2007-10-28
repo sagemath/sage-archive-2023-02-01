@@ -29,7 +29,7 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 #Tableaux
 from tableau import Tableau, Tableaux, StandardTableaux, SemistandardTableaux
 import tableau
-from skew_tableau import SkewTableau, StandardSkewTableaux
+from skew_tableau import SkewTableau, StandardSkewTableaux #, SemistandardSkewTableaux
 import skew_tableau
 from ribbon import Ribbon, StandardRibbonTableaux
 import ribbon
@@ -86,3 +86,14 @@ from sfa import SymmetricFunctionAlgebra, SFAPower, SFASchur, SFAHomogeneous, SF
 import integer_list
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
+
+from kfpoly import KostkaFoulkesPolynomial
+
+from finite_class import FiniteCombinatorialClass
+
+#Cartan types, root systems, etc.
+from cartan_type import CartanType
+from dynkin_diagram import dynkin_diagram
+from cartan_matrix import cartan_matrix
+from coxeter_matrix import coxeter_matrix
+from root_system import RootSystem

@@ -93,6 +93,32 @@ class ChooseNK_nk(CombinatorialClass):
         return r
 
 
+    def unrank(self, rank):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: c52.list() == map(c52.unrank, range(c52.count()))
+            True
+        """
+        if rank < 0 or rank >= self.count():
+            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.count()-1)
+        return from_rank(rank, self.n, self.k)
+
+    def rank(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: range(c52.count()) == map(c52.rank, c52)
+            True
+        """
+        if len(x) != self.k:
+            return
+
+        return rank(x, self.n)
+
+
 def rank(comb, n):
     """
     Returns the rank of comb in the subsets of range(n) of

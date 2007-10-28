@@ -34,15 +34,14 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.libs.pari.gen import pari
-from sage.misc import cputime
 
 ZZx = PolynomialRing(IntegerRing(), 'x')
 
-from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor, int_to_time
+from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 
-def enumerate_totallyreal_fields(n, B, a = [], verbose = False, print_return_seqs = False):
+def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=False):
     r"""
-    This function enumerates all *primitive* totally real fields of
+    This function enumerates (primitve) totally real fields of
     degree $n>1$ with discriminant $d \leq B$; optionally one can
     specify the first few coefficients, where the sequence $a$
     corresponds to a polynomial by
@@ -51,7 +50,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, print_return_seq
     If verbose == True, then print to the screen verbosely; if
     verbose is a string, then print to the file specified by verbose
     verbosely.
-    If print_return_seqs == True, then print/return int sequences rather than pari polynomials.
+
+    NOTE:
+    This is guaranteed to give all primitive such fields, and
+    seems in practice to give many imprimitive ones.
 
     INPUT:
     n -- integer, the degree
@@ -140,7 +142,6 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, print_return_seq
     dB_odlyzko = [0.,1.,2.223,3.610,5.067,6.523,7.941,9.301,10.596,11.823,12.985][n];
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
-    t = cputime()
 
     # Trivial case
     if n == 1:
@@ -232,18 +233,14 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, print_return_seq
         print "Polynomials with sssd poldisc:", counts[1]
         print "Irreducible polynomials:", counts[2]
         print "Polynomials with nfdisc <= B:", counts[3]
-        print "Total time:", int_to_time(cputime(t))
         for i in range(len(S)):
             print S[i]
         if type(verbose) == str:
             fsock.close()
         sys.stdout = saveout
 
-    if print_return_seqs:
-        output = [counts,[[s[0],s[1].Vec()] for s in S]]
-        print output
-        sys.stdout.flush()
-        return output
+    if return_seqs:
+        return [counts,[[s[0],s[1].Vec()] for s in S]]
     else:
         return S
 
@@ -285,24 +282,26 @@ def int_to_time(m):
 
     EXAMPLES:
     sage: int_to_time(3765)
-    '1h2m45s'
+    '1h2m45.0s'
     """
 
-    n = math.ceil(m)
+    n = math.floor(m)
+    p = m-n
     outstr = ''
     if m >= 60*60*24:
         t = n//(60*60*24)
-        outstr += str(t) + 'd'
+        outstr += str(t)[:len(str(t))-2] + 'd'
         n -= t*(60*60*24)
     if m >= 60*60:
         t = n//(60*60)
-        outstr += str(t) + 'h'
+        outstr += str(t)[:len(str(t))-2] + 'h'
         n -= t*(60*60)
     if m >= 60:
         t = n//60
-        outstr += str(t) + 'm'
+        outstr += str(t)[:len(str(t))-2] + 'm'
         n -= t*60
-    outstr += str(n) + 's'
+    n += p
+    outstr += '%.1f'%n + 's'
 
     return outstr
 

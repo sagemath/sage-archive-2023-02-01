@@ -9,3 +9,5 @@ from number_field_element import (NumberFieldElement, is_NumberFieldElement)
 from number_field_ideal import is_NumberFieldIdeal
 
 from order import is_NumberFieldOrder, EquationOrder
+
+from totallyreal import enumerate_totallyreal_fields

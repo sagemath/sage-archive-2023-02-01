@@ -241,6 +241,47 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
             mpz_divexact_ui(d.value, d.value, primessq[i])
     return asq
 
+cdef easy_is_irreducible(int *a, int n):
+    r"""
+    Very often, polynomials have roots in {-2,-1,1,2}, so we rule
+    these out quickly.  Returns 0 if reducible, 1 if inconclusive.
+    """
+    cdef s, sgn
+
+    # Check if x-1 is a factor.
+    s = 0
+    for i from 0 <= i <= n:
+        s += a[i]
+    if s == 0:
+        return 0
+
+    # Check if x+1 is a factor.
+    s = 0
+    sgn = 1
+    for i from 0 <= i <= n:
+        s += sgn*a[i]
+        sgn *= -1
+    if s == 0:
+        return 0
+
+    # Check if x-2 is a factor.
+    s = 0
+    for i from 0 <= i <= n:
+        s += (2**i)*a[i]
+    if s == 0:
+        return 0
+
+    # Check if x+2 is a factor.
+    s = 0
+    sgn = 1
+    for i from 0 <= i <= n:
+        s += sgn*(2**i)*a[i]
+        sgn *= -1
+    if s == 0:
+        return 0
+
+    return 1
+
 
 #***********************************************************************************************
 # Main class and routine
@@ -321,7 +362,8 @@ cdef class tr_data:
             for i from 0 <= i < n+1:
                 self.a[i] = a[i]
                 self.amax[i] = a[i]
-            self.amax[n-1] = n/2
+            self.a[n-1] = -(n/2)
+            self.amax[n-1] = 0
             self.k = n-2
         elif len(a) <= n+1:
             # First few coefficients have been specified.
@@ -414,7 +456,7 @@ cdef class tr_data:
             # Can't have constant coefficient zero!
             if self.a[0] == 0:
                 self.a[0] += 1
-            if self.a[0] <= self.amax[0]:
+            if self.a[0] <= self.amax[0] and easy_is_irreducible(self.a, n):
                 for i from 0 <= i < n:
                     f_out[i] = self.a[i]
                 return
@@ -607,7 +649,7 @@ cdef class tr_data:
                 self.k -= 1
                 k -= 1
 
-            if not maxoutflag:
+            if not maxoutflag and easy_is_irreducible(self.a, n):
                 self.k = k
                 for i from 0 <= i < n:
                     f_out[i] = self.a[i]

@@ -16,7 +16,8 @@ usage() {
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "        options to '-t':   --verbose, --gdb, --long, --optional,"
-    echo "                  --valgrind, --memcheck, --massif, --cachegrind, --callgrind"
+    echo "                  --valgrind, --memcheck, --massif, --cachegrind,"
+    echo "                  --callgrind, --omega"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
@@ -98,6 +99,9 @@ usage_advanced() {
     echo "  -callgrind    -- run SAGE under the control of valgrind using the callgrind tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
     echo "                   sage-callgrind.PID."
+    echo "  -omega        -- run SAGE under the control of valgrind using the omega tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-omega.PID."
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
@@ -752,6 +756,13 @@ if [ $1 = '-callgrind' -o $1 = "--callgrind" ]; then
     sage-callgrind
     exit $?
 fi
+
+if [ $1 = '-omega' -o $1 = "--omega" ]; then
+    sage_setup
+    sage-omega
+    exit $?
+fi
+
 
 if [ $# -ge 1 ]; then
    matplotlib_setup

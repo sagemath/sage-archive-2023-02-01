@@ -25,6 +25,7 @@ of integers.
 import operator
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
+from sage.misc.latex import latex, latex_varify
 
 def is_FreeMonoidElement(x):
     return isinstance(x, FreeMonoidElement)
@@ -119,7 +120,10 @@ class FreeMonoidElement(MonoidElement):
             sage: F = FreeMonoid(3, 'a')
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
-            'a0^{5}a1^{2}a0^{12}a1^{2}'
+            '\\mbox{a0}^{5}\\mbox{a1}^{2}\\mbox{a0}^{12}\\mbox{a1}^{2}'
+            sage: F, (alpha,beta,gamma) = FreeMonoid(3, 'alpha,beta,gamma').objgens()
+            sage: latex(alpha*beta*gamma)
+            \alpha\beta\gamma
         """
         s = ""
         v = self._element_list
@@ -128,11 +132,62 @@ class FreeMonoidElement(MonoidElement):
             g = x[int(v[i][0])]
             e = v[i][1]
             if e == 1:
-                s += "%s"%g
+                s += "%s"%(latex_varify(g),)
             else:
-                s += "%s^{%s}"%(g,e)
+                s += "%s^{%s}"%(latex_varify(g),e)
         if len(s) == 0: s = "1"
         return s
+
+    def __call__(self, *x, **kwds):
+        """
+        EXAMPLES:
+            sage: M.<x,y,z>=FreeMonoid(3)
+            sage: (x*y).subs(x=1,y=2,z=14)
+            2
+            sage: (x*y).subs({x:z,y:z})
+            z^2
+            sage: M1=MatrixSpace(ZZ,1,2)
+            sage: M2=MatrixSpace(ZZ,2,1)
+            sage: (x*y).subs({x:M1([1,2]),y:M2([3,4])})
+            [11]
+
+        AUTHOR:
+            -- Joel B. Mohler (2007.10.27)
+        """
+        if len(kwds)>0 and len(x)>0:
+            raise ValueError, "must not specify both a keyword and positional argument"
+
+        if len(kwds)>0:
+            p = self.parent()
+            def extract_from(kwds,g):
+                for x in g:
+                    try:
+                        return kwds[x]
+                    except KeyError:
+                        pass
+                return None
+
+            x = [extract_from(kwds,(p.gen(i),p.variable_name(i))) for i in range(p.ngens())]
+        elif isinstance(x[0],tuple):
+            x = x[0]
+
+        if len(x) != self.parent().ngens():
+            raise ValueError, "must specify as many values as generators in parent"
+
+        # I don't start with 0, because I don't want to preclude evaluation with
+        #arbitrary objects (e.g. matrices) because of funny coercion.
+        result = None
+        for m in self._element_list:
+            # Take further pains to ensure that non-square matrices are not exponentiated.
+            c = x[m[0]]**m[1] if m[1] > 1 else x[m[0]] if m[1] == 1 else self.parent()(1)
+            if result is None:
+                result = c
+            else:
+                result *= c
+
+        if result is None:
+            return self.parent()(0)
+        return result
 
     def __mul__(self, y):
         """

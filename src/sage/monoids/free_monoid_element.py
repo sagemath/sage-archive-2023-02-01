@@ -120,7 +120,7 @@ class FreeMonoidElement(MonoidElement):
             sage: F = FreeMonoid(3, 'a')
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
-            '\mbox{a0}^{5}\mbox{a1}^{2}\mbox{a0}^{12}\mbox{a1}^{2}'
+            '\\mbox{a0}^{5}\\mbox{a1}^{2}\\mbox{a0}^{12}\\mbox{a1}^{2}'
             sage: F, (alpha,beta,gamma) = FreeMonoid(3, 'alpha,beta,gamma').objgens()
             sage: latex(alpha*beta*gamma)
             \alpha\beta\gamma

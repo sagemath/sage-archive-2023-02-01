@@ -6269,7 +6269,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 # Used in integer factorization -- must be done
 # after the pari_instance creation above:
 
-cdef GEN ten_to_15 = P.new_gen(gp_read_str('1000000000000000')).g
+cdef gen _tmp = P.new_gen(gp_read_str('1000000000000000'))
+cdef GEN ten_to_15 = _tmp.g
 
 ##############################################
 

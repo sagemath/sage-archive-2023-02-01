@@ -12,8 +12,8 @@
 
 var applet_tag = 'Loading Java 3d Libraries... <applet id="sage3d" code="org.jdesktop.applet.util.JNLPAppletLauncher"  \
 width="500" height="22"                                                       \
-codebase="/java/3d/"                                                          \
-archive="lib/sage3d.jar,                                                      \
+codebase="/java/"                                                          \
+archive="sage3d.jar,                                                      \
          sun-libs/applet-launcher.jar,sun-libs/j3dcore.jar,sun-libs/j3dutils.jar,sun-libs/vecmath.jar,sun-libs/jogl.jar,sun-libs/gluegen-rt.jar">      \
 <param name="codebase_lookup" value="false">                                  \
 <param name="subapplet.displayname" value="Java 3D Viewer">                   \
@@ -22,13 +22,13 @@ archive="lib/sage3d.jar,                                                      \
 <param name="noddraw.check" value="true">                                     \
                                                                               \
 <param name="subapplet.classname" value="org.sagemath.sage3d.ObjectViewerApplet">       \
-<param name="jnlpExtension1" value="'+document.location.protocol+'//'+document.location.host+'/java/3d/sun-libs/java3d-latest.jnlp">              \
+<param name="jnlpExtension1" value="'+document.location.protocol+'//'+document.location.host+'/java/sun-libs/java3d-latest.jnlp">              \
 </applet>'
 
 var test_applet_tag = '<applet id="sage3d" code="org.sagemath.TestApplet"     \
 width="100" height="20"                                                       \
-codebase="/java/3d/"                                                          \
-archive="lib/sage3d.jar"                                                      \
+codebase="/java/"                                                          \
+archive="sage3d.jar"                                                      \
 </applet>xxxx'
 
 

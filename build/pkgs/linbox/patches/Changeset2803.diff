@@ -1,0 +1,133 @@
+--- trunk/linbox/linbox/algorithms/lifting-container.h
++++ trunk/linbox/linbox/algorithms/lifting-container.h
+@@ -114,4 +114,5 @@
+ 	template < class Ring, class Blackbox>
+ 	void BoundBlackbox (const Ring& R, typename Ring::Element& H_col_sqr, typename Ring::Element& short_col_sqr, const Blackbox& A) {
++
+ 		typedef typename Ring::Element Integer;
+ 		Integer one,zero,sqsum;
+@@ -124,10 +125,12 @@
+ 		typename std::vector<Integer>::const_iterator iter;
+ 		std::vector<Integer> e(n,zero),tmp(m);
++	
+ 		for (size_t i=0;i<n;i++){
+ 			e[i]=one;
+ 			A.apply(tmp,e);
+ 			sqsum=zero;
+-			for (iter=tmp.begin();iter!=tmp.end();++iter)
++			for (iter=tmp.begin();iter!=tmp.end();++iter){
+ 				sqsum += (*iter)*(*iter);
++			}
+ 			R.mulin(H_col_sqr, sqsum);
+ 			if (i==0 || sqsum < short_col_sqr) 
+@@ -618,5 +621,5 @@
+ 				for ( ;iter != residu. end(); ++iter, ++iter_p)
+ 					//_F. init (*iter_p, this->_R.convert(tmp,*iter));
+-					hom.image(*iter_p, *iter);
++					hom.image(*iter_p, *iter);//std::cout<<*iter_p<<"= "<< *iter<<" mod "<<this->_p<<"\n";}
+ 			}			
+ #ifdef RSTIMING
+@@ -639,4 +642,5 @@
+ 				typename FVector::const_iterator iter_p = _digit_p.begin(); 
+ 				typename IVector::iterator iter = digit.begin();
++				
+ 				for ( ; iter_p!= _digit_p.end(); ++iter_p, ++iter)
+ 					//this->_R.init(*iter, _F.convert(tmp,*iter_p));
+Index: trunk/linbox/linbox/algorithms/rational-solver.inl
+===================================================================
+--- trunk/linbox/linbox/algorithms/rational-solver.inl (revision 2755)
++++ trunk/linbox/linbox/algorithms/rational-solver.inl (revision 2803)
+@@ -649,5 +649,5 @@
+ 				F->write(std::cout);
+ 				std::cout<<" A mod p :=\n";
+-				FMP->write(std::cout,*F);
++				FMP->write(std::cout);
+ #endif				
+ 			
+@@ -687,5 +687,5 @@
+ #ifdef DEBUG_DIXON
+ 		std::cout<<"A^-1 mod p :=\n";
+-		FMP->write(std::cout,*F);
++		FMP->write(std::cout);
+ #endif		
+ 
+Index: trunk/linbox/linbox/blackbox/apply.h
+===================================================================
+--- trunk/linbox/linbox/blackbox/apply.h (revision 2775)
++++ trunk/linbox/linbox/blackbox/apply.h (revision 2803)
+@@ -334,5 +334,5 @@
+ 			bit=maxValue.bitsize();
+ 			dbit= maxValue.size_in_base(4)*2;
+-			maxBitSize= ((dbit-bit)>1)? dbit: bit;
++			maxBitSize= ((dbit-bit)>0)? dbit: bit;
+ 						
+ 			// Check Qadic matrix reprentation possibility			
+@@ -342,5 +342,5 @@
+  			chunk_size = maxChunkVal.bitsize();	
+ 			use_chunks = (chunk_size >= 16);		
+-			//std::cout<<"max bit= "<<maxBitSize<<" "<<maxValue.size_in_base(4)*2<<"\n";std::cout<<"max value= "<<maxValue<<"\n";
++			std::cout<<"max bit= "<<maxBitSize<<" "<<maxValue.size_in_base(4)*2<<"\n";std::cout<<"max value= "<<maxValue<<"\n";
+ 			if (use_chunks){//std::cout<<"Matrix Qadic\n";
+ 				_switcher= MatrixQadic;
+@@ -403,7 +403,9 @@
+ #ifdef DEBUG_CHUNK_SETUP			
+ 				std::cout<<std::endl;
++				std::cout<<"max bit= "<<maxBitSize<<std::endl;
+ 				std::cout << num_chunks << " chunks of "<< chunk_size << " bits each" << std::endl;
+ 				if (!use_neg) std::cout << "not ";
+ 				std::cout << "using negative leading chunk" << std::endl;
++				std::cout << "shift is : "<<shift<<std::endl;
+ 				std::cout << "Contents of chunks: " << std::endl;
+ 				for (size_t i=0; i<num_chunks; i++) {
+Index: trunk/linbox/linbox/field/PID-integer.h
+===================================================================
+--- trunk/linbox/linbox/field/PID-integer.h (revision 2738)
++++ trunk/linbox/linbox/field/PID-integer.h (revision 2803)
+@@ -303,5 +303,5 @@
+                                              bool reduce, bool recursive ) const {
+                     
+-// std::cerr << "RatRecon : " << f << " " << m << " " << k << std::endl;
++			//std::cerr << "RatRecon : " << f << " " << m << " " << k << std::endl;
+                     
+ 
+@@ -355,6 +355,6 @@
+                                 Element ganum, gar2;
+                                 for( q = 1, ganum = r0-num, gar2 = r0 ; (ganum >= k) || (gar2<k); ++q ) {
+-                                    ganum -= num;
+-                                    gar2 -= num;
++					ganum -= num;
++					gar2 -= num;
+                                 }
+                                 
+Index: trunk/linbox/linbox/field/modular-int32.h
+===================================================================
+--- trunk/linbox/linbox/field/modular-int32.h (revision 2697)
++++ trunk/linbox/linbox/field/modular-int32.h (revision 2803)
+@@ -181,5 +181,5 @@
+ 
+ 		Element &init (Element &x, const integer &y) const  {
+-			x = y % modulus;
++		        x = y % modulus;
+ 			if (x < 0) x += modulus;
+ 			return x;
+Index: trunk/linbox/linbox/solutions/det.h
+===================================================================
+--- trunk/linbox/linbox/solutions/det.h (revision 2800)
++++ trunk/linbox/linbox/solutions/det.h (revision 2803)
+@@ -118,10 +118,10 @@
+ 	{
+ 		// not yet a hybrid
+-		/*
+-		  if (useBB(A)) 
+-		  return det(d, A, tag, Method::Blackbox(M));
+-		  else
+-		*/
+-		return det(d, A, tag, Method::Elimination(M));
++		
++		if (useBB(A)) 
++			return det(d, A, tag, Method::Blackbox(M));
++		else
++		
++			return det(d, A, tag, Method::Elimination(M));
+ 	}
+ 	template<class Blackbox>

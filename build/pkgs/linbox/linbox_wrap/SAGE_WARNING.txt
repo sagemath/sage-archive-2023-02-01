@@ -1,0 +1,4 @@
+There is a horrible hack in Makefile.in --   I edited it by
+hand and made sure CFLAGS CXXFLAGS and CPPFLAGS are passed
+on to the compiler.  This is terrible because running auto*
+tools will overwrite Makefile.in using stuff from Makefile.ac

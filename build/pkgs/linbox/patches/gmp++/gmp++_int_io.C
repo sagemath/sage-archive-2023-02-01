@@ -48,7 +48,7 @@ Integer::operator std::string () const {
     char *str = new char[strSize + 2];
     mpz_get_str(str, 10, (mpz_ptr)&(gmp_rep));
     s = std::string(str);
-//    delete [] str ;
+    delete [] str ;
     return s;
 }
 

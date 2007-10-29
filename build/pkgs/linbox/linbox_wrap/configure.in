@@ -1,0 +1,93 @@
+# ACX_BLAS
+#
+# Copyright © 2001 Steven G. Johnson <stevenj@alum.mit.edu>
+# modified by Martin Albrecht <malb@informatik.uni-bremen.de>
+
+AC_DEFUN([ACX_BLAS], [
+AC_PREREQ(2.60)
+AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])
+acx_blas_ok=no
+
+AC_ARG_WITH(blas,
+        [AS_HELP_STRING([--with-blas=<lib>],[use BLAS library <lib>])])
+case $with_blas in
+        yes | "") ;;
+        no) acx_blas_ok=disable ;;
+        -* | */* | *.a | *.so | *.so.* | *.o) BLAS_LIBS="$with_blas" ;;
+        *) BLAS_LIBS="-l$with_blas" ;;
+esac
+
+acx_blas_save_LIBS="$LIBS"
+LIBS="$LIBS $FLIBS"
+
+# First, check BLAS_LIBS environment variable
+if test $acx_blas_ok = no; then
+if test "x$BLAS_LIBS" != x; then
+        save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
+        AC_MSG_CHECKING([for cblas_dgemm in $BLAS_LIBS])
+        AC_TRY_LINK_FUNC(cblas_dgemm, [acx_blas_ok=yes], [BLAS_LIB=""])
+        AC_MSG_RESULT($acx_blas_ok)
+	LIBS="$save_LIBS"
+fi
+fi
+
+# BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
+if test $acx_blas_ok = no; then
+        AC_CHECK_LIB(atlas, ATL_xerbla,
+                [AC_CHECK_LIB(f77blas, $sgemm,
+                [AC_CHECK_LIB(cblas, cblas_dgemm,
+                        [acx_blas_ok=yes
+                         BLAS_LIBS="-lcblas -lf77blas -latlas"],
+                        [], [-lf77blas -latlas])],
+                        [], [-latlas])])
+fi
+
+# BLAS in some other cblas (like GSL)?
+if test $acx_blas_ok = no; then
+        AC_CHECK_LIB(cblas, cblas_dgemm, [acx_blas_ok=yes;BLAS_LIBS="-lcblas"])
+fi
+
+AC_SUBST(BLAS_LIBS)
+
+LIBS="$acx_blas_save_LIBS"
+
+# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+if test x"$acx_blas_ok" = xyes; then
+        ifelse([$1],,AC_DEFINE(HAVE_BLAS,1,[Define if you have a BLAS library.]),[$1])
+        :
+else
+        acx_blas_ok=no
+        $2
+fi
+])dnl ACX_BLAS
+
+
+#
+#
+# Main
+#
+#
+
+AC_INIT([liblinboxwrap],[0.0.1])
+AC_CONFIG_SRCDIR(src/linbox_wrap.cpp)
+AM_INIT_AUTOMAKE
+
+AC_PROG_LIBTOOL
+
+AC_PROG_INSTALL
+
+AC_LANG([C++])
+AC_PROG_CXX
+AC_PROG_MAKE_SET
+
+AC_HEADER_STDC
+
+#AC_CHECK_HEADERS(linbox/solutions/minpoly.h,,AC_MSG_ERROR[
+#required header file missing])
+
+ACX_BLAS
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+
+

@@ -1,3 +1,10 @@
+*2007-10-29: (mabshoff)
+
+  * added fix for #1026
+  * add "-g" to CXXFLAGS and CFLAGS for better valgrind output
+  * add .hgignore
+  * add all under patches and linbox_wrap to hg repo
+
 *2007-09-03: merged LinBox ChangeSet 2803, which fixes #498 without the
              performance regression of the initial workaround
              (mabshoff)

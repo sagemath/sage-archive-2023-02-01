@@ -16,9 +16,9 @@ $CP patches/fflas_bounds.inl linbox/linbox/fflas/
 
 cd linbox/
 
-CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""
-CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"  -L\"$SAGE_LOCAL/lib\""
-CPPFLAGS="$CPPFLAGS  -I\"$SAGE_LOCAL/include/linbox\" -I\"$SAGE_LOCAL\"/include"
+CFLAGS="$CFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""
+CXXFLAGS="$CXXFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"  -L\"$SAGE_LOCAL/lib\""
+CPPFLAGS="$CPPFLAGS -g -I\"$SAGE_LOCAL/include/linbox\" -I\"$SAGE_LOCAL\"/include"
 
 export CFLAGS
 export CXXFLAGS

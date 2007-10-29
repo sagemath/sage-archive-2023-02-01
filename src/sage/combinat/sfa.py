@@ -316,7 +316,7 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             raise ValueError, "R must have a unit element"
 
         self.__basis = basis
-        self.__element_class = element_class
+        self._element_class = element_class
         self.__prefix = prefix
         self.__print_style = 'lex'
 
@@ -329,7 +329,7 @@ class SymmetricFunctionAlgebra_generic(Algebra):
         Coerce x into self.
         """
         R = self.base_ring()
-        eclass = self.__element_class
+        eclass = self._element_class
         if isinstance(x, int):
             x = Integer(x)
 
@@ -517,7 +517,7 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             sage: a.parent() is s
             True
         """
-        return self.__element_class(self, {partition.Partition_class([]):self.base_ring()(0)})
+        return self._element_class(self, {partition.Partition_class([]):self.base_ring()(0)})
 
     def __cmp__(self, other):
         """
@@ -1717,6 +1717,14 @@ class SymmetricFunctionAlgebra_dual(SymmetricFunctionAlgebra_generic):
         """
         Coerce things into self.  We do this by coercing things into
         self's dual basis, and then converting that to self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ['t'].fraction_field())
+            sage: t = QQ['t'].fraction_field().gen()
+            sage: zee_hl = lambda x: x.centralizer_size(t=t)
+            sage: S = s.dual_basis(zee_hl)
+            sage: S(s([2,1]))
+            (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[1, 1, 1] + ((-t^2-1)/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[2, 1] + (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[3]
         """
 
         if is_SymmetricFunction(x):
@@ -1725,7 +1733,7 @@ class SymmetricFunctionAlgebra_dual(SymmetricFunctionAlgebra_generic):
             else:
                 #Coerce x into the dual basis
                 d_x = self._dual_basis(x)
-                return self.__element_class(dual=d_x)
+                return self._element_class(self, dual=d_x)
 
 
         return SymmetricFunctionAlgebra_generic.__call__(self, x)
@@ -1867,7 +1875,7 @@ class SymmetricFunctionAlgebraElement_dual(SymmetricFunctionAlgebraElement_gener
             #to self have been precomputed
             for part in d_mcs:
                 if part not in to_self_cache:
-                    parent._precompute(len(part))
+                    parent._precompute(sum(part))
 
             #Create the monomial coefficient dictionary from the
             #the monomial coefficient dictionary of dual

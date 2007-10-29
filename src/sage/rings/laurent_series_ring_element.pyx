@@ -233,7 +233,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: x = Frac(QQ[['x']]).0
             sage: f = (17/2)*x^-2 + x + x^2 + 3*x^4 + O(x^7)
             sage: latex(f)
-            \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(\text{x}^{7})
+            \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(x^{7})
         """
         if self.is_zero():
             if self.prec() == infinity:
@@ -244,7 +244,7 @@ cdef class LaurentSeries(AlgebraElement):
         v = self.__u.list()
         valuation = self.__n
         m = len(v)
-        X = self._parent.variable_name()
+        X = self._parent.latex_variable_names()[0]
         atomic_repr = self._parent.base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
@@ -279,9 +279,9 @@ cdef class LaurentSeries(AlgebraElement):
             if pr == 0:
                 bigoh = "O(1)"
             elif pr == 1:
-                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.variable_name())
+                bigoh = "O(%s)"%(X,)
             else:
-                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.variable_name()),pr)
+                bigoh = "O(%s^{%s})"%(X,pr)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh

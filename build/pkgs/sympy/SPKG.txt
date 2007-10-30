@@ -1,2 +1,4 @@
+* added a script for downloading the upstream sources, creating the src dir
+* upgraded to sympy-0.5.6
 * upgraded to sympy-0.5.5
 * upgraded to sympy-0.5.3

@@ -901,7 +901,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == R
             False
 
-            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='revlex')
+            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='invlex')
             sage: P == R
             False
 

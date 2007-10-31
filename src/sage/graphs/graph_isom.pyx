@@ -176,7 +176,7 @@ cdef class OrbitPartition:
             return 1
         return 0
 
-cdef OrbitPartition _orbit_partition_from_list_perm(int *gamma, int n):
+cdef OrbitPartition orbit_partition_from_list_perm(int *gamma, int n):
     cdef int i
     cdef OrbitPartition O
     O = OrbitPartition(n)
@@ -1590,7 +1590,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # information
             # TODO: this step could be optimized. The variable OP is not
             # really necessary
-            OP = _orbit_partition_from_list_perm(gamma, n)
+            OP = orbit_partition_from_list_perm(gamma, n)
             for i from 0 <= i < n:
                 Omega[l][i] = OP._is_min_cell_rep(i)
                 Phi[l][i] = OP._is_fixed(i)

@@ -37,14 +37,12 @@ fi
 
 if [ "$DEBUG" = "1" ]; then
   ENABLE_DEBUG="--enable-debug"
-  CXXFLAGS="$CXXFLAGS -ggdb"
-  CFLAGS="$CFLAGS -ggdb"
 else
   ENABLE_DEBUG="--disable-debug"
 fi
 
-CXXFLAGS="$CXXFLAGS -fPIC -O3"; export CXXFLAGS
-CFLAGS="$CFLAGS -fPIC -O3"; export CFLAGS
+CXXFLAGS="$CXXFLAGS -fPIC -O3 -g"; export CXXFLAGS
+CFLAGS="$CFLAGS -fPIC -O3 -g"; export CFLAGS
 
 distclean()
 {

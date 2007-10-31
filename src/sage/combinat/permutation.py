@@ -1713,6 +1713,31 @@ class Permutation_class(CombinatorialObject):
 
         return [Tableau(p),Tableau(q)]
 
+
+
+
+    def remove_extra_fixed_points(self):
+        """
+        Returns the permutation obtained by removing any
+        fixed points at the end of self.
+
+        EXAMPLES:
+            sage: Permutation([2,1,3]).remove_extra_fixed_points()
+            [2, 1]
+            sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
+            [1]
+        """
+        #Strip off all extra fixed points at the end of
+        #the permutation.
+        i = len(self)-1
+        while i >= 1:
+            if i != self[i] - 1:
+                break
+            i -= 1
+        return Permutation_class(self[:i+1])
+
+
+
 ################################################################
 
 def Arrangements(mset, k):
@@ -1923,6 +1948,8 @@ class Permutations_mset(CombinatorialClass):
                     c /= factorial(i)
 
             return c
+
+
 
 
 class Permutations_msetk(CombinatorialClass):

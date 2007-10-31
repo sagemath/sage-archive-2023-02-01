@@ -965,7 +965,7 @@ cdef object _py_schubert(OP a):
         return SchubertPolynomialRing(ZZ)(0)
 
     while pointer != NULL:
-        z_elt[ _py_permutation(s_s_s(pointer)) ] = _py(s_sch_k(pointer))
+        z_elt[ _py(s_s_s(pointer)).remove_extra_fixed_points() ] = _py(s_sch_k(pointer))
         pointer = s_sch_n(pointer)
 
     if len(z_elt) == 0:

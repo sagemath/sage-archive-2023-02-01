@@ -303,6 +303,8 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
     def __call__(self, i):
         """
         Returns the image of the integer i under this permutation.
+        Alternately, if i is a list, tuple or string, returns the
+        result of self acting on i.
 
         EXAMPLE:
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
@@ -311,6 +313,12 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: g = G.gen(0)
             sage: g(5)
             4
+            sage: sage: g('abcd')
+            'bcda'
+            sage: g([0,1,2,3])
+            [1, 2, 3, 0]
+            sage: g(('foo','bar','baz','what'))
+            ('bar', 'baz', 'what', 'foo')
         """
         if isinstance(i,(list,tuple,str)):
             s = gap.eval('OnTuples(%s,%s)'%(range(1,len(i)+1), self._gap_().name()))
@@ -447,6 +455,37 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         if len(v) < d:
             v += range(len(v)+1,d+1)
         return v
+
+    def dict(self):
+        """
+        Returns list of the images of the integers from 1 to n under
+        this permutation as a list of Python ints.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(4)
+            sage: g = G((1,2,3,4)); g
+            (1,2,3,4)
+            sage: v = g.dict(); v
+            {1: 2, 2: 3, 3: 4, 4: 1}
+            sage: type(v[0])
+            <type 'int'>
+            sage: x = G([2,1]); x
+            (1,2)
+            sage: x.dict()
+            {1: 2, 2: 1, 3: 3, 4: 4}
+        """
+        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
+        # the following is necessary, since if the
+        # permutation doesn't move some elements at
+        # the end, it is consider by gap as being in
+        # a smaller group.
+        d = self.parent().degree()
+        if len(v) < d:
+            v += range(len(v)+1,d+1)
+        u = {}
+        for i in range(d):
+            u[i+1] = v[i]
+        return u
 
     def order(self):
         """

@@ -8,6 +8,9 @@
 cp patches/assert.h src/factory/
 cp patches/kernel.Makefile.in src/kernel/Makefile.in
 
+# temporary boost workaround
+cp patches/kernel.tgb_internal.h src/kernel/tgb_internal.h
+
 # Build
 
 cd src/

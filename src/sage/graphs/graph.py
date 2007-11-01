@@ -3369,6 +3369,85 @@ class Graph(GenericGraph):
         """
         return False
 
+    def is_eulerian(self):
+        """
+        Return true if the graph has an tour that visits each edge exactly once.
+
+        EXAMPLES:
+            sage: graphs.CompleteGraph(4).is_eulerian()
+            False
+            sage: graphs.CycleGraph(4).is_eulerian()
+            True
+
+        """
+        if not self.is_connected():
+            return False
+        for i in self.degree_iterator():
+            # loops don't matter since they add an even number to the degree
+            if i % 2 != 0:
+                return False
+        return True
+
+    def eulerian_circuit(self, return_vertices=False, labels=True):
+        """
+        Return a list of edges forming an eulerian circuit if one
+        exists.  Otherwise return False.
+
+        This is implemented using Fleury's algorithm.  This could be
+        extended to find eulerian paths too (check for existence and
+        make sure you start on an odd-degree vertex if one exists).
+
+        EXAMPLES:
+
+            sage: g=graphs.CycleGraph(5);
+            sage: g.eulerian_circuit()
+            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 0, None)]
+            sage: g.eulerian_circuit(labels=False)
+            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
+            sage: g = graphs.CompleteGraph(7)
+            sage: edges, vertices = g.eulerian_circuit(return_vertices=True)
+            sage: vertices
+            [0, 1, 2, 0, 3, 1, 4, 0, 5, 1, 6, 2, 3, 4, 2, 5, 3, 6, 4, 5, 6, 0]
+            sage: graphs.CompleteGraph(4).eulerian_circuit()
+            False
+
+        """
+        if not self.is_eulerian():
+            return False
+
+        edge_list = []
+        vertex_list = []
+        g = self.copy()
+        # Get first vertex
+        v = g.vertex_iterator().next()
+        vertex_list.append(v)
+        while g.size()>0:
+            for e in g.edges_incident(v, labels=labels):
+                g.delete_edge(e)
+                if g.is_connected():
+                    break
+                else:
+                    g.add_edge(e)
+            else:
+                # Our only choice is a cut edge
+                g.delete_edge(e)
+                g.delete_vertex(v)
+
+            # the following code is here so that we don't rely the
+            # order of vertices in the edge tuple.
+            v = e[1] if v==e[0] else e[0]
+            edge_list.append(e)
+            vertex_list.append(v)
+
+
+        if return_vertices:
+            return edge_list, vertex_list
+        else:
+            return edge_list
+
+
+
+
     ### Vertex handlers
 
     def neighbor_iterator(self, vertex):
@@ -5367,6 +5446,26 @@ class DiGraph(GenericGraph):
 
         """
         return True
+
+    def is_eulerian(self):
+        """
+        Return true if the graph has an tour that visits each edge exactly once.
+
+        EXAMPLES:
+            sage: g = DiGraph({0:[1,2], 1:[2]}); g.is_eulerian()
+            False
+            sage: g = DiGraph({0:[2], 1:[3], 2:[0,1], 3:[2]}); g.is_eulerian()
+            True
+
+        """
+        if not self.is_connected():
+            return False
+        for i in self.vertex_iterator():
+            # loops don't matter since they count in both the in and out degree.
+            if self.in_degree(i) != self.out_degree(i):
+                return False
+        return True
+
 
     ### Vertex Handlers
 

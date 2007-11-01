@@ -2991,6 +2991,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             (-2*v^2*u + 4*u^3 + v^2)^2
         """
         cdef ring *_ring
+        cdef poly *ptemp
         cdef intvec *iv
         cdef int *ivv
         cdef ideal *I
@@ -3002,8 +3003,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
+        # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
+        ptemp = p_Copy(self._poly,_ring)
         iv = NULL
-        I = singclap_factorize ( self._poly, &iv , int(param)) #delete iv at some point
+        I = singclap_factorize ( ptemp, &iv , int(param)) #delete iv at some point
 
         if param==1:
             v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]
@@ -3019,6 +3022,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         delete(iv)
         id_Delete(&I,_ring)
+        p_Delete(&ptemp,_ring)
 
         return F
 

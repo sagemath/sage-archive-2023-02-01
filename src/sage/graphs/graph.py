@@ -3397,6 +3397,14 @@ class Graph(GenericGraph):
         extended to find eulerian paths too (check for existence and
         make sure you start on an odd-degree vertex if one exists).
 
+        INPUT:
+            return_vertices -- optionally provide a list of vertices
+                for the path
+            labels -- whether to return edges with labels (3-tuples)
+
+        OUTPUT:
+            either ([edges], [vertices]) or [edges] of an Eulerian circuit
+
         EXAMPLES:
 
             sage: g=graphs.CycleGraph(5);

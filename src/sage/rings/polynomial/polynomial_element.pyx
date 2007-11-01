@@ -887,7 +887,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
-            name = self.parent().variable_name()
+            name = self.parent().latex_variable_names()[0]
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         for n in reversed(xrange(m)):
             x = coeffs[n]

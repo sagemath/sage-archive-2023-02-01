@@ -57,7 +57,7 @@ This example illustrates generators for a free module over $\Z$.
 ###############################################################################
 
 import sage.misc.defaults
-import sage.misc.latex
+from sage.misc.latex import latex_variable_name
 import gens_py
 import parent
 
@@ -120,7 +120,8 @@ def _certify_names(names):
         N = N.strip().strip("'")
         if len(N) == 0:
             raise ValueError, "variable name must be nonempty"
-        if not N.isalnum():
+        if not N.isalnum() and not N.replace("_","").isalnum():
+            # We must be alphanumeric, but we make an exception for non-leading '_' characters.
             raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
         if not N[0].isalpha():
             raise ValueError, "first letter of variable name must be a letter"
@@ -376,12 +377,26 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         raise ValueError, "variable names have not yet been set using self._assign_names(...)"
 
     def latex_variable_names(self):
+        """
+        Returns the list of variable names suitable for latex output.
+
+        All '_SOMETHING' substrings are replaced by '_{SOMETHING}' recursively
+        so that subscripts of subscripts work.
+
+        EXAMPLES:
+            sage: R, x = PolynomialRing(QQ,'x',12).objgens()
+            sage: x
+            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+            sage: print R.latex_variable_names ()
+            ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}', 'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
+            sage: f = x[0]^3 + 15/3 * x[1]^10
+            sage: print latex(f)
+            5 x_{1}^{10} + x_{0}^{3}
+        """
         if self._latex_names != None:
             return self._latex_names
         # Compute the latex versions of the variable names.
-        self._latex_names = []
-        for x in self.variable_names():
-            self._latex.append(sage.misc.latex.latex_variable_name(x))
+        self._latex_names = [latex_variable_name(x) for x in self.variable_names()]
         return self._latex_names
 
     def variable_name(self):

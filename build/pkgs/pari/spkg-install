@@ -12,6 +12,12 @@ cp "$TOP"/patches/get_dlld config/
 # Mabshoff: This patch is to get around problem in PPC 32-bit linux build (but it is ok on any other machine)
 cp "$TOP"/patches/get_dlcflags config/
 
+# cwitty: disable -rpath
+cp "$TOP"/patches/get_ld config/
+
+# cwitty: disable TeX; allow bz2 compression
+cp "$TOP"/patches/gphelp.in doc/
+
 # This is needed or there are weird locale problems involving rpath
 # with building SAGE.
 LC_ALL=C
@@ -62,6 +68,16 @@ build()
     fi
 
     $CP -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
+
+    # Install documentation source (compressed), for use by gphelp.
+    $MKDIR -p "$SAGE_LOCAL/share/pari/doc/"
+    $CP -f doc/usersch*.tex "$SAGE_LOCAL/share/pari/doc/"
+    bzip2 -9 -f "$SAGE_LOCAL/share/pari/doc/"usersch*.tex
+    $CP -f doc/translations "$SAGE_LOCAL/share/pari/doc/"
+
+    # And install gphelp.
+    $CP -f doc/gphelp "$SAGE_LOCAL/bin/"
+
     $MAKE install-lib-sta
 
     if [ $? -ne 0 ]; then

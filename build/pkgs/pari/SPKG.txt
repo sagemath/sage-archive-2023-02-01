@@ -16,6 +16,10 @@ Here is how to build a new version of the PARI SAGE spkg:
 
 -----------------------------------
 
+* 2007-10-31: (Carl Witty)
+   disable runpath altogether; we want Sage to be relocatable.
+   install gphelp, and required documentation source files.
+
 * 2007-09-09: (Michael Abshoff)
    add -fPIC to DCLFLAGS on Linux PPC in src/config/get_dlcflags
 

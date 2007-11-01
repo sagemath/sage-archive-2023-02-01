@@ -2797,8 +2797,8 @@ class GenericGraph(SageObject):
 
     def transitive_closure(self):
         r"""
-        Modifies a graph to be its transitive closure and returns the
-        modified graph.
+        Computes the transitive closure of a graph and returns it.
+        The original graph is not modified.
 
         The transitive closure of a graph G has an edge (x,y) if and
         only if there is a path between x and y in G.
@@ -2826,6 +2826,45 @@ class GenericGraph(SageObject):
             for e in G.breadth_first_search(v):
                 G.add_edge((v,e))
         return G
+
+    def transitive_reduction(self):
+        r"""
+        Returns a transitive reduction of a graph.  The original graph
+        is not modified.
+
+        A transitive reduction H of G has a path from x to y if and
+        only if there was a path from x to y in G.  Deleting any edge
+        of H destroys this property.  A transitive reduction is not
+        unique in general.  A transitive reduction has the same
+        transitive closure as the original graph.
+
+        A transitive reduction of a complete graph is a tree.  A
+        transitive reduction of a tree is itself.
+
+
+        EXAMPLES:
+            sage: g=graphs.PathGraph(4)
+            sage: g.transitive_reduction()==g
+            True
+            sage: g=graphs.CompleteGraph(5)
+            sage: g.transitive_reduction().edges()
+            4
+            sage: g=DiGraph({0:[1,2], 1:[2,3,5,6], 2:[5,6]})
+            sage: g.transitive_reduction().size()
+            5
+
+        """
+        from sage.rings.infinity import Infinity
+        G = self.copy()
+        for e in self.edge_iterator():
+            # Try deleting the edge, see if we still have a path
+            # between the vertices.
+            G.delete_edge(e)
+            if G.distance(e[0],e[1])==Infinity:
+                # oops, we shouldn't have deleted it
+                G.add_edge(e)
+        return G
+
 
     def antisymmetric(self):
         r"""

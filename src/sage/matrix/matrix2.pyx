@@ -171,7 +171,7 @@ cdef class Matrix(matrix1.Matrix):
         AUTHOR:
             -- Jaap Spies (2006-02-18)
         """
-        cdef int c, row
+        cdef Py_ssize_t c, row
         pr = 1
         for row from 0 <= row < self._nrows:
             tmp = []
@@ -262,7 +262,7 @@ cdef class Matrix(matrix1.Matrix):
             -- Jaap Spies (2006-02-21): added definition of permanent
 
         """
-        cdef int m, n, r
+        cdef Py_ssize_t m, n, r
         cdef int sn
 
         perm = 0
@@ -2927,7 +2927,7 @@ def cmp_pivots(x,y):
     else:
         return -1
 
-def _choose(int n, int t):
+def _choose(Py_ssize_t n, Py_ssize_t t):
     """
     Returns all possible sublists of length t from range(n)
 
@@ -2936,6 +2936,7 @@ def _choose(int n, int t):
     AUTHOR:
         -- Jaap Spies (2007-10-22)
     """
+    cdef Py_ssize_t j
 
     x = []
     c = range(t)
@@ -2953,7 +2954,7 @@ def _choose(int n, int t):
 
     return x
 
-def _binomial(int n, int k):
+def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k)
 
@@ -2961,7 +2962,7 @@ def _binomial(int n, int k):
         -- Jaap Spies (2007-10-26)
 
     """
-    cdef int i
+    cdef Py_ssize_t i
 
     if k > (n/2):
         k = n-k

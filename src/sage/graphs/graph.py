@@ -2847,7 +2847,7 @@ class GenericGraph(SageObject):
             sage: g.transitive_reduction()==g
             True
             sage: g=graphs.CompleteGraph(5)
-            sage: g.transitive_reduction().edges()
+            sage: edges = g.transitive_reduction().edges(); len(edges)
             4
             sage: g=DiGraph({0:[1,2], 1:[2,3,5,6], 2:[5,6]})
             sage: g.transitive_reduction().size()

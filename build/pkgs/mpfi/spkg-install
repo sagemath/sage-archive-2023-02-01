@@ -2,6 +2,8 @@
 
 cp patches/config.* src/
 
+cp patches/mpfi*.c src/src/
+
 cd src
 
 # Added by Jason Martin, to avoid conflict with global libraries.

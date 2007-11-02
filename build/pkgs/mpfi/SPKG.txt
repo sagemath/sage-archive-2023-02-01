@@ -22,3 +22,10 @@ better to fix building of tests.  I put the changed version of configure.ac
 in the patches directory.  After changing it, I ran
        autoreconf --force
 in the src directory.
+
+3. Carl Witty 2007-11-01
+a. Fixed mpfi_ui_sub, by applying a patch posted by Paul Zimmerman to the
+MPFI bug tracker.
+b. Fixed the infinite loop in mpfi_cmp_sym_pi() (fixes the infinite loop
+in mpfi_cos(), reported as MPFI bug# 1868 and Sage issue #389.
+

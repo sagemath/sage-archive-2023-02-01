@@ -321,7 +321,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: g('abcde')
             'bcaed'
             sage: g([0,1,2,3,4])
-            [1, 2, 3, 0, 5, 4]
+            [1, 2, 0, 4, 3]
             sage: g(('who','what','when','where','why'))
             ('what', 'when', 'who', 'why', 'where')
         """

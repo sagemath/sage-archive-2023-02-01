@@ -13,6 +13,12 @@ CUR=`pwd`
 CC=${CC:- gcc}
 patch()
 {
+    if [ `uname` = "Darwin" -a `uname -r` = "9.0.0" ]; then
+        # It would be much better to not have to do this, since maybe
+        # there is a way to change FLINT so this problem doesn't occur.
+        cp patches/gmp-h.in.osx10.5 src/gmp-h.in
+    fi
+
     # Possibly apply Gaudry's speedups for AMD 64:
     #                  http://www.loria.fr/~gaudry/mpn_AMD64/
     # or Martin's speedups for core2 (Intel64):

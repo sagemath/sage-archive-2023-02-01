@@ -474,7 +474,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             gen_obj = line[gen_begin:i].strip()
             gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
             for g in gen_list:
-                if (not g.isalnum() and not g.replace("_","").isalnum()) or len(g) == 0 or not g[0].isalpha():
+                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
                     raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
 
             # format names as a list of strings and a list of variables

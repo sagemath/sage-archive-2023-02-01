@@ -6,7 +6,6 @@ import multi_polynomial_ideal
 from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
-from sage.misc.latex import latex_variable_name
 import multi_polynomial_element
 import polynomial_ring
 
@@ -208,8 +207,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return _repr
 
     def _latex_(self):
-        vars = ', '.join(self.latex_variable_names())
-        return "%s[%s]"%(sage.misc.latex.latex(self.base_ring()), vars)
+        vars = str(self.latex_variable_names()).replace('\n','').replace("'",'')
+        return "%s[%s]"%(sage.misc.latex.latex(self.base_ring()), vars[1:-1])
+
 
     def _ideal_class_(self):
         return multi_polynomial_ideal.MPolynomialIdeal
@@ -380,6 +380,36 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _monomial_order_function(self):
         raise NotImplementedError
+
+    def latex_variable_names(self):
+        """
+        Returns the list of variable names suitable for latex output.
+
+        All '_SOMETHING' substrings are replaced by '_{SOMETHING}' recursively
+        so that subscripts of subscripts work.
+
+        EXAMPLES:
+            sage: R, x = PolynomialRing(QQ,'x',12).objgens()
+            sage: x
+            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+            sage: print R.latex_variable_names ()
+            ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}', 'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
+            sage: f = x[0]^3 + 15/3 * x[1]^10
+            sage: print latex(f)
+            5 x_{1}^{10} + x_{0}^{3}
+        """
+        if self._latex_names is not None:
+            return self._latex_names
+        names = []
+        for g in self.variable_names():
+            i = len(g)-1
+            while i >= 0 and g[i].isdigit():
+                i -= 1
+            if i < len(g)-1:
+                g = '%s_{%s}'%(g[:i+1], g[i+1:])
+            names.append(g)
+        self._latex_names = names
+        return names
 
     def __reduce__(self):
         """

@@ -25,7 +25,7 @@ of integers.
 import operator
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.misc.latex import latex, latex_variable_name
+from sage.misc.latex import latex, latex_varify
 
 def is_FreeMonoidElement(x):
     return isinstance(x, FreeMonoidElement)
@@ -120,21 +120,21 @@ class FreeMonoidElement(MonoidElement):
             sage: F = FreeMonoid(3, 'a')
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
-            'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
+            '\\mbox{a0}^{5}\\mbox{a1}^{2}\\mbox{a0}^{12}\\mbox{a1}^{2}'
             sage: F, (alpha,beta,gamma) = FreeMonoid(3, 'alpha,beta,gamma').objgens()
             sage: latex(alpha*beta*gamma)
             \alpha\beta\gamma
         """
         s = ""
         v = self._element_list
-        x = self.parent().latex_variable_names()
+        x = self.parent().variable_names()
         for i in range(len(v)):
             g = x[int(v[i][0])]
             e = v[i][1]
             if e == 1:
-                s += "%s"%(g,)
+                s += "%s"%(latex_varify(g),)
             else:
-                s += "%s^{%s}"%(g,e)
+                s += "%s^{%s}"%(latex_varify(g),e)
         if len(s) == 0: s = "1"
         return s
 

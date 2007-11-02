@@ -224,7 +224,7 @@ from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex, latex_variable_name
+from sage.misc.latex import latex, latex_varify
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -3289,8 +3289,17 @@ class SymbolicVariable(SymbolicExpression):
             return self.__latex
         except AttributeError:
             pass
-        self.__latex = latex_variable_name(self._name)
-        return self.__latex
+        a = self._name
+        if len(a) > 1:
+            m = re.search('(\d|[.,])+$',a)
+            if m is None:
+                a = latex_varify(a)
+            else:
+                b = a[:m.start()]
+                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
+
+        self.__latex = a
+        return a
 
     def _maxima_init_(self):
         return self._name

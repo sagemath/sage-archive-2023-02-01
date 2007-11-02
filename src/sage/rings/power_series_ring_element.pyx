@@ -472,7 +472,7 @@ cdef class PowerSeries(AlgebraElement):
         s = " "
         v = self.list()
         m = len(v)
-        X = self._parent.latex_variable_names()[0]
+        X = self._parent.variable_name()
         atomic_repr = self._parent.base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
@@ -503,9 +503,9 @@ cdef class PowerSeries(AlgebraElement):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
-                bigoh = "O(%s)"%(X,)
+                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.gen())
             else:
-                bigoh = "O(%s^{%s})"%(X,self._prec)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.gen()),self._prec)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh

@@ -377,13 +377,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return s
 
     def _latex_(self):
-        """
-        EXAMPLES:
-            sage: S.<alpha12>=ZZ[]
-            sage: latex(S)
-            \mathbf{Z}[\alpha_{12}]
-        """
-        return "%s[%s]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
+        return "%s[%s]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
 
     def __set_polynomial_class(self, cls=None):
         from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative

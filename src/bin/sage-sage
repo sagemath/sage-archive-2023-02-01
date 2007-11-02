@@ -74,6 +74,7 @@ usage_advanced() {
     echo "  -root         -- print the SAGE root directory"
     echo "  -scons <..>   -- run SAGE's scons"
     echo "  -sdist VER    -- build a source distribution of SAGE"
+    echo "  -sh           -- run \$SHELL ($SHELL) with SAGE environment variables set"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -standard     -- list all standard packages that can be downloaded"
     echo "  -twistd <..>  -- run Twisted server"
@@ -355,6 +356,15 @@ if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd "$CUR"
     shift
     ipython "$@"
+    exit $?
+fi
+
+if [ $1 = '-sh'  -o $1 = '--sh' ]; then
+    cd "$CUR"
+    shift
+    echo Starting subshell with Sage environment variables set:
+    $SHELL "$@"
+    echo Exited Sage subshell.
     exit $?
 fi
 

@@ -7,10 +7,15 @@ CFLAGS="$CFLAGS -I\"$SAGE_LOCAL/include\""
 export CFLAGS
 
 if [ `uname` = "Darwin" ]; then
-    # The libpng dylibs seem to cause problems on OS X
-    # Using the static libs only solves the problem.
-    # This solution was taken from the IInstaller.
-    ./configure --prefix="$SAGE_LOCAL" --enable-shared=yes
+    # Using libpng on Darwin is a disaster, since it conflicts
+    # with the system-wide libraries big time.  It makes
+    # building on 10.5 impossible.  So we don't build it.
+    # (It is tempting to actually delete it here, but that
+    # would probably break existing installs?)
+    rm -f "$SAGE_LOCAL"/lib/libPng.dylib
+    rm -rf "$SAGE_LOCAL"/include/png*
+    rm -rf "$SAGE_LOCAL"/bin/libpng*
+    exit 0
 else
     ./configure --prefix="$SAGE_LOCAL" --enable-shared=yes
 fi

@@ -45,32 +45,25 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make
+if [ `uname` = "Darwin" -a `uname -r` = "9.0.0" ]; then
+    echo "Working around the infamous UNIX error 45 bug in OSX by sending "
+    echo "make output to $CUR/build.log."
+    make > "$CUR"/build.log 2> "$CUR"/error.log
+else
+    make
+fi
 
 if [ $? -ne 0 ]; then
     echo "Silly permissions error with first make of clisp."
     echo "Do a 'make' again, since second 'make' works."
 
-#    ./makemake --without-dynamic-ffi --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv > Makefile
-#    if [ `uname` = Darwin -a `uname -p` = i386 ]; then
-        # Modify the produced Makefile so it works on OS X i386.  This will presumably
-        # not be necessary for clisp's after 2.38... -- William Stein, 2006-04-06
-#        python ../modify_makefile_for_i386_osx.py
-#        if [ $? -ne 0 ]; then
-#           echo "Error modifying makefile for OS X i386"
-#           exit 1
-#	fi
-#    fi
-#    make config.lisp
-
-    make
+    make >> "$CUR"/build.log 2>> "$CUR"/error.log
 
     if [ $? -ne 0 ]; then
         echo "Error building clisp."
         exit 1
     fi
 fi
-
 
 make install
 

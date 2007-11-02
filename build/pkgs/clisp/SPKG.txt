@@ -55,7 +55,7 @@ Same remarks for src/ChangeLog:
  echo "">ChangeLog
 
 2. I removed the ffcall directory which is quite large and only needed
-for the foriegn function interface, which we don't need for SAGE/Maxima.
+for the foreign function interface, which we don't need for SAGE/Maxima.
 
 3. I removed the tests directory.
 

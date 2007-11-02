@@ -7,6 +7,12 @@
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
 
+if [ `uname` = "Darwin" -a `uname -r` = "9.0.0" ]; then
+    echo "Patching posixmodules for Leopard."
+    cp patches/posixmodule.c.osx_leopard src/Modules/posixmodule.c
+fi
+
+
 if [ $? -ne 0 ]; then
     echo "Error patching ctypes"
     exit 1

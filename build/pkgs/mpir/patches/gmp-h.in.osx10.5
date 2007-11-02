@@ -420,7 +420,7 @@ typedef __mpq_struct *mpq_ptr;
    for an inline too, so as to correctly specify "dllimport" on windows, in
    case the function is called rather than inlined.  */
 #ifdef __GNUC__
-#define __GMP_EXTERN_INLINE      extern __inline__
+/*#define __GMP_EXTERN_INLINE      extern __inline__ */
 #define __GMP_INLINE_PROTOTYPES  1
 #endif
 

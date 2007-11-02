@@ -5,17 +5,18 @@ How to make a new version of the Maxima SAGE spkg.
      of that page (i.e., hard to find if you don't scroll past
      all the big red adds).
 
-  2. Extract the tarball to a directory maxima-??
+  2. Extract the tarball to replace the src/ subdirectory of this package.
 
-  3. Put SAGE.txt, spkg-dist, and spkg-install in maxima-??
-
-  4. Change into the maxima-?? directory and type:
+  3. Type
 
        ./spkg-dist
 
-  5. Test the resulting maxima-??.spkg.
+     then create an spkg from this directory, with
+        sage -pkg maxima-x.y.z
 
-  6. Evidently, it's necessary to also make a new clisp
+  4. Test the resulting maxima-??.spkg.
+
+  5. Evidently, it's necessary to also make a new clisp
      package (identical to before), but with a bigger number,
      so no matter what maxima gets built against the correct
      version of clisp (this can be an issue for directories

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+CUR=`pwd`
+
 cd src/
 
 unset MAKE  # this can break things
@@ -20,9 +22,15 @@ check_error() {
 # nobody has tried this before :-( ).
 #./configure --prefix=$SAGE_LOCAL --with-clisp="clisp -B\"$SAGE_ROOT/local/lib/clisp\""
 
-./configure --prefix=$SAGE_LOCAL
 
-check_error "Failed to configure Maxima."
+
+if [ `uname` = "Darwin" ]; then
+    ./configure --prefix=$SAGE_LOCAL  1>"$CUR"/output.log 2>"$CUR"/error.log
+    echo "Ignoring errors during configure on Darwin"
+else
+    ./configure --prefix=$SAGE_LOCAL
+    check_error "Failed to configure Maxima."
+fi
 
 if [ `uname` = "Darwin" ]; then
    echo "Now building maxima; this takes a few minutes"
@@ -31,8 +39,10 @@ if [ `uname` = "Darwin" ]; then
    echo "you will not be able to see the output of the build"
    echo "as it occurs.  Don't worry, the build process did"
    echo "not hang."
-   make > output.log
+   make >> "$CUR"/output.log  2>> "$CUR"/error.log
 else
+
+
    make
 fi
 check_error "Failed to make Maxima."

@@ -57,6 +57,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         self._monom_monoid = BooleanMonomialMonoid(self)
 
+        set_cring(self)
+
     def __dealloc__(self):
         PBRing_destruct(&self._R)
 
@@ -147,10 +149,14 @@ class BooleanMonomialMonoid(Monoid_class):
             (<BooleanPolynomialRing>self._ring)._R.variable(i)) \
                 for i in xrange(self.ngens())]
 
-    def __call__(self, other):
+    def __call__(self, other = None):
         """
         """
         cdef BooleanMonomial m
+        if other is None:
+            m = new_BM(self)
+            PBMonom_construct(&m._M)
+            return m
         if PY_TYPE_CHECK(other, BooleanPolynomial) and \
                         (<BooleanPolynomial>other)._parent is self._ring and \
                         (<BooleanPolynomial>other)._P.isSingleton():
@@ -194,6 +200,11 @@ cdef class BooleanMonomial(MonoidElement):
 
     def __hash__(self):
         return self._M.hash()
+
+    def deg(BooleanMonomial self):
+        """
+        """
+        return self._M.deg()
 
     def __iter__(self):
         return new_BMI_from_PBMonomIter(self._M, self._M.begin())
@@ -344,6 +355,9 @@ cdef class BooleanPolynomial(MPolynomial):
     def vars(self):
         return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.usedVariables())
 
+    def __len__(self):
+        return self._P.length()
+
     def __getattr__(self, name):
         # this provides compatibility with the boost-python wrappers
         # of PolyBoRi and prevents us from polluting the sage objects namespace
@@ -472,6 +486,9 @@ cdef class DD:
     def subset1(self, idx):
         return new_DD_from_PBDD(self._D.subset1(idx))
 
+    def union(self, rhs):
+        return new_DD_from_PBDD(self._D.unite((<DD>rhs)._D))
+
 cdef inline DD new_DD_from_PBDD(PBDD juice):
     """
     Construct a new DD
@@ -487,6 +504,8 @@ cdef class BooleSet:
             PBSet_construct_dd(&self._S, (<DD>param)._D)
         elif PY_TYPE_CHECK(param, CCuddNavigator):
             PBSet_construct_pbnav(&self._S, (<CCuddNavigator>param)._N)
+        elif PY_TYPE_CHECK(param, BooleSet):
+            PBSet_construct_pbset(&self._S, (<BooleSet>param)._S)
         else:
             PBSet_construct(&self._S)
 
@@ -499,6 +518,23 @@ cdef class BooleSet:
     def navigation(self):
         return new_CN_from_PBNavigator(self._S.navigation())
 
+    def unateProduct(self, rhs):
+        return new_BS_from_PBSet(self._S.unateProduct((<BooleSet>rhs)._S))
+
+    def diff(self, rhs):
+        return new_BS_from_PBSet(self._S.diff((<BooleSet>rhs)._S))
+
+    def change(self, ind):
+        return new_BS_from_PBSet(self._S.change(ind))
+
+    def usedVariables(self):
+        return new_BM_from_PBMonom(get_cring()._monom_monoid,
+                                            self._S.usedVariables())
+
+    def __iter__(self):
+        return new_BSI_from_PBSetIter(self, get_cring())
+
+
 cdef inline BooleSet new_BS_from_PBSet(PBSet juice):
     """
     Construct a new BooleSet
@@ -507,6 +543,30 @@ cdef inline BooleSet new_BS_from_PBSet(PBSet juice):
     s = <BooleSet>PY_NEW(BooleSet)
     s._S = juice
     return s
+
+cdef class BooleSetIterator:
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        cdef PBMonom val
+        if self._iter.equal(self._obj._S.end()):
+            raise StopIteration
+        val = self._iter.value()
+        self._iter.next()
+        return new_BM_from_PBMonom(self._ring._monom_monoid, val)
+
+cdef inline BooleSetIterator new_BSI_from_PBSetIter(\
+                BooleSet parent, BooleanPolynomialRing cring):
+    """
+    Construct a new BooleSetIterator
+    """
+    cdef BooleSetIterator m
+    m = <BooleSetIterator>PY_NEW(BooleSetIterator)
+    m._obj = parent
+    m._ring = cring
+    m._iter = parent._S.begin()
+    return m
 
 cdef class CCuddNavigator:
     def __call__(self):
@@ -548,3 +608,25 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
     cdef PBPoly t
     t = pb_ll_red_nf_noredsb(p._P, reductors._S)
     return new_BP_from_PBPoly(p._parent, t)
+
+def mod_mon_set(BooleSet as, BooleSet vs):
+    cdef PBSet b
+    b = pb_mod_mon_set((<BooleSet>as)._S, (<BooleSet>vs)._S)
+    return new_BS_from_PBSet(b)
+
+cdef BooleanPolynomialRing cur_ring
+ring_callbacks = []
+
+def get_cring():
+    global cur_ring
+    return cur_ring
+
+def set_cring(BooleanPolynomialRing R):
+    global cur_ring, ring_callbacks
+    cur_ring = R
+    for f in ring_callbacks:
+        f()
+
+def set_ring_callback(func):
+    global ring_callbacks
+    ring_callbacks.append(func)

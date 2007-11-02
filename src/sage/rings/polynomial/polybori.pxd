@@ -32,3 +32,8 @@ cdef class BooleanMonomialIterator:
 cdef class BooleanPolynomialIterator:
     cdef BooleanPolynomial _obj
     cdef PBPolyIter _iter
+
+cdef class BooleSetIterator:
+    cdef PBSetIter _iter
+    cdef BooleSet _obj
+    cdef BooleanPolynomialRing _ring

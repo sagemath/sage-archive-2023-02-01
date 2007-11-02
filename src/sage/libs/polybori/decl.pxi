@@ -29,6 +29,7 @@ cdef extern from "pb_wrap.h":
         PBNavigator (* navigation)()
         PBDD (* subset0)(int idx)
         PBDD (* subset1)(int idx)
+        PBDD (* unite)(PBDD rhs)
 
     # non-allocating versions
     void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
@@ -38,18 +39,7 @@ cdef extern from "pb_wrap.h":
         PBDD (* variable)(int n)
         void (*setRingVariableName)(int idx, char *varname)
         void (*activate)()
-
-    ctypedef struct PBSet "BooleSet":
-        bint (* emptiness)()
-        PBNavigator (* navigation)()
-
-    # non-allocating versions
-    PBSet* PBSet_construct "Construct<BooleSet>"(void* mem)
-    PBSet* PBSet_construct_dd \
-            "Construct_p<BooleSet, BooleSet::dd_type>" (void* mem, PBDD d)
-    PBSet* PBSet_construct_pbnav \
-            "Construct_p<BooleSet, CCuddNavigator>" (void* mem, PBNavigator d)
-    void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
+        ordercodes (* getOrderCode)()
 
     ctypedef struct PBMonomIter "BooleMonomial::const_iterator":
         int (* value "operator*")()
@@ -74,6 +64,31 @@ cdef extern from "pb_wrap.h":
             "Construct_p<BoolePolynomial, BooleMonomial::dd_type>" (void *mem, PBDD m)
     void PBMonom_destruct "Destruct<BooleMonomial>"(PBMonom *mem)
 
+    ctypedef struct PBSetIter "BooleSet::const_iterator":
+        PBMonom (* value "operator*")()
+        int (* next "operator++")()
+        bint (* equal)(PBSetIter rhs)
+
+    ctypedef struct PBSet "BooleSet":
+        bint (* emptiness)()
+        PBNavigator (* navigation)()
+        PBSet (* unateProduct)(PBSet rhs)
+        PBSet (* diff)(PBSet diff)
+        PBSet (* change)(int idx)
+        PBMonom (* usedVariables)()
+        PBSetIter (* begin)()
+        PBSetIter (* end)()
+
+    # non-allocating versions
+    PBSet* PBSet_construct "Construct<BooleSet>"(void* mem)
+    PBSet* PBSet_construct_pbset \
+            "Construct_p<BooleSet, BooleSet>" (void* mem, PBSet d)
+    PBSet* PBSet_construct_dd \
+            "Construct_p<BooleSet, BooleSet::dd_type>" (void* mem, PBDD d)
+    PBSet* PBSet_construct_pbnav \
+            "Construct_p<BooleSet, CCuddNavigator>" (void* mem, PBNavigator d)
+    void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
+
     ctypedef struct PBPolyIter "BoolePolynomial::ordered_iterator":
         PBMonom (* value "operator*")()
         int (* next "operator++")()
@@ -82,6 +97,7 @@ cdef extern from "pb_wrap.h":
     ctypedef struct PBPoly "BoolePolynomial":
         int (* deg)()
         int (* lmDeg)()
+        int (* length)()
         bint (* isZero)()
         bint (* isOne)()
         bint (* isConstant)()
@@ -139,3 +155,5 @@ cdef extern from "pb_wrap.h":
     PBPoly pb_ll_red_nf_noredsb "ll_red_nf_noredsb"(PBPoly p,
                                                 PBSet reductors)
     PBPoly pb_ll_red_nf "ll_red_nf"(PBPoly p, PBSet reductors)
+
+    PBSet pb_mod_mon_set "mod_mon_set"(PBSet as, PBSet vs)

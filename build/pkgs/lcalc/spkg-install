@@ -29,7 +29,7 @@ echo "Now striping"
 strip lcalc*
 
 echo "Now copying over binary"
-cp lcalc* "$SAGE_LOCAL"/bin
+cp lcalc "$SAGE_LOCAL"/bin
 success 'install'
 
 

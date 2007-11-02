@@ -483,7 +483,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: (1+a)*3
             3*a + 3
         """
-        cdef Rational c = _c
+        cdef Rational c = <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         res.disc = self.disc
         mpz_mul(res.a, self.a, mpq_numref(c.value))
@@ -500,7 +500,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: 5*(a-1/5)
             5*a - 1
         """
-        cdef Rational c = _c
+        cdef Rational c = <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         res.disc = self.disc
         mpz_mul(res.a, self.a, mpq_numref(c.value))

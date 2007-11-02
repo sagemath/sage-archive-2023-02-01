@@ -33,7 +33,7 @@ if [ `uname` = "Darwin" ]; then
     # will crash if they see the libpng built as part of this
     # package instead of the system-wide apple libpng.  So
     # we delete it.
-    rm -f "$SAGE_LOCAL"/lib/libpng*
-    rm -f "$SAGE_LOCAL"/lib/libPng*   # in case the system is case sensitive.
+    # NOTE -- we *only* delete the dylib's.  Apps that need libpng can still link it in statically.
+    rm -f "$SAGE_LOCAL"/lib/libpng*dylib
 fi
 

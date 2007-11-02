@@ -85,9 +85,6 @@ class FreeAlgebraElement(AlgebraElement):
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
             sage: latex(-x+3*y^20*z)
             \left(-1\right)x + 3y^{20}z
-            sage: alpha,beta,gamma=FreeAlgebra(ZZ,3,'alpha,beta,gamma').gens()
-            sage: latex(alpha-beta)
-            \alpha + \left(-1\right)\beta
         """
         v = self.__monomial_coefficients.items()
         v.sort()

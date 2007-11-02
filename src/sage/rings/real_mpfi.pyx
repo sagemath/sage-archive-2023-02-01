@@ -2286,11 +2286,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: t.cos().cos()
             [0.99999999999999988 .. 1.0000000000000000]
 
-        WARNING:
-           There is a bug in the underlying MPFI library where
-           RealInterval(-1,1).cos() hangs.  If this bothers you,
-           please send them a bug report:
-              http://perso.ens-lyon.fr/nathalie.revol/software.html/.
+        TESTS:
+        This looped forever with an earlier version of MPFI, but now
+        it works.
+            sage: RIF(-1, 1).cos()
+            [0.54030230586813965 .. 1.0000000000000000]
         """
         cdef RealIntervalFieldElement x
         x = self._new()

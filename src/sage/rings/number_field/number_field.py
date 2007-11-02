@@ -1951,6 +1951,53 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
+    def zeta_function(self, prec=53,
+                      max_imaginary_part=0,
+                      max_asymp_coeffs=40):
+        r"""
+        Return the Zeta function of this number field.
+
+        This actually returns an interface to Tim Dokchitser's program
+        for computing with the Dedekind zeta function zeta_F(s) of the
+        number field F.
+
+        INPUT:
+            prec -- integer (bits precision)
+            max_imaginary_part -- real number
+            max_asymp_coeffs -- integer
+
+        OUTPUT:
+            The zeta function of this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2+x-1)
+            sage: Z = K.zeta_function()
+            sage: Z
+            Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
+            sage: Z(-1)
+            0.0333333333333333
+        """
+        from sage.lfunctions.all import Dokchitser
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        r1 = self.signature()[0]
+        r2 = self.signature()[1]
+        zero = [0]
+        one = [1]
+        Z = Dokchitser(conductor = abs(self.discriminant()),
+                       gammaV = (r1+r2)*zero + r2*one,
+                       weight = 1,
+                       eps = 1,
+                       poles = [1],
+                       prec = prec)
+        s = 'nf = nfinit(%s);'%self.polynomial()
+        s += 'dzk = dirzetak(nf,cflength());'
+        Z.init_coeffs('dzk[k]',pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        Z.check_functional_equation()
+        Z.rename('Zeta function associated to %s'%self)
+        return Z
+
     def narrow_class_group(self, proof=None):
         r"""
         Return the narrow class group of this field.

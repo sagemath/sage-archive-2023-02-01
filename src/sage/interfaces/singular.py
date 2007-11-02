@@ -658,7 +658,7 @@ class Singular(Expect):
         session.
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(127),3,'xyz', order="revlex")
+            sage: r = MPolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 3

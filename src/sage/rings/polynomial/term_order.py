@@ -21,6 +21,7 @@ EXAMPLES:
     sage: x^3*y^2*z^4 < x^3*y^2*z^1
     False
 
+This term ordering is called 'lp' in Singular.
 
 \item[Degree reverse lexicographic (\emph{degrevlex})], defined as:
 
@@ -40,6 +41,8 @@ EXAMPLES:
     True
     sage: x^2*y*z^2 > x*y^3*z
     False
+
+This term ordering is called 'dp' in Singular.
 
 \item[Degree lexicographic (\emph{deglex})], defined as:
 
@@ -61,12 +64,14 @@ EXAMPLES:
     sage: x^2*y*z^2 > x*y^3*z
     True
 
-\item[Reverse lexicographic (\emph{revlex})], defined as
+This term order is called 'Dp' in Singular.
+
+\item[Inverse lexicographic (\emph{invlex})], defined as
 
 $x^a < x^b \Leftrightarrow \exists\; 1 \le i \le n : a_n = b_n, \ldots, a_{i+1} = b_{i+1}, a_i < b_i.$
 
 EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='revlex')
+    sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='invlex')
     sage: x > y
     False
     sage: y > x^2
@@ -75,6 +80,11 @@ EXAMPLES:
     True
     sage: x*y > z
     False
+
+This term ordering only makes sense in a non-commutative setting
+because if P is the ring $k[x_1, \dots, x_n]$ and term ordering
+'invlex' then it is equivalent to the ring $k[x_n, \dots, x_1]$ with
+term ordering 'lex'. This ordering is called 'rp' in Singular.
 
 \item[Negative lexicographic (\emph{neglex})], defined as
 
@@ -92,6 +102,8 @@ EXAMPLES:
     True
     sage: x*y > z
     False
+
+This term ordering is called 'ls' in Singular.
 
 \item[Negative degree reverse lexicographic (\emph{negdegrevlex})], defined as:
 
@@ -112,6 +124,7 @@ EXAMPLES:
     sage: x^2*y*z^2 > x*y^3*z
     False
 
+This term ordering is called 'ds' in Singular.
 
 \item[Negative degree lexicographic (\emph{negdeglex})], defined as:
 
@@ -132,11 +145,11 @@ EXAMPLES:
     sage: x^2*y*z^2 > x*y^3*z
     True
 
-
+This term ordering is called 'Ds' in Singular.
 
 \end{description}
 
-Of these, only $degrevlex$, $deglex$, $revlex$ and $lex$ are global orderings.
+Of these, only $degrevlex$, $deglex$, $invlex$ and $lex$ are global orderings.
 
 Additionally all these monomial orderings may be combined to product
 or block orderings, defined as:
@@ -193,7 +206,7 @@ import re
 from sage.structure.sage_object import SageObject
 
 print_name_mapping =     {'lex'          :'Lexicographic',
-                          'revlex'       :'Reverse Lexicographic',
+                          'invlex'       :'Inverse Lexicographic',
                           'degrevlex'    :'Degree reverse lexicographic',
                           'deglex'       :'Degree lexicographic',
                           'neglex'       :'Negative lexicographic',
@@ -201,7 +214,7 @@ print_name_mapping =     {'lex'          :'Lexicographic',
                           'negdeglex'    :'Negative degree lexicographic'}
 
 singular_name_mapping =  {'lex'          :'lp',
-                          'revlex'       :'rp',
+                          'invlex'       :'rp',
                           'degrevlex'    :'dp',
                           'deglex'       :'Dp',
                           'neglex'       :'ls',
@@ -214,13 +227,12 @@ macaulay2_name_mapping = {'lex'          :'Lex',
                           'deglex'       :'GLex'}
 
 magma_name_mapping =     {'lex'          :'"lex"',
-                          'revlex'       :'"revlex"',
                           'degrevlex'    :'"grevlex"',
                           'deglex'       :'"glex"'}
 
 
 inv_singular_name_mapping ={'lp':'lex'          ,
-                            'rp':'revlex'       ,
+                            'rp':'invlex'       ,
                             'dp':'degrevlex'    ,
                             'Dp':'deglex'       ,
                             'ls':'neglex'       ,
@@ -231,8 +243,8 @@ inv_singular_name_mapping ={'lp':'lex'          ,
 
 class TermOrder(SageObject):
     """
-    Implements term orderings for polydict bases polynomials so as
-    conversion to MAGMA, SINGULAR, and Macaulay2.
+    Implements term orderings for polydict bases polynomials and
+    conversions to MAGMA, SINGULAR, and Macaulay2.
 
     EXAMPLES:
 
@@ -267,6 +279,9 @@ class TermOrder(SageObject):
         INPUT:
             name -- name of the term ordering (default: lex)
             n -- number of variables in the polynomial ring (default: 0)
+
+        See the \code{sage.rings.polynomial.term_order} module for
+        help which names and orderings are available.
 
         NOTE: The optional $n$ parameter is not necessary if only
         simple orderings like $deglex$ are constructed. However, it is
@@ -362,17 +377,17 @@ class TermOrder(SageObject):
 
     def compare_tuples_rp(self,f,g):
         """
-        Compares two exponent tuples with respect to the reversed
+        Compares two exponent tuples with respect to the inversed
         lexicographical term order.
 
         EXAMPLE:
-            sage: P.<x,y> = PolynomialRing(ZZ,2,order='revlex')
+            sage: P.<x,y> = PolynomialRing(ZZ,2,order='invlex')
             sage: x > y^2
-            True
-            sage: x > 1
             False
+            sage: x > 1
+            True
         """
-        return (-1)*self.compare_tuples_lp(f.reversed(),g.reversed())
+        return self.compare_tuples_lp(f.reversed(),g.reversed())
 
     def compare_tuples_Dp(self,f,g):
         """
@@ -486,12 +501,12 @@ class TermOrder(SageObject):
     def greater_tuple_rp(self,f,g):
         """
         Returns the greater exponent tuple with respect to the
-        reversed lexicographical term order.
+        inversed lexicographical term order.
 
         This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
 
         """
-        return f.reversed() < g.reversed()   and f or g
+        return f.reversed() > g.reversed()   and f or g
 
     def greater_tuple_Dp(self,f,g):
         """

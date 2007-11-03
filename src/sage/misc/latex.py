@@ -613,14 +613,14 @@ def latex_varify(a):
         return '\\mbox{%s}'%a
 
 def latex_variable_name(x):
-    """
+    r"""
     Return latex version of a variable name.
 
     Here are some guiding principles for usage of this function:
     1)  If the variable is a single letter, that is the latex version.
     2)  If the variable name is suffixed by a number, we put the number in the subscript.
     3)  If the variable name contains an '_' we start the subscript at the underscore.
-        Note that #3 trumps rule #2.
+        Note that \#3 trumps rule \#2.
     4)  If a component of the variable is a greek letter, escape it properly.
     5)  Recurse nicely with subscripts.
 

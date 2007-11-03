@@ -2218,6 +2218,16 @@ class SymbolicExpression(RingElement):
             RuntimeError: no explicit roots found
             sage: f.roots(explicit_solutions=False)
             [((x^(8/9) - x^(1/9) + 2^(8/9) - 2^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
+
+        Another example, but involving a degree 5 poly whose roots
+        don't get computed explicitly:
+            sage: f = x^5 + x^3 + 17*x + 1
+            sage: f.roots()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no explicit roots found
+            sage: f.roots(explicit_solutions=False)
+            [(x^5 + x^3 + 17*x + 1, 1)]
         """
         if x is None:
             x = self.default_variable()

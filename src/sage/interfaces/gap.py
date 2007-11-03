@@ -389,7 +389,7 @@ class Gap(Expect):
             error_outputs = []
             current_outputs = normal_outputs
             while True:
-                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&].*\+',
+                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
                               '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+',
                               '@x','@z'])
                 current_outputs.append(E.before)

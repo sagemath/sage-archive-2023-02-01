@@ -39,6 +39,48 @@ ZZx = PolynomialRing(IntegerRing(), 'x')
 
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 
+def odlyzko_bound_totallyreal(n):
+    r"""
+    This function returns the unconditional Odlyzko bound for the root
+    discriminant of a totally real number field of degree n.
+
+    NOTE:
+    The bounds for n > 50 are not necessarily optimal.
+
+    INPUT:
+    n -- integer, the degree
+
+    OUTPUT:
+    a lower bound on the root discriminant
+
+    EXAMPLES:
+    sage: [odlyzko_bound_totallyreal(n) for n in range(1,5)]
+    [1.0, 2.2229999999999999, 3.6099999999999999, 5.0670000000000002]
+
+    AUTHORS:
+    - John Voight (2007-09-03)
+
+    NOTES:
+    The values are calculated by Matrinet [M].
+
+        [M] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
+            Cambridge Univ. Press, 1982, 151--193.
+    """
+
+    if n <= 10:
+        dB = [1.,2.223,3.610,5.067,6.523,7.941,9.301,10.596,11.823,12.985][n-1]
+    elif n <= 20:
+        dB = [14.0831,15.1217,16.1047,17.0359,17.9192,18.7580,19.5555,20.3148,21.0386,21.7294][n-11]
+    elif n <= 30:
+        dB = [22.3896,23.0212,23.6261,24.2061,24.7628,25.2976,25.2976,26.3071,26.3071,27.2440][n-21]
+    elif n <= 40:
+        dB = [27.2440,28.1165,28.1165,28.9315,28.9315,29.6948,29.6948,30.4117,30.4117,31.0865][n-31]
+    elif n <= 50:
+        dB = [31.0865,31.7232,31.7232,32.3252,32.3252,32.8954,32.8954,33.4365,33.4365,33.9508][n-41]
+    else:
+        dB = 33.9508
+    return dB
+
 def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False):
     r"""
     This function enumerates (primitve) totally real fields of
@@ -140,7 +182,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     # Initialize
     T = tr_data(n,B,a)
     S = []
-    dB_odlyzko = [0.,1.,2.223,3.610,5.067,6.523,7.941,9.301,10.596,11.823,12.985][n];
+    dB_odlyzko = odlyzko_bound_totallyreal(n)
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
 

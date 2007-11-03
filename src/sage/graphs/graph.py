@@ -5215,6 +5215,15 @@ class Graph(GenericGraph):
             sage: edges = g.min_spanning_tree()
             sage: len(edges)
             49
+            sage: edges2 = g.min_spanning_tree(algorithm='Prim fringe')
+            sage: edges3 = g.min_spanning_tree(algorithm='Prim edge')
+            sage: len(edges2)
+            49
+            sage: len(edges3)
+            49
+            sage: edges4 = g.min_spanning_tree(weight_function=lambda (v,w,l): 1/(v+w+1)^2)
+            sage: len(edges4)
+            49
 
         """
         if self.is_connected()==False:
@@ -5223,7 +5232,7 @@ class Graph(GenericGraph):
         if algorithm=='Kruskal':
             # Kruskal's algorithm
             edges=[]
-            sorted_edges_iterator=iter(sorted(self.edges(), cmp=lambda x,y: weight_function(x)-weight_function(y)))
+            sorted_edges_iterator=iter(sorted(self.edges(), cmp=cmp))
             union_find = dict([(v,None) for v in self.vertex_iterator()])
             for i in xrange(self.order()):
                 # get next edge

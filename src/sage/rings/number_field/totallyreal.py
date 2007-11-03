@@ -39,7 +39,7 @@ ZZx = PolynomialRing(IntegerRing(), 'x')
 
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 
-def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=False):
+def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False):
     r"""
     This function enumerates (primitve) totally real fields of
     degree $n>1$ with discriminant $d \leq B$; optionally one can
@@ -47,9 +47,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=Fals
     corresponds to a polynomial by
         $$ a[d]*x^n + ... + a[0]*x^(n-d) $$
     if length(a) = d+1, so in particular always a[d] = 1.
-    If verbose == True, then print to the screen verbosely; if
-    verbose is a string, then print to the file specified by verbose
-    verbosely.
+    If verbose == 1 (or 2), then print to the screen (really) verbosely; if
+    verbose is a string, then print verbosely to the file specified by verbose.
+    If return_seqs, then return the polynomials as sequences (for easier
+    exporting to a file).
 
     NOTE:
     This is guaranteed to give all primitive such fields, and
@@ -157,7 +158,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=Fals
             sys.stdout = fsock
         # Else, print to screen
     f_out = [0]*n + [1]
-    T.incr(f_out)
+    if verbose == 2:
+        T.incr(f_out,verbose,phc=phc)
+    else:
+        T.incr(f_out,phc=phc)
 
     while f_out[n] <> 0:
         if verbose:
@@ -166,7 +170,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=Fals
         nf = pari(str(f_out)).Polrev()
         d = nf.poldisc()
         counts[0] += 1
-        if d > 0:
+        if d > 0 and nf.polsturm_full() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1
@@ -213,7 +217,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=Fals
                 else:
                     print "is not totally real"
 
-        T.incr(f_out)
+        if verbose == 2:
+            T.incr(f_out,verbose=verbose,phc=phc)
+        else:
+            T.incr(f_out,phc=phc)
 
     # In the application of Smyth's theorem above, we exclude finitely
     # many possibilities which we must now throw back in.
@@ -240,7 +247,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose = False, return_seqs=Fals
         sys.stdout = saveout
 
     if return_seqs:
-        return [counts,[[s[0],s[1].Vec()] for s in S]]
+        return [counts,[[s[0],s[1].reverse().Vec()] for s in S]]
     else:
         return S
 
@@ -323,5 +330,5 @@ def selberg_zograf_bound(n, g):
     - John Voight (2007-09-19)
     """
 
-    ppi = float(pi)
-    return ((16./3*ppi)*(g+1))**(2./(3*n))*(2*ppi)**(4./3)
+    ppi = 3.1415926535897931
+    return ((16./3)*(g+1))**(2./(3*n))*(2*ppi)**(4./3)

@@ -34,6 +34,9 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing
 
 import math, numpy
 
+# Other global variables
+ZZx = PolynomialRing(IntegerRing(), 'x')
+
 #***********************************************************************************************
 # Auxiliary routines:
 # Hermite constant, naive Newton-Raphson, and a specialized Lagrange multiplier solver.
@@ -241,47 +244,72 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
             mpz_divexact_ui(d.value, d.value, primessq[i])
     return asq
 
+cdef eval_seq_as_poly_int(int *f, int n, int x):
+    r"""
+    Evaluates the sequence a, thought of as a polynomial with
+        $$ f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0]. $$
+    """
+    cdef int s, xp
+
+    s = f[n]
+    for i from n > i >= 0:
+        s = s*x+f[i]
+    return s
+
+cdef double eps_abs, phi, sqrt2
+eps_abs = 10.**(-12)
+phi = 0.618033988749895
+sqrt2 = 1.41421356237310
+
 cdef easy_is_irreducible(int *a, int n):
     r"""
-    Very often, polynomials have roots in {-2,-1,1,2}, so we rule
+    Very often, polynomials have roots in {+/-1, +/-2, +/-phi, sqrt2}, so we rule
     these out quickly.  Returns 0 if reducible, 1 if inconclusive.
     """
-    cdef s, sgn
+    cdef int s, t, st, sgn
 
-    # Check if x-1 is a factor.
-    s = 0
-    for i from 0 <= i <= n:
-        s += a[i]
-    if s == 0:
+    # Check if a has a root in {1,-1,2,-2}.
+    if eval_seq_as_poly_int(a,n,1) == 0 or eval_seq_as_poly_int(a,n,-1) == 0 or eval_seq_as_poly_int(a,n,2) == 0 or eval_seq_as_poly_int(a,n,-2) == 0:
         return 0
 
-    # Check if x+1 is a factor.
-    s = 0
-    sgn = 1
-    for i from 0 <= i <= n:
-        s += sgn*a[i]
-        sgn *= -1
-    if s == 0:
-        return 0
-
-    # Check if x-2 is a factor.
-    s = 0
-    for i from 0 <= i <= n:
-        s += (2**i)*a[i]
-    if s == 0:
-        return 0
-
-    # Check if x+2 is a factor.
-    s = 0
-    sgn = 1
-    for i from 0 <= i <= n:
-        s += sgn*(2**i)*a[i]
-        sgn *= -1
-    if s == 0:
-        return 0
+    # Check if f has factors x^2-x-1, x^2+x-1, x^2-2, respectively.
+    # Note we only call the ZZx constructor if we're almost certain to reject.
+    if abs(eval_seq_as_poly(a,n,-phi)) < eps_abs:
+        s = 2*a[n]
+        t = 0
+        for i from n > i >= 0:
+            st = (s+t)//2
+            s = 2*t+st+2*a[i]
+            t = st
+        if s == 0 and t == 0:
+            return 0
+    if abs(eval_seq_as_poly(a,n,phi)) < eps_abs:
+        s = 2*a[n]
+        t = 0
+        for i from n > i >= 0:
+            st = (s-t)//2
+            s = 2*t-st+2*a[i]
+            t = st
+        if s == 0 and t == 0:
+            return 0
+    if abs(eval_seq_as_poly(a,n,sqrt2)) < eps_abs:
+        s = a[n]
+        t = 0
+        for i from n > i >= 0:
+            st = s
+            s = 2*t+a[i]
+            t = st
+        if s == 0 and t == 0:
+            return 0
 
     return 1
 
+def easy_is_irreducible_py(f):
+    cdef int a[10]
+
+    for i from 0 <= i < len(f):
+        a[i] = f[i]
+    return easy_is_irreducible(a, len(f)-1)
 
 #***********************************************************************************************
 # Main class and routine
@@ -292,10 +320,10 @@ cdef easy_is_irreducible(int *a, int n):
 # for any eps, but an optimal value of eps will be neither too large
 # (which gives trivial bounds on coefficients) nor too small (which
 # spends needless time computing higher precision on the roots).
+cdef double eps_global
 eps_global = 10.**(-4)
 
-# Other global variables
-ZZx = PolynomialRing(IntegerRing(), 'x')
+from totallyreal_phc import lagrange_bounds_phc
 
 cdef class tr_data:
     r"""
@@ -362,7 +390,7 @@ cdef class tr_data:
             for i from 0 <= i < n+1:
                 self.a[i] = a[i]
                 self.amax[i] = a[i]
-            self.a[n-1] = -(n/2)
+            self.a[n-1] = -(n//2)
             self.amax[n-1] = 0
             self.k = n-2
         elif len(a) <= n+1:
@@ -381,14 +409,13 @@ cdef class tr_data:
                 self.amax[i] = a[i]
 
             # Bounds come from an application of Lagrange multipliers in degrees 2,3.
-            if k == n-2:
-                self.b_lower = 1./n*(-self.a[n-1] -
-                                 (n-1)*sqrt((1.*self.a[n-1])**2 - 2.*(1-1./n)*self.a[n-2]))
-                self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
-            else:
+            self.b_lower = 1./n*(-self.a[n-1] -
+                             (n-1)*sqrt((1.*self.a[n-1])**2 - 2.*(1-1./n)*self.a[n-2]))
+            self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
+            if k < n-2:
                 bminmax = __lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
-                self.b_lower = bminmax[0]
-                self.b_upper = bminmax[1]
+                self.b_lower = max(bminmax[0],self.b_lower)
+                self.b_upper = min(bminmax[1],self.b_upper)
 
             # Annoying, but must reverse coefficients for numpy.
             gnk = [binomial(j,k+2)*a[j] for j in range(k+2,n+1)]
@@ -418,7 +445,7 @@ cdef class tr_data:
         sage_free(self.beta)
         sage_free(self.gnk)
 
-    def incr(self, f_out, verbose=False, haltk=0):
+    def incr(self, f_out, verbose=False, haltk=0, phc=False):
         r"""
         This function 'increments' the totally real data to the next value
         which satisfies the bounds essentially given by Rolle's theorem,
@@ -436,6 +463,8 @@ cdef class tr_data:
         verbose -- boolean to print verbosely computational details
         haltk -- integer, the level at which to halt the inductive
             coefficient bounds
+        phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+            compute an improved Lagrange multiplier bound
 
         OUTPUT:
         the successor polynomial as a coefficient list.
@@ -577,8 +606,17 @@ cdef class tr_data:
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = __lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
-                        self.b_lower = bminmax[0]
-                        self.b_upper = bminmax[1]
+                        self.b_lower = max(self.b_lower,bminmax[0])
+                        self.b_upper = min(self.b_upper,bminmax[1])
+                    elif k == n-5 and phc:
+                        # New bounds using phc/Lagrange multiplier in degree 4.
+                        bminmax = lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])
+                        if len(bminmax) > 0:
+                            self.b_lower = max(self.b_lower,bminmax[0])
+                            self.b_upper = min(self.b_upper,bminmax[1])
+                        else:
+                            maxoutflag = 1
+                            break
 
                     if verbose:
                         print "  [LM bounds:", '%.2f'%self.b_lower, '%.2f'%self.b_upper,

@@ -47,8 +47,9 @@ def coefficients_to_power_sums(n, m, a):
     return S
 
 import os, math
+from sage.combinat.combinat import partitions_list
 
-def lagrange_bounds(n, m, a):
+def lagrange_bounds_phc(n, m, a):
     r"""
     This function determines the bounds on the roots in
     the enumeration of totally real fields via Lagrange multipliers.
@@ -117,4 +118,7 @@ def lagrange_bounds(n, m, a):
         if len(crits) > 0:
             output_data += [[P, min(crits), max(crits)]]
 
-    return output_data
+    if len(output_data) > 0:
+        return [min([v[1] for v in output_data]), max([v[2] for v in output_data])]
+    else:
+        return []

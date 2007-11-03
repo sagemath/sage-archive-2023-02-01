@@ -537,7 +537,7 @@ cdef class ntl_mat_GF2E:
 
     def __invert__(self):
         """
-        X = A^{-1}; error is raised if A is  singular
+	Return $X = A^{-1}$; an error is raised if A is singular.
 
         EXAMPLES:
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])

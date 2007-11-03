@@ -483,7 +483,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: (1+a)*3
             3*a + 3
         """
-        cdef Rational c = <Rational>_c
+        cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         res.disc = self.disc
         mpz_mul(res.a, self.a, mpq_numref(c.value))
@@ -500,7 +500,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: 5*(a-1/5)
             5*a - 1
         """
-        cdef Rational c = <Rational>_c
+        cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         res.disc = self.disc
         mpz_mul(res.a, self.a, mpq_numref(c.value))
@@ -902,3 +902,43 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         # it is better *not* to return a cached value (since the call to _parent.number_field())
         # is expensive.
         return self._parent.number_field()
+
+    # We must override these since the basering is now ZZ not QQ.
+    cdef ModuleElement _rmul_c_impl(self, RingElement _c):
+        """
+        EXAMPLE:
+            sage: K.<a> = NumberField(x^2-27)
+            sage: R = K.ring_of_integers()
+            sage: aa = R.gen(1); aa
+            1/3*a
+            sage: 5 * aa
+            5/3*a
+        """
+        cdef Integer c = <Integer>_c
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
+        res.disc = self.disc
+        mpz_mul(res.a, self.a, c.value)
+        mpz_mul(res.b, self.b, c.value)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res
+
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement _c):
+        """
+        EXAMPLE:
+            sage: K.<a> = NumberField(x^2+43)
+            sage: R = K.ring_of_integers()
+            sage: aa = R.gen(0); aa
+            1/2*a + 1/2
+            sage: aa*3
+            3/2*a + 3/2
+        """
+        cdef Integer c = <Integer>_c
+        cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
+        res.disc = self.disc
+        mpz_mul(res.a, self.a, c.value)
+        mpz_mul(res.b, self.b, c.value)
+        mpz_set(res.denom, self.denom)
+        res._reduce_c_()
+        return res

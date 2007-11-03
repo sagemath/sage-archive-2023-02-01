@@ -114,6 +114,8 @@ AUTHORS:
     -- Emily Kirkman (2007-02-14): added more named graphs
     -- Robert Miller (2007-06-08--11): Platonic solids, random graphs, graphs
        with a given degree sequence, random directed graphs
+    -- Robert Miller (2007-10-24): Isomorph free exhaustive generation
+
 """
 
 ################################################################################
@@ -2043,6 +2045,11 @@ class GraphGenerators():
         """
         Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes graph.
 
+        EXAMPLE:
+            sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
+            sage: G.size()
+            6561
+
         REFERENCE:
             [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J. F. F.,
                 Pseudofractal scale-free web, Phys. Rev. E 066122 (2002).
@@ -2568,7 +2575,222 @@ class GraphGenerators():
         import networkx
         return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
 
-# Easy access to the graph database from the command line:
+################################################################################
+#   Graphs that are representatives of distinct isomorphism classes
+################################################################################
+
+    def __call__(self, vertices, property=lambda x: True):
+        """
+        Accesses the generator of isomorphism class representatives.
+
+        INPUT:
+            vertices -- the maximum number of vertices in the graphs to be
+                generated.
+            property -- any property to be tested on graphs before generation.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one vertex and only edges incident
+                to that vertex satisfies the property, then this will generate
+                all graphs with that property. If this does not hold, then all
+                the graphs generated will satisfy the property, but there will
+                be some missing.
+
+        NOTE:
+            There could be other implementations of the algorithm so that the
+            restriction on 'property' was also different- the restriction is
+            specific to this particular implementation.
+
+        EXAMPLES:
+        Print graphs on 3 or less vertices.
+            sage: for G in graphs(3):
+            ...    print G
+            ...
+            Graph on 0 vertices
+            Graph on 1 vertex
+            Graph on 2 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 2 vertices
+            Graph on 3 vertices
+
+        Generate all graphs with up to 5 vertices and up to 4 edges.
+            sage: L = list(graphs(5, lambda G: G.size() <= 4))
+            sage: len(L)
+            31
+            sage: graphs_list.show_graphs(L)
+
+        Generate all graphs with degree at most 2, up to 6 vertices.
+            sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+            sage: L = list(graphs(6, property))
+            sage: len(L)
+            45
+
+        Generate all bipartite graphs on up to 7, 8 vertices:
+            sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
+            sage: len(L)
+            133
+            sage: L = list( graphs(8, lambda G: G.is_bipartite()) ) # long time (30 secs)
+            sage: len(L)                                            # long time
+            354
+
+        REFERENCE:
+            Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+            Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
+        """
+        from sage.graphs.graph_fast import binary
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for gg in canaug_traverse(g, [], vertices, property):
+            yield gg
+
+def canaug_traverse(g, aut_gens, max_verts, property):
+    """
+    Main function for exhaustive generation. Recursive traversal of a
+    canonically generated tree of isomorph free graphs satisfying a given
+    property.
+
+    INPUT:
+        g -- current position on the tree.
+        aut_gens -- list of generators of Aut(g), in list notation.
+        max_verts -- when to retreat.
+        property -- check before traversing below g.
+
+    EXAMPLES:
+        sage: from sage.graphs.graph_generators import canaug_traverse
+        sage: list(canaug_traverse(Graph(), [], 3, lambda x: True))
+        [Graph on 0 vertices, ... Graph on 3 vertices]
+
+    The best way to access this function is through the graphs() iterator:
+
+    Print graphs on 3 or less vertices.
+        sage: for G in graphs(3):
+        ...    print G
+        ...
+        Graph on 0 vertices
+        Graph on 1 vertex
+        Graph on 2 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 2 vertices
+        Graph on 3 vertices
+
+    Generate all graphs with up to 5 vertices and up to 4 edges.
+        sage: L = list(graphs(5, lambda G: G.size() <= 4))
+        sage: len(L)
+        31
+        sage: graphs_list.show_graphs(L)
+
+    Generate all bipartite graphs on up to 7 vertices:
+        sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
+        sage: len(L)
+        133
+
+    """
+    from sage.graphs.graph_fast import binary
+    from sage.graphs.graph_isom import search_tree
+    if not property(g):
+        return
+    yield g
+    n = g.order()
+    if n < max_verts:
+
+        # build a list representing C(g) - the vertex to be added
+        # is at the end, so only specify which of n edges...
+        num_roots = 2**n
+        children = [-1]*num_roots
+
+        # union-find C(g) under Aut(g)
+        for gen in aut_gens:
+            for i in xrange(len(children)):
+                if children[i] == -1:
+                    k = 0
+                    for j in xrange(n):
+                        if (1 << j)&i:
+                            k += (1 << gen[j])
+                    while children[k] != -1:
+                        k = children[k]
+                    if i != k:
+                        # union i & k
+                        smaller, larger = sorted([i,k])
+                        children[larger] = smaller
+                        num_roots -= 1
+
+        # find representatives of orbits of C(g)
+        roots = []
+        found_roots = 0
+        i = 0
+        while found_roots < num_roots:
+            if children[i] == -1:
+                found_roots += 1
+                roots.append(i)
+            i += 1
+
+        for i in roots:
+            # construct a z for each number in roots...
+            z = g.copy()
+            z.add_vertex(n)
+
+            index = 0
+            while (1 << index) <= i:
+                if (1 << index)&i:
+                    z.add_edge((index,n))
+                index += 1
+
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True)
+            cut_vert = 0
+            while canonical_relabeling[cut_vert] != n:
+                cut_vert += 1
+            sub_verts = [v for v in z if v != cut_vert]
+            m_z = z.subgraph(sub_verts)
+
+            perm = range(n+1)
+            seen_perms = [perm]
+            if m_z == g:
+                for a in canaug_traverse(z, z_aut_gens, max_verts, property):
+                    yield a
+            else:
+                for possibility in check_aut(z_aut_gens, cut_vert, n):
+                    if m_z.relabel(possibility, inplace=False) == g:
+                        for a in canaug_traverse(z, z_aut_gens, max_verts, property):
+                            yield a
+                        break
+
+def check_aut(aut_gens, cut_vert, n):
+    """
+    Helper function for exhaustive generation.
+
+    At the start, check_aut is given a set of generators for the automorphism
+    group, aut_gens. We already know we are looking for an element of the auto-
+    morphism group that sends cut_vert to n, and check_aut generates these for
+    the canaug_traverse function.
+
+    EXAMPLE:
+    Note that the last two entries indicate that none of the automorphism group
+    has yet been searched - we are starting at the identity [0, 1, 2, 3] and so
+    far that is all we have seen. We return automorphisms mapping 2 to 3.
+        sage: from sage.graphs.graph_generators import check_aut
+        sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))
+        [[1, 0, 3, 2], [1, 2, 3, 0]]
+
+    """
+    from copy import copy
+    perm = range(n+1)
+    seen_perms = [perm]
+    unchecked_perms = [perm]
+    while len(unchecked_perms) != 0:
+        perm = unchecked_perms.pop(0)
+        for gen in aut_gens:
+            new_perm = copy(perm)
+            for i in xrange(len(perm)):
+                new_perm[i] = gen[perm[i]]
+            if new_perm not in seen_perms:
+                seen_perms.append(new_perm)
+                unchecked_perms.append(new_perm)
+                if new_perm[cut_vert] == n:
+                    yield new_perm
+
+# Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
 
 

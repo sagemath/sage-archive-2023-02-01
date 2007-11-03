@@ -98,7 +98,7 @@ m[1, 1, 1] + m[2, 1] + m[3]
 sage: s = SFASchur(QQ)
 sage: m = SFAMonomial(QQ)
 sage: m([3])*s([2,1])
-2*m[3, 1, 1, 1] + m[3, 2, 1] + 2*m[4, 1, 1] + m[4, 2] + m[5, 1]
+2*m[3, 1, 1, 1] + m[3, 2, 1] + m[4, 2] + 2*m[4, 1, 1] + m[5, 1]
 sage: s(m([3])*s([2,1]))
 s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
 sage: s(s([2,1])*m([3]))
@@ -165,6 +165,20 @@ QQ = RationalField()
 
 translate = {'monomial':'MONOMIAL', 'homogeneous':'HOMSYM', 'power':'POWSYM', 'elementary':'ELMSYM', 'schur':'SCHUR'}
 
+conversion_functions = {}
+
+def init():
+    #Set up the conversion functions
+    for other_basis in translate:
+        for basis in translate:
+            try:
+                conversion_functions[(other_basis, basis)] = eval('symmetrica.t_' + translate[other_basis] + '_' +  translate[basis])
+            except AttributeError:
+                pass
+
+
+init()
+
 def SymmetricFunctionAlgebra(R, basis="schur"):
     """
     Return the free algebra over the ring $R$ on $n$ generators with
@@ -178,6 +192,17 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
         A SymmetricFunctionAlgebra
 
     EXAMPLES:
+        sage: SymmetricFunctionAlgebra(QQ)
+        Symmetric Algebra over Rational Field, Schur symmetric functions as basis
+
+
+        sage: SymmetricFunctionAlgebra(QQ, basis='m')
+        Symmetric Algebra over Rational Field, Monomial symmetric functions as basis
+
+
+        sage: SymmetricFunctionAlgebra(QQ, basis='power')
+        Symmetric Algebra over Rational Field, Power symmetric functions as basis
+
     """
     if basis == 'schur' or basis == 's':
         return cache_s(R)
@@ -193,14 +218,62 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
         raise ValueError, "unknown basis (= %s)"%basis
 
 def SFAPower(R):
+    """
+    Returns the symmetric function algebra over R with the power-sum symmetric
+    functions as the basis.
+
+    EXAMPLES:
+        sage: SFAPower(QQ)
+        Symmetric Algebra over Rational Field, Power symmetric functions as basis
+    """
     return SymmetricFunctionAlgebra(R, basis='power')
+
+
 def SFAElementary(R):
+    """
+    Returns the symmetric function algebra over R with the elementary symmetric
+    functions as the basis.
+
+    EXAMPLES:
+        sage: SFAElementary(QQ)
+        Symmetric Algebra over Rational Field, Elementary symmetric functions as basis
+    """
     return SymmetricFunctionAlgebra(R, basis='elementary')
+
+
 def SFAHomogeneous(R):
+    """
+    Returns the symmetric function algebra over R with the Homogeneous symmetric
+    functions as the basis.
+
+    EXAMPLES:
+        sage: SFAHomogeneous(QQ)
+        Symmetric Algebra over Rational Field, Homogeneous symmetric functions as basis
+    """
     return SymmetricFunctionAlgebra(R, basis='homogeneous')
+
+
 def SFASchur(R):
+    """
+    Returns the symmetric function algebra over R with the Schur symmetric
+    functions as the basis.
+
+    EXAMPLES:
+        sage: SFASchur(QQ)
+        Symmetric Algebra over Rational Field, Schur symmetric functions as basis
+    """
     return SymmetricFunctionAlgebra(R, basis='schur')
+
+
 def SFAMonomial(R):
+    """
+    Returns the symmetric function algebra over R with the monomial symmetric
+    functions as the basis.
+
+    EXAMPLES:
+        sage: SFAMonomial(QQ)
+        Symmetric Algebra over Rational Field, Monomial symmetric functions as basis
+    """
     return SymmetricFunctionAlgebra(R, basis='monomial')
 
 def is_SymmetricFunctionAlgebra(x):
@@ -218,15 +291,23 @@ def is_SymmetricFunctionAlgebra(x):
     return isinstance(x, SymmetricFunctionAlgebra_generic)
 
 
+
+def zee(part):
+    p = partition.Partition_class(part)
+    return p.centralizer_size()
+
+
+def is_SymmetricFunction(x):
+    return isinstance(x, SymmetricFunctionAlgebraElement_generic)
+
+
+#################################
+#                               #
+#  Generic Symmetric Functions  #
+#                               #
+#################################
 class SymmetricFunctionAlgebra_generic(Algebra):
-    """
-    EXAMPLES:
-    """
     def __init__(self, R, basis, element_class, prefix):
-        """
-        INPUT:
-            R -- ring
-        """
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
         try:
@@ -235,23 +316,42 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             raise ValueError, "R must have a unit element"
 
         self.__basis = basis
-        self.__element_class = element_class
+        self._element_class = element_class
         self.__prefix = prefix
         self.__print_style = 'lex'
+
         sage.structure.parent_gens.ParentWithGens.__init__(self, R, None)
+
+
 
     def __call__(self, x):
         """
         Coerce x into self.
         """
         R = self.base_ring()
-        eclass = self.__element_class
+        eclass = self._element_class
         if isinstance(x, int):
             x = Integer(x)
 
-        #same basis
-        if x in partition.Partitions():
-            return eclass(self, {partition.Partition(x):R(1)})
+
+        ##############
+        # Partitions #
+        ##############
+        if x in partition.Partitions_all():
+            return eclass(self, {partition.Partition_class(filter(lambda x: x!=0, x)):R(1)})
+
+        ##############
+        # Dual bases #
+        ##############
+        elif is_SymmetricFunction(x) and hasattr(x, 'dual'):
+            #Check to see if it is the dual of some other basis
+            #If it is, try to coerce its corresponding element
+            #in the other basis
+            return self(x.dual())
+
+        ########################################
+        # Symmetric Functions, different basis #
+        ########################################
         elif isinstance(x, eclass):
             P = x.parent()
             #same base ring
@@ -261,17 +361,21 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             else:
                 return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
 
-        #symmetric function, but different basis
+        ########################################
+        # Symmetric Functions, different basis #
+        ########################################
         elif is_SymmetricFunction(x):
+
+
             R = self.base_ring()
             xP = x.parent()
             xm = x.monomial_coefficients()
 
             #determine the conversion function.
             try:
-                t = eval('symmetrica.t_' + translate[xP.basis()] + '_' +  translate[self.basis()])
+                t = conversion_functions[(xP.basis_name(),self.basis_name())]
             except AttributeError:
-                raise TypeError, "do not know how to convert from %s to %s"%(xP.basis(), self.basis())
+                raise TypeError, "do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name())
 
             z_elt = {}
 
@@ -284,10 +388,13 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             z = self(Integer(0))
             z._monomial_coefficients = z_elt
             return z
-        #############################
-        #Hall-Littlewood Polynomials#
-        #############################
+
+        ###############################
+        # Hall-Littlewood Polynomials #
+        ###############################
+        #
         #Qp: Convert to Schur basis and then convert to self
+        #
         elif isinstance(x, hall_littlewood.HallLittlewoodElement_qp):
             Qp = x.parent()
             BR = self.base_ring()
@@ -307,7 +414,9 @@ class SymmetricFunctionAlgebra_generic(Algebra):
             z = s(0)
             z._monomial_coefficients = z_elt
             return self(z)
+        #
         #P: Convert to monomials and then convert to self
+        #
         elif isinstance(x, hall_littlewood.HallLittlewoodElement_p):
             res = 0
             for m, c in x._monomial_coefficients.iteritems():
@@ -316,32 +425,74 @@ class SymmetricFunctionAlgebra_generic(Algebra):
                 res += c*P._p_to_m_cache[m]
             return self(z)
 
-
+        ###################
+        # Skew Partitions #
+        ###################
         elif x in skew_partition.SkewPartitions():
             skewschur = symmetrica.part_part_skewschur(x[0], x[1])
             return self(skewschur)
-        elif isinstance(x, list):
-            if len(x) == 2 and isinstance(x[0], list) and isinstance(x[1], list):
-                skewschur = symmetrica.part_part_skewschur(x[0], x[1])
-                return self(skewschur)
-            else:
-                return eclass(self, {partition.Partition(x):R(1)})
+
+        #####################
+        # Untyped lists --  #
+        #####################
+        #elif isinstance(x, list):
+        #    if len(x) == 2 and isinstance(x[0], list) and isinstance(x[1], list):
+        #        skewschur = symmetrica.part_part_skewschur(x[0], x[1])
+        #        return self(skewschur)
+        #    else:
+        #        return eclass(self, {partition.Partition_class(x):R(1)})
+
+        #############################
+        # Elements of the base ring #
+        #############################
         elif x.parent() is R:
-            return eclass(self, {partition.Partition([]):x})
+            return eclass(self, {partition.Partition_class([]):x})
+
+        ###########################################
+        # Elements that coerce into the base ring #
+        ###########################################
         elif R.has_coerce_map_from(x.parent()):
-            return eclass(self, {partition.Partition([]):R(x)})
+            return eclass(self, {partition.Partition_class([]):R(x)})
+
+        #################################
+        # Last shot -- try calling R(x) #
+        #################################
         else:
             try:
-                return eclass(self, {Partition([]):self.base_ring()(x)})
+                return eclass(self, {Partition_class([]):R(x)})
             except:
                 raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
 
-    def basis(self):
+    def basis_name(self):
+        """
+        Returns the name of the basis of self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.basis_name()
+            'schur'
+            sage: p = SFAPower(QQ)
+            sage: p.basis_name()
+            'power'
+            sage: h = SFAHomogeneous(QQ)
+            sage: h.basis_name()
+            'homogeneous'
+            sage: e = SFAElementary(QQ)
+            sage: e.basis_name()
+            'elementary'
+            sage: m = SFAMonomial(QQ)
+            sage: m.basis_name()
+            'monomial'
+        """
         return self.__basis
 
     def is_field(self):
-        if self.__ngens == 0:
-            return self.base_ring().is_field()
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.is_field()
+            False
+        """
         return False
 
     def is_commutative(self):
@@ -349,12 +500,24 @@ class SymmetricFunctionAlgebra_generic(Algebra):
         Return True if this symmetric function algebra is commutative.
 
         EXAMPLES:
-
+            sage: s = SFASchur(QQ)
+            sage: s.is_commutative()
+            True
         """
-        return self.__ngens <= 1 and self.base_ring().is_commutative()
+        return self.base_ring().is_commutative()
 
     def _an_element_impl(self):
-        return self.__element_class(self, {partition.Partition([]):self.base_ring()(0)})
+        """
+        Returns 0 in self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s._an_element_impl(); a
+            0
+            sage: a.parent() is s
+            True
+        """
+        return self._element_class(self, {partition.Partition_class([]):self.base_ring()(0)})
 
     def __cmp__(self, other):
         """
@@ -373,6 +536,9 @@ class SymmetricFunctionAlgebra_generic(Algebra):
         return 0
 
     def get_print_style(self):
+        """
+        Returns the value of the current print style for self.
+        """
         return self.__print_style
 
     def set_print_style(self, ps):
@@ -387,11 +553,8 @@ class SymmetricFunctionAlgebra_generic(Algebra):
 
         EXAMPLES:
         """
-        return "Symmetric Algebra over %s, %s symmetric functions as basis"%(
-            self.base_ring(), self.__basis.capitalize())
+        return "Symmetric Algebra over %s, %s symmetric functions as basis"%(self.base_ring(), self.__basis.capitalize())
 
-    #def _corece_impl(self, x):
-    #     raise NotImplementedError
     def _coerce_impl(self, x):
         try:
             R = x.parent()
@@ -407,20 +570,22 @@ class SymmetricFunctionAlgebra_generic(Algebra):
         # any ring that coerces to the base ring of this free algebra.
         return self._coerce_try(x, [self.base_ring()])
 
-    def ngens(self):
-        """
-        The number of generators of the algebra.
-
-        EXAMPLES:
-        """
-        return infinity
 
     def prefix(self):
+        """
+        Returns the prefix on the elements of self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.prefix()
+            's'
+        """
         return self.__prefix
 
     def transition_matrix(self, basis, n):
         """
-        Returns the transitions matrix.
+        Returns the transitions matrix between self and basis
+        for the homogenous component of degree n.
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
@@ -492,51 +657,14 @@ class SymmetricFunctionAlgebra_generic(Algebra):
         return matrix(m)
 
 
-class SymmetricFunctionAlgebra_schur(SymmetricFunctionAlgebra_generic):
-    def __init__(self, R):
-        SymmetricFunctionAlgebra_generic.__init__(self, R, "schur", SymmetricFunctionAlgebraElement_schur, 's')
-    def is_schur_basis(self):
-        return True
-
-
-
-class SymmetricFunctionAlgebra_monomial(SymmetricFunctionAlgebra_generic):
-    def __init__(self, R):
-        SymmetricFunctionAlgebra_generic.__init__(self, R, "monomial", SymmetricFunctionAlgebraElement_monomial, 'm')
-
-class SymmetricFunctionAlgebra_elementary(SymmetricFunctionAlgebra_generic):
-    def __init__(self, R):
-        SymmetricFunctionAlgebra_generic.__init__(self, R, "elementary", SymmetricFunctionAlgebraElement_elementary, 'e')
-
-class SymmetricFunctionAlgebra_power(SymmetricFunctionAlgebra_generic):
-    def __init__(self, R):
-        SymmetricFunctionAlgebra_generic.__init__(self, R, "power", SymmetricFunctionAlgebraElement_power, 'p')
-
-class SymmetricFunctionAlgebra_homogeneous(SymmetricFunctionAlgebra_generic):
-    def __init__(self, R):
-        SymmetricFunctionAlgebra_generic.__init__(self, R, "homogeneous", SymmetricFunctionAlgebraElement_homogeneous, 'h')
-
-from sage.misc.cache import Cache
-cache_s = Cache(SymmetricFunctionAlgebra_schur)
-cache_m = Cache(SymmetricFunctionAlgebra_monomial)
-cache_p = Cache(SymmetricFunctionAlgebra_power)
-cache_e = Cache(SymmetricFunctionAlgebra_elementary)
-cache_h = Cache(SymmetricFunctionAlgebra_homogeneous)
-
-
-
-############
-# Elements #
-############
-
-def zee(part):
-    p = partition.Partition_class(part)
-    return p.centralizer_size()
-
-
-def is_SymmetricFunction(x):
-    return isinstance(x, SymmetricFunctionAlgebraElement_generic)
-
+    def dual_basis(self, scalar=None):
+        """
+        Returns the basis dual to self with respect to the
+        scalar product scalar.  If scalar is not specified,
+        then it returns the basis dual to the standard scalar
+        product for the classical symmetric functions.
+        """
+        raise NotImplementedError
 
 class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
     """
@@ -577,12 +705,12 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         R = self.parent().base_ring()
         s = SFASchur(R)
 
-        if self.parent().basis() == 'schur':
+        if self.parent().basis_name() == 'schur':
             self_schur = self
         else:
             self_schur = s(self)
 
-        if x.parent().basis() == 'schur':
+        if x.parent().basis_name() == 'schur':
             x_schur = x
         else:
             x_schur = s(x)
@@ -605,7 +733,7 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         z = s(0)
         z._monomial_coefficients = z_elt
 
-        if self.parent().basis() == 'schur':
+        if self.parent().basis_name() == 'schur':
             return z
         else:
             return self.parent()(z)
@@ -720,6 +848,17 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
     def _mul_(self, y):
         raise NotImplementedError
 
+    def _div_(self, y):
+        return self*(~y)
+
+    def __invert__(self):
+        mcs = self._monomial_coefficients
+        one = partition.Partition_class([])
+        if len(mcs) == 1 and one in mcs:
+            return self.parent()( ~mcs[ one ] )
+        else:
+            raise ValueError, "cannot invert self (= %s)"%self
+
     def __pow__(self, n):
         """
         EXAMPLES:
@@ -760,12 +899,19 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         """
         if isinstance(m, partition.Partition_class):
             return self._monomial_coefficients.get(m, self.parent().base_ring()(0))
-        elif m in partition.Partitions():
-            return self._monomial_coefficients[partition.Partition(m)]
+        elif m in partition.Partitions_all():
+            return self._monomial_coefficients[partition.Partition_class(m)]
         else:
             raise TypeError, "you must specify a partition"
 
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: len(z)
+            4
+        """
         return self.length()
 
     def length(self):
@@ -888,7 +1034,7 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
             sage: p([2,1,1]).expand(2)
             x0^4 + 2*x0^3*x1 + 2*x0^2*x1^2 + 2*x0*x1^3 + x1^4
         """
-        e = eval('symmetrica.compute_' + str(translate[self.parent().basis()]).lower() + '_with_alphabet')
+        e = eval('symmetrica.compute_' + str(translate[self.parent().basis_name()]).lower() + '_with_alphabet')
         resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)
         res = resPR(0)
         self_mc = self._monomial_coefficients
@@ -899,9 +1045,15 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         return res
 
     def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+        """
         raise NotImplementedError
 
     def omega(self):
+        """
+        An alias for self.frobenius() .
+        """
         return self.frobenius()
 
     def scalar(self, x):
@@ -954,6 +1106,17 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
 
 
     def scalar_hl(self, x, t=None):
+        """
+        Returns the standard Hall-Littlewood scalar product of self and x.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: sp = a.scalar_hl(a); sp
+            (-t^2 - 1)/(t^5 - 2*t^4 + t^3 - t^2 + 2*t - 1)
+            sage: sp.parent()
+            Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        """
         R = self.parent().base_ring()
         p = SFAPower(R)
 
@@ -980,8 +1143,27 @@ class SymmetricFunctionAlgebraElement_generic(AlgebraElement):
         return res
 
 
-class SymmetricFunctionAlgebraElement_ehp(SymmetricFunctionAlgebraElement_generic):
+class SymmetricFunctionAlgebraElement_multiplicative(SymmetricFunctionAlgebraElement_generic):
     def _mul_(left, right):
+        """
+        TESTS:
+            sage: e = SFAElementary(QQ)
+            sage: e([2,1])^2
+            e[2, 2, 1, 1]
+
+            sage: h = SFAHomogeneous(QQ)
+            sage: h([2,1])^2
+            h[2, 2, 1, 1]
+
+            sage: p = SFAPower(QQ)
+            sage: p([2,1])^2
+            p[2, 2, 1, 1]
+
+            sage: QQx.<x> = QQ[]
+            sage: p = SFAPower(QQx)
+            sage: (x*p([2]))^2
+            x^2*p[2, 2]
+        """
         A = left.parent()
         R = A.base_ring()
         z_elt = {}
@@ -989,7 +1171,7 @@ class SymmetricFunctionAlgebraElement_ehp(SymmetricFunctionAlgebraElement_generi
             for (right_m, right_c) in right._monomial_coefficients.iteritems():
                 m = list(left_m)+list(right_m)
                 m.sort(reverse=True)
-                m = partition.Partition(m)
+                m = partition.Partition_class(m)
                 if m in z_elt:
                     z_elt[ m ] = z_elt[m] + left_c * right_c
                 else:
@@ -999,9 +1181,67 @@ class SymmetricFunctionAlgebraElement_ehp(SymmetricFunctionAlgebraElement_generi
         return z
 
 
+#################################
+#                               #
+#   Schur Symmetric Functions   #
+#                               #
+#################################
+
+class SymmetricFunctionAlgebra_schur(SymmetricFunctionAlgebra_generic):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: s == loads(dumps(s))
+            True
+        """
+        SymmetricFunctionAlgebra_generic.__init__(self, R, "schur", SymmetricFunctionAlgebraElement_schur, 's')
+
+    def is_schur_basis(self):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.is_schur_basis()
+            True
+        """
+        return True
+
+    def dual_basis(self, scalar=None):
+        """
+        The dual basis to the Schur basis with respect to
+        the standard scalar product is the Schur basis since
+        it is self-dual.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: ds = s.dual_basis()
+            sage: s is ds
+            True
+        """
+        if scalar is None:
+            return self
+        else:
+            return SymmetricFunctionAlgebra_dual(self, scalar)
 
 class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_generic):
     def _mul_(left, right):
+        """
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + 1; a
+            s[] + s[2, 1]
+            sage: a^2
+            2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+            sage: QQx.<x> = QQ[]
+            sage: s = SFASchur(QQx)
+            sage: a = x^2*s([2,1]) + 2*x; a
+            2*x*s[] + x^2*s[2, 1]
+            sage: a^2
+            4*x^2*s[] + 4*x^3*s[2, 1] + x^4*s[2, 2, 1, 1] + x^4*s[2, 2, 2] + x^4*s[3, 1, 1, 1] + 2*x^4*s[3, 2, 1] + x^4*s[3, 3] + x^4*s[4, 1, 1] + x^4*s[4, 2]
+
+
+        """
         #Use symmetrica to do the multiplication
         A = left.parent()
         R = A.base_ring()
@@ -1023,6 +1263,22 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
         return z
 
     def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]); a
+            s[2, 1]
+            sage: a.frobenius()
+            s[2, 1]
+            sage: a.omega()
+            s[2, 1]
+
+            sage: a = s([2,1,1])
+            sage: a.omega()
+            s[3, 1]
+        """
         parent = self.parent()
         z = {}
         mcs = self.monomial_coefficients()
@@ -1102,19 +1358,78 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
 
 
 
+#################################
+#                               #
+# Monomial Symmetric Functions  #
+#                               #
+#################################
+
+class SymmetricFunctionAlgebra_monomial(SymmetricFunctionAlgebra_generic):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: m = SFAMonomial(QQ)
+            sage: m == loads(dumps(m))
+            True
+        """
+        SymmetricFunctionAlgebra_generic.__init__(self, R, "monomial", SymmetricFunctionAlgebraElement_monomial, 'm')
+
+    def dual_basis(self, scalar=None):
+        """
+        The dual basis of the monomial basis with
+        respect to the standard scalar product is the
+        homogeneous basis.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: h = SFAHomogeneous(QQ)
+            sage: m.dual_basis() == h
+            True
+        """
+        if scalar is None:
+            return SFAHomogeneous(self.base_ring())
+        else:
+            return SymmetricFunctionAlgebra_dual(self, scalar)
+
+
 class SymmetricFunctionAlgebraElement_monomial(SymmetricFunctionAlgebraElement_generic):
     def _mul_(left, right):
+        """
+        TESTS:
+            sage: m = SFAMonomial(QQ)
+            sage: a = m([2,1])
+            sage: a^2
+            6*m[2, 2, 2] + 4*m[2, 2, 1, 1] + 2*m[3, 3] + 2*m[3, 2, 1] + m[4, 2] + 2*m[4, 1, 1]
+
+            sage: QQx.<x> = QQ['x']
+            sage: m = SFAMonomial(QQx)
+            sage: a = m([2,1])+x
+            sage: 2*a
+            2*x*m[] + 2*m[2, 1]
+            sage: a^2
+            x^2*m[] + 2*x*m[2, 1] + 4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]
+
+        """
         #Use symmetrica to do the multiplication
         A = left.parent()
         R = A.base_ring()
 
-        if  R is ZZ or R is QQ:
-            return symmetrica.mult_monomial_monomial(left, right)
+        #Hack due to symmetrica crashing when both of the
+        #partitions are the empty partition
+        #if  R is ZZ or R is QQ:
+        #    return symmetrica.mult_monomial_monomial(left, right)
 
         z_elt = {}
         for (left_m, left_c) in left._monomial_coefficients.iteritems():
             for (right_m, right_c) in right._monomial_coefficients.iteritems():
-                d = symmetrica.mult_monomial_monomial({left_m:Integer(1)}, {right_m:Integer(1)})
+
+                #Hack due to symmetrica crashing when both of the
+                #partitions are the empty partition
+                if left_m == [] and right_m == []:
+                    z_elt[ left_m ] = left_c*right_c
+                    continue
+
+                d = symmetrica.mult_monomial_monomial({left_m:Integer(1)}, {right_m:Integer(1)}).monomial_coefficients()
                 for m in d:
                     if m in z_elt:
                         z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
@@ -1125,32 +1440,126 @@ class SymmetricFunctionAlgebraElement_monomial(SymmetricFunctionAlgebraElement_g
         return z
 
     def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: a = m([2,1]); a
+            m[2, 1]
+            sage: a.frobenius()
+            -m[2, 1] - 2*m[3]
+            sage: a.omega()
+            -m[2, 1] - 2*m[3]
+
+        """
         parent = self.parent()
         s = SFASchur(parent.base_ring())
         return parent(s(self).frobenius())
 
 
-class SymmetricFunctionAlgebraElement_elementary(SymmetricFunctionAlgebraElement_ehp):
+###################################
+#                                 #
+# Elementary Symmetric Functions  #
+#                                 #
+###################################
+class SymmetricFunctionAlgebra_elementary(SymmetricFunctionAlgebra_generic):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: e = SFAElementary(QQ)
+            sage: e == loads(dumps(e))
+            True
+        """
+        SymmetricFunctionAlgebra_generic.__init__(self, R, "elementary", SymmetricFunctionAlgebraElement_elementary, 'e')
+
+
+class SymmetricFunctionAlgebraElement_elementary(SymmetricFunctionAlgebraElement_multiplicative):
     def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+
+        EXAMPLES:
+            sage: e = SFAElementary(QQ)
+            sage: a = e([2,1]); a
+            e[2, 1]
+            sage: a.frobenius()
+            e[1, 1, 1] - e[2, 1]
+            sage: a.omega()
+            e[1, 1, 1] - e[2, 1]
+
+            sage: h = SFAHomogeneous(QQ)
+            sage: h(e([2,1]).omega())
+            h[2, 1]
+        """
         base_ring = self.parent().base_ring()
         h = SFAHomogeneous(base_ring)
         mcs = self.monomial_coefficients()
         res = h(0)
         res._monomial_coefficients = mcs
-        return res
+        return self.parent()(res)
 
-class SymmetricFunctionAlgebraElement_homogeneous(SymmetricFunctionAlgebraElement_ehp):
+    def dual_basis(self, scalar=None):
+        """
+        Returns the dual basis of the elementary basis with
+        respect to the scalar product scalar.  If scalar is None,
+        then the standard scalar product for the classical
+        symmetric functions is used.
+
+        EXAMPLES:
+
+        """
+        if scalar is None:
+            scalar = zee
+
+        return SymmetricFunctionAlgebra_dual(self, scalar)
+
+
+####################################
+#                                  #
+#   Power-sum Symmetric Functions  #
+#                                  #
+####################################
+class SymmetricFunctionAlgebra_power(SymmetricFunctionAlgebra_generic):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: p = SFAPower(QQ)
+            sage: p == loads(dumps(p))
+            True
+        """
+        SymmetricFunctionAlgebra_generic.__init__(self, R, "power", SymmetricFunctionAlgebraElement_power, 'p')
+
+
+    def dual_basis(self, scalar=None):
+        """
+        Returns the dual basis of the power-sum basis with
+        respect to the scalar product scalar.  If scalar is None,
+        then the standard scalar product for the classical
+        symmetric functions is used.
+
+        EXAMPLES:
+
+        """
+        if scalar is None:
+            scalar = zee
+
+        return SymmetricFunctionAlgebra_dual(self, scalar)
+
+class SymmetricFunctionAlgebraElement_power(SymmetricFunctionAlgebraElement_multiplicative):
     def frobenius(self):
-        base_ring = self.parent().base_ring()
-        e = SFAElementary(base_ring)
-        mcs = self.monomial_coefficients()
-        res = e(0)
-        res._monomial_coefficients = mcs
-        return res
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
 
-
-class SymmetricFunctionAlgebraElement_power(SymmetricFunctionAlgebraElement_ehp):
-    def frobenius(self):
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: a = p([2,1]); a
+            p[2, 1]
+            sage: a.frobenius()
+            -p[2, 1]
+            sage: a.omega()
+            -p[2, 1]
+        """
         parent = self.parent()
         base_ring = parent.base_ring()
         z = {}
@@ -1204,3 +1613,381 @@ class SymmetricFunctionAlgebraElement_power(SymmetricFunctionAlgebraElement_ehp)
                 res += smcs[s_part]*gmcs[s_part]*zee(s_part)
 
         return res
+
+####################################
+#                                  #
+# Homogeneous Symmetric Functions  #
+#                                  #
+####################################
+class SymmetricFunctionAlgebra_homogeneous(SymmetricFunctionAlgebra_generic):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: h = SFAHomogeneous(QQ)
+            sage: h == loads(dumps(h))
+            True
+        """
+        SymmetricFunctionAlgebra_generic.__init__(self, R, "homogeneous", SymmetricFunctionAlgebraElement_homogeneous, 'h')
+
+    def dual_basis(self, scalar=None):
+        """
+        The dual basis of the homogeneous basis with
+        respect to the standard scalar product is the
+        monomial basis.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: h = SFAHomogeneous(QQ)
+            sage: h.dual_basis() == m
+            True
+        """
+        if scalar is None:
+            return SFAMonomial(self.base_ring())
+        else:
+            return SymmetricFunctionAlgebra(self, scalar)
+
+
+class SymmetricFunctionAlgebraElement_homogeneous(SymmetricFunctionAlgebraElement_multiplicative):
+    def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+
+        EXAMPLES:
+            sage: h = SFAHomogeneous(QQ)
+            sage: a = h([2,1]); a
+            h[2, 1]
+            sage: a.frobenius()
+            h[1, 1, 1] - h[2, 1]
+            sage: a.omega()
+            h[1, 1, 1] - h[2, 1]
+
+            sage: e = SFAElementary(QQ)
+            sage: e(h([2,1]).omega())
+            e[2, 1]
+        """
+        base_ring = self.parent().base_ring()
+        e = SFAElementary(base_ring)
+        mcs = self.monomial_coefficients()
+        res = e(0)
+        res._monomial_coefficients = mcs
+        return self.parent()(res)
+
+
+####################################
+#                                  #
+#    Dual Symmetric Functions      #
+#                                  #
+####################################
+class SymmetricFunctionAlgebra_dual(SymmetricFunctionAlgebra_generic):
+    def __init__(self, dual_basis, scalar, scalar_name=""):
+        """
+        """
+        self._dual_basis = dual_basis
+        self._scalar = scalar
+        self._scalar_name = scalar_name
+
+
+        #Set up the cache
+        self._to_self_cache = {}
+        self._from_self_cache = {}
+        self._transition_matrices = {}
+        self._inverse_transition_matrices = {}
+
+        d1 = dual_basis([1])
+        scalar_target = d1.scalar(d1).parent()
+
+        self._p = SFAPower(scalar_target)
+
+        SymmetricFunctionAlgebra_generic.__init__(self, scalar_target, "dual_"+dual_basis.basis_name(), SymmetricFunctionAlgebraElement_dual, 'd_'+dual_basis.prefix())
+
+
+    def dual_basis(self, scalar=None, scalar_name=None):
+        """
+        """
+        if scalar is None:
+            return self._dual_basis
+        else:
+            return SymmetricFrunctionAlgebra_dual(self, scalar, scalar_name=scalar_name)
+
+    def __repr__(self):
+        return "NotImplementedError"
+
+
+    def __call__(self, x):
+        """
+        Coerce things into self.  We do this by coercing things into
+        self's dual basis, and then converting that to self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ['t'].fraction_field())
+            sage: t = QQ['t'].fraction_field().gen()
+            sage: zee_hl = lambda x: x.centralizer_size(t=t)
+            sage: S = s.dual_basis(zee_hl)
+            sage: S(s([2,1]))
+            (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[1, 1, 1] + ((-t^2-1)/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[2, 1] + (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[3]
+        """
+
+        if is_SymmetricFunction(x):
+            if x.parent() is self:
+                return x
+            else:
+                #Coerce x into the dual basis
+                d_x = self._dual_basis(x)
+                return self._element_class(self, dual=d_x)
+
+
+        return SymmetricFunctionAlgebra_generic.__call__(self, x)
+
+
+    def _precompute(self, n):
+        """
+        """
+
+        base_ring = self.base_ring()
+        zero = base_ring(0)
+
+        #Handle the n == 0 and n == 1 cases separately
+        if n == 0 or n == 1:
+            part = partition.Partition_class([1]*n)
+            self._to_self_cache[ part ] = { part: base_ring(1) }
+            self._from_self_cache[ part ] = { part: base_ring(1) }
+            self._transition_matrices[n] = matrix(base_ring, [[1]])
+            self._inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+            return
+
+        #Get all the basis elements of the n^th homogeneous component
+        #of the dual basis and express them in the power-sum basis
+        partitions_n = partition.Partitions_n(n).list()
+        d = {}
+        for part in partitions_n:
+            d[part] = self._p(self._dual_basis(part))._monomial_coefficients
+
+        #This contains the data for the transition matrix from the
+        #dual basis to self.
+        transition_matrix_n = matrix(base_ring, len(partitions_n), len(partitions_n))
+
+        #This first section calculates how the basis elements of the
+        #dual basis are expressed in terms of self's basis.
+
+        #For every partition p of size n, compute self(p) in
+        #terms of the dual basis using the scalar product.
+        i = 0
+        for s_part in partitions_n:
+            #s_part corresponds to self(dual_basis(part))
+            #s_mcs  corresponds to self(dual_basis(part))._monomial_coefficients
+            s_mcs = {}
+
+            #We need to compute the scalar product of d[s_part] and
+            #all of the d[p_part]'s
+            j = 0
+            for p_part in partitions_n:
+                #Compute the scalar product of d[s_part] and d[p_part]
+                sp = zero
+                for ds_part in d[s_part]:
+                    if ds_part in d[p_part]:
+                        sp += d[s_part][ds_part]*d[p_part][ds_part]*self._scalar(ds_part)
+                if sp != zero:
+                    s_mcs[p_part] = sp
+                    transition_matrix_n[i,j] = sp
+
+                j += 1
+
+            self._to_self_cache[ s_part ] = s_mcs
+            i += 1
+
+        #Save the transition matrix
+        self._transition_matrices[n] = transition_matrix_n
+
+        #This second section calculates how the basis elements of
+        #self in terms of the dual basis.  We do this by computing
+        #the inverse of the matrix obtained above.
+        inverse_transition = ~transition_matrix_n
+
+        for i in range(len(partitions_n)):
+            d_mcs = {}
+            for j in range(len(partitions_n)):
+                if inverse_transition[i,j] != zero:
+                    d_mcs[ partitions_n[j] ] = inverse_transition[i,j]
+
+            self._from_self_cache[ partitions_n[i] ] = d_mcs
+
+        self._inverse_transition_matrices[n] = inverse_transition
+
+    def transition_matrix(self, basis, n ):
+        """
+        Returns the transition matrix between the n^th homogeneous
+        component of self and basis.
+
+
+        """
+        if n not in self._transition_matrices:
+            self._precompute(n)
+
+        if basis is self._dual_basis:
+            return self._transition_matrices[n]
+        else:
+            return self._transition_matrices[n]*self._dual_basis.transition_matrix(basis, n)
+
+
+class SymmetricFunctionAlgebraElement_dual(SymmetricFunctionAlgebraElement_generic):
+    def __init__(self, A, dictionary=None, dual=None):
+        if dictionary is None and dual is None:
+            raise ValueError, "you must specify either x or dual"
+
+        parent = A
+        base_ring = parent.base_ring()
+        zero = base_ring(0)
+
+        if dual is None:
+            #We need to compute the dual
+            dual_dict = {}
+            from_self_cache = parent._from_self_cache
+
+            #Get the underlying dictionary for self
+            s_mcs = dictionary
+
+            #Make sure all the conversions from self to
+            #to the dual basis have been precomputed
+            for part in s_mcs:
+                if part not in from_self_cache:
+                    parent._precompute(sum(part))
+
+            #Create the monomial coefficient dictionary from the
+            #the monomial coefficient dictionary of dual
+            for s_part in s_mcs:
+                from_dictionary = from_self_cache[s_part]
+                for part in from_dictionary:
+                    dual_dict[ part ] = dual_dict.get(part, zero) + base_ring(s_mcs[s_part]*from_dictionary[part])
+
+            dual = parent._dual_basis(0)
+            dual._monomial_coefficients = dual_dict
+
+        else:
+            #We need to compute the monomial coefficients dictionary
+            dictionary = {}
+            to_self_cache = parent._to_self_cache
+
+            #Get the underlying dictionary for the
+            #dual
+            d_mcs = dual._monomial_coefficients
+
+            #Make sure all the conversions from the dual basis
+            #to self have been precomputed
+            for part in d_mcs:
+                if part not in to_self_cache:
+                    parent._precompute(sum(part))
+
+            #Create the monomial coefficient dictionary from the
+            #the monomial coefficient dictionary of dual
+            for d_part in d_mcs:
+                to_dictionary = to_self_cache[d_part]
+                for part in to_dictionary:
+                    dictionary[ part ] = dictionary.get(part, zero) + base_ring(d_mcs[d_part]*to_dictionary[part])
+
+
+        #Initialize self
+        self._dual = dual
+        SymmetricFunctionAlgebraElement_generic.__init__(self, A, dictionary)
+
+
+    def dual(self):
+        """
+        Returns self in the dual basis.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: a = h([2,1])
+            sage: a.dual()
+            3*m[1, 1, 1] + 2*m[2, 1] + m[3]
+        """
+        return self._dual
+
+    def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega
+        automorphism.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sfa.zee
+            sage: h = m.dual_basis(zee)
+            sage: hh = SFAHomogeneous(QQ)
+            sage: hh([2,1]).frobenius()
+            h[1, 1, 1] - h[2, 1]
+            sage: h([2,1]).frobenius()
+            d_m[1, 1, 1] - d_m[2, 1]
+        """
+        eclass = self.__class__
+        return eclass(self.parent(), dual=self._dual.frobenius() )
+
+    def scalar(self, x):
+        """
+        Returns the standard scalar product of self and x.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: a = h([2,1])
+            sage: a.scalar(a)
+            2
+        """
+        return self._dual.scalar(x)
+
+    def scalar_hl(self, x):
+        """
+        Returns the Hall-Littlewood scalar product of self
+        and x.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: a = h([2,1])
+            sage: a.scalar_hl(a)
+            (t + 2)/(-t^4 + 2*t^3 - 2*t + 1)
+        """
+        return self._dual.scalar_hl(x)
+
+
+    def _mul_(self, right):
+        """
+        Multiplication is done by performing the multiplication in
+        self's dual basis and then converting back to self.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: a = h([2])
+            sage: b = a*a; b
+            d_m[2, 2]
+            sage: b.dual()
+            6*m[1, 1, 1, 1] + 3*m[2, 2] + 4*m[2, 1, 1] + 2*m[3, 1] + m[4]
+        """
+
+        #Do the multiplication in the dual basis
+        #and then convert back to self.
+        eclass = self.__class__
+        d_mult = self.dual()*right.dual()
+
+        return eclass(self.parent(), dual=d_mult)
+
+
+    def expand(self, n):
+        """
+
+        """
+        return self._dual.expand(n)
+
+#############
+#   Cache   #
+#############
+from sage.misc.cache import Cache
+cache_s = Cache(SymmetricFunctionAlgebra_schur)
+cache_m = Cache(SymmetricFunctionAlgebra_monomial)
+cache_p = Cache(SymmetricFunctionAlgebra_power)
+cache_e = Cache(SymmetricFunctionAlgebra_elementary)
+cache_h = Cache(SymmetricFunctionAlgebra_homogeneous)

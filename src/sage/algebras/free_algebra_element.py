@@ -59,6 +59,14 @@ class FreeAlgebraElement(AlgebraElement):
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
     def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: repr(-x+3*y*z)
+            '-x + 3*y*z'
+        """
         v = self.__monomial_coefficients.items()
         v.sort()
         mons = [ m for (m, _) in v ]
@@ -68,6 +76,77 @@ class FreeAlgebraElement(AlgebraElement):
             return x[:len(x)-2]
         else:
             return x
+
+    def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: latex(-x+3*y^20*z)
+            \left(-1\right)x + 3y^{20}z
+            sage: alpha,beta,gamma=FreeAlgebra(ZZ,3,'alpha,beta,gamma').gens()
+            sage: latex(alpha-beta)
+            \alpha + \left(-1\right)\beta
+        """
+        v = self.__monomial_coefficients.items()
+        v.sort()
+        mons = [ m for (m, _) in v ]
+        cffs = [ x for (_, x) in v ]
+        x = repr_lincomb(mons, cffs,is_latex=True)
+        return x
+
+    def __call__(self, *x, **kwds):
+        """
+        EXAMPLES:
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: (x+3*y).subs(x=1,y=2,z=14)
+            7
+            sage: (2*x+y).subs({x:1,y:z})
+            2 + z
+            sage: f=x+3*y+z
+            sage: f(1,2,1/2)
+            15/2
+            sage: f(1,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify as many values as generators in parent
+
+        AUTHOR:
+            -- Joel B. Mohler (2007.10.27)
+        """
+        if len(kwds)>0 and len(x)>0:
+            raise ValueError, "must not specify both a keyword and positional argument"
+
+        if len(kwds)>0:
+            p = self.parent()
+            def extract_from(kwds,g):
+                for x in g:
+                    try:
+                        return kwds[x]
+                    except KeyError:
+                        pass
+                return None
+
+            x = [extract_from(kwds,(p.gen(i),p.variable_name(i))) for i in range(p.ngens())]
+        elif isinstance(x[0],tuple):
+            x = x[0]
+
+        if len(x) != self.parent().ngens():
+            raise ValueError, "must specify as many values as generators in parent"
+
+        # I don't start with 0, because I don't want to preclude evaluation with
+        #arbitrary objects (e.g. matrices) because of funny coercion.
+        result = None
+        for m, c in self.__monomial_coefficients.iteritems():
+            if result is None:
+                result = c*m(x)
+            else:
+                result += c*m(x)
+
+        if result is None:
+            return self.parent()(0)
+        return result
 
     def __cmp__(left, right):
         """
@@ -155,12 +234,21 @@ class FreeAlgebraElement(AlgebraElement):
         return z
 
     def _mul_(self, y):
+        """
+        EXAMPLES:
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: (x+y+x*y)*(x+y+1)
+            x + y + x^2 + 2*x*y + y*x + y^2 + x*y*x + x*y^2
+        """
         A = self.parent()
         z_elt = {}
         for mx, cx in self.__monomial_coefficients.iteritems():
             for my, cy in y.__monomial_coefficients.iteritems():
-                z_elt[mx*my] = cx*cy
+                key = mx*my
+                if z_elt.has_key(key):
+                    z_elt[key] += cx*cy
+                else:
+                    z_elt[key] = cx*cy
         z = A(0)
         z.__monomial_coefficients = z_elt
         return z
-

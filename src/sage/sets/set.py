@@ -472,6 +472,23 @@ class Set_object(Set_generic):
         """
         return self.__object
 
+
+    def subsets(self,size=None):
+        """
+        Return the Subset object representing the subsets of a set.  If size
+        is specified, return the subsets of that size.
+
+        EXAMPLES:
+            sage: X = Set([1,2,3])
+            sage: list(X.subsets())
+            [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+            sage: list(X.subsets(2))
+            [{1, 2}, {1, 3}, {2, 3}]
+
+        """
+        from sage.combinat.subset import Subsets
+        return Subsets(self,size)
+
 class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.

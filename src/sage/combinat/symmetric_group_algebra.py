@@ -19,6 +19,8 @@ import partition
 from tableau import Tableau, StandardTableaux_n, StandardTableaux_partition, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import factorial, QQ
+from sage.matrix.all import matrix
+from sage.modules.all import vector
 
 def SymmetricGroupAlgebra(R,n):
     """
@@ -120,13 +122,27 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
         return cpi
 
+    def jucys_murphy(self, k):
+        """
+        Returns the Jucys-Murphy element J_k for the symmetric group algebra.
+        """
+        res = self(0)
+
+        if k < 2 or k > self.n:
+            raise ValueError, "k must between 2 and n (inclusive)"
+
+	for i in range(1, k):
+		p = range(1, self.n+1)
+		p[i-1] = i+1
+		p[i] = i
+                res += self(p)
+        return res
+
 
 
     def seminormal_basis(self):
         """
         Returns a list of the seminormal basis elements of self.
-
-        EXAMPLES:
 
         """
 	basis = []
@@ -136,6 +152,17 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
                 for t2 in stp:
                     basis.append(self.epsilon_ik(t1,t2))
 	return basis
+
+
+    def dft(self, form="seminormal"):
+        if form == "seminormal":
+            return self._dft_seminormal()
+        else:
+            raise ValueError, "invalid form (= %s)"%form
+
+    def _dft_seminormal(self):
+        snb = self.seminormal_basis()
+        return matrix( [vector(b) for b in snb] )
 
 
     def epsilon_ik(self, itab, ktab, star=0):
@@ -158,7 +185,18 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         if kt not in stn:
             raise TypeError, "kt must be a standard tableaux of size %s"%self.n
 
-        return epsilon_ik(it, kt, star=star)
+        BR = self.base_ring()
+        z = self(0)
+        z_elts = {}
+
+        epik = epsilon_ik(it, kt, star=star)
+
+        for m,c in epik._monomial_coefficients.iteritems():
+            z_elts[m] = BR(c)
+
+        z._monomial_coefficients = z_elts
+
+        return z
 
 
 
@@ -215,18 +253,24 @@ def epsilon(tab, star=0):
 def pi_ik(itab, ktab, csn=False):
     it = Tableau(itab)
     kt = Tableau(ktab)
-    p = [None]*it.size()
-    for i in range(len(it)):
-        for j in range(len(it[i])):
-            p[ kt[i][j] -1 ] = it[i][j]
+
+    po = permutation.PermutationOptions()
+
+    if po['mult'] == 'r2l':
+        p = [None]*it.size()
+        for i in range(len(it)):
+            for j in range(len(it[i])):
+                p[ kt[i][j] -1 ] = it[i][j]
+    else:
+        p = [None]*kt.size()
+        for i in range(len(kt)):
+            for j in range(len(kt[i])):
+                p[ it[i][j] -1 ] = kt[i][j]
 
     QSn = SymmetricGroupAlgebra(QQ, it.size())
-    po = permutation.PermutationOptions()
     p = permutation.Permutation(p)
-    if po['mult'] == 'l2r':
-        return QSn(p.inverse())
-    else:
-        return QSn(p)
+
+    return QSn(p)
 
 
 def kappa(alpha):
@@ -253,9 +297,18 @@ def e(tableau, star=0):
         QSn = SymmetricGroupAlgebra(QQ, n)
 
         res = 0
-        for h in rs:
-            for v in cs:
-                res += v.sign() * QSn( (h*v).list() )
+        po = permutation.PermutationOptions()
+
+        #Note that since v and h are GAP permutation group
+        #elements, their multiplication is always done l2r.
+        if po['mult'] == 'l2r':
+            for h in rs:
+                for v in cs:
+                    res += v.sign() * QSn( (h*v).list() )
+        else:
+            for h in rs:
+                for v in cs:
+                    res += v.sign() * QSn( (v*h).list() )
         e_cache[t] = res
         return res
 
@@ -314,6 +367,10 @@ def seminormal_test(n):
                 if tab == tab2:
                     continue
 
-                #3.1.20
-                if e_hat(tab)*e_hat(tab2) != 0:
-                    raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
+                if tab.last_letter_lequal(tab2):
+                    #3.1.20
+                    if e(tab2)*e(tab) != 0:
+                        raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
+                    if e_hat(tab2)*e_hat(tab) != 0:
+                        raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
+

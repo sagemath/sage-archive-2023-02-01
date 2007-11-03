@@ -93,12 +93,12 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     def __reduce__(self):
         return (unpickle_v0, (self._parent, self.list(), self._degree))
 
-    def __init__(self,parent,x,coerce=True,copy=True):
+    def __init__(self, parent, x, coerce=True, copy=True):
         self._parent = parent
-        self._degree = parent.degree()
-        cdef int n
+
         cdef int i
-        n = parent.degree()
+        cdef int n = parent.degree()
+        self._degree = n
         if n == 0:
             self.v = NULL
             return
@@ -119,14 +119,14 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         gsl_set_error_handler_off()
         self.v = <gsl_vector*> gsl_vector_calloc(n)
 
-        if self.v is not NULL and length ==n:
-            for i from 0 <=i < n:
-                gsl_vector_set(self.v, i, x[i] )
+        if self.v is not NULL and length == n:
+            for i from 0 <= i < n:
+                gsl_vector_set(self.v, i, x[i])
 
         elif self.v is NULL:
             raise MemoryError, "Error allocating memory for vector"
 
-        elif length !=n:
+        elif length != n:
             raise TypeError,"user supplied vector must be same length as rank of vector space"
 
     def __dealloc__(self):

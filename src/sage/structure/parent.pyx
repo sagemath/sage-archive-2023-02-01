@@ -273,7 +273,8 @@ cdef class Parent(sage_object.SageObject):
             #
             x = self._an_element_c()
             y = (<Parent>S)._an_element_c()
-#            print "looking action ", x, y
+#            print "looking for action ", self, "<--->", S
+#            print "looking for action ", x, "<--->", y
 
             _register_pair(x,y) # this is to avoid possible infinite loops
             if self_on_left:

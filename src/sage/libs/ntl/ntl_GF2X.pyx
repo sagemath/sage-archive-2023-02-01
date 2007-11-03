@@ -115,8 +115,9 @@ cdef class ntl_GF2X:
         """
 
         from sage.rings.finite_field_element import FiniteField_ext_pariElement
-        from sage.rings.finite_field import FiniteField_ext_pari
-        from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
+        from sage.rings.finite_field_givaro import FiniteField_givaroElement
+        from sage.rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2eElement
+        from sage.rings.ring import FiniteField
         from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_p
 
         cdef long _x
@@ -138,7 +139,7 @@ cdef class ntl_GF2X:
         elif PY_TYPE_CHECK(x, Polynomial_dense_mod_p):
             if x.base_ring().characteristic():
                 x=x._Polynomial_dense_mod_n__poly
-        elif PY_TYPE_CHECK(x, FiniteField_ext_pari) or PY_TYPE_CHECK(x,FiniteField_givaro):
+        elif PY_TYPE_CHECK(x, FiniteField):
             if x.characteristic() == 2:
                 x= list(x.modulus())
         elif PY_TYPE_CHECK(x, FiniteField_ext_pariElement):
@@ -147,6 +148,8 @@ cdef class ntl_GF2X:
                 x="0x"+hex(x)[2:][::-1]
         elif PY_TYPE_CHECK(x, FiniteField_givaroElement):
             x = "0x"+hex(int(x))[2:][::-1]
+        elif PY_TYPE_CHECK(x, FiniteField_ntl_gf2eElement):
+            x = x.polynomial().list()
         s = str(x).replace(","," ")
         _sig_on
         # TODO: this is very slow, but we wait until somebody complains
@@ -503,6 +506,9 @@ cdef class ntl_GF2X:
         GF2XHexOutput_c[0] = _hex
         return s
 
+    def __hash__(self):
+        return hash(hex(self))
+
     def _sage_(ntl_GF2X self, R=None):
         """
         Returns a SAGE polynomial over GF(2) equivalent to
@@ -533,7 +539,7 @@ cdef class ntl_GF2X:
 
     def coeff(self, int i):
         """
-        Return the coefficient of the monomial X^i in self.
+        Return the coefficient of the monomial $X^i$ in self.
 
         INPUT:
             i -- degree of X
@@ -652,7 +658,7 @@ cdef class ntl_GF2X:
 
     def weight(self):
         """
-        Return the # of nonzero coefficients in self.
+        Return the number of nonzero coefficients in self.
 
         EXAMPLE:
             sage: e = ntl.GF2X([1,0,1,1,0])
@@ -664,16 +670,19 @@ cdef class ntl_GF2X:
     def __int__(self):
         """
             sage: e = ntl.GF2X([1,0,1,1,0])
-
-        Note that the int representation depends on the endianess of the platform.
-            sage: int(e) == (13 if sys.byteorder == "little" else 218103808)
-            True
-            sage: 2^0 + 2^2 + 2^3
-            13
+            sage: int(e)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert non-constant polynomial to integer
+            sage: e = ntl.GF2X([1])
+            sage: int(e)
+            1
         """
         cdef long l = 0
-        BytesFromGF2X(<unsigned char *>&l, self.x, sizeof(long))
-        return int(l)
+        if GF2X_deg(self.x) != 0:
+            raise ValueError, "cannot convert non-constant polynomial to integer"
+        else:
+            return GF2_conv_to_long(GF2X_coeff(self.x,0))
 
     def NumBits(self):
         """

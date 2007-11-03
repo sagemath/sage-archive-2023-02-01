@@ -242,7 +242,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return MatrixSpace, (self.base_ring(), self.__nrows, self.__ncols, self.__is_sparse)
 
-    def __call__(self, entries=0, coerce=True, copy=True):
+    def __call__(self, entries=0, coerce=True, copy=True, rows=None):
         """
         EXAMPLES:
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
@@ -250,6 +250,58 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MatrixSpace(k,2)(g)
             [1 1]
             [0 1]
+
+            sage: MS = MatrixSpace(ZZ,2,4)
+            sage: M2 = MS(range(8)); M2
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2.columns()
+            [(0, 4), (1, 5), (2, 6), (3, 7)]
+            sage: MS(M2.columns())
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2 == MS(M2.columns())
+            True
+            sage: M2 == MS(M2.rows())
+            True
+
+
+            sage: MS = MatrixSpace(ZZ,2,4, sparse=True)
+            sage: M2 = MS(range(8)); M2
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2.columns()
+            [(0, 4), (1, 5), (2, 6), (3, 7)]
+            sage: MS(M2.columns())
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2 == MS(M2.columns())
+            True
+            sage: M2 == MS(M2.rows())
+            True
+
+            sage: MS = MatrixSpace(ZZ,2,2)
+            sage: MS([1,2,3,4])
+            [1 2]
+            [3 4]
+            sage: MS([1,2,3,4], rows=True)
+            [1 2]
+            [3 4]
+            sage: MS([1,2,3,4], rows=False)
+            [1 3]
+            [2 4]
+
+            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
+            sage: MS([1,2,3,4])
+            [1 2]
+            [3 4]
+            sage: MS([1,2,3,4], rows=True)
+            [1 2]
+            [3 4]
+            sage: MS([1,2,3,4], rows=False)
+            [1 3]
+            [2 4]
+
         """
         if entries is None:
             entries = 0
@@ -259,27 +311,48 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         if isinstance(entries, (list, tuple)) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
+            #Try to determine whether or not the entries should
+            #be rows or columns
+            if rows is None:
+                #If the matrix is square, default to rows
+                if self.__ncols == self.__nrows:
+                    rows = True
+                elif len(entries[0]) == self.__ncols:
+                    rows = True
+                elif len(entries[0]) == self.__nrows:
+                    rows = False
+                else:
+                    raise ValueError, "incorrect dimensions"
+
             if self.__is_sparse:
                 e = {}
                 zero = self.base_ring()(0)
                 for i in xrange(len(entries)):
                     for j, x in entries[i].iteritems():
                         if x != zero:
-                            e[(i,j)] = x
+                            if rows:
+                                e[(i,j)] = x
+                            else:
+                                e[(j,i)] = x
                 entries = e
             else:
                 entries = sum([v.list() for v in entries],[])
+
+        if rows is None:
+            rows = True
+
         if not self.__is_sparse and isinstance(entries, dict):
             entries = dict_to_list(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
         elif self.__is_sparse and isinstance(entries, (list, tuple)):
-            entries = list_to_dict(entries, self.__nrows, self.__ncols)
+            entries = list_to_dict(entries, self.__nrows, self.__ncols, rows=rows)
             coerce = True
             copy = False
         elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries):
             return self(entries.matrix(), copy=False)
-        return self.matrix(entries, copy=copy, coerce=coerce)
+
+        return self.matrix(entries, copy=copy, coerce=coerce, rows=rows)
 
     def change_ring(self, R):
         """
@@ -631,7 +704,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return self.dimension()
 
-    def matrix(self, x=0, coerce=True, copy=True):
+    def matrix(self, x=0, coerce=True, copy=True, rows=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -645,6 +718,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: M.matrix([1,0,0,-1])
             [ 1  0]
             [ 0 -1]
+            sage: M.matrix([1,2,3,4])
+            [1 2]
+            [3 4]
+            sage: M.matrix([1,2,3,4],rows=False)
+            [1 3]
+            [2 4]
         """
         if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
@@ -668,6 +747,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 x = e
             elif isinstance(x[0], tuple):
                 x = list(sum(x,()))
+
+            if not rows:
+                new_x = []
+                for k in range(len(x)):
+                    i = k % self.__ncols
+                    j = k // self.__ncols
+                    new_x.append( x[ i*self.__nrows + j ] )
+                x = new_x
+
         return self.__matrix_class(self, entries=x, copy=copy, coerce=coerce)
 
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
@@ -781,13 +869,42 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 _random = 1
 
 def dict_to_list(entries, nrows, ncols):
+    """
+    Given a dictionary of coordinate tuples, return the
+    list given by reading off the nrows*ncols matrix in
+    row order.
+
+    EXAMLES:
+       sage: from sage.matrix.matrix_space import dict_to_list
+       sage: d = {}
+       sage: d[(0,0)] = 1
+       sage: d[(1,1)] = 2
+       sage: dict_to_list(d, 2, 2)
+       [1, 0, 0, 2]
+       sage: dict_to_list(d, 2, 3)
+       [1, 0, 0, 0, 2, 0]
+    """
     v = [0]*(nrows*ncols)
-    for ij, y in entries:
+    for ij, y in entries.iteritems():
         i,j = ij
         v[i*ncols + j] = y
     return v
 
-def list_to_dict(entries, nrows, ncols):
+def list_to_dict(entries, nrows, ncols, rows=True):
+    """
+    Given a list of entries, create a dictionary whose keys
+    are coordinate tuples and values are the entries.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_space import list_to_dict
+        sage: d = list_to_dict([1,2,3,4],2,2)
+        sage: d[(0,1)]
+        2
+        sage: d = list_to_dict([1,2,3,4],2,2,rows=False)
+        sage: d[(0,1)]
+        3
+
+    """
     d = {}
     if ncols == 0 or nrows == 0:
         return d
@@ -796,7 +913,10 @@ def list_to_dict(entries, nrows, ncols):
         if x != 0:
             col = i % ncols
             row = i // ncols
-            d[(row,col)] = x
+            if rows:
+                d[(row,col)] = x
+            else:
+                d[(col,row)] = x
     return d
 
 

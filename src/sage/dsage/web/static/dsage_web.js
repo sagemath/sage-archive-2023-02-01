@@ -1,5 +1,6 @@
 $(document).ready(function()
     {
-        $("#myTable").tablesorter();
+        $('#jobs_table').load('get_jobs', function() {
+            $("#jobs_table").tablesorter(); } );
     }
 );

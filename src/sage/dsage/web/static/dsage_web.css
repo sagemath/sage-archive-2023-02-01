@@ -94,7 +94,7 @@ ul#tabnav a:hover {/* settings for hover effect */
 }
 /* end css tabs */
 
-table.jobs_table, table.job_details {
+/*table#jobs_table, table#job_details {
     border: solid #000 1px;
     border-bottom: solid #000 1px;
     border-right: solid #000 1px;
@@ -105,19 +105,16 @@ table.jobs_table, table.job_details {
     padding-left:10px;
     padding-right:10px;
 }
-table.jobs_table tr.tr0, table.job_details tr.tr0 {
+table#jobs_table tr.tr0, table#job_details tr.tr0 {
     font-size:16px;
     background-color: #FFFFFF;
 }
-table.jobs_table tr.tr1, table.job_details tr.tr1 {
+table#jobs_table tr.tr1, table#job_details tr.tr1 {
     font-size:16px;
     background-color: #D8CAA8;
-}
-table.jobs_table tr.thead, table.job_details tr.thead {
+}*/
 
-}
-
-#jobs_table {
+/*table#jobs_table {
     border: solid #000 1px;
     border-bottom: solid #000 1px;
     border-right: solid #000 1px;
@@ -128,16 +125,59 @@ table.jobs_table tr.thead, table.job_details tr.thead {
     padding-left:10px;
     padding-right:10px;
 }
-#jobs_table thead {
+*/
+/*thead#thead {
     width:100%;
     height:20px;
-    font-size:16px;
+    font-size:14px;
+    text-align: left;
     background-color: #D8CAA8;
     font-family: 'verdana';
 }
-table.jobs_table A:link, table.job_details A:link {
+table#jobs_table A:link, table#job_details A:link {
     color: #193441;
 }
-table.jobs_table A:visited, table.job_details A:link {
+table#jobs_table A:visited, table#job_details A:link {
     color: #3E606F;
+}
+*/
+/* tables */
+
+table.tablesorter {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 8pt;
+	width: 100%;
+	text-align: left;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 8pt;
+	padding: 4px;
+}
+table.tablesorter thead tr .header {
+	background-image: url(bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+}
+table.tablesorter tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(desc.gif);
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
 }

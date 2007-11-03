@@ -26,68 +26,52 @@ from twisted.web2 import static, http_headers, responsecode
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
 CSS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.css')
-SORTTABLE = os.path.join(DSAGE_LOCAL,'web/static/sorttable.js')
+TABLESORT = os.path.join(DSAGE_LOCAL,'web/static/jquery.tablesorter.pack.js')
 JS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.js')
-PROTOTYPE = os.path.join(DSAGE_LOCAL,'web/static/prototype.js')
+JQUERY = os.path.join(DSAGE_LOCAL,'web/static/jquery-latest.js')
 INDEX = os.path.join(DSAGE_LOCAL,'web/static/index.html')
 
-# def create_jobs_table(jdicts):
-#     """
-#     Returns an HTML table of jobs given a list of job dictionaries.
-#
-#     """
-#
-#     html = """
-#     <table class='jobs_table' cellspacing='0' padding='5px' border='solid #000 1px'>
-#     <tr class='thead'>
-#         <td>Job ID</td>
-#         <td>Status</td>
-#         <td>Username</td>
-#         <td>Creation Time</td>
-#         <td>Last Update</td>
-#         <td>Priority</td>
-#     </tr>
-#     """
-#
-#     for i, jdict in enumerate(jdicts):
-#         html+="""
-#         <tr class='tr%s'
-#         """ % (i % 2)
-#         html+="""
-#             <td><a href='get_details?job_id=%s'>%s</a></td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#         </tr>
-#         """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
-#                jdict['username'], jdict['creation_time'],
-#                jdict['update_time'], jdict['priority'])
-#
-#     html += '</table>'
-#
-#     return html
+def create_jobs_table(jdicts):
+    """
+    Returns an HTML table of jobs given a list of job dictionaries.
+
+    """
+
+    html = """
+    <thead id=thead>
+    <tr>
+        <th>Job ID</th>
+        <th>Status</th>
+        <th>Username</th>
+        <th>Creation Time</th>
+        <th>Last Update</th>
+        <th>Priority</th>
+    </tr>
+    </thead>
+    <tbody>
+    """
+
+    for i, jdict in enumerate(jdicts):
+        html+="""
+        <tr class='tr%s'
+        """ % (i % 2)
+        html+="""
+            <td><a href='get_details?job_id=%s'>%s</a></td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+        </tr>
+        """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
+               jdict['username'], jdict['creation_time'],
+               jdict['update_time'], jdict['priority'])
+    html += """</tbody>"""
+
+    return html
 
 class Toplevel(resource.Resource):
     addSlash = True
-    # header = """
-    # <html>
-    # <header>
-    #     <link rel="stylesheet" type="text/css" href="dsage_web.css" />
-    #     <scritp src='prototype.js' type='text/javascript'></script>
-    #     <script src='dsage_web.js' type='text/javascript'></script>
-    # </header>
-    # <body>
-    #     <div id='header'>
-    #         <div id='title'><h1>DSAGE Job Status</h1></div>
-    #     </div>
-    # """
-    #
-    # footer = """
-    # </body>
-    # </html>
-    # """
 
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
@@ -102,8 +86,8 @@ class Toplevel(resource.Resource):
         # return http.Response(stream=self.header + jobs_html + self.footer)
 setattr(Toplevel, 'child_dsage_web.css', static.File(CSS_FILE))
 setattr(Toplevel, 'child_dsage_web.js', static.File(JS_FILE))
-setattr(Toplevel, 'child_prototype.js', static.File(PROTOTYPE))
-setattr(Toplevel, 'child_sorttable.js', static.File(SORTTABLE))
+setattr(Toplevel, 'child_jquery-latest.js', static.File(JQUERY))
+setattr(Toplevel, 'child_jquery.tablesorter.pack.js', static.File(TABLESORT))
 # setattr(Toplevel, 'child_index.html', static.File(INDEX))
 
 class GetJobs(resource.PostableResource):
@@ -117,38 +101,8 @@ class GetJobs(resource.PostableResource):
         self.jdicts = []
 
     def render(self, request):
-        jdicts = self.dsage_server.jobdb.get_all_jobs()[:10]
-        html = """
-        <tr class='thead'>
-            <td>Job ID</td>
-            <td>Status</td>
-            <td>Username</td>
-            <td>Creation Time</td>
-            <td>Last Update</td>
-            <td>Priority</td>
-        </tr>"""
-        # if len(jdicts) != len(self.jdicts):
-        #     self.jdicts = jdicts
-        for i, jdict in enumerate(jdicts):
-            html+="""
-            <tr class='tr%s'>
-            """ % (i % 2)
-            html+="""
-                <td><a href='get_details?job_id=%s'>%s</a></td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-            </tr>
-            """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
-                   jdict['username'], jdict['creation_time'],
-                   jdict['update_time'], jdict['priority'])
-
-        html += '</table>'
-        # else:
-        #     pass
-        # xml_stream = self.build_xml(jdicts)
+        jdicts = self.dsage_server.jobdb.get_all_jobs()
+        html = create_jobs_table(jdicts)
 
         return http.Response(stream=html)
 

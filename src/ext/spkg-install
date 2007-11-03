@@ -12,14 +12,18 @@ DIR="$SAGE_ROOT"/data/extcode
 #   fi
 #}
 
+
 if [ ! -d "$DIR" ]; then
+   # Brand new install.
    mkdir "$DIR"
    cp -r * .hg* "$DIR"/
 else
+   # Doing an upgrade, so merge changes.
    cd "$DIR"
+   hg ci
    hg pull "$CUR"
    hg merge tip
-   hg ci -m "merge"
+   hg ci -m "Check-in during upgrade of Sage."
    hg update
 fi
 

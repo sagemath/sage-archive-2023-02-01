@@ -143,7 +143,10 @@ cdef class ntl_ZZX:
             sage: ntl.ZZX([1,3,0,5]).__repr__()
             '[1 3 0 5]'
         """
-        return str(ZZX_repr(&self.x))
+        val = ZZX_repr(&self.x)
+        result = str(val)
+        free(val)
+        return result
 
     def copy(self):
         """
@@ -346,8 +349,11 @@ cdef class ntl_ZZX:
         cdef ZZX_c* q
         q = ZZX_div(&self.x, &other.x, &divisible)
         if not divisible:
+            ZZX_delete(q)
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
-        return make_ZZX(q)
+        result = make_ZZX(q)
+        ZZX_delete(q)
+        return result
 
     def __mod__(ntl_ZZX self, ntl_ZZX other):
         """

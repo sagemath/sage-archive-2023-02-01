@@ -370,11 +370,11 @@ except:
             done = False
         if done:
 			try:
-	            cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
+				cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
 			except IOError:
 				cpu_time = -1 # This means that we could not get a cpu_time.
-            self.free = True
-            self.reset_checker()
+			self.free = True
+			self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
             cpu_time = None

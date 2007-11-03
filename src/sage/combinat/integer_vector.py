@@ -123,7 +123,10 @@ def IntegerVectors(n=None, k=None, **kwargs):
         if isinstance(k, builtinlist):
             return IntegerVectors_nnondescents(n,k)
         else:
-            return IntegerVectors_nkconstraints(n,k,kwargs)
+            if len(kwargs) == 1 and 'min_part' in kwargs and kwargs['min_part'] == 0:
+                return IntegerVectors_nk0(n,k)
+            else:
+                return IntegerVectors_nkconstraints(n,k,kwargs)
 
 
 class IntegerVectors_all(CombinatorialClass):
@@ -154,6 +157,78 @@ class IntegerVectors_all(CombinatorialClass):
 
     def count(self):
         return infinity
+
+class IntegerVectors_nk0(CombinatorialClass):
+    """
+    TESTS:
+        sage: iv = IntegerVectors(3,2, min_part=0)
+        sage: iv == loads(dumps(iv))
+        True
+
+    AUTHORS:
+        --Martin Albrecht
+        --Mike Hansen
+    """
+    def __init__(self, n, k):
+        self.n = n
+        self.k = k
+
+    def iterator(self):
+        """
+        EXAMPLE:
+            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV.list() # indirect doctest
+            [[2, 0, 0], [1, 0, 1], [1, 1, 0], [0, 0, 2], [0, 1, 1], [0, 2, 0]]
+            sage: IntegerVectors(3, 0, min_part=0).list()
+            []
+            sage: IntegerVectors(3, 1, min_part=0).list()
+            [[3]]
+            sage: IntegerVectors(0, 1, min_part=0).list()
+            [[0]]
+            sage: IntegerVectors(0, 2, min_part=0).list()
+            [[0, 0]]
+            sage: IntegerVectors(2, 2, min_part=0).list()
+            [[2, 0], [1, 1], [0, 2]]
+        """
+
+        N = self.n
+        k = self.k
+        if k == 0:
+            if N == 0:
+                yield []
+                raise StopIteration
+            else:
+                raise StopIteration
+        if N < 0:
+            raise StopIteration
+        if k == 1:
+            yield [N]
+            raise StopIteration
+
+        for nbar in xrange(N+1):
+            n = N-nbar
+            for rest in IntegerVectors_nk0( nbar , k-1):
+                rest.append(n)
+                rest.reverse()
+                yield rest
+
+    def __repr__(self):
+        return "Integer vectors of length %s that sum to %s with min_part == 0"%(self.k, self.n)
+
+    def __contains__(self, x):
+        if x not in IntegerVectors():
+            return False
+
+        if sum(x) != self.n:
+            return False
+
+        if len(x) != self.k:
+            return False
+
+        if min(x) < 0:
+            return False
+
+        return True
 
 class IntegerVectors_nkconstraints(CombinatorialClass):
     def __init__(self, n, k, constraints):

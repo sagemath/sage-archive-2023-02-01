@@ -349,8 +349,8 @@ except:
         if self.log_level > 1:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
+        os.chdir(self.tmp_job_dir)
         try:
-            os.chdir(self.tmp_job_dir)
             # foo, output, new = self.sage._so_far()
             # This sucks and is a very bad way to tell when a calculation is
             # finished

@@ -4540,13 +4540,50 @@ class NumberField_quadratic(NumberField_absolute):
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
-        D = b*b - 4*a*c
-        d = D.numer().squarefree_part() * D.denom().squarefree_part()
-        if d % 4 != 1:
-            d *= 4
-        self._NumberField_generic__disc = d
-        parts = -b/(2*a), (D/d).sqrt()/(2*a)
+        Dpoly = b*b - 4*a*c
+        D = Dpoly.numer() * Dpoly.denom()
+        # this could be done extreemly in pyrex
+        for p in sage.rings.arith.primes(100):
+            p2 = p*p
+            while D % p2 == 0:
+                D //= p2
+        self._D = D
+        parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
+
+    def discriminant(self, v=None):
+        """
+        Returns the discriminant of the ring of integers of the number field,
+        or if v is specified, the determinant of the trace pairing
+        on the elements of the list v.
+
+        INPUT:
+            v (optional) -- list of element of this number field
+        OUTPUT:
+            Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2+1)
+            sage: K.discriminant()
+            -4
+            sage: K.<a> = NumberField(x^2+5)
+            sage: K.discriminant()
+            -20
+            sage: K.<a> = NumberField(x^2-5)
+            sage: K.discriminant()
+            5
+        """
+        if v is None:
+            try:
+                return self.__disc
+            except AttributeError:
+                d = self._D.squarefree_part()
+                if d % 4 != 1:
+                    d *= 4
+                self.__disc = d
+                return self.__disc
+        else:
+            return NumberField_generic.discriminant(self, v)
 
     def __reduce__(self):
         """

@@ -516,7 +516,7 @@ class SymbolicEquation(SageObject):
         except ValueError:
             pass
 
-    def solve(self, x=None, multiplicities=False, solution_dict=False):
+    def solve(self, x=None, multiplicities=False, solution_dict=False, explicit_solutions=False):
         """
         Symbolically solve for the given variable.
 
@@ -527,7 +527,8 @@ class SymbolicEquation(SageObject):
             multiplicities -- (default: False) if True, also returns the multiplicities
                           of each solution, in order.
             solution_dict -- (default: False) if True, return the solution as a dictionary rather than an equation.
-
+            explicit_solution -- (default: False); if True, require that all solutions
+                returned be explicit (rather than implicit)
         OUTPUT:
             A list of SymbolicEquations with the variable to solve for on the
             left hand side.
@@ -564,7 +565,11 @@ class SymbolicEquation(SageObject):
 
         m = self._maxima_()
         P = m.parent()
+        if explicit_solutions:
+            P.eval('solveexplicit: true')
         s = m.solve(x).str()
+        if explicit_solutions:
+            P.eval('solveexplicit: false')
 
         X = string_to_list_of_solutions(s)
         if solution_dict==True:

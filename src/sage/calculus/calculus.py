@@ -2153,13 +2153,15 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # solve
     ###################################################################
-    def roots(self, x=None):
+    def roots(self, x=None, explicit_solutions=True):
         r"""
         Returns the roots of self, with multiplicities.
 
         INPUT:
             x -- variable to view the function in terms of
                    (use default variable if not given)
+            explicit_solutions -- bool (default True); require that
+                roots be explicit rather than implicit
         OUTPUT:
             list of pairs (root, multiplicity)
 
@@ -2202,19 +2204,38 @@ class SymbolicExpression(RingElement):
             (a, b, c, x)
             sage: (a*x^2 + b*x + c).roots(x)
             [((-sqrt(b^2 - 4*a*c) - b)/(2*a), 1), ((sqrt(b^2 - 4*a*c) - b)/(2*a), 1)]
+
+
+        By default, all the roots are required to be explicit rather than
+        implicit.  To get implicit roots, pass explicit_solutions=False
+        to .roots()
+            sage: var('x')
+            x
+            sage: f = x^(1/9) + (2^(8/9) - 2^(1/9))*(x - 1) - x^(8/9)
+            sage: f.roots()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no explicit roots found
+            sage: f.roots(explicit_solutions=False)
+            [((x^(8/9) - x^(1/9) + 2^(8/9) - 2^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
         """
         if x is None:
             x = self.default_variable()
-        S, mul = self.solve(x, multiplicities=True)
-        return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
+        S, mul = self.solve(x, multiplicities=True, explicit_solutions=explicit_solutions)
+        if len(mul) == 0 and explicit_solutions:
+            raise RuntimeError, "no explicit roots found"
+        else:
+            return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
 
-    def solve(self, x, multiplicities=False):
+    def solve(self, x, multiplicities=False, explicit_solutions=False):
         r"""
         Solve the equation \code{self == 0} for the variable x.
 
         INPUT:
             x -- variable to solve for
             multiplicities -- bool (default: False); if True, return corresponding multiplicities.
+            explicit_solutions -- bool (default:False); if True, require that all solutions
+                returned be explicit (rather than implicit)
 
         EXAMPLES:
             sage: z = var('z')
@@ -2222,7 +2243,7 @@ class SymbolicExpression(RingElement):
             [z == e^(2*I*pi/5), z == e^(4*I*pi/5), z == e^(-(4*I*pi/5)), z == e^(-(2*I*pi/5)), z == 1]
         """
         x = var(x)
-        return (self == 0).solve(x, multiplicities=multiplicities)
+        return (self == 0).solve(x, multiplicities=multiplicities, explicit_solutions=explicit_solutions)
 
     ###################################################################
     # simplify

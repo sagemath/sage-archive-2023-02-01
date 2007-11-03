@@ -301,9 +301,40 @@ def parse_ellipsis(code, preparse_step=True):
         ix = code.find('..')
     return code
 
+def strip_prompts(line):
+    r"""Get rid of leading sage: and >>> prompts so that pasting of examples from
+    the documentation works.
+
+    sage: from sage.misc.preparser import strip_prompts
+    sage: strip_prompts("sage: 2 + 2")
+    '2 + 2'
+    sage: strip_prompts(">>>   3 + 2")
+    '3 + 2'
+    sage: strip_prompts("  2 + 4")
+    '  2 + 4'
+    """
+    for prompt in ['sage:', '>>>']:
+        if line.startswith(prompt):
+            line = line[len(prompt):].lstrip()
+            break
+    return line
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
-
+    r"""
+    sage: from sage.misc.preparser import preparse
+    sage: preparse("R.<x> = ZZ['x']")
+    "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+    sage: preparse("R.<x> = ZZ['y']")
+    "R = ZZ['y']; (x,) = R._first_ngens(Integer(1))"
+    sage: preparse("R.<x,y> = ZZ[]")
+    "R = ZZ['x, y']; (x, y,) = R._first_ngens(Integer(2))"
+    sage: preparse("R.<x,y> = ZZ['u,v']")
+    "R = ZZ['u,v']; (x, y,) = R._first_ngens(Integer(2))"
+    sage: preparse("K.<a> = QQ[2^(1/3)]")
+    'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(Integer(1))'
+    sage: preparse("K.<a, b> = QQ[2^(1/3), 2^(1/2)]")
+    'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(Integer(2))'
+    """
     try:
         # [1,2,..,n] notation
         L, literals = strip_string_literals(line)
@@ -362,21 +393,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
 
     if ignore_prompts:
-        # Get rid of leading sage: so that pasting of examples from
+        # Get rid of leading sage: and >>> so that pasting of examples from
         # the documentation works.
-        for prompt in ['sage:', '>>>']:
-            while True:
-                strip = False
-                if line[:3] == prompt:
-                    line = line[3:].lstrip()
-                    strip = True
-                elif line[:5] == prompt:
-                    line = line[5:].lstrip()
-                    strip = True
-                if not strip:
-                    break
-                else:
-                    line = line.lstrip()
+        line = strip_prompts(line)
 
     while i < len(line):
         # Update quote parsing
@@ -497,8 +516,14 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 d0 = line[:c0].rfind('[')
                 if c0 == -1:
                     raise SyntaxError, 'constructor must end with ) or ]'
-                line_new = '%s"%s"%s; (%s,) = %s._first_ngens(%s)'%(
-                    line[:i] + line[gen_end+1:d0+1], gen_vars,
+
+                in_square_brackets = line[d0+1:c0]
+                if in_square_brackets.strip() == '':
+                    # as a convenience to the user, 'K.<a> = ZZ[]' -> 'K.<a> = ZZ["a"]'
+                    in_square_brackets = "'%s'" % gen_vars
+
+                line_new = '%s%s%s; (%s,) = %s._first_ngens(%s)'%(
+                    line[:i] + line[gen_end+1:d0+1], in_square_brackets,
                     line[c0:c], gen_vars, gen_obj, gen_vars.count(',')+1)
             else:
                 c0 = line[:c].rfind(')')
@@ -675,8 +700,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         "Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
 
     return line
-
-
 
 ######################################################
 ## Apply the preparser to an entire file

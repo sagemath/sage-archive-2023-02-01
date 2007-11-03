@@ -201,6 +201,8 @@ cdef extern from "ntl_wrap.h":
     void ZZX_squarefree_decomposition(ZZX_c*** v, long** e, long* n, ZZX_c* x)
 
     char* ZZX_repr(ZZX_c* x)
+    ## for cleaning up after ZZX_repr:
+    void cpp_delete_array "delete []"(char *str)
     ZZX_c* ZZX_copy(ZZX_c* x)
     ZZX_c* ZZX_div(ZZX_c* x, ZZX_c* y, int* divisible)
     void ZZX_quo_rem(ZZX_c* x, ZZX_c* other, ZZX_c** r, ZZX_c** q)

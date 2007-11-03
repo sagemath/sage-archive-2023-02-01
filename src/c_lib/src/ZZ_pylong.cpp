@@ -28,9 +28,12 @@ using namespace NTL;
 PyObject * ZZ_get_pylong(ZZ &z)
 {
     mpz_t temp;
+    PyObject *val;
     mpz_init(temp);
     ZZ_to_mpz( &temp, &z );
-    return mpz_get_pylong( temp );
+    val = mpz_get_pylong( temp );
+    mpz_clear( temp );
+    return val;
 }
 
 /* pylong -> ZZ conversion */
@@ -40,4 +43,5 @@ int ZZ_set_pylong(ZZ &z, PyObject * ll)
     mpz_init(temp);
     mpz_set_pylong( temp, ll );
     mpz_to_ZZ( &z, &temp );
+    mpz_clear( temp );
 }

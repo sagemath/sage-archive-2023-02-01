@@ -5,6 +5,7 @@ CUR=`pwd`
 TARGET="$SAGE_ROOT"/local/bin/
 
 if [ -d "$TARGET"/.hg ]; then
+
     # Merge the repositories, rather than overwrite changes
     # that the user may have made.
    cd "$TARGET"

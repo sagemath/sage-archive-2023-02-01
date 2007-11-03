@@ -243,24 +243,6 @@ class JobDatabaseSQLite(JobDatabase):
         cur.execute(query, (value, job_id))
         self.con.commit()
 
-    def _update_value(self, job_id, key, value):
-        """
-        Sets the appropriate value for a job in the database.
-
-        """
-
-        cur = self.con.cursor()
-        query = """UPDATE jobs
-                   SET %s=?
-                   WHERE job_id=?
-                """ % (key)
-        if key == 'data' or key == 'result': # Binary objects
-            if value != None:
-                cur.execute(query, (sqlite3.Binary(value), job_id))
-        else:
-            cur.execute(query, (value, job_id))
-        self.con.commit()
-
     def store_job(self, jdict):
         """
         Stores a job based on information from Job.jdict.
@@ -291,7 +273,7 @@ class JobDatabaseSQLite(JobDatabase):
             if k == 'worker_info':
                 v = str(v)
             try:
-                self._update_value(job_id, k, v)
+                sql_functions.update_value(self.con, 'jobs', 'job_id', job_id, k, v)
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
@@ -398,7 +380,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        return self._update_value(job_id, 'killed', killed)
+        return sql_functions.update_value(self.con, 'jobs', 'job_id', job_id, 'killed', killed)
 
     def get_active_jobs(self):
         """

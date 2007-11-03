@@ -622,14 +622,8 @@ class Monitor(object):
         self.sleep_time = 1.0
 
         self.host_info = ClassicHostInfo().host_info
-        try:
-            uuid_file = os.path.join(DSAGE_DIR, 'worker.uuid')
-            uuid_ = open(uuid_file).readlines()[0]
-        except Exception, e:
-            uuid_ = str(uuid.uuid1())
-            f = open(uuid_file, 'w')
-            f.write(uuid_)
-            f.close()
+
+        uuid_ = str(uuid.uuid1())
         self.host_info['uuid'] = uuid_
         self.host_info['workers'] = self.workers
 

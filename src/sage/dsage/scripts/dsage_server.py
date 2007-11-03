@@ -124,6 +124,7 @@ def write_stats(dsage_server, stats_file):
         f.write(dsage_server.generate_xml_stats())
         f.close()
     except Exception, msg:
+        print Exception
         print 'Error writing stats: %s' % (msg)
         return
 

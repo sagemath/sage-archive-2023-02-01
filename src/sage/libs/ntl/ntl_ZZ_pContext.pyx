@@ -79,6 +79,9 @@ cdef class ntl_ZZ_pContext_class:
         """
         return "NTL modulus %s"%(self.p)
 
+    def __hash__(self):
+        return hash(self.p)
+
     def modulus(self):
         """
         Return the current modulus associated to this
@@ -125,11 +128,10 @@ def ntl_ZZ_pContext( v ):
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
         raise ValueError, "%s is not a valid modulus."%v
-    key = repr(v)
-    if ZZ_pContextDict.has_key(key):
-        context = ZZ_pContextDict[key]()
+    if ZZ_pContextDict.has_key(v):
+        context = ZZ_pContextDict[v]()
         if context is not None:
             return context
     context = ntl_ZZ_pContext_class(v)
-    ZZ_pContextDict[key] = weakref.ref(context)
+    ZZ_pContextDict[v] = weakref.ref(context)
     return context

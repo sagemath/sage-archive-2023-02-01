@@ -175,7 +175,11 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     """
     if hasattr(arg0, '_vector_'):
         if arg1 is None:
-            arg1 = sage.rings.integer_ring.ZZ
+            try:
+                arg1 = sage.rings.integer_ring.ZZ
+                return arg0._vector_(arg1)
+            except TypeError:
+                return arg0._vector_()
         return arg0._vector_(arg1)
 
     if hasattr(arg1, '_vector_'):

@@ -5,11 +5,6 @@ from sage.structure.element cimport FiniteFieldElement, Element, RingElement, Mo
 from sage.structure.parent  cimport Parent
 
 
-cdef extern from "Python.h":
-    ctypedef struct PyTypeObject
-    ctypedef struct PyObject
-    int PyObject_TypeCheck(object o, PyTypeObject *t)
-
 cdef extern from "givaro/givconfig.h":
     pass
 
@@ -82,8 +77,6 @@ cdef class FiniteField_givaro(FiniteField):
     cdef order_c(FiniteField_givaro self)
     cdef _coerce_c_impl(self, x)
     cdef prime_subfield_C(FiniteField_givaro self)
-    cdef polynomial_ring_c(self, variable_name)
-    cdef int _cmp_c_impl(left, Parent right) except -2
 
 cdef class FiniteField_givaro_iterator:
     cdef int iterator

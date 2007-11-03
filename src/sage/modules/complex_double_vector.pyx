@@ -101,20 +101,18 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
     def __reduce__(self):
         return (unpickle_v0, (self._parent, self.list(), self._degree))
 
-    def __init__(self,parent,x, coerce = True, copy = True):
+    def __init__(self, parent, x, coerce = True, copy = True):
         """
             parent -- free module element
             x -- defining data
             coerce, copy -- ignored
         """
         self._parent = parent
-        self._degree = parent.degree()
-        cdef int i
-        cdef int n
+        cdef int n = parent.degree()
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement z
-        n = parent.degree()
-        cdef int length
+        cdef int length, i
+        self._degree = n
         if self._degree == 0:
             self.v = NULL
             return

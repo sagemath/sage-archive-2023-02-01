@@ -13,6 +13,15 @@
 
 #include "convert.h"
 
+/*
+
+  Both t_INT_to_ZZ and ZZ_to_t_INT convert back and forth
+  from mpz_t to PARI's t_INT GEN type. Nothing fancy happens
+  here -- we simply use GMP's mpz_import or mpz_export to
+  basically memcopy the limbs in the integer.
+
+*/
+
 void t_INT_to_ZZ ( mpz_t value, GEN g )
 {
   long limbs = 0;

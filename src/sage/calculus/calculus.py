@@ -121,6 +121,14 @@ EXAMPLES:
         sage: float(f(pi))             # random low order bits
         6.1232339957367663e-16
 
+    Another example:
+        sage: f = integrate(1/sqrt(9+x^2), x); f
+        asinh(x/3)
+        sage: f(3)
+        asinh(1)
+        sage: f.diff(x)
+        1/(3*sqrt(x^2/9 + 1))
+
 COERCION EXAMPLES:
 
 We coerce various symbolic expressions into the complex numbers:
@@ -216,7 +224,7 @@ from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex, latex_varify
+from sage.misc.latex import latex, latex_variable_name
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -435,6 +443,18 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+        sage: k = var('k')
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol.is_zero()
+        True
+
+        sage: f = sin(x)^2 + cos(x)^2 - 1
+        sage: f.is_zero()
+        True
+        """
+
         try:
             return self.__nonzero
         except AttributeError:
@@ -1736,6 +1756,17 @@ class SymbolicExpression(RingElement):
             x^(n + 1)/(n + 1)
             sage: forget()
 
+
+        Note that an exception is raised when a definite integral is divergent.
+            sage: integrate(1/x^3,x,0,1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integral is divergent.
+            sage: integrate(1/x^3,x,-1,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integral is divergent.
+
         NOTE: Above, putting assume(n == -1) does not yield the right behavior.
         Directly in maxima, doing
 
@@ -1806,7 +1837,15 @@ class SymbolicExpression(RingElement):
         if a is None:
             return self.parent()(self._maxima_().integrate(v))
         else:
-            return self.parent()(self._maxima_().integrate(v, a, b))
+            try:
+                return self.parent()(self._maxima_().integrate(v, a, b))
+            except TypeError, error:
+                s = str(error)
+                if "divergent" in s or 'Principal Value' in s:
+                    raise ValueError, "Integral is divergent."
+                else:
+                    raise TypeError, error
+
 
     integrate = integral
 
@@ -3250,17 +3289,8 @@ class SymbolicVariable(SymbolicExpression):
             return self.__latex
         except AttributeError:
             pass
-        a = self._name
-        if len(a) > 1:
-            m = re.search('(\d|[.,])+$',a)
-            if m is None:
-                a = latex_varify(a)
-            else:
-                b = a[:m.start()]
-                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
-
-        self.__latex = a
-        return a
+        self.__latex = latex_variable_name(self._name)
+        return self.__latex
 
     def _maxima_init_(self):
         return self._name
@@ -3804,6 +3834,11 @@ class SymbolicComposition(SymbolicOperation):
         if not self.is_simplified():
             return self.simplify()._latex_()
         ops = self._operands
+
+        #Check to see if the function has a _latex_composition method
+        if hasattr(ops[0], '_latex_composition'):
+            return ops[0]._latex_composition(ops[1])
+
         # certain functions (such as \sqrt) need braces in LaTeX
         if (ops[0]).tex_needs_braces():
             return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
@@ -4019,7 +4054,17 @@ class Function_abs(PrimitiveFunction):
         return "abs"
 
     def _latex_(self):
-        return "\\abs"
+        return "\\mathrm{abs}"
+
+    def _latex_composition(self, x):
+        """
+        sage: f = sage.calculus.calculus.Function_abs()
+        sage: latex(f)
+        \mathrm{abs}
+        sage: latex(abs(x))
+        \left| x \right|
+        """
+        return "\\left| " + latex(x) + " \\right|"
 
     def _approx_(self, x):
         return float(x.__abs__())
@@ -5107,7 +5152,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 i = msg.find("'")
                 j = msg.rfind("'")
                 nm = msg[i+1:j]
-                syms[nm] = var(nm)
+
+                res = re.match(nm + '\s*\(.*\)', s)
+                if res:
+                    syms[nm] = function(nm)
+                else:
+                    syms[nm] = var(nm)
             else:
                 break
         if isinstance(w, (list, tuple)):

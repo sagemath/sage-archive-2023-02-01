@@ -6,7 +6,7 @@ AUTHORS:
      -- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
 
 TESTS:
-    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
     sage: R == loads(dumps(R))
     True
     sage: P.<a,b> = PolynomialRing(GF(7), 2)
@@ -71,7 +71,7 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -80,14 +80,14 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(GF(127),2,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(127),2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(QQ,2,'x', order='revlex')
+            sage: r = MPolynomialRing(QQ,2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 2

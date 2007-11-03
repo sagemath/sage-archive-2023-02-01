@@ -153,7 +153,7 @@ cdef class ntl_ZZ_pEX:
         sage: loads(dumps(f)) == f
         True
         """
-        return make_ZZ_pEX, (self.list(), self.get_modulus_context())
+        return make_ZZ_pEX, (self.list(), self.modulus_context())
 
     def __repr__(self):
         """
@@ -216,7 +216,7 @@ cdef class ntl_ZZ_pEX:
         """
         return self.__copy__()
 
-    def get_modulus_context(self):
+    def modulus_context(self):
         """
         Returns the structure that holds the underlying NTL modulus.
 
@@ -225,7 +225,7 @@ cdef class ntl_ZZ_pEX:
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)
         sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.get_modulus_context()
+        sage: f.modulus_context()
         NTL modulus [1 1 1] (mod 7)
         """
         return self.c

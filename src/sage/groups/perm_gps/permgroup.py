@@ -1208,12 +1208,22 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
             sage: cl = G.conjugacy_classes_subgroups()
-            sage: cl[3]
-            Group([ (2,4) ])
+            sage: cl
+            [Permutation Group with generators [()],
+             Permutation Group with generators [(1,2)(3,4)],
+             Permutation Group with generators [(1,3)(2,4)],
+             Permutation Group with generators [(2,4)],
+             Permutation Group with generators [(1,4)(2,3), (1,2)(3,4)],
+             Permutation Group with generators [(1,3)(2,4), (2,4)],
+             Permutation Group with generators [(1,3)(2,4), (1,2,3,4)],
+             Permutation Group with generators [(1,3)(2,4), (1,2)(3,4), (1,2,3,4)]]
 
             sage: G = SymmetricGroup(3)
             sage: G.conjugacy_classes_subgroups()
-            [Group(()), Group([ (2,3) ]), Group([ (1,2,3) ]), Group([ (1,3,2), (1,2) ])]
+            [Permutation Group with generators [()],
+             Permutation Group with generators [(2,3)],
+             Permutation Group with generators [(1,2,3)],
+             Permutation Group with generators [(1,3,2), (1,2)]]
 
         AUTHOR: David Joyner (2006-10)
         """
@@ -1223,7 +1233,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         n = Integer(cl.Length())
         L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(
             cl.name(),  cl.name()))
-        return [PermutationGroupElement(L[i], self, check=False) \
+        return [PermutationGroup(L[i], self, check=False) \
                 for i in range(1,n+1)]
 
     def normalizer(self,g):

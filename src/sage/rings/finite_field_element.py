@@ -59,7 +59,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     write the element in terms of a.
 
     EXAMPLES:
-        sage: from sage.rings.finite_field import FiniteField_ext_pari
+        sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
         sage: K = FiniteField_ext_pari(10007^10, 'a')
         sage: a = K.gen(); a
         a
@@ -91,7 +91,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Create element of a finite field.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(9,'a')
             sage: a = k(11); a
             2
@@ -156,7 +156,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         EXAMPLES:
         The default variable is a:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2,'a')
             sage: k.gen().polynomial()
             a
@@ -178,7 +178,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Returns True if and only if this element is a perfect square.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2, 'a')
             sage: a = k.gen()
             sage: a.is_square()
@@ -218,7 +218,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
                  roots of self, instead of just one.
 
         EXAMPLES:
-          sage: from sage.rings.finite_field import FiniteField_ext_pari
+          sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
           sage: F = FiniteField_ext_pari(7^2, 'a')
           sage: F(2).square_root()
           4
@@ -312,7 +312,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         try to find a lift of this element to the rational numbers.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = GF(97)
             sage: a = k(RationalField()('2/3'))
             sage: a
@@ -333,7 +333,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         must be nonzero.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(5**3, 'a').0
             sage: a.multiplicative_order()
             124
@@ -361,7 +361,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Return a copy of this element.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3,'a')
             sage: a = k(5)
             sage: a
@@ -383,7 +383,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Return PARI object corresponding to this finite field element.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3, 'a')
             sage: a = k.gen()
             sage: b = a**2 + 2*a + 1
@@ -429,7 +429,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: F = FiniteField_ext_pari(8,'a')
             sage: a = F.multiplicative_generator()
             sage: gap(a)
@@ -469,106 +469,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         n = self.log(g)
         return 'Z(%s)^%s'%(F.order(), n)
 
-    def charpoly(self, var='x'):
-        """
-        Returns the characteristic polynomial of this element.
-
-        EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3^3,'a'); a = k.gen()
-            sage: a.charpoly('x')
-            x^3 + 2*x + 1
-            sage: k.modulus()
-            x^3 + 2*x + 1
-            sage: b = a**2 + 1
-            sage: b.charpoly('x')
-            x^3 + x^2 + 2*x + 1
-        """
-        R = self.parent().prime_subfield()[var]
-        return R(self.__value.charpoly('x').lift())
-
-    def trace(self):
-        """
-        Returns the trace of this element.
-
-        EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: a = FiniteField_ext_pari(3**3, 'a').gen()
-            sage: b = a^2 + 2
-            sage: b.charpoly('x')
-            x^3 + x^2 + 2
-            sage: b.trace()
-            2
-            sage: b.norm()
-            1
-        """
-        return self.parent().prime_subfield()(self.__value.trace().lift())
-
-    def norm(self):
-        """
-        Returns the norm of this element, which is the constant term
-        of the characteristic polynomial, i.e., the determinant of left
-        multiplication.
-
-        EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: a = FiniteField_ext_pari(3**3, 'a').gen()
-            sage: b = a^2 + 2
-            sage: b.charpoly('x')
-            x^3 + x^2 + 2
-            sage: b.trace()
-            2
-            sage: b.norm()
-            1
-        """
-        f = self.charpoly('x')
-        n = f[0]
-        if f.degree() % 2 != 0:
-            return -n
-        else:
-            return n
-
-    def log(self, base):
-        """
-        Return $x$ such that $b^x = a$, where $x$ is $a$ and $b$
-        is the base.
-
-        INPUT:
-            self -- finite field element
-            b -- finite field element that generates the multiplicative group.
-
-        OUTPUT:
-            Integer $x$ such that $a^x = b$, if it exists.
-            Raises a ValueError exception if no such $x$ exists.
-
-        EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: F = GF(17)
-            sage: F(3^11).log(F(3))
-            11
-            sage: F = GF(113)
-            sage: F(3^19).log(F(3))
-            19
-            sage: F = GF(next_prime(10000))
-            sage: F(23^997).log(F(23))
-            997
-
-            sage: F = FiniteField_ext_pari(2^10, 'a')
-            sage: g = F.gen()
-            sage: b = g; a = g^37
-            sage: a.log(b)
-            37
-            sage: b^37; a
-            a^8 + a^7 + a^4 + a + 1
-            a^8 + a^7 + a^4 + a + 1
-
-        AUTHOR: David Joyner and William Stein (2005-11)
-        """
-        q = (self.parent()).order() - 1
-        b = self.parent()(base)
-        # TODO: This function is TERRIBLE!  PARI?
-        return arith.discrete_log_generic(self, b, q)
-
     def order(self):
         """
         Return the additive order of this finite field element.
@@ -579,15 +479,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def _repr_(self):
         return ("%s"%(self.__value.lift().lift())).replace('a',self.parent().variable_name())
-
-    def _latex_(self):
-        """
-        EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: print latex(Set(FiniteField_ext_pari(9,'z')))
-            \left\{0, 1, 2, 2z + 1, z + 2, 2z, 2z + 2, z, z + 1\right\}
-        """
-        return self.polynomial()._latex_()
 
     def __compat(self, other):
         if self.parent() != other.parent():
@@ -650,7 +541,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     def __invert__(self):
         """
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(9, 'a').gen()
             sage: ~a
             a + 2
@@ -668,7 +559,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         element to an integer.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = GF(next_prime(10**10))
             sage: a = k(17)/k(19)
             sage: b = a.lift(); b
@@ -686,7 +577,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         it so it is one.
 
         EXAMPLES:
-            sage: from sage.rings.finite_field import FiniteField_ext_pari
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(3**3, 'a').gen()
             sage: a == 1
             False
@@ -734,7 +625,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         k = self.parent()
 
-        v = self.__value.lift().lift()
+        v = self.polynomial().list()
 
         ret = [v[i] for i in range(len(v))]
 
@@ -744,3 +635,45 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         if reverse:
             ret = list(reversed(ret))
         return k.vector_space()(ret)
+
+    def log(self, base):
+        """
+        Return $x$ such that $b^x = a$, where $x$ is $a$ and $b$
+        is the base.
+
+        INPUT:
+            self -- finite field element
+            b -- finite field element that generates the multiplicative group.
+
+        OUTPUT:
+            Integer $x$ such that $a^x = b$, if it exists.
+            Raises a ValueError exception if no such $x$ exists.
+
+        EXAMPLES:
+            sage: F = GF(17)
+            sage: F(3^11).log(F(3))
+            11
+            sage: F = GF(113)
+            sage: F(3^19).log(F(3))
+            19
+            sage: F = GF(next_prime(10000))
+            sage: F(23^997).log(F(23))
+            997
+
+            sage: F = FiniteField(2^10, 'a')
+            sage: g = F.gen()
+            sage: b = g; a = g^37
+            sage: a.log(b)
+            37
+            sage: b^37; a
+            a^8 + a^7 + a^4 + a + 1
+            a^8 + a^7 + a^4 + a + 1
+
+        AUTHOR: David Joyner and William Stein (2005-11)
+        """
+        from  sage.rings.arith import discrete_log_generic
+
+        q = (self.parent()).order() - 1
+        b = self.parent()(base)
+        # TODO: This function is TERRIBLE!
+        return discrete_log_generic(self, b, q)

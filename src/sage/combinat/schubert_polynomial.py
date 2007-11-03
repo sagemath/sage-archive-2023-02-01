@@ -15,7 +15,7 @@
 #*****************************************************************************
 
 from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
-from sage.rings.integer import Integer
+from sage.rings.all import Integer, is_MPolynomial, MPolynomialRing
 import permutation
 import sage.libs.symmetrica.all as symmetrica
 
@@ -29,11 +29,11 @@ def SchubertPolynomialRing(R):
         sage: X(1)
         X[1]
         sage: X([1,2,3])*X([2,1,3])
-        X[2, 1, 3]
+        X[2, 1]
         sage: X([2,1,3])*X([2,1,3])
         X[3, 1, 2]
         sage: X([2,1,3])+X([3,1,2,4])
-        X[2, 1, 3] + X[3, 1, 2, 4]
+        X[3, 1, 2] + X[2, 1]
         sage: a = X([2,1,3])+X([3,1,2,4])
         sage: a^2
         X[3, 1, 2] + X[5, 1, 2, 3, 4] + 2*X[4, 1, 2, 3]
@@ -67,8 +67,30 @@ class SchubertPolynomial_class(CombinatorialAlgebraElement):
             x0
             sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
+
+        TESTS:
+          Calling .expand() should always return an element of an MPolynomialRing
+
+            sage: X = SchubertPolynomialRing(ZZ)
+            sage: f = X([1]); f
+            X[1]
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.expand()
+            1
+            sage: f = X([1,2])
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f = X([1,3,2,4])
+            sage: type(f.expand())
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+
         """
-        return symmetrica.t_SCHUBERT_POLYNOM(self)
+        p = symmetrica.t_SCHUBERT_POLYNOM(self)
+        if not is_MPolynomial(p):
+            R = MPolynomialRing(self.parent().base_ring(), 1, 'x')
+            p = R(p)
+        return p
 
     def divided_difference(self, i):
         if isinstance(i, Integer):
@@ -89,7 +111,7 @@ class SchubertPolynomial_class(CombinatorialAlgebraElement):
             0
             sage: b = X([4,3,2,1])
             sage: b.scalar_product(a)
-            X[1, 3, 4, 6, 2, 5, 7]
+            X[1, 3, 4, 6, 2, 5]
             sage: Permutation([1, 3, 4, 6, 2, 5, 7]).to_lehmer_code()
             [0, 1, 1, 2, 0, 0, 0]
             sage: s = SFASchur(ZZ)
@@ -114,11 +136,11 @@ class SchubertPolynomial_class(CombinatorialAlgebraElement):
             sage: X = SchubertPolynomialRing(ZZ)
             sage: a = X([3,2,4,1])
             sage: a.multiply_variable(0)
-            X[4, 2, 3, 1, 5]
+            X[4, 2, 3, 1]
             sage: a.multiply_variable(1)
-            X[3, 4, 2, 1, 5]
+            X[3, 4, 2, 1]
             sage: a.multiply_variable(2)
-            -X[3, 4, 2, 1, 5] - X[4, 2, 3, 1, 5] + X[3, 2, 5, 1, 4]
+            -X[3, 4, 2, 1] + X[3, 2, 5, 1, 4] - X[4, 2, 3, 1]
             sage: a.multiply_variable(3)
             X[3, 2, 4, 5, 1]
 
@@ -137,5 +159,22 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
     _one = permutation.Permutation([1])
     _element_class = SchubertPolynomial_class
 
+    def _coerce_start(self, x):
+        if isinstance(x, list):
+            perm = permutation.Permutation_class(x).remove_extra_fixed_points()
+            res = self(0)
+            res._monomial_coefficients = { perm: self.base_ring()(1) }
+            return res
+        elif isinstance(x, permutation.Permutation_class):
+            permu = x.remove_extra_fixed_points()
+            res = self(0)
+            res._monomial_coefficients = { perm: self.base_ring()(1) }
+            return res
+        else:
+            raise TypeError
+
     def _multiply_basis(self, left, right):
         return symmetrica.mult_schubert_schubert(left, right).monomial_coefficients()
+
+    def is_commutative(self):
+        return self.base_ring().is_commutative()

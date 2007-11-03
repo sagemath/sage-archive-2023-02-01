@@ -16,7 +16,8 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-from sage.structure.sequence import _combinations, Sequence
+from sage.structure.sequence import Sequence
+from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
@@ -175,8 +176,8 @@ cdef class Matrix(matrix1.Matrix):
         for row from 0 <= row < self._nrows:
             tmp = []
             for c in cols:
-                if c<0 or c >= self._ncols:
-                    raise IndexError, "matrix column index out of range"
+#               if c<0 or c >= self._ncols:
+#                   raise IndexError, "matrix column index out of range"
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
@@ -260,8 +261,6 @@ cdef class Matrix(matrix1.Matrix):
                 Copyright (C) 2006 William Stein <wstein@gmail.com>
             -- Jaap Spies (2006-02-21): added definition of permanent
 
-        NOTES:
-            -- Currently optimized for dense matrices over QQ.
         """
         cdef Py_ssize_t m, n, r
         cdef int sn
@@ -272,9 +271,8 @@ cdef class Matrix(matrix1.Matrix):
         if not m <= n:
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
 
-        from sage.rings.arith import binomial
         for r from 1 <= r < m+1:
-            lst = _combinations(range(n), r)
+            lst = _choose(n, r)
             tmp = []
             for cols in lst:
                 tmp.append(self.prod_of_row_sums(cols))
@@ -284,7 +282,7 @@ cdef class Matrix(matrix1.Matrix):
                 sn = 1
             else:
                 sn = -1
-            perm = perm + sn * binomial(n-r, m-r) * s
+            perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
 
@@ -362,10 +360,11 @@ cdef class Matrix(matrix1.Matrix):
 
         k = int(k)
         pm = 0
-        for cols in _combinations(range(n),k):
-            for rows in _combinations(range(m),k):
+        for cols in _choose(n,k):
+            for rows in _choose(m,k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
+
 
     def rook_vector(self, check = False):
         r"""
@@ -2866,6 +2865,40 @@ cdef class Matrix(matrix1.Matrix):
         return QQ(k)/QQ(nr*nc)
 
 
+    def inverse(self):
+        """
+        Returns the inverse of self, without changing self.
+
+        Note that one can use the Python inverse operator ~
+        to obtain the inverse as well.
+
+        EXAMPLES:
+            sage: m = matrix([[1,2],[3,4]])
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+            sage: m = matrix([[1,2],[3,4]], sparse=True)
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        """
+        return self.__invert__()
+
+
 def _dim_cmp(x,y):
     return cmp(x[0].dimension(), y[0].dimension())
 
@@ -2893,3 +2926,55 @@ def cmp_pivots(x,y):
         return 0
     else:
         return -1
+
+def _choose(Py_ssize_t n, Py_ssize_t t):
+    """
+    Returns all possible sublists of length t from range(n)
+
+    Based on algoritm L from Knuth's taocp part 4: 7.2.1.3 p.4
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-22)
+    """
+    cdef Py_ssize_t j
+
+    x = []
+    c = range(t)
+    c.append(n)
+    c.append(0)
+    j = 0
+
+    while j < t:
+        x.append(c[:t])
+        j = 0
+        while c[j]+1 == c[j+1]:
+           c[j] = j
+           j = j+1
+        c[j] = c[j]+1
+
+    return x
+
+def _binomial(Py_ssize_t n, Py_ssize_t k):
+    """
+    Fast and unchecked implementation of binomial(n,k)
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-26)
+
+    """
+    cdef Py_ssize_t i
+
+    if k > (n/2):
+        k = n-k
+    if k == 0:
+        return 1
+
+    result = n
+    n, k = n-1, k-1
+    i = 2
+    while k > 0:
+        result = (result*n)/i
+        i, n, k = i+1, n-1, k-1
+    return result
+
+

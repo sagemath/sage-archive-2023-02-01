@@ -758,9 +758,12 @@ cdef class LeftModuleAction(Action):
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError
+        if S.base() is S:
+            # The right thing to do is a normal multiplication
+            raise TypeError
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the basering
-        if G is not S.base() and S.base() is not S:
+        if G is not S.base():
             # first we try the easy case of coercing G to the basering of S
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
@@ -778,8 +781,11 @@ cdef class LeftModuleAction(Action):
                         # TODO: let python types be valid actions
                         raise TypeError
 
-        # TODO: detect this better
-        # if this is bad it will raise a type error in the subsequent lines, which we propagate
+        # At this point, we can assert it is safe to call _rmul_c
+        the_ring = G if self.connecting is None else self.connecting.codomain()
+        the_set = S if self.extended_base is None else self.extended_base
+        assert the_ring is the_set.base(), "BUG in coersion model"
+
         cdef RingElement g = G._an_element()
         cdef ModuleElement a = S._an_element()
         res = self._call_c(g, a)
@@ -810,6 +816,9 @@ cdef class RightModuleAction(Action):
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError
+        if S.base() is S:
+            # The right thing to do is a normal multiplication
+            raise TypeError
         # Objects are implemented with the assumption that
         # _lmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
@@ -826,8 +835,11 @@ cdef class RightModuleAction(Action):
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
 
-        # TODO: detect this better
-        # if this is bad it will raise a type error in the subsequent lines, which we propagate
+        # At this point, we can assert it is safe to call _lmul_c
+        the_ring = G if self.connecting is None else self.connecting.codomain()
+        the_set = S if self.extended_base is None else self.extended_base
+        assert the_ring is the_set.base(), "BUG in coersion model"
+
         cdef RingElement g = G._an_element()
         cdef ModuleElement a = S._an_element()
         res = self._call_c(a, g)

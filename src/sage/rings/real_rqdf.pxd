@@ -14,11 +14,6 @@ cdef extern from "stdsage.h":
     int PY_TYPE_CHECK(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
 
-cdef extern from "Python.h":
-    ctypedef struct PyTypeObject
-    ctypedef struct PyObject
-    bint PyObject_TypeCheck(object o, PyTypeObject *t)
-
 cdef extern from "qd/qd_real.h":
 
     ctypedef struct qd "qd_real":

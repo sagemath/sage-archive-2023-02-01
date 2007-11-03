@@ -450,14 +450,47 @@ class SymbolicEquation(SageObject):
         Return True if this equality is definitely true.  Return False
         if it is false or the algorithm for testing equality is
         inconclusive.
+
+        EXAMPLES:
+            sage: k = var('k')
+            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+            sage: bool(pol == 0)
+            True
+            sage: f = sin(x)^2 + cos(x)^2 - 1
+            sage: bool(f == 0)
+            True
         """
         m = self._maxima_()
+
+        #Handle some basic cases first
+        if repr(m) in ['0=0']:
+            return True
+        elif repr(m) in ['0#0', '1#1']:
+            return False
+
         try:
             s = m.parent()._eval_line('is (%s)'%m.name())
         except TypeError, msg:
             #raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
             return cmp(self._left._maxima_() , self._right._maxima_()) == 0
-        return s == 'true'
+
+        if s == 'true':
+            return True
+
+        difference = self._left - self._right
+        if repr(difference) == '0':
+            return True
+
+        #Try to apply some simplifications to see if left - right == 0
+        simp_list = [difference.simplify, difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+        for f in simp_list:
+            try:
+                if repr( f() ).strip() == "0":
+                    return True
+                    break
+            except:
+                pass
+        return False
 
     def _maxima_init_(self, maxima=maxima, assume=False):
         l = self._left._maxima_init_()
@@ -483,7 +516,7 @@ class SymbolicEquation(SageObject):
         except ValueError:
             pass
 
-    def solve(self, x=None, multiplicities=False):
+    def solve(self, x=None, multiplicities=False, solution_dict=False):
         """
         Symbolically solve for the given variable.
 
@@ -493,6 +526,7 @@ class SymbolicEquation(SageObject):
             x -- a SymbolicVariable object (if not given, the first in the expression is used)
             multiplicities -- (default: False) if True, also returns the multiplicities
                           of each solution, in order.
+            solution_dict -- (default: False) if True, return the solution as a dictionary rather than an equation.
 
         OUTPUT:
             A list of SymbolicEquations with the variable to solve for on the
@@ -506,6 +540,9 @@ class SymbolicEquation(SageObject):
             x == (sqrt(3)*I - 1)/2
             sage: S[0].right()
             (sqrt(3)*I - 1)/2
+            sage: S = solve(x^3 - 1 == 0, x, solution_dict=True)
+            sage: S
+            [{x: (sqrt(3)*I - 1)/2}, {x: (-sqrt(3)*I - 1)/2}, {x: 1}]
 
         We illustrate finding multiplicities of solutions:
             sage: f = (x-1)^5*(x^2+1)
@@ -530,6 +567,9 @@ class SymbolicEquation(SageObject):
         s = m.solve(x).str()
 
         X = string_to_list_of_solutions(s)
+        if solution_dict==True:
+            X=[dict([[sol.left(),sol.right()]]) for sol in X]
+
         if multiplicities:
             if len(X) == 0:
                 return X, []
@@ -653,7 +693,7 @@ def solve(f, *args, **kwds):
     INPUT:
         f -- equation or system of equations (given by a list or tuple)
         *args -- variables to solve for.
-
+	solution_dict = True -- return a list of dictionaries containing the solutions.
     EXAMPLES:
         sage: x, y = var('x, y')
         sage: solve([x+y==6, x-y==4], x, y)
@@ -665,6 +705,22 @@ def solve(f, *args, **kwds):
          [x == (sqrt(3)*I - 1)/2, y == sqrt(sqrt(3)*I + 3)/sqrt(2)],
          [x == 0, y == -1],
          [x == 0, y == 1]]
+        sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True); solutions
+        [{y: -sqrt(3 - sqrt(3)*I)/sqrt(2), x: (-sqrt(3)*I - 1)/2},
+         {y: sqrt(3 - sqrt(3)*I)/sqrt(2), x: (-sqrt(3)*I - 1)/2},
+         {y: -sqrt(sqrt(3)*I + 3)/sqrt(2), x: (sqrt(3)*I - 1)/2},
+         {y: sqrt(sqrt(3)*I + 3)/sqrt(2), x: (sqrt(3)*I - 1)/2},
+         {y: -1, x: 0},
+         {y: 1, x: 0}]
+        sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
+        -0.500 - 0.866*I , -1.27 + 0.341*I
+        -0.500 - 0.866*I , 1.27 - 0.341*I
+        -0.500 + 0.866*I , -1.27 - 0.341*I
+        -0.500 + 0.866*I , 1.27 + 0.341*I
+        0.000 , -1.00
+        0.000 , 1.00
+
+
     """
     if isinstance(f, (list, tuple)):
         m = maxima(list(f))
@@ -673,7 +729,12 @@ def solve(f, *args, **kwds):
         except:
             raise ValueError, "Unable to solve %s for %s"%(f, args)
         a = repr(s)
-        return string_to_list_of_solutions(a)
+	sol_list = string_to_list_of_solutions(a)
+	if 'solution_dict' in kwds and kwds['solution_dict']==True:
+            sol_dict=[dict([[eq.left(),eq.right()] for eq in solution]) for solution in sol_list]
+            return sol_dict
+        else:
+            return sol_list
     else:
         return f.solve(*args, **kwds)
 
@@ -683,5 +744,5 @@ objs = sage.categories.all.Objects()
 def string_to_list_of_solutions(s):
     from sage.calculus.calculus import symbolic_expression_from_maxima_string
     v = symbolic_expression_from_maxima_string(s, equals_sub=True)
-    return Sequence(v, universe=objs)
+    return Sequence(v, universe=objs, cr_str=True)
 

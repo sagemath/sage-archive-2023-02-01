@@ -1,7 +1,3 @@
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, int len)
-    int PyObject_TypeCheck(object o, object type)
-
 cdef extern from 'symmetrica/macro.h':
     pass
 
@@ -254,8 +250,6 @@ cdef extern from 'symmetrica/def.h':
     OBJECTKIND s_o_k(OP a)
     void* c_o_k(OP a, OBJECTKIND k)
 
-
-    void* println(OP a)
 
     #Integers
     void* m_i_i(INT n, OP a)
@@ -971,7 +965,7 @@ cdef object _py_schubert(OP a):
         return SchubertPolynomialRing(ZZ)(0)
 
     while pointer != NULL:
-        z_elt[ _py_permutation(s_s_s(pointer)) ] = _py(s_sch_k(pointer))
+        z_elt[ _py(s_s_s(pointer)).remove_extra_fixed_points() ] = _py(s_sch_k(pointer))
         pointer = s_sch_n(pointer)
 
     if len(z_elt) == 0:

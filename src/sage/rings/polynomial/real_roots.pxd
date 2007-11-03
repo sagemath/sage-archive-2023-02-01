@@ -58,7 +58,6 @@ cdef class rr_gap:
     cdef Rational lower
     cdef Rational upper
     cdef int sign
-    cdef replaced_by
     cdef island lisland
     cdef island risland
 

@@ -143,9 +143,10 @@ cdef class ntl_ZZX:
             sage: ntl.ZZX([1,3,0,5]).__repr__()
             '[1 3 0 5]'
         """
+        cdef char * val
         val = ZZX_repr(&self.x)
         result = str(val)
-        free(val)
+        cpp_delete_array(val)
         return result
 
     def copy(self):

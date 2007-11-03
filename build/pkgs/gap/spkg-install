@@ -7,6 +7,9 @@
 TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 
 
+# Indicate that Gap has somehow been updated, which invalidates all workspaces.
+touch "$SAGE_LOCAL/bin/gap_stamp"
+
 # If we're on an Itanium Linux box, we overwite configure.out with a slightly
 # modified version.  The modified version has all -O2's replaced by -O0.
 # See http://www.gap-system.org/Faq/Hardware-OS/hardware-os8.html

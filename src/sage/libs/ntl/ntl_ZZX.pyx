@@ -353,7 +353,6 @@ cdef class ntl_ZZX:
             ZZX_delete(q)
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         result = make_ZZX(q)
-        ZZX_delete(q)
         return result
 
     def __mod__(ntl_ZZX self, ntl_ZZX other):

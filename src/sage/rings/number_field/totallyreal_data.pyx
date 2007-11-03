@@ -606,14 +606,14 @@ cdef class tr_data:
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = __lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
-                        self.b_lower = max(self.b_lower,bminmax[0])
-                        self.b_upper = min(self.b_upper,bminmax[1])
+                        self.b_lower = bminmax[0]
+                        self.b_upper = bminmax[1]
                     elif k == n-5 and phc:
                         # New bounds using phc/Lagrange multiplier in degree 4.
                         bminmax = lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])
                         if len(bminmax) > 0:
-                            self.b_lower = max(self.b_lower,bminmax[0])
-                            self.b_upper = min(self.b_upper,bminmax[1])
+                            self.b_lower = bminmax[0]
+                            self.b_upper = bminmax[1]
                         else:
                             maxoutflag = 1
                             break

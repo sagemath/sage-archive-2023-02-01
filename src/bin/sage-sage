@@ -16,7 +16,8 @@ usage() {
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "        options to '-t':   --verbose, --gdb, --long, --optional,"
-    echo "                  --valgrind, --memcheck, --massif, --cachegrind, --callgrind"
+    echo "                  --valgrind, --memcheck, --massif, --cachegrind,"
+    echo "                  --callgrind, --omega"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
@@ -73,6 +74,7 @@ usage_advanced() {
     echo "  -root         -- print the SAGE root directory"
     echo "  -scons <..>   -- run SAGE's scons"
     echo "  -sdist VER    -- build a source distribution of SAGE"
+    echo "  -sh           -- run \$SHELL ($SHELL) with SAGE environment variables set"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -standard     -- list all standard packages that can be downloaded"
     echo "  -twistd <..>  -- run Twisted server"
@@ -98,6 +100,9 @@ usage_advanced() {
     echo "  -callgrind    -- run SAGE under the control of valgrind using the callgrind tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
     echo "                   sage-callgrind.PID."
+    echo "  -omega        -- run SAGE under the control of valgrind using the omega tool."
+    echo "                   The log files can be found in $HOME/.sage/ Those are named "
+    echo "                   sage-omega.PID."
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
@@ -351,6 +356,15 @@ if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd "$CUR"
     shift
     ipython "$@"
+    exit $?
+fi
+
+if [ $1 = '-sh'  -o $1 = '--sh' ]; then
+    cd "$CUR"
+    shift
+    echo Starting subshell with Sage environment variables set:
+    $SHELL "$@"
+    echo Exited Sage subshell.
     exit $?
 fi
 
@@ -752,6 +766,13 @@ if [ $1 = '-callgrind' -o $1 = "--callgrind" ]; then
     sage-callgrind
     exit $?
 fi
+
+if [ $1 = '-omega' -o $1 = "--omega" ]; then
+    sage_setup
+    sage-omega
+    exit $?
+fi
+
 
 if [ $# -ge 1 ]; then
    matplotlib_setup

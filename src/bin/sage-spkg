@@ -286,10 +286,11 @@ else
    echo "of $SAGE_ROOT/install.log.  Describe your computer, operating system, etc."
    echo "If you want to try to fix the problem, yourself *don't* just cd to"
    echo "`pwd` and type 'make'."
-   echo "Instead (using bash) type \"source local/bin/sage-env\" from the directory"
-   echo "$SAGE_ROOT"
+   echo "Instead type \"$SAGE_ROOT/sage -sh\""
    echo "in order to set all environment variables correctly, then cd to"
    echo "`pwd`"
+   echo "(When you are done debugging, you can type \"exit\" to leave the"
+   echo "subshell.)"
    exit 1
 fi
 

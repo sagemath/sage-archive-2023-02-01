@@ -140,10 +140,6 @@ class MonitorDatabase(object):
         uuid = host_info['uuid']
         hostname = host_info['hostname']
         ip = host_info['ip']
-        # if self.is_connected(uuid):
-        #     monitor = self.get_monitor(uuid)
-        #     workers = host_info['workers'] + monitor['workers']
-        # else:
         workers = host_info['workers']
         sage_version = host_info['sage_version']
         os = host_info['os']
@@ -264,15 +260,14 @@ class MonitorDatabase(object):
 
         """
 
-        if connected and busy == False:
+        if connected and not busy:
             query = """SELECT workers FROM monitors WHERE connected AND NOT busy"""
-        elif connected and busy == True:
+        elif connected and busy:
             query = """SELECT workers FROM monitors WHERE connected AND busy"""
-        elif connected:
-            query = """SELECT workers FROM monitors WHERE connected"""
-        else:
-            query = "SELECT workers FROM monitors WHERE NOT connected"
-
+        elif not connected and not busy:
+            query = """SELECT workers FROM monitors WHERE NOT connected AND NOT busy"""
+        elif not connected and busy:
+            query = """SELECT workers FROM monitors WHERE NOT connected AND busy"""
         cur = self.con.cursor()
         cur.execute(query)
 

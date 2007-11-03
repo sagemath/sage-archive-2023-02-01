@@ -83,7 +83,7 @@ def odlyzko_bound_totallyreal(n):
 
 def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False):
     r"""
-    This function enumerates (primitve) totally real fields of
+    This function enumerates (primitive) totally real fields of
     degree $n>1$ with discriminant $d \leq B$; optionally one can
     specify the first few coefficients, where the sequence $a$
     corresponds to a polynomial by

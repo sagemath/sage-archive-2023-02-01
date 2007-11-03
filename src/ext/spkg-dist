@@ -16,11 +16,12 @@ fi
 mkdir $DIR
 
 cd $E
-cp -pr * .hg "../$DIR/"
+cp -pr * .hg .hgignore .hgtags "../$DIR/"
 cd "../$DIR"
 rm -f *.spkg
 rm -f magma/*.dat magma/*.sig magma/*/*.dat magma/*/*.sig magma/*/*/*.dat magma/*/*/*.sig
 rm -rf octave/user/tmp
+rm -rf octave/user/*
 
 cd ..
 $SAGE_ROOT/sage -pkg $DIR

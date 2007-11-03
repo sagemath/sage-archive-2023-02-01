@@ -3,14 +3,14 @@
 CUR=`pwd`
 DIR="$SAGE_ROOT"/data/extcode
 
-check() {
-   if [ $? -ne 0 ]; then
-      echo "Something went wrong merging in the extcode repo."
-      echo "Stopping the build."
-      echo "Please get your extcode repository in good shape and checked in,"
-      echo "then retry the upgrade/package install."
-   fi
-}
+#check() {
+#   if [ $? -ne 0 ]; then
+#      echo "Something went wrong merging in the extcode repo."
+#      echo "Stopping the build."
+#      echo "Please get your extcode repository in good shape and checked in,"
+#      echo "then retry the upgrade/package install."
+#   fi
+#}
 
 if [ ! -d "$DIR" ]; then
    mkdir "$DIR"
@@ -18,12 +18,8 @@ if [ ! -d "$DIR" ]; then
 else
    cd "$DIR"
    hg pull "$CUR"
-   check
    hg merge tip
-   check
    hg ci -m "merge"
-   check
    hg update
-   check
 fi
 

@@ -756,6 +756,10 @@ ext_modules = [ \
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
 
+    Extension('sage.rings.number_field.totallyreal_data',
+              ['sage/rings/number_field/totallyreal_data.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.rings.morphism',
               sources = ['sage/rings/morphism.pyx']),
 
@@ -1176,13 +1180,21 @@ setup(name        = 'sage',
                      'sage.dsage.dist_functions.tests',
                      'sage.dsage.misc',
                      'sage.dsage.misc.tests',
-                     'sage.dsage.scripts'
+                     'sage.dsage.web',
+                     'sage.dsage.scripts',
                      ],
 
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
                  'sage/dsage/scripts/dsage_setup.py'
                 ],
+
+      data_files = [('dsage/web/static',
+                     ['sage/dsage/web/static/dsage_web.css',
+                      'sage/dsage/web/static/dsage_web.js',
+                      'sage/dsage/web/static/jquery-latest.js',
+                      'sage/dsage/web/static/jquery.tablesorter.pack.js',
+                      'sage/dsage/web/static/index.html'])],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

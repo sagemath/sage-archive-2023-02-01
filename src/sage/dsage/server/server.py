@@ -358,7 +358,7 @@ class DSageServer(pb.Root):
     def generate_xml_stats(self):
         """
         This method returns a an XML document to be consumed by the
-        Mac OS X Dashboard widget
+        Mac OS X Dashboard widget and the web server.
 
         """
 
@@ -497,7 +497,8 @@ class DSageServer(pb.Root):
                              disconnected_workers)
 
             if total_workers != 0:
-                worker_percentage = float(working_workers / total_workers) * 100
+                worker_percentage = (float(working_workers / total_workers) *
+                100)
             else:
                 worker_percentage = 0.0
             percentage = doc.createTextNode(str(worker_percentage))

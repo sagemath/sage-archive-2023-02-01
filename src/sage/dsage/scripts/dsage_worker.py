@@ -369,9 +369,12 @@ except:
         except IOError, msg: # File does not exist yet
             done = False
         if done:
-            cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
-            self.free = True
-            self.reset_checker()
+			try:
+				cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
+			except IOError:
+				cpu_time = -1 # This means that we could not get a cpu_time.
+			self.free = True
+			self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
             cpu_time = None
@@ -619,14 +622,8 @@ class Monitor(object):
         self.sleep_time = 1.0
 
         self.host_info = ClassicHostInfo().host_info
-        try:
-            uuid_file = os.path.join(DSAGE_DIR, 'worker.uuid')
-            uuid_ = open(uuid_file).readlines()[0]
-        except Exception, e:
-            uuid_ = str(uuid.uuid1())
-            f = open(uuid_file, 'w')
-            f.write(uuid_)
-            f.close()
+
+        uuid_ = str(uuid.uuid1())
         self.host_info['uuid'] = uuid_
         self.host_info['workers'] = self.workers
 

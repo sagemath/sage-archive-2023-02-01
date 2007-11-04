@@ -1315,7 +1315,7 @@ class NumberField_generic(number_field_base.NumberField):
             10
 
         """
-        from sage.rings.number_field.number_field_ideal import convert_from_zk_basis, NumberFieldIdeal
+        from sage.rings.number_field.number_field_ideal import convert_from_zk_basis
         hnf_ideals = pari('ideallist(%s, %d)'%(self.pari_nf(),bound))
         d = {}
         for i in xrange(bound):

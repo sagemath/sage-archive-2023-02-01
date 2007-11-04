@@ -354,7 +354,7 @@ def easy_is_irreducible_py(f):
 cdef double eps_global
 eps_global = 10.**(-4)
 
-from totallyreal_phc import lagrange_bounds_phc
+from totallyreal_phc import __lagrange_bounds_phc
 
 cdef class tr_data:
     r"""
@@ -657,7 +657,7 @@ cdef class tr_data:
                         self.b_upper = bminmax[1]
                     elif k == n-5 and phc:
                         # New bounds using phc/Lagrange multiplier in degree 4.
-                        bminmax = lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])
+                        bminmax = __lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])
                         if len(bminmax) > 0:
                             self.b_lower = bminmax[0]
                             self.b_upper = bminmax[1]

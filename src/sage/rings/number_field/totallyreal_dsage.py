@@ -287,7 +287,7 @@ class totallyreal_dsage:
                              [[s[0], s[1].reverse().Vec()] for s in self.S],
                              self.counts, self.cputime, self.walltime]))
             fsock.close()
-            print self.num_jobs() "remaining..."
+            print self.num_jobs(), "remaining..."
 
     def reload(self, n, B, load=True):
         self.n = n

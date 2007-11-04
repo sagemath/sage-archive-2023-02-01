@@ -55,7 +55,7 @@ def coefficients_to_power_sums(n, m, a):
 import os, math
 from sage.combinat.combinat import partitions_list
 
-def lagrange_bounds_phc(n, m, a):
+def __lagrange_bounds_phc(n, m, a):
     r"""
     This function determines the bounds on the roots in
     the enumeration of totally real fields via Lagrange multipliers.

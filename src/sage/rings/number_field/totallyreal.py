@@ -54,7 +54,7 @@ def odlyzko_bound_totallyreal(n):
     a lower bound on the root discriminant
 
     EXAMPLES:
-    sage: [odlyzko_bound_totallyreal(n) for n in range(1,5)]
+    sage: [sage.rings.number_field.totallyreal.odlyzko_bound_totallyreal(n) for n in range(1,5)]
     [1.0, 2.2229999999999999, 3.6099999999999999, 5.0670000000000002]
 
     AUTHORS:
@@ -115,7 +115,6 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     fields of discriminant <= 50.
 
     sage: enumerate_totallyreal_fields(2,50)
-
     [[5, x^2 - x - 1],
      [8, x^2 - 2],
      [12, x^2 - 3],
@@ -129,20 +128,14 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
      [37, x^2 - x - 9],
      [40, x^2 - 10],
      [41, x^2 - x - 10],
-     [44, x^2 - 11]]
-    sage: D = []
-    sage: for d in range(5,50):
-    ....:     if (is_squarefree(d) and d%4 == 1) or\
-    ....:        (d%4 == 0 and is_squarefree(d/4)):
-    ....:         D += [d]
-    ....:
-    sage: D
+     [44, x^2 - 11],
+     [5, x^2 - 3*x + 1]]
+    sage: [ d for d in range(5,50) if (is_squarefree(d) and d%4 == 1) or (d%4 == 0 and is_squarefree(d/4)) ]
     [5, 8, 12, 13, 17, 20, 21, 24, 28, 29, 33, 37, 40, 41, 44]
 
     Next, we compute all totally real quintic fields of discriminant <= 10^5.
 
     sage: enumerate_totallyreal_fields(5,10^5)
-
     [[14641, x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1],
      [24217, x^5 - 5*x^3 - x^2 + 3*x + 1],
      [36497, x^5 - 2*x^4 - 3*x^3 + 5*x^2 + x - 1],
@@ -178,6 +171,14 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     AUTHORS:
     - John Voight (2007-09-03)
     """
+
+    if not isinstance(n, Integer):
+        try:
+            n = Integer(n)
+        except:
+            raise TypeError, "cannot coerce n (= %s) to an integer"%n
+    if (n < 1):
+        raise ValueError, "n must be at least 1."
 
     # Initialize
     T = tr_data(n,B,a)
@@ -298,8 +299,12 @@ def weed_fields(S):
     Function used internally by the enumerate_totallyreal_fields()
     routine.  (Weeds the fields listed by [discriminant, polynomial]
     for isomorphism classes.)
-    """
 
+    EXAMPLES:
+      sage: ls = [[5,pari('x^2-3*x+1')],[5,pari('x^2-5')]]
+      sage: sage.rings.number_field.totallyreal.weed_fields(ls) ; ls
+      [[5, x^2 - 3*x + 1]]
+    """
     i = 0
     if len(S) == 0:
        return
@@ -324,14 +329,14 @@ def int_to_time(m):
     Converts seconds to a human-readable time string.
 
     INPUT:
-    m -- integer, number of seconds
+      m -- integer, number of seconds
 
     OUTPUT:
-    The time in days, hours, etc.
+      The time in days, hours, etc.
 
     EXAMPLES:
-    sage: int_to_time(3765)
-    '1h2m45.0s'
+      sage: sage.rings.number_field.totallyreal.int_to_time(3765)
+      '1h 2m 45.0s'
     """
 
     n = math.floor(m)
@@ -339,15 +344,15 @@ def int_to_time(m):
     outstr = ''
     if m >= 60*60*24:
         t = n//(60*60*24)
-        outstr += str(t)[:len(str(t))-2] + 'd'
+        outstr += str(t)[:len(str(t))-2] + 'd '
         n -= t*(60*60*24)
     if m >= 60*60:
         t = n//(60*60)
-        outstr += str(t)[:len(str(t))-2] + 'h'
+        outstr += str(t)[:len(str(t))-2] + 'h '
         n -= t*(60*60)
     if m >= 60:
         t = n//60
-        outstr += str(t)[:len(str(t))-2] + 'm'
+        outstr += str(t)[:len(str(t))-2] + 'm '
         n -= t*60
     n += p
     outstr += '%.1f'%n + 's'
@@ -362,15 +367,18 @@ def selberg_zograf_bound(n, g):
        (16/3*(g+1))^(2/(3*n))*(2*pi)^(4/3).
 
     INPUT:
-    n -- integer, the degree
-    g -- integer, the genus
+      n -- integer, the degree
+      g -- integer, the genus
 
     OUTPUT:
-    the upper bound.
+      the upper bound.
 
     AUTHORS:
-    - John Voight (2007-09-19)
-    """
+      - John Voight (2007-09-19)
 
+    EXAMPLES:
+      sage: sage.rings.number_field.totallyreal.selberg_zograf_bound(8,7)
+      15.851871776151311
+    """
     ppi = 3.1415926535897931
     return ((16./3)*(g+1))**(2./(3*n))*(2*ppi)**(4./3)

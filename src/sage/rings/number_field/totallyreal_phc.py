@@ -39,6 +39,12 @@ def coefficients_to_power_sums(n, m, a):
 
     AUTHORS:
     - John Voight (2007-09-19)
+
+    EXAMPLES:
+        sage: sage.rings.number_field.totallyreal_phc.coefficients_to_power_sums(3,2,[1,5,7])
+        [3, -7, 39]
+        sage: sage.rings.number_field.totallyreal_phc.coefficients_to_power_sums(5,4,[1,5,7,9,8])
+        [5, -8, 46, -317, 2158]
     """
 
     S = [n] + [0]*m
@@ -79,6 +85,11 @@ def lagrange_bounds_phc(n, m, a):
 
     # Compute power sums.
     S = coefficients_to_power_sums(n,m,a)
+
+    # Look for phc.
+    find_phc = os.system('which phc')
+    if find_phc != 0:
+        raise RuntimeError, "PHCpack not installed."
 
     # Initialization.
     f = open('/tmp/phc_tr.phc', 'w')

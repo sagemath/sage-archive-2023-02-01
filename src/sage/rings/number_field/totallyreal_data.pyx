@@ -70,12 +70,12 @@ def hermite_constant(n):
     NOTES:
     The upper bounds used can be found in [CS] and [CE].
 
-        REFERENCES:
-            [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
-                 packings I, Ann. Math. 157 (2003), 689--714.
-            [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices and
-                 groups, 3rd. ed., Grundlehren der Mathematischen Wissenschaften,
-                 vol. 290, Springer-Verlag, New York, 1999.
+    REFERENCES:
+        [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
+               packings I, Ann. Math. 157 (2003), 689--714.
+        [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices and
+               groups, 3rd. ed., Grundlehren der Mathematischen Wissenschaften,
+               vol. 290, Springer-Verlag, New York, 1999.
 
     AUTHORS:
     - John Voight (2007-09-03)
@@ -179,6 +179,12 @@ def __lagrange_degree_3(n, an1, an2, an3):
     where the s_i are the power sums determined by the coefficients a.
     We output the largest value of z which occurs.
     We use a precomputed elimination ideal.
+
+    EXAMPLES:
+        sage: sage.rings.number_field.totallyreal_data.__lagrange_degree_3(3, 0, 1, 2)
+        [-1.000000019137512, -0.99999998086248831]
+        sage: sage.rings.number_field.totallyreal_data.__lagrange_degree_3(3, 6, 1, 2)
+        [-5.8878509412236602, -5.887850753893237]
     """
 
     # Newton's relations.
@@ -233,6 +239,12 @@ for i from 0 <= i < 46:
 def int_has_small_square_divisor(sage.rings.integer.Integer d):
     r"""
     Returns the largest a such that a^2 divides d and a has prime divisors < 200.
+
+    EXAMPLES:
+        sage: sage.rings.number_field.totallyreal_data.int_has_small_square_divisor(500)
+        100
+        sage: sage.rings.number_field.totallyreal_data.int_has_small_square_divisor(next_prime(200))
+        1
     """
 
     cdef int i
@@ -305,11 +317,22 @@ cdef easy_is_irreducible(int *a, int n):
     return 1
 
 def easy_is_irreducible_py(f):
+    """
+    Used solely for testing easy_is_irreducible.
+
+    EXAMPLES:
+      sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2+1'))
+      1
+      sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2-1'))
+      0
+    """
     cdef int a[10]
 
     for i from 0 <= i < len(f):
         a[i] = f[i]
     return easy_is_irreducible(a, len(f)-1)
+
+
 
 #***********************************************************************************************
 # Main class and routine
@@ -360,6 +383,13 @@ cdef class tr_data:
         the data initialized to begin enumeration of totally real fields
         with degree n, discriminant bounded by B, and starting with
         coefficients a.
+
+        EXAMPLES:
+            sage: sage.rings.number_field.totallyreal_data.tr_data(2,100).printa()
+            k = 0
+            a = [0, -1, 1]
+            amax = [0, 0, 1]
+            ...
         """
 
         cdef int i
@@ -468,6 +498,14 @@ cdef class tr_data:
 
         OUTPUT:
         the successor polynomial as a coefficient list.
+
+        EXAMPLES:
+            sage: f = ntl.ZZX([1,2,3])
+            sage: t = sage.rings.number_field.totallyreal_data.tr_data(2,100)
+            sage: t.incr(f) ; f
+            [-24 -1 3]
+            sage: t.incr(f) ; t.incr(f) ; f
+            [-22 -1 3]
         """
 
         cdef int n, np1, k, i, j
@@ -706,6 +744,16 @@ cdef class tr_data:
         return
 
     def printa(self):
+        """
+        Print relevant data for self.
+
+        EXAMPLES:
+          sage: x = sage.rings.number_field.totallyreal_data.tr_data(3,2^10) ; x.printa()
+          k = 1
+          a = [0, 0, -1, 1]
+          amax = [0, 0, 0, 1]
+          ...
+        """
         print "k =", self.k
         print "a =", [self.a[i] for i in range(self.n+1)]
         print "amax =", [self.amax[i] for i in range(self.n+1)]

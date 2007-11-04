@@ -1,3 +1,5 @@
+"""nodoctest"""
+
 """
 Enumeration of Totally Real Fields: DSage components
 

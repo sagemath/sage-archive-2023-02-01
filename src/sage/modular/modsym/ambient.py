@@ -765,7 +765,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             B = self.boundary_space()
             I = [B(b) for b in self.basis()]
             W = matrix_space.MatrixSpace(self.base_ring(), len(I), B.rank(), sparse=True)
-            A = W([x.element() for x in I])
+
+            # Note -- the underlying elements have degree the number of distinct
+            # cusps known when the element was computed.  This isn't constant,
+            # so we pad the elements.
+            E = [x.element() for x in I]
+            zero = self.base_ring()(0)
+            n = int(B.dimension())
+            E = sum([ list(x) + [zero]*(n - len(x)) for x in E ], [])
+
+            A = W( E )
             H = cat.Hom(self, B)
             self.__boundary_map = H(A, "boundary map")
             return self.__boundary_map

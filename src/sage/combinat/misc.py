@@ -1,3 +1,6 @@
+r"""
+Miscellaneous
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

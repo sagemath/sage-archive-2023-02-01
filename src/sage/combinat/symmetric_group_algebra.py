@@ -1,3 +1,6 @@
+r"""
+Symmetric Group Algebra
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

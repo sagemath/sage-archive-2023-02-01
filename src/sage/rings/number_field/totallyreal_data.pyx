@@ -444,8 +444,8 @@ cdef class tr_data:
             self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
             if k < n-2:
                 bminmax = __lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
-                self.b_lower = max(bminmax[0],self.b_lower)
-                self.b_upper = min(bminmax[1],self.b_upper)
+                self.b_lower = bminmax[0]
+                self.b_upper = bminmax[1]
 
             # Annoying, but must reverse coefficients for numpy.
             gnk = [binomial(j,k+2)*a[j] for j in range(k+2,n+1)]

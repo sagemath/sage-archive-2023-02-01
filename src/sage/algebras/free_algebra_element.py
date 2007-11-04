@@ -78,7 +78,7 @@ class FreeAlgebraElement(AlgebraElement):
             return x
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES:

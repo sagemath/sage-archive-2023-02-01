@@ -1,3 +1,6 @@
+r"""
+Tools for generating lists of integers in lexicographic order.
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

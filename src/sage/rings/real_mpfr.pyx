@@ -1415,6 +1415,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def __float__(self):
         return mpfr_get_d(self.value, (<RealField>self._parent).rnd)
 
+    def _rpy_(self):
+        """
+        Returns self.__float__() for rpy to convert into the
+        appropriate R object.
+
+        EXAMPLES:
+            sage: n = RealNumber(2.0)
+            sage: n._rpy_()
+            sage: type(n._rpy_())
+        """
+        return self.__float__()
+
     def __int__(self):
         """
         Returns integer truncation of this real number.

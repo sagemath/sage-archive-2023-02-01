@@ -1415,6 +1415,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_get_d(self.value)
 
+    def _rpy_(self):
+        """
+        Returns int(self) so that rpy can convert self into an object it
+        knows how to work with.
+
+        EXAMPLES:
+            sage: n = 100
+            sage: n._rpy_()
+            100
+            sage: type(n._rpy_())
+            <type 'int'>
+        """
+        return self.__int__()
+
     def __hash__(self):
         """
         Return the hash of this integer.

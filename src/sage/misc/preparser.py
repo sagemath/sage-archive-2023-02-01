@@ -345,20 +345,55 @@ def parse_generators(line, start_index):
 
     TESTS:
         sage: from sage.misc.preparser import preparse
-        sage: preparse("R.<x> = ZZ[]")
-        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+
+        Vanilla:
+
         sage: preparse("R.<x> = ZZ['x']")
         "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
-        sage: preparse("R.<x> = ZZ['y']")
-        "R = ZZ['y']; (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = ZZ['x,y']")
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2))"
+
+        No square brackets:
+
+        sage: preparse("R.<x> = PolynomialRing(ZZ, 'x')")
+        "R = PolynomialRing(ZZ, 'x',names=('x',)); (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = PolynomialRing(ZZ, 'x,y')")
+        "R = PolynomialRing(ZZ, 'x,y',names=('x', 'y')); (x, y,) = R._first_ngens(Integer(2))"
+
+        Names filled in:
+
+        sage: preparse("R.<x> = ZZ[]")
+        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
         sage: preparse("R.<x,y> = ZZ[]")
         "R = ZZ['x, y']; (x, y,) = R._first_ngens(Integer(2))"
+
+        Names given not the same as generator names:
+
+        sage: preparse("R.<x> = ZZ['y']")
+        "R = ZZ['y']; (x,) = R._first_ngens(Integer(1))"
         sage: preparse("R.<x,y> = ZZ['u,v']")
         "R = ZZ['u,v']; (x, y,) = R._first_ngens(Integer(2))"
+
+        Number fields:
+
         sage: preparse("K.<a> = QQ[2^(1/3)]")
         'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(Integer(1))'
         sage: preparse("K.<a, b> = QQ[2^(1/3), 2^(1/2)]")
         'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(Integer(2))'
+
+        Just the .<> notation:
+
+        sage: preparse("R.<x> = ZZx")
+        'R = ZZx; (x,) = R._first_ngens(Integer(1))'
+        sage: preparse("R.<x, y> = a+b")
+        'R = a+b; (x, y,) = R._first_ngens(Integer(2))'
+
+        Ensure we don't eat too much:
+
+        sage: preparse("R.<x, y> = ZZ;2")
+        'R = ZZ; (x, y,) = R._first_ngens(Integer(2));Integer(2)'
+        sage: preparse("R.<x, y> = ZZ['x,y'];2")
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2));Integer(2)"
     """
     i = start_index
     if not line.startswith(".<", i):
@@ -394,6 +429,8 @@ def parse_generators(line, start_index):
     if s==-1: s = len(line_after)
     c = min(c,s) + gen_end
 
+    gens_assignment = '; (%s,) = %s._first_ngens(%s)' % (gen_vars, gen_obj, gen_vars.count(',')+1)
+    ring_assignment = ""
     # Find where the parenthesis of the constructor ends
     if line[:c].rstrip()[-1] == ']':
         # brackets constructor
@@ -407,10 +444,8 @@ def parse_generators(line, start_index):
             # as a convenience to the user, 'K.<a> = ZZ[]' -> 'K.<a> = ZZ["a"]'
             in_square_brackets = "'%s'" % gen_vars
 
-        line_new = '%s%s%s; (%s,) = %s._first_ngens(%s)'%(
-            line[:i] + line[gen_end+1:d0+1], in_square_brackets,
-            line[c0:c], gen_vars, gen_obj, gen_vars.count(',')+1)
-    else:
+        ring_assignment = '%s%s%s' % (line[:i] + line[gen_end+1:d0+1], in_square_brackets, line[c0:c])
+    elif line[:c].rstrip()[-1] == ')':
         c0 = line[:c].rfind(')')
         # General constructor -- rewrite the input line as two commands
         # We have to determine whether or not to put a comma before
@@ -418,17 +453,16 @@ def parse_generators(line, start_index):
         # arguments to the constructor.  Some constructors have no
         # arguments, e.g., "K.<a> = f.root_field(  )"
         c1 = line[:c0].rfind('(')
-        if len(line[c1+1:c0].strip()) > 0:
+        in_parentheses = line[c1+1:c0].strip()
+        if len(in_parentheses) > 0:
             sep = ','
         else:
             sep = ''
+        ring_assignment = '%s%snames=%s)' % (line[:i] + line[gen_end+1:c0], sep, gen_names)
+    else:
+        ring_assignment = line[:i] + line[gen_end+1:c]
 
-        line_new = '%s%snames=%s); (%s,) = %s._first_ngens(%s)'%(
-            line[:i] + line[gen_end+1:c0], sep, gen_names,
-            gen_vars, gen_obj, gen_vars.count(',')+1)
-
-    line = line_new + line[c:]
-    #i = len(line_new)
+    line = ring_assignment + gens_assignment + line[c:]
     i += 1
 
     return (line, i)

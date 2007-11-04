@@ -2353,6 +2353,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(algorithm='pari')
             [(1.25992104989487, 1), (-0.629960524947437 + 1.09112363597172*I, 1), (-0.629960524947437 - 1.09112363597172*I, 1)]
 
+        Another example showing that only roots in the base ring
+        are returned:
+            sage: x = polygen(ZZ)
+            sage: f = (2*x-3) * (x-1) * (x+1)
+            sage: f.roots()
+            [(1, 1), (-1, 1)]
+            sage: f.roots(ring=QQ)
+            [(1, 1), (-1, 1), (3/2, 1)]
+
         An example involving large numbers:
             sage: x = RR['x'].0
             sage: f = x^2 - 1e100
@@ -2688,10 +2697,15 @@ sage: rts[0][0] == rt2
         for fac in rts:
             g = fac[0]
             if g.degree() == 1:
-                if multiplicities:
-                    seq.append((-g[0]/g[1],fac[1]))
-                else:
-                    seq.append(-g[0]/g[1])
+                rt = -g[0]/g[1]
+                # We need to check that this root is actually in K;
+                # otherwise we'd return roots in the fraction field of K.
+                if rt in K:
+                    rt = K(rt)
+                    if multiplicities:
+                        seq.append((rt,fac[1]))
+                    else:
+                        seq.append(rt)
         return seq
 
     def real_roots(self):

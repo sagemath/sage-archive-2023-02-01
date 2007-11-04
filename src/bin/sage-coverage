@@ -70,12 +70,12 @@ def functions_without_doctests(file):
                     tests.append(function_name)
                 else:
                     good.append(function_name)
-            if not (bare_function_name[0:2] == '__' and
-                    bare_function_name[-2:] == '__'):
-                d = file[q0:q1].find(bare_function_name)
-                e = file[q0:q1].find('indirect doctest')
-                if d == -1 and e == -1:
-                    possibly_wrong.append(function_name)
+                    if not (bare_function_name[0:2] == '__' and
+                        bare_function_name[-2:] == '__'):
+                        d = file[q0:q1].find(bare_function_name)
+                        e = file[q0:q1].find('indirect doctest')
+                        if d == -1 and e == -1:
+                            possibly_wrong.append(function_name)
 
         file = file[j+3:]
     #end while

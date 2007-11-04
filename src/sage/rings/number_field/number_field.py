@@ -2810,7 +2810,7 @@ class NumberField_absolute(NumberField_generic):
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947437 + 1.09112363597172*I,
+              Defn: a |--> -0.629960524947436 + 1.09112363597172*I,
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
@@ -3691,22 +3691,22 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
-            sage: f = K.embeddings(CC); f
+            sage: f = K.embeddings(ComplexField(58)); f
             [Relative number field morphism:
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947442 - 1.09112363597172*I
-                    b |--> -0.00000000000000532907051820075 + 1.00000000000000*I,
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
+                    b |--> -0.00000000000000019428902930940239 + 1.0000000000000000*I,
               ...
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> 1.25992104989487 + 0.000000000000000222044604925031*I
-                    b |--> -1.00000000000000*I]
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> 1.2599210498948731
+                    b |--> -0.99999999999999999*I]
             sage: f[0](a)^3
-            2.00000000000001 - 0.0000000000000279776202205539*I
+            2.0000000000000002 - 0.00000000000000086389229103644993*I
             sage: f[0](b)^2
-            -1.00000000000001 - 0.0000000000000106581410364015*I
+            -1.0000000000000001 - 0.00000000000000038857805861880480*I
             sage: f[0](a+b)
-            -0.629960524947448 - 0.0911236359717185*I
+            -0.62996052494743693 - 0.091123635971721295*I
         """
         try:
             return self.__embeddings[K]

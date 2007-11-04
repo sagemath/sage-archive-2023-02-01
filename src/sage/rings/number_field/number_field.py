@@ -1266,6 +1266,62 @@ class NumberField_generic(number_field_base.NumberField):
                 gens = I.gens()
         return sage.rings.ring.Ring.ideal(self, gens, **kwds)
 
+    def ideals_of_bdd_norm(self, bound):
+        """
+        All integral ideals of bounded norm.
+
+        INPUT:
+            bound -- a positive integer
+
+        OUTPUT:
+            A dict of all integral ideals I such that Norm(I) <= bound,
+            keyed by norm.
+
+        EXAMPLE:
+            sage: K.<a> = NumberField(x^2 + 23)
+            sage: d = K.ideals_of_bdd_norm(10)
+            sage: for n in d:
+            ...       print n
+            ...       for I in d[n]:
+            ...           print I
+            1
+            Fractional ideal (1)
+            2
+            Fractional ideal (2, 1/2*a - 1/2)
+            Fractional ideal (2, 1/2*a + 1/2)
+            3
+            Fractional ideal (3, -1/2*a + 1/2)
+            Fractional ideal (3, -1/2*a - 1/2)
+            4
+            Fractional ideal (4, 1/2*a + 3/2)
+            Fractional ideal (2)
+            Fractional ideal (4, 1/2*a + 5/2)
+            5
+            6
+            Fractional ideal (-1/2*a + 1/2)
+            Fractional ideal (6, 1/2*a + 5/2)
+            Fractional ideal (6, 1/2*a + 7/2)
+            Fractional ideal (1/2*a + 1/2)
+            7
+            8
+            Fractional ideal (-1/2*a - 3/2)
+            Fractional ideal (4, a - 1)
+            Fractional ideal (4, a + 1)
+            Fractional ideal (1/2*a - 3/2)
+            9
+            Fractional ideal (9, 1/2*a + 11/2)
+            Fractional ideal (3)
+            Fractional ideal (9, 1/2*a + 7/2)
+            10
+
+        """
+        from sage.rings.number_field.number_field_ideal import convert_from_zk_basis, NumberFieldIdeal
+        hnf_ideals = pari('ideallist(%s, %d)'%(self.pari_nf(),bound))
+        d = {}
+        for i in xrange(bound):
+            d[i+1] = [self.ideal([ self(generator) for generator in convert_from_zk_basis(self, hnf_I) ]) for hnf_I in hnf_ideals[i]]
+        return d
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         Return whether or not there is a homomorphism defined by the

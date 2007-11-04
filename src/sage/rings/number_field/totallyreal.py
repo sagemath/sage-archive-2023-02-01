@@ -2,6 +2,8 @@
 Enumeration of Totally Real Fields
 
 AUTHORS:
+    -- Craig Citro and John Voight (2007-11-04):
+        * Additional doctests and type checking.
     -- John Voight (2007-10-27):
         * Separated DSage component.
     -- John Voight (2007-10-17):
@@ -30,6 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 import math, sys, bisect
+
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
@@ -61,7 +64,7 @@ def odlyzko_bound_totallyreal(n):
     - John Voight (2007-09-03)
 
     NOTES:
-    The values are calculated by Matrinet [M].
+    The values are calculated by Martinet [M].
 
         [M] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
             Cambridge Univ. Press, 1982, 151--193.
@@ -268,9 +271,9 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     # In the application of Smyth's theorem above, we exclude finitely
     # many possibilities which we must now throw back in.
     if n == 2 and B >= 5:
-        S += [[5,pari('x^2-3*x+1')]]
+        S = [[5,pari('x^2-3*x+1')]] + S
     elif n == 3 and B >= 49:
-        S += [[49,pari('x^3-5*x^2+6*x-1')]]
+        S = [[49,pari('x^3-5*x^2+6*x-1')]] + S
     # The polynomials with n = 4 define imprimitive number fields.
 
     # Now check for isomorphic fields
@@ -301,9 +304,9 @@ def weed_fields(S):
     for isomorphism classes.)
 
     EXAMPLES:
-      sage: ls = [[5,pari('x^2-3*x+1')],[5,pari('x^2-5')]]
-      sage: sage.rings.number_field.totallyreal.weed_fields(ls) ; ls
-      [[5, x^2 - 3*x + 1]]
+        sage: ls = [[5,pari('x^2-3*x+1')],[5,pari('x^2-5')]]
+        sage: sage.rings.number_field.totallyreal.weed_fields(ls); ls
+        [[5, x^2 - 3*x + 1]]
     """
     i = 0
     if len(S) == 0:
@@ -324,19 +327,19 @@ def weed_fields(S):
                j += 1
        i = j
 
-def int_to_time(m):
+def timestr(m):
     r"""
     Converts seconds to a human-readable time string.
 
     INPUT:
-      m -- integer, number of seconds
+        m -- integer, number of seconds
 
     OUTPUT:
-      The time in days, hours, etc.
+        The time in days, hours, etc.
 
     EXAMPLES:
-      sage: sage.rings.number_field.totallyreal.int_to_time(3765)
-      '1h 2m 45.0s'
+        sage: sage.rings.number_field.totallyreal.timestr(3765)
+        '1h 2m 45.0s'
     """
 
     n = math.floor(m)
@@ -359,7 +362,7 @@ def int_to_time(m):
 
     return outstr
 
-def selberg_zograf_bound(n, g):
+def __selberg_zograf_bound(n, g):
     r"""
     Returns an upper bound on the possible root discriminant of a
     totally real field of degree n which gives rise to an arithmetic
@@ -367,18 +370,17 @@ def selberg_zograf_bound(n, g):
        (16/3*(g+1))^(2/(3*n))*(2*pi)^(4/3).
 
     INPUT:
-      n -- integer, the degree
-      g -- integer, the genus
+        n -- integer, the degree
+        g -- integer, the genus
 
     OUTPUT:
-      the upper bound.
+        the upper bound.
 
     AUTHORS:
-      - John Voight (2007-09-19)
+        - John Voight (2007-09-19)
 
     EXAMPLES:
-      sage: sage.rings.number_field.totallyreal.selberg_zograf_bound(8,7)
-      15.851871776151311
+        sage: sage.rings.number_field.totallyreal.__selberg_zograf_bound(8,7)
+        15.851871776151311
     """
-    ppi = 3.1415926535897931
-    return ((16./3)*(g+1))**(2./(3*n))*(2*ppi)**(4./3)
+    return ((16./3)*(g+1))**(2./(3*n))*(2*3.1415926535897931)**(4./3)

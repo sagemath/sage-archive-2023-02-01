@@ -2,6 +2,8 @@
 Enumeration of Totally Real Fields
 
 AUTHORS:
+    -- Craig Citro and John Voight (2007-11-04):
+        * Type checking and other polishing.
     -- John Voight (2007-10-09):
         * Improvements: Symth bound, Lagrange multipliers for b.
     -- John Voight (2007-09-19):
@@ -97,7 +99,8 @@ def hermite_constant(n):
                  5.08764086822471, 5.20718687262715, 5.32668836123079,
                  5.44615801810606][n-9]
     else:
-        raise ValueError, "Please update Hermite constants!"
+        # Mordell's inequality.
+        gamma = 5.44615801810606**((n-1.)/35)
 
     return gamma
 
@@ -241,9 +244,14 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
     Returns the largest a such that a^2 divides d and a has prime divisors < 200.
 
     EXAMPLES:
-        sage: sage.rings.number_field.totallyreal_data.int_has_small_square_divisor(500)
+        sage: from sage.rings.number_field.totallyreal_data import int_has_small_square_divisor
+        sage: int_has_small_square_divisor(500)
         100
-        sage: sage.rings.number_field.totallyreal_data.int_has_small_square_divisor(next_prime(200))
+        sage: is_prime(691)
+        True
+        sage: int_has_small_square_divisor(691)
+        1
+        sage: int_has_small_square_divisor(691^2)
         1
     """
 
@@ -385,11 +393,12 @@ cdef class tr_data:
         coefficients a.
 
         EXAMPLES:
-            sage: sage.rings.number_field.totallyreal_data.tr_data(2,100).printa()
+            sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
+            sage: T.printa()
             k = 0
             a = [0, -1, 1]
             amax = [0, 0, 1]
-            ...
+            [...]
         """
 
         cdef int i
@@ -501,10 +510,10 @@ cdef class tr_data:
 
         EXAMPLES:
             sage: f = ntl.ZZX([1,2,3])
-            sage: t = sage.rings.number_field.totallyreal_data.tr_data(2,100)
-            sage: t.incr(f) ; f
+            sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
+            sage: T.incr(f); f
             [-24 -1 3]
-            sage: t.incr(f) ; t.incr(f) ; f
+            sage: T.incr(f); T.incr(f); f
             [-22 -1 3]
         """
 
@@ -634,7 +643,7 @@ cdef class tr_data:
                     if maxoutflag:
                         break
 
-                    if k == n-3:
+                    if k == n-3 and n > 3:
                         # Knowing a[n-1] and a[n-2] means we can apply bounds from
                         # the Lagrange multiplier in degree 2, which can be solved
                         # immediately.
@@ -748,11 +757,12 @@ cdef class tr_data:
         Print relevant data for self.
 
         EXAMPLES:
-          sage: x = sage.rings.number_field.totallyreal_data.tr_data(3,2^10) ; x.printa()
-          k = 1
-          a = [0, 0, -1, 1]
-          amax = [0, 0, 0, 1]
-          ...
+            sage: T = sage.rings.number_field.totallyreal_data.tr_data(3,2^10)
+            sage: T.printa()
+            k = 1
+            a = [0, 0, -1, 1]
+            amax = [0, 0, 0, 1]
+            [...]
         """
         print "k =", self.k
         print "a =", [self.a[i] for i in range(self.n+1)]

@@ -4,6 +4,8 @@
 Enumeration of Totally Real Fields: DSage components
 
 AUTHORS:
+    -- John Voight (2007-11-04):
+        * Changes made after DSage bug fixes.
     -- John Voight (2007-10-27):
         * Initial version.
 """
@@ -25,7 +27,7 @@ AUTHORS:
 
 import time
 from sage.rings.number_field.totallyreal_data import tr_data
-from sage.rings.number_field.totallyreal import int_to_time, weed_fields
+from sage.rings.number_field.totallyreal import timestr, weed_fields
 from sage.libs.pari.gen import pari
 
 class totallyreal_dsage:
@@ -215,6 +217,7 @@ class totallyreal_dsage:
         i = 0
         # For each completed job, add the fields to the list.
         while i < len(self.jobs):
+            self.jobs[i].get_job()
             if type(self.jobs[i][1]) <> str and self.jobs[i][1].status == 'completed' and self.jobs[i][1].result <> 'None':
                 job = self.jobs.pop(i)
 
@@ -224,8 +227,8 @@ class totallyreal_dsage:
 
                 if write_result:
                     fsock = open(filename_start + str(job[0]).replace(' ','') + '.out', 'w')
-                    fsock.write("Cpu time = " + str(int_to_time(job[1].cpu_time)) + "\n")
-                    fsock.write("Wall time = " + str(int_to_time(job[1].wall_time)) + "\n")
+                    fsock.write("Cpu time = " + timestr(job[1].cpu_time) + "\n")
+                    fsock.write("Wall time = " + timestr(job[1].wall_time) + "\n")
 
                 # Output from dsage comes as a string, so convert.
                 S = job[1].result
@@ -264,8 +267,8 @@ class totallyreal_dsage:
 
         if write_result:
             fsock = open(filename_start + 'all.out', 'w')
-            fsock.write("Cpu time: " + str(int_to_time(self.cputime)) + "\n")
-            fsock.write("Wall time: " + str(int_to_time(self.walltime)) + "\n")
+            fsock.write("Cpu time: " + timestr(self.cputime) + "\n")
+            fsock.write("Wall time: " + timestr(self.walltime) + "\n")
             fsock.write("Counts: " + str(self.counts) + "\n")
             fsock.write("Total number of fields: " + str(len(self.S)) + "\n\n")
 
@@ -284,6 +287,7 @@ class totallyreal_dsage:
                              [[s[0], s[1].reverse().Vec()] for s in self.S],
                              self.counts, self.cputime, self.walltime]))
             fsock.close()
+            print self.num_jobs() "remaining..."
 
     def reload(self, n, B, load=True):
         self.n = n

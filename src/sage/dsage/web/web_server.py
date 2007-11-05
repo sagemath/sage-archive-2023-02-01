@@ -25,11 +25,8 @@ from twisted.web2 import static, http_headers, responsecode
 
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
-CSS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.css')
-TABLESORT = os.path.join(DSAGE_LOCAL,'web/static/jquery.tablesorter.pack.js')
-JS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.js')
-JQUERY = os.path.join(DSAGE_LOCAL,'web/static/jquery-latest.js')
-INDEX = os.path.join(DSAGE_LOCAL,'web/static/index.html')
+INDEX = os.path.join(DSAGE_LOCAL,'web/index.html')
+STATIC = os.path.join(DSAGE_LOCAL,'web/static')
 
 def create_jobs_table(jdicts):
     """
@@ -38,7 +35,7 @@ def create_jobs_table(jdicts):
     """
 
     html = """
-    <thead id=thead>
+    <thead>
     <tr>
         <th>Job ID</th>
         <th>Status</th>
@@ -52,20 +49,23 @@ def create_jobs_table(jdicts):
     """
 
     for i, jdict in enumerate(jdicts):
+        creation_time = jdict['creation_time'].strftime('%F %r')
+        update_time = jdict['update_time'].strftime('%F %r')
         html+="""
         <tr class='tr%s'
         """ % (i % 2)
         html+="""
-            <td><a href='get_details?job_id=%s'>%s</a></td>
+            <td><a href='#%s' onClick="getJobDetails('%s')">%s</a></td>
             <td>%s</td>
             <td>%s</td>
             <td>%s</td>
             <td>%s</td>
             <td>%s</td>
         </tr>
-        """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
-               jdict['username'], jdict['creation_time'],
-               jdict['update_time'], jdict['priority'])
+        """ % (jdict['job_id'], jdict['job_id'], jdict['job_id'],
+               jdict['status'],
+               jdict['username'], creation_time,
+               update_time, jdict['priority'])
     html += """</tbody>"""
 
     return html
@@ -75,20 +75,21 @@ class Toplevel(resource.Resource):
 
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
-        self.child_get_details = GetJobDetails(self.dsage_server)
-        self.child_get_jobs = GetJobs(self.dsage_server)
+
+    def child_static(self, ctx):
+        return static.File(STATIC, indexNames=[])
+
+    def child_get_details(self, ctx):
+        return GetJobDetails(self.dsage_server)
+
+    def child_get_jobs(self, ctx):
+        return GetJobs(self.dsage_server)
+
+    def child_get_server_details(self, ctx):
+        return GetServerDetails(self.dsage_server)
 
     def render(self, ctx):
-        jobs = self.dsage_server.jobdb.get_all_jobs()
-        # jobs_html = create_jobs_table(jobs)
-        f = open(INDEX)
-        return http.Response(stream=f.read())
-        # return http.Response(stream=self.header + jobs_html + self.footer)
-setattr(Toplevel, 'child_dsage_web.css', static.File(CSS_FILE))
-setattr(Toplevel, 'child_dsage_web.js', static.File(JS_FILE))
-setattr(Toplevel, 'child_jquery-latest.js', static.File(JQUERY))
-setattr(Toplevel, 'child_jquery.tablesorter.pack.js', static.File(TABLESORT))
-# setattr(Toplevel, 'child_index.html', static.File(INDEX))
+        return static.File(INDEX)
 
 class GetJobs(resource.PostableResource):
     """
@@ -141,23 +142,6 @@ class GetJobDetails(resource.PostableResource):
 
     """
 
-    header = """
-    <html>
-    <header>
-        <link rel="stylesheet" type="text/css" href="dsage_web.css" />
-        <scritp src='prototype.js' type='text/javascript'></script>
-    </header>
-    <body>
-        <div id='header'>
-            <div id='title'><h1>Details for %s</h1></div>
-        </div>
-    """
-
-    footer = """
-    </body>
-    </html>
-    """
-
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
 
@@ -165,18 +149,21 @@ class GetJobDetails(resource.PostableResource):
         job_id = request.args['job_id'][0]
         try:
             html = """
-            <table class='job_details'>
-            <tr class='thead'>
-                <td>Key</td>
-                <td>Value</td>
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
             </tr>
+            </thead>
+            <tbody>
             """
+
             jdict = self.dsage_server.jobdb.get_job_by_id(job_id)
             if not isinstance(jdict, dict):
                 raise TypeError
             for i, (k, v) in enumerate(jdict.iteritems()):
-                if k == 'code': # We will display the code below the table
-                    continue
+                # if k == 'code': # We will display the code below the table
+                #     continue
                 html += """
                 <tr class='tr%s'>
                 """ % (i % 2)
@@ -185,21 +172,16 @@ class GetJobDetails(resource.PostableResource):
                 <td>%s</td>
                 </tr>
                 """ %(k, v)
-            html += "</table>"
+
             html += """
-            <div id='title'>
-                Job Code
-            </div>
-            <div id='job_code'>
-            %s
-            <div>
-            """ % jdict['code']
+            </tbody>
+            """
         except (sqlite3.InterfaceError, TypeError):
             html = 'Invalid job id.'
-        html = self.header % (job_id) + html + self.footer
+
         return http.Response(stream=html)
 
-class GetServerDetails(resource.Resource):
+class GetServerDetails(resource.PostableResource):
     """
     Returns an XML file containing the server resources.
 
@@ -208,10 +190,40 @@ class GetServerDetails(resource.Resource):
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
 
-    def render(self):
+    def gen_html(self, stats_xml):
+        """
+        generates html snippet from xml stats
+
+        """
+
+        html = """
+            <thead>
+                <th>Server</th>
+                <th>Workers Online</th>
+                <th>Workers Offline</th>
+                <th>Total Workers</th>
+                <th>Working MHz</th>
+                <th>Total MHz</th>
+            </thead>
+            <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            </tbody>
+        """
+
+        return html
+
+    def render(self, request):
         """
         Asks the server to generate stats and returns it in an XML file.
 
         """
 
-        return self.dsage_server.generate_xml_stats()
+        stats_xml = self.dsage_server.generate_xml_stats()
+
+        html = self.gen_html(stats_xml)
+
+        return http.Response(stream=html)

@@ -153,6 +153,11 @@ class SkewPartition_class(CombinatorialObject):
         icorners += [[nn, 0]]
         return icorners
 
+    def to_list(self):
+        """
+        EXAMPLES:
+        """
+        return map(list, list(self))
 
 
     def to_dag(self):

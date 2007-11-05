@@ -1,13 +1,7 @@
-cdef extern from "Python.h":
-    object PyString_FromString(char *v)
-    char* PyString_AsString(object string)
+include "../../ext/cdefs.pxi"
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
-
-cdef extern from "gmp.h":
-    ctypedef struct mpz_t:
-        pass
 
 cdef extern from "ntl_wrap.h":
 

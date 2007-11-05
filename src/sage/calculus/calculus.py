@@ -224,7 +224,7 @@ from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex, latex_varify
+from sage.misc.latex import latex, latex_variable_name
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -443,6 +443,18 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+        sage: k = var('k')
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol.is_zero()
+        True
+
+        sage: f = sin(x)^2 + cos(x)^2 - 1
+        sage: f.is_zero()
+        True
+        """
+
         try:
             return self.__nonzero
         except AttributeError:
@@ -3277,17 +3289,8 @@ class SymbolicVariable(SymbolicExpression):
             return self.__latex
         except AttributeError:
             pass
-        a = self._name
-        if len(a) > 1:
-            m = re.search('(\d|[.,])+$',a)
-            if m is None:
-                a = latex_varify(a)
-            else:
-                b = a[:m.start()]
-                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
-
-        self.__latex = a
-        return a
+        self.__latex = latex_variable_name(self._name)
+        return self.__latex
 
     def _maxima_init_(self):
         return self._name

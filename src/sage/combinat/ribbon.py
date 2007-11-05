@@ -326,3 +326,170 @@ def from_permutation(p):
     r.append( [ p[j] for j in range(comp[-1]+1, len(p))] )
 
     return Ribbon(r)
+
+
+
+#####################
+# Under Development #
+#####################
+class RibbonTableaux_shapeweightlength(CombinatorialClass):
+    def __init__(self, shape, weight, length):
+        self.shape = shape
+        self.weight = weight
+        self.length = length
+
+    def list(self):
+        pass
+
+
+
+
+
+
+
+
+
+def insertion_tableau(skp, perm, evaluation, tableau, length):
+    """
+
+    INPUT:
+        skp -- skew partitions
+        perm, eval -- non-negative integers
+        tableau -- skew tableau
+        length -- integer
+
+    """
+    psave = skp[1]
+    partc = skp[1] + [0]*(len(skp[0])-len(skp[1]))
+
+    tableau = tableau.to_expr()[1]
+    for k in range(len(tableau)):
+        tableau[-(k+1)] += [0]* ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
+
+    ## We construct a tableau from the southwest corner to the northeast one
+    #[ op( revert([[0$(partition[1][k] - partc[k]) ] $k = nops(tableau)+1..nops(partition[1])])) , op(tableau) ];
+    tableau =  [[0]*(skp[0][k] - partc[k]) for k in reversed(range(len(tableau), len(skp[0])+1))] + tableau
+
+    tableau = SkewTableau(expr=[skp[1], tableau]).conjugate()
+    tableau = tableau.to_expr()[1]
+
+    skp = skp.conjugate().to_list()
+    skp[1].append( [0]*(len(skp[0])-len(skp[1])) )
+
+    if len(perm) > len(skp[0]):
+        return None
+
+    for k in range(len(perm)):
+        if perm[ -(k+1) ] !=0:
+            #tableau ... = evaluation
+            pass
+
+    return SkewTableau(expr=[psave.conjugate(),tableau]).conjugate()
+
+
+
+
+def list_rec(nexts, current, part, weight, length):
+    """
+
+    INPUT:
+        nexts, current, part -- skew partitions
+        weight -- non-negative integer list
+        length -- integer
+    """
+    if current == [] and nexts == [] and weight == []:
+        return [part[1],[]]
+
+    ## Test if the current nodes is not an empty node
+    if current == []:
+        return None
+
+
+    ## Test if the current nodes drive us to new solutions
+    if next != []:
+        res = []
+        for i in range(len(current)):
+            for j in range(len(nexts[i])):
+                res.append( interstion_tableau(part, current[i][1], len(weight), nexts[i][j], length) )
+        return res
+    else:
+        ## The current nodes are at the bottom of the tree
+        res = []
+        for i in range(len(current)):
+            res.append( insertion_tableau(part, current[i][1], len(weight), [[],[]], length) )
+        return res
+
+
+##     //////////////////////////////////////////////////////////////////////////////////////////
+##     // Generic function for driving into the graph of partitions coding all ribbons
+##     // tableaux of a given shape and weight
+##     //////////////////////////////////////////////////////////////////////////////////////////
+
+##     //This function construct the graph of the set of k-ribbon tableaux
+##     //of a given skew shape and a given weight.
+##     //The first argument is alaways a skew partition.
+##     //In the case where the inner partition is empty there is no branch without solutions
+##     //In the other cases there is in average a lot of branches without solutions
+##     /////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+def graph_implementation_rec(skp, weight, lenth, function):
+
+    if sum(weight) == 0:
+        weight = []
+
+    partp = Partition(part[1]).conjugate()
+
+    ## Some tests in order to know if the shape and the weight are compatible.
+    if weight != [] and weight[-1] <= len(partp):
+        perms = Permutations([0]*(len(partp)-weight[-1]) + [length]*(weight[-1]).list())
+    else:
+        return function([], [], part, weight, length)
+
+    selection = []
+
+    for j in range(perms):
+        retire = [(partp[i]+ len(partp) - (i+1) - perms[j][i]) for i in range(partp)]
+        retire.sort(reverse=True)
+        retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
+
+        if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
+            retire = Partition(filter(lambda x: x != 0, retire)).conjugate()
+
+
+            # Cutting branches if the retired partition has a line strictly included into the inner one
+            append = True
+            padded_retire = retire + [0]*(len(part[1])-len(retire))
+            for k in range(len(part[1])):
+                if padded_retire[k] - part[1][k] < 0:
+                    append = False
+                    break
+            if append:
+                selection.append([retire, perms[j]])
+
+
+    #selection contains the list of current nodes
+
+
+    if len(weight) == 1:
+        return function([], selection, part, weight, length)
+    else:
+        #The recursive calls permit us to construct the list of the sons
+        #of all current nodes in selection
+        a = [graph_implementation_rec([p[0], part[1]], [weight[i]]*(len(weight)-1), length, function) for p in selection]
+        return function(a, selection, part, weight, length)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

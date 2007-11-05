@@ -1,3 +1,5 @@
+include '../../ext/python_object.pxi'
+
 cdef extern from 'symmetrica/def.h':
     INT kostka_number(OP shape, OP content, OP result)
     INT kostka_tab(OP shape, OP content, OP result)

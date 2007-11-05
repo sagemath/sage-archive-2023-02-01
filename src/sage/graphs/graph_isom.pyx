@@ -1233,20 +1233,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         else:
             return [[]]
 
-    # create to and from mappings to relabel vertices to the set {0,...,n-1}
-    listto = G.vertices()
-    ffrom = {}
-    for vvv in listto:
-        ffrom[vvv] = listto.index(vvv)
-    to = {}
-    for i from 0 <= i < len(listto):
-        to[i] = listto[i]
-    G.relabel(ffrom)
-    Pi2 = []
-    for cell in Pi:
-        Pi2.append([ffrom[c] for c in cell])
-    Pi = Pi2
-
     # allocate int pointers
     W = <int **> sage_malloc( n * sizeof(int *) )
     M = <int **> sage_malloc( n * sizeof(int *) )
@@ -1315,6 +1301,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         mpz_init_set_si(zb_mpz[i], -1) # "infinity"
         # Note that there is a potential memory leak here - if a particular
         # mpz fails to allocate, this is not checked for
+
+    # create to and from mappings to relabel vertices to the set {0,...,n-1}
+    listto = G.vertices()
+    ffrom = {}
+    for vvv in listto:
+        ffrom[vvv] = listto.index(vvv)
+    to = {}
+    for i from 0 <= i < len(listto):
+        to[i] = listto[i]
+    G.relabel(ffrom)
+    Pi2 = []
+    for cell in Pi:
+        Pi2.append([ffrom[c] for c in cell])
+    Pi = Pi2
 
     # initialize M and W
     for i from 0 <= i < n:

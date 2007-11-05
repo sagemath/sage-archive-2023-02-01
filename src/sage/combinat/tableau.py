@@ -610,6 +610,57 @@ class Tableau_class(CombinatorialObject):
         return self.conjugate().row_stabilizer()
 
 
+    def last_letter_lequal(self, tab2):
+        """
+        Returns True if self is less than or equal to tab2 in the
+        last letter ordering.
+
+        EXAMPLES:
+            sage: st = StandardTableaux([3,2])
+            sage: def f(bool):
+            ...       if bool is True:
+            ...           return 1
+            ...       else:
+            ...           return 0
+            sage: matrix( [ [ f(t1.last_letter_lequal(t2)) for t2 in st] for t1 in st] )
+            [1 1 1 1 1]
+            [0 1 1 1 1]
+            [0 0 1 1 1]
+            [0 0 0 1 1]
+            [0 0 0 0 1]
+
+        """
+        n = self.size()
+        if not isinstance(tab2, Tableau_class):
+            try:
+                tab2 = Tableau_class(tab2)
+            except:
+                raise TypeError, "tab2 must be a standard tableau"
+
+        if tab2.size() != n:
+            raise ValueError, "tab2 must be the same size as self"
+
+        if self == tab2:
+            return True
+
+        for j in range(n, 1, -1):
+            self_j_pos = None
+            for i in range(len(self)):
+                if j in self[i]:
+                    self_j_pos = i
+                    break
+
+            tab2_j_pos = None
+            for i in range(len(tab2)):
+                if j in tab2[i]:
+                    tab2_j_pos = i
+                    break
+
+            if self_j_pos < tab2_j_pos:
+                return True
+            if tab2_j_pos < self_j_pos:
+                return False
+
 
 def Tableaux(n=None):
     """

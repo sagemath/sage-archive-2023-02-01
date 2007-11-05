@@ -341,11 +341,13 @@ A long complicated input expression:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+
 import os, re, sys
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
 from pexpect import EOF
 
 #import random
@@ -1225,7 +1227,7 @@ class MaximaElement(ExpectElement):
             sage: CC(maxima('2342.23482943872+234*%i'))
              2342.23482943872 + 234.000000000000*I
             sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
-             2300 + 230*I
+             2300. + 230.*I
         """
         return sage.rings.complex_number.ComplexNumber( CC, self.real(), self.imag() )
 
@@ -1253,8 +1255,9 @@ class MaximaElement(ExpectElement):
         """
         self._check_valid()
         P = self.parent()
-        s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
-        P._eval_line('display2d : false;', reformat=False)
+        with gc_disabled():
+            s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
+            P._eval_line('display2d : false;', reformat=False)
 
         r = P._output_prompt_re
 

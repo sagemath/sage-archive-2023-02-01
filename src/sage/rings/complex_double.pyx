@@ -69,6 +69,8 @@ from sage.misc.sage_eval import sage_eval
 
 cimport sage.rings.ring
 
+cimport sage.rings.integer
+
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 

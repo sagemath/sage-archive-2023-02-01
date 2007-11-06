@@ -763,7 +763,9 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: n = RDF(2.0)
             sage: n._rpy_()
+            2.0
             sage: type(n._rpy_())
+            <type 'float'>
         """
         return self.__float__()
 

@@ -5201,8 +5201,10 @@ class Graph(GenericGraph):
                 a weight of 1.
 
             algorithm -- Three variants of algorithms are implemented:
-                'Kruskal', 'Prim fringe', and 'Prim edge' (the last two
-                are variants of Prim's algorithm).  Defaults to 'Kruskal'.
+                'Kruskal', 'Prim fringe', and 'Prim edge' (the last
+                two are variants of Prim's algorithm).  Defaults to
+                'Kruskal'.  Currently, 'Prim fringe' ignores the
+                labels on the edges.
 
             starting_vertex -- The vertex with which to start Prim's
                 algorithm.
@@ -5211,19 +5213,17 @@ class Graph(GenericGraph):
             the edges of a minimum spanning tree.
 
         EXAMPLES:
-            sage: g = graphs.CompleteGraph(50)
-            sage: edges = g.min_spanning_tree()
-            sage: len(edges)
-            49
-            sage: edges2 = g.min_spanning_tree(algorithm='Prim fringe')
-            sage: edges3 = g.min_spanning_tree(algorithm='Prim edge')
-            sage: len(edges2)
-            49
-            sage: len(edges3)
-            49
-            sage: edges4 = g.min_spanning_tree(weight_function=lambda (v,w,l): 1/(v+w+1)^2)
-            sage: len(edges4)
-            49
+            sage: g=graphs.CompleteGraph(5)
+            sage: len(g.min_spanning_tree())
+            4
+            sage: weight = lambda e: 1/( (e[0]+1)*(e[1]+1) )
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            sage: g.min_spanning_tree(algorithm='Prim edge', starting_vertex=2, weight_function=weight)
+            [(2, 4, None), (3, 4, None), (1, 3, None), (0, 4, None)]
+            sage: g.min_spanning_tree(algorithm='Prim fringe', starting_vertex=2, weight_function=weight)
+            [(4, 2), (3, 4), (1, 4), (0, 4)]
+
 
         """
         if self.is_connected()==False:
@@ -5232,9 +5232,9 @@ class Graph(GenericGraph):
         if algorithm=='Kruskal':
             # Kruskal's algorithm
             edges=[]
-            sorted_edges_iterator=iter(sorted(self.edges(), cmp=cmp))
+            sorted_edges_iterator=iter(sorted(self.edges(), key=weight_function))
             union_find = dict([(v,None) for v in self.vertex_iterator()])
-            for i in xrange(self.order()):
+            while len(edges) < self.order()-1:
                 # get next edge
                 e=sorted_edges_iterator.next()
                 components=[]
@@ -5257,9 +5257,11 @@ class Graph(GenericGraph):
                 if components[0]!=components[1]:
                     # put in edge
                     edges.append(e)
+
                     # Union the components by making one the parent of the
                     # other.
                     union_find[components[0]]=components[1]
+
             return edges
 
         elif algorithm=='Prim fringe':
@@ -5295,7 +5297,7 @@ class Graph(GenericGraph):
                 v = self.vertex_iterator().next()
             else:
                 v = starting_vertex
-            sorted_edges=sorted(self.edges(), cmp=lambda x,y: weight_function(x)-weight_function(y))
+            sorted_edges=sorted(self.edges(), key=weight_function)
             tree=set([v])
             edges=[]
 

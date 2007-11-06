@@ -204,7 +204,9 @@ class Gp(Expect):
                               wait_for_prompt=wait_for_prompt)
         if a.find("the PARI stack overflows") != -1:
             verbose("automatically doubling the PARI stack and re-executing current input line")
-            self.eval("allocatemem()")
+            b = self.eval("allocatemem()")
+            if b.find("Warning: not enough memory") != -1:
+                raise RuntimeError, a
             return self._eval_line(line)
         else:
             return a

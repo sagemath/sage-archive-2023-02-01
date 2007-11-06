@@ -5223,7 +5223,7 @@ class Graph(GenericGraph):
             49
             sage: edges4 = g.min_spanning_tree(weight_function=lambda (v,w,l): 1/(v+w+1)^2)
             sage: len(edges4)
-            49
+            14
 
         """
         if self.is_connected()==False:
@@ -5232,7 +5232,7 @@ class Graph(GenericGraph):
         if algorithm=='Kruskal':
             # Kruskal's algorithm
             edges=[]
-            sorted_edges_iterator=iter(sorted(self.edges(), cmp=cmp))
+            sorted_edges_iterator=iter(sorted(self.edges(), cmp=lambda x,y: cmp(weight_function(x),weight_function(y))))
             union_find = dict([(v,None) for v in self.vertex_iterator()])
             for i in xrange(self.order()):
                 # get next edge

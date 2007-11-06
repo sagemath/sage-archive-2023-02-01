@@ -878,7 +878,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bin_op(x, y, operator.floordiv)
 
 
-    def __pow__(self, n, dummy):
+    def __pow__(self, n, modulus):
         r"""
         Computes $\text{self}^n$
 
@@ -938,8 +938,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^(-1/2)
             1/sqrt(2)
         """
-        if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument ignored"
+        if modulus is not None:
+            #raise RuntimeError, "__pow__ dummy argument ignored"
+            from sage.rings.integer_mod import Mod
+            return Mod(self, modulus) ** n
+
+
         cdef long nn
         cdef _n
         cdef unsigned int _nval

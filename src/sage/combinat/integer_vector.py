@@ -161,8 +161,8 @@ class IntegerVectors_all(CombinatorialClass):
 class IntegerVectors_nk0(CombinatorialClass):
     """
     TESTS:
-        sage: iv = IntegerVectors(3,2, min_part=0)
-        sage: iv == loads(dumps(iv))
+        sage: IV = IntegerVectors(2,3, min_part=0)
+        sage: IV == loads(dumps(IV))
         True
 
     AUTHORS:
@@ -173,12 +173,38 @@ class IntegerVectors_nk0(CombinatorialClass):
         self.n = n
         self.k = k
 
-    def iterator(self):
+
+    def _list_rec(self, n, k):
+        """
+        Return a list of a exponent tuples of length $size$ such that the
+        degree of the associated monomial is $D$.
+
+        INPUT:
+            n -- degree (must be > 0)
+            k -- length of exponent tuples (must be > 0)
+
+        EXAMPLES:
+            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV._list_rec(2,3)
+            [(0, 0, 2), (0, 1, 1), (0, 2, 0), (1, 0, 1), (1, 1, 0), (2, 0, 0)]
+        """
+        res = []
+
+        if k == 1:
+            return [ (n, ) ]
+
+        for nbar in range(n, -1, -1):
+            n_diff = n-nbar
+            for rest in self._list_rec( nbar , k-1):
+                res.append((n_diff,)+rest)
+        return res
+
+    def list(self):
         """
         EXAMPLE:
             sage: IV = IntegerVectors(2,3, min_part=0)
-            sage: IV.list() # indirect doctest
-            [[2, 0, 0], [1, 0, 1], [1, 1, 0], [0, 0, 2], [0, 1, 1], [0, 2, 0]]
+            sage: IV.list()
+            [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
             sage: IntegerVectors(3, 0, min_part=0).list()
             []
             sage: IntegerVectors(3, 1, min_part=0).list()
@@ -188,34 +214,82 @@ class IntegerVectors_nk0(CombinatorialClass):
             sage: IntegerVectors(0, 2, min_part=0).list()
             [[0, 0]]
             sage: IntegerVectors(2, 2, min_part=0).list()
-            [[2, 0], [1, 1], [0, 2]]
+            [[0, 2], [1, 1], [2, 0]]
         """
+        if self.n < 0:
+            return []
 
-        N = self.n
-        k = self.k
-        if k == 0:
-            if N == 0:
-                yield []
-                raise StopIteration
+        if self.k == 0:
+            if self.n == 0:
+                return [[]]
             else:
-                raise StopIteration
-        if N < 0:
-            raise StopIteration
-        if k == 1:
-            yield [N]
-            raise StopIteration
+                return []
+        elif self.k == 1:
+            return [[self.n]]
 
-        for nbar in xrange(N+1):
-            n = N-nbar
-            for rest in IntegerVectors_nk0( nbar , k-1):
-                rest.append(n)
-                rest.reverse()
-                yield rest
+        res = self._list_rec(self.n, self.k)
+        return map(list, res)
+
+
+    def iterator(self):
+        """
+        EXAMPLE:
+            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: list(IV)
+            [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
+            sage: list(IntegerVectors(3, 0, min_part=0))
+            []
+            sage: list(IntegerVectors(3, 1, min_part=0))
+            [[3]]
+            sage: list(IntegerVectors(0, 1, min_part=0))
+            [[0]]
+            sage: list(IntegerVectors(0, 2, min_part=0))
+            [[0, 0]]
+            sage: list(IntegerVectors(2, 2, min_part=0))
+            [[0, 2], [1, 1], [2, 0]]
+        """
+        if self.n < 0:
+            return
+
+        if self.k == 0:
+            if self.n == 0:
+                yield []
+            return
+        elif self.k == 1:
+            yield [self.n]
+            return
+
+        for nbar in range(self.n, -1, -1):
+            n = self.n-nbar
+            for rest in IntegerVectors_nk0(nbar , self.k-1):
+                yield [n]+rest
 
     def __repr__(self):
+        """
+        TESTS:
+            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: repr(IV)
+            'Integer vectors of length 3 that sum to 2 with min_part == 0'
+        """
         return "Integer vectors of length %s that sum to %s with min_part == 0"%(self.k, self.n)
 
     def __contains__(self, x):
+        """
+        TESTS:
+            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: all([i in IV for i in IV])
+            True
+            sage: [0,1,2] in IV
+            False
+            sage: [2.0, 0, 0] in IV
+            False
+            sage: [0,1,0,1] in IV
+            False
+            sage: [0,1,1] in IV
+            True
+            sage: [-1,2,1] in IV
+            False
+        """
         if x not in IntegerVectors():
             return False
 

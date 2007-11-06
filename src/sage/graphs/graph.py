@@ -5186,6 +5186,144 @@ class Graph(GenericGraph):
             a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
             return b
 
+    def min_spanning_tree(self, weight_function=lambda e: 1,
+                          algorithm='Kruskal',
+                          starting_vertex=None ):
+        """
+        Returns the edges of a minimum spanning tree, if one exists,
+        otherwise returns False.
+
+
+        INPUT:
+
+            weight_function -- A function that takes an edge and
+                returns a numeric weight.  Defaults to assigning each edge
+                a weight of 1.
+
+            algorithm -- Three variants of algorithms are implemented:
+                'Kruskal', 'Prim fringe', and 'Prim edge' (the last two
+                are variants of Prim's algorithm).  Defaults to 'Kruskal'.
+
+            starting_vertex -- The vertex with which to start Prim's
+                algorithm.
+
+        OUTPUT:
+            the edges of a minimum spanning tree.
+
+        EXAMPLES:
+            sage: g = graphs.CompleteGraph(50)
+            sage: edges = g.min_spanning_tree()
+            sage: len(edges)
+            49
+            sage: edges2 = g.min_spanning_tree(algorithm='Prim fringe')
+            sage: edges3 = g.min_spanning_tree(algorithm='Prim edge')
+            sage: len(edges2)
+            49
+            sage: len(edges3)
+            49
+            sage: edges4 = g.min_spanning_tree(weight_function=lambda (v,w,l): 1/(v+w+1)^2)
+            sage: len(edges4)
+            49
+
+        """
+        if self.is_connected()==False:
+            return False
+
+        if algorithm=='Kruskal':
+            # Kruskal's algorithm
+            edges=[]
+            sorted_edges_iterator=iter(sorted(self.edges(), cmp=cmp))
+            union_find = dict([(v,None) for v in self.vertex_iterator()])
+            for i in xrange(self.order()):
+                # get next edge
+                e=sorted_edges_iterator.next()
+                components=[]
+                for start_v in e[0:2]:
+                    v=start_v
+                    children=[]
+
+                    # Find the component a vertex lives in.
+                    while union_find[v] != None:
+                        children.append(v)
+                        v=union_find[v]
+
+                    # Compress the paths as much as we can for
+                    # efficiency reasons.
+                    for child in children:
+                        union_find[child]=v
+
+                    components.append(v)
+
+                if components[0]!=components[1]:
+                    # put in edge
+                    edges.append(e)
+                    # Union the components by making one the parent of the
+                    # other.
+                    union_find[components[0]]=components[1]
+            return edges
+
+        elif algorithm=='Prim fringe':
+            if starting_vertex is None:
+                v = self.vertex_iterator().next()
+            else:
+                v = starting_vertex
+            tree=set([v])
+            edges=[]
+
+            # initialize fringe_list with v's neighbors.  fringe_list
+            # contains fringe_vertex: (vertex_in_tree, weight) for each
+            # fringe vertex
+            fringe_list=dict([u,(v,weight_function((v,u)))] for u in self[v])
+
+            for i in xrange(self.order()-1):
+                # Find the smallest-weight fringe vertex
+                v=min(fringe_list,key=lambda x: fringe_list[x][1])
+                edges.append((v,fringe_list[v][0]))
+                tree.add(v)
+                fringe_list.pop(v)
+
+                # Update fringe list
+                for neighbor in [u for u in self[v] if u not in tree]:
+                    w=weight_function((v,neighbor))
+                    if neighbor not in fringe_list or \
+                           (neighbor in fringe_list and fringe_list[neighbor][1]>w):
+                        fringe_list[neighbor]=(v,weight_function((v,neighbor)))
+            return edges
+
+        elif algorithm=='Prim edge':
+            if starting_vertex is None:
+                v = self.vertex_iterator().next()
+            else:
+                v = starting_vertex
+            sorted_edges=sorted(self.edges(), cmp=lambda x,y: weight_function(x)-weight_function(y))
+            tree=set([v])
+            edges=[]
+
+            for i in xrange(self.order()-1):
+                # Find a minimum-weight edge connecting a vertex in
+                # the tree to something outside the tree.  Remove the
+                # edges between tree vertices for efficiency.
+
+                for i in xrange(len(sorted_edges)):
+                    e=sorted_edges[i]
+                    v0,v1=e[0],e[1]
+                    if v0 in tree:
+                        if v1 not in tree:
+                            edges.append(e)
+                            sorted_edges[i:i+1]=[]
+                            tree.add(v1)
+                            break
+                        else:
+                            sorted_edges[i:i+1]=[]
+                    elif v1 in tree:
+                        edges.append(e)
+                        sorted_edges[i:i+1]=[]
+                        tree.add(v0)
+                        break
+            return edges
+        else:
+            raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
+
 class DiGraph(GenericGraph):
     """
     Directed graph.

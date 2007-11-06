@@ -183,6 +183,18 @@ cdef class RealDoubleField_class(Field):
         import real_mpfr
         return self._coerce_try(x, [real_mpfr.RR])
 
+    def prec(self):
+        """
+        Return the precision of this real double field (to be more
+        similar to RealField).  Always returns 53.
+
+        EXAMPLES:
+            sage: RDF.prec()
+            53
+        """
+
+        return 53
+
 
     def gen(self, n=0):
         """
@@ -352,6 +364,18 @@ cdef class RealDoubleElement(FieldElement):
         x = PY_NEW(RealDoubleElement)
         x._value = value
         return x
+
+    def prec(self):
+        """
+        Returns the precision of this number (to be more similar to
+        RealNumber).  Always returns 53.
+
+        EXAMPLES:
+            sage: RDF(0).prec()
+            53
+        """
+
+        return 53
 
     def real(self):
         """

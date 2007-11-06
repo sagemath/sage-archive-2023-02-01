@@ -39,10 +39,10 @@ class DSageThread(threading.Thread):
                 reactor.run(installSignalHandlers=0)
             except AttributeError, msg:
                 pass
-                # This is a temporary workaround for a weird bug in reactor during
-                # shutdown that one sees doing doctests (on some systems?).
-                #if not 'NoneType' in msg:
-                #    raise
+                # This is a temporary workaround for a weird bug in reactor
+                # during shutdown that one sees doing doctests (on some
+                # systems?).
+
 
 
 class DSage(object):
@@ -138,13 +138,6 @@ class DSage(object):
 
     def _catch_failure(self, failure):
         print "Error connecting: %s" % failure.getErrorMessage()
-        # from twisted.internet import error
-        # if failure.check(error.ConnectionRefusedError):
-        #     print 'Remote server %s refused the connection.'  % (self.server)
-        # else:
-        #     pass
-        #     # print "Error: ", failure.getErrorMessage()
-        #     # print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
         if self.log_level > 0:

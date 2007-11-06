@@ -30,6 +30,8 @@ We test that pickling works:
 
 import operator
 
+import sage.misc.latex as latex
+
 import sage.rings.field_element as field_element
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.rings.polynomial.polynomial_ring as polynomial_ring
@@ -109,6 +111,17 @@ class NumberFieldIdeal(Ideal_fractional):
             raise TypeError, "field (=%s) must be a number field."%field
 
         Ideal_generic.__init__(self, field, gens, coerce)
+
+    def _latex_(self):
+        """
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 23)
+            sage: latex(K.fractional_ideal([2, 1/2*a - 1/2]))
+            \left(2, \frac{1}{2}a - \frac{1}{2}\right)
+        """
+        return '\\left(%s\\right)'%(", ".join([latex.latex(g) for g in \
+                                                 self.gens_reduced()]))
+
 
     def __cmp__(self, other):
         """
@@ -214,6 +227,9 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I._repr_short()
             '(17, a^2 - 6)'
         """
+        #NOTE -- we will *have* to not reduce the gens soon, since this
+        # makes things insanely slow in general.
+        # When I fix this, I *have* to also change the _latex_ method.
         return '(%s)'%(', '.join([str(x) for x in self.gens_reduced()]))
 
     def __div__(self, other):

@@ -14,31 +14,41 @@
 </head>
 <body>
     <div id='page'>
-    <div id='header'>
-        Distributed SAGE
-    </div>
-    <center>
-    <ul id="tabnav">
-    	<li class="tab1">
-            <a href="#" onClick="getJobs()">Job Status</a>
-    	</li>
-    	<li class="tab2">
-    	    <a href="#" onClick="getServerDetails()">Server Status</a>
-    	</li>
-    	<li class="tab3">
-    	    <a href="#" onClick="submitJob()">Submit Job</a>
-	    </li>
-    	<li class="tab4">
-    	    <a href="#" onClick="getHelp()">Help</a>
-	    </li>
-    </ul>
-    </center>
-	<table id='jobs_table' class='tablesorter' display='none'>
-	</table>
-	<table id='server_details' class='tablesorter' display='none'>
-	</table>
-	<table id='job_details' class='tablesorter' display='none'>
-	</table>
+	    <div id='header'>
+	        Distributed SAGE
+	    </div>
+	    <center>
+	    <ul id="tabnav">
+	    	<li class="tab1">
+	            <a href="#" onClick="getJobs(count)">Job Status</a>
+	    	</li>
+	    	<li class="tab2">
+	    	    <a href="#" onClick="getServerDetails()">Server Status</a>
+	    	</li>
+	    	<li class="tab3">
+	    	    <a href="#" onClick="submitJob()">Submit Job</a>
+		    </li>
+	    	<li class="tab4">
+	    	    <a href="#" onClick="getHelp()">Help</a>
+		    </li>
+	    </ul>
+	    </center>
+		<table id='jobs_table' class='tablesorter' display='none'>
+		</table>
+		<table id='server_details' class='tablesorter' display='none'>
+		</table>
+		<table id='job_details' class='tablesorter' display='none'>
+		</table>
+		<div id="navigator">
+			Showing <a href='#' id='10' onClick='getJobs(10)'>10</a>,
+					<a href='#' id = '25' onClick='getJobs(25)'>25</a>,
+					<a href='#' id = '50' onClick='getJobs(50)'>50</a>,
+					<a href='#' id = '100' onClick='getJobs(100)'>100</a>,
+					<a href='#' id = 'all' onClick='getJobs(-1)'>all</a>
+			jobs per page.
+		</div>
+		<div id="help">
+		</div>
     </div>
 </body>
 </html>

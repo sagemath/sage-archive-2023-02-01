@@ -77,7 +77,7 @@ class Toplevel(resource.Resource):
         self.dsage_server = dsage_server
 
     def child_static(self, ctx):
-        return static.File(STATIC, indexNames=[])
+        return static.File(STATIC)
 
     def child_get_details(self, ctx):
         return GetJobDetails(self.dsage_server)
@@ -88,8 +88,25 @@ class Toplevel(resource.Resource):
     def child_get_server_details(self, ctx):
         return GetServerDetails(self.dsage_server)
 
+    def child_get_help(self, ctx):
+        return GetHelp()
+
     def render(self, ctx):
         return static.File(INDEX)
+
+class GetHelp(resource.Resource):
+    """
+    Returns the help page.
+
+    """
+
+    html = """
+    This is the help page.
+
+    """
+
+    def render(self, request):
+        return http.Response(stream=self.html)
 
 class GetJobs(resource.PostableResource):
     """
@@ -102,7 +119,15 @@ class GetJobs(resource.PostableResource):
         self.jdicts = []
 
     def render(self, request):
-        jdicts = self.dsage_server.jobdb.get_all_jobs()
+        try:
+            count = int(request.args['count'][0])
+        except:
+            count = 10
+        if count == - 1:
+            jdicts = self.dsage_server.jobdb.get_all_jobs()
+        else:
+            jdicts = self.dsage_server.jobdb.get_all_jobs()[:count]
+
         html = create_jobs_table(jdicts)
 
         return http.Response(stream=html)

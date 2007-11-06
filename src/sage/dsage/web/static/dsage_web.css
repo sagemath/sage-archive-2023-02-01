@@ -46,6 +46,11 @@ body {
     margin:0px;
 }
 
+#navigator {
+    font-size:10px;
+    text-align: center;
+}
+
 /* begin css tabs */
 ul#tabnav {
     text-align: left; /* set to left, right or center */
@@ -93,55 +98,6 @@ ul#tabnav a:hover {/* settings for hover effect */
     background: #FFF; /* set desired hover color */
 }
 /* end css tabs */
-
-/*table#jobs_table, table#job_details {
-    border: solid #000 1px;
-    border-bottom: solid #000 1px;
-    border-right: solid #000 1px;
-    border-collapse: collapse;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left:10px;
-    padding-right:10px;
-}
-table#jobs_table tr.tr0, table#job_details tr.tr0 {
-    font-size:16px;
-    background-color: #FFFFFF;
-}
-table#jobs_table tr.tr1, table#job_details tr.tr1 {
-    font-size:16px;
-    background-color: #D8CAA8;
-}*/
-
-/*table#jobs_table {
-    border: solid #000 1px;
-    border-bottom: solid #000 1px;
-    border-right: solid #000 1px;
-    border-collapse: collapse;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left:10px;
-    padding-right:10px;
-}
-*/
-/*thead#thead {
-    width:100%;
-    height:20px;
-    font-size:14px;
-    text-align: left;
-    background-color: #D8CAA8;
-    font-family: 'verdana';
-}
-table#jobs_table A:link, table#job_details A:link {
-    color: #193441;
-}
-table#jobs_table A:visited, table#job_details A:link {
-    color: #3E606F;
-}
-*/
-/* tables */
 
 table.tablesorter {
 	font-family:arial;

@@ -104,6 +104,16 @@ class Lseries_ell(SageObject):
             sage: L = E.Lseries().dokchitser(algorithm='magma')         # optional
             sage: L.Evaluate(2)                                     # optional
             0.38157540826071121129371040958008663667709753398892116
+
+        If the curve has too large a conductor, it isn't possible to
+        compute with the L-series using this command.  Instead a
+        RuntimeError is raised:
+            sage: e = EllipticCurve([1,1,0,-63900,-1964465932632])
+            sage: L = e.Lseries().dokchitser(15)
+            Traceback (most recent call last):
+            ...
+            RuntimeError:   *** vector: impossible assignment I-->S
+            Unable to create L-series, due to precision or other limits in PARI.
         """
         if algorithm == 'magma':
             from sage.interfaces.all import magma

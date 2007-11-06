@@ -543,30 +543,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         ZZX_SetCoeff(self.__poly, n, y)
 
 
-    def complex_roots(self, flag=0):
-        """
-        Returns the complex roots of this polynomial.
-        INPUT:
-            flag -- optional, and can be
-                    0: (default), uses Schonhage's method modified by Gourdon,
-                    1: uses a modified Newton method.
-        OUTPUT:
-            list of complex roots of this polynomial, counted with multiplicities.
-
-        NOTE: Calls the pari function polroots.
-
-        EXAMPLE:
-        We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R.<x> = PolynomialRing(ZZ)
-            sage: f = 1 - x^2 - x^3 - x^4 + x^6
-            sage: alpha = f.complex_roots()[0]; alpha
-            0.713639173536901
-            sage: f(alpha)
-            0
-        """
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, 'x')
-        return R(self.list()).complex_roots()
-
     def real_root_intervals(self):
         """
         Returns isolating intervals for the real roots of this polynomial.

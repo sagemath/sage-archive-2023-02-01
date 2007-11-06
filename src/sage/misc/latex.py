@@ -130,7 +130,7 @@ def latex(x):
 #########################################
 
 class Latex:
-    r"""
+    r"""nodetex
     Enter, e.g.,
     \begin{verbatim}
         %latex

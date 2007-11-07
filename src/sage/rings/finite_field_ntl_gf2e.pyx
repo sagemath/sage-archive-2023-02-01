@@ -852,8 +852,14 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             sage: f = a^15 + a^2 + 1
             sage: e / f
             a^11 + a^8 + a^7 + a^6 + a^5 + a^3 + a^2 + 1
+            sage: k(1) / k(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
         """
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
+        if GF2E_IsZero((<FiniteField_ntl_gf2eElement>right).x):
+            raise ZeroDivisionError, 'division by zero in finite field.'
         GF2E_div(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
@@ -966,6 +972,13 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         Elements of this field are represented as ints in as follows:
         for $e \in \FF_p[x]$ with $e = a_0 + a_1x + a_2x^2 + \cdots $, $e$ is
         represented as: $n= a_0 + a_1  p + a_2  p^2 + \cdots$.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^20)
+            sage: int(a)
+            2
+            sage: int(a^2 + 1)
+            5
         """
         cdef unsigned long i = 0
         ret = int(0)
@@ -984,7 +997,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         BytesFromGF2X(<unsigned char *>&i, r, sizeof(long))
         ret += int(i) << shift
 
-        return ret
+        return int(ret)
 
     def polynomial(FiniteField_ntl_gf2eElement self, name=None):
         """

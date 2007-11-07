@@ -112,8 +112,7 @@ class Lseries_ell(SageObject):
             sage: L = e.Lseries().dokchitser(15)
             Traceback (most recent call last):
             ...
-            RuntimeError:   *** vector: impossible assignment I-->S
-            Unable to create L-series, due to precision or other limits in PARI.
+            RuntimeError: Unable to create L-series, due to precision or other limits in PARI.
         """
         if algorithm == 'magma':
             from sage.interfaces.all import magma

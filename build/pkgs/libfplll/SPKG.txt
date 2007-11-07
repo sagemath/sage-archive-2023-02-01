@@ -1,0 +1,7 @@
+Maintainer: Martin Albrecht:
+
+* 2007-11-08: Michael Abshoff
+  + fix #1126
+
+* 2007-10-24: initial version by Martin Albrecht
+

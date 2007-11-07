@@ -14,19 +14,19 @@ export CPPFLAGS
 ./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/fplll
 
 if [ $? -ne 0 ]; then
-    echo "Error configuring libcsage"
+    echo "Error configuring libfplll"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building libcsage"
+    echo "Error building libfplll"
     exit 1
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing libcsage"
+    echo "Error installing libfplll"
     exit 1
 fi
 

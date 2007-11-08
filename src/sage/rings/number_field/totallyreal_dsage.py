@@ -217,41 +217,44 @@ class totallyreal_dsage:
         i = 0
         # For each completed job, add the fields to the list.
         while i < len(self.jobs):
-            self.jobs[i].get_job()
-            if type(self.jobs[i][1]) <> str and self.jobs[i][1].status == 'completed' and self.jobs[i][1].result <> 'None':
-                job = self.jobs.pop(i)
+            if type(self.jobs[i][1]) <> str:
+                self.jobs[i][1].get_job()
+                if self.jobs[i][1].status == 'completed' and self.jobs[i][1].result <> 'None':
+                    job = self.jobs.pop(i)
 
-                # Add the timings.
-                self.cputime += job[1].cpu_time
-                self.walltime += job[1].wall_time
+                    # Add the timings.
+                    self.cputime += job[1].cpu_time
+                    self.walltime += job[1].wall_time
 
-                if write_result:
-                    fsock = open(filename_start + str(job[0]).replace(' ','') + '.out', 'w')
-                    fsock.write("Cpu time = " + timestr(job[1].cpu_time) + "\n")
-                    fsock.write("Wall time = " + timestr(job[1].wall_time) + "\n")
+                    if write_result:
+                        fsock = open(filename_start + str(job[0]).replace(' ','') + '.out', 'w')
+                        fsock.write("Cpu time = " + timestr(job[1].cpu_time) + "\n")
+                        fsock.write("Wall time = " + timestr(job[1].wall_time) + "\n")
 
-                # Output from dsage comes as a string, so convert.
-                S = job[1].result
-                # Add the counts of polynomials checked.
-                for j in range(4):
-                    self.counts[j] += S[0][j]
-                if write_result:
-                    fsock.write("Counts: " + str(S[0]) + "\n")
-                    fsock.write("Total number of fields: " + str(len(S[1])) + "\n\n")
+                    # Output from dsage comes as a string, so convert.
+                    S = job[1].result
+                    # Add the counts of polynomials checked.
+                    for j in range(4):
+                        self.counts[j] += S[0][j]
+                    if write_result:
+                        fsock.write("Counts: " + str(S[0]) + "\n")
+                        fsock.write("Total number of fields: " + str(len(S[1])) + "\n\n")
 
-                # Convert the sequences to pari objects, and compile.
-                S = S[1]
-                for j in range(len(S)):
-                    S[j][1] = pari(str(S[j][1])).Polrev()
-                self.S += S
-                if write_result:
+                    # Convert the sequences to pari objects, and compile.
+                    S = S[1]
                     for j in range(len(S)):
-                        fsock.write(str(S[j]) + "\n")
+                        S[j][1] = pari(str(S[j][1])).Polrev()
+                    self.S += S
+                    if write_result:
+                        for j in range(len(S)):
+                            fsock.write(str(S[j]) + "\n")
 
-                fsock.close()
+                    fsock.close()
 
-            # Otherwise, continue.
-            # Note we do not add 1 to i if we just popped jobs!
+                # Otherwise, continue.
+                # Note we do not add 1 to i if we just popped jobs!
+                else:
+                    i += 1
             else:
                 i += 1
 

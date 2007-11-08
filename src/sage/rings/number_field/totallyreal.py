@@ -192,10 +192,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
 
     # Trivial case
     if n == 1:
-        if print_return_seqs:
-            return [1,[1,-1]]
+        if return_seqs:
+            return [[0,0,0,0],[[1,[-1,1]]]]
         else:
-            return [1,pari('x-1')]
+            return [[1,pari('x-1')]]
 
     if verbose:
         saveout = sys.stdout

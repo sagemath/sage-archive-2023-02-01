@@ -448,9 +448,8 @@ cdef class tr_data:
                 self.amax[i] = a[i]
 
             # Bounds come from an application of Lagrange multipliers in degrees 2,3.
-            self.b_lower = 1./n*(-self.a[n-1] -
-                             (n-1)*sqrt((1.*self.a[n-1])**2 - 2.*(1-1./n)*self.a[n-2]))
-            self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
+            self.b_lower = -1./n*(self.a[n-1] + (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
+            self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
             if k < n-2:
                 bminmax = __lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
                 self.b_lower = bminmax[0]
@@ -602,10 +601,13 @@ cdef class tr_data:
                         maxoutflag = 1
                         break
 
+                    # Knowing a[n-1] and a[n-2] means we can apply bounds from
+                    # the Lagrange multiplier in degree 2, which can be solved
+                    # immediately.
+                    self.b_lower = -1./n*(self.a[n-1] + (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
+                    self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
+
                     # Initialize the second derivative.
-                    self.b_lower = 1./n*(-self.a[n-1] -
-                                     (n-1)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
-                    self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
                     self.beta[k*np1+0] = self.b_lower
                     self.beta[k*np1+1] = -self.a[n-1]*1./n
                     self.beta[k*np1+2] = self.b_upper
@@ -643,13 +645,10 @@ cdef class tr_data:
                     if maxoutflag:
                         break
 
-                    if k == n-3 and n > 3:
-                        # Knowing a[n-1] and a[n-2] means we can apply bounds from
-                        # the Lagrange multiplier in degree 2, which can be solved
-                        # immediately.
-                        self.b_lower = 1./n*(-self.a[n-1] -
-                                         (n-1)*sqrt((1.*self.a[n-1])**2 - 2.*(1-1./n)*self.a[n-2]))
-                        self.b_upper = -(2.*self.a[n-1]/n + self.b_lower)
+                    # Bounds come from an application of Lagrange multipliers in degrees 2,3.
+                    if k == n-3:
+                        self.b_lower = -1./n*(self.a[n-1] + (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
+                        self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = __lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])

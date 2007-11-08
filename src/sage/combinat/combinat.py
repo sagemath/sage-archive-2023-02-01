@@ -192,7 +192,7 @@ REFERENCES:
 import os
 
 from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, ZZ
 from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari

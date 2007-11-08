@@ -1,20 +1,35 @@
 
-cdef class BinaryCodeGraph:
+include '../ext/cdefs.pxi'
 
-    cdef int *columns
+cdef class BinaryCode:
+    cdef unsigned int *columns
     cdef int *ham_wts
     cdef int ncols
     cdef int nrows
     cdef int radix
-    cdef int ptn_mask
-    cdef int nwords
-    cdef int has_edge_bip(self, int, int)
-    cdef int has_edge(self, int, int)
+    cdef unsigned int nwords
+    cdef int is_one(self, unsigned int, int)
+    cdef int is_automorphism(self, int *, unsigned int *)
+
+cdef class OrbitPartition:
+    cdef unsigned int *wd_parent
+    cdef unsigned int *wd_rank
+    cdef unsigned int *wd_min_cell_rep
+    cdef unsigned int *wd_size
+    cdef int *col_parent
+    cdef int *col_rank
+    cdef int *col_min_cell_rep
+    cdef int *col_size
+    cdef unsigned int wd_find(self, unsigned int)
+    cdef void wd_union(self, unsigned int, unsigned int)
+    cdef int col_find(self, int)
+    cdef void col_union(self, int, int)
+    cdef int merge_perm(self, int *, unsigned int *, int, int)
 
 cdef class PartitionStack:
     cdef int *wd_ents
-    cdef int *col_ents
     cdef int *wd_lvls
+    cdef int *col_ents
     cdef int *col_lvls
     cdef int nwords
     cdef int ncols
@@ -26,10 +41,10 @@ cdef class PartitionStack:
     cdef void col_percolate(self, int start, int end)
     cdef void wd_percolate(self, int start, int end)
     cdef int split_vertex(self, int, int, int)
-    cdef int col_degree(self, BinaryCodeGraph, int, int, int)
-    cdef int wd_degree(self, BinaryCodeGraph, int, int, int)
+    cdef int col_degree(self, BinaryCode, int, int, int)
+    cdef int wd_degree(self, BinaryCode, int, int, int)
     cdef int sort_cols(self, int, int *, int)
     cdef int sort_wds(self, int, int *, int)
-    cdef int refine(self, int, int *, int *, BinaryCodeGraph)
+    cdef int refine(self, int, int *, int *, BinaryCode)
     cdef void get_permutation(self, PartitionStack, int *, int *)
-    cdef int cmp(self, PartitionStack, BinaryCodeGraph)
+    cdef int cmp(self, PartitionStack, BinaryCode)

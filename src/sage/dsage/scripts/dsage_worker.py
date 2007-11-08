@@ -48,6 +48,7 @@ from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.constants import TMP_WORKER_FILES
 from sage.dsage.misc.misc import random_str
 
 START_MARKER = '___BEGIN___'
@@ -194,10 +195,9 @@ class Worker(object):
         """
 
         cur_dir = os.getcwd() # keep a reference to the current directory
-        tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
-        tmp_job_dir = os.path.join(tmp_dir, job.job_id)
-        if not os.path.isdir(tmp_dir):
-            os.mkdir(tmp_dir)
+        tmp_job_dir = os.path.join(TMP_WORKER_FILES, job.job_id)
+        if not os.path.isdir(TMP_WORKER_FILES):
+            os.mkdir(TMP_WORKER_FILES)
         if not os.path.isdir(tmp_job_dir):
             os.mkdir(tmp_job_dir)
         os.chdir(tmp_job_dir)

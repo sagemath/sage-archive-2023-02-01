@@ -23,6 +23,8 @@ import sqlite3
 from twisted.web2 import http, resource
 from twisted.web2 import static, http_headers, responsecode
 
+from sage.dsage.misc.constants import TMP_WORKER_FILES
+
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
 INDEX = os.path.join(DSAGE_LOCAL,'web/index.html')
@@ -93,6 +95,9 @@ class Toplevel(resource.Resource):
 
     def child_get_help(self, ctx):
         return GetHelp()
+
+    def child_worker_files(self, ctx):
+        return static.File(TMP_WORKER_FILES)
 
     def render(self, ctx):
         return static.File(INDEX)
@@ -192,6 +197,8 @@ class GetJobDetails(resource.PostableResource):
             for i, (k, v) in enumerate(jdict.iteritems()):
                 # if k == 'code': # We will display the code below the table
                 #     continue
+                if k == 'result': # result is an .sobj, link to the file
+                    v = "<a href='worker_files/%s'>result.sobj (Click to download.)</a>" % (jdict['job_id'] + '/' + 'result.sobj')
                 html += """
                 <tr class='tr%s'>
                 """ % (i % 2)

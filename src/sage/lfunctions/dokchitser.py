@@ -193,16 +193,25 @@ class Dokchitser(SageObject):
             g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
                                       logfile=None)
             g.read('computel.gp')
-            g.eval('default(realprecision, %s)'%(self.prec//3 + 2))
-            g.eval('conductor = %s'%self.conductor)
-            g.eval('gammaV = %s'%self.gammaV)
-            g.eval('weight = %s'%self.weight)
-            g.eval('sgn = %s'%self.eps)
-            g.eval('Lpoles = %s'%self.poles)
-            g.eval('Lresidues = %s'%self.residues)
-            g._dokchitser = True
             self.__gp = g
+            self._gp_eval('default(realprecision, %s)'%(self.prec//3 + 2))
+            self._gp_eval('conductor = %s'%self.conductor)
+            self._gp_eval('gammaV = %s'%self.gammaV)
+            self._gp_eval('weight = %s'%self.weight)
+            self._gp_eval('sgn = %s'%self.eps)
+            self._gp_eval('Lpoles = %s'%self.poles)
+            self._gp_eval('Lresidues = %s'%self.residues)
+            g._dokchitser = True
             return g
+
+    def _gp_eval(self, s):
+        try:
+            t = self.gp().eval(s)
+        except (RuntimeError, TypeError):
+            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+        if '***' in t:
+            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+        return t
 
     def __check_init(self):
         if not self.__init:
@@ -256,26 +265,26 @@ class Dokchitser(SageObject):
         self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
         gp = self.gp()
         if pari_precode != '':
-            gp.eval(pari_precode)
+            self._gp_eval(pari_precode)
         RR = self.__CC._real_field()
         cutoff = RR(cutoff)
         if isinstance(v, str):
             if w is None:
-                gp.eval('initLdata("%s", %s)'%(v, cutoff))
+                self._gp_eval('initLdata("%s", %s)'%(v, cutoff))
                 return
-            gp.eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
+            self._gp_eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
             return
         if not isinstance(v, (list, tuple)):
             raise TypeError, "v (=%s) must be a list, tuple, or string"%v
         CC = self.__CC
         v = [CC(a)._pari_init_() for a in v]
-        gp.eval('Avec = %s'%v)
+        self._gp_eval('Avec = %s'%v)
         if w is None:
-            gp.eval('initLdata("Avec[k]", %s)'%cutoff)
+            self._gp_eval('initLdata("Avec[k]", %s)'%cutoff)
             return
         w = [CC(a)._pari_init_() for a in w]
-        gp.eval('Bvec = %s'%w)
-        gp.eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
+        self._gp_eval('Bvec = %s'%w)
+        self._gp_eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
 
     def __to_CC(self, s):
         s = s.replace('.E','.0E').replace(' ','')

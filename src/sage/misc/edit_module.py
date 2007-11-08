@@ -192,7 +192,7 @@ def set_editor(editor_name,opts=''):
       raise ValueError, "editor_name not known. Try set_edit_template(<template_string>) instead."
 
 def edit(obj, editor=None, bg=None):
-   r"""
+   r"""nodetex
    Open source code of obj in editor of your choice.
 
    INPUT:

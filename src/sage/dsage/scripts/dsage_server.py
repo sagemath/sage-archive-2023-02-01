@@ -124,6 +124,7 @@ def write_stats(dsage_server, stats_file):
         f.write(dsage_server.generate_xml_stats())
         f.close()
     except Exception, msg:
+        print Exception
         print 'Error writing stats: %s' % (msg)
         return
 
@@ -165,6 +166,7 @@ def main(options):
 
     """
 
+    DSAGE_LOCAL = os.path.join(os.environ['SAGE_ROOT'], 'local/dsage')
     LOG_FILE = options.logfile
     LOG_LEVEL = options.loglevel
     SSL = options.ssl
@@ -231,6 +233,15 @@ def main(options):
             print 'Error starting server, please check your configuration'
         sys.exit()
 
+    # Run the web server
+    from twisted.web2 import server, http, resource, channel, static
+    from sage.dsage.web.web_server import Toplevel, GetJobDetails
+    top_level = Toplevel(dsage_server)
+    # top_level.putChild(GetJobDetails(dsage_server))
+    site = server.Site(top_level)
+    web_server_port = find_open_port()
+    reactor.listenTCP(web_server_port, channel.HTTPFactory(site))
+
     log.msg(DELIMITER)
     log.msg('DSAGE Server')
     log.msg('Started with PID: %s' % (os.getpid()))
@@ -239,6 +250,9 @@ def main(options):
     else:
         log.msg('Using SSL: False')
     log.msg('Listening on port: %s' % (SERVER_PORT))
+    log.msg(DELIMITER)
+    log.msg('DSAGE Web Server')
+    log.msg('http://localhost:%s' % web_server_port )
     log.msg(DELIMITER)
 
     # Code below can be turned on to do countrefs

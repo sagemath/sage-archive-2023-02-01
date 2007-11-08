@@ -77,7 +77,6 @@ sage: k = 10
 sage: h( sum([ m(part) for part in Partitions(k)]) )
 h[10]
 
-#Print style
 sage: P3 = Partitions(3)
 sage: P3.list()
 [[3], [2, 1], [1, 1, 1]]
@@ -1814,11 +1813,9 @@ class SymmetricFunctionAlgebra_dual(SymmetricFunctionAlgebra_generic):
         self._inverse_transition_matrices[n] = inverse_transition
 
     def transition_matrix(self, basis, n ):
-        """
-        Returns the transition matrix between the n^th homogeneous
+        r"""
+        Returns the transition matrix between the $n^th$ homogeneous
         component of self and basis.
-
-
         """
         if n not in self._transition_matrices:
             self._precompute(n)

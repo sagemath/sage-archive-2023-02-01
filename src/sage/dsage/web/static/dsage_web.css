@@ -1,0 +1,143 @@
+body {
+    margin-left: 2%;
+    margin-right: 2%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    padding: 0px;
+    background-color: #363942;
+}
+
+#page {
+    background-color: white;
+    outline: #aaaaaa solid thin;
+    padding: 1%;
+    font-family: arial, helvetica, sans-serif;
+}
+
+#header {
+    width:100%;
+    height:40px;
+    /*background-color:#284907;*/
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 3px;
+    font-size:30px;
+    color: #69BFDE;
+}
+
+#header form {
+    color:#FFFFFF;
+}
+
+#server_stats {
+    padding-left: 60%;
+    font-size:10px;
+}
+
+#title {
+    font-size:24px;
+    font-family: 'lucida grande', verdana, lucida, sans-serif;
+    color:#FFFFFF;
+    letter-spacing:0.04cm;
+    padding-top:10px;
+    padding-bottom:10px;
+    margin:0px;
+}
+
+/* begin css tabs */
+ul#tabnav {
+    text-align: left; /* set to left, right or center */
+    margin: 5px 0px 5px 0px; /* set margins as desired */
+    font: 11px verdana, arial, sans-serif; /* set font as desired */
+    border-bottom: 1px solid #000   ; /* set border COLOR as desired */
+    list-style-type: none;
+    padding-top: 0px;
+    padding-bottom: 3px;
+    padding-left: 0px;
+}
+
+ul#tabnav li {/* do not change */
+    display: inline;
+}
+
+body#tab1 li.tab1, body#tab2 li.tab2, body#tab3 li.tab3, body#tab4 li.tab4 {/* settings for selected tab */
+    border-bottom: 1px solid #fff; /* set border color to page background color */
+    background-color: #fff; /* set background color to match above border color */
+}
+
+
+body#tab1 li.tab1 a, body#tab2 li.tab2 a, body#tab3 li.tab3 a, body#tab4 li.tab4 a {/* settings for selected tab link */
+    background-color: #CF0; /* set selected tab background color as desired
+    /*color: blue;*/ /* set selected tab link color as desired */
+    position: relative;
+    /*padding-top: 100px;*/ /* must change with respect to padding (X) above and below */
+}
+
+ul#tabnav li a {/* settings for all tab links */
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-right: 3px;
+    padding-left: 3px;
+/*    padding: 3px 4px; /* set padding (tab size) as desired; FIRST number must change with respect to padding-top (X) above */
+    border: 1px solid #A7A37E; /* set border COLOR as desired; usually matches border color specified in #tabnav */
+    background-color: #E6E2AF; /* set unselected tab background color as desired */
+    color: #666; /* set unselected tab link color as desired */
+    margin-right: 0px; /* set additional spacing between tabs as desired */
+    text-decoration: none;
+    border-bottom: none;
+    font-size:14px;
+}
+ul#tabnav a:hover {/* settings for hover effect */
+    background: #FFF; /* set desired hover color */
+}
+/* end css tabs */
+
+table.jobs_table, table.job_details {
+    border: solid #000 1px;
+    border-bottom: solid #000 1px;
+    border-right: solid #000 1px;
+    border-collapse: collapse;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left:10px;
+    padding-right:10px;
+}
+table.jobs_table tr.tr0, table.job_details tr.tr0 {
+    font-size:16px;
+    background-color: #FFFFFF;
+}
+table.jobs_table tr.tr1, table.job_details tr.tr1 {
+    font-size:16px;
+    background-color: #D8CAA8;
+}
+table.jobs_table tr.thead, table.job_details tr.thead {
+
+}
+
+#jobs_table {
+    border: solid #000 1px;
+    border-bottom: solid #000 1px;
+    border-right: solid #000 1px;
+    border-collapse: collapse;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left:10px;
+    padding-right:10px;
+}
+#jobs_table thead {
+    width:100%;
+    height:20px;
+    font-size:16px;
+    background-color: #D8CAA8;
+    font-family: 'verdana';
+}
+table.jobs_table A:link, table.job_details A:link {
+    color: #193441;
+}
+table.jobs_table A:visited, table.job_details A:link {
+    color: #3E606F;
+}

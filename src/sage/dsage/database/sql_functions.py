@@ -18,6 +18,7 @@
 ##############################################################################
 
 from twisted.python import log
+import sqlite3
 
 def optimize_sqlite(con):
     """
@@ -85,3 +86,24 @@ def drop_table(con, table):
 
 def add_trigger(con, trigger):
     con.execute(trigger)
+
+def update_value(con, table, uniq_name, uniq_id, key, value):
+    """
+    Sets the appropriate value for a job in the database.
+
+    """
+
+    cur = con.cursor()
+    query = """UPDATE %s
+               SET %s=?
+               WHERE %s=?
+            """ % (table, key, uniq_name)
+    if table == 'jobs':
+        if key == 'data' or key == 'result': # Binary objects
+            if value != None:
+                cur.execute(query, (sqlite3.Binary(value), uniq_id))
+        else:
+            cur.execute(query, (value, uniq_id))
+    else:
+        cur.execute(query, (value, uniq_id))
+    con.commit()

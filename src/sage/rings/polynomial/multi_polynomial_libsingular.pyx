@@ -89,6 +89,7 @@ import polynomial_element
 cdef extern from "dlfcn.h":
     void *dlopen(char *, long)
     char *dlerror()
+    void dlclose(void *handle)
 
 cdef init_singular():
     """
@@ -118,6 +119,8 @@ cdef init_singular():
 
     # steal memory manager back or weird things may happen
     sage.rings.memory.pmem_malloc()
+
+    dlclose(handle)
 
  # call it
 init_singular()

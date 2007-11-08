@@ -138,6 +138,7 @@ class DefaultPerspective(pb.Avatar):
         self.DSageServer = DSageServer
         self.avatarID = avatarID
         self.connections = 0
+        self.monitordb = self.DSageServer.monitordb
 
     def perspectiveMessageReceived(self, broker, message, args, kw):
         self.broker = broker
@@ -153,9 +154,12 @@ class DefaultPerspective(pb.Avatar):
             self.host_info['ip'] = mind[0].broker.transport.getPeer().host
             self.host_info['port'] = mind[0].broker.transport.getPeer().port
             uuid = self.host_info['uuid']
-            if self.DSageServer.monitordb.get_monitor(uuid) is None:
-                self.DSageServer.monitordb.add_monitor(self.host_info)
-            self.DSageServer.monitordb.set_connected(uuid, connected=True)
+            if self.monitordb.get_monitor(uuid) is None:
+                self.monitordb.add_monitor(self.host_info)
+            else:
+                self.monitordb.update_monitor(self.host_info)
+            self.monitordb.set_connected(uuid, connected=True)
+            return uuid
         else:
             self.DSageServer.clientdb.update_login_time(self.avatarID)
             self.DSageServer.clientdb.set_connected(self.avatarID,
@@ -165,8 +169,8 @@ class DefaultPerspective(pb.Avatar):
         self.connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
         if isinstance(mind, tuple):
-            self.DSageServer.monitordb.set_connected(self.host_info['uuid'],
-                                                     connected=False)
+            uuid = self.host_info['uuid']
+            self.monitordb.set_connected(uuid, connected=False)
         else:
             self.DSageServer.clientdb.set_connected(self.avatarID,
                                                     connected=False)
@@ -181,22 +185,13 @@ class AnonymousMonitorPerspective(DefaultPerspective):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def attached(self, avatar, mind):
-        self.connections += 1
-        self.mind = mind
-        self.host_info = mind[1]
-        self.host_info['ip'] = mind[0].broker.transport.getPeer().host
-        self.host_info['port'] = mind[0].broker.transport.getPeer().port
-        uuid = self.host_info['uuid']
-        if self.DSageServer.monitordb.get_monitor(uuid) is None:
-            self.DSageServer.monitordb.add_monitor(self.host_info)
-        self.DSageServer.monitordb.set_connected(uuid, connected=True)
-        self.DSageServer.monitordb.set_anonymous(uuid, anonymous=True)
+        uuid = DefaultPerspective.attached(self, avatar, mind)
+        self.monitordb.set_anonymous(uuid, anonymous=True)
+
+        return uuid
 
     def detached(self, avatar, mind):
-        self.connections -= 1
-        log.msg('%s disconnected' % (self.avatarID))
-        self.DSageServer.monitordb.set_connected(self.host_info['uuid'],
-                                                 connected=False)
+        DefaultPerspective.detached(self, avatar, mind)
 
     def perspective_get_job(self):
         """
@@ -252,16 +247,8 @@ class MonitorPerspective(AnonymousMonitorPerspective):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def attached(self, avatar, mind):
-        self.connections += 1
-        self.mind = mind
-        self.host_info = mind[1]
-        self.host_info['ip'] = mind[0].broker.transport.getPeer().host
-        self.host_info['port'] = mind[0].broker.transport.getPeer().port
-        uuid = self.host_info['uuid']
-        if self.DSageServer.monitordb.get_monitor(uuid) is None:
-            self.DSageServer.monitordb.add_monitor(self.host_info)
-        self.DSageServer.monitordb.set_connected(uuid, connected=True)
-        self.DSageServer.monitordb.set_anonymous(uuid, anonymous=False)
+        uuid = DefaultPerspective.attached(self, avatar, mind)
+        self.monitordb.set_anonymous(uuid, anonymous=False)
 
     def perspective_get_job(self):
         """
@@ -381,7 +368,6 @@ class Realm(object):
 
     def __init__(self, DSageServer):
         self.DSageServer = DSageServer
-        self.avatars = {}
         self.max_connections = 100
 
     def requestAvatar(self, avatarID, mind, *interfaces):
@@ -396,20 +382,15 @@ class Realm(object):
                 kind = 'monitor'
             else:
                 kind = 'client'
-
-            if (avatarID, kind) in self.avatars.keys():
-                avatar = self.avatars[(avatarID, kind)]
-            else:
-                if kind == 'admin':
-                    avatar = AdminPerspective(self.DSageServer, avatarID)
-                elif kind == 'anonymous_monitor':
-                    avatar = AnonymousMonitorPerspective(self.DSageServer,
-                                                         avatarID)
-                elif kind == 'monitor':
-                    avatar = MonitorPerspective(self.DSageServer, avatarID)
-                elif kind == 'client':
-                    avatar = UserPerspective(self.DSageServer, avatarID)
-                self.avatars[(avatarID, kind)] = avatar
+            if kind == 'admin':
+                avatar = AdminPerspective(self.DSageServer, avatarID)
+            elif kind == 'anonymous_monitor':
+                avatar = AnonymousMonitorPerspective(self.DSageServer,
+                                                     avatarID)
+            elif kind == 'monitor':
+                avatar = MonitorPerspective(self.DSageServer, avatarID)
+            elif kind == 'client':
+                avatar = UserPerspective(self.DSageServer, avatarID)
         if avatar.connections >= self.max_connections:
             raise ValueError('Too many connections for user %s' % avatarID)
 

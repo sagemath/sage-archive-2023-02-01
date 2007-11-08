@@ -2806,11 +2806,11 @@ class NumberField_absolute(NumberField_generic):
             [Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947437 - 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... - 1.09112363597172*I,
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947437 + 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... + 1.09112363597172*I,
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
@@ -3691,22 +3691,22 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
-            sage: f = K.embeddings(CC); f
+            sage: f = K.embeddings(ComplexField(58)); f
             [Relative number field morphism:
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947442 - 1.09112363597172*I
-                    b |--> -0.00000000000000532907051820075 + 1.00000000000000*I,
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
+                    b |--> -0.00000000000000019428902930940239 + 1.0000000000000000*I,
               ...
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> 1.25992104989487 + 0.000000000000000222044604925031*I
-                    b |--> -1.00000000000000*I]
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> 1.2599210498948731
+                    b |--> -0.99999999999999999*I]
             sage: f[0](a)^3
-            2.00000000000001 - 0.0000000000000279776202205539*I
+            2.0000000000000002 - 0.00000000000000086389229103644993*I
             sage: f[0](b)^2
-            -1.00000000000001 - 0.0000000000000106581410364015*I
+            -1.0000000000000001 - 0.00000000000000038857805861880480*I
             sage: f[0](a+b)
-            -0.629960524947448 - 0.0911236359717185*I
+            -0.62996052494743693 - 0.091123635971721295*I
         """
         try:
             return self.__embeddings[K]
@@ -4540,13 +4540,50 @@ class NumberField_quadratic(NumberField_absolute):
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
-        D = b*b - 4*a*c
-        d = D.numer().squarefree_part() * D.denom().squarefree_part()
-        if d % 4 != 1:
-            d *= 4
-        self._NumberField_generic__disc = d
-        parts = -b/(2*a), (D/d).sqrt()/(2*a)
+        Dpoly = b*b - 4*a*c
+        D = Dpoly.numer() * Dpoly.denom()
+        # this could be done extreemly in pyrex
+        for p in sage.rings.arith.primes(100):
+            p2 = p*p
+            while D % p2 == 0:
+                D //= p2
+        self._D = D
+        parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
+
+    def discriminant(self, v=None):
+        """
+        Returns the discriminant of the ring of integers of the number field,
+        or if v is specified, the determinant of the trace pairing
+        on the elements of the list v.
+
+        INPUT:
+            v (optional) -- list of element of this number field
+        OUTPUT:
+            Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2+1)
+            sage: K.discriminant()
+            -4
+            sage: K.<a> = NumberField(x^2+5)
+            sage: K.discriminant()
+            -20
+            sage: K.<a> = NumberField(x^2-5)
+            sage: K.discriminant()
+            5
+        """
+        if v is None:
+            try:
+                return self.__disc
+            except AttributeError:
+                d = self._D.squarefree_part()
+                if d % 4 != 1:
+                    d *= 4
+                self.__disc = d
+                return self.__disc
+        else:
+            return NumberField_generic.discriminant(self, v)
 
     def __reduce__(self):
         """

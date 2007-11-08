@@ -377,7 +377,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return s
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: S.<alpha12>=ZZ[]
             sage: latex(S)

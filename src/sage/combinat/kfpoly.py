@@ -1,3 +1,6 @@
+r"""
+Kostka-Foulkes Polynomials
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2007 John Stembridge

@@ -43,7 +43,11 @@ class NotebookObject:
                           nb.set_accounts(True)
                           nb.add_user("username", "password", "email@place", "user")
                           nb.save()
-        open_viewer -- (default: True) whether to pop up a web browser
+        open_viewer -- (default: True) whether to pop up a web browser.
+                      You can override the default browser by setting
+                      the SAGE_BROWSER environment variable, e.g., by putting
+                         export SAGE_BROWSER="firefox"
+                      in the file .bashrc in your home directory.
         timeout    -- (default: 0) seconds until idle worksheet sessions
                       automatically timeout, i.e., the corresponding
                       Sage session terminates.  0 means 'never timeout'.

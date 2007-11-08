@@ -322,10 +322,11 @@ def weed_fields(S):
                if T_2i <= T_2j:
                    S.pop(j)
                else:
-                   S.pop(i)
+                   s = S.pop(i)
+                   S.insert(i, S.pop(j))
            else:
                j += 1
-       i = j
+       i += 1
 
 def timestr(m):
     r"""

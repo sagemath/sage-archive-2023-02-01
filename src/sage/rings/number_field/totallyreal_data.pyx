@@ -174,7 +174,7 @@ cdef newton_in_intervals(int *f, int *df, int n, double *beta,
     for i from 0 <= i < n:
         rts[i] = newton(f, df, n, (beta[i]+beta[i+1])/2, eps)
 
-def __lagrange_degree_3(n, an1, an2, an3):
+def lagrange_degree_3(n, an1, an2, an3):
     r"""
     Private function.  Solves the equations which arise in the Lagrange multiplier
     for degree 3: for each 1 <= r <= n-2, we solve
@@ -184,9 +184,9 @@ def __lagrange_degree_3(n, an1, an2, an3):
     We use a precomputed elimination ideal.
 
     EXAMPLES:
-        sage: sage.rings.number_field.totallyreal_data.__lagrange_degree_3(3, 0, 1, 2)
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3, 0, 1, 2)
         [-1.000000019137512, -0.99999998086248831]
-        sage: sage.rings.number_field.totallyreal_data.__lagrange_degree_3(3, 6, 1, 2)
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3, 6, 1, 2)
         [-5.8878509412236602, -5.887850753893237]
     """
 
@@ -451,7 +451,7 @@ cdef class tr_data:
             self.b_lower = -1./n*(self.a[n-1] + (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
             self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
             if k < n-2:
-                bminmax = __lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
+                bminmax = lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
                 self.b_lower = bminmax[0]
                 self.b_upper = bminmax[1]
 
@@ -651,7 +651,7 @@ cdef class tr_data:
                         self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
-                        bminmax = __lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
+                        bminmax = lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
                         self.b_lower = bminmax[0]
                         self.b_upper = bminmax[1]
                     elif k == n-5 and phc:

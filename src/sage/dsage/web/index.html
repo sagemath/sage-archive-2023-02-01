@@ -10,6 +10,7 @@
 	<link rel="stylesheet" type="text/css" href="static/dsage_web.css">
 	<script src='static/jquery-latest.js' type='text/javascript'></script>
 	<script src='static/jquery.tablesorter.pack.js' type='text/javascript'></script>
+	<script src='static/jquery.history.js' type='text/javascript'></script>
 	<script src='static/dsage_web.js' type='text/javascript'></script>
 </head>
 <body>
@@ -20,16 +21,16 @@
 	    <center>
 	    <ul id="tabnav">
 	    	<li class="tab1">
-	            <a href="#" onClick="getJobs(count)">Job Status</a>
+	            <a href="#jobs" rel="history" onClick="getJobs(count)">Job Status</a>
 	    	</li>
 	    	<li class="tab2">
-	    	    <a href="#" onClick="getServerDetails()">Server Status</a>
+	    	    <a href="#server" rel="history" onClick="getServerDetails()">Server Status</a>
 	    	</li>
 	    	<li class="tab3">
-	    	    <a href="#" onClick="submitJob()">Submit Job</a>
+	    	    <a href="#submit" rel="history" onClick="submitJob()">Submit Job</a>
 		    </li>
 	    	<li class="tab4">
-	    	    <a href="#" onClick="getHelp()">Help</a>
+	    	    <a href="#help" rel="history"onClick="getHelp()">Help</a>
 		    </li>
 	    </ul>
 	    </center>

@@ -1,11 +1,20 @@
 var count = 10; // Default count
 
-$(document).ready(function()
-    {
-        getJobs(count) // Run it the first time
-        setInterval('getJobs(count)', 5000); // Update it every 5 seconds.
-    }
-);
+// PageLoad function
+// This function is called when:
+// 1. after calling $.historyInit();
+// 2. after calling $.historyLoad();
+// 3. after pushing "Go Back" button of a browser
+function pageload(hash) {
+	// hash doesn't contain the first # character.
+	if(hash) {
+		// restore ajax loaded state
+		$("#load").load(hash + ".html");
+	} else {
+		// start page
+		$("#load").empty();
+	}
+}
 
 function getServerDetails () {
     $('#jobs_table').hide();
@@ -42,3 +51,25 @@ function getHelp () {
     $('#help').load('get_help');
     $('#help').show();
 }
+
+$(document).ready(function()
+    {
+        // Initialize history plugin.
+		// The callback is called at once by present location.hash.
+		$.historyInit(pageload);
+
+		// set onlick event for buttons
+		$("a[@rel='history']").click(function(){
+			//
+			var hash = this.href;
+			hash = hash.replace(/^.*#/, '');
+			// moves to a new page.
+			// pageload is called at once.
+			$.historyLoad(hash);
+			return false;
+		});
+
+        getJobs(count) // Run it the first time
+        setInterval('getJobs(count)', 5000); // Update it every 5 seconds.
+    }
+);

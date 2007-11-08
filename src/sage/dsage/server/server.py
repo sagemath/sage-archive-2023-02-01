@@ -285,6 +285,8 @@ class DSageServer(pb.Root):
                 msg = '%s failed, removing from queue.' % (job_id)
                 log.msg(msg)
 
+        jdict['update_time'] = datetime.datetime.now()
+
         return self.jobdb.store_job(job.reduce())
 
     def kill_job(self, job_id, reason):

@@ -100,7 +100,7 @@ def usage():
                       dest='dbfile',
                       default=os.path.join(DSAGE_DIR, 'dsage.db'),
                       help='database file')
-    parser.add_option('--job_failures',
+    parser.add_option('--jobfailures',
                       dest='job_failure_threshold',
                       type='int',
                       default=3,

@@ -126,6 +126,7 @@ class Worker(object):
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
+            import pdb; pdb.set_trace()
             self.report_failure(msg)
             self.restart()
 

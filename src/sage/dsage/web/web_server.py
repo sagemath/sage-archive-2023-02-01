@@ -50,7 +50,10 @@ def create_jobs_table(jdicts):
 
     for i, jdict in enumerate(jdicts):
         creation_time = jdict['creation_time'].strftime('%F %r')
-        update_time = jdict['update_time'].strftime('%F %r')
+        try:
+            update_time = jdict['update_time'].strftime('%F %r')
+        except AttributeError: # This is a fix for older databases.
+            update_time = "N/A"
         html+="""
         <tr class='tr%s'
         """ % (i % 2)

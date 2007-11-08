@@ -499,10 +499,13 @@ except:
 
         """
 
+        # Set status to free and delete any current jobs we have
+        self.free = True
+        self.job = None
+
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
             self.kill_sage()
-            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -527,11 +530,8 @@ except:
 
             if not success:
                 self.kill_sage()
-                self.start()
             else:
                 self.sage.reset()
-        self.free = True
-        self.job = None
 
     def start(self):
         """

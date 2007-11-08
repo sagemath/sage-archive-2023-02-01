@@ -47,14 +47,18 @@ from sage.libs.all import pari, pari_gen, PariError
 from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
-import sage.rings.real_double
-import sage.rings.complex_double
+from sage.rings.complex_field import is_ComplexField, ComplexField
+CC = ComplexField()
+
+from sage.rings.real_double import is_RealDoubleField, RDF
+from sage.rings.complex_double import is_ComplexDoubleField, CDF
+from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.element import RingElement, generic_power
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
 
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ, is_RationalField
+from sage.rings.integer_ring import ZZ, is_IntegerRing
 
 from sage.rings.integral_domain import is_IntegralDomain
 
@@ -67,6 +71,18 @@ from polynomial_compiled cimport CompiledPolynomialFunction
 
 #from polynomial_ring_constructor import PolynomialRing
 from polydict import ETuple
+
+cdef object is_AlgebraicRealField
+
+cdef void late_import():
+    # A hack to avoid circular imports.
+    global is_AlgebraicRealField
+
+    if is_AlgebraicRealField is not None:
+        return
+
+    import sage.rings.algebraic_real
+    is_AlgebraicRealField = sage.rings.algebraic_real.is_AlgebraicRealField
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -2240,28 +2256,63 @@ cdef class Polynomial(CommutativeAlgebraElement):
         v.reverse()
         return self.parent()(v)
 
-    def roots(self, multiplicities=True):
+    def roots(self, ring=None, multiplicities=True, algorithm=None):
         """
-        Return all roots of this polynomial in the base field of this polynomial.
+        Return the roots of this polynomial (by default, in the
+        base ring of this polynomial).
 
         INPUT:
+            ring -- the ring to find roots in
             multiplicities -- bool (default: True)
                    if True return list of pairs (r, n), where r is
                    the root and n is the multiplicity.
                    If False, just return the unique roots, with
                    no information about multiplicities.
+            algorithm -- the root-finding algorithm to use.
+                   We attempt to select a reasonable algorithm by
+                   default, but this lets the caller override our choice.
 
-        If the polynomial is over RR or CC returns all roots in CC
-        with multiplicities all set to 1.
+        By default, this finds all the roots that lie in the base ring
+        of the polynomial.  However, the ring parameter can be used
+        to specify a ring to look for roots in.
 
-        Over all other rings it just returns the roots that lie in the
-        base ring.
+        If the polynomial and the output ring are both exact (integers,
+        rationals, finite fields, etc.), then the output should always
+        be correct (or raise an exception, if that case is not yet
+        handled).
+
+        If the output ring is approximate (floating-point real or complex
+        numbers), then the answer will be estimated numerically, using
+        floating-point arithmetic of at least the precision of the output
+        ring.  If the polynomial is ill-conditioned, meaning that a
+        small change in the coefficients of the polynomial will lead to a
+        relatively large change in the location of the roots, this may
+        give poor results.  Distinct roots may be returned as multiple
+        roots, multiple roots may be returned as distinct roots, real
+        roots may be lost entirely (because the numerical estimate
+        thinks they are complex roots).  Note that polynomials with
+        multiple roots are always ill-conditioned; there's a footnote
+        at the end of the docstring about this.
+
+        If the output ring is a RealIntervalField of a given
+        precision, then the answer will always be correct (or an
+        exception will be raised, if a case is not implemented).  Each
+        root will be contained in one of the returned intervals,
+        and the intervals will be disjoint.  (The returned intervals
+        may be of higher precision than the specified output ring.)
+
+        At the end of this docstring (after the examples) is a description
+        of all the cases implemented in this function, and the algorithms
+        used.  That section also describes the possibilities for
+        "algorithm=", for the cases where multiple algorithms exist.
 
         EXAMPLES:
             sage: x = QQ['x'].0
             sage: f = x^3 - 1
             sage: f.roots()
             [(1, 1)]
+            sage: f.roots(ring=CC)   # note -- low order bits slightly different on ppc.
+            [(1.00000000000000, 1), (-0.500000000000000 + 0.86602540378443...*I, 1), (-0.500000000000000 - 0.86602540378443...*I, 1)]
             sage: f = (x^3 - 1)^2
             sage: f.roots()
             [(1, 2)]
@@ -2274,13 +2325,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: f = K.defining_polynomial()
+            sage: f.roots(ring=GF(7))
+            [(4, 1), (2, 1)]
             sage: g = f.change_ring(GF(7))
             sage: g.roots()
             [(4, 1), (2, 1)]
             sage: g.roots(multiplicities=False)
             [4, 2]
 
-        An example over RR, which illustrates that only the roots in RR are returned:
+        An example over RR, which illustrates that only the roots in RR
+        are returned:
             sage: x = RR['x'].0
             sage: f = x^3 -2
             sage: f.roots()
@@ -2295,7 +2349,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = CC['x'].0
             sage: f = x^3 -2
             sage: f.roots()
+            [(1.25992104989487, 1), (-0.62996052494743... + 1.09112363597172*I, 1), (-0.62996052494743... - 1.09112363597172*I, 1)]
+            sage: f.roots(algorithm='pari')
             [(1.25992104989487, 1), (-0.629960524947437 + 1.09112363597172*I, 1), (-0.629960524947437 - 1.09112363597172*I, 1)]
+
+        Another example showing that only roots in the base ring
+        are returned:
+            sage: x = polygen(ZZ)
+            sage: f = (2*x-3) * (x-1) * (x+1)
+            sage: f.roots()
+            [(1, 1), (-1, 1)]
+            sage: f.roots(ring=QQ)
+            [(1, 1), (-1, 1), (3/2, 1)]
 
         An example involving large numbers:
             sage: x = RR['x'].0
@@ -2304,13 +2369,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.00000000000000e50, 1), (1.00000000000000e50, 1)]
             sage: f = x^10 - 2*(5*x-1)^2
             sage: f.roots(multiplicities=False)
-            [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444]
+            [-1.6772670339941..., 0.199954796285..., 0.200045306115..., 1.5763035161844...]
 
             sage: x = CC['x'].0
             sage: i = CC.0
             sage: f = (x - 1)*(x - i)
             sage: f.roots(multiplicities=False)
-            [1.00000000000000*I, 1.00000000000000]
+            [1.00000000000000 - ...*I,... 1.00000000000000*I]
 
         A purely symbolic roots example:
             sage: X = var('X')
@@ -2319,8 +2384,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
 
-        An example where the base ring doesn't have a factorization algorithm (yet).  Note
-        that this is currently done via naive enumeration, so could be very slow:
+        An example where the base ring doesn't have a factorization
+        algorithm (yet).  Note that this is currently done via naive
+        enumeration, so could be very slow:
             sage: R = Integers(6)
             sage: S.<x> = R['x']
             sage: p = x^2-1
@@ -2371,72 +2437,252 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(f.roots()[0][0])         # random low-order bits
             -4.4408920985e-16 - 3.10862446895e-15*I
 
-        NOTE: This is a note about numerical root finding when the
-        input polynomial is double precision:  Multiple roots are a
-        very bad case for floating-point root finding.  Unless the
-        solver includes special-purpose heuristics to detect multiple
-        roots, it's basically impossible to get an "accurate" result;
-        if your input is given to  n bits of precision, you should not expect
-        more than n/k good bits for a k-fold root.  (As William points out,
-        you can get solutions that make the polynomial evaluate to a number
-        very close to zero; basically the problem is that with a multiple
-        root, there are many such numbers, and it's difficult to choose
-        between them.)
+        Examples using real root isolation:
+            sage: x = polygen(ZZ)
+            sage: f = x^2 - x - 1
+            sage: f.roots()
+            []
+            sage: f.roots(ring=RIF)
+            [([-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], 1), ([1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565], 1)]
+            sage: f.roots(ring=RIF, multiplicities=False)
+            [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
+            sage: f.roots(ring=RealIntervalField(150))
+            [([-0.61803398874989484820458683436563811772030917980576286213544862277 .. -0.61803398874989484820458683436563811772030917980576286213544862260], 1), ([1.6180339887498948482045868343656381177203091798057628621354486226 .. 1.6180339887498948482045868343656381177203091798057628621354486230], 1)]
+            sage: f.roots(ring=AA)
+            [([-0.61803398874989491 .. -0.61803398874989479], 1), ([1.6180339887498946 .. 1.6180339887498950], 1)]
+            sage: f = f^2 * (x - 1)
+            sage: f.roots(ring=RIF)
+            [([-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], 2), ([0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], 1), ([1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565], 2)]
+            sage: f.roots(ring=RIF, multiplicities=False)
+            [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
 
-        To see why this is true, consider the naive floating-point error
-        analysis model where you just pretend that all floating-point numbers
-        are somewhat imprecise -- a little "fuzzy", if you will.  Then the
-        graph of a floating-point polynomial will be a fuzzy line.  Consider
-        the graph of $(x-1)^3$; this will be a fuzzy line with a horizontal
-        tangent at $x=1$, $y=0$.  If the fuzziness extends up and down by about j,
-        then it will extend left and right by about cube_root(j).
+        There are many combinations of floating-point input and output
+        types that work.  (Note that some of them are quite pointless...
+        there's no reason to use high-precision input and output, and still
+        use numpy to find the roots.)
 
-          -- Carl Witty
+            sage: rflds = (RR, RDF, RealField(100))
+            sage: cflds = (CC, CDF, ComplexField(100))
+            sage: def cross(a, b):
+            ...       return list(cartesian_product_iterator([a, b]))
+            sage: flds = cross(rflds, rflds) + cross(rflds, cflds) + cross(cflds, cflds)
+            sage: for (fld_in, fld_out) in flds:
+            ...       x = polygen(fld_in)
+            ...       f = x^3 - fld_in(2)
+            ...       x2 = polygen(fld_out)
+            ...       f2 = x2^3 - fld_out(2)
+            ...       for algo in (None, 'pari', 'numpy'):
+            ...           rts = f.roots(ring=fld_out, multiplicities=False)
+            ...           if fld_in == fld_out and algo is None:
+            ...               print fld_in, rts
+            ...           for rt in rts:
+            ...               assert(abs(f2(rt)) <= 1e-10)
+            ...               assert(rt.parent() == fld_out)
+            Real Field with 53 bits of precision [1.25992104989487]
+            Real Double Field [1.25992104989]
+            Real Field with 100 bits of precision [1.2599210498948731647672106073]
+            Complex Field with 53 bits of precision [1.25992104989487, -0.62996052494743... + 1.09112363597172*I, -0.62996052494743... - 1.09112363597172*I]
+            Complex Double Field [1.25992104989, -0.62996052494... + 1.09112363597*I, -0.62996052494... - 1.09112363597*I]
+            Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I]
+
+        Note that we can find the roots of a polynomial with
+        algebraic real coefficients:
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: x = polygen(AA)
+            sage: f = (x - rt2) * (x - rt3); f
+            x^2 + [-3.1462643699419726 .. -3.1462643699419721]*x + [2.4494897427831778 .. 2.4494897427831784]
+            sage: rts = f.roots(); rts
+            [([1.4142135623730949 .. 1.4142135623730952], 1), ([1.7320508075688771 .. 1.7320508075688775], 1)]
+sage: rts[0][0] == rt2
+            True
+            sage: f.roots(ring=RealIntervalField(150))
+            [([1.4142135623730950488016887242096980785696718753769480731766797377 .. 1.4142135623730950488016887242096980785696718753769480731766797381], 1), ([1.7320508075688772935274463415058723669428052538103806280558069793 .. 1.7320508075688772935274463415058723669428052538103806280558069797], 1)]
+
+        Algorithms used:
+
+        For brevity, we will use RR to mean any RealField of any precision;
+        similarly for CC and CIF.
+
+        We call the base ring of the polynomial K, and the ring given
+        by the ring= argument L.  (If ring= is not specified, then L
+        is the same as K.)
+
+        If K and L are floating-point (RDF, CDF, RR, or CC), then
+        a floating-point root-finder is used.  If L has precision
+        53 bits or less (RDF and CDF both have precision exactly
+        53 bits, as do the default RR=RealField() and CC=ComplexField())
+        then we default to using numpy's roots(); otherwise, we use
+        Pari's polroots().  This choice can be overridden with
+        algorithm='pari' or algorithm='numpy'.
+
+        If L is AA or RIF, and K is ZZ, QQ, or AA, then the root isolation
+        algorithm sage.rings.polynomial.real_roots.real_roots() is used.
+        (You can call real_roots() directly to get more control than
+        this method gives.)
+
+        If L is floating-point and K is not, then we attempt to
+        change the polynomial ring to L (using .change_ring())
+        (or, if L is complex, to the corresponding real field).
+        Then we use either Pari or numpy as specified above.
+
+        For all other cases where K is different than L, we just use
+        .change_ring(L) and proceed as below.
+
+        The next method is to attempt to factor the polynomial.
+        If this succeeds, then for every degree-one factor a*x+b, we
+        add -b/a as a root.
+
+        If factoring over K is not implemented, and K is finite, then
+        we find the roots by enumerating all elements of K and checking
+        whether the polynomial evaluates to zero at that value.
+
+
+        NOTE: We mentioned above that polynomials with multiple roots
+        are always ill-conditioned; if your input is given to n bits
+        of precision, you should not expect more than n/k good bits
+        for a k-fold root.  (You can get solutions that make the
+        polynomial evaluate to a number very close to zero; basically
+        the problem is that with a multiple root, there are many such
+        numbers, and it's difficult to choose between them.)
+
+        To see why this is true, consider the naive floating-point
+        error analysis model where you just pretend that all
+        floating-point numbers are somewhat imprecise -- a little "fuzzy",
+        if you will.  Then the graph of a floating-point polynomial
+        will be a fuzzy line.  Consider the graph of $(x-1)^3$; this
+        will be a fuzzy line with a horizontal tangent at $x=1$,
+        $y=0$.  If the fuzziness extends up and down by about j, then
+        it will extend left and right by about cube_root(j).
         """
         seq = []
 
         K = self.parent().base_ring()
+        L = ring
+        if L is None: L = K
 
-        if is_RealField(K) or sage.rings.complex_field.is_ComplexField(K):
-            if is_RealField(K):
-                L = K.complex_field()
-            else:
-                L = K
-            n = pari.get_real_precision()
-            pari.set_real_precision(int(L.prec()/3.2)+1)
-            r = pari(self).polroots()
-            if is_RealField(K):
-                seq = [K(root.real()) for root in r if root.imag() == 0]
-            else:
-                seq = [L(root) for root in r]
+        input_fp = (is_RealField(K)
+                    or is_ComplexField(K)
+                    or is_RealDoubleField(K)
+                    or is_ComplexDoubleField(K))
+        output_fp = (is_RealField(L)
+                     or is_ComplexField(L)
+                     or is_RealDoubleField(L)
+                     or is_ComplexDoubleField(L))
+        input_complex = (is_ComplexField(K)
+                         or is_ComplexDoubleField(K))
+        output_complex = (is_ComplexField(L)
+                          or is_ComplexDoubleField(L))
 
-            pari.set_real_precision(n)
+        if input_fp and output_fp:
+            low_prec = L.prec() <= 53
+            if algorithm is None:
+                if low_prec:
+                    algorithm = 'numpy'
+                else:
+                    algorithm = 'pari'
+
+            if algorithm != 'numpy' and algorithm != 'pari':
+                raise ValueError, "Unknown algorithm '%s'" % algorithm
+
+            # We should support GSL, too.  We could also support Pari's
+            # old Newton-iteration algorithm.
+
+            input_arbprec = (is_RealField(K) or
+                             is_ComplexField(K))
+
+            if algorithm == 'pari':
+                if not input_arbprec:
+                    self = self.change_ring(CC if input_complex else RR)
+                n = pari.get_real_precision()
+                pari.set_real_precision(int(L.prec()/3.2) + 1)
+                ext_rts = pari(self).polroots()
+                pari.set_real_precision(n)
+
+            if algorithm == 'numpy':
+                import numpy
+                numpy_dtype = ('complex' if input_complex else 'double')
+                ty = (complex if input_complex else float)
+                coeffs = self.list()
+                numpy_array = numpy.array([ty(c) for c in reversed(coeffs)], dtype=numpy_dtype)
+                ext_rts1 = numpy.roots(numpy_array)
+                # We want to make two changes to ext_rts1:
+                # 1) convert to CDF
+                # 2) make sure the real roots are at the beginning of
+                # the list, and sorted (Pari makes this guarantee, and
+                # we might as well follow Pari's lead)
+                rrts = []
+                crts = []
+                for rt in ext_rts1:
+                    if rt.imag == 0:
+                        rrts.append(CDF(rt))
+                    else:
+                        crts.append(CDF(rt))
+                rrts.sort()
+                ext_rts = rrts + crts
+
+
+            if output_complex:
+                rts = [L(root) for root in ext_rts]
+            else:
+                rts = [L(root.real()) for root in ext_rts if root.imag() == 0]
 
             if multiplicities:
-                return [(x, ZZ(1)) for x in seq]
+                return [(rt, ZZ(1)) for rt in rts]
             else:
-                return seq
+                return rts
 
-        elif sage.rings.real_double.is_RealDoubleField(K):
-            import numpy
-            r = numpy.roots(numpy.array(list(reversed(self.list())), dtype='double'))
-            RDF = sage.rings.real_double.RDF
-            v = [RDF(z) for z in r if z.imag == 0]
-            if multiplicities:
-                return [(x, ZZ(1)) for x in v]
-            else:
-                return v
+        late_import()
 
-        elif sage.rings.complex_double.is_ComplexDoubleField(K):
-            import numpy
-            v = [complex(x) for x in reversed(self.list())]
-            r = numpy.roots(numpy.array(v, dtype='complex'))
-            CDF = sage.rings.complex_double.CDF
-            v = [CDF(z) for z in r]
-            if multiplicities:
-                return [(x, ZZ(1)) for x in v]
+        if L != K or is_AlgebraicRealField(L):
+            # So far, the only "special" implementation is for K exact
+            # and L either AA or a real interval field.
+            if (is_IntegerRing(K) or is_RationalField(K)
+                or is_AlgebraicRealField(K)) and \
+                (is_AlgebraicRealField(L) or is_RealIntervalField(L)):
+
+                from sage.rings.polynomial.real_roots import real_roots
+
+                if is_AlgebraicRealField(L):
+                    rts = real_roots(self, retval='algebraic_real')
+                else:
+                    diam = ~(ZZ(1) << L.prec())
+                    rts1 = real_roots(self, retval='interval', max_diameter=diam)
+
+                    # We (essentially) promise in the docstring above
+                    # that returned intervals will be at least the precision
+                    # of the given ring.  But real_roots() does not guarantee
+                    # this; for instance, if it returns exactly zero,
+                    # it may return this with a low-precision
+                    # RealIntervalFieldElement.
+
+                    rts = []
+                    for (rt, mult) in rts1:
+                        if rt.prec() < L.prec():
+                            rt = L(rt)
+                        rts.append((rt, mult))
+
+                if multiplicities:
+                    return rts
+                else:
+                    return [rt for (rt, mult) in rts]
+
+            if output_fp and output_complex:
+                # If we want the complex roots, and the input is not
+                # floating point, we convert to a real polynomial.
+                # I think this works for now, because there are no
+                # non-floating-point complex types in Sage.  Hopefully
+                # someday we will have Gaussian integers and rationals,
+                # and this will have to change then.
+                if is_ComplexDoubleField(L):
+                    real_field = RDF
+                else:
+                    real_field = RealField(L.prec())
+
+                return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
             else:
-                return v
+                return self.change_ring(L).roots(multiplicities=multiplicities, algorithm=algorithm)
 
         try:
             rts = self.factor()
@@ -2451,11 +2697,85 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for fac in rts:
             g = fac[0]
             if g.degree() == 1:
-                if multiplicities:
-                    seq.append((-g[0]/g[1],fac[1]))
-                else:
-                    seq.append(-g[0]/g[1])
+                rt = -g[0]/g[1]
+                # We need to check that this root is actually in K;
+                # otherwise we'd return roots in the fraction field of K.
+                if rt in K:
+                    rt = K(rt)
+                    if multiplicities:
+                        seq.append((rt,fac[1]))
+                    else:
+                        seq.append(rt)
         return seq
+
+    def real_roots(self):
+        """
+        Return the real roots of this polynomial, without multiplicities.
+
+        Calls self.roots(ring=RR), unless this is a polynomial
+        with floating-point real coefficients, in which case it
+        calls self.roots().
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: (x^2 - x - 1).real_roots()
+            [-0.618033988749895, 1.61803398874989]
+
+        TESTS:
+            sage: x = polygen(RealField(100))
+            sage: (x^2 - x - 1).real_roots()[0].parent()
+                Real Field with 100 bits of precision
+            sage: x = polygen(RDF)
+            sage: (x^2 - x - 1).real_roots()[0].parent()
+            Real Double Field
+        """
+        K = self.base_ring()
+        if is_RealField(K) or is_RealDoubleField(K):
+            return self.roots(multiplicities=False)
+
+        return self.roots(ring=RR, multiplicities=False)
+
+    def complex_roots(self):
+        """
+        Return the complex roots of this polynomial, without
+        multiplicities.
+
+        Calls self.roots(ring=CC), unless this is a polynomial
+        with floating-point coefficients, in which case it is uses
+        the appropriate precision from the input coefficients.
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: (x^3 - 1).complex_roots()   # note: low order bits slightly different on ppc.
+            [1.00000000000000, -0.500000000000000 + 0.86602540378443...*I, -0.500000000000000 - 0.86602540378443...*I]
+
+        TESTS:
+            sage: x = polygen(RR)
+            sage: (x^3 - 1).complex_roots()[0].parent()
+            Complex Field with 53 bits of precision
+            sage: x = polygen(RDF)
+            sage: (x^3 - 1).complex_roots()[0].parent()
+            Complex Double Field
+            sage: x = polygen(RealField(200))
+            sage: (x^3 - 1).complex_roots()[0].parent()
+            Complex Field with 200 bits of precision
+            sage: x = polygen(CDF)
+            sage: (x^3 - 1).complex_roots()[0].parent()
+            Complex Double Field
+            sage: x = polygen(ComplexField(200))
+            sage: (x^3 - 1).complex_roots()[0].parent()
+            Complex Field with 200 bits of precision
+        """
+        K = self.base_ring()
+        if is_RealField(K):
+            return self.roots(ring=ComplexField(K.prec()), multiplicities=False)
+        if is_RealDoubleField(K):
+            return self.roots(ring=CDF, multiplicities=False)
+        if is_ComplexField(K) or is_ComplexDoubleField(K):
+            return self.roots(multiplicities=False)
+
+        return self.roots(ring=CC, multiplicities=False)
+
 
     def variable_name(self):
         """

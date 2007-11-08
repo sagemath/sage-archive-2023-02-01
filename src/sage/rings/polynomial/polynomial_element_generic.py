@@ -756,28 +756,6 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if hasattr(self, "__list"):
             del self.__list
 
-    def complex_roots(self, flag=0):
-        """
-        Returns the complex roots of this polynomial.
-        INPUT:
-            flag -- optional, and can be
-                    0: (default), uses Schonhage's method modified by Gourdon,
-                    1: uses a modified Newton method.
-        OUTPUT:
-            list of complex roots of this polynomial, counted with multiplicities.
-
-        NOTE: Calls the pari function polroots.
-
-        EXAMPLE:
-        We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: f = 1 - x^2 - x^3 - x^4 + x^6
-            sage: f.complex_roots()[0]
-            0.713639173536901
-        """
-        R = self.__poly.polroots(flag)
-        C = complex_field.ComplexField()
-        return [C(a) for a in R]
 
     def real_root_intervals(self):
         """

@@ -1,3 +1,6 @@
+r"""
+Paths in Directed Acyclic Graphs
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

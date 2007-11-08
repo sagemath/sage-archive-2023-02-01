@@ -322,8 +322,9 @@ def weed_fields(S):
                if T_2i <= T_2j:
                    S.pop(j)
                else:
-                   s = S.pop(i)
-                   S.insert(i, S.pop(j))
+                   t = S.pop(j)
+                   S.pop(i)
+                   S.insert(i, t)
            else:
                j += 1
        i += 1

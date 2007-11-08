@@ -184,27 +184,55 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: P = E.random_element()
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
 
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element()
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
+
+            sage: k.<a> = GF(2^5)
+            sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
+            sage: P = E.random_element()
+            sage: type(P)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
 
         """
         k = self.base_field()
         if random.random() <= 1/float(k.order()+1):
             return self(0)
         a1, a2, a3, a4, a6 = self.ainvs()
-        while True:
-            x = k.random_element()
-            d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
-            try:
-                m = d.sqrt(extend=False)
-                y = (-(a1*x + a3) + m) / k(2)
+
+        if k.characteristic() == 2:
+            P = PolynomialRing(k,'y')
+            y = P.gen()
+            while True:
+                x = k.random_element()
+                f = y**2 + a1*x*y + a3*y - x**3 + a2*x**2 + a4*x + a6
+                roots = f.roots()
+                if roots == []:
+                    continue
+                if random.random() < 0.5:
+                    y = roots[0][0]
+                else:
+                    y = roots[1][0]
                 return self([x,y])
-            except ValueError:
-                pass
+        else:
+            while True:
+                x = k.random_element()
+                d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
+                try:
+                    m = d.sqrt(extend=False)
+                    y = (-(a1*x + a3) + m) / k(2)
+                    return self([x,y])
+                except ValueError:
+                    pass
 
     def trace_of_frobenius(self):
         """

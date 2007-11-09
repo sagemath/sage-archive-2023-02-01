@@ -84,7 +84,7 @@ def odlyzko_bound_totallyreal(n):
         dB = 33.9508
     return dB
 
-def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False):
+def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False, keep_fields=False):
     r"""
     This function enumerates (primitive) totally real fields of
     degree $n>1$ with discriminant $d \leq B$; optionally one can
@@ -96,6 +96,8 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     verbose is a string, then print verbosely to the file specified by verbose.
     If return_seqs, then return the polynomials as sequences (for easier
     exporting to a file).
+    If keep_fields, then keep fields up to B*log(B); if keep_fields is
+    an integer, then keep fields up to that integer.
 
     NOTE:
     This is guaranteed to give all primitive such fields, and
@@ -190,6 +192,12 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
 
+    if keep_fields:
+        if type(keep_fields) == bool:
+            keepB = int(math.floor(B*math.log(B)))
+        else:
+            keepB = keep_fields
+
     # Trivial case
     if n == 1:
         if return_seqs:
@@ -224,7 +232,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
                     counts[2] += 1
                     [zk,d] = nf.nfbasis_d()
 
-                    if d <= B:
+                    if d <= B or (keep_fields and d <= keepB):
                         if verbose:
                             print "has discriminant", d,
 

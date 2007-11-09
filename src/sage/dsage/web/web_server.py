@@ -103,19 +103,14 @@ class Toplevel(resource.Resource):
     def render(self, ctx):
         return static.File(INDEX)
 
-class GetHelp(resource.Resource):
+class GetHelp(resource.PostableResource):
     """
     Returns the help page.
 
     """
 
-    html = """
-    This is the help page.
-
-    """
-
     def render(self, request):
-        return http.Response(stream=self.html)
+        return static.File(os.path.join(STATIC, 'README.html'))
 
 class GetJobs(resource.PostableResource):
     """

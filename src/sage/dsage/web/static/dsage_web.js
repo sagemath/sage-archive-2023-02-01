@@ -1,7 +1,8 @@
 var count = 10; // Default count
 
 function getServerDetails () {
-    $('#server_details').load('get_server_details');
+    $('#server_details').load('get_server_details', function() {
+                                    $("#server_details").tablesorter(); });
     showServer()
 }
 

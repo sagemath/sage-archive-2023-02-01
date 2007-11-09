@@ -528,16 +528,14 @@ class DSageServer(pb.Root):
         doc = xml.dom.minidom.Document()
         doc, gauge = create_gauge(doc)
 
-        add_totalAgentCount(doc, gauge)
         add_onlineAgentCount(doc, gauge)
         add_offlineAgentCount(doc, gauge)
         add_availableAgentCount(doc, gauge)
         add_unavailableAgentCount(doc, gauge)
+        add_totalAgentCount(doc, gauge)
         add_workingAgentCount(doc, gauge)
         add_workingAgentPercentage(doc, gauge)
-
         add_onlineProcessorCount(doc, gauge)
-        add_offlineAgentCount(doc, gauge)
         add_availableProcessorCount(doc, gauge)
         add_unavailableProcessorCount(doc, gauge)
         add_workingProcessorCount(doc, gauge)

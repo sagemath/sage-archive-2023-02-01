@@ -236,7 +236,7 @@ def main(options):
     # Run the web server
     from twisted.web2 import server, http, resource, channel, static
     from sage.dsage.web.web_server import Toplevel, GetJobDetails
-    top_level = Toplevel(dsage_server)
+    top_level = Toplevel(dsage_server, SERVER_PORT)
     # top_level.putChild(GetJobDetails(dsage_server))
     site = server.Site(top_level)
     web_server_port = find_open_port()

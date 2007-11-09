@@ -20,6 +20,7 @@
 import os
 import sqlite3
 from cStringIO import StringIO
+import socket
 
 from twisted.web2 import http, resource
 from twisted.web2 import static, http_headers, responsecode
@@ -79,8 +80,9 @@ def create_jobs_table(jdicts):
 class Toplevel(resource.Resource):
     addSlash = True
 
-    def __init__(self, dsage_server):
+    def __init__(self, dsage_server, server_port):
         self.dsage_server = dsage_server
+        self.server_port = server_port
 
     def child_static(self, ctx):
         return static.File(STATIC)
@@ -101,7 +103,9 @@ class Toplevel(resource.Resource):
         return static.File(TMP_WORKER_FILES)
 
     def render(self, ctx):
-        return static.File(INDEX)
+        index = open(INDEX).read() % (socket.getfqdn(), self.server_port)
+        # return static.File(StringIO(index))
+        return http.Response(stream=index)
 
 class GetHelp(resource.PostableResource):
     """
@@ -232,33 +236,49 @@ class GetServerDetails(resource.PostableResource):
                                            dump,
                                            XML)
 
+        mapping = {'onlineAgentCount': 'Online Workers',
+                   'offlineAgentCount': 'Offline Workers',
+                   'totalAgentCount': 'Total Workers',
+                   'onlineProcessorCount': 'Online CPUs',
+                   'workingProcessorCount': 'Working CPUs',
+                   'workingAgentPercentage': 'Working %'}
         # html = """
-        #     <thead>
-        #         <th>Server</th>
-        #         <th>Workers Online</th>
-        #         <th>Workers Offline</th>
-        #         <th>Total Workers</th>
-        #         <th>Working MHz</th>
-        #         <th>Total MHz</th>
-        #     </thead>
-        #     <tbody>
-        #     <tr>
-        #         <td></td>
-        #         <td></td>
-        #         <td></td>
-        #     </tr>
-        #     </tbody>
+        # <thead>
+        # <tr>
+        #    <th>Online Workers</th>
+        #    <th>Offline Workers</th>
+        #    <th>Total Workers</th>
+        #    <th>Online Processors</th>
+        #    <th>Working Processors</th>
+        #    <th>Working MHz</th>
+        #    <th>Percent Working</th>
+        # </tr>
+        # </thead>
+        # <tbody>
         # """
-
-        html = """
-        """
-
+        #
+        html = """"""
         # build StringIO object
         tree = ET()
         tree.parse(StringIO(stats_xml))
         root = tree.getroot()
-        for elem in root.getchildren():
-            html += '%s: %s <br>' % (elem.tag, elem.text)
+        for i, elem in enumerate(root.getchildren()):
+            if elem.tag in ('onlineAgentCount',
+                            'offlineAgentCount',
+                            'totalAgentCount',
+                            'onlineProcessorCount',
+                            'workingProcessorCount',
+                            'workingAgentPercentage'):
+                html += """
+                <tr>
+                    <td id='key'>%s</td>
+                    <td>%s</td>
+                </tr>
+                """ % (mapping[elem.tag], elem.text)
+
+        # html += """
+        # </tbody>
+        # """
 
         return html
 

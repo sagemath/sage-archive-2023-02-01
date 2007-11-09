@@ -51,6 +51,10 @@ body {
     text-align: center;
 }
 
+#server_details {
+    text-align: center;
+}
+
 /* begin css tabs */
 ul#tabnav {
     text-align: left; /* set to left, right or center */

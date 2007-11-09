@@ -19,6 +19,7 @@
 
 import os
 import sqlite3
+from cStringIO import StringIO
 
 from twisted.web2 import http, resource
 from twisted.web2 import static, http_headers, responsecode
@@ -152,7 +153,6 @@ class GetJobs(resource.PostableResource):
                                            SubElement,
                                            dump,
                                            XML)
-        from cStringIO import StringIO
         root = Element('jobs')
 
         for jdict in jdicts:
@@ -231,23 +231,39 @@ class GetServerDetails(resource.PostableResource):
 
         """
 
+        from xml.etree.ElementTree import (ElementTree as ET,
+                                           Element,
+                                           SubElement,
+                                           dump,
+                                           XML)
+
+        # html = """
+        #     <thead>
+        #         <th>Server</th>
+        #         <th>Workers Online</th>
+        #         <th>Workers Offline</th>
+        #         <th>Total Workers</th>
+        #         <th>Working MHz</th>
+        #         <th>Total MHz</th>
+        #     </thead>
+        #     <tbody>
+        #     <tr>
+        #         <td></td>
+        #         <td></td>
+        #         <td></td>
+        #     </tr>
+        #     </tbody>
+        # """
+
         html = """
-            <thead>
-                <th>Server</th>
-                <th>Workers Online</th>
-                <th>Workers Offline</th>
-                <th>Total Workers</th>
-                <th>Working MHz</th>
-                <th>Total MHz</th>
-            </thead>
-            <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            </tbody>
         """
+
+        # build StringIO object
+        tree = ET()
+        tree.parse(StringIO(stats_xml))
+        root = tree.getroot()
+        for elem in root.getchildren():
+            html += '%s: %s <br>' % (elem.tag, elem.text)
 
         return html
 

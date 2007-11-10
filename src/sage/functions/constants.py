@@ -1031,7 +1031,7 @@ class Brun(Constant):
     Brun's constant is the sum of reciprocals of odd twin primes.
 
     It is not known to very high precision; calculating the number
-    using twin primes up to $10^16$ (Sebah 2002) gives the number
+    using twin primes up to $10^{16}$ (Sebah 2002) gives the number
     $1.9021605831040$.
 
     EXAMPLES:

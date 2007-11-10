@@ -257,7 +257,12 @@ class GetServerDetails(resource.PostableResource):
         # <tbody>
         # """
         #
-        html = """"""
+        html = """
+        <thead>
+        <tr>
+        <th>Stat</th>
+        <th>Value</th>
+        <tbody>"""
         # build StringIO object
         tree = ET()
         tree.parse(StringIO(stats_xml))
@@ -271,14 +276,14 @@ class GetServerDetails(resource.PostableResource):
                             'workingAgentPercentage'):
                 html += """
                 <tr>
-                    <td id='key'>%s</td>
+                    <td>%s</td>
                     <td>%s</td>
                 </tr>
                 """ % (mapping[elem.tag], elem.text)
 
-        # html += """
-        # </tbody>
-        # """
+        html += """
+        </tbody>
+        """
 
         return html
 

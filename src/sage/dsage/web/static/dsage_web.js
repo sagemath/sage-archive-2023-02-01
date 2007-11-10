@@ -99,12 +99,14 @@ $(document).ready(function()
         // Initialize history plugin.
 		// The callback is called at once by present location.hash.
 		$.historyInit(pageload);
-		console.log('historyInit')
 		// set onlick event for buttons
 		$("a[@rel='history']").click(function() {gethash(this); });
-		console.log('setonclick')
         getJobs(count) // Run it the first time
-        // showJobs() // Show jobs
+
+        // Only show jobs if this.href is none or jobs
+        if (this.href == '' || this.href == '#jobs') {
+            showJobs()
+        }
         // setInterval('getJobs(count)', 5000); // Update it every 5 seconds.
     }
 );

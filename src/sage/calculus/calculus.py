@@ -892,7 +892,7 @@ class SymbolicExpression(RingElement):
             sage: (a+b+a*b).absolute_minpoly()
             x^4 - 22*x^2 - 48*x - 23
 
-        Works with trig funcitons too.
+        Works with trig functions too.
             sage: sin(pi/3).minpoly()
             x^2 - 3/4
 

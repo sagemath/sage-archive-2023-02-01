@@ -461,7 +461,7 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX r = self._new()
         self.c.restore_c()
-        zz_pX_lshift(r.x, self.x, n)
+        zz_pX_LeftShift(r.x, self.x, n)
         return r
 
     def __rshift__(ntl_zz_pX self, long n):
@@ -475,7 +475,7 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX r = self._new()
         self.c.restore_c()
-        zz_pX_rshift(r.x, self.x, n)
+        zz_pX_RightShift(r.x, self.x, n)
         return r
 
     def diff(self):
@@ -518,7 +518,7 @@ cdef class ntl_zz_pX:
         y = self._new()
         self.c.restore_c()
         _sig_on
-        zz_pX_neg(y.x, self.x)
+        zz_pX_negate(y.x, self.x)
         _sig_off
         return y
 

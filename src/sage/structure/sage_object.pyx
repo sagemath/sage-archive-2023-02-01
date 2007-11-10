@@ -127,9 +127,9 @@ cdef class SageObject:
         Save self to the given filename.
 
         EXAMPLES:
-            sage.: f = x^3 + 5
-            sage.: f.save('file')
-            sage.: load('file')
+            sage: f = x^3 + 5
+            sage: f.save(SAGE_TMP + '/file')
+            sage: load(SAGE_TMP + '/file.sobj')
             x^3 + 5
         """
         if filename is None:
@@ -403,7 +403,9 @@ def load(filename, compress=True, verbose=True):
 
     NOTE: There is also a special SAGE command (that is not
     available in Python) called load that you use by typing
-                sage.: load filename.sage
+
+                sage: load filename.sage           # not tested
+
     The documentation below is not for that command.  The documentation
     for load is almost identical to that for attach.  Type attach? for
     help on attach.

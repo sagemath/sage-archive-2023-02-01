@@ -58,7 +58,7 @@ We make a sparse power series.
 We make a sparse Laurent series from a power series generator:
     sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
     sage: latex(-2/3*(1/t^3) + 1/t + 3/5*t^2 + O(t^5))
-    \frac{-\frac{2}{3}}{t^{3}} + \frac{1}{t} + \frac{3}{5}t^{2} + O(\text{t}^{5})
+    \frac{-\frac{2}{3}}{t^{3}} + \frac{1}{t} + \frac{3}{5}t^{2} + O(t^{5})
     sage: S = parent(1/t); S
     Sparse Laurent Series Ring in t over Rational Field
 
@@ -278,10 +278,11 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R = GF(17)[['y']]
             sage: latex(R)
             \mathbf{F}_{17}[[y]]
-            sage.: view(R)            # display typeset form
+            sage: R = GF(17)[['y12']]
+            sage: latex(R)
+            \mathbf{F}_{17}[[y_{12}]]
         """
-
-        return "%s[[%s]]"%(latex.latex(self.base_ring()), self.variable_name())
+        return "%s[[%s]]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
 
     def __call__(self, f, prec=infinity, check=True):
         """

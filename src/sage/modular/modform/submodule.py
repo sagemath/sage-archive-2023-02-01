@@ -8,8 +8,6 @@ EXAMPLES:
     Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
     sage: M.cuspidal_subspace()
     Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
-    sage: M.new_subspace()
-    Modular Forms subspace of dimension 13 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
 """
 
 #########################################################################

@@ -33,7 +33,7 @@ substitutes = [('\\item', '*'), \
                ('\\rm', ''), \
                ('cdots', '...'), \
                ('\\cdot', ' *'), \
-               ('$',''), ('\\',''), ('sage.:', 'sage:'), ('backslash','\\'), \
+               ('$',''), ('\\',''), ('backslash','\\'), \
                ('begin{enumerate}',''), ('end{enumerate}',''), \
                ('begin{itemize}',''), ('end{itemize}',''), \
                ('begin{verbatim}',''), ('end{verbatim}',''), \
@@ -79,6 +79,19 @@ def _rmcmd(s, cmd, left='', right=''):
 ##             + right + s[m.end():]
 ##     return s
 
+def detex(s):
+    s = _rmcmd(s, 'url')
+    s = _rmcmd(s, 'code')
+    s = _rmcmd(s, 'mbox')
+    s = _rmcmd(s, 'text')
+    s = _rmcmd(s, 'section')
+    s = _rmcmd(s, 'subsection')
+    s = _rmcmd(s, 'subsubsection')
+    s = _rmcmd(s, 'note', 'NOTE: ', '')
+    s = _rmcmd(s, 'emph', '*', '*')
+    for a,b in substitutes:
+        s = s.replace(a,b)
+    return s
 
 def format(s):
     """
@@ -86,6 +99,17 @@ def format(s):
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
+
+    # parse directives at beginning of docstring
+    # currently, only 'nodetex' is supported
+    # eventually, 'nodoctest' might be supported
+    first_newline = s.find('\n')
+    if first_newline > -1:
+        first_line = s[:first_newline]
+    else:
+        first_line = s
+    directives = [ d.lower() for d in first_line.split(',') ]
+
     import sage.all
     import sage.server.support
     docs = set([])
@@ -105,17 +129,8 @@ def format(s):
             docs.add(obj)
         s = s[:i] + '\n' + t + s[i+6+j:]
 
-    s = _rmcmd(s, 'url')
-    s = _rmcmd(s, 'code')
-    s = _rmcmd(s, 'mbox')
-    s = _rmcmd(s, 'text')
-    s = _rmcmd(s, 'section')
-    s = _rmcmd(s, 'subsection')
-    s = _rmcmd(s, 'subsubsection')
-    s = _rmcmd(s, 'note', 'NOTE: ', '')
-    s = _rmcmd(s, 'emph', '*', '*')
-    for a,b in substitutes:
-        s = s.replace(a,b)
+    if 'nodetex' not in directives:
+        s = detex(s)
     return s
 
 def format_src(s):

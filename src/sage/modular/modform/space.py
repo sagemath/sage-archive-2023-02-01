@@ -151,7 +151,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M = ModularForms(DirichletGroup(13).0^2)
             sage: M.set_precision(10)
             sage: M.cuspidal_subspace().0
-            q + (-zeta6 - 1)*q^2 + (2*zeta6 - 2)*q^3 + zeta6*q^4 + (-2*zeta6 + 1)*q^5 + (-2*zeta6 + 4)*q^6 + (2*zeta6 - 1)*q^8 + -zeta6*q^9 + O(q^10)
+            q + (-zeta6 - 1)*q^2 + (2*zeta6 - 2)*q^3 + zeta6*q^4 + (-2*zeta6 + 1)*q^5 + (-2*zeta6 + 4)*q^6 + (2*zeta6 - 1)*q^8 - zeta6*q^9 + O(q^10)
         """
         self.ambient().set_precision(new_prec)
 
@@ -974,6 +974,21 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         Synonym for cuspidal_submodule.
         """
         return self.cuspidal_submodule()
+
+    def new_submodule(self, p=None):
+        """
+         Return the new submodule of self. If p is specified, return the
+         p-new submodule of self.
+
+         NOTE: This function should be overridden by all derived classes.
+
+         EXAMPLES:
+             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_submodule()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: computation of new submodule not yet implemented
+         """
+        raise NotImplementedError, "computation of new submodule not yet implemented"
 
     def new_subspace(self, p=None):
         """

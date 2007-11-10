@@ -24,7 +24,10 @@ AUTHORS:
 include "../ext/stdsage.pxi"
 include "../ext/python_bool.pxi"
 
+import re
+
 from sage.structure.parent_gens cimport ParentWithGens
+from sage.structure.parent cimport Parent
 from random import randint, randrange
 
 cdef class Ring(ParentWithGens):
@@ -50,6 +53,9 @@ cdef class Ring(ParentWithGens):
         Create a polynomial or power series ring over self and inject
         the variables into the global module scope.
 
+        If x is an algebraic element, this will return an extension of self
+        that contains x.
+
         EXAMPLES:
         We create several polynomial rings.
             sage: ZZ['x']
@@ -72,12 +78,68 @@ cdef class Ring(ParentWithGens):
             sage: Frac(QQ[['t']])
             Laurent Series Ring in t over Rational Field
 
+        This can be used to create number fields too:
+            sage: QQ[I]
+            Number Field in I with defining polynomial x^2 + 1
+            sage: QQ[sqrt(2)]
+            Number Field in sqrt2 with defining polynomial x^2 - 2
+            sage: QQ[sqrt(2),sqrt(3)]
+            Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+
+
+        and orders in number fields:
+            sage: ZZ[I]
+            Order in Number Field in I with defining polynomial x^2 + 1
+            sage: ZZ[sqrt(5)]
+            Order in Number Field in sqrt5 with defining polynomial x^2 - 5
+            sage: ZZ[sqrt(2)+sqrt(3)]
+            Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
         """
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(x):
             x = str(x)
 
+        if not isinstance(x, str):
+            if isinstance(x, tuple):
+                v = x
+            else:
+                v = (x,)
+
+            minpolys = None
+            try:
+                minpolys = [a.minpoly() for a in v]
+            except (AttributeError, NotImplementedError, ValueError, TypeError), err:
+                pass
+
+            if minpolys:
+                R = self
+                # how to pass in names?
+                # TODO: set up embeddings
+                name_chr = 97 # a
+
+                if len(minpolys) > 1:
+                    w = []
+                    names = []
+                    for poly, var in zip(minpolys, v):
+                        w.append(poly)
+                        n, name_chr = gen_name(repr(var), name_chr)
+                        names.append(n)
+                else:
+                    w = minpolys
+                    name, name_chr = gen_name(repr(v[0]), name_chr)
+                    names = [name]
+
+                names = tuple(names)
+                if len(w) > 1:
+                    try:
+                        # Doing the extension all at once is best, if possible.
+                        return R.extension(w, names)
+                    except (TypeError, ValueError):
+                        pass
+                for poly, var in zip(w, names):
+                    R = R.extension(poly, var)
+                return R
 
         if not isinstance(x, list):
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
@@ -91,6 +153,8 @@ cdef class Ring(ParentWithGens):
             x = (str(x[0]), )
             from sage.rings.power_series_ring import PowerSeriesRing
             P = PowerSeriesRing
+
+        # TODO: is this code ever used? Should it be?
 
         elif isinstance(x, (tuple, str)):
             from sage.rings.polynomial.polynomial_ring import PolynomialRing
@@ -726,6 +790,26 @@ cdef class CommutativeRing(Ring):
         """
         return self.quotient(I, names=names)
 
+    def extension(self, poly, name=None):
+        """
+        Algebraically extends self by taking the quotient self[x] / (f(x)).
+
+        INPUT:
+            poly -- A polynomial whose coefficients are coercable into self
+            name -- (optional) name for the root of f
+
+        EXAMPLES:
+            sage: R = QQ['x']
+            sage: y = polygen(R)
+            sage: R.extension(y^2-5, 'a')
+            Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
+        """
+        if name is None:
+            name = str(poly.parent().gen(0))
+        R = self[str(name)]
+        I = R.ideal(R(poly.list()))
+        return R.quotient(I, name)
+
     def __div__(self, I):
         """
         Dividing one ring by another is not supported because there is
@@ -1055,6 +1139,29 @@ cdef class FiniteField(Field):
         """
         raise NotImplementedError
 
+    def __repr__(self):
+        """
+            sage: k = GF(127)
+            sage: k # indirect doctest
+            Finite Field of size 127
+
+            sage: k.<b> = GF(2^8)
+            sage: k
+            Finite Field in b of size 2^8
+
+            sage: k.<c> = GF(2^20)
+            sage: k
+            Finite Field in c of size 2^20
+
+            sage: k.<d> = GF(7^20)
+            sage: k
+            Finite Field in d of size 7^20
+        """
+        if self.degree()>1:
+            return "Finite Field in %s of size %s^%s"%(self.variable_name(),self.characteristic(),self.degree())
+        else:
+            return "Finite Field of size %s"%(self.characteristic())
+
     def _latex_(self):
         r"""
         EXAMPLES:
@@ -1097,7 +1204,7 @@ cdef class FiniteField(Field):
         p = self.polynomial()
         return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
-    def __cmp__(self, other):
+    cdef int _cmp_c_impl(left, Parent right) except -2:
         """
         Compares this finite field with other.
 
@@ -1114,65 +1221,18 @@ cdef class FiniteField(Field):
             sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
             False
         """
-        if self is other: return 0
-        if not isinstance(other, FiniteField):
-            return -1
-        c = cmp(self.characteristic(), other.characteristic())
-        if c:
-            return c
-        c = cmp(self.order(), other.order())
-        if c:
-            return c
-        c = cmp(self.order(), other.order())
-        if c:
-            return c
-        if self.degree() == 1:
-            return 0
-        return cmp(self.polynomial('x'), other.polynomial('x'))
-
-##     def __getstate__(self):
-##         d = []
-##         try:
-##             d = d + list(self.__dict__.iteritems())
-##         except AttributeError:
-##             pass
-##         d = d + list(Field.__getstate__(self).iteritems())
-##         d = dict(d)
-##         #d['__multiplicative_generator'] = self.__multiplicative_generator
-##         #d['__polynomial_ring'] = self.__polynomial_ring
-##         #d['__vector_space'] = self.__vector_space
-##         return d
-
-##     def __setstate__(self,d):
-##         try:
-##             self.__dict__ = d
-##         except AttributeError:
-##             pass
-##         Field.__setstate__(self,d)
-##         self.__multiplicative_generator = d['__multiplicative_generator']
-##         self.__polynomial_ring = d['__polynomial_ring']
-##         self.__vector_space = d['__vector_space']
-
-##     def __getitem__(self, n):
-##         """
-##         Returns $n$-th element of the field.  The ordering is
-##         not randomized (though it could conceivably change from
-##         one version of SAGE to another).
-
-##         EXAMPLES:
-##             sage: k = GF(8, 'a')
-##             sage: k[0]
-##             0
-##             sage: k[1]
-##             1
-##             sage: k[7]
-##             a^2 + a + 1
-##         """
-##         if n < 0 or n >= self.order():
-##             raise IndexError, "n (=%s) must be between 0 and the order %s of the field."%(\
-##                 n, self.order())
-##         V = self.vector_space()
-##         return self(V[n])
+        if not PY_TYPE_CHECK(right, FiniteField):
+            return cmp(type(left), type(right))
+        c = cmp(left.characteristic(), right.characteristic())
+        if c: return c
+        c = cmp(left.degree(), right.degree())
+        if c: return c
+        # TODO comparing the polynomials themselves would recursively call
+        # this cmp...  Also, as mentioned above, we will get rid of this.
+        if left.degree() > 1:
+            c = cmp(str(left.polynomial()), str(right.polynomial()))
+            if c: return c
+        return 0
 
     def __iter__(self):
         """
@@ -1373,6 +1433,32 @@ cdef class FiniteField(Field):
         """
         return self.order()
 
+    def __len__(self):
+        """
+        len(k) returns the cardlinality of k, i.e., the number of elements in k.
+        """
+        return self.order()
+
+    def is_prime_field(self):
+        """
+        Return True if self is a prime field, i.e., has degree 1.
+
+        EXAMPLES:
+            sage: GF(3^7, 'a').is_prime_field()
+            False
+            sage: GF(3, 'a').is_prime_field()
+            True
+        """
+        return self.degree()==1
+
+    def modulus(self):
+        r"""
+        Return the minimal polynomial of the generator of self in
+        \code{self.polynomial_ring('x')}.
+
+        """
+        return self.polynomial_ring("x")(self.polynomial().list())
+
     def unit_group_exponent(self):
         """
         The exponent of the unit group of the finite field.  For a
@@ -1396,8 +1482,8 @@ cdef class FiniteField(Field):
             bound -- ignored
 
         EXAMPLES:
-            sage.: k = GF(2^10, 'a')
-            sage.: k.random_element()
+            sage: k = GF(2^10, 'a')
+            sage: k.random_element()
             a^9 + a
         """
         if self.degree() == 1:
@@ -1417,7 +1503,7 @@ cdef class FiniteField(Field):
         """
         raise NotImplementedError
 
-    def polynomial_ring(self):
+    def polynomial_ring(self, variable_name=None):
         """
         Returns the polynomial ring over the prime subfield in the
         same variable as this finite field.
@@ -1427,15 +1513,17 @@ cdef class FiniteField(Field):
             sage: k.polynomial_ring()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.finite_field import GF
 
-        if self.__polynomial_ring is not None:
+        if variable_name is None and self.__polynomial_ring is not None:
             return self.__polynomial_ring
         else:
-            self.__polynomial_ring = PolynomialRing(
-                GF(self.characteristic()), self.variable_name())
-            return self.__polynomial_ring
+            if variable_name is None:
+                self.__polynomial_ring = PolynomialRing(GF(self.characteristic()), self.variable_name())
+                return self.__polynomial_ring
+            else:
+                return PolynomialRing(GF(self.characteristic()), variable_name)
 
     def vector_space(self):
         """
@@ -1453,6 +1541,33 @@ cdef class FiniteField(Field):
             V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
             self.__vector_space = V
             return V
+
+    def __reduce__(self):
+        """
+            sage: A = FiniteField(127)
+            sage: A == loads(dumps(A)) # indirect doctest
+            True
+            sage: B = FiniteField(3^3,'b')
+            sage: B == loads(dumps(B))
+            True
+            sage: C = FiniteField(2^16,'c')
+            sage: C == loads(dumps(C))
+            True
+            sage: D = FiniteField(3^20,'d')
+            sage: D== loads(dumps(D))
+            True
+        """
+        if self.degree() > 1:
+            return (unpickle_FiniteField_ext, (type(self), self.order(), self.variable_name(), map(int, list(self.modulus())),self._kwargs))
+        else:
+            return (unpickle_FiniteField_prm, (type(self), self.order(), self.variable_name(), self._kwargs))
+
+def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
+    return _type(order, variable_name, modulus, **kwargs)
+
+def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
+    return _type(order, variable_name, **kwargs)
+
 
 def is_FiniteField(x):
     """
@@ -1516,4 +1631,21 @@ def is_Ring(x):
     """
     return isinstance(x, Ring)
 
+
+from sage.structure.parent_gens import _certify_names
+
+def gen_name(x, name_chr):
+    from sage.calculus.all import is_SymbolicVariable
+    if is_SymbolicVariable(x):
+        return repr(x), name_chr
+    name = str(x)
+    m = re.match('^sqrt\((\d+)\)$', name)
+    if m:
+        name = "sqrt%s" % m.groups()[0]
+    try:
+        _certify_names([name])
+    except ValueError, msg:
+        name = chr(name_chr)
+        name_chr += 1
+    return name, name_chr
 

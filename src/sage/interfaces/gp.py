@@ -52,8 +52,31 @@ of integrals.
 
 Note that gp ASCII plots \emph{do} work in SAGE, as follows:
 
-    sage.: print gp.eval("plot(x=0,6,sin(x))")
-    [ plot of sin(x) ]
+    sage: print gp.eval("plot(x=0,6,sin(x))")
+    <BLANKLINE>
+    0.9988963 |''''''''''''_x"...x_''''''''''''''''''''''''''''''''''''''''''|
+              |          x"        "x                                        |
+              |        _"            "_                                      |
+              |       x                x                                     |
+              |      "                  "                                    |
+              |     "                    "                                   |
+              |   _"                      "_                                 |
+              |  _                          _                                |
+              | _                            _                               |
+              |_                              _                              |
+              _,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+              |                                "                             |
+              |                                 "                            |
+              |                                  "                           |
+              |                                   "                          "
+              |                                    "_                      _"|
+              |                                      _                    _  |
+              |                                       _                  _   |
+              |                                        x                x    |
+              |                                         "_            _"     |
+              |                                           x_        _x       |
+    -0.998955 |............................................."x____x".........|
+              0                                                              6
 
 The GP interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.
@@ -181,7 +204,9 @@ class Gp(Expect):
                               wait_for_prompt=wait_for_prompt)
         if a.find("the PARI stack overflows") != -1:
             verbose("automatically doubling the PARI stack and re-executing current input line")
-            self.eval("allocatemem()")
+            b = self.eval("allocatemem()")
+            if b.find("Warning: not enough memory") != -1:
+                raise RuntimeError, a
             return self._eval_line(line)
         else:
             return a
@@ -235,6 +260,21 @@ class Gp(Expect):
                 self.__var_store_len *= 2
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
+
+    def quit(self, verbose=False, timeout=0.25):
+        """
+        EXAMPLES:
+            sage: a = gp('10'); a
+            10
+            sage: gp.quit()
+            sage: a
+            (invalid object -- defined in terms of closed session)
+            sage: gp(pi)
+            3.1415926535897932384626433832795028842    # 64-bit
+            3.141592653589793238462643383              # 32-bit
+        """
+        self.__var_store_len = 0
+        Expect.quit(self, verbose=verbose, timeout=timeout)
 
     def console(self):
         gp_console()
@@ -325,7 +365,7 @@ class GpElement(ExpectElement):
             sage: CC(gp(11243.9812+15*I))
              11243.9812000000 + 15.0000000000000*I
             sage: ComplexField(10)(gp(11243.9812+15*I))
-             1.1e4 + 15*I
+             1.1e4 + 15.*I
         """
         GP = self.parent()
         orig = GP.get_real_precision()

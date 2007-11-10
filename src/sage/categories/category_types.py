@@ -293,8 +293,8 @@ class GSets(uniq1, Category):
 
     EXAMPLES:
         sage: S = SymmetricGroup(3)
-        sage.: GSets(S)
-        Category of G-sets for Symmetric group of order 3! as a permutation group
+        sage: GSets(S)
+        Category of G-sets for SymmetricGroup(3)
     """
     def __init__(self, G):
         Category.__init__(self, "G-sets")
@@ -307,8 +307,8 @@ class GSets(uniq1, Category):
         """
         EXAMPLES:
             sage: S8 = SymmetricGroup(8)
-            sage.: C = GSets(S8)
-            sage.: loads(C.dumps()) == C
+            sage: C = GSets(S8)
+            sage: loads(C.dumps()) == C
             True
         """
         return GSets, (self.__G, )

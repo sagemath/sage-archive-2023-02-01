@@ -93,7 +93,7 @@ def integral(f, *args, **kwds):
     We define the Gaussian, plot and integrate it numerically and symbolically:
         sage: f(x) = 1/(sqrt(2*pi)) * e^(-x^2/2)
         sage: P = plot(f, -4, 4, hue=0.8, thickness=2)
-        sage: P.save('sage.png', ymin=0, ymax=0.4)
+        sage: P.show(ymin=0, ymax=0.4)
         sage: numerical_integral(f, -4, 4)                    # random output
         (0.99993665751633376, 1.1101527003413533e-14)
         sage: integrate(f, x)
@@ -164,17 +164,19 @@ def integral(f, *args, **kwds):
         sage: g = integral(f, x)
         sage: h = f - diff(g, x)
 
-    Numerically h is 0, but the symbolic equality checker
-    unfortunately can't tell for sure:
         sage: [float(h(i)) for i in range(5)]     # random low-order bits
         [0.0, -1.1102230246251565e-16, -8.3266726846886741e-17, -4.163336342344337e-17, -6.9388939039072284e-17]
         sage: bool(h == 0)
-        False
+        True
     """
     try:
         return f.integral(*args, **kwds)
+    except ValueError, err:
+        raise err
     except AttributeError:
         pass
+
+
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
     return f.integral(*args, **kwds)

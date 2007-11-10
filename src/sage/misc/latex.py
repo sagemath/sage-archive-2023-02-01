@@ -130,7 +130,7 @@ def latex(x):
 #########################################
 
 class Latex:
-    r"""
+    r"""nodetex
     Enter, e.g.,
     \begin{verbatim}
         %latex
@@ -604,7 +604,6 @@ common_varnames = ['alpha',
                    'omega',
                    'Omega']
 
-
 def latex_varify(a):
     if a in common_varnames:
         return "\\" + a
@@ -614,18 +613,69 @@ def latex_varify(a):
         return '\\mbox{%s}'%a
 
 def latex_variable_name(x):
-    """
+    r"""
     Return latex version of a variable name.
 
-    The rule is this:
-        x393 --> x_{393}
-    I.e., always replace the last numeric part by _{number}.
+    Here are some guiding principles for usage of this function:
+    1)  If the variable is a single letter, that is the latex version.
+    2)  If the variable name is suffixed by a number, we put the number in the subscript.
+    3)  If the variable name contains an '_' we start the subscript at the underscore.
+        Note that \#3 trumps rule \#2.
+    4)  If a component of the variable is a greek letter, escape it properly.
+    5)  Recurse nicely with subscripts.
+
+    Refer to the examples section for how these rules might play out in practice.
+
+    EXAMPLES:
+        sage: import sage.misc.latex as latex_module
+        sage: latex_variable_name = latex_module.latex_variable_name
+        sage: latex_variable_name('a')
+        'a'
+        sage: latex_variable_name('abc')
+        '\\mbox{abc}'
+        sage: latex_variable_name('sigma')
+        '\\sigma'
+        sage: latex_variable_name('sigma_k')
+        '\\sigma_{k}'
+        sage: latex_variable_name('sigma389')
+        '\\sigma_{389}'
+        sage: latex_variable_name('beta_00')
+        '\\beta_{00}'
+        sage: latex_variable_name('Omega84')
+        '\\Omega_{84}'
+        sage: latex_variable_name('sigma_alpha')
+        '\\sigma_{\\alpha}'
+        sage: latex_variable_name('nothing1')
+        '\\mbox{nothing}_{1}'
+        sage: latex_variable_name('nothing_abc')
+        '\\mbox{nothing}_{\\mbox{abc}}'
+        sage: latex_variable_name('alpha_beta_gamma12')
+        '\\alpha_{\\beta_{\\gamma_{12}}}'
+
+    AUTHORS:
+        -- Joel B. Mohler -- drastic rewrite and many doc-tests
     """
-    import re
-    # * The "\d" means "decimal digit"
-    # * The "+" means "1 or more"
-    # * The "$" means "at the end of the line"
-    m = re.search('\d+$',x)
-    if m is None:
-        return x
-    return '%s_{%s}'%(latex_varify(x[:m.start()]), x[m.start():])
+    underscore = x.find("_")
+    if underscore == -1:
+        import re
+        # * The "\d|[.,]" means "decimal digit" or period or comma
+        # * The "+" means "1 or more"
+        # * The "$" means "at the end of the line"
+        m = re.search('(\d|[.,])+$',x)
+        if m is None:
+            prefix = x
+            suffix = None
+        else:
+            prefix = x[:m.start()]
+            suffix = x[m.start():]
+    else:
+        prefix = x[:underscore]
+        suffix = x[underscore+1:]
+    if suffix and len(suffix) > 0:
+        # handle the suffix specially because it very well might be numeric
+        # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)
+        if suffix.strip("1234567890")!="":
+            suffix = latex_variable_name(suffix) # recurse to deal with recursive subscripts
+        return '%s_{%s}'%(latex_varify(prefix), suffix)
+    else:
+        return latex_varify(prefix)

@@ -18,8 +18,12 @@ include '../modules/vector_modn_sparse_h.pxi'
 include '../modules/vector_modn_sparse_c.pxi'
 
 # mod_int isn't defined in stdio.h -- this is to fool SageX.
-cdef extern from "stdio.h":
-    ctypedef int mod_int
+# cdef extern from "stdio.h":
+#     ctypedef int mod_int
+cdef extern from "../ext/multi_modular.h":
+    ctypedef unsigned long mod_int
+    mod_int MOD_INT_OVERFLOW
+
 
 from matrix0 cimport Matrix
 from matrix_modn_dense cimport Matrix_modn_dense
@@ -74,6 +78,7 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
         L_row.num_nonzero = A_row.num_nonzero
         if L_row.entries == NULL:
             raise MemoryError, "error allocating space for sparse vector during sparse lift"
+        sage_free(L_row.positions)
         L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
         if L_row.positions == NULL:
             sage_free(L_row.entries)

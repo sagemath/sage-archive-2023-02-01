@@ -62,11 +62,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
          sparse -- bool (default: False), whether or not elements are sparse
          order -- string or TermOrder, e.g.,
                  'degrevlex' (default) -- degree reverse lexicographic
-                 'revlex' -- reverse lexicographic
                  'lex'  -- lexicographic
                  'deglex' -- degree lexicographic
-                 'wp(w1,...,wn)' -- weight reverse lexicographic
-                 'Wp(w1,...,wn)' -- weight lexicographic
+                 TermOrder('deglex',3) + TermOrder('deglex',3) -- block ordering
 
     OUTPUT:
         PolynomialRing(base_ring, name, sparse=False) returns a univariate
@@ -172,9 +170,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     There is a unique polynomial ring with each term order:
         sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex'); R
         Multivariate Polynomial Ring in x, y, z over Rational Field
-        sage: S = PolynomialRing(QQ, 'x,y,z', order='revlex'); S
+        sage: S = PolynomialRing(QQ, 'x,y,z', order='invlex'); S
         Multivariate Polynomial Ring in x, y, z over Rational Field
-        sage: S is PolynomialRing(QQ, 'x,y,z', order='revlex')
+        sage: S is PolynomialRing(QQ, 'x,y,z', order='invlex')
         True
         sage: R == S
         False

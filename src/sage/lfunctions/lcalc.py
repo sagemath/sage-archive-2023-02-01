@@ -182,6 +182,18 @@ class LCalc(SageObject):
             sage: I = CC.0
             sage: lcalc.values_along_line(0.5, 0.5+20*I, 5)
             [(0.500000000, -1.46035451), (0.500000000 + 4.00000000*I, 0.606783764 + 0.0911121400*I), (0.500000000 + 8.00000000*I, 1.24161511 + 0.360047588*I), (0.500000000 + 12.0000000*I, 1.01593665 - 0.745112472*I), (0.500000000 + 16.0000000*I, 0.938545408 + 1.21658782*I)]
+
+        Sometimes warnings are printed (by lcalc) when this command is run:
+            sage: E = EllipticCurve('389a')
+            sage: E.Lseries().values_along_line(0.5, 3, 5)
+            lcalc:  1.5 0 WARNING- we don't have enough Dirichlet coefficients.
+            lcalc:  Will use the maximum possible, though the output will not necessarily be accurate.
+            lcalc:  nan nan
+            [(0, 0.209951303),
+             (0.500000000, -2...e-16),
+             (1.00000000, 0.133768433),
+             (2.00000000, 0.552975867)]
+
         """
         L = self._compute_L(L)
         CC = sage.rings.all.ComplexField(prec)
@@ -191,8 +203,11 @@ class LCalc(SageObject):
             (s0.real(), s0.imag(), s1.real(), s1.imag(), int(number_samples), L)))
         w = []
         for a in v.split('\n'):
-            x0,y0,x1,y1 = a.split()
-            w.append((CC(x0,y0), CC(x1,y1)))
+            try:
+                x0,y0,x1,y1 = a.split()
+                w.append((CC(x0,y0), CC(x1,y1)))
+            except ValueError:
+                print 'lcalc: ', a
         return w
 
     def twist_values(self, s, dmin, dmax, L=''):

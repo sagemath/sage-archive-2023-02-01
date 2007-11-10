@@ -2254,12 +2254,16 @@ def root_bounds(p):
         (-99.9949998749937, 141.414284992713)
         sage: root_bounds(x^995 * (x^2 - 9999) + 1)
         (-141.414284992712, 99.9949998749938)
+
+    If we can see that the polynomial has no real roots, return None.
+        sage: root_bounds(x^2 + 1) is None
+        True
     """
     n = p.degree()
     if p[n] < 0: p = -p
     cl = [RIF(x) for x in p.list()]
 
-    zero_roots = 0
+    cdef int zero_roots = 0
     while cl[0] == 0:
         cl.pop(0)
         zero_roots = zero_roots + 1
@@ -2274,6 +2278,12 @@ def root_bounds(p):
         neg_cl[j] = -neg_cl[j]
 
     lb = -cl_maximum_root(neg_cl)
+
+    if ub == 0 and lb == 0:
+        if zero_roots == 0:
+            return None
+        else:
+            return (lb, ub)
 
     if ub == 0 and zero_roots == 0:
         swap_neg_cl = copy(neg_cl)
@@ -2309,6 +2319,10 @@ def rational_root_bounds(p):
         (-100, 1000/7)
         sage: rational_root_bounds(x^995 * (x^2 - 9999) + 1)
         (-142, 213/2)
+
+    If we can see that the polynomial has no real roots, return None.
+        sage: rational_root_bounds(x^2 + 7) is None
+        True
     """
 
     # There are two stages to the root isolation process.  First,
@@ -2331,7 +2345,10 @@ def rational_root_bounds(p):
         return (QQ(-1), QQ(1))
 
     sqrtd = sqrt(RR(p.degree()))
-    (lb, ub) = root_bounds(p)
+    bounds = root_bounds(p)
+    if bounds is None:
+        return None
+    (lb, ub) = bounds
 
     if lb == ub:
         # The code below would give overly precise bounds in this case,
@@ -2881,7 +2898,7 @@ cdef class ocean:
 
     def __repr__(self):
         """
-        Return a short summary of this bernstein polynomial factory.
+        Return a short summary of this root isolator.
 
         EXAMPLES:
             sage: from sage.rings.polynomial.real_roots import *
@@ -2896,6 +2913,25 @@ cdef class ocean:
             isle = isle.rgap.risland
 
         return "ocean with precision %d and %d island(s)" % (self.prec, isle_count)
+
+    def _islands(self):
+        """
+        Return a list of the islands in this ocean (for debugging purposes).
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.real_roots import *
+            sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
+            sage: oc._islands()
+            [island of width 1.00000000000000]
+        """
+
+        islands = []
+        cdef island isle = self.lgap.risland
+        while isle is not self.endpoint:
+            islands.append(isle)
+            isle = isle.rgap.risland
+
+        return islands
 
     def approx_bp(self, scale_log2):
         """
@@ -2993,6 +3029,10 @@ cdef class ocean:
         while isle is not self.endpoint:
             if not isle.done(self.ctx):
                 return False
+            if not isle.has_root():
+                isle.lgap.risland = isle.rgap.risland
+                isle.rgap.risland.lgap = isle.lgap
+                isle.lgap.upper = isle.rgap.upper
             isle = isle.rgap.risland
         return True
 
@@ -3062,10 +3102,6 @@ cdef class ocean:
                 bp = bps[i]
                 isle = active_islands[i]
                 isle.bp = bp
-#                 try:
-#                     isle.refine_recurse(self.ctx, bp, [], [], True)
-#                 except PrecisionError:
-#                     pass
 
 cdef class island:
     """
@@ -3178,6 +3214,18 @@ cdef class island:
         lgap.risland = self
         rgap.lisland = self
 
+    def __repr__(self):
+        """
+        Return a short summary of this island.
+        """
+
+        return "island of width %s" % RR(self.bp.region_width())
+
+    def _info(self):
+        # A python accessor for the information in this island.
+        # For debugging purposes.
+        return (self.bp, self.ancestors, self.target_width, self.lgap, self.rgap, self.known_done)
+
     def shrink_bp(self, context ctx):
         """
         If the island's Bernstein polynomial covers a region much larger
@@ -3249,7 +3297,6 @@ cdef class island:
                     # No roots!  Make the island disappear.
                     self.lgap.risland = self.rgap.risland
                     self.rgap.risland.lgap = self.lgap
-                    self.rgap.replaced_by = self.lgap
                     self.lgap.upper = self.rgap.upper
                 else:
                     self.bp = bp
@@ -3333,7 +3380,6 @@ cdef class island:
                         # No roots!  Make the island disappear.
                         self.lgap.risland = self.rgap.risland
                         self.rgap.risland.lgap = self.lgap
-                        self.rgap.replaced_by = self.lgap
                         self.lgap.upper = self.rgap.upper
                         return
                     self.lgap.upper = p2.upper
@@ -3536,7 +3582,8 @@ cdef class island:
 
     def done(self, context ctx):
         """
-        Check to see if the island is known to contain exactly one root.
+        Check to see if the island is known to contain zero roots or
+        is known to contain one root.
         """
 
         if self.known_done:
@@ -3550,6 +3597,16 @@ cdef class island:
                 self.known_done = True
 
         return self.known_done
+
+    def has_root(self):
+        """
+        Assuming that the island is done (has either 0 or 1 roots),
+        reports whether the island has a root.
+        """
+
+        assert(self.known_done)
+
+        return bool(self.bp.max_variations)
 
 cdef class rr_gap:
     """
@@ -3565,7 +3622,6 @@ cdef class rr_gap:
         self.lower = lower
         self.upper = upper
         self.sign = sign
-        self.replaced_by = None
 
     def region(self):
         return (self.lower, self.upper)
@@ -3705,11 +3761,11 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: real_roots((x-1)*(x-2)*(x-3)*(x-5)*(x-8)*(x-13)*(x-21)*(x-34))
         [((11/16, 33/32), 1), ((11/8, 33/16), 1), ((11/4, 55/16), 1), ((77/16, 165/32), 1), ((11/2, 33/4), 1), ((11, 55/4), 1), ((165/8, 341/16), 1), ((22, 44), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1)
-        [((-120886537286091774329444377/1208925819614629174706176, -60443268541873225202027201/604462909807314587353088), 1), ((-29274496381311/9007199254740992, 419601125186091/2251799813685248), 1), ((2126658450145849453951061654415153249597/21267647932558653966460912964485513216, 4253316902721330018853696359533061621799/42535295865117307932921825928971026432), 1), ((1063329226287740282451317352558954186101/10633823966279326983230456482242756608, 531664614358685696701445201630854654353/5316911983139663491615228241121378304), 1)]
+        [((-29274496381311/9007199254740992, 419601125186091/2251799813685248), 1), ((2126658450145849453951061654415153249597/21267647932558653966460912964485513216, 4253316902721330018853696359533061621799/42535295865117307932921825928971026432), 1), ((1063329226287740282451317352558954186101/10633823966279326983230456482242756608, 531664614358685696701445201630854654353/5316911983139663491615228241121378304), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1, seed=42)
         [((-123196838480289/18014398509481984, 293964743458749/9007199254740992), 1), ((8307259573979551907841696381986376143/83076749736557242056487941267521536, 16614519150981033789137940378745325503/166153499473114484112975882535043072), 1), ((519203723562592617581015249797434335/5192296858534827628530496329220096, 60443268924081068060312183/604462909807314587353088), 1)]
         sage: real_roots(x^5 * (x^2 - 9999)^2 - 1, wordsize=64)
-        [((-1038407448340897457198720064827404499/10384593717069655257060992658440192, -519203723301382180023893484373615627/5192296858534827628530496329220096), 1), ((-62866503803202151050003/19342813113834066795298816, 901086554512564177624143/4835703278458516698824704), 1), ((544424563237337315214990987922809050101157/5444517870735015415413993718908291383296, 1088849127096660194637118845654929064385439/10889035741470030830827987437816582766592), 1), ((272212281929661439711063928866060007142141/2722258935367507707706996859454145691648, 136106141275823501959100399337685485662633/1361129467683753853853498429727072845824), 1)]
+        [((-62866503803202151050003/19342813113834066795298816, 901086554512564177624143/4835703278458516698824704), 1), ((544424563237337315214990987922809050101157/5444517870735015415413993718908291383296, 1088849127096660194637118845654929064385439/10889035741470030830827987437816582766592), 1), ((272212281929661439711063928866060007142141/2722258935367507707706996859454145691648, 136106141275823501959100399337685485662633/1361129467683753853853498429727072845824), 1)]
         sage: real_roots(x)
         [((-47/256, 81/512), 1)]
         sage: real_roots(x * (x-1))
@@ -3719,7 +3775,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2))
         [((0, 0), 1), ((81/128, 337/256), 1), ((2, 2), 1)]
         sage: real_roots(x*(x-1)*(x-2), bounds=(0, 2), retval='algebraic_real')
-        [([0.00000000000000000 .. 0.00000000000000000], 1), ([0.99999999999999988 .. 1.0000000000000003], 1), ([2.0000000000000000 .. 2.0000000000000000], 1)]
+        [([0.00000000000000000 .. 0.00000000000000000], 1), ([1.0000000000000000 .. 1.0000000000000000], 1), ([2.0000000000000000 .. 2.0000000000000000], 1)]
         sage: v = 2^40
         sage: real_roots((x^2-1)^2 * (x^2 - (v+1)/v))
         [((-12855504354077768210885019021174120740504020581912910106032833/12855504354071922204335696738729300820177623950262342682411008, -6427752177038884105442509510587059395588605840418680645585479/6427752177035961102167848369364650410088811975131171341205504), 1), ((-1125899906842725/1125899906842624, -562949953421275/562949953421312), 2), ((62165404551223330269422781018352603934643403586760330761772204409982940218804935733653/62165404551223330269422781018352605012557018849668464680057997111644937126566671941632, 3885337784451458141838923813647037871787041539340705594199885610069035709862106085785/3885337784451458141838923813647037813284813678104279042503624819477808570410416996352), 2), ((509258994083853105745586001837045839749063767798922046787130823804169826426726965449697819/509258994083621521567111422102344540262867098416484062659035112338595324940834176545849344, 25711008708155536421770038042348240136257704305733983563630791/25711008708143844408671393477458601640355247900524685364822016), 1)]
@@ -3750,6 +3806,18 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: ar_rts = real_roots(x-1, retval='algebraic_real')
         sage: ar_rts[0][0] == 1
         True
+
+    If the polynomial has no real roots, we get an empty list.
+        sage: (x^2 + 1).real_root_intervals()
+        []
+
+    We can compute Conway's constant
+    (see http://mathworld.wolfram.com/ConwaysConstant.html) to arbitrary
+    precision.
+        sage: p = x^71 - x^69 - 2*x^68 - x^67 + 2*x^66 + 2*x^65 + x^64 - x^63 - x^62 - x^61 - x^60 - x^59 + 2*x^58 + 5*x^57 + 3*x^56 - 2*x^55 - 10*x^54 - 3*x^53 - 2*x^52 + 6*x^51 + 6*x^50 + x^49 + 9*x^48 - 3*x^47 - 7*x^46 - 8*x^45 - 8*x^44 + 10*x^43 + 6*x^42 + 8*x^41 - 5*x^40 - 12*x^39 + 7*x^38 - 7*x^37 + 7*x^36 + x^35 - 3*x^34 + 10*x^33 + x^32 - 6*x^31 - 2*x^30 - 10*x^29 - 3*x^28 + 2*x^27 + 9*x^26 - 3*x^25 + 14*x^24 - 8*x^23 - 7*x^21 + 9*x^20 + 3*x^19 - 4*x^18 - 10*x^17 - 7*x^16 + 12*x^15 + 7*x^14 + 2*x^13 - 12*x^12 - 4*x^11 - 2*x^10 + 5*x^9 + x^7 - 7*x^6 + 7*x^5 - 4*x^4 + 12*x^3 - 6*x^2 + 3*x - 6
+        sage: cc = real_roots(p, retval='algebraic_real')[2][0] # long time
+        sage: RealField(180)(cc)                                # long time
+        1.3035772690342963912570991121525518907307025046594049
 
     Now we play with algebraic real coefficients.
         sage: x = polygen(AA)
@@ -3799,6 +3867,9 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     else:
         factors = p.squarefree_decomposition()
 
+    if max_diameter is not None:
+        max_diameter = QQ(max_diameter)
+
     ctx = context(do_logging, seed, wordsize)
 
     extra_roots = []
@@ -3818,7 +3889,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 b = to_bernstein_warp(factor)
                 oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(False))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
 
             if ar_input:
                 oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, True), warp_map(True))
@@ -3828,10 +3899,14 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                     b[i] = -b[i]
                 oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), warp_map(True))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
         else:
             if bounds is None:
-                (left, right) = rational_root_bounds(factor)
+                fac_bounds = rational_root_bounds(factor)
+                if fac_bounds is None:
+                    continue
+                else:
+                    (left, right) = fac_bounds
             else:
                 (left, right) = bounds
                 # Bad things happen if the bounds are roots themselves.
@@ -3852,17 +3927,12 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
             oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), linear_map(left, right))
             oc.find_roots()
-            oceans.append(oc)
+            oceans.append((oc, factor, exp))
 
     while True:
         all_roots = copy(extra_roots)
 
-        for i in range(len(oceans)):
-            oc = oceans[i]
-            if strategy == 'warp':
-                (factor, exp) = factors[i // 2]
-            else:
-                (factor, exp) = factors[i]
+        for (oc, factor, exp) in oceans:
             rel_roots = oc.roots()
 
             cur_roots = [oc.mapping.from_ocean(r) for r in rel_roots]
@@ -3912,7 +3982,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
                 root = all_roots[i][0]
                 oc = all_roots[i][3]
                 target_region = (root[0], root[0] + target_widths[i])
-                if target_region[0] <= 0 and  target_region[1] >= 0:
+                if target_region[0] <= 0 and target_region[1] >= 0:
                     target_region = (root[1] - target_widths[i], root[1])
 
                 ocean_target = oc.mapping.to_ocean(target_region)
@@ -3920,7 +3990,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         if ok: break
 
-        for oc in oceans: oc.find_roots()
+        for (oc, factor, exp) in oceans: oc.find_roots()
 
     if do_logging:
         return ctx, all_roots

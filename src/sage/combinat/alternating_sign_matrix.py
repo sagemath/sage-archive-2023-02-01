@@ -1,3 +1,6 @@
+r"""
+Alternating Sign Matrices
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

@@ -121,6 +121,14 @@ EXAMPLES:
         sage: float(f(pi))             # random low order bits
         6.1232339957367663e-16
 
+    Another example:
+        sage: f = integrate(1/sqrt(9+x^2), x); f
+        asinh(x/3)
+        sage: f(3)
+        asinh(1)
+        sage: f.diff(x)
+        1/(3*sqrt(x^2/9 + 1))
+
 COERCION EXAMPLES:
 
 We coerce various symbolic expressions into the complex numbers:
@@ -209,13 +217,14 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC,
                             QuadDoubleElement,
-                            PolynomialRing, ComplexField)
+                            PolynomialRing, ComplexField,
+                            algdep)
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
-from sage.misc.latex import latex, latex_varify
+from sage.misc.latex import latex, latex_variable_name
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -434,6 +443,18 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+        sage: k = var('k')
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol.is_zero()
+        True
+
+        sage: f = sin(x)^2 + cos(x)^2 - 1
+        sage: f.is_zero()
+        True
+        """
+
         try:
             return self.__nonzero
         except AttributeError:
@@ -799,6 +820,149 @@ class SymbolicExpression(RingElement):
         return approx
 
     n = numerical_approx
+
+    def minpoly(self, bits=None, degree=None, epsilon=0):
+        """
+        Return the minimal polynomial of self, if possible.
+
+        INPUT:
+            bits    -- the number of bits to use in numerical approx
+            degree  -- the expected algebraic degree
+            epsilon -- return without error as long as f(self) < epsilon,
+                       in the case that the result cannot be proven.
+
+            All of the above parameters are optional, with epsilon=0,
+            bits and degree tested up to 1000 and 24 by default respectively.
+            If these are known, it will be faster to give them explicitly.
+
+        OUTPUT:
+            The minimal polynomial of self. This is proved symbolically if
+            epsilon=0 (default).
+
+            If the minimal polynomial could not be found, two distinct kinds
+            of errors are raised. If no reasonable candidate was found with
+            the given bit/degree parameters, a ValueError will be raised.
+            If a reasonable candidate was found but (perhaps due to limits
+            in the underlying symbolic package) was unable to be proved
+            correct, a NotImplementedError will be raised.
+
+        ALGORITHM:
+            Use the PARI algdep command on a numerical approximation of self
+            to get a candidate minpoly f. Approximate f(self) to higher
+            precision and if the result is still close enough to 0 then
+            evaluate f(self) symbolically, attempting to prove vanishing.
+            If this fails, and epsilon is non-zero, return f as long as
+            f(self) < epsilon. Otherwise raise an error.
+
+
+        NOTE: Failure of this function does not prove self is
+              not algebraic.
+
+
+        EXAMPLES:
+
+        First some simple examples:
+            sage: sqrt(2).minpoly()
+            x^2 - 2
+            sage: a = 2^(1/3)
+            sage: a.minpoly()
+            x^3 - 2
+            sage: (sqrt(2)-3^(1/3)).minpoly()
+            x^6 - 6*x^4 + 6*x^3 + 12*x^2 + 36*x + 1
+
+        Sometimes it fails.
+            sage: sin(1).minpoly()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find minimal polynomial (1000 bits, degree 24).
+
+        Note that simplification may be necessary.
+            sage: a = sqrt(2)+sqrt(3)+sqrt(5)
+            sage: f = a.minpoly(); f
+            x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
+            sage: f(a)
+            (sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2*((sqrt(5) + sqrt(3) + sqrt(2))^2 - 40) + 352) - 960) + 576
+            sage: f(a).simplify_radical()
+            0
+
+        Here we verify it gives the same result as the abstract number field.
+            sage: (sqrt(2) + sqrt(3) + sqrt(6)).minpoly()
+            x^4 - 22*x^2 - 48*x - 23
+            sage: K.<a,b> = NumberField([x^2-2, x^2-3])
+            sage: (a+b+a*b).absolute_minpoly()
+            x^4 - 22*x^2 - 48*x - 23
+
+        Works with trig funcitons too.
+            sage: sin(pi/3).minpoly()
+            x^2 - 3/4
+
+        Here we show use of the epsilon parameter. That this result is
+        actually exact can be shown using the addition formula for sin,
+        but maxima is unable to see that.
+
+            sage: a = sin(pi/5)
+            sage: a.minpoly()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
+            sage: f = a.minpoly(epsilon=1e-100); f
+            x^4 - 5/4*x^2 + 5/16
+            sage: f(a).numerical_approx(100)
+            0.00000000000000000000000000000
+
+        The degree must be high enough (default tops out at 24).
+            sage: a = sqrt(3) + sqrt(2)
+            sage: a.minpoly(bits=100, degree=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find minimal polynomial (100 bits, degree 3).
+            sage: a.minpoly(bits=100, degree=10)
+            x^4 - 10*x^2 + 1
+
+        Here we solve a cubic and then recover it from its complicated radical expansion.
+            sage: f = x^3 - x + 1
+            sage: a = f.solve(x)[0].rhs(); a
+            (sqrt(3)*I/2 - 1/2)/(3*(sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)) + (sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)*(-sqrt(3)*I/2 - 1/2)
+            sage: a.minpoly()
+            x^3 - x + 1
+        """
+        bits_list = [bits] if bits else [100,200,500,1000]
+        degree_list = [degree] if degree else [2,4,8,12,24]
+
+        for bits in bits_list:
+            a = self.numerical_approx(bits)
+            check_bits = int(1.25 * bits + 80)
+            aa = self.numerical_approx(check_bits)
+
+            for degree in degree_list:
+
+                f = algdep(a, degree) # TODO: use the known_bits parameter?
+                # If indeed we have found a minimal polynomial,
+                # it should be accurate to a much higher precision.
+                error = abs(f(aa))
+                dx = ~RR(Integer(1) << (check_bits - degree - 2))
+                expected_error = abs(f.derivative()(CC(aa))) * dx
+
+                if error < expected_error:
+                    # Degree might have been an over-estimate, factor because we want (irreducible) minpoly.
+                    ff = f.factor()
+                    for g, e in ff:
+                        lead = g.leading_coefficient()
+                        if lead != 1:
+                            g = g / lead
+                        expected_error = abs(g.derivative()(CC(aa))) * dx
+                        error = abs(g(aa))
+                        if error < expected_error:
+                            # See if we can prove equality exactly
+                            if g(self).simplify_trig().simplify_radical() == 0:
+                                return g
+                            # Otherwise fall back to numerical guess
+                            elif epsilon and error < epsilon:
+                                return g
+                            else:
+                                raise NotImplementedError, "Could not prove minimal polynomial %s (epsilon %s)" % (g, RR(error).str(no_sci=False))
+
+        raise ValueError, "Could not find minimal polynomial (%s bits, degree %s)." % (bits, degree)
 
     def _mpfr_(self, field):
         raise TypeError
@@ -1592,6 +1756,17 @@ class SymbolicExpression(RingElement):
             x^(n + 1)/(n + 1)
             sage: forget()
 
+
+        Note that an exception is raised when a definite integral is divergent.
+            sage: integrate(1/x^3,x,0,1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integral is divergent.
+            sage: integrate(1/x^3,x,-1,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integral is divergent.
+
         NOTE: Above, putting assume(n == -1) does not yield the right behavior.
         Directly in maxima, doing
 
@@ -1662,7 +1837,15 @@ class SymbolicExpression(RingElement):
         if a is None:
             return self.parent()(self._maxima_().integrate(v))
         else:
-            return self.parent()(self._maxima_().integrate(v, a, b))
+            try:
+                return self.parent()(self._maxima_().integrate(v, a, b))
+            except TypeError, error:
+                s = str(error)
+                if "divergent" in s or 'Principal Value' in s:
+                    raise ValueError, "Integral is divergent."
+                else:
+                    raise TypeError, error
+
 
     integrate = integral
 
@@ -1933,10 +2116,10 @@ class SymbolicExpression(RingElement):
         An example, where one of the exponents is not an integer.
             sage: var('x, u, v')
             (x, u, v)
-            sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)
-            sage: f.factor()
-            u^3*(2*u*v^2 - v^2 - 4*u^3)^2*(sin(x) - x)^3
-            sage: g = f.factor_list(); g
+            sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)     # not tested -- trac #946
+            sage: f.factor()                                 # not tested
+            u^3*(2*u*v^2 - v^2 - 4*u^3)^2*(sin(x) - x)^3     # not tested
+            sage: g = f.factor_list(); g                     # not tested
             [(u, 3), (2*u*v^2 - v^2 - 4*u^3, 2), (sin(x) - x, 3)]
 
         This example also illustrates that the exponents do not have
@@ -1970,13 +2153,15 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # solve
     ###################################################################
-    def roots(self, x=None):
+    def roots(self, x=None, explicit_solutions=True):
         r"""
         Returns the roots of self, with multiplicities.
 
         INPUT:
             x -- variable to view the function in terms of
                    (use default variable if not given)
+            explicit_solutions -- bool (default True); require that
+                roots be explicit rather than implicit
         OUTPUT:
             list of pairs (root, multiplicity)
 
@@ -2019,19 +2204,48 @@ class SymbolicExpression(RingElement):
             (a, b, c, x)
             sage: (a*x^2 + b*x + c).roots(x)
             [((-sqrt(b^2 - 4*a*c) - b)/(2*a), 1), ((sqrt(b^2 - 4*a*c) - b)/(2*a), 1)]
+
+
+        By default, all the roots are required to be explicit rather than
+        implicit.  To get implicit roots, pass explicit_solutions=False
+        to .roots()
+            sage: var('x')
+            x
+            sage: f = x^(1/9) + (2^(8/9) - 2^(1/9))*(x - 1) - x^(8/9)
+            sage: f.roots()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no explicit roots found
+            sage: f.roots(explicit_solutions=False)
+            [((x^(8/9) - x^(1/9) + 2^(8/9) - 2^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
+
+        Another example, but involving a degree 5 poly whose roots
+        don't get computed explicitly:
+            sage: f = x^5 + x^3 + 17*x + 1
+            sage: f.roots()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no explicit roots found
+            sage: f.roots(explicit_solutions=False)
+            [(x^5 + x^3 + 17*x + 1, 1)]
         """
         if x is None:
             x = self.default_variable()
-        S, mul = self.solve(x, multiplicities=True)
-        return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
+        S, mul = self.solve(x, multiplicities=True, explicit_solutions=explicit_solutions)
+        if len(mul) == 0 and explicit_solutions:
+            raise RuntimeError, "no explicit roots found"
+        else:
+            return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
 
-    def solve(self, x, multiplicities=False):
+    def solve(self, x, multiplicities=False, explicit_solutions=False):
         r"""
         Solve the equation \code{self == 0} for the variable x.
 
         INPUT:
             x -- variable to solve for
             multiplicities -- bool (default: False); if True, return corresponding multiplicities.
+            explicit_solutions -- bool (default:False); if True, require that all solutions
+                returned be explicit (rather than implicit)
 
         EXAMPLES:
             sage: z = var('z')
@@ -2039,7 +2253,7 @@ class SymbolicExpression(RingElement):
             [z == e^(2*I*pi/5), z == e^(4*I*pi/5), z == e^(-(4*I*pi/5)), z == e^(-(2*I*pi/5)), z == 1]
         """
         x = var(x)
-        return (self == 0).solve(x, multiplicities=multiplicities)
+        return (self == 0).solve(x, multiplicities=multiplicities, explicit_solutions=explicit_solutions)
 
     ###################################################################
     # simplify
@@ -3106,23 +3320,15 @@ class SymbolicVariable(SymbolicExpression):
             return self.__latex
         except AttributeError:
             pass
-        a = self._name
-        if len(a) > 1:
-            m = re.search('(\d|[.,])+$',a)
-            if m is None:
-                a = latex_varify(a)
-            else:
-                b = a[:m.start()]
-                a = '%s_{%s}'%(latex_varify(b), a[m.start():])
-
-        self.__latex = a
-        return a
+        self.__latex = latex_variable_name(self._name)
+        return self.__latex
 
     def _maxima_init_(self):
         return self._name
 
     def _sys_init_(self, system):
         return self._name
+
 
 _vars = {}
 def var(s, create=True):
@@ -3659,6 +3865,11 @@ class SymbolicComposition(SymbolicOperation):
         if not self.is_simplified():
             return self.simplify()._latex_()
         ops = self._operands
+
+        #Check to see if the function has a _latex_composition method
+        if hasattr(ops[0], '_latex_composition'):
+            return ops[0]._latex_composition(ops[1])
+
         # certain functions (such as \sqrt) need braces in LaTeX
         if (ops[0]).tex_needs_braces():
             return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
@@ -3874,7 +4085,17 @@ class Function_abs(PrimitiveFunction):
         return "abs"
 
     def _latex_(self):
-        return "\\abs"
+        return "\\mathrm{abs}"
+
+    def _latex_composition(self, x):
+        """
+        sage: f = sage.calculus.calculus.Function_abs()
+        sage: latex(f)
+        \mathrm{abs}
+        sage: latex(abs(x))
+        \left| x \right|
+        """
+        return "\\left| " + latex(x) + " \\right|"
 
     def _approx_(self, x):
         return float(x.__abs__())
@@ -4962,7 +5183,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 i = msg.find("'")
                 j = msg.rfind("'")
                 nm = msg[i+1:j]
-                syms[nm] = var(nm)
+
+                res = re.match(nm + '\s*\(.*\)', s)
+                if res:
+                    syms[nm] = function(nm)
+                else:
+                    syms[nm] = var(nm)
             else:
                 break
         if isinstance(w, (list, tuple)):

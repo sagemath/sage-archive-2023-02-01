@@ -32,7 +32,7 @@ We do some arithmetic in a tower of relative number fields:
     sage: L.<cuberoot3> = K.extension(x^3 - 3)
     sage: S.<sqrt2> = L.extension(x^2 - 2)
     sage: S
-    Number Field in sqrt2 with defining polynomial x^2 + -2 over its base field
+    Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
     sage: sqrt2 * cuberoot3
     cuberoot3*sqrt2
     sage: (sqrt2 + cuberoot3)^5
@@ -48,7 +48,7 @@ We do some arithmetic in a tower of relative number fields:
     sage: a = S(cuberoot2); a
     cuberoot2
     sage: a.parent()
-    Number Field in sqrt2 with defining polynomial x^2 + -2 over its base field
+    Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
 WARNING: Doing arithmetic in towers of relative fields that depends on
 canonical coercions is currently VERY SLOW.  It is much better to
@@ -58,7 +58,7 @@ with them there (which is quite fast).
 TESTS:
     sage: y = polygen(QQ,'y'); K.<beta> = NumberField([y^3 - 3, y^2 - 2])
     sage: K(y^10)
-    (-3024*beta1 + 1530)*beta0^2 + (-2320*beta1 + 5067)*beta0 + -3150*beta1 + 7592
+    (-3024*beta1 + 1530)*beta0^2 + (-2320*beta1 + 5067)*beta0 - 3150*beta1 + 7592
 """
 
 # TODO:
@@ -312,7 +312,7 @@ def NumberFieldTower(v, names, check=True):
         sage: c^2
         -5
         sage: (a+b+c)^2
-        (2*b + 2*c)*a + 2*c*b + -9
+        (2*b + 2*c)*a + 2*c*b - 9
 
     The Galois group is a product of 3 groups of order 2:
         sage: k.galois_group()
@@ -333,13 +333,13 @@ def NumberFieldTower(v, names, check=True):
         sage: v = NumberField([x^3 - 2, x^3 - 2], names='a')
         Traceback (most recent call last):
         ...
-        ValueError: defining polynomial (x^3 + -2) must be irreducible
+        ValueError: defining polynomial (x^3 - 2) must be irreducible
 
     We mix polynomial parent rings:
         sage: k.<y> = QQ[]
         sage: m = NumberField([y^3 - 3, x^2 + x + 1, y^3 + 2], 'beta')
         sage: m
-        Number Field in beta0 with defining polynomial y^3 + -3 over its base field
+        Number Field in beta0 with defining polynomial y^3 - 3 over its base field
         sage: m.base_field ()
         Number Field in beta1 with defining polynomial x^2 + x + 1 over its base field
 
@@ -360,7 +360,7 @@ def NumberFieldTower(v, names, check=True):
         sage: a3^2
         -3
         sage: (a2+a3+a5+a7)^3
-        ((6*a5 + 6*a7)*a3 + 6*a7*a5 + -47)*a2 + (6*a7*a5 + -45)*a3 + (-41)*a5 + -37*a7
+        ((6*a5 + 6*a7)*a3 + 6*a7*a5 - 47)*a2 + (6*a7*a5 - 45)*a3 + (-41)*a5 - 37*a7
     """
     # there is an "all" option below -- we do not use it, since
     # I couldn't get it to work with PARI reliably, and it isn't
@@ -496,7 +496,7 @@ def is_RelativeNumberField(x):
         False
         sage: k.<a> = NumberField(x^3 - 2)
         sage: l.<b> = k.extension(x^3 - 3); l
-        Number Field in b with defining polynomial x^3 + -3 over its base field
+        Number Field in b with defining polynomial x^3 - 3 over its base field
         sage: is_RelativeNumberField(l)
         True
         sage: is_RelativeNumberField(QQ)
@@ -707,7 +707,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: alpha = K.primitive_element(); alpha
             a + (-1)*b + c
             sage: alpha.minpoly()
-            x^2 + (2*b + -2*c)*x + (-2*c)*b + 6
+            x^2 + (2*b - 2*c)*x + (-2*c)*b + 6
             sage: alpha.absolute_minpoly()
             x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         """
@@ -1250,11 +1250,11 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: K.<a> = NumberField(x^3-2)
             sage: K.ideal([a])
-            Fractional ideal (a) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (a)
 
         One can also input in a number field ideal itself.
             sage: K.ideal(K.ideal(a))
-            Fractional ideal (a) of Number Field in a with defining polynomial x^3 - 2
+            Fractional ideal (a)
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -1465,9 +1465,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G = K.class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
             sage: G.0
-            Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23
+            Fractional ideal class (2, 1/2*a - 1/2)
             sage: G.gens()
-            [Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23]
+            [Fractional ideal class (2, 1/2*a - 1/2)]
 
             sage: G.number_field()
             Number Field in a with defining polynomial x^2 + 23
@@ -1476,24 +1476,24 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G is K.class_group(proof=False)
             False
             sage: G.gens()
-            [Fractional ideal class (2, 1/2*a - 1/2) of Number Field in a with defining polynomial x^2 + 23]
+            [Fractional ideal class (2, 1/2*a - 1/2)]
 
         There can be multiple generators:
             sage: k.<a> = NumberField(x^2 + 20072)
             sage: G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
             sage: G.gens()
-            [Fractional ideal class (41, a + 10) of Number Field in a with defining polynomial x^2 + 20072, Fractional ideal class (2, -1/2*a) of Number Field in a with defining polynomial x^2 + 20072]
+            [Fractional ideal class (41, a + 10), Fractional ideal class (2, -1/2*a)]
             sage: G.0
-            Fractional ideal class (41, a + 10) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (41, a + 10)
             sage: G.0^20
-            Fractional ideal class (43, a + 3) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (43, a + 3)
             sage: G.0^38
-            Trivial principal fractional ideal class of Number Field in a with defining polynomial x^2 + 20072
+            Trivial principal fractional ideal class
             sage: G.1
-            Fractional ideal class (2, -1/2*a) of Number Field in a with defining polynomial x^2 + 20072
+            Fractional ideal class (2, -1/2*a)
             sage: G.1^2
-            Trivial principal fractional ideal class of Number Field in a with defining polynomial x^2 + 20072
+            Trivial principal fractional ideal class
 
         Class groups of Hecke polynomials tend to be very small:
             sage: f = ModularForms(97, 2).T(2).charpoly()
@@ -1612,7 +1612,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.<a> = NumberField(x^2 + 23)
             sage: d = k.different()
             sage: d        # random sign in output
-            Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 23
+            Fractional ideal (-a)
             sage: d.norm()
             23
             sage: k.disc()
@@ -1625,7 +1625,7 @@ class NumberField_generic(number_field_base.NumberField):
         Another example:
             sage: k.<b> = NumberField(x^2 - 123)
             sage: d = k.different(); d
-            Fractional ideal (2*b) of Number Field in b with defining polynomial x^2 - 123
+            Fractional ideal (2*b)
             sage: d.norm()
             492
             sage: k.disc()
@@ -1764,7 +1764,7 @@ class NumberField_generic(number_field_base.NumberField):
         Here are the factors:
 
 	    sage: fi, fj = K.factor_integer(13); fi,fj
-            ((Fractional ideal (-3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1), (Fractional ideal (3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1))
+            ((Fractional ideal (-3*I - 2), 1), (Fractional ideal (3*I - 2), 1))
 
         Now we extract the reduced form of the generators:
 
@@ -1897,11 +1897,21 @@ class NumberField_generic(number_field_base.NumberField):
         self.__galois_group[pari_group, use_kash] = H
         return H
 
+    def _normalize_prime_list(self, v):
+        if v is None:
+            v = []
+        elif not isinstance(v, (list, tuple)):
+            v = [v]
+        return tuple([ZZ(x) for x in v])
 
-    def integral_basis(self):
+    def integral_basis(self, v=None):
         """
         Return a list of elements of this number field that are a basis
         for the full ring of integers.
+
+        INPUT:
+            v -- None, a prime, or a list of primes.  See
+            the documentation for self.maximal_order.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^5 + 10*x + 1)
@@ -1915,14 +1925,78 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.integral_basis()
             [1, a, 1/2*a^2 + 1/2*a]
         """
+        v = self._normalize_prime_list(v)
+
         try:
-            return self.__integral_basis
+            return self.__integral_basis[v]
         except AttributeError:
-            f = self.pari_polynomial()
+            self.__integral_basis = {}
+        except KeyError:
+            pass
+        f = self.pari_polynomial()
+
+        if len(v) == 0:
             B = f.nfbasis()
-            R = self.polynomial().parent()
-            self.__integral_basis = [self(R(g).list()) for g in B]
-        return self.__integral_basis
+        else:
+            m = pari.matrix(len(v), 2)
+            d = f.poldisc()
+            for i in range(len(v)):
+                p = pari(ZZ(v[i]))
+                m[i,0] = p
+                m[i,1] = d.valuation(p)
+            B = f.nfbasis(p = m)
+
+        R = self.polynomial().parent()
+        basis = [self(R(g).list()) for g in B]
+        self.__integral_basis[v] = basis
+        return basis
+
+    def zeta_function(self, prec=53,
+                      max_imaginary_part=0,
+                      max_asymp_coeffs=40):
+        r"""
+        Return the Zeta function of this number field.
+
+        This actually returns an interface to Tim Dokchitser's program
+        for computing with the Dedekind zeta function zeta_F(s) of the
+        number field F.
+
+        INPUT:
+            prec -- integer (bits precision)
+            max_imaginary_part -- real number
+            max_asymp_coeffs -- integer
+
+        OUTPUT:
+            The zeta function of this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2+x-1)
+            sage: Z = K.zeta_function()
+            sage: Z
+            Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
+            sage: Z(-1)
+            0.0333333333333333
+        """
+        from sage.lfunctions.all import Dokchitser
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        r1 = self.signature()[0]
+        r2 = self.signature()[1]
+        zero = [0]
+        one = [1]
+        Z = Dokchitser(conductor = abs(self.discriminant()),
+                       gammaV = (r1+r2)*zero + r2*one,
+                       weight = 1,
+                       eps = 1,
+                       poles = [1],
+                       prec = prec)
+        s = 'nf = nfinit(%s);'%self.polynomial()
+        s += 'dzk = dirzetak(nf,cflength());'
+        Z.init_coeffs('dzk[k]',pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        Z.check_functional_equation()
+        Z.rename('Zeta function associated to %s'%self)
+        return Z
 
     def narrow_class_group(self, proof=None):
         r"""
@@ -2103,7 +2177,7 @@ class NumberField_generic(number_field_base.NumberField):
         sage: K.<a> = NumberField(x^4+3*x^2-17)
         sage: P = K.ideal(61).factor()[0][0]
         sage: K.residue_field(P)
-        Residue field of Fractional ideal (-2*a^2 + 1) of Number Field in a with defining polynomial x^4 + 3*x^2 - 17
+        Residue field of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime)
@@ -2495,30 +2569,71 @@ class NumberField_absolute(NumberField_generic):
         return ans
 
 
-    def maximal_order(self):
+    def maximal_order(self, v=None):
         """
         Return the maximal order, i.e., the ring of integers, associated
         to this number field.
 
-        EXAMPLES:
+        INPUT:
+            v -- (default: None) None, a prime, or a list of primes.
+                 * if v is None, return the maximal order.
+                 * if v is a prime, return an order that is p-maximal.
+                 * if v is a list, return an order that is maximal at
+                   each prime in the list v.
 
+        EXAMPLES:
         In this example, the maximal order cannot be generated
         by a single element.
             sage: k.<a> = NumberField(x^3 + x^2 - 2*x+8)
             sage: o = k.maximal_order()
             sage: o
             Maximal Order in Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
+
+        We compute $p$-maximal orders for several $p$.  Note that computing
+        a $p$-maximal order is much faster in general than computing
+        the maximal order:
+            sage: p = next_prime(10^22); q = next_prime(10^23)
+            sage: K.<a> = NumberField(x^3 - p*q)
+            sage: K.maximal_order([3]).basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+            sage: K.maximal_order([2]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([p]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([q]).basis()
+            [1, a, a^2]
+            sage: K.maximal_order([p,3]).basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+
+        An example with bigger discriminant:
+            sage: p = next_prime(10^97); q = next_prime(10^99)
+            sage: K.<a> = NumberField(x^3 - p*q)
+            sage: K.maximal_order(prime_range(10000)).basis()
+            [1, a, a^2]
         """
+        v = self._normalize_prime_list(v)
+
         try:
-            return self.__maximal_order
+            return self.__maximal_order[v]
         except AttributeError:
-            B = self.integral_basis()
-            import sage.rings.number_field.order as order
-            O = order.absolute_order_from_module_generators(B,
-                     check_integral=False, check_rank=False,
-                     check_is_ring=False, is_maximal=True)
-            self.__maxima_order = O
-            return O
+            self.__maximal_order = {}
+        except KeyError:
+            pass
+
+        B = self.integral_basis(v = v)
+
+        if len(v) == 0 or v is None:
+            is_maximal = True
+        else:
+            is_maximal = False
+
+        import sage.rings.number_field.order as order
+        O = order.absolute_order_from_module_generators(B,
+                 check_integral=False, check_rank=False,
+                 check_is_ring=False, is_maximal = is_maximal)
+
+        self.__maximal_order[v] = O
+        return O
 
     def order(self, *gens, **kwds):
         r"""
@@ -2691,11 +2806,11 @@ class NumberField_absolute(NumberField_generic):
             [Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947437 - 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... - 1.09112363597172*I,
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947437 + 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... + 1.09112363597172*I,
              Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
@@ -2741,7 +2856,7 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^10 - 2)
             sage: L.<c,d> = K.relativize(a^4 + a^2 + 2); L
-            Number Field in c with defining polynomial x^2 + -1/5*d^4 + 8/5*d^3 - 23/5*d^2 + 7*d - 18/5 over its base field
+            Number Field in c with defining polynomial x^2 - 1/5*d^4 + 8/5*d^3 - 23/5*d^2 + 7*d - 18/5 over its base field
             sage: c.absolute_minpoly()
             x^10 - 2
             sage: d.absolute_minpoly()
@@ -3024,7 +3139,7 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
             sage: OK = K.maximal_order(); OK.basis()
-            [1, 1/2*a + -1/2*b, (-1/2*b)*a + 1/2, a]
+            [1, 1/2*a - 1/2*b, (-1/2*b)*a + 1/2, a]
             sage: charpoly(OK.1)
             x^2 + b*x + 1
             sage: charpoly(OK.2)
@@ -3093,7 +3208,7 @@ class NumberField_relative(NumberField_generic):
         This function is implicitly caled by the Hom method or function.
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
             sage: K.Hom(K)
-            Automorphism group of Number Field in a with defining polynomial x^3 + -2 over its base field
+            Automorphism group of Number Field in a with defining polynomial x^3 - 2 over its base field
             sage: type(K.Hom(K))
             <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset'>
         """
@@ -3323,11 +3438,11 @@ class NumberField_relative(NumberField_generic):
             sage: to_V
             Isomorphism from Number Field in a with defining polynomial x^3 + 3 over its base field to Vector space of dimension 9 over Rational Field
             sage: c = (a+1)^5; c
-            7*a^2 + (-10)*a + -29
+            7*a^2 + (-10)*a - 29
             sage: to_V(c)
             (-29, -712/9, 19712/45, 0, -14/9, 364/45, 0, -4/9, 119/45)
             sage: from_V(to_V(c))
-            7*a^2 + (-10)*a + -29
+            7*a^2 + (-10)*a - 29
             sage: from_V(3*to_V(b))
             3*b
         """
@@ -3441,7 +3556,7 @@ class NumberField_relative(NumberField_generic):
             sage: y = polygen(QQ,'y')
             sage: k.<a> = NumberField([y^2 + 2, y^4 + 3])
             sage: g = k.absolute_generator(); g
-            a0 + -a1
+            a0 - a1
             sage: g.minpoly()
             x^2 + 2*a1*x + a1^2 + 2
             sage: g.absolute_minpoly()
@@ -3482,7 +3597,7 @@ class NumberField_relative(NumberField_generic):
             sage: from_L
             Isomorphism from Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49 to Number Field in a with defining polynomial x^4 + 3 over its base field
             sage: from_L(c)
-            a + -b
+            a - b
             sage: to_L
             Isomorphism from Number Field in a with defining polynomial x^4 + 3 over its base field to Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
             sage: to_L(a)
@@ -3576,22 +3691,22 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
-            sage: f = K.embeddings(CC); f
+            sage: f = K.embeddings(ComplexField(58)); f
             [Relative number field morphism:
-              From: Number Field in a with defining polynomial x^3 + -2 over its base field
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947442 - 1.09112363597172*I
-                    b |--> -0.00000000000000532907051820075 + 1.00000000000000*I,
+              From: Number Field in a with defining polynomial x^3 - 2 over its base field
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
+                    b |--> -0.00000000000000019428902930940239 + 1.0000000000000000*I,
               ...
-              To:   Complex Field with 53 bits of precision
-              Defn: a |--> 1.25992104989487 + 0.000000000000000222044604925031*I
-                    b |--> -1.00000000000000*I]
+              To:   Complex Field with 58 bits of precision
+              Defn: a |--> 1.2599210498948731
+                    b |--> -0.99999999999999999*I]
             sage: f[0](a)^3
-            2.00000000000001 - 0.0000000000000279776202205539*I
+            2.0000000000000002 - 0.00000000000000086389229103644993*I
             sage: f[0](b)^2
-            -1.00000000000001 - 0.0000000000000106581410364015*I
+            -1.0000000000000001 - 0.00000000000000038857805861880480*I
             sage: f[0](a+b)
-            -0.629960524947448 - 0.0911236359717185*I
+            -0.62996052494743693 - 0.091123635971721295*I
         """
         try:
             return self.__embeddings[K]
@@ -3630,7 +3745,7 @@ class NumberField_relative(NumberField_generic):
             sage: t = K['t'].gen()
             sage: L.<b> = K.extension(t^4 - i)
             sage: L.relative_discriminant()
-            Fractional ideal (256) of Number Field in i with defining polynomial x^2 + 1
+            Fractional ideal (256)
             sage: factor(L.discriminant())
             2^24
             sage: factor( L.relative_discriminant().norm() )
@@ -4264,13 +4379,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             if p % n == 1:
                 return p
 
-    def integral_basis(self):
+    def integral_basis(self, v=None):
         """
         Return a list of elements of this number field that are a basis
         for the full ring of integers.
 
         This field is cyclomotic, so this is a trivial computation,
         since the power basis on the generator is an integral basis.
+        Thus the v parameter is ignored.
 
         EXAMPLES:
             sage: CyclotomicField(5).integral_basis()
@@ -4424,13 +4540,50 @@ class NumberField_quadratic(NumberField_absolute):
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
-        D = b*b - 4*a*c
-        d = D.numer().squarefree_part() * D.denom().squarefree_part()
-        if d % 4 != 1:
-            d *= 4
-        self._NumberField_generic__disc = d
-        parts = -b/(2*a), (D/d).sqrt()/(2*a)
+        Dpoly = b*b - 4*a*c
+        D = Dpoly.numer() * Dpoly.denom()
+        # this could be done extreemly in pyrex
+        for p in sage.rings.arith.primes(100):
+            p2 = p*p
+            while D % p2 == 0:
+                D //= p2
+        self._D = D
+        parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
+
+    def discriminant(self, v=None):
+        """
+        Returns the discriminant of the ring of integers of the number field,
+        or if v is specified, the determinant of the trace pairing
+        on the elements of the list v.
+
+        INPUT:
+            v (optional) -- list of element of this number field
+        OUTPUT:
+            Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2+1)
+            sage: K.discriminant()
+            -4
+            sage: K.<a> = NumberField(x^2+5)
+            sage: K.discriminant()
+            -20
+            sage: K.<a> = NumberField(x^2-5)
+            sage: K.discriminant()
+            5
+        """
+        if v is None:
+            try:
+                return self.__disc
+            except AttributeError:
+                d = self._D.squarefree_part()
+                if d % 4 != 1:
+                    d *= 4
+                self.__disc = d
+                return self.__disc
+        else:
+            return NumberField_generic.discriminant(self, v)
 
     def __reduce__(self):
         """

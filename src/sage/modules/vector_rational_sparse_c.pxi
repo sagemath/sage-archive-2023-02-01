@@ -202,6 +202,7 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
                 mpq_set(v.entries[i], e[i])
                 v.positions[i] = pos[i]
                 mpq_clear(e[i])
+            mpq_clear(e[m])
             for i from m < i < v.num_nonzero:
                 # v.entries[i-1] = e[i]
                 mpq_set(v.entries[i-1], e[i])

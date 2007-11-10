@@ -198,18 +198,19 @@ Gr\"obner basis for some ideal, using Singular through \sage.
             //                        : names    a b c d e f
             //        block   2 : ordering C
     sage: I = singular.ideal('cyclic(6)')
-    sage.: g = singular('groebner(I)')
+    sage: g = singular('groebner(I)')
     Traceback (most recent call last):
     ...
     TypeError: Singular error:
-       ? `I` is undefined
-       ? error occurred in standard.lib::groebner line 164: `parameter def i; parameter  list #;  `
-       ? leaving standard.lib::groebner
-       skipping text from `;` error at token `)`
-    sage.: g = I.groebner()             # not tested since crashes doctest system
-    sage.: g
-       f^48-2554*f^42-15674*f^36+12326*f^30-12326*f^18+15674*f^12+2554*f^6-1,
-       ...
+    ...
+
+We restart everything and try again, but correctly.
+    sage: singular.quit()
+    sage: singular.lib('poly.lib'); R = singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
+    sage: I = singular.ideal('cyclic(6)')
+    sage: I.groebner()
+    f^48-2554*f^42-15674*f^36+12326*f^30-12326*f^18+15674*f^12+2554*f^6-1,
+    ...
 
 It's important to understand why the first attempt at computing a
 basis failed.  The line where we gave singular the input 'groebner(I)'
@@ -357,7 +358,6 @@ class Singular(Expect):
         # code that involves the singular interfaces.  Everything goes
         # through here.
         #print "input: %s"%x
-
         x = str(x).rstrip().rstrip(';')
         x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
@@ -369,7 +369,6 @@ class Singular(Expect):
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s
-
         return s
 
     def set(self, type, name, value):
@@ -659,7 +658,7 @@ class Singular(Expect):
         session.
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(127),3,'xyz', order="revlex")
+            sage: r = MPolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 3
@@ -1079,6 +1078,47 @@ class SingularElement(ExpectElement):
 
     def _singular_(self):
         return self
+
+    def attrib(self, name, value=None):
+        """
+        Get and set attributs for self.
+
+        INPUT:
+            name -- string to choose the attribute
+            value -- boolean value or None for reading, (default:None)
+
+        VALUES:
+            isSB -- the standard basis property is set by all commands
+                    computing a standard basis like groebner, std, stdhilb
+                    etc.; used by lift, dim, degree, mult, hilb, vdim, kbase
+            isHomog -- the weight vector for homogeneous or quasihomogeneous
+                       ideals/modules
+            isCI -- complete intersection property
+            isCM -- Cohen-Macaulay property
+            rank -- set the rank of a module (see nrows)
+            withSB  -- value of type ideal, resp. module, is std
+            withHilb -- value of type intvec is hilb(_,1) (see hilb)
+            withRes  -- value of type list is a free resolution
+            withDim  -- value of type int is the dimension (see dim)
+            withMult -- value of type int is the multiplicity (see mult)
+
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([z^2, y*z, y^2, x*z, x*y, x^2])
+            sage: Ibar = I._singular_()
+            sage: Ibar.attrib('isSB')
+            0
+            sage: singular.eval('vdim(%s)'%Ibar.name()) # sage7 name is random
+            // ** sage7 is no standard basis
+            4
+            sage: Ibar.attrib('isSB',1)
+            sage: singular.eval('vdim(%s)'%Ibar.name())
+            '4'
+        """
+        if value is None:
+            return int(self.parent().eval('attrib(%s,"%s")'%(self.name(),name)))
+        else:
+            self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
 
 class SingularFunction(ExpectFunction):
      def _sage_doc_(self):

@@ -35,7 +35,7 @@ Type "!sage -optional" to see the latest package names.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, random
+import gzip, os, random
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 import sage.databases.db   # very important that this be fully qualified
@@ -671,14 +671,20 @@ class LargeCremonaDatabase(sage.databases.db.Database):
     ###############################################################################
     def _init_from_ftpdata(self, ftpdata,  largest_conductor=0):
         """
-        Create the ZODB Cremona Database from the Cremona ftpdata directory, which
-        is available from Cremona's website.   (Decompress ftpdata.tgz.)
+        Create the ZODB Cremona Database from the Cremona data directory, which
+        is available from Cremona's website.  I.e., just wget Cremona's
+        database to a local directory.
 
-        NOTE: For data up to level 70000, this function takes about 10
-        minutes on a Thinkpad T42p 1.8Ghz Pentium-M laptop.  The
-        resulting database occupies 36MB disk space.  Creating the
-        database uses a LOT of memory.  Use a machine with at least
-        1GB RAM.
+        NOTE: For data up to level 130000, this function takes about
+        30 minutes on a 1.8Ghz Opteron laptop.  The resulting database
+        occupies 36MB disk space.  Creating the database uses a LOT of
+        memory.  Use a machine with at *least* 2GB RAM.
+
+        To recreate the large database from the files in the current
+        directory, do the following:
+
+            sage: d = sage.databases.cremona.LargeCremonaDatabase(read_only=False)   # not tested
+            sage: d._init_from_ftpdata('.')                                 # not tested
         """
         if self.read_only:
             raise RuntimeError, "The database must not be read_only."
@@ -729,7 +735,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             if not F[:len(name)] == name:
                 continue
             print F
-            for L in open(ftpdata + "/" + F).xreadlines():
+            for L in gzip.GzipFile(ftpdata + "/" + F).readlines():
                 print L
                 N, iso, num, ainvs, r, tor = L.split()
                 N = int(N)
@@ -764,7 +770,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             if not F[:len(name)] == name:
                 continue
             print F
-            for L in open(ftpdata + "/" + F).xreadlines():
+            for L in gzip.GzipFile(ftpdata + "/" + F).readlines():
                 print L
                 v = L.split()
                 if len(v) == 6:
@@ -799,7 +805,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             if not F[:len(name)] == name:
                 continue
             print F
-            for L in open(ftpdata + "/" + F).xreadlines():
+            for L in gzip.GzipFile(ftpdata + "/" + F).readlines():
                 print L
                 v = L.split()
                 N = int(v[0])
@@ -835,7 +841,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             if not F[:len(name)] == name:
                 continue
             print F
-            for L in open(ftpdata + "/" + F).xreadlines():
+            for L in gzip.GzipFile(ftpdata + "/" + F).readlines():
                 print L
                 v = L.split()
                 N = int(v[0])

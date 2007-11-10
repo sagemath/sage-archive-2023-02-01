@@ -181,18 +181,18 @@ def EllipticCurve_from_cubic(F, P):
     First we find that the Fermat cubic is isomorphic to the
     curve with Cremona label 27a1:
 
-        sage.: E = EllipticCurve_from_cubic('x^3 + y^3 + z^3', [1,-1,0])
-        sage.: print E
+        sage: E = EllipticCurve_from_cubic('x^3 + y^3 + z^3', [1,-1,0])  # optional -- requires magma
+        sage: E         # optional
         Elliptic Curve defined by y^2 + y = x^3 - 7 over Rational Field
-        sage.: E.cremona_label()
+        sage: E.cremona_label()     # optional
         '27a1'
 
     Next we find the minimal model and conductor of the Jacobian
     of the Selmer curve.
-        sage.: E = EllipticCurve_from_cubic('x^3 + y^3 + 60*z^3', [1,-1,0])
-        sage.: print E
+        sage: E = EllipticCurve_from_cubic('x^3 + y^3 + 60*z^3', [1,-1,0])   # optional
+        sage: E            # optional
         Elliptic Curve defined by y^2  = x^3 - 24300 over Rational Field
-        sage.: E.conductor()
+        sage: E.conductor()    # optional
         24300
 
     """

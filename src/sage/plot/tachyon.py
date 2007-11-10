@@ -19,6 +19,8 @@ from sage.interfaces.tachyon import tachyon_rt
 
 from sage.structure.sage_object import SageObject
 
+from sage.misc.misc import SAGE_TMP
+
 #from sage.ext import fast_tachyon_routines
 
 import os
@@ -59,7 +61,7 @@ class Tachyon(SageObject):
         sage: t.sphere((0,0.5,0), 0.2, 't2')
         sage: t.sphere((0.5,0,0), 0.2, 't3')
         sage: t.sphere((0,0,0.5), 0.2, 't4')
-        sage: t.save('sage.png')
+        sage: t.show()
 
     Sphere's along the twisted cubic.
         sage: t = Tachyon(xres=512,yres=512, camera_center=(3,0.3,0))
@@ -72,7 +74,7 @@ class Tachyon(SageObject):
         ...    k += 1
         ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         ...
-        sage: t.save('sage.png')
+        sage: t.show()
 
     Another twisted cubic, but with a white background, got by putting
     infinite planes around the scene.
@@ -92,7 +94,7 @@ class Tachyon(SageObject):
         ...    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
         ...    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
         ...
-        sage: t.save('sage.png')
+        sage: t.show()
 
     Many random spheres:
         sage: t = Tachyon(xres=512,yres=512, camera_center=(2,0.5,0.5), look_at=(0.5,0.5,0.5), raydepth=4)
@@ -105,7 +107,7 @@ class Tachyon(SageObject):
         ...    k += 1
         ...    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
         ...
-        sage: t.save('sage.png')
+        sage: t.show()
 
 
     Points on an elliptic curve, their height indicated by their height above the axis:
@@ -122,7 +124,7 @@ class Tachyon(SageObject):
         ...    Q = Q + P
         ...    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
         ...
-        sage: t.save('sage.png')
+        sage: t.show()
 
     A beautiful picture of rational points on a rank 1 elliptic curve.
         sage: t = Tachyon(xres=1000, yres=800, camera_center=(2,7,4), look_at=(2,0,0), raydepth=4)
@@ -145,7 +147,7 @@ class Tachyon(SageObject):
         ...    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
         ...
         ...
-        sage: t.save('sage.png')    # long time, e.g., 10-20 seconds
+        sage: t.show()    # long time, e.g., 10-20 seconds
 
     A beautiful spiral.
         sage: t = Tachyon(xres=800,yres=800, camera_center=(2,5,2), look_at=(2.5,0,0))
@@ -156,7 +158,7 @@ class Tachyon(SageObject):
         ...
         sage: t.texture('white', color=(1,1,1), opacity=1, specular=1, diffuse=1)
         sage: t.plane((0,0,-100), (0,0,-100), 'white')
-        sage: t.save('sage.png')
+        sage: t.show()
     """
     def __init__(self,
                  xres=350, yres=350,
@@ -215,14 +217,18 @@ class Tachyon(SageObject):
         tachyon_rt(self.str(), filename, verbose, block, extra_opts)
 
     def show(self, verbose=0, extra_opts=''):
-        import sage.server.support
-        if sage.server.support.EMBEDDED_MODE:
+        import sage.plot.plot
+        if sage.plot.plot.DOCTEST_MODE:
+            filename = sage.misc.misc.graphics_filename()
+            self.save(SAGE_TMP + '/test.png', verbose=verbose, extra_opts=extra_opts)
+            return
+        if sage.plot.plot.EMBEDDED_MODE:
             filename = sage.misc.misc.graphics_filename()
             self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        else:
-            filename = sage.misc.misc.tmp_filename() + '.png'
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
+            return
+        filename = sage.misc.misc.tmp_filename() + '.png'
+        self.save(filename, verbose=verbose, extra_opts=extra_opts)
+        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _res(self):
         return '\nresolution %s %s\n'%(self._xres, self._yres)
@@ -340,7 +346,7 @@ class Tachyon(SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
-            sage.: t.show()
+            sage: t.show()
 
         Plotting with Smooth Triangles (requires explicit gradient function):
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
@@ -349,7 +355,7 @@ class Tachyon(SageObject):
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, grad_f = g)  # increase min_depth for better picture
-            sage.: t.show()
+            sage: t.show()
 
         Preconditions: f is a scalar function of two variables, grad_f is None or a triple-valued
                        function of two variables, min_x != max_x, min_y != max_y

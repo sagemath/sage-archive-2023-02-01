@@ -96,24 +96,24 @@ prompt.
 
 Incidentally you can always get into a maple console by the command
 
-    sage.: maple.console()
-    sage.: !maple
+    sage: maple.console()          # not tested
+    sage: !maple                   # not tested
 
 Note that the above two commands are slightly different, and the first
 is preferred.
 
 For example, for help on the maple command fibonacci, we type
 
-    sage.: maple.help('fibonacci')
+    sage: maple.help('fibonacci')  # not tested, since it uses a pager
 
 We see there are two choices.  Type
 
-    sage.: maple.help('combinat, fibonacci')
+    sage: maple.help('combinat, fibonacci')   # not tested, since it uses a pager
 
 We now see how the Maple command fibonacci works under the
 combinatorics package.  Try typing in
 
-    sage.: maple.fibonacci(10)
+    sage: maple.fibonacci(10)
     fibonacci(10)
 
 You will get fibonacci(10) as output since Maple has not loaded the
@@ -196,9 +196,11 @@ loaded.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
+from __future__ import with_statement
+
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 
 import pexpect
 
@@ -377,22 +379,23 @@ command-line version of Maple (alternatively, you could use a remote connection 
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         line += ';'
-        z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
-                wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
-        if z.lower().find("error") != -1:
-            # The following was very tricky to figure out.
-            # When an error occurs using Maple, unfortunately,
-            # Maple also dumps one into the line where the
-            # error occured with that line copied in.  This
-            # totally messes up the pexpect interface.  However,
-            # I think the following few lines successfully
-            # "clear things out", i.e., delete the text from
-            # the edit buffer and get a clean prompt.
-            e = self.expect()
-            e.sendline('%s__sage__;'%(chr(8)*len(line)))
-            e.expect('__sage__;')
-            e.expect(self._prompt)
-            raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
+        with gc_disabled():
+            z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
+                    wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
+            if z.lower().find("error") != -1:
+                # The following was very tricky to figure out.
+                # When an error occurs using Maple, unfortunately,
+                # Maple also dumps one into the line where the
+                # error occured with that line copied in.  This
+                # totally messes up the pexpect interface.  However,
+                # I think the following few lines successfully
+                # "clear things out", i.e., delete the text from
+                # the edit buffer and get a clean prompt.
+                e = self.expect()
+                e.sendline('%s__sage__;'%(chr(8)*len(line)))
+                e.expect('__sage__;')
+                e.expect(self._prompt)
+                raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
         return z
 
     def cputime(self, t=None):
@@ -470,9 +473,10 @@ command-line version of Maple (alternatively, you could use a remote connection 
         Some functions are unknown to Maple until you use with to include
         the appropriate package.
 
-            sage.: maple('partition(10)')              # optional
+            sage: maple.quit()   # optional -- to reset maple.
+            sage: maple('partition(10)')              # optional
             partition(10)
-            sage.: maple('bell(10)')                   # optional
+            sage: maple('bell(10)')                   # optional
             bell(10)
             sage: maple.with_package('combinat')               # optional
             sage: maple('partition(10)')               # optional

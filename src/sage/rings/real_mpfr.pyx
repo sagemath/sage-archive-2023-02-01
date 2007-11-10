@@ -17,8 +17,8 @@ EXAMPLES:
 A difficult conversion:
 
     sage: RR(sys.maxint)
-    9223372036854780000     # 64-bit
-    2147483647.00000        # 32-bit
+    9223372036854780000.     # 64-bit
+    2147483647.00000         # 32-bit
 
 TESTS:
     sage: -1e30
@@ -280,17 +280,28 @@ cdef class RealField(sage.rings.ring.Field):
             True
             sage: RealField(10,rnd='RNDN') == RealField(10,rnd='RNDZ')
             False
+
+        Scientific notation affects only printing, not mathematically
+        how the field works, so this does not affect equality testing.
             sage: RealField(10,sci_not=True) == RealField(10,sci_not=False)
-            False
+            True
             sage: RealField(10) == IntegerRing()
             False
+
+            sage: RS = RealField(sci_not=True)
+            sage: RR == RS
+            True
+            sage: RS.scientific_notation(False)
+            sage: RR == RS
+            True
+
         """
         if not isinstance(other, RealField):
             return -1
         cdef RealField _other
         _other = other  # to access C structure
-        if self.__prec == _other.__prec and self.rnd == _other.rnd \
-               and self.sci_not == _other.sci_not:
+        if self.__prec == _other.__prec and self.rnd == _other.rnd: \
+               #and self.sci_not == _other.sci_not:
             return 0
         return 1
 
@@ -580,13 +591,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLE: Rounding Modes
             sage: w = RealField(3)(5/2)
             sage: RealField(2, rnd="RNDZ")(w).str(2)
-            '10'
+            '10.'
             sage: RealField(2, rnd="RNDD")(w).str(2)
-            '10'
+            '10.'
             sage: RealField(2, rnd="RNDU")(w).str(2)
-            '11'
+            '11.'
             sage: RealField(2, rnd="RNDN")(w).str(2)
-            '10'
+            '10.'
 
         NOTES: A real number is an arbitrary precision mantissa with a
         limited precision exponent.  A real number can have three
@@ -845,11 +856,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '1.4555555555555@1'
             sage: b = 2.0^99
             sage: b.str()
-            '633825300114115000000000000000'
+            '633825300114115000000000000000.'
             sage: b.str(no_sci=False)
             '6.33825300114115e29'
             sage: b.str(no_sci=True)
-            '633825300114115000000000000000'
+            '633825300114115000000000000000.'
             sage: c = 2.0^100
             sage: c.str()
             '1.26765060022823e30'
@@ -858,7 +869,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: c.str(no_sci=True)
             '1.26765060022823e30'
             sage: c.str(no_sci=2)
-            '1267650600228230000000000000000'
+            '1267650600228230000000000000000.'
             sage: 0.5^53
             0.000000000000000111022302462516
             sage: 0.5^54
@@ -953,6 +964,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             z = z + ".%s"%w
         elif exponent > 0:
             z = z + '0'*(n-len(t))
+        if '.' not in z:
+            z = z + '.'
         return z
 
     def __copy__(self):
@@ -1014,7 +1027,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         A big number with no decimal point:
             sage: a = RR(10^17); a
-            100000000000000000
+            100000000000000000.
             sage: a.integer_part()
             100000000000000000
         """
@@ -1082,9 +1095,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b
             393.39028340283450000000000000
             sage: a*b
-            154760
+            154760.
             sage: b*a
-            154760
+            154760.
             sage: parent(b*a)
             Real Field with 20 bits of precision
         """
@@ -1401,6 +1414,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __float__(self):
         return mpfr_get_d(self.value, (<RealField>self._parent).rnd)
+
+    def _rpy_(self):
+        """
+        Returns self.__float__() for rpy to convert into the
+        appropriate R object.
+
+        EXAMPLES:
+            sage: n = RealNumber(2.0)
+            sage: n._rpy_()
+            2.0
+            sage: type(n._rpy_())
+            <type 'float'>
+        """
+        return self.__float__()
 
     def __int__(self):
         """
@@ -2198,7 +2225,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.3
             sage: a = r.exp(); a
-            106588847274864
+            106588847274864.
             sage: a.log()
             32.3000000000000
 

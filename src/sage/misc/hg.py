@@ -782,11 +782,11 @@ class HG:
         then <SAGE_ROOT>/devel/sage will point to sage-testing, and
         when you next restart SAGE that's the version you'll be using.
 
-            sage.: hg_sage.clone('testing')
+            sage: hg_sage.clone('testing')    # not tested
             ...
 
         Make a clone of the repository as it was at revision 1328.
-            sage.: hg_sage.clone('testing', 1328)
+            sage: hg_sage.clone('testing', 1328)    # not tested
             ...
         """
         if not self.__cloneable:

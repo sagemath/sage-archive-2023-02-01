@@ -1,4 +1,8 @@
 """
+Necklaces
+
+
+Algorithm from
 
 A fast algorithm to generate necklaces with fixed content
 Source 	Theoretical Computer Science archive

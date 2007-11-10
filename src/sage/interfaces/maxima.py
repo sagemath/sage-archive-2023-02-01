@@ -247,7 +247,7 @@ for arbitrary $n$.
 
 You can plot 3d graphs (via gnuplot):
 
-    sage.: maxima('plot3d(x^2-y^2, [x,-2,2], [y,-2,2], [grid,12,12])')
+    sage: maxima('plot3d(x^2-y^2, [x,-2,2], [y,-2,2], [grid,12,12])')  # not tested
     [displays a 3 dimensional graph]
 
 You can formally evaluate sums (note the \code{nusum} command):
@@ -341,11 +341,13 @@ A long complicated input expression:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+
 import os, re, sys
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
 from pexpect import EOF
 
 #import random
@@ -404,7 +406,7 @@ class Maxima(Expect):
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+']
-        self._error_re = re.compile('(debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
+        self._error_re = re.compile('(Principal Value|debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
 
@@ -832,9 +834,9 @@ class Maxima(Expect):
             options -- an optional string representing plot2d options in gnuplot format
 
         EXAMPLES:
-            sage.: maxima.plot2d('sin(x)','[x,-5,5]')
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
-            sage.: maxima.plot2d('sin(x)','[x,-5,5]',opts)
+            sage: maxima.plot2d('sin(x)','[x,-5,5]')   # not tested
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
+            sage: maxima.plot2d('sin(x)','[x,-5,5]',opts)    # not tested
 
         The eps file is saved in the current directory.
         """
@@ -852,15 +854,15 @@ class Maxima(Expect):
             options -- an optional string representing plot2d options in gnuplot format
 
         EXAMPLES:
-            sage.: maxima.plot2d_parametric(["sin(t)","cos(t)"], "t",[-3.1,3.1])
+            sage: maxima.plot2d_parametric(["sin(t)","cos(t)"], "t",[-3.1,3.1])   # not tested
 
-            sage.: opts = '[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "circle-plot.eps"]'
-            sage.: maxima.plot2d_parametric(["sin(t)","cos(t)"], "t", [-3.1,3.1], options=opts)
+            sage: opts = '[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "circle-plot.eps"]'
+            sage: maxima.plot2d_parametric(["sin(t)","cos(t)"], "t", [-3.1,3.1], options=opts)   # not tested
 
         The eps file is saved to the current working directory.
 
         Here is another fun plot:
-            sage.: maxima.plot2d_parametric(["sin(5*t)","cos(11*t)"], "t", [0,2*pi()], nticks=400)
+            sage: maxima.plot2d_parametric(["sin(5*t)","cos(11*t)"], "t", [0,2*pi()], nticks=400)    # not tested
         """
         tmin = trange[0]
         tmax = trange[1]
@@ -883,10 +885,10 @@ class Maxima(Expect):
             [var, min, max]
 
         EXAMPLES:
-            sage.: maxima.plot3d('1 + x^3 - y^2', '[x,-2,2]', '[y,-2,2]', '[grid,12,12]')
-            sage.: maxima.plot3d('sin(x)*cos(y)', '[x,-2,2]', '[y,-2,2]', '[grid,30,30]')
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
-            sage.: maxima.plot3d('sin(x+y)', '[x,-5,5]', '[y,-1,1]', opts)
+            sage: maxima.plot3d('1 + x^3 - y^2', '[x,-2,2]', '[y,-2,2]', '[grid,12,12]')    # not tested
+            sage: maxima.plot3d('sin(x)*cos(y)', '[x,-2,2]', '[y,-2,2]', '[grid,30,30]')   # not tested
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
+            sage: maxima.plot3d('sin(x+y)', '[x,-5,5]', '[y,-1,1]', opts)    # not tested
 
         The eps file is saved in the current working directory.
         """
@@ -909,22 +911,22 @@ class Maxima(Expect):
             displays a plot on screen or saves to a file
 
         EXAMPLES:
-            sage.: maxima.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3])
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-cos-plot.eps"]'
-            sage.: maxima.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3],opts)
+            sage: maxima.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3])     # not tested
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-cos-plot.eps"]'
+            sage: maxima.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3],opts)      # not tested
 
         The eps file is saved in the current working directory.
 
         Here is a torus:
 
-            sage.: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
-            sage.: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])
+            sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
+            sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])   # not tested
 
         Here is a Mobius strip:
-            sage.: x = "cos(u)*(3 + v*cos(u/2))"
-            sage.: y = "sin(u)*(3 + v*cos(u/2))"
-            sage.: z = "v*sin(u/2)"
-            sage.: maxima.plot3d_parametric([x,y,z],["u","v"],[-3.1,3.2],[-1/10,1/10])
+            sage: x = "cos(u)*(3 + v*cos(u/2))"
+            sage: y = "sin(u)*(3 + v*cos(u/2))"
+            sage: z = "v*sin(u/2)"
+            sage: maxima.plot3d_parametric([x,y,z],["u","v"],[-3.1,3.2],[-1/10,1/10])   # not tested
         """
         umin = urange[0]
         umax = urange[1]
@@ -1095,9 +1097,9 @@ class Maxima(Expect):
         EXAMPLES:
             sage: zeta_ptsx = [ (pari(1/2 + i*I/10).zeta().real()).precision(1) for i in range (70,150)]
             sage: zeta_ptsy = [ (pari(1/2 + i*I/10).zeta().imag()).precision(1) for i in range (70,150)]
-            sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy)
-            sage.: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
-            sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy, opts)
+            sage: maxima.plot_list(zeta_ptsx, zeta_ptsy)         # not tested
+            sage: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
+            sage: maxima.plot_list(zeta_ptsx, zeta_ptsy, opts)      # not tested
         """
         cmd = 'plot2d([discrete,%s, %s]'%(ptsx, ptsy)
         if options is None:
@@ -1119,18 +1121,18 @@ class Maxima(Expect):
         program hanging.}
 
         EXAMPLES:
-            sage.: xx = [ i/10.0 for i in range (-10,10)]
-            sage.: yy = [ i/10.0 for i in range (-10,10)]
-            sage.: x0 = [ 0 for i in range (-10,10)]
-            sage.: y0 = [ 0 for i in range (-10,10)]
-            sage.: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10)]
-            sage.: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10)]
-            sage.: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])
-            sage.: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10,150)]
-            sage.: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10,150)]
-            sage.: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])
-            sage.: opts='[gnuplot_preamble, "set nokey"]'
-            sage.: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]],opts)
+            sage: xx = [ i/10.0 for i in range (-10,10)]
+            sage: yy = [ i/10.0 for i in range (-10,10)]
+            sage: x0 = [ 0 for i in range (-10,10)]
+            sage: y0 = [ 0 for i in range (-10,10)]
+            sage: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10)]
+            sage: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10)]
+            sage: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])       # not tested
+            sage: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10,150)]
+            sage: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10,150)]
+            sage: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])      # not tested
+            sage: opts='[gnuplot_preamble, "set nokey"]'
+            sage: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]],opts)    # not tested
         """
         n = len(pts_list)
         cmd = '['
@@ -1225,7 +1227,7 @@ class MaximaElement(ExpectElement):
             sage: CC(maxima('2342.23482943872+234*%i'))
              2342.23482943872 + 234.000000000000*I
             sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
-             2300 + 230*I
+             2300. + 230.*I
         """
         return sage.rings.complex_number.ComplexNumber( CC, self.real(), self.imag() )
 
@@ -1253,8 +1255,9 @@ class MaximaElement(ExpectElement):
         """
         self._check_valid()
         P = self.parent()
-        s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
-        P._eval_line('display2d : false;', reformat=False)
+        with gc_disabled():
+            s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
+            P._eval_line('display2d : false;', reformat=False)
 
         r = P._output_prompt_re
 

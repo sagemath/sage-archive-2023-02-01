@@ -175,7 +175,11 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     """
     if hasattr(arg0, '_vector_'):
         if arg1 is None:
-            arg1 = sage.rings.integer_ring.ZZ
+            try:
+                arg1 = sage.rings.integer_ring.ZZ
+                return arg0._vector_(arg1)
+            except TypeError:
+                return arg0._vector_()
         return arg0._vector_(arg1)
 
     if hasattr(arg1, '_vector_'):
@@ -531,8 +535,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         EXAMPLES:
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
-            sage: plot(v, eps=eps, xmax=5, hue=0).save('sage.png')
-            sage: v.plot(eps=eps, xmax=5, hue=0).save('sage.png')
+            sage: plot(v, eps=eps, xmax=5, hue=0).show()
+            sage: v.plot(eps=eps, xmax=5, hue=0).show()
         """
         if res is None:
             res = self.degree()

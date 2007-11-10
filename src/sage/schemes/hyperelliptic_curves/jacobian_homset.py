@@ -12,9 +12,9 @@ EXAMPLES:
     sage: J = C.jacobian(); J
     Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x + 1
     sage: Q = J(QQ)(P); Q
-    (x, y + -1)
+    (x, y - 1)
     sage: Q + Q
-    (1/4*x^2, y + -1/2*x - 1)
+    (1/4*x^2, y - 1/2*x - 1)
     sage: Q*3
     (x^2 - 1/64*x + 1/8, y + 255/512*x + 65/64)
 """
@@ -66,7 +66,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             sage: Q = J(QQ)(P)
             sage: for i in range(6): i*Q
             (1)
-            (u, v + -1)
+            (u, v - 1)
             (u^2, v + u - 1)
             (u^2, v + 1)
             (u, v + 1)

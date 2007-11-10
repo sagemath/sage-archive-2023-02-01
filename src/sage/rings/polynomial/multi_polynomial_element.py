@@ -448,6 +448,26 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         return self.element().dict()
 
+    def __iter__(self):
+        """
+        Facilitates iterating over the monomials of self,
+        returning tuples of the form (coeff, mon) for each
+        non-zero monomial.
+
+        EXAMPLES:
+            sage: R = ZZ['t']
+            sage: P.<x,y,z> = PolynomialRing(R,3)
+            sage: f = 3*x^3*y + 16*x + 7
+            sage: [(c,m) for c,m in f]
+            [(3, x^3*y), (16, x), (7, 1)]
+            sage: f = P.random_element(10,10)
+            sage: sum(c*m for c,m in f) == f
+            True
+        """
+        exps = self.element().exponents()
+        parent = self.parent()
+        for exp in exps:
+            yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
 
     def __getitem__(self, x):
         """
@@ -883,20 +903,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def lm(self):
         """
         Returns the lead monomial of self with respect to the term order of
-        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
-        accepted.
-
-        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
-        the left-most nonzero entry is positive.
-
-        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
-        the right-most nonzero entry is positive.
-
-        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
-
-        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        right-most nonzero entry of $a -b \in Z^n$ is negative.
+        self.parent().
 
         EXAMPLES:
              sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')

@@ -71,32 +71,32 @@ def desolve(de,vars):
     return soln.rhs()._maxima_init_()
 
 #def desolve_laplace2(de,vars,ics=None):
-    """
-    Solves an ODE using laplace transforms via maxima. Initial conditions
-    are optional.
+##     """
+##     Solves an ODE using laplace transforms via maxima. Initial conditions
+##     are optional.
 
-    INPUT:
-        de    -- a lambda expression representing the ODE
-                 (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-        vars  -- a list of strings representing the variables
-                 (eg, vars = ["x","f"], if x is the independent
-                  variable and f is the dependent variable)
-        ics   -- a list of numbers representing initial conditions,
-                 with symbols allowed which are represented by strings
-                 (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
+##     INPUT:
+##         de    -- a lambda expression representing the ODE
+##                  (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
+##         vars  -- a list of strings representing the variables
+##                  (eg, vars = ["x","f"], if x is the independent
+##                   variable and f is the dependent variable)
+##         ics   -- a list of numbers representing initial conditions,
+##                  with symbols allowed which are represented by strings
+##                  (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
 
-    EXAMPLES:
-        sage.: from sage.calculus.desolvers import desolve_laplace
-        sage.: x = var('x')
-        sage.: f = function('f', x)
-        sage.: de = lambda y: diff(y,x,x) - 2*diff(y,x) + y
-        sage.: desolve_laplace(de(f(x)),[f,x])
-         #x*%e^x*(?%at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x
-        sage.: desolve_laplace(de(f(x)),[f,x],[0,1,2])  ## IC option does not work
-         #x*%e^x*(?%at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x
+##     EXAMPLES:
+##         sage: from sage.calculus.desolvers import desolve_laplace
+##         sage: x = var('x')
+##         sage: f = function('f', x)
+##         sage: de = lambda y: diff(y,x,x) - 2*diff(y,x) + y
+##         sage: desolve_laplace(de(f(x)),[f,x])
+##          #x*%e^x*(?%at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x
+##         sage: desolve_laplace(de(f(x)),[f,x],[0,1,2])  ## IC option does not work
+##          #x*%e^x*(?%at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x
 
-    AUTHOR: David Joyner (1st version 1-2006, 8-2007)
-    """
+##     AUTHOR: David Joyner (1st version 1-2006, 8-2007)
+##     """
 #    ######## this method seems reasonable but doesnt work for some reason
 #    name0 = vars[0]._repr_()[0:(len(vars[0]._repr_())-2-len(str(vars[1])))]
 #    name1 = str(vars[1])
@@ -203,7 +203,7 @@ def desolve_system(des,vars,ics=None):
     dess = [de._repr_() + "=0" for de in des]
     for i in range(d):
         cmd="de:" + dess[int(i)] + ";"
-        maxima(cmd)
+        maxima.eval(cmd)
     desstr = "[" + ",".join(dess) + "]"
     d = len(vars)
     varss = list(vars[i] + "(" + vars[0] + ")" for i in range(1,d))
@@ -212,7 +212,7 @@ def desolve_system(des,vars,ics=None):
         #d = len(ics) ## must be same as len(des)
         for i in range(1,d):
             ic = "atvalue(" + vars[int(i)] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[int(i)]) + ")"
-            maxima(ic)
+            maxima.eval(ic)
     cmd = "desolve(" + desstr + "," + varstr + ");"
     soln = maxima(cmd)
     return [f.rhs()._maxima_init_() for f in soln]
@@ -230,11 +230,11 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
     EXAMPLES:
         sage: from sage.calculus.desolvers import eulers_method
         sage: x,y = PolynomialRing(QQ,2,"xy").gens()
-        sage.: eulers_method(5*x+y-5,0,1,1/2,1)
-         x                    y                  h*f(x,y)
-         0                    1                   -2
-       1/2                   -1                 -7/4
-         1                -11/4                -11/8
+        sage: eulers_method(5*x+y-5,0,1,1/2,1)
+             x                    y                  h*f(x,y)
+             0                    1                   -2
+           1/2                   -1                 -7/4
+             1                -11/4                -11/8
         sage: x,y = PolynomialRing(QQ,2,"xy").gens()
         sage: eulers_method(5*x+y-5,0,1,1/2,1,method="none")
         [[0, 1], [1/2, -1], [1, -11/4], [3/2, -33/8]]
@@ -244,11 +244,11 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
         [[0, 1], [1/2, -1.0], [1, -2.7], [3/2, -4.0]]
         sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
         sage: x,y=PolynomialRing(RR,2,"xy").gens()
-        sage.: eulers_method(5*x+y-5,0,1,1/2,1)
-         x                    y                  h*f(x,y)
-         0                    1                -2.00
-       1/2                -1.00                -1.75
-         1                -2.75                -1.37
+        sage: eulers_method(5*x+y-5,0,1,1/2,1)
+             x                    y                  h*f(x,y)
+             0                    1                 -2.0
+           1/2                 -1.0                 -1.7
+             1                 -2.7                 -1.3
         sage: x,y=PolynomialRing(QQ,2,"xy").gens()
         sage: eulers_method(5*x+y-5,1,1,1/3,2)
                  x                    y                  h*f(x,y)
@@ -261,7 +261,7 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
         sage: pts = eulers_method(5*x+y-5,0,1,1/2,1,method="none")
         sage: P1 = list_plot(pts)
         sage: P2 = line(pts)
-        sage.: show(P1+P2)
+        sage: (P1+P2).show()
 
     AUTHOR: David Joyner
     """
@@ -299,48 +299,48 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
         sage: f = x+y+t; g = x-y
         sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1,method="none")
         [[0, 0, 0], [1/3, 0, 0], [2/3, 1/9, 0], [1, 10/27, 1/27], [4/3, 68/81, 4/27]]
-        sage.:. eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1)
-         t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
-         0                    0                         0                    0                    0
-       1/3                    0                       1/9                    0                    0
-       2/3                  1/9                      7/27                    0                 1/27
-         1                10/27                     38/81                 1/27                  1/9
-        sage.: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
-        sage.: t,x,y=PolynomialRing(RR,3,"txy").gens()
-        sage.: f = x+y+t; g = x-y
-        sage.:. eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1)
-         t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
-         0                    0                     0.000                    0                0.000
-       1/3                0.000                     0.125                0.000                0.000
-       2/3                0.125                     0.282                0.000               0.0430
-         1                0.407                     0.563               0.0430                0.141
+        sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1)
+             t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
+             0                    0                         0                    0                    0
+           1/3                    0                       1/9                    0                    0
+           2/3                  1/9                      7/27                    0                 1/27
+             1                10/27                     38/81                 1/27                  1/9
+        sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+        sage: t,x,y=PolynomialRing(RR,3,"txy").gens()
+        sage: f = x+y+t; g = x-y
+        sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1)
+             t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
+             0                    0                      0.00                    0                 0.00
+           1/3                 0.00                      0.13                 0.00                 0.00
+           2/3                 0.13                      0.29                 0.00                0.043
+             1                 0.41                      0.57                0.043                 0.15
 
     To numerically approximate y(1), where (1+t^2)y''+y'-y=0, y(0)=1,y'(0)=-1,
     using 4 steps of Euler's method, first convert to a system:
     y1' = y2, y1(0)=1; y2' = (y1-y2)/(1+t^2), y2(0)=-1.
 
-         sage.: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
-         sage.: t, x, y=PolynomialRing(RR,3,"txy").gens()
-         sage.: f = y; g = (x-y)/(1+t^2)
-         sage.:. eulers_method_2x2(f,g, 0, 1, -1, 1/4, 1)
-         t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
-         0                    1                    -0.250                   -1                0.500
-       1/4                0.750                    -0.125               -0.500                0.282
-       1/2                0.625                   -0.0546               -0.218                0.188
-       3/4                0.625                  -0.00781              -0.0312                0.110
-         1                0.625                    0.0196               0.0782               0.0704
+         sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+         sage: t, x, y=PolynomialRing(RR,3,"txy").gens()
+         sage: f = y; g = (x-y)/(1+t^2)
+         sage: eulers_method_2x2(f,g, 0, 1, -1, 1/4, 1)
+             t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
+             0                    1                     -0.25                   -1                 0.50
+           1/4                 0.75                     -0.12                -0.50                 0.29
+           1/2                 0.63                    -0.054                -0.21                 0.19
+           3/4                 0.63                   -0.0078               -0.031                 0.11
+             1                 0.63                     0.020                0.079                0.071
 
     To numerically approximate y(1), where y''+ty'+y=0, y(0)=1,y'(0)=0:
 
-        sage.: t,x,y=PolynomialRing(RR,3,"txy").gens()
-        sage.: f = y; g = -x-y*t
-        sage.:. eulers_method_2x2(f,g, 0, 1, 0, 1/4, 1)
-         t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
-         0                    1                     0.000                    0               -0.250
-       1/4                 1.00                   -0.0625               -0.250               -0.234
-       1/2                0.938                    -0.117               -0.468               -0.171
-       3/4                0.875                    -0.156               -0.625               -0.101
-         1                0.750                    -0.171               -0.687              -0.0156
+        sage: t,x,y=PolynomialRing(RR,3,"txy").gens()
+        sage: f = y; g = -x-y*t
+        sage: eulers_method_2x2(f,g, 0, 1, 0, 1/4, 1)
+             t                    x                h*f(t,x,y)                    y           h*g(t,x,y)
+             0                    1                      0.00                    0                -0.25
+           1/4                  1.0                    -0.062                -0.25                -0.23
+           1/2                 0.94                     -0.11                -0.46                -0.17
+           3/4                 0.88                     -0.15                -0.62                -0.10
+             1                 0.75                     -0.17                -0.68               -0.015
 
     AUTHOR: David Joyner
     """

@@ -1,3 +1,20 @@
+"""
+Alternating sign matrices
+"""
+#*****************************************************************************
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.rings.arith import binomial
 import random as rnd
 from combinat import CombinatorialClass
@@ -91,6 +108,32 @@ class ChooseNK_nk(CombinatorialClass):
         r = rnd.sample(xrange(self.n),self.k)
         r.sort()
         return r
+
+
+    def unrank(self, rank):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: c52.list() == map(c52.unrank, range(c52.count()))
+            True
+        """
+        if rank < 0 or rank >= self.count():
+            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.count()-1)
+        return from_rank(rank, self.n, self.k)
+
+    def rank(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: range(c52.count()) == map(c52.rank, c52)
+            True
+        """
+        if len(x) != self.k:
+            return
+
+        return rank(x, self.n)
 
 
 def rank(comb, n):

@@ -11,11 +11,6 @@ cdef extern from "string.h":
     void *memmove(void *dest, void *src, size_t n)
     void *memcpy(void *dest, void *src, size_t n)
 
-cdef extern from "Python.h":
-    void PyMem_Free(void *p)
-    void* PyMem_Malloc(int)
-    void* PyMem_Realloc(void *p, size_t n)
-
 cdef extern from 'setjmp.h':
     struct __jmp_buf_tag:
         pass

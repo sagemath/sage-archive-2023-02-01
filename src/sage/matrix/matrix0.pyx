@@ -27,7 +27,7 @@ import sage.misc.latex
 import sage.rings.integer
 
 from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.sequence import Sequence
 
 cimport sage.structure.element
 from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector

@@ -1974,7 +1974,7 @@ def load_notebook(dir, address=None, port=None, secure=None):
                     print "This is a serious problem."
     if nb is None:
         nb = Notebook(dir)
-
+    dir = make_path_relative(dir)
     nb.delete_doc_browser_worksheets()
     nb.set_directory(dir)
     nb.set_not_computing()
@@ -1984,6 +1984,15 @@ def load_notebook(dir, address=None, port=None, secure=None):
 
     return nb
 
+
+def make_path_relative(dir):
+    """
+    If easy, replace the absolute path dir by a relative one.
+    """
+    base, file = os.path.split(dir)
+    if os.path.exists(file):
+        return file
+    return dir
 
 ##########################################################
 # Misc

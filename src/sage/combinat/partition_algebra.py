@@ -1,3 +1,6 @@
+r"""
+Partition/Diagram Algebras
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

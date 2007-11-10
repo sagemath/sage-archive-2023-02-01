@@ -78,7 +78,7 @@ class Dokchitser(SageObject):
         sage: (zeta(2+h) - zeta(2))/h
         -0.937028232783632
         sage: L.taylor_series(2, k=5)
-        1.64493406684823 + -0.937548254315844*z + 0.994640117149451*z^2 + -1.00002430047384*z^3 + 1.00006193307235*z^4 + O(z^5)
+        1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 - 1.00002430047384*z^3 + 1.00006193307235*z^4 + O(z^5)
 
     RANK 1 ELLIPTIC CURVE:
 
@@ -95,7 +95,7 @@ class Dokchitser(SageObject):
         sage: L.num_coeffs()
         48
         sage: L.taylor_series(1,4)
-        0.305999773834052*z + 0.186547797268162*z^2 + -0.136791463097188*z^3 + O(z^4)
+        0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
         sage: L.check_functional_equation()
         6.11218974800000e-18                            # 32-bit
         6.04442711160669e-18                            # 64-bit
@@ -112,8 +112,8 @@ class Dokchitser(SageObject):
         sage: L.derivative(1,E.rank())
         1.51863300057685
         sage: L.taylor_series(1,4)
-        -1.28158145691931e-23 + (7.26268290635587e-24)*z + 0.759316500288427*z^2 + -0.430302337583362*z^3 + O(z^4)      # 32-bit
-        -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + -0.430302337583362*z^3 + O(z^4)      # 64-bit
+        -1.28158145691931e-23 + (7.26268290635587e-24)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)      # 32-bit
+        -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)      # 64-bit
 
 
     RAMANUJAN DELTA L-FUNCTION:
@@ -193,16 +193,25 @@ class Dokchitser(SageObject):
             g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
                                       logfile=None)
             g.read('computel.gp')
-            g.eval('default(realprecision, %s)'%(self.prec//3 + 2))
-            g.eval('conductor = %s'%self.conductor)
-            g.eval('gammaV = %s'%self.gammaV)
-            g.eval('weight = %s'%self.weight)
-            g.eval('sgn = %s'%self.eps)
-            g.eval('Lpoles = %s'%self.poles)
-            g.eval('Lresidues = %s'%self.residues)
-            g._dokchitser = True
             self.__gp = g
+            self._gp_eval('default(realprecision, %s)'%(self.prec//3 + 2))
+            self._gp_eval('conductor = %s'%self.conductor)
+            self._gp_eval('gammaV = %s'%self.gammaV)
+            self._gp_eval('weight = %s'%self.weight)
+            self._gp_eval('sgn = %s'%self.eps)
+            self._gp_eval('Lpoles = %s'%self.poles)
+            self._gp_eval('Lresidues = %s'%self.residues)
+            g._dokchitser = True
             return g
+
+    def _gp_eval(self, s):
+        try:
+            t = self.gp().eval(s)
+        except (RuntimeError, TypeError):
+            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+        if '***' in t:
+            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+        return t
 
     def __check_init(self):
         if not self.__init:
@@ -256,26 +265,26 @@ class Dokchitser(SageObject):
         self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
         gp = self.gp()
         if pari_precode != '':
-            gp.eval(pari_precode)
+            self._gp_eval(pari_precode)
         RR = self.__CC._real_field()
         cutoff = RR(cutoff)
         if isinstance(v, str):
             if w is None:
-                gp.eval('initLdata("%s", %s)'%(v, cutoff))
+                self._gp_eval('initLdata("%s", %s)'%(v, cutoff))
                 return
-            gp.eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
+            self._gp_eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
             return
         if not isinstance(v, (list, tuple)):
             raise TypeError, "v (=%s) must be a list, tuple, or string"%v
         CC = self.__CC
         v = [CC(a)._pari_init_() for a in v]
-        gp.eval('Avec = %s'%v)
+        self._gp_eval('Avec = %s'%v)
         if w is None:
-            gp.eval('initLdata("Avec[k]", %s)'%cutoff)
+            self._gp_eval('initLdata("Avec[k]", %s)'%cutoff)
             return
         w = [CC(a)._pari_init_() for a in w]
-        gp.eval('Bvec = %s'%w)
-        gp.eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
+        self._gp_eval('Bvec = %s'%w)
+        self._gp_eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
 
     def __to_CC(self, s):
         s = s.replace('.E','.0E').replace(' ','')
@@ -363,11 +372,11 @@ class Dokchitser(SageObject):
         EXAMPLES:
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.taylor_series(2, 3)
-            1.64493406684823 + -0.937548254315844*z + 0.994640117149451*z^2 + O(z^3)
+            1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 + O(z^3)
             sage: E = EllipticCurve('37a')
             sage: L = E.Lseries().dokchitser()
             sage: L.taylor_series(1)
-            0.305999773834052*z + 0.186547797268162*z^2 + -0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
+            0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
 
         We compute a Taylor series where each coefficient is to high precision.
             sage: E = EllipticCurve('389a')

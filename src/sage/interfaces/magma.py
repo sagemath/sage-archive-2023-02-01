@@ -195,8 +195,10 @@ class Magma(Expect):
     anything, otherwise you'll get an error.  (nvals is the number
     of return values.)
 
-        sage.: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
-
+        sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
+        sage: magma.eval('1.1')   # optional
+        '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None, user_config=False):
@@ -314,6 +316,8 @@ class Magma(Expect):
             Variables: x, y, z
         """
         if gens is None:
+            if isinstance(x, bool):
+                return Expect.__call__(self, str(x).lower())
             return Expect.__call__(self, x)
         return self.objgens(x, gens)
 
@@ -397,7 +401,7 @@ class Magma(Expect):
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s'%(a,b) for a,b in params.items()])
+            par = ' : ' + ','.join(['%s:=%s'%(a,self(b)) for a,b in params.items()])
 
         fun = "%s(%s%s)"%(function, ",".join([s.name() for s in args]), par)
         if nvals <= 0:
@@ -897,6 +901,11 @@ class MagmaElement(ExpectElement):
             Y = [x for x in X if tt in x]
         return Y
 
+    def __nonzero__(self):
+        try:
+            return not self.parent()("%s eq 0"%self.name()).bool()
+        except TypeError:
+            return self.bool()
 
 magma = Magma()
 

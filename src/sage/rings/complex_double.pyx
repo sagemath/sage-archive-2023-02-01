@@ -69,6 +69,8 @@ from sage.misc.sage_eval import sage_eval
 
 cimport sage.rings.ring
 
+cimport sage.rings.integer
+
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 
@@ -278,6 +280,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])
 
+    def prec(self):
+        """
+        Return the precision of this complex double field (to be more
+        similar to ComplexField).  Always returns 53.
+
+        EXAMPLES:
+            sage: CDF.prec()
+            53
+        """
+
+        return 53
+
 
     def gen(self, n=0):
         """
@@ -445,6 +459,18 @@ cdef class ComplexDoubleElement(FieldElement):
         if n >= 0 and n <= 1:
             return self._complex.dat[n]
         raise IndexError, "index n must be 0 or 1"
+
+    def prec(self):
+        """
+        Returns the precision of this number (to be more similar to
+        ComplexNumber).  Always returns 53.
+
+        EXAMPLES:
+            sage: CDF(0).prec()
+            53
+        """
+
+        return 53
 
     #######################################################################
     # Coercions

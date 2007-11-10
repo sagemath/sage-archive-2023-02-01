@@ -1115,7 +1115,7 @@ rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()
 class RubiksCube(SageObject):
     """
     sage: C = RubiksCube().move("R U R'")
-    sage.: C.show3d()
+    sage: C.show3d()
 
     sage: C = RubiksCube("R*L"); C
                  +--------------+
@@ -1131,7 +1131,7 @@ class RubiksCube(SageObject):
                  | 37 bottom 21 |
                  | 35   47   24 |
                  +--------------+
-    sage.: C.show()
+    sage: C.show()
     sage: C.solve(algorithm='gap')  # long time
     'L*R'
     sage: C == RubiksCube("L*R")
@@ -1189,7 +1189,7 @@ class RubiksCube(SageObject):
         """
         sage: C = RubiksCube().move("R*U")
         sage: C.plot3d()
-        <class 'base.TransformGroup'>
+        <class 'sage.plot.plot3d.base.TransformGroup'>
         sage: C.plot()
         Graphics object consisting of 55 graphics primitives
         """

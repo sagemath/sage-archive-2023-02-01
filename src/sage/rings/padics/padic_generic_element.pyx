@@ -30,6 +30,8 @@ from sage.structure.element cimport Element
 cimport pow_computer
 from sage.rings.integer cimport Integer
 import sage.rings.rational_field
+from sage.rings.padics.pow_computer cimport PowComputer_base
+
 
 Rational = sage.rings.rational.Rational
 infinity = sage.rings.infinity.infinity
@@ -773,12 +775,22 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns a rational approximation to this p-adic number
+        Returns the unique rational approximation to this p-adic
+        number with certain properties, or raises a ValueError (see
+        OUTPUT below).  Uses the rational reconstruction algorithm
+        applied to the unit part of this rational number.
 
         INPUT:
             self -- a p-adic element
+
         OUTPUT:
-            rational -- an approximation to self
+             Numerator and denominator n, d of the unique rational
+             number r=n/d, if it exists, with
+                |n| and |d| <= sqrt(N/2),
+             where N = p^prec, i.e., where the *unit part* of self
+             is ... + O(p^prec).  If no such r exists, a ValueError
+             is raised.
+
         EXAMPLES:
             sage: R = Zp(5,20,'capped-rel')
             sage: for i in range(11):
@@ -786,6 +798,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...           if j == 5:
             ...               continue
             ...           assert i/j == R(i/j).rational_reconstruction()
+
+        A ValueError is raised when a rational reconstruction of
+        the unit part does not exist:
+            sage: R = Zp(5, 5)
+            sage: R(1413*5).rational_reconstruction()
+            Traceback (most recent call last):
+            ...
+            ValueError: Rational reconstruction of 1413 (mod 3125) does not exist.
         """
         if self.is_zero(self.precision_absolute()):
             return Rational(0)
@@ -931,7 +951,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         cdef int neg, curpower
         cdef Integer list_elt
         cdef unsigned long preccap
-        preccap = self.prime_pow._cache_limit
+        preccap = self.prime_pow._prec_cap()
         ans = PyList_New(0)
         mpz_init_set(tmp, value)
         if lift_mode == 'simple':
@@ -958,8 +978,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 mpz_sub(tmp, tmp, list_elt.value)
                 mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
                 if neg == 1:
-                    if mpz_cmp(tmp, self.prime_pow.dense_list[curpower]) >= 0:
-                        mpz_sub(tmp, tmp, self.prime_pow.dense_list[curpower])
+                    if mpz_cmp(tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0]) >= 0:
+                        mpz_sub(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
                 PyList_Append(ans, list_elt)
             mpz_clear(halfp)
         else:

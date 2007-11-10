@@ -1,3 +1,6 @@
+r"""
+Permutations
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -119,9 +122,20 @@ def Permutation(l):
         [2, 1]
         sage: Permutation('(1,2)(3,4,5)')
         [2, 1, 4, 5, 3]
+        sage: Permutation( ((1,2),(3,4,5)) )
+        [2, 1, 4, 5, 3]
+        sage: Permutation( ((1,2)) )
+        [2, 1]
+        sage: Permutation( (1,2) )
+        [2, 1]
+        sage: Permutation( ((1,2),) )
+        [2, 1]
+
     """
     #if l is a string, then assume it is in cycle notation
-    if isinstance(l, str):
+    if isinstance(l, Permutation_class):
+        return l
+    elif isinstance(l, str):
         cycles = l.split(")(")
         cycles[0] = cycles[0][1:]
         cycles[-1] = cycles[-1][:-1]
@@ -129,6 +143,17 @@ def Permutation(l):
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
         return from_cycles(sum([len(c) for c in cycle_list]), cycle_list)
+    elif isinstance(l, tuple):
+        if len(l) >= 1:
+            if isinstance(l[0], tuple):
+                n = max( map(max, l) )
+                return from_cycles(n, map(list, l))
+            else:
+                n = max(l)
+                l = [list(l)]
+                return from_cycles(n, l)
+        else:
+            raise ValueError, "cannot convert l (= %s) to a Permutation"%l
     else:
         return Permutation_class(l)
 
@@ -1189,6 +1214,16 @@ class Permutation_class(CombinatorialObject):
 
         return True
 
+    def weak_excedences(self):
+        """
+
+        """
+        res = []
+        for i in range(len(self)):
+            if self[i] >= i + 1:
+                res.append(self[i])
+        return res
+
 
     def bruhat_inversions(self):
         r"""
@@ -1681,6 +1716,31 @@ class Permutation_class(CombinatorialObject):
 
         return [Tableau(p),Tableau(q)]
 
+
+
+
+    def remove_extra_fixed_points(self):
+        """
+        Returns the permutation obtained by removing any
+        fixed points at the end of self.
+
+        EXAMPLES:
+            sage: Permutation([2,1,3]).remove_extra_fixed_points()
+            [2, 1]
+            sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
+            [1]
+        """
+        #Strip off all extra fixed points at the end of
+        #the permutation.
+        i = len(self)-1
+        while i >= 1:
+            if i != self[i] - 1:
+                break
+            i -= 1
+        return Permutation_class(self[:i+1])
+
+
+
 ################################################################
 
 def Arrangements(mset, k):
@@ -1891,6 +1951,8 @@ class Permutations_mset(CombinatorialClass):
                     c /= factorial(i)
 
             return c
+
+
 
 
 class Permutations_msetk(CombinatorialClass):

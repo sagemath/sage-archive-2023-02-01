@@ -3622,6 +3622,26 @@ class NumberField_relative(NumberField_generic):
         self.__absolute_field[names] = K
         return K
 
+    def absolute_polynomial_ntl(self):
+        """
+        Return defining polynomial of this number field
+        as a pair, an ntl polynomial and a denominator.
+
+        This is used mainly to implement some internal arithmetic.
+
+        EXAMPLES:
+            sage: NumberField(x^2 + (2/3)*x - 9/17,'a').polynomial_ntl()
+            ([-27 34 51], 51)
+        """
+        try:
+            return (self.__abs_polynomial_ntl, self.__abs_denominator_ntl)
+        except AttributeError:
+            self.__abs_denominator_ntl = ntl.ZZ()
+            den = self.absolute_polynomial().denominator()
+            self.__abs_denominator_ntl.set_from_sage_int(ZZ(den))
+            self.__abs_polynomial_ntl = ntl.ZZX((self.absolute_polynomial()*den).list())
+        return (self.__abs_polynomial_ntl, self.__abs_denominator_ntl)
+
     def absolute_polynomial(self):
         r"""
         Return the polynomial over $\QQ$ that defines this field as an

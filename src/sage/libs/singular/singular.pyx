@@ -44,9 +44,6 @@ cdef class Conversion:
         OUTPUT:
             SAGE rational number matching n
         """
-
-        #TYPECHECK HERE
-
         cdef number *nom
         cdef number *denom
         cdef mpq_t _z
@@ -380,5 +377,6 @@ cdef class Conversion:
         p = PY_NEW(MPolynomial_libsingular)
         p._parent = <ParentWithBase>parent
         p._poly = juice
+        p_Normalize(p._poly, parent._ring)
         return p
 

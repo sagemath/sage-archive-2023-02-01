@@ -547,6 +547,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                 p_Setm(mon, _ring)
                 _p = p_Add_q(_p, mon, _ring)
+
             return co.new_MP(self, _p)
 
         if hasattr(element,'_polynomial_'):
@@ -1538,8 +1539,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         _p= p_Add_q(_l, _r, _ring)
 
-        p_Normalize(_p,_ring)
-
         return co.new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
     cdef ModuleElement _iadd_c_impl( left, ModuleElement right):
@@ -1566,7 +1565,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         _p= p_Add_q(_l, _r, _ring)
 
-        p_Normalize(_p,_ring)
         left._poly = _p
         return left
 
@@ -1617,7 +1615,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if(_ring != currRing): rChangeCurrRing(_ring)
         _p= p_Add_q(_l, p_Neg(_r, _ring), _ring)
-        p_Normalize(_p,_ring)
         left._poly = _p
         return left
 
@@ -1768,11 +1765,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise TypeError,  "exponent is too large, max. is 65535"
 
         if(_ring != currRing): rChangeCurrRing(_ring)
-
         _p = pPower( p_Copy(self._poly,_ring),_exp)
-
         return co.new_MP((<MPolynomialRing_libsingular>self._parent),_p)
-
 
     def __neg__(self):
         """
@@ -2303,25 +2297,27 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: parent(R(x*y+5).coefficient(R(1)))
             Multivariate Polynomial Ring in x, y over Finite Field of size 389
         """
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r != currRing: rChangeCurrRing(r)
+
         cdef poly *p = self._poly
         cdef poly *m = mon._poly
-        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
-        cdef poly *res = p_ISet(0,r)
         cdef poly *t
         cdef int exactly_divisible, i
-        if(r != currRing): rChangeCurrRing(r)
+        cdef poly *res = p_ISet(0,r)
+
 
         if not mon._parent is self._parent:
             raise TypeError, "mon must have same parent as self"
 
-        while(p):
+        while p:
             exactly_divisible = 1
             for i from 1 <= i <= r.N:
                 if (p_GetExp(m,i,r) != 0) and (p_GetExp(p,i,r) != p_GetExp(m,i,r)):
                     exactly_divisible = 0
                     break
             if exactly_divisible:
-                t = pDivide(p,m)
+                t = pDivide(p, m)
                 p_SetCoeff(t, n_Div( p_GetCoeff(p, r) , p_GetCoeff(m, r), r), r)
                 res = p_Add_q(res, t , r )
             p = pNext(p)

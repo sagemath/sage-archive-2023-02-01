@@ -18,6 +18,7 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
@@ -135,7 +136,7 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r
         self.c.restore_c()
         r = PY_NEW(ntl_ZZ_pX)
-        ZZ_pX_construct(&r.x)
+        #ZZ_pX_construct(&r.x)
         r.c = self.c
         return r
 
@@ -147,7 +148,7 @@ cdef class ntl_ZZ_pX:
             sage: loads(dumps(f)) == f
             True
         """
-        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.modulus_context()))
+        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.get_modulus_context()))
 
     def __repr__(self):
         """
@@ -202,13 +203,13 @@ cdef class ntl_ZZ_pX:
         """
         return self.__copy__()
 
-    def modulus_context(self):
+    def get_modulus_context(self):
         """
         Return the modulus for self.
 
         EXAMPLES:
             sage: x = ntl.ZZ_pX([0,5,3],17)
-            sage: c = x.modulus_context()
+            sage: c = x.get_modulus_context()
             sage: y = ntl.ZZ_pX([5],c)
             sage: x+y
             [5 5 3]
@@ -790,6 +791,38 @@ cdef class ntl_ZZ_pX:
         """
         return bool(ZZ_pX_IsX(self.x))
 
+    def convert_to_modulus(self, ntl_ZZ_pContext_class c):
+        """
+        Returns a new ntl_ZZ_pX which is the same as self, but considered modulo a different p.
+
+        In order for this to make mathematical sense, c.p should divide self.c.p
+        (in which case self is reduced modulo c.p) or self.c.p should divide c.p
+        (in which case self is lifted to something modulo c.p congruent to self modulo self.c.p)
+
+        EXAMPLES:
+        sage: a = ntl.ZZ_pX([412,181,991],5^4)
+        sage: a
+        [412 181 366]
+        sage: b = ntl.ZZ_pX([198,333,91],5^4)
+        sage: ap = a.convert_to_modulus(ntl.ZZ_pContext(5^2))
+        sage: bp = b.convert_to_modulus(ntl.ZZ_pContext(5^2))
+        sage: ap
+        [12 6 16]
+        sage: bp
+        [23 8 16]
+        sage: ap*bp
+        [1 9 8 24 6]
+        sage: (a*b).convert_to_modulus(ntl.ZZ_pContext(5^2))
+        [1 9 8 24 6]
+        """
+        c.restore_c()
+        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        ZZ_pX_construct(&ans.x)
+        ZZ_pX_conv_modulus(ans.x, self.x, c.x)
+        ans.c = c
+        return ans
+
+
     def derivative(self):
         """
         Return the derivative of this polynomial.
@@ -1229,5 +1262,27 @@ cdef class ntl_ZZ_pX:
         #ZZ_pX_preallocate_space(&self.x, n)
         _sig_off
 
+cdef class ntl_ZZ_pX_Modulus:
+    """
+    Thin holder for ZZ_pX_Moduli.
+    """
+    def __new__(self, ntl_ZZ_pX poly):
+        ZZ_pX_Modulus_construct(&self.x)
+        ZZ_pX_Modulus_build(self.x, poly.x)
+        self.poly = poly
+
+    def __init__(self, ntl_ZZ_pX poly):
+        pass
+
+    def __dealloc__(self):
+        ZZ_pX_Modulus_destruct(&self.x)
+
+    def __repr__(self):
+        return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)
+
+    def degree(self):
+        cdef Integer ans = PY_NEW(Integer)
+        mpz_set_ui(ans.value, ZZ_pX_Modulus_deg(self.x))
+        return ans
 
     ## TODO: NTL's ZZ_pX has minpolys of linear recurrence sequences!!!

@@ -1,7 +1,13 @@
-include "../../ext/cdefs.pxi"
+cdef extern from "Python.h":
+    object PyString_FromString(char *v)
+    char* PyString_AsString(object string)
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
+
+cdef extern from "gmp.h":
+    ctypedef struct mpz_t:
+        pass
 
 cdef extern from "ntl_wrap.h":
 
@@ -26,9 +32,10 @@ cdef extern from "ntl_wrap.h":
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
     int ZZ_equal "_equal<ZZ>"(ZZ_c x, ZZ_c y)
 
-    void ZZ_conv_int "conv"(ZZ_c x, int i)
+    void ZZ_conv_from_int "conv"(ZZ_c x, int i)
+    void ZZ_conv_to_int "conv"(int i, ZZ_c x)
+    void ZZ_conv_from_long "conv"(ZZ_c x, long l)
     void ZZ_conv_to_long "conv"(long l, ZZ_c x)
-    void conv_ZZ_int "conv"(ZZ_c x, int i)
     void ZZ_to_mpz(mpz_t* output, ZZ_c* x)
     void mpz_to_ZZ(ZZ_c *output, mpz_t* x)
     cdef int ZZ_to_int(ZZ_c* x)
@@ -162,8 +169,6 @@ cdef extern from "ntl_wrap.h":
     ZZ_p_c int_to_ZZ_p(int i)
     void ZZ_p_modulus(ZZ_c* mod, ZZ_p_c* x)
 
-    ZZ_c ZZ_p_rep "rep"(ZZ_p_c x)
-
     #### vec_ZZ_p_c
     ctypedef struct vec_ZZ_p_c "struct vec_ZZ_p":
         pass
@@ -216,8 +221,6 @@ cdef extern from "ntl_wrap.h":
     void ZZX_squarefree_decomposition(ZZX_c*** v, long** e, long* n, ZZX_c* x)
 
     char* ZZX_repr(ZZX_c* x)
-    ## for cleaning up after ZZX_repr:
-    void cpp_delete_array "delete []"(char *str)
     ZZX_c* ZZX_copy(ZZX_c* x)
     ZZX_c* ZZX_div(ZZX_c* x, ZZX_c* y, int* divisible)
     void ZZX_quo_rem(ZZX_c* x, ZZX_c* other, ZZX_c** r, ZZX_c** q)
@@ -267,7 +270,6 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_delete "Delete<ZZ_pX>"(ZZ_pX_c *mem)
     void ZZ_pX_from_str "_from_str<ZZ_pX>"(ZZ_pX_c* dest, char* s)
     object ZZ_pX_to_PyString "_to_PyString<ZZ_pX>"(ZZ_pX_c *x)
-    #int ZZ_pX_equal "_equal<ZZ_pX>"(ZZ_pX_c x, ZZ_pX_c y)
 
     long ZZ_pX_equal "operator=="(ZZ_pX_c a, ZZ_pX_c b)
     long ZZ_pX_IsZero "IsZero"(ZZ_pX_c a)
@@ -279,7 +281,7 @@ cdef extern from "ntl_wrap.h":
 
     void ZZ_pX_mul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_mul_long "mul"( ZZ_pX_c x, ZZ_pX_c a, long b)
-    void ZZ_pX_mul_ZZ "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_c b)
+    void ZZ_pX_mul_ZZ_p "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_p_c b)
     void ZZ_pX_rmul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_p_c b)
     void ZZ_pX_sqr "sqr"( ZZ_pX_c x, ZZ_pX_c a)
     long ZZ_pX_power "power"( ZZ_pX_c x, ZZ_pX_c a, long e)
@@ -330,7 +332,7 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pX_InvModStatus "InvModStatus"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
 
     ctypedef struct ZZ_pX_Modulus_c "struct ZZ_pXModulus":
-        void (* val) ( )
+        ZZ_pX_c (* val) ( )
     ZZ_pX_Modulus_c* ZZ_pX_Modulus_new "New<ZZ_pXModulus>"()
     ZZ_pX_Modulus_c* ZZ_pX_Modulus_construct "Construct<ZZ_pXModulus>"(void *mem)
     void ZZ_pX_Modulus_destruct "Destruct<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
@@ -350,15 +352,16 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_rem_pre "rem"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
     void ZZ_pX_DivRem_pre "DivRem"(ZZ_pX_c q, ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_Modulus_c F)
     void ZZ_pX_div_pre "div"(ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_InvMod_pre "InvMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
 
     ctypedef struct ZZ_pX_Multiplier_c "struct ZZ_pXMultiplier":
-        void (* val) ( )
+        ZZ_pX_c (* val) ( )
     ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_new "New<ZZ_pXMultiplier>"()
     ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_construct "Construct<ZZ_pXMultiplier>"(void *mem)
     void ZZ_pX_Multiplier_destruct "Destruct<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
     void ZZ_pX_Multiplier_delete "Delete<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
     void ZZ_pX_Multiplier_from_str "_from_str<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c* dest, char* s)
-    void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b) # MUST be called before using the multiplier
+    void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b, ZZ_pX_Modulus_c F) # MUST be called before using the multiplier
     void ZZ_pX_MulMod_premul "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Multiplier_c B, ZZ_pX_Modulus_c F)
 
     void ZZ_pX_CompMod "CompMod"(ZZ_pX_c x, ZZ_pX_c g, ZZ_pX_c h, ZZ_pX_Modulus_c F)
@@ -414,6 +417,16 @@ cdef extern from "ntl_wrap.h":
 
     void ZZ_pX_factor(ZZ_pX_c*** v, long** e, long* n, ZZ_pX_c* x, long verbose)
     void ZZ_pX_linear_roots(ZZ_p_c*** v, long* n, ZZ_pX_c* x)
+
+    # The following are ZZ_pX functions written in ntl_wrap, used for padics.
+
+    void ZZ_pX_conv_modulus(ZZ_pX_c fout, ZZ_pX_c fin, ZZ_pContext_c c)
+    void ZZ_pX_min_val_coeff(long valuation, long index, ZZ_pX_c f, ZZ_c p)
+    long ZZ_pX_get_val_coeff(ZZ_pX_c f, ZZ_c p, long i)
+    void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
+    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c cupper, ZZ_pContext_c clower)
 
     #### zz_p_c
     ctypedef struct zz_p_c "struct zz_p":
@@ -678,7 +691,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pEX_clear "clear"(ZZ_pEX_c x)
     void ZZ_pEX_set "set"(ZZ_pEX_c x)
 
-
+    void ZZ_pEX_conv_modulus(ZZ_pEX_c fout, ZZ_pEX_c fin, ZZ_pContext_c c)
 
 
     #### mat_ZZ_c
@@ -710,37 +723,9 @@ cdef extern from "ntl_wrap.h":
     long mat_ZZ_LLL(ZZ_c **det, mat_ZZ_c *x, long a, long b, long verbose)
     long mat_ZZ_LLL_U(ZZ_c **det, mat_ZZ_c *x, mat_ZZ_c *U, long a, long b, long verbose)
 
-    #### GF2_c
-    ctypedef struct GF2_c "struct GF2":
-        pass
-
-    GF2_c* GF2_new "New<GF2>"()
-    GF2_c* GF2_construct "Construct<GF2>"(void *mem)
-    void GF2_destruct "Destruct<GF2>"(GF2_c *mem)
-    void GF2_delete "Delete<GF2>"(GF2_c *mem)
-    void GF2_from_str "_from_str<GF2>"(GF2_c* dest, char* s)
-    object GF2_to_PyString "_to_PyString<GF2>"(GF2_c *x)
-    int GF2_equal "_equal<GF2>"(GF2_c x, GF2_c y)
-    int GF2_IsOne "IsOne"(GF2_c x)
-    int GF2_IsZero "IsZero"(GF2_c x)
-
-    void GF2_add "add"( GF2_c x, GF2_c a, GF2_c b)
-    void GF2_sub "sub"( GF2_c x, GF2_c a, GF2_c b)
-    void GF2_mul "mul"( GF2_c x, GF2_c a, GF2_c b)
-    void GF2_div "div"( GF2_c x, GF2_c a, GF2_c b)
-    void GF2_negate "negate"(GF2_c x, GF2_c a)
-    void GF2_power "power"(GF2_c t, GF2_c x, long e)
-    long GF2_deg "deg"(GF2_c x)
-
-    void GF2_conv_long "conv" (GF2_c x, long i)
-    long GF2_conv_to_long "rep" (GF2_c x)
-
     #### GF2X_c
-
     ctypedef struct GF2X_c "struct GF2X":
         pass
-
-    long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
     GF2X_c* GF2X_new "New<GF2X>"()
     GF2X_c* GF2X_construct "Construct<GF2X>"(void *mem)
@@ -759,60 +744,14 @@ cdef extern from "ntl_wrap.h":
     void GF2X_power "power"(GF2X_c t, GF2X_c x, long e)
     long GF2X_deg "deg"(GF2X_c x)
 
-    void GF2X_conv_long "conv" (GF2X_c x, long a)
-    void GF2X_conv_GF2 "conv" (GF2X_c x, GF2_c a)
-
-    void GF2X_LeftShift "LeftShift"( GF2X_c r, GF2X_c a, long offset)
-    void GF2X_RightShift "RightShift"( GF2X_c r, GF2X_c a, long offset)
-
-    void GF2X_DivRem "DivRem"(GF2X_c q, GF2X_c r, GF2X_c a, GF2X_c b)
-    void GF2X_div "div" (GF2X_c q, GF2X_c a, GF2X_c b)
-    void GF2X_rem "rem" (GF2X_c r, GF2X_c a, GF2X_c b)
-    long GF2X_divide "divide"(GF2X_c q, GF2X_c a, GF2X_c b)
-
-    GF2X_c GF2X_GCD "GCD" (GF2X_c a, GF2X_c b)
-    void GF2X_XGCD "XGCD" (GF2X_c r, GF2X_c s, GF2X_c t, GF2X_c a, GF2X_c b)
-
-    void GF2XFromBytes(GF2X_c a, unsigned char *p, long n)
-    void BytesFromGF2X "BytesFromGF2X" (unsigned char *p, GF2X_c a, long n)
-
-    GF2_c GF2X_coeff "coeff"(GF2X_c a, long i)
-    GF2_c GF2X_LeadCoeff "LeadCoeff"(GF2X_c a)
-    GF2_c GF2X_ConstTerm "ConstTerm"(GF2X_c a)
-    void GF2X_SetCoeff "SetCoeff"(GF2X_c x, long i, GF2_c a)
-
-    GF2X_c GF2X_diff "diff"(GF2X_c a)
-    GF2X_c GF2X_reverse "reverse"(GF2X_c a, long hi)
-
-    long GF2X_weight "weight"(GF2X_c a)
-    long GF2X_NumBits "NumBits" (GF2X_c a)
-    long GF2X_NumBytes "NumBytes"(GF2X_c a)
-
-    #### GF2XModulus_c
-    ctypedef struct GF2XModulus_c "struct GF2XModulus":
-        pass
-
-    GF2X_c GF2XModulus_GF2X "GF2X" (GF2XModulus_c m)
-
-    #### GF2EContext_c
-
-    ctypedef struct GF2EContext_c "struct GF2EContext":
-        void (*restore)()
-
-    GF2EContext_c* GF2EContext_new "New<GF2EContext>"()
-    GF2EContext_c* GF2EContext_construct "Construct<GF2EContext>"(void *mem)
-    GF2EContext_c* GF2EContext_new_GF2X "GF2EContext_new"(GF2X_c* p)
-    GF2EContext_c* GF2EContext_construct_GF2X "GF2EContext_construct"(void *mem, GF2X_c* p)
-    void GF2EContext_destruct "Destruct<GF2EContext>"(GF2EContext_c *mem)
-    void GF2EContext_delete "Delete<GF2EContext>"(GF2EContext_c *mem)
+    GF2X_c* GF2X_copy(GF2X_c* x)
+    void GF2X_hex(long h)
+    object GF2X_to_bin(GF2X_c* x)
+    object GF2X_to_hex(GF2X_c* x)
 
     #### GF2E_c
     ctypedef struct GF2E_c "struct GF2E":
         pass
-
-    void GF2E_init "GF2E::init"(GF2X_c x)
-    long GF2E_degree "GF2E::degree"()
-    GF2XModulus_c GF2E_modulus "GF2E::modulus"()
 
     GF2E_c* GF2E_new "New<GF2E>"()
     GF2E_c* GF2E_construct "Construct<GF2E>"(void *mem)
@@ -827,19 +766,17 @@ cdef extern from "ntl_wrap.h":
     void GF2E_add "add"( GF2E_c x, GF2E_c a, GF2E_c b)
     void GF2E_sub "sub"( GF2E_c x, GF2E_c a, GF2E_c b)
     void GF2E_mul "mul"( GF2E_c x, GF2E_c a, GF2E_c b)
-    void GF2E_div "div"( GF2E_c x, GF2E_c a, GF2E_c b)
+    void GF2E_negate "negate"(GF2E_c x, GF2E_c a)
     void GF2E_power "power"(GF2E_c t, GF2E_c x, long e)
-    long GF2E_deg "deg"(GF2E_c x)
-
-    void GF2E_conv_GF2X "conv" (GF2E_c out, GF2X_c inp)
-    void GF2E_conv_long "conv" (GF2E_c out, long inp)
-    void GF2E_conv_ZZ "conv" (GF2E_c out, ZZ_c inp)
-    void GF2E_conv_GF2 "conv" (GF2E_c out, GF2_c inp)
+    GF2E_c GF2E_random "random_GF2E"()
     GF2X_c GF2E_rep "rep"(GF2E_c x)
 
-    GF2E_c GF2E_random "random_GF2E"()
-
-    GF2_c GF2E_trace "trace"(GF2E_c x)
+    void ntl_GF2E_set_modulus(GF2X_c *x)
+    GF2E_c *GF2E_copy(GF2E_c *x)
+    long GF2E_degree()
+    GF2X_c *GF2E_modulus()
+    long  GF2E_trace(GF2E_c *x)
+    GF2X_c *GF2E_ntl_GF2X(GF2E_c *x)
 
     #### GF2EX_c
     ctypedef struct GF2EX_c "struct GF2EX":
@@ -860,23 +797,9 @@ cdef extern from "ntl_wrap.h":
     int GF2EX_IsOne "IsOne"(GF2EX_c x)
     int GF2EX_IsZero "IsZero"(GF2EX_c x)
 
-    #### vec_GF2E_c
-    ctypedef struct vec_GF2E_c "struct vec_GF2E":
-        pass
-
-    vec_GF2E_c* vec_GF2E_new "New<vec_GF2E>"()
-    vec_GF2E_c* vec_GF2E_construct "Construct<vec_GF2E>"(void *mem)
-    void vec_GF2E_destruct "Destruct<vec_GF2E>"(vec_GF2E_c *mem)
-    void vec_GF2E_delete "Delete<vec_GF2E>"(vec_GF2E_c *mem)
-    void vec_GF2E_from_str "_from_str<vec_GF2E>"(vec_GF2E_c* dest, char* s)
-    object vec_GF2E_to_PyString "_to_PyString<vec_GF2E>"(vec_GF2E_c *x)
-
     #### mat_GF2E_c
     ctypedef struct mat_GF2E_c "struct mat_GF2E":
-        void (*SetDims)(long nrows, long ncols)
-        long (*NumRows)()
-        long (*NumCols)()
-        GF2E_c (*get "operator()") (long i, long j)
+        pass
 
     mat_GF2E_c* mat_GF2E_new "New<mat_GF2E>"()
     mat_GF2E_c* mat_GF2E_construct "Construct<mat_GF2E>"(void *mem)
@@ -893,22 +816,14 @@ cdef extern from "ntl_wrap.h":
     GF2E_c mat_GF2E_determinant "determinant"(mat_GF2E_c m)
     void mat_GF2E_transpose "transpose"(mat_GF2E_c r, mat_GF2E_c m)
     long mat_GF2E_IsZero "IsZero"(mat_GF2E_c x)
+
+    void mat_GF2E_SetDims(mat_GF2E_c* mGF2E, long nrows, long ncols)
+    long mat_GF2E_nrows(mat_GF2E_c* x)
+    long mat_GF2E_ncols(mat_GF2E_c* x)
     void mat_GF2E_setitem(mat_GF2E_c* x, int i, int j, GF2E_c* z)
+    GF2E_c* mat_GF2E_getitem(mat_GF2E_c* x, int i, int j)
+    long mat_GF2E_gauss(mat_GF2E_c *x, long w)
 
-    long mat_GF2E_gauss "gauss"(mat_GF2E_c A, long w)
-    void mat_GF2E_solve "solve"(GF2E_c d, vec_GF2E_c X, mat_GF2E_c A, vec_GF2E_c b)
-    void mat_GF2E_inv "inv" (mat_GF2E_c X, mat_GF2E_c A)
-
-
-    long mat_GF2E_IsIdent "IsIdent"(mat_GF2E_c A, long n)
-    long mat_GF2E_IsDiag "IsDiag"(mat_GF2E_c A, long n, GF2E_c d)
-
-
-    void mat_GF2E_image "image"(mat_GF2E_c X, mat_GF2E_c A)
-    void mat_GF2E_kernel "kernel" (mat_GF2E_c X, mat_GF2E_c A)
-
-    void vec_GF2E_conv_mat_GF2E "conv" (vec_GF2E_c out, mat_GF2E_c inp)
-    void mat_GF2E_conv_vec_GF2E(mat_GF2E_c out, vec_GF2E_c inp)
 
 cdef extern from "ZZ_pylong.h":
     object ZZ_get_pylong(ZZ_c z)

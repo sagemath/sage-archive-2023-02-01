@@ -25,25 +25,26 @@ import sys
 from __future__ import with_statement
 cimport sage.rings.padics.local_generic_element
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
-cimport sage.structure.element
-from sage.structure.element cimport Element
-cimport pow_computer
+#cimport sage.structure.element
+#from sage.structure.element cimport Element
+#cimport pow_computer
 from sage.rings.integer cimport Integer
+#from sage.rings.rational import Rational
+from sage.rings.infinity import infinity
+from sage.libs.pari.gen import pari
+from sage.libs.pari.gen import PariError
+from sage.rings.rational_field import QQ
 import sage.rings.rational_field
-from sage.rings.padics.pow_computer cimport PowComputer_base
+#from sage.rings.padics.pow_computer cimport PowComputer_base
 
 
-Rational = sage.rings.rational.Rational
-infinity = sage.rings.infinity.infinity
-PariError = sage.libs.pari.gen.PariError
-pari = sage.libs.pari.gen.pari
-QQ = sage.rings.rational_field.QQ
+#Rational = sage.rings.rational.Rational
+#infinity = sage.rings.infinity.infinity
+#PariError = sage.libs.pari.gen.PariError
+#pari = sage.libs.pari.gen.pari
+#QQ = sage.rings.rational_field.QQ
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    def __init__(self, parent):
-        self.prime_pow = <PowComputer_class> parent.prime_pow
-        LocalGenericElement.__init__(self, parent)
-
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
@@ -82,7 +83,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if x_ordp == infinity:
                 return 0 # since both are zero
             else:
-                p = left.prime_pow.prime
+                p = left.parent().prime()
                 a = left.unit_part().lift()
                 b = right.unit_part().lift()
                 prec = min(left.precision_relative(), right.precision_relative())
@@ -95,6 +96,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
                     return 0
                 else:
                     return 1
+
+    cdef int _set_from_Integer(self, Integer x, absprec, relprec) except -1:
+        raise NotImplementedError
+
+    cdef int _set_from_Rational(self, Rational x, absprec, relprec) except -1:
+        raise NotImplementedError
 
     def _pari_(self):
         return pari(self._pari_init_())
@@ -163,114 +170,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _is_exact_zero(self):
         return False
 
+    def _is_inexact_zero(self):
+        return self.is_zero() and not self._is_exact_zero()
+
     def str(self, mode=None):
         return self._repr(mode=mode)
 
-    def _repr(self, mode = None, do_latex = False):
-        r"""
-        Prints a string representation of the element.  See __init__ for more details on print modes.
-
-        EXAMPLES:
-            sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a
-            7 * 52 + O(7^5)
-            sage: print a.str('terse')
-            364 + O(7^5)
-            sage: print a.str('series')
-            3*7 + 7^3 + O(7^5)
-            sage: K = Qp(7,4,'capped-rel','val-unit'); a = K(364); a
-            7 * 52 + O(7^5)
-            sage: print a.str('series')
-            3*7 + 7^3 + O(7^5)
-        """
-        if self._is_exact_zero():
-            return "0"
-        if mode is None:
-            mode = self.parent().print_mode()
-        elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
-            raise TypeError, "printing mode must be one of 'val-unit', 'series' or 'terse'"
-        pprint = self.parent().variable_name()
-        if self.lift() == 0:
-            if mode == 'val-unit' or mode == 'series':
-                if do_latex:
-                    return "O(%s^{%s})"%(pprint, self.precision_absolute())
-                else:
-                    return "O(%s^%s)"%(pprint, self.precision_absolute())
-            elif mode == 'terse':
-                if do_latex:
-                    return "0 + O(%s^{%s})"%(pprint, self.precision_absolute())
-                else:
-                    return "0 + O(%s^%s)"%(pprint, self.precision_absolute())
-        if mode == 'val-unit':
-            if do_latex:
-                if self.valuation() == 0:
-                    return "%s + O(%s^{%s})"%(self.lift(), pprint, self.precision_absolute())
-                if self.valuation() == 1:
-                    return "%s \\cdot %s + O(%s^{%s})"%(pprint, self.unit_part().lift(), pprint, self.precision_absolute())
-                return "%s^{%s} \\cdot %s + O(%s^{%s})"%(pprint, self.valuation(), self.unit_part().lift(), pprint, self.precision_absolute())
-            else:
-                if self.valuation() == 0:
-                    return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
-                if self.valuation() == 1:
-                    return "%s * %s + O(%s^%s)"%(pprint, self.unit_part().lift(), pprint, self.precision_absolute())
-                return "%s^%s * %s + O(%s^%s)"%(pprint, self.valuation(), self.unit_part().lift(), pprint, self.precision_absolute())
-        elif mode == 'terse':
-            if self.valuation() < 0:
-                ppow1 = str(self.prime() ** (-self.valuation()))
-                if do_latex:
-                    ppow2 = "%s^{%s}"%(pprint, -self.valuation())
-                    if len(ppow1) < len(ppow2):
-                        ppow = ppow1
-                    else:
-                        ppow = ppow2
-                    return "%s/%s + O(%s^{%s})"%(self.unit_part().lift(), ppow, pprint, self.precision_absolute())
-                else:
-                    ppow2 = "%s^%s"%(p, -self.valuation())
-                    if len(ppow1) < len(ppow2):
-                        ppow = ppow1
-                    else:
-                        ppow = ppow2
-                    return "%s/%s + O(%s^{%s})"%(self.unit_part().lift(), ppow, pprint, self.precision_absolute())
-            else:
-                if do_latex:
-                    return "%s + O(%s^{%s})"%(self.lift(), pprint, self.precision_absolute())
-                else:
-                    return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
-        else:
-            slist = self.list()
-            s = ""
-            p = self.prime_pow.prime
-            if self.parent().is_field():
-                exp = self.valuation()
-            else:
-                exp = 0
-            for a in slist:
-                if a != 0:
-                    if exp == 0:
-                        s += "%s + "%a
-                    else:
-                        var = pprint
-                        if exp != 1:
-                            if do_latex:
-                                var += "^{%s}"%exp
-                            else:
-                                var += "^%s"%exp
-                        if a != 1:
-                            if do_latex:
-                                s += "%s \\cdot %s + "%(a, var)
-                            else:
-                                s += "%s*%s + "%(a, var)
-                        else:
-                            s += "%s + "%var
-                exp += 1
-            s += "O(%s"%(pprint)
-            if self.precision_absolute() == 1:
-                s += ")"
-            else:
-                if do_latex:
-                    s += "^{%s})"%self.precision_absolute()
-                else:
-                    s += "^%s)"%self.precision_absolute()
-            return s
+    def _repr(self, mode=None, do_latex=False):
+        return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
     def additive_order(self, prec):
         r"""
@@ -744,6 +651,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return self
 
+    def valuation(self):
+        cdef Integer ans = PY_NEW(Integer)
+        mpz_set_si(ans.value, self.valuation_c())
+        return ans
+
+    cdef long valuation_c(self):
+        raise NotImplementedError
+
+    def val_unit(self):
+        return self.val_unit_c()
+
+    cdef val_unit_c(self):
+        raise NotImplementedError
+
     def ordp(self):
         r"""
         Returns the valuation of self, normalized so that the valuation of p is 1
@@ -775,22 +696,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns the unique rational approximation to this p-adic
-        number with certain properties, or raises a ValueError (see
-        OUTPUT below).  Uses the rational reconstruction algorithm
-        applied to the unit part of this rational number.
+        Returns a rational approximation to this p-adic number
 
         INPUT:
             self -- a p-adic element
-
         OUTPUT:
-             Numerator and denominator n, d of the unique rational
-             number r=n/d, if it exists, with
-                |n| and |d| <= sqrt(N/2),
-             where N = p^prec, i.e., where the *unit part* of self
-             is ... + O(p^prec).  If no such r exists, a ValueError
-             is raised.
-
+            rational -- an approximation to self
         EXAMPLES:
             sage: R = Zp(5,20,'capped-rel')
             sage: for i in range(11):
@@ -798,14 +709,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...           if j == 5:
             ...               continue
             ...           assert i/j == R(i/j).rational_reconstruction()
-
-        A ValueError is raised when a rational reconstruction of
-        the unit part does not exist:
-            sage: R = Zp(5, 5)
-            sage: R(1413*5).rational_reconstruction()
-            Traceback (most recent call last):
-            ...
-            ValueError: Rational reconstruction of 1413 (mod 3125) does not exist.
         """
         if self.is_zero(self.precision_absolute()):
             return Rational(0)
@@ -946,47 +849,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _val_unit(self):
         return self.valuation(), self.unit_part().lift()
 
-    cdef base_p_list(self, mpz_t value, lift_mode):
-        cdef mpz_t tmp, halfp
-        cdef int neg, curpower
-        cdef Integer list_elt
-        cdef unsigned long preccap
-        preccap = self.prime_pow._prec_cap()
-        ans = PyList_New(0)
-        mpz_init_set(tmp, value)
-        if lift_mode == 'simple':
-            while mpz_sgn(tmp) != 0:
-                list_elt = PY_NEW(Integer)
-                mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-                mpz_sub(tmp, tmp, list_elt.value)
-                mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
-                PyList_Append(ans, list_elt)
-        elif lift_mode == 'smallest':
-            neg = 0
-            curpower = preccap
-            mpz_init(halfp)
-            mpz_fdiv_q_2exp(halfp, self.prime_pow.prime.value, 1)
-            while mpz_sgn(tmp) != 0:
-                curpower -= 1
-                list_elt = PY_NEW(Integer)
-                mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
-                if mpz_cmp(list_elt.value, halfp) >= 0:
-                    mpz_sub(list_elt.value, list_elt.value, self.prime_pow.prime.value)
-                    neg = 1
-                else:
-                    neg = 0
-                mpz_sub(tmp, tmp, list_elt.value)
-                mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
-                if neg == 1:
-                    if mpz_cmp(tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0]) >= 0:
-                        mpz_sub(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
-                PyList_Append(ans, list_elt)
-            mpz_clear(halfp)
-        else:
-            mpz_clear(tmp)
-            raise ValueError, "lift mode must be one of 'simple', 'smallest' or 'teichmuller'"
-        mpz_clear(tmp)
-        return ans
 
 cdef public void teichmuller_set_c(mpz_t value, mpz_t p, mpz_t ppow):
     r"""

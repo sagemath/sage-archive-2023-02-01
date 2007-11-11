@@ -1,15 +1,17 @@
 include "../../ext/cdefs.pxi"
 
-cimport sage.rings.padics.local_generic_element
-from sage.rings.padics.local_generic_element cimport LocalGenericElement
 cimport sage.structure.element
 from sage.structure.element cimport Element
-cimport sage.rings.padics.pow_computer
-from sage.rings.padics.pow_computer cimport PowComputer_class
+from sage.rings.padics.local_generic_element cimport LocalGenericElement
+#from sage.rings.padics.pow_computer cimport PowComputer_class
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cdef PowComputer_class prime_pow
     cdef int _cmp_c_impl(left, Element right) except -2
-    cdef base_p_list(self, mpz_t value, lift_mode)
+    cdef long valuation_c(self)
+    cdef val_unit_c(self)
+    cdef int _set_from_Integer(self, Integer x, absprec, relprec) except -1
+    cdef int _set_from_Rational(self, Rational x, absprec, relprec) except -1
 
 cdef extern void teichmuller_set_c(mpz_t value, mpz_t p, mpz_t ppow)

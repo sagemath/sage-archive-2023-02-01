@@ -1912,8 +1912,10 @@ class SymbolicExpression(RingElement):
                   desired_relative_error='1e-8',
                   maximum_num_subintervals=200):
         r"""
-        Return a numerical approximation to the integral of self from
-        a to b.
+        Return a floating point machine precision numerical
+        approximation to the integral of self from a to b, computed
+        using floating point arithmetic and the GSL scientific
+        library.
 
         INPUT:
             x -- variable to integrate with respect to
@@ -1954,6 +1956,42 @@ class SymbolicExpression(RingElement):
         the GSL C library.
             sage: numerical_integral(f, 0, 1)       # random low-order bits
             (0.52848223225314706, 6.8392846084921134e-07)
+
+        Note that in exotic cases where floating point evaluation of
+        the expression leads to the wrong value, then the output
+        can be completely wrong:
+            sage: f = exp(pi*sqrt(163)) - 262537412640768744
+
+        Despite appearance, f is really very close to 0, but one
+        gets a nonzero value since the definition of float(f) is
+        that it makes all constants inside the expression floats, then
+        evaluates each function and each arithmetic operation
+        using float arithmetic:
+            sage: float(f)
+            -480.0
+
+        Computing to higher precision we see the truth:
+            sage: f.n(200)
+            -0.00000000000074992740280181431112064614366496792309675391526978827185055
+            sage: f.n(300)
+            -0.000000000000749927402801814311120646143662663009137292462589621789352092802261939388897590086687280282
+
+        Now numerically integrating, we see why the answer is wrong:
+            sage: f.nintegrate(x,0,1)
+            (-480.00000000000011, 5.3290705182007538e-12, 21, 0)
+
+        It is just because every floating point evaluation of return
+        -480.0 in floating point.
+
+        Important note: using GP/PARI one can compute numerical
+        integrals to high precision:
+            sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
+            '2.565728500561051482917356396 E-127'
+            sage: old_prec = gp.set_real_precision(50)
+            '2.5657285005610514829173563961304785900147709554020 E-127'
+
+        Note that the input function above is a string in PARI
+        syntax.
         """
         v = self._maxima_().quad_qags(var(x),
                                       a, b, desired_relative_error,

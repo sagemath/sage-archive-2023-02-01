@@ -299,7 +299,7 @@ class _DivPolyContext:
     can do about this, but at least one can say that the sign for $b'$
     will match the sign for $d'$.
 
-    Complexity is soft $O(\log R \log^2 m)$.
+    Complexity is soft $O(\log R \log m)$.
 
     AUTHOR:
         -- David Harvey (2007-02)

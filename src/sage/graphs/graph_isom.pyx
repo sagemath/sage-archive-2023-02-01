@@ -576,7 +576,7 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t
+                        if alpha[s] == j: alpha[s] = t # TODO this will only happen once, so should break
                         s += 1
                     r = j
                     while True:
@@ -620,7 +620,7 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t
+                        if alpha[s] == j: alpha[s] = t # this will only happen once, so should break
                         s += 1
                     r = j
                     while True:

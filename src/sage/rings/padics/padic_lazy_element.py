@@ -208,7 +208,9 @@ class pAdicLazyElement(pAdicBaseGenericElement):
                 return False
         return True
 
-    def is_zero(self, prec):
+    def is_zero(self, prec=None):
+        if prec is None:
+            return self._cache == 0
         return self.is_equal_to(pAdicLazy_zero(self.parent()), prec)
 
     def lift(self):

@@ -82,16 +82,24 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     def is_normal(self):
         return True
 
+    def gen(self, n=0):
+        if n != 0:
+            raise IndexError, "only one generator"
+        return self([0,1])
+
     def uniformizer_pow(self, n):
         if n is infinity:
             return self(0)
-        return self.uniformizer() ** n
+        return self(self.prime_pow.pow_Integer(n))
 
     def uniformizer(self):
         return self(self.ground_ring().uniformizer())
 
     def _uniformizer_print(self):
         return self.ground_ring()._uniformizer_print()
+
+    def _unram_print(self):
+        return self.variable_name()
 
     def has_pth_root(self):
         return self.ground_ring().has_pth_root()

@@ -57,8 +57,8 @@ import sage.rings.padics.local_generic
 import sage.rings.integer_mod
 import sage.rings.ring
 
-from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.integer import Integer
+from sage.rings.padics.padic_printing import pAdicPrinter
 
 infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
@@ -71,8 +71,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         #    self.prime_pow = PowComputer(p, prec, prec, self.is_field())
         #else:
         #    self.prime_pow = PowComputer(p, 3, prec, self.is_field())
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
-        self.__set_print_mode(print_mode)
+        self._printer = pAdicPrinter(self, print_mode, True, None, None, None)
         self._element_class = element_class
 
     def _repr_(self, do_latex = False):
@@ -135,33 +134,33 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.print_mode()
             'series'
         """
-        return self._print_mode
+        return self._printer._print_mode()
 
-    def __set_print_mode(self, print_mode):
-        """
-        Sets the print mode.
+#     def __set_print_mode(self, print_mode):
+#         """
+#         Sets the print mode.
 
-        WARNING: You should not use this function.
+#         WARNING: You should not use this function.
 
-        INPUT:
-            self -- a p-adic ring
-            print_mode -- string (see NOTES)
+#         INPUT:
+#             self -- a p-adic ring
+#             print_mode -- string (see NOTES)
 
-        NOTES:
-            The options for print_mode are:
-            'val-unit' -- elements are displayed as p^k*u
-            'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
-            'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
-        """
-        if (print_mode in ['val-unit', 'terse', 'series']):
-            try:
-                old = self._print_mode
-                self._print_mode = print_mode
-                return old
-            except AttributeError:
-                self._print_mode = print_mode
-        else:
-            raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
+#         NOTES:
+#             The options for print_mode are:
+#             'val-unit' -- elements are displayed as p^k*u
+#             'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
+#             'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
+#         """
+#         if (print_mode in ['val-unit', 'terse', 'series']):
+#             try:
+#                 old = self._print_mode
+#                 self._print_mode = print_mode
+#                 return old
+#             except AttributeError:
+#                 self._print_mode = print_mode
+#         else:
+#             raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
 
     def _element_class(self):
         return self._element_class
@@ -200,9 +199,27 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         return self.prime_pow._prime()
 
     def uniformizer_pow(self, n):
+        """
+        Returns p^n, as an element of self.
+
+        If n is infinity, returns 0.
+
+        EXAMPLES:
+        sage: R = Zp(3, 5, 'fixed-mod')
+        sage: R.uniformizer_pow(3)
+        27
+        sage: R.uniformizer_pow(infinity)
+        0
+        """
         if n is infinity:
             return self(0)
-        return self.uniformizer()**n
+        return self(self.prime_pow.pow_Integer_Integer(n))
+
+    def _unram_print(self):
+        """
+        For printing.  Will be None if the unramified subextension of self is of degree 1 over Z_p or Q_p.
+        """
+        return None
 
     def residue_characteristic(self):
         """
@@ -503,7 +520,6 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             ...
             NotImplementedError: This is not yet ready for general use.
         """
-        raise NotImplementedError, "This is not yet ready for general use."
         if not self is modulus.base_ring():
             modulus = modulus.parent().change_ring(self)(modulus)
         from sage.rings.padics.factory import ExtensionFactory
@@ -511,7 +527,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
 
     ext = extension
 
-class local_print_mode:
+def local_print_mode(obj, print_mode, pos = None, uniformizer_name = None):
     r"""
     Context manager for safely temporarily changing the print_mode
     of a p-adic ring/field.
@@ -527,12 +543,8 @@ class local_print_mode:
 
     NOTES:  For more documentation see localvars in parent_gens.pyx
     """
-    def __init__(self, obj, print_mode):
-        self._obj = obj
-        self._print_mode = print_mode
-
-    def __enter__(self):
-        self._orig = self._obj._pAdicGeneric__set_print_mode(self._print_mode)
-
-    def __exit__(self, type, value, traceback):
-        self._obj._pAdicGeneric__set_print_mode(self._orig)
+    if pos is None:
+        pos = obj._printer._pos()
+    if uniformizer_name is None:
+        uniformizer_name = obj._printer._uniformizer_name()
+    return pAdicPrinter(obj, print_mode, pos, uniformizer_name)

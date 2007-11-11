@@ -32,10 +32,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             return cmp(type(self), type(other))
 
     def gen(self, n=0):
-        if n != 0:
-            raise IndexError, "extension has only one generator"
-        #this won't work for padic_general extensions
-        return self(self._PQR.polynomial_ring().gen())
+        raise NotImplementedError
 
     def defining_polynomial(self):
         return self._given_poly

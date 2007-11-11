@@ -17,6 +17,8 @@ cdef extern from "pb_wrap.h":
         PBNavigator (* thenBranch) ()
         PBNavigator (* elseBranch) ()
         int (* value "operator*")()
+        bint (* isConstant)()
+        bint (* isTerminated)()
 
     # non-allocating versions
     PBNavigator* PBNavigator_construct \
@@ -98,6 +100,7 @@ cdef extern from "pb_wrap.h":
         int (* deg)()
         int (* lmDeg)()
         int (* length)()
+        int (* eliminationLength)()
         bint (* isZero)()
         bint (* isOne)()
         bint (* isConstant)()
@@ -109,9 +112,10 @@ cdef extern from "pb_wrap.h":
         PBPolyIter (* orderedBegin)()
         PBPolyIter (* orderedEnd)()
         void (* iadd "operator+=")(PBPoly right)
+        void (* iadd_PBMonom "operator+=")(PBMonom right)
         void (* imul "operator*=")(PBPoly right)
         void (* imul_monom "operator*=")(PBMonom right)
-
+        bint (* is_equal "operator==")(PBPoly right)
 
     # non-allocating versions
     PBRing* PBRing_construct \
@@ -136,17 +140,74 @@ cdef extern from "pb_wrap.h":
 
     object PBPoly_to_str "_to_PyString<BoolePolynomial>"(PBPoly *p)
 
-    ctypedef struct PBPoly_vector "std::vector<BoolePolynomial>":
+    ctypedef struct PBPolyVectorIter \
+            "std::vector<BoolePolynomial>::iterator ":
+        PBPoly (* value "operator*")()
+        int (* next "operator++")()
+
+    bint PBPolyVectorIter_equal "operator=="(PBPolyVectorIter lhs, \
+            PBPolyVectorIter rhs)
+
+    ctypedef struct PBPolyVector "std::vector<BoolePolynomial>":
         int (* size)()
         PBPoly (* get "operator[]")(int)
+        PBPolyVectorIter (* begin)()
+        PBPolyVectorIter (* end)()
+        void (* push_back)(PBPoly val)
 
-    ctypedef struct GBStrategy "struct GroebnerStrategy":
+    PBPolyVector* PBPolyVector_construct \
+            "Construct< std::vector<BoolePolynomial> >"(void *mem)
+    void PBPolyVector_destruct "Destruct< std::vector<BoolePolynomial> >"\
+            (PBPolyVector *mem)
+
+    ctypedef struct GBStrategy "GroebnerStrategy":
+        bint reduceByTailReduced
+        bint enabledLog
+        unsigned int reductionSteps
+        int normalForms
+        int currentDegree
+        int chainCriterions
+        int variableChainCriterions
+        int easyProductCriterions
+        int extendedProductCriterions
+        int averageLength
+        bint optRedTail
+        bint optLazy
+        bint optLL
+        bint optDelayNonMinimals
+        bint optBrutalReductions
+        bint optExchange
+        bint optAllowRecursion
+        bint optRedTailDegGrowth
+        bint optStepBounded
+        bint optLinearAlgebraInLastBlock
+        bint optRedTailInLastBlock
+        PBSet monomials
+        PBSet llReductor
+        bint (* containsOne)()
+        int (* addGenerator)(PBPoly, bint is_impl)
         void (* addGeneratorDelayed)(PBPoly)
+        void (* addAsYouWish)(PBPoly)
         void (* symmGB_F2)()
-        PBPoly_vector (* minimalize)()
+        void (* cleanTopByChainCriterion "pairs.cleanTopByChainCriterion")()
+        int (* nGenerators "generators.size")()
+        int (* npairs "pairs.queue.size")()
+        PBPolyVector (* minimalize)()
+        PBPolyVector (* minimalizeAndTailReduce)()
+
+    int (* pairs_top_sugar)(GBStrategy strat)
+    PBPolyVector (* someNextDegreeSpolys)(GBStrategy strat, int n)
+
+    PBPoly GB_get_ith_gen "get_ith_gen" (GBStrategy strat, int i)
 
     # non-allocating versions
     GBStrategy* GBStrategy_construct "Construct<GroebnerStrategy>"(void *mem)
+    GBStrategy* GBStrategy_construct_gbstrategy \
+            "Construct_p<GroebnerStrategy, GroebnerStrategy>" \
+            (void *mem, GBStrategy strat)
+    PBPoly* PBPoly_construct_dd \
+            "Construct_p<BoolePolynomial, BoolePolyRing::dd_type>" \
+            (void *mem, PBDD d)
     void GBStrategy_destruct "Destruct<GroebnerStrategy>"(GBStrategy *mem)
 
 
@@ -157,3 +218,9 @@ cdef extern from "pb_wrap.h":
     PBPoly pb_ll_red_nf "ll_red_nf"(PBPoly p, PBSet reductors)
 
     PBSet pb_mod_mon_set "mod_mon_set"(PBSet as, PBSet vs)
+
+    void pb_change_ordering "BoolePolyRing::changeOrdering" (ordercodes c)
+
+    PBPolyVector pb_parallel_reduce "parallel_reduce" \
+        (PBPolyVector inp, GBStrategy strat, int average_steps, double delay_f)
+

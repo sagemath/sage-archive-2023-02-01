@@ -209,11 +209,24 @@ cdef class BooleanMonomial(MonoidElement):
     def __iter__(self):
         return new_BMI_from_PBMonomIter(self._M, self._M.begin())
 
-    def _mul_c_impl(left, MonoidElement right):
+    cdef MonoidElement _mul_c_impl(left, MonoidElement right):
         cdef BooleanMonomial m = new_BM_from_PBMonom(\
                 (<BooleanMonomial>left)._parent, (<BooleanMonomial>left)._M)
         m._M.imul( (<BooleanMonomial>right)._M )
         return m
+
+    def __add__(self, right):
+        cdef BooleanPolynomial res
+        if PY_TYPE_CHECK(right, BooleanMonomial):
+            res = new_BP_from_PBMonom( (<BooleanMonomial>self)._parent._ring, \
+                                            (<BooleanMonomial>self)._M)
+            res._P.iadd_PBMonom((<BooleanMonomial>right)._M)
+            return res
+        else:
+            #FIXME
+            raise NotImplementedError, "Adding %s and %s is not supported." % \
+                                            (type(self), type(right))
+
 
 cdef inline BooleanMonomial new_BM(parent):
     """
@@ -292,6 +305,10 @@ cdef class BooleanPolynomial(MPolynomial):
         p._P.imul( (<BooleanPolynomial>right)._P )
         return p
 
+    def is_equal(self, BooleanPolynomial right):
+        #FIXME: change this to replace == operator
+        return self._P.is_equal(right._P)
+
     def __iter__(self):
         return new_BPI_from_PBPolyIter(self, self._P.orderedBegin())
 
@@ -355,6 +372,9 @@ cdef class BooleanPolynomial(MPolynomial):
     def vars(self):
         return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.usedVariables())
 
+    def elimination_length(self):
+        return self._P.eliminationLength()
+
     def __len__(self):
         return self._P.length()
 
@@ -364,6 +384,10 @@ cdef class BooleanPolynomial(MPolynomial):
         # i.e., these don't show up in tab completion lists
         if name == 'diagram':
             return new_DD_from_PBDD(self._P.diagram())
+        elif name == 'deg':
+            return self.total_degree
+        elif name == 'elength':
+            return self.elimination_length
         elif name == 'lead':
             return self.lm
         elif name == 'constant':
@@ -413,7 +437,7 @@ cdef groebner_basis_c_impl(BooleanPolynomialRing R, g):
     cdef int i
     cdef PBPoly t
     cdef BooleanPolynomial p, r
-    cdef PBPoly_vector vec
+    cdef PBPolyVector vec
     cdef GBStrategy strat
 
     GBStrategy_construct(&strat)
@@ -584,6 +608,224 @@ cdef class CCuddNavigator:
     def thenBranch(self):
         return new_CN_from_PBNavigator(self._N.thenBranch())
 
+    def constant(self):
+        return self._N.isConstant()
+
+    def terminalOne(self):
+        return self._N.isTerminated()
+
+cdef class BooleanPolynomialVector:
+    def __init__(self):
+        PBPolyVector_construct(&self._vec)
+        self._parent = get_cring()
+
+    def __dealloc__(self):
+        PBPolyVector_destruct(&self._vec)
+
+    def __iter__(self):
+        #return new_BPVI_from_PBPolyVectorIter(self._parent, self._vec,
+        #    self._vec.begin())
+        return BooleanPolynomialVectorIterator(self._parent, self)
+
+    def __len__(self):
+        return self._vec.size()
+
+    def __getitem__(self, ind):
+        return new_BP_from_PBPoly(self._parent, self._vec.get(ind))
+
+    def append(self, BooleanPolynomial poly):
+        self._vec.push_back(poly._P)
+
+cdef inline BooleanPolynomialVector new_BPV_from_PBPolyVector(\
+        BooleanPolynomialRing parent, PBPolyVector juice):
+    cdef BooleanPolynomialVector m
+    m = <BooleanPolynomialVector>PY_NEW(BooleanPolynomialVector)
+    m._vec = juice
+    m._parent = parent
+    return m
+
+cdef class BooleanPolynomialVectorIterator:
+    def __init__(self, BooleanPolynomialRing parent,
+                                    BooleanPolynomialVector vector):
+        self._parent = parent
+        self._obj = vector._vec
+        self._iter = self._obj.begin()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        cdef PBPoly val
+        if PBPolyVectorIter_equal(self._iter, self._obj.end()):
+            raise StopIteration
+
+        val = self._iter.value()
+        self._iter.next()
+        return new_BP_from_PBPoly(self._parent, val)
+
+cdef inline BooleanPolynomialVectorIterator new_BPVI_from_PBPolyVectorIter(\
+        BooleanPolynomialRing parent, PBPolyVector juice, PBPolyVectorIter itr):
+    """
+    Construct a new BooleanMonomialIterator
+    """
+    cdef BooleanPolynomialVectorIterator m
+    m = <BooleanPolynomialVectorIterator>PY_NEW(BooleanPolynomialVectorIterator)
+    m._obj = juice
+    m._iter = itr
+    m._parent = parent
+    return m
+
+
+cdef class GroebnerStrategy:
+    def __init__(self, param = None):
+        self._parent = get_cring()
+        if PY_TYPE_CHECK(param, GroebnerStrategy):
+            GBStrategy_construct_gbstrategy(&self._S,
+                    (<GroebnerStrategy>param)._S)
+        else:
+            GBStrategy_construct(&self._S)
+
+    def __dealloc__(self):
+        GBStrategy_destruct(&self._S)
+
+    def addGeneratorDelayed(self, BooleanPolynomial p):
+        self._S.addGeneratorDelayed(p._P)
+
+    def addGenerator(self, BooleanPolynomial p, bint is_impl=False):
+        return self._S.addGenerator(p._P, is_impl)
+
+    def addAsYouWish(self, BooleanPolynomial p):
+        self._S.addAsYouWish(p._P)
+
+    def cleanTopByChainCriterion(self):
+        self._S.cleanTopByChainCriterion()
+
+    def symmGB_F2(self):
+        self._S.symmGB_F2()
+
+    def containsOne(self):
+        return self._S.containsOne()
+
+    def minimalize(self):
+        cdef PBPolyVector v = self._S.minimalize()
+        return new_BPVI_from_PBPolyVectorIter(self._parent, v, v.begin())
+
+    def minimalizeAndTailReduce(self):
+        cdef PBPolyVector v = self._S.minimalizeAndTailReduce()
+        return new_BPVI_from_PBPolyVectorIter(self._parent, v, v.begin())
+
+    def npairs(self):
+        return self._S.npairs()
+
+    def topSugar(self):
+        return pairs_top_sugar(self._S)
+
+    def someSpolysInNextDegree(self, n):
+        cdef PBPolyVector v = someNextDegreeSpolys(self._S, n)
+        return new_BPV_from_PBPolyVector(self._parent, v)
+
+    def __len__(self):
+        return self._S.nGenerators()
+
+    def __getitem__(self, int i):
+        return new_BP_from_PBPoly(self._parent, GB_get_ith_gen(self._S, i))
+
+    def __getattr__(self, name):
+        if name is 'enabledLog':
+            return self._S.enabledLog
+        if name is 'reductionSteps':
+            return self._S.reductionSteps
+        if name is 'normalForms':
+            return self._S.normalForms
+        if name is 'currentDegree':
+            return self._S.currentDegree
+        if name is 'chainCriterions':
+            return self._S.chainCriterions
+        if name is 'variableChainCriterions':
+            return self._S.variableChainCriterions
+        if name is 'easyProductCriterions':
+            return self._S.easyProductCriterions
+        if name is 'extendedProductCriterions':
+            return self._S.extendedProductCriterions
+        if name is 'averageLength':
+            return self._S.averageLength
+        if name is 'optRedTail':
+            return self._S.optRedTail
+        if name is 'optLazy':
+            return self._S.optLazy
+        if name is 'optLL':
+            return self._S.optLL
+        if name is 'optDelayNonMinimals':
+            return self._S.optDelayNonMinimals
+        if name is 'optBrutalReductions':
+            return self._S.optBrutalReductions
+        if name is 'optExchange':
+            return self._S.optExchange
+        if name is 'optAllowRecursion':
+            return self._S.optAllowRecursion
+        if name is 'optRedTailDegGrowth':
+            return self._S.optRedTailDegGrowth
+        if name is 'optStepBounded':
+            return self._S.optStepBounded
+        if name is 'optLinearAlgebraInLastBlock':
+            return self._S.optLinearAlgebraInLastBlock
+        if name is 'optRedTailInLastBlock':
+            return self._S.optRedTailInLastBlock,
+        if name is 'reduceByTailReduced':
+            return self._S.reduceByTailReduced
+        if name is 'monomials':
+            return new_BS_from_PBSet(self._S.monomials)
+        if name is 'llReductor':
+            return new_BS_from_PBSet(self._S.llReductor)
+        else:
+            raise AttributeError, name
+
+    def __setattr__(self, name, val):
+        if name is 'enabledLog':
+            self._S.enabledLog = val
+        elif name is 'reductionSteps':
+            self._S.reductionSteps = val
+        elif name is 'normalForms':
+            self._S.normalForms = val
+        elif name is 'currentDegree':
+            self._S.currentDegree = val
+        elif name is 'chainCriterions':
+            self._S.chainCriterions = val
+        elif name is 'variableChainCriterions':
+            self._S.variableChainCriterions = val
+        elif name is 'easyProductCriterions':
+            self._S.easyProductCriterions = val
+        elif name is 'extendedProductCriterions':
+            self._S.extendedProductCriterions = val
+        elif name is 'averageLength':
+            self._S.averageLength = val
+        elif name == 'optRedTail':
+            self._S.optRedTail = val
+        elif name is 'optLazy':
+            self._S.optLazy = val
+        elif name is 'optLL':
+            self._S.optLL = val
+        elif name is 'optDelayNonMinimals':
+            self._S.optDelayNonMinimals = val
+        elif name is 'optBrutalReductions':
+            self._S.optBrutalReductions = val
+        elif name is 'optExchange':
+            self._S.optExchange = val
+        elif name is 'optAllowRecursion':
+            self._S.optAllowRecursion = val
+        elif name is 'optRedTailDegGrowth':
+            self._S.optRedTailDegGrowth = val
+        elif name is 'optStepBounded':
+            self._S.optStepBounded = val
+        elif name is 'optLinearAlgebraInLastBlock':
+            self._S.optLinearAlgebraInLastBlock = val
+        elif name is 'optRedTailInLastBlock':
+            self._S.optRedTailInLastBlock = val
+        elif name is 'reduceByTailReduced':
+            self._S.reduceByTailReduced = val
+        else:
+            raise AttributeError, name
+
 cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice):
     """
     Construct a new CCuddNavigator
@@ -613,6 +855,18 @@ def mod_mon_set(BooleSet as, BooleSet vs):
     cdef PBSet b
     b = pb_mod_mon_set((<BooleSet>as)._S, (<BooleSet>vs)._S)
     return new_BS_from_PBSet(b)
+
+def get_order_code():
+    R = get_cring()
+    return (<BooleanPolynomialRing>R)._R.getOrderCode()
+
+def change_ordering(order):
+    pb_change_ordering(order)
+
+def parallel_reduce(BooleanPolynomialVector inp, GroebnerStrategy strat, \
+                                    int average_steps, double delay_f):
+    return new_BPV_from_PBPolyVector(inp._parent, \
+        pb_parallel_reduce(inp._vec, strat._S, average_steps, delay_f))
 
 cdef BooleanPolynomialRing cur_ring
 ring_callbacks = []

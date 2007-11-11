@@ -3,7 +3,34 @@
 #include "nf.h"
 #include "ccobject.h"
 #include <sstream>
+#include <vector>
 
 USING_NAMESPACE_PBORI
 USING_NAMESPACE_PBORIGB
+
+BoolePolynomial get_ith_gen(const GroebnerStrategy& strat, int i){
+    return strat.generators[i].p;
+}
+
+static int pairs_top_sugar(const GroebnerStrategy& strat){
+    if (strat.pairs.pairSetEmpty())
+        return -1;
+    else
+        return (strat.pairs.queue.top().sugar);
+}
+
+static std::vector<BoolePolynomial> someNextDegreeSpolys(GroebnerStrategy& strat, int n){
+    std::vector<BoolePolynomial> res;
+    assert(!(strat.pairs.pairSetEmpty()));
+    strat.pairs.cleanTopByChainCriterion();
+    deg_type deg=strat.pairs.queue.top().sugar;
+
+    while((!(strat.pairs.pairSetEmpty())) && \
+                (strat.pairs.queue.top().sugar<=deg) && (res.size()<n)){
+        assert(strat.pairs.queue.top().sugar==deg);
+        res.push_back(strat.nextSpoly());
+        strat.pairs.cleanTopByChainCriterion();
+    }
+    return res;
+}
 

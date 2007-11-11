@@ -37,3 +37,16 @@ cdef class BooleSetIterator:
     cdef PBSetIter _iter
     cdef BooleSet _obj
     cdef BooleanPolynomialRing _ring
+
+cdef class GroebnerStrategy:
+    cdef GBStrategy _S
+    cdef BooleanPolynomialRing _parent
+
+cdef class BooleanPolynomialVector:
+    cdef PBPolyVector _vec
+    cdef BooleanPolynomialRing _parent
+
+cdef class BooleanPolynomialVectorIterator:
+    cdef BooleanPolynomialRing _parent
+    cdef PBPolyVectorIter _iter
+    cdef PBPolyVector _obj

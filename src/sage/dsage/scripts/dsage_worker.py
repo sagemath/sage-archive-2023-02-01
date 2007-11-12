@@ -48,6 +48,7 @@ from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.constants import TMP_WORKER_FILES
 from sage.dsage.misc.misc import random_str
 
 START_MARKER = '___BEGIN___'
@@ -126,6 +127,7 @@ class Worker(object):
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
+            import pdb; pdb.set_trace()
             self.report_failure(msg)
             self.restart()
 
@@ -193,10 +195,9 @@ class Worker(object):
         """
 
         cur_dir = os.getcwd() # keep a reference to the current directory
-        tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
-        tmp_job_dir = os.path.join(tmp_dir, job.job_id)
-        if not os.path.isdir(tmp_dir):
-            os.mkdir(tmp_dir)
+        tmp_job_dir = os.path.join(TMP_WORKER_FILES, job.job_id)
+        if not os.path.isdir(TMP_WORKER_FILES):
+            os.mkdir(TMP_WORKER_FILES)
         if not os.path.isdir(tmp_job_dir):
             os.mkdir(tmp_job_dir)
         os.chdir(tmp_job_dir)
@@ -349,8 +350,8 @@ except:
         if self.log_level > 1:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
+        os.chdir(self.tmp_job_dir)
         try:
-            os.chdir(self.tmp_job_dir)
             # foo, output, new = self.sage._so_far()
             # This sucks and is a very bad way to tell when a calculation is
             # finished
@@ -498,10 +499,13 @@ except:
 
         """
 
+        # Set status to free and delete any current jobs we have
+        self.free = True
+        self.job = None
+
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
             self.kill_sage()
-            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -526,11 +530,8 @@ except:
 
             if not success:
                 self.kill_sage()
-                self.start()
             else:
                 self.sage.reset()
-        self.free = True
-        self.job = None
 
     def start(self):
         """

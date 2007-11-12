@@ -19,92 +19,103 @@
 
 import os
 import sqlite3
+from cStringIO import StringIO
+import socket
 
 from twisted.web2 import http, resource
 from twisted.web2 import static, http_headers, responsecode
 
+from sage.dsage.misc.constants import TMP_WORKER_FILES
+from sage.dsage.server.stats import XMLStats
+
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
-CSS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.css')
-SORTTABLE = os.path.join(DSAGE_LOCAL,'web/static/sorttable.js')
-JS_FILE = os.path.join(DSAGE_LOCAL,'web/static/dsage_web.js')
-PROTOTYPE = os.path.join(DSAGE_LOCAL,'web/static/prototype.js')
-INDEX = os.path.join(DSAGE_LOCAL,'web/static/index.html')
+INDEX = os.path.join(DSAGE_LOCAL,'web/index.html')
+STATIC = os.path.join(DSAGE_LOCAL,'web/static')
 
-# def create_jobs_table(jdicts):
-#     """
-#     Returns an HTML table of jobs given a list of job dictionaries.
-#
-#     """
-#
-#     html = """
-#     <table class='jobs_table' cellspacing='0' padding='5px' border='solid #000 1px'>
-#     <tr class='thead'>
-#         <td>Job ID</td>
-#         <td>Status</td>
-#         <td>Username</td>
-#         <td>Creation Time</td>
-#         <td>Last Update</td>
-#         <td>Priority</td>
-#     </tr>
-#     """
-#
-#     for i, jdict in enumerate(jdicts):
-#         html+="""
-#         <tr class='tr%s'
-#         """ % (i % 2)
-#         html+="""
-#             <td><a href='get_details?job_id=%s'>%s</a></td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#             <td>%s</td>
-#         </tr>
-#         """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
-#                jdict['username'], jdict['creation_time'],
-#                jdict['update_time'], jdict['priority'])
-#
-#     html += '</table>'
-#
-#     return html
+def create_jobs_table(jdicts):
+    """
+    Returns an HTML table of jobs given a list of job dictionaries.
+
+    """
+
+    html = """
+    <thead>
+    <tr>
+        <th>Job ID</th>
+        <th>Status</th>
+        <th>Username</th>
+        <th>Creation Time</th>
+        <th>Last Update</th>
+        <th>Priority</th>
+    </tr>
+    </thead>
+    <tbody>
+    """
+
+    for i, jdict in enumerate(jdicts):
+        creation_time = jdict['creation_time'].strftime('%F %r')
+        try:
+            update_time = jdict['update_time'].strftime('%F %r')
+        except AttributeError: # This is a fix for older databases.
+            update_time = "N/A"
+        html+="""
+        <tr class='tr%s'
+        """ % (i % 2)
+        html+="""
+            <td><a href='#%s' onClick="getJobDetails('%s')">%s</a></td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+        </tr>
+        """ % (jdict['job_id'], jdict['job_id'], jdict['job_id'],
+               jdict['status'],
+               jdict['username'], creation_time,
+               update_time, jdict['priority'])
+    html += """</tbody>"""
+
+    return html
 
 class Toplevel(resource.Resource):
     addSlash = True
-    # header = """
-    # <html>
-    # <header>
-    #     <link rel="stylesheet" type="text/css" href="dsage_web.css" />
-    #     <scritp src='prototype.js' type='text/javascript'></script>
-    #     <script src='dsage_web.js' type='text/javascript'></script>
-    # </header>
-    # <body>
-    #     <div id='header'>
-    #         <div id='title'><h1>DSAGE Job Status</h1></div>
-    #     </div>
-    # """
-    #
-    # footer = """
-    # </body>
-    # </html>
-    # """
 
-    def __init__(self, dsage_server):
+    def __init__(self, dsage_server, server_port):
         self.dsage_server = dsage_server
-        self.child_get_details = GetJobDetails(self.dsage_server)
-        self.child_get_jobs = GetJobs(self.dsage_server)
+        self.server_port = server_port
+
+    def child_static(self, ctx):
+        return static.File(STATIC)
+
+    def child_get_details(self, ctx):
+        return GetJobDetails(self.dsage_server)
+
+    def child_get_jobs(self, ctx):
+        return GetJobs(self.dsage_server)
+
+    def child_get_server_details(self, ctx):
+        return GetServerDetails(self.dsage_server)
+
+    def child_get_help(self, ctx):
+        return GetHelp()
+
+    def child_worker_files(self, ctx):
+        return static.File(TMP_WORKER_FILES)
 
     def render(self, ctx):
-        jobs = self.dsage_server.jobdb.get_all_jobs()
-        # jobs_html = create_jobs_table(jobs)
-        f = open(INDEX)
-        return http.Response(stream=f.read())
-        # return http.Response(stream=self.header + jobs_html + self.footer)
-setattr(Toplevel, 'child_dsage_web.css', static.File(CSS_FILE))
-setattr(Toplevel, 'child_dsage_web.js', static.File(JS_FILE))
-setattr(Toplevel, 'child_prototype.js', static.File(PROTOTYPE))
-setattr(Toplevel, 'child_sorttable.js', static.File(SORTTABLE))
-# setattr(Toplevel, 'child_index.html', static.File(INDEX))
+        index = open(INDEX).read() % (socket.getfqdn(), self.server_port)
+        # return static.File(StringIO(index))
+        return http.Response(stream=index)
+
+class GetHelp(resource.PostableResource):
+    """
+    Returns the help page.
+
+    """
+
+    def render(self, request):
+        return static.File(os.path.join(STATIC, 'README.html'))
 
 class GetJobs(resource.PostableResource):
     """
@@ -117,38 +128,16 @@ class GetJobs(resource.PostableResource):
         self.jdicts = []
 
     def render(self, request):
-        jdicts = self.dsage_server.jobdb.get_all_jobs()[:10]
-        html = """
-        <tr class='thead'>
-            <td>Job ID</td>
-            <td>Status</td>
-            <td>Username</td>
-            <td>Creation Time</td>
-            <td>Last Update</td>
-            <td>Priority</td>
-        </tr>"""
-        # if len(jdicts) != len(self.jdicts):
-        #     self.jdicts = jdicts
-        for i, jdict in enumerate(jdicts):
-            html+="""
-            <tr class='tr%s'>
-            """ % (i % 2)
-            html+="""
-                <td><a href='get_details?job_id=%s'>%s</a></td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-            </tr>
-            """ % (jdict['job_id'],jdict['job_id'], jdict['status'],
-                   jdict['username'], jdict['creation_time'],
-                   jdict['update_time'], jdict['priority'])
+        try:
+            count = int(request.args['count'][0])
+        except:
+            count = 10
+        if count == - 1:
+            jdicts = self.dsage_server.jobdb.get_all_jobs()
+        else:
+            jdicts = self.dsage_server.jobdb.get_all_jobs()[:count]
 
-        html += '</table>'
-        # else:
-        #     pass
-        # xml_stream = self.build_xml(jdicts)
+        html = create_jobs_table(jdicts)
 
         return http.Response(stream=html)
 
@@ -164,7 +153,6 @@ class GetJobs(resource.PostableResource):
                                            SubElement,
                                            dump,
                                            XML)
-        from cStringIO import StringIO
         root = Element('jobs')
 
         for jdict in jdicts:
@@ -187,23 +175,6 @@ class GetJobDetails(resource.PostableResource):
 
     """
 
-    header = """
-    <html>
-    <header>
-        <link rel="stylesheet" type="text/css" href="dsage_web.css" />
-        <scritp src='prototype.js' type='text/javascript'></script>
-    </header>
-    <body>
-        <div id='header'>
-            <div id='title'><h1>Details for %s</h1></div>
-        </div>
-    """
-
-    footer = """
-    </body>
-    </html>
-    """
-
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
 
@@ -211,18 +182,23 @@ class GetJobDetails(resource.PostableResource):
         job_id = request.args['job_id'][0]
         try:
             html = """
-            <table class='job_details'>
-            <tr class='thead'>
-                <td>Key</td>
-                <td>Value</td>
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
             </tr>
+            </thead>
+            <tbody>
             """
+
             jdict = self.dsage_server.jobdb.get_job_by_id(job_id)
             if not isinstance(jdict, dict):
                 raise TypeError
             for i, (k, v) in enumerate(jdict.iteritems()):
-                if k == 'code': # We will display the code below the table
-                    continue
+                # if k == 'code': # We will display the code below the table
+                #     continue
+                if k == 'result': # result is an .sobj, link to the file
+                    v = "<a href='worker_files/%s'>result.sobj (Click to download.)</a>" % (jdict['job_id'] + '/' + 'result.sobj')
                 html += """
                 <tr class='tr%s'>
                 """ % (i % 2)
@@ -231,21 +207,16 @@ class GetJobDetails(resource.PostableResource):
                 <td>%s</td>
                 </tr>
                 """ %(k, v)
-            html += "</table>"
+
             html += """
-            <div id='title'>
-                Job Code
-            </div>
-            <div id='job_code'>
-            %s
-            <div>
-            """ % jdict['code']
+            </tbody>
+            """
         except (sqlite3.InterfaceError, TypeError):
             html = 'Invalid job id.'
-        html = self.header % (job_id) + html + self.footer
+
         return http.Response(stream=html)
 
-class GetServerDetails(resource.Resource):
+class GetServerDetails(resource.PostableResource):
     """
     Returns an XML file containing the server resources.
 
@@ -254,10 +225,78 @@ class GetServerDetails(resource.Resource):
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
 
-    def render(self):
+    def gen_html(self, stats_xml):
+        """
+        generates html snippet from xml stats
+
+        """
+
+        from xml.etree.ElementTree import (ElementTree as ET,
+                                           Element,
+                                           SubElement,
+                                           dump,
+                                           XML)
+
+        mapping = {'onlineAgentCount': 'Online Workers',
+                   'offlineAgentCount': 'Offline Workers',
+                   'totalAgentCount': 'Total Workers',
+                   'onlineProcessorCount': 'Online CPUs',
+                   'workingProcessorCount': 'Working CPUs',
+                   'workingAgentPercentage': 'Working %'}
+        # html = """
+        # <thead>
+        # <tr>
+        #    <th>Online Workers</th>
+        #    <th>Offline Workers</th>
+        #    <th>Total Workers</th>
+        #    <th>Online Processors</th>
+        #    <th>Working Processors</th>
+        #    <th>Working MHz</th>
+        #    <th>Percent Working</th>
+        # </tr>
+        # </thead>
+        # <tbody>
+        # """
+        #
+        html = """
+        <thead>
+        <tr>
+        <th>Stat</th>
+        <th>Value</th>
+        <tbody>"""
+        # build StringIO object
+        tree = ET()
+        tree.parse(StringIO(stats_xml))
+        root = tree.getroot()
+        for i, elem in enumerate(root.getchildren()):
+            if elem.tag in ('onlineAgentCount',
+                            'offlineAgentCount',
+                            'totalAgentCount',
+                            'onlineProcessorCount',
+                            'workingProcessorCount',
+                            'workingAgentPercentage'):
+                html += """
+                <tr>
+                    <td>%s</td>
+                    <td>%s</td>
+                </tr>
+                """ % (mapping[elem.tag], elem.text)
+
+        html += """
+        </tbody>
+        """
+
+        return html
+
+    def render(self, request):
         """
         Asks the server to generate stats and returns it in an XML file.
 
         """
 
-        return self.dsage_server.generate_xml_stats()
+
+        stats_xml = XMLStats(self.dsage_server).gen_xml()
+
+        # html = self.gen_html(stats_xml)
+
+        return http.Response(stream=stats_xml)

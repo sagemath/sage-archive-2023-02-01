@@ -31,11 +31,6 @@ body {
     color:#FFFFFF;
 }
 
-#server_stats {
-    padding-left: 60%;
-    font-size:10px;
-}
-
 #title {
     font-size:24px;
     font-family: 'lucida grande', verdana, lucida, sans-serif;
@@ -44,6 +39,19 @@ body {
     padding-top:10px;
     padding-bottom:10px;
     margin:0px;
+}
+
+#navigator {
+    font-size:10px;
+    text-align: center;
+}
+
+#server_title {
+    font-size: 24px;
+}
+
+#help {
+    font-size: 12px;
 }
 
 /* begin css tabs */
@@ -94,50 +102,41 @@ ul#tabnav a:hover {/* settings for hover effect */
 }
 /* end css tabs */
 
-table.jobs_table, table.job_details {
-    border: solid #000 1px;
-    border-bottom: solid #000 1px;
-    border-right: solid #000 1px;
-    border-collapse: collapse;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left:10px;
-    padding-right:10px;
+table.tablesorter {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 8pt;
+	width: 100%;
+	text-align: left;
 }
-table.jobs_table tr.tr0, table.job_details tr.tr0 {
-    font-size:16px;
-    background-color: #FFFFFF;
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 8pt;
+	padding: 4px;
 }
-table.jobs_table tr.tr1, table.job_details tr.tr1 {
-    font-size:16px;
-    background-color: #D8CAA8;
+table.tablesorter thead tr .header {
+	background-image: url(bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
 }
-table.jobs_table tr.thead, table.job_details tr.thead {
-
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
 }
-
-#jobs_table {
-    border: solid #000 1px;
-    border-bottom: solid #000 1px;
-    border-right: solid #000 1px;
-    border-collapse: collapse;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left:10px;
-    padding-right:10px;
+table.tablesorter tbody tr.odd td {
+	background-color:#F0F0F6;
 }
-#jobs_table thead {
-    width:100%;
-    height:20px;
-    font-size:16px;
-    background-color: #D8CAA8;
-    font-family: 'verdana';
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(asc.gif);
 }
-table.jobs_table A:link, table.job_details A:link {
-    color: #193441;
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(desc.gif);
 }
-table.jobs_table A:visited, table.job_details A:link {
-    color: #3E606F;
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
 }

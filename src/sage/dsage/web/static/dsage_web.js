@@ -3,7 +3,7 @@ var count = 10; // Default count
 function getServerDetails () {
     $('#server_details').load('get_server_details', function() {
                                     $("#server_details").tablesorter(); });
-    showServer()
+    showServer();
 }
 
 function showServer () {
@@ -14,15 +14,15 @@ function showServer () {
     $('#server_details').show();
 }
 function getJobs (c) {
-    count = c // Set global variable count to the selected count.
+    count = c; // Set global variable count to the selected count.
 
     // Load jobs table with the given number of jobs.
     $('#jobs_table').load('get_jobs', {'count': c}, function() {
             $("#jobs_table").tablesorter(); } );
 
     // Change current selected count to red
-    $('#navigator > a').css('color', 'black')
-    $('#' + c).css('color', 'red')
+    $('#navigator > a').css('color', 'black');
+    $('#' + c).css('color', 'red');
 }
 
 function showJobs () {
@@ -36,7 +36,7 @@ function showJobs () {
 function getJobDetails (job_id) {
     $('#job_details').load('get_details', {'job_id': job_id}, function() {
                                         $("#job_details").tablesorter(); } );
-    showJobDetails()
+    showJobDetails();
 }
 
 function showJobDetails () {
@@ -49,7 +49,7 @@ function showJobDetails () {
 
 function getHelp () {
     $('#help').load('get_help');
-    showHelp()
+    showHelp();
 }
 
 function showHelp () {
@@ -70,18 +70,18 @@ function pageload(hash) {
 	if(hash) {
 		// restore ajax loaded state
         if (hash=='jobs') {
-            showJobs()
+            showJobs();
         }
         else if (hash=='server') {
-            getServerDetails()
+            getServerDetails();
         }
         else if (hash=='help') {
-            getHelp()
+            getHelp();
         }
 	}
 	else {
 		// start page
-		showJobs()
+		showJobs();
 	}
 }
 
@@ -101,11 +101,11 @@ $(document).ready(function()
 		$.historyInit(pageload);
 		// set onlick event for buttons
 		$("a[@rel='history']").click(function() {gethash(this); });
-        getJobs(count) // Run it the first time
+        getJobs(count); // Run it the first time
 
         // Only show jobs if this.href is none or jobs
         if (this.href == '' || this.href == '#jobs') {
-            showJobs()
+            showJobs();
         }
         // setInterval('getJobs(count)', 5000); // Update it every 5 seconds.
     }

@@ -75,7 +75,7 @@ cdef class ntl_ZZ:
         if PY_TYPE_CHECK(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
-            ZZ_conv_int(self.x, v)
+            ZZ_conv_from_int(self.x, v)
         elif PyLong_Check(v):
             ZZ_set_pylong(self.x, v)
         elif PY_TYPE_CHECK(v, Integer):
@@ -117,9 +117,6 @@ cdef class ntl_ZZ:
         """
         return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
 
-    def __hash__(self):
-        return hash(self.get_as_sage_int())
-
     def __cmp__(self, other):
         """
         Compare self to other.
@@ -147,6 +144,16 @@ cdef class ntl_ZZ:
             return 1
         else:
             return -1
+
+    def __hash__(self):
+        """
+        Return the hash of this integer.
+
+        Agrees with the hash of the corresponding sage integer.
+        """
+        cdef Integer v = PY_NEW(Integer)
+        ZZ_to_mpz(&v.value, &self.x)
+        return v.hash_c()
 
     def __mul__(self, other):
         """
@@ -239,7 +246,9 @@ cdef class ntl_ZZ:
 
         AUTHOR: David Harvey (2006-08-05)
         """
-        return ZZ_to_int(&self.x)
+        cdef int ans
+        ZZ_conv_to_int(ans, self.x)
+        return ans
 
     def get_as_int_doctest(self):
         r"""
@@ -264,7 +273,10 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler
         """
-        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
+        cdef Integer ans = PY_NEW(Integer)
+        ZZ_to_mpz(&ans.value, &self.x)
+        return ans
+        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
     def _integer_(self):
         r"""
@@ -276,7 +288,10 @@ cdef class ntl_ZZ:
 
         Alias for get_as_sage_int
         """
-        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
+        cdef Integer ans = PY_NEW(Integer)
+        ZZ_to_mpz(&ans.value, &self.x)
+        return ans
+        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
     cdef void set_from_int(ntl_ZZ self, int value):
         r"""
@@ -284,7 +299,7 @@ cdef class ntl_ZZ:
 
         AUTHOR: David Harvey (2006-08-05)
         """
-        ZZ_set_from_int(&self.x, value)
+        ZZ_conv_from_int(self.x, value)
 
     def set_from_sage_int(self, Integer value):
         r"""
@@ -314,6 +329,50 @@ cdef class ntl_ZZ:
          42
         """
         self.set_from_int(int(value))
+
+    def valuation(self, ntl_ZZ prime):
+        """
+        Uses code in ntl_wrap.cpp to compute the number of times prime divides self.
+
+        EXAMPLES:
+        sage: a = ntl.ZZ(5^7*3^4)
+        sage: p = ntl.ZZ(5)
+        sage: a.valuation(p)
+        7
+        sage: a.valuation(-p)
+        7
+        """
+        cdef ntl_ZZ ans = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
+        cdef long valuation
+        _sig_on
+        valuation = ZZ_remove(unit.x, self.x, prime.x)
+        _sig_off
+        ZZ_conv_from_long(ans.x, valuation)
+        return ans
+
+    def val_unit(self, ntl_ZZ prime):
+        """
+        Uses code in ntl_wrap.cpp to compute p-adic valuation and unit of self.
+
+        EXAMPLES:
+        sage: a = ntl.ZZ(5^7*3^4)
+        sage: p = ntl.ZZ(-5)
+        sage: a.val_unit(p)
+        (7, -81)
+        sage: a.val_unit(ntl.ZZ(-3))
+        (4, 78125)
+        sage: a.val_unit(ntl.ZZ(2))
+        (0, 6328125)
+        """
+        cdef ntl_ZZ val = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
+        cdef long valuation
+        _sig_on
+        valuation = ZZ_remove(unit.x, self.x, prime.x)
+        _sig_off
+        ZZ_conv_from_long(val.x, valuation)
+        return val, unit
 
     # todo: add wrapper for int_to_ZZ in wrap.cc?
 

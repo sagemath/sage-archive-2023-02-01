@@ -116,18 +116,6 @@ def usage():
 
     return options
 
-# def write_stats(dsage_server, stats_file):
-#     check_dsage_dir()
-#     try:
-#         fname = os.path.join(DSAGE_DIR, stats_file)
-#         f = open(fname, 'w')
-#         f.write(dsage_server.generate_xml_stats())
-#         f.close()
-#     except Exception, msg:
-#         print Exception
-#         print 'Error writing stats: %s' % (msg)
-#         return
-
 def create_manhole():
     """
     This is a manhole backdoor to inspect a running server.

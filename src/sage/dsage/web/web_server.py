@@ -28,6 +28,12 @@ from twisted.web2 import static, http_headers, responsecode
 from sage.dsage.misc.constants import TMP_WORKER_FILES
 from sage.dsage.server.stats import XMLStats
 
+from xml.etree.ElementTree import (ElementTree as ET,
+                                   Element,
+                                   SubElement,
+                                   dump,
+                                   XML)
+
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
 INDEX = os.path.join(DSAGE_LOCAL,'web/index.html')
@@ -218,69 +224,37 @@ class GetJobDetails(resource.PostableResource):
 
 class GetServerDetails(resource.PostableResource):
     """
-    Returns an XML file containing the server resources.
+    Returns an HTML table containing the server resources.
 
     """
 
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
+        self.xml_stats = XMLStats(self.dsage_server)
 
-    def gen_html(self, stats_xml):
+    def gen_html(self):
         """
         generates html snippet from xml stats
 
         """
 
-        from xml.etree.ElementTree import (ElementTree as ET,
-                                           Element,
-                                           SubElement,
-                                           dump,
-                                           XML)
+        self.xml_stats.gen_xml()
 
-        mapping = {'onlineAgentCount': 'Online Workers',
-                   'offlineAgentCount': 'Offline Workers',
-                   'totalAgentCount': 'Total Workers',
-                   'onlineProcessorCount': 'Online CPUs',
-                   'workingProcessorCount': 'Working CPUs',
-                   'workingAgentPercentage': 'Working %'}
-        # html = """
-        # <thead>
-        # <tr>
-        #    <th>Online Workers</th>
-        #    <th>Offline Workers</th>
-        #    <th>Total Workers</th>
-        #    <th>Online Processors</th>
-        #    <th>Working Processors</th>
-        #    <th>Working MHz</th>
-        #    <th>Percent Working</th>
-        # </tr>
-        # </thead>
-        # <tbody>
-        # """
-        #
         html = """
         <thead>
         <tr>
         <th>Stat</th>
         <th>Value</th>
         <tbody>"""
-        # build StringIO object
-        tree = ET()
-        tree.parse(StringIO(stats_xml))
-        root = tree.getroot()
-        for i, elem in enumerate(root.getchildren()):
-            if elem.tag in ('onlineAgentCount',
-                            'offlineAgentCount',
-                            'totalAgentCount',
-                            'onlineProcessorCount',
-                            'workingProcessorCount',
-                            'workingAgentPercentage'):
+
+        for i, elem in enumerate(self.xml_stats.root.getchildren()):
                 html += """
                 <tr>
                     <td>%s</td>
                     <td>%s</td>
                 </tr>
-                """ % (mapping[elem.tag], elem.text)
+                """ % (' '.join(w.title() for w in elem.tag.split("_")),
+                       elem.text)
 
         html += """
         </tbody>
@@ -294,9 +268,4 @@ class GetServerDetails(resource.PostableResource):
 
         """
 
-
-        stats_xml = XMLStats(self.dsage_server).gen_xml()
-
-        # html = self.gen_html(stats_xml)
-
-        return http.Response(stream=stats_xml)
+        return http.Response(stream=self.gen_html())

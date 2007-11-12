@@ -127,7 +127,6 @@ class Worker(object):
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
-            import pdb; pdb.set_trace()
             self.report_failure(msg)
             self.restart()
 
@@ -733,7 +732,6 @@ class Monitor(object):
         if self.connected: # Don't connect multiple times
             return
 
-        factory = pb.PBClientFactory()
         self.factory = PBClientFactory()
         try:
             if self.ssl:

@@ -1,0 +1,43 @@
+#!/bin/sh
+
+cd src
+
+export NTL_PREFIX="$SAGE_LOCAL"
+export PARI_PREFIX="$SAGE_LOCAL"
+if [ `uname` != "Darwin" ]; then
+    export PICFLAG=-fPIC
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building cremona"
+    exit 1
+fi
+
+if [ `uname` = "Darwin" ]; then
+    make shared_dylib
+else
+    make shared_so
+fi
+
+if [ $? -ne 0 ]; then
+    echo "Error building cremona shared libraries"
+    exit 1
+fi
+
+exit 0
+if [ `uname` = "Darwin" ]; then
+    cp lib/*.dylib "$SAGE_LOCAL"/lib/
+else
+    cp lib/*.so "$SAGE_LOCAL"/lib/
+fi
+
+INC_TARGET="$SAGE_LOCAL"/include/mwrank
+rm -rf "$INC_TARGET"
+cp -r include "$INC_TARGET"
+
+
+
+
+

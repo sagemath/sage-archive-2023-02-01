@@ -1,0 +1,15 @@
+Cremona's programs for enumerating and computating with elliptic curves
+defined over the rational numbers.   (This is the culmination of over
+30 years of hard work and careful polish.)
+
+MAINTAINTERS:
+   * William Stein
+   * John Cremona
+   * Ralph Philip Weinmann
+
+
+TODO:
+   * must get rid of the -DLONG_IS_64_BIT -- see what is done in FLINT.
+   *
+
+

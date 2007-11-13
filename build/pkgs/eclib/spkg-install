@@ -32,7 +32,7 @@ else
     cp lib/*.so "$SAGE_LOCAL"/lib/
 fi
 
-INC_TARGET="$SAGE_LOCAL"/include/mwrank
+INC_TARGET="$SAGE_LOCAL"/include/cremona
 rm -rf "$INC_TARGET"
 cp -r include "$INC_TARGET"
 

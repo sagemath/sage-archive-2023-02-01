@@ -188,7 +188,7 @@ cdef class NumberFieldElement(FieldElement):
             # fast pathway
             (<Integer>ZZ(f))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, 0, coeff )
-            conv_ZZ_int( self.__denominator, 1 )
+            ZZ_conv_from_int( self.__denominator, 1 )
             return
 
         elif isinstance(f, NumberFieldElement):

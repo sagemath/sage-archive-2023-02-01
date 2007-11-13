@@ -259,7 +259,6 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         if not PY_TYPE_CHECK(poly, ntl_ZZ_pX):
             raise TypeError
         self.deg = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
-        PowComputer_ext.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
 
     def polynomial(self):
         """
@@ -488,16 +487,16 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
             print "NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM"
             raise NotImplementedError
 
-    def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
-        """
-        Caches a context and modulus for prime^prec_cap
-
-        EXAMPLES:
-        sage: A = PowComputer_ext_maker(5, 3, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "FM") #indirect doctest
-        sage: A
-        PowComputer_ext for 5, with polynomial [9765620 0 1]
-        """
-        PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
+    #def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
+    #    """
+    #    Caches a context and modulus for prime^prec_cap
+    #
+    #    EXAMPLES:
+    #    sage: A = PowComputer_ext_maker(5, 3, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "FM") #indirect doctest
+    #    sage: A
+    #    PowComputer_ext for 5, with polynomial [9765620 0 1]
+    #    """
+    #    PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
 
     def __dealloc__(self):
         """
@@ -555,7 +554,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
 
 cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
     """
-    This class computes and stores eis_shifter, which aids in right shifting elements.
+    This class computes and stores low_shifter and high_shifter, which aid in right shifting elements.
     """
 
     def __new__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
@@ -565,11 +564,7 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
         # If self.deg is one more than a power of 2, we need to store p/x, p/x^2, up to p/x^(2^n) where 2^n is that power of 2.
         #print "here"
         #cdef ntl_ZZ_pX printer = ntl_ZZ_pX([], self.c)
-        self.e = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
-        self.f = 1
-        self.ram_prec_cap = self.prec_cap * self.e
-        if self.deg <= 1:
-            raise ValueError
+        ZZ_pX_Eis_init(self, self.low_shifter, self.high_shifter)
 
     def _low_shifter(self, i):
         cdef long _i = i
@@ -590,9 +585,6 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
             return ans
         else:
             raise IndexError
-
-
-
 
     def __dealloc__(self):
         if self._initialized:
@@ -670,16 +662,16 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         #ZZ_pX_destruct(&tmp)
         #ZZ_pX_destruct(&pol)
 
-    def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
-        """
-        Initializes prime, cache_limit, prec_cap, in_field.
-
-        EXAMPLES:
-        sage: A = PowComputer_ext_maker(5, 10, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "small") # indirect doctest
-        sage: A
-        PowComputer_ext for 5, with polynomial [9765620 0 1]
-        """
-        PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
+    #def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
+    #    """
+    #    Initializes prime, cache_limit, prec_cap, in_field.
+    #
+    #    EXAMPLES:
+    #    sage: A = PowComputer_ext_maker(5, 10, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "small") # indirect doctest
+    #    sage: A
+    #    PowComputer_ext for 5, with polynomial [9765620 0 1]
+    #    """
+    #    PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
 
     def __dealloc__(self):
         """
@@ -792,9 +784,12 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
 cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
     """
-    This class computes and stores eis_shifter, which aids in right shifting elements.
-    eis_shifter is only stored at maximal precision: in order to get lower precision versions just reduce mod p.
+    This class computes and stores low_shifter and high_shifter, which aid in right shifting elements.
+    These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
+    def __new__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
+        ZZ_pX_Eis_init(self, self.low_shifter, self.high_shifter)
+
     def _low_shifter(self, i):
         cdef long _i = i
         cdef ntl_ZZ_pX ans
@@ -816,13 +811,11 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
             raise IndexError
 
 
-
-
     def __dealloc__(self):
         if self._initialized:
-            self.cleanup_ZZ_pX_FM_Eis()
+            self.cleanup_ZZ_pX_small_Eis()
 
-    cdef void cleanup_ZZ_pX_FM_Eis(self):
+    cdef void cleanup_ZZ_pX_small_Eis(self):
         pass
         # I may or may not need to deallocate these:
         #
@@ -893,16 +886,16 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         self.context_dict = {}
         self.modulus_dict = {}
 
-    def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
-        """
-        Initializes prime, cache_limit, prec_cap, in_field.
-
-        EXAMPLES:
-        sage: A = PowComputer_ext_maker(5, 6, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "big") # indirect doctest
-        sage: A
-        PowComputer_ext for 5, with polynomial [9765620 0 1]
-        """
-        PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
+    #def __init__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
+    #    """
+    #    Initializes prime, cache_limit, prec_cap, in_field.
+    #
+    #    EXAMPLES:
+    #    sage: A = PowComputer_ext_maker(5, 6, 10, False, ntl.ZZ_pX([-5,0,1],5^10), "big") # indirect doctest
+    #    sage: A
+    #    PowComputer_ext for 5, with polynomial [9765620 0 1]
+    #    """
+    #    PowComputer_ZZ_pX.__init__(self, prime, cache_limit, prec_cap, in_field, poly)
 
     def __dealloc__(self):
         """
@@ -1081,6 +1074,51 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         """
         return &self.top_mod
 
+cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
+    """
+    This class computes and stores low_shifter and high_shifter, which aid in right shifting elements.
+    These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
+    """
+    def __new__(self, Integer prime, unsigned long cache_limit, unsigned long prec_cap, bint in_field, poly):
+        ZZ_pX_Eis_init(self, self.low_shifter, self.high_shifter)
+
+    def _low_shifter(self, i):
+        cdef long _i = i
+        cdef ntl_ZZ_pX ans
+        if _i >= 0 and _i < self.low_length:
+            ans = ntl_ZZ_pX([], self.get_top_context())
+            ans.x = self.low_shifter[i].val()
+            return ans
+        else:
+            raise IndexError
+
+    def _high_shifter(self, i):
+        cdef long _i = i
+        cdef ntl_ZZ_pX ans
+        if _i >= 0 and _i < self.high_length:
+            ans = ntl_ZZ_pX([], self.get_top_context())
+            ans.x = self.high_shifter[i].val()
+            return ans
+        else:
+            raise IndexError
+
+
+    def __dealloc__(self):
+        if self._initialized:
+            self.cleanup_ZZ_pX_big_Eis()
+
+    cdef void cleanup_ZZ_pX_big_Eis(self):
+        pass
+        # I may or may not need to deallocate these:
+        #
+        #cdef int i # yes, an int is good enough
+        #for i from 0 <= i < self.low_length:
+        #    ZZ_pX_Multiplier_destruct(self.low_shifter[i])
+        #sage_free(self.low_shifter)
+        #for i from 0 <= i < self.high_length:
+        #    ZZ_pX_Multiplier_destruct(self.high_shifter[i])
+        #sage_free(self.high_shifter)
+
 
 def PowComputer_ext_maker(prime, cache_limit, prec_cap, in_field, poly, prec_type = "small", ext_type = "u"):
     """
@@ -1118,8 +1156,13 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, in_field, poly, prec_typ
         ValueError, "prec_type must be one of 'small', 'big' or 'FM' and ext_type must be one of 'u' or 'e'"
 
 
-cdef void Eis_init(PowComputer_ext prime_pow, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c high_shifter, Integer prime, unsigned long cache_limit, unsigned long prec_cap, unsigned long deg, poly):
-    cdef unsigned long D = self.deg - 1
+cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter) except -1:
+    if prime_pow.deg <= 1:
+        raise ValueError, "Eisenstein extension must have degree at least 2"
+    prime_pow.e = ZZ_pX_deg(prime_pow.get_top_modulus()[0].val())
+    prime_pow.f = 1
+    prime_pow.ram_prec_cap = prime_pow.prec_cap * prime_pow.e
+    cdef unsigned long D = prime_pow.deg - 1
     cdef int low_length = 0
     cdef int high_length = 0
     if sizeof(long) > 4 and D > 4294967295: # 2^32 - 1
@@ -1141,14 +1184,14 @@ cdef void Eis_init(PowComputer_ext prime_pow, ZZ_pX_Multiplier_c* low_shifter, Z
         low_length += 1
         D = D >> 1
     low_length += 1
-    # self.low_length is the number of elements in the list we need to store.
-    # if self.deg = 2, self.low_length = 1 (store p/x)
-    # if self.deg = 3,4, self.low_length = 2 (store p/x, p/x^2)
-    # if self.deg = 5,6,7,8, self.low_length = 3 (store p/x, p/x^2, p/x^4)
-    # if self.deg = 9,...,16, self.low_length = 4 (store p/x, p/x^2, p/x^4, p/x^8)
+    # low_length is the number of elements in the list we need to store.
+    # if deg = 2, low_length = 1 (store p/x)
+    # if deg = 3,4, low_length = 2 (store p/x, p/x^2)
+    # if deg = 5,6,7,8, low_length = 3 (store p/x, p/x^2, p/x^4)
+    # if deg = 9,...,16, low_length = 4 (store p/x, p/x^2, p/x^4, p/x^8)
 
     # Now we do the same process for powers of p, ie storing p^(2^k)/x^(e*2^k)
-    D = self.prec_cap - 1
+    D = prime_pow.prec_cap - 1
     high_length = 0
     if sizeof(long) > 4 and D > 4294967295: # 2^32 - 1
         high_length += 32
@@ -1169,30 +1212,33 @@ cdef void Eis_init(PowComputer_ext prime_pow, ZZ_pX_Multiplier_c* low_shifter, Z
         high_length += 1
         D = D >> 1
     high_length += 1
-    # self.high_length is the number of elements in the list we need to store.
-    # if self.prec_cap = 2, self.high_length = 1 (store p/x^e)
-    # if self.prec_cap = 3,4, self.high_length = 2 (store p/x^e, p^2/x^(2e))
-    # if self.prec_cap = 5,6,7,8, self.high_length = 3 (store p/x^e, p^2/x^(2e), p^4/x^(4e))
-    # if self.prec_cap = 9,...,16, self.high_length = 4 (store p/x, p^2/x^(2e), p^4/x^(4e), p^8/x^(8e))
+    # high_length is the number of elements in the list we need to store.
+    # if prec_cap = 2, high_length = 1 (store p/x^e)
+    # if prec_cap = 3,4, high_length = 2 (store p/x^e, p^2/x^(2e))
+    # if prec_cap = 5,6,7,8, high_length = 3 (store p/x^e, p^2/x^(2e), p^4/x^(4e))
+    # if prec_cap = 9,...,16, high_length = 4 (store p/x, p^2/x^(2e), p^4/x^(4e), p^8/x^(8e))
+
+    prime_pow.low_length = low_length
+    prime_pow.high_length = high_length
 
     _sig_on
-    low_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * self.low_length)
-    high_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * self.high_length)
+    low_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * low_length)
+    high_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * high_length)
     _sig_off
     cdef long i
     cdef ZZ_pX_c tmp, modup, into_multiplier
     cdef ZZ_c a
     ZZ_construct(&a)
     # We obtain successive p/x^(2^i) by squaring and then dividing by p.  So we need one extra digit of precision.
-    self.c.restore_c()
+    prime_pow.restore_top_context()
     ZZ_pX_construct(&into_multiplier)
-    cdef ntl_ZZ_pContext_class cup = self.get_context(self.prec_cap + self.low_length)
+    cdef ntl_ZZ_pContext_class cup = prime_pow.get_context(prime_pow.prec_cap + prime_pow.low_length)
     cup.restore_c()
     ZZ_pX_construct(&tmp)
     ZZ_pX_construct(&modup)
-    ZZ_pX_conv_modulus(modup, self.mod.val(), cup.x)
-    ZZ_div(a, ZZ_p_rep(ZZ_pX_ConstTerm(modup)), self.small_powers[1])
-    ZZ_InvMod(a, a, self.pow_ZZ_tmp(self.prec_cap + self.low_length)[0])
+    ZZ_pX_conv_modulus(modup, prime_pow.get_top_modulus()[0].val(), cup.x)
+    ZZ_div(a, ZZ_p_rep(ZZ_pX_ConstTerm(modup)), prime_pow.small_powers[1])
+    ZZ_InvMod(a, a, prime_pow.pow_ZZ_tmp(prime_pow.prec_cap + prime_pow.low_length)[0])
     ZZ_negate(a, a)
     #cdef ntl_ZZ_pX printer = ntl_ZZ_pX([],cup)
     #printer.x = modup
@@ -1205,40 +1251,40 @@ cdef void Eis_init(PowComputer_ext prime_pow, ZZ_pX_Multiplier_c* low_shifter, Z
     ## print printer
     ZZ_pX_mul_ZZ_p(tmp, tmp, ZZ_to_ZZ_p(a))
     # tmp is now p/x
-    ZZ_pX_conv_modulus(into_multiplier, tmp, self.c.x)
-    ZZ_pX_Multiplier_construct(self.low_shifter)
-    ZZ_pX_Multiplier_build(self.low_shifter[0], into_multiplier, self.mod)
-    for i from 1 <= i < self.low_length:
+    ZZ_pX_conv_modulus(into_multiplier, tmp, prime_pow.get_top_context().x)
+    ZZ_pX_Multiplier_construct(low_shifter)
+    ZZ_pX_Multiplier_build(low_shifter[0], into_multiplier, prime_pow.get_top_modulus()[0])
+    for i from 1 <= i < prime_pow.low_length:
         # Currently tmp = p / x^(2^(i-1)).  Squaring yields p^2 / x^(2^i)
         ZZ_pX_SqrMod(tmp, tmp, modup)
         # Now we divide by p.  We don't really have the extra digit of precision that cup would imply, but we're about to reduce, and then square.
         # This should give us one digit of precision loss, as expected.
-        ZZ_pX_right_pshift(tmp, tmp, self.small_powers[1], cup.x)
-        ZZ_pX_conv_modulus(into_multiplier, tmp, self.c.x)
-        ZZ_pX_Multiplier_construct(&(self.low_shifter[i]))
-        ZZ_pX_Multiplier_build(self.low_shifter[i], into_multiplier, self.mod)
+        ZZ_pX_right_pshift(tmp, tmp, prime_pow.small_powers[1], cup.x)
+        ZZ_pX_conv_modulus(into_multiplier, tmp, prime_pow.get_top_context().x)
+        ZZ_pX_Multiplier_construct(&(low_shifter[i]))
+        ZZ_pX_Multiplier_build(low_shifter[i], into_multiplier, prime_pow.get_top_modulus()[0])
 
     # Now we handle high_shifter.
     # We can obtain p/x^e by computing the inverse of x^e/p.
     # Note that modup is still defined from before
     cup.restore_c()
 
-    ZZ_pX_conv_modulus(modup, self.mod.val(), cup.x)
-    ZZ_pX_SetCoeff_long(modup, self.deg, 0)
+    ZZ_pX_conv_modulus(modup, prime_pow.get_top_modulus()[0].val(), cup.x)
+    ZZ_pX_SetCoeff_long(modup, prime_pow.deg, 0)
     ZZ_pX_negate(modup, modup)
-    ZZ_pX_right_pshift(into_multiplier, modup, self.small_powers[1], self.c.x)
+    ZZ_pX_right_pshift(into_multiplier, modup, prime_pow.small_powers[1], prime_pow.get_top_context().x)
 
     # into_multiplier now holds x^e/p
-    # self.c.x should have been restored, but we make sure
-    self.c.restore_c()
-    ZZ_pX_InvMod_newton(into_multiplier, into_multiplier, self.mod, self.c.x, (<ntl_ZZ_pContext_class>self.get_context(1)).x)
-    ZZ_pX_Multiplier_construct(self.high_shifter)
-    ZZ_pX_Multiplier_build(self.high_shifter[0], into_multiplier, self.mod)
+    # prime_pow.c.x should have been restored, but we make sure
+    prime_pow.restore_top_context()
+    ZZ_pX_InvMod_newton(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0], prime_pow.get_top_context().x, (<ntl_ZZ_pContext_class>prime_pow.get_context(1)).x)
+    ZZ_pX_Multiplier_construct(high_shifter)
+    ZZ_pX_Multiplier_build(high_shifter[0], into_multiplier, prime_pow.get_top_modulus()[0])
     # Now we cache powers of p/x^e.  This is a unit, so we don't have to worry about precision issues (yay!)
-    for i from 1 <= i < self.high_length:
-        ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, self.mod)
-        ZZ_pX_Multiplier_construct(&(self.high_shifter[i]))
-        ZZ_pX_Multiplier_build(self.high_shifter[i], into_multiplier, self.mod)
+    for i from 1 <= i < high_length:
+        ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0])
+        ZZ_pX_Multiplier_construct(&(high_shifter[i]))
+        ZZ_pX_Multiplier_build(high_shifter[i], into_multiplier, prime_pow.get_top_modulus()[0])
 
     # I'm not sure whether I need to destruct the temporary variables.
     # ZZ_pX_destruct(&tmp)

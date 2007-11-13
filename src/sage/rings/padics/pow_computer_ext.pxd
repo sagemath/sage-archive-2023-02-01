@@ -9,6 +9,10 @@ cdef class PowComputer_ext(PowComputer_class):
     cdef ZZ_c top_power
     cdef ZZ_c temp_z
 
+    # Here for Eisenstein pow computers
+    cdef int low_length
+    cdef int high_length
+
     # the following three should be set by the subclasses
     cdef long ram_prec_cap # = prec_cap * e
     cdef long deg
@@ -36,8 +40,6 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
     cdef void cleanup_ZZ_pX_FM(self)
 
 cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
-    cdef int low_length
-    cdef int high_length
     cdef ZZ_pX_Multiplier_c* low_shifter
     cdef ZZ_pX_Multiplier_c* high_shifter
 
@@ -50,7 +52,10 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
     cdef void cleanup_ZZ_pX_small(self)
 
 cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
-    pass
+    cdef ZZ_pX_Multiplier_c* low_shifter
+    cdef ZZ_pX_Multiplier_c* high_shifter
+
+    cdef void cleanup_ZZ_pX_small_Eis(self)
 
 cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
     cdef object context_list # using a python list so that we can store ntl_ZZ_pContext_class objects
@@ -65,7 +70,10 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
     cdef void cleanup_ZZ_pX_big(self)
 
 cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
-    pass
+    cdef ZZ_pX_Multiplier_c* low_shifter
+    cdef ZZ_pX_Multiplier_c* high_shifter
+
+    cdef void cleanup_ZZ_pX_big_Eis(self)
 
 #cdef class PowComputer_ZZ_pEX(PowComputer_ext):
 #    cdef ntl_ZZ_pEContext get_context(self, unsigned long n)
@@ -99,3 +107,4 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
 #cdef class PowComputer_ZZ_pEX_big_Eis(PowComputer_ZZ_pEX_big):
 #    pass
 
+#cdef int Eis_init(PowComputer_ZZ_pX prime_pow, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c *high_shifter) except -1

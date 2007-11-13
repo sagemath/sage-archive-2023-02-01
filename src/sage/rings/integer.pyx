@@ -1528,6 +1528,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
+    cdef hash_c(self):
+        """
+        A C version of the __hash__ function.
+        """
+        return mpz_pythonhash(self.value)
+
     def factor(self, algorithm='pari', proof=True):
         """
         Return the prime factorization of the integer as a list of

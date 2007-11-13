@@ -211,6 +211,26 @@ class Gp(Expect):
         else:
             return a
 
+    def cputime(self, t=None):
+        """
+        cputime for pari -- cputime since the pari process was started.
+
+        INPUT:
+            t -- (default: None); if not None, then returns time since t
+
+        WARNING: If you call gettime explicitly, e.g., gp.eval('gettime'), you
+        will throw off this clock.
+        """
+        try:
+            tm = self._last
+        except AttributeError:
+            tm = 0.0
+        m = eval(self.eval('gettime()/1000.0')) + tm
+        self._last = m
+        if t:
+            return m - t
+        return m
+
     def read(self, filename):
         s = self.eval('read("%s")'%filename)
         if 'error' in s:

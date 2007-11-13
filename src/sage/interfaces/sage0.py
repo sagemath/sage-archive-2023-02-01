@@ -135,6 +135,9 @@ class Sage(Expect):
                         )
         self._preparse = preparse
 
+    def cputime(self, t=None):
+        return eval(self.eval('cputime(%s)'%t))
+
     def trait_names(self):
         return eval(self.eval('globals().keys()'))
 

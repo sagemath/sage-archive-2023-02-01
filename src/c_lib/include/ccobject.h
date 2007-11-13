@@ -50,6 +50,12 @@ T* Construct_pp(void* mem, const P &d, const R &e){
   return new(mem) T(d, e);
 }
 
+/* Construct with three parameters */
+template <class T, class P, class R, class Q>
+T* Construct_ppp(void* mem, const P &d, const R &e, const Q &f){
+  return new(mem) T(d, e, f);
+}
+
 /* Destruct */
 template <class T>
 void Destruct(T* mem){

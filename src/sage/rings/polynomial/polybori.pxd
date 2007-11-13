@@ -24,6 +24,7 @@ cdef class DD:
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _M
+    cdef BooleanPolynomial _add_c_impl(BooleanMonomial left, BooleanMonomial right)
 
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj
@@ -50,3 +51,12 @@ cdef class BooleanPolynomialVectorIterator:
     cdef BooleanPolynomialRing _parent
     cdef PBPolyVectorIter _iter
     cdef PBPolyVector _obj
+
+cdef class VariableBlock_base:
+    cdef int size
+    cdef int start_index
+    cdef int offset
+    cdef public object __name__
+
+cdef class BooleVariable:
+    cdef PBVar _V

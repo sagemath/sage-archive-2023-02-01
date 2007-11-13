@@ -2,6 +2,12 @@
 #include "groebner_alg.h"
 #include "nf.h"
 #include "ccobject.h"
+
+// M4RI
+#define PACKED 1
+#include "M4RI/packedmatrix.h"
+#include "M4RI/grayflex.h"
+
 #include <sstream>
 #include <vector>
 

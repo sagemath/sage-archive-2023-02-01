@@ -206,6 +206,9 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return self._M.deg()
 
+    def __len__(BooleanMonomial self):
+        return self._M.deg()
+
     def __iter__(self):
         return new_BMI_from_PBMonomIter(self._M, self._M.begin())
 
@@ -215,17 +218,27 @@ cdef class BooleanMonomial(MonoidElement):
         m._M.imul( (<BooleanMonomial>right)._M )
         return m
 
-    def __add__(self, right):
+    cdef BooleanPolynomial _add_c_impl(BooleanMonomial left, BooleanMonomial right):
         cdef BooleanPolynomial res
-        if PY_TYPE_CHECK(right, BooleanMonomial):
-            res = new_BP_from_PBMonom( (<BooleanMonomial>self)._parent._ring, \
-                                            (<BooleanMonomial>self)._M)
-            res._P.iadd_PBMonom((<BooleanMonomial>right)._M)
-            return res
-        else:
-            #FIXME
-            raise NotImplementedError, "Adding %s and %s is not supported." % \
-                                            (type(self), type(right))
+        res = new_BP_from_PBMonom( (<BooleanMonomial>left)._parent._ring, \
+                                        (<BooleanMonomial>left)._M)
+        res._P.iadd_PBMonom((<BooleanMonomial>right)._M)
+        return res
+
+    def __add__(self, right):
+        if PY_TYPE_CHECK(self, BooleanMonomial) and \
+            PY_TYPE_CHECK(right, BooleanMonomial) and \
+            (<BooleanMonomial>self)._parent._ring is \
+                (<BooleanMonomial>right)._parent._ring:
+            return (<BooleanMonomial>self)._add_c_impl(right)
+
+        if PY_TYPE_CHECK(self, BooleanMonomial) and right == 1:
+            return (<BooleanMonomial>self)._add_c_impl(\
+                (<BooleanMonomial>self)._parent())
+
+        if self == 1 and PY_TYPE_CHECK(right, BooleanMonomial):
+            return (<BooleanMonomial>right)._add_c_impl(\
+                (<BooleanMonomial>right)._parent())
 
 
 cdef inline BooleanMonomial new_BM(parent):
@@ -240,6 +253,11 @@ cdef inline BooleanMonomial new_BM(parent):
 cdef inline BooleanMonomial new_BM_from_PBMonom(parent, PBMonom juice):
     cdef BooleanMonomial m = new_BM(parent)
     PBMonom_construct_pbmonom(&m._M,juice)
+    return m
+
+cdef inline BooleanMonomial new_BM_from_PBVar(parent, PBVar juice):
+    cdef BooleanMonomial m = new_BM(parent)
+    PBMonom_construct_pbvar(&m._M,juice)
     return m
 
 cdef inline BooleanMonomial new_BM_from_DD(parent, PBDD juice):
@@ -536,6 +554,9 @@ cdef class BooleSet:
     def __dealloc__(self):
         PBSet_destruct(&self._S)
 
+    def __call__(self):
+        return self
+
     def empty(self):
         return self._S.emptiness()
 
@@ -566,6 +587,15 @@ cdef inline BooleSet new_BS_from_PBSet(PBSet juice):
     cdef BooleSet s
     s = <BooleSet>PY_NEW(BooleSet)
     s._S = juice
+    return s
+
+cdef inline BooleSet new_BS_from_PBDD(PBDD juice):
+    """
+    Construct a new BooleSet
+    """
+    cdef BooleSet s
+    s = <BooleSet>PY_NEW(BooleSet)
+    PBSet_construct_dd(&s._S, juice)
     return s
 
 cdef class BooleSetIterator:
@@ -706,13 +736,16 @@ cdef class GroebnerStrategy:
     def containsOne(self):
         return self._S.containsOne()
 
+    def faugereStepDense(self, BooleanPolynomialVector v):
+        return new_BPV_from_PBPolyVector(self._parent,
+                                    self._S.faugereStepDense(v._vec))
+
     def minimalize(self):
-        cdef PBPolyVector v = self._S.minimalize()
-        return new_BPVI_from_PBPolyVectorIter(self._parent, v, v.begin())
+        return new_BPV_from_PBPolyVector(self._parent, self._S.minimalize())
 
     def minimalizeAndTailReduce(self):
-        cdef PBPolyVector v = self._S.minimalizeAndTailReduce()
-        return new_BPVI_from_PBPolyVectorIter(self._parent, v, v.begin())
+        return new_BPV_from_PBPolyVector(self._parent,
+                                    self._S.minimalizeAndTailReduce())
 
     def npairs(self):
         return self._S.npairs()
@@ -771,7 +804,7 @@ cdef class GroebnerStrategy:
             return self._S.optLinearAlgebraInLastBlock
         if name is 'optRedTailInLastBlock':
             return self._S.optRedTailInLastBlock,
-        if name is 'reduceByTailReduced':
+        if name is 'redByReduced':
             return self._S.reduceByTailReduced
         if name is 'monomials':
             return new_BS_from_PBSet(self._S.monomials)
@@ -821,7 +854,7 @@ cdef class GroebnerStrategy:
             self._S.optLinearAlgebraInLastBlock = val
         elif name is 'optRedTailInLastBlock':
             self._S.optRedTailInLastBlock = val
-        elif name is 'reduceByTailReduced':
+        elif name is 'redByReduced':
             self._S.reduceByTailReduced = val
         else:
             raise AttributeError, name
@@ -834,6 +867,65 @@ cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice):
     n = <CCuddNavigator>PY_NEW(CCuddNavigator)
     n._N = juice
     return n
+
+cdef class BooleVariable:
+    def index(self):
+        return self._V.index()
+
+    def is_equal(self, BooleVariable other):
+        return self._V.is_equal(other._V)
+
+cdef inline BooleVariable new_BV_from_PBVar(PBVar juice):
+    """
+    Construct a new BooleVariable
+    """
+    cdef BooleVariable n
+    n = <BooleVariable>PY_NEW(BooleVariable)
+    n._V = juice
+    return n
+
+cdef inline BooleVariable new_BV_from_int(int juice):
+    """
+    Construct a new BooleVariable
+    """
+    cdef BooleVariable n
+    n = <BooleVariable>PY_NEW(BooleVariable)
+    PBVar_construct_int(&n._V, juice)
+    return n
+
+cdef class VariableBlock_base:
+    def __init__(self, size, start_index, offset):
+        self.size = size
+        self.start_index = start_index
+        self.offset = offset
+
+cdef class VariableBlockTrue(VariableBlock_base):
+    def __init__(self, size, start_index, offset):
+        VariableBlock_base.__init__(self, size, start_index, offset)
+
+    def __call__(self, int i):
+        cdef PBVar v
+        PBVar_construct_int(&v, self.offset+self.start_index+self.size-1-i)
+        return new_BM_from_PBVar(get_cring()._monom_monoid, v)
+
+cdef class VariableBlockFalse(VariableBlock_base):
+    def __init__(self, size, start_index, offset):
+        VariableBlock_base.__init__(self, size, start_index, offset)
+
+    def __call__(self, int i):
+        cdef PBVar v
+        PBVar_construct_int(&v, i-self.start_index+self.offset)
+        return new_BM_from_PBVar(get_cring()._monom_monoid, v)
+
+def VariableBlock(size, start_index, offset, reverse):
+    if reverse:
+        return VariableBlockFalse(size, start_index, offset)
+    else:
+        return VariableBlockTrue(size, start_index, offset)
+
+def init_M4RI():
+    buildAllCodes()
+    setupPackingMasks()
 
 def recursively_insert(CCuddNavigator n, int ind, CCuddNavigator m):
     cdef PBSet b
@@ -861,12 +953,21 @@ def get_order_code():
     return (<BooleanPolynomialRing>R)._R.getOrderCode()
 
 def change_ordering(order):
+    global cur_ring
     pb_change_ordering(order)
+    cur_ring._R = get_current_ring()
 
 def parallel_reduce(BooleanPolynomialVector inp, GroebnerStrategy strat, \
                                     int average_steps, double delay_f):
     return new_BPV_from_PBPolyVector(inp._parent, \
         pb_parallel_reduce(inp._vec, strat._S, average_steps, delay_f))
+
+def have_degree_order():
+    global cur_ring
+    return cur_ring._R.isDegreeOrder()
+
+def set_variable_name( i, s):
+    pb_set_variable_name(i, s)
 
 cdef BooleanPolynomialRing cur_ring
 ring_callbacks = []
@@ -884,3 +985,5 @@ def set_cring(BooleanPolynomialRing R):
 def set_ring_callback(func):
     global ring_callbacks
     ring_callbacks.append(func)
+
+init_M4RI()

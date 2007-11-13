@@ -37,6 +37,7 @@ cdef extern from "pb_wrap.h":
     void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
 
     ctypedef struct PBRing "BoolePolyRing":
+        bint (* isDegreeOrder)()
         int (* nVariables)()
         PBDD (* variable)(int n)
         void (*setRingVariableName)(int idx, char *varname)
@@ -47,6 +48,16 @@ cdef extern from "pb_wrap.h":
         int (* value "operator*")()
         int (* next "operator++")()
         int (* hash)()
+
+    ctypedef struct PBVar "BooleVariable":
+        int (* index)()
+        bint (* is_equal "operator==")(PBVar right)
+
+    PBVar* PBVar_construct_int "Construct_p<BooleVariable, int>" \
+        (void *mem, int ind)
+
+    PBVar* PBVar_construct_pbvar "Construct_p<BooleVariable, BooleVariable>" \
+        (void *mem, PBVar v)
 
     ctypedef struct PBMonom "BooleMonomial":
         int (* deg)()
@@ -62,6 +73,8 @@ cdef extern from "pb_wrap.h":
     PBMonom* PBMonom_construct "Construct<BooleMonomial>"(void *mem)
     PBMonom* PBMonom_construct_pbmonom \
             "Construct_p<BooleMonomial, BooleMonomial>" (void *mem, PBMonom m)
+    PBMonom* PBMonom_construct_pbvar \
+            "Construct_p<BooleMonomial, BooleVariable>" (void *mem, PBVar m)
     PBMonom* PBMonom_construct_dd \
             "Construct_p<BoolePolynomial, BooleMonomial::dd_type>" (void *mem, PBDD m)
     void PBMonom_destruct "Destruct<BooleMonomial>"(PBMonom *mem)
@@ -194,6 +207,7 @@ cdef extern from "pb_wrap.h":
         int (* npairs "pairs.queue.size")()
         PBPolyVector (* minimalize)()
         PBPolyVector (* minimalizeAndTailReduce)()
+        PBPolyVector (* faugereStepDense)(PBPolyVector v)
 
     int (* pairs_top_sugar)(GBStrategy strat)
     PBPolyVector (* someNextDegreeSpolys)(GBStrategy strat, int n)
@@ -210,6 +224,7 @@ cdef extern from "pb_wrap.h":
             (void *mem, PBDD d)
     void GBStrategy_destruct "Destruct<GroebnerStrategy>"(GBStrategy *mem)
 
+    PBRing get_current_ring "BoolePolyRing::ring"()
 
     PBSet pb_recursively_insert "recursively_insert"(PBNavigator p,
                                                 int idx, PBNavigator m)
@@ -224,3 +239,9 @@ cdef extern from "pb_wrap.h":
     PBPolyVector pb_parallel_reduce "parallel_reduce" \
         (PBPolyVector inp, GBStrategy strat, int average_steps, double delay_f)
 
+    void pb_set_variable_name "BoolePolyRing::setRingVariableName" \
+        (int idx, char* varname)
+
+    #M4RI initialization
+    void buildAllCodes()
+    void setupPackingMasks()

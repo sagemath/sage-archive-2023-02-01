@@ -1,3 +1,6 @@
+*2007-11-13: (mabshoff)
+ * Apply Clement Pernet's charpoly leak fix, i.e. the dreaded BLAS:MatrixHom
+
 *2007-10-29: (mabshoff)
 
   * added fix for #1026

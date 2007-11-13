@@ -26,7 +26,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-exit 0
 if [ `uname` = "Darwin" ]; then
     cp lib/*.dylib "$SAGE_LOCAL"/lib/
 else

@@ -930,9 +930,9 @@ cdef class VariableBlockFalse(VariableBlock_base):
 
 def VariableBlock(size, start_index, offset, reverse):
     if reverse:
-        return VariableBlockFalse(size, start_index, offset)
-    else:
         return VariableBlockTrue(size, start_index, offset)
+    else:
+        return VariableBlockFalse(size, start_index, offset)
 
 def init_M4RI():
     buildAllCodes()

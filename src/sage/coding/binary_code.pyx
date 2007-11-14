@@ -398,35 +398,19 @@ cdef class OrbitPartition:
     * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
 
     """
-    def __new__(self, nrows, ncols):
-        cdef int nwords, word
+    def __new__(self, ncols):
         cdef int col
-        nwords = (1 << nrows)
-        self.nwords = nwords
         self.ncols = ncols
-        self.wd_parent =       <int *> sage_malloc( nwords * sizeof(int) )
-        self.wd_rank =         <int *> sage_malloc( nwords * sizeof(int) )
-        self.wd_min_cell_rep = <int *> sage_malloc( nwords * sizeof(int) )
-        self.wd_size =         <int *> sage_malloc( nwords * sizeof(int) )
         self.col_parent =       <int *> sage_malloc( ncols * sizeof(int) )
         self.col_rank =         <int *> sage_malloc( ncols * sizeof(int) )
         self.col_min_cell_rep = <int *> sage_malloc( ncols * sizeof(int) )
         self.col_size =         <int *> sage_malloc( ncols * sizeof(int) )
-        if not (self.wd_parent and self.wd_rank and self.wd_min_cell_rep and self.wd_size and self.col_parent and self.col_rank and self.col_min_cell_rep and self.col_size):
-            if self.wd_parent: sage_free(self.wd_parent)
-            if self.wd_rank: sage_free(self.wd_rank)
-            if self.wd_min_cell_rep: sage_free(self.wd_min_cell_rep)
-            if self.wd_size: sage_free(self.wd_size)
-            if self.col_parent: sage_free(self.col_parent)
-            if self.col_rank: sage_free(self.col_rank)
+        if not (self.col_parent and self.col_rank and self.col_min_cell_rep and self.col_size):
+            if self.col_parent:       sage_free(self.col_parent)
+            if self.col_rank:         sage_free(self.col_rank)
             if self.col_min_cell_rep: sage_free(self.col_min_cell_rep)
-            if self.col_size: sage_free(self.col_size)
+            if self.col_size:         sage_free(self.col_size)
             raise MemoryError("Memory.")
-        for word from 0 <= word < nwords:
-            self.wd_parent[word] = word
-            self.wd_rank[word] = 0
-            self.wd_min_cell_rep[word] = word
-            self.wd_size[word] = 1
         for col from 0 <= col < ncols:
             self.col_parent[col] = col
             self.col_rank[col] = 0
@@ -434,10 +418,6 @@ cdef class OrbitPartition:
             self.col_size[col] = 1
 
     def __dealloc__(self):
-        sage_free(self.wd_parent)
-        sage_free(self.wd_rank)
-        sage_free(self.wd_min_cell_rep)
-        sage_free(self.wd_size)
         sage_free(self.col_parent)
         sage_free(self.col_rank)
         sage_free(self.col_min_cell_rep)
@@ -461,85 +441,11 @@ cdef class OrbitPartition:
         """
         cdef int i
         cdef int j
-        s = 'OrbitPartition on %d words and %d columns. Data:\nWords:\n'%(self.nwords, self.ncols)
-        for i from 0 <= i < self.nwords:
-            s += '%d,'%self.wd_parent[i]
+        s = 'OrbitPartition on %d columns. Data:\n'%(self.ncols)
         s = s[:-1] + '\nColumns:\n'
         for j from 0 <= j < self.ncols:
             s += '%d,'%self.col_parent[j]
         return s[:-1]
-
-    def _wd_find(self, word):
-        """
-        Returns the root of word.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: O = OrbitPartition(4, 8)
-            sage: O
-            OrbitPartition on 16 words and 8 columns. Data:
-            Words:
-            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-            Columns:
-            0,1,2,3,4,5,6,7
-            sage: O._wd_find(12)
-            12
-
-        """
-        return self.wd_find(word)
-
-    cdef int wd_find(self, int word):
-        if self.wd_parent[word] == word:
-            return word
-        else:
-            self.wd_parent[word] = self.wd_find(self.wd_parent[word])
-            return self.wd_parent[word]
-
-    def _wd_union(self, x, y):
-        """
-        Join the cells containing x and y.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: O = OrbitPartition(4, 8)
-            sage: O
-            OrbitPartition on 16 words and 8 columns. Data:
-            Words:
-            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-            Columns:
-            0,1,2,3,4,5,6,7
-            sage: O._wd_union(1,10)
-            sage: O
-            OrbitPartition on 16 words and 8 columns. Data:
-            Words:
-            0,1,2,3,4,5,6,7,8,9,1,11,12,13,14,15
-            Columns:
-            0,1,2,3,4,5,6,7
-            sage: O._wd_find(10)
-            1
-
-        """
-        self.wd_union(x, y)
-
-    cdef void wd_union(self, int x, int y):
-        cdef int x_root, y_root
-        x_root = self.wd_find(x)
-        y_root = self.wd_find(y)
-        if self.wd_rank[x_root] > self.wd_rank[y_root]:
-            self.wd_parent[y_root] = x_root
-            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
-            self.wd_size[y_root] += self.wd_size[x_root]
-        elif self.wd_rank[x_root] < self.wd_rank[y_root]:
-            self.wd_parent[x_root] = y_root
-            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
-            self.wd_size[x_root] += self.wd_size[y_root]
-        elif x_root != y_root:
-            self.wd_parent[y_root] = x_root
-            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
-            self.wd_size[y_root] += self.wd_size[x_root]
-            self.wd_rank[x_root] += 1
 
     def _col_find(self, col):
         """
@@ -613,7 +519,7 @@ cdef class OrbitPartition:
             self.col_size[y_root] += self.col_size[x_root]
             self.col_rank[x_root] += 1
 
-    def _merge_perm(self, col_gamma, wd_gamma):
+    def _merge_perm(self, col_gamma):
         """
         Merges the cells of self under the given permutation. If gamma[a] = b,
         then after merge_perm, a and b will be in the same cell. Returns 0 if
@@ -641,33 +547,19 @@ cdef class OrbitPartition:
         """
         cdef int i
         cdef int *_col_gamma
-        cdef int *_wd_gamma
-        _wd_gamma = <int *> sage_malloc(self.nwords * sizeof(int))
         _col_gamma = <int *> sage_malloc(self.ncols * sizeof(int))
-        if not (_col_gamma and _wd_gamma):
-            if _wd_gamma: sage_free(_wd_gamma)
-            if _col_gamma: sage_free(_col_gamma)
+        if not _col_gamma:
             raise MemoryError("Memory.")
-        for i from 0 <= i < self.nwords:
-            _wd_gamma[i] = wd_gamma[i]
         for i from 0 <= i < self.ncols:
             _col_gamma[i] = col_gamma[i]
-        result = self.merge_perm(_col_gamma, _wd_gamma)
+        result = self.merge_perm(_col_gamma)
         sage_free(_col_gamma)
-        sage_free(_wd_gamma)
         return result
 
-    cdef int merge_perm(self, int *col_gamma, int *wd_gamma):
+    cdef int merge_perm(self, int *col_gamma):
         cdef int i, gamma_i_root
         cdef int j, gamma_j_root, return_value = 0
-        cdef int *self_wd_parent = self.wd_parent
         cdef int *self_col_parent = self.col_parent
-        for i from 0 <= i < self.nwords:
-            if self_wd_parent[i] == i:
-                gamma_i_root = self.wd_find(wd_gamma[i])
-                if gamma_i_root != i:
-                    return_value = 1
-                    self.wd_union(i, gamma_i_root)
         for j from 0 <= j < self.ncols:
             if self_col_parent[j] == j:
                 gamma_j_root = self.col_find(col_gamma[j])
@@ -696,6 +588,7 @@ cdef class PartitionStack:
             self.nrows = other.nrows
             self.nwords = other.nwords
             self.ncols = other.ncols
+
         self.radix = 8*sizeof(int)
         self.flag = (1 << (self.radix-1))
 
@@ -716,16 +609,16 @@ cdef class PartitionStack:
         if not (self.wd_ents  and self.wd_lvls    and self.col_ents   and self.col_lvls  \
             and self.col_degs and self.col_counts and self.col_output \
             and self.wd_degs  and self.wd_counts  and self.wd_output):
-            if self.wd_ents:    sage_free(self.wd_ents)
-            if self.wd_lvls:    sage_free(self.wd_lvls)
-            if self.col_ents:   sage_free(self.col_ents)
-            if self.col_lvls:   sage_free(self.col_lvls)
-            if self.col_degs:   sage_free(self.col_degs)
-            if self.col_counts: sage_free(self.col_counts)
-            if self.col_output: sage_free(self.col_output)
-            if self.wd_degs:    sage_free(self.wd_degs)
-            if self.wd_counts:  sage_free(self.wd_counts)
-            if self.wd_output:  sage_free(self.wd_output)
+            if self.wd_ents:         sage_free(self.wd_ents)
+            if self.wd_lvls:         sage_free(self.wd_lvls)
+            if self.col_ents:        sage_free(self.col_ents)
+            if self.col_lvls:        sage_free(self.col_lvls)
+            if self.col_degs:        sage_free(self.col_degs)
+            if self.col_counts:      sage_free(self.col_counts)
+            if self.col_output:      sage_free(self.col_output)
+            if self.wd_degs:         sage_free(self.wd_degs)
+            if self.wd_counts:       sage_free(self.wd_counts)
+            if self.wd_output:       sage_free(self.wd_output)
             raise MemoryError("Memory.")
 
         if other:
@@ -1181,6 +1074,7 @@ cdef class PartitionStack:
         # location now points to the beginning of the first, smallest,
         # nontrivial cell
         j = location
+        self.v = j
         while True:
             if self_col_lvls[j] <= k: break
             j += 1
@@ -1327,6 +1221,7 @@ cdef class PartitionStack:
     def _split_column(self, int v, int k):
         """
         Split column v out, placing it before the rest of the cell it was in.
+        Returns the location of the split column.
 
         EXAMPLE:
             sage: import sage.coding.binary_code
@@ -1788,7 +1683,10 @@ cdef class PartitionStack:
                         invariant += (i-j)
                     else: j = i
             m += 1
-        return invariant
+        if invariant != -1:
+            return invariant
+        else:
+            return 0
 
     def _clear(self, k):
         """
@@ -2093,130 +1991,449 @@ cdef class PartitionStack:
         for i from 0 <= i < self.ncols:
             col_gamma[other_col_ents[i]] = self_col_ents[i]
 
-################################################################################
-################################################################################
-################################################################################
-
 cdef class BinaryCodeClassifier:
 
     def __new__(self):
+        self.radix = sizeof(int) << 3
         self.ham_wts = hamming_weights()
+        self.L = 100 # memory limit for Phi and Omega
+        self.alpha_size = 65536 + self.radix
+        self.Phi =         <int *> sage_malloc( self.L           * sizeof(int) )
+        self.Omega =       <int *> sage_malloc( self.L           * sizeof(int) )
+        self.W =           <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.Lambda1 =     <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.Lambda2 =     <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.Lambda3 =     <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.b_gamma =     <int *> sage_malloc( (self.radix-1)   * sizeof(int) )
+        self.c_gamma =     <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.alpha =       <int *> sage_malloc( self.alpha_size  * sizeof(int) )
+        self.v =           <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.e =           <int *> sage_malloc( self.radix       * sizeof(int) )
+        self.aut_gp_gens = <int *> sage_malloc( self.radix * 100 * sizeof(int) )
+        self.aut_gens_size = self.radix * 100
+        self.labeling =    <int *> sage_malloc( self.radix       * sizeof(int) )
+        if not (self.Phi and self.Omega and self.W and self.Lambda1 and self.Lambda2 and self.Lambda3 \
+            and self.b_gamma and self.c_gamma and self.alpha and self.v and self.e and self.aut_gp_gens \
+            and self.labeling):
+            if self.Phi:          sage_free(self.Phi)
+            if self.Omega:        sage_free(self.Omega)
+            if self.W:            sage_free(self.W)
+            if self.Lambda1:      sage_free(self.Lambda1)
+            if self.Lambda2:      sage_free(self.Lambda2)
+            if self.Lambda3:      sage_free(self.Lambda3)
+            if self.b_gamma:      sage_free(self.b_gamma)
+            if self.c_gamma:      sage_free(self.c_gamma)
+            if self.alpha:        sage_free(self.alpha)
+            if self.v:            sage_free(self.v)
+            if self.e:            sage_free(self.e)
+            if self.aut_gp_gens:  sage_free(self.aut_gp_gens)
+            if self.labeling:     sage_free(self.labeling)
+            raise MemoryError("Memory.")
 
     def __dealloc__(self):
         sage_free(self.ham_wts)
+        sage_free(self.Phi)
+        sage_free(self.Omega)
+        sage_free(self.W)
+        sage_free(self.Lambda1)
+        sage_free(self.Lambda2)
+        sage_free(self.Lambda3)
+        sage_free(self.b_gamma)
+        sage_free(self.c_gamma)
+        sage_free(self.alpha)
+        sage_free(self.v)
+        sage_free(self.e)
+        sage_free(self.aut_gp_gens)
+        sage_free(self.labeling)
 
+    cdef void record_automorphism(self, int *gamma, int ncols):
+        cdef int i, j
+        if self.aut_gp_index + ncols > self.aut_gens_size:
+            self.aut_gens_size *= 2
+            self.aut_gp_gens = <int *> sage_realloc( self.aut_gp_gens, self.aut_gens_size )
+            if not self.aut_gp_gens:
+                raise MemoryError("Memory.")
+        j = self.aut_gp_index
+        for i from 0 <= i < ncols:
+            self.aut_gp_gens[i+j] = gamma[i]
+        self.aut_gp_index += ncols
 
+    def _aut_gp_and_can_label(self, C, verbosity=0):
+        cdef int i, j
+        self.aut_gp_and_can_label(C, verbosity)
+        i = 0
+        py_aut_gp_gens = []
+        while self.aut_gp_gens[i] != -1:
+            gen = [self.aut_gp_gens[i+j] for j from 0 <= j < C.ncols]
+            py_aut_gp_gens.append(gen)
+            i += C.ncols
+        py_labeling = [self.labeling[i] for i from 0 <= i < C.ncols]
+        return py_aut_gp_gens, py_labeling
 
+    cdef void aut_gp_and_can_label(self, BinaryCode C, int verbosity):
 
+        # allocate/set up variables:
+        cdef int i, j, ii, jj # local variables
+        cdef OrbitPartition Theta # keeps track of which vertices have been
+                                  # discovered to be equivalent
+        cdef int index = 0, size = 1    # Define $\Gamma^{(-1)} := \text{Aut}(C)$, and
+                                        # $\Gamma^{(i)} := \Gamma^{(-1)}_{v_0,...,v_i}$.
+                                        # Then index = $|\Gamma^{(k-1)}|/|\Gamma^{(k)}|$ at (POINT A)
+                                        # and size = $|\Gamma^{(k-1)}|$ at (POINT A) and (POINT B).
+        cdef int *Phi   = self.Phi      # Phi stores the fixed point sets of each automorphism
+        cdef int *Omega = self.Omega    # Omega stores the minimal elements of each cell of the orbit partition
+        cdef int l = -1 # current index for storing values in Phi and Omega- we start at -1 so that when
+                        # we increment first, the first place we write to is 0.
+        cdef int *W = self.W    # for each k, W[k] is a list (as int mask) of the vertices to be searched down from
+                                # the current partition, at k. Phi and Omega are ultimately used to make the size of
+                                # W as small as possible
+        cdef PartitionStack nu, zeta, rho
+        cdef int k_rho  # the number of partitions in rho
+        cdef int k = 0  # the number of partitions in nu
+        cdef int h = -1 # longest common ancestor of zeta and nu:
+                        # zeta[h] == nu[h], zeta[h+1] != nu[h+1]
+                        # -1 indicates that zeta is not yet defined
+        cdef int hb     # longest common ancestor of rho and nu:
+                        # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
+        cdef int hh = 1 # the height of the oldest ancestor of nu
+                        # satisfying Lemma 2.25 in [1]:
+                        # if nu does not satisfy it at k, then hh = k
+        cdef int ht # smallest such that all descendants of zeta[ht] are equivalent
+        cdef int *Lambda = self.Lambda1             # for tracking indicator values- zf and zb are
+        cdef int *zf__Lambda_zeta = self.Lambda2    # indicator vectors remembering Lambda[k] for
+        cdef int *zb__Lambda_rho = self.Lambda3     # zeta and rho, respectively
+        cdef int qzb    # keeps track of Lambda[k] ><= zb[k]
+        cdef int hzf__h_zeta      # the max height for which Lambda and zf agree
+        cdef int hzb__h_rho = -1  # the max height for which Lambda and zb agree
+        cdef int *basis_gamma = self.b_gamma, *col_gamma = self.c_gamma # used for storing permutations
+        cdef int tvc, tvh, nwords = C.nwords, ncols = C.ncols, nrows = C.nrows
+        # TODO: Explain the variables tvc, tvh
+        cdef int *alpha # for storing pointers to cells of nu[k]
+        cdef int *v = self.v    # list of vertices determining nu
+        cdef int *e = self.e    # 0 or 1, see states 12 and 17
+        cdef int state = 1  # keeps track of position in algorithm - see sage/graphs/graph_isom.pyx, search for "STATE DIAGRAM"
+        cdef int *ham_wts = self.ham_wts
+        self.aut_gp_index = 0
+        while self.alpha_size < nrows + ncols:
+            self.alpha_size *= 2
+            self.alpha = <int *> sage_realloc(self.alpha, self.alpha_size * sizeof(int) )
+            if not self.alpha:
+                raise MemoryError("Memory.")
+        alpha = self.alpha # think of alpha as of length exactly nrows + ncols
+        nu =    PartitionStack(nrows, ncols)
+        Theta = OrbitPartition(ncols)
 
+        # trivial case
+        if ncols == 0 or nrows == 0:
+            raise NotImplementedError("Must supply a nontrivial code.")
 
+        while state != -1:
 
+            if state == 1: # Entry point: once only
+                alpha[0] = 0
+                alpha[1] = nu.flag
+                nu.refine(k, alpha, 2, C, ham_wts)
+                if nu.sat_225(k): hh = k
+                if nu.is_discrete(k): state = 18; continue
 
+                # store the first smallest nontrivial cell in W[k], and set v[k]
+                # equal to its minimum element
+                W[k] = nu.first_smallest_nontrivial(k)
+                v[k] = nu.v # stored during first_smallest_nontrivial
+                Lambda[k] = 0
+                e[k] = 0
+                state = 2
 
+            elif state == 2: # Move down the search tree one level by refining nu:
+                             # split out a column, and refine nu against it
+                k += 1
+                nu.clear(k)
+                alpha[0] = nu.split_column(v[k-1], k)
+                Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts) # store the invariant to Lambda[k]
+                # only if this is the first time moving down the search tree:
+                if h == -1: state = 5; continue
 
+                # update hzf__h_zeta
+                if hzf__h_zeta == k-1 and Lambda[k] == zf__Lambda_zeta[k]: hzf__h_zeta = k
+                # update qzb
+                if zb__Lambda_rho[k] == -1 or Lambda[k] < zb__Lambda_rho[k]:
+                    qzb = -1
+                elif Lambda[k] > zb__Lambda_rho[k]:
+                    qzb = 1
+                else:
+                    qzb = 0
+                # update hzb
+                if hzb__h_rho == k-1 and qzb == 0: hzb__h_rho = k
+                # if Lambda[k] > zb[k], then zb[k] := Lambda[k]
+                # (zb keeps track of the indicator invariants corresponding to
+                # rho, the closest canonical leaf so far seen- if Lambda is
+                # bigger, then rho must be about to change
+                if qzb > 0: zb__Lambda_rho[k] = Lambda[k]
+                state = 3
 
+            elif state == 3: # attempt to rule out automorphisms while moving down the tree
+                # if k > hzf, then we know that nu currently does not look like zeta, the first
+                # terminal node encountered, thus there is no automorphism to discover. If qzb < 0,
+                # i.e. Lambda[k] < zb[k], then the indicator is not maximal, and we can't reach a
+                # canonical leaf. If neither of these is the case, then proceed to state 6.
+                if hzf__h_zeta <= k or qzb >= 0: state = 4
+                else: state = 6
 
+            elif state == 4: # at this point we have -not- ruled out the presence of automorphisms
+                if nu.is_discrete(k): state = 7; continue # we have a terminal node, so process it
 
+                # otherwise, prepare to split out another column:
+                # store the first smallest nontrivial cell in W[k], and set v[k]
+                # equal to its minimum element
+                W[k] = nu.first_smallest_nontrivial(k)
+                v[k] = nu.v # stored during first_smallest_nontrivial
+                if not nu.sat_225(k): hh = k + 1
+                e[k] = 0 # see state 12 and 17
+                state = 2 # continue down the tree
 
+            elif state == 5: # same as state 3, but in the case where we haven't yet defined zeta
+                             # i.e. this is our first time down the tree. Once we get to the bottom,
+                             # we will have zeta = nu = rho, so we do:
+                zf__Lambda_zeta[k] = Lambda[k]
+                zb__Lambda_rho[k] = Lambda[k]
+                state = 4
 
+            elif state == 6: # at this stage, there is no reason to continue downward, so backtrack
+                j = k
+                # return to the longest ancestor nu[i] of nu that could have a
+                # descendant equivalent to zeta or could improve on rho.
+                # All terminal nodes descending from nu[hh] are known to be
+                # equivalent, so i < hh. Also, if i > hzb, none of the
+                # descendants of nu[i] can improve rho, since the indicator is
+                # off (Lambda(nu) < Lambda(rho)). If i >= ht, then no descendant
+                # of nu[i] is equivalent to zeta (see [1, p67]).
+                if ht-1 > hzb__h_rho:
+                    if ht-1 < hh-1:
+                        k = ht-1
+                    else:
+                        k = hh-1
+                else:
+                    if hzb__h_rho < hh-1:
+                        k = hzb__h_rho
+                    else:
+                        k = hh-1
+                # TODO: is the following line necessary?
+                if k == -1: k = 0
+                # if j == hh, then all nodes lower than our current position are equivalent, so bail out
+                if j == hh: state = 13; continue
 
+                # recall hh: the height of the oldest ancestor of zeta for which Lemma 2.25 is
+                # satsified, which implies that all terminal nodes descended from there are equivalent.
+                # If we are looking at such a node, then the partition at nu[hh] can be used for later
+                # pruning, so we store its fixed set and a set of representatives of its cells.
+                if l < self.L-1: l += 1
+                Omega[l] = nu.min_cell_reps(hh)
+                Phi[l] = nu.fixed_cols(Omega[l], hh)
+                state = 12
 
+            elif state == 7: # we have just arrived at a terminal node of the search tree T(G, Pi)
+                # if this is the first terminal node, go directly to 18, to
+                # process zeta
+                if h == -1: state = 18; continue
 
+                # hzf is the extremal height of ancestors of both nu and zeta, so if k < hzf, nu is not
+                # equivalent to zeta, i.e. there is no automorphism to discover.
+                if k < hzf: state = 8; continue
 
-#def classify(BinaryCode C, lab=True, verbosity=0):
-#    """
-#    """
-#    cdef int i, j # local variables
-#    cdef OrbitPartition Theta # keeps track of which vertices have been
-#                              # discovered to be equivalent
-#    cdef int index = 0, size = 1
-#    cdef int L = 100
-#    cdef int **Phi, **Omega
-#    cdef int l = -1
-#    cdef PartitionStack nu, zeta, rho
-#    cdef int k_rho
-#    cdef int k = 0
-#    cdef int h = -1
-#    cdef int hb
-#    cdef int hh = 1
-#    cdef int ht
-#    cdef mpz_t *Lambda_mpz, *zf_mpz, *zb_mpz
-#    cdef int hzf
-#    cdef int hzb = -1
-#    cdef int *basis_gamma
-#    cdef int *col_gamma
-#    cdef int *alpha
-#    cdef int *v
-#    cdef int *e
-#    cdef int state
-#    cdef int tvc, tvh, nwords = C.nwords, ncols = C.ncols, n = nwords + ncols, nrows = C.nrows
+                nu.get_permutation(zeta, basis_gamma, col_gamma, ham_wts)
+                # if C^gamma == C, the permutation is an automorphism, goto 10
+                if C.is_automorphism(col_gamma, basis_gamma):
+                    state = 10
+                else:
+                    state = 8
 
-#    # trivial case
-#    if ncols == 0:
-#        return [], {}
-#    elif nwords == 0 and ncols == 1:
-#        return [], {0:0}
-#    elif nwords == 0:
-#        output1 = []
-#        dd = {}
-#        for i from 0 <= i < ncols-1:
-#            dd[i] = i
-#            perm = range(ncols)
-#            perm[i] = i+1
-#            perm[i+1] = i
-#            output1.append(perm)
-#        dd[ncols-1] = ncols-1
-#        return output1, dd
+            elif state == 8: # we have just ruled out the presence of automorphism and have not yet
+                             # considered whether nu improves on rho
+                # if qzb < 0, then rho already has larger indicator tuple
+                if qzb < 0: state = 6; continue
 
-#    # allocate int pointers
-#    Phi = <int **> sage_malloc(L * sizeof(int *))
-#    Omega = <int **> sage_malloc(L * sizeof(int *))
+                # if Lambda[k] > zb[k] or nu is shorter than rho, then we have an improvement for rho
+                if (qzb > 0) or (k < k_rho): state = 9; continue
 
-#    # allocate GMP int pointers
-#    Lambda_mpz = <mpz_t *> sage_malloc((ncols+2)*sizeof(mpz_t))
-#    zf_mpz     = <mpz_t *> sage_malloc((ncols+2)*sizeof(mpz_t))
-#    zb_mpz     = <mpz_t *> sage_malloc((ncols+2)*sizeof(mpz_t))
+                # now Lambda[k] == zb[k] and k == k_rho, so we appeal to an enumeration:
+                j = nu.cmp(rho, C)
+                # if C(nu) > C(rho), we have a new label, goto 9
+                if j > 0: state = 9; continue
 
-#    # check for memory errors
-#    if not (Phi and Omega and Lambda_mpz and zf_mpz and zb_mpz):
-#        if Lambda_mpz: sage_free(Lambda_mpz)
-#        if zf_mpz: sage_free(zf_mpz)
-#        if zb_mpz: sage_free(zb_mpz)
-#        if Phi: sage_free(Phi)
-#        if Omega: sage_free(Omega)
-#        raise MemoryError("Error allocating memory.")
+                # if C(nu) < C(rho), no new label, goto 6
+                if j < 0: state = 6; continue
 
-#    # allocate int arrays
-#    basis_gamma = <int *> sage_malloc(nrows*sizeof(int))
-#    col_gamma = <int *> sage_malloc(ncols*sizeof(int))
-#    Phi[0] = <int *> sage_malloc(L*ncols*sizeof(int))
-#    Omega[0] = <int *> sage_malloc(L*ncols*sizeof(int))
-#    alpha = <int *> sage_malloc(4*ncols*sizeof(int))
-#    v = <int *> sage_malloc(ncols*sizeof(int))
-#    e = <int *> sage_malloc(ncols*sizeof(int))
+                # if C(nu) == C(rho), get the automorphism and goto 10
+                nu.find_basis(ham_wts)
+                rho.get_permutation(nu, basis_gamma, col_gamma, ham_wts)
+                state = 10
 
-#    # check for memory errors
-#    if not (basis_gamma and col_gamma and Phi[0] and Omega[0] and alpha and v and e):
-#        if basis_gamma: sage_free(basis_gamma)
-#        if col_gamma: sage_free(col_gamma)
-#        if Phi[0]: sage_free(Phi[0])
-#        if Omega[0]: sage_free(Omega[0])
-#        if alpha: sage_free(alpha)
-#        if v: sage_free(v)
-#        if e: sage_free(e)
-#        sage_free(Lambda_mpz)
-#        sage_free(zf_mpz)
-#        sage_free(zb_mpz)
-#        sage_free(Phi)
-#        sage_free(Omega)
-#        raise MemoryError("Error allocating memory.")
+            elif state == 9: # nu is a better guess at the canonical label than rho
+                rho = PartitionStack(nu)
+                k_rho = k
+                qzb = 0
+                hb = k
+                hzb__h_rho = k
+                # set zb[k+1] = Infinity
+                zb__Lambda_rho[k+1] = -1
+                state = 6
 
-#    # setup double index arrays
+            elif state == 10: # we have an automorphism to process
+                # increment l
+                if l < self.L-1: l += 1
+                # store information about the automorphism to Omega and Phi
+                # Omega stores the minimum cell representatives
+                Omega[l] = ~0
+                i = 0
+                while i < ncols:
+                    j = col_gamma[i]         # i is a minimum
+                    while j != i:            # cell rep,
+                        Omega[l] ^= (1<<j)   # so cancel
+                        j = col_gamma[j]     # cellmates
+                    while i < ncols and not Omega[l]&(1<<i): # find minimal element
+                        i += 1                               # of next cell
+                # Phi stores the columns fixed by the automorphism
+                Phi[l] = 0
+                for i from 0 <= i < ncols:
+                    if col_gamma[i] == i:
+                        Phi[l] ^= (1 << i)
+                # Now incorporate the automorphism into Theta
+                j = Theta.merge_perm(col_gamma)
+                # j stores whether anything happened or not- if not, then the automorphism we have
+                # discovered is already in the subgroup spanned by the generators we have output
+                if not j: state = 11; continue
 
+                # otherwise, we have a new generator, so record it:
+                self.record_automorphism(col_gamma, ncols)
 
+                # The variable tvc was set to be the minimum element of W[k] the last time the
+                # algorithm came up to meet zeta. At this point, we were considering the new
+                # possibilities for descending away from zeta at this level.
+                if Theta.col_min_cell_rep[Theta.col_find(tvc)] == tvc:
+                    # if this is still a minimum cell representative of Theta, even in light
+                    # of this new automorphism, then the current branch off of zeta hasn't been
+                    # found equivalent to one already searched yet, so there may still be a
+                    # better canonical label downward.
+                    state = 11; continue
 
+                # Otherwise, proceed to where zeta meets nu:
+                k = h
+                state = 13
 
+            elif state == 11: # We have just found a new automorphism, and deduced that there may
+                # be a better canonical label below the current branch off of zeta. So go to where
+                # nu meets rho
+                k = hb
+                state = 12
 
+            elif state == 12: # Coming here from either state 6 or 11, the algorithm has discovered
+                              # some new information. 11 came from 10, where a new line in Omega and
+                              # Phi was just recorded, and 6 stored information about implicit auto-
+                              # morphisms in Omega and Phi
+                if e[k] == 1:
+                    # this means that the algorithm has come upward to this position (in state 17)
+                    # before, so we have already intersected W[k] with the bulk of Omega and Phi, but
+                    # we should still catch up with the latest ones
+                    W[k] &= Omega[l]
+                state = 13
+
+            elif state == 13: # hub state
+                if k == -1: state = -1; continue # exit point
+
+                if k > h: state = 17; continue # we are still on the same principal branch from zeta
+
+                if k == h: state = 14; continue # update the stabilizer index and check for new splits,
+                                                # since we have returned to a partition of zeta
+                # otherwise k < h, hence we have just backtracked up zeta, and are one level closer to done
+                h = k
+                tvc = 0
+                while not (1 << tvc) & W[k]:
+                    tvc += 1
+                # now tvc points to the minimal cell representative of W[k]
+                state = 14
+
+            elif state == 14: # see if there are any more splits to make from this level of zeta (see state 17)
+                if Theta.col_find(v[k]) == Theta.col_find(tvc):
+                    index += 1
+                    # keep tabs on how many elements are in the same cell of Theta as tvc
+                # find the next split
+                i = v[k] + 1
+                while i < ncols and not (1 << i) & W[k]:
+                    i += 1
+                if i < ncols:
+                    v[k] = i
+                else:
+                    # there is no new split at this level
+                    v[k] = -1
+                    state = 16; continue
+
+                # new split column better be a minimal representative in Theta, or wasted effort
+                if Theta.col_min_cell_rep[Theta.col_find(tvc)] == tvc:
+                    state = 15
+                else:
+                    state = 14
+
+            elif state == 15: # split out the column v[k]
+                # hh is smallest such that nu[hh] satisfies Lemma 2.25. If it is larger than k+1,
+                # it must be modified, since we are changing that part
+                if k + 1 < hh:
+                    hh = k + 1
+                # hzf is maximal such that indicators line up for nu and zeta
+                if k < hzf:
+                    hzf = k
+                # hb is longest common ancestor of nu and rho
+                if hb >= k:
+                    hb = k
+                    qzb = 0
+                state = 2
+
+            elif state == 16: # backtrack up zeta, updating information about stabilizer vector
+                i = W[k]
+                j = ham_wts[i & 65535] + ham_wts[(i >> 16) & 65535]
+                if j == index and ht == k + 1: ht = k
+                size = size*index
+                index = 0
+                k -= 1
+                state = 13
+
+            elif state == 17: # see if there are any more splits to make from this level of nu (and not zeta)
+                if e[k] == 0: # now is the time to narrow down W[k] by Omega and Phi
+                    # intersect W[k] with each Omega[i] such that v[0]...v[k-1] is in Phi[i]
+                    ii = 0
+                    for i from 0 <= i < k:
+                        ii ^= (1 << v[i])
+                    for i from 0 <= i <= l:
+                        if Phi[i] & ii == ii:
+                            W[k] &= Omega[i]
+                e[k] = 1
+                # see if there is a vertex to split out
+                i = v[k] + 1
+                while i < ncols and not (1 << i) & W[k]:
+                    i += 1
+                if i < ncols:
+                    v[k] = i
+                    state = 15; continue
+
+                v[k] = -1
+                k -= 1
+                state = 13
+
+            elif state == 18: # the first time nu becomes a discrete partition: set up zeta, our "identity" leaf
+                # initialize counters for zeta:
+                h = k # zeta[h] == nu[h]
+                ht = k # nodes descended from zeta[ht] are all equivalent
+                hzf = k # max such that indicators for zeta and nu agree
+                zeta = PartitionStack(nu)
+                k -= 1
+                rho = PartitionStack(nu)
+                # initialize counters for rho:
+                k_rho = k # number of partitions in rho
+                hzb__h_rho = k # max such that indicators for rho and nu agree - BDM had k+1
+                hb = k # rho[hb] == nu[hb] - BDM had k+1
+                qzb = 0 # Lambda[k] == zb[k], so...
+                state = 13
+
+        # end big while loop
 
 
 

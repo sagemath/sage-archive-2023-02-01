@@ -4551,6 +4551,27 @@ class NumberField_quadratic(NumberField_absolute):
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
 
+
+    def coerce_map_from_impl(self, S):
+        """
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(-3)
+            sage: f = K.coerce_map_from(QQ); f
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/5)
+            3/5
+            sage: parent(f(3/5)) is K
+            True
+        """
+        if S is QQ:
+            return number_field_element_quadratic.Q_to_quadratic_field_element(self)
+        else:
+            return NumberField_absolute.coerce_map_from_impl(self, S)
+
+
+
     def discriminant(self, v=None):
         """
         Returns the discriminant of the ring of integers of the number field,

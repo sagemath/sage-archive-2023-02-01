@@ -167,7 +167,7 @@ class BooleanMonomialMonoid(Monoid_class):
             raise TypeError, "cannot coerce to BooleanMonoid"
 
 cdef class BooleanMonomial(MonoidElement):
-    def __init__(self, parent):
+    def __init__(self, BooleanMonomial parent):
         PBMonom_construct(&self._M)
         _parent = <ParentWithBase>parent
 
@@ -232,13 +232,21 @@ cdef class BooleanMonomial(MonoidElement):
                 (<BooleanMonomial>right)._parent._ring:
             return (<BooleanMonomial>self)._add_c_impl(right)
 
-        if PY_TYPE_CHECK(self, BooleanMonomial) and right == 1:
-            return (<BooleanMonomial>self)._add_c_impl(\
-                (<BooleanMonomial>self)._parent())
+        if PY_TYPE_CHECK(self, BooleanMonomial):
+            if right == 0:
+                return self
+            elif right == 1:
+                return (<BooleanMonomial>self)._add_c_impl(\
+                    (<BooleanMonomial>self)._parent())
 
-        if self == 1 and PY_TYPE_CHECK(right, BooleanMonomial):
-            return (<BooleanMonomial>right)._add_c_impl(\
-                (<BooleanMonomial>right)._parent())
+        elif PY_TYPE_CHECK(right, BooleanMonomial):
+            if self == 0:
+                return right
+            elif self == 1:
+                return (<BooleanMonomial>right)._add_c_impl(\
+                    (<BooleanMonomial>right)._parent())
+
+        raise NotImplementedError, "add operation not implemented for types %s and %s"%(type(self),type(right))
 
 
 cdef inline BooleanMonomial new_BM(parent):
@@ -979,6 +987,9 @@ def have_degree_order():
 
 def set_variable_name( i, s):
     pb_set_variable_name(i, s)
+
+def append_ring_block(i):
+    pb_append_ring_block(i)
 
 cdef BooleanPolynomialRing cur_ring
 ring_callbacks = []

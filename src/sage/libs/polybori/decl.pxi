@@ -244,6 +244,8 @@ cdef extern from "pb_wrap.h":
     void pb_set_variable_name "BoolePolyRing::setRingVariableName" \
         (int idx, char* varname)
 
+    void pb_append_ring_block "BoolePolyRing::appendRingBlock" (int ind)
+
     #M4RI initialization
     void buildAllCodes()
     void setupPackingMasks()

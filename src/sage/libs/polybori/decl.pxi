@@ -119,6 +119,7 @@ cdef extern from "pb_wrap.h":
         bint (* isConstant)()
         bint (* isSingleton)()
         PBMonom (* lead)()
+        PBMonom (* lexLead)()
         PBMonom (* usedVariables)()
         PBDD (* diagram)()
         PBNavigator (* navigation)()
@@ -211,6 +212,7 @@ cdef extern from "pb_wrap.h":
 
     int (* pairs_top_sugar)(GBStrategy strat)
     PBPolyVector (* someNextDegreeSpolys)(GBStrategy strat, int n)
+    void (* implications)(GBStrategy strat, int i)
 
     PBPoly GB_get_ith_gen "get_ith_gen" (GBStrategy strat, int i)
 

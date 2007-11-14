@@ -32,8 +32,8 @@ from sage.monoids.monoid import Monoid_class
 order_dict= {"lp":      lp,
              "dlex":    dlex,
              "dp_asc":  dp_asc,
-             "bdlex":   block_dlex,
-             "bdp_asc": block_dp_asc,
+             "block_dlex":   block_dlex,
+             "block_dp_asc": block_dp_asc,
              }
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
@@ -359,6 +359,12 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.lead())
 
+    def lm_lex(BooleanPolynomial self):
+        """
+        """
+        return new_BM_from_PBMonom(self._parent._monom_monoid,
+                                                self._P.lexLead())
+
     def lt(BooleanPolynomial self):
         """
         """
@@ -408,6 +414,8 @@ cdef class BooleanPolynomial(MPolynomial):
             return self.elimination_length
         elif name == 'lead':
             return self.lm
+        elif name == 'lexLead':
+            return self.lm_lex
         elif name == 'constant':
             return self.is_constant
         elif name == 'lmDeg':
@@ -726,6 +734,9 @@ cdef class GroebnerStrategy:
 
     def addAsYouWish(self, BooleanPolynomial p):
         self._S.addAsYouWish(p._P)
+
+    def implications(self, ind):
+        implications(self._S, ind)
 
     def cleanTopByChainCriterion(self):
         self._S.cleanTopByChainCriterion()

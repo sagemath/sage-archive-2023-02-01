@@ -131,15 +131,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         #Should this really be here?
         #if self.torsion_order() % 2 == 0:
         #    raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
-        F = self.integral_weierstrass_model()
-        a1,a2,a3,a4,a6 = F.a_invariants()
+        # F = self.integral_weierstrass_model()
+        # a1,a2,a3,a4,a6 = F.a_invariants()
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
-        t = simon_two_descent(a2,a4,a6,
+        t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
         prob_rank = Integer(t[0])
         two_selmer_rank = Integer(t[1])
-        prob_gens = [F(P) for P in t[2]]
+        prob_gens = [self(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
 
     def integral_weierstrass_model(self):

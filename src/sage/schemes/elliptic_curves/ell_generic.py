@@ -44,6 +44,10 @@ import sage.misc.latex as latex
 import sage.modular.modform as modform
 import sage.functions.transcendental as transcendental
 
+from sage.categories.morphism import IdentityMorphism
+from sage.categories.homset import Hom
+from sage.rings.arith import lcm
+
 # Schemes
 import sage.schemes.generic.projective_space as projective_space
 import sage.schemes.generic.homset as homset
@@ -1302,6 +1306,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         import constructor
         c4, c6 = self.c_invariants()
         return constructor.EllipticCurve([-c4/(2**4*3), -c6/(2**5*3**3)])
+
+    def integral_model(self):
+        denom = lcm([a.denominator() for a in self.ainvs()])
+        if denom != 1:
+            raise NotImplementedError, "model must be integral for now"
+        else:
+            parent = self(0).parent()
+            return self, IdentityMorphism(Hom(parent, parent))
 
 
 

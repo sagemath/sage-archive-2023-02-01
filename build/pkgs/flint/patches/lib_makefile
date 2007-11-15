@@ -2,11 +2,11 @@ LIBDIR=$(PREFIX)/lib
 INCLUDEDIR=$(PREFIX)/include
 DOCDIR=$(PREFIX)/doc
 
-libflint.dylib: $(FLINTOBJ)
-	$(CXX) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) -lgmp
+libflint.dylib: all
+	$(CXX) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) -lgmp -lm
 
-libflint.dll: $(FLINTOBJ)
-	$(CXX) -fPIC -shared -o libflint.dll $(FLINTOBJ) -lgmp
+libflint.dll: all
+	$(CXX) -fPIC -shared -o libflint.dll $(FLINTOBJ) -lgmp -lm
 
-libflint.so: $(FLINTOBJ)
-	$(CXX) -fPIC -shared -fPIC -o libflint.so $(FLINTOBJ) -lgmp
+libflint.so: all
+	$(CXX) -fPIC -shared -fPIC -o libflint.so $(FLINTOBJ) -lgmp -lm

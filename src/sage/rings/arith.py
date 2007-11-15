@@ -280,7 +280,7 @@ def factorial(n, algorithm='gmp'):
 def is_prime(n, flag=0):
     r"""
     Returns True if $x$ is prime, and False otherwise.  The result
-    is proven correct -- {\em this is NOT a pseudo-primality test!}.
+    is proven correct -- \emph{this is NOT a pseudo-primality test!}.
 
     INPUT:
         flag -- int
@@ -316,7 +316,7 @@ def is_prime(n, flag=0):
 def is_pseudoprime(n, flag=0):
     r"""
     Returns True if $x$ is a pseudo-prime, and False otherwise.  The result
-    is \em{NOT} proven correct -- {\em this is a pseudo-primality test!}.
+    is \emph{NOT} proven correct -- \emph{this is a pseudo-primality test!}.
 
     INPUT:
         flag -- int
@@ -352,7 +352,7 @@ def is_pseudoprime(n, flag=0):
 def is_prime_power(n, flag=0):
     r"""
     Returns True if $x$ is a prime power, and False otherwise.
-    The result is proven correct -- {\em this is NOT a
+    The result is proven correct -- \emph{this is NOT a
     pseudo-primality test!}.
 
     INPUT:

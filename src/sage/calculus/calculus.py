@@ -4351,7 +4351,7 @@ class SymbolicComposition(SymbolicOperation):
     def __complex__(self):
         f = self._operands[0]
         g = self._operands[1]
-        return complex(f._approx_(float(g)))
+        return complex(f._approx_(complex(g)))
 
     def _mpfr_(self, field):
         """
@@ -4524,6 +4524,9 @@ class Function_erf(PrimitiveFunction):
     r"""
     The error function, defined as $\text{erf}(x) =
     \frac{2}{\sqrt{\pi}}\int_0^x e^{-t^2} dt$.
+
+    SAGE currently *only* implements the error function (via a call to
+    PARI) when the input is real.
     """
 
     def _repr_(self, simplify=True):

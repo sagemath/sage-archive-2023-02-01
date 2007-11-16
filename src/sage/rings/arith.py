@@ -384,28 +384,32 @@ def is_prime_power(n, flag=0):
 
 def valuation(m, p):
     """
-    The exact power of p>0 that divides the integer m.
-    We do not require that p be prime, and if m is 0,
-    then this function returns rings.infinity.
+    The exact power of p that divides m.
 
-    EXAMPLES::
+    m should be an integer or rational (but maybe other types
+    work too.)
 
+    This actually just calls the m.valuation() method.
+
+    If m is 0, this function returns rings.infinity.
+
+    EXAMPLES:
         sage: valuation(512,2)
         9
         sage: valuation(1,2)
         0
+        sage: valuation(5/9, 3)
+        -2
 
-    Valuation of 0 is defined, but valuation with respect to 0 is not::
-
+    Valuation of 0 is defined, but valuation with respect to 0 is not:
         sage: valuation(0,7)
         +Infinity
         sage: valuation(3,0)
         Traceback (most recent call last):
         ...
-        ValueError: valuation at 0 not defined
+        ValueError: You can only compute the valuation with respect to a integer larger than 1.
 
-    Here are some other example::
-
+    Here are some other examples:
         sage: valuation(100,10)
         2
         sage: valuation(200,10)
@@ -417,17 +421,7 @@ def valuation(m, p):
         sage: valuation(243*10007,10007)
         1
     """
-    if p <= 0:
-        raise ValueError, "valuation at 0 not defined"
-    if m == 0:
-        import sage.rings.all
-        return sage.rings.all.infinity
-    r=0
-    power=p
-    while m%power==0:
-        r += 1
-        power *= p
-    return r
+    return m.valuation(p)
 
 
 

@@ -510,6 +510,16 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self_d.gcd(other_d) / d
 
     def valuation(self, p):
+        """
+        EXAMPLES:
+            sage: x = -5/9
+            sage: x.valuation(5)
+            1
+            sage: x.valuation(3)
+            -2
+            sage: x.valuation(2)
+            0
+        """
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
     def is_square(self):

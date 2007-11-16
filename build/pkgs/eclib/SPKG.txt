@@ -6,10 +6,3 @@ MAINTAINTERS:
    * William Stein
    * John Cremona
    * Ralph Philip Weinmann
-
-
-TODO:
-   * must get rid of the -DLONG_IS_64_BIT -- see what is done in FLINT.
-   *
-
-

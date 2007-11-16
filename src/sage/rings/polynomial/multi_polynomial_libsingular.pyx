@@ -1416,6 +1416,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             return co.new_MP(parent, res)
 
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
+
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
@@ -2167,6 +2173,55 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
+
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
+
+        EXAMPLES:
+            sage: R.<x>=QQ[]
+            sage: S.<x,y>=QQ[]
+            sage: hash(S(1/2))==hash(1/2)  # respect inclusions of the rationals
+            True
+            sage: hash(S.0)==hash(R.0)  # respect inclusions into mpoly rings
+            True
+            sage: # the point is to make for more flexible dictionary look ups
+            sage: d={S.0:12}
+            sage: d[R.0]
+            12
+        """
+        cdef poly *p
+        cdef ring *r
+        cdef int n
+        cdef int v
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
+        base = (<MPolynomialRing_libsingular>self._parent)._base
+        p = self._poly
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        var_name_hash = [hash(vn) for vn in self._parent.variable_names()]
+        cdef long c_hash
+        while p:
+            c_hash = hash(co.si2sa(p_GetCoeff(p, r), r, base))
+            if c_hash != 0: # this is always going to be true, because we are sparse (correct?)
+                # Hash (self[i], gen_a, exp_a, gen_b, exp_b, gen_c, exp_c, ...) as a tuple according to the algorithm.
+                # I omit gen,exp pairs where the exponent is zero.
+                result_mon = c_hash
+                for v from 1 <= v <= r.N:
+                    n = p_GetExp(p,v,r)
+                    if n!=0:
+                        result_mon = (1000003 * result_mon) ^ var_name_hash[v-1]
+                        result_mon = (1000003 * result_mon) ^ n
+                result += result_mon
+
+            p = pNext(p)
+        if result == -1:
+            return -2
+        return result
+
     def __iter__(self):
         """
         Facilitates iterating over the monomials of self,
@@ -2838,12 +2893,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     cdef int is_constant_c(self):
         return p_IsConstant(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
-
-    def __hash__(self):
-        """
-        """
-        s = p_String(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring, (<MPolynomialRing_libsingular>self._parent)._ring)
-        return hash(s)
 
     def lm(MPolynomial_libsingular self):
         """

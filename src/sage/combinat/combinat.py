@@ -2398,3 +2398,117 @@ def partition_associated(pi):
     """
     ans=gap.eval("AssociatedPartition(%s)"%(pi))
     return eval(ans)
+
+
+def fibonacci_sequence(start, stop=None, algorithm=None):
+    r"""
+    Returns an iterator over the Fibonacci sequence, for all fibonacci numbers
+    $f_n$ from \code{n = start} up to (but not including) \code{n = stop}
+
+    INPUT:
+        start -- starting value
+        stop -- stopping value
+        algorithm -- default (None) -- passed on to fibonacci function (or
+                     not passed on if None, i.e., use the default).
+
+
+    EXAMPLES:
+        sage: fibs = [i for i in fibonacci_sequence(10, 20)]
+        sage: fibs
+        [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
+
+        sage: sum([i for i in fibonacci_sequence(100, 110)])
+        69919376923075308730013
+
+    SEE ALSO: fibonacci_xrange
+
+    AUTHOR:
+        Bobby Moretti
+    """
+    from sage.rings.integer_ring import ZZ
+    if stop is None:
+        stop = ZZ(start)
+        start = ZZ(0)
+    else:
+        start = ZZ(start)
+        stop = ZZ(stop)
+
+    if algorithm:
+        for n in xrange(start, stop):
+            yield fibonacci(n, algorithm=algorithm)
+    else:
+        for n in xrange(start, stop):
+            yield fibonacci(n)
+
+def fibonacci_xrange(start, stop=None, algorithm='pari'):
+    r"""
+    Returns an iterator over all of the Fibonacci numbers in the given range,
+    including \code{f_n = start} up to, but not including, \code{f_n = stop}.
+
+    EXAMPLES:
+        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
+        sage: len(fibs_in_some_range)
+        4
+        sage: fibs_in_some_range
+        [14930352, 24157817, 39088169, 63245986]
+
+        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
+        sage: fibs
+        [13, 21, 34, 55, 89]
+
+        sage: list(fibonacci_xrange(13, 34))
+        [13, 21]
+
+    A solution to the second Project Euler problem:
+        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
+        1089154
+
+    SEE ALSO: fibonacci_sequence
+
+    AUTHOR:
+        Bobby Moretti
+    """
+    from sage.rings.integer_ring import ZZ
+    if stop is None:
+        stop = ZZ(start)
+        start = ZZ(0)
+    else:
+        start = ZZ(start)
+        stop = ZZ(stop)
+
+    # iterate until we've gotten high enough
+    fn = 0
+    n = 0
+    while fn < start:
+        n += 1
+        fn = fibonacci(n)
+
+    while True:
+        fn = fibonacci(n)
+        n += 1
+        if fn < stop:
+            yield fn
+        else:
+            return
+
+
+def bernoulli_polynomial(x,n):
+    r"""
+    The generating function for the Bernoulli polynomials is
+    \[
+     \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!}.
+    \]
+
+    One has $B_n(x) = - n\zeta(1 - n,x)$, where $\zeta(s,x)$ is the
+    Hurwitz zeta function.  Thus, in a certain sense, the Hurwitz zeta
+    generalizes the Bernoulli polynomials to non-integer values of n.
+
+    EXAMPLES:
+        sage: y = QQ['y'].0
+        sage: bernoulli_polynomial(y,5)
+        y^5 - 5/2*y^4 + 5/3*y^3 - 1/6*y
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Bernoulli_polynomials
+    """
+    return sage_eval(maxima.eval("bernpoly(x,%s)"%n), {'x':x})

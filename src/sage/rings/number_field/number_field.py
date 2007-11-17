@@ -169,7 +169,7 @@ ZZ = integer_ring.IntegerRing()
 _nf_cache = {}
 def NumberField(polynomial, name=None, check=True, names=None, cache=True):
     r"""
-    Return {\em the} number field defined by the given irreducible
+    Return \emph{the} number field defined by the given irreducible
     polynomial and with variable with the given name.  If check is
     True (the default), also verify that the defining polynomial is
     irreducible and over Q.
@@ -470,7 +470,7 @@ def is_AbsoluteNumberField(x):
 
 def is_QuadraticField(x):
     r"""
-    Return True if x is of the quadratic {\em number} field type.
+    Return True if x is of the quadratic \emph{number} field type.
 
     EXAMPLES:
         sage: is_QuadraticField(QuadraticField(5,'a'))

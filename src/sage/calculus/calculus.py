@@ -2777,7 +2777,7 @@ class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
         from sage.rings.rational import Rational
         if isinstance(x, Rational):
-            if x.is_integral():
+            if x.is_integral() and x >= 0:
                 self._precedence = 10**6
             else:
                 self._precedence = 2000
@@ -3102,6 +3102,8 @@ class SymbolicArithmetic(SymbolicOperation):
             -1/3
             sage: -3/(2*(2*3-(3/2)))
             -1/3
+            sage: (-1)^(1/4)
+            (-1)^(1/4)
         """
         if simplify:
             if hasattr(self, '_simp'):

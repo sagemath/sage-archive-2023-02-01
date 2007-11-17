@@ -794,8 +794,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 return R
             if self.base_ring().is_finite():
                 R.set_ring() #sorry for that, but needed for minpoly
-                if  singular.eval('minpoly') != self.__minpoly:
+                if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
                     singular.eval("minpoly=%s"%(self.__minpoly))
+                    self.__minpoly = singular.eval('minpoly')[1:-1] # store in correct format
             return R
         except (AttributeError, ValueError):
             return self._singular_init_(singular)
@@ -861,9 +862,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         elif self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order)
-            self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
-            singular.eval("minpoly=%s"%(self.__minpoly) )
-
+            self.__minpoly = (str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")
+            if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
+                singular.eval("minpoly=%s"%(self.__minpoly) )
+                self.__minpoly = singular.eval('minpoly')[1:-1]
             self.__singular = r
         else:
             raise TypeError, "no conversion to a Singular ring defined"

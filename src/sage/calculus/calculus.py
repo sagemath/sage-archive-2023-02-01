@@ -3034,14 +3034,10 @@ class SymbolicArithmetic(SymbolicOperation):
         return self._operator(*fops)
 
     def _mpfr_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._mpfr_(field)
         rops = [op._mpfr_(field) for op in self._operands]
         return self._operator(*rops)
 
     def _complex_mpfr_field_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._complex_mpfr_field_(field)
         rops = [op._complex_mpfr_field_(field) for op in self._operands]
         return self._operator(*rops)
 
@@ -3918,8 +3914,6 @@ class SymbolicComposition(SymbolicOperation):
             sage: RealField(200)(acos(1/10))
             1.4706289056333368228857985121870581235299087274579233690964
         """
-        if not self.is_simplified():
-            return self.simplify()._mpfr_(field)
         f = self._operands[0]
         g = self._operands[1]
         x = f(g._mpfr_(field))
@@ -3941,8 +3935,6 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641 + 1.0000000000000000000000000000*I
 
         """
-        if not self.is_simplified():
-            return self.simplify()._complex_mpfr_field_(field)
         f = self._operands[0]
         g = self._operands[1]
         x = f(g._complex_mpfr_field_(field))
@@ -3964,8 +3956,6 @@ class SymbolicComposition(SymbolicOperation):
             sage: CDF(coth(pi))
             1.0037418732
         """
-        if not self.is_simplified():
-            return self.simplify()._complex_double_(field)
         f = self._operands[0]
         g = self._operands[1]
         z = f(g._complex_double_(field))

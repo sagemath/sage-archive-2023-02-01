@@ -197,11 +197,23 @@ cdef class Fmpz_poly(SageObject):
             sage: f = Fmpz_poly([1,0,-1]); g = Fmpz_poly([2,3,4])
             sage: f*g
             5  2 3 2 -3 -4
+
+        Scalar multiplication
+            sage: f * 3
+            3  3 0 -3
+            sage: f * 5r
+            3  5 0 -5
         """
-        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
-            raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        fmpz_poly_mul(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
+        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
+            if PY_TYPE_CHECK(left, Integer) or PY_TYPE_CHECK(left, int):
+                fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>right).poly, left)
+            elif PY_TYPE_CHECK(right, Integer) or PY_TYPE_CHECK(right, int):
+                fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>left).poly, right)
+            else:
+                raise TypeError
+        else:
+            fmpz_poly_mul(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
         return res
 
     def __pow__(self, n, dummy):
@@ -226,6 +238,88 @@ cdef class Fmpz_poly(SageObject):
         fmpz_poly_power(res.poly, (<Fmpz_poly>self).poly, nn)
         return res
 
+    def pow_truncate(self, exp, n):
+        """
+        Return self raised to the power of exp mod x^n.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,2])
+            sage: f.pow_truncate(10,3)
+            3  1 20 180
+            sage: f.pow_truncate(1000,3)
+            3  1 2000 1998000
+        """
+        if exp < 0:
+            raise ValueError, "Exponent must be at least 0"
+        if n < 0:
+            raise ValueError, "Exponent must be at least 0"
+        cdef long exp_c = exp, nn = n
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_power_trunc_n(res.poly, (<Fmpz_poly>self).poly, exp_c, nn)
+        return res
+
+    def __floordiv__(left, right):
+        """
+        Return left / right, truncated.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([3,4,5])
+            sage: g = f^5; g
+            11  243 1620 6345 16560 32190 47224 53650 46000 29375 12500 3125
+            sage: g / f
+            9  81 432 1404 2928 4486 4880 3900 2000 625
+            sage: f^4
+            9  81 432 1404 2928 4486 4880 3900 2000 625
+        """
+        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
+            raise TypeError
+        cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_div(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
+        return res
+
+    def div_rem(self, Fmpz_poly other):
+        """
+        Return self / other, self, % other.
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,3,4,5])
+            sage: g = f^23
+            sage: g.div_rem(f)[1]
+            0
+            sage: g.div_rem(f)[0] - f^22
+            0
+            sage: f = Fmpz_poly([1..10])
+            sage: g = Fmpz_poly([1,3,5])
+            sage: q, r = f.div_rem(g)
+            sage: q*f+r
+            17  1 2 3 4 4 4 10 11 17 18 22 26 30 23 26 18 20
+            sage: g
+            3  1 3 5
+            sage: q*g+r
+            10  1 2 3 4 5 6 7 8 9 10
+        """
+        cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        cdef Fmpz_poly R = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_divrem(Q.poly, R.poly, self.poly, other.poly)
+        return Q, R
+
+    def pseudo_div(self, Fmpz_poly other):
+        cdef unsigned long d
+        cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_pseudo_div(Q.poly, &d, self.poly, other.poly)
+        return Q, d
+
+    def pseudo_div_rem(self, Fmpz_poly other):
+        cdef unsigned long d
+        cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        cdef Fmpz_poly R = <Fmpz_poly>PY_NEW(Fmpz_poly)
+        fmpz_poly_pseudo_divrem(Q.poly, R.poly, &d, self.poly, other.poly)
+        return Q, R, d
+
+
     def __copy__(self):
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
         fmpz_poly_set(res.poly, self.poly)
@@ -234,9 +328,6 @@ cdef class Fmpz_poly(SageObject):
     def truncate(self, n):
         """
         Return the truncation of self at degree n.
-
-        Don't do this unless you know there are no other references to
-        this polynomial!!!!!
 
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
@@ -268,4 +359,19 @@ cdef class Fmpz_poly(SageObject):
         cdef long nn = n
         fmpz_poly_truncate(self.poly, nn) # mutating!
 
+
+    def _sage_(self, var='x'):
+        """
+        Return self as an element of the sage ZZ[var].
+
+        EXAMPLES:
+            sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
+            sage: f = Fmpz_poly([1,1])
+            sage: f._sage_('t')
+            t + 1
+            sage: Fmpz_poly([-1,0,0,1])._sage_()
+            x^3 - 1
+        """
+        from sage.rings.all import ZZ
+        return ZZ[var](self.list())
 

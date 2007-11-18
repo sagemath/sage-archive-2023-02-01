@@ -24,6 +24,7 @@ import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
 from sage.misc.misc import prod
+from sage.rings.fraction_field_element import is_FractionFieldElement
 
 import integer_ring
 import integer
@@ -421,8 +422,19 @@ def valuation(m, p):
         sage: valuation(243*10007,10007)
         1
     """
-    return m.valuation(p)
-
+    if hasattr(m, 'valuation'):
+        return m.valuation(p)
+    if m == 0:
+        import sage.rings.all
+        return sage.rings.all.infinity
+    if is_FractionFieldElement(m):
+        return valuation(m.numerator()) - valuation(m.denominator())
+    r = 0
+    power = p
+    while not (m % power): # m % power == 0
+        r += 1
+        power *= p
+    return r
 
 
 

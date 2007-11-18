@@ -61,9 +61,6 @@ cdef int *hamming_weights():
     for i from 256 <= i < 65536:
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
-    # This may seem like overkill, but the worst case for storing the words
-    # themselves is 65536- in this case, we are increasing memory usage by a
-    # factor of 2. Also, this function will only be called once ever.
 
 cdef class BinaryCode:
     """
@@ -322,7 +319,7 @@ cdef class BinaryCode:
             0
             sage: B._is_one(8, 4)
             1
-            sage: B._is_automorphism([1,0,3,2,4,5,6,7], [1, 2, 4, 9])
+            sage: B._is_automorphism([1,0,3,2,4,5,6,7], [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 11, 10, 13, 12, 15, 14])
             1
 
         """
@@ -334,17 +331,15 @@ cdef class BinaryCode:
         else:
             return 0
 
-    def _is_automorphism(self, col_gamma, basis_gamma):
+    def _is_automorphism(self, col_gamma, word_gamma):
         """
         Check whether a given permutation is an automorphism of the code.
 
         INPUT:
             col_gamma -- permutation sending i |--> col_gamma[i] acting
                 on the columns.
-            basis_gamma -- describes where the basis elements are mapped
-                under gamma. basis_gamma[i] is where the i-th row is sent,
-                as an integer expressing a linear combination of the rows
-                of the generator matrix.
+            word_gamma -- permutation sending i |--> word_gamma[i] acting
+                on the words.
 
         EXAMPLE:
             sage: import sage.coding.binary_code
@@ -357,33 +352,34 @@ cdef class BinaryCode:
             [00111100]
             [00001111]
             [10101010]
-            sage: B._is_automorphism([1,0,3,2,4,5,6,7], [1, 2, 4, 9])
+            sage: B._is_automorphism([1,0,3,2,4,5,6,7], [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 11, 10, 13, 12, 15, 14])
             1
 
         """
         cdef int i
         cdef int *_col_gamma
-        cdef int *_basis_gamma
-        _basis_gamma = <int *> sage_malloc(self.nrows * sizeof(int))
+        cdef int *_word_gamma
+        _word_gamma = <int *> sage_malloc(self.nwords * sizeof(int))
         _col_gamma = <int *> sage_malloc(self.ncols * sizeof(int))
-        if not (_col_gamma and _basis_gamma):
-            if _basis_gamma: sage_free(_basis_gamma)
+        if not (_col_gamma and _word_gamma):
+            if _word_gamma: sage_free(_word_gamma)
             if _col_gamma: sage_free(_col_gamma)
             raise MemoryError("Memory.")
-        for i from 0 <= i < self.nrows:
-            _basis_gamma[i] = basis_gamma[i]
+        for i from 0 <= i < self.nwords:
+            _word_gamma[i] = word_gamma[i]
         for i from 0 <= i < self.ncols:
             _col_gamma[i] = col_gamma[i]
-        result = self.is_automorphism(_col_gamma, _basis_gamma)
+        result = self.is_automorphism(_col_gamma, _word_gamma)
         sage_free(_col_gamma)
-        sage_free(_basis_gamma)
+        sage_free(_word_gamma)
         return result
 
-    cdef int is_automorphism(self, int *col_gamma, int *basis_gamma):
-        cdef int i, j, self_nrows = self.nrows, self_ncols = self.ncols
-        for i from 0 <= i < self_nrows:
+    cdef int is_automorphism(self, int *col_gamma, int *word_gamma):
+        # TODO: optimize? check only basis?
+        cdef int i, j, self_nwords = self.nwords, self_ncols = self.ncols
+        for i from 0 <= i < self_nwords:
             for j from 0 <= j < self_ncols:
-                if self.is_one(1 << i, j) != self.is_one(basis_gamma[i], col_gamma[j]):
+                if self.is_one(i, j) != self.is_one(word_gamma[i], col_gamma[j]):
                     return 0
         return 1
 
@@ -398,19 +394,35 @@ cdef class OrbitPartition:
     * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
 
     """
-    def __new__(self, ncols):
+    def __new__(self, nrows, ncols):
         cdef int col
+        cdef int nwords, word
+        nwords = (1 << nrows)
+        self.nwords = nwords
         self.ncols = ncols
+        self.wd_parent =        <int *> sage_malloc( nwords * sizeof(int) )
+        self.wd_rank =          <int *> sage_malloc( nwords * sizeof(int) )
+        self.wd_min_cell_rep =  <int *> sage_malloc( nwords * sizeof(int) )
+        self.wd_size =          <int *> sage_malloc( nwords * sizeof(int) )
         self.col_parent =       <int *> sage_malloc( ncols * sizeof(int) )
         self.col_rank =         <int *> sage_malloc( ncols * sizeof(int) )
         self.col_min_cell_rep = <int *> sage_malloc( ncols * sizeof(int) )
         self.col_size =         <int *> sage_malloc( ncols * sizeof(int) )
-        if not (self.col_parent and self.col_rank and self.col_min_cell_rep and self.col_size):
+        if not (self.wd_parent and self.wd_rank and self.wd_min_cell_rep and self.wd_size and self.col_parent and self.col_rank and self.col_min_cell_rep and self.col_size):
+            if self.wd_parent: sage_free(self.wd_parent)
+            if self.wd_rank: sage_free(self.wd_rank)
+            if self.wd_min_cell_rep: sage_free(self.wd_min_cell_rep)
+            if self.wd_size: sage_free(self.wd_size)
             if self.col_parent:       sage_free(self.col_parent)
             if self.col_rank:         sage_free(self.col_rank)
             if self.col_min_cell_rep: sage_free(self.col_min_cell_rep)
             if self.col_size:         sage_free(self.col_size)
             raise MemoryError("Memory.")
+        for word from 0 <= word < nwords:
+            self.wd_parent[word] = word
+            self.wd_rank[word] = 0
+            self.wd_min_cell_rep[word] = word
+            self.wd_size[word] = 1
         for col from 0 <= col < ncols:
             self.col_parent[col] = col
             self.col_rank[col] = 0
@@ -418,6 +430,10 @@ cdef class OrbitPartition:
             self.col_size[col] = 1
 
     def __dealloc__(self):
+        sage_free(self.wd_parent)
+        sage_free(self.wd_rank)
+        sage_free(self.wd_min_cell_rep)
+        sage_free(self.wd_size)
         sage_free(self.col_parent)
         sage_free(self.col_rank)
         sage_free(self.col_min_cell_rep)
@@ -441,11 +457,85 @@ cdef class OrbitPartition:
         """
         cdef int i
         cdef int j
-        s = 'OrbitPartition on %d columns. Data:\n'%(self.ncols)
+        s = 'OrbitPartition on %d words and %d columns. Data:\nWords:\n'%(self.nwords, self.ncols)
+        for i from 0 <= i < self.nwords:
+            s += '%d,'%self.wd_parent[i]
         s = s[:-1] + '\nColumns:\n'
         for j from 0 <= j < self.ncols:
             s += '%d,'%self.col_parent[j]
         return s[:-1]
+
+    def _wd_find(self, word):
+        """
+        Returns the root of word.
+
+        EXAMPLE:
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: O = OrbitPartition(4, 8)
+            sage: O
+            OrbitPartition on 16 words and 8 columns. Data:
+            Words:
+            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+            Columns:
+            0,1,2,3,4,5,6,7
+            sage: O._wd_find(12)
+            12
+
+        """
+        return self.wd_find(word)
+
+    cdef int wd_find(self, int word):
+        if self.wd_parent[word] == word:
+            return word
+        else:
+            self.wd_parent[word] = self.wd_find(self.wd_parent[word])
+        return self.wd_parent[word]
+
+    def _wd_union(self, x, y):
+        """
+        Join the cells containing x and y.
+
+        EXAMPLE:
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: O = OrbitPartition(4, 8)
+            sage: O
+            OrbitPartition on 16 words and 8 columns. Data:
+            Words:
+            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+            Columns:
+            0,1,2,3,4,5,6,7
+            sage: O._wd_union(1,10)
+            sage: O
+            OrbitPartition on 16 words and 8 columns. Data:
+            Words:
+            0,1,2,3,4,5,6,7,8,9,1,11,12,13,14,15
+            Columns:
+            0,1,2,3,4,5,6,7
+            sage: O._wd_find(10)
+            1
+
+        """
+        self.wd_union(x, y)
+
+    cdef void wd_union(self, int x, int y):
+        cdef int x_root, y_root
+        x_root = self.wd_find(x)
+        y_root = self.wd_find(y)
+        if self.wd_rank[x_root] > self.wd_rank[y_root]:
+            self.wd_parent[y_root] = x_root
+            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_size[y_root] += self.wd_size[x_root]
+        elif self.wd_rank[x_root] < self.wd_rank[y_root]:
+            self.wd_parent[x_root] = y_root
+            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_size[x_root] += self.wd_size[y_root]
+        elif x_root != y_root:
+            self.wd_parent[y_root] = x_root
+            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_size[y_root] += self.wd_size[x_root]
+            self.wd_rank[x_root] += 1
 
     def _col_find(self, col):
         """
@@ -519,7 +609,7 @@ cdef class OrbitPartition:
             self.col_size[y_root] += self.col_size[x_root]
             self.col_rank[x_root] += 1
 
-    def _merge_perm(self, col_gamma):
+    def _merge_perm(self, col_gamma, wd_gamma):
         """
         Merges the cells of self under the given permutation. If gamma[a] = b,
         then after merge_perm, a and b will be in the same cell. Returns 0 if
@@ -547,19 +637,33 @@ cdef class OrbitPartition:
         """
         cdef int i
         cdef int *_col_gamma
+        cdef int *_wd_gamma
+        _wd_gamma = <int *> sage_malloc(self.nwords * sizeof(int))
         _col_gamma = <int *> sage_malloc(self.ncols * sizeof(int))
-        if not _col_gamma:
+        if not (_col_gamma and _wd_gamma):
+            if _wd_gamma: sage_free(_wd_gamma)
+            if _col_gamma: sage_free(_col_gamma)
             raise MemoryError("Memory.")
+        for i from 0 <= i < self.nwords:
+            _wd_gamma[i] = wd_gamma[i]
         for i from 0 <= i < self.ncols:
             _col_gamma[i] = col_gamma[i]
-        result = self.merge_perm(_col_gamma)
+        result = self.merge_perm(_col_gamma, _wd_gamma)
         sage_free(_col_gamma)
+        sage_free(_wd_gamma)
         return result
 
-    cdef int merge_perm(self, int *col_gamma):
+    cdef int merge_perm(self, int *col_gamma, int *wd_gamma):
         cdef int i, gamma_i_root
         cdef int j, gamma_j_root, return_value = 0
+        cdef int *self_wd_parent = self.wd_parent
         cdef int *self_col_parent = self.col_parent
+        for i from 0 <= i < self.nwords:
+            if self_wd_parent[i] == i:
+                gamma_i_root = self.wd_find(wd_gamma[i])
+                if gamma_i_root != i:
+                    return_value = 1
+                    self.wd_union(i, gamma_i_root)
         for j from 0 <= j < self.ncols:
             if self_col_parent[j] == j:
                 gamma_j_root = self.col_find(col_gamma[j])
@@ -955,7 +1059,7 @@ cdef class PartitionStack:
             return 1
         return 0
 
-    def _min_cell_reps(self, k):
+    def _min_cell_reps(self, k): #TODO
         """
         Returns an integer whose bits represent which columns are minimal cell
         representatives.
@@ -993,7 +1097,7 @@ cdef class PartitionStack:
                 reps += (1 << i)
         return reps
 
-    def _fixed_cols(self, mcrs, k):
+    def _fixed_cols(self, mcrs, k): #TODO
         """
         Returns an integer whose bits represent which columns are fixed. For
         efficiency, mcrs is the output of min_cell_reps.
@@ -1031,7 +1135,7 @@ cdef class PartitionStack:
                 fixed += (1 << i)
         return fixed & mcrs
 
-    def _first_smallest_nontrivial(self, k):
+    def _first_smallest_nontrivial(self, k): #TODO
         """
         Returns an integer representing the first, smallest nontrivial cell of columns.
 
@@ -1074,14 +1178,63 @@ cdef class PartitionStack:
         # location now points to the beginning of the first, smallest,
         # nontrivial cell
         j = location
-        self.v = j
+        self.v = self.col_ents[j]
         while True:
             if self_col_lvls[j] <= k: break
             j += 1
         # j now points to the last element of the cell
+        print "fsnt:", location, j-location+1
         i = self.radix - j - 1                 # the cell is represented in binary, reading from the right:
         cell = (~0 << location) ^ (~0 << j+1)  # <-------            self.radix               ----->
         return cell                            # [0]*(radix-j-1) + [1]*(j-location+1) + [0]*location
+
+    cdef int new_first_smallest_nontrivial(self, int k, int *W, int start):
+        cdef int cell
+        cdef int i = 0, j = 0, location = 0, min = self.ncols, nwords = self.nwords
+        cdef int min_is_col = 1, radix = self.radix
+        cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
+        while True:
+            if self_col_lvls[i] <= k:
+                if i != j and min > i - j + 1:
+                    min = i - j + 1
+                    location = j
+                j = i + 1
+            if self_col_lvls[i] == -1: break
+            i += 1
+        i = 0; j = 0
+        while True:
+            if self_wd_lvls[i] <= k:
+                if i != j and min > i - j + 1:
+                    min = i - j + 1
+                    min_is_col = 0
+                    location = k
+                j = i + 1
+            if self_wd_lvls[i] == -1: break
+            i += 1
+        # location now points to the beginning of the first, smallest,
+        # nontrivial cell
+        j = location
+        if min_is_col:
+            while True:
+                if self_col_lvls[j] <= k: break
+                j += 1
+            # j now points to the last element of the cell
+            W[start] = (~0 << location) ^ (~0 << (j + 1))
+            return self.col_ents[location]
+        else:
+            while True:
+                if self_wd_lvls[j] <= k: break
+                j += 1
+            # j now points to the last element of the cell
+            i = 0
+            while location >= radix*i + radix:
+                i += 1
+            if j < radix*i + radix:
+                W[1 + i] = (~0 << (location - radix*i)) ^ (~0 << (j - radix*i + 1))
+            else: # it will span at most two ints:
+                W[1 + i] =      (~0 << (location - radix*i))
+                W[1 + i + 1] = ~(~0 << (j - radix*(i+1) + 1))
+            return self.wd_ents[location] ^ self.flag
 
     def _dangerous_dont_use_set_ents_lvls(self, col_ents, col_lvls, wd_ents, wd_lvls):
         """
@@ -1218,7 +1371,7 @@ cdef class PartitionStack:
                 self_wd_ents[i] = self_wd_ents[i-1]
                 self_wd_ents[i-1] = temp
 
-    def _split_column(self, int v, int k):
+    def _split_column(self, int v, int k): #TODO
         """
         Split column v out, placing it before the rest of the cell it was in.
         Returns the location of the split column.
@@ -1275,6 +1428,32 @@ cdef class PartitionStack:
                 j -= 1
             self_col_ents[j] = v
         self_col_lvls[j] = k
+        return j
+
+    cdef int split_vertex(self, int v, int k):
+        cdef int i = 0, j
+        cdef int *ents
+        cdef int *lvls
+        if v & self.flag:
+            ents = self.wd_ents
+            lvls = self.wd_lvls
+        else:
+            ents = self.col_ents
+            lvls = self.col_lvls
+        while ents[i] != v: i += 1
+        j = i
+        while lvls[i] > k: i += 1
+        if j == 0 or lvls[j-1] <= k:
+            if v & self.flag:
+                self.wd_percolate(j+1, i)
+            else:
+                self.col_percolate(j+1, i)
+        else:
+            while j != 0 and lvls[j-1] > k:
+                ents[j] = ents[j-1]
+                j -= 1
+            ents[j] = v
+        lvls[j] = k
         return j
 
     def _col_degree(self, C, col, wd_ptr, k):
@@ -1724,24 +1903,21 @@ cdef class PartitionStack:
         self.clear(k)
 
     cdef void clear(self, int k):
-        cdef int i = 0, j = 0
+        cdef int i, j = 0, nwords = self.nwords, ncols = self.ncols
         cdef int *wd_lvls = self.wd_lvls, *col_lvls = self.col_lvls
-        while wd_lvls[i] != -1:
+        for i from 0 <= i < nwords:
             if wd_lvls[i] >= k:
                 wd_lvls[i] += 1
             if wd_lvls[i] < k:
                 self.wd_percolate(j, i)
                 j = i + 1
-            i+=1
-        i = 0
         j = 0
-        while col_lvls[i] != -1:
+        for i from 0 <= i < ncols:
             if col_lvls[i] >= k:
                 col_lvls[i] += 1
             if col_lvls[i] < k:
                 self.col_percolate(j, i)
                 j = i + 1
-            i+=1
 
     def _cmp(self, other, C):
         """
@@ -1960,34 +2136,32 @@ cdef class PartitionStack:
             sage: Q._is_discrete(4)
             1
             sage: P._get_permutation(Q)
-            ([1, 2, 4, 8], [0, 1, 2, 3, 5, 4, 6, 7])
+            ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [0, 1, 2, 3, 5, 4, 6, 7])
 
         """
         cdef int i
         cdef int *ham_wts = hamming_weights()
-        cdef int *basis_g = <int *> sage_malloc( self.nrows * sizeof(int) )
+        cdef int *word_g = <int *> sage_malloc( self.nwords * sizeof(int) )
         cdef int *col_g = <int *> sage_malloc( self.ncols * sizeof(int) )
-        if not (basis_g and col_g):
-            if basis_g: sage_free(basis_g)
+        if not (word_g and col_g):
+            if word_g: sage_free(word_g)
             if col_g: sage_free(col_g)
             raise MemoryError("Memory.")
-        self.get_permutation(other, basis_g, col_g, ham_wts)
+        self.get_permutation(other, word_g, col_g, ham_wts)
         sage_free(ham_wts)
-        basis_l = [basis_g[i] for i from 0 <= i < self.nrows]
+        word_l = [word_g[i] for i from 0 <= i < self.nwords]
         col_l = [col_g[i] for i from 0 <= i < self.ncols]
-        sage_free(basis_g)
+        sage_free(word_g)
         sage_free(col_g)
-        return basis_l, col_l
+        return word_l, col_l
 
-    cdef void get_permutation(self, PartitionStack other, int *basis_gamma, int *col_gamma, int *ham_wts):
+    cdef void get_permutation(self, PartitionStack other, int *word_gamma, int *col_gamma, int *ham_wts):
         cdef int i
-        cdef int *bas_loc, *self_wd_ents = self.wd_ents, *self_col_ents = self.col_ents, *other_col_ents = other.col_ents
-        if not other.basis_locations:
-            other.find_basis(ham_wts)
-        bas_loc = other.basis_locations
-        # basis_gamma[i] := image of the ith row as linear comb of rows
-        for i from 0 <= i < self.nrows:
-            basis_gamma[i] = self_wd_ents[bas_loc[i]]
+        cdef int *self_wd_ents = self.wd_ents, *other_wd_ents = other.wd_ents
+        cdef int *self_col_ents = self.col_ents, *other_col_ents = other.col_ents
+        # word_gamma[i] := image of the ith row as linear comb of rows
+        for i from 0 <= i < self.nwords:
+            word_gamma[other_wd_ents[i]] = self_wd_ents[i]
         for i from 0 <= i < self.ncols:
             col_gamma[other_col_ents[i]] = self_col_ents[i]
 
@@ -1996,32 +2170,46 @@ cdef class BinaryCodeClassifier:
     def __new__(self):
         self.radix = sizeof(int) << 3
         self.ham_wts = hamming_weights()
-        self.L = 100 # memory limit for Phi and Omega
-        self.alpha_size = 65536 + self.radix
-        self.Phi =         <int *> sage_malloc( self.L           * sizeof(int) )
-        self.Omega =       <int *> sage_malloc( self.L           * sizeof(int) )
-        self.W =           <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.Lambda1 =     <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.Lambda2 =     <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.Lambda3 =     <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.b_gamma =     <int *> sage_malloc( (self.radix-1)   * sizeof(int) )
-        self.c_gamma =     <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.alpha =       <int *> sage_malloc( self.alpha_size  * sizeof(int) )
-        self.v =           <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.e =           <int *> sage_malloc( self.radix       * sizeof(int) )
-        self.aut_gp_gens = <int *> sage_malloc( self.radix * 100 * sizeof(int) )
+        self.L = 100 # memory limit for Phi and Omega- multiply by 8KB
         self.aut_gens_size = self.radix * 100
-        self.labeling =    <int *> sage_malloc( self.radix       * sizeof(int) )
+
+        self.w_gamma_size = 1 << (self.radix/2)
+        self.alpha_size = self.w_gamma_size + self.radix
+        self.Phi_size = self.w_gamma_size/self.radix + 1
+
+        self.w_gamma =     <int *> sage_malloc( self.w_gamma_size              * sizeof(int) )
+        self.alpha =       <int *> sage_malloc( self.alpha_size                * sizeof(int) )
+        self.new_Phi =     <int *> sage_malloc( self.Phi_size * self.L         * sizeof(int) )
+        self.new_Omega =   <int *> sage_malloc( self.Phi_size * self.L         * sizeof(int) )
+        self.new_W =       <int *> sage_malloc( self.Phi_size * self.radix * 2 * sizeof(int) )
+
+        self.aut_gp_gens = <int *> sage_malloc( self.aut_gens_size             * sizeof(int) )
+        self.c_gamma =     <int *> sage_malloc( self.radix                     * sizeof(int) )
+        self.labeling =    <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+        self.Lambda1 =     <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+        self.Lambda2 =     <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+        self.Lambda3 =     <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+        self.v =           <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+        self.e =           <int *> sage_malloc( self.radix * 2                 * sizeof(int) )
+
+        # TODO: remove these
+        self.Phi =         <int *> sage_malloc( self.L                         * sizeof(int) )
+        self.Omega =       <int *> sage_malloc( self.L                         * sizeof(int) )
+        self.W =           <int *> sage_malloc( self.radix                     * sizeof(int) )
+
         if not (self.Phi and self.Omega and self.W and self.Lambda1 and self.Lambda2 and self.Lambda3 \
-            and self.b_gamma and self.c_gamma and self.alpha and self.v and self.e and self.aut_gp_gens \
-            and self.labeling):
+            and self.w_gamma and self.c_gamma and self.alpha and self.v and self.e and self.aut_gp_gens \
+            and self.labeling and self.new_Phi and self.new_Omega and self.new_W):
             if self.Phi:          sage_free(self.Phi)
             if self.Omega:        sage_free(self.Omega)
             if self.W:            sage_free(self.W)
+            if self.new_Phi:      sage_free(self.new_Phi)
+            if self.new_Omega:    sage_free(self.new_Omega)
+            if self.new_W:        sage_free(self.new_W)
             if self.Lambda1:      sage_free(self.Lambda1)
             if self.Lambda2:      sage_free(self.Lambda2)
             if self.Lambda3:      sage_free(self.Lambda3)
-            if self.b_gamma:      sage_free(self.b_gamma)
+            if self.w_gamma:      sage_free(self.w_gamma)
             if self.c_gamma:      sage_free(self.c_gamma)
             if self.alpha:        sage_free(self.alpha)
             if self.v:            sage_free(self.v)
@@ -2031,20 +2219,25 @@ cdef class BinaryCodeClassifier:
             raise MemoryError("Memory.")
 
     def __dealloc__(self):
-        sage_free(self.ham_wts)
-        sage_free(self.Phi)
-        sage_free(self.Omega)
-        sage_free(self.W)
-        sage_free(self.Lambda1)
-        sage_free(self.Lambda2)
-        sage_free(self.Lambda3)
-        sage_free(self.b_gamma)
-        sage_free(self.c_gamma)
-        sage_free(self.alpha)
-        sage_free(self.v)
-        sage_free(self.e)
-        sage_free(self.aut_gp_gens)
-        sage_free(self.labeling)
+        if self.ham_wts: sage_free(self.ham_wts)
+        if self.Phi:     sage_free(self.Phi)
+        if self.Omega:   sage_free(self.Omega)
+        if self.W:       sage_free(self.W)
+        if self.Lambda1: sage_free(self.Lambda1)
+        if self.Lambda2: sage_free(self.Lambda2)
+        if self.Lambda3: sage_free(self.Lambda3)
+        if self.c_gamma: sage_free(self.c_gamma)
+
+        if self.w_gamma:   sage_free(self.w_gamma)
+        if self.alpha:     sage_free(self.alpha)
+        if self.new_Phi:   sage_free(self.new_Phi)
+        if self.new_Omega: sage_free(self.new_Omega)
+        if self.new_W:     sage_free(self.new_W)
+
+        if self.v:           sage_free(self.v)
+        if self.e:           sage_free(self.e)
+        if self.aut_gp_gens: sage_free(self.aut_gp_gens)
+        if self.labeling:    sage_free(self.labeling)
 
     cdef void record_automorphism(self, int *gamma, int ncols):
         cdef int i, j
@@ -2058,76 +2251,116 @@ cdef class BinaryCodeClassifier:
             self.aut_gp_gens[i+j] = gamma[i]
         self.aut_gp_index += ncols
 
-    def _aut_gp_and_can_label(self, C, verbosity=0):
+    def _aut_gp_and_can_label(self, CC, verbosity=0):
         cdef int i, j
+        cdef BinaryCode C = CC
         self.aut_gp_and_can_label(C, verbosity)
         i = 0
         py_aut_gp_gens = []
-        while self.aut_gp_gens[i] != -1:
+        while i < self.aut_gp_index:
             gen = [self.aut_gp_gens[i+j] for j from 0 <= j < C.ncols]
             py_aut_gp_gens.append(gen)
             i += C.ncols
-        py_labeling = [self.labeling[i] for i from 0 <= i < C.ncols]
+        py_labeling = [self.labeling[i] for i from 0 <= i < C.ncols] \
+                    + [self.labeling[i+C.ncols] for i from 0 <= i < C.nrows]
         return py_aut_gp_gens, py_labeling
 
     cdef void aut_gp_and_can_label(self, BinaryCode C, int verbosity):
 
-        # allocate/set up variables:
+        # declare variables:
         cdef int i, j, ii, jj # local variables
-        cdef OrbitPartition Theta # keeps track of which vertices have been
-                                  # discovered to be equivalent
+
+        cdef PartitionStack nu, zeta, rho # nu is the current position in the tree,
+                                          # zeta the first terminal position,
+                                          # and rho the best-so-far guess at canonical labeling position
+        cdef int k = 0  # the number of partitions in nu
+        cdef int k_rho  # the number of partitions in rho
+        cdef int *v = self.v    # list of vertices determining nu
+        cdef int h = -1 # longest common ancestor of zeta and nu: zeta[h] == nu[h], zeta[h+1] != nu[h+1]
+                        # -1 indicates that zeta is not yet defined
+        cdef int hb     # longest common ancestor of rho and nu:
+                        # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
+        cdef int hh = 1 # the height of the oldest ancestor of nu satisfying Lemma 2.25 in [1]:
+                        # if nu does not satisfy it at k, then hh = k
+        cdef int ht # smallest such that all descendants of zeta[ht] are equivalent under
+                    # the portion of the automorphism group so far discovered
+        cdef int *alpha # for storing pointers to cells of nu[k]
+        cdef int tvc    # tvc keeps track of which vertex is the first where nu and zeta differ-
+                        # zeta was defined by splitting one vertex, and nu was defined by splitting tvc
+
+        cdef OrbitPartition Theta # keeps track of which vertices have been discovered to be equivalent
+        cdef int *Phi   = self.Phi      # Phi stores the fixed point sets of each automorphism
+        cdef int *new_Phi = self.new_Phi
+        cdef int *Omega = self.Omega    # Omega stores the minimal elements of each cell of the orbit partition
+        cdef int *new_Omega = self.new_Omega
+        cdef int l = -1                 # current index for storing values in Phi and Omega- we start at -1 so that when
+                                        # we increment first, the first place we write to is 0.
+        cdef int *W = self.W    # for each k, W[k] is a list (as int mask) of the vertices to be searched down from
+                                # the current partition, at k. Phi and Omega are ultimately used to make the size of
+                                # W as small as possible
+        cdef int *new_W = self.new_W
+        cdef int *e = self.e    # 0 or 1, whether or not we have used Omega and Phi to narrow down W[k] yet: see states 12 and 17
+
         cdef int index = 0, size = 1    # Define $\Gamma^{(-1)} := \text{Aut}(C)$, and
                                         # $\Gamma^{(i)} := \Gamma^{(-1)}_{v_0,...,v_i}$.
                                         # Then index = $|\Gamma^{(k-1)}|/|\Gamma^{(k)}|$ at (POINT A)
                                         # and size = $|\Gamma^{(k-1)}|$ at (POINT A) and (POINT B).
-        cdef int *Phi   = self.Phi      # Phi stores the fixed point sets of each automorphism
-        cdef int *Omega = self.Omega    # Omega stores the minimal elements of each cell of the orbit partition
-        cdef int l = -1 # current index for storing values in Phi and Omega- we start at -1 so that when
-                        # we increment first, the first place we write to is 0.
-        cdef int *W = self.W    # for each k, W[k] is a list (as int mask) of the vertices to be searched down from
-                                # the current partition, at k. Phi and Omega are ultimately used to make the size of
-                                # W as small as possible
-        cdef PartitionStack nu, zeta, rho
-        cdef int k_rho  # the number of partitions in rho
-        cdef int k = 0  # the number of partitions in nu
-        cdef int h = -1 # longest common ancestor of zeta and nu:
-                        # zeta[h] == nu[h], zeta[h+1] != nu[h+1]
-                        # -1 indicates that zeta is not yet defined
-        cdef int hb     # longest common ancestor of rho and nu:
-                        # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
-        cdef int hh = 1 # the height of the oldest ancestor of nu
-                        # satisfying Lemma 2.25 in [1]:
-                        # if nu does not satisfy it at k, then hh = k
-        cdef int ht # smallest such that all descendants of zeta[ht] are equivalent
+
         cdef int *Lambda = self.Lambda1             # for tracking indicator values- zf and zb are
         cdef int *zf__Lambda_zeta = self.Lambda2    # indicator vectors remembering Lambda[k] for
         cdef int *zb__Lambda_rho = self.Lambda3     # zeta and rho, respectively
-        cdef int qzb    # keeps track of Lambda[k] ><= zb[k]
+        cdef int qzb              # keeps track of Lambda[k] {>,<,=} zb[k]
         cdef int hzf__h_zeta      # the max height for which Lambda and zf agree
         cdef int hzb__h_rho = -1  # the max height for which Lambda and zb agree
-        cdef int *basis_gamma = self.b_gamma, *col_gamma = self.c_gamma # used for storing permutations
-        cdef int tvc, tvh, nwords = C.nwords, ncols = C.ncols, nrows = C.nrows
-        # TODO: Explain the variables tvc, tvh
-        cdef int *alpha # for storing pointers to cells of nu[k]
-        cdef int *v = self.v    # list of vertices determining nu
-        cdef int *e = self.e    # 0 or 1, see states 12 and 17
-        cdef int state = 1  # keeps track of position in algorithm - see sage/graphs/graph_isom.pyx, search for "STATE DIAGRAM"
+
+        cdef int *word_gamma, *col_gamma = self.c_gamma # used for storing permutations
+        cdef int nwords = C.nwords, ncols = C.ncols, nrows = C.nrows
         cdef int *ham_wts = self.ham_wts
+        cdef int state  # keeps track of position in algorithm - see sage/graphs/graph_isom.pyx, search for "STATE DIAGRAM"
+
         self.aut_gp_index = 0
-        while self.alpha_size < nrows + ncols:
-            self.alpha_size *= 2
-            self.alpha = <int *> sage_realloc(self.alpha, self.alpha_size * sizeof(int) )
-            if not self.alpha:
+
+        if self.w_gamma_size < nwords:
+            while self.w_gamma_size < nwords:
+                self.w_gamma_size *= 2
+            self.alpha_size = self.w_gamma_size + self.radix
+            self.Phi_size = self.w_gamma_size/self.radix + 1
+            self.w_gamma =     <int *> sage_realloc(self.w_gamma,   self.w_gamma_size              * sizeof(int) )
+            self.alpha =       <int *> sage_realloc(self.alpha,     self.alpha_size                * sizeof(int) )
+            self.new_Phi =     <int *> sage_realloc(self.new_Phi,   self.Phi_size * self.L         * sizeof(int) )
+            self.new_Omega =   <int *> sage_realloc(self.new_Omega, self.Phi_size * self.L         * sizeof(int) )
+            self.new_W =       <int *> sage_realloc(self.new_W,     self.Phi_size * self.radix * 2 * sizeof(int) )
+            if not (self.w_gamma and self.alpha and self.new_Phi and self.new_Omega and self.new_W):
+                if self.w_gamma: sage_free(self.w_gamma)
+                if self.alpha: sage_free(self.alpha)
+                if self.new_Phi: sage_free(self.new_Phi)
+                if self.new_Omega: sage_free(self.new_Omega)
+                if self.new_W: sage_free(self.new_W)
                 raise MemoryError("Memory.")
-        alpha = self.alpha # think of alpha as of length exactly nrows + ncols
+        word_gamma = self.w_gamma
+        alpha = self.alpha # think of alpha as of length exactly nwords + ncols
         nu =    PartitionStack(nrows, ncols)
-        Theta = OrbitPartition(ncols)
+        Theta = OrbitPartition(nrows, ncols)
 
         # trivial case
         if ncols == 0 or nrows == 0:
             raise NotImplementedError("Must supply a nontrivial code.")
 
+        badass = 0
+
+        state = 1
         while state != -1:
+            print "state:", state
+            print "k:", k
+            print "h:", h
+            print "hzf:", hzf
+            print "v[k]", v[k]
+            print "tvc", tvc
+            print "W[k]", Integer(W[k]).binary()
+            print "aut_gp_index", self.aut_gp_index
+            print nu
+            badass += 1 #168-195
+            #if badass > 168: break
 
             if state == 1: # Entry point: once only
                 alpha[0] = 0
@@ -2138,17 +2371,25 @@ cdef class BinaryCodeClassifier:
 
                 # store the first smallest nontrivial cell in W[k], and set v[k]
                 # equal to its minimum element
-                W[k] = nu.first_smallest_nontrivial(k)
-                v[k] = nu.v # stored during first_smallest_nontrivial
+                v[k] = nu.new_first_smallest_nontrivial(k, new_W, 2*self.radix*k)
+                W[k] = nu.first_smallest_nontrivial(k) # TODO: remove
+                v[k] = nu.v # stored during first_smallest_nontrivial # TODO: remove
+
                 Lambda[k] = 0
                 e[k] = 0
                 state = 2
 
             elif state == 2: # Move down the search tree one level by refining nu:
-                             # split out a column, and refine nu against it
+                             # split out a vertex, and refine nu against it
                 k += 1
+                # TODO: Consider removing the following lines
+                if k >= 2*self.radix: raise RuntimeError(\
+                    "A counterexample to an assumption the author made while writing this software has been encountered.")
                 nu.clear(k)
-                alpha[0] = nu.split_column(v[k-1], k)
+
+                alpha[0] = nu.split_vertex(v[k-1], k)
+                alpha[0] = nu.split_column(v[k-1], k) # TODO: remove this
+
                 Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts) # store the invariant to Lambda[k]
                 # only if this is the first time moving down the search tree:
                 if h == -1: state = 5; continue
@@ -2185,8 +2426,9 @@ cdef class BinaryCodeClassifier:
                 # otherwise, prepare to split out another column:
                 # store the first smallest nontrivial cell in W[k], and set v[k]
                 # equal to its minimum element
-                W[k] = nu.first_smallest_nontrivial(k)
-                v[k] = nu.v # stored during first_smallest_nontrivial
+                v[k] = nu.new_first_smallest_nontrivial(k, new_W, 2*self.radix*k)
+                W[k] = nu.first_smallest_nontrivial(k)  # TODO: remove
+                v[k] = nu.v # stored during first_smallest_nontrivial # TODO: remove
                 if not nu.sat_225(k): hh = k + 1
                 e[k] = 0 # see state 12 and 17
                 state = 2 # continue down the tree
@@ -2217,6 +2459,9 @@ cdef class BinaryCodeClassifier:
                         k = hzb__h_rho
                     else:
                         k = hh-1
+                # TODO: Consider removing the following lines
+                if k >= 2*self.radix: raise RuntimeError(\
+                    "A counterexample to an assumption the author made while writing this software has been encountered.")
                 # TODO: is the following line necessary?
                 if k == -1: k = 0
                 # if j == hh, then all nodes lower than our current position are equivalent, so bail out
@@ -2240,9 +2485,10 @@ cdef class BinaryCodeClassifier:
                 # equivalent to zeta, i.e. there is no automorphism to discover.
                 if k < hzf: state = 8; continue
 
-                nu.get_permutation(zeta, basis_gamma, col_gamma, ham_wts)
+                nu.get_permutation(zeta, word_gamma, col_gamma, ham_wts)
+                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
                 # if C^gamma == C, the permutation is an automorphism, goto 10
-                if C.is_automorphism(col_gamma, basis_gamma):
+                if C.is_automorphism(col_gamma, word_gamma):
                     state = 10
                 else:
                     state = 8
@@ -2265,7 +2511,8 @@ cdef class BinaryCodeClassifier:
 
                 # if C(nu) == C(rho), get the automorphism and goto 10
                 nu.find_basis(ham_wts)
-                rho.get_permutation(nu, basis_gamma, col_gamma, ham_wts)
+                rho.get_permutation(nu, word_gamma, col_gamma, ham_wts)
+                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
                 state = 10
 
             elif state == 9: # nu is a better guess at the canonical label than rho
@@ -2290,6 +2537,7 @@ cdef class BinaryCodeClassifier:
                     while j != i:            # cell rep,
                         Omega[l] ^= (1<<j)   # so cancel
                         j = col_gamma[j]     # cellmates
+                    i += 1
                     while i < ncols and not Omega[l]&(1<<i): # find minimal element
                         i += 1                               # of next cell
                 # Phi stores the columns fixed by the automorphism
@@ -2298,14 +2546,14 @@ cdef class BinaryCodeClassifier:
                     if col_gamma[i] == i:
                         Phi[l] ^= (1 << i)
                 # Now incorporate the automorphism into Theta
-                j = Theta.merge_perm(col_gamma)
+                j = Theta.merge_perm(col_gamma, word_gamma)
+                if not j: print "no j"
                 # j stores whether anything happened or not- if not, then the automorphism we have
                 # discovered is already in the subgroup spanned by the generators we have output
                 if not j: state = 11; continue
 
                 # otherwise, we have a new generator, so record it:
                 self.record_automorphism(col_gamma, ncols)
-
                 # The variable tvc was set to be the minimum element of W[k] the last time the
                 # algorithm came up to meet zeta. At this point, we were considering the new
                 # possibilities for descending away from zeta at this level.
@@ -2318,12 +2566,18 @@ cdef class BinaryCodeClassifier:
 
                 # Otherwise, proceed to where zeta meets nu:
                 k = h
+                # TODO: Consider removing the following lines
+                if k >= 2*self.radix: raise RuntimeError(\
+                    "A counterexample to an assumption the author made while writing this software has been encountered.")
                 state = 13
 
             elif state == 11: # We have just found a new automorphism, and deduced that there may
                 # be a better canonical label below the current branch off of zeta. So go to where
                 # nu meets rho
                 k = hb
+                # TODO: Consider removing the following lines
+                if k >= 2*self.radix: raise RuntimeError(\
+                    "A counterexample to an assumption the author made while writing this software has been encountered.")
                 state = 12
 
             elif state == 12: # Coming here from either state 6 or 11, the algorithm has discovered
@@ -2392,6 +2646,7 @@ cdef class BinaryCodeClassifier:
                 j = ham_wts[i & 65535] + ham_wts[(i >> 16) & 65535]
                 if j == index and ht == k + 1: ht = k
                 size = size*index
+                # (POINT A)
                 index = 0
                 k -= 1
                 state = 13
@@ -2408,8 +2663,9 @@ cdef class BinaryCodeClassifier:
                 e[k] = 1
                 # see if there is a vertex to split out
                 i = v[k] + 1
-                while i < ncols and not (1 << i) & W[k]:
+                while i < ncols:
                     i += 1
+                    if (1 << i) & W[k]: break
                 if i < ncols:
                     v[k] = i
                     state = 15; continue
@@ -2424,6 +2680,7 @@ cdef class BinaryCodeClassifier:
                 ht = k # nodes descended from zeta[ht] are all equivalent
                 hzf = k # max such that indicators for zeta and nu agree
                 zeta = PartitionStack(nu)
+                # (POINT B)
                 k -= 1
                 rho = PartitionStack(nu)
                 # initialize counters for rho:
@@ -2434,6 +2691,12 @@ cdef class BinaryCodeClassifier:
                 state = 13
 
         # end big while loop
+        rho.find_basis(ham_wts)
+        for i from 0 <= i < ncols:
+            self.labeling[rho.col_ents[i]] = i
+        for i from 0 <= i < nrows:
+            self.labeling[i+ncols] = rho.basis_locations[i]
+
 
 
 

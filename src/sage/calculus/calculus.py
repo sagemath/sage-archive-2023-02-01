@@ -1270,8 +1270,7 @@ class SymbolicExpression(RingElement):
         We coerce to a higher-precision polynomial ring
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
-            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950066967437806 + 1.0000000000000000000000000000*I
-
+            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
         """
         vars = self.variables()
         B = R.base_ring()
@@ -3902,7 +3901,7 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641
 
             sage: RR(sin(pi))
-            0.000000000000000
+            0.000000000000000122464679914735
 
             sage: type(RR(sqrt(163)*pi))
             <type 'sage.rings.real_mpfr.RealNumber'>
@@ -4242,11 +4241,13 @@ class Function_sec(PrimitiveFunction):
         sage: sec(pi/4)
         sqrt(2)
         sage: RR(sec(pi/4))
-        1.41421356237310
+        1.41421356237309
+        sage: n(sec(pi/4),100)
+        1.4142135623730950488016887242
         sage: sec(1/2)
         sec(1/2)
         sage: sec(0.5)
-        1.139493927324549
+        1.13949392732455
     """
     def _repr_(self, simplify=True):
         return "sec"
@@ -4259,6 +4260,62 @@ class Function_sec(PrimitiveFunction):
 
 sec = Function_sec()
 _syms['sec'] = sec
+
+class Function_csc(PrimitiveFunction):
+    """
+    The cosecant function.
+
+    EXAMPLES:
+        sage: csc(pi/4)
+        sqrt(2)
+        sage: RR(csc(pi/4))
+        1.41421356237310
+        sage: n(csc(pi/4),100)
+        1.4142135623730950488016887242
+        sage: csc(1/2)
+        csc(1/2)
+        sage: csc(0.5)
+        2.08582964293349
+    """
+    def _repr_(self, simplify=True):
+        return "csc"
+
+    def _latex_(self):
+        return "\\csc"
+
+    def _approx_(self, x):
+        return 1/math.sin(x)
+
+csc = Function_csc()
+_syms['csc'] = csc
+
+class Function_cot(PrimitiveFunction):
+    """
+    The cotangent function.
+
+    EXAMPLES:
+        sage: cot(pi/4)
+        1
+        sage: RR(cot(pi/4))
+        1.00000000000000
+        sage: n(cot(pi/4),100)
+        1.0000000000000000000000000000
+        sage: cot(1/2)
+        cot(1/2)
+        sage: cot(0.5)
+        1.83048772171245
+    """
+    def _repr_(self, simplify=True):
+        return "cot"
+
+    def _latex_(self):
+        return "\\cot"
+
+    def _approx_(self, x):
+        return 1/math.tan(x)
+
+cot = Function_cot()
+_syms['cot'] = cot
 
 class Function_tan(PrimitiveFunction):
     """

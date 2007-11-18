@@ -9,7 +9,7 @@ include "../../ext/interrupt.pxi"
 
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
-from sage.misc.all import cputime
+
 from sage.matrix.matrix_rational_sparse cimport Matrix_rational_sparse
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 from sage.rings.rational cimport Rational
@@ -27,6 +27,8 @@ cdef extern from "cremona/homspace.h":
 
     long nrows(mat M)
     long ncols(mat M)
+    mat addscalar(mat M, scalar)
+    long rank(mat M)
 
     # Constructors
     mat *new_mat "new mat" (mat m)
@@ -62,20 +64,20 @@ cdef class ModularSymbols:
     """
     cdef homspace* H
 
-    def __init__(self, long level, int sign=0, bint cusp_only=False, int verbose=0):
+    def __init__(self, long level, int sign=0, bint cuspidal=False, int verbose=0):
         if not (sign == 0 or sign==1):
             raise ValueError, "sign %s is not supported; use 0 or +1"%sign
         if verbose:
             print "WARNING: verbose loging currently broken!"
         _sig_on
-        self.H = new_homspace(level, sign, cusp_only, verbose)
+        self.H = new_homspace(level, sign, cuspidal, verbose)
         _sig_off
 
     def __dealloc__(self):
         delete_homspace(self.H)
 
     def __repr__(self):
-        return "Cremona %sModular Symbols space of dimension %s for Gamma_0(%s) of weight 2 with sign %s over GF(2^27-39)"%(
+        return "Cremona %sModular Symbols space of dimension %s for Gamma_0(%s) of weight 2 with sign %s"%(
             'Cuspidal ' if self.is_cuspidal() else '',
             self.dimension(), self.level(), self.sign())
 
@@ -120,7 +122,10 @@ cdef class Matrix:
         self.M = NULL
 
     def __repr__(self):
-        return "Cremona matrix"
+        return "%s x %s Cremona matrix over Rational Field"%(self.nrows(), self.ncols())
+
+    def str(self):
+        return self.sage_matrix_over_QQ(sparse=False).str()
 
     cdef set(self, mat*  M):
         if self.M:
@@ -137,6 +142,15 @@ cdef class Matrix:
     cpdef long ncols(self):
         return ncols(self.M[0])
 
+    cpdef long rank(self):
+        return rank(self.M[0])
+
+    cpdef Matrix add_scalar(self, scalar s):
+        return new_Matrix(addscalar(self.M[0], s))
+
+    def charpoly(self, var='x'):
+        return self.sage_matrix_over_QQ(sparse=False).charpoly(var)
+
     def sage_matrix_over_QQ(self, sparse=True):
         """
         Return corresponding Sage matrix over the rational numbers.
@@ -151,8 +165,7 @@ cdef class Matrix:
         cdef Matrix_rational_sparse T
         cdef Matrix_rational_dense Td
 
-        # Ugly code -- and this is very slow -- it takes longer than computing
-        # the matrix in the first splace is not so sparse...
+        # Ugly code...
         if sparse:
             T = MatrixSpace(QQ, n, sparse=sparse).zero_matrix()
             k = 0

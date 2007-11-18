@@ -21,13 +21,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #***********************************************************************************************
 
-from sage.rings.arith import binomial, gcd
-from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor
+from sage.rings.arith import binomial, gcd, divisors
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import IntegerRing
+from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor, hermite_constant
 from sage.rings.number_field.number_field import NumberField
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields
+from sage.libs.pari.gen import pari
 
-from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal
-
-import math, numpy, bisect
+import math, numpy, bisect, sys
+from numpy.linalg import inv
 
 #***********************************************************************************************
 # Supplementary algorithm to enumerate lattice points
@@ -41,35 +45,39 @@ def integral_elements_in_box(F, C):
     Foo = F.real_embeddings()
     B = Z_F.reduced_basis
 
-    L = matrix([ [v(b) for b in B] for v in Foo])
-    Linv = L.inverse()
+    L = numpy.array([ [v(b) for b in B] for v in Foo])
+    Linv = numpy.linalg.inv(L)
     Vi = [[C[0][0]],[C[0][1]]]
     for i in range(1,d):
         Vi = sum([ [v + [C[i][0]], v + [C[i][1]]] for v in Vi], [])
-    V = Linv*(matrix(Vi).transpose())
+    V = numpy.matrix(Linv)*(numpy.matrix(Vi).transpose())
     j = 0
     while j < 2**d:
         for i in range(d):
             if V[i,j] < V[i,j+1]:
-                V[i,j] = floor(V[i,j])
-                V[i,j+1] = ceil(V[i,j+1])
+                V[i,j] = math.floor(V[i,j])
+                V[i,j+1] = math.ceil(V[i,j+1])
             else:
-                V[i,j] = ceil(V[i,j])
-                V[i,j+1] = floor(V[i,j+1])
+                V[i,j] = math.ceil(V[i,j])
+                V[i,j+1] = math.floor(V[i,j+1])
         j += 2
-    W0 = Linv*matrix([Vi[0]]*d).transpose()
-    W = Linv*matrix([Vi[2**i] for i in range(d)]).transpose()
+    W0 = (Linv*numpy.array([Vi[0]]*d)).transpose()
+    W = (Linv*numpy.array([Vi[2**i] for i in range(d)])).transpose()
     for j in range(d):
         for i in range(d):
             if W[i,j] < W0[i,j]:
-                W[i,j] = floor(W[i,j])
-                W0[i,j] = ceil(W0[i,j])
+                W[i,j] = math.floor(W[i,j])
+                W0[i,j] = math.ceil(W0[i,j])
             else:
-                W[i,j] = ceil(W[i,j])
-                W0[i,j] = floor(W0[i,j])
-    M = matrix(ZZ,d,2**d,[floor(v) for v in V.list()]).columns()
-    M += matrix(ZZ,d,d,[floor(w) for w in W0.list()]).columns()
-    M += matrix(ZZ,d,d,[floor(w) for w in W.list()]).columns()
+                W[i,j] = math.ceil(W[i,j])
+                W0[i,j] = math.floor(W0[i,j])
+    M = [[int(V[i,j]) for i in range(V.shape[0])] for j in range(V.shape[1])]
+    M += [[int(W0[i,j]) for j in range(W0.shape[0])] for i in range(W0.shape[0])]
+    M += [[int(W[i,j]) for j in range(W.shape[1])] for i in range(W.shape[0])]
+
+    from sage.matrix.constructor import matrix
+    M = (matrix(IntegerRing(),len(M),len(M[0]), M).transpose()).columns()
+
     i = 0
     while i < len(M):
         j = i+1
@@ -80,6 +88,7 @@ def integral_elements_in_box(F, C):
                 j += 1
         i += 1
 
+    from sage.geometry.lattice_polytope import LatticePolytope
     P = LatticePolytope(matrix(M).transpose())
     S = []
 
@@ -90,37 +99,62 @@ def integral_elements_in_box(F, C):
 
     for p in pts:
         theta = sum([ p.list()[i]*B[i] for i in range(d)])
-        if prod([Foo[i](theta) >= C[i][0] and Foo[i](theta) <= C[i][1] for i in range(d)]):
+        inbounds = True
+        for i in range(d):
+            inbounds = inbounds and Foo[i](theta) >= C[i][0] and Foo[i](theta) <= C[i][1]
+        if inbounds:
             S.append(theta)
     return S
 
 def integral_elements_with_trace(F, C):
     r"""
     """
+    Z_F = F.maximal_order()
+    B = Z_F.reduced_basis
+    T = Z_F.T
+    P = T.qfminim((C[1]**2)*(1./2), 10**6)[2]
+
+    S = []
+    for p in P:
+        theta = sum([ p.list()[i]*B[i] for i in range(F.degree())])
+        if theta.trace() >= C[0] and theta.trace() <= C[1]:
+            inbounds = True
+            for v in F.real_embeddings():
+                inbounds = inbounds and v(theta) > 0
+            if inbounds:
+                S.append(F(theta))
+    return S
+
+r"""
+def integral_elements_with_trace(F, C):
     if C[0] == C[1]:
         C = [C[0]-0.5, C[1]+0.5]
+
+    print F, C
 
     d = F.degree()
     Z_F = F.maximal_order()
     Foo = F.real_embeddings()
     B = Z_F.reduced_basis
 
-    L = matrix([ [v(b) for b in B] for v in Foo])
-    Linv = L.inverse()
+    L = numpy.array([ [v(b) for b in B] for v in Foo])
+    Linv = numpy.linalg.inv(L)
     V = [ [[0]*i + [C[0]] + [0]*(d-1-i), [0]*i + [C[1]] + [0]*(d-1-i) ] for i in range(d) ]
     V = sum(V, [])
-    V = Linv*(matrix(V).transpose())
+    V = numpy.matrix(Linv)*(numpy.matrix(V).transpose())
     j = 0
     while j < 2*d:
         for i in range(d):
             if V[i,j] < V[i,j+1]:
-                V[i,j] = floor(V[i,j])
-                V[i,j+1] = ceil(V[i,j+1])
+                V[i,j] = math.floor(V[i,j])
+                V[i,j+1] = math.ceil(V[i,j+1])
             else:
-                V[i,j] = ceil(V[i,j])
-                V[i,j+1] = floor(V[i,j+1])
+                V[i,j] = math.ceil(V[i,j])
+                V[i,j+1] = math.floor(V[i,j+1])
         j += 2
-    M = matrix(ZZ,d,2*d,[floor(v) for v in V.list()]).columns()
+    M = [[int(V[i,j]) for j in range(V.shape[1])] for i in range(V.shape[0])]
+
+    M = (matrix(IntegerRing(),d,2*d, M).transpose()).columns()
     i = 0
     while i < len(M):
         j = i+1
@@ -138,6 +172,7 @@ def integral_elements_with_trace(F, C):
         if theta.trace() >= C[0] and theta.trace() <= C[1] and prod([ v(theta) > 0 for v in Foo]):
             S.append(theta)
     return S
+"""
 
 #***********************************************************************************************
 # Main class
@@ -180,8 +215,9 @@ class tr_data_rel:
 
         # Initialize constants.
         self.m = m
-        self.d = F.degree()
-        self.n = m*self.d
+        d = F.degree()
+        self.d = d
+        self.n = m*d
         self.B = B
         self.gamma = hermite_constant(self.n-self.d)
 
@@ -197,8 +233,11 @@ class tr_data_rel:
         self.trace_elts = []
 
         Z_Fbasis = self.Z_F.basis()
-        T = pari(matrix([[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])).qflllgram()
+        from sage.matrix.constructor import matrix
+        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
+        T = pari(M).qflllgram()
         self.Z_F.reduced_basis = [sum([T[i][j].__int__()*Z_Fbasis[j] for j in range(self.d)]) for i in range(self.d)]
+        self.Z_F.T = pari(matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in self.Z_F.reduced_basis] for y in self.Z_F.reduced_basis]))
 
         # Initialize variables.
         if a == []:
@@ -214,12 +253,22 @@ class tr_data_rel:
             # Minimize trace in class.
             for i in range(len(anm1s)):
                 Q = [ [ v(m*x) for v in self.Foo] + [0] for x in self.Z_F.basis()] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
-                adj = pari(matrix(Q).transpose()).qflll()[self.d]
+                Q = str(numpy.array(Q).transpose())
+                Q = Q.replace(']\n [',';').replace('\n ', '').replace(' ', ',')
+                Q = Q[1:len(Q)-1]
+                adj = pari(Q).qflll()[self.d]
                 anm1s[i] += sum([m*self.Z_F.basis()[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
 
             self.amaxvals[m-1] = anm1s
             self.a[m-1] = self.amaxvals[m-1].pop()
             self.k = m-2
+
+            bl = math.ceil(1.7719*self.n)
+            br = max([1./m*(am1**2).trace() + \
+                            self.gamma*(1./(m**d)*self.B/self.dF)**(1./(self.n-d)) for am1 in anm1s])
+            br = math.floor(br)
+            T2s = integral_elements_with_trace(self.F, [bl,br])
+            self.trace_elts.append([bl,br,T2s])
 
         elif len(a) <= m+1:
             # First few coefficients have been specified.
@@ -240,9 +289,9 @@ class tr_data_rel:
 
             # Bounds come from an application of Lagrange multipliers in degrees 2,3.
             self.b_lower = [-1./m*(v(self.a[m-1]) +
-                              (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                              (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
             self.b_upper = [-1./m*(v(self.a[m-1]) -
-                              (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                              (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
             if k < m-2:
                 bminmax = [lagrange_degree_3(n,v(self.a[m-1]),v(self.a[m-2]),v(self.a[m-3])) for v in self.Foo]
                 self.b_lower = bminmax[0]
@@ -331,11 +380,9 @@ class tr_data_rel:
                     print ""
 
                 if k == m-2:
-                    # We only know the value of a[n-1], the trace.  Need to apply
-                    # basic bounds from Hunter's theorem and Siegel's theorem, with
-                    # improvements due to Smyth, to get bounds on T_2.
+                    # We only know the value of a[n-1], the trace.
                     bl = max(math.ceil(1.7719*self.n), ((self.a[m-1]**2).trace()*1./m))
-                    br = 1./m*(self.a[m-1].trace())**2 + \
+                    br = 1./m*(self.a[m-1]**2).trace() + \
                            self.gamma*(1./(m**d)*self.B/self.dF)**(1./(self.n-d))
                     br = math.floor(br)
 
@@ -370,8 +417,12 @@ class tr_data_rel:
                     am2s = []
                     for t2 in T2s:
                         am2 = (self.a[m-1]**2-t2)/2
-                        if am2.is_integral() and prod([v((m-1)*self.a[m-1]**2-2*m*am2) > 0 for v in self.Foo]):
-                            am2s.append(am2)
+                        if am2.is_integral():
+                            ispositive = True
+                            for v in self.Foo:
+                                ispositive = ispositive and v((m-1)*self.a[m-1]**2-2*m*am2) > 0
+                            if ispositive:
+                                am2s.append(am2)
 
                     if verbose >= 2:
                         print "  am2s:", am2s
@@ -388,9 +439,9 @@ class tr_data_rel:
 
                     # Initialize the second derivative.
                     self.b_lower = [-1./m*(v(self.a[m-1]) +
-                                      (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                                      (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
                     self.b_upper = [-1./m*(v(self.a[m-1]) -
-                                      (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                                      (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
                     self.beta[k] = [[self.b_lower[i], -self.Foo[i](self.a[m-1])/m, self.b_upper[i]] for i in range(d)]
                     self.gnk[k] = [0, (m-1)*self.a[m-1], m*(m-1)/2]
 
@@ -428,9 +479,9 @@ class tr_data_rel:
 
                     if k == m-3:
                         self.b_lower = [-1./m*(v(self.a[m-1]) +
-                                          (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                                          (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
                         self.b_upper = [-1./m*(v(self.a[m-1]) -
-                                          (m-1.)*sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
+                                          (m-1.)*math.sqrt(v(self.a[m-1])**2 - 2.*(1+1./(m-1))*v(self.a[m-2]))) for v in self.Foo]
                     elif k == m-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = [lagrange_degree_3(m,v(self.a[m-1]),v(self.a[m-2]),v(self.a[m-3])) for v in self.Foo]
@@ -767,7 +818,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
                 ind = bisect.bisect_left(S, [d,ng])
                 S.insert(ind, [d,ng])
                 Srel.insert(ind, Fx([-1,1,1]))
-        else:
+        elif d == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
                 K = F.extension(f, 'tK')
@@ -822,7 +873,7 @@ def enumerate_totallyreal_fields_imprim(n, B, verbose=0, return_seqs=False):
         raise ValueError, "Only implemented for n = p*q with p,q prime"
     for d in divisors(n):
         if d > 1 and d < n:
-            Sds = enumerate_totallyreal_fields(d, floor((1.*B)**(1.*d/n)), verbose=verbose)
+            Sds = enumerate_totallyreal_fields(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)
             for i in range(len(Sds)):
                 if verbose:
                     print "="*80
@@ -836,9 +887,9 @@ def enumerate_totallyreal_fields_imprim(n, B, verbose=0, return_seqs=False):
                 else:
                     S += [[t[0],t[1]] for t in T]
                 j = i+1
-                for E in enumerate_totallyreal_fields(n/d, floor((1.*B)**(1./d)/(1.*Sds[i][0])**(n*1./d**2))):
+                for E in enumerate_totallyreal_fields(n/d, int(math.floor((1.*B)**(1./d)/(1.*Sds[i][0])**(n*1./d**2)))):
                     for EF in F.composite_fields(NumberField(ZZx(E[1]), 'u')):
-                        if EF.degree() == n:
+                        if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
     S.sort()
     weed_fields(S)

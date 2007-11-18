@@ -315,8 +315,8 @@ class totallyreal_dsage:
     def wait_split_save(self):
         while True:
             time.sleep(self.timeout)
-            self.split_timed_out_jobs()
             self.compile_fields()
+            self.split_all_jobs()
 
     def num_jobs(self):
         return len(self.jobs)

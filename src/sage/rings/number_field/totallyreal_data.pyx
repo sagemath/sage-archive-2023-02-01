@@ -629,14 +629,14 @@ cdef class tr_data:
                              print '%.2f'%self.beta[k*np1+1+i],
                         print ""
 
-                    # Check for double roots
                     for i from 0 <= i < n-k-1:
                         if abs(self.beta[k*np1+i]
-                                 - self.beta[k*np1+(i+1)]) < 2*eps_global:
+                                 - self.beta[k*np1+(i+1)]) < 10*eps_global:
                             # This happens reasonably infrequently, so calling
                             # the Python routine should be sufficiently fast...
                             f = ZZx([self.gnk[(k+1)*n+i] for i in range(n-(k+1)+1)])
-                            df = ZZx([self.gnk[(k+2)*n+i] for i in range(n-(k+2)+1)])
+                            # Could just take self.gnk(k+2)*n+i, but this may not be initialized...
+                            df = ZZx([i*self.gnk[(k+1)*n+i] for i in range(1,n-(k+1)+1)])
                             if gcd(f,df) <> 1:
                                 if verbose:
                                     print "  gnk has multiple factor!"

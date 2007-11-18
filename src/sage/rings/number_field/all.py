@@ -13,3 +13,5 @@ from order import is_NumberFieldOrder, EquationOrder
 from totallyreal import enumerate_totallyreal_fields
 from totallyreal_data import hermite_constant
 from totallyreal_dsage import totallyreal_dsage
+from totallyreal_rel import enumerate_totallyreal_fields_imprim, enumerate_totallyreal_fields_rel
+from hot import my_matrix

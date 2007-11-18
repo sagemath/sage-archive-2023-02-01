@@ -224,7 +224,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
         nf = pari(str(f_out)).Polrev()
         d = nf.poldisc()
         counts[0] += 1
-        if d > 0 and nf.polsturm_full() == n:
+        if d > 0:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1

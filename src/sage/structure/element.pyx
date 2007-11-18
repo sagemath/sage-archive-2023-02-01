@@ -2377,7 +2377,7 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Return the matrix of right multiplication by the element on
         the power basis $1, x, x^2, \ldots, x^{d-1}$ for the field
-        extension.  Thus the {\em rows} of this matrix give the images
+        extension.  Thus the \emph{rows} of this matrix give the images
         of each of the $x^i$.
 
         INPUT:

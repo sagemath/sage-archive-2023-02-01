@@ -211,7 +211,7 @@ the objects subdirectory.)
 \subsubsection{Pasting in Examples}
 Code is evaluated by exec'ing (after preparsing). Only the output
 of the last line of the cell is implicitly printed. If any line
-starts with "sage:" or ">>>" the {\em entire block} is assumed to
+starts with "sage:" or ">>>" the \emph{entire block} is assumed to
 contain text and examples, and only lines that begin with a
 prompt are executed. Thus you can paste in *complete examples*
 from the docs without any editing, and you can write input

@@ -22,6 +22,7 @@ cdef extern from "cremona/homspace.h":
         # member functions
         int (* h1dim)()
         mat (* heckeop)(long p, int dual, int display)
+        long (* h1ncusps)()
 
     # Constructors
     homspace *new_homspace "new homspace" (long n, int hp, int hcusp, int verbose)

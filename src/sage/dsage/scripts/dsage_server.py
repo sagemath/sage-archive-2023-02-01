@@ -116,18 +116,6 @@ def usage():
 
     return options
 
-# def write_stats(dsage_server, stats_file):
-#     check_dsage_dir()
-#     try:
-#         fname = os.path.join(DSAGE_DIR, stats_file)
-#         f = open(fname, 'w')
-#         f.write(dsage_server.generate_xml_stats())
-#         f.close()
-#     except Exception, msg:
-#         print Exception
-#         print 'Error writing stats: %s' % (msg)
-#         return
-
 def create_manhole():
     """
     This is a manhole backdoor to inspect a running server.
@@ -236,7 +224,7 @@ def main(options):
     # Run the web server
     from twisted.web2 import server, http, resource, channel, static
     from sage.dsage.web.web_server import Toplevel, GetJobDetails
-    top_level = Toplevel(dsage_server)
+    top_level = Toplevel(dsage_server, SERVER_PORT)
     # top_level.putChild(GetJobDetails(dsage_server))
     site = server.Site(top_level)
     web_server_port = find_open_port()

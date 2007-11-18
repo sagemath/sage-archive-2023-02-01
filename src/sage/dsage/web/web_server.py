@@ -19,9 +19,20 @@
 
 import os
 import sqlite3
+from cStringIO import StringIO
+import socket
 
 from twisted.web2 import http, resource
 from twisted.web2 import static, http_headers, responsecode
+
+from sage.dsage.misc.constants import TMP_WORKER_FILES
+from sage.dsage.server.stats import XMLStats
+
+from xml.etree.ElementTree import (ElementTree as ET,
+                                   Element,
+                                   SubElement,
+                                   dump,
+                                   XML)
 
 SAGE_ROOT  = os.environ['SAGE_ROOT']
 DSAGE_LOCAL = SAGE_ROOT + '/local/dsage'
@@ -76,8 +87,9 @@ def create_jobs_table(jdicts):
 class Toplevel(resource.Resource):
     addSlash = True
 
-    def __init__(self, dsage_server):
+    def __init__(self, dsage_server, server_port):
         self.dsage_server = dsage_server
+        self.server_port = server_port
 
     def child_static(self, ctx):
         return static.File(STATIC)
@@ -94,22 +106,22 @@ class Toplevel(resource.Resource):
     def child_get_help(self, ctx):
         return GetHelp()
 
-    def render(self, ctx):
-        return static.File(INDEX)
+    def child_worker_files(self, ctx):
+        return static.File(TMP_WORKER_FILES)
 
-class GetHelp(resource.Resource):
+    def render(self, ctx):
+        index = open(INDEX).read() % (socket.getfqdn(), self.server_port)
+        # return static.File(StringIO(index))
+        return http.Response(stream=index)
+
+class GetHelp(resource.PostableResource):
     """
     Returns the help page.
 
     """
 
-    html = """
-    This is the help page.
-
-    """
-
     def render(self, request):
-        return http.Response(stream=self.html)
+        return static.File(os.path.join(STATIC, 'README.html'))
 
 class GetJobs(resource.PostableResource):
     """
@@ -147,7 +159,6 @@ class GetJobs(resource.PostableResource):
                                            SubElement,
                                            dump,
                                            XML)
-        from cStringIO import StringIO
         root = Element('jobs')
 
         for jdict in jdicts:
@@ -192,6 +203,8 @@ class GetJobDetails(resource.PostableResource):
             for i, (k, v) in enumerate(jdict.iteritems()):
                 # if k == 'code': # We will display the code below the table
                 #     continue
+                if k == 'result': # result is an .sobj, link to the file
+                    v = "<a href='worker_files/%s'>result.sobj (Click to download.)</a>" % (jdict['job_id'] + '/' + 'result.sobj')
                 html += """
                 <tr class='tr%s'>
                 """ % (i % 2)
@@ -211,35 +224,40 @@ class GetJobDetails(resource.PostableResource):
 
 class GetServerDetails(resource.PostableResource):
     """
-    Returns an XML file containing the server resources.
+    Returns an HTML table containing the server resources.
 
     """
 
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
+        self.xml_stats = XMLStats(self.dsage_server)
 
-    def gen_html(self, stats_xml):
+    def gen_html(self):
         """
         generates html snippet from xml stats
 
         """
 
+        self.xml_stats.gen_xml()
+
         html = """
-            <thead>
-                <th>Server</th>
-                <th>Workers Online</th>
-                <th>Workers Offline</th>
-                <th>Total Workers</th>
-                <th>Working MHz</th>
-                <th>Total MHz</th>
-            </thead>
-            <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            </tbody>
+        <thead>
+        <tr>
+        <th>Stat</th>
+        <th>Value</th>
+        <tbody>"""
+
+        for i, elem in enumerate(self.xml_stats.root.getchildren()):
+                html += """
+                <tr>
+                    <td>%s</td>
+                    <td>%s</td>
+                </tr>
+                """ % (' '.join(w.title() for w in elem.tag.split("_")),
+                       elem.text)
+
+        html += """
+        </tbody>
         """
 
         return html
@@ -250,8 +268,4 @@ class GetServerDetails(resource.PostableResource):
 
         """
 
-        stats_xml = self.dsage_server.generate_xml_stats()
-
-        html = self.gen_html(stats_xml)
-
-        return http.Response(stream=html)
+        return http.Response(stream=self.gen_html())

@@ -10,12 +10,14 @@
 	<link rel="stylesheet" type="text/css" href="static/dsage_web.css">
 	<script src='static/jquery-latest.js' type='text/javascript'></script>
 	<script src='static/jquery.tablesorter.pack.js' type='text/javascript'></script>
+	<script src='static/jquery.history.js' type='text/javascript'></script>
+
 	<script src='static/dsage_web.js' type='text/javascript'></script>
 </head>
 <body>
     <div id='page'>
 	    <div id='header'>
-	        Distributed SAGE
+	        Distributed SAGE (%s:%s)
 	    </div>
 	    <center>
 	    <ul id="tabnav">
@@ -33,11 +35,11 @@
 		    </li>
 	    </ul>
 	    </center>
-		<table id='jobs_table' class='tablesorter' display='none'>
+		<table id='jobs_table' class='tablesorter' style='display:none;'>
 		</table>
-		<table id='server_details' class='tablesorter' display='none'>
+		<table id='server_details' class='tablesorter' style='display:none;'>
 		</table>
-		<table id='job_details' class='tablesorter' display='none'>
+		<table id='job_details' class='tablesorter' style='display:none;'>
 		</table>
 		<div id="navigator">
 			Showing <a href='#' id='10' onClick='getJobs(10)'>10</a>,

@@ -323,6 +323,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         return N
 
+    order = cardinality # alias
+
     def _cremona_abgrp_data(self):
         E = self._gp()
         gp = E.parent()

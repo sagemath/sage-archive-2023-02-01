@@ -1853,9 +1853,9 @@ cdef class PartitionStack:
         cdef int *self_wd_degs = self.wd_degs, *self_wd_lvls = self.wd_lvls, *self_wd_ents = self.wd_ents
         cdef int *self_col_degs = self.col_degs, *self_col_lvls = self.col_lvls, *self_col_ents = self.col_ents
         while not self.is_discrete(k) and m < alpha_length:
-            print "m:", m
-            print "alpha:", ','.join(['w'+str(alpha[i]^flag) if alpha[i]&flag else 'c'+str(alpha[i]) for i from 0 <= i < alpha_length])
-            print self
+#            print "m:", m
+#            print "alpha:", ','.join(['w'+str(alpha[i]^flag) if alpha[i]&flag else 'c'+str(alpha[i]) for i from 0 <= i < alpha_length])
+#            print self
             invariant += 1
             j = 0
             if alpha[m] & flag:
@@ -1899,16 +1899,16 @@ cdef class PartitionStack:
                         invariant += (i-j)
                     else: j = i
             else:
-                print 'col'
+#                print 'col'
                 while j < self.nwords:
-                    print 'j', j
-                    print self
+#                    print 'j', j
+#                    print self
                     i = j; s = 0
                     invariant += 64
                     while True:
-                        print 'i', i
+#                        print 'i', i
                         self_wd_degs[i-j] = self.wd_degree(CG, self_wd_ents[i], alpha[m], k, ham_wts)
-                        print 'deg', self_wd_degs[i-j]
+#                        print 'deg', self_wd_degs[i-j]
                         if s == 0 and self_wd_degs[i-j] != self_wd_degs[0]: s = 1
                         i += 1
                         if self_wd_lvls[i-1] <= k: break
@@ -2412,7 +2412,7 @@ cdef class BinaryCodeClassifier:
 
         state = 1
         while state != -1:
-            if True:#badass > 39:
+            if False:#badass > 39:
                 print '-----'
                 print badass
                 print "k:", k
@@ -2442,7 +2442,7 @@ cdef class BinaryCodeClassifier:
                 print 'ht', ht
                 print 'hzf__h_zeta', hzf__h_zeta
                 print 'qzb', qzb
-            if True:
+            if False:
                 print "state:", state
                 print '-----'
             badass += 1
@@ -2473,7 +2473,7 @@ cdef class BinaryCodeClassifier:
                 nu.clear(k)
 
                 alpha[0] = nu.split_vertex(v[k-1], k)
-                print nu
+#                print nu
                 Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts) # store the invariant to Lambda[k]
                 # only if this is the first time moving down the search tree:
                 if h == -1: state = 5; continue
@@ -2573,7 +2573,7 @@ cdef class BinaryCodeClassifier:
                 if k < hzf__h_zeta: state = 8; continue
 
                 nu.get_permutation(zeta, word_gamma, col_gamma, ham_wts)
-                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+#                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
                 # if C^gamma == C, the permutation is an automorphism, goto 10
                 if C.is_automorphism(col_gamma, word_gamma):
                     state = 10
@@ -2598,7 +2598,7 @@ cdef class BinaryCodeClassifier:
 
                 # if C(nu) == C(rho), get the automorphism and goto 10
                 rho.get_permutation(nu, word_gamma, col_gamma, ham_wts)
-                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+#                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
                 state = 10
 
             elif state == 9: # nu is a better guess at the canonical label than rho
@@ -2872,11 +2872,11 @@ cdef class BinaryCodeClassifier:
                 state = 13
 
         # end big while loop
-#        rho.find_basis(ham_wts)
-#        for i from 0 <= i < ncols:
-#            self.labeling[rho.col_ents[i]] = i
-#        for i from 0 <= i < nrows:
-#            self.labeling[i+ncols] = rho.basis_locations[i]
+        rho.find_basis(ham_wts)
+        for i from 0 <= i < ncols:
+            self.labeling[rho.col_ents[i]] = i
+        for i from 0 <= i < nrows:
+            self.labeling[i+ncols] = rho.basis_locations[i]
 
 
 

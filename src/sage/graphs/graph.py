@@ -4071,7 +4071,7 @@ class Graph(GenericGraph):
         else:
             M = self.am()
         M = matrix(RDF, M.rows())
-        E = M.eigen_left()[0]
+        E = M.right_eigenvectors()[0]
         v = [e.real() for e in E]
 	v.sort()
 	return v

@@ -128,7 +128,7 @@ class NumericalEigenforms(SageObject):
             t += randint(-50,50)*M.T(p).matrix()
 
         self._hecke_matrix = t
-        evals, B = t.change_ring(CDF).eigen_left()
+        evals, B = t.change_ring(CDF).right_eigenvectors()
 
         # Find the eigenvalues that occur with multiplicity 1 up
         # to the given eps.

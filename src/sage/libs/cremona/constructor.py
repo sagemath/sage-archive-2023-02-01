@@ -42,11 +42,11 @@ def CremonaModularSymbols(level, sign=0, cuspidal=False, verbose=0):
         sage: M = CremonaModularSymbols(-1)
         Traceback (most recent call last):
         ...
-        ValueError: the level (= -1) must be a positive integer
+        ValueError: the level (= -1) must be at least 2
         sage: M = CremonaModularSymbols(0)
         Traceback (most recent call last):
         ...
-        ValueError: the level (= 0) must be a positive integer
+        ValueError: the level (= 0) must be at least 2
 
     The sign can only be 0 or 1.
         sage: M = CremonaModularSymbols(10, sign = -2)

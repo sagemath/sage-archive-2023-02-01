@@ -2967,6 +2967,47 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.__invert__()
 
+    def gramm_schmidt(self):
+        r"""
+        Return the matrix G whose rows are obtained from the rows of self (=A) by
+        applying the Gramm-Schmidt orthogonalization process.  Also return
+        the coefficients mu ij, i.e., a matrix mu such that \code{(mu + 1)*G == A}.
+
+        OUTPUT:
+            G -- a matrix whose rows are orthogonal
+            mu -- a matrix that gives the transformation, via the relation
+                  (mu + 1)*G == self
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 3, [-1, 2, 5, -11, 1, 1, 1, -1, -3]); A
+            [ -1   2   5]
+            [-11   1   1]
+            [  1  -1  -3]
+            sage: G, mu = A.gramm_schmidt()
+            sage: G
+            [     -1       2       5]
+            [  -52/5    -1/5      -2]
+            [  2/187  36/187 -14/187]
+            sage: mu
+            [     0      0      0]
+            [   3/5      0      0]
+            [  -3/5 -7/187      0]
+            sage: G[0] * G[1]
+            0
+            sage: G[0] * G[2]
+            0
+            sage: G[1] * G[2]
+            0
+
+        The relation between mu and A is as follows:
+            sage: (mu + 1)*G == A
+            True
+        """
+        from sage.modules.misc import gramm_schmidt
+        from constructor import matrix
+        Bstar, mu = gramm_schmidt(self.rows())
+        return matrix(Bstar), mu
+
 
 def _dim_cmp(x,y):
     """

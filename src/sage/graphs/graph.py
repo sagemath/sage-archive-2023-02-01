@@ -975,7 +975,7 @@ class GenericGraph(SageObject):
         for v in self:
             if random() < p:
                 vertices.append(v)
-        return self.subgraph(vertices, inplace, create_using)
+        return self.subgraph(vertices=vertices, inplace=inplace, create_using=create_using)
 
     def vertex_iterator(self, vertices=None):
         """
@@ -4674,18 +4674,27 @@ class Graph(GenericGraph):
         """
         self._nxg.add_path(vertices)
 
-    def subgraph(self, vertices=None, inplace=False, create_using=None):
+    def subgraph(self, vertices=None, edges=None, inplace=False, create_using=None):
         """
-        Returns the subgraph induced by the given vertices.
+        Returns the subgraph containing the given vertices and edges.
+        If either vertices or edges are not specified, they are
+        assumed to be all vertices or edges.  If edges are not
+        specified, returns the subgraph induced by the vertices.
 
         INPUT:
         inplace -- Using inplace is True will simply delete the extra vertices
-        and edges from the current graph. This will modify the graph, and re-
-        turn itself.
+           and edges from the current graph. This will modify the graph.
         vertices -- Vertices can be a single vertex or an iterable container
-        of vertices, e.g. a list, set, graph, file or numeric array.  If not passed, defaults to the entire graph.
+           of vertices, e.g. a list, set, graph, file or numeric array.
+           If not passed, defaults to the entire graph.
         create_using -- Can be an existing graph object or a call to a graph
-        object, such as create_using=DiGraph(). Must be a NetworkX object.
+           object, such as create_using=DiGraph(). Must be a NetworkX object.
+        edges -- As with vertices, edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.).  If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph.  In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
 
         EXAMPLES:
             sage: G = graphs.CompleteGraph(9)
@@ -4693,16 +4702,45 @@ class Graph(GenericGraph):
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
+            sage: J = G.subgraph(edges=[(0,1)])
+            sage: J.edges(labels=False)
+            [(0, 1)]
+            sage: J.vertices()==G.vertices()
+            True
             sage: G.subgraph([0,1,2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G.subgraph()==G
             True
 
+            A more complicated example involving multiple edges and labels.
+
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: G.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
+            sage: J = G.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J.edges()
+            [(0, 1, 'a')]
+            sage: J.vertices()
+            [0, 1]
+
+
         """
-        if inplace:
-            self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
+        NXG = self._nxg.subgraph(vertices, inplace, create_using)
+        if edges is not None:
+            edges_graph = [sorted(e[0:2])+[e[2]] for e in self.edges()]
+            edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
+            edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
+            edges_to_delete=[]
+            for e in edges_graph:
+                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
+                    edges_to_delete.append(tuple(e))
+
+            NXG.delete_edges_from(edges_to_delete)
+
+	if inplace:
+            self._nxg = NXG
         else:
-            NXG = self._nxg.subgraph(vertices, inplace, create_using)
             return Graph(NXG)
 
     ### Visualization
@@ -6374,33 +6412,78 @@ class DiGraph(GenericGraph):
         G = DiGraph(NXG)
         return G
 
-    def subgraph(self, vertices=None, inplace=False, create_using=None):
+    def subgraph(self, vertices=None, edges=None, inplace=False, create_using=None):
         """
-        Returns the subgraph induced by the given vertices.
+        Returns the subgraph containing the given vertices and edges.
+        If either vertices or edges are not specified, they are
+        assumed to be all vertices or edges.  If edges are not
+        specified, returns the subgraph induced by the vertices.
 
         INPUT:
         inplace -- Using inplace is True will simply delete the extra vertices
-        and edges from the current graph.
+           and edges from the current graph. This will modify the graph.
         vertices -- Vertices can be a single vertex or an iterable container
-        of vertices, e.g. a list, set, graph, file or numeric array.  If not passed, defaults to the entire graph.
+           of vertices, e.g. a list, set, graph, file or numeric array.
+           If not passed, defaults to the entire graph.
         create_using -- Can be an existing graph object or a call to a graph
-        object, such as create_using=DiGraph().
+           object, such as create_using=Graph(). Must be a NetworkX object.
+        edges -- As with vertices, edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.).  If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph.  In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
 
         EXAMPLES:
             sage: D = graphs.CompleteGraph(9).to_directed()
             sage: H = D.subgraph([0,1,2]); H
             Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: H = D.subgraph(edges=[(0,1), (0,2)])
+            sage: H.edges(labels=False)
+            [(0, 1), (0, 2)]
+            sage: H.vertices()==D.vertices()
+            True
             sage: D
             Complete graph: Digraph on 9 vertices
             sage: D.subgraph([0,1,2], inplace=True); D
             Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: D.subgraph()==D
+            True
+
+            A more complicated example involving multiple edges and labels.
+
+            sage: D = DiGraph(multiedges=True)
+            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: D.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
+            sage: H = D.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H.edges()
+            [(0, 1, 'a')]
+            sage: H.vertices()
+            [0, 1]
+
+
 
         """
-        if inplace:
-            self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
+        NXG = self._nxg.subgraph(vertices, inplace, create_using)
+        if edges is not None:
+            edges_graph = self.edges()
+            edges_to_keep_labeled = [e for e in edges if len(e)==3]
+            edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
+            edges_to_delete=[]
+            for e in edges_graph:
+                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
+                    edges_to_delete.append(tuple(e))
+
+            NXG.delete_edges_from(edges_to_delete)
+
+	if inplace:
+            self._nxg = NXG
         else:
-            NXG = self._nxg.subgraph(vertices, inplace, create_using)
             return DiGraph(NXG)
+
+
+
 
     ### Visualization
 

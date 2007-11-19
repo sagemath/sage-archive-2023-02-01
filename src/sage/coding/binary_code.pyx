@@ -1059,44 +1059,44 @@ cdef class PartitionStack:
             return 1
         return 0
 
-    def _min_cell_reps(self, k): #TODO
-        """
-        Returns an integer whose bits represent which columns are minimal cell
-        representatives.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: P = PartitionStack(2, 6)
-            sage: [P._split_column(i,i+1) for i in range(5)]
-            [0, 1, 2, 3, 4]
-            sage: a = P._min_cell_reps(2)
-            sage: Integer(a).binary()
-            '111'
-            sage: P
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3,4,5})
-            ({0},{1,2,3,4,5})
-            ({0},{1},{2,3,4,5})
-            ({0},{1},{2},{3,4,5})
-            ({0},{1},{2},{3},{4,5})
-            ({0},{1},{2},{3},{4},{5})
-
-        """
-        return self.min_cell_reps(k)
-
-    cdef int min_cell_reps(self, int k):
-        cdef int i
-        cdef int reps = 1
-        cdef int *self_col_lvls = self.col_lvls
-        for i from 0 < i < self.ncols:
-            if self_col_lvls[i-1] <= k:
-                reps += (1 << i)
-        return reps
-
+#    def _min_cell_reps(self, k): #TODO
+#        """
+#        Returns an integer whose bits represent which columns are minimal cell
+#        representatives.
+#
+#        EXAMPLE:
+#            sage: import sage.coding.binary_code
+#            sage: from sage.coding.binary_code import *
+#            sage: P = PartitionStack(2, 6)
+#            sage: [P._split_column(i,i+1) for i in range(5)]
+#            [0, 1, 2, 3, 4]
+#            sage: a = P._min_cell_reps(2)
+#            sage: Integer(a).binary()
+#            '111'
+#            sage: P
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3,4,5})
+#            ({0},{1,2,3,4,5})
+#            ({0},{1},{2,3,4,5})
+#            ({0},{1},{2},{3,4,5})
+#            ({0},{1},{2},{3},{4,5})
+#            ({0},{1},{2},{3},{4},{5})
+#
+#        """
+#        return self.min_cell_reps(k)
+#
+#    cdef int min_cell_reps(self, int k):
+#        cdef int i
+#        cdef int reps = 1
+#        cdef int *self_col_lvls = self.col_lvls
+#        for i from 0 < i < self.ncols:
+#            if self_col_lvls[i-1] <= k:
+#                reps += (1 << i)
+#        return reps
+#
     cdef void new_min_cell_reps(self, int k, int *Omega, int start):
         cdef int i, j
         cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
@@ -1121,44 +1121,44 @@ cdef class PartitionStack:
             Omega[start+1+j] = reps
             j += radix
 
-    def _fixed_cols(self, mcrs, k): #TODO
-        """
-        Returns an integer whose bits represent which columns are fixed. For
-        efficiency, mcrs is the output of min_cell_reps.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: P = PartitionStack(2, 6)
-            sage: [P._split_column(i,i+1) for i in range(5)]
-            [0, 1, 2, 3, 4]
-            sage: a = P._fixed_cols(7, 2)
-            sage: Integer(a).binary()
-            '11'
-            sage: P
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3,4,5})
-            ({0},{1,2,3,4,5})
-            ({0},{1},{2,3,4,5})
-            ({0},{1},{2},{3,4,5})
-            ({0},{1},{2},{3},{4,5})
-            ({0},{1},{2},{3},{4},{5})
-
-        """
-        return self.fixed_cols(mcrs, k)
-
-    cdef int fixed_cols(self, int mcrs, int k):
-        cdef int i
-        cdef int fixed = 0
-        cdef int *self_col_lvls = self.col_lvls
-        for i from 0 <= i < self.ncols:
-            if self_col_lvls[i] <= k:
-                fixed += (1 << i)
-        return fixed & mcrs
-
+#    def _fixed_cols(self, mcrs, k): #TODO
+#        """
+#        Returns an integer whose bits represent which columns are fixed. For
+#        efficiency, mcrs is the output of min_cell_reps.
+#
+#        EXAMPLE:
+#            sage: import sage.coding.binary_code
+#            sage: from sage.coding.binary_code import *
+#            sage: P = PartitionStack(2, 6)
+#            sage: [P._split_column(i,i+1) for i in range(5)]
+#            [0, 1, 2, 3, 4]
+#            sage: a = P._fixed_cols(7, 2)
+#            sage: Integer(a).binary()
+#            '11'
+#            sage: P
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3,4,5})
+#            ({0},{1,2,3,4,5})
+#            ({0},{1},{2,3,4,5})
+#            ({0},{1},{2},{3,4,5})
+#            ({0},{1},{2},{3},{4,5})
+#            ({0},{1},{2},{3},{4},{5})
+#
+#        """
+#        return self.fixed_cols(mcrs, k)
+#
+#    cdef int fixed_cols(self, int mcrs, int k):
+#        cdef int i
+#        cdef int fixed = 0
+#        cdef int *self_col_lvls = self.col_lvls
+#        for i from 0 <= i < self.ncols:
+#            if self_col_lvls[i] <= k:
+#                fixed += (1 << i)
+#        return fixed & mcrs
+#
     cdef void fixed_vertices(self, int k, int *Phi, int *Omega, int start):
         cdef int i, j, ell
         cdef int fixed = 0, ncols = self.ncols, nwords = self.nwords
@@ -1182,59 +1182,59 @@ cdef class PartitionStack:
                 if Omega[start+1+j]&(1 << ell):
                     Phi[start+1+j] ^= (1 << ell)
 
-    def _first_smallest_nontrivial(self, k): #TODO
-        """
-        Returns an integer representing the first, smallest nontrivial cell of columns.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: P = PartitionStack(2, 6)
-            sage: [P._split_column(i,i+1) for i in range(5)]
-            [0, 1, 2, 3, 4]
-            sage: a = P._first_smallest_nontrivial(2)
-            sage: Integer(a).binary().zfill(32)
-            '00000000000000000000000000111100'
-            sage: P
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3,4,5})
-            ({0},{1,2,3,4,5})
-            ({0},{1},{2,3,4,5})
-            ({0},{1},{2},{3,4,5})
-            ({0},{1},{2},{3},{4,5})
-            ({0},{1},{2},{3},{4},{5})
-
-        """
-        return self.first_smallest_nontrivial(k)
-
-    cdef int first_smallest_nontrivial(self, int k):
-        cdef int cell
-        cdef int i = 0, j = 0, location = 0, ncols = self.ncols
-        cdef int *self_col_lvls = self.col_lvls
-        while True:
-            if self_col_lvls[i] <= k:
-                if i != j and ncols > i - j + 1:
-                    ncols = i - j + 1
-                    location = j
-                j = i + 1
-            if self_col_lvls[i] == -1: break
-            i += 1
-        # location now points to the beginning of the first, smallest,
-        # nontrivial cell
-        j = location
-        self.v = self.col_ents[j]
-        while True:
-            if self_col_lvls[j] <= k: break
-            j += 1
-        # j now points to the last element of the cell
-#        print "fsnt:", location, j-location+1
-        i = self.radix - j - 1                 # the cell is represented in binary, reading from the right:
-        cell = (~0 << location) ^ (~0 << j+1)  # <-------            self.radix               ----->
-        return cell                            # [0]*(radix-j-1) + [1]*(j-location+1) + [0]*location
-
+#    def _first_smallest_nontrivial(self, k): #TODO
+#        """
+#        Returns an integer representing the first, smallest nontrivial cell of columns.
+#
+#        EXAMPLE:
+#            sage: import sage.coding.binary_code
+#            sage: from sage.coding.binary_code import *
+#            sage: P = PartitionStack(2, 6)
+#            sage: [P._split_column(i,i+1) for i in range(5)]
+#            [0, 1, 2, 3, 4]
+#            sage: a = P._first_smallest_nontrivial(2)
+#            sage: Integer(a).binary().zfill(32)
+#            '00000000000000000000000000111100'
+#            sage: P
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3,4,5})
+#            ({0},{1,2,3,4,5})
+#            ({0},{1},{2,3,4,5})
+#            ({0},{1},{2},{3,4,5})
+#            ({0},{1},{2},{3},{4,5})
+#            ({0},{1},{2},{3},{4},{5})
+#
+#        """
+#        return self.first_smallest_nontrivial(k)
+#
+#    cdef int first_smallest_nontrivial(self, int k):
+#        cdef int cell
+#        cdef int i = 0, j = 0, location = 0, ncols = self.ncols
+#        cdef int *self_col_lvls = self.col_lvls
+#        while True:
+#            if self_col_lvls[i] <= k:
+#                if i != j and ncols > i - j + 1:
+#                    ncols = i - j + 1
+#                    location = j
+#                j = i + 1
+#            if self_col_lvls[i] == -1: break
+#            i += 1
+#        # location now points to the beginning of the first, smallest,
+#        # nontrivial cell
+#        j = location
+#        self.v = self.col_ents[j]
+#        while True:
+#            if self_col_lvls[j] <= k: break
+#            j += 1
+#        # j now points to the last element of the cell
+##        print "fsnt:", location, j-location+1
+#        i = self.radix - j - 1                 # the cell is represented in binary, reading from the right:
+#        cell = (~0 << location) ^ (~0 << j+1)  # <-------            self.radix               ----->
+#        return cell                            # [0]*(radix-j-1) + [1]*(j-location+1) + [0]*location
+#
     cdef int new_first_smallest_nontrivial(self, int k, int *W, int start):
         cdef int ell
         cdef int i = 0, j = 0, location = 0, min = self.ncols, nwords = self.nwords
@@ -1425,65 +1425,65 @@ cdef class PartitionStack:
                 self_wd_ents[i] = self_wd_ents[i-1]
                 self_wd_ents[i-1] = temp
 
-    def _split_column(self, int v, int k): #TODO
-        """
-        Split column v out, placing it before the rest of the cell it was in.
-        Returns the location of the split column.
-
-        EXAMPLE:
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
-            sage: P = PartitionStack(2, 6)
-            sage: [P._split_column(i,i+1) for i in range(5)]
-            [0, 1, 2, 3, 4]
-            sage: P
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3,4,5})
-            ({0},{1,2,3,4,5})
-            ({0},{1},{2,3,4,5})
-            ({0},{1},{2},{3,4,5})
-            ({0},{1},{2},{3},{4,5})
-            ({0},{1},{2},{3},{4},{5})
-            sage: P = PartitionStack(2, 6)
-            sage: P._split_column(0,1)
-            0
-            sage: P._split_column(2,2)
-            1
-            sage: P
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,1,2,3})
-            ({0,2,1,3,4,5})
-            ({0},{2,1,3,4,5})
-            ({0},{2},{1,3,4,5})
-            ({0},{2},{1,3,4,5})
-            ({0},{2},{1,3,4,5})
-            ({0},{2},{1,3,4,5})
-
-        """
-        return self.split_column(v, k)
-
-    cdef int split_column(self, int v, int k):
-        cdef int i = 0, j
-        cdef int *self_col_ents = self.col_ents
-        cdef int *self_col_lvls = self.col_lvls
-        while self_col_ents[i] != v: i += 1
-        j = i
-        while self_col_lvls[i] > k: i += 1
-        if j == 0 or self_col_lvls[j-1] <= k:
-            self.col_percolate(j+1, i)
-        else:
-            while j != 0 and self_col_lvls[j-1] > k:
-                self_col_ents[j] = self_col_ents[j-1]
-                j -= 1
-            self_col_ents[j] = v
-        self_col_lvls[j] = k
-        return j
-
+#    def _split_column(self, int v, int k): #TODO
+#        """
+#        Split column v out, placing it before the rest of the cell it was in.
+#        Returns the location of the split column.
+#
+#        EXAMPLE:
+#            sage: import sage.coding.binary_code
+#            sage: from sage.coding.binary_code import *
+#            sage: P = PartitionStack(2, 6)
+#            sage: [P._split_column(i,i+1) for i in range(5)]
+#            [0, 1, 2, 3, 4]
+#            sage: P
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3,4,5})
+#            ({0},{1,2,3,4,5})
+#            ({0},{1},{2,3,4,5})
+#            ({0},{1},{2},{3,4,5})
+#            ({0},{1},{2},{3},{4,5})
+#            ({0},{1},{2},{3},{4},{5})
+#            sage: P = PartitionStack(2, 6)
+#            sage: P._split_column(0,1)
+#            0
+#            sage: P._split_column(2,2)
+#            1
+#            sage: P
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,1,2,3})
+#            ({0,2,1,3,4,5})
+#            ({0},{2,1,3,4,5})
+#            ({0},{2},{1,3,4,5})
+#            ({0},{2},{1,3,4,5})
+#            ({0},{2},{1,3,4,5})
+#            ({0},{2},{1,3,4,5})
+#
+#        """
+#        return self.split_column(v, k)
+#
+#    cdef int split_column(self, int v, int k):
+#        cdef int i = 0, j
+#        cdef int *self_col_ents = self.col_ents
+#        cdef int *self_col_lvls = self.col_lvls
+#        while self_col_ents[i] != v: i += 1
+#        j = i
+#        while self_col_lvls[i] > k: i += 1
+#        if j == 0 or self_col_lvls[j-1] <= k:
+#            self.col_percolate(j+1, i)
+#        else:
+#            while j != 0 and self_col_lvls[j-1] > k:
+#                self_col_ents[j] = self_col_ents[j-1]
+#                j -= 1
+#            self_col_ents[j] = v
+#        self_col_lvls[j] = k
+#        return j
+#
     cdef int split_vertex(self, int v, int k):
         cdef int i = 0, j, flag = self.flag
         cdef int *ents

@@ -125,9 +125,14 @@ def std_libsingular(I):
     cdef ideal *i = sage_ideal_to_singular_ideal(I)
     cdef ring *r = currRing
     cdef tHomog hom = testHomog
+    cdef ideal *result
 
-    cdef ideal *result=kStd(i,NULL,hom,NULL)
+    _sig_on
+    result =kStd(i,NULL,hom,NULL)
+    _sig_off
+
     idSkipZeroes(result)
+
 
     id_Delete(&i,r)
 
@@ -161,7 +166,9 @@ def slimgb_libsingular(I):
         id_Delete(&i, r)
         raise TypeError
 
+    _sig_on
     result = t_rep_gb(r, i, i.rank, 0)
+    _sig_off
 
     id_Delete(&i,r)
 
@@ -190,7 +197,9 @@ def interred_libsingular(I):
 
     bck = singular_options[0]
     singular_options[0] = singular_options[0] | Sy_bit(OPT_REDTAIL)|Sy_bit(OPT_REDSB)
+    _sig_on
     result = kInterRed(i,NULL)
+    _sig_off
     singular_options[0] = bck
 
 

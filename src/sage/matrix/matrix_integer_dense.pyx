@@ -1552,20 +1552,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Returns LLL reduced or approximated LLL reduced lattice R for
         self.
 
+        A lattice is (delta, eta)-LLL-reduce if the two following
+        conditions hold:
+
+        (a) For any $i>j$, we have $|mu_{i, j}| <= \eta$,
+        (b) For any $i<d$, we have
+        $\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_{i + 1}^* |^2$,
+
         The lattice is returned as a matrix. Also the rank (and the
         determinant) of self are cached if those are computed during
         the reduction.
 
-        More specifically, elementary row transformations are
-        performed on a copy of self so that the non-zero rows of R
-        form an LLL-reduced basis for the lattice spanned by the rows
-        of self. The default reduction parameters are $\delta=3/4$ and
-        $eta=0.501$.
-
-        For a basis reduced with parameter $\delta$, the squared
-        length of the first non-zero basis vector is no more than
-        $1/(\delta-1/4)^{r-1}$ times that of the shortest vector in
-        the lattice.
+        The default reduction parameters are $\delta=3/4$ and
+        $eta=0.501$. The parameters $\delta$ and $\eta$ must satisfy:
+        $0.25 < \delta <= 1.0$ and $0.5 <= \eta < sqrt(\delta)$.
 
         If we can compute the determinant of self using this method,
         we also cache it. Note that in general this only happens when
@@ -1607,6 +1607,25 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  0  0]
             [ 2  1  0]
             [-1  1  3]
+
+        We compute the extended GCD of a list of integers using LLL,
+        this example is from the Magma handbook:
+
+        sage: Q = [ 67015143, 248934363018, 109210, 25590011055, 74631449, \
+                    10230248, 709487, 68965012139, 972065, 864972271 ]
+        sage: n = len(Q)
+        sage: S = 100
+        sage: X = Matrix(ZZ, n, n + 1)
+        sage: for i in xrange(n):
+        ...       X[i,i + 1] = 1
+        sage: for i in xrange(n):
+        ...       X[i,0] = S*Q[i]
+        sage: L = X.LLL()
+        sage: M = L[n-1].list()[1:]
+        sage: M
+        [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
+        sage: add([Q[i]*M[i] for i in range(n)])
+        -1
 
         ALGORITHM: Uses NTL or fpLLL.
 

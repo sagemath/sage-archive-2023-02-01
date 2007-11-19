@@ -662,6 +662,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
         """
+        coerce = kwds.get('coerce', True)
         if len(gens) == 1:
             gens = gens[0]
         if is_SingularElement(gens):

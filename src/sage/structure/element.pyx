@@ -1139,10 +1139,6 @@ cdef class MonoidElement(Element):
 
     def __nonzero__(self):
         return True
-    def nonzero(self):
-        return True
-    def is_zero(self):
-        return False
 
 def is_AdditiveGroupElement(x):
     """

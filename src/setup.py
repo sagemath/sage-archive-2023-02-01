@@ -220,7 +220,7 @@ cremona_mat = Extension('sage.libs.cremona.mat',
 
 cremona_homspace = Extension('sage.libs.cremona.homspace',
                        sources = ["sage/libs/cremona/homspace.pyx"],
-                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', ],
+                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', 'pari-gmp', 'curvesntl'],
                        language='c++',
                        define_macros = [("NTL_ALL",None)]
                        )

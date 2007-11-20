@@ -514,7 +514,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             element = str(element)
 
         if PY_TYPE_CHECK(element, basestring):
-            # let python do the the parsing
+            # let python do the parsing
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
@@ -613,6 +613,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         if is_Macaulay2Element(element):
             return self(repr(element))
+
+        try:
+            return self(str(element))
+        except TypeError:
+            pass
 
         # now try calling the base ring's __call__ methods
         element = self.base_ring()(element)

@@ -1408,11 +1408,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return False
         return True
 
-    def is_isomorphic(self, E):
-        if not isinstance(E, EllipticCurve_rational_field):
-            raise TypeError, "E (=%s) must be an elliptic curve over the rational numbers"%E
-        return E.minimal_model() == self.minimal_model()
-
     def kodaira_type(self, p):
         """
         Local Kodaira type of the elliptic curve at $p$.
@@ -1573,6 +1568,44 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         F = self.minimal_model()
         return EllipticCurve_number_field.weierstrass_model(F)
+
+    def local_integral_model(self,p):
+        r"""
+        Return a model of self which is integral at the prime $p$
+
+        EXAMPLES:
+            sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: E.local_integral_model(2)
+	     Elliptic Curve defined by y^2 + 1/27*y = x^3 - 7/81*x + 2/243 over Rational Field
+            sage: E.local_integral_model(3)
+             Elliptic Curve defined by y^2 + 1/8*y = x^3 - 7/16*x + 3/32 over Rational Field
+            sage: E.local_integral_model(2).local_integral_model(3) == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+        return constructor.EllipticCurve([ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)])
+
+    def global_integral_model(self):
+        r"""
+        Return a model of self which is integral at all primes
+
+        EXAMPLES:
+            sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: E.global_integral_model() == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        for a in ai:
+            if not a.is_integral():
+      ### Is there really no prime_factors() function?
+               pj=[fi[0] for fi in a.denom().factor()]
+               for p in pj:
+                  e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+                  ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
+            return constructor.EllipticCurve(ai)
+
+    integral_model = global_integral_model
 
     def integral_weierstrass_model(self):
         r"""

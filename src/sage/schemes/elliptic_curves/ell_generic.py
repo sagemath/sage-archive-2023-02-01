@@ -55,6 +55,7 @@ import sage.schemes.generic.homset as homset
 import ell_point
 import constructor
 import formal_group
+import weierstrass_morphism
 
 factor = arith.factor
 sqrt = math.sqrt
@@ -1281,6 +1282,80 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                     E.__torsion_polynomial[n] = f; return f
 
     division_polynomial = torsion_polynomial
+
+    def isomporphism_to(self, other):
+        """
+        Given another weierstrass model \code{other} of self, return a morphism
+        from self to \code{other}.
+
+        If the curves in question are not isomorphic, raise a ValueError
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: F = E.weierstrass_model()
+            sage: w = E.isomporphism_to(F); w
+            Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 - x + 1/4 over Rational Field
+            sage: P = E(0,-1,1)
+            sage: w(P)
+            (0 : -1/2 : 1)
+            sage: w(5*P)
+            (1/4 : 1/8 : 1)
+            sage: 5*w(P)
+            (1/4 : 1/8 : 1)
+            sage: 120*w(P) == w(120*P)
+            True
+
+          We can also handle injections to different base rings:
+              sage: K.<a> = NumberField(x^3-7)
+              sage: E.isomporphism_to(E.change_ring(K))
+              Generic morphism:
+                From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+                To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^3 - 7
+        """
+        return weierstrass_morphism.WeierstrassIsomorphism(self, other)
+
+    def is_isomorphic(self, other):
+        """
+        Returns whether or not self is isomorphic to other, i.e. they define the same curve over
+        the same basering.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: F = E.change_weierstrass_model([2,3,4,5]); F
+            Elliptic Curve defined by y^2 - 8*x*y + 22*y = x^3 - 21*x^2 + 59*x over Rational Field
+            sage: E.is_isomorphic(F)
+            True
+            sage: E.is_isomorphic(F.change_ring(CC))
+            False
+        """
+        if not is_EllipticCurve(other):
+            return False
+        elif self.base_ring() != other.base_ring():
+            return False
+        else:
+            try:
+                phi = self.isomporphism_to(other)
+                return True
+            except ValueError:
+                return False
+
+    def change_weierstrass_model(self, *urst):
+        """
+        Return a new Weierstrass model of self under the transformation (on points)
+            $$ (x,y) \mapsto (x',y') = (u^2*x+r , u^3*y + s*u^2*x' + t) $$
+        """
+        if isinstance(urst[0], (tuple, list)):
+            urst = urst[0]
+        u, r, s, t = urst
+        a1, a2, a3, a4, a6 = self.ainvs()
+        b1 = a1*u - 2*s
+        b3 = a3*u**3 - a1*r*u - 2*t + 2*r*s
+        b2 = a2*u**2 + a1*s*u - s**2 - 3*r
+        b4 = a4*u**4 + a3*s*u**3 - 2*a2*r*u**2 + a1*t*u - 2*a1*r*s*u - 2*s*t + 2*r*s**2 + 3*r**2
+        b6 = a6*u**6 - a4*r*u**4 + a3*t*u**3 - a3*r*s*u**3 + a2*r**2*u**2 - a1*r*t*u + a1*r**2*s*u - t**2 + 2*r*s*t - r**2*s**2 - r**3
+        return constructor.EllipticCurve(self.base_ring(), [b1,b2,b3,b4,b6])
 
     def weierstrass_model(self):
         """

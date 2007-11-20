@@ -678,6 +678,33 @@ cdef class NumberFieldElement(FieldElement):
         else:
             raise ValueError, "%s not a square in %s"%(self, self._parent)
 
+    def nth_root(self, n, all=False):
+        """
+        Return an nth root of self in the given number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^4-7)
+            sage: K(7).nth_root(2)
+            a^2
+            sage: K((a-3)^5).nth_root(5)
+            a - 3
+
+        ALGORITHM:
+            Use Pari to factor $x^n$ - \code{self} in K.
+        """
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.number_field(), 't')
+        if not self:
+            return [self] if all else self
+        f = (R.gen(0) << (n-1)) - self
+        roots = f.roots()
+        if all:
+            return [r[0] for r in roots]
+        elif len(roots) > 0:
+            return roots[0][0]
+        else:
+            raise ValueError, "%s not a %s-th root in %s"%(self, n, self._parent)
+
+
     cdef void _reduce_c_(self):
         """
         Pull out common factors from the numerator and denominator!

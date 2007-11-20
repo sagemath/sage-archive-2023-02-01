@@ -727,6 +727,9 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return RealDoubleElement(gsl_complex_abs(self._complex))
 
+    def argument(self):
+        return RealDoubleElement(gsl_complex_arg(self._complex))
+
     def abs2(self):
         """
         This function returns the squared magnitude of the complex
@@ -847,6 +850,36 @@ cdef class ComplexDoubleElement(FieldElement):
              else:
                  return [z, -z]
         return z
+
+    def nth_root(self, n, all=False):
+        """
+        The n-th root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all n-th roots.
+
+        EXAMPLES:
+            sage: a = CDF(125)
+            sage: a.nth_root(3)
+            5.0
+            sage: a = CDF(10, 2)
+            sage: [r^5 for r in a.nth_root(5, all=True)]
+            [10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I]
+            sage: abs(sum(a.nth_root(111, all=True))) # random but close to zero
+            6.00659385991e-14
+        """
+        if not self:
+            return [self] if all else self
+        arg = self.argument() / n
+        abs = self.abs().nth_root(n)
+        z = ComplexDoubleElement(abs * arg.cos(), abs*arg.sin())
+        if all:
+            zeta = self._parent.zeta(n)
+            return [z * zeta**k for k in range(n)]
+        else:
+            return z
+
 
     def is_square(self):
         """

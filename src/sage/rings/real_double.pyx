@@ -891,7 +891,6 @@ cdef class RealDoubleElement(FieldElement):
             raise ValueError, "negative number %s does not have a square root in the real field"%self
         return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
 
-
     def is_square(self):
         """
         Returns whether or not this number is a square in this field.

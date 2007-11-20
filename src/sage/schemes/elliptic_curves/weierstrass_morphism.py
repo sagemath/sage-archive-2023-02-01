@@ -75,7 +75,7 @@ class WeierstrassIsomorphism(Morphism):
             sage: E = EllipticCurve('5077')
             sage: F = E.change_weierstrass_model([2,3,4,5]); F
             Elliptic Curve defined by y^2 - 8*x*y + 22*y = x^3 - 25*x^2 + 3*x + 588 over Rational Field
-            sage: w = E.isomporphism_to(F)
+            sage: w = E.isomorphism_to(F)
             sage: P = E(-2,3,1)
             sage: w(P)
             (-5 : -3 : 1)

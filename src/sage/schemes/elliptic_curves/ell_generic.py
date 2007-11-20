@@ -1283,7 +1283,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     division_polynomial = torsion_polynomial
 
-    def isomporphism_to(self, other):
+    def isomorphism_to(self, other):
         """
         Given another weierstrass model \code{other} of self, return a morphism
         from self to \code{other}.
@@ -1293,7 +1293,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: F = E.weierstrass_model()
-            sage: w = E.isomporphism_to(F); w
+            sage: w = E.isomorphism_to(F); w
             Generic morphism:
               From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
               To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 - x + 1/4 over Rational Field
@@ -1309,7 +1309,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
           We can also handle injections to different base rings:
               sage: K.<a> = NumberField(x^3-7)
-              sage: E.isomporphism_to(E.change_ring(K))
+              sage: E.isomorphism_to(E.change_ring(K))
               Generic morphism:
                 From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
                 To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^3 - 7
@@ -1336,7 +1336,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return False
         else:
             try:
-                phi = self.isomporphism_to(other)
+                phi = self.isomorphism_to(other)
                 return True
             except ValueError:
                 return False

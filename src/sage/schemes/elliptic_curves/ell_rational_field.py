@@ -788,12 +788,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on
-        some mysterious model of the curve.
-
-        \note{The points are not translated back to self only because
-        nobody has written code to do this yet.  Implement it and send
-        a patch.}
+        2-Selmer group, and a list of independent points on the curve.
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -809,7 +804,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on some (myserious!!) model for the curve.
+            list    -- list of independent points on the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -1598,14 +1593,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ai = self.a_invariants()
         for a in ai:
             if not a.is_integral():
-      ### Is there really no prime_factors() function?
-               pj=[fi[0] for fi in a.denom().factor()]
-               for p in pj:
+               for p, _ in a.denom().factor():
                   e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                   ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
             return constructor.EllipticCurve(ai)
 
     integral_model = global_integral_model
+
+    def integral_model(self):
+        F = self.global_integral_model()
+        return F, self.isomorphism_to(F)
 
     def integral_weierstrass_model(self):
         r"""

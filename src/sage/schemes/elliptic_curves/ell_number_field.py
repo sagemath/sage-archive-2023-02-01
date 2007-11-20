@@ -79,9 +79,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         If the curve has 2-torsion, only the probable rank is returned.
 
-        \note{The points are not translated back to self only because
-        I haven't written code to do this yet.}
-
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
             lim1    -- (default: 5) limite des points triviaux sur les quartiques
@@ -128,11 +125,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: v = E.simon_two_descent(); v  # long time
             (1, -1, [])
         """
-        #Should this really be here?
-        #if self.torsion_order() % 2 == 0:
-        #    raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
-        # F = self.integral_weierstrass_model()
-        # a1,a2,a3,a4,a6 = F.a_invariants()
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,

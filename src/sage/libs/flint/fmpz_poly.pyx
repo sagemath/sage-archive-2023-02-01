@@ -261,7 +261,7 @@ cdef class Fmpz_poly(SageObject):
 
     def __floordiv__(left, right):
         """
-        Return left / right, truncated.
+        Return left // right, truncated.
 
         EXAMPLES:
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly

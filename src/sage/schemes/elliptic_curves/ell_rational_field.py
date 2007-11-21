@@ -237,13 +237,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #  Access to PARI curves related to this curve.
     ####################################################################
 
-    def pari_curve(self, prec = None):
+    def pari_curve(self, prec = None, factor = 1):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
         INPUT:
         prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+                if None, defaults to factor * the precision of the largest cached curve (or 10 if none yet computed)
+        factor -- the factor to increase the precision over the maximum previously computed precision.  Only used if
+                  prec (which gives an explicit precision) is None.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0,1,-1,0])
@@ -264,20 +266,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_curve.keys()
+                L = self._pari_curve.keys()
                 L.sort()
-                return self.__pari_curve[L[len(L) - 1]]
+                if factor == 1:
+                    return self._pari_curve[L[-1]]
+                else:
+                    prec = int(factor * L[-1])
+                    self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+                    return self._pari_curve[prec]
             except AttributeError:
                 pass
         try:
-            return self.__pari_curve[prec]
+            return self._pari_curve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_curve = {}
+            self._pari_curve = {}
         except KeyError:
             pass
-        self.__pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
-        return self.__pari_curve[prec]
+        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+        return self._pari_curve[prec]
 
     def pari_mincurve(self, prec = None):
         """
@@ -300,21 +307,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_mincurve.keys()
+                L = self._pari_mincurve.keys()
                 L.sort()
-                return self.__pari_mincurve[L[len(L) - 1]]
+                return self._pari_mincurve[L[len(L) - 1]]
             except AttributeError:
                 pass
         try:
-            return self.__pari_mincurve[prec]
+            return self._pari_mincurve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_mincurve = {}
+            self._pari_mincurve = {}
         except KeyError:
             pass
         e = self.pari_curve(prec)
         mc, change = e.ellminimalmodel()
-        self.__pari_mincurve[prec] = mc
+        self._pari_mincurve[prec] = mc
         # self.__min_transform = change
         return mc
 
@@ -398,7 +405,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #def __pari_double_prec(self):
     #    EllipticCurve_number_field._EllipticCurve__pari_double_prec(self)
     #    try:
-    #        del self.__pari_mincurve
+    #        del self._pari_mincurve
     #    except AttributeError:
     #        pass
 

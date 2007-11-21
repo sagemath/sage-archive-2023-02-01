@@ -206,6 +206,7 @@ version:
 If the copy of maxima used by the symbolic calculus package were
 the same as the default one, then the following would return 27,
 which would be very confusing indeed!
+    sage: x, y = var('x,y')
     sage: expand((x+y)^3)
     y^3 + 3*x*y^2 + 3*x^2*y + x^3
 

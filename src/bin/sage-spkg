@@ -235,6 +235,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "****************************************************"
 
+BASEDIR=`pwd`
 time ./spkg-install
 
 if [ $? -eq 0 ]; then
@@ -250,11 +251,11 @@ if [ $? -eq 0 ]; then
    echo "SAGE VERSION: `grep SAGE $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
    echo "Successfully installed $PKG_NAME"
 
+   cd $BASEDIR
    if [ "$SAGE_CHECK" != "" -a -f spkg-check ]; then
-       # this doesn't work at all yet.
        echo "Running the test suite."
-       chmod +x spkg-test
-       ./spkg-test
+       chmod +x spkg-check
+       ./spkg-check
        if [ $? -ne 0 ]; then
            echo "*************************************"
            echo "Error testing package ** $PKG_NAME **"

@@ -465,6 +465,9 @@ class MPolynomialIdeal_singular_repr:
 
         T = Sequence([ MPolynomialIdeal(Q,[f._sage_(Q) for f in t]) for t in Tbar ])
 
+        def f(x,y): return cmp(x.gens(), y.gens())
+        T.sort(f)
+
         return T
 
     def associated_primes(self, algorithm='sy'):

@@ -818,13 +818,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 4 : 1)])
+            (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
-            (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
+            (3, 3, [(1 : 0 : 1), (2 : -1 : 1), (0 : 2 : 1)])
 
 
         In this example Simon's program does not find any points, though

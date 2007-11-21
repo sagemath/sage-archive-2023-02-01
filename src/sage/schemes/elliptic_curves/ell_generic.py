@@ -1385,7 +1385,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def integral_model(self):
         denom = lcm([a.denominator() for a in self.ainvs()])
         if denom != 1:
-            raise NotImplementedError, "model must be integral for now"
+            F = self.integral_weierstrass_model()
+            return F, self.isomorphism_to(F)
         else:
             parent = self(0).parent()
             return self, IdentityMorphism(Hom(parent, parent))

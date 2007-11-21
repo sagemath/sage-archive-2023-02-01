@@ -104,19 +104,31 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a> = NumberField(x^2 + 23, 'a')
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()
-            (2, 2, [(-4 : -4 : 1), (2*a - 10 : -4*a - 48 : 1)])
+            (2, 2, [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)])
 
             sage: K.<a> = NumberField(x^2 + 7, 'a')
             sage: E = EllipticCurve(K, [0,0,0,1,a]); E
             Elliptic Curve defined by y^2  = x^3 + x + a over Number Field in a with defining polynomial x^2 + 7
             sage: v = E.simon_two_descent(verbose=1); v
-            courbe elliptique : Y^2 = x^3 + Mod(3*y, y^2 + 7)*x^2 + Mod(-20, y^2 + 7)*x + Mod(-5*y, y^2 + 7)
-            points triviaux sur la courbe = [[1, 1, 0], [Mod(-1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            courbe elliptique : Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
+            A = 0
+            B = Mod(1, y^2 + 7)
+            C = Mod(y, y^2 + 7)
+            LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+            #LS2gen = 2
+             Recherche de points triviaux sur la courbe
+            points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+             symbole de Hilbert (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) = -1
+            zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+             vient du point trivial [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
+            m1 = 1
+            m2 = 1
             #S(E/K)[2]    = 2
             #E(K)/2E(K)   = 2
             #III(E/K)[2]  = 1
             rang(E/K)     = 1
-            listpointsmwr = [[Mod(-1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            listpointsmwr = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
 
         A curve with 2-torsion

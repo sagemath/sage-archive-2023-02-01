@@ -1294,7 +1294,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_all(query=S)
+            sage: G.display_all(query=S)             # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1593,8 +1593,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_tables(query=S, \
-            ...             tables=['graph_data','misc','spectrum','degrees','aut_grp'])
+            sage: G.display_tables(query=S, tables=['graph_data','misc','spectrum','degrees','aut_grp'])  # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1918,8 +1917,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: graphs_query.display_properties(query=S, \
-            ...             properties=['induced_subgraphs'])
+            sage: graphs_query.display_properties(query=S, properties=['induced_subgraphs']) # long time
             <html>...
         """
         from sage.plot.plot import plot

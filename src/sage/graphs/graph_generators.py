@@ -1812,8 +1812,8 @@ class GraphGenerators():
         Two ways of constructing the complete bipartite graph, using different
         layout algorithms:
             sage: import networkx
-            sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)
-            sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)
+            sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)   # long time
+            sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)                    # long time
 
         Compare the plotting:
             sage: n = networkx.complete_bipartite_graph(11,17)
@@ -2112,11 +2112,11 @@ class GraphGenerators():
             sage: cputime(t)     # slightly random
             0.22401400000000038
 
-            sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)
+            sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)    # long time
             sage: cputime(t)     # slightly random
             0.87205499999999958
 
-            sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)
+            sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)    # long time
             sage: cputime(t)     # slightly random
             0.90005700000000033
 
@@ -2617,7 +2617,7 @@ class GraphGenerators():
             sage: L = list(graphs(5, lambda G: G.size() <= 4))
             sage: len(L)
             31
-            sage: graphs_list.show_graphs(L)
+            sage: graphs_list.show_graphs(L)    # long time
 
         Generate all graphs with degree at most 2, up to 6 vertices.
             sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
@@ -2679,7 +2679,7 @@ def canaug_traverse(g, aut_gens, max_verts, property):
         sage: L = list(graphs(5, lambda G: G.size() <= 4))
         sage: len(L)
         31
-        sage: graphs_list.show_graphs(L)
+        sage: graphs_list.show_graphs(L)              # long time
 
     Generate all bipartite graphs on up to 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite()) )

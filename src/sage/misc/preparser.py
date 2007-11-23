@@ -469,6 +469,18 @@ def parse_generators(line, start_index):
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
+    sage: preparse("ZZ.<x> = ZZ['x']")
+    'ZZ = ZZ["x"]; (x,) = ZZ._first_ngens(Integer(1))'
+    sage: preparse("ZZ.<x> = ZZ['y']")
+    'ZZ = ZZ["x"]; (x,) = ZZ._first_ngens(Integer(1))'
+    sage: preparse("ZZ.<x,y> = ZZ[]")
+    'ZZ = ZZ["x, y"]; (x, y,) = ZZ._first_ngens(Integer(2))'
+    sage: preparse("ZZ.<x,y> = ZZ['u,v']")
+    'ZZ = ZZ["x, y"]; (x, y,) = ZZ._first_ngens(Integer(2))'
+    sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
+    'ZZ = QQ["x"]; (x,) = ZZ._first_ngens(Integer(1))'
+    sage: QQ[2^(1/3)]
+    Number Field in a with defining polynomial x^3 - 2
     """
     try:
         # [1,2,..,n] notation

@@ -176,7 +176,7 @@ cdef class OrbitPartition:
             return 1
         return 0
 
-cdef OrbitPartition _orbit_partition_from_list_perm(int *gamma, int n):
+cdef OrbitPartition orbit_partition_from_list_perm(int *gamma, int n):
     cdef int i
     cdef OrbitPartition O
     O = OrbitPartition(n)
@@ -576,7 +576,7 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t
+                        if alpha[s] == j: alpha[s] = t # TODO this will only happen once, so should break
                         s += 1
                     r = j
                     while True:
@@ -620,7 +620,7 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t
+                        if alpha[s] == j: alpha[s] = t # this will only happen once, so should break
                         s += 1
                     r = j
                     while True:
@@ -1210,7 +1210,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     cdef int *v # list of vertices determining nu
     cdef int *e # 0 or 1, see states 12 and 17
     cdef int state # keeps track of place in algorithm
-    cdef int _dig, tvc, tvh, n = G.order()
+    cdef int _dig, tvh, n = G.order()
 
     # trivial case
     if n == 0:
@@ -1590,7 +1590,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # information
             # TODO: this step could be optimized. The variable OP is not
             # really necessary
-            OP = _orbit_partition_from_list_perm(gamma, n)
+            OP = orbit_partition_from_list_perm(gamma, n)
             for i from 0 <= i < n:
                 Omega[l][i] = OP._is_min_cell_rep(i)
                 Phi[l][i] = OP._is_fixed(i)
@@ -1606,14 +1606,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # record the automorphism
             output.append([ Integer(gamma[i]) for i from 0 <= i < n ])
 
-            # The variable tvc was set to be the minimum element of W[k]
+            # The variable tvh was set to be the minimum element of W[k]
             # the last time we were at state 13 and at a node descending to
             # zeta. If this is a minimal cell representative of Theta and
             # we are searching for a canonical label, goto state 11, i.e.
             # backtrack to the common ancestor of rho and nu, then goto state
             # 12, i.e. consider whether we still need to search downward from
             # there. TODO: explain why
-            if Theta.elements[tvc] == -1 and lab: ## added "and lab"
+            if Theta.elements[tvh] == -1 and lab: ## added "and lab"
                 state = 11
                 continue
             k = h
@@ -1655,13 +1655,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # ancestor of nu and zeta:
             h = k
 
-            # set tvc and tvh to the minimum cell representative of W[k]
+            # set tvh to the minimum cell representative of W[k]
             # (see states 10 and 14)
             for i from 0 <= i < n:
                 if W[k][i]:
-                    tvc = i
+                    tvh = i
                     break
-            tvh = tvc
             state = 14
 
         elif state == 14: # iterate v[k] through W[k] until a minimum cell rep

@@ -1,7 +1,11 @@
+
+2007-11-24 (Michael Abshoff): upgraded to svn r1075
+
+2007-10-02 (William Stein): upgraded to svn 1012
+
+2007-10-02 (Robert Bradshaw): upgraded to svn r1068
+
 Obtained from:
   svn export https://flint.svn.sourceforge.net/svnroot/flint/trunk
 
-
-2007-10-02 (William Stein): upgraded to svn 1012
-2007-10-02 (Robert Bradshaw): upgraded to svn r1068
 

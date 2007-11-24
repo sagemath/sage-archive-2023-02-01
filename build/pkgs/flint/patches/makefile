@@ -9,8 +9,8 @@ ifndef FLINT_TUNE
 	# FLINT_TUNE =
 endif
 
-# ifndef NO_NTL
-#   NTL = -lntl
+#ifndef NO_NTL
+   NTL = -lntl
 # endif
 
 ifndef FLINT_LINK_OPTIONS

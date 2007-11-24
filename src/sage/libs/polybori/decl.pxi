@@ -86,13 +86,16 @@ cdef extern from "pb_wrap.h":
 
     ctypedef struct PBSet "BooleSet":
         bint (* emptiness)()
+        bint (* owns)(PBMonom val)
         PBNavigator (* navigation)()
-        PBSet (* unateProduct)(PBSet rhs)
+        PBSet (* cartesianProduct)(PBSet rhs)
         PBSet (* diff)(PBSet diff)
         PBSet (* change)(int idx)
         PBMonom (* usedVariables)()
         PBSetIter (* begin)()
         PBSetIter (* end)()
+
+    object PBSet_to_str "_to_PyString<BooleSet>"(PBSet *p)
 
     # non-allocating versions
     PBSet* PBSet_construct "Construct<BooleSet>"(void* mem)
@@ -102,6 +105,9 @@ cdef extern from "pb_wrap.h":
             "Construct_p<BooleSet, BooleSet::dd_type>" (void* mem, PBDD d)
     PBSet* PBSet_construct_pbnav \
             "Construct_p<BooleSet, CCuddNavigator>" (void* mem, PBNavigator d)
+    PBSet* PBSet_construct_indsetset \
+            "Construct_ppp<BooleSet, int, CCuddNavigator, CCuddNavigator>" \
+            (void* mem, int ind, PBNavigator a, PBNavigator b)
     void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
 
     ctypedef struct PBPolyIter "BoolePolynomial::ordered_iterator":
@@ -122,6 +128,7 @@ cdef extern from "pb_wrap.h":
         PBMonom (* lexLead)()
         PBMonom (* usedVariables)()
         PBDD (* diagram)()
+        PBSet (* set)()
         PBNavigator (* navigation)()
         PBPolyIter (* orderedBegin)()
         PBPolyIter (* orderedEnd)()
@@ -198,6 +205,8 @@ cdef extern from "pb_wrap.h":
         bint optRedTailInLastBlock
         PBSet monomials
         PBSet llReductor
+        PBSet minimalLeadingTerms
+        PBSet leadingTerms
         bint (* containsOne)()
         int (* addGenerator)(PBPoly, bint is_impl)
         void (* addGeneratorDelayed)(PBPoly)

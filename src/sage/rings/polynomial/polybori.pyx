@@ -414,8 +414,8 @@ cdef class BooleanPolynomial(MPolynomial):
         # this provides compatibility with the boost-python wrappers
         # of PolyBoRi and prevents us from polluting the sage objects namespace
         # i.e., these don't show up in tab completion lists
-        if name == 'diagram':
-            return new_DD_from_PBDD(self._P.diagram())
+        if name == 'set':
+            return new_BS_from_PBSet(self._P.set())
         elif name == 'deg':
             return self.total_degree
         elif name == 'elength':
@@ -573,14 +573,17 @@ cdef class BooleSet:
     def __call__(self):
         return self
 
+    def __repr__(self):
+        return PBSet_to_str(&self._S)
+
     def empty(self):
         return self._S.emptiness()
 
     def navigation(self):
         return new_CN_from_PBNavigator(self._S.navigation())
 
-    def unateProduct(self, rhs):
-        return new_BS_from_PBSet(self._S.unateProduct((<BooleSet>rhs)._S))
+    def cartesianProduct(self, rhs):
+        return new_BS_from_PBSet(self._S.cartesianProduct((<BooleSet>rhs)._S))
 
     def diff(self, rhs):
         return new_BS_from_PBSet(self._S.diff((<BooleSet>rhs)._S))
@@ -591,6 +594,15 @@ cdef class BooleSet:
     def usedVariables(self):
         return new_BM_from_PBMonom(get_cring()._monom_monoid,
                                             self._S.usedVariables())
+
+    def if_then_else(self, int ind, BooleSet a, BooleSet b):
+        cdef PBSet res
+        if ind >= a.navigation().value() or ind >= b.navigation().value():
+            raise IndexError, "value of ind must be less than the values of roots of the branches."
+        PBSet_construct_indsetset(&res, ind, a._S.navigation(),
+                b._S.navigation());
+        return new_BS_from_PBSet(res)
+
 
     def __iter__(self):
         return new_BSI_from_PBSetIter(self, get_cring())
@@ -735,12 +747,20 @@ cdef class GroebnerStrategy:
         GBStrategy_destruct(&self._S)
 
     def addGeneratorDelayed(self, BooleanPolynomial p):
+        if p.isZero():
+            raise ValueError, "zero generators not allowed."
         self._S.addGeneratorDelayed(p._P)
 
     def addGenerator(self, BooleanPolynomial p, bint is_impl=False):
+        if p.isZero():
+            raise ValueError, "zero generators not allowed."
+        if self._S.leadingTerms.owns(p._P.lead()):
+            raise ValueError, "strategy already contains a polynomial with same lead"
         return self._S.addGenerator(p._P, is_impl)
 
     def addAsYouWish(self, BooleanPolynomial p):
+        if p.isZero():
+            raise ValueError, "zero generators not allowed."
         self._S.addAsYouWish(p._P)
 
     def implications(self, ind):
@@ -827,6 +847,10 @@ cdef class GroebnerStrategy:
             return self._S.reduceByTailReduced
         if name is 'monomials':
             return new_BS_from_PBSet(self._S.monomials)
+        if name is 'minimalLeadingTerms':
+            return new_BS_from_PBSet(self._S.minimalLeadingTerms)
+        if name is 'leadingTerms':
+            return new_BS_from_PBSet(self._S.leadingTerms)
         if name is 'llReductor':
             return new_BS_from_PBSet(self._S.llReductor)
         else:
@@ -841,14 +865,6 @@ cdef class GroebnerStrategy:
             self._S.normalForms = val
         elif name is 'currentDegree':
             self._S.currentDegree = val
-        elif name is 'chainCriterions':
-            self._S.chainCriterions = val
-        elif name is 'variableChainCriterions':
-            self._S.variableChainCriterions = val
-        elif name is 'easyProductCriterions':
-            self._S.easyProductCriterions = val
-        elif name is 'extendedProductCriterions':
-            self._S.extendedProductCriterions = val
         elif name is 'averageLength':
             self._S.averageLength = val
         elif name == 'optRedTail':

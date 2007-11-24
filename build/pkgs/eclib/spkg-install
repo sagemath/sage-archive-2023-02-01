@@ -2,10 +2,14 @@
 
 cd src
 
-export NTL_PREFIX="$SAGE_LOCAL"
-export PARI_PREFIX="$SAGE_LOCAL"
+NTL_PREFIX="$SAGE_LOCAL"
+export NTL_PREFIX
+
+PARI_PREFIX="$SAGE_LOCAL"
+export PARI_PREFIX
 if [ `uname` != "Darwin" ]; then
-    export PICFLAG=-fPIC
+    PICFLAG=-fPIC
+    export PICFLAG
 fi
 
 make

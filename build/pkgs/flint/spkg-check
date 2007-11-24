@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd src
+
+make -Bj test
+./mpn_extras-test
+./ZmodF-test
+./ZmodF_mul-test
+./ZmodF_poly-test
+./fmpz-test
+./fmpz_poly-test
+

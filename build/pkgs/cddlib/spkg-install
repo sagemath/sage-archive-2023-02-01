@@ -6,7 +6,7 @@ cd src/
 
 # This is needed for cddlib-094b, which fails
 # to find the gmp headers otherwise.
-CFLAGS="-I $SAGE_LOCAL/include $CFLAGS"
+CFLAGS="-I $SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
 export CFLAGS
 
 ./configure --prefix=$SAGE_LOCAL

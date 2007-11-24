@@ -1,3 +1,10 @@
+* 2007-24-11 (Michael Abshoff)
+
+  - add -L$SAHE_LOCAL/lib to CFLAGS to force linking against Sage's gmp
+    (issue reported by Justin Walker)
+
+*initial build
+
 1. Deleted (large) ps and pdf files from doc directory:
        rm doc/*.ps doc/*.pdf
 2. Remove the examples directories:

@@ -1,4 +1,7 @@
 
+2007-11-25 (Michael Abshoff): add "flint_stack_release();" in fmpz_poly.c:1485
+           to avoid a memory leak. Deteced and bixed by Bill Hart
+
 2007-11-24 (Michael Abshoff): upgraded to svn r1075
 
 2007-10-02 (William Stein): upgraded to svn 1012

@@ -210,8 +210,10 @@ import partitions as partitions_ext
 
 def hadamard_matrix(n):
     """
-    Returns an nxn Hadamard matrix of order if the construction
-    is implemented in GUAVA.
+    Returns an n x n Hadamard matrix of order $n$, if possible.
+
+    If the construction of this matrix is not implemented in GUAVA or there is
+    no such matrix, raises a NotImplementedError.
 
     EXAMPLES:
         sage: hadamard_matrix(4)
@@ -220,14 +222,15 @@ def hadamard_matrix(n):
         [ 1  1 -1 -1]
         [ 1 -1 -1  1]
         sage: hadamard_matrix(6)
-        Hadamard matrix of order  6  does not exist or is not implemented yet.
-
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Hadamard matrix of order 6 does not exist or is not implemented yet.
     """
     try:
-       ans = gap("HadamardMat(%s)"%ZZ(n))
-       return ans._matrix_(ZZ)
+        ans = gap("HadamardMat(%s)"%ZZ(n))
+        return ans._matrix_(ZZ)
     except:
-       print "Hadamard matrix of order ",n," does not exist or is not implemented yet."
+        raise NotImplementedError, "Hadamard matrix of order %s does not exist or is not implemented yet."%n
 
 def bell_number(n):
     r"""

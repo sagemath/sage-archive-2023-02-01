@@ -7,7 +7,7 @@
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
 
-if [ `uname` = "Darwin" -a `uname -r` = "9.0.0" ]; then
+if [ `uname` = "Darwin" -a `uname -r | sed s/9\.[0-9]\.0/9\.0\.0/` = "9.0.0" ]; then
     echo "Patching posixmodules for Leopard."
     cp patches/posixmodule.c.osx_leopard src/Modules/posixmodule.c
 fi
@@ -59,7 +59,7 @@ build()
     # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
-    ./configure --prefix="$SAGE_LOCAL"
+    ./configure --prefix="$SAGE_LOCAL" --without-libpng
 
     if [ $? -ne 0 ]; then
         echo "Error configuring Python."

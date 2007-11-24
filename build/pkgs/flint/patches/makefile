@@ -9,16 +9,16 @@ ifndef FLINT_TUNE
 	# FLINT_TUNE =
 endif
 
-#ifndef NO_NTL
+ifndef NO_NTL
    NTL = -lntl
-# endif
+endif
 
 ifndef FLINT_LINK_OPTIONS
 	FLINT_LINK_OPTIONS =
 endif
 
 
-qdexists := $(shell ls -d qd)
+qdexists := $(ls -d qd 2> /dev/null)
 ifeq ($(qdexists), qd)
 	LIBS = -L$(FLINT_GMP_LIB_DIR)  -L$(FLINT_NTL_LIB_DIR) -L$(FLINT_QD_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm -lqd $(NTL)
 else

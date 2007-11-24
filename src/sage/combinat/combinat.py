@@ -7,6 +7,7 @@ AUTHORS:
                       refinements, and bug fixes in corner cases
         -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
                       combinations_iterator from Python Cookbook, edited docs.
+        -- DJ (2007-11): changed permutations, added hadamard_matrix
 
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant docstrings.
@@ -158,7 +159,6 @@ combinatorial functions:
 TODO:
    GUAVA commands:
     * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
-    * HadamardMat returns a Hadamard matrix of order n.
     * VandermondeMat
     * GrayMat returns a list of all different vectors of length n over
       the field F, using Gray ordering.
@@ -207,6 +207,27 @@ import sage.structure.parent_base
 import partitions as partitions_ext
 
 ######### combinatorial sequences
+
+def hadamard_matrix(n):
+    """
+    Returns an nxn Hadamard matrix of order if the construction
+    is implemented in GUAVA.
+
+    EXAMPLES:
+        sage: hadamard_matrix(4)
+        [ 1  1  1  1]
+        [ 1 -1  1 -1]
+        [ 1  1 -1 -1]
+        [ 1 -1 -1  1]
+        sage: hadamard_matrix(6)
+        Hadamard matrix of order  6  does not exist or is not implemented yet.
+
+    """
+    try:
+       ans = gap("HadamardMat(%s)"%ZZ(n))
+       return ans._matrix_(ZZ)
+    except:
+       print "Hadamard matrix of order ",n," does not exist or is not implemented yet."
 
 def bell_number(n):
     r"""
@@ -1528,13 +1549,7 @@ def permutations(mset):
     which is sometimes called a {\it multinomial coefficient}.
 
     permutations returns the set of all permutations of a multiset.
-    Wraps GAP's PermutationsList.
-
-    WARNING: Wraps GAP -- hence mset must be a list of objects that
-    have string representations that can be interpreted by the GAP
-    intepreter.  If mset consists of at all complicated SAGE objects,
-    this function does *not* do what you expect.  A proper function
-    should be written! (TODO!)
+    Calls a function written by Mike Hansen, not GAP.
 
     EXAMPLES:
         sage: mset = [1,1,2,2,2]
@@ -1549,10 +1564,15 @@ def permutations(mset):
          [2, 2, 1, 1, 2],
          [2, 2, 1, 2, 1],
          [2, 2, 2, 1, 1]]
+        sage: MS = MatrixSpace(GF(2),2,2)
+        sage: A = MS([1,0,1,1])
+        sage: permutations(A.rows())
+        [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
 
     """
-    ans=gap.eval("PermutationsList(%s)"%mset)
-    return eval(ans)
+    from sage.combinat.permutation import Permutations
+    ans = Permutations(mset)
+    return ans.list()
 
 def permutations_iterator(mset,n=None):
     """

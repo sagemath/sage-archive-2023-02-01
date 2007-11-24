@@ -3008,7 +3008,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
+        _sig_on
         I = singclap_factorize ( ptemp, &iv , int(param)) #delete iv at some point
+        _sig_off
 
         if param==1:
             v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]

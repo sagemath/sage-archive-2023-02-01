@@ -35,7 +35,7 @@ import sage.rings.rational_field
 import sage.rings.integer_mod_ring
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
-from sage.rings.infinity import infinity
+import sage.rings.infinity as infinity
 #import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
@@ -73,16 +73,24 @@ from polynomial_compiled cimport CompiledPolynomialFunction
 from polydict import ETuple
 
 cdef object is_AlgebraicRealField
+cdef object NumberField_quadratic
+cdef object is_ComplexIntervalField
 
 cdef void late_import():
     # A hack to avoid circular imports.
     global is_AlgebraicRealField
+    global NumberField_quadratic
+    global is_ComplexIntervalField
 
     if is_AlgebraicRealField is not None:
         return
 
     import sage.rings.algebraic_real
     is_AlgebraicRealField = sage.rings.algebraic_real.is_AlgebraicRealField
+    import sage.rings.number_field.number_field
+    NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
+    import sage.rings.complex_interval_field
+    is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -1908,7 +1916,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x.prec()
             +Infinity
         """
-        return infinity
+        return infinity.infinity
 
     def padded_list(self, n=None):
         """
@@ -2294,12 +2302,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         multiple roots are always ill-conditioned; there's a footnote
         at the end of the docstring about this.
 
-        If the output ring is a RealIntervalField of a given
-        precision, then the answer will always be correct (or an
-        exception will be raised, if a case is not implemented).  Each
-        root will be contained in one of the returned intervals,
-        and the intervals will be disjoint.  (The returned intervals
-        may be of higher precision than the specified output ring.)
+        If the output ring is a RealIntervalField or
+        ComplexIntervalField of a given precision, then the answer
+        will always be correct (or an exception will be raised, if a
+        case is not implemented).  Each root will be contained in one
+        of the returned intervals, and the intervals will be disjoint.
+        (The returned intervals may be of higher precision than the
+        specified output ring.)
 
         At the end of this docstring (after the examples) is a description
         of all the cases implemented in this function, and the algorithms
@@ -2456,6 +2465,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(ring=RIF, multiplicities=False)
             [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
 
+        Examples using complex root isolation:
+            sage: x = polygen(ZZ)
+            sage: p = x^5 - x - 1
+            sage: p.roots()
+            []
+            sage: p.roots(ring=CIF)
+            [([1.1673039782614185 .. 1.1673039782614188], 1), ([0.18123244446987518 .. 0.18123244446987558] + [1.0839541013177103 .. 1.0839541013177110]*I, 1), ([0.18123244446987518 .. 0.18123244446987558] - [1.0839541013177103 .. 1.0839541013177110]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] + [0.35247154603172609 .. 0.35247154603172643]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] - [0.35247154603172609 .. 0.35247154603172643]*I, 1)]
+            sage: p.roots(ring=ComplexIntervalField(200))
+            [([1.1673039782614186842560458998548421807205603715254890391400816 .. 1.1673039782614186842560458998548421807205603715254890391400829], 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] + [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] - [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.76488443360058472602982318770854173032899665194736756700777...] + [0.35247154603172624931794709140258105439420648082424733283769... .. 0.35247154603172624931794709140258105439420648082424733283769...]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.76488443360058472602982318770854173032899665194736756700777204] - [0.35247154603172624931794709140258105439420648082424733283769122 .. 0.35247154603172624931794709140258105439420648082424733283769341]*I, 1)]
+
+        Note that coefficients in a number field with defining polynomial
+        x^2 + 1 are considered to be Gaussian rationals (with the generator
+        mapping to +I), if you ask for complex roots.
+
+            sage: K.<im> = NumberField(x^2 + 1)
+            sage: y = polygen(K)
+            sage: p = y^4 - 2 - im
+            sage: p.roots(ring=CC)
+            [(-1.2146389322441... - 0.14142505258239...*I, 1), (-0.14142505258239... + 1.2146389322441...*I, 1), (0.14142505258239... - 1.2146389322441...*I, 1), (1.2146389322441... + 0.14142505258239...*I, 1)]
+            sage: p = p^2 * (y^2 - 2)
+            sage: p.roots(ring=CIF)
+            [([-1.4142135623730952 .. -1.4142135623730949], 1), ([1.4142135623730949 .. 1.4142135623730952], 1), ([-1.2146389322441827 .. -1.2146389322441821] - [0.14142505258239376 .. 0.14142505258239399]*I, 2), ([-0.14142505258239399 .. -0.14142505258239376] + [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([0.14142505258239376 .. 0.14142505258239399] - [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([1.2146389322441821 .. 1.2146389322441827] + [0.14142505258239376 .. 0.14142505258239399]*I, 2)]
+
         There are many combinations of floating-point input and output
         types that work.  (Note that some of them are quite pointless...
         there's no reason to use high-precision input and output, and still
@@ -2502,8 +2534,12 @@ sage: rts[0][0] == rt2
 
         Algorithms used:
 
-        For brevity, we will use RR to mean any RealField of any precision;
-        similarly for CC and CIF.
+        For brevity, we will use RR to mean any RealField of any
+        precision; similarly for RIF, CC, and CIF.  Since Sage has no
+        specific implementation of Gaussian rationals (or of number
+        fields with embedding, at all), when we refer to Gaussian
+        rationals below we will accept any number field with defining
+        polynomial x^2+1, mapping the field generator to +I.
 
         We call the base ring of the polynomial K, and the ring given
         by the ring= argument L.  (If ring= is not specified, then L
@@ -2522,17 +2558,24 @@ sage: rts[0][0] == rt2
         (You can call real_roots() directly to get more control than
         this method gives.)
 
-        If L is floating-point and K is not, then we attempt to
-        change the polynomial ring to L (using .change_ring())
-        (or, if L is complex, to the corresponding real field).
-        Then we use either Pari or numpy as specified above.
+        If L is CIF, and K is ZZ, QQ, AA, or the Gaussian rationals,
+        then the root isolation algorithm
+        sage.rings.polynomial.complex_roots.complex_roots() is used.
+        (You can call complex_roots() directly to get more control than
+        this method gives.)
+
+        If L is floating-point and K is not, then we attempt to change
+        the polynomial ring to L (using .change_ring()) (or, if L is
+        complex and K is not, to the corresponding real field).  Then
+        we use either Pari or numpy as specified above.
 
         For all other cases where K is different than L, we just use
         .change_ring(L) and proceed as below.
 
         The next method is to attempt to factor the polynomial.
         If this succeeds, then for every degree-one factor a*x+b, we
-        add -b/a as a root.
+        add -b/a as a root (as long as this quotient is actually in
+        the desired ring).
 
         If factoring over K is not implemented, and K is finite, then
         we find the roots by enumerating all elements of K and checking
@@ -2562,6 +2605,8 @@ sage: rts[0][0] == rt2
         L = ring
         if L is None: L = K
 
+        late_import()
+
         input_fp = (is_RealField(K)
                     or is_ComplexField(K)
                     or is_RealDoubleField(K)
@@ -2574,6 +2619,8 @@ sage: rts[0][0] == rt2
                          or is_ComplexDoubleField(K))
         output_complex = (is_ComplexField(L)
                           or is_ComplexDoubleField(L))
+        input_gaussian = (isinstance(K, NumberField_quadratic)
+                          and list(K.polynomial()) == [1, 0, 1])
 
         if input_fp and output_fp:
             low_prec = L.prec() <= 53
@@ -2633,11 +2680,9 @@ sage: rts[0][0] == rt2
             else:
                 return rts
 
-        late_import()
-
         if L != K or is_AlgebraicRealField(L):
-            # So far, the only "special" implementation is for K exact
-            # and L either AA or a real interval field.
+            # So far, the only "special" implementations are for real
+            # and complex root isolation.
             if (is_IntegerRing(K) or is_RationalField(K)
                 or is_AlgebraicRealField(K)) and \
                 (is_AlgebraicRealField(L) or is_RealIntervalField(L)):
@@ -2668,13 +2713,23 @@ sage: rts[0][0] == rt2
                 else:
                     return [rt for (rt, mult) in rts]
 
-            if output_fp and output_complex:
+            if (is_IntegerRing(K) or is_RationalField(K)
+                or is_AlgebraicRealField(K) or input_gaussian) and \
+                (is_ComplexIntervalField(L)):
+
+                from sage.rings.polynomial.complex_roots import complex_roots
+
+                rts = complex_roots(self, min_prec=L.prec())
+
+                if multiplicities:
+                    return rts
+                else:
+                    return [rt for (rt, mult) in rts]
+
+            if output_fp and output_complex and not input_gaussian:
                 # If we want the complex roots, and the input is not
-                # floating point, we convert to a real polynomial.
-                # I think this works for now, because there are no
-                # non-floating-point complex types in Sage.  Hopefully
-                # someday we will have Gaussian integers and rationals,
-                # and this will have to change then.
+                # floating point, we convert to a real polynomial
+                # (except when the input coefficients are Gaussian rationals).
                 if is_ComplexDoubleField(L):
                     real_field = RDF
                 else:
@@ -2819,9 +2874,9 @@ sage: rts[0][0] == rt2
         cdef int k
 
         if not self:
-            return infinity
+            return infinity.infinity
 
-        if p is infinity:
+        if p is infinity.infinity:
             return -self.degree()
 
         if p is None:
@@ -3060,7 +3115,7 @@ sage: rts[0][0] == rt2
             raise ValueError, "The degree of the norm must be positive"
 
         coeffs = self.coeffs()
-        if p == infinity:
+        if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 
         p = sage.rings.integer.Integer(p)  # because we'll do 1/p below.

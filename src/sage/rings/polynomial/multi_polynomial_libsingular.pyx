@@ -199,7 +199,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         self._has_singular = True
 
-        _names = <char**>omAlloc0(sizeof(char*)*(len(self._names)+1))
+        assert(n == len(self._names))
+
+        _names = <char**>omAlloc0(sizeof(char*)*(len(self._names)))
 
         for i from 0 <= i < n:
             _name = self._names[i]

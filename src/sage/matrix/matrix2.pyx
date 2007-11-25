@@ -1,8 +1,13 @@
 """
 Base class for matrices, part 2
 
-For design documentation see matrix/docs.py.
+TESTS:
+    sage: m = matrix(ZZ['x'], 2, 3, [1..6])
+    sage: loads(dumps(m)) == m
+    True
 """
+
+# For design documentation see matrix/docs.py.
 
 ################################################################################
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
@@ -34,6 +39,23 @@ from random import randint
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
+        """
+        Used to compute $A \\ B$, i.e., the backslash solver operator.
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,4,2,3,1,0,1,2])
+            sage: B = matrix(QQ, 3, 2, [1,7,5, 2,1,3])
+            sage: C = A._backslash_(B); C
+            [  -1    1]
+            [13/5 -3/5]
+            [-4/5  9/5]
+            sage: A*C == B
+            True
+            sage: A._backslash_(B) == A \ B
+            True
+            sage: A._backslash_(B) == A.solve_right(B)
+            True
+        """
         return self.solve_right(B)
 
     def subs(self, in_dict=None, **kwds):
@@ -947,18 +969,26 @@ cdef class Matrix(matrix1.Matrix):
         ALGORITHM: See Henri Cohen's first book.
 
         EXAMPLES:
-            sage: A = MatrixSpace(QQ,3)([2, 1, 1, -2, 2, 2, -1, -1, -1])
-            sage: A.hessenberg_form()
+            sage: A = matrix(QQ,3, [2, 1, 1, -2, 2, 2, -1, -1, -1])
+            sage: A.hessenbergize(); A
             [  2 3/2   1]
             [ -2   3   2]
             [  0  -3  -2]
 
-            sage: A = MatrixSpace(QQ,4)([2, 1, 1, -2, 2, 2, -1, -1, -1,1,2,3,4,5,6,7])
-            sage: A.hessenberg_form()
+            sage: A = matrix(QQ,4, [2, 1, 1, -2, 2, 2, -1, -1, -1,1,2,3,4,5,6,7])
+            sage: A.hessenbergize(); A
             [    2  -7/2 -19/5    -2]
             [    2   1/2 -17/5    -1]
             [    0  25/4  15/2   5/2]
             [    0     0  58/5     3]
+
+        You can't Hessenbergize an immutable matrix:
+            sage: A = matrix(QQ, 3, [1..9])
+            sage: A.set_immutable()
+            sage: A.hessenbergize()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
         """
         cdef Py_ssize_t i, j, m, n, r
         n = self._nrows
@@ -2661,11 +2691,51 @@ cdef class Matrix(matrix1.Matrix):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
+        NOTE: We actually choos at random density proportion of
+        entries of the matrix and set them to random elements.  It's
+        possible that the same position can be chosen multiple times,
+        especially for a very small matrix.
+
         INPUT:
-            density -- integer (default: 1) rough measure of the proportion of nonzero
-                       entries in the random matrix
-            *args, **kwds -- rest of parameters may be passed to the random_element function
-                   of the base ring.
+            density -- integer (default: 1) rough measure of the
+                       proportion of nonzero entries in the random
+                       matrix
+            *args, **kwds -- rest of parameters may be passed to the
+                       random_element function of the base ring.
+
+        EXAMPLES:
+        We construct the zero matrix over a polynomial ring.
+            sage: a = matrix(QQ['x'], 3); a
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+
+        We then randomize roughly half the entries:
+            sage: a.randomize(0.5)
+            sage: a     # random output
+            [-1/3*x^2 + 1/2*x + 1  1/5*x^2 + 2*x - 2/3                    0]
+            [                   0                    0                    0]
+            [     x^2 + 1/3*x + 1                    0                    0]
+
+        Now we randomize all the entries of the resulting matrix:
+            sage: a.randomize()
+            sage: a  # random output
+            [        x^2 + 3*x + 2    -2/3*x^2 - 4*x - 6        x^2 + 11*x + 1]
+            [   -x^2 + 1/4*x - 1/4         -x^2 - x - 22    -x^2 + 1/6*x - 1/2]
+            [ -6*x^2 - 1/3*x - 2/3 2*x^2 - 1/12*x + 1/20       2*x^2 + x - 3/2]
+
+        We create the zero matrix over the integers:
+            sage: a = matrix(ZZ, 2); a
+            [0 0]
+            [0 0]
+
+        Then we randomize it; the x and y parameters, which determine
+        the size of the random elements, are passed onto the ZZ
+        random_element method.
+            sage: a.randomize(x=-2^64, y=2^64)
+            sage: a           # random output
+            [  4478398010554264318  -1173319677607058552]
+            [ 11400122422515230170 -18056143553837283799]
         """
         density = float(density)
         if density == 0:
@@ -2674,20 +2744,19 @@ cdef class Matrix(matrix1.Matrix):
         self.clear_cache()
 
         R = self.base_ring()
-        zero = R(0)
 
-        cdef Py_ssize_t i, j, nc, num_per_row
+        cdef Py_ssize_t i, j, num
 
-        if density == 1:
+        if density >= 1:
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
                     self.set_unsafe(i, j, R.random_element(*args, **kwds))
         else:
-            nc = self._ncols
-            num_per_row = int(density * nc) + 1
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < num_per_row:
-                    self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+            num = int(self._nrows * self._ncols * density)
+            for i from 0 <= i < num:
+                self.set_unsafe(randint(0, self._nrows - 1),
+                                randint(0, self._ncols - 1),
+                                R.random_element(*args, **kwds))
 
     def is_one(self):
         """
@@ -2900,9 +2969,33 @@ cdef class Matrix(matrix1.Matrix):
 
 
 def _dim_cmp(x,y):
+    """
+    Used internally by matrix functions.  Given 2-tuples (x,y),
+    returns their comparision based on the first component.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _dim_cmp
+        sage: V = [(QQ^3, 2), (QQ^2, 1)]
+        sage: _dim_cmp(V[0], V[1])
+        1
+    """
     return cmp(x[0].dimension(), y[0].dimension())
 
 def decomp_seq(v):
+    """
+    This function is used internally be the decomposition matrix
+    method.  It takes a list of tuples and produces a sequence
+    that is correctly sorted and prints with carriage returns.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import decomp_seq
+        sage: V = [(QQ^3, 2), (QQ^2, 1)]
+        sage: decomp_seq(V)
+        [
+        (Vector space of dimension 2 over Rational Field, 1),
+        (Vector space of dimension 3 over Rational Field, 2)
+        ]
+    """
     list.sort(v, _dim_cmp)
     return Sequence(v, universe=tuple, check=False, cr=True)
 

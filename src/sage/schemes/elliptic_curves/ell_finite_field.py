@@ -213,20 +213,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         q = self.base_field().order()
         return q + 1 - self.cardinality()
 
-    def cardinality(self, degree=1, algorithm='heuristic', early_abort=False, disable_warning=False):
+    def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False):
         r"""
         Return the number of points on this elliptic curve over a
         finite extension of the base field.
 
-        \note{If the cardinality of the base field is not prime, this
-        function literally enumerates the points and counts them. It's so
-        stupid, it prints a warning. You can disable the warning with the
-        disable_warning flag.}
+        \note{If the cardinality of the base field is not prime and
+        the coefficients of the Weierstrass form of self are not in
+        the prime subfield this function literally enumerates the
+        points and counts them. It's so stupid, it prints a
+        warning. You can disable the warning with the disable_warning
+        flag.}
 
         INPUT:
-            degree       -- integer (default: 1); the degree of the
-                            extension field over which to compute the
-                            number of points
             algorithm    -- string (default: 'heuristic')
                   'heuristic' -- use a heuristic to choose between bsgs and sea.
                   'bsgs' -- use the baby step giant step method as implemented in
@@ -241,30 +240,28 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         OUTPUT:
             an integer
 
-        \note{'sea' doesn't work in Windows XP under Cygwin (as of 2005-12-06).}
-
         The cardinality is \emph{not} cached.
 
         EXAMPLES:
             sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
+            8
+            sage: k.<a> = GF(3^3)
+            sage: l = [a^2 + 1, 2*a^2 + 2*a + 1, a^2 + a + 1, 2, 2*a]
+            sage: EllipticCurve(k,l).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.
-            8
-            sage: EllipticCurve(GF(2),[1,2,3,4,5]).cardinality(2)
-            8
-            sage: EllipticCurve(GF(9,'a'),[1,2,3,4,5]).cardinality()
-            WARNING: Using very very stupid algorithm for counting
-            points over non-prime finite field. Please rewrite.
-            See the file ell_finite_field.py.
-            16
-            sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(2)
-            16
+            29
+
+            sage: l = [1, 1, 0, 2, 0]
+            sage: EllipticCurve(k,l).cardinality()
+            38
 
         An even bigger extension (which we check against Magma):
-            sage: EllipticCurve(GF(3),[1,2,3,4,5]).cardinality(100)
+
+            sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
             515377520732011331036459693969645888996929981504
-            sage: magma.eval("#EllipticCurve([GF(3^100)|1,2,3,4,5])")    # optional -- requires magma
+            sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional -- requires magma
             '515377520732011331036459693969645888996929981504'
 
 
@@ -298,6 +295,32 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     N = N1
                 else:
                     raise RuntimeError, "BUG! Cardinality with bsgs=%s but with sea=%s"%(N1, N2)
+        else:
+            # TODO: Instead of only computing in p^1 if possible, also
+            # try to compute in p^m if m|n and q is p^n.
+            k = self.base_ring()
+            p = k.characteristic()
+            degree = k.degree()
+            q = k.order()
+            try:
+                A = []
+                for a in map(int, self.a_invariants()):
+                    if a%p == a:
+                        A.append(a)
+                    else:
+                        raise TypeError
+                E = EllipticCurve_finite_field(self.base_ring().prime_subfield(), A)
+                prec = integer_ceil(degree*log(p)/log(2))+3
+                C = ComplexField(prec)
+                t = C(p+1-E.cardinality(algorithm=algorithm,early_abort=early_abort))
+                alphap = t/2 + (-p+t**2/4).sqrt()
+                apd = alphap**degree
+                bpd = alphap.conjugate()**degree
+                M = q + 1 - apd - bpd
+                N = integer_floor(M.real())
+
+            except TypeError:
+                pass # cannot compute over GF(p)
 
         if N == 0:
             if not disable_warning:
@@ -307,21 +330,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             p = self.base_field().cardinality()
             N = len(self.points())
 
-        self.__cardinality = Integer(N)
-
-        if degree > 1:
-            q = p**degree
-            # using the Hasse bound to estimate the required precision
-            prec = integer_ceil(degree*log(p)/log(2))+3
-            C = ComplexField(prec)
-            t = C(p+1-N)
-            alphap = t/2 + (-p+t**2/4).sqrt()
-            apd = alphap**degree
-            bpd = alphap.conjugate()**degree
-            M = q + 1 - apd - bpd
-            N = integer_floor(M.real())
-
         return N
+
+    order = cardinality # alias
 
     def _cremona_abgrp_data(self):
         E = self._gp()

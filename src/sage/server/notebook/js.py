@@ -1771,7 +1771,7 @@ function cell_set_running(id) {
 
 function cell_set_done(id) {
     var cell_div = get_element('cell_div_output_' + id)
-    cell_div.className = 'cell_output_wrap';
+    cell_div.className = 'cell_div_output_wrap';
     var cell_number = get_element('cell_number_' + id);
     cell_number.className = 'cell_number';
 }

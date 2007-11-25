@@ -88,9 +88,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         [-2.0  1.0]
         [ 1.5 -0.5]
 
-    To compute eigenvalues the use the function eigen
+    To compute eigenvalues the use the functions left eigen_vectors or right_eigenvectors
 
-        sage: p,e = m.eigen_left()
+        sage: p,e = m.right_eigenvectors()
 
     the result of eigen is a pair p,e, where p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors
@@ -401,23 +401,23 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: a.change_ring(CDF) - b         # random -- very small numbers
             (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
         """
-        e, v = self.eigen_left()
+        e, v = self.left_eigenvectors()
         return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
 
-    def eigen_left(self):
+    def left_eigenvectors(self):
         """
         Computes the eigenvalues and *left* eigenvectors of this
         matrix m acting *from the right*.  I.e., vectors v such that
-        v*m = lambda*m.
+        v*m = lambda*v.
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as an RDF matrix whose columns
+             corresponding eigenvectors -- as an RDF matrix whose rows
                            are the eigenvectors.
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
-            sage: m.eigen_left()           # random-ish platform-dependent output (low order digits)
+            sage: m.left_eigenvectors()           # random-ish platform-dependent output (low order digits)
 
 
         IMPLEMENTATION:
@@ -430,13 +430,13 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         import numpy
         v, m = numpy.linalg.eig(numpy.transpose(self.numpy()))
-        return ([sage.rings.complex_double.CDF(x) for x in v],matrix(m))
+        return ([sage.rings.complex_double.CDF(x) for x in v],matrix(m).transpose())
 
-    def eigen_right(self):
+    def right_eigenvectors(self):
         """
         Computes the eigenvalues and *right* eigenvectors of this
         matrix m acting *from the left*.  I.e., vectors v such that
-        m * v = lambda*m, where v is viewed as a column vector.
+        m * v = lambda*v, where v is viewed as a column vector.
 
         OUTPUT:
              eigenvalues -- as a list
@@ -445,7 +445,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
-            sage: m.eigen_right()           # random-ish platform-dependent output (low order digits)
+            sage: m.right_eigenvectors()           # random-ish platform-dependent output (low order digits)
 
         IMPLEMENTATION:
             Uses numpy.

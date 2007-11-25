@@ -498,9 +498,6 @@ cdef extern from "libsingular.h":
 
     number *nInvers(number *n)
 
-
-
-
     # rational number from int
 
     number *nlInit(int)
@@ -516,6 +513,10 @@ cdef extern from "libsingular.h":
     # rational number from numerator and denominator
 
     number *nlInit2(int i, int j)
+
+    # copy a number
+
+    number *nlCopy(number *)
 
     # get numerator
 

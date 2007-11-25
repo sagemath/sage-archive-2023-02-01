@@ -289,8 +289,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     def __dealloc__(self):
         """
         """
-        rChangeCurrRing(self._ring)
+        cdef ring *oldRing = NULL
+        if currRing != self._ring:
+            oldRing = currRing
+            rChangeCurrRing(self._ring)
         rDelete(self._ring)
+        if oldRing != NULL:
+            rChangeCurrRing(oldRing)
 
     cdef _coerce_c_impl(self, element):
         """

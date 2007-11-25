@@ -2830,6 +2830,41 @@ class SymbolicConstant(Symbolic_object):
     def _recursive_sub_over_ring(self, kwds, ring):
         return ring(self)
 
+    def _algebraic_(self, field):
+        """
+        EXAMPLES:
+            sage: a = SR(5/6)
+            sage: AA(a)
+            5/6
+            sage: type(AA(a))
+            <class 'sage.rings.algebraic_real.AlgebraicReal'>
+            sage: QQbar(a)
+            5/6
+            sage: type(QQbar(a))
+            <class 'sage.rings.algebraic_real.AlgebraicNumber'>
+            sage: from sage.calculus.calculus import SymbolicConstant
+            sage: i = SymbolicConstant(I)
+            sage: AA(i)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(i)
+            1*I
+            sage: phi = SymbolicConstant(golden_ratio)
+            sage: AA(phi)
+            [1.6180339887498946 .. 1.6180339887498950]
+            sage: QQbar(phi)
+            [1.6180339887498946 .. 1.6180339887498950]
+        """
+
+        # Out of the many kinds of things that can be in a SymbolicConstant,
+        # we accept only rational numbers (or things that can be coerced
+        # to rational) and a few instances of Constant.
+
+        if isinstance(self._obj, sage.functions.constants.Constant) \
+               and hasattr(self._obj, '_algebraic_'):
+            return self._obj._algebraic_(field)
+        return field(Rational(self._obj))
 
 
 class SymbolicPolynomial(Symbolic_object):
@@ -3072,6 +3107,38 @@ class SymbolicArithmetic(SymbolicOperation):
             return self.simplify()._real_rqdf_(field)
         rops = [op._real_rqdf_(field) for op in self._operands]
         return self._operator(*rops)
+
+    def _algebraic_(self, field):
+        """
+        Convert a symbolic expression to an algebraic number.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2) + sqrt(8))
+            [4.2426406871192847 .. 4.2426406871192857]
+            sage: AA(sqrt(2) ^ 4) == 4
+            True
+            sage: AA(-golden_ratio)
+            [-1.6180339887498950 .. -1.6180339887498946]
+            sage: QQbar((2*I)^(1/2))
+            [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+        """
+
+        # We try to avoid simplifying, because maxima's simplify command
+        # can change the value of a radical expression (by changing which
+        # root is selected).
+        try:
+            if self._operator is operator.pow:
+                base = field(self._operands[0])
+                expt = Rational(self._operands[1])
+                return field(field(base) ** expt)
+            else:
+                rops = [field(op) for op in self._operands]
+                return self._operator(*rops)
+        except TypeError:
+            if self.is_simplified():
+                raise
+            else:
+                return self.simplify()._algebraic_(field)
 
     def _is_atomic(self):
         try:
@@ -4010,6 +4077,30 @@ class SymbolicComposition(SymbolicOperation):
             raise TypeError, "precision loss"
         else:
             return z
+
+    def _algebraic_(self, field):
+        """
+        Coerce to an algebraic number.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2))
+            [1.4142135623730949 .. 1.4142135623730952]
+            sage: AA(abs(1+I))
+            [1.4142135623730949 .. 1.4142135623730952]
+        """
+        # We try to avoid simplifying, because maxima's simplify command
+        # can change the value of a radical expression (by changing which
+        # root is selected).
+        f = self._operands[0]
+        g = self._operands[1]
+        try:
+            return field(f(g._algebraic_(field)))
+        except TypeError:
+            if self.is_simplified():
+                raise
+            else:
+                return self.simplify()._algebraic_(field)
+
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):

@@ -91,7 +91,9 @@ from polynomial.all import *
 # Algebraic reals (the intersection of the algebraic closure of the rationals
 # with the reals)
 from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
-                            AlgebraicRealNumber, is_AlgebraicRealNumber)
+                            AlgebraicReal, is_AlgebraicReal,
+                            AlgebraicField, is_AlgebraicField, QQbar,
+                            AlgebraicNumber, is_AlgebraicNumber)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,

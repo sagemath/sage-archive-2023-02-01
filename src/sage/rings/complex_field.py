@@ -26,11 +26,21 @@ from sage.misc.sage_eval import sage_eval
 from sage.structure.parent_gens import ParentWithGens
 
 NumberFieldElement_quadratic = None
+AlgebraicNumber_base = None
+AlgebraicNumber = None
+AlgebraicReal = None
 def late_import():
     global NumberFieldElement_quadratic
+    global AlgebraicNumber_base
+    global AlgebraicNumber
+    global AlgebraicReal
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
         NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
+        import sage.rings.algebraic_real
+        AlgebraicNumber_base = sage.rings.algebraic_real.AlgebraicNumber_base
+        AlgebraicNumber = sage.rings.algebraic_real.AlgebraicNumber
+        AlgebraicReal = sage.rings.algebraic_real.AlgebraicReal
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
@@ -209,6 +219,9 @@ class ComplexField_class(field.Field):
                 return self(x)
         except AttributeError:
             pass
+        late_import()
+        if isinstance(x, AlgebraicNumber_base):
+            return self(x)
         return self._coerce_try(x, self._real_field())
 
     def _repr_(self):

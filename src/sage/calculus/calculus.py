@@ -2837,11 +2837,11 @@ class SymbolicConstant(Symbolic_object):
             sage: AA(a)
             5/6
             sage: type(AA(a))
-            <class 'sage.rings.algebraic_real.AlgebraicReal'>
+            <class 'sage.rings.qqbar.AlgebraicReal'>
             sage: QQbar(a)
             5/6
             sage: type(QQbar(a))
-            <class 'sage.rings.algebraic_real.AlgebraicNumber'>
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
             sage: from sage.calculus.calculus import SymbolicConstant
             sage: i = SymbolicConstant(I)
             sage: AA(i)

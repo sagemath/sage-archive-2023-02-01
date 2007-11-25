@@ -669,7 +669,7 @@ def rational_exact_root(r, d):
     the d'th root of r; otherwise, returns None.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import rational_exact_root
+        sage: from sage.rings.qqbar import rational_exact_root
         sage: rational_exact_root(16/81, 4)
         2/3
         sage: rational_exact_root(8/81, 3) is None
@@ -700,7 +700,7 @@ def clear_denominators(poly):
     factors the denominators, to give the smallest possible scale factor.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import clear_denominators
+        sage: from sage.rings.qqbar import clear_denominators
 
         sage: _.<x> = QQ['x']
         sage: clear_denominators(x + 3/2)
@@ -748,7 +748,7 @@ def do_polred(poly):
     new polynomial.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import do_polred
+        sage: from sage.rings.qqbar import do_polred
 
         sage: _.<x> = QQ['x']
         sage: do_polred(x^2-5)
@@ -791,7 +791,7 @@ def isolating_interval(intv_fn, pol):
     Returns an interval containing at most one root of pol.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import isolating_interval
+        sage: from sage.rings.qqbar import isolating_interval
 
         sage: _.<x> = QQ['x']
         sage: isolating_interval(lambda prec: sqrt(RealIntervalField(prec)(2)), x^2 - 2)
@@ -836,7 +836,7 @@ def find_zero_result(fn, l):
     one element of l.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import find_zero_result
+        sage: from sage.rings.qqbar import find_zero_result
         sage: _.<x> = QQ['x']
         sage: delta = 10^(-70)
         sage: p1 = x - 1
@@ -872,7 +872,7 @@ def conjugate_expand(v):
     the diameter of the input.)
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import conjugate_expand
+        sage: from sage.rings.qqbar import conjugate_expand
         sage: conjugate_expand(CIF(RIF(0, 1), RIF(1, 2)))
         [0.00000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I
         sage: conjugate_expand(CIF(RIF(0, 1), RIF(0, 1)))
@@ -903,7 +903,7 @@ def conjugate_shrink(v):
     in question is real.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic_real import conjugate_shrink
+        sage: from sage.rings.qqbar import conjugate_shrink
         sage: conjugate_shrink(RIF(3, 4))
         [3.0000000000000000 .. 4.0000000000000000]
         sage: conjugate_shrink(CIF(RIF(1, 2), RIF(1, 2)))
@@ -957,7 +957,7 @@ class AlgebraicGenerator(SageObject):
         """
         Construct an AlgebraicGenerator object.
 
-        sage: from sage.rings.algebraic_real import ANRoot, AlgebraicGenerator, qq_generator
+        sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
         sage: _.<y> = QQ['y']
         sage: x = polygen(QQbar)
         sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
@@ -1016,7 +1016,7 @@ class AlgebraicGenerator(SageObject):
         does not actually extend the rationals.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import qq_generator
+            sage: from sage.rings.qqbar import qq_generator
             sage: qq_generator.is_trivial()
             True
         """
@@ -1065,7 +1065,7 @@ class AlgebraicGenerator(SageObject):
         for the number field QQ[alpha][beta].
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot, AlgebraicGenerator, qq_generator
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(QQbar)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -1182,7 +1182,7 @@ class AlgebraicGenerator(SageObject):
         returns None.)
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicGenerator, ANRoot, qq_generator
+            sage: from sage.rings.qqbar import AlgebraicGenerator, ANRoot, qq_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(QQbar)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -1235,7 +1235,7 @@ class AlgebraicGenerator(SageObject):
         NumberFieldElement depending on whether this is the trivial generator.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot, AlgebraicGenerator, ANExtensionElement, ANRational
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, ANExtensionElement, ANRational
             sage: _.<y> = QQ['y']
             sage: x = polygen(QQbar)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -1479,7 +1479,7 @@ class ANDescr(SageObject):
         ANExtensionElement.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRational
+            sage: from sage.rings.qqbar import ANRational
             sage: ANRational(1/2).is_exact()
             True
             sage: QQbar(3+I)._descr.is_exact()
@@ -1496,7 +1496,7 @@ class ANDescr(SageObject):
         will actually return ANRational objects for rational numbers.)
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRational
+            sage: from sage.rings.qqbar import ANRational
             sage: ANRational(3/7).is_rational()
             True
         """
@@ -1506,7 +1506,7 @@ class ANDescr(SageObject):
         """
         Returns True if self is an ANExtensionElement.
 
-            sage: from sage.rings.algebraic_real import ANExtensionElement, ANRoot, AlgebraicGenerator
+            sage: from sage.rings.qqbar import ANExtensionElement, ANRoot, AlgebraicGenerator
             sage: _.<y> = QQ['y']
             sage: x = polygen(QQbar)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -1612,7 +1612,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Initialize an algebraic number.  The argument must be either
         a rational number, a Gaussian rational, or a subclass of ANDescr.
 
-        sage: from sage.rings.algebraic_real import ANRootOfUnity
+        sage: from sage.rings.qqbar import ANRootOfUnity
         sage: AlgebraicReal(22/7)
         22/7
         sage: AlgebraicNumber(ANRootOfUnity(2/5, 1))
@@ -2278,7 +2278,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(3 + 4*I).norm()
             25
             sage: type(QQbar(I).norm())
-            <class 'sage.rings.algebraic_real.AlgebraicReal'>
+            <class 'sage.rings.qqbar.AlgebraicReal'>
             sage: QQbar.zeta(1007).norm()
             1
         """
@@ -3180,7 +3180,7 @@ class ANRoot(ANDescr):
         quickly if started with a sufficiently narrow interval.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot
+            sage: from sage.rings.qqbar import ANRoot
             sage: x = polygen(AA)
             sage: rt2 = ANRoot(x^2 - 2, RIF(0, 2))
             sage: rt2.refine_interval(RIF(0, 2), 75)
@@ -3358,7 +3358,7 @@ class ANRoot(ANDescr):
         numerically, and select the appropriate root.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot
+            sage: from sage.rings.qqbar import ANRoot
             sage: x = polygen(QQbar)
             sage: intv = CIF(RIF(0, 1), RIF(0.1, 1))
             sage: rt = ANRoot(x^5 - 1, intv)
@@ -3497,7 +3497,7 @@ class ANRoot(ANDescr):
         polynomial, and checking which one is in interval.  Slow but sure.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot
+            sage: from sage.rings.qqbar import ANRoot
             sage: x = polygen(QQbar)
             sage: intv = CIF(RIF(0, 1), RIF(0.1, 1))
             sage: rt = ANRoot(x^5 - 1, intv)
@@ -3531,7 +3531,7 @@ class ANRoot(ANDescr):
         ANExtensionElement with the same value as this number.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import ANRoot
+            sage: from sage.rings.qqbar import ANRoot
             sage: x = polygen(QQbar)
             sage: two = ANRoot((x-2)*(x-sqrt(QQbar(2))), RIF(1.9, 2.1))
             sage: two.exactify()

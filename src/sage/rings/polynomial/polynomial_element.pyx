@@ -85,8 +85,8 @@ cdef void late_import():
     if is_AlgebraicRealField is not None:
         return
 
-    import sage.rings.algebraic_real
-    is_AlgebraicRealField = sage.rings.algebraic_real.is_AlgebraicRealField
+    import sage.rings.qqbar
+    is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
     import sage.rings.number_field.number_field
     NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
     import sage.rings.complex_interval_field

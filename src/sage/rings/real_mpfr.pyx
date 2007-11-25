@@ -267,8 +267,8 @@ cdef class RealField(sage.rings.ring.Field):
             return self(x)
         elif is_RealDoubleElement(x) and self.__prec <= 53:
             return self(x)
-        import sage.rings.algebraic_real
-        if isinstance(x, sage.rings.algebraic_real.AlgebraicReal):
+        import sage.rings.qqbar
+        if isinstance(x, sage.rings.qqbar.AlgebraicReal):
             return self(x)
         raise TypeError
 

@@ -538,8 +538,8 @@ class I_class(Constant):
         raise TypeError
 
     def _algebraic_(self, field):
-        import sage.rings.algebraic_real
-        return field(sage.rings.algebraic_real.QQbar_I)
+        import sage.rings.qqbar
+        return field(sage.rings.qqbar.QQbar_I)
 
     def __abs__(self):
         return Integer(1)
@@ -697,8 +697,8 @@ class GoldenRatio(Constant):
 	return (R(1)+R(5).sqrt())*R(0.5)
 
     def _algebraic_(self, field):
-        import sage.rings.algebraic_real
-        return field(sage.rings.algebraic_real.get_AA_golden_ratio())
+        import sage.rings.qqbar
+        return field(sage.rings.qqbar.get_AA_golden_ratio())
 
 golden_ratio = GoldenRatio()
 

@@ -683,7 +683,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             RealIntervalField?
         for many more examples.
         """
-        import sage.rings.algebraic_real
+        import sage.rings.qqbar
 
         self.init = 0
         if parent is None:
@@ -744,7 +744,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 rn1 =self._parent._upper_field()(b)
                 mpfi_interv_fr(self.value, <mpfr_t> rn.value, <mpfr_t> rn1.value)
 
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicReal):
+        elif isinstance(x, sage.rings.qqbar.AlgebraicReal):
             d = x.interval(self._parent)
             mpfi_set(self.value, d.value)
 

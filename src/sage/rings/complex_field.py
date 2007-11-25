@@ -37,10 +37,10 @@ def late_import():
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
         NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
-        import sage.rings.algebraic_real
-        AlgebraicNumber_base = sage.rings.algebraic_real.AlgebraicNumber_base
-        AlgebraicNumber = sage.rings.algebraic_real.AlgebraicNumber
-        AlgebraicReal = sage.rings.algebraic_real.AlgebraicReal
+        import sage.rings.qqbar
+        AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
+        AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
+        AlgebraicReal = sage.rings.qqbar.AlgebraicReal
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)

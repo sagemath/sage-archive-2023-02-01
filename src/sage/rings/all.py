@@ -88,12 +88,11 @@ from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
-# Algebraic reals (the intersection of the algebraic closure of the rationals
-# with the reals)
-from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
-                            AlgebraicReal, is_AlgebraicReal,
-                            AlgebraicField, is_AlgebraicField, QQbar,
-                            AlgebraicNumber, is_AlgebraicNumber)
+# Algebraic numbers
+from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
+                   AlgebraicReal, is_AlgebraicReal,
+                   AlgebraicField, is_AlgebraicField, QQbar,
+                   AlgebraicNumber, is_AlgebraicNumber)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,

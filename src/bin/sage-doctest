@@ -321,6 +321,8 @@ def test_file(file):
             cmd = "valgrind --tool=massif --trace-children=yes --depth=6 --log-file=$HOME/.sage/sage-massif " + cmd
         if cachegrind:
             cmd = "valgrind --tool=cachegrind --trace-children=yes --log-file=$HOME/.sage/sage-cachegrind " + cmd
+        if omega:
+            cmd = "valgrind --tool=omega --trace-children=yes --log-file=$HOME/.sage/sage-omega " + cmd
 
         tm = time.time()
         try:
@@ -395,6 +397,7 @@ if __name__ ==  '__main__':
         memcheck   = has_opt('memcheck') or has_opt('valgrind')
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
+        omega      = has_opt('omega')
         if argv[1][0] == '-':
             usage()
         try:

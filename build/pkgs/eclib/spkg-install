@@ -1,6 +1,13 @@
 #!/bin/sh
 
-cd src
+CUR=`pwd`
+
+echo "Deleting old versions of cremona libraries, which"
+echo "would interfere with new builds."
+cd "$SAGE_LOCAL"/lib/
+rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.*
+
+cd "$CUR"/src
 
 NTL_PREFIX="$SAGE_LOCAL"
 export NTL_PREFIX

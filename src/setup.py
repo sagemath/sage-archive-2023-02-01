@@ -660,6 +660,10 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfi.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
+    Extension('sage.rings.complex_interval',
+              sources = ['sage/rings/complex_interval.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
     Extension('sage.rings.residue_field',
               sources = ['sage/rings/residue_field.pyx']), \
 

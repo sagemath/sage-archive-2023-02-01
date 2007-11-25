@@ -1,8 +1,8 @@
 #!/bin/sh
 
-cp patches/config.* src/
+# cp patches/config.* src/
 
-cp patches/mpfi*.c src/src/
+# cp patches/mpfi*.c src/src/
 
 cd src
 
@@ -10,7 +10,7 @@ cd src
 CFLAGS="-Z "$CFLAGS
 export CFLAGS
 
-./configure --prefix="$SAGE_LOCAL" --with-gmp-incpath="$SAGE_LOCAL"/include CFLAGS="-fPIC"
+./configure --prefix="$SAGE_LOCAL" --with-mpfr-dir="$SAGE_LOCAL" --with-gmp-incpath="$SAGE_LOCAL"/include CFLAGS="-fPIC"
 
 # Setting these explicitly on the build line breaks the
 # build on OS X.

@@ -29,3 +29,17 @@ MPFI bug tracker.
 b. Fixed the infinite loop in mpfi_cmp_sym_pi() (fixes the infinite loop
 in mpfi_cos(), reported as MPFI bug# 1868 and Sage issue #389.
 
+4. Carl Witty 2007-11-25
+MPFI upstream is alive again!  I'm switching to the current upstream CVS
+version as of today, fetched with:
+
+cvs -d :pserver:anonymous@scm.gforge.inria.fr:/cvsroot/mpfi login
+cvs -d :pserver:anonymous@scm.gforge.inria.fr:/cvsroot/mpfi checkout mpfi
+mv mpfi src
+cd src
+./autogen.sh
+
+This version includes all the patches from the Sage spkg (or
+equivalent code), and fixes several additional bugs.  (So I removed
+the patches/ directory, and the corresponding lines in spkg-install.)
+Also, this new version installs both shared and static libraries.

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+if [ -f /usr/include/X11/Xwindows.h ]; then
+    XSUPPORT=yes
+else
+    XSUPPORT=no
+fi
+
+cd src
+
+FC=sage_fortran; export FC
+F77=sage_fortran; export F77
+
+./configure --prefix=$SAGE_LOCAL --enable-R-shlib --with-x=$XSUPPORT --without-readline
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring R."
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "Error building R."
+    exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "Error installing R."
+    exit 1
+fi
+
+# For some reason make install sucks -- it doesn't copy the libraries or R bin over ??
+
+cp lib/* "$SAGE_LOCAL"/lib/
+cp bin/R "$SAGE_LOCAL"/bin/
+
+# Some linux only hackery.
+
+if [ -f "$SAGE_LOCAL"/lib64/R/lib/libR.so ]; then
+  cp "$SAGE_LOCAL"/lib64/R/lib/libR* "$SAGE_LOCAL"/lib/
+fi
+
+if [ -f "$SAGE_LOCAL"/lib32/R/lib/libR.so ]; then
+  cp "$SAGE_LOCAL"/lib32/R/lib/libR* "$SAGE_LOCAL"/lib/
+fi

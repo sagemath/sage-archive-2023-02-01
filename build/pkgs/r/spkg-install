@@ -1,10 +1,15 @@
 #!/bin/sh
 
-if [ -f /usr/include/X11/Xwindows.h ]; then
-    XSUPPORT=yes
-else
-    XSUPPORT=no
-fi
+CUR=`pwd`
+
+
+# I have problems with this on OSX Intel 10.5.1 -- for now just turn it off.
+# It will be good to get something fully working before worrying about X.
+#if [ -f /usr/include/X11/Xwindows.h ]; then
+#    XSUPPORT=yes
+#else
+XSUPPORT=no
+#fi
 
 cd src
 
@@ -39,8 +44,19 @@ cp bin/R "$SAGE_LOCAL"/bin/
 
 if [ -f "$SAGE_LOCAL"/lib64/R/lib/libR.so ]; then
   cp "$SAGE_LOCAL"/lib64/R/lib/libR* "$SAGE_LOCAL"/lib/
+  cp "$SAGE_LOCAL"/lib64/R/bin/R     "$SAGE_LOCAL"/bin/
 fi
 
 if [ -f "$SAGE_LOCAL"/lib32/R/lib/libR.so ]; then
   cp "$SAGE_LOCAL"/lib32/R/lib/libR* "$SAGE_LOCAL"/lib/
+  cp "$SAGE_LOCAL"/lib32/R/bin/R     "$SAGE_LOCAL"/bin/
 fi
+
+echo "WARNING -- R hardcodes the path -- you will need to reinstall R if you move you Sage install directory."
+
+
+echo "Now install rpy"
+
+cd "$CUR"
+
+sage -i rpy-1.0-rc3-p1.spkg

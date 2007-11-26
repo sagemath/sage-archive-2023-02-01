@@ -19,6 +19,9 @@ def gramm_schmidt(B):
     Return the Gramm-Schmidt orthogonalization of the entries in the list
     B of vectors, along with the matrix mu of Gramm-Schmidt coefficients.
 
+    Note that the output vectors need not have unit length. We do this
+    to avoid having to extract square roots.
+
     EXAMPLES:
         sage: B = [vector([1,2,1/5]), vector([1,2,3]), vector([-1,0,0])]
         sage: from sage.modules.misc import gramm_schmidt

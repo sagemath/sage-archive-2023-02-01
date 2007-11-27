@@ -109,12 +109,13 @@ class SymmetricGroup(PermutationGroup_generic):
         [1, 2, 3, 4]
     """
     def __init__(self, n):
-        self._deg = n
+        self._set = n
         if isinstance(n, ListType):
+            self._deg = len(n)
             PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
         else:
             try:
-                n = Integer(n)
+                self._deg = n = Integer(n)
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
@@ -122,25 +123,16 @@ class SymmetricGroup(PermutationGroup_generic):
                 raise ValueError, "%s\nn (=%s) must be an integer >= 1 or a list (but n has type %s)"%(msg, n,type(n))
 
     def _repr_(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "Symmetric group of order %s! as a permutation group"%deg
+        return "Symmetric group of order %s! as a permutation group" % self._deg
 
     def __str__(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "SymmetricGroup(%s)"%deg
+        return "SymmetricGroup(%s)" % self._deg
 
     def set(self):
-        if isinstance(self._deg,ListType):
-            X = self._deg
+        if isinstance(self._set, list):
+            return self._set
         else:
-            X = range(1,self._deg + 1)
-        return X
+            return range(1, self._deg + 1)
 
 class AlternatingGroup(PermutationGroup_generic):
     """
@@ -165,12 +157,13 @@ class AlternatingGroup(PermutationGroup_generic):
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
     def __init__(self, n):
-        self._deg = n
+        self._set = n
         if isinstance(n,ListType):
+            self._deg = len(n)
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
         else:
             try:
-                n = Integer(n)
+                self._deg = n = Integer(n)
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
@@ -178,25 +171,16 @@ class AlternatingGroup(PermutationGroup_generic):
                 raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
     def _repr_(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "Alternating group of order %s!/2 as a permutation group"%deg
+        return "Alternating group of order %s!/2 as a permutation group" % self._deg
 
     def __str__(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "AlternatingGroup(%s)"%deg
+        return "AlternatingGroup(%s)" % self._deg
 
     def set(self):
-        if isinstance(self._deg,ListType):
-            X = self._deg
+        if isinstance(self._set, list):
+            return self._set
         else:
-            X = range(1,self._deg + 1)
-        return X
+            return range(1, self._deg + 1)
 
 class CyclicPermutationGroup(PermutationGroup_generic):
     """

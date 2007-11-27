@@ -4,6 +4,7 @@ Permutation group elements
 AUTHORS:
     - David Joyner (2006-02)
     - David Joyner (2006-03), word problem method and reorganization
+    - Robert Bradshaw (2007-11), convert to Cython
 
 EXAMPLES:
 The Rubik's cube group:
@@ -51,6 +52,11 @@ import random
 
 import sage.groups.group as group
 
+include "../../ext/stdsage.pxi"
+include "../../ext/python_list.pxi"
+cdef extern from "stdsage.h":
+    object PY_NEW_SAME_TYPE(object o)
+
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
@@ -60,9 +66,12 @@ import sage.structure.coerce as coerce
 import operator
 
 from sage.rings.integer import Integer
-from sage.structure.element import MonoidElement
 
 #import permgroup_named
+
+def make_permgroup_element(G, x):
+    G._deg = len(x)
+    return G(x, check=False)
 
 def is_PermutationGroupElement(x):
     return isinstance(x, PermutationGroupElement)
@@ -219,17 +228,58 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self.__gap = gap_format(g)
             if not parent is None:
                 P = parent._gap_()
-                if not self._gap_(P.parent()) in P:
+                if not P.parent()(self.__gap) in P:
                     raise TypeError, 'permutation %s not in %s'%(self.__gap, parent)
         else:
             self.__gap = str(g)
         if parent is None:
-            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(self._gap_().LargestMovedPoint())
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(G(self.__gap).LargestMovedPoint())
+
         Element.__init__(self, parent)
 
-    def _gap_init_(self):
-        return self.__gap
+        try:
+            self.n = parent.degree()
+        except TypeError:
+            raise TypeError, type(parent.degree())
+        if self.perm is NULL:
+            self.perm = <int *>sage_malloc(sizeof(int) * self.n)
+        else:
+            self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
+        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
+        cdef int i, tmp
+        for i from 0 <= i < len(v):
+            self.perm[i] = v[i] - 1
+        for i from len(v) <= i < self.n:
+            self.perm[i] = i
 
+    def __cinit__(self, g = None, parent = None, check = True):
+        self.perm = NULL
+
+    def __dealloc__(self):
+        sage_free(self.perm)
+
+    def __reduce__(self):
+        return make_permgroup_element, (self._parent, self.list())
+
+    cdef PermutationGroupElement _new_c(self):
+        cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
+        if HAS_DICTIONARY(self):
+            other.__class__ = self.__class__
+        other._parent = self._parent
+        other.n = self.n
+        other.perm = <int *>sage_malloc(sizeof(int) * other.n)
+        return other
+
+    def _gap_(self, G=None):
+        if self._gap_element is None or \
+            (G is not None and self._gap_element._parent is not G):
+            if G is None:
+                import sage.interfaces.gap
+                G = sage.interfaces.gap.gap
+            self._gap_element = G("PermList(%s)" % self.list())
+        return self._gap_element
 
     def _repr_(self):
         """
@@ -252,7 +302,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g
             (1,2,3)(4,5)
         """
-        return self.__gap
+        return str(self._gap_()).replace(' ', '').replace('\n', '')
 
     def _latex_(self):
         return str(self)
@@ -287,7 +337,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             raise IndexError, "i (=%s) must be between 0 and %s, inclusive"%(i, len(S)-1)
         return PermutationGroupElement(gap(T), check = False)
 
-    def __cmp__(self, right):
+    def __cmp__(PermutationGroupElement self, PermutationGroupElement right):
         """
         Compare group elements self and right.
 
@@ -298,6 +348,14 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: G.gen(0) > G.gen(1)
             True
         """
+        cdef int i
+        cdef bint equal = 1
+        for i from 0 <= i < self.n:
+            if self.perm[i] != right.perm[i]:
+                equal = 0
+                break
+        if equal:
+            return 0
         r = right._gap_()
         G = r.parent()
         l = self._gap_(G)
@@ -323,34 +381,21 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g(('who','what','when','where','why'))
             ('what', 'when', 'who', 'why', 'where')
         """
+        cdef int j
         if isinstance(i,(list,tuple,str)):
-            l = self.list()
-            if len(l) < len(i):
-                l+= range(len(l),len(i))
-            l = [i[j-1] for j in l]
-            if isinstance(i,list):
-                return l
-            if isinstance(i,tuple):
-                return tuple(l)
-            else:
-                return ''.join(l)
+            permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
+            if PY_TYPE_CHECK(i, tuple):
+                permuted = tuple(permuted)
+            elif PY_TYPE_CHECK(i, str):
+                permuted = ''.join(permuted)
+            permuted += i[self.n:]
+            return permuted
         else:
-            return int(gap.eval('%s^%s'%(i, self._gap_().name())))
-
-    #def __mul__(self, other):
-    #    """
-    #    This overloaded operator implements multiplication *and*
-    #    permutation action on polynomials.
-    #    EXAMPLES:
-    #        sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'])
-    #        sage: g = G.gens()
-    #        sage: g[0] * g[1]
-    #        (1,2)(3,5,6)
-    #    """
-    #    if isinstance(other, MPolynomial):
-    #        return self.right_action_on_polynomial(other)
-    #    else:
-    #        return element.MultiplicativeGroupElement.__mul__(self, other)
+            j = i
+            if 1 <= j <= self.n:
+                return self.perm[j-1]+1
+            else:
+                return i
 
     def _r_action(self, left):
         """
@@ -399,24 +444,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             raise TypeError, "left (=%s) must be a polynomial."%left
 
 
-    def _mul_(self, other):
-        return PermutationGroupElement(self._gap_()*other._gap_(),
-                                       self.parent(), check = True)
-
-    def _div_(self, other):
-        """
-        Returns self divided by other, i.e., self times the inverse
-        of other.
-
-        EXAMPLES:
-            sage: g = PermutationGroupElement('(1,2,3)(4,5)')
-            sage: h = PermutationGroupElement('(1,2,3)')
-            sage: g/h
-            (4,5)
-        """
-        return PermutationGroupElement(self._gap_()/other._gap_(),
-                                           self.parent(),
-                                           check = True)
+    cdef MonoidElement _mul_c_impl(left, MonoidElement _right):
+        cdef PermutationGroupElement prod = left._new_c()
+        cdef PermutationGroupElement right = <PermutationGroupElement>_right
+        cdef int i
+        for i from 0 <= i < left.n:
+            prod.perm[i] = right.perm[left.perm[i]]
+        return prod
 
     def __invert__(self):
         """
@@ -429,10 +463,24 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: (~g) * g
             ()
         """
-        return PermutationGroupElement(self._gap_().Inverse(),
-                          self.parent(), check=False)
+        cdef PermutationGroupElement inv = self._new_c()
+        cdef int i
+        for i from 0 <= i < self.n:
+            inv.perm[self.perm[i]] = i
+        return inv
 
-    def list(self):
+    def list_old(self):
+        v = eval(gap.eval('ListPerm(%s)'%self._gap_()))
+        # the following is necessary, since if the
+        # permutation doesn't move some elements at
+        # the end, it is consider by gap as being in
+        # a smaller group.
+        d = self.parent().degree()
+        if len(v) < d:
+            v += range(len(v)+1,d+1)
+        return v
+
+    cpdef list(self):
         """
         Returns list of the images of the integers from 1 to n under
         this permutation as a list of Python ints.
@@ -450,15 +498,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: x.list()
             [2, 1, 3, 4]
         """
-        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
-        # the following is necessary, since if the
-        # permutation doesn't move some elements at
-        # the end, it is consider by gap as being in
-        # a smaller group.
-        d = self.parent().degree()
-        if len(v) < d:
-            v += range(len(v)+1,d+1)
-        return v
+        cdef int i
+        return [self.perm[i]+1 for i from 0 <= i < self.n]
 
     def dict(self):
         """
@@ -483,17 +524,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: x.dict()
             {1: 2, 2: 1, 3: 3, 4: 4}
         """
-        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
-        # the following is necessary, since if the
-        # permutation doesn't move some elements at
-        # the end, it is consider by gap as being in
-        # a smaller group.
-        d = self.parent().degree()
-        if len(v) < d:
-            v += range(len(v)+1,d+1)
+        cdef int i
         u = {}
-        for i in range(d):
-            u[i+1] = v[i]
+        for i from 0 <= i < self.n:
+            u[i+1] = self.perm[i]+1
         return u
 
     def order(self):
@@ -521,7 +555,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return int(self._gap_().SignPerm())
 
 
-    def orbit(self, n):
+    def orbit(self, n, bint sorted=True):
         """
         Returns the orbit of the integer $n$ under this group element,
         as a sorted list of integers.
@@ -536,6 +570,20 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g.orbit(10)
             [10]
         """
+        cdef int i = n
+        cdef int start = i
+        if 1 <= i <= self.n:
+            L = [i]
+            i = self.perm[i-1]+1
+            while i != start:
+                PyList_Append(L,i)
+                i = self.perm[i-1]+1
+            if sorted:
+                L.sort()
+            return L
+        else:
+            return [n]
+
         n = Integer(n)
         # We use eval to avoid creating intermediate gap objects (so
         # this is slightly faster.
@@ -559,11 +607,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             [0 0 0 0 1]
             [0 0 0 1 0]
         """
-        deg = self.parent().degree()
-        M = MatrixSpace(ZZ,deg,deg)
+        M = MatrixSpace(ZZ, self.n, self.n)
         A = M(0)
-        for i in range(deg):
-            A[i, self(i+1) - 1] = 1
+        cdef int i
+        for i from 0 <= i < self.n:
+            A[i, self.perm[i]] = 1
         return A
 
     def word_problem(g, words, display=True):

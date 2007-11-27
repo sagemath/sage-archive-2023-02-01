@@ -1215,7 +1215,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        return self._parent.fraction_field()(self, right)
+        return self * ~right
 
     def _div_(MultiplicativeGroupElement self, MultiplicativeGroupElement right):
         """

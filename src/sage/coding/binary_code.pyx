@@ -1968,26 +1968,15 @@ cdef class PartitionStack:
         return self.cmp(other, C)
 
     cdef int cmp(self, PartitionStack other, BinaryCode CG):
-        cdef int *cur_span = self.col_counts # grab spare scratch space, size self.nwords.
         cdef int *self_wd_ents = self.wd_ents
-        cdef int i, j, k, l, m, word, span = 1, ncols = self.ncols, nwords = self.nwords
-        cur_span[0] = 0
-        for i from 0 <= i < CG.nwords/2 + 1:
-            word = self_wd_ents[i]
-            k = 0
-            while k < span and word != cur_span[k]:
-                k += 1
-            if k == span:
-                if (span << 1) != nwords:
-                    for j from 0 <= j < span:
-                        cur_span[span+j] = cur_span[j] ^ word
-                span << 1
-                for j from 0 <= j < ncols:
-                    l = CG.is_one(self.wd_ents[i], self.col_ents[j])
-                    m = CG.is_one(other.wd_ents[i], other.col_ents[j])
-                    if l != m:
-                        return l - m
-                if span == nwords: break
+        cdef int *CG_words = CG.words
+        cdef int i, j, l, m, span = 1, ncols = self.ncols, nwords = self.nwords
+        for i from 0 <= i < nwords: # TODO: probably don't need to check i == 0 here!
+            for j from 0 <= j < ncols:
+                l = CG.is_one(self.wd_ents[i], self.col_ents[j])
+                m = CG.is_one(other.wd_ents[i], other.col_ents[j])
+                if l != m:
+                    return l - m
         return 0
 
     def print_basis(self):
@@ -2329,8 +2318,9 @@ cdef class BinaryCodeClassifier:
                             j += 1
                         print "W[k]: words", [Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
                 print nu
-                if hh != -1: print zeta
-            if False:
+                if hh != -1:
+                    print zeta
+                    print rho
                 print "h:", h
                 print "hzf:", hzf__h_zeta
                 print "aut_gp_index", self.aut_gp_index
@@ -2338,12 +2328,10 @@ cdef class BinaryCodeClassifier:
                 print 'ht', ht
                 print 'hzf__h_zeta', hzf__h_zeta
                 print 'qzb', qzb
-            if False:
                 print "state:", state
                 print '-----'
             badass += 1
-            #if badass > 92: break
-            #if badass > 2: break
+#            if badass > 363: break
 
             if state == 1: # Entry point: once only
                 alpha[0] = 0

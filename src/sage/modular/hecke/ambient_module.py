@@ -94,8 +94,19 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     def complement(self):
         """
         Return the largest Hecke-stable complement of this space.
+        EXAMPLES:
+            sage: M=ModularSymbols(11,2,1)
+            sage: M
+            Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
+            sage: M.complement()
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
+            sage: C=M.cuspidal_subspace()
+            sage: C
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
+            sage: C.complement()
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
         """
-        return self.zero_subspace()
+        return self.zero_submodule()
 
     def decomposition_matrix(self):
         r"""

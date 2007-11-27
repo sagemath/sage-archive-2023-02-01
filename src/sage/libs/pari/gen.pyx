@@ -506,15 +506,15 @@ cdef class gen(sage.structure.element.RingElement):
                         \code{tmp = v[i]; tmp[j] = x    }
 
             \item The indexing is 0-based, like everywhere else in Python, but
-               {\em unlike} in GP/PARI.
+               \emph{unlike} in GP/PARI.
 
             \item Assignment sets the nth entry to a reference to y,
                assuming y is an object of type gen.  This is the same
-               as in Python, but {\em different} than what happens in the
+               as in Python, but \emph{different} than what happens in the
                gp interpreter, where assignment makes a copy of y.
 
-            \item Because setting creates references it is {\em possible} to
-               make circular references, unlike in GP.  Do {\em not} do
+            \item Because setting creates references it is \emph{possible} to
+               make circular references, unlike in GP.  Do \emph{not} do
                this (see the example below).  If you need circular
                references, work at the Python level (where they work
                well), not the PARI object level.
@@ -3794,7 +3794,7 @@ cdef class gen(sage.structure.element.RingElement):
         weight 2 newform.
 
         \begin{notice}
-        The curve $e$ {\em must} be a medium or long vector of the type given
+        The curve $e$ \emph{must} be a medium or long vector of the type given
         by ellinit. For this function to work for every n and not just
         those prime to the conductor, e must be a minimal Weierstrass
         equation. If this is not the case, use the function

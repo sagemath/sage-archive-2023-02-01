@@ -607,6 +607,24 @@ class NumberFieldIdeal(Ideal_fractional):
                 self.__reduced_generators = tuple([g])
             return self.__is_principal
 
+    def is_trivial(self, proof=None):
+        """
+        Returns True if this is a trivial ideal.
+
+        EXAMPLES:
+            sage: F.<a> = QuadraticField(-5)
+            sage: I = F.ideal(3)
+            sage: I.is_trivial()
+            False
+            sage: J = F.ideal(5)
+            sage: J.is_trivial()
+            False
+            sage: (I+J).is_trivial()
+            True
+        """
+        return self.is_zero() or \
+            self == self.number_field().ideal(1)
+
     def is_zero(self):
         """
         Return True if this is the zero ideal.

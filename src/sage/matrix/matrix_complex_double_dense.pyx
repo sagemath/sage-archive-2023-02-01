@@ -34,6 +34,7 @@ import sage.rings.complex_double
 import sage.rings.real_double
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement, Vector
+from constructor import matrix
 cdef extern from "arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is
@@ -79,9 +80,9 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
     [  0.333333333333 + 0.333333333333*I   0.166666666667 - 0.166666666667*I]
     [ -0.166666666667 - 0.333333333333*I 0.0833333333333 + 0.0833333333333*I]
 
-    To compute eigenvalues the use the function eigen
+    To compute eigenvalues the use the functions left_eigenvectors or right_eigenvectors
 
-    sage: p,e = m.eigen_left()
+    sage: p,e = m.right_eigenvectors()
 
     the result of eigen is a pair p,e . p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors.
@@ -173,7 +174,6 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
                     raise TypeError, "scalar matrix must be square"
                 for i from 0<=i<self._ncols:
                     gsl_matrix_complex_set(self._matrix,i,i,z._complex)
-
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         cdef ComplexDoubleElement z
         z = sage.rings.complex_double.CDF(value)   # do I assume value is already CDF
@@ -316,20 +316,60 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         else:
             raise ValueError,"Error computing LU decomposition"
 
-    def eigen_left(self):
+
+    def left_eigenvectors(self):
         """
-        Computes the eigenvalues and eigenvectors of this matrix acting
-        from the left on column vectors.
+        Computes the eigenvalues and *left* eigenvectors of this
+        matrix m acting *from the right*.  I.e., vectors v such that
+        v*m = lambda*v.
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as a matrix whose ** COLUMNS ** are the eigenvectors of
-                       self acting from the ** LEFT **
+             corresponding eigenvectors -- as an CDF matrix whose rows
+                           are the eigenvectors.
 
         EXAMPLES:
             sage: I = CDF.gen()
             sage: m = I*Matrix(CDF, 3, range(9))
-            sage: vals, vecs = m.eigen_left()
+            sage: vals, vecs = m.left_eigenvectors()
+            sage: vecs*m      # random precision
+            [      1.83356748856e-16 + 5.8765683663*I      3.11202346481e-16 + 7.58017348024*I      4.39047944106e-16 + 9.28377859418*I]
+            [     1.66533453694e-15 - 1.21076184124*I     1.72084568817e-15 - 0.375459730779*I      1.7763568394e-15 + 0.459842379686*I]
+            [-3.33066907388e-16 - 6.66133814775e-16*I -5.55111512313e-16 - 7.21644966006e-16*I -7.77156117238e-16 - 7.77156117238e-16*I]
+
+            sage: vals[0] * vecs.row(0)  # random precision
+            (1.67272748078e-15 + 5.8765683663*I, 1.82458083857e-15 + 7.58017348024*I, 1.23544530231e-15 + 9.28377859418*I)
+            sage: vals[1] * vecs.row(1)  # random precision
+            (-2.00045384696e-16 - 1.21076184124*I, 5.36806149949e-16 - 0.375459730779*I, -5.97719297047e-16 + 0.459842379686*I)
+            sage: vals[2] * vecs.row(2)  # random precision
+            (-2.0580841304e-16 + 1.41000047373e-16*I, 4.11616826079e-16 - 2.82000094746e-16*I, -2.0580841304e-16 + 1.41000047373e-16*I)
+        """
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return [], self
+
+        import numpy
+        vals,vecs = numpy.linalg.eig(numpy.transpose(self.numpy()))
+        return ([sage.rings.complex_double.CDF(x) for x in vals],matrix(vecs).transpose())
+#        return vals, vecs
+
+
+    def right_eigenvectors(self):
+        """
+        Computes the eigenvalues and *right* eigenvectors of this
+        matrix m acting *from the left*.  I.e., vectors v such that
+        m * v = lambda*v, where v is viewed as a column vector.
+
+        OUTPUT:
+             eigenvalues -- as a list
+             corresponding eigenvectors -- as an CDF matrix whose columns
+                           are the eigenvectors.
+
+        EXAMPLES:
+            sage: I = CDF.gen()
+            sage: m = I*Matrix(CDF, 3, range(9))
+            sage: vals, vecs = m.right_eigenvectors()
             sage: m*vecs      # random precision
 
             [    -2.18763583539e-17 + 2.19934474494*I      2.22220787778e-16 - 1.07837038763*I                       -1.28830323146e-16]
@@ -341,10 +381,18 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             (3.94205510736e-18 - 1.07837038763*I, 2.78424120914e-16 - 0.140518298155*I, -2.91698877571e-16 + 0.797333791317*I)
             sage: vals[2] * vecs.column(2)  # random precision
             (-5.48020775807e-17 - 3.30603810196e-17*I, 1.09604155161e-16 + 6.61207620392e-17*I, -5.48020775807e-17 - 3.30603810196e-17*I)
-
+        IMPLEMENTATION:
+            Uses numpy.
         """
-        vals, vecs = self.__eigen_numpy()
-        return vals, vecs
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return [], self
+
+        import numpy
+        vals,vecs = numpy.linalg.eig(self.numpy())
+        return ([sage.rings.complex_double.CDF(x) for x in vals],matrix(vecs))
+
 
     def eigenspaces(self, var='a'):
         r"""
@@ -358,39 +406,9 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
         """
-        e, v = self.eigen()
+        e, v = self.left_eigenvectors()
         return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
 
-    def eigen(self):
-        """
-        Computes the eigenvalues and eigenvectors of this matrix acting
-        from the right on row vectors.
-
-        OUTPUT:
-             eigenvalues -- as a list
-             corresponding eigenvectors -- as a matrix whose ** ROWS ** are the eigenvectors of
-                       self acting from the ** RIGHT **.
-
-        EXAMPLES:
-            sage: m = CDF.gen() * matrix(CDF, 3, range(9))
-            sage: vals, vecs = m.eigen()
-            sage: vecs*m                 # random lower order precision
-
-            [     -1.89705341075e-16 + 5.8765683663*I     -6.97325864178e-16 + 7.58017348024*I     -1.20494638728e-15 + 9.28377859418*I]
-            [     6.14132768077e-17 - 1.21076184124*I    -1.67915811464e-17 - 0.375459730779*I    -9.49964391005e-17 + 0.459842379686*I]
-            [                       1.27807107345e-16 -1.57183904022e-17 - 2.22044604925e-16*I   -1.5924388815e-16 - 4.4408920985e-16*I]
-            sage: vals[0] * vecs[0]      # random lower order precision
-            (-4.98105891507e-15 + 5.8765683663*I, 3.82350801489e-16 + 7.58017348024*I, 1.50207949354e-15 + 9.28377859418*I)
-            sage: vals[1] * vecs[1]      # random lower order precision
-            (1.68567839964e-16 - 1.21076184124*I, 2.90791559893e-16 - 0.375459730779*I, -1.97082856458e-16 + 0.459842379686*I)
-            sage: vals[2] * vecs[2]      # random lower order precision
-            (-1.68884954068e-16 + 1.33212740043e-16*I, 3.37769908136e-16 - 2.66425480087e-16*I, -1.68884954068e-16 + 1.33212740043e-16*I)
-
-
-        """
-        vals, vecs = self.transpose().__eigen_numpy()
-        vecs = vecs.transpose()
-        return vals, vecs
 
     def __eigen_numpy(self):
         """

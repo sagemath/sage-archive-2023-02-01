@@ -1420,7 +1420,7 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         If base is None, return the matrix of right multiplication by
         the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
-        for the number field.  Thus the {\em rows} of this matrix give
+        for the number field.  Thus the \emph{rows} of this matrix give
         the images of each of the $x^i$.
 
         If base is not None, then base must be either a field that

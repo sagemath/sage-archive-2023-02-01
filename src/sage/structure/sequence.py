@@ -361,18 +361,26 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self):
+    def sort(self, cmp=None, key=None, reverse=False):
         """
-        Sort this list.
+        Sort this list *IN PLACE*.
+
+        cmp(x, y) -> -1, 0, 1
 
         EXAMPLES:
             sage: B = Sequence([3,2,1/5])
             sage: B.sort()
             sage: B
             [1/5, 2, 3]
+            sage: B.sort(reverse=True); B
+            [3, 2, 1/5]
+            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
+            [3, 2, 1/5]
+            sage: B.sort(cmp = lambda x,y: cmp(y,x), reverse=True); B
+            [1/5, 2, 3]
         """
         self._require_mutable()
-        list.sort(self)
+        list.sort(self, cmp=cmp, key=key, reverse=reverse)
 
     def __hash__(self):
         if self.__hash is None:

@@ -3,7 +3,7 @@ The Elliptic Curve Factorization Method
 
 \sage includes GMP-ECM, which is a highly optimized implementation
 of Lenstra's elliptic curve factorization method.  See
-\url{http://www.komite.net/laurent/soft/ecm/ecm-6.0.1.html}
+\url{http://ecm.gforge.inria.fr/}
 for more about GMP-ECM.
 """
 
@@ -27,13 +27,13 @@ class ECM:
         Create an interface to the GMP-ECM elliptic curve method
         factorization program.
 
-        See \url{http://www.komite.net/laurent/soft/ecm/}.
+        See \url{http://ecm.gforge.inria.fr/}.
 
         AUTHORS:
             These people wrote GMP-ECM:
-              Jim Fougeron, Laurent Fousse,
-              Alexander Kruppa, Dave Newman
-              Paul Zimmermann
+              Pierrick Gaudry, Jim Fougeron,
+              Laurent Fousse, Alexander Kruppa,
+              Dave Newman, Paul Zimmermann
 
         William Stein and Robert Bradshaw -- wrote the SAGE interface to GMP-ECM
 
@@ -109,7 +109,7 @@ class ECM:
             ou = e.read() + '\n' + o.read()
         if 'command not found' in ou:
             err = ou + '\n' + 'You must install GMP-ECM.\n'
-            err += sage.misc.package.package_mesg('ecm-6.0.1')
+            err += sage.misc.package.package_mesg('ecm-6.1.3')
             raise RuntimeError, err
         return ou
 
@@ -165,7 +165,7 @@ class ECM:
         child = pexpect.spawn(self.__cmd)
         cleaner.cleaner(child.pid, self.__cmd)
         child.timeout = None
-	child.__del__ = nothing   # program around studid exception ignored error
+	child.__del__ = nothing   # program around stupid exception ignored error
         child.expect('[ECM]')
         child.sendline(str(n))
         child.sendline("bad") # child.sendeof()
@@ -210,7 +210,7 @@ class ECM:
     def factor(self, n, factor_digits=None, B1=2000, **kwds):
         """
         Returns a list of integers whose product is n, computed using
-        gmp-ecm, and PARI for small factors.
+        GMP-ECM, and PARI for small factors.
 
         ** WARNING: There is no guarantee that the factors returned are
         prime. **
@@ -290,7 +290,7 @@ class ECM:
         """
         Gives an approximation for the amount of time it will take to find a factor
         of size factor_digits in a single process on the current computer.
-        This estimate is provided by gmp-ecm's verbose option on a single run of a curve.
+        This estimate is provided by GMP-ECM's verbose option on a single run of a curve.
 
         INPUT:
             n -- a positive integer
@@ -305,33 +305,39 @@ class ECM:
             sage: ecm.time(n, 25)                  # not tested
             Expected curves: 206    Expected time: 1.56m
             sage: ecm.time(n, 30, verbose=1)       # not tested
-            GMP-ECM 6.0.1 [powered by GMP 4.2] [ECM]
+            GMP-ECM 6.1.3 [powered by GMP 4.2.1] [ECM]
 
             Input number is 304481639541418099574459496544854621998616257489887231115912293 (63 digits)
             Using MODMULN
-            Using B1=250000, B2=116469998, polynomial Dickson(3), sigma=4032429244
-            Step 1 took 1050ms
-            B2'=173183010 k=2 b2=86486400 d=30030 d2=1 dF=2880, i0=8
+            Using B1=250000, B2=128992510, polynomial Dickson(3), sigma=2307628716
+            dF=2048, k=3, d=19110, d2=11, i0=3
             Expected number of curves to find a factor of n digits:
             20      25      30      35      40      45      50      55      60      65
-            8       47      401     4590    65366   1125484 2.3e+07 5.5e+08 1.4e+10 2e+13
-            Initializing  tables of differences for F took 2ms
-            Computing roots of F took 43ms
-            Building F from its roots took 135ms
-            Computing 1/F took 85ms
-            Initializing table of differences for G took 2ms
-            Computing roots of G took 45ms
-            Building G from its roots took 127ms
-            Computing roots of G took 38ms
-            Building G from its roots took 125ms
-            Computing G * H took 100ms
-            Reducing  G * H mod F took 121ms
-            Computing polyeval(F,G) took 389ms
-            Step 2 took 1232ms
+            8       50      430     4914    70293   1214949 2.5e+07 5.9e+08 1.6e+10 2.7e+13
+            Step 1 took 6408ms
+            Using 16 small primes for NTT
+            Estimated memory usage: 3862K
+            Initializing tables of differences for F took 16ms
+            Computing roots of F took 128ms
+            Building F from its roots took 408ms
+            Computing 1/F took 608ms
+            Initializing table of differences for G took 12ms
+            Computing roots of G took 120ms
+            Building G from its roots took 404ms
+            Computing roots of G took 120ms
+            Building G from its roots took 412ms
+            Computing G * H took 328ms
+            Reducing  G * H mod F took 348ms
+            Computing roots of G took 120ms
+            Building G from its roots took 408ms
+            Computing G * H took 328ms
+            Reducing  G * H mod F took 348ms
+            Computing polyeval(F,G) took 1128ms
+            Step 2 took 5260ms
             Expected time to find a factor of n digits:
             20      25      30      35      40      45      50      55      60      65
-            17.57s  1.77m   15.24m  2.91h   1.73d   29.73d  1.65y   39.46y  1038y   1e+06y
-            Expected curves: 4590   Expected time: 15.24m
+            1.58m   9.64m   1.39h   15.93h  9.49d   164.07d 9.16y   218.68y 5825y   1e+07y
+            Expected curves: 4914   Expected time: 1.39h
 
         """
         B1 = self.recommended_B1(factor_digits)

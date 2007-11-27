@@ -129,6 +129,20 @@ EXAMPLES:
         sage: f.diff(x)
         1/(3*sqrt(x^2/9 + 1))
 
+    We compute the length of the parabola from 0 to 2:
+        sage: x = var('x')
+        sage: y = x^2
+        sage: dy = diff(y,x)
+        sage: z = integral(sqrt(1 + dy^2), x, 0, 2)
+        sage: print z
+                             asinh(4) + 4 sqrt(17)
+                             ---------------------
+                                       4
+        sage: n(z,200)
+        4.6467837624329358733826155674904591885104869874232887508703
+        sage: float(z)
+        4.6467837624329356
+
 COERCION EXAMPLES:
 
 We coerce various symbolic expressions into the complex numbers:
@@ -192,6 +206,7 @@ version:
 If the copy of maxima used by the symbolic calculus package were
 the same as the default one, then the following would return 27,
 which would be very confusing indeed!
+    sage: x, y = var('x,y')
     sage: expand((x+y)^3)
     y^3 + 3*x*y^2 + 3*x^2*y + x^3
 
@@ -892,7 +907,7 @@ class SymbolicExpression(RingElement):
             sage: (a+b+a*b).absolute_minpoly()
             x^4 - 22*x^2 - 48*x - 23
 
-        Works with trig funcitons too.
+        Works with trig functions too.
             sage: sin(pi/3).minpoly()
             x^2 - 3/4
 
@@ -1270,8 +1285,7 @@ class SymbolicExpression(RingElement):
         We coerce to a higher-precision polynomial ring
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
-            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950066967437806 + 1.0000000000000000000000000000*I
-
+            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
         """
         vars = self.variables()
         B = R.base_ring()
@@ -2116,10 +2130,10 @@ class SymbolicExpression(RingElement):
         An example, where one of the exponents is not an integer.
             sage: var('x, u, v')
             (x, u, v)
-            sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)     # not tested -- trac #946
-            sage: f.factor()                                 # not tested
-            u^3*(2*u*v^2 - v^2 - 4*u^3)^2*(sin(x) - x)^3     # not tested
-            sage: g = f.factor_list(); g                     # not tested
+            sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)
+            sage: f.factor()
+            u^3*(2*u*v^2 - v^2 - 4*u^3)^2*(sin(x) - x)^3
+            sage: g = f.factor_list(); g
             [(u, 3), (2*u*v^2 - v^2 - 4*u^3, 2), (sin(x) - x, 3)]
 
         This example also illustrates that the exponents do not have
@@ -2777,7 +2791,7 @@ class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
         from sage.rings.rational import Rational
         if isinstance(x, Rational):
-            if x.is_integral():
+            if x.is_integral() and x >= 0:
                 self._precedence = 10**6
             else:
                 self._precedence = 2000
@@ -3034,14 +3048,10 @@ class SymbolicArithmetic(SymbolicOperation):
         return self._operator(*fops)
 
     def _mpfr_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._mpfr_(field)
         rops = [op._mpfr_(field) for op in self._operands]
         return self._operator(*rops)
 
     def _complex_mpfr_field_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._complex_mpfr_field_(field)
         rops = [op._complex_mpfr_field_(field) for op in self._operands]
         return self._operator(*rops)
 
@@ -3102,6 +3112,8 @@ class SymbolicArithmetic(SymbolicOperation):
             -1/3
             sage: -3/(2*(2*3-(3/2)))
             -1/3
+            sage: (-1)^(1/4)
+            (-1)^(1/4)
         """
         if simplify:
             if hasattr(self, '_simp'):
@@ -3904,7 +3916,7 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641
 
             sage: RR(sin(pi))
-            0.000000000000000
+            0.000000000000000122464679914735
 
             sage: type(RR(sqrt(163)*pi))
             <type 'sage.rings.real_mpfr.RealNumber'>
@@ -3916,8 +3928,6 @@ class SymbolicComposition(SymbolicOperation):
             sage: RealField(200)(acos(1/10))
             1.4706289056333368228857985121870581235299087274579233690964
         """
-        if not self.is_simplified():
-            return self.simplify()._mpfr_(field)
         f = self._operands[0]
         g = self._operands[1]
         x = f(g._mpfr_(field))
@@ -3939,8 +3949,6 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641 + 1.0000000000000000000000000000*I
 
         """
-        if not self.is_simplified():
-            return self.simplify()._complex_mpfr_field_(field)
         f = self._operands[0]
         g = self._operands[1]
         x = f(g._complex_mpfr_field_(field))
@@ -3962,8 +3970,6 @@ class SymbolicComposition(SymbolicOperation):
             sage: CDF(coth(pi))
             1.0037418732
         """
-        if not self.is_simplified():
-            return self.simplify()._complex_double_(field)
         f = self._operands[0]
         g = self._operands[1]
         z = f(g._complex_double_(field))
@@ -4250,11 +4256,13 @@ class Function_sec(PrimitiveFunction):
         sage: sec(pi/4)
         sqrt(2)
         sage: RR(sec(pi/4))
-        1.41421356237310
+        1.41421356237309
+        sage: n(sec(pi/4),100)
+        1.4142135623730950488016887242
         sage: sec(1/2)
         sec(1/2)
         sage: sec(0.5)
-        1.139493927324549
+        1.13949392732455
     """
     def _repr_(self, simplify=True):
         return "sec"
@@ -4267,6 +4275,62 @@ class Function_sec(PrimitiveFunction):
 
 sec = Function_sec()
 _syms['sec'] = sec
+
+class Function_csc(PrimitiveFunction):
+    """
+    The cosecant function.
+
+    EXAMPLES:
+        sage: csc(pi/4)
+        sqrt(2)
+        sage: RR(csc(pi/4))
+        1.41421356237310
+        sage: n(csc(pi/4),100)
+        1.4142135623730950488016887242
+        sage: csc(1/2)
+        csc(1/2)
+        sage: csc(0.5)
+        2.08582964293349
+    """
+    def _repr_(self, simplify=True):
+        return "csc"
+
+    def _latex_(self):
+        return "\\csc"
+
+    def _approx_(self, x):
+        return 1/math.sin(x)
+
+csc = Function_csc()
+_syms['csc'] = csc
+
+class Function_cot(PrimitiveFunction):
+    """
+    The cotangent function.
+
+    EXAMPLES:
+        sage: cot(pi/4)
+        1
+        sage: RR(cot(pi/4))
+        1.00000000000000
+        sage: n(cot(pi/4),100)
+        1.0000000000000000000000000000
+        sage: cot(1/2)
+        cot(1/2)
+        sage: cot(0.5)
+        1.83048772171245
+    """
+    def _repr_(self, simplify=True):
+        return "cot"
+
+    def _latex_(self):
+        return "\\cot"
+
+    def _approx_(self, x):
+        return 1/math.tan(x)
+
+cot = Function_cot()
+_syms['cot'] = cot
 
 class Function_tan(PrimitiveFunction):
     """
@@ -4326,6 +4390,85 @@ class Function_asin(PrimitiveFunction):
 
 asin = Function_asin()
 _syms['asin'] = asin
+
+class Function_asinh(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic sine function.
+
+    EXAMPLES:
+        sage: asinh(0.5)
+        0.481211825059603
+        sage: asinh(1/2)
+        asinh(1/2)
+        sage: asinh(1 + I*1.0)
+        0.6662394324925153*I + 1.061275061905036
+    """
+    def _repr_(self, simplify=True):
+        return "asinh"
+
+    def _latex_(self):
+        return "\\sinh^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(x)).asinh())
+
+asinh = Function_asinh()
+_syms['asinh'] = asinh
+
+class Function_acosh(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic cose function.
+
+    EXAMPLES:
+        sage: acosh(1/2)
+        acosh(1/2)
+        sage: acosh(1 + I*1.0)
+        0.9045568943023813*I + 1.061275061905036
+
+    Warning: If the input is real the output will be real or NaN:
+        sage: acosh(0.5)
+        NaN
+
+    But evaluate where the input is in the complex field yields a complex output:
+        sage: acosh(CC(0.5))
+        1.04719755119660*I
+
+    """
+    def _repr_(self, simplify=True):
+        return "acosh"
+
+    def _latex_(self):
+        return "\\cosh^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(x)).acosh())
+
+acosh = Function_acosh()
+_syms['acosh'] = acosh
+
+class Function_atanh(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic tane function.
+
+    EXAMPLES:
+        sage: atanh(0.5)
+        0.549306144334055
+        sage: atanh(1/2)
+        atanh(1/2)
+        sage: atanh(1 + I*1.0)
+        1.017221967897851*I + 0.4023594781085251
+    """
+    def _repr_(self, simplify=True):
+        return "atanh"
+
+    def _latex_(self):
+        return "\\tanh^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(x)).atanh())
+
+atanh = Function_atanh()
+_syms['atanh'] = atanh
 
 class Function_acos(PrimitiveFunction):
     """
@@ -4882,6 +5025,9 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         self._args = args
         self._kwds = kwds
 
+    def __float__(self):
+        return float(maxima(self))
+
     def _is_atomic(self):
         return True
 
@@ -5184,7 +5330,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 j = msg.rfind("'")
                 nm = msg[i+1:j]
 
-                res = re.match(nm + '\s*\(.*\)', s)
+                res = re.match('.*' + nm + '\s*\(.*\)', s)
                 if res:
                     syms[nm] = function(nm)
                 else:

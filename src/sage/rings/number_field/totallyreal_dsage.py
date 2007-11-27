@@ -218,7 +218,7 @@ class totallyreal_dsage:
         # For each completed job, add the fields to the list.
         while i < len(self.jobs):
             if type(self.jobs[i][1]) <> str:
-                self.jobs[i][1].get_job()
+                # self.jobs[i][1].get_job()
                 if self.jobs[i][1].status == 'completed' and self.jobs[i][1].result <> 'None':
                     job = self.jobs.pop(i)
 

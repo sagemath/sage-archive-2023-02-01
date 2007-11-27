@@ -1627,12 +1627,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sage: add([Q[i]*M[i] for i in range(n)])
         -1
 
+        TESTS:
+            sage: A = random_matrix(ZZ,15,10)
+            sage: A.LLL()
+            Traceback (most recent call last):
+            ...
+            TypeError: Number of rows must not be larger than number of columns.
+
         ALGORITHM: Uses NTL or fpLLL.
 
         REFERENCES:
             ntl.mat_ZZ or sage.libs.fplll.fplll for details on the
             used algorithms.
         """
+        if self.nrows() > self.ncols():
+            raise TypeError("Number of rows must not be larger than number of columns.")
 
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ

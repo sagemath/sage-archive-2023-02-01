@@ -74,7 +74,6 @@ class PBClientFactory(pb.PBClientFactory):
                           creds.sigData,
                           creds.signature,
                           mind)
-
             return d
         elif IAnonymous.providedBy(creds):
             d = self.getRootObject()

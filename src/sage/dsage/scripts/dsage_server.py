@@ -100,7 +100,7 @@ def usage():
                       dest='dbfile',
                       default=os.path.join(DSAGE_DIR, 'dsage.db'),
                       help='database file')
-    parser.add_option('--job_failures',
+    parser.add_option('--jobfailures',
                       dest='job_failure_threshold',
                       type='int',
                       default=3,
@@ -115,18 +115,6 @@ def usage():
     (options, args) = parser.parse_args()
 
     return options
-
-def write_stats(dsage_server, stats_file):
-    check_dsage_dir()
-    try:
-        fname = os.path.join(DSAGE_DIR, stats_file)
-        f = open(fname, 'w')
-        f.write(dsage_server.generate_xml_stats())
-        f.close()
-    except Exception, msg:
-        print Exception
-        print 'Error writing stats: %s' % (msg)
-        return
 
 def create_manhole():
     """
@@ -201,8 +189,8 @@ def main(options):
     dsage_server.register_client_factory(client_factory)
 
     # Create the looping call that will output the XML file for Dashboard
-    tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
-    tsk1.start(2.0, now=False)
+    # tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
+    # tsk1.start(2.0, now=False)
 
     SERVER_PORT = find_open_port()
     attempts = 0
@@ -236,7 +224,7 @@ def main(options):
     # Run the web server
     from twisted.web2 import server, http, resource, channel, static
     from sage.dsage.web.web_server import Toplevel, GetJobDetails
-    top_level = Toplevel(dsage_server)
+    top_level = Toplevel(dsage_server, SERVER_PORT)
     # top_level.putChild(GetJobDetails(dsage_server))
     site = server.Site(top_level)
     web_server_port = find_open_port()

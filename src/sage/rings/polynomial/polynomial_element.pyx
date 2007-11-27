@@ -2311,8 +2311,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^3 - 1
             sage: f.roots()
             [(1, 1)]
-            sage: f.roots(ring=CC)
-            [(1.00000000000000, 1), (-0.500000000000000 + 0.866025403784438*I, 1), (-0.500000000000000 - 0.866025403784...*I, 1)]
+            sage: f.roots(ring=CC)   # note -- low order bits slightly different on ppc.
+            [(1.00000000000000, 1), (-0.500000000000000 + 0.86602540378443...*I, 1), (-0.500000000000000 - 0.86602540378443...*I, 1)]
             sage: f = (x^3 - 1)^2
             sage: f.roots()
             [(1, 2)]
@@ -2746,8 +2746,8 @@ sage: rts[0][0] == rt2
 
         EXAMPLES:
             sage: x = polygen(ZZ)
-            sage: (x^3 - 1).complex_roots()
-            [1.00000000000000, -0.500000000000000 + 0.866025403784438*I, -0.500000000000000 - 0.866025403784...*I]
+            sage: (x^3 - 1).complex_roots()   # note: low order bits slightly different on ppc.
+            [1.00000000000000, -0.500000000000000 + 0.86602540378443...*I, -0.500000000000000 - 0.86602540378443...*I]
 
         TESTS:
             sage: x = polygen(RR)

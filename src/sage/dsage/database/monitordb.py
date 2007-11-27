@@ -129,7 +129,6 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def update_monitor(self, host_info):
-        import pdb; pdb.set_trace()
         query = """UPDATE monitors
         SET hostname = ?, ip = ?, workers = ?, sage_version = ?, os = ?,
         kernel_version = ?, cpus = ?, cpu_speed = ?, cpu_model = ?, mem_total
@@ -250,7 +249,7 @@ class MonitorDatabase(object):
         cur.execute(query, (uuid,))
         self.con.commit()
 
-    def get_worker_count(self, connected, busy):
+    def get_worker_count(self, connected, busy=False):
         """
         Returns the number of workers.
 
@@ -275,7 +274,7 @@ class MonitorDatabase(object):
 
         return sum(w[0] for w in result)
 
-    def get_cpu_speed(self, connected=True, busy=True):
+    def get_cpu_speed(self, connected=True, busy=False):
         """
         Returns the aggregate cpu speed in Mhz.
 
@@ -284,9 +283,12 @@ class MonitorDatabase(object):
 
         """
 
-        if connected:
+        if connected and busy:
             query = """SELECT cpu_speed, workers FROM monitors
             WHERE connected AND busy"""
+        elif connected:
+            query = """SELECT cpu_speed, workers FROM monitors
+            WHERE connected"""
         else:
             query = """SELECT cpu_speed, workers FROM monitors"""
 

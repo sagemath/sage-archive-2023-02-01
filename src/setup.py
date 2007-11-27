@@ -628,6 +628,9 @@ ext_modules = [ \
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
 
+    Extension('sage.groups.perm_gps.permgroup_element',
+              sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
+
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
 

@@ -49,7 +49,6 @@ We create element of a permutation group of large degree.
 
 import random
 
-import sage.structure.element as element
 import sage.groups.group as group
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
@@ -62,7 +61,6 @@ import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
 
 #import permgroup_named
 
@@ -77,7 +75,7 @@ def gap_format(x):
     x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
-class PermutationGroupElement(element.MultiplicativeGroupElement):
+cdef class PermutationGroupElement(MultiplicativeGroupElement):
     """
     An element of a permutation group.
 
@@ -227,7 +225,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             self.__gap = str(g)
         if parent is None:
             parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(self._gap_().LargestMovedPoint())
-        element.Element.__init__(self, parent)
+        Element.__init__(self, parent)
 
     def _gap_init_(self):
         return self.__gap

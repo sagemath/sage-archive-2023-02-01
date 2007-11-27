@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 
 Interface to two Rubik's cube solvers.
 
@@ -11,15 +11,16 @@ solve the cube one level at a time. It is extremly fast, but often
 returns a far from optimal solution.
 See http://wrongway.org/?rubiksource
 
+The third is by Dik Winter and implements Kociemba's algorithm which
+finds reasonable solutions relatively quickly, and if it is kept running
+will eventually find the optimal solution.
 
-TODO:
-    I'm sure there's algorithms and/or implementations that provide
-    a happy medium between the above two. Find or implement and interface.
 
 
 AUTHOR:
    -- Optimal was written by Michael Reid <reid@math.ucf.edu> (2004)
    -- Cubex was written by Eric Dietz <root@wrongway.org> (2003)
+   -- Kociemba was written by Dik T. Winter <dik.winter@cwi.nl> (1993)
    -- Initial interface by Robert Bradshaw (2007-08)
 """
 
@@ -64,6 +65,7 @@ class SingNot:
     Case is ignored, and the second and third letters may be swapped.
 
     EXAMPLE:
+        sage: from sage.interfaces.rubik import SingNot
         sage: SingNot("acb") == SingNot("ACB")
         True
         sage: SingNot("acb") == SingNot("bca")
@@ -120,11 +122,29 @@ class OptimalSolver:
 
     def solve(self, facets):
         """
+        The initial startup and precomputation are substantial...
+
         TODO: Let it keep searching once it found a solution?
+
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: solver = DikSolver()
+            sage: solver = OptimalSolver() # long time
+            Initializing tables...
+            Done.
+            sage: C = RubiksCube("R U")
+            sage: solver.solve(C.facets())
+            'R  U'
+            sage: C = RubiksCube("R U F L B D")
+            sage: solver.solve(C.facets())
+            'R  U  F  L  B  D'
+            sage: C = RubiksCube("R2 D2")
+            sage: solver.solve(C.facets())
+            'R2 D2'
         """
         self.ready()
         self.child.sendline(self.format_cube(facets))
-        self.child.expect(r"([LRUDBF' ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
+        self.child.expect(r"([LRUDBF'2 ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
         self.child.sendline(chr(3)) # send ctrl-c
         return self.child.match.groups()[0].strip()
 
@@ -162,6 +182,25 @@ class CubexSolver:
         return self.solve(facets)
 
     def solve(self, facets):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: C = RubiksCube("R U")
+            sage: CubexSolver().solve(C.facets())
+            'R U'
+            sage: C = RubiksCube("R U F L B D")
+            sage: sol = CubexSolver().solve(C.facets()); sol
+            "U' L' L' U L U' L U D L L D' L' D L' D' L D L' U' L D' L' U L' B' U' L' U B L D L D' U' L' U L B L B' L' U L U' L' F' L' F L' F L F' L' D' L' D D L D' B L B' L B' L B F' L F F B' L F' B D' D' L D B' B' L' D' B U' U' L' B' D' F' F' L D F'"
+            sage: RubiksCube(sol) == C
+            True
+            sage: C = RubiksCube("R2 F'")
+            sage: CubexSolver().solve(C.facets())
+            "R' R' F'"
+            sage: C = RubiksCube().scramble()
+            sage: sol = CubexSolver().solve(C.facets())
+            sage: C == RubiksCube(sol)
+            True
+        """
         s = self.format_cube(facets)
         child = pexpect.spawn(self.__cmd+" "+s)
         ix = child.expect(['210.*?:', '^5\d+(.*)'])
@@ -197,6 +236,19 @@ class DikSolver:
         return self.solve(facets)
 
     def solve(self, facets, timeout=10, extra_time=2):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: C = RubiksCube().move("R U")
+            sage: DikSolver().solve(C.facets())
+            'R U'
+            sage: C = RubiksCube().move("R U F L B D")
+            sage: DikSolver().solve(C.facets())
+            'R U F L B D'
+            sage: C = RubiksCube().move("R2 F'")
+            sage: DikSolver().solve(C.facets())
+            "R2 F'"
+        """
         cube_str = self.format_cube(facets)
         child = pexpect.spawn(self.__cmd+" -p")
         child.expect('Initialization done!')

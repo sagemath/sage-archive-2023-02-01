@@ -1016,11 +1016,15 @@ class CubeGroup(PermutationGroup_generic):
         else:
             return res
 
-    def solve(self,state):
+    def solve(self,state, algorithm='default'):
         r"""
         Solves the cube in the \code{state}, given as a dictionary as
-        in \code{legal}.  This uses GAP's \code{EpimorphismFromFreeGroup}
-        and \code{PreImagesRepresentative}.
+        in \code{legal}. See the \code{solve} method of the RubiksCube
+        class for more details.
+
+        This may use GAP's \code{EpimorphismFromFreeGroup}
+        and \code{PreImagesRepresentative} as explained below,
+        if 'gap' is passed in as the algorithm.
 
         This algorithm
         \begin{enumerate}
@@ -1048,7 +1052,7 @@ class CubeGroup(PermutationGroup_generic):
             sage: rubik.solve(state)
             'R'
             sage: state = rubik.faces("R*U")
-            sage: rubik.solve(state)       # long time
+            sage: rubik.solve(state, algorithm='gap')       # long time
             'R*U'
 
         You can also check this another (but similar) way using the
@@ -1064,6 +1068,10 @@ class CubeGroup(PermutationGroup_generic):
             g = self.parse(state)
         except TypeError:
             return "Illegal or syntactically incorrect state. No solution."
+        if algorithm != 'gap':
+            C = RubiksCube(g)
+            return C.solve(algorithm)
+
         hom = G._gap_().EpimorphismFromFreeGroup()
         soln = hom.PreImagesRepresentative(gap(str(g)))
         # print soln
@@ -1226,9 +1234,22 @@ class RubiksCube(SageObject):
            optimal   - Use Michael Reid's optimal program (may take a long time)
            gap       - Use GAP word solution              (can be slow)
 
+        EXAMPLE:
+            sage: C = RubiksCube("R U F L B D")
+            sage: C.solve()
+            'R U F L B D'
 
+        Dietz's program is much faster, but may give highly non-optimal solutions.
+            sage: s = C.solve('dietz'); s
+            "U' L' L' U L U' L U D L L D' L' D L' D' L D L' U' L D' L' U L' B' U' L' U B L D L D' U' L' U L B L B' L' U L U' L' F' L' F L' F L F' L' D' L' D D L D' B L B' L B' L B F' L F F B' L F' B D' D' L D B' B' L' D' B U' U' L' B' D' F' F' L D F'"
+            sage: C2 = RubiksCube(s)
+            sage: C == C2
+            True
         """
         import sage.interfaces.rubik # here to avoid circular referencing
+        if algorithm == "default":
+            algorithm = "hybrid"
+
         if algorithm == "hybrid":
             try:
                 solver = sage.interfaces.rubik.DikSolver()
@@ -1256,3 +1277,13 @@ class RubiksCube(SageObject):
 
         else:
             raise ValueError, "Unrecognized algorithm: %s" % algorithm
+
+    def scramble(self, moves=30):
+        last_move = move = "  "
+        all = []
+        for i in range(moves):
+            while move[0] == last_move[0]:
+                move = "RLUDBF"[random.randint(0,5)] + " '2"[random.randint(0,2)]
+            last_move = move
+            all.append(move)
+        return self.move(' '.join(all))

@@ -2294,10 +2294,47 @@ cdef class BinaryCodeClassifier:
             raise NotImplementedError("Must supply a nontrivial code.")
 
         badass = 0
+        LLL = []
 
         state = 1
         while state != -1:
-            if False:#badass > 39:
+            print badass
+            if False:#badass > 620:
+                print '-----'
+                print badass
+                print "k:", k
+                if k != -1:
+                    if v[k]&nu.flag:
+                        print "v[k]: word ", v[k]^nu.flag
+                    else:
+                        print "v[k]: col ", v[k]
+                    if tvc&nu.flag:
+                        print "tvc- wd", tvc^nu.flag
+                    else:
+                        print "tvc- col", tvc
+                    if W[self.Phi_size * k]:
+                        print "W[k]: cols", Integer(W[self.Phi_size * k]).binary()
+                    else:
+                        j = nwords/self.radix
+                        if nwords%self.radix:
+                            j += 1
+                        L = ''
+                        for i from 0 <= i < j:
+                            if i == j - 1:
+                                jj = nwords%self.radix
+                                if jj == 0:
+                                    jj = self.radix
+                            else:
+                                jj = self.radix
+                            for ii from 0 <= ii < jj:
+                                if W[self.Phi_size * k + 1 + i] & (1 << ii):
+                                    L += '1'
+                                else:
+                                    L += '0'
+                        print "W[k]: words", L#[Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
+                print "state:", state
+                print '-----'
+            if False:#badass > 620:
                 print '-----'
                 print badass
                 print "k:", k
@@ -2457,11 +2494,16 @@ cdef class BinaryCodeClassifier:
                 if k < hzf__h_zeta: state = 8; continue
 
                 nu.get_permutation(zeta, word_gamma, col_gamma, ham_wts)
-#                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+                #if badass > 620:
+                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+                print Theta
                 # if C^gamma == C, the permutation is an automorphism, goto 10
+                #if badass > 620:
+                print C.is_automorphism(col_gamma, word_gamma)
                 if C.is_automorphism(col_gamma, word_gamma):
                     state = 10
                 else:
+                    LLL.append([[col_gamma[i] for i from 0 <= i < ncols],[word_gamma[i] for i from 0 <= i < nwords]])
                     state = 8
 
             elif state == 8: # we have just ruled out the presence of automorphism and have not yet
@@ -2482,7 +2524,9 @@ cdef class BinaryCodeClassifier:
 
                 # if C(nu) == C(rho), get the automorphism and goto 10
                 rho.get_permutation(nu, word_gamma, col_gamma, ham_wts)
-#                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+                #if badass > 620:
+                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
+                print Theta
                 state = 10
 
             elif state == 9: # nu is a better guess at the canonical label than rho
@@ -2540,7 +2584,8 @@ cdef class BinaryCodeClassifier:
 
                 # Now incorporate the automorphism into Theta
                 j = Theta.merge_perm(col_gamma, word_gamma)
-#                if not j: print "no j"
+                if badass > 620: print Theta
+
                 # j stores whether anything happened or not- if not, then the automorphism we have
                 # discovered is already in the subgroup spanned by the generators we have output
                 if not j: state = 11; continue
@@ -2755,6 +2800,8 @@ cdef class BinaryCodeClassifier:
                 qzb = 0 # Lambda[k] == zb[k], so...
                 state = 13
 
+        for LL in LLL:
+            print LL, ',\\'
         # end big while loop
         rho.find_basis(ham_wts)
         for i from 0 <= i < ncols:

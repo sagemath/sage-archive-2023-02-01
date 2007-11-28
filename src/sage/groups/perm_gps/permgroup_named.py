@@ -62,7 +62,6 @@ REFERENCES:
 
 
 import random
-from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group
@@ -110,7 +109,7 @@ class SymmetricGroup(PermutationGroup_generic):
     """
     def __init__(self, n):
         self._set = n
-        if isinstance(n, ListType):
+        if isinstance(n, list):
             self._deg = len(n)
             PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
         else:
@@ -158,7 +157,7 @@ class AlternatingGroup(PermutationGroup_generic):
     from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
     def __init__(self, n):
         self._set = n
-        if isinstance(n,ListType):
+        if isinstance(n, list):
             self._deg = len(n)
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
         else:
@@ -609,9 +608,7 @@ class PSp(PermutationGroup_generic):
             sage: G.order()
             12
             sage: G = PSp(4,3); G
-            Permutation Group with generators [(3,4)(6,7)(9,10)(12,13)(17,20)(18,21)(19,22)(23,32)(24,33)(25,34)(26,38)(27,
-            39)(28,40)(29,35)(30,36)(31,37), (1,5,14,17,27,22,19,36,3)(2,6,32)(4,7,23,20,37,13,16,26,40)(8,24,29,30,39,10,
-            33,11,34)(9,15,35)(12,25,38)(21,28,31)]
+            Permutation Group with generators [(3,4)(6,7)(9,10)(12,13)(17,20)(18,21)(19,22)(23,32)(24,33)(25,34)(26,38)(27,39)(28,40)(29,35)(30,36)(31,37), (1,5,14,17,27,22,19,36,3)(2,6,32)(4,7,23,20,37,13,16,26,40)(8,24,29,30,39,10,33,11,34)(9,15,35)(12,25,38)(21,28,31)]
             sage: G.order()
             25920
             sage: print G
@@ -738,11 +735,7 @@ class SuzukiGroup(PermutationGroup_generic):
 
     EXAMPLE:
         sage: SuzukiGroup(8)
-        Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,
-        37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,
-        49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,
-        23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,
-        52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
+        Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
         sage: print SuzukiGroup(8)
         The Suzuki group over Finite Field in a of size 2^3
 

@@ -293,10 +293,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             else:
                 return PermutationGroupElement(x._gap_(), self, check = check)
         elif isinstance(x, (list, str)):
-            if isinstance(x, list) and len(x) > 0 and not isinstance(x[0], tuple):
-                # todo: This is ok, but is certainly not "industry strength" fast
-                # compared to what is possible.
-                x = gap.eval('PermList(%s)'%x)
             return PermutationGroupElement(x, self, check = check)
         elif isinstance(x, tuple):
             return PermutationGroupElement([x], self, check = check)

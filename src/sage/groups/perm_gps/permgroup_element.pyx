@@ -53,6 +53,7 @@ import random
 import sage.groups.group as group
 
 include "../../ext/stdsage.pxi"
+include "../../ext/interrupt.pxi"
 include "../../ext/python_list.pxi"
 cdef extern from "stdsage.h":
     object PY_NEW_SAME_TYPE(object o)
@@ -81,6 +82,8 @@ def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
     """
+    if isinstance(x, list) and not isinstance(x[0], tuple):
+        return gap.eval('PermList(%s)' % x)
     x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
@@ -232,6 +235,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                     raise TypeError, 'permutation %s not in %s'%(self.__gap, parent)
         else:
             self.__gap = str(g)
+
         if parent is None:
             import sage.interfaces.gap
             G = sage.interfaces.gap.gap
@@ -239,20 +243,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         Element.__init__(self, parent)
 
-        try:
-            self.n = parent.degree()
-        except TypeError:
-            raise TypeError, type(parent.degree())
+        self.n = parent.degree()
         if self.perm is NULL:
             self.perm = <int *>sage_malloc(sizeof(int) * self.n)
         else:
             self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
-        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
-        cdef int i, tmp
+
+        if PyList_CheckExact(g) and not PY_TYPE_CHECK(g[0], tuple):
+            v = g
+        else:
+            v = eval(gap.eval('ListPerm(%s)' % self.__gap))
+
+        cdef int i
         for i from 0 <= i < len(v):
             self.perm[i] = v[i] - 1
         for i from len(v) <= i < self.n:
             self.perm[i] = i
+
 
     def __cinit__(self, g = None, parent = None, check = True):
         self.perm = NULL
@@ -302,7 +309,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g
             (1,2,3)(4,5)
         """
-        return str(self._gap_()).replace(' ', '').replace('\n', '')
+        cycles = self.cycle_tuples()
+        if len(cycles) == 0:
+            return '()'
+        return ''.join([str(c) for c in cycles]).replace(', ',',')
 
     def _latex_(self):
         return str(self)
@@ -326,16 +336,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g[1]
             (4,5)
         """
-        S = str(self).split(')(')
-        if i >= 0 and i < len(S):
-            T = S[i]
-            if i > 0:
-                T = '(' + T
-            if i < len(S)-1:
-                T += ')'
-        else:
-            raise IndexError, "i (=%s) must be between 0 and %s, inclusive"%(i, len(S)-1)
-        return PermutationGroupElement(gap(T), check = False)
+        return self.cycles()[i]
 
     def __cmp__(PermutationGroupElement self, PermutationGroupElement right):
         """
@@ -438,7 +439,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             try:
                 sigma_x  = [vars[int(self(i+1)-1)] for i in range(len(x))]
             except IndexError:
-                raise ValueError, "%s does not act on %s"%(self, left.parent())
+                raise TypeError, "%s does not act on %s"%(self, left.parent())
             return left(tuple(sigma_x))
         else:
             raise TypeError, "left (=%s) must be a polynomial."%left
@@ -468,17 +469,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         for i from 0 <= i < self.n:
             inv.perm[self.perm[i]] = i
         return inv
-
-    def list_old(self):
-        v = eval(gap.eval('ListPerm(%s)'%self._gap_()))
-        # the following is necessary, since if the
-        # permutation doesn't move some elements at
-        # the end, it is consider by gap as being in
-        # a smaller group.
-        d = self.parent().degree()
-        if len(v) < d:
-            v += range(len(v)+1,d+1)
-        return v
 
     cpdef list(self):
         """
@@ -540,7 +530,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: s.order()
             6
         """
-        return int(self._gap_().Order())
+        order = Integer(1)
+        cdef int cycle_len
+        cdef int i, k
+        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        for i from 0 <= i < self.n: seen[i] = 0
+        for i from 0 <= i < self.n:
+            if seen[i] or self.perm[i] == i:
+                continue
+            k = self.perm[i]
+            cycle_len = 1
+            while k != i:
+                seen[k] = 1
+                k = self.perm[k]
+                cycle_len += 1
+            order = order.lcm(cycle_len)
+        sage_free(seen)
+        return order
 
     def sign(self):
         """
@@ -551,8 +557,26 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
             sage: s.sign()
             -1
+
+        ALGORITHM:
+            Only even cycles contribute to the sign, thus
+            $$sign(sigma) = (-1)^{\sum_c len(c)-1}$$
+            where the sum is over cycles in self.
         """
-        return int(self._gap_().SignPerm())
+        cdef int cycle_len_sum = 0
+        cdef int i, k
+        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        for i from 0 <= i < self.n: seen[i] = 0
+        for i from 0 <= i < self.n:
+            if seen[i] or self.perm[i] == i:
+                continue
+            k = self.perm[i]
+            while k != i:
+                seen[k] = 1
+                k = self.perm[k]
+                cycle_len_sum += 1
+        sage_free(seen)
+        return 1 - 2*(cycle_len_sum % 2) # == (-1)^cycle_len
 
 
     def orbit(self, n, bint sorted=True):
@@ -584,13 +608,59 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         else:
             return [n]
 
-        n = Integer(n)
-        # We use eval to avoid creating intermediate gap objects (so
-        # this is slightly faster.
-        s = gap.eval('Orbit(Group(%s), %s)'%(self._gap_().name(), Integer(n)))
-        v = [Integer(k) for k in eval(s)]
-        v.sort()
-        return v
+    def cycles(self):
+        """
+        Return self as a list of disjoint cycles.
+
+        EXAMPLES:
+            sage: G = PermutationGroup(['(1,2,3)(4,5,6,7)'])
+            sage: g = G.0
+            sage: g.cycles()
+            [(1,2,3), (4,5,6,7)]
+            sage: a, b = g.cycles()
+            sage: a(1), b(1)
+            (2, 1)
+        """
+        L = []
+        cdef PermutationGroupElement cycle
+        cdef int i, j, k, next_k
+        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        for i from 0 <= i < self.n: seen[i] = 0
+        for i from 0 <= i < self.n:
+            if seen[i] or self.perm[i] == i:
+                continue
+            cycle = self._new_c()
+            for j from 0 <= j < self.n: cycle.perm[j] = j
+            k = cycle.perm[i] = self.perm[i]
+            while k != i:
+                seen[k] = 1
+                next_k = cycle.perm[k] = self.perm[k]
+                k = next_k
+            PyList_Append(L, cycle)
+        sage_free(seen)
+        return L
+
+    def cycle_tuples(self):
+        """
+        Return self as a list of disjoint cycles, represented
+        as tuples rather than permutation group elements.
+        """
+        L = []
+        cdef int i, k
+        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        for i from 0 <= i < self.n: seen[i] = 0
+        for i from 0 <= i < self.n:
+            if seen[i] or self.perm[i] == i:
+                continue
+            cycle = [i+1]
+            k = self.perm[i]
+            while k != i:
+                PyList_Append(cycle, k+1)
+                seen[k] = 1
+                k = self.perm[k]
+            PyList_Append(L, tuple(cycle))
+        sage_free(seen)
+        return L
 
     def matrix(self):
         """
@@ -607,12 +677,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             [0 0 0 0 1]
             [0 0 0 1 0]
         """
-        M = MatrixSpace(ZZ, self.n, self.n)
-        A = M(0)
+        M = MatrixSpace(ZZ, self.n, self.n, sparse=True)
         cdef int i
+        entries = {}
         for i from 0 <= i < self.n:
-            A[i, self.perm[i]] = 1
-        return A
+            entries[i, self.perm[i]] = 1
+        return M(entries)
 
     def word_problem(g, words, display=True):
         """

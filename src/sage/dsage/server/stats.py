@@ -18,9 +18,7 @@
 
 from xml.etree.ElementTree import (ElementTree as ET,
                                    Element,
-                                   SubElement,
-                                   dump,
-                                   XML)
+                                   SubElement)
 from cStringIO import StringIO
 
 class XMLStats(object):

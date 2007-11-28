@@ -19,8 +19,6 @@
 import zlib
 import cPickle
 import datetime
-import xml.dom.minidom
-import cStringIO
 
 from twisted.spread import pb
 from twisted.python import log
@@ -51,7 +49,7 @@ class DSageServer(pb.Root):
         self.jobdb = jobdb
         self.monitordb = monitordb
         self.clientdb = clientdb
-        self.LOG_LEVEL = log_level
+        self.log_level = log_level
 
     def register_client_factory(self, client_factory):
         self.client_factory = client_factory
@@ -73,12 +71,12 @@ class DSageServer(pb.Root):
         else:
             jdict = self.jobdb.get_job(anonymous=False)
         if jdict == None:
-            if self.LOG_LEVEL > 3:
+            if self.log_level > 3:
                 log.msg('[DSage, get_job]' + ' Job db is empty.')
             return None
         else:
             job_id = jdict['job_id']
-            if self.LOG_LEVEL > 3:
+            if self.log_level > 3:
                 log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
             jdict['status'] = 'processing'
             jdict['start_time'] = datetime.datetime.now()
@@ -148,7 +146,7 @@ class DSageServer(pb.Root):
 
         jobs = self.jobdb.get_jobs_by_username(username, active)
 
-        if self.LOG_LEVEL > 3:
+        if self.log_level > 3:
             log.msg(jobs)
 
         return jobs
@@ -162,7 +160,7 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.LOG_LEVEL > 3:
+        if self.log_level > 3:
             log.msg('[DSage, submit_job] %s' % (jdict))
         if jdict['code'] is None:
             return False
@@ -216,7 +214,7 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.LOG_LEVEL > 0:
+        if self.log_level > 0:
             log.msg('[DSage, get_next_job_id] Returning next job ID')
 
         return self.jobdb.get_next_job_id()
@@ -234,9 +232,9 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.LOG_LEVEL > 0:
+        if self.log_level > 0:
             log.msg('[DSage, job_done] %s called back' % (job_id))
-        if self.LOG_LEVEL > 3:
+        if self.log_level > 3:
             log.msg('[DSage, job_done] output: %s ' % output)
             log.msg('[DSage, job_done] completed: %s ' % completed)
 
@@ -277,7 +275,7 @@ class DSageServer(pb.Root):
         else:
             job.status = 'new' # Put job back in the queue
 
-        if self.LOG_LEVEL > 1:
+        if self.log_level > 1:
             s = ['[DSage, job_failed] Job %s failed ' % (job_id),
                  '%s times. ' % (job.failures)]
             log.msg(''.join(s))
@@ -298,13 +296,13 @@ class DSageServer(pb.Root):
         """
 
         if job_id == None:
-            if self.LOG_LEVEL > 0:
+            if self.log_level > 0:
                 log.msg('[DSage, kill_job] Invalid job id')
             return None
         else:
             try:
                 self.jobdb.set_killed(job_id, killed=True)
-                if self.LOG_LEVEL > 0:
+                if self.log_level > 0:
                     log.msg('Killed job %s' % (job_id))
             except Exception, msg:
                 log.err(msg)

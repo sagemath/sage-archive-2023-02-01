@@ -54,10 +54,10 @@ def usage():
     """
 
     # usage options
-    usage = ['usage: %prog [options]\n',
+    usage_ = ['usage: %prog [options]\n',
               'Bug reports to <yqiang@gmail.com>']
 
-    parser = OptionParser(usage=''.join(usage))
+    parser = OptionParser(usage=''.join(usage_))
 
     parser.add_option('-p', '--port',
                       dest='port',
@@ -112,9 +112,9 @@ def usage():
                       help='tells that the server was ' +
                            'started in blocking mode')
 
-    (options, args) = parser.parse_args()
+    (options_, args) = parser.parse_args()
 
-    return options
+    return options_
 
 def create_manhole():
     """

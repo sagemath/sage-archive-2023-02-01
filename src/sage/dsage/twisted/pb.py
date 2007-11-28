@@ -401,5 +401,5 @@ class Realm(object):
         else:
             log.msg('(%s, %s) connected' % (avatarID, kind))
 
-        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
-                                                                   mind)
+        return pb.IPerspective, avatar, lambda a = avatar:a.detached(avatar,
+                                                                     mind)

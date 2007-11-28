@@ -369,12 +369,12 @@ except:
         except IOError, msg: # File does not exist yet
             done = False
         if done:
-			try:
-				cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
-			except IOError:
-				cpu_time = -1 # This means that we could not get a cpu_time.
-			self.free = True
-			self.reset_checker()
+            try:
+                cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
+            except IOError:
+                cpu_time = -1 # This means that we could not get a cpu_time.
+            self.free = True
+            self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
             cpu_time = None
@@ -639,7 +639,7 @@ class Monitor(object):
             from twisted.conch.ssh import keys
             self.DATA =  random_str(500)
             # public key authentication information
-            self.pubkey_str =keys.getPublicKeyString(self.pubkey_file)
+            self.pubkey_str = keys.getPublicKeyString(self.pubkey_file)
             # try getting the private key object without a passphrase first
             try:
                 self.priv_key = keys.getPrivateKeyObject(self.privkey_file)

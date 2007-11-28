@@ -97,7 +97,7 @@ def setup_client(testing=False):
 
     print DELIMITER
     print "Generating public/private key pair for authentication..."
-    print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
+    print "Your key will be stored in %s/dsage_key" % DSAGE_DIR
     print "Just hit enter when prompted for a passphrase"
     print DELIMITER
 
@@ -119,13 +119,13 @@ def setup_worker():
 def setup_server(template=None):
     check_dsage_dir()
     print "Choose a domain name for your SAGE notebook server,"
-    print "for example, localhost (personal use) or %s (to allow outside connections)."%socket.getfqdn()
+    print "for example, localhost (personal use) or %s (to allow outside connections)." % socket.getfqdn()
     dn = raw_input("Domain name [localhost]: ").strip()
     if dn == '':
         print "Using default localhost"
         dn = 'localhost'
 
-    template_dict = {'organization': 'SAGE (at %s)'%(dn),
+    template_dict = {'organization': 'SAGE (at %s)' % (dn),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
@@ -156,10 +156,10 @@ def setup_server(template=None):
         if val == True:
             w = ''
         elif isinstance(val, list):
-            w = ' '.join(['"%s"'%x for x in val])
+            w = ' '.join(['"%s"' % x for x in val])
         else:
-            w = '"%s"'%val
-        s += '%s = %s \n'%(key, w)
+            w = '"%s"' % val
+        s += '%s = %s \n' % (key, w)
 
     template_file = os.path.join(DSAGE_DIR, 'cert.cfg')
     f = open(template_file, 'w')

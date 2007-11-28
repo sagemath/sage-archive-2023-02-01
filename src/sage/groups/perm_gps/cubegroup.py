@@ -614,27 +614,24 @@ class CubeGroup(PermutationGroup_generic):
         D = "(41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40)" ## D = down or bottom
         self.__gens = [B,D,F,L,R,U]
         self._group = PermutationGroup([B,D,F,L,R,U])
-	#H = SymmetricGroup(48)
-        #PermutationGroup_subgroup(H,self.__gens)    #### very slow..
-	self._group
 
     def gen_names(self):
         return ['B','D','F','L','R','U']
 
     def __str__(self):
-	return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
+      return "The Rubik's cube group with genrators R,L,F,B,U,D in SymmetricGroup(48)."
 
     def __repr__(self):
-	return "The PermutationGroup of all legal moves of the Rubik's cube."
+      return "The PermutationGroup of all legal moves of the Rubik's cube."
 
     def __call__(self, mv):
-    	"""
-    	EXAMPLES:
-    	    sage: rubik = CubeGroup()
+          """
+          EXAMPLES:
+              sage: rubik = CubeGroup()
             sage: rubik(1)
             ()
-    	"""
-    	return self.parse(mv)
+          """
+          return self.parse(mv)
 
     def group(self):
         return self._group
@@ -644,32 +641,32 @@ class CubeGroup(PermutationGroup_generic):
 
     def B(self):
         G = self.group()
-	g = G(self.gens()[0])
+        g = G(self.gens()[0])
         return g
 
     def D(self):
-	G = self.group()
-	g = G(self.gens()[1])
+        G = self.group()
+        g = G(self.gens()[1])
         return g
 
     def F(self):
         G = self.group()
-	g = G(self.gens()[2])
+        g = G(self.gens()[2])
         return g
 
     def L(self):
         G = self.group()
-	g = G(self.gens()[3])
+        g = G(self.gens()[3])
         return g
 
     def R(self):
         G = self.group()
-	g = G(self.gens()[4])
+        g = G(self.gens()[4])
         return g
 
     def U(self):
         G = self.group()
-	g = G(self.gens()[5])
+        g = G(self.gens()[5])
         return g
 
 
@@ -806,55 +803,24 @@ class CubeGroup(PermutationGroup_generic):
     def move(self,mv):
         r"""
         Returns the group element and the reordered list of facets, as moved by
-	the list mv (read left-to-right)
+        the list mv (read left-to-right)
 
-	INPUT: mv is a string of the form X^a*Y^b*...",
-	       where X, Y, ... are in {R,L,F,B,U,D}
-	       and a,b, ... are integers.
+        INPUT: mv is a string of the form X^a*Y^b*...",
+               where X, Y, ... are in {R,L,F,B,U,D}
+               and a,b, ... are integers.
 
-	EXAMPLES:
-            sage: rubik = CubeGroup()
-	    sage: rubik.move("")[0]
-	    ()
-	    sage: rubik.move("R")[0]
-	    (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
-	    sage: rubik.R()
-	    (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
+        EXAMPLES:
+              sage: rubik = CubeGroup()
+            sage: rubik.move("")[0]
+            ()
+            sage: rubik.move("R")[0]
+            (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
+            sage: rubik.R()
+            (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
 
-	"""
-	g = self.parse(mv)
-	return g, self.facets(g)
-
-	mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "^(-1)")
-	m = mv.split("*")
-	M = [x.split("^") for x in m]
-	#print M
-	n = len(M)
-        e = 0
-	G = self.group()
-	R,L,F,B,U,D = G.gens()
-	g = G(1)
-	fcts = self.facets()
-	for i in range(n):
-	    if len(M[i])==1:
-	        M[i] = [M[i][0],"1"]
-	#print M
-	for i in range(n):
-	    x = M[i][0]
-            if x == "R":   h = self.R()
-	    elif x == "L": h = self.L()
-	    elif x == "U": h = self.U()
-	    elif x == "D": h = self.D()
-	    elif x == "F": h = self.F()
-	    elif x == "B": h = self.B()
-	    else: h = G(1)
-	    e = M[i][1]
-	    if e=="1": g = g*h
-	    if e=="2": g = g*h*h
-	    if e=="3": g = g*h*h*h
-            if e=="(-1)": g = g*h*h*h
-	pos = [g(i) for i in fcts]
-	return [g,pos]
+        """
+        g = self.parse(mv)
+        return g, self.facets(g)
 
     def display2d(self,mv):
         print self.repr2d(mv)

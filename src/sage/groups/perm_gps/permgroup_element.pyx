@@ -68,6 +68,11 @@ import operator
 
 from sage.rings.integer import Integer
 
+from sage.ext.arith cimport arith_llong
+cdef arith_llong arith = arith_llong()
+cdef extern from *:
+    long long LONG_LONG_MAX
+
 #import permgroup_named
 
 def make_permgroup_element(G, x):
@@ -529,8 +534,16 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
             sage: s.order()
             6
+
+        TESTS:
+            sage: prod(primes(150))
+            1492182350939279320058875736615841068547583863326864530410
+            sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
+            sage: PermutationGroupElement(L).order()
+            1492182350939279320058875736615841068547583863326864530410
         """
-        order = Integer(1)
+        order = None
+        cdef long long order_c = 1
         cdef int cycle_len
         cdef int i, k
         cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
@@ -544,9 +557,14 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 seen[k] = 1
                 k = self.perm[k]
                 cycle_len += 1
-            order = order.lcm(cycle_len)
+            if order is not None:
+                order = order.lcm(cycle_len)
+            else:
+                order_c = (order_c * cycle_len) / arith.c_gcd_longlong(order_c, cycle_len)
+                if order_c > LONG_LONG_MAX / (self.n - i):
+                    order = Integer(order_c)
         sage_free(seen)
-        return order
+        return int(order_c) if order is None else order
 
     def sign(self):
         """

@@ -2419,9 +2419,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
 
-        An example where the base ring doesn't have a factorization
-        algorithm (yet).  Note that this is currently done via naive
-        enumeration, so could be very slow:
+        A couple of examples where the base ring doesn't have a
+        factorization algorithm (yet).  Note that this is currently
+        done via naive enumeration, so could be very slow:
             sage: R = Integers(6)
             sage: S.<x> = R['x']
             sage: p = x^2-1
@@ -2431,6 +2431,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
             sage: p.roots(multiplicities=False)
             [1, 5]
+            sage: R = Integers(9)
+            sage: A = PolynomialRing(R, 'y')
+            sage: y = A.gen()
+            sage: f = 10*y^2 - y^3 - 9
+            sage: f.roots(multiplicities=False)
+            [0, 1, 3, 6]
 
         An example over the complex double field (where root finding
         is fast, thanks to numpy):
@@ -2598,14 +2604,15 @@ sage: rts[0][0] == rt2
         For all other cases where K is different than L, we just use
         .change_ring(L) and proceed as below.
 
-        The next method is to attempt to factor the polynomial.
-        If this succeeds, then for every degree-one factor a*x+b, we
-        add -b/a as a root (as long as this quotient is actually in
-        the desired ring).
+        The next method, which is used if K is an integral domain, is
+        to attempt to factor the polynomial.  If this succeeds, then
+        for every degree-one factor a*x+b, we add -b/a as a root (as
+        long as this quotient is actually in the desired ring).
 
-        If factoring over K is not implemented, and K is finite, then
-        we find the roots by enumerating all elements of K and checking
-        whether the polynomial evaluates to zero at that value.
+        If factoring over K is not implemented (or K is not an
+        integral domain), and K is finite, then we find the roots by
+        enumerating all elements of K and checking whether the
+        polynomial evaluates to zero at that value.
 
 
         NOTE: We mentioned above that polynomials with multiple roots
@@ -2766,7 +2773,10 @@ sage: rts[0][0] == rt2
                 return self.change_ring(L).roots(multiplicities=multiplicities, algorithm=algorithm)
 
         try:
-            rts = self.factor()
+            if K.is_integral_domain():
+                rts = self.factor()
+            else:
+                raise NotImplementedError
         except NotImplementedError:
             if K.is_finite():
                 if multiplicities:

@@ -122,6 +122,7 @@ cdef extern from "mpfr.h":
     int mpfr_sgn(mpfr_t op)
     #define mpfr_abs(a,b,r) mpfr_set4(a,b,r,1)
     #define mpfr_sgn(x) mpfr_cmp_ui(x,0)
+    int mpfr_cmp_ui(mpfr_t, unsigned int n)
 
     int mpfr_round (mpfr_ptr rop, mpfr_srcptr op)
     int mpfr_trunc (mpfr_ptr rop, mpfr_srcptr op)

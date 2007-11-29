@@ -2033,7 +2033,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.41421356237310*I
         """
         cdef RealNumber x
-        if self >= 0:
+        if mpfr_cmp_ui(self.value, 0) >= 0:
             x = self._new()
             _sig_on
             mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)

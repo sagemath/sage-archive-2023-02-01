@@ -216,19 +216,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 x = k.random_element()
                 f = y**2 + a1*x*y + a3*y - x**3 + a2*x**2 + a4*x + a6
                 roots = f.roots()
-                if roots == []:
-                    continue
-                if random.random() < 0.5:
-                    y = roots[0][0]
-                else:
-                    y = roots[1][0]
-                return self([x,y])
+                n = len(roots)
+                if n:
+                    y = roots[random.randint(0,n-1)][0]
+                    return self([x,y])
         else:
             while True:
                 x = k.random_element()
                 d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
                 try:
                     m = d.sqrt(extend=False)
+                    if random.random() < 0.5:
+                        m = -m
                     y = (-(a1*x + a3) + m) / k(2)
                     return self([x,y])
                 except ValueError:

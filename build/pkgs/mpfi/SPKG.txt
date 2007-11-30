@@ -43,3 +43,12 @@ This version includes all the patches from the Sage spkg (or
 equivalent code), and fixes several additional bugs.  (So I removed
 the patches/ directory, and the corresponding lines in spkg-install.)
 Also, this new version installs both shared and static libraries.
+
+5. Carl Witty 2007-11-29
+The previous version did not compile on OSX 10.4 Intel.  I think the problem
+may be with src/autogen.sh, which makes ltmain.sh, config.sub, and
+config.guess be symlinks instead of files; so we get whatever versions
+of these files happen to be already installed on the user's computer.
+
+So I've replaced these three symlinks with the corresponding files, and
+we'll see if that fixes the problem.

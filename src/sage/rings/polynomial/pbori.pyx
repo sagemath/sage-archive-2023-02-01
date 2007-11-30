@@ -1024,30 +1024,27 @@ cdef inline BooleanPolynomialIterator new_BPI_from_PBPolyIter(\
     return m
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
+    """
+    BooleanPolynomialIdeal
+    """
     def __init__(self, ring, gens=[], coerce=True):
+        """
+        Construct a BooleanPolynomialIdeal object.
+
+        EXAMPLES:
+            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
+            sage: I = P.ideal(x0*x1 + x0*x2 + x0, x0*x2*x3 + x0*x3)
+            sage: I
+            Ideal (x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0) of Boolean PolynomialRing in x0, x1, x2, x3
+        """
         MPolynomialIdeal.__init__(self, ring, gens, coerce)
 
-    def groebner_basis(self):
-        return groebner_basis_c_impl(self.ring(), self.gens())
-
-cdef groebner_basis_c_impl(BooleanPolynomialRing R, g):
-    cdef int i
-    cdef PBPoly t
-    cdef BooleanPolynomial p, r
-    cdef PBPolyVector vec
-    cdef GBStrategy strat
-
-    GBStrategy_construct(&strat)
-    for p in g:
-        strat.addGeneratorDelayed(p._P)
-    strat.symmGB_F2()
-    vec = strat.minimalize()
-    lvec = vec.size()
-    res = []
-    for i from 0 <= i < lvec:
-        r = new_BP_from_PBPoly(R, vec.get(i) )
-        res.append(r)
-    return res
+    def groebner_basis(self, **kwds):
+        """
+        Return a Groebner basis of this ideal.
+        """
+        from polybori.gbcore import groebner_basis
+        return groebner_basis(self.gens(), **kwds)
 
 cdef inline BooleanPolynomial new_BP(BooleanPolynomialRing parent):
     """

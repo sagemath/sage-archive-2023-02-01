@@ -254,6 +254,7 @@ from functions import Function_gen, Function_arith, Function, FunctionRing_class
 # Constant functions
 ######################
 import sage.calculus.calculus
+SR = sage.calculus.calculus.SR
 
 class Constant(Function):
     def __init__(self, conversions={}, parent=sage.calculus.calculus.SR):
@@ -315,19 +316,61 @@ class Constant(Function):
 
     # The following adds formal arithmetic support for generic constant
     def _add_(self, right):
-        return self._ser() + right
+        """
+        EXAMPLES:
+            sage: I + 2
+            I + 2
+            sage: a = I+I
+            sage: map(type, a._operands)
+            [<class 'sage.calculus.calculus.SymbolicConstant'>,
+             <class 'sage.calculus.calculus.SymbolicConstant'>]
+        """
+        return self._ser() + SR(right)
 
     def _sub_(self, right):
-        return self._ser() - right
+        """
+        EXAMPLES:
+            sage: a = I - pi; a
+            I - pi
+            sage: map(type, a._operands)
+            [<class 'sage.calculus.calculus.SymbolicConstant'>,
+             <class 'sage.calculus.calculus.SymbolicConstant'>]
+        """
+        return self._ser() - SR(right)
 
     def _mul_(self, right):
-        return self._ser() * right
+        """
+        EXAMPLES:
+            sage: a = I * pi; a
+            I*pi
+            sage: map(type, a._operands)
+            [<class 'sage.calculus.calculus.SymbolicConstant'>,
+             <class 'sage.calculus.calculus.SymbolicConstant'>]
+        """
+        return self._ser() * SR(right)
 
     def _div_(self, right):
-        return self._ser() / right
+        """
+        EXAMPLES:
+            sage: a = I / pi; a
+            I/pi
+            sage: map(type, a._operands)
+            [<class 'sage.calculus.calculus.SymbolicConstant'>,
+             <class 'sage.calculus.calculus.SymbolicConstant'>]
+
+        """
+        return self._ser() / SR(right)
 
     def __pow__(self, right):
-        return self._ser() ** right
+        """
+        EXAMPLES:
+            sage: a = pi^pi; a
+            pi^pi
+            sage: map(type, a._operands)
+            [<class 'sage.calculus.calculus.SymbolicConstant'>,
+             <class 'sage.calculus.calculus.SymbolicConstant'>]
+        """
+        return self._ser() ** SR(right)
 
     def _interface_is_cached_(self):
         """

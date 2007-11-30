@@ -339,6 +339,10 @@ class SymbolicExpressionRing_class(CommutativeRing):
             <class 'sage.calculus.calculus.SymbolicConstant'>
             sage: a.parent()
             Symbolic Ring
+            sage: type(SR(I))
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: is_SymbolicExpression(SR(I))
+            True
 
         If a is already in the symblic expression ring, coercing returns
         a itself (not a copy):
@@ -349,7 +353,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             sage: SR(complex(2,-3))
             2.00000000000000 - 3.00000000000000*I
         """
-        if is_Element(x) and x.parent() is self:
+        if is_SymbolicExpression(x):
             return x
         elif hasattr(x, '_symbolic_'):
             return x._symbolic_(self)

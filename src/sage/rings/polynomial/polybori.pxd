@@ -24,7 +24,6 @@ cdef class DD:
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _M
-    cdef BooleanPolynomial _add_c_impl(BooleanMonomial left, BooleanMonomial right)
 
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj

@@ -233,7 +233,7 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             Integer, Rational, CC,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
-                            algdep)
+                            algdep, Integer, RealNumber)
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
@@ -265,6 +265,7 @@ from sage.rings.complex_double import ComplexDoubleElement
 import sage.functions.constants
 
 import math
+import sage.functions.functions
 
 is_simplified = False
 
@@ -1528,11 +1529,11 @@ class SymbolicExpression(RingElement):
             sage: f.limit(x = 5)
             7776/3125
             sage: f.limit(x = 1.2)
-            2.069615754672029
+            2.0696157546720...
             sage: f.limit(x = I, taylor=True)
             (1 - I)^I
             sage: f(1.2)
-            2.069615754672029
+            2.0696157546720...
             sage: f(I)
             (1 - I)^I
             sage: CDF(f(I))
@@ -2796,6 +2797,14 @@ class SymbolicConstant(Symbolic_object):
             else:
                 self._precedence = 2000
         Symbolic_object.__init__(self, x)
+##         if hasattr(x, 'parent'):
+##             Symbolic_object.__init__(self, x)
+##         elif isinstance(x, int):
+##             Symbolic_object.__init__(self, Integer(x))
+##         elif isinstance(x, float):
+##             Symbolic_object.__init__(self, RealNumber(x))
+##         else:
+##             raise ValueError, "%s needs parent"%type(x)
 
     #def _is_atomic(self):
     #    try:
@@ -2866,6 +2875,144 @@ class SymbolicConstant(Symbolic_object):
             return self._obj._algebraic_(field)
         return field(Rational(self._obj))
 
+    def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a+2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = sum([a for i in range(1000)]); b
+            2000
+            sage: type(_)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.add(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                return SymbolicConstant( operator.add(self._obj, right._obj) )
+
+
+
+        return SymbolicArithmetic([self, right], operator.add)
+
+    def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a-2; b
+            0
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = SR(2000)
+            sage: for i in range(1000): b -= a;
+            sage: b
+            0
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.sub(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                return SymbolicConstant( operator.sub(self._obj, right._obj) )
+
+
+        return SymbolicArithmetic([self, right], operator.sub)
+
+
+
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a*2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: prod([a for i in range(1000)])
+            10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376
+            sage: type(_)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.mul(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                return SymbolicConstant( operator.mul(self._obj, right._obj) )
+
+        return SymbolicArithmetic([self, right], operator.mul)
+
+    def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a/2; b
+            1
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = SR(2^1000)
+            sage: for i in range(1000): b /= a;
+            sage: b
+            1
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.div(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                return SymbolicConstant( operator.div(self._obj, right._obj) )
+
+
+        return SymbolicArithmetic([self, right], operator.div)
+
+
+
+    def __pow__(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a^2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+        """
+        right = self.parent()(right)
+        return SymbolicArithmetic([self, right], operator.pow)
 
 class SymbolicPolynomial(Symbolic_object):
     """
@@ -3061,10 +3208,22 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: f = y^5 - sqrt(2)
             sage: f(10)
             100000 - sqrt(2)
+
+            sage: a = x^2; b = a(2); b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
         """
         ops = self._operands
         new_ops = [SR(op._recursive_sub(kwds)) for op in ops]
-        return self._operator(*new_ops)
+
+        #Check to see if all of the new_ops are symbolic constants
+        #If so, then we should return a symbolic constant.
+        is_constant = all(map(lambda x: isinstance(x, SymbolicConstant), new_ops))
+        if is_constant:
+            return SymbolicConstant( self._operator(*map(lambda x: x._obj, new_ops)) )
+        else:
+            return self._operator(*new_ops)
 
     def _recursive_sub_over_ring(self, kwds, ring):
         ops = self._operands

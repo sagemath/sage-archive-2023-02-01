@@ -1140,8 +1140,47 @@ class SymbolicExpression(RingElement):
         return False
 
 
-    def __call__(self, dict=None, **kwds):
-        return self.substitute(dict, **kwds)
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: x,y=var('x,y')
+            sage: f = x+y
+            sage: f.variables()
+            (x, y)
+            sage: f()
+            y + x
+            sage: f(3)
+            y + 3
+            sage: f(3,4)
+            7
+            sage: f(2,3,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 2
+
+            sage: f({x:3})
+            y + 3
+            sage: f({x:3,y:4})
+            7
+            sage: f(x=3)
+            y + 3
+            sage: f(x=3,y=4)
+            7
+        """
+        if len(args) == 0:
+            d = None
+        elif len(args) == 1 and isinstance(args[0], dict):
+            d = args[0]
+        else:
+            d = {}
+            vars = self.variables()
+            for i in range(len(args)):
+                try:
+                    d[ vars[i] ] = args[i]
+                except IndexError:
+                    raise ValueError, "the number of arguments must be less than or equal to %s"%len(self.variables())
+
+        return self.substitute(d, **kwds)
 
     def power_series(self, base_ring):
         """

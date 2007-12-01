@@ -27,7 +27,8 @@ from sage.structure.element cimport ModuleElement
 
 from sage.structure.parent cimport Parent
 
-from sage.rings.integer import Integer
+from sage.rings.polynomial.polynomial_element cimport Polynomial
+
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.finite_field import GF
@@ -78,7 +79,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             Degree reverse lexicographic term order
         """
         try:
-            n = Integer(n)
+            n = int(n)
         except TypeError, msg:
             raise TypeError, "Number of variables must be an integer"
 
@@ -202,12 +203,92 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: P._coerce_(p.lm())
             x*y
+
+        Coerce from a different BooleanPolynomialRing.
+
+            sage: P.<x,y> = BooleanPolynomialRing(2)
+            sage: R = BooleanPolynomialRing(2,'y,x')
+            sage: p = R._coerce_(x+y+x*y+1)
+            sage: p.parent()
+            Boolean PolynomialRing in y, x
+            sage: p
+            y*x + y + x + 1
+
+        Coerce from polynomials over the integers.
+
+            sage: P = BooleanPolynomialRing(3,'x,y,z')
+            sage: R.<z,x,y> = ZZ['z,x,y']
+            sage: t = x^2*z+5*y^3
+            sage: p = P._coerce_(t)
+            sage: p.parent()
+            Boolean PolynomialRing in x, y, z
+            sage: p
+            x*z + y
+
+        Coerce from BooleanMonomials over a different BooleanPolynomialRing.
+            sage: R.<y,x> = BooleanPolynomialRing(2)
+            sage: M = R._monom_monoid
+            sage: P = BooleanPolynomialRing(3,'x,y,z')
+            sage: t = P._coerce_(M(x*y))
+            sage: t
+            x*y
+            sage: t.parent()
+            Boolean PolynomialRing in x, y, z
+
+        TESTS:
+            sage: P.<x,y> = BooleanPolynomialRing(2)
+            sage: R = BooleanPolynomialRing(1,'y')
+            sage: p = R._coerce_(x+y+x*y+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot coerce polynomial x*y + x + y + 1 to       Boolean PolynomialRing in y: name 'x' is not defined
+
+            sage: P = BooleanPolynomialRing(2,'x,y')
+            sage: R.<z,x,y> = ZZ['z,x,y']
+            sage: t = x^2*z+5*y^3
+            sage: p = P._coerce_(t)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot coerce polynomial z*x^2 + 5*y^3 to       Boolean PolynomialRing in x, y: name 'z' is not defined
         """
         cdef BooleanPolynomial p
-        if PY_TYPE_CHECK(other, BooleanMonomial) and \
-                (<BooleanMonomial>other)._parent._ring is self:
-            p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._M)
-            return p
+        if PY_TYPE_CHECK(other, BooleanMonomial):
+            if (<BooleanMonomial>other)._parent._ring is self:
+                p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._M)
+                return p
+            elif (<BooleanMonomial>other)._M.deg() <= self._R.nVariables():
+                try:
+                    var_mapping = get_var_mapping(self, other)
+                except NameError, msg:
+                    raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+                p = new_BP_from_int(self, 1)
+                for i in other:
+                    p *= var_mapping[i]
+                return p
+            else:
+                raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+        elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
+                ((<BooleanPolynomial>other)._P.nUsedVariables() <= \
+                self._R.nVariables()):
+                    try:
+                        var_mapping = get_var_mapping(self, other)
+                    except NameError, msg:
+                        raise ValueError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
+                    p = new_BP_from_int(self, 0)
+                    for monom in other:
+                        new_monom = new_BP_from_int(self, 1)
+                        for i in monom:
+                            new_monom *= var_mapping[i]
+                        p += new_monom
+                    return p
+        elif (PY_TYPE_CHECK(other, MPolynomial) or \
+                PY_TYPE_CHECK(other, Polynomial)) and \
+                self.base_ring().has_coerce_map_from(other.base_ring()):
+                    from sage.misc.sage_eval import sage_eval
+                    try:
+                        return sage_eval(str(other),locals=self.gens_dict())
+                    except NameError, msg:
+                        raise ValueError, "cannot coerce polynomial %s to       %s: %s"%(other,self, msg)
         else:
             raise TypeError, "coercion from %s to %s not implemented" % \
                     (type(other), str(self))
@@ -228,6 +309,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         try:
             return self._coerce_c(other)
+        except NameError, msg:
+            raise NameError, msg
         except TypeError:
             pass
 
@@ -236,9 +319,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         elif PY_TYPE_CHECK(other, BooleSet):
             p = new_BP_from_PBSet(self, (<BooleSet>other)._S)
         else:
-            i = int(other)
+            try:
+                i = int(other)
+            except:
+                raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
+
             i = i % 2
             p = new_BP_from_int(self,i)
+
         return p
 
     def __richcmp__(left, right, int op):
@@ -301,6 +389,29 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         gens = flatten(gens)
         return BooleanPolynomialIdeal(self, gens, coerce)
 
+def get_var_mapping(ring, other):
+    """
+    Return a variable mapping between variables of other.parent() and ring, for the variables occuring in other. Raises NameError if no such mapping is possible.
+    """
+    ovar_names = other.parent().variable_names()
+    var_mapping = [None] * len(ovar_names)
+    my_names = list(ring._names) # we need .index(.)
+    if PY_TYPE_CHECK(other, BooleanPolynomial):
+        vars = other.vars()
+    elif PY_TYPE_CHECK(other, BooleanMonomial):
+        vars = other
+    else:
+        vars = range(other.parent().ngens())
+    for i in vars:
+        try:
+            ind = my_names.index(ovar_names[i])
+        except ValueError:
+            # variable name not found in list of our variables
+            # raise an exception and bail out
+            raise NameError, "name %s not defined"%(ovar_names[i])
+        var_mapping[i] = ring.gen(ind)
+    return var_mapping
+
 class BooleanMonomialMonoid(Monoid_class):
     """
     Monomial Monoid of a Boolean Polynomial Ring
@@ -323,9 +434,10 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: M.gens()
             (x, y)
             sage: type(M.gen(0))
-            <type 'sage.rings.polynomial.polybori.BooleanMonomial'>
+            <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
         """
         self._ring = polring
+        ParentWithGens.__init__(self, GF(2), polring._names)
 
     def _repr_(self):
         return "MonomialMonoid of %s" % (str(self._ring))
@@ -650,6 +762,8 @@ cdef class BooleanPolynomial(MPolynomial):
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
+        # activate the parent ring of left, otherwise we get crashes after creating a second ring
+        (<BooleanPolynomialRing>left._parent)._R.activate()
         p._P.iadd( (<BooleanPolynomial>right)._P )
         return p
 
@@ -668,6 +782,8 @@ cdef class BooleanPolynomial(MPolynomial):
     cdef RingElement _mul_c_impl(left, RingElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
+        # activate the parent ring of left, otherwise we get crashes after creating a second ring
+        (<BooleanPolynomialRing>left._parent)._R.activate()
         p._P.imul( (<BooleanPolynomial>right)._P )
         return p
 
@@ -787,6 +903,9 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).total_degree()
             2
         """
+        return self._P.deg()
+
+    def degree(self):
         return self._P.deg()
 
     def lm(BooleanPolynomial self):
@@ -1033,7 +1152,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         EXAMPLES:
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
-            sage: I = P.ideal(x0*x1 + x0*x2 + x0, x0*x2*x3 + x0*x3)
+            sage: I = P.ideal(x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0)
             sage: I
             Ideal (x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0) of Boolean PolynomialRing in x0, x1, x2, x3
         """
@@ -1042,6 +1161,12 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
     def groebner_basis(self, **kwds):
         """
         Return a Groebner basis of this ideal.
+
+        EXAMPLES:
+            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
+            sage: I = P.ideal(x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0)
+            sage: I.groebner_basis()
+            [x0*x1 + x0*x2 + x0, x0*x2*x3 + x0*x3]
         """
         from polybori.gbcore import groebner_basis
         return groebner_basis(self.gens(), **kwds)
@@ -1163,6 +1288,8 @@ cdef class BooleSet:
                 b._S.navigation());
         return new_BS_from_PBSet(res)
 
+    def union(self, rhs):
+        return new_BS_from_PBSet(self._S.unite((<BooleSet>rhs)._S))
 
     def __iter__(self):
         return new_BSI_from_PBSetIter(self, get_cring())

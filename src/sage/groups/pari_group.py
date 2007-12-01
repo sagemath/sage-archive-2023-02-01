@@ -16,6 +16,11 @@ class PariGroup(group.FiniteGroup):
     def __repr__(self):
         return "PARI group %s of degree %s"%(self.__x, self.__degree)
 
+    def __cmp__(self, other):
+        if not isinstance(other, PariGroup):
+            return cmp(type(self), type(other))
+        return cmp((self.__x, self.__degree), (other.__x, other.__degree))
+
     def _pari_(self):
         return self.__x
 

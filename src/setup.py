@@ -211,6 +211,20 @@ pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
                  libraries = ['pari', 'gmp'])
 
+cremona_mat = Extension('sage.libs.cremona.mat',
+                       sources = ["sage/libs/cremona/mat.pyx"],
+                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', ],
+                       language='c++',
+                       define_macros = [("NTL_ALL",None)]
+                       )
+
+cremona_homspace = Extension('sage.libs.cremona.homspace',
+                       sources = ["sage/libs/cremona/homspace.pyx"],
+                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', 'pari', 'curvesntl'],
+                       language='c++',
+                       define_macros = [("NTL_ALL",None)]
+                       )
+
 
 finite_field_givaro = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
@@ -507,6 +521,9 @@ ext_modules = [ \
      matrix_mod2_dense,
      matrix_mpolynomial_dense, \
 
+     cremona_mat, \
+     cremona_homspace, \
+
      finite_field_givaro, \
      finite_field_ntl_gf2e, \
 
@@ -641,6 +658,10 @@ ext_modules = [ \
 
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
+    Extension('sage.rings.complex_interval',
+              sources = ['sage/rings/complex_interval.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
     Extension('sage.rings.residue_field',
@@ -1105,6 +1126,7 @@ setup(name        = 'sage',
                      'sage.libs.pari',
                      'sage.libs.singular',
                      'sage.libs.symmetrica',
+                     'sage.libs.cremona',
 
                      'sage.logic',
 

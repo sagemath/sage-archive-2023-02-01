@@ -44,9 +44,6 @@ cdef class Conversion:
         OUTPUT:
             SAGE rational number matching n
         """
-
-        #TYPECHECK HERE
-
         cdef number *nom
         cdef number *denom
         cdef mpq_t _z
@@ -101,11 +98,17 @@ cdef class Conversion:
         OUTPUT:
             An Element in GF(q).
 
+        EXAMPLE:
+            sage: K.<a> = GF(5^3)
+            sage: R.<x,y,z> = PolynomialRing(K)
+            sage: K( (4*R(a)^2 + R(a))^3 )
+            a^2
         """
         cdef napoly *z
         cdef int c, e
         cdef int a
         cdef int ret
+        cdef int order
 
         if naIsZero(n):
             return base._zero_element
@@ -115,15 +118,16 @@ cdef class Conversion:
 
         a = base.objectptr.sage_generator()
         ret = base.objectptr.zero
+        order = base.objectptr.cardinality() - 1
 
         while z:
             c = base.objectptr.initi(c,<long>napGetCoeff(z))
             e = napGetExp(z,1)
             if e == 0:
-                ret = base.objectptr.add(ret, <int>c, ret)
+                ret = base.objectptr.add(ret, c, ret)
             else:
-                a = e * base.objectptr.sage_generator()
-                ret = base.objectptr.axpy(ret, <int>c, a, ret)
+                a = ( e * base.objectptr.sage_generator() ) % order
+                ret = base.objectptr.axpy(ret, c, a, ret)
             z = napIter(z)
         return (<FiniteField_givaroElement>base._zero_element)._new_c(ret)
 
@@ -380,5 +384,6 @@ cdef class Conversion:
         p = PY_NEW(MPolynomial_libsingular)
         p._parent = <ParentWithBase>parent
         p._poly = juice
+        p_Normalize(p._poly, parent._ring)
         return p
 

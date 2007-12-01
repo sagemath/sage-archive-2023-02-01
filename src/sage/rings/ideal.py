@@ -186,7 +186,30 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def __nonzero__(self):
-        return self.gens() != [self.ring()(0)]
+        r"""Return True if this ideal is not (0).
+
+        TESTS:
+
+            sage: I = ZZ.ideal(5)
+            sage: bool(I)
+            True
+
+            sage: I = ZZ['x'].ideal(0)
+            sage: bool(I)
+            False
+
+            sage: I = ZZ['x'].ideal(ZZ['x'].gen()^2)
+            sage: bool(I)
+            True
+
+            sage: I = QQ['x', 'y'].ideal(0)
+            sage: bool(I)
+            False
+        """
+        for g in self.gens():
+            if not g.is_zero():
+                return True
+        return False
 
     def base_ring(self):
         return self.ring().base_ring()
@@ -259,10 +282,39 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def is_trivial(self):
+        r"""Return True if this ideal is (0) or (1).
+
+        TESTS:
+
+            sage: I = ZZ.ideal(5)
+            sage: I.is_trivial()
+            False
+
+            sage: I = ZZ['x'].ideal(-1)
+            sage: I.is_trivial()
+            True
+
+            sage: I = ZZ['x'].ideal(ZZ['x'].gen()^2)
+            sage: I.is_trivial()
+            False
+
+            sage: I = QQ['x', 'y'].ideal(-5)
+            sage: I.is_trivial()
+            True
+
+            sage: I = CC['x'].ideal(0)
+            sage: I.is_trivial()
+            True
+        """
         if self.is_zero():
             return True
-        elif self.is_principal():
-            return self.gen().is_unit()
+        # If self is principal, can give a complete answer
+        if self.is_principal():
+            return self.gens()[0].is_unit()
+        # If self is not principal, can only give an affirmative answer
+        for g in self.gens():
+            if g.is_unit():
+                return True
         raise NotImplementedError
 
     def category(self):

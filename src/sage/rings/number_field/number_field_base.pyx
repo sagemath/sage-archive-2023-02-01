@@ -94,3 +94,131 @@ cdef class NumberField(Field):
         """
         return False
 
+    def signature(self):
+        """
+        Return (r1, r2), where r1 and r2 are the number of real embeddings
+        and pairs of complex embeddings of this field, respectively.
+        """
+        raise NotImplementedError
+
+    def degree(self):
+        """
+        Return the degree of this number field.
+        """
+        raise NotImplementedError
+
+    def discriminant(self):
+        """
+        Return the discriminant of this number field.
+        """
+        raise NotImplementedError
+
+    def minkowski_bound(self):
+        r"""
+        Return the Minkowski bound associated to this number field.
+
+        EXAMPLES:
+        The Minkowski bound for $\QQ[i]$ tells us that the class
+        number is 1:
+            sage: K = QQ[I]
+            sage: B = K.minkowski_bound(); B
+            4/pi
+            sage: B.n()
+            1.27323954473516
+
+        We compute the Minkowski bound for $\QQ[\sqrt[3]{2}]$:
+            sage: K = QQ[2^(1/3)]
+            sage: B = K.minkowski_bound(); B
+            16*sqrt(3)/(3*pi)
+            sage: B.n()
+            2.94042077558289
+            sage: int(B)
+            2
+
+        We compute the Minkowski bound for $\QQ[\sqrt{10}]$, which
+        has class number $2$:
+            sage: K = QQ[sqrt(10)]
+            sage: B = K.minkowski_bound(); B
+            sqrt(10)
+            sage: int(B)
+            3
+            sage: K.class_number()
+            2
+
+        The bound of course also works for the rational numbers:
+            sage: QQ.minkowski_bound()
+            1
+        """
+        _, s = self.signature()
+        n = self.degree()
+        d = self.discriminant().abs().sqrt()
+        from sage.functions.constants import pi
+        if s > 0:
+            return d * (4/pi)**s * n.factorial() / (n**n)
+        else:
+            return d * n.factorial() / (n**n)
+
+    def signature(self):
+        """
+        Return (r1, r2), where r1 and r2 are the number of real embeddings
+        and pairs of complex embeddings of this field, respectively.
+        """
+        raise NotImplementedError
+
+    def degree(self):
+        """
+        Return the degree of this number field.
+        """
+        raise NotImplementedError
+
+    def discriminant(self):
+        """
+        Return the discriminant of this number field.
+        """
+        raise NotImplementedError
+
+    def minkowski_bound(self):
+        r"""
+        Return the Minkowski bound associated to this number field.
+
+        EXAMPLES:
+        The Minkowski bound for $\QQ[i]$ tells us that the class
+        number is 1:
+            sage: K = QQ[I]
+            sage: B = K.minkowski_bound(); B
+            4/pi
+            sage: B.n()
+            1.27323954473516
+
+        We compute the Minkowski bound for $\QQ[\sqrt[3]{2}]$:
+            sage: K = QQ[2^(1/3)]
+            sage: B = K.minkowski_bound(); B
+            16*sqrt(3)/(3*pi)
+            sage: B.n()
+            2.94042077558289
+            sage: int(B)
+            2
+
+        We compute the Minkowski bound for $\QQ[\sqrt{10}]$, which
+        has class number $2$:
+            sage: K = QQ[sqrt(10)]
+            sage: B = K.minkowski_bound(); B
+            sqrt(10)
+            sage: int(B)
+            3
+            sage: K.class_number()
+            2
+
+        The bound of course also works for the rational numbers:
+            sage: QQ.minkowski_bound()
+            1
+        """
+        _, s = self.signature()
+        n = self.degree()
+        d = self.discriminant().abs().sqrt()
+        from sage.functions.constants import pi
+        if s > 0:
+            return d * (4/pi)**s * n.factorial() / (n**n)
+        else:
+            return d * n.factorial() / (n**n)
+

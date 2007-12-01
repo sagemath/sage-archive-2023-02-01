@@ -2011,7 +2011,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: v*a
             (9, 10, 11)
 
-        This is not allowed, since v is a {\em row} vector:
+        This is not allowed, since v is a \emph{row} vector:
             sage: a*v
             Traceback (most recent call last):
             ...

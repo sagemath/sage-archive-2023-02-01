@@ -164,7 +164,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     OUTPUT:
         a free module
 
-    \note{In \sage it is {\em not} the case that there is only one
+    \note{In \sage it is \emph{not} the case that there is only one
     free ambient module of rank $n$ over $R$.  If you create $R^n$ twice
     \sage creates two separate objects.  This is because one can
     change the inner product on an ambient free module at any time.}

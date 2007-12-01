@@ -2943,7 +2943,9 @@ class SymbolicConstant(Symbolic_object):
             except AttributeError:
                 #Either self._obj or right._obj doesn't have a
                 #parent method (like 'int' or 'float')
-                return SymbolicConstant( operator.add(self._obj, right._obj) )
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.add(self._obj, right._obj) )
 
 
 
@@ -2976,7 +2978,10 @@ class SymbolicConstant(Symbolic_object):
             except AttributeError:
                 #Either self._obj or right._obj doesn't have a
                 #parent method (like 'int' or 'float')
-                return SymbolicConstant( operator.sub(self._obj, right._obj) )
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.sub(self._obj, right._obj) )
+
 
 
         return SymbolicArithmetic([self, right], operator.sub)
@@ -3007,7 +3012,9 @@ class SymbolicConstant(Symbolic_object):
             except AttributeError:
                 #Either self._obj or right._obj doesn't have a
                 #parent method (like 'int' or 'float')
-                return SymbolicConstant( operator.mul(self._obj, right._obj) )
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.mul(self._obj, right._obj) )
 
         return SymbolicArithmetic([self, right], operator.mul)
 
@@ -3038,7 +3045,10 @@ class SymbolicConstant(Symbolic_object):
             except AttributeError:
                 #Either self._obj or right._obj doesn't have a
                 #parent method (like 'int' or 'float')
-                return SymbolicConstant( operator.div(self._obj, right._obj) )
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.div(self._obj, right._obj) )
+
 
 
         return SymbolicArithmetic([self, right], operator.div)

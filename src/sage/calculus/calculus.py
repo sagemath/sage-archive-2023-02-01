@@ -240,6 +240,7 @@ from sage.structure.parent_base import ParentWithBase
 
 import operator
 from sage.misc.latex import latex, latex_variable_name
+from sage.misc.misc import uniq as unique
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
@@ -3234,6 +3235,99 @@ class SymbolicArithmetic(SymbolicOperation):
             self._l_assoc = True
             self._r_assoc = True
 
+    def __call__(self, *args, **kwargs):
+        """
+        EXAMPLES:
+            sage: x,y,z=var('x,y,z')
+
+            sage: h = sin + cos
+            sage: h(1)
+            sin(1) + cos(1)
+            sage: h(x)
+            sin(x) + cos(x)
+            sage: h = 3*sin
+            sage: h(1)
+            3*sin(1)
+            sage: h(x)
+            3*sin(x)
+
+            sage: (sin+cos)(1)
+            sin(1) + cos(1)
+            sage: (sin+1)(1)
+            sin(1) + 1
+            sage: (x+sin)(5)
+            sin(5) + 5
+            sage: (y+sin)(5)
+            sin(5) + 5
+            sage: (x+y+sin)(5)
+            y + sin(5) + 5
+
+
+            sage: f = x + 2*y + 3*z
+            sage: f(1)
+            3*z + 2*y + 1
+            sage: f(0,1)
+            3*z + 2
+            sage: f(0,0,1)
+            3
+
+
+        """
+
+        if kwargs and args:
+            raise ValueError, "args and kwargs cannot both be specified"
+
+        if len(args) == 1 and isinstance(args[0], dict):
+            kwargs = dict(map(lambda x: (repr(x[0]), x[1]), args[0].iteritems()))
+
+        if kwargs:
+            #Handle the case where kwargs are specified
+            x = var('x')
+
+            new_ops = []
+            for op in self._operands:
+                try:
+                    new_ops.append( op(**kwargs) )
+                except ValueError:
+                    new_ops.append(op)
+
+
+
+        else:
+            #Handle the case where args are specified
+
+            #Get all the variables
+            variables = list( self.variables() )
+
+            if len(args) > len(variables) and len(args) > 1:
+                raise ValueError, "the number of arguments must be less than or equal to %s"%len(variables)
+
+            new_ops = []
+            for op in self._operands:
+                try:
+                    op_vars = op.variables()
+                    if len(op_vars) == 0:
+                        new_ops.append( op(args[0]) )
+                        continue
+                    else:
+                        indices = filter(lambda i: i < len(args), map(variables.index, op_vars))
+                        if len(indices) == 0:
+                            new_ops.append( op )
+                        else:
+                            new_ops.append( op(*[args[i] for i in indices]) )
+                except ValueError:
+                    new_ops.append( op )
+
+        #Check to see if all of the new_ops are symbolic constants
+        #If so, then we should return a symbolic constant.
+        new_ops = map(SR, new_ops)
+        is_constant = all(map(lambda x: isinstance(x, SymbolicConstant), new_ops))
+        if is_constant:
+            return SymbolicConstant( self._operator(*map(lambda x: x._obj, new_ops)) )
+        else:
+            return self._operator(*new_ops)
+
+
     def _recursive_sub(self, kwds):
         """
         EXAMPLES:
@@ -3681,6 +3775,8 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
 
     def _coerce_impl(self, x):
         if isinstance(x, SymbolicExpression):
+            if isinstance(x, PrimitiveFunction):
+                return CallableSymbolicExpression(self, x( *self._args ))
             if isinstance(x, CallableSymbolicExpression):
                 x = x._expr
             return CallableSymbolicExpression(self, x)
@@ -3877,6 +3973,16 @@ class CallableSymbolicExpression(SymbolicExpression):
             (x, n, m, y, z) |--> z^m + y^m + 2*x^n
             sage: g + f
             (x, n, m, y, z) |--> z^m + y^m + 2*x^n
+
+            sage: f(x) = x^2
+            sage: f+sin
+            x |--> sin(x) + x^2
+            sage: g(y) = y^2
+            sage: g+sin
+            y |--> sin(y) + y^2
+            sage: h = g+sin
+            sage: h(2)
+            sin(2) + 4
         """
         if isinstance(right, CallableSymbolicExpression):
             if self.parent() is right.parent():

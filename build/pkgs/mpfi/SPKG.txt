@@ -52,3 +52,8 @@ of these files happen to be already installed on the user's computer.
 
 So I've replaced these three symlinks with the corresponding files, and
 we'll see if that fixes the problem.
+
+6. Carl Witty 2007-12-01
+The previous version required "autoheader" (part of autoconf).
+I've copied in a new version of src/missing, and touched src/mpfi_config.h.in;
+I believe that either of these changes would suffice to fix the problem.

@@ -22,6 +22,7 @@
 import os
 from sage.dsage.dist_functions.all import *
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.dsage import *
 
 def DSage(server='localhost', port=8081,
           username=os.getenv('USER'),
@@ -46,5 +47,5 @@ def DSage(server='localhost', port=8081,
     from sage.dsage.interface.dsage_interface import BlockingDSage
     return BlockingDSage(server=server, port=port, username=username,
                          pubkey_file=pubkey_file, privkey_file=privkey_file,
-                         log_leve=log_level, ssl=ssl)
+                         log_level=log_level, ssl=ssl)
 

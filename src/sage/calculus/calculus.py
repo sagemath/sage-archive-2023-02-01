@@ -3133,6 +3133,23 @@ class SymbolicPolynomial(Symbolic_object):
                     t.append(g)
             return ring(f(*t))
 
+    def variables(self):
+        """
+        Return sorted list of variables that occur in self.
+        The ordering is alphabetic.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: g = SR(f)
+            sage: g.variables()
+            (x, y)
+        """
+        P = self._obj.parent()
+        variables = map(var, P.variable_names_recursive())
+        variables.sort()
+        return tuple(variables)
+
     def polynomial(self, base_ring):
         """
         Return self as a polynomial over the given base ring, if possible.
@@ -3317,7 +3334,10 @@ class SymbolicArithmetic(SymbolicOperation):
                 try:
                     op_vars = op.variables()
                     if len(op_vars) == 0:
-                        new_ops.append( op(args[0]) )
+                        if len(args) != 0:
+                            new_ops.append( op(args[0]) )
+                        else:
+                            new_ops.append( op )
                         continue
                     else:
                         indices = filter(lambda i: i < len(args), map(variables.index, op_vars))

@@ -524,9 +524,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return result
 
     def _integer_(self):
+        r"""
+        EXAMPLES:
+            sage: k = GF(47)
+            sage: R.<x> = PolynomialRing(k)
+            sage: ZZ(R(45))
+            45
+            sage: ZZ(3*x + 45)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial
+        """
         if self.degree() > 0:
             raise TypeError, "cannot coerce nonconstant polynomial"
         return sage.rings.integer.Integer(self[0])
+
+    def _rational_(self):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: QQ(R(45/4))
+            45/4
+            sage: QQ(3*x + 45)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial
+        """
+        if self.degree() > 0:
+            raise TypeError, "cannot coerce nonconstant polynomial"
+        return sage.rings.rational.Rational(self[0])
 
     def __invert__(self):
         """

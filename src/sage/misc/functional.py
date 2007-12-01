@@ -723,7 +723,7 @@ def numerical_approx(x, prec=None, digits=None):
         if digits is None:
             prec = 53
         else:
-            prec = int(digits * 3.4) + 2
+            prec = int((digits+1) * 3.32192) + 1
     try:
         return x.numerical_approx(prec)
     except AttributeError:

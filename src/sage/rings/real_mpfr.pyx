@@ -937,7 +937,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if no_sci is None:
             no_sci = not (<RealField>self._parent).sci_not
 
-        if no_sci is True and (-exponent > digits or exponent > 2*digits):
+        if no_sci is True and ( abs(exponent-1) >=6 ):
             no_sci = False
 
         if no_sci==False:
@@ -946,22 +946,26 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
 
         lpad = ''
+
         if exponent <= 0:
             n = len(t)
             lpad = '0.' + '0'*abs(exponent)
         else:
             n = exponent
+
         if t[0] == '-':
             lpad = '-' + lpad
             t = t[1:]
         z = lpad + str(t[:n])
         w = t[n:]
-        if len(w) > 0:
+
+        if len(w) > 0 and '.' not in z:
             z = z + ".%s"%w
         elif exponent > 0:
             z = z + '0'*(n-len(t))
         if '.' not in z:
-            z = z + '.'
+            z = z + "."
+
         return z
 
     def __copy__(self):
@@ -2980,10 +2984,37 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     """
     if not isinstance(s, str):
         s = str(s)
-    if base == 10:
-        bits = int(3.32192*len(s))
+
+    if 'e' in s or 'E' in s:
+        #Figure out the exponent
+        index = max( s.find('e'), s.find('E') )
+        exponent = int(s[index+1:])
+        rest = s[:index]
+
+        #Find the first nonzero entry in rest
+        sigfigs = 0
+        for i in range(len(rest)):
+            if rest[i] != '.' and rest[i] != '0':
+                sigfigs = len(rest) - i
+                break
+
+        if base == 10:
+            bits = int(3.32192*sigfigs)+1
+        else:
+            bits = int(math.log(base,2)*sigfigs)+1
     else:
-        bits = int(math.log(base,2)*len(s))
+        #Find the first nonzero entry in s
+        sigfigs = 0
+        for i in range(len(s)):
+            if s[i] != '.' and s[i] != '0':
+                sigfigs = len(s) - i
+                break
+
+        if base == 10:
+            bits = int(3.32192*sigfigs)+1
+        else:
+            bits = int(math.log(base,2)*sigfigs)+1
+
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 

@@ -569,7 +569,7 @@ cdef class hanke_Matrix:
 
             This returns an upper triangular matrix with integer
             coefficients, though when p>2 it is diagonal.  Thus in
-            general this is {\em not} a symmetric matrix!  This was
+            general this is \emph{not} a symmetric matrix!  This was
             very convenient for computing local densities (since it
             avoided dividing by 2 all p>2), but is inconvenient for
             using in this class.  Because of this, it should be

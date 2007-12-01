@@ -72,6 +72,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_init2(self.__im, self._prec)
 
         if imag is None:
+            if real is None: return
+
             if PY_TYPE_CHECK(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):

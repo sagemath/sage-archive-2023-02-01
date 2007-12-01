@@ -280,7 +280,7 @@ def factorial(n, algorithm='gmp'):
 def is_prime(n, flag=0):
     r"""
     Returns True if $x$ is prime, and False otherwise.  The result
-    is proven correct -- {\em this is NOT a pseudo-primality test!}.
+    is proven correct -- \emph{this is NOT a pseudo-primality test!}.
 
     INPUT:
         flag -- int
@@ -316,7 +316,7 @@ def is_prime(n, flag=0):
 def is_pseudoprime(n, flag=0):
     r"""
     Returns True if $x$ is a pseudo-prime, and False otherwise.  The result
-    is \em{NOT} proven correct -- {\em this is a pseudo-primality test!}.
+    is \emph{NOT} proven correct -- \emph{this is a pseudo-primality test!}.
 
     INPUT:
         flag -- int
@@ -352,7 +352,7 @@ def is_pseudoprime(n, flag=0):
 def is_prime_power(n, flag=0):
     r"""
     Returns True if $x$ is a prime power, and False otherwise.
-    The result is proven correct -- {\em this is NOT a
+    The result is proven correct -- \emph{this is NOT a
     pseudo-primality test!}.
 
     INPUT:
@@ -2391,7 +2391,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction_list(sqrt(4/19))
-        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 18]
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
         sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),

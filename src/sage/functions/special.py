@@ -500,7 +500,7 @@ def bessel_J(nu,z,alg="pari",prec=53):
 def bessel_K(nu,z,prec=53):
     r"""
     Implements the "K-Bessel function", or
-    "modifed Bessel function, 2nd kind", with
+    "modified Bessel function, 2nd kind", with
     index (or "order") nu and argument z. Defn:
 \begin{verbatim}
             pi*(bessel_I(-nu, z) - bessel_I(nu, z))

@@ -3688,7 +3688,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     that define a region that includes exactly one root.  If
     retval=='interval', then it is returned as a RealIntervalFieldElement
     that includes exactly one root.  If retval=='algebraic_real', then
-    it is returned as an algebraic_real.  In the former two cases, all
+    it is returned as an AlgebraicReal.  In the former two cases, all
     the intervals are disjoint.
 
     An alternate high-level algorithm can be used by selecting
@@ -3741,8 +3741,8 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     that do not contain 0, and the absolute diameter for intervals
     containing 0.)  This directly affects the results in rational or
     interval return mode; in algebraic_real mode, it increases the
-    precision of the intervals passed to the algebraic_real package,
-    which may speed up some operations on that algebraic_real.
+    precision of the intervals passed to the algebraic number package,
+    which may speed up some operations on that algebraic real.
 
     Some logging can be enabled with do_logging=True.  If logging is enabled,
     then the normal values are not returned; instead, a pair of

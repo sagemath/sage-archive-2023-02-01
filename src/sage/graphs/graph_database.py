@@ -1340,7 +1340,6 @@ class GraphDatabase(GenericSQLDatabase):
         from sage.misc.multireplace import multiple_replace
         to_bool = {'0':"False", '1':"True"}
 
-        print b
         for i in range(len(b)):
             eul = multiple_replace(to_bool,'%s'%b[i][13])
             reg = multiple_replace(to_bool,'%s'%b[i][2])

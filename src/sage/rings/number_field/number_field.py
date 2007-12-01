@@ -1355,23 +1355,32 @@ class NumberField_generic(number_field_base.NumberField):
         except (TypeError, ValueError):
             return False
 
-    def pari_polynomial(self):
+    def pari_polynomial(self, name='x'):
         """
         PARI polynomial corresponding to polynomial that defines
-        this field.   This is always a polynomial in the variable "x".
+        this field. By default, this is a polynomial in the
+        variable "x".
 
         EXAMPLES:
             sage: y = polygen(QQ)
             sage: k.<a> = NumberField(y^2 - 3/2*y + 5/3)
             sage: k.pari_polynomial()
             x^2 - 3/2*x + 5/3
+            sage: k.pari_polynomial('a')
+            a^2 - 3/2*a + 5/3
         """
         try:
-            return self.__pari_polynomial
+            if (self.__pari_polynomial_var == name):
+                return self.__pari_polynomial
+            else:
+                self.__pari_polynomial = self.__pari_polynomial(name)
+                self.__pari_polynomial_var = name
+                return self.__pari_polynomial
         except AttributeError:
             poly = self.polynomial()
-            with localvars(poly.parent(), 'x'):
+            with localvars(poly.parent(), name):
                 self.__pari_polynomial = poly._pari_()
+                self.__pari_polynomial_var = name
             return self.__pari_polynomial
 
     def pari_nf(self):

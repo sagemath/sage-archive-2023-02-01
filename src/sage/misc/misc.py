@@ -799,8 +799,8 @@ sxrange = xsrange
 
 def ellipsis_range(*args, **kwds):
     """
-    Return arithmatic sequence determined by the numeric arguments and
-    ellipsis. Best illistrated by examples.
+    Return arithmetic sequence determined by the numeric arguments and
+    ellipsis. Best illustrated by examples.
 
     Use [1,2,..,n] notation.
 

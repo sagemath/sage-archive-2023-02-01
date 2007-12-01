@@ -255,19 +255,20 @@ cdef class RealField(sage.rings.ring.Field):
              * real mathematical constants
 	     * the field of algebraic reals
         """
-        import sage.rings.algebraic_real
-
         if isinstance(x, RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
+        elif isinstance(x, (Integer, Rational)):
             return self(x)
         elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
             return self(x)
         elif is_RealDoubleElement(x) and self.__prec <= 53:
+            return self(x)
+        import sage.rings.qqbar
+        if isinstance(x, sage.rings.qqbar.AlgebraicReal):
             return self(x)
         raise TypeError
 
@@ -621,8 +622,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._set(x, base)
 
     cdef _set(self, x, int base):
-        import sage.rings.algebraic_real
-
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
@@ -652,9 +651,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, QuadDoubleElement):
             qd = x
             self._set_from_qd(qd)
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
-            d = x.real(parent)
-            mpfr_set(self.value, d.value, parent.rnd)
         elif hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
         else:
@@ -2037,7 +2033,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.41421356237310*I
         """
         cdef RealNumber x
-        if self >= 0:
+        if mpfr_cmp_ui(self.value, 0) >= 0:
             x = self._new()
             _sig_on
             mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
@@ -2481,6 +2477,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return 1/self.tanh()
 
+    def cot(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).cot()
+            -0.45765755436028576375027741043
+        """
+        return 1/self.tan()
+
     def csch(self):
         """
         EXAMPLES:
@@ -2489,6 +2493,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return 1/self.sinh()
 
+    def csc(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).csc()
+            1.0997501702946164667566973970
+        """
+        return 1/self.sin()
+
     def sech(self):
         """
         EXAMPLES:
@@ -2496,6 +2508,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.26580222883407969212086273982
         """
         return 1/self.cosh()
+
+    def sec(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).sec()
+            -2.4029979617223809897546004014
+        """
+        return 1/self.cos()
 
     def acosh(self):
         """

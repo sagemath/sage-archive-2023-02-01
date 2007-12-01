@@ -351,7 +351,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 1 + 13 + O(13^10)
 
         The next few examples illustrate precision when computing $p$-adic exps.
-        First we create a field with {\em default} precision 10.
+        First we create a field with \emph{default} precision 10.
             sage: R = Zp(5,10, print_mode='series')
             sage: e = R(2*5 + 2*5**2 + 4*5**3 + 3*5**4 + 5**5 + 3*5**7 + 2*5**8 + 4*5**9).add_bigoh(10); e
                 2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
@@ -573,7 +573,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
         The next few examples illustrate precision when computing $p$-adic logs.
-        First we create a field with {\em default} precision 10.
+        First we create a field with \emph{default} precision 10.
             sage: R = Zp(5,10, print_mode='series')
             sage: e = R(389); e
             4 + 2*5 + 3*5^3 + O(5^10)

@@ -175,12 +175,16 @@ cdef class FP_LLL:
         self._check_precision(precision)
         self._check_eta(eta)
         self._check_delta(delta)
+        cdef int ret = 0
 
         cdef wrapper *w = wrapper_new(self._lattice, 0, eta, delta)
         _sig_on
-        w.LLL()
+        ret = w.LLL()
         _sig_off
         wrapper_delete(w)
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
+
 
     def proved(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -239,6 +243,7 @@ cdef class FP_LLL:
         cdef proved_double *pdouble
         cdef proved_mpfr *pmpfr
         cdef proved_dpe *pdpe
+        cdef int ret = 0
 
         if implementation is None:
             implementation = "mpfr"
@@ -246,21 +251,24 @@ cdef class FP_LLL:
         if implementation == "double":
            pdouble = proved_double_new(self._lattice, precision, eta, delta)
            _sig_on
-           pdouble.LLL()
+           ret = pdouble.LLL()
            _sig_off
            proved_double_delete(pdouble)
         elif implementation == "dpe":
            pdpe = proved_dpe_new(self._lattice, precision, <double>eta, <double>delta)
            _sig_on
-           pdpe.LLL()
+           ret = pdpe.LLL()
            _sig_off
            proved_dpe_delete(pdpe)
         elif implementation == "mpfr":
            pmpfr = proved_mpfr_new(self._lattice, precision, eta, delta)
            _sig_on
-           pmpfr.LLL()
+           ret = pmpfr.LLL()
            _sig_off
            proved_mpfr_delete(pmpfr)
+
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
 
     def fast(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -311,12 +319,16 @@ cdef class FP_LLL:
         self._check_delta(delta)
 
         cdef fast_double *pdouble
+        cdef int ret = 0
 
         pdouble = fast_double_new(self._lattice, precision, eta, delta)
         _sig_on
-        pdouble.LLL()
+        ret = pdouble.LLL()
         _sig_off
         fast_double_delete(pdouble)
+
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
 
     def fast_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -372,14 +384,18 @@ cdef class FP_LLL:
         self._check_precision(precision)
         self._check_eta(eta)
         self._check_delta(delta)
+        cdef int ret = 0
 
         cdef fast_early_red_double *pdouble
 
         pdouble = fast_early_red_double_new(self._lattice, precision, eta, delta)
         _sig_on
-        pdouble.LLL()
+        ret = pdouble.LLL()
         _sig_off
         fast_early_red_double_delete(pdouble)
+
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
 
     def heuristic(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -432,28 +448,33 @@ cdef class FP_LLL:
         cdef heuristic_double *pdouble
         cdef heuristic_mpfr *pmpfr
         cdef heuristic_dpe *pdpe
+        cdef int ret = 0
 
         if implementation is None:
             implementation = "mpfr"
 
         if implementation == "double":
-           pdouble = heuristic_double_new(self._lattice, precision, eta, delta)
-           _sig_on
-           pdouble.LLL()
-           _sig_off
-           heuristic_double_delete(pdouble)
+            pdouble = heuristic_double_new(self._lattice, precision, eta, delta)
+            _sig_on
+            ret = pdouble.LLL()
+            _sig_off
+            heuristic_double_delete(pdouble)
         elif implementation == "dpe":
-           pdpe = heuristic_dpe_new(self._lattice, precision, <double>eta, <double>delta)
-           _sig_on
-           pdpe.LLL()
-           _sig_off
-           heuristic_dpe_delete(pdpe)
+            pdpe = heuristic_dpe_new(self._lattice, precision, <double>eta, <double>delta)
+            _sig_on
+            ret = pdpe.LLL()
+            _sig_off
+            heuristic_dpe_delete(pdpe)
         elif implementation == "mpfr":
-           pmpfr = heuristic_mpfr_new(self._lattice, precision, eta, delta)
-           _sig_on
-           pmpfr.LLL()
-           _sig_off
-           heuristic_mpfr_delete(pmpfr)
+            pmpfr = heuristic_mpfr_new(self._lattice, precision, eta, delta)
+            _sig_on
+            ret = pmpfr.LLL()
+            _sig_off
+            heuristic_mpfr_delete(pmpfr)
+
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
+
 
     def heuristic_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -513,6 +534,7 @@ cdef class FP_LLL:
         cdef heuristic_early_red_double *pdouble
         cdef heuristic_early_red_mpfr *pmpfr
         cdef heuristic_early_red_dpe *pdpe
+        cdef int ret = 0
 
         if implementation is None:
             implementation = "mpfr"
@@ -520,22 +542,24 @@ cdef class FP_LLL:
         if implementation == "double":
            pdouble = heuristic_early_red_double_new(self._lattice, precision, eta, delta)
            _sig_on
-           pdouble.LLL()
+           ret = pdouble.LLL()
            _sig_off
            heuristic_early_red_double_delete(pdouble)
         elif implementation == "dpe":
            pdpe = heuristic_early_red_dpe_new(self._lattice, precision, <double>eta, <double>delta)
            _sig_on
-           pdpe.LLL()
+           ret = pdpe.LLL()
            _sig_off
            heuristic_early_red_dpe_delete(pdpe)
         elif implementation == "mpfr":
            pmpfr = heuristic_early_red_mpfr_new(self._lattice, precision, eta, delta)
            _sig_on
-           pmpfr.LLL()
+           ret = pmpfr.LLL()
            _sig_off
            heuristic_early_red_mpfr_delete(pmpfr)
 
+        if ret < 0:
+            raise RuntimeError, "fpLLL returned %d < 0"%ret
 
 def gen_intrel(int d, int b):
     """

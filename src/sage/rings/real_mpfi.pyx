@@ -105,17 +105,6 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-#*****************************************************************************
-# general TODOs:
-#
-# more type conversions and coercion. examples:
-# sage: R(1/2)
-# TypeError: Unable to convert x (='1/2') to mpfi.
-#
-# sage: 1 + R(42)
-# _49 = 1
-#*****************************************************************************
-
 import math # for log
 import sys
 
@@ -415,8 +404,6 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         bounds equal; otherwise, the upper and lower bounds will typically
         be adjacent floating-point numbers that surround the given value.
         """
-        import sage.rings.algebraic_real
-
         if isinstance(x, real_mpfr.RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
@@ -429,7 +416,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
+        if isinstance(x, (Integer, Rational)):
             return self(x)
         cdef RealNumber lower, upper
         try:
@@ -474,11 +461,15 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         else:
             raise IndexError
 
-#    def complex_field(self):
-#        """
-#        Return complex field of the same precision.
-#        """
-#        return sage.rings.complex_field.ComplexField(self.prec())
+    def complex_field(self):
+        """
+        Return complex field of the same precision.
+
+        EXAMPLES:
+            sage: RIF.complex_field()
+            Complex Interval Field with 53 bits of precision
+        """
+        return sage.rings.complex_interval_field.ComplexIntervalField(self.prec())
 
     def ngens(self):
         return 1
@@ -537,7 +528,6 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     def prec(self):
         return self.__prec
 
-    # int mpfi_const_pi (mpfi_ptr)
     def pi(self):
         """
         Returns pi to the precision of this field.
@@ -557,8 +547,6 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         mpfi_const_pi(x.value)
         return x
 
-
-    # int mpfi_const_euler (mpfi_ptr)
     def euler_constant(self):
         """
         Returns Euler's gamma constant to the precision of this field.
@@ -695,7 +683,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             RealIntervalField?
         for many more examples.
         """
-        import sage.rings.algebraic_real
+        import sage.rings.qqbar
 
         self.init = 0
         if parent is None:
@@ -756,7 +744,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 rn1 =self._parent._upper_field()(b)
                 mpfi_interv_fr(self.value, <mpfr_t> rn.value, <mpfr_t> rn1.value)
 
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
+        elif isinstance(x, sage.rings.qqbar.AlgebraicReal):
             d = x.interval(self._parent)
             mpfi_set(self.value, d.value)
 
@@ -1050,6 +1038,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         x = (<RealIntervalField>self._parent).__middle_field._new()
         mpfi_diam(<mpfr_t> x.value, self.value)
         return x
+
+    def is_exact(self):
+        return mpfr_equal_p(&self.value.left, &self.value.right)
 
     def magnitude(self):
         """
@@ -1821,6 +1812,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         elif op == 5: #>=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
+    def __nonzero__(self):
+        """
+        Returns true if self is not known to be exactly zero.
+
+        EXAMPLES:
+            sage: RIF(0).__nonzero__()
+            False
+            sage: RIF(1).__nonzero__()
+            True
+            sage: RIF(1, 2).__nonzero__()
+            True
+            sage: RIF(0, 1).__nonzero__()
+            True
+            sage: RIF(-1, 1).__nonzero__()
+            True
+        """
+        return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
+
     def __cmp__(left, right):
         """
         Compare two intervals lexicographically.  Returns 0 if they
@@ -1905,6 +1914,45 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return mpfi_is_inside(other_intv.value, self.value)
         except TypeError, msg:
             return False
+
+    def contains_zero(self):
+        """
+        Returns True if self is an interval containing zero.
+
+        EXAMPLES:
+            sage: RIF(0).contains_zero()
+            True
+            sage: RIF(1, 2).contains_zero()
+            False
+            sage: RIF(-1, 1).contains_zero()
+            True
+            sage: RIF(-1, 0).contains_zero()
+            True
+        """
+        return mpfi_has_zero(self.value)
+
+    def overlaps(self, RealIntervalFieldElement other):
+        """
+        Returns true if self and other are intervals with at least
+        one value in common.  For intervals a and b, we have
+        a.overlaps(b) iff not(a!=b).
+
+        EXAMPLES:
+            sage: RIF(0, 1).overlaps(RIF(1, 2))
+            True
+            sage: RIF(1, 2).overlaps(RIF(0, 1))
+            True
+            sage: RIF(0, 1).overlaps(RIF(2, 3))
+            False
+            sage: RIF(2, 3).overlaps(RIF(0, 1))
+            False
+            sage: RIF(0, 3).overlaps(RIF(1, 2))
+            True
+            sage: RIF(0, 2).overlaps(RIF(1, 3))
+            True
+        """
+        return mpfr_greaterequal_p(&self.value.right, &other.value.left) \
+           and mpfr_greaterequal_p(&other.value.right, &self.value.left)
 
     def intersection(self, other):
         """
@@ -2095,6 +2143,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #             x = self
 #             exponent = x._parent(exponent)
 #         return self.__pow(exponent)
+
+    def __pow__(self, exponent, modulus):
+        if isinstance(exponent, (int, long, Integer)):
+            return sage.rings.ring_element.RingElement.__pow__(self, exponent)
+        return (self.log() * exponent).exp()
+
 
     def log(self, base='e'):
         """

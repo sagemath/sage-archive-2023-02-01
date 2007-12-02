@@ -1985,7 +1985,8 @@ class SymbolicExpression(RingElement):
         Important note: using GP/PARI one can compute numerical
         integrals to high precision:
             sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-            '2.565728500561051482917356396 E-127'
+            '2.565728500561051482917356396 E-127'        # 32-bit
+            '2.5657285005610514829173563961304785900 E-127'    # 64-bit
             sage: old_prec = gp.set_real_precision(50)
             sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
             '2.5657285005610514829173563961304785900147709554020 E-127'

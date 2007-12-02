@@ -49,6 +49,8 @@ from sage.rings.finite_field import FiniteField_prime_modn, GF
 from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.structure.parent_base import ParentWithBase
 
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+
 residue_field_cache = {}
 
 def ResidueField(p, names = None, check = True):
@@ -76,6 +78,16 @@ def ResidueField(p, names = None, check = True):
         Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
         sage: k.order()
         841
+
+    An example where the generator of the number field doesn't
+    generate the residue class field.
+        sage: K.<a> = NumberField(x^3-875)
+        sage: P = K.ideal(5).factor()[0][0]; k = K.residue_field(P); k
+        Residue field in abar of Fractional ideal (5, -2/25*a^2 - 1/5*a + 2)
+        sage: k.polynomial()
+        abar^2 + 3*abar + 4
+        sage: k.0^3 - 875
+        2
     """
     if isinstance(names, tuple):
         if len(names) > 0:
@@ -100,25 +112,46 @@ def ResidueField(p, names = None, check = True):
             raise ValueError, "p must be prime"
         # Should generalize to allowing residue fields of relative extensions to be extensions of finite fields.
         characteristic = p.smallest_integer()
+
         K = p.number_field()
         OK = K.maximal_order() # should change to p.order once this works.
-        f = OK.number_field().polynomial().change_ring(Integers(characteristic)) #polynomial() should change to absolute_polynomial()
-        L = f.factor()
-        for i in range(len(L)):
-            g = L[i][0]
-            a = K(g.change_ring(QQ))
-            if a in p:
-                break
+
+        U, to_vs, to_order = p._p_quotient(characteristic)
+        k = U.base_ring()
+        R = PolynomialRing(k, names)
+        n = p.residue_class_degree()
+        gen_ok = False
+        from sage.matrix.constructor import matrix
+        try:
+            x = K.gen()
+            M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)]).transpose()
+            M.echelonize()
+            if M.rank() == n:
+                gen_ok = True
+                f = R((-M.column(n)).list() + [1])
+        except TypeError:
+            pass
+        if not gen_ok:
+            bad = True
+            for u in U: # using this iterator may not be optimal, we may get a long string of non-generators
+                if u:
+                    x = to_order(u)
+                    M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)]).transpose()
+                    M.echelonize()
+                    if M.rank() == n:
+                        f = R((-M.column(n)).list() + [1])
+                        bad = False
+                        break
+            assert not bad, "error -- didn't find a generator."
+        if n == 1:
+            k = ResidueFiniteField_prime_modn(p, names, im_gen = -f[0], intp = p.smallest_integer())
         else:
-            raise RuntimeError, "should have found a prime"
-        if g.degree() == 1:
-            k = ResidueFiniteField_prime_modn(p, names, im_gen = -g[0], intp = p.smallest_integer())
-        else:
-            q = characteristic**(g.degree())
+            q = characteristic**(f.degree())
             if q < Integer(2)**Integer(16):
-                k = ResidueFiniteField_givaro(p, q, names, g, characteristic)
+                k = ResidueFiniteField_givaro(p, q, names, f, characteristic)
             else:
-                k = ResidueFiniteField_ext_pari(p, q, names, g, characteristic)
+                k = ResidueFiniteField_ext_pari(p, q, names, f, characteristic)
+            k.structure = (U, to_vs, to_order)
     else: # Add support for primes in other rings later.
         raise TypeError, "p must be a prime in the integers or a number field"
     residue_field_cache[key] = weakref.ref(k)

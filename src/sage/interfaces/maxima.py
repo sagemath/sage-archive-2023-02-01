@@ -726,7 +726,8 @@ class Maxima(Expect):
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands(verbose=verbose)
-            print "\nDone!"
+            if verbose:
+                print "\nDone!"
             self.__trait_names = v
             sage.misc.persist.save(v, COMMANDS_CACHE)
             return v

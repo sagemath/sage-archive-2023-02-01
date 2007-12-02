@@ -4543,7 +4543,7 @@ class PrimitiveFunction(SymbolicExpression):
             TypeError: unable to simplify to complex approximation
         """
         if x.imag == 0:
-            return self._approx_(x.real)
+            return complex(self._approx_(x.real))
         s = '%s(%s+%s*%%i), numer'%(self._repr_(), x.real, x.imag)
         a = maxima.eval(s).replace('%i', '1j')
         if '(' in a:

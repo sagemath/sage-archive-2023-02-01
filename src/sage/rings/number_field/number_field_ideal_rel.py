@@ -23,6 +23,9 @@ AUTHOR:
 
 from number_field_ideal import NumberFieldIdeal, convert_from_zk_basis
 
+import sage.rings.rational_field as rational_field
+QQ = rational_field.RationalField()
+
 class NumberFieldIdeal_rel(NumberFieldIdeal):
     """
     An ideal of a relative number field.
@@ -98,6 +101,14 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
     def __invert__(self):
         """
         Return the multiplicative inverse of self.  Call with ~self.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
+            sage: I = K.fractional_ideal(4)
+            sage: I^(-1)
+            Fractional ideal (1/4)
+            sage: I * I^(-1)
+            Fractional ideal (1)
         """
         if self.is_zero():
             raise ZeroDivisionError

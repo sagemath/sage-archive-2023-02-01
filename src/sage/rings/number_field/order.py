@@ -364,6 +364,45 @@ class Order(IntegralDomain):
         """
         raise NotImplementedError
 
+    def free_module(self):
+        """
+        Return the free ZZ-module contained in the vector space
+        associated to the ambient number field, that corresponds
+        to this ideal.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
+            sage: O = K.maximal_order(); O.basis()
+            [1, 1/2*a^2 + 1/2*a, a^2]
+            sage: O.free_module()
+            Free module of degree 3 and rank 3 over Integer Ring
+            User basis matrix:
+            [  1   0   0]
+            [  0 1/2 1/2]
+            [  0   0   1]
+
+        An example in a relative extension.  Notice that the module is a ZZ-module in the
+        absolute_field associated to the relative field:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
+            sage: O = K.maximal_order(); O.basis()
+            [(-3/2*b - 5)*a + 7/2*b - 2, (-3)*a + 2*b, (-2*b)*a - 3, (-7)*a + 5*b]
+            sage: O.free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            User basis matrix:
+            [1/4 1/4 3/4 3/4]
+            [  0 1/2   0 1/2]
+            [  0   0   1   0]
+            [  0   0   0   1]
+        """
+        try:
+            return self.__free_module
+        except AttributeError:
+            pass
+        from number_field_ideal import basis_to_module
+        M = basis_to_module(self.basis(), self.number_field())
+        self.__free_module = M
+        return M
+
     def ring_generators(self):
         """
         Return generators for self as a ring.

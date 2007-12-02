@@ -36,8 +36,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         [    1 1/3*i 1/3*i]
         sage: U.quotient_map()
         Free module morphism defined by the matrix
-        [  1/7]
-        [3/7*i]
+        [  1]
+        [3*i]
         Domain: Vector space of degree 3 and dimension 2 over Number Field in ...
         Codomain: Vector space quotient V/W of dimension 1 over Number Field in ...
         sage: Z = V.quotient(W)
@@ -75,11 +75,11 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         We do some consistency checks on the extra quotient and
         lifting structure of Q.
             sage: Q(V.0)
-            (-89/685)
+            (1)
             sage: Q( V.0 - 2/3*V.1 )
             (0)
             sage: v = Q.lift(Q.0); v
-            (-427/89, 516/89, -1, -255/89, -298/89)
+            (1, 0, -1, 1, 1)
             sage: Q( v )
             (1)
         """
@@ -180,7 +180,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         A list of length 3 coerces into QQ^3, so it coerces into M.
             sage: M([1,2,4])
-            (-3/14, -3/7)
+            (-1/3, -2/3)
             sage: M([1,2,3])
             (0, 0)
 
@@ -246,11 +246,12 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.quotient_map()
             Free module morphism defined by the matrix
-            [13/14  -1/7]
-            [ -1/7   5/7]
-            [-3/14  -3/7]
+            [   1    0]
+            [   0    1]
+            [-1/3 -2/3]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space quotient V/W of dimension 2 over Rational Field ...
+
             sage: M.quotient_map()( (QQ^3)([1,2,3]) )
             (0, 0)
         """
@@ -265,8 +266,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.lift_map()
             Free module morphism defined by the matrix
-            [   1    0 -1/3]
-            [   0    1 -2/3]
+            [1 0 0]
+            [0 1 0]
             Domain: Vector space quotient V/W of dimension 2 over Rational Field ...
             Codomain: Vector space of dimension 3 over Rational Field
         """
@@ -281,11 +282,11 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         EXAMPLES:
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.lift(M.0)
-            (1, 0, -1/3)
+            (1, 0, 0)
             sage: M.lift(M.1)
-            (0, 1, -2/3)
+            (0, 1, 0)
             sage: M.lift(M.0 - 2*M.1)
-            (1, -2, 1)
+            (1, -2, 0)
         """
         return self.__lift_map(x)
 

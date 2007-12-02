@@ -1494,7 +1494,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             return sage.rings.infinity.infinity
 
         A = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C)
-        return A.determinant()
+        return abs(A.determinant())
 
 
     def intersection(self, other):
@@ -2406,11 +2406,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: V = QQ^3; W = V.span([[1,0,-1], [1,-1,0]])
             sage: A, L = V._FreeModule_generic_field__quotient_matrices(W)
             sage: A
-            [1/3]
-            [1/3]
-            [1/3]
+            [1]
+            [1]
+            [1]
             sage: L
-            [1 1 1]
+            [1 0 0]
 
         The quotient and lift maps are used to compute in the quotient
         and to lift:
@@ -2418,9 +2418,17 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(W.0)
             (0)
             sage: Q.lift_map()(Q.0)
-            (1, 1, 1)
+            (1, 0, 0)
             sage: Q(Q.lift_map()(Q.0))
             (1)
+
+        An example in characteristic 5:
+            sage: A = GF(5)^2; B = A.span([[1,3]]); A / B
+            Vector space quotient V/W of dimension 1 over Finite Field of size 5 where
+            V: Vector space of dimension 2 over Finite Field of size 5
+            W: Vector space of degree 2 and dimension 1 over Finite Field of size 5
+            Basis matrix:
+            [1 3]
         """
         # 2. Find a basis C for a another submodule of self, so that
         #    B + C is a basis for self.
@@ -2434,21 +2442,15 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         B = sub.basis_matrix()
         S = self.basis_matrix()
 
-        # Step 2: Extend basis B to a basis for self.
-        #
-        # Compute a subspace of self with the property that each
-        # element of M has dot product 0 with each element of sub.
-        # This M is thus the orthogonal complement (with respect to
-        # dot product) of the submodule sub inside self.
-        # Then let C be a matrix with these rows.
-
-        C = B.transpose().restrict_domain(self).kernel().basis_matrix()
-        C = C * S
         n = self.dimension()
-        m = C.nrows()
+        m = n - sub.dimension()
 
-        # Now B and C together form a matrix whose rows are a basis for self.
-        A = B.stack(C)
+        # Step 2: Extend basis B to a basis for self.
+        # We do this by simply finding the pivot rows of the matrix
+        # whose rows are a basis for sub concatenated with a basis for
+        # self.
+        C = B.stack(S).transpose()
+        A = C.matrix_from_columns(C.pivots()).transpose()
 
         # Step 3: Compute quotient map
         # The quotient map is given by writing in terms of the above basis,
@@ -2476,7 +2478,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         # Step 4. Section map
         # The lifting or section map
         Dinv = D**(-1)
-        L = Dinv.matrix_from_rows(range(n - C.nrows(), n))
+        L = Dinv.matrix_from_rows(range(n - m, n))
 
         return Q, L
 
@@ -2506,9 +2508,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: W = V.span_of_basis([ [1,2,3], [1,0,1] ])
             sage: U,pi,lift = V.quotient_abstract(W)
             sage: pi(V.2)
-            (6)
+            (18)
             sage: pi(V.0)
-            (13)
+            (1)
             sage: pi(V.0 + V.2)
             (0)
 

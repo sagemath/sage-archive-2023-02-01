@@ -455,7 +455,7 @@ class Order(IntegralDomain):
             sage: P = K.ideal(61).factor()[0][0]
             sage: OK = K.maximal_order()
             sage: OK.residue_field(P)
-            Residue field of Fractional ideal (-2*a^2 + 1)
+            Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime)

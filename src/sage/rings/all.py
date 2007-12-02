@@ -88,10 +88,11 @@ from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
-# Algebraic reals (the intersection of the algebraic closure of the rationals
-# with the reals)
-from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
-                            AlgebraicRealNumber, is_AlgebraicRealNumber)
+# Algebraic numbers
+from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
+                   AlgebraicReal, is_AlgebraicReal,
+                   AlgebraicField, is_AlgebraicField, QQbar,
+                   AlgebraicNumber, is_AlgebraicNumber)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
@@ -102,6 +103,8 @@ from real_mpfi import (RealIntervalField, is_RealIntervalField,
 from complex_field import ComplexField, is_ComplexField
 from complex_number import (is_ComplexNumber, create_ComplexNumber as ComplexNumber)
 Complexes = ComplexField
+from complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
+from complex_interval import (is_ComplexIntervalFieldElement, create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
 
@@ -145,5 +148,7 @@ from monomials import monomials
 #from fast_polynomial.compiled_polynomial import compiled_polynomial
 
 CC = ComplexField()
+CIF = ComplexIntervalField()
 I = CC.gen()
 
+from residue_field import ResidueField

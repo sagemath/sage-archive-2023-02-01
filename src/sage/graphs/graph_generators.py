@@ -307,6 +307,91 @@ class GraphGenerators():
         return graph.Graph(G, pos=pos_dict, name="Bull Graph")
 
 
+    def ButterflyGraph(self, n, vertices='strings'):
+        """
+        Returns a n-dimensional butterfly graph.  The vertices consist
+        of pairs (v,i), where v is an n-dimensional tuple (vector)
+        with binary entries (or a string representation of such)
+        and i is an integer in [0..n].  A directed
+        edge goes from (v,i) to (w,i+1) if v and w are identical
+        except for possibly v[i] != w[i].
+
+        A butterfly graph has (2^n)(n+1) vertices and n2^(n+1) edges.
+
+        INPUT:
+            vertices -- 'strings' (default) or 'vectors', specifying
+            whether the vertices are zero-one strings or actually
+            tuples over GF(2).
+
+        EXAMPLES:
+        sage: graphs.ButterflyGraph(2).edges(labels=False)
+        [(('00', 0), ('00', 1)),
+        (('00', 0), ('10', 1)),
+        (('00', 1), ('00', 2)),
+        (('00', 1), ('01', 2)),
+        (('01', 0), ('01', 1)),
+        (('01', 0), ('11', 1)),
+        (('01', 1), ('00', 2)),
+        (('01', 1), ('01', 2)),
+        (('10', 0), ('00', 1)),
+        (('10', 0), ('10', 1)),
+        (('10', 1), ('10', 2)),
+        (('10', 1), ('11', 2)),
+        (('11', 0), ('01', 1)),
+        (('11', 0), ('11', 1)),
+        (('11', 1), ('10', 2)),
+        (('11', 1), ('11', 2))]
+        sage: graphs.ButterflyGraph(2,vertices='vectors').edges(labels=False)
+        [(((0, 0), 0), ((0, 0), 1)),
+        (((0, 0), 0), ((1, 0), 1)),
+        (((0, 0), 1), ((0, 0), 2)),
+        (((0, 0), 1), ((0, 1), 2)),
+        (((0, 1), 0), ((0, 1), 1)),
+        (((0, 1), 0), ((1, 1), 1)),
+        (((0, 1), 1), ((0, 0), 2)),
+        (((0, 1), 1), ((0, 1), 2)),
+        (((1, 0), 0), ((0, 0), 1)),
+        (((1, 0), 0), ((1, 0), 1)),
+        (((1, 0), 1), ((1, 0), 2)),
+        (((1, 0), 1), ((1, 1), 2)),
+        (((1, 1), 0), ((0, 1), 1)),
+        (((1, 1), 0), ((1, 1), 1)),
+        (((1, 1), 1), ((1, 0), 2)),
+        (((1, 1), 1), ((1, 1), 2))]
+
+        """
+        # We could switch to Sage integers to handle arbitrary n.
+        if vertices=='strings':
+            if n>=31:
+                raise NotImplementedError, "vertices='strings' is only valid for n<=30."
+            from sage.graphs.graph_fast import binary
+            butterfly = {}
+            for v in xrange(2**n):
+                for i in range(n):
+                    w = v
+                    w ^= (1 << i)   # push 1 to the left by i and xor with w
+                    bv = binary(v)
+                    bw = binary(w)
+                    # pad and reverse the strings
+                    padded_bv = ('0'*(n-len(bv))+bv)[::-1]
+                    padded_bw = ('0'*(n-len(bw))+bw)[::-1]
+                    butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
+        elif vertices=='vectors':
+            from sage.modules.free_module import VectorSpace
+            from sage.rings.finite_field import FiniteField
+            from copy import copy
+            butterfly = {}
+            for v in VectorSpace(FiniteField(2),n):
+                for i in xrange(n):
+                    w=copy(v)
+                    w[i] += 1 # Flip the ith bit
+                    # We must call tuple since vectors are mutable.  To obtain
+                    # a vector from the tuple t, just call vector(t).
+                    butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
+        else:
+            raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
+        return graph.DiGraph(butterfly)
+
     def CircularLadderGraph(self, n):
         """
         Returns a circular ladder graph with 2*n nodes.

@@ -364,6 +364,19 @@ class Ideal_principal(Ideal_generic):
         return self.gens()[0]
 
     def __contains__(self, x):
+        """
+        Returns True if x is in the ideal self.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: I = P.ideal(x^2-2)
+            sage: x^2 in I
+            False
+            sage: x^2-2 in I
+            True
+            sage: x^2-3 in I
+            False
+        """
         if self.gen().is_zero():
             return x.is_zero()
         return self.gen().divides(x)
@@ -390,6 +403,15 @@ class Ideal_principal(Ideal_generic):
     def divides(self, other):
         """
         Returns True if self divides other.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: I = P.ideal(x)
+            sage: J = P.ideal(x^2)
+            sage: I.divides(J)
+            True
+            sage: J.divides(I)
+            False
         """
         if isinstance(other, Ideal_principal):
             return self.gen().divides(other.gen())

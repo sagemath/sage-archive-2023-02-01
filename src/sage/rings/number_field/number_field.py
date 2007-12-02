@@ -2217,13 +2217,13 @@ class NumberField_generic(number_field_base.NumberField):
             self.__regulator = eval(s)
         return self.__regulator
 
-    def residue_field(self, prime, name = None, check = False):
+    def residue_field(self, prime, names = None, check = False):
         """
         Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
 
         INPUT:
             prime -- a prime ideal of the maximal order in this number field.
-            name -- the name of the variable in the residue field
+            names -- the name of the variable in the residue field
             check -- whether or not to check the primality of prime.
         OUTPUT:
             The residue field at this prime.
@@ -2233,10 +2233,10 @@ class NumberField_generic(number_field_base.NumberField):
         sage: K.<a> = NumberField(x^4+3*x^2-17)
         sage: P = K.ideal(61).factor()[0][0]
         sage: K.residue_field(P)
-        Residue field of Fractional ideal (-2*a^2 + 1)
+        Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
-        return sage.rings.residue_field.ResidueField(prime)
+        return sage.rings.residue_field.ResidueField(prime, names = names)
 
     def signature(self):
         """
@@ -3678,6 +3678,26 @@ class NumberField_relative(NumberField_generic):
         self.__absolute_field[names] = K
         return K
 
+    def absolute_polynomial_ntl(self):
+        """
+        Return defining polynomial of this number field
+        as a pair, an ntl polynomial and a denominator.
+
+        This is used mainly to implement some internal arithmetic.
+
+        EXAMPLES:
+            sage: NumberField(x^2 + (2/3)*x - 9/17,'a').polynomial_ntl()
+            ([-27 34 51], 51)
+        """
+        try:
+            return (self.__abs_polynomial_ntl, self.__abs_denominator_ntl)
+        except AttributeError:
+            self.__abs_denominator_ntl = ntl.ZZ()
+            den = self.absolute_polynomial().denominator()
+            self.__abs_denominator_ntl.set_from_sage_int(ZZ(den))
+            self.__abs_polynomial_ntl = ntl.ZZX((self.absolute_polynomial()*den).list())
+        return (self.__abs_polynomial_ntl, self.__abs_denominator_ntl)
+
     def absolute_polynomial(self):
         r"""
         Return the polynomial over $\QQ$ that defines this field as an
@@ -3752,15 +3772,16 @@ class NumberField_relative(NumberField_generic):
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
               Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
-                    b |--> -0.00000000000000019428902930940239 + 1.0000000000000000*I,
+                    b |--> -1.9428902930940239e-16 + 1.0000000000000000*I, Relative number field morphism:
               ...
+              From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
               Defn: a |--> 1.2599210498948731
                     b |--> -0.99999999999999999*I]
             sage: f[0](a)^3
-            2.0000000000000002 - 0.00000000000000086389229103644993*I
+            2.0000000000000002 - 8.6389229103644993e-16*I
             sage: f[0](b)^2
-            -1.0000000000000001 - 0.00000000000000038857805861880480*I
+            -1.0000000000000001 - 3.8857805861880480e-16*I
             sage: f[0](a+b)
             -0.62996052494743693 - 0.091123635971721295*I
         """
@@ -4406,12 +4427,12 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: C = CyclotomicField(4)
             sage: C.complex_embeddings()
             [Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
-              To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I, Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
-              To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> -0.000000000000000183697019872103 - 1.00000000000000*I]
+             From: Cyclotomic Field of order 4 and degree 2
+             To:   Complex Field with 53 bits of precision
+             Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I, Ring morphism:
+             From: Cyclotomic Field of order 4 and degree 2
+             To:   Complex Field with 53 bits of precision
+             Defn: zeta4 |--> -1.83697019872103e-16 - 1.00000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         n = self.zeta_order()
@@ -4606,6 +4627,27 @@ class NumberField_quadratic(NumberField_absolute):
         self._D = D
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
+
+
+    def coerce_map_from_impl(self, S):
+        """
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(-3)
+            sage: f = K.coerce_map_from(QQ); f
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/5)
+            3/5
+            sage: parent(f(3/5)) is K
+            True
+        """
+        if S is QQ:
+            return number_field_element_quadratic.Q_to_quadratic_field_element(self)
+        else:
+            return NumberField_absolute.coerce_map_from_impl(self, S)
+
+
 
     def discriminant(self, v=None):
         """

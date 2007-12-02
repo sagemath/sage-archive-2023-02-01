@@ -212,7 +212,7 @@ cdef extern from "mpfi.h":
     int mpfi_cmp_fr_default(mpfi_srcptr,mpfr_srcptr)
 
 
-    int mpfi_has_zero(mpfi_srcptr)
+    bint mpfi_has_zero(mpfi_srcptr)
 
     bint mpfi_nan_p(mpfi_srcptr)
     bint mpfi_inf_p(mpfi_srcptr)

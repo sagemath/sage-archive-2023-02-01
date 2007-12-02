@@ -380,7 +380,6 @@ cdef class Matrix(matrix1.Matrix):
         if k > m:
             return R(0)
 
-        k = int(k)
         pm = 0
         for cols in _choose(n,k):
             for rows in _choose(m,k):
@@ -3061,36 +3060,79 @@ def cmp_pivots(x,y):
     else:
         return -1
 
+
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
     Returns all possible sublists of length t from range(n)
 
-    Based on algoritm L from Knuth's taocp part 4: 7.2.1.3 p.4
+    Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
+    This fuction replaces the one base on algorithm L because it is faster.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _choose
+        sage: _choose(1,1)
+        [[0]]
+        sage: _choose(4,1)
+        [[0], [1], [2], [3]]
+        sage: _choose(4,4)
+        [[0, 1, 2, 3]]
 
     AUTHOR:
-        -- Jaap Spies (2007-10-22)
+        -- Jaap Spies (2007-11-14)
     """
-    cdef Py_ssize_t j
+    cdef Py_ssize_t j, temp
 
-    x = []
+    x = []               # initialize T1
     c = range(t)
+    if t == n:
+        x.append(c)
+        return x
     c.append(n)
     c.append(0)
-    j = 0
+    j = t-1
 
-    while j < t:
-        x.append(c[:t])
-        j = 0
-        while c[j]+1 == c[j+1]:
-           c[j] = j
-           j = j+1
-        c[j] = c[j]+1
+    while True:
+        x.append(c[:t])    # visit T2
+        if j >= 0:
+            c[j] = j+1
+            j = j-1
+            continue       # goto T2
+
+        if c[0]+1 < c[1]:  # T3 easy case!
+            c[0] = c[0]+1
+            continue
+        else:
+            j = 1
+
+        while True:
+            c[j-1] = j-1      # T4 find j
+            temp = c[j]+1
+            if temp == c[j+1]:
+                j = j+1
+            else:
+                break
+
+
+        if j >= t:     # T5 stop?
+            break
+
+        c[j] = temp    # T6
+        j = j-1
 
     return x
+
 
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k)
+    This is only for internal use.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _binomial
+        sage: _binomial(10,2)
+        45
+        sage: _binomial(10,5)
+        252
 
     AUTHOR:
         -- Jaap Spies (2007-10-26)
@@ -3110,5 +3152,4 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         result = (result*n)/i
         i, n, k = i+1, n-1, k-1
     return result
-
 

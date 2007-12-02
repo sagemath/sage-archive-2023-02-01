@@ -1325,6 +1325,14 @@ class MaximaElement(ExpectElement):
         #return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
         return symbolic_expression_from_maxima_string(repr(self))
 
+    def __complex__(self):
+        """
+        EXAMPLES:
+            sage: complex(maxima('sqrt(-2)+1'))
+            (1+1.4142135623730951j)
+        """
+        return complex(self._sage_())
+
     def _complex_mpfr_field_(self, C):
         """
         EXAMPLES:

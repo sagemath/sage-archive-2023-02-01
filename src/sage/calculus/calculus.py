@@ -4349,9 +4349,18 @@ class SymbolicComposition(SymbolicOperation):
         return float(f._approx_(float(g)))
 
     def __complex__(self):
+        """
+        Convert this symbolic composition to a Python complex number.
+
+        EXAMPLES:
+            sage: complex(cos(3))
+            (-0.98999249660044542+0j)
+            sage: complex(cos(3*I))
+            (10.067661995777771+0j)
+        """
         f = self._operands[0]
         g = self._operands[1]
-        return complex(f._approx_(complex(g)))
+        return complex(f._complex_approx_(complex(g)))
 
     def _mpfr_(self, field):
         """
@@ -4518,6 +4527,31 @@ class PrimitiveFunction(SymbolicExpression):
         s = '%s(%s), numer'%(self._repr_(), float(x))
         return float(maxima.eval(s))
 
+    def _complex_approx_(self, x): # must be called with Python complex float as input
+        """
+        Given a Python complex x, evaluate self and return a complex value.
+
+        EXAMPLES:
+            sage: complex(cos(3*I))
+            (10.067661995777771+0j)
+
+        The following fails because we and Maxima haven't implemented
+        erf yet for complex values:
+            sage: complex(erf(3*I))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to simplify to complex approximation
+        """
+        if x.imag == 0:
+            return self._approx_(x.real)
+        s = '%s(%s+%s*%%i), numer'%(self._repr_(), x.real, x.imag)
+        a = maxima.eval(s).replace('%i', '1j')
+        if '(' in a:
+            # unable to simplify to a complex -- still function calls there.
+            raise TypeError, "unable to simplify to complex approximation"
+        return complex(eval(a))
+
+
 _syms = {}
 
 class Function_erf(PrimitiveFunction):
@@ -4578,6 +4612,16 @@ class Function_abs(PrimitiveFunction):
 
     def _approx_(self, x):
         return float(x.__abs__())
+
+    def _complex_approx_(self, x):
+        """
+        EXAMPLES:
+            sage: complex(abs(3*I))
+            (3+0j)
+            sage: abs_symbolic._complex_approx_(complex(3*I))
+            (3+0j)
+        """
+        return complex(x.__abs__())
 
     def __call__(self, x): # special case
         return SymbolicComposition(self, SR(x))

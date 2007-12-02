@@ -135,7 +135,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
         C = self.codomain()
         if C.is_ambient():
             return C(v)
-        return C.linear_combination_of_basis(v)
+        return C(C.linear_combination_of_basis(v), check=False)
 
     def __invert__(self):
         if self.nrows() != self.ncols():

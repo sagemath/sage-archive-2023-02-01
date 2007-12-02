@@ -253,6 +253,19 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
+    def chdir(self, dir):
+        """
+        Change the Magma interpreters current working directory.
+
+        EXAMPLES:
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main/sage'
+            sage: magma.chdir('..')             # optional
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main'
+        """
+        self.eval('ChangeDirectory("%s")'%dir, strip=False)
+
     def eval(self, x, strip=True):
         """
         INPUT:

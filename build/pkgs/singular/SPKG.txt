@@ -1,3 +1,5 @@
+deprecated, use 'hg log' instead
+
 * 20070823 Juan M. Bello Rivas <jmbr@superadditive.com>
  + dropped dependencies on flex and bison
 

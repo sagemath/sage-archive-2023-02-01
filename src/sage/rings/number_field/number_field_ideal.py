@@ -694,7 +694,7 @@ class NumberFieldIdeal(Ideal_fractional):
             ValueError: the ideal (= Fractional ideal (17)) is not prime
         """
         if self.is_zero():
-            raise ValueError, "The input idea must be nonzero"
+            raise ValueError, "The input ideal must be nonzero"
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the ideal (= %s) is not prime"%self

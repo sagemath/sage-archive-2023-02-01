@@ -1366,6 +1366,26 @@ class MaximaElement(ExpectElement):
         """
         return R(self._sage_())
 
+    def real(self):
+        """
+        Return the real part of this maxima element.
+
+        EXAMPLES:
+            sage: maxima('2 + (2/3)*%i').real()
+            2
+        """
+        return self.realpart()
+
+    def imag(self):
+        """
+        Return the imaginary part of this maxima element.
+
+        EXAMPLES:
+            sage: maxima('2 + (2/3)*%i').imag()
+            2/3
+        """
+        return self.imagpart()
+
     def numer(self):
         """
         Return numerical approximation to self as a Maxima object.

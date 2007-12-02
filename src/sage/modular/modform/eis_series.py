@@ -222,11 +222,10 @@ def eisenstein_series_Lseries(weight, prec=53,
        The L-series of the Eisenstein series.
 
     EXAMPLES:
-    We compute with the L-series of $E_{16}$:
+    We compute with the L-series of $E_{16}$ and then $E_{20}$:
        sage: L = eisenstein_series_Lseries(16)
        sage: L(1)
        -0.291657724743873
-    We compute with the L-series of $E_{20}$:
        sage: L = eisenstein_series_Lseries(20)
        sage: L(2)
        -5.02355351645987

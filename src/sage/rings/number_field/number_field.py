@@ -2217,13 +2217,13 @@ class NumberField_generic(number_field_base.NumberField):
             self.__regulator = eval(s)
         return self.__regulator
 
-    def residue_field(self, prime, name = None, check = False):
+    def residue_field(self, prime, names = None, check = False):
         """
         Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
 
         INPUT:
             prime -- a prime ideal of the maximal order in this number field.
-            name -- the name of the variable in the residue field
+            names -- the name of the variable in the residue field
             check -- whether or not to check the primality of prime.
         OUTPUT:
             The residue field at this prime.
@@ -2233,10 +2233,10 @@ class NumberField_generic(number_field_base.NumberField):
         sage: K.<a> = NumberField(x^4+3*x^2-17)
         sage: P = K.ideal(61).factor()[0][0]
         sage: K.residue_field(P)
-        Residue field of Fractional ideal (-2*a^2 + 1)
+        Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
-        return sage.rings.residue_field.ResidueField(prime)
+        return sage.rings.residue_field.ResidueField(prime, names = names)
 
     def signature(self):
         """

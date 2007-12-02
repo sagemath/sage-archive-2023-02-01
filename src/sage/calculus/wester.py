@@ -25,7 +25,7 @@ sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
 sage: a = e^(pi*sqrt(163)); a
 e^(sqrt(163)*pi)
 sage: print RealField(150)(a)
-262537412640768743.99999999999925007259719819
+2.6253741264076874399999999999925007259719819e17
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
 sage: bessel_J (2, 1+I)

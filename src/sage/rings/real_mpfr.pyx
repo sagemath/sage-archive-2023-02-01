@@ -17,8 +17,8 @@ EXAMPLES:
 A difficult conversion:
 
     sage: RR(sys.maxint)
-    9223372036854780000.     # 64-bit
-    2147483647.00000         # 32-bit
+    9.22337203685478e18      # 64-bit
+    2.14748364700000e9       # 32-bit
 
 TESTS:
     sage: -1e30
@@ -852,11 +852,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '1.4555555555555@1'
             sage: b = 2.0^99
             sage: b.str()
-            '633825300114115000000000000000.'
+            '6.33825300114115e29'
             sage: b.str(no_sci=False)
             '6.33825300114115e29'
             sage: b.str(no_sci=True)
-            '633825300114115000000000000000.'
+            '6.33825300114115e29'
             sage: c = 2.0^100
             sage: c.str()
             '1.26765060022823e30'
@@ -867,7 +867,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: c.str(no_sci=2)
             '1267650600228230000000000000000.'
             sage: 0.5^53
-            0.000000000000000111022302462516
+            1.11022302462516e-16
             sage: 0.5^54
             5.55111512312578e-17
         """
@@ -927,7 +927,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             raise RuntimeError, "Unable to convert an mpfr number to a string."
         t = str(s)
         mpfr_free_str(s)
-
 
         cdef int digits
         digits = len(t)
@@ -1027,7 +1026,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         A big number with no decimal point:
             sage: a = RR(10^17); a
-            100000000000000000.
+            1.00000000000000e17
             sage: a.integer_part()
             100000000000000000
         """
@@ -1155,7 +1154,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         EXAMPLES:
             sage: 1.0 << 32
-            4294967296.00000
+            4.29496729600000e9
             sage: 1.5 << 2.5
             Traceback (most recent call last):
             ...
@@ -2079,7 +2078,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             5.00000000000000
             sage: r = -119.0
             sage: r.cube_root()^3 - r       # illustrates precision loss
-            -0.0000000000000142108547152020
+            -1.42108547152020e-14
         """
         cdef RealNumber x
         x = self._new()
@@ -2225,13 +2224,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.3
             sage: a = r.exp(); a
-            106588847274864.
+            1.06588847274864e14
             sage: a.log()
             32.3000000000000
 
             sage: r = -32.3
             sage: r.exp()
-            0.00000000000000938184458849869
+            9.38184458849869e-15
         """
         cdef RealNumber x
         x = self._new()
@@ -2251,11 +2250,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.0
             sage: r.exp2()
-            4294967296.00000
+            4.29496729600000e9
 
             sage: r = -32.3
             sage: r.exp2()
-            0.000000000189117248253021
+            1.89117248253021e-10
 
         """
         cdef RealNumber x

@@ -4321,7 +4321,7 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641
 
             sage: RR(sin(pi))
-            0.000000000000000122464679914735
+            1.22464679914735e-16
 
             sage: type(RR(sqrt(163)*pi))
             <type 'sage.rings.real_mpfr.RealNumber'>
@@ -4603,7 +4603,7 @@ class Function_floor(PrimitiveFunction):
         sage: var('x')
         x
         sage: a = floor(5.4 + x); a
-        floor(x + 0.4000000000000004) + 5
+        floor(x + 0.400000000000000) + 5
         sage: a(2)
         7
     """
@@ -4806,7 +4806,7 @@ class Function_asin(PrimitiveFunction):
         sage: asin(1/2)
         pi/6
         sage: asin(1 + I*1.0)
-        1.061275061905036*I + 0.6662394324925153
+        1.061275061905036*I + 0.666239432492515
     """
     def _repr_(self, simplify=True):
         return "asin"
@@ -4830,7 +4830,7 @@ class Function_asinh(PrimitiveFunction):
         sage: asinh(1/2)
         asinh(1/2)
         sage: asinh(1 + I*1.0)
-        0.6662394324925153*I + 1.061275061905036
+        0.666239432492515*I + 1.061275061905036
     """
     def _repr_(self, simplify=True):
         return "asinh"
@@ -4852,7 +4852,7 @@ class Function_acosh(PrimitiveFunction):
         sage: acosh(1/2)
         acosh(1/2)
         sage: acosh(1 + I*1.0)
-        0.9045568943023813*I + 1.061275061905036
+        0.904556894302381*I + 1.061275061905036
 
     Warning: If the input is real the output will be real or NaN:
         sage: acosh(0.5)
@@ -4885,7 +4885,7 @@ class Function_atanh(PrimitiveFunction):
         sage: atanh(1/2)
         atanh(1/2)
         sage: atanh(1 + I*1.0)
-        1.017221967897851*I + 0.4023594781085251
+        1.017221967897851*I + 0.402359478108525
     """
     def _repr_(self, simplify=True):
         return "atanh"
@@ -4909,7 +4909,7 @@ class Function_acos(PrimitiveFunction):
         sage: acos(1/2)
         pi/3
         sage: acos(1 + I*1.0)
-        0.9045568943023813 - 1.061275061905036*I
+        0.904556894302381 - 1.061275061905036*I
     """
     def _repr_(self, simplify=True):
         return "acos"

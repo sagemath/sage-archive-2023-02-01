@@ -29,7 +29,7 @@ We create some example elements of the continued fraction field.
     sage: QQ(c)
     245850922/78256779
     sage: RealField(200)(QQ(c) - pi)
-    -0.000000000000000078179366199075435400152113059910891481153981448107195930950
+    -7.8179366199075435400152113059910891481153981448107195930950e-17
 
 We can also create matrices, polynomials, vectors, etc., over the continued
 fraction field.

@@ -482,7 +482,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: I = CIF.0
             sage: a = ~(5+I)
             sage: a * (5+I)
-            [0.99999999999999988 .. 1.0000000000000003] + [-0.000000000000000027755575615628914 .. 0.000000000000000055511151231257828]*I
+            [0.99999999999999988 .. 1.0000000000000003] + [-2.7755575615628914e-17 .. 5.5511151231257828e-17]*I
         """
         cdef ComplexIntervalFieldElement x
         x = self._new()

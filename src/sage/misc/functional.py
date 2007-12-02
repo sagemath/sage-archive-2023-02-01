@@ -713,7 +713,7 @@ def numerical_approx(x, prec=None, digits=None):
         sage: N(pi^2 + e)
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
-        12.5878862295484038541947784712288136330709465009407
+        12.587886229548403854194778471228813633070946500941
 
     You can also usually use method notation:
         sage: (pi^2 + e).n()

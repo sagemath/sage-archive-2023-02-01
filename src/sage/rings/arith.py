@@ -70,7 +70,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         sage: p.factor()
         (x + 1) * x^2 * (x^2 - x + 1)
         sage: z^2 - z + 1
-        0.000000000000000111022302462516
+        1.11022302462516e-16
 
     This example involves a $p$-adic number.
         sage: K = Qp(3, print_mode = 'series')

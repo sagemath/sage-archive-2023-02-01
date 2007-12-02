@@ -20,7 +20,7 @@ DEBUG=0
 MAKE="make"
 export MAKE
 
-# disable the (mysterious?!) dynamic kernel, except on Linux
+# disable the dynamic kernel, except on Linux
 if [ "$UNAME" = "Linux" ]; then
      DYNAMIC_KERNEL=""
 else
@@ -32,14 +32,14 @@ if [ "$UNAME" = "Darwin" ]; then
      export MACOSX_DEPLOYMENT_TARGET
 fi
 
-# we are building everything fPIC, this might impose a slight performance hit,
-# need to evaluate:
-
 if [ "$DEBUG" = "1" ]; then
   ENABLE_DEBUG="--enable-debug"
 else
   ENABLE_DEBUG="--disable-debug"
 fi
+
+# we are building everything fPIC, this might impose a slight performance hit,
+# need to evaluate:
 
 CXXFLAGS="$CXXFLAGS -fPIC -O3 -g"; export CXXFLAGS
 CFLAGS="$CFLAGS -fPIC -O3 -g"; export CFLAGS
@@ -69,6 +69,7 @@ config()
 	        --without-MP \
                 --without-lex \
                 --without-bison \
+                --without-Boost \
                 --enable-gmp="$SAGE_LOCAL" \
                 --enable-Singular \
 		--enable-factory \
@@ -108,10 +109,6 @@ build()
     cd $CUR
     $CHMOD a+r Singular/LIB/*
 
-    # Singular's make install is "fake" -- it just makes a symlink
-    # to code built in the build directory. A subsequent make clean will
-    # destroy what you think you've installed.
-
     cd "$SAGE_LOCAL"
     if [ -d LIB -a ! -h LIB ]; then
         echo "skipping since filenames not case sensitive."
@@ -129,7 +126,6 @@ build()
     fi
 
     cd $CUR
-
 
     make libsingular
 
@@ -150,8 +146,8 @@ build()
     cd $SAGE_LOCAL/bin
     $RM -f Singular singular
 
-    if [ -f Singular-3-0-2 ]; then
-        $RM -f Singular-3-0-2   # remove previous version of Singular.
+    if [ -f Singular-3-0-3 ]; then
+        $RM -f Singular-3-0-3   # remove previous version of Singular.
     fi
 
     # The singular executable is called somewhat randomly depending
@@ -219,8 +215,6 @@ build()
         echo "Error installing libfac."
         exit 1
     fi
-
-
 }
 
 build

@@ -24,8 +24,10 @@ EXAMPLES:
 
 from copy import copy
 
+from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.qqbar import AA, QQbar
 
 def refine_root(ip, ipd, irt, fld):
     """
@@ -110,7 +112,7 @@ def refine_root(ip, ipd, irt, fld):
         val = ip(center)
 
         nirt = center - val / slope
-        if nirt in irt and nirt.diameter() >= irt.diameter() >> 1:
+        if nirt in irt and nirt.diameter() >= irt.diameter() >> 3:
             # If the new diameter is much less than the original diameter,
             # then we have not yet converged.  (Perhaps we were asked
             # for a particularly high-precision result.)  So we don't
@@ -121,11 +123,22 @@ def refine_root(ip, ipd, irt, fld):
             irt = nirt
         else:
             irt = irt.union(nirt)
+            # If we don't find a root after a while, try (approximately)
+            # tripling the size of the region.
+            if i >= 6:
+                rd = irt.real().absolute_diameter()
+                id = irt.imag().absolute_diameter()
+                md = max(rd, id)
+                md_intv = RealIntervalField(rd.prec())(-md, md)
+                md_cintv = ComplexIntervalField(rd.prec())(md_intv, md_intv)
+                irt = irt + md_cintv
 
         if not smashed_real and irt.real().contains_zero():
             irt = irt.parent()(0, irt.imag())
+            smashed_real = True
         if not smashed_imag and irt.imag().contains_zero():
             irt = irt.parent()(irt.real(), 0)
+            smashed_imag = True
 
     return None
 
@@ -243,6 +256,11 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     lets you skip this step.  (If this step is skipped, and the polynomial
     has a repeated root, then the algorithm will loop forever!)
 
+    You can specify retval='interval' (the default) to get roots as
+    complex intervals.  The other options are retval='algebraic' to
+    get elements of QQbar, or retval='algebraic_real' to get only
+    the real roots, and to get them as elements of AA.
+
     EXAMPLES:
         sage: from sage.rings.polynomial.complex_roots import complex_roots
         sage: x = polygen(ZZ)
@@ -256,11 +274,23 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
 
     This polynomial actually has all-real coefficients, and is very, very
     close to (x-1)^5:
-        sage: [RR(QQ(x)) for x in list(p - (x-1)^5)]
+        sage: [RR(QQ(a)) for a in list(p - (x-1)^5)]
         [3.87259191484932e-121, -3.87259191484932e-121]
         sage: rts = complex_roots(p)
         sage: [ComplexIntervalField(10)(rt[0] - 1) for rt in rts]
         [0, [7.8886e-31 .. 7.8887e-31]*I, [7.8886e-31 .. 7.8887e-31], [-7.8887e-31 .. -7.8886e-31]*I, [-7.8887e-31 .. -7.8886e-31]]
+
+    We can get roots either as intervals, or as elements of QQbar or AA.
+        sage: p = (x^2 + x - 1)
+        sage: p = p * p(x*im)
+        sage: p
+        (-1)*x^4 + (im - 1)*x^3 + im*x^2 + (-im - 1)*x + 1
+        sage: rts = complex_roots(p); type(rts[0][0]), rts
+        (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [([-0.000000000000000085405681994008930 .. 0.00000000000000018852810564551411] + [1.6180339887498944 .. 1.6180339887498952]*I, 1), ([-1.6180339887498952 .. -1.6180339887498944] + [-0.00000000000000018852810564551411 .. 0.000000000000000085405681994008930]*I, 1), ([0.61803398874989468 .. 0.61803398874989502] + [-0.00000000000000011497311295586537 .. 0.000000000000000052767663576832497]*I, 1), ([-0.000000000000000054022849329007172 .. 0.00000000000000011371792720369062] - [0.61803398874989468 .. 0.61803398874989502]*I, 1)])
+        sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), rts
+        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [([-3.7249532943328317e-20 .. 3.7095114777437122e-20] + [1.6180339887498946 .. 1.6180339887498950]*I, 1), ([-1.6180339887498950 .. -1.6180339887498946] + [-3.7095114777437122e-20 .. 3.7249532943328317e-20]*I, 1), ([0.61803398874989479 .. 0.61803398874989491] + [-1.8145161579843782e-20 .. 3.1750950176743468e-20]*I, 1), ([-2.5399597786669076e-20 .. 2.0313092838036301e-20] - [0.61803398874989479 .. 0.61803398874989491]*I, 1)])
+        sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
+        (<class 'sage.rings.qqbar.AlgebraicReal'>, [([-1.6180339887498950 .. -1.6180339887498946], 1), ([0.61803398874989479 .. 0.61803398874989491], 1)])
     """
 
     if skip_squarefree:
@@ -283,10 +313,22 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
             if irts is None:
                 ok = False
                 break
+            if retval != 'interval':
+                factor = QQbar.common_polynomial(factor)
             for irt in irts:
-                all_rts.append((irt, exp))
+                all_rts.append((irt, factor, exp))
 
-        if ok and intervals_disjoint([rt for (rt, mult) in all_rts]):
-            return all_rts
+        if ok and intervals_disjoint([rt for (rt, fac, mult) in all_rts]):
+            if retval == 'interval':
+                return [(rt, mult) for (rt, fac, mult) in all_rts]
+            elif retval == 'algebraic':
+                return [(QQbar.polynomial_root(fac, rt), mult) for (rt, fac, mult) in all_rts]
+            elif retval == 'algebraic_real':
+                rts = []
+                for (rt, fac, mult) in all_rts:
+                    qqbar_rt = QQbar.polynomial_root(fac, rt)
+                    if qqbar_rt.imag().is_zero():
+                        rts.append((AA(qqbar_rt), mult))
+                return rts
 
         prec = prec * 2

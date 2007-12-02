@@ -73,12 +73,16 @@ from polynomial_compiled cimport CompiledPolynomialFunction
 from polydict import ETuple
 
 cdef object is_AlgebraicRealField
+cdef object is_AlgebraicField
+cdef object is_AlgebraicField_common
 cdef object NumberField_quadratic
 cdef object is_ComplexIntervalField
 
 cdef void late_import():
     # A hack to avoid circular imports.
     global is_AlgebraicRealField
+    global is_AlgebraicField
+    global is_AlgebraicField_common
     global NumberField_quadratic
     global is_ComplexIntervalField
 
@@ -87,6 +91,8 @@ cdef void late_import():
 
     import sage.rings.qqbar
     is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
+    is_AlgebraicField = sage.rings.qqbar.is_AlgebraicField
+    is_AlgebraicField_common = sage.rings.qqbar.is_AlgebraicField_common
     import sage.rings.number_field.number_field
     NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
     import sage.rings.complex_interval_field
@@ -2506,6 +2512,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [([1.1673039782614185 .. 1.1673039782614188], 1), ([0.18123244446987518 .. 0.18123244446987558] + [1.0839541013177103 .. 1.0839541013177110]*I, 1), ([0.181232444469875... .. 0.1812324444698755...] - [1.083954101317710... .. 1.0839541013177110]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] + [0.35247154603172609 .. 0.35247154603172643]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] - [0.35247154603172609 .. 0.35247154603172643]*I, 1)]
             sage: p.roots(ring=ComplexIntervalField(200))
             [([1.1673039782614186842560458998548421807205603715254890391400816 .. 1.1673039782614186842560458998548421807205603715254890391400829], 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] + [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] - [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.76488443360058472602982318770854173032899665194736756700777...] + [0.35247154603172624931794709140258105439420648082424733283769... .. 0.35247154603172624931794709140258105439420648082424733283769...]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.76488443360058472602982318770854173032899665194736756700777204] - [0.35247154603172624931794709140258105439420648082424733283769122 .. 0.35247154603172624931794709140258105439420648082424733283769341]*I, 1)]
+            sage: rts = p.roots(ring=QQbar); rts
+            [([1.1673039782614185 .. 1.1673039782614188], 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] - [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] + [0.35247154603172620 .. 0.35247154603172626]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] - [0.35247154603172620 .. 0.35247154603172626]*I, 1)]
+            sage: p.roots(ring=AA)
+            [([1.1673039782614185 .. 1.1673039782614188], 1)]
+            sage: p = (x - rts[1][0])^2 * (x^2 + x + 1)
+            sage: p.roots(ring=QQbar)
+            [([-0.50000000000000012 .. -0.49999999999999994] + [0.86602540378443859 .. 0.86602540378443871]*I, 1), ([-0.50000000000000000 .. -0.50000000000000000] - [0.86602540378443859 .. 0.86602540378443871]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
+            sage: p.roots(ring=CIF)
+            [([-0.50000000000000012 .. -0.49999999999999994] + [0.86602540378443859 .. 0.86602540378443871]*I, 1), ([-0.50000000000000000 .. -0.50000000000000000] - [0.86602540378443859 .. 0.86602540378443871]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
 
         Note that coefficients in a number field with defining polynomial
         x^2 + 1 are considered to be Gaussian rationals (with the generator
@@ -2550,7 +2565,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I]
 
         Note that we can find the roots of a polynomial with
-        algebraic real coefficients:
+        algebraic coefficients:
 
             sage: rt2 = sqrt(AA(2))
             sage: rt3 = sqrt(AA(3))
@@ -2590,11 +2605,15 @@ sage: rts[0][0] == rt2
         (You can call real_roots() directly to get more control than
         this method gives.)
 
-        If L is CIF, and K is ZZ, QQ, AA, or the Gaussian rationals,
-        then the root isolation algorithm
+        If L is QQbar or CIF, and K is ZZ, QQ, AA, QQbar, or the
+        Gaussian rationals, then the root isolation algorithm
         sage.rings.polynomial.complex_roots.complex_roots() is used.
-        (You can call complex_roots() directly to get more control than
-        this method gives.)
+        (You can call complex_roots() directly to get more control
+        than this method gives.)
+
+        If L is AA and K is QQbar or the Gaussian rationals, then
+        complex_roots() is used (as above) to find roots in QQbar,
+        then these roots are filtered to select only the real roots.
 
         If L is floating-point and K is not, then we attempt to change
         the polynomial ring to L (using .change_ring()) (or, if L is
@@ -2713,7 +2732,7 @@ sage: rts[0][0] == rt2
             else:
                 return rts
 
-        if L != K or is_AlgebraicRealField(L):
+        if L != K or is_AlgebraicField_common(L):
             # So far, the only "special" implementations are for real
             # and complex root isolation.
             if (is_IntegerRing(K) or is_RationalField(K)
@@ -2747,12 +2766,17 @@ sage: rts[0][0] == rt2
                     return [rt for (rt, mult) in rts]
 
             if (is_IntegerRing(K) or is_RationalField(K)
-                or is_AlgebraicRealField(K) or input_gaussian) and \
-                (is_ComplexIntervalField(L)):
+                or is_AlgebraicField_common(K) or input_gaussian) and \
+                (is_ComplexIntervalField(L) or is_AlgebraicField_common(L)):
 
                 from sage.rings.polynomial.complex_roots import complex_roots
 
-                rts = complex_roots(self, min_prec=L.prec())
+                if is_ComplexIntervalField(L):
+                    rts = complex_roots(self, min_prec=L.prec())
+                elif is_AlgebraicField(L):
+                    rts = complex_roots(self, retval='algebraic')
+                else:
+                    rts = complex_roots(self, retval='algebraic_real')
 
                 if multiplicities:
                     return rts

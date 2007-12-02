@@ -645,6 +645,9 @@ def is_AlgebraicField(F):
 
 QQbar = AlgebraicField()
 
+def is_AlgebraicField_common(F):
+    return isinstance(F, AlgebraicField_common)
+
 def prec_seq():
     # XXX Should do some testing to see where the efficiency breaks are
     # in MPFR.  We could also test variants like "bits = bits + bits // 2"
@@ -1627,7 +1630,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         elif parent is QQbar and \
                  isinstance(x, NumberFieldElement_quadratic) and \
                  list(x.parent().polynomial()) == [1, 0, 1]:
-            self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf(x))
+            self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf(x.list()))
         else:
             raise TypeError, "Illegal initializer for algebraic number"
 

@@ -73,12 +73,12 @@ TESTS:
     sage: M = MatrixSpace(GF(5),2,2)
     sage: A = M([1,0,0,1])
     sage: A - int(-1)
-    [1 0]
-    [0 1]
+    [2 0]
+    [0 2]
     sage: B = M([4,0,0,1])
     sage: B - int(-1)
-    [4 0]
-    [0 1]
+    [0 0]
+    [0 2]
 """
 
 
@@ -192,6 +192,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int p
         p = self._base_ring.characteristic()
 
+        R = self.base_ring()
+
         # scalar?
         if not isinstance(entries, list):
             _sig_on
@@ -202,8 +204,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                 # zero matrix
                 pass
             else:
-                e = entries   # coerce to an unsigned int
-                e %= p
+                e = R(entries)
                 if e != 0:
                     for i from 0 <= i < self._nrows:
                         self._matrix[i][i] = e
@@ -215,7 +216,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         k = 0
         cdef mod_int n
-        R = self.base_ring()
 
         if coerce:
             for i from 0 <= i < self._nrows:

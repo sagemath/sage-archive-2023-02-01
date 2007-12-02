@@ -900,7 +900,7 @@ function search_worksheets(typ) {
 function go_system_select(theform, original_system) {
    with(theform) {
       var system = options[selectedIndex].value;
-      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+      if (confirm("All cells will be evaluted using " + system + " until you change the system back.")) {
           system_select(system);
       } else {
           options[original_system].selected = 1;

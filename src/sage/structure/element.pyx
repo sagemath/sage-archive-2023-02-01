@@ -1617,6 +1617,28 @@ cdef class CommutativeRingElement(RingElement):
         """
         raise NotImplementedError
 
+    def divides(self, x):
+        """
+        Return True if self divides x.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+        """
+        return (x % self) == 0
+
     def mod(self, I):
         r"""
         Return a representative for self modulo the ideal I (or the ideal

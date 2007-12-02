@@ -2831,7 +2831,8 @@ def canaug_traverse_edge(g, aut_gens, property):
 
     EXAMPLES:
         sage: from sage.graphs.graph_generators import canaug_traverse_edge
-        sage: list(canaug_traverse_edge(Graph(), [], lambda x: True))
+        sage: G = Graph(); G.add_vertices(range(3))
+        sage: list(canaug_traverse_edge(G, [], lambda x: True))
         [Graph on 3 vertices, ... Graph on 3 vertices]
 
     The best way to access this function is through the graphs() iterator:

@@ -1013,9 +1013,15 @@ if SAGE_OUTGOING_SERVER == None:
     SAGE_OUTGOING_SERVER = SAGE_INCOMING_SERVER
 
 if (SAGE_INCOMING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
-    temp_branch_name = "main"
+    temp_in_branch_name = "main"
 else:
-    temp_branch_name = branch_current_hg()
+    temp_in_branch_name = branch_current_hg()
+
+if (SAGE_OUTGOING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
+    temp_out_branch_name = "main"
+else:
+    temp_out_branch_name = branch_current_hg()
+
 
 if (SAGE_INCOMING_SERVER != DEFAULT_SERVER) or (SAGE_OUTGOING_SERVER != DEFAULT_SERVER):
     print "Non-default server settings detected:"
@@ -1028,8 +1034,8 @@ if (SAGE_INCOMING_SERVER != DEFAULT_SERVER) or (SAGE_OUTGOING_SERVER != DEFAULT_
 
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
-                    pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_branch_name),
-                    push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_branch_name),
+                    pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_in_branch_name),
+                    push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_out_branch_name),
                 cloneable=True,
                 obj_name='sage')
 

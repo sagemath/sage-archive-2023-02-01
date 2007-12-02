@@ -995,35 +995,41 @@ class HG:
 import misc
 
 SAGE_ROOT = misc.SAGE_ROOT
-try:
-    SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/') + '/hg'
-except KeyError:
+DEFAULT_SERVER = "http://www.sagemath.org/hg"
+
+SAGE_INCOMING_SERVER = os.getenv("SAGE_INCOMING_SERVER")
+if SAGE_INCOMING_SERVER == None:
     try:
-        SAGE_INCOMING_SERVER = os.environ['SAGE_SERVER'].strip('/') + '/hg'
+	SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/') + '/hg'
     except KeyError:
-        print "Falling back to a hard coded sage server in misc/hg.py"
-        SAGE_INCOMING_SERVER = "http://sage.math.washington.edu/sage/hg/"
+	try:
+	    SAGE_INCOMING_SERVER = os.environ['SAGE_SERVER'].strip('/') + '/hg'
+	except KeyError:
+	    print "Falling back to a hard coded sage server in misc/hg.py"
+	    SAGE_INCOMING_SERVER = DEFAULT_SERVER
 
 SAGE_OUTGOING_SERVER = os.getenv("SAGE_OUTGOING_SERVER")
-temp_branch_name = branch_current_hg()      ## Delete this eventually       <<---- TO FIX
 if SAGE_OUTGOING_SERVER == None:
     SAGE_OUTGOING_SERVER = SAGE_INCOMING_SERVER
-    temp_incoming_branch_name = "main"      ## Force use of the "main" branch (to avoid breaking anything for now).  <<---- TO FIX
+
+if (SAGE_INCOMING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
+    temp_branch_name = "main"
 else:
+    temp_branch_name = branch_current_hg()
+
+if (SAGE_INCOMING_SERVER != DEFAULT_SERVER) or (SAGE_OUTGOING_SERVER != DEFAULT_SERVER):
     print "Non-default server settings detected:"
-    print "    Incoming Server = ", SAGE_INCOMING_SERVER
-    print "    Outgoing Server = ", SAGE_OUTGOING_SERVER
+    print "    Incoming Server = " + SAGE_INCOMING_SERVER + ''.join(["  (default)"  \
+                for i in range(1)  if (SAGE_INCOMING_SERVER == DEFAULT_SERVER)])
+    print "    Outgoing Server = " + SAGE_OUTGOING_SERVER + ''.join(["  (default)"  \
+                for i in range(1)  if (SAGE_OUTGOING_SERVER == DEFAULT_SERVER)])
     print
+
 
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
-                pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_branch_name),
-                push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_branch_name),
-
-                ## These are the eventual replacements for the above 2 lines (I hope!)          <<----  TO FIX
-                ##pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, branch_current_hg()),
-                ##push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, branch_current_hg()),
-
+                    pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_branch_name),
+                    push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_branch_name),
                 cloneable=True,
                 obj_name='sage')
 

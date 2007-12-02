@@ -68,6 +68,17 @@ We create a matrix group and coerce it to GAP:
                0*Z(3) ] ],
       [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, 0*Z(3), 0*Z(3) ],
           [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
+
+TESTS:
+    sage: M = MatrixSpace(GF(5),2,2)
+    sage: A = M([1,0,0,1])
+    sage: A - int(-1)
+    [1 0]
+    [0 1]
+    sage: B = M([4,0,0,1])
+    sage: B - int(-1)
+    [4 0]
+    [0 1]
 """
 
 
@@ -178,6 +189,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int e
         cdef Py_ssize_t i, j, k
         cdef mod_int *v
+        cdef mod_int p
+        p = self._base_ring.characteristic()
 
         # scalar?
         if not isinstance(entries, list):
@@ -190,6 +203,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                 pass
             else:
                 e = entries   # coerce to an unsigned int
+                e %= p
                 if e != 0:
                     for i from 0 <= i < self._nrows:
                         self._matrix[i][i] = e

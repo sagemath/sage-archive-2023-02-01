@@ -4,17 +4,12 @@
 ## Singular
 ###########################################
 
-# work-around patches
-cp patches/assert.h src/factory/
-cp patches/kernel.Makefile.in src/kernel/Makefile.in
-
-# Build
-
-cd src/
-
-unset TMPDIR  # see track ticket #48 -- do this to avoid subtle bug that Rob Gross found in build process
-
 DEBUG=0
+SRC=`pwd`/src
+
+# see track ticket #48 -- do this to avoid subtle bug that Rob Gross
+# found in build process
+unset TMPDIR
 
 # since parallel make breaks the singular build
 MAKE="make"
@@ -38,14 +33,22 @@ else
   ENABLE_DEBUG="--disable-debug"
 fi
 
-# we are building everything fPIC, this might impose a slight performance hit,
-# need to evaluate:
+# we are building everything fPIC, this might impose a slight
+# performance hit, need to evaluate:
 
 CXXFLAGS="$CXXFLAGS -fPIC -O3 -g"; export CXXFLAGS
 CFLAGS="$CFLAGS -fPIC -O3 -g"; export CFLAGS
 
+patch()
+{
+    # work-around patches
+    cp patches/assert.h src/factory/
+    cp patches/kernel.Makefile.in src/kernel/Makefile.in
+}
+
 distclean()
 {
+     cd $SRC
      make distclean
      rm $SAGE_LOCAL/bin/Singular*
      find . -name *.dl_o -exec rm \{\} \;
@@ -53,10 +56,13 @@ distclean()
      find . -name *.og -exec rm \{\} \;
      find . -name *.so -exec rm \{\} \;
      find . -name *.a -exec rm \{\} \;
+     rm -f $SAGE_LOCAL/include/factory.h
+     rm -f $SAGE_LOCAL/include/factoryconf.h
 }
 
 config()
 {
+    cd $SRC
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
@@ -78,25 +84,18 @@ config()
                 --disable-doc  \
                 "$DYNAMIC_KERNEL" \
 		"$ENABLE_DEBUG"
-}
-
-build()
-{
-    CUR=`pwd`
-
-    distclean
-
-    rm -f $SAGE_LOCAL/include/factory.h
-    rm -f $SAGE_LOCAL/include/factoryconf.h
-
-    config
 
     if [ $? -ne 0 ]; then
         echo "Unable to configure Singular."
         exit 1
     fi
+}
 
-    make
+build_singular()
+{
+    cd $SRC
+
+    make # Singular + rest
 
     if [ $? -ne 0 ]; then
         echo "Unable to build Singular."
@@ -106,7 +105,6 @@ build()
     # For some reason the permissions are set for the user to read only
     # for singular's library.  This causes problems on multi-user system
     # install.
-    cd $CUR
     $CHMOD a+r Singular/LIB/*
 
     cd "$SAGE_LOCAL"
@@ -116,28 +114,13 @@ build()
         $RM -f LIB
         $LN -sf lib LIB
     fi
-    cd $CUR
+
+    cd $SRC
 
     make install-nolns
 
     if [ $? -ne 0 ]; then
         echo "Unable to install Singular."
-        exit 1
-    fi
-
-    cd $CUR
-
-    make libsingular
-
-    if [ $? -ne 0 ]; then
-        echo "Unable to build Singular."
-        exit 1
-    fi
-
-    make install-libsingular
-
-    if [ $? -ne 0 ]; then
-        echo "Unable to install libsingular."
         exit 1
     fi
 
@@ -168,11 +151,35 @@ build()
 
     # Lower case version is convenient.
     $CP -f Singular singular
+}
 
-    # Factory: build the standalone factory as well
-    cd $CUR/factory
+build_libsingular()
+{
+    cd $SRC
+
+    make libsingular
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to build Singular."
+        exit 1
+    fi
+
+    make install-libsingular
+
+    if [ $? -ne 0 ]; then
+        echo "Unable to install libsingular."
+        exit 1
+    fi
+}
+
+build_factory()
+{
+    cd $SRC/factory
+
     make distclean
+
     config
+
     if [ $? -ne 0 ]; then
         echo "Error configuring the standalone factory."
         exit 1
@@ -194,27 +201,51 @@ build()
     if [ $? -ne 0 ]; then
         echo "Error copying factory/factoryconf.h to include directory."
     fi
+}
 
-    # Libfac
-    cd $CUR/libfac
+build_libfac()
+{
+    cd $SRC/libfac
+
     make distclean
+
     config
+
     if [ $? -ne 0 ]; then
         echo "Error configuring libfac."
         exit 1
     fi
 
     make
+
     if [ $? -ne 0 ]; then
         echo "Error building libfac."
         exit 1
     fi
 
     make install
+
     if [ $? -ne 0 ]; then
         echo "Error installing libfac."
         exit 1
     fi
+}
+
+build()
+{
+    patch
+
+    distclean
+
+    config
+
+    build_singular
+
+    build_libsingular
+
+    build_factory
+
+    build_libfac
 }
 
 build

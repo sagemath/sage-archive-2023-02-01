@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # William Stein, 2005-12-20 -- removed "m" option from tar,
 # which was seriously confusing the build process on some
@@ -194,7 +194,7 @@ fi
 
 cd "$PKG_NAME"
 if [ ! -f spkg-install ]; then
-  echo "#!/bin/sh" > spkg-install
+  echo "#!/bin/bash" > spkg-install
   echo "" >> spkg-install
   if [ -f setup.py ]; then
       echo "python setup.py install" >> spkg-install

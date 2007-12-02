@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ###########################################################################
 #
@@ -17,7 +17,7 @@
 #
 #             source local/bin/sage-env
 #
-#  from the SAGE_ROOT directory.   To do the same from a /bin/sh
+#  from the SAGE_ROOT directory.   To do the same from a /bin/bash
 #  script use ". local/bin/sage-env".
 #
 ##########################################################################

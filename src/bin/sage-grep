@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cd $SAGE_ROOT/devel/sage/sage
 

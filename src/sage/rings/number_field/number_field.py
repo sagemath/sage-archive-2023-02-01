@@ -3772,15 +3772,16 @@ class NumberField_relative(NumberField_generic):
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
               Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
-                    b |--> -0.00000000000000019428902930940239 + 1.0000000000000000*I,
+                    b |--> -1.9428902930940239e-16 + 1.0000000000000000*I, Relative number field morphism:
               ...
+              From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
               Defn: a |--> 1.2599210498948731
                     b |--> -0.99999999999999999*I]
             sage: f[0](a)^3
-            2.0000000000000002 - 0.00000000000000086389229103644993*I
+            2.0000000000000002 - 8.6389229103644993e-16*I
             sage: f[0](b)^2
-            -1.0000000000000001 - 0.00000000000000038857805861880480*I
+            -1.0000000000000001 - 3.8857805861880480e-16*I
             sage: f[0](a+b)
             -0.62996052494743693 - 0.091123635971721295*I
         """
@@ -4426,12 +4427,12 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: C = CyclotomicField(4)
             sage: C.complex_embeddings()
             [Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
-              To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I, Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
-              To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> -0.000000000000000183697019872103 - 1.00000000000000*I]
+             From: Cyclotomic Field of order 4 and degree 2
+             To:   Complex Field with 53 bits of precision
+             Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I, Ring morphism:
+             From: Cyclotomic Field of order 4 and degree 2
+             To:   Complex Field with 53 bits of precision
+             Defn: zeta4 |--> -1.83697019872103e-16 - 1.00000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         n = self.zeta_order()

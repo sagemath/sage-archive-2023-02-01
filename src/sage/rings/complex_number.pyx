@@ -873,7 +873,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: p.factor()
             (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
-            0.000000000000000111022302462516
+            1.11022302462516e-16
         """
         import sage.rings.arith
         return sage.rings.arith.algdep(self,n, **kwds)

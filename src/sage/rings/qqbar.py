@@ -1734,6 +1734,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             [0.31783724519578221 .. 0.31783724519578227]
             sage: abs(QQbar(3+4*I))
             5
+            sage: v = QQbar.zeta(3) + 1
+            sage: v.exactify()
+            sage: v.abs().minpoly()
+            x - 1
         """
         return AlgebraicReal(self._descr.abs(self))
 
@@ -3752,7 +3756,7 @@ class ANExtensionElement(ANDescr):
             return ANUnaryExpr(n, 'norm')
 
     def abs(self, n):
-        return AlgebraicReal(self.norm(self)).sqrt()._descr
+        return AlgebraicReal(self.norm(n)).sqrt()._descr
 
     def rational_argument(self, n):
         """

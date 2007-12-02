@@ -2844,11 +2844,15 @@ cdef class Matrix(matrix1.Matrix):
                        max(self.nrows(),self.ncols()) is given the image will have
                        the same pixelsize as the matrix dimensions (default: 512)
 
+        EXAMPLE:
+            sage: M = random_matrix(CC, 4)
+            sage: M.visualize_structure()
+
         """
         import gd
         import os
 
-        cdef int x, y, _x, _y, v, bi
+        cdef int x, y, _x, _y, v, bi, bisq
         cdef int ir,ic
         cdef float b, fct
 
@@ -2875,6 +2879,7 @@ cdef class Matrix(matrix1.Matrix):
 
         fct = 255.0/(b*b)
         bi = <int>b
+        bisq = bi*bi
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))
@@ -2886,12 +2891,13 @@ cdef class Matrix(matrix1.Matrix):
 
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
+                v = bisq
                 for _x from 0 <= _x < bi:
                     for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 
-                v = int(b*b*fct)
+                v = int(v*v*fct)
                 val = colorExact((v,v,v))
                 setPixel((y,x), val)
 

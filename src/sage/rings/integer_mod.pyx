@@ -1326,7 +1326,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
-        cdef int_fast32_t x
+        cdef long x
         if PY_TYPE_CHECK(value, int):
             x = value
             self.ivalue = x % self.__modulus.int32

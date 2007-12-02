@@ -6,6 +6,7 @@ AUTHOR:
     -- William Stein: sage-tachyon interface
     -- Joshua Kantor: 3d function plotting
     -- Tom Boothby: 3d function plotting n'stuff
+    -- Leif Hille: key idea for bugfix for texfunc issue (trac #799)
 
 TODO:
    -- clean up trianglefactory stuff
@@ -267,11 +268,66 @@ class Tachyon(SageObject):
         self._objects.append(Light(center, radius, color))
 
     def texfunc(self, type=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
+        """
+
+        INPUT:
+            type -- (default: 0)
+                 0: No special texture, plain shading
+                 1: 3D checkerboard function, like a rubik's cube
+                 2: Grit Texture, randomized surface color
+                 3: 3D marble texture, uses object's base color
+                 4: 3D wood texture, light and dark brown, not very good yet
+                 5: 3D gradient noise function (can't remember what it look like
+                 6: Don't remember
+                 7: Cylindrical Image Map, requires ppm filename   (don't know how to specify name in sage?!)
+                 8: Spherical Image Map, requires ppm filename     (don't know how to specify name in sage?!)
+                 9: Planar Image Map, requires ppm filename        (don't know how to specify name in sage?!)
+            center -- (default: (0,0,0))
+            rotate -- (default: (0,0,0))
+            scale -- (default: (1,1,1))
+
+        EXAMPLES:
+        We draw an infinite checkboard:
+            sage: t = Tachyon(camera_center=(2,7,4), look_at=(2,0,0))
+            sage: t.texture('black', color=(0,0,0), texfunc=1)
+            sage: t.plane((0,0,0),(0,0,1),'black')
+            sage: t.show()
+        """
         return Texfunc(type,center,rotate,scale).str()
 
     def texture(self, name, ambient=0.2, diffuse=0.8,
                 specular=0.0, opacity=1.0,
                 color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=.5, phongtype="PLASTIC"):
+        """
+        INPUT:
+            name -- string; the name of the texture (to be used later)
+            ambient -- (default: 0.2)
+            diffuse -- (default: 0.8)
+            specular -- (default: 0.0)
+            opacity -- (default: 1.0)
+            color -- (default: (1.0,0.0,0.5))
+            texfunc -- (default: 0); a texture function; this is either the output of
+                       self.texfunc, or a number between 0 and 9, inclusive.  See
+                       the docs for self.texfunc.
+            phong -- (default: 0)
+            phongsize -- (default: 0.5)
+            phongtype -- (default: "PLASTIC")
+
+        EXAMPLES:
+        We draw a scene with 4 sphere that illustrates various uses of the texture command:
+            sage: t = Tachyon(camera_center=(2,5,4), look_at=(2,0,0), raydepth=6)
+            sage: t.light((10,3,4), 1, (1,1,1))
+            sage: t.texture('mirror', ambient=0.05, diffuse=0.05, specular=.9, opacity=0.9, color=(.8,.8,.8))
+            sage: t.texture('grey', color=(.8,.8,.8), texfunc=3)
+            sage: t.plane((0,0,0),(0,0,1),'grey')
+            sage: t.sphere((4,-1,1), 1, 'mirror')
+            sage: t.sphere((0,-1,1), 1, 'mirror')
+            sage: t.sphere((2,-1,1), 0.5, 'mirror')
+            sage: t.sphere((2,1,1), 0.5, 'mirror')
+            sage: show(t)
+        """
+        if texfunc and not isinstance(texfunc, Texfunc):
+            texfunc = self.texfunc(int(texfunc))
         self._objects.append(Texture(name, ambient, diffuse,
                                      specular, opacity, color, texfunc,
                                      phong,phongsize,phongtype))

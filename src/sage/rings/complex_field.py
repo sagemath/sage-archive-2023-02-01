@@ -212,6 +212,10 @@ class ComplexField_class(field.Field):
         The rings that canonicaly coerce to the MPFS complex field are:
            * this MPFR complex field, or any other of higher precision
            * anything that canonically coerces to the mpfr real field with this prec
+
+        EXAMPLES:
+        sage: ComplexField(200)(1) + RealField(90)(1)
+        2.0000000000000000000000000
         """
         try:
             K = x.parent()
@@ -257,6 +261,21 @@ class ComplexField_class(field.Field):
             False
         """
         return False
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real field with the same precision.
+
+        EXAMPLES:
+            sage: c, S = CC.construction(); S
+            Real Field with 53 bits of precision
+            sage: CC == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
+
 
     def pi(self):
         return self(self._real_field().pi())

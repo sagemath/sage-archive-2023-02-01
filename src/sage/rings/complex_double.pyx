@@ -276,6 +276,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.00000000000000*I + pi
             sage: parent(a)
             Symbolic Ring
+
+        sage: CDF(1) + RR(1)
+        2.0
         """
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])
@@ -339,6 +342,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return self(3.1415926535897932384626433832)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real double field.
+
+        EXAMPLES:
+            sage: c, S = CDF.construction(); S
+            Real Double Field
+            sage: CDF == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self.real_double_field())
 
 def new_ComplexDoubleElement():
     cdef ComplexDoubleElement z

@@ -348,6 +348,13 @@ cdef class RealField(sage.rings.ring.Field):
         """
         return sage.rings.complex_field.ComplexField(self.prec())
 
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self, ie the
+        complex field with the same precision.
+        """
+        return self.complex_field()
+
     def ngens(self):
         return 1
 

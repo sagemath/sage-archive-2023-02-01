@@ -285,10 +285,22 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: p = p * p(x*im)
         sage: p
         (-1)*x^4 + (im - 1)*x^3 + im*x^2 + (-im - 1)*x + 1
-        sage: rts = complex_roots(p); type(rts[0][0]), rts
-        (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [([-2.8836212165089293e-16 .. 4.7404441675278100e-17] + [1.6180339887498946 .. 1.6180339887498952]*I, 1), ([-1.6180339887498952 .. -1.6180339887498944] + [-1.8852810564551411e-16 .. 8.5405681994008930e-17]*I, 1), ([0.61803398874989468 .. 0.61803398874989502] + [-1.1236596864560003e-16 .. 5.5374807887097754e-17]*I, 1), ([-5.4022849329007172e-17 .. 1.1371792720369062e-16] - [0.61803398874989468 .. 0.61803398874989502]*I, 1)])
-        sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), rts
-        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [([-2.5297186544008181e-20 .. 4.5178375837717923e-20] + [1.6180339887498946 .. 1.6180339887498950]*I, 1), ([-1.6180339887498950 .. -1.6180339887498946] + [-3.7095114777437122e-20 .. 3.7249532943328317e-20]*I, 1), ([0.61803398874989479 .. 0.61803398874989491] + [-1.5445351834529870e-20 .. 3.2940467984864619e-20]*I, 1), ([-2.5399597786669076e-20 .. 2.0313092838036301e-20] - [0.61803398874989479 .. 0.61803398874989491]*I, 1)])
+
+    Two of the roots have a zero real component; two have a zero
+    imaginary component.  These zero components will be found slightly
+    inaccurately, and the exact values returned are very sensitive to
+    the (non-portable) results of numpy.  So we post-process the roots
+    for printing, to get predictable doctest results.
+        sage: def tiny(x):
+        ...       return x.contains_zero() and x.absolute_diameter() <  1e-14
+        sage: def smash(x):
+        ...       x = CIF(x[0]) # discard multiplicity
+        ...       if tiny(x.imag()): return x.real()
+        ...       if tiny(x.real()): return CIF(0, x.imag())
+        sage: rts = complex_roots(p); type(rts[0][0]), map(smash, rts)
+        (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [[1.6180339887498944 .. 1.6180339887498952]*I, [-1.6180339887498952 .. -1.6180339887498944], [0.61803398874989468 .. 0.61803398874989502], [-0.61803398874989502 .. -0.61803398874989468]*I])
+        sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), map(smash, rts)
+        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [[1.6180339887498946 .. 1.6180339887498950]*I, [-1.6180339887498950 .. -1.6180339887498946], [0.61803398874989479 .. 0.61803398874989491], [-0.61803398874989491 .. -0.61803398874989479]*I])
         sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
         (<class 'sage.rings.qqbar.AlgebraicReal'>, [([-1.6180339887498950 .. -1.6180339887498946], 1), ([0.61803398874989479 .. 0.61803398874989491], 1)])
     """

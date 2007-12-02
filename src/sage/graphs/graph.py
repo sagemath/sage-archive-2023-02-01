@@ -3652,13 +3652,16 @@ class Graph(GenericGraph):
             [(0, 1), (0, 10), (0, 19), (1, 2), (1, 8), (2, 3), (2, 6), (3, 4), (3, 19), (4, 5), (4, 17), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 13), (12, 16), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
-        if sort:
-            L.sort()
         if labels:
-            return L
+            if sort:
+                return sorted(L)
+            else:
+                return L
         else:
-            return [(u,v) for u,v,_ in L]
-
+            if sort:
+                return sorted([tuple(sorted((u,v))) for u,v,_ in L])
+            else:
+                return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """

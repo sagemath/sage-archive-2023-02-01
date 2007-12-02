@@ -293,6 +293,9 @@ class Tachyon(SageObject):
             sage: t.plane((0,0,0),(0,0,1),'black')
             sage: t.show()
         """
+        type = int(type)
+        if type < 0 or type > 9:
+            raise ValueError, "type must be an integer between 0 and 9"
         return Texfunc(type,center,rotate,scale).str()
 
     def texture(self, name, ambient=0.2, diffuse=0.8,

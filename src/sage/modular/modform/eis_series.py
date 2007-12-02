@@ -14,6 +14,10 @@ import sage.misc.all as misc
 
 import sage.modular.dirichlet as dirichlet
 
+from sage.rings.all import ComplexField, RealField, Integer
+
+from sage.functions.constants import pi
+
 from sage.rings.all import (bernoulli, CyclotomicField,
                             prime_range, QQ, Integer, divisors,
                             LCM, is_squarefree)
@@ -198,7 +202,54 @@ def __find_eisen_chars_gamma1(N, k):
             triples.append((chi, psi, t))
     return triples
 
+def eisenstein_series_Lseries(weight, prec=53,
+               max_imaginary_part=0,
+               max_asymp_coeffs=40):
+    r"""
+    Return the L-series of the weight $2k$ Eisenstein series
+    on $\SL_2(\Z)$.
 
+    This actually returns an interface to Tim Dokchitser's program
+    for computing with the L-series of the Eisenstein series
+
+    INPUT:
+       weight -- even integer
+       prec -- integer (bits precision)
+       max_imaginary_part -- real number
+       max_asymp_coeffs -- integer
+
+    OUTPUT:
+       The L-series of the Eisenstein series.
+
+    EXAMPLES:
+    We compute with the L-series of $E_{16}$:
+       sage: L = eisenstein_series_Lseries(16)
+       sage: L(1)
+       -0.291657724743873
+    We compute with the L-series of $E_{20}$:
+       sage: L = eisenstein_series_Lseries(20)
+       sage: L(2)
+       -5.02355351645987
+    """
+    f = eisenstein_series_qexp(weight,prec)
+    from sage.lfunctions.all import Dokchitser
+    key = (prec, max_imaginary_part, max_asymp_coeffs)
+    j = weight
+    L = Dokchitser(conductor = 1,
+                   gammaV = [0,1],
+                   weight = j,
+                   eps = (-1)**Integer((j/2)),
+                   poles = [j],
+                   residues = [(-1)**Integer((j/2))*(float(pi))**(0.5)*bernoulli(j)/j],
+                   prec = prec)
+
+    s = 'coeff = %s;'%f.list()
+    L.init_coeffs('coeff[k+1]',pari_precode = s,
+                  max_imaginary_part=max_imaginary_part,
+                  max_asymp_coeffs=max_asymp_coeffs)
+    L.check_functional_equation()
+    L.rename('L-series associated to the weight %s Eisenstein series %s on SL_2(Z)'%(j,f))
+    return L
 
 def compute_eisenstein_params(character, k):
     r"""
@@ -222,5 +273,3 @@ def compute_eisenstein_params(character, k):
         return __find_eisen_chars(character, k)
     else:
         return __find_eisen_chars_gamma1(N, k)
-
-

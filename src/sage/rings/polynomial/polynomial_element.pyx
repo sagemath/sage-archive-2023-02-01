@@ -61,6 +61,7 @@ from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 
 from sage.rings.integral_domain import is_IntegralDomain
+from sage.structure.parent_gens cimport ParentWithGens
 
 import polynomial_fateman
 
@@ -495,11 +496,60 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __iter__(self):
         return iter(self.list())
 
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
-        if self.degree() >= 1:
-            return hash(tuple(self.list()))
-        else:
-            return hash(self[0])
+        return self._hash_c()
+
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
+
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: hash(R(1))==hash(1)  # respect inclusions of the integers
+            True
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+            sage: R.<x>=QQ[]
+            sage: hash(R(1/2))==hash(1/2)  # respect inclusions of the rationals
+            True
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+            sage: R.<x>=IntegerModRing(11)[]
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+        """
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        cdef long c_hash
+        cdef long var_name_hash
+        cdef int i
+        for i from 0<= i <= self.degree():
+            if i == 1:
+                # we delay the hashing until now to not waste it one a constant poly
+                var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
+            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # This assumption is not true, but I think it is true enough for the purposes and it
+            # it allows us to write fast code that omits terms with 0 coefficients.  This is
+            # important if we want to maintain the '==' relationship with sparse polys.
+            c_hash = hash(self[i])
+            if c_hash != 0:
+                if i == 0:
+                    result += c_hash
+                else:
+                    # Hash (self[i], generator, i) as a tuple according to the algorithm.
+                    result_mon = c_hash
+                    result_mon = (1000003 * result_mon) ^ var_name_hash
+                    result_mon = (1000003 * result_mon) ^ i
+                    result += result_mon
+        if result == -1:
+            return -2
+        return result
 
     def __float__(self):
          if self.degree() > 0:
@@ -3385,14 +3435,6 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return len(self.__coeffs) > 0
 
-    def __hash__(self):
-        if len(self.__coeffs) > 1:
-            return hash(tuple(self.__coeffs))
-        elif len(self.__coeffs) == 1:
-            return hash(self[0])
-        else:
-            return 0
-
     cdef void __normalize(self):
         x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
@@ -3400,6 +3442,12 @@ cdef class Polynomial_generic_dense(Polynomial):
 #        while n > 0 and x[n] == 0:
             del x[n]
             n -= 1
+
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

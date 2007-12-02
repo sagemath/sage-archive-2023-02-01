@@ -76,7 +76,7 @@ def Ideal(R, gens=[], coerce=True):
         sage: R.<t> = ZZ['t']
         sage: i = ideal(1,t,t^2)
         sage: i
-        Ideal (t, 1, t^2) of Univariate Polynomial Ring in t over Integer Ring
+        Ideal (t^2, 1, t) of Univariate Polynomial Ring in t over Integer Ring
         sage: ideal(1/2,t,t^2)
         Principal ideal (1) of Univariate Polynomial Ring in t over Rational Field
 

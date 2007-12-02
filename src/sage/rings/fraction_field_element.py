@@ -99,6 +99,57 @@ class FractionFieldElement(field_element.FieldElement):
     def denominator(self):
         return self.__denominator
 
+    def __hash__(self):
+        """
+        This function hashes in a special way to ensure that generators of a ring R
+        and generators of a fraction field of R have the same hash.  This enables them
+        to be used as keys interchangably in a dictionary (since \code{==} will claim them equal).
+        This is particularly useful for methods like subs on \code{ParentWithGens} if you
+        are passing a dictionary of substitutions.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
+            1
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x>=QQ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x,y,z>=ZZ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x,y,z>=QQ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
+            1
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: hash(R(1)/R(2))==hash(1/2)
+            True
+        """
+        # This is same algorithm as used for members of QQ
+        #cdef long n, d
+        n = hash(self.__numerator)
+        d = hash(self.__denominator)
+        if d == 1:
+            return n
+        n = n ^ d
+        if n == -1:
+            return -2
+        return n
+
     def partial_fraction_decomposition(self):
         """
         Decomposes fraction field element into a whole part and

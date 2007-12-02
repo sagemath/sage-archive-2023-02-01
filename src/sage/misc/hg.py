@@ -735,7 +735,7 @@ class HG:
           Alternatively specify "ssh -C" as your ssh command in your hgrc or
           with the --ssh command line option.
         """
-        ##self._ensure_safe()
+        self._ensure_safe()
 
         if url is None:
             url = self.__push_url

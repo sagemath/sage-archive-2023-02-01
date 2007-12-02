@@ -1020,7 +1020,7 @@ def basis_to_module(B, K):
     """
     V, from_V, to_V = K.absolute_vector_space()
     M = ZZ**(V.dimension())
-    C = [to_V(b) for b in B]
+    C = [to_V(K(b.list())) for b in B]
     return M.span_of_basis(C)
 
 
@@ -1097,7 +1097,7 @@ def quotient_char_p(I, p):
         raise ValueError, "I must be an integral ideal."
 
     K    = I.number_field()
-    OK   = K.maximal_order(p)  # really only need a p-maximal order.
+    OK   = K.maximal_order()  # will in the long run only really need a p-maximal order.
     M_OK = OK.free_module()
     M_I  = I.free_module()
 

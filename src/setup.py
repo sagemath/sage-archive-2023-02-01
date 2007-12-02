@@ -1098,6 +1098,7 @@ def cython(ext_modules):
 
 if not sdist and do_cython:
     cython(ext_modules)
+    pass
 
 code = setup(name        = 'sage',
 

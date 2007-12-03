@@ -22,7 +22,6 @@ import operator
 import re
 import time
 
-from sage_object cimport SageObject
 import sage.categories.morphism
 from sage.categories.action import InverseAction
 
@@ -327,14 +326,6 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 x = y.__class__(x)
                 return x, y
             return _verify_canonical_coercion_c(x,y)
-
-        try:
-            if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
-                x = x._sage_()
-                y = y._sage_()
-                return self.canonical_coercion_c(x, y)
-        except AttributeError:
-            pass
 
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 

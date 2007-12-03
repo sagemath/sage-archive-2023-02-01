@@ -268,9 +268,6 @@ import sage.functions.constants
 import math
 import sage.functions.functions
 
-#needed for converting from SymPy to SAGE
-import sympy
-
 is_simplified = False
 
 infixops = {operator.add: '+',
@@ -378,9 +375,6 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return x
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
-        # if "x" is a SymPy object, convert it to a SAGE object
-        elif isinstance(x, sympy.Basic):
-            return self(x._sage_())
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
@@ -3710,23 +3704,6 @@ class SymbolicArithmetic(SymbolicOperation):
             return '(%s) %s (%s)' % (ops[0]._maxima_init_(),
                              infixops[self._operator],
                              ops[1]._maxima_init_())
-
-    def _sympy_(self):
-        """Converts any expression to SymPy."""
-
-        # Current implementation is fragile - it first converts the expression
-        # to string, then preparses it, then gets rid of "Integer" and then
-        # sympifies this string.
-
-        # In order to make this robust, one would have to implement _sympy_
-        # recursively in all expressions. But we want something now, instead of
-        # tomorrow, so the following one-liner does the job for now.
-        # Also all ugly things are concentrated in this line, everything else
-        # (sympy.sympify, sage.all.SR, ...) is clean and robust.
-        import sympy
-        from sage.all import preparse
-        s = sympy.sympify(preparse(repr(self)).replace("Integer",""))
-        return s
 
     def _sys_init_(self, system):
         ops = self._operands

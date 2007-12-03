@@ -123,34 +123,4 @@ sage: e._sage_().taylor(x._sage_(), 0, 8)
 sage: f._sage_()
 8651*x^8/13440 + 241*x^6/240 + 11*x^4/8 + 3*x^2/2 + 1
 
-
-
-Mixing SymPy with SAGE:
-sage: import sympy
-sage: sympy.sympify(var("y"))+sympy.Symbol("x")
-x + y
-sage: o = var("omega")
-sage: s = sympy.Symbol("x")
-sage: t1 = s + o
-sage: t2 = o + s
-sage: print type(t1)
-<class 'sympy.core.add.Add'>
-sage: print type(t2)
-<class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print t1, t2
-omega + x                                    x + omega
-sage: e=sympy.sin(var("y"))+sage.all.cos(Symbol("x"))
-sage: print type(e)
-<class 'sympy.core.add.Add'>
-sage: print e
-cos(x) + sin(y)
-sage: e=e._sage_()
-sage: print type(e)
-<class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print e
-                                sin(y) + cos(x)
-sage: e = sage.all.cos(var("y")**3)**4+var("x")**2
-sage: e = e._sympy_()
-sage: print e
-    x**2 + cos(y**3)**4
 """

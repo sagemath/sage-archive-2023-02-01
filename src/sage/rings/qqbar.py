@@ -3071,9 +3071,9 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         EXAMPLES:
             sage: x = polygen(ZZ)
-            sage: cp = AA.common_polynomial(x^4 - 1)
+            sage: cp = AA.common_polynomial(x^4 - 2)
             sage: cp.complex_roots(30, 1)
-            [[1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000 .. -1.0000000000000000], [1.0000000000000000 .. 1.0000000000000000]*I, [-1.0000000000000000 .. -1.0000000000000000]*I]
+            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.1892071150027208], [1.1892071150027208 .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
         """
         if self._roots_cache.has_key(multiplicity):
             roots = self._roots_cache[multiplicity]

@@ -2661,7 +2661,7 @@ class GraphGenerators():
         return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
 
 ################################################################################
-#   Graphs that are representatives of distinct isomorphism classes
+#   Graph Iterators
 ################################################################################
 
     def __call__(self, vertices, property=lambda x: True, augment='edges'):
@@ -2695,7 +2695,6 @@ class GraphGenerators():
         Print graphs on 3 or less vertices.
             sage: for G in graphs(3, augment='vertices'):
             ...    print G
-            ...
             Graph on 0 vertices
             Graph on 1 vertex
             Graph on 2 vertices
@@ -2708,7 +2707,6 @@ class GraphGenerators():
         Print graphs on 3 vertices.
             sage: for G in graphs(3):
             ...    print G
-            ...
             Graph on 3 vertices
             Graph on 3 vertices
             Graph on 3 vertices
@@ -2717,7 +2715,7 @@ class GraphGenerators():
         Generate all graphs with 5 vertices and up to 4 edges.
             sage: L = list(graphs(5, lambda G: G.size() <= 4))
             sage: len(L)
-            13
+            14
             sage: graphs_list.show_graphs(L)    # long time
 
         Generate all graphs with degree at most 2, up to 6 vertices.
@@ -2734,7 +2732,18 @@ class GraphGenerators():
         Generate all bipartite graphs on exactly 8 vertices:
             sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
             sage: len(L)
-            38
+            142
+
+        Sloane A000088:
+            sage: for i in range(0, 7):
+            ...    print len(list(graphs(i)))
+            1
+            1
+            2
+            4
+            11
+            34
+            156
 
         REFERENCE:
             Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
@@ -2757,6 +2766,41 @@ class GraphGenerators():
                 yield gg
         else:
             raise NotImplementedError()
+
+    def trees(self, vertices, augment='edges'):
+        """
+        Accesses the generator of trees (graphs without cycles). Iterates over
+        distinct, exhaustive representatives.
+
+        INPUT:
+            vertices -- natural number
+            augment -- choices:
+                'vertices' -- augments by adding a vertex, and edges incident
+                    to that vertex.
+                    In this case, all trees on up to n=vertices are generated.
+                'edges' -- augments a fixed number of vertices by adding one edge
+                    In this case, all trees on exactly n=vertices are generated.
+
+        EXAMPLES:
+        Sloane A000055:
+            sage: for i in range(0, 10):
+            ...    print len(list(graphs.trees(i)))
+            1
+            1
+            1
+            1
+            2
+            3
+            6
+            11
+            23
+            47
+
+        """
+        is_tree = lambda g: g.transitive_reduction() == g
+        for g in self(vertices=vertices, property=is_tree, augment=augment):
+            if g.is_connected():
+                yield g
 
 def canaug_traverse_vert(g, aut_gens, max_verts, property):
     """
@@ -2845,7 +2889,8 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
             # construct a z for each number in roots...
             z = g.copy()
             z.add_vertex(n)
-
+            if not property(z):
+                continue
             index = 0
             while (1 << index) <= i:
                 if (1 << index)&i:
@@ -2934,13 +2979,13 @@ def canaug_traverse_edge(g, aut_gens, property):
     Generate all graphs with 5 vertices and up to 4 edges.
         sage: L = list(graphs(5, lambda G: G.size() <= 4))
         sage: len(L)
-        13
+        14
         sage: graphs_list.show_graphs(L)              # long time
 
     Generate all bipartite graphs on 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
         sage: len(L)
-        23
+        29
 
     """
     from sage.graphs.graph_fast import binary
@@ -2951,7 +2996,6 @@ def canaug_traverse_edge(g, aut_gens, property):
     n = g.order()
     n_choose_2 = (n*(n-1))>>1 # >> 1 is just / 2
     if g.size() < n_choose_2:
-
         # build a list representing C(g) - the edge to be added
         # is one of n*(n-1)/2 choices
         num_roots = n_choose_2
@@ -2959,10 +3003,25 @@ def canaug_traverse_edge(g, aut_gens, property):
 
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
-            for i in xrange(n):
-                for j in xrange(i): # i > j
-                    if children[i][j] == (i,j):
-                        y, x = sorted([gen[i], gen[j]])
+            for iii in xrange(n):
+                for jjj in xrange(iii): # iii > jjj
+                    i, j = iii, jjj
+                    y, x = sorted([gen[i], gen[j]])
+                    if children[i][j] != children[x][y]:
+                        x_val, y_val = x, y
+                        i_val, j_val = i, j
+                        while (x_val, y_val) != children[x_val][y_val]:
+                            y_val, x_val = sorted(children[x_val][y_val])
+                        while (i_val, j_val) != children[i_val][j_val]:
+                            j_val, i_val = sorted(children[i_val][j_val])
+                        while (x, y) != (x_val, y_val):
+                            xx, yy = x, y
+                            x, y = children[x][y]
+                            children[xx][yy] = (x_val, y_val)
+                        while (i, j) != (i_val, j_val):
+                            ii, jj = i, j
+                            i, j = children[i][j]
+                            children[ii][jj] = (i_val, j_val)
                         if x < i:
                             children[i][j] = (x, y)
                         elif x > i:
@@ -2977,29 +3036,22 @@ def canaug_traverse_edge(g, aut_gens, property):
 
         # find representatives of orbits of C(g)
         roots = []
-        found_roots = 0
-        i = 0; j = 1
-        while found_roots < num_roots:
-            if children[j][i] == (j, i):
-                found_roots += 1
-                roots.append((i, j))
-            if j < n - 1:
-                j += 1
-            elif i < j: # j == n-1
-                i += 1
-                j = i + 1
-
+        for i in range(n):
+            for j in range(i):
+                if children[i][j] == (i, j):
+                    roots.append((i,j))
         for i, j in roots:
             if g.has_edge(i, j):
                 continue
             # construct a z for each edge in roots...
             z = g.copy()
             z.add_edge(i, j)
-
+            if not property(z):
+                continue
             z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True)
             relabel_inverse = [0]*n
-            for i in xrange(n):
-                relabel_inverse[canonical_relabeling[i]] = i
+            for ii in xrange(n):
+                relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
             cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
             cut_edge = [relabel_inverse[cut_edge_can[0]], relabel_inverse[cut_edge_can[1]]]
@@ -3007,7 +3059,6 @@ def canaug_traverse_edge(g, aut_gens, property):
 
             m_z = z.copy()
             m_z.delete_edge(cut_edge)
-
             if m_z == g:
                 for a in canaug_traverse_edge(z, z_aut_gens, property):
                     yield a
@@ -3044,8 +3095,8 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n):
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for i in xrange(n):
-                new_perm[i] = gen[perm[i]]
+            for ii in xrange(n):
+                new_perm[ii] = gen[perm[ii]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)
                 unchecked_perms.append(new_perm)

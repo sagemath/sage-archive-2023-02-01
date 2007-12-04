@@ -1538,7 +1538,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Arbitrary precision real and complex factorization:
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
-            (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
+            (1.0000000000000000000000000000*x - 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415)
             sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
@@ -2513,7 +2513,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots()
             [(1, 1), (-1, 1)]
             sage: f.roots(ring=QQ)
-            [(1, 1), (-1, 1), (3/2, 1)]
+            [(3/2, 1), (1, 1), (-1, 1)]
 
         An example involving large numbers:
             sage: x = RR['x'].0

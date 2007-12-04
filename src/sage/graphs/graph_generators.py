@@ -316,7 +316,7 @@ class GraphGenerators():
         edge goes from (v,i) to (w,i+1) if v and w are identical
         except for possibly v[i] != w[i].
 
-        A butterfly graph has (2^n)(n+1) vertices and n2^(n+1) edges.
+        A butterfly graph has $(2^n)(n+1)$ vertices and $n2^{n+1}$ edges.
 
         INPUT:
             vertices -- 'strings' (default) or 'vectors', specifying

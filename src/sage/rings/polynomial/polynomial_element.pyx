@@ -2635,7 +2635,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [([-0.16666666666666672 .. -0.16666666666666662] + [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([-0.16666666666666672 .. -0.16666666666666662] - [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
 
         Note that coefficients in a number field with defining polynomial
-        x^2 + 1 are considered to be Gaussian rationals (with the generator
+        $x^2 + 1$ are considered to be Gaussian rationals (with the generator
         mapping to +I), if you ask for complex roots.
 
             sage: K.<im> = NumberField(x^2 + 1)
@@ -2698,7 +2698,7 @@ sage: rts[0][0] == rt2
         specific implementation of Gaussian rationals (or of number
         fields with embedding, at all), when we refer to Gaussian
         rationals below we will accept any number field with defining
-        polynomial x^2+1, mapping the field generator to +I.
+        polynomial $x^2+1$, mapping the field generator to +I.
 
         We call the base ring of the polynomial K, and the ring given
         by the ring= argument L.  (If ring= is not specified, then L

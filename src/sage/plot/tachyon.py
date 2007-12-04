@@ -6,7 +6,7 @@ AUTHOR:
     -- William Stein: sage-tachyon interface
     -- Joshua Kantor: 3d function plotting
     -- Tom Boothby: 3d function plotting n'stuff
-    -- Leif Hille: key idea for bugfix for texfunc issue (trac #799)
+    -- Leif Hille: key idea for bugfix for texfunc issue (trac \#799)
 
 TODO:
    -- clean up trianglefactory stuff

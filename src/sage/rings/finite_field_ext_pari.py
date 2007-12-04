@@ -78,13 +78,13 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     The following is a native Python set:
         sage: set(k)
-        set([0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1])
+        set([0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2])
 
     And the following is a SAGE enumerated set:
         sage: EnumeratedSet(k)
-         {0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1}
+        {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
 
-    We can also make a list via comprehension:
+        We can also make a list via comprehension:
         sage: [x for x in k]
         [0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2]
 
@@ -591,11 +591,11 @@ class FiniteField_ext_pari(FiniteField_generic):
             904200654                      # 32-bit
             -586939294780423730            # 64-bit
             sage: hash(GF(9,'a'))
-            205387690                      # 32-bit
-            -8785304532306495574           # 64-bit
+            -417021630                     # 32-bit
+            1006006598732398914            # 64-bit
             sage: hash(GF(9,'b'))
-            -74532899                      # 32-bit
-            5852897890058287069            # 64-bit
+            995034271                      # 32-bit
+            8600900932991911071            # 64-bit
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 

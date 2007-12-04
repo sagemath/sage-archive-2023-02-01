@@ -33,7 +33,7 @@ import sage.combinat.partition
 import sage.combinat.permutation_nk as permutation_nk
 import sage.rings.integer
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from random import randint
+from random import randint, sample
 from sage.interfaces.all import gap
 from sage.graphs.graph import DiGraph
 import itertools
@@ -1789,7 +1789,11 @@ def Arrangements(mset, k):
           ['t', 'c', 'a'],
           ['t', 'a', 'c']]
     """
-    return Arrangements_msetk(mset, k)
+    mset = list(mset)
+    if map(mset.index, mset) == range(len(mset)):
+        return Arrangements_setk(mset, k)
+    else:
+        return Arrangements_msetk(mset, k)
 
 
 
@@ -1846,11 +1850,19 @@ class Permutations_nk(CombinatorialClass):
         else:
             return 0
 
+    def random(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3,2).random() #random
+            [1, 3]
+        """
+        return sample(range(self.n), self.k)
+
 class Permutations_mset(CombinatorialClass):
     def __init__(self, mset):
         """
         TESTS:
-            sage: S = Permutations(['c','a','t'])
+            sage: S = Permutations(['c','a','c'])
             sage: S == loads(dumps(S))
             True
         """
@@ -1859,10 +1871,10 @@ class Permutations_mset(CombinatorialClass):
     def __repr__(self):
         """
         TESTS:
-            sage: repr(Permutations(['c','a','t']))
-            "Permutations of the (multi-)set ['c', 'a', 't']"
+            sage: repr(Permutations(['c','a','c']))
+            "Permutations of the multi-set ['c', 'a', 'c']"
         """
-        return "Permutations of the (multi-)set %s"%self.mset
+        return "Permutations of the multi-set %s"%self.mset
 
     def iterator(self):
         """
@@ -1870,13 +1882,6 @@ class Permutations_mset(CombinatorialClass):
         http://marknelson.us/2002/03/01/next-permutation/
 
         EXAMPLES:
-            sage: [ p for p in Permutations(['c','a','t'])]
-            [['c', 'a', 't'],
-             ['c', 't', 'a'],
-             ['a', 'c', 't'],
-             ['a', 't', 'c'],
-             ['t', 'c', 'a'],
-             ['t', 'a', 'c']]
             sage: [ p for p in Permutations(['c','t','t'])]
             [['c', 't', 't'], ['t', 'c', 't'], ['t', 't', 'c']]
         """
@@ -1934,8 +1939,6 @@ class Permutations_mset(CombinatorialClass):
         def count(self):
             """
             EXAMPLES:
-                sage: Permutations([1,2,3]).count()
-                6
                 sage: Permutations([1,2,2]).count()
                 3
             """
@@ -1952,8 +1955,104 @@ class Permutations_mset(CombinatorialClass):
 
             return c
 
+class Permutations_set(CombinatorialClass):
+    def __init__(self, set):
+        """
+        TESTS:
+            sage: S = Permutations(['c','a','t'])
+            sage: S == loads(dumps(S))
+            True
+        """
+        self.set = set
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(['c','a','t']))
+            "Permutations of the set ['c', 'a', 't']"
+        """
+        return "Permutations of the set %s"%self.set
+
+    def iterator(self):
+        """
+        Algorithm based on:
+        http://marknelson.us/2002/03/01/next-permutation/
+
+        EXAMPLES:
+            sage: [ p for p in Permutations(['c','a','t'])]
+            [['c', 'a', 't'],
+             ['c', 't', 'a'],
+             ['a', 'c', 't'],
+             ['a', 't', 'c'],
+             ['t', 'c', 'a'],
+             ['t', 'a', 'c']]
+        """
+        set = self.set
+        n = len(self.set)
+        lset = __builtin__.list(set)
+        set_list = map(lambda x: lset.index(x), lset)
+        set_list.sort()
+
+        def label(x):
+            return lset[x]
+
+        yield map(label, set_list)
+
+        if n == 1:
+            return
+
+        while True:
+            one = n - 2
+            two = n - 1
+            j   = n - 1
+
+            #starting from the end, find the first o such that
+            #set_list[o] < set_list[o+1]
+            while two > 0 and set_list[one] >= set_list[two]:
+                one -= 1
+                two -= 1
+
+            if two == 0:
+                return
+
+            #starting from the end, find the first j such that
+            #set_list[j] > set_list[one]
+            while set_list[j] <= set_list[one]:
+                j -= 1
+
+            #Swap positions one and j
+            t = set_list[one]
+            set_list[one] = set_list[j]
+            set_list[j] = t
 
 
+            #Reverse the list between two and last
+            i = int((n - two)/2)-1
+            #set_list = set_list[:two] + [x for x in reversed(set_list[two:])]
+            while i >= 0:
+                t = set_list[ i + two ]
+                set_list[ i + two ] = set_list[n-1 - i]
+                set_list[n-1 - i] = t
+                i -= 1
+
+            #Yield the permutation
+            yield map(label, set_list)
+
+    def count(self):
+        """
+        EXAMPLES:
+        sage: Permutations([1,2,3]).count()
+        6
+        """
+        return factorial(len(self.set))
+
+    def random(self):
+        """
+        EXAMPLES:
+        sage: Permutations([1,2,3]).random() #random
+        [2, 3]
+        """
+        return sample(self.set, len(self.set))
 
 class Permutations_msetk(CombinatorialClass):
     def __init__(self, mset, k):
@@ -1970,9 +2069,9 @@ class Permutations_msetk(CombinatorialClass):
         """
         TESTS:
             sage: repr(Permutations([1,2,2],2))
-            'Permutations of the (multi-)set [1, 2, 2] of length 2'
+            'Permutations of the multi-set [1, 2, 2] of length 2'
         """
-        return "Permutations of the (multi-)set %s of length %s"%(self.mset,self.k)
+        return "Permutations of the multi-set %s of length %s"%(self.mset,self.k)
 
     def list(self):
         """
@@ -1981,7 +2080,8 @@ class Permutations_msetk(CombinatorialClass):
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
             sage: Permutations([1,2,2],2).list()
             [[1, 2], [2, 1], [2, 2]]
-         """
+        """
+
         mset = self.mset
         n = len(self.mset)
         lmset = __builtin__.list(mset)
@@ -1994,14 +2094,77 @@ class Permutations_msetk(CombinatorialClass):
         return map(lambda ktuple: map(label, ktuple), indices)
 
 
+class Permutations_setk(CombinatorialClass):
+    def __init__(self, set, k):
+        """
+        TESTS:
+            sage: P = Permutations([1,2,2],2)
+            sage: P == loads(dumps(P))
+            True
+        """
+        self.set = set
+        self.k = k
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations([1,2,3],2))
+            'Permutations of the set [1, 2, 3] of length 2'
+        """
+        return "Permutations of the set %s of length %s"%(self.set,self.k)
+
+    def _label(self, perm):
+        """
+        Given a permutation of indices, return the corresponding
+        permutation of self.set.
+        """
+        return map(lambda x: self.set[x], perm)
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: Permutations([1,2,3],2).list()
+            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+         """
+
+
+        return map(self._label, permutation_nk.list(len(self.set), self.k))
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: [i for i in Permutations([1,2,3],2)]
+            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+        """
+        for perm in permutation_nk.iterator(len(self.set), self.k):
+            yield self._label(perm)
+
+    def random(self):
+        """
+        EXAMPLES:
+            sage: Permutations([1,2,3],2).random() #random
+            [1, 3]
+        """
+        return sample(self.set, self.k)
+
+
 class Arrangements_msetk(Permutations_msetk):
     def __repr__(self):
         """
         TESTS:
-            sage: repr(Arrangements([1,2,3],2))
-            'Arrangements of the (multi-)set [1, 2, 3] of length 2'
+            sage: repr(Arrangements([1,2,2],2))
+            'Arrangements of the multi-set [1, 2, 2] of length 2'
         """
-        return "Arrangements of the (multi-)set %s of length %s"%(self.mset,self.k)
+        return "Arrangements of the multi-set %s of length %s"%(self.mset,self.k)
+
+class Arrangements_setk(Permutations_setk):
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Arrangements([1,2,3],2))
+            'Arrangements of the set [1, 2, 3] of length 2'
+        """
+        return "Arrangements of the set %s of length %s"%(self.set,self.k)
 
 
 class StandardPermutations_all(CombinatorialClass):
@@ -2105,7 +2268,7 @@ class StandardPermutations_n(CombinatorialClass):
             sage: [p for p in Permutations(3)]
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        for p in Permutations_mset(range(1,self.n+1)):
+        for p in Permutations_set(range(1,self.n+1)):
             yield Permutation_class(p)
 
     def count(self):
@@ -3443,7 +3606,7 @@ def Permutations(n=None,k=None, **kwargs):
         [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
 
         sage: p = Permutations(['c', 'a', 't']); p
-        Permutations of the (multi-)set ['c', 'a', 't']
+        Permutations of the set ['c', 'a', 't']
         sage: p.list()
         [['c', 'a', 't'],
          ['c', 't', 'a'],
@@ -3453,19 +3616,19 @@ def Permutations(n=None,k=None, **kwargs):
          ['t', 'a', 'c']]
 
         sage: p = Permutations(['c', 'a', 't'], 2); p
-        Permutations of the (multi-)set ['c', 'a', 't'] of length 2
+        Permutations of the set ['c', 'a', 't'] of length 2
         sage: p.list()
         [['c', 'a'], ['c', 't'], ['a', 'c'], ['a', 't'], ['t', 'c'], ['t', 'a']]
 
 
         sage: p = Permutations([1,1,2]); p
-        Permutations of the (multi-)set [1, 1, 2]
+        Permutations of the multi-set [1, 1, 2]
         sage: p.list()
         [[1, 1, 2], [1, 2, 1], [2, 1, 1]]
 
 
         sage: p = Permutations([1,1,2], 2); p
-        Permutations of the (multi-)set [1, 1, 2] of length 2
+        Permutations of the multi-set [1, 1, 2] of length 2
         sage: p.list()
         [[1, 1], [1, 2], [2, 1]]
 
@@ -3583,10 +3746,17 @@ def Permutations(n=None,k=None, **kwargs):
             else:
                 return Permutations_nk(n,k)
         else:
-            if k is None:
-                return Permutations_mset(n)
+            #In this case, we have that n is a list
+            if map(n.index, n) == range(len(n)):
+                if k is None:
+                    return Permutations_set(n)
+                else:
+                    return Permutations_setk(n,k)
             else:
-                return Permutations_msetk(n,k)
+                if k is None:
+                    return Permutations_mset(n)
+                else:
+                    return Permutations_msetk(n,k)
     elif 'descents' in kwargs:
         if isinstance(kwargs['descents'], tuple):
             return StandardPermutations_descents(*kwargs['descents'])

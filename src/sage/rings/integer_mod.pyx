@@ -1836,6 +1836,12 @@ cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t 
     """
     Returns base^exp mod n
     For use in IntegerMod_int
+
+    EXAMPLES:
+       sage: z = Mod(2, 256)
+       sage: z^8
+       0
+
     AUTHOR:
       -- Robert Bradshaw
     """
@@ -1860,7 +1866,7 @@ cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t 
             if prod >= INTEGER_MOD_INT32_LIMIT: prod = prod % n
         exp = exp >> 1
 
-    if prod > n:
+    if prod >= n:
         prod = prod % n
     return prod
 

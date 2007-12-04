@@ -120,7 +120,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             sage: phi([1,1])
             Traceback (most recent call last):
             ...
-            ArithmeticError: entries must be a list of length 3
+            TypeError: [1, 1] must be coercible into Vector space of dimension 3 over Rational Field
         """
         try:
             if not hasattr(x, 'parent') or x.parent() != self.domain():
@@ -135,7 +135,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
         C = self.codomain()
         if C.is_ambient():
             return C(v)
-        return C.linear_combination_of_basis(v)
+        return C(C.linear_combination_of_basis(v), check=False)
 
     def __invert__(self):
         if self.nrows() != self.ncols():

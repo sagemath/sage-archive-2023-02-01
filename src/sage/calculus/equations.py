@@ -584,6 +584,35 @@ class SymbolicEquation(SageObject):
             return X
 
 
+    def expand(self, side=None):
+        """
+        Expands one or both sides of the equation.
+
+        If side is not specified, then both sides of the equation
+        are expanded by calling expand() on the corresponding
+        SymbolicExpression.
+
+        If side is 'left' (or 'right'), then only the left (or right)
+        side of the equation is expanded.
+
+        EXAMPLES:
+            sage: a = (16*x-13)/6 == (3*x+5)/2 - (4-x)/3
+            sage: a.expand()
+            8*x/3 - 13/6 == 11*x/6 + 7/6
+            sage: a.expand('left')
+            8*x/3 - 13/6 == (3*x + 5)/2 - (4 - x)/3
+            sage: a.expand('right')
+            (16*x - 13)/6 == 11*x/6 + 7/6
+        """
+        if side is None:
+            return SymbolicEquation(self._left.expand(), self._right.expand(), self._op)
+        elif side == 'left':
+            return SymbolicEquation(self._left.expand(), self._right, self._op)
+        elif side == 'right':
+            return SymbolicEquation(self._left, self._right.expand(), self._op)
+        else:
+            raise ValueError, "side must be 'left', 'right', or None"
+
 
 def assume(*args):
     """

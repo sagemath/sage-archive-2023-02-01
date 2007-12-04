@@ -1,5 +1,5 @@
 r"""
-Functions for 3d plotting with the new graphcis model.
+Functions for 3d plotting with the new graphics model.
 
 EXAMPLES:
     sage: from sage.plot.plot3d.plot3d import plot3d, axes
@@ -21,7 +21,7 @@ EXAMPLES:
 AUTHOR:
     -- Tom Boothby: adaptive refinement triangles
     -- Joshua Kantor: adaptive refinement triangles
-    -- Robert Bradshaw 2007-08: inital version of this file
+    -- Robert Bradshaw 2007-08: initial version of this file
 
 TODO:
     -- smooth triangles

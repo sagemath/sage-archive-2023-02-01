@@ -2559,33 +2559,38 @@ class GenericGraph(SageObject):
         return edge_colors
 
     def plot(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, partition=None, edge_colors=None,
-             scaling_term=0.05, iterations=50,
-             color_by_label=False, heights=None):
+            edge_labels=False, vertex_size=200, graph_border=False,
+            vertex_colors=None, partition=None, edge_colors=None,
+            scaling_term=0.05, iterations=50,
+            color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
 
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False, but
+                if True, the result of str(l) is printed on the edge for each
+                label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2719,24 +2724,30 @@ class GenericGraph(SageObject):
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edgeedge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
-            talk -- if true, prints large vertices with white backgrounds so that labels are legible on slies
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
+            talk -- if true, prints large vertices with white backgrounds so that
+                labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels

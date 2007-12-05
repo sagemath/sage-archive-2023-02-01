@@ -47,7 +47,15 @@ INC_TARGET="$SAGE_LOCAL"/include/cremona
 rm -rf "$INC_TARGET"
 cp -r include "$INC_TARGET"
 
-
-
-
+cp qrank/mwrank "$SAGE_LOCAL"/bin
+cp qrank/tmrank "$SAGE_LOCAL"/bin
+cp qrank/ratpoint "$SAGE_LOCAL"/bin
+cp qcurves/findinf "$SAGE_LOCAL"/bin
+cp qcurves/tate "$SAGE_LOCAL"/bin
+cp qcurves/conductor "$SAGE_LOCAL"/bin
+cp qcurves/torsion "$SAGE_LOCAL"/bin
+cp qcurves/twist "$SAGE_LOCAL"/bin
+cp qcurves/allisog "$SAGE_LOCAL"/bin
+cp qcurves/indep "$SAGE_LOCAL"/bin
+cp procs/tconic "$SAGE_LOCAL"/bin
 

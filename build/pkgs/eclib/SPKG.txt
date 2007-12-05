@@ -6,3 +6,8 @@ MAINTAINTERS:
    * William Stein
    * John Cremona
    * Ralph Philip Weinmann
+
+* 20071124.p3
+   * apply John Cremoan's patch for #1403
+   * fix #1256, i.e. remove the now obsolete mwrank.spkg
+

@@ -3,20 +3,17 @@
 CUR=`pwd`
 
 # Apply two patches needed for gentoo (they are pre-applied to those two files)
-cp patches/lispbibl.d src/src/
-cp patches/unix.d   src/src/
+#cp patches/lispbibl.d src/src/
+#cp patches/unix.d   src/src/
 
 # Apply a patch needed to prevent clisp from complaining about being run
 # without a terminal.
-cp patches/makemake.in src/src/
-cp patches/clisp-link.in src/src/
-
-cd src/
-
+#cp patches/makemake.in src/src/
+#cp patches/clisp-link.in src/src/
 
 unset CPPFLAGS   # do this; since otherwise build will fail if CPPFLAGS was set
 
-./configure --disable-mmap --with-readline="$SAGE_LOCAL" --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv --without-libintl
+./src/configure build --srcdir=src --with-readline="$SAGE_LOCAL" --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv --without-libintl
 
 #if [ $UNAME = "CYGWIN" ]; then
     # This is a hack to get around a bug in the build process under Cygwin.
@@ -29,27 +26,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd src
+cd build
 
-./makemake --without-dynamic-ffi --disable-mmap --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv > Makefile
-
-if [ $? -ne 0 ]; then
-    echo "Error creating makefile"
-    exit 1
-fi
-
-make config.lisp
-
-if [ $? -ne 0 ]; then
-    echo "Error making config.lisp"
-    exit 1
-fi
+#./makemake --with-dynamic-ffi --disable-mmap --prefix="$SAGE_LOCAL" --ignore-absence-of-libsigsegv > Makefile
+#
+#if [ $? -ne 0 ]; then
+#    echo "Error creating makefile"
+#    exit 1
+#fi
+#
+#make config.lisp
+#
+#if [ $? -ne 0 ]; then
+#    echo "Error making config.lisp"
+#    exit 1
+#fi
 
 if [ `uname` = "Darwin" -a `uname -r | sed s/9\.[0-9]\.0/9\.0\.0/` = "9.0.0" ]; then
     echo "Working around the infamous UNIX error 45 bug in OSX by sending "
     echo "make output to $CUR/build.log."
     make > "$CUR"/build.log 2> "$CUR"/error.log
 else
+    echo "Default"
     make
 fi
 
@@ -83,7 +81,4 @@ rm -f lisp
 echo '#!/bin/sh' > lisp
 echo '"$SAGE_ROOT/local/bin/clisp" -B "$SAGE_ROOT/local/lib/clisp" $@' >> lisp
 chmod +x lisp
-
-
-
 

@@ -104,7 +104,7 @@ class ModularSymbol(SageObject):
         self._ambient_modsym = self._modsym.ambient_module()
         if normalize:
             P = self._modsym.integral_period_mapping()
-            e = P.matrix().transpose()[0]
+            e = P.matrix().transpose().row(0)
             e /= 2
         else:
             e = self._modsym.dual_eigenvector()

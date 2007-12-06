@@ -449,11 +449,11 @@ class LinearCode(module.Module):
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
     def __init__(self, gen_mat):
-        base_ring = gen_mat[0][0].parent()
+        base_ring = gen_mat[0,0].parent()
         ParentWithGens.__init__(self, base_ring)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
-        self.__length = len(gen_mat[0])
+        self.__length = len(gen_mat.row(0))
         self.__dim = gen_mat.rank()
 
     def length(self):
@@ -1103,7 +1103,7 @@ class LinearCode(module.Module):
         r = G3.rank()
         MS = MatrixSpace(F,r,n)
         Grref = G3.echelon_form()
-        G = MS([Grref[i] for i in range(r)])
+        G = MS([Grref.row(i) for i in range(r)])
         return LinearCode(G)
 
     def is_galois_closed(self):

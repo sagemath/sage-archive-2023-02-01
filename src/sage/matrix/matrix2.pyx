@@ -2991,11 +2991,11 @@ cdef class Matrix(matrix1.Matrix):
             [     0      0      0]
             [   3/5      0      0]
             [  -3/5 -7/187      0]
-            sage: G[0] * G[1]
+            sage: G.row(0) * G.row(1)
             0
-            sage: G[0] * G[2]
+            sage: G.row(0) * G.row(2)
             0
-            sage: G[1] * G[2]
+            sage: G.row(1) * G.row(2)
             0
 
         The relation between mu and A is as follows:

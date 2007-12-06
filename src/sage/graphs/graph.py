@@ -3035,9 +3035,9 @@ class Graph(GenericGraph):
                 string has multiple graphs, the first graph is taken)
             'sparse6' -- Brendan McKay's sparse6 format, in a string (if the
                 string has multiple graphs, the first graph is taken)
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal
+            'adjacency_matrix' -- a square SAGE matrix M, with M[i,j] equal
                 to the number of edges \{i,j\}
-            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i,j]
                 equal to the weight of the single edge \{i,j\}. Given this
                 format, weighted is ignored (assumed True).
             'incidence_matrix' -- a SAGE matrix, with one column C for each
@@ -3309,9 +3309,9 @@ class Graph(GenericGraph):
             e = []
             for i,j in data.nonzero_positions():
                 if i < j:
-                    e.append((i,j,data[i][j]))
+                    e.append((i,j,data[i,j]))
                 elif i == j and loops:
-                    e.append((i,j,data[i][j]))
+                    e.append((i,j,data[i,j]))
             self._nxg.add_edges_from(e)
         elif format == 'incidence_matrix':
             b = True
@@ -4284,7 +4284,7 @@ class Graph(GenericGraph):
         else:
             M = self.adjacency_matrix(boundary_first=boundary_first, over_integers=True)
         A = list(-M)
-        S = [sum(M[i]) for i in range(M.nrows())]
+        S = [sum(M.row(i)) for i in range(M.nrows())]
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
@@ -5419,11 +5419,11 @@ class DiGraph(GenericGraph):
         weighted -- whether digraph thinks of itself as weighted or not. See
             self.weighted()
         format -- if None, DiGraph tries to guess- can be several values, including:
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the number
+            'adjacency_matrix' -- a square SAGE matrix M, with M[i,j] equal to the number
                                   of edges \{i,j\}
             'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
                                   if C represents \{i, j\}, C[i] is -1 and C[j] is 1
-            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i,j]
                 equal to the weight of the single edge \{i,j\}. Given this
                 format, weighted is ignored (assumed True).
         boundary -- a list of boundary vertices, if none, digraph is considered as a 'digraph

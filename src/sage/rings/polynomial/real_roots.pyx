@@ -1974,7 +1974,7 @@ def precompute_degree_reduction_cache(n):
         # polynomial, and be fairly certain (absolutely certain?) that
         # the error in the reduced polynomial will be no better
         # than this product.
-        expected_err = max([sum([abs(x) for x in bd[k]]) for k in xrange(next+1)])
+        expected_err = max([sum([abs(x) for x in bd.row(k)]) for k in xrange(next+1)])
 
         # bdd = bd.denominator()
         # bdi = MatrixSpace(ZZ, next+1, samps, sparse=False)(bd * bdd)

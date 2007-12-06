@@ -369,8 +369,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [6 7 8]
             sage: a[1,2]
             5
-            sage: a[0]
-            (0, 1, 2)
             sage: a[4,7]
             Traceback (most recent call last):
             ...
@@ -1621,7 +1619,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sage: for i in xrange(n):
         ...       X[i,0] = S*Q[i]
         sage: L = X.LLL()
-        sage: M = L[n-1].list()[1:]
+        sage: M = L.row(n-1).list()[1:]
         sage: M
         [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
         sage: add([Q[i]*M[i] for i in range(n)])

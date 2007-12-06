@@ -2065,7 +2065,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__is_reducible[p] = False
             return False  # definitely not reducible
         isogeny_matrix = self.isogeny_class()[ 1 ]
-        v = isogeny_matrix[0]  # first row
+        v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
                 self.__is_reducible[p] = True
@@ -2479,7 +2479,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
         M = self.isogeny_class()[1]
-        return Integer(misc.prod([x for x in M[0] if x], 1))
+        return Integer(misc.prod([x for x in M.row(0) if x], 1))
 
     ########################################################################
     # Functions related to bounding the order of Sha (provably correctly!)

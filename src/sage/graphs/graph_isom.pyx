@@ -228,7 +228,7 @@ cdef class PartitionStack:
         sage: for i in range(10):
         ...     MM.append([])
         ...     for j in range(10):
-        ...         MM[i].append(M[i][j])
+        ...         MM[i].append(M[i,j])
         sage: P = PartitionStack(10)
         sage: P.split_vertex(0, 1)
         sage: P.refine_by_square_matrix(MM, 1, [0], 10, 0)

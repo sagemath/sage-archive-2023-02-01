@@ -884,9 +884,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             t = self.manin_symbols().index(x.tuple())
             if isinstance(t, tuple):
                 i, scalar = t
-                v = self.manin_gens_to_basis()[i] * scalar
+                v = self.manin_gens_to_basis().row(i) * scalar
             else:
-                v = self.manin_gens_to_basis()[t]
+                v = self.manin_gens_to_basis().row(t)
             return element.ModularSymbolsElement(self, v)
 
         elif isinstance(x, element.ModularSymbolsElement):
@@ -1343,7 +1343,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # structure.  We next obtain the corresponding list of elements
         # by passing to the quotient by the remaining relations
         # via the _manin_gens_to_basis attribute.
-        X = [self._manin_gens_to_basis[i] for i in G]
+        X = [self._manin_gens_to_basis.row(i) for i in G]
 
         # Next we take each element of X, which gives a linear combination
         # of the basis of the underlying vector space of self, and compute

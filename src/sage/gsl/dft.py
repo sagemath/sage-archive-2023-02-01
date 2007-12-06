@@ -269,7 +269,7 @@ class IndexedSequence(SageObject):
             ## assumes J is the list of conj class represetatives of a
             ## PermuationGroup(...) or Matrixgroup(...)
             chi = G.character_table()
-            FT = [sum([S[i]*chi[i][j] for i in range(N)]) for j in range(N)]
+            FT = [sum([S[i]*chi[i,j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError,"list elements must be in QQ(zeta_"+str(N)+")"
         return IndexedSequence(FT,J)

@@ -489,12 +489,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         INPUT:
             key -- tuple (i,j) with i, j integers
-         or key -- integer
          or key -- slice object, created via [i:j]
 
         USAGE:
             A[i, j] -- the i,j of A, or
-            A[i]    -- the i-th row of A, or
             A[i:j]  -- the i-th through (j-1)-st rows of A.
 
         EXAMPLES:
@@ -502,7 +500,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0,0]
             2005
             sage: A[0]
-            (2005, 2)
+            Traceback (most recent call last):
+            ...
+            IndexError: use .row(i) to the i-th row of the matrix
 
             sage: a = MatrixSpace(ZZ,3)(range(9)); a
             [0 1 2]
@@ -511,7 +511,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a[1,2]
             5
             sage: a[0]
-            (0, 1, 2)
+            Traceback (most recent call last):
+            ...
+            IndexError: use .row(i) to the i-th row of the matrix
             sage: a[4,7]
             Traceback (most recent call last):
             ...
@@ -533,15 +535,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             [80 81 82 83 84 85 86 87 88 89]
             [90 91 92 93 94 95 96 97 98 99]
 
-            sage: a[9]
-            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
             sage: a[-1]
-            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+            Traceback (most recent call last):
+            ...
+            IndexError: use .row(i) to the i-th row of the matrix
 
             sage: a[2.7]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
+            IndexError: use .row(i) to the i-th row of the matrix
 
         """
         cdef Py_ssize_t i, j
@@ -562,7 +564,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         else:
             # If key is not a tuple, coerce to an integer and get the row.
-            return self.row(PyNumber_Index(key))
+            raise IndexError, "use .row(i) to the i-th row of the matrix"
+
 
     def __setitem__(self, ij, x):
         """

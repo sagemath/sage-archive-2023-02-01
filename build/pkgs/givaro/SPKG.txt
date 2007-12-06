@@ -1,6 +1,9 @@
 MAINTAINER:
    -- Martin Albrecht
 
+-- 2007-12-06:
+  * include <cstring> in givaromm.C to fix gcc 4.3 issue
+
 -- 2007-11-02 Michael Abshoff
   * apply rpw's work aorund for OSX 10.5
   * apply the same fix to givzpz32std.inl

@@ -39,8 +39,8 @@ include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/devel/sage/sage/gsl/'%SAGE_ROOT]
 
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'mwrank', 'gsl', cblas(), 'ntl', 'csage']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
+                 'g0nntl', 'jcntl', 'rankntl', 'gsl', cblas(), 'ntl', 'csage']
 
 offset = 0
 

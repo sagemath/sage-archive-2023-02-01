@@ -1121,6 +1121,18 @@ class SymbolicExpression(RingElement):
         self.__first_variable = ans
         return ans
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments the object can take.
+
+        EXAMPLES:
+            sage: a,b,c = var('a,b,c')
+            sage: foo = function('foo', a,b,c)
+            sage: foo.number_of_arguments()
+            3
+        """
+        return len(self.variables())
+
     def _has_op(self, operator):
         """
         Recursively searches for the given operator in a SymbolicExpression
@@ -1187,6 +1199,13 @@ class SymbolicExpression(RingElement):
             y + 3
             sage: f(x=3,y=4)
             7
+
+            sage: a = (2^(8/9))
+            sage: a(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+
         """
         if len(args) == 0:
             d = None
@@ -3016,6 +3035,18 @@ class Symbolic_object(SymbolicExpression):
     def _sys_init_(self, system):
         return sys_init(self._obj, system)
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments this object can take.
+
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(e)
+            sage: a.number_of_arguments()
+            0
+        """
+        return 0
+
 def maxima_init(x):
     try:
         return x._maxima_init_()
@@ -3267,6 +3298,7 @@ class SymbolicConstant(Symbolic_object):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
+
 class SymbolicPolynomial(Symbolic_object):
     """
     An element of a polynomial ring as a formal symbolic expression.
@@ -3349,6 +3381,21 @@ class SymbolicPolynomial(Symbolic_object):
         variables.sort()
         return tuple(variables)
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments this object can take.  For
+        SymbolicPolynomials, this is just the number of variables
+        of the polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: g = SR(f)
+            sage: g.number_of_arguments()
+            2
+        """
+        return len(self.variables())
+
     def polynomial(self, base_ring):
         """
         Return self as a polynomial over the given base ring, if possible.
@@ -3414,6 +3461,41 @@ class SymbolicOperation(SymbolicExpression):
         vars = tuple(vars)
         self.__variables = vars
         return vars
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguements this object can take.
+
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z')
+            sage: (x+y).number_of_arguments()
+            2
+            sage: (x+1).number_of_arguments()
+            1
+            sage: (sin+1).number_of_arguments()
+            1
+            sage: (sin+x).number_of_arguments()
+            1
+            sage: (sin+x+y).number_of_arguments()
+            2
+            sage: (sin(z)+x+y).number_of_arguments()
+            3
+            sage: (sin+cos).number_of_arguments()
+            1
+            sage: (sin(x+y)).number_of_arguments()
+            2
+
+            sage: ( 2^(8/9) - 2^(1/9) )(x-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+
+        """
+        variables = self.variables()
+
+        #We need to do this maximum to correctly handle the case where
+        #self is something like (sin+1)
+        return max( max(map(lambda i: i.number_of_arguments(), self._operands)+[0]), len(variables) )
 
 def var_cmp(x,y):
     return cmp(repr(x), repr(y))
@@ -3525,8 +3607,8 @@ class SymbolicArithmetic(SymbolicOperation):
             #Get all the variables
             variables = list( self.variables() )
 
-            if len(args) > len(variables) and len(args) > 1:
-                raise ValueError, "the number of arguments must be less than or equal to %s"%len(variables)
+            if len(args) > self.number_of_arguments():
+                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
 
             new_ops = []
             for op in self._operands:
@@ -4053,6 +4135,17 @@ class SymbolicVariable(SymbolicExpression):
         """
         return (self, )
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments of self.
+
+        EXAMPLES:
+            sage: x = var('x')
+            sage: x.number_of_arguments()
+            1
+        """
+        return 1
+
     def __cmp__(self, right):
         if isinstance(right, SymbolicVariable):
             return cmp(self._repr_(), right._repr_())
@@ -4279,6 +4372,21 @@ class CallableSymbolicExpression(SymbolicExpression):
 
     def arguments(self):
         return self.args()
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments of self.
+
+        EXAMPLES:
+            sage: a = var('a')
+            sage: g(x) = sin(x) + a
+            sage: g.number_of_arguments()
+            1
+            sage: g(x,y,z) = sin(x) - a + a
+            sage: g.number_of_arguments()
+            3
+        """
+        return len(self.args())
 
     def _maxima_init_(self):
         return self._expr._maxima_init_()
@@ -4855,6 +4963,17 @@ class PrimitiveFunction(SymbolicExpression):
             raise TypeError, "unable to simplify to complex approximation"
         return complex(eval(a))
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments of self.
+
+        EXAMPLES:
+            sage: sin.variables()
+            ()
+            sage: sin.number_of_arguments()
+            1
+        """
+        return 1
 
 _syms = {}
 
@@ -5958,6 +6077,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         vars = tuple(vars)
         self.__variables = vars
         return vars
+
 
 class SymbolicFunctionEvaluation_delayed(SymbolicFunctionEvaluation):
     def simplify(self):

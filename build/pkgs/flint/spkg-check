@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo "*************************************************"
+echo "Running test suite. This should take 6-20 minutes"
+echo "   Please report all failures to sage-devel      "
+echo "*************************************************"
+
 cd src
 
 make -Bj test

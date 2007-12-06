@@ -464,6 +464,25 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
             -1
+
+        TESTS:
+        Coerce in a polydict where a coefficient reduces to 0 but isn't 0.
+            sage: R.<x,y> = QQ[]; S.<xx,yy> = GF(5)[]; S( (5*x*y + x + 17*y)._mpoly_dict_recursive() )
+            xx + 2*yy
+
+        Coerce in a polynomial one of whose coefficients reduces to 0.
+            sage: R.<x,y> = QQ[]; S.<xx,yy> = GF(5)[]; S(5*x*y + x + 17*y)
+            xx + 2*yy
+
+        Some other examples that illustrate the same coercion idea:
+            sage: R.<x,y> = ZZ[]
+            sage: S.<xx,yy> = GF(25,'a')[]
+            sage: S(5*x*y + x + 17*y)
+            xx + 2*yy
+
+            sage: S.<xx,yy> = Integers(5)[]
+            sage: S(5*x*y + x + 17*y)
+            xx + 2*yy
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -503,6 +522,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 for (m,c) in element.dict().iteritems():
                     try:
                         c = K(c)
+                        if not c: continue
                     except TypeError, msg:
                         p_Delete(&_p, _ring)
                         raise TypeError, msg
@@ -525,6 +545,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 for (m,c) in element.element().dict().iteritems():
                     try:
                         c = K(c)
+                        if not c: continue
                     except TypeError, msg:
                         p_Delete(&_p, _ring)
                         raise TypeError, msg
@@ -542,6 +563,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             for (m,c) in element.iteritems():
                 try:
                     c = K(c)
+                    if not c: continue
                 except TypeError, msg:
                     p_Delete(&_p, _ring)
                     raise TypeError, msg

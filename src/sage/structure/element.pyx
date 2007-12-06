@@ -152,7 +152,7 @@ and classes are similar. There are four relevant functions.
    implementations of either _add_ or _add_c_impl.
 
 
-For speed, there are also {\bf inplace} version of the arithmatic commands.
+For speed, there are also {\bf inplace} version of the arithmetic commands.
 DD NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.

@@ -518,7 +518,7 @@ cdef class CoercionModel_profile(CoercionModel_cache_maps):
 
     We can read of this data that the most expensive operation was the creation
     of the action of $\Q$ on $\Z[x]$ (whose result lies in $\Q[x]$. This has
-    been cached as illistrated below.
+    been cached as illustrated below.
 
         sage: coerce.flush()
         sage: z = 1/2 * x + .5

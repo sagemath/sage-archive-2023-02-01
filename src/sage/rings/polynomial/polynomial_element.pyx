@@ -913,7 +913,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return generic_power(self, right)
 
     def _pow(self, right):
-        # TODO: fit __pow__ into the arithmatic structure
+        # TODO: fit __pow__ into the arithmetic structure
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
         if right < 0:

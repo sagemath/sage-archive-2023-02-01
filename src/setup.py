@@ -205,7 +205,7 @@ mwrank =  Extension("sage.libs.mwrank.mwrank",
                     sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],
                     define_macros = [("NTL_ALL",None)],
-                    libraries = ["mwrank", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
+                    libraries = ["curvesntl", "g0nntl", "jcntl", "rankntl", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
 
 pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],

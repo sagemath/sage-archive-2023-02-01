@@ -1998,6 +1998,15 @@ class SymbolicExpression(RingElement):
             numerical integration using the GSL C library.  It is potentially
             much faster and applies to arbitrary user defined functions.
 
+            Also, there are limits to the precision that Maxima can compute
+            the integral to due to limitations in quadpack.
+
+            sage: f = x
+            sage: f = f.nintegral(x,0,1,1e-14)
+            Traceback (most recent call last):
+            ...
+            ValueError: Maxima (via quadpack) cannot compute the integral to that precision
+
         EXAMPLES:
             sage: f(x) = exp(-sqrt(x))
             sage: f.nintegral(x, 0, 1)
@@ -2048,9 +2057,16 @@ class SymbolicExpression(RingElement):
         Note that the input function above is a string in PARI
         syntax.
         """
-        v = self._maxima_().quad_qags(var(x),
+        try:
+            v = self._maxima_().quad_qags(var(x),
                                       a, b, desired_relative_error,
                                       maximum_num_subintervals)
+        except TypeError, err:
+            if "ERROR NUMBER = 6" in str(err):
+                raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
+            else:
+                raise TypeError, err
+
         return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
 
     nintegrate = nintegral

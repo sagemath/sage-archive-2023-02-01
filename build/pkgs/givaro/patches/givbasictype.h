@@ -11,9 +11,8 @@
 #include "givaro/givconfig.h"
 
 #include <stdlib.h> // for size_t
-#ifdef MACOSX
-#  include <sys/types.h> // needed on MacOS X 10.5 for uint type
-#endif
+
+#include <sys/types.h> // needed on MacOS X 10.5 for uint type
 
 // -- Neutral type: definition of zero and one
 class Neutral {

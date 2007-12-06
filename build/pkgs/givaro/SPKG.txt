@@ -3,6 +3,7 @@ MAINTAINER:
 
 -- 2007-11-02 Michael Abshoff
   * apply rpw's work aorund for OSX 10.5
+  * apply the same fix to givzpz32std.inl
   * add .hgignore
 
 -- 2007-02-03 Martin Albrecht <malb@informatik.uni-bremen.de>

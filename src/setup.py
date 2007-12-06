@@ -9,8 +9,6 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-
-
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
@@ -913,19 +911,11 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def check_dependencies( filename, outfile ):
+def get_dependencies(filename):
     """
-    INPUT:
-        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
-        outfile -- The output file for which we are determining out-of-date-ness
-
-    OUTPUT:
-        bool -- whether or not outfile must be regenerated.
+    computes everything that this file depends on
     """
-    if is_older(filename, outfile):
-        print "\nBuilding %s because it depends on %s."%(outfile, filename)
-        return True
-
+    li = []
     # Now we look inside the file to see what it cimports or include.
     # If any of these files are newer than outfile, we rebuild
     # outfile.
@@ -963,8 +953,10 @@ def check_dependencies( filename, outfile ):
             A =  os.path.split(filename)[0] + '/' + A + '.pxd'
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A) and check_dependencies(A, outfile):
-            return True # yep we must rebuild
+        A = os.path.normpath(A)
+        if os.path.exists(A):
+            li.extend(get_dependencies(A))
+            li.append(A)
 
     # OK, next we move on to include pxi files.
     # If they change, we likewise must rebuild the pyx file.
@@ -992,15 +984,37 @@ def check_dependencies( filename, outfile ):
             # A is an "absolute" path -- that is, absolute to the base of the sage tree
             A = R # restore
         # Finally, check to see if filename is older than A
-        if os.path.exists(A) and check_dependencies(A, outfile):
+        A = os.path.normpath(A)
+        if os.path.exists(A):
+            li.extend(get_dependencies(A))
+            li.append(A)
+
+    # if we get here, this file depends on nothing
+    return li
+
+def check_dependencies(filename, outfile, deps_of):
+    """
+    INPUT:
+        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
+        outfile -- The output file for which we are determining out-of-date-ness
+
+    OUTPUT:
+        bool -- whether or not outfile must be regenerated.
+    """
+    deps = deps_of[filename]
+    # add filename to depend on filename
+    deps = [filename] + deps
+    for dep in deps:
+        if is_older(dep, outfile):
+            print "\nBuilding %s because it depends on %s."%(outfile, dep)
             return True
 
-
-def need_to_cython(filename, outfile):
+def need_to_cython(filename, outfile, deps):
     """
     INPUT:
         filename -- The name of a cython file in the SAGE source tree.
         outfile -- The name of the corresponding c or cpp file in the build directory.
+        deps -- a structure containing dependency information
 
     OUTPUT:
         bool -- whether or not outfile must be regenerated.
@@ -1009,14 +1023,13 @@ def need_to_cython(filename, outfile):
     base =  os.path.splitext(filename)[0]
     pxd = base+'.pxd'
 
-    if check_dependencies(filename, outfile):
+    if check_dependencies(filename, outfile, deps):
         return True
-    elif os.path.exists(pxd) and check_dependencies(pxd, outfile):
+    if os.path.exists(pxd) and check_dependencies(pxd, outfile, deps):
         return True
-    else:
-        return False
+    return False
 
-def process_cython_file(f, m):
+def process_cython_file(f, m, deps_of):
     """
     INPUT:
         f -- file name
@@ -1024,39 +1037,81 @@ def process_cython_file(f, m):
     """
     # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
+    # if f is *more recent* than the pyx_install_file
     if is_older(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
         os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+        # we need to recompute the dependencies, here
+        deps_list = get_dependencies(f)
+        try:
+            deps_of[f].extend(deps_list)
+        except KeyError:
+            deps_of[f] = deps_list
     outfile = f[:-4] + ".c"
     if m.language == 'c++':
         outfile += 'pp'
 
-    if need_to_cython(f, outfile):
+    if need_to_cython(f, outfile, deps_of):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f )
         print cmd
         ret = os.system(cmd)
         if ret != 0:
             print "sage: Error running cython."
             sys.exit(1)
+
     return [outfile]
 
 
 def cython(ext_modules):
+    import pickle
+    deps_filename = SAGE_DEVEL + 'sage/.cython_dependencies'
+    # check if the cached dependency information is there
+    if os.path.exists(deps_filename):
+        deps_file = open(deps_filename, 'r')
+        deps_of = pickle.load(deps_file)
+        deps_file.close()
+        deps_file = None
+        compute_all_deps = False
+    else:
+        compute_all_deps = True
+        deps_of = {}
+
+    tot = 0
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
 #        m.extra_link_args += extra_link_args
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
-#            s = open(f).read()
+            if compute_all_deps:
+                deps_list = get_dependencies(f)
+                try:
+                    deps_of[f].extend(deps_list)
+                except KeyError:
+                    deps_of[f] = deps_list
+                pxd_file = f[:-4] + '.pxd'
+                if os.path.exists(pxd_file):
+                    deps_list = get_dependencies(pxd_file)
+                    try:
+                        deps_of[pxd_file].extend(deps_list)
+                    except KeyError:
+                        deps_of[pxd_file] = deps_list
+
             if f[-4:] == ".pyx":
-                new_sources += process_cython_file(f, m)
+                # run cython, to output the corresponding c/cpp file,
+                # if needed
+                new_sources += process_cython_file(f, m, deps_of)
             else:
                 new_sources.append(f)
+
         m.sources = new_sources
+        tot +=  len(m.sources)
 
-
+    # now cache the dependencies if we just computed them
+    deps_file = open(deps_filename, 'w')
+    pickle.dump(deps_of, deps_file)
+    deps_file.close()
 
 if not sdist:
     cython(ext_modules)

@@ -94,7 +94,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_init(self._entries[i])
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
-                raise ArithmeticError, "entries must be a list of length %s"%self._degree
+                raise TypeError, "entries must be a list of length %s"%self._degree
             for i from 0 <= i < self._degree:
                 z = Rational(x[i])
                 mpq_set(self._entries[i], z.value)

@@ -896,10 +896,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         else:
             return False
 
-    def __hash__(self):
-        #requires base field elements are hashable!
-        return hash(tuple(self._MPolynomial_element__element.dict().items()))
-
     def lm(self):
         """
         Returns the lead monomial of self with respect to the term order of

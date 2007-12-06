@@ -600,8 +600,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 # if the modification time of the gap link has changed (which signals
 # that gap has been somehow upgraded).
 if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_STAMP):
-    print "Automatically updating the cached Gap workspace:"
-    print WORKSPACE
+    #print "Automatically updating the cached Gap workspace:"
+    #print WORKSPACE
     gap_reset_workspace(verbose=False)
 
 class GapElement(ExpectElement):

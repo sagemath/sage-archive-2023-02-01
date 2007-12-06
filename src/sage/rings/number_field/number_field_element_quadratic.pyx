@@ -4,6 +4,10 @@ Optimized Quadratic Number Field Elements
 AUTHORS:
     -- Robert Bradshaw (2007-09): Initial version
     -- David Harvey (2007-10): fix up a few bugs, polish around the edges
+
+TODO:
+    the _new() method should be overridden in this class to copy the D attribute
+
 """
 #*****************************************************************************
 #     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -35,6 +39,7 @@ cdef extern from *:
 cdef object QQ, ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
+from sage.categories.morphism cimport Morphism
 
 
 # TODO: this doesn't belong here, but robert thinks it would be nice
@@ -934,3 +939,31 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         mpz_set(res.denom, self.denom)
         res._reduce_c_()
         return res
+
+
+
+cdef class Q_to_quadratic_field_element(Morphism):
+    """
+    Morphism that coerces from rationals to elements of a
+    quadratic number field K.
+    """
+    cdef NumberFieldElement_quadratic zero_element    # the zero element of K
+
+    def __init__(self, K):
+        """ K is the target quadratic field """
+        import sage.categories.homset
+        Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
+        self.zero_element = PY_NEW(NumberFieldElement_quadratic)
+        self.zero_element._parent = K
+        self.zero_element.D = K._D
+
+
+    cdef Element _call_c_impl(self, Element x):
+        cdef NumberFieldElement_quadratic y = self.zero_element._new()
+        y.D = self.zero_element.D
+        mpz_set(y.a, mpq_numref((<Rational>x).value))
+        mpz_set(y.denom, mpq_denref((<Rational>x).value))
+        return y
+
+    def _repr_type(self):
+        return "Natural"

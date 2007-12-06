@@ -21,8 +21,8 @@ class NotebookObject:
     Start the SAGE Notebook server.
 
     INPUT:
-        directory  -- (default: 'sage_notebook') directory that contains
-                      the SAGE notebook files
+        directory  -- directory that contains the SAGE notebook files;
+                      The default is .sage/sage_notebook, in your home directory.
         port       -- (default: 8000), port to serve the notebook on
         address    -- (default: 'localhost'), address to listen on
         port_tries -- (default: 0), number of additional ports to try if the
@@ -140,3 +140,11 @@ class NotebookObject:
     setup    = run_notebook.notebook_setup
 
 notebook = NotebookObject()
+
+
+def inotebook(*args, **kwds):
+    """
+    Exactly the same as notebook(...) but with secure=False.
+    """
+    kwds['secure'] = False
+    notebook(*args, **kwds)

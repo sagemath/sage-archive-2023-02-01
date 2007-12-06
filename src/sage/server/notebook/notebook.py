@@ -43,7 +43,7 @@ DOC_TIMEOUT = 120
 
 class Notebook(SageObject):
     def __init__(self,
-                 dir='sage_notebook',
+                 dir,
                  system=None,
                  show_debug = False,
                  log_server=False,

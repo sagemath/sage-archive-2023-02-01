@@ -311,7 +311,7 @@ class GenericGraph(SageObject):
         weighted = ( self._weighted and other._weighted )
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("Input (%s) must be a graph."%str(other))
+            raise TypeError("Cannot compare graph to non-graph (%s)."%str(other))
         # DiGraphs are "larger" than Graphs:
         g1_is_graph = isinstance(self, Graph)
         g2_is_graph = isinstance(other, Graph)
@@ -2636,8 +2636,13 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
+
         """
         from sage.plot.plot import networkx_plot
+        from sage.plot.plot import rainbow
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2781,6 +2786,10 @@ class GenericGraph(SageObject):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
 
         """
         if talk:
@@ -3652,13 +3661,16 @@ class Graph(GenericGraph):
             [(0, 1), (0, 10), (0, 19), (1, 2), (1, 8), (2, 3), (2, 6), (3, 4), (3, 19), (4, 5), (4, 17), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 13), (12, 16), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
-        if sort:
-            L.sort()
         if labels:
-            return L
+            if sort:
+                return sorted(L)
+            else:
+                return L
         else:
-            return [(u,v) for u,v,_ in L]
-
+            if sort:
+                return sorted([tuple(sorted((u,v))) for u,v,_ in L])
+            else:
+                return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
@@ -4926,6 +4938,8 @@ class Graph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg)
 
@@ -6623,6 +6637,8 @@ class DiGraph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg.to_undirected())
 

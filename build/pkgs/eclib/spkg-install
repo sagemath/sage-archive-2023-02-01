@@ -5,7 +5,7 @@ CUR=`pwd`
 echo "Deleting old versions of cremona libraries, which"
 echo "would interfere with new builds."
 cd "$SAGE_LOCAL"/lib/
-rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.*
+rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.* libmwrank.*
 
 cd "$CUR"/src
 
@@ -27,9 +27,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ `uname` = "Darwin" ]; then
-    make shared_dylib
+    make dylib
 else
-    make shared_so
+    make so
 fi
 
 if [ $? -ne 0 ]; then
@@ -47,15 +47,29 @@ INC_TARGET="$SAGE_LOCAL"/include/cremona
 rm -rf "$INC_TARGET"
 cp -r include "$INC_TARGET"
 
+#delete some leftovers from mwrank
+rm -rf "$SAGE_LOCAL"/include/mwrank
+rm -rf "$SAGE_LOCAL"/bin/tmwrank
+
+# copy new binaries
 cp qrank/mwrank "$SAGE_LOCAL"/bin
-cp qrank/tmrank "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/mwrank
 cp qrank/ratpoint "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/ratpoint
 cp qcurves/findinf "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/findinf
 cp qcurves/tate "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/tate
 cp qcurves/conductor "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/conductor
 cp qcurves/torsion "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/torsion
 cp qcurves/twist "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/twist
 cp qcurves/allisog "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/allisog
 cp qcurves/indep "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/indep
 cp procs/tconic "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/tconic
 

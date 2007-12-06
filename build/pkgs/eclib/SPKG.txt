@@ -7,7 +7,13 @@ MAINTAINTERS:
    * John Cremona
    * Ralph Philip Weinmann
 
-* 20071124.p3
+* 20071124.p4 (Michael Abshoff)
+   * apply John Cremoan's second patch for #1403
+   * delete $SAGE_LOCAL/include/mwrank (#1410)
+   * strip the mwrank binaries and link dynamically (#1410)
+   * delete $SAGE_LOCAL/lib/libmwrank.[so|dylib] (#1410)
+
+* 20071124.p3 (Michael Abshoff)
    * apply John Cremoan's patch for #1403
    * fix #1256, i.e. remove the now obsolete mwrank.spkg
 

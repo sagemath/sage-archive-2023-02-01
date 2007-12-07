@@ -704,14 +704,18 @@ cdef object _py_polynom_alphabet(OP a, object alphabet):
     if pointer == NULL:
         return 0
 
-    l = _py(s_po_sl(a))
     parent_ring = _py(s_po_k(pointer)).parent()
+    if isinstance(alphabet, (builtinlist, tuple)):
+        l = len(alphabet)
+    else:
+        l = _py(s_po_sl(a))
+
     P = PolynomialRing(parent_ring, l, alphabet)
     x = P.gens()
     res = P(0)
     while pointer != NULL:
         exps = _py_vector(s_po_s(pointer))
-        res += _py(s_po_k(pointer)) *prod([ x[i]**exps[i] for i in range(len(exps))])
+        res += _py(s_po_k(pointer)) *prod([ x[i]**exps[i] for i in range(min(len(exps),l))])
         pointer = s_po_n(pointer)
     return res
 

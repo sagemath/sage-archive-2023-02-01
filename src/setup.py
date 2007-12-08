@@ -1146,6 +1146,8 @@ setup(name        = 'sage',
 
                      'sage.monoids',
 
+                     'sage.numerical',
+
                      'sage.plot',
                      'sage.plot.mpl3d',
                      'sage.plot.plot3d',

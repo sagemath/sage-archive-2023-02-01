@@ -245,6 +245,8 @@ from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
 
+import sage.numerical.optimize
+
 # The calculus package uses its own copy of maxima, which is
 # separate from the default system-wide version.
 maxima = Maxima()
@@ -2257,6 +2259,10 @@ class SymbolicExpression(RingElement):
         r"""
         Returns the roots of self, with multiplicities.
 
+        WARNING: This is not a numerical solver -- use
+        \code{find_root} to solve for self == 0 numerically on an
+        interval.
+
         INPUT:
             x -- variable to view the function in terms of
                    (use default variable if not given)
@@ -2339,7 +2345,11 @@ class SymbolicExpression(RingElement):
 
     def solve(self, x, multiplicities=False, explicit_solutions=False):
         r"""
-        Solve the equation \code{self == 0} for the variable x.
+        Analytically solve the equation \code{self == 0} for the variable x.
+
+        WARNING: This is not a numerical solver -- use
+        \code{find_root} to solve for self == 0 numerically on an
+        interval.
 
         INPUT:
             x -- variable to solve for
@@ -2354,6 +2364,136 @@ class SymbolicExpression(RingElement):
         """
         x = var(x)
         return (self == 0).solve(x, multiplicities=multiplicities, explicit_solutions=explicit_solutions)
+
+    def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+        """
+        Numerically find a root of self on the closed interval [a,b]
+        (or [b,a]) if possible, where self is a function in the one variable.
+
+        INPUT:
+            a, b -- endpoints of the interval
+            var  -- optional variable
+            xtol, rtol -- the routine converges when a root is known
+                    to lie within xtol of the value return. Should be
+                    >= 0.  The routine modifies this to take into
+                    account the relative precision of doubles.
+            maxiter -- integer; if convergence is not achieved in
+                    maxiter iterations, an error is raised. Must be >= 0.
+            full_output -- bool (default: False), if True, also return
+                    object that contains information about convergence.
+
+        EXAMPLES:
+        Note that in this example both f(-2) and f(3) are positive, yet we still find a
+        root in that interval.
+            sage: f = x^2 - 1
+            sage: f.find_root(-2, 3)
+            1.0
+            sage: z, result = f.find_root(-2, 3, full_output=True)
+            sage: result.converged
+            True
+            sage: result.flag
+            'converged'
+            sage: result.function_calls
+            11
+            sage: result.iterations
+            10
+            sage: result.root
+            1.0
+
+        More examples:
+            sage: (sin(x) + exp(x)).find_root(-10, 10)
+            -0.58853274398186284
+
+       Some examples that Ted Kosan came up with:
+            sage: t = var('t')
+            sage: v = 0.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))
+            sage: v.find_root(0, 0.002)
+            0.0015403270679114178
+
+             sage: a = .004*(8*e^(-(300*t)) - 8*e^(-(1200*t)))*(720000*e^(-(300*t)) - 11520000*e^(-(1200*t))) +.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))^2
+
+        There is a 0 very close to the origin:
+            sage: show(plot(a, 0, .002),xmin=0, xmax=.002)
+
+        Using solve does not work to find it:
+            sage: a.solve(t)
+            []
+
+        However \code{find_root} works beautifully:
+            sage: a.find_root(0,0.002)
+            0.00041105140493493411
+        """
+        a = float(a); b = float(b)
+        if var is None:
+            var = first_var(self)
+        if a > b:
+            a, b = b, a
+        def f(w):
+            return float(self.substitute({var:float(w)}))
+        return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol, rtol=rtol,
+                                                 maxiter=maxiter, full_output=full_output)
+
+    def find_maximum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+        """
+        Numerically find the maximum of the expression self on the interval
+        [a,b] (or [b,a]) along with the point at which the maximum is attained.
+
+        See the documentation for \code{self.find_minimum_on_interval}
+        for more details.
+
+        EXAMPLES:
+            sage: f = x*cos(x)
+            sage: f.find_maximum_on_interval(0,5)
+            (0.5610963381910451, 0.860333589015)
+            sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
+            (0.56109032345808163, 0.857926501456)
+        """
+        minval, x = (-self).find_minimum_on_interval(a, b, var=var, tol=tol, maxfun=maxfun)
+        return -minval, x
+
+    def find_minimum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+        """
+        Numerically find the minimum of the expression self on the
+        interval [a,b] (or [b,a]) and the point at which it attains that
+        minimum.  Note that self must be a function of (at most) one
+        variable.
+
+        INPUT:
+            var -- variable (default: first variable in self)
+            a,b -- endpoints of interval on which to minimize self.
+            tol -- the convergence tolerance
+            maxfun -- maximum function evaluations
+
+        OUTPUT:
+            minval -- (float) the minimum value that self takes on in the interval [a,b]
+            x -- (float) the point at which self takes on the minimum value
+
+        EXAMPLES:
+            sage: f = x*cos(x)
+            sage: f.find_minimum_on_interval(1, 5)
+            (-3.2883713955908962, 3.42561846957)
+            sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
+            (-3.288371361890984, 3.42575079030572)
+            sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
+            (-3.2883708459837844, 3.42508402203)
+            sage: show(f.plot(0, 20))
+            sage: f.find_minimum_on_interval(1, 15)
+            (-9.4772942594797929, 9.52933441095)
+
+        ALGORITHM: Uses scipy.optimize.fminbound which uses Brent's method.
+
+        AUTHOR:
+             -- William Stein (2007-12-07)
+        """
+        a = float(a); b = float(b)
+        if var is None:
+            var = first_var(self)
+        def f(w):
+            return float(self.substitute({var:float(w)}))
+        return sage.numerical.optimize.find_minimum_on_interval(f,
+                                                 a=a,b=b,tol=tol, maxfun=maxfun )
+
+
 
     ###################################################################
     # simplify
@@ -5870,7 +6010,21 @@ def symbolic_expression_from_maxima_element(x):
 def evaled_symbolic_expression_from_maxima_string(x):
     return symbolic_expression_from_maxima_string(maxima.eval(x))
 
+def first_var(expr):
+    """
+    Return the first variable in expr or 'x' if there are no variables
+    in expression.
+    """
+    v = expr.variables()
+    if len(v) > 0:
+        return v[0]
+    else:
+        return var('x')
+
+
 
 # External access used by restore
 syms_cur = _syms
 syms_default = dict(syms_cur)
+
+

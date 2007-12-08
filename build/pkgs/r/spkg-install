@@ -5,25 +5,30 @@ CUR=`pwd`
 
 # I have problems with this on OSX Intel 10.5.1 -- for now just turn it off.
 # It will be good to get something fully working before worrying about X.
-#if [ -f /usr/include/X11/Xwindows.h ]; then
-#    XSUPPORT=yes
-#else
-XSUPPORT=no
-#fi
+if [ -f /usr/include/X11/Xwindows.h ]; then
+    XSUPPORT=yes
+else
+    XSUPPORT=no
+fi
 
-cd src
+
+rm -rf "$SAGE_LOCAL"/lib/r
+mv src "$SAGE_LOCAL"/lib/r
+ln -s "$SAGE_LOCAL"/lib/r src
+
+cd "$SAGE_LOCAL"/lib/r/
 
 FC=sage_fortran; export FC
 F77=sage_fortran; export F77
 
-./configure --prefix=$SAGE_LOCAL --enable-R-shlib --with-x=$XSUPPORT --without-readline
+./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring R."
     exit 1
 fi
 
-make
+make R
 if [ $? -ne 0 ]; then
     echo "Error building R."
     exit 1
@@ -40,23 +45,17 @@ fi
 cp lib/* "$SAGE_LOCAL"/lib/
 cp bin/R "$SAGE_LOCAL"/bin/
 
+
+# Remove the src from the build.
+
+if [ $FORCE = "" ]; then
+   rm -rf src
+fi
+
 # Some linux only hackery.
-
-if [ -f "$SAGE_LOCAL"/lib64/R/lib/libR.so ]; then
-  cp "$SAGE_LOCAL"/lib64/R/lib/libR* "$SAGE_LOCAL"/lib/
-  cp "$SAGE_LOCAL"/lib64/R/bin/R     "$SAGE_LOCAL"/bin/
-fi
-
-if [ -f "$SAGE_LOCAL"/lib32/R/lib/libR.so ]; then
-  cp "$SAGE_LOCAL"/lib32/R/lib/libR* "$SAGE_LOCAL"/lib/
-  cp "$SAGE_LOCAL"/lib32/R/bin/R     "$SAGE_LOCAL"/bin/
-fi
-
-echo "WARNING -- R hardcodes the path -- you will need to reinstall R if you move you Sage install directory."
-
 
 echo "Now install rpy"
 
 cd "$CUR"
 
-sage -i rpy-1.0-rc3-p1.spkg
+sage -f rpy-1.0.1.spkg

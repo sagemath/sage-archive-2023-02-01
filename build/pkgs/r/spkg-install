@@ -28,7 +28,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make R
+$MAKE R
 if [ $? -ne 0 ]; then
     echo "Error building R."
     exit 1

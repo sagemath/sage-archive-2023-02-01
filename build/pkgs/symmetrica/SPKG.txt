@@ -1,0 +1,19 @@
+MAINTAINER:
+   Mike Hansen
+
+
+SOURCE:
+   http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+
+
+we include index.html, which is the above web site, which officially states
+that Symmetrica is PUBLIC DOMAIN.
+
+Release History:
+
+ * 2.0.p0: Change compile flags to "-O1" to reduce compile time by 2/3.
+
+ * 2.0 (Mike Hansen): update to latest release
+
+ * 0.3.3 (Mike Hansen): ancient release
+

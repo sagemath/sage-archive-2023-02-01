@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#Patch
+cp patches/makefile src/
+cp patches/de.c src/
+cp patches/macro.h src/
+
+cd src
+make -f makefile
+
+if [ $? -ne 0 ]; then
+    echo "Error building symmetrica."
+    exit 1
+fi
+
+ar crs libsymmetrica.a *.o
+cp libsymmetrica.a $SAGE_ROOT/local/lib/
+if [[ ! -d $SAGE_ROOT/local/include/symmetrica ]]
+	then
+	mkdir $SAGE_ROOT/local/include/symmetrica
+fi
+cp def.h macro.h $SAGE_ROOT/local/include/symmetrica
+
+

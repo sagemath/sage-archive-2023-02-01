@@ -127,6 +127,40 @@ Another graph:
     ...
     sage: P.show(ymin=-pi,ymax=pi)
 
+PYX EXAMPLES:
+These are some examples of plots similar to some of the plots in the
+PyX (http://pyx.sourceforge.net) documentation:
+
+Symbolline:
+    sage: y(x) = x*sin(x**2)
+    sage: v = [(x, y(x)) for x in [-3,-2.95,..,3]]
+    sage: show(points(v, rgbcolor=(0.2,0.6, 0.1), pointsize=30) + plot(spline(v), -3.1, 3))
+
+Cycliclink:
+    sage: x = var('x')
+    sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
+    sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
+    sage: show(graphics_array([g1, g2], 2, 1), xmin=0)
+
+Pi Axis:
+In the PyX manual, the point of this example is to show labeling the
+X-axis using rational multiples of Pi.  Sage currently has no support
+for controlling how the ticks on the x and y axes are labeled, so
+this is really a bad example:
+
+    sage: g1 = plot(sin(x), 0, 2*pi)
+    sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
+    sage: show(g1 + g2)
+
+An illustration of integration:
+    sage: def f(x): return (x-3)*(x-5)*(x-7)+40
+    sage: P = line([(2,0),(2,f(2))], rgbcolor=(0,0,0))
+    sage: P += line([(8,0),(8,f(8))], rgbcolor=(0,0,0))
+    sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8))
+    sage: P += text("$\\int_{a}^b f(x) dx$", (5, 20), fontsize=16, rgbcolor=(0,0,0))
+    sage: P += plot(f, 1, 8.5, thickness=3)
+    sage: show(P)
+
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples

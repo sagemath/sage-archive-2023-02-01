@@ -21,6 +21,10 @@ cd "$SAGE_LOCAL"/lib/r/
 FC=sage_fortran; export FC
 F77=sage_fortran; export F77
 
+# These flags are *critical* so that R will be built against Sage's copy of readline.
+CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ "$CFLAGS; export CFLAGS
+LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
+
 ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then

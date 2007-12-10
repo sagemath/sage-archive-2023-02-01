@@ -3,6 +3,10 @@
 CUR=`pwd`
 
 
+# Hack to get around dumb hardcoding.
+cp patches/R.sh.in src/src/scripts/
+
+
 # I have problems with this on OSX Intel 10.5.1 -- for now just turn it off.
 # It will be good to get something fully working before worrying about X.
 if [ -f /usr/include/X11/Xwindows.h ]; then

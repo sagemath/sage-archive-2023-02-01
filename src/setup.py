@@ -880,6 +880,13 @@ ext_modules = [ \
               ['sage/plot/plot3d/shapes.pyx']
               ), \
 
+    Extension('sage.rings.polynomial.pbori',
+              sources = ['sage/rings/polynomial/pbori.pyx'],
+              libraries=['polybori','pboriCudd','groebner'],
+              include_dirs=[SAGE_ROOT+'/local/include/cudd',
+                            SAGE_ROOT+'/local/include/polybori',
+                            SAGE_ROOT+'/local/include/polybori/groebner'],
+              language = 'c++'), \
 
     ]
 

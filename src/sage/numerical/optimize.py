@@ -20,8 +20,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
         sage: f = (x+17)*(x-3)*(x-1/8)^3
         sage: find_root(f, 0,4)
         2.9999999999999951
-        sage: find_root(f, 0,1)
-        0.12499965787473313
+        sage: find_root(f, 0,1)  # note -- precision of answer isn't very good on some machines.
+        0.124999...
         sage: find_root(f, -20,-10)
         -17.0
 

@@ -60,10 +60,17 @@ if [ $FORCE = "" ]; then
    rm -rf src
 fi
 
-# Some linux only hackery.
+
+# Fix hardcoding problems.
+cd "$CUR"/patches
+python fix_hardcode
+
 
 echo "Now install rpy"
 
 cd "$CUR"
 
+
 sage -f rpy-1.0.1.spkg
+
+

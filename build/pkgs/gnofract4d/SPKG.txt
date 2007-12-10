@@ -1,0 +1,5 @@
+Upstream source -- See
+    http://gnofract4d.sourceforge.net/
+
+SPKG AUTHORS:
+    -- William Stein (2007-12) -- made first version of SPKG inspired by comments of Timothy Clemens.

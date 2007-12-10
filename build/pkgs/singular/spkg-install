@@ -124,6 +124,11 @@ build_singular()
         exit 1
     fi
 
+}
+
+
+create_singular_script()
+{
     # The Singular build annoyingly puts an absolute link to the Singular
     # script in $SAGE_LOCAL/bin/.  So we delete it and make it relative.
     cd $SAGE_LOCAL/bin
@@ -151,6 +156,8 @@ build_singular()
 
     # Lower case version is convenient.
     $CP -f Singular singular
+
+    $LN -sf Singular sage_singular
 }
 
 build_libsingular()
@@ -246,6 +253,8 @@ build()
     build_factory
 
     build_libfac
+
+    create_singular_script
 }
 
 build

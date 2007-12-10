@@ -1001,9 +1001,12 @@ def check_dependencies(filename, outfile, deps_of):
     OUTPUT:
         bool -- whether or not outfile must be regenerated.
     """
-    deps = deps_of[filename]
     # add filename to depend on filename
-    deps = [filename] + deps
+    try:
+        deps = deps_of[filename]
+    except KeyError:
+        return True
+
     for dep in deps:
         if is_older(dep, outfile):
             print "\nBuilding %s because it depends on %s."%(outfile, dep)

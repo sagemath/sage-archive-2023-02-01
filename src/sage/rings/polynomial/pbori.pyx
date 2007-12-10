@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Boolean Polynomials via PolyBoRi.
 
 We call boolean polynomials elements of the quotient ring

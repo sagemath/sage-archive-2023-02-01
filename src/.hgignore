@@ -113,4 +113,3 @@ version.py
 ^sage/rings/rational.h$
 ^c_lib/.sconsign.dblite$
 ^c_lib/libcsage.so$
-^.cython_dependencies$

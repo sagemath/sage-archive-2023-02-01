@@ -29,7 +29,13 @@ F77=sage_fortran; export F77
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ "$CFLAGS; export CFLAGS
 LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
 
-./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL"
+# do not build recommended packages for now, for speed.
+
+./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL"
+
+if [ $? -ne 0 ]; then
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL"
+fi
 
 if [ $? -ne 0 ]; then
     echo "Error configuring R."
@@ -42,7 +48,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make install
+$MAKE install-libR
 if [ $? -ne 0 ]; then
     echo "Error installing R."
     exit 1

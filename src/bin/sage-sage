@@ -360,9 +360,16 @@ if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
 fi
 
 if [ $1 = '-sh'  -o $1 = '--sh' ]; then
+    # AUTHORS: Carl Witty and William Stein
     cd "$CUR"
     shift
-    echo Starting subshell with Sage environment variables set:
+    echo ""
+    echo "Starting subshell with Sage environment variables set."
+    echo "Be sure to exit when you are done and do not do anything"
+    echo "with other copies of Sage!"
+    echo ""
+    PS1="Sage subshell$ "
+    export PS1
     $SHELL "$@"
     echo Exited Sage subshell.
     exit $?

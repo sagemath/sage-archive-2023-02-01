@@ -453,7 +453,7 @@ cdef object _py(OP a):
     cdef OBJECTKIND objk
     objk = s_o_k(a)
     #print objk
-    if objk == INTEGER:
+    if objk == INTEGER or objk == LONGINT:
         return _py_integer(a)
     elif objk == PARTITION:
         return _py_partition(a)

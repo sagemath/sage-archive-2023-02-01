@@ -1,6 +1,14 @@
+Upstream maintainer: Bill Heart
+Website: www.flintlib.org
+
+2007-12-10 (Michael Abshoff): Update to FLINT 1.02
+
+2007-12-08 (Michael Abshoff): Update to FLINT 1.01
+
+2007-12-06 (Michael Abshoff): Update to FLINT 1.00
 
 2007-11-25 (Michael Abshoff): add "flint_stack_release();" in fmpz_poly.c:1485
-           to avoid a memory leak. Deteced and bixed by Bill Hart
+           to avoid a memory leak. Deteced and fixed by Bill Hart
 
 2007-11-24 (Michael Abshoff): upgraded to svn r1075
 

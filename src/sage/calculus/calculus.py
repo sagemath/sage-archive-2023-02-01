@@ -2857,13 +2857,14 @@ class SymbolicExpression(RingElement):
         The following seems really weird, but it *is* what maple does:
             sage: f.subs_expr(x^2 + y^2 == t)
             (x, y, t) |--> sin(y) + y^2 + cos(x) + x^2 + t
-            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional requires maple
             'cos(x)+sin(y)+x^2+y^2+t'
+            sage: maxima.quit()
             sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
             'sin(y)+y^2+cos(x)+x^2+t'
 
         Actually Mathematica does something that makes more sense:
-            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional -- requires mathematica
             2 t + Cos[x] + Sin[y]
         """
         for x in equations:

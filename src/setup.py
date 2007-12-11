@@ -1051,6 +1051,31 @@ def process_cython_file(f, m):
             sys.exit(1)
     return [outfile]
 
+def hash_of_cython_file_timestamps():
+    h = 0
+    extensions = set(['.pyx', '.pxd', '.pxi'])
+    def hash_of_dir(dir):
+        h = 0
+        for f in os.listdir(dir):
+            z = dir + '/' + f
+            if os.path.isdir(z):
+                h += hash_of_dir(z)
+            elif f[-4:] in extensions:
+                h += hash(os.path.getmtime(z))
+        return h
+    return hash_of_dir('sage')
+
+CYTHON_HASH_FILE='.cython_hash'
+H = str(hash_of_cython_file_timestamps())
+if not os.path.exists(CYTHON_HASH_FILE):
+    H_old = H + 'x'
+else:
+    H_old = open(CYTHON_HASH_FILE).read()
+if H != H_old:
+    do_cython = True
+    open(CYTHON_HASH_FILE,'w').write(H)
+else:
+    do_cython = False
 
 def cython(ext_modules):
     for m in ext_modules:
@@ -1068,7 +1093,7 @@ def cython(ext_modules):
 
 
 
-if not sdist:
+if not sdist and do_cython:
     cython(ext_modules)
 
 setup(name        = 'sage',

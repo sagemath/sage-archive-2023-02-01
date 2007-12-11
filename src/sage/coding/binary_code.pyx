@@ -2293,15 +2293,10 @@ cdef class BinaryCodeClassifier:
         if ncols == 0 or nrows == 0:
             raise NotImplementedError("Must supply a nontrivial code.")
 
-        badass = 0
-        LLL = []
-
         state = 1
         while state != -1:
-            print badass
-            if False:#badass > 620:
+            if False:
                 print '-----'
-                print badass
                 print "k:", k
                 if k != -1:
                     if v[k]&nu.flag:
@@ -2332,30 +2327,8 @@ cdef class BinaryCodeClassifier:
                                 else:
                                     L += '0'
                         print "W[k]: words", L#[Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
-                print "state:", state
-                print '-----'
-            if False:#badass > 620:
-                print '-----'
-                print badass
-                print "k:", k
-                if k != -1:
-                    if v[k]&nu.flag:
-                        print "v[k]: word ", v[k]^nu.flag
-                    else:
-                        print "v[k]: col ", v[k]
-                    if tvc&nu.flag:
-                        print "tvc- wd", tvc^nu.flag
-                    else:
-                        print "tvc- col", tvc
-                    if W[self.Phi_size * k]:
-                        print "W[k]: cols", Integer(W[self.Phi_size * k]).binary()
-                    else:
-                        j = nwords/self.radix
-                        if nwords%self.radix:
-                            j += 1
-                        print "W[k]: words", [Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
                 print nu
-                if hh != -1:
+                if h != -1:
                     print zeta
                     print rho
                 print "h:", h
@@ -2367,8 +2340,6 @@ cdef class BinaryCodeClassifier:
                 print 'qzb', qzb
                 print "state:", state
                 print '-----'
-            badass += 1
-#            if badass > 363: break
 
             if state == 1: # Entry point: once only
                 alpha[0] = 0
@@ -2494,16 +2465,12 @@ cdef class BinaryCodeClassifier:
                 if k < hzf__h_zeta: state = 8; continue
 
                 nu.get_permutation(zeta, word_gamma, col_gamma, ham_wts)
-                #if badass > 620:
-                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
-                print Theta
+#                print "gamma:", str([[word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]]).replace(' ','')
+#                print Theta
                 # if C^gamma == C, the permutation is an automorphism, goto 10
-                #if badass > 620:
-                print C.is_automorphism(col_gamma, word_gamma)
                 if C.is_automorphism(col_gamma, word_gamma):
                     state = 10
                 else:
-                    LLL.append([[col_gamma[i] for i from 0 <= i < ncols],[word_gamma[i] for i from 0 <= i < nwords]])
                     state = 8
 
             elif state == 8: # we have just ruled out the presence of automorphism and have not yet
@@ -2524,9 +2491,8 @@ cdef class BinaryCodeClassifier:
 
                 # if C(nu) == C(rho), get the automorphism and goto 10
                 rho.get_permutation(nu, word_gamma, col_gamma, ham_wts)
-                #if badass > 620:
-                print "gamma:", [word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]
-                print Theta
+#                print "gamma:", str([[word_gamma[i] for i from 0 <= i < nwords], [col_gamma[i] for i from 0 <= i < ncols]]).replace(' ','')
+#                print Theta
                 state = 10
 
             elif state == 9: # nu is a better guess at the canonical label than rho
@@ -2584,7 +2550,6 @@ cdef class BinaryCodeClassifier:
 
                 # Now incorporate the automorphism into Theta
                 j = Theta.merge_perm(col_gamma, word_gamma)
-                if badass > 620: print Theta
 
                 # j stores whether anything happened or not- if not, then the automorphism we have
                 # discovered is already in the subgroup spanned by the generators we have output
@@ -2742,11 +2707,12 @@ cdef class BinaryCodeClassifier:
                 state = 13
 
             elif state == 17: # see if there are any more splits to make from this level of nu (and not zeta)
+
+                jjj = self.Phi_size*k
                 if e[k] == 0: # now is the time to narrow down W[k] by Omega and Phi
                     # intersect W[k] with each Omega[i] such that v[0]...v[k-1] is in Phi[i]
-                    jjj = self.Phi_size*k
                     jj = self.Phi_size*self.L
-                    iii = nwords/self.radix + 1
+                    iii = nwords/self.radix
                     if nwords%self.radix:
                         iii += 1
                     for ii from 0 <= ii < iii:
@@ -2760,9 +2726,10 @@ cdef class BinaryCodeClassifier:
                     for i from 0 <= i <= l:
                         ii = self.Phi_size*i
                         for j from 0 <= j < iii:
-                            if Phi[ii + j] & Phi[jj + j] == Phi[jj + j]:
+                            if Phi[ii + j] & Phi[jj + j] == Phi[jj + j]: #should do the whole thing, not one at a time!
                                 W[jjj + j] &= Omega[ii + j]
                 e[k] = 1
+
                 # see if there is a vertex to split out
                 if nu.flag&v[k]:
                     i = (v[k]^nu.flag) + 1
@@ -2800,8 +2767,6 @@ cdef class BinaryCodeClassifier:
                 qzb = 0 # Lambda[k] == zb[k], so...
                 state = 13
 
-        for LL in LLL:
-            print LL, ',\\'
         # end big while loop
         rho.find_basis(ham_wts)
         for i from 0 <= i < ncols:

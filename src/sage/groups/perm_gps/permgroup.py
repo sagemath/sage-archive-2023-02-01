@@ -155,9 +155,9 @@ def PermutationGroup(x, from_group=False, check=True):
 
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: G._gap_()
-        Group([ (1,2,3,4) ])
+        Group( [ (1,2,3,4) ] )
         sage: gap(G)
-        Group([ (1,2,3,4) ])
+        Group( [ (1,2,3,4) ] )
         sage: gap(G) is G._gap_()
         True
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
@@ -1247,7 +1247,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             Group([ (2,4), (1,3) ])
             sage: g = G([(1,2,3,4)])
             sage: G.normalizer(g)
-            Group([ (1,2,3,4), (1,3)(2,4), (2,4) ])
+            Group( [ (1,2,3,4), (1,3)(2,4), (2,4) ] )
 
         """
         N = self._gap_().Normalizer(str(g))

@@ -1156,8 +1156,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                             This are useful for many algorithms.
         OUTPUT:
             subspace of modular symbols
+
+        EXAMPLES:
+            sage: ModularSymbols(1,12,0,GF(5)).minus_submodule() ## indirect doctest
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Finite Field of size 5
         """
-        S = self.star_involution().matrix() - sign
+        S = self.star_involution().matrix() - self.base_ring()(sign)
         V = S.kernel()
         if compute_dual:
             Vdual = S.transpose().kernel()

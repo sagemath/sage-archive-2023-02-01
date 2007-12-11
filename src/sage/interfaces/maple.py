@@ -269,12 +269,14 @@ class Maple(Expect):
             -- William Stein and Justin Walker (2006-02-12).
         """
         return """
+
 In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
-command-line version of Maple (alternatively, you could use a remote connection to a server running Maple. Call _install_hints_ssh() for hints on how to do that).
+command-line version of Maple.  Alternatively, you could use a remote
+connection to a server running Maple; for hints, type
+    print maple._install_hints_ssh()
 
-  (1) You might have to buy Maple (list price: $1995.00 !!) at
-             http://webstore.maplesoft.com/
+  (1) You might have to buy Maple (http://webstore.maplesoft.com/).
 
   (2) * LINUX: The maple script comes standard with your Maple install.
 
@@ -287,8 +289,8 @@ command-line version of Maple (alternatively, you could use a remote connection 
                 chmod +x maple
 
       * WINDOWS:
-        I have no idea (yet!), except of course you could install
-        Maple-for-Linux into the colinux machine.
+        You must install Maple-for-Linux into the VMware machine (sorry, that's
+        the only way at present).
 """
 
     def expect(self):

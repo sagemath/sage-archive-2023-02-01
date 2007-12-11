@@ -98,8 +98,46 @@ def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element
     return symbolic_expression_from_maxima_element(maxima(x))
 
+def piecewise(list_of_pairs):
+    """
+    Returns a piecewise function from a list of (interval, function)
+    pairs.
+
+    \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
+    a SAGE function (such as a polynomial over RR, or functions
+    using the lambda notation), and I is an interval such as I = (1,3).
+    Two consecutive intervals must share a common endpoint.
+
+    We assume that these definitions are consistent (ie, no checking is
+    done).
+
+    EXAMPLES:
+        sage: f1 = lambda x:-1
+        sage: f2 = lambda x:2
+        sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        sage: f(1)
+        -1
+        sage: f(3)
+        2
+    """
+    return PiecewisePolynomial(list_of_pairs)
+
+Piecewise = piecewise
 
 class PiecewisePolynomial:
+    """
+    Returns a piecewise function from a list of (interval, function)
+    pairs.
+
+    EXAMPLES:
+        sage: f1 = lambda x:-1
+        sage: f2 = lambda x:2
+        sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        sage: f(1)
+        -1
+        sage: f(3)
+        2
+    """
     def __init__(self, list_of_pairs):
         r"""
         \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
@@ -180,7 +218,20 @@ class PiecewisePolynomial:
         return self._intervals
 
     def domain(self):
-        return (min(self.intervals()),max(self.intervals()))
+        """
+        Returns the domain of the function.
+
+        EXAMPLES:
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.domain()
+            (0, 10)
+        """
+        endpoints = sum(self.intervals(), ())
+        return (min(endpoints), max(endpoints))
 
     def functions(self):
         """
@@ -1356,7 +1407,3 @@ class PiecewisePolynomial:
         Implements Boolean == operator.
         """
         return self.list()==other.list()
-
-## added so that functions/all.py does not need to be changed
-Piecewise = PiecewisePolynomial
-

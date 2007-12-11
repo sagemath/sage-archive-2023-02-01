@@ -22,6 +22,7 @@ import operator
 import re
 import time
 
+from sage_object cimport SageObject
 import sage.categories.morphism
 from sage.categories.action import InverseAction
 
@@ -327,6 +328,14 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 return x, y
             return _verify_canonical_coercion_c(x,y)
 
+        try:
+            if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+                x = x._sage_()
+                y = y._sage_()
+                return self.canonical_coercion_c(x, y)
+        except AttributeError:
+            pass
+
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 
 
@@ -518,7 +527,7 @@ cdef class CoercionModel_profile(CoercionModel_cache_maps):
 
     We can read of this data that the most expensive operation was the creation
     of the action of $\Q$ on $\Z[x]$ (whose result lies in $\Q[x]$. This has
-    been cached as illistrated below.
+    been cached as illustrated below.
 
         sage: coerce.flush()
         sage: z = 1/2 * x + .5

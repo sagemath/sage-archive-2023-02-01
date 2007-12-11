@@ -103,6 +103,8 @@ from sage.media.all      import *
 
 from sage.logic.all      import *
 
+from sage.numerical.all  import *
+
 from copy import copy
 
 

@@ -205,7 +205,7 @@ mwrank =  Extension("sage.libs.mwrank.mwrank",
                     sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],
                     define_macros = [("NTL_ALL",None)],
-                    libraries = ["mwrank", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
+                    libraries = ["curvesntl", "g0nntl", "jcntl", "rankntl", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
 
 pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
@@ -286,7 +286,7 @@ linbox = Extension('sage.libs.linbox.linbox',
 
 libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
+                        libraries = ['m', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                         language="c++",
                         include_dirs=[SAGE_ROOT +'/local/include/singular']
                         )
@@ -362,7 +362,7 @@ matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
 
 matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
                                      ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-                                     libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+                                     libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                                      language="c++",
                                      include_dirs=[SAGE_ROOT +'/local/include/singular'])
 
@@ -615,18 +615,21 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
+
+    Extension('sage.groups.perm_gps.permgroup_element',
+              sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
 
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
@@ -658,6 +661,10 @@ ext_modules = [ \
 
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
+    Extension('sage.rings.complex_interval',
+              sources = ['sage/rings/complex_interval.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
     Extension('sage.rings.residue_field',
@@ -878,6 +885,13 @@ ext_modules = [ \
               ['sage/plot/plot3d/shapes.pyx']
               ), \
 
+    Extension('sage.rings.polynomial.pbori',
+              sources = ['sage/rings/polynomial/pbori.pyx'],
+              libraries=['polybori','pboriCudd','groebner'],
+              include_dirs=[SAGE_ROOT+'/local/include/cudd',
+                            SAGE_ROOT+'/local/include/polybori',
+                            SAGE_ROOT+'/local/include/polybori/groebner'],
+              language = 'c++'), \
 
     ]
 
@@ -1141,6 +1155,8 @@ setup(name        = 'sage',
                      'sage.modular.ssmod',
 
                      'sage.monoids',
+
+                     'sage.numerical',
 
                      'sage.plot',
                      'sage.plot.mpl3d',

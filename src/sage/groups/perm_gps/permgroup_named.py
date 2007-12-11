@@ -62,6 +62,7 @@ REFERENCES:
 
 
 import random
+from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group
@@ -74,6 +75,15 @@ from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even, log
 from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
+
+def permutation_list_to_degree(v):
+    try:
+        v = [Integer(z) for z in v]
+    except TypeError:
+        raise ValueError, "each entry of list must be an integer"
+    if min(v) < 1:
+        raise ValueError, "each element of list must be positive"
+    return max(v), v
 
 
 class SymmetricGroup(PermutationGroup_generic):
@@ -108,24 +118,48 @@ class SymmetricGroup(PermutationGroup_generic):
         [1, 2, 3, 4]
     """
     def __init__(self, n):
-        self._set = n
-        if isinstance(n, list):
-            self._deg = len(n)
+        if isinstance(n, (list, tuple)):
+            self._deg, n = permutation_list_to_degree(n)
             PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+            self._set = n
         else:
             try:
                 self._deg = n = Integer(n)
+                self._set = n
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
             except TypeError, msg:
                 raise ValueError, "%s\nn (=%s) must be an integer >= 1 or a list (but n has type %s)"%(msg, n,type(n))
 
+    def _num_symbols(self):
+        try:
+            return self.__num_symbols
+        except AttributeError:
+            self.__num_symbols = len(self._set) if isinstance(self._set,ListType) else self.degree()
+        return self.__num_symbols
+
     def _repr_(self):
-        return "Symmetric group of order %s! as a permutation group" % self._deg
+        return "Symmetric group of order %s! as a permutation group"%self._num_symbols()
 
     def __str__(self):
-        return "SymmetricGroup(%s)" % self._deg
+        """
+        EXAMPLES:
+            sage: S = SymmetricGroup([2,3,7]); S
+            Symmetric group of order 3! as a permutation group
+            sage: str(S)
+            'SymmetricGroup([2, 3, 7])'
+            sage: S = SymmetricGroup(5); S
+            Symmetric group of order 5! as a permutation group
+            sage: str(S)
+            'SymmetricGroup(5)'
+        """
+        if isinstance(self._set, ListType):
+            x = self._set
+        else:
+            x = self.degree()
+        return "SymmetricGroup(%s)"%x
+
 
     def set(self):
         if isinstance(self._set, list):
@@ -156,24 +190,49 @@ class AlternatingGroup(PermutationGroup_generic):
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
     def __init__(self, n):
-        self._set = n
-        if isinstance(n, list):
-            self._deg = len(n)
+        if isinstance(n, (list, tuple)):
+            deg, n = permutation_list_to_degree(n)
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+            self._set = n
         else:
             try:
                 self._deg = n = Integer(n)
+                self._set = n
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
             except TypeError, msg:
                 raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
+    def _num_symbols(self):
+        try:
+            return self.__num_symbols
+        except AttributeError:
+            self.__num_symbols = len(self._set) if isinstance(self._set,ListType) else self.degree()
+        return self.__num_symbols
+
     def _repr_(self):
-        return "Alternating group of order %s!/2 as a permutation group" % self._deg
+        """
+        EXAMPLES:
+            sage: A = AlternatingGroup([2,3,7]); A
+            Alternating group of order 3!/2 as a permutation group
+        """
+        z = self._num_symbols()
+        return "Alternating group of order %s!/2 as a permutation group" % z
 
     def __str__(self):
-        return "AlternatingGroup(%s)" % self._deg
+        """
+        EXAMPLES:
+            sage: A = AlternatingGroup([2,3,7]); A
+            Alternating group of order 3!/2 as a permutation group
+            sage: str(A)
+            'AlternatingGroup([2, 3, 7])'
+        """
+        if isinstance(self._set, ListType):
+            x = self._set
+        else:
+            x = self.degree()
+        return "AlternatingGroup(%s)" % x
 
     def set(self):
         if isinstance(self._set, list):

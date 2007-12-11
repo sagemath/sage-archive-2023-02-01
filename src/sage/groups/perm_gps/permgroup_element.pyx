@@ -260,6 +260,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             v = eval(gap.eval('ListPerm(%s)' % self.__gap))
 
         cdef int i
+        assert(len(v) <= self.n)
         for i from 0 <= i < len(v):
             self.perm[i] = v[i] - 1
         for i from len(v) <= i < self.n:

@@ -2450,7 +2450,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f = x*cos(x)
             sage: f.find_maximum_on_interval(0,5)
-            (0.5610963381910451, 0.860333589015)
+            (0.5610963381910451, 0.8603335890...)
             sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
             (0.56109032345808163, 0.857926501456)
         """

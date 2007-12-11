@@ -91,7 +91,7 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     EXAMPLES:
         sage: f = lambda x: x*cos(x)
         sage: find_maximum_on_interval(f, 0,5)
-        (0.561096338191, 0.860333589015)
+        (0.561096338191, 0.8603335890...)
         sage: find_maximum_on_interval(f, 0,5, tol=0.1, maxfun=10)
         (0.561090323458, 0.857926501456)
     """

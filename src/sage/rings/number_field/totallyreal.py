@@ -211,7 +211,9 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
             fsock = open(verbose, 'w')
             sys.stdout = fsock
         # Else, print to screen
+
     f_out = [0]*n + [1]
+
     if verbose == 2:
         T.incr(f_out,verbose,phc=phc)
     else:
@@ -221,10 +223,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
         if verbose:
             print "==>", f_out,
 
-        nf = pari(str(f_out)).Polrev()
+        nf = pari(f_out).Polrev()
         d = nf.poldisc()
         counts[0] += 1
-        if d > 0:
+        if d > 0 and nf.polsturm_full() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1
@@ -394,3 +396,4 @@ def __selberg_zograf_bound(n, g):
         15.851871776151311
     """
     return ((16./3)*(g+1))**(2./(3*n))*(2*3.1415926535897931)**(4./3)
+

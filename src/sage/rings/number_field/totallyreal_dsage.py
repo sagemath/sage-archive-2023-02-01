@@ -159,6 +159,19 @@ class totallyreal_dsage:
                 job = self.D.eval(self.prestr + str(a) + ',return_seqs=True)', timeout = self.timeout)
                 self.jobs.append([a,job])
 
+    def recover(self):
+        jobs = self.D.get_my_jobs(True)
+        find_str = '(' + str(self.n) + ',' + str(self.B)
+        jobs_v = [j[0] for j in self.jobs]
+        for i in range(len(jobs)):
+            jc = jobs[i].code
+            try:
+                jc.index(find_str)
+                v = eval(jc[jc.find('['):jc.find(']')+1])
+                self.jobs[jobs_v.index(v)][1] = jobs[i]
+            except ValueError:
+                v = []
+
     def load_jobs(self, A, split=False):
         self.init_jobs(self.n, self.B, A, split)
 
@@ -219,8 +232,9 @@ class totallyreal_dsage:
         while i < len(self.jobs):
             if type(self.jobs[i][1]) <> str:
                 # self.jobs[i][1].get_job()
-                if self.jobs[i][1].status == 'completed' and self.jobs[i][1].result <> 'None':
-                    job = self.jobs.pop(i)
+                if self.jobs[i][1].status == 'completed' and not self.jobs[i][1].result in ['None', '']:
+                    print "Compiling job", i, "with", self.jobs[i][0]
+                    job = self.jobs[i]
 
                     # Add the timings.
                     self.cputime += job[1].cpu_time
@@ -250,6 +264,7 @@ class totallyreal_dsage:
                             fsock.write(str(S[j]) + "\n")
 
                     fsock.close()
+                    self.jobs.pop(i)
 
                 # Otherwise, continue.
                 # Note we do not add 1 to i if we just popped jobs!

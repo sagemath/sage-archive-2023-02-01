@@ -775,10 +775,10 @@ ext_modules = [ \
 
     Extension('sage.rings.number_field.totallyreal_data',
               ['sage/rings/number_field/totallyreal_data.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp']), \
 
     Extension('sage.rings.morphism',
-              sources = ['sage/rings/morphism.pyx']),
+              sources = ['sage/rings/morphism.pyx']), \
 
     Extension('sage.structure.wrapper_parent',
               sources = ['sage/structure/wrapper_parent.pyx']), \

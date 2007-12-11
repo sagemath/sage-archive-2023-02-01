@@ -2820,6 +2820,61 @@ class SymbolicExpression(RingElement):
 
 
     ###################################################################
+    # Expression substitution
+    ###################################################################
+    def subs_expr(self, *equations):
+        """
+        Given a dictionary of key:value pairs, substitute all occurences
+        of key for value in self.
+
+        WARNING: This is a formal pattern substitution, which may or
+        may not have any mathematical meaning.  The exact rules used
+        at present in Sage are determined by Maxima's subst command.
+        Sometimes patterns are replaced even though one would think
+        they should be -- see examples below.
+
+        EXAMPLES:
+            sage: f = x^2 + 1
+            sage: f.subs_expr(x^2 == x)
+            x + 1
+
+            sage: var('x,y,z'); f = x^3 + y^2 + z
+            (x, y, z)
+            sage: f.subs_expr(x^3 == y^2, z == 1)
+            2*y^2 + 1
+
+            sage: f = x^2 + x^4
+            sage: f.subs_expr(x^2 == x)
+            x^4 + x
+            sage: f = cos(x^2) + sin(x^2)
+            sage: f.subs_expr(x^2 == x)
+            sin(x) + cos(x)
+
+            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+            sage: f.subs_expr(y^2 == t)
+            (x, y, t) |--> sin(y) + cos(x) + x^2 + 2*t
+
+        The following seems really weird, but it *is* what maple does:
+            sage: f.subs_expr(x^2 + y^2 == t)
+            (x, y, t) |--> sin(y) + y^2 + cos(x) + x^2 + t
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')
+            'cos(x)+sin(y)+x^2+y^2+t'
+            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
+            'sin(y)+y^2+cos(x)+x^2+t'
+
+        Actually Mathematica does something that makes more sense:
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')
+            2 t + Cos[x] + Sin[y]
+        """
+        for x in equations:
+            if not isinstance(x, SymbolicEquation):
+                raise TypeError, "each expression must be an equation"
+        R = self.parent()
+        v = ','.join(['%s=%s'%(x.lhs()._maxima_init_(), x.rhs()._maxima_init_()) \
+                      for x in equations])
+        return R(self._maxima_().subst(v))
+
+    ###################################################################
     # Real and imaginary parts
     ###################################################################
     def real(self):

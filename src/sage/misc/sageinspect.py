@@ -56,6 +56,15 @@ Test introspection of classes defined in Python and Cython files:
         sage: sage_getsource(sage.misc.attach.Attach)
         'class Attach:...'
 
+    Python classes with no docstring, but an __init__ docstring:
+        sage: class Foo:
+        ....:     def __init__(self):
+        ....:         'docstring'
+        ....:         pass
+        ....:
+        sage: sage_getdoc(Foo)
+        'docstring'
+
 Test introspection of functions defined in Python and Cython files:
 
     Cython functions:
@@ -90,6 +99,8 @@ Test introspection of functions defined in Python and Cython files:
 
         sage: sage_getdef(str.find, 'find')
         'find( [noargspec] )'
+
+
 """
 
 import inspect
@@ -280,7 +291,7 @@ def sage_getdef(obj, obj_name=''):
             s = s[4:]
         s = s.lstrip(',').strip()
         return obj_name + '(' + s + ')'
-    except TypeError, ValueError:
+    except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
 
 def sage_getdoc(obj, obj_name=''):
@@ -300,6 +311,12 @@ def sage_getdoc(obj, obj_name=''):
         r = obj._sage_doc_()
     except AttributeError:
         r = obj.__doc__
+
+    #Check to see if there is an __init__ method, and if there
+    #is, use its docstring.
+    if r is None and hasattr(obj, '__init__'):
+        r = obj.__init__.__doc__
+
     if r is None:
         return ''
     s = sage.misc.sagedoc.format(str(r))
@@ -357,6 +374,8 @@ def sage_getsourcelines(obj, is_binary=False):
         return None
 
     return _extract_source(source_lines, lineno), lineno
+
+
 
 __internal_teststring = '''
 import os                                  # 1

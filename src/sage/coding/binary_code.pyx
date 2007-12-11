@@ -2218,7 +2218,7 @@ cdef class BinaryCodeClassifier:
     cdef void aut_gp_and_can_label(self, BinaryCode C, int verbosity):
 
         # declare variables:
-        cdef int i, j, ii, jj, iii, jjj # local variables
+        cdef int i, j, ii, jj, iii, jjj, iiii # local variables
 
         cdef PartitionStack nu, zeta, rho # nu is the current position in the tree,
                                           # zeta the first terminal position,
@@ -2725,8 +2725,13 @@ cdef class BinaryCodeClassifier:
                             Phi[jj] ^= (1 << v[ii])
                     for i from 0 <= i <= l:
                         ii = self.Phi_size*i
+                        iiii = 1
                         for j from 0 <= j < iii:
-                            if Phi[ii + j] & Phi[jj + j] == Phi[jj + j]: #should do the whole thing, not one at a time!
+                            if Phi[ii + j] & Phi[jj + j] != Phi[jj + j]:
+                                iiii = 0
+                                break
+                        if iiii:
+                            for j from 0 <= j < iii:
                                 W[jjj + j] &= Omega[ii + j]
                 e[k] = 1
 

@@ -236,4 +236,9 @@ sconsign
 sconsign-0.97
 srptool
 surfex
+R
+callgrind_control
+ipbori
+valgrind
+valgrind-listener
 ~$

@@ -1450,6 +1450,30 @@ cdef class PartitionStack:
 #
 
     def _split_vertex(self, v, k):
+        """
+        Split vertex v out, placing it before the rest of the cell it was in.
+        Returns the location of the split vertex.
+
+        NOTE:
+            There is a convention regarding whether a vertex is a word or a
+            column. See the 'flag' attribute of the PartitionStack object:
+            If vertex&flag is not zero, it is a word.
+
+        EXAMPLE:
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: P = PartitionStack(2, 6)
+            sage: [P._split_vertex(i,i+1) for i in range(5)]
+            [0, 1, 2, 3, 4]
+            sage: P
+            ({0,1,2,3})  ({0,1,2,3,4,5})
+            ({0,1,2,3})  ({0},{1,2,3,4,5})
+            ({0,1,2,3})  ({0},{1},{2,3,4,5})
+            ({0,1,2,3})  ({0},{1},{2},{3,4,5})
+            ({0,1,2,3})  ({0},{1},{2},{3},{4,5})
+            ({0,1,2,3})  ({0},{1},{2},{3},{4},{5})
+
+        """
         return self.split_vertex(v, k)
 
     cdef int split_vertex(self, int v, int k):
@@ -2202,6 +2226,41 @@ cdef class BinaryCodeClassifier:
         self.aut_gp_index += ncols
 
     def _aut_gp_and_can_label(self, CC, verbosity=0):
+        """
+        Compute the automorphism group and canonical label of the code CC.
+
+        INPUT:
+            CC - a BinaryCode object
+            verbosity - a nonnegative integer
+
+        OUTPUT:
+            a tuple, (gens, labeling)
+            gens -- a list of permutations (in list form) representing generators
+                of the permutation automorphism group of the code CC
+            labeling -- a permutation representing the canonical labeling of the
+                code. mostly for internal use; if the dimension of the code is k
+                and the degree (number of columns) is n, then the first n entries
+                describe the relabeling on the columns, and the next k describe
+                where the basis is sent.
+
+        EXAMPLES:
+            sage: M = Matrix(GF(2),[\
+            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],\
+            ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],\
+            ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],\
+            ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
+            ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: B = BinaryCode(M)
+            sage: BC = BinaryCodeClassifier()
+            sage: gens, labeling = BC._aut_gp_and_can_label(B)
+            sage: S = SymmetricGroup(16)
+            sage: L = [S([x+1 for x in g]) for g in gens]
+            sage: PermutationGroup(L).order()
+            322560
+
+        """
         cdef int i, j
         cdef BinaryCode C = CC
         self.aut_gp_and_can_label(C, verbosity)

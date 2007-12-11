@@ -1029,12 +1029,28 @@ cdef class Rational(sage.structure.element.FieldElement):
             1.0954451150103321
             sage: complex(1,2)**(1/2)
             (1.272019649514069+0.78615137775742328j)
+            sage: int(2)^(1/2)
+            sqrt(2)
+            sage: a = int(2)^(3/1); a
+            8
+            sage: type(a)
+            <type 'sage.rings.rational.Rational'>
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
 
-        if not PY_TYPE_CHECK(self, Rational):  #this is here for no good reason apparent to me... should be removed in the future.
-            return self.__pow__(type(self)(n))
+        if not PY_TYPE_CHECK(self, Rational):
+            # If the base is not a rational, e.g., it is an int, complex, float, user-defined type, etc.
+            try:
+                self_coerced = Rational(self)
+            except TypeError:
+                n_coerced = type(self)(n)
+                if n != n_coerced:
+                    # dangerous coercion -- don't use -- try symbolic result
+                    from sage.calculus.calculus import SR
+                    return SR(self)**SR(n)
+                return self.__pow__(n_coerced)
+            return self_coerced.__pow__(n)
 
         cdef Rational _self = <Rational>self
         cdef long nn

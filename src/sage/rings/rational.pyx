@@ -1023,13 +1023,18 @@ cdef class Rational(sage.structure.element.FieldElement):
             RuntimeError: exponent must be at most 9223372036854775807 # 64-bit
             sage: (-3/3)^(2^100)
             1
+
+        This works even if the base is a float or Python complex or other type:
+            sage: float(1.2)**(1/2)
+            1.0954451150103321
+            sage: complex(1,2)**(1/2)
+            (1.272019649514069+0.78615137775742328j)
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
 
         if not PY_TYPE_CHECK(self, Rational):  #this is here for no good reason apparent to me... should be removed in the future.
-            assert False, "BUG:  Rational.__pow__ called on a non-Rational"
-            return self.__pow__(float(n)) #whose idea was it to float(n)?
+            return self.__pow__(type(self)(n))
 
         cdef Rational _self = <Rational>self
         cdef long nn

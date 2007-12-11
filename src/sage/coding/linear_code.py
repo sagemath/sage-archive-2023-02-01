@@ -845,54 +845,6 @@ class LinearCode(module.Module):
                 return False
         return True
 
-    def is_equivalent(self, right,isomorphism=False):
-        """
-        Checks if self is permutation equivalent to right.
-        Only works for *binary* codes at the moment.
-        This requires that Leon's code be compiled in
-        SAGEHOME/local/lib/gap*/pkg/guava*. See
-        http://sage.math.washington.edu/home/wdj/guava/
-        or the README.guava file there.
-
-        EXAMPLES:
-            sage: C1 = HammingCode(3,GF(2))
-            sage: x = PolynomialRing(GF(2),"x").gen(); g = x^3+x+1
-            sage: C2 = CyclicCode(g,7,GF(2))
-            sage: C1; C2
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: C1 == C2
-            False
-            sage: C1.is_equivalent(C2)
-            True
-
-        """
-        slength = self.length()
-        rlength = right.length()
-        sdim = self.dimension()
-        rdim = right.dimension()
-        sF = self.base_ring()
-        rF = right.base_ring()
-        if slength != rlength:
-            return False
-        if sdim != rdim:
-            return False
-        if sF != rF:
-            return False
-        genmat1 = self.gen_mat(); gapgenmat1 = genmat1._matrix_(GF(2))
-        C1g = gap(gapgenmat1).GeneratorMatCode(GF(2))
-        genmat2 = right.gen_mat(); gapgenmat2 = genmat2._matrix_(GF(2))
-        C2g = gap(gapgenmat2).GeneratorMatCode(GF(2))
-        if isomorphism == True:
-            bval = C1g.IsEquivalent(C2g) == True
-            if bval == False:
-                return False
-            if bval == True:
-                G = SymmetricGroup(slength)
-                g = C1g.CodeIsomorphism(C2g)
-                return True,G(str(g))
-        return C1g.IsEquivalent(C2g) == True
-
     def is_permutation_automorphism(self,g):
         r"""
         Returns $1$ if $g$ is an element of $S_n$ ($n$ = length of

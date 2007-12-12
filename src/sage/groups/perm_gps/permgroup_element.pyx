@@ -497,6 +497,36 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef int i
         return [self.perm[i]+1 for i from 0 <= i < self.n]
 
+    def __hash__(self):
+        """
+        Return hash of this permutation.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(5)
+            sage: s = G([2,1,5,3,4])
+            sage: s.tuple()
+            (2, 1, 5, 3, 4)
+            sage: hash(s)
+            1592966088
+            sage: hash(s.tuple())
+            1592966088
+        """
+        return hash(self.tuple())
+
+    def tuple(self):
+        """
+        Return tuple of images of integers under self.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(5)
+            sage: s = G([2,1,5,3,4])
+            sage: s.tuple()
+            (2, 1, 5, 3, 4)
+        """
+        if self.__tuple is None:
+            self.__tuple = tuple(self.list())
+        return self.__tuple
+
     def dict(self):
         """
         Returns list of the images of the integers from 1 to n under

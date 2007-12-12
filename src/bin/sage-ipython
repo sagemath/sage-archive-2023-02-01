@@ -20,4 +20,24 @@ sageCH = CrashHandler(sage.IP, 'SAGE', 'William Stein', \
 
 sage.IP.set_crash_handler(sageCH)
 
+import new
+import os
+
+old_system = sage.IP.system
+
+
+sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
+DARWIN_SYSTEM = os.uname()[0]=='Darwin'
+
+def sage_system(self, cmd):
+    if cmd in sage_commands:
+        old_system(cmd)
+    else:
+        libraries = 'LD_LIBRARY_PATH=$$SAGE_ORIG_LD_LIBRARY_PATH;'
+        if DARWIN_SYSTEM:
+            libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
+        old_system(libraries+cmd)
+
+sage.IP.system = new.instancemethod(sage_system, sage.IP, IPython.iplib.InteractiveShell)
+
 sage.mainloop(banner='')

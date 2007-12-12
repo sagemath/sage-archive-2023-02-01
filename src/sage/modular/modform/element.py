@@ -13,6 +13,7 @@ Elements of modular forms spaces.
 import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
+from sage.modular.modsym.modsym import ModularSymbols
 
 def is_ModularFormElement(x):
     """
@@ -25,6 +26,43 @@ def is_ModularFormElement(x):
         True
     """
     return isinstance(x, ModularFormElement)
+
+def delta_Lseries(prec=53,
+                 max_imaginary_part=0,
+                 max_asymp_coeffs=40):
+    r"""
+    Return the L-series of the modular form Delta.
+
+    This actually returns an interface to Tim Dokchitser's program
+    for computing with the L-series of the modular form $\Delta$.
+
+    INPUT:
+        prec -- integer (bits precision)
+        max_imaginary_part -- real number
+        max_asymp_coeffs -- integer
+
+    OUTPUT:
+        The L-series of $\Delta$.
+
+    EXAMPLES:
+        sage: L = delta_Lseries()
+        sage: L(1)
+        0.0374412812685155
+    """
+    from sage.lfunctions.all import Dokchitser
+    key = (prec, max_imaginary_part, max_asymp_coeffs)
+    L = Dokchitser(conductor = 1,
+                   gammaV = [0,1],
+                   weight = 12,
+                   eps = 1,
+                   prec = prec)
+    s = 'tau(n) = (5*sigma(n,3)+7*sigma(n,5))*n/12-35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5));'
+    L.init_coeffs('tau(k)',pari_precode = s,
+                  max_imaginary_part=max_imaginary_part,
+                  max_asymp_coeffs=max_asymp_coeffs)
+    L.set_coeff_growth('2*n^(11/2)')
+    L.rename('L-series associated to the modular form Delta')
+    return L
 
 class ModularFormElement(element.HeckeModuleElement):
     """
@@ -200,6 +238,116 @@ class ModularFormElement(element.HeckeModuleElement):
         """
         return self.q_expansion(prec)
 
+    def cuspform_Lseries(self, prec=53,
+                         max_imaginary_part=0,
+                         max_asymp_coeffs=40):
+        r"""
+        Return the L-series of the weight k cusp form
+        f on $\Gamma_0(N)$.
+
+        This actually returns an interface to Tim Dokchitser's program
+        for computing with the L-series of the cusp form.
+
+        INPUT:
+           prec -- integer (bits precision)
+           max_imaginary_part -- real number
+           max_asymp_coeffs -- integer
+
+        OUTPUT:
+           The L-series of the cusp form.
+
+        EXAMPLES:
+           sage: f = CuspForms(2,8).0
+           sage: L = f.cuspform_Lseries()
+           sage: L(1)
+           0.0884317737041015
+           sage: L(0.5)
+           0.0296568512531983
+
+        Consistency check with delta_Lseries (which computes coefficients in pari):
+           sage: delta = CuspForms(1,12).0
+           sage: L = delta.cuspform_Lseries()
+           sage: L(1)
+           0.0374412812685155
+           sage: L = delta_Lseries()
+           sage: L(1)
+           0.0374412812685155
+        """
+        if self.q_expansion().list()[0] !=0:
+            raise TypeError,"f = %s is not a cusp form"%self
+        from sage.lfunctions.all import Dokchitser
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        l = self.weight()
+        N = self.level()
+        if N == 1:
+            e = (-1)**l
+        else:
+            m = ModularSymbols(N,l,sign=1)
+            n = m.cuspidal_subspace().new_subspace()
+            e = (-1)**(l/2)*n.atkin_lehner_operator().matrix()[0,0]
+        L = Dokchitser(conductor = N,
+                       gammaV = [0,1],
+                       weight = l,
+                       eps = e,
+                       prec = prec)
+        s = 'coeff = %s;'%self.q_expansion(prec).list()
+        L.init_coeffs('coeff[k+1]',pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        L.check_functional_equation()
+        L.rename('L-series associated to the cusp form %s'%self)
+        return L
+
+    def modform_Lseries(self, prec=53,
+                        max_imaginary_part=0,
+                        max_asymp_coeffs=40):
+        r"""
+        Return the L-series of the weight $k$ modular form
+        $f$ on $\SL_2(\Z)$.
+
+        This actually returns an interface to Tim Dokchitser's program
+        for computing with the L-series of the modular form.
+
+        INPUT:
+           prec -- integer (bits precision)
+           max_imaginary_part -- real number
+           max_asymp_coeffs -- integer
+
+        OUTPUT:
+           The L-series of the modular form.
+
+        EXAMPLES:
+        We commpute with the L-series of the Eisenstein series $E_4$:
+           sage: f = ModularForms(1,4).0
+           sage: L = f.modform_Lseries()
+           sage: L(1)
+           -0.0304484570583933
+        """
+        a = self.q_expansion(prec).list()
+        if a[0] == 0:
+            raise TypeError,"f = %s is a cusp form; please use f.cuspform_Lseries() instead!"%self
+        if self.level() != 1:
+            raise TypeError, "f = %s is not a modular form for SL_2(Z)"%self
+        from sage.lfunctions.all import Dokchitser
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        l = self.weight()
+        L = Dokchitser(conductor = 1,
+                       gammaV = [0,1],
+                       weight = l,
+                       eps = (-1)**l,
+                       poles = [l],
+                       prec = prec)
+        b = a[1]
+        for i in range(len(a)):    ##to renormalize so that coefficient of q is 1
+            a[i] =(1/b)*a[i]
+        s = 'coeff = %s;'%a
+        L.init_coeffs('coeff[k+1]',pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        L.check_functional_equation()
+        L.rename('L-series associated to the weight %s modular form on SL_2(Z)'%l)
+        return L
+
     def weight(self):
         return self.parent().weight()
 
@@ -213,8 +361,6 @@ class ModularFormElement(element.HeckeModuleElement):
         v = self.qexp(self.parent().sturm_bound()).valuation()
         self.__valuation = v
         return v
-
-
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """

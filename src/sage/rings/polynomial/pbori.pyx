@@ -762,8 +762,6 @@ cdef class BooleanPolynomial(MPolynomial):
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
-        # activate the parent ring of left, otherwise we get crashes after creating a second ring
-        (<BooleanPolynomialRing>left._parent)._R.activate()
         p._P.iadd( (<BooleanPolynomial>right)._P )
         return p
 
@@ -782,8 +780,6 @@ cdef class BooleanPolynomial(MPolynomial):
     cdef RingElement _mul_c_impl(left, RingElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
-        # activate the parent ring of left, otherwise we get crashes after creating a second ring
-        (<BooleanPolynomialRing>left._parent)._R.activate()
         p._P.imul( (<BooleanPolynomial>right)._P )
         return p
 

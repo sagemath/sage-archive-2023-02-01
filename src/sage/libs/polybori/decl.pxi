@@ -259,4 +259,5 @@ cdef extern from "pb_wrap.h":
 
     #M4RI initialization
     void buildAllCodes()
+    void destroyAllCodes()
     void setupPackingMasks()

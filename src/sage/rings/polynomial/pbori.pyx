@@ -1645,9 +1645,17 @@ def VariableBlock(size, start_index, offset, reverse):
     else:
         return VariableBlockFalse(size, start_index, offset)
 
+cdef int M4RI_init = 0
+
 def init_M4RI():
-    buildAllCodes()
-    setupPackingMasks()
+    global M4RI_init
+    if M4RI_init is int(0):
+        buildAllCodes()
+        setupPackingMasks()
+        M4RI_init = 1
+
+def free_m4ri():
+    destroyAllCodes()
 
 def recursively_insert(CCuddNavigator n, int ind, CCuddNavigator m):
     cdef PBSet b

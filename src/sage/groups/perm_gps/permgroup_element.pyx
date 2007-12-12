@@ -507,9 +507,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: s.tuple()
             (2, 1, 5, 3, 4)
             sage: hash(s)
-            1592966088
+            1592966088          # 32-bit
+            2865702456085625800 # 64-bit
             sage: hash(s.tuple())
-            1592966088
+            1592966088          # 32-bit
+            2865702456085625800 # 64-bit
         """
         return hash(self.tuple())
 

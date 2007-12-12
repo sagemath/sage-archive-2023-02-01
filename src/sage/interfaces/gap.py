@@ -67,7 +67,7 @@ generators of a polynomial ring, so the eval command works.
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
     sage: R = gap.PolynomialRing('Rationals', 2); R
-    PolynomialRing(..., [ x_1, x_2 ])
+    PolynomialRing( Rationals, ["x_1", "x_2"] )
     sage: I = R.IndeterminatesOfPolynomialRing(); I
     [ x_1, x_2 ]
 

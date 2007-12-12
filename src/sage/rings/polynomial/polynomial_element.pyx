@@ -2318,7 +2318,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             'y^3 - 17*y + 5'
             sage: R.<z> = ZZ[]
             sage: gap(R)
-            PolynomialRing(..., [ z ])
+            PolynomialRing( Integers, ["z"] )
             sage: g
             y^3-17*y+5
             sage: gap(z^2 + z)

@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Boolean Polynomials via PolyBoRi.
 
 We call boolean polynomials elements of the quotient ring
@@ -427,7 +427,7 @@ class BooleanMonomialMonoid(Monoid_class):
 
         EXAMPLES:
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M
             MonomialMonoid of Boolean PolynomialRing in x, y
 
@@ -454,7 +454,7 @@ class BooleanMonomialMonoid(Monoid_class):
 
         EXAMPLES:
             sage: P = BooleanPolynomialRing(100, 'x')
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M.ngens()
             100
         """
@@ -466,14 +466,14 @@ class BooleanMonomialMonoid(Monoid_class):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M.gen(0)
             x
             sage: M.gen(2)
             z
 
             sage: P = BooleanPolynomialRing(1000, 'x')
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M.gen(50)
             x50
         """
@@ -486,7 +486,7 @@ class BooleanMonomialMonoid(Monoid_class):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M.gens()
             (x, y, z)
         """
@@ -505,7 +505,7 @@ class BooleanMonomialMonoid(Monoid_class):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M(x+y)
             Traceback (most recent call last):
             ...
@@ -556,7 +556,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M(x) < M(y)
             False
 
@@ -582,7 +582,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M(x*y)
             x*y
 
@@ -605,7 +605,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M(x*y).deg()
             2
 
@@ -620,7 +620,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: len(M(x*y))
             2
         """
@@ -632,7 +632,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: list(iter(M(x*z)))
             [0, 2]
         """
@@ -644,7 +644,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y); z=M(z)
             sage: x*x
             x
@@ -666,7 +666,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
+            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y)
             sage: x + xy
             x*y + x

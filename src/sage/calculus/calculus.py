@@ -3599,39 +3599,163 @@ class SymbolicArithmetic(SymbolicOperation):
             new_ops = [op._recursive_sub_over_ring(kwds, ring=ring) for op in ops]
         return ring(self._operator(*new_ops))
 
-    def __float__(self):
-        fops = [float(op) for op in self._operands]
+    def _convert(self, typ):
+        """
+        Convert self to the given type by converting each of the
+        operands to that type and doing the arithmetic.
+
+        EXAMPLES:
+            sage: f = sqrt(2) * cos(3); f
+            sqrt(2)*cos(3)
+            sage: f._convert(RDF)
+            -1.40006081534
+            sage: f._convert(float)
+            -1.4000608153399503
+
+        Converting to an int can have surprising consequences, since
+        Python int is "floor" and one individual factor can floor to 0
+        but the product doesn't:
+            sage: int(f)
+            -1
+            sage: f._convert(int)
+            0
+            sage: int(sqrt(2))
+            1
+            sage: int(cos(3))
+            0
+
+        TESTS:
+        This illustrates how the conversion works even when a type
+        exception is raised, since here one operand is still x (in the
+        unsimplified form):
+            sage: f = sin(0)*x
+            sage: f._convert(CDF)
+            0
+        """
+        try:
+            fops = [typ(op) for op in self._operands]
+        except TypeError:
+            g = self.simplify()
+            if self is g:
+                raise
+            else:
+                return typ(g)
         return self._operator(*fops)
+
+
+    def __float__(self):
+        """
+        TESTS:
+            sage: f=x*sin(0)
+            sage: float(f(1))
+            0.0
+            sage: w = I - I
+            sage: float(w)
+            0.0
+        """
+        return self._convert(float)
 
     def __complex__(self):
-        fops = [complex(op) for op in self._operands]
-        return self._operator(*fops)
+        """
+        EXAMPLES:
+            sage: complex((-2)^(1/4))
+            (0.84089641525371461+0.84089641525371439j)
+
+        TESTS:
+            sage: complex(I - I)
+            0j
+            sage: w = I-I; complex(w)
+            0j
+            sage: complex(w * x)
+            0j
+        """
+        return self._convert(complex)
 
     def _mpfr_(self, field):
-        rops = [op._mpfr_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RealField(200)(sqrt(2))
+            1.4142135623730950488016887242096980785696718753769480731767
+
+        TESTS:
+            sage: w = I-I; RR(w)
+            0.000000000000000
+            sage: w = I-I; RealField(200)(w)
+            0.00000000000000000000000000000000000000000000000000000000000
+            sage: RealField(200)(x*sin(0))
+            0.00000000000000000000000000000000000000000000000000000000000
+        """
+        return self._convert(field)
 
     def _complex_mpfr_field_(self, field):
-        rops = [op._complex_mpfr_field_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: CC(sqrt(2))
+            1.41421356237310
+            sage: a = sqrt(-2); a
+            sqrt(2)*I
+            sage: CC(a)
+            1.41421356237310*I
+            sage: ComplexField(200)(a)
+            1.4142135623730950488016887242096980785696718753769480731767*I
+            sage: ComplexField(100)((-1)^(1/10))
+            0.95105651629515357211643933338 + 0.30901699437494742410229341718*I
+
+        TESTS:
+            sage: CC(x*sin(0))
+            0
+        """
+        return self._convert(field)
 
     def _complex_double_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._complex_double_(field)
-        rops = [op._complex_double_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: CDF((-1)^(1/3))
+            0.5 + 0.866025403784*I
+
+        Watch out -- right now Maxima algebraically simplifies the above to -1:
+            sage: (-1)^(1/3)
+            -1
+
+        So when doing this conversion it is the non-simplified form
+        that is converted, for efficiency purposes, which can result
+        in a different answer in some cases.  You can always force
+        using the simplified form:
+
+            sage: a = (-1)^(1/3)
+            sage: CDF(a.simplify())
+            -1.0
+
+        TESTS:
+            sage: CDF(x*sin(0))
+            0
+        """
+        return self._convert(field)
 
     def _real_double_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._real_double_(field)
-        rops = [op._real_double_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RDF(sqrt(2))
+            1.41421356237
+
+
+        TESTS:
+            sage: RDF(x*sin(0))
+            0.0
+        """
+        return self._convert(field)
 
     def _real_rqdf_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._real_rqdf_(field)
-        rops = [op._real_rqdf_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RQDF(sqrt(2))
+            1.414213562373095048801688724209698078569671875376948073176679738
+
+        TESTS:
+            sage: RQDF(x*sin(0))
+            0.000000000000000000000000000000000000000000000000000000000000000
+        """
+        return self._convert(field)
 
     def _algebraic_(self, field):
         """
@@ -3646,6 +3770,12 @@ class SymbolicArithmetic(SymbolicOperation):
             [-1.6180339887498950 .. -1.6180339887498946]
             sage: QQbar((2*I)^(1/2))
             [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+
+        TESTS:
+            sage: AA(x*sin(0))
+            0
+            sage: QQbar(x*sin(0))
+            0
         """
 
         # We try to avoid simplifying, because maxima's simplify command
@@ -3657,8 +3787,7 @@ class SymbolicArithmetic(SymbolicOperation):
                 expt = Rational(self._operands[1])
                 return field(field(base) ** expt)
             else:
-                rops = [field(op) for op in self._operands]
-                return self._operator(*rops)
+                return self._convert(field)
         except TypeError:
             if self.is_simplified():
                 raise

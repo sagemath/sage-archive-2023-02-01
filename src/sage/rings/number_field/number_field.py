@@ -4185,12 +4185,20 @@ class NumberField_cyclotomic(NumberField_absolute):
             zeta6 - 1
 
         Coercion of GAP cyclotomic elements is also supported.
+
+        EXAMPLE:
+            sage: K.<z> = CyclotomicField(7)
+            sage: O = K.maximal_order()
+            sage: K(O.1)
+            z
+            sage: sage: K(O.1^2 + O.1 - 2)
+            z^2 + z - 2
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             if isinstance(x.parent(), NumberField_cyclotomic):
                 return self._coerce_from_other_cyclotomic_field(x)
             else:
-                return self._coerce_from_other_number_field(x)
+                return NumberField_absolute.__call__(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
         elif isinstance(x,str):

@@ -1074,9 +1074,9 @@ if not os.path.exists(CYTHON_HASH_FILE):
     H_old = H + 'x'
 else:
     H_old = open(CYTHON_HASH_FILE).read()
+
 if H != H_old:
     do_cython = True
-    open(CYTHON_HASH_FILE,'w').write(H)
 else:
     do_cython = False
 
@@ -1099,7 +1099,7 @@ def cython(ext_modules):
 if not sdist and do_cython:
     cython(ext_modules)
 
-setup(name        = 'sage',
+code = setup(name        = 'sage',
 
       version     =  SAGE_VERSION,
 
@@ -1258,4 +1258,6 @@ setup(name        = 'sage',
       include_dirs = include_dirs)
 
 
-
+# *Only* write the hash file out if the build
+# succeeded with no errors.
+open(CYTHON_HASH_FILE,'w').write(H)

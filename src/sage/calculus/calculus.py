@@ -195,6 +195,16 @@ Substitution:
     sage: f(x=5)
     5
 
+Simplifying expressions involving scientific notation:
+    sage: k = var('k')
+    sage: a0 = 2e-6; a1 = 12
+    sage: c = a1 + a0*k; c
+    2.000000000000000e-6*k + 12
+    sage: sqrt(c)
+    sqrt(2.000000000000000e-6*k + 12)
+    sage: sqrt(c^3)
+    (2.000000000000000e-6*k + 12)^(3/2)
+
 The symbolic Calculus package uses its own copy of Maxima for
 simplification, etc., which is separate from the default system-wide
 version:
@@ -234,6 +244,8 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
                             algdep, Integer, RealNumber)
+
+from sage.rings.real_mpfr import create_RealNumber
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
@@ -5981,12 +5993,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     if equals_sub:
         s = s.replace('=','==')
 
-    #replace all instances of scientific notation
+    #replace all instances of Maxima's scientific notation
     #with regular notation
     search = sci_not.search(s)
     while not search is None:
         (start, end) = search.span()
-        s = s.replace(s[start:end], str(RR(s[start:end])))
+        r = create_RealNumber(s[start:end]).str(no_sci=2, truncate=True)
+        s = s.replace(s[start:end], r)
         search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it

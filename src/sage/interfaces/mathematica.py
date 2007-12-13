@@ -193,6 +193,13 @@ examples test saving and loading to strings.
     sage: loads(dumps(n)) == n
     True
 
+OTHER Examples:
+    sage: def math_bessel_K(nu,x):
+    ...       return mathematica(nu).BesselK(x).N(20).sage()
+    ...
+    sage: math_bessel_K(2,I)
+    0.180489972066962*I - 2.592886175491197
+
 AUTHOR:
     -- William Stein (2005): first version
     -- Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.

@@ -4,6 +4,10 @@
 ## ATLAS
 ###########################################
 
+# we need to disable parallel builds
+MAKE=make
+FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
+
 config()
 {
         mkdir ATLAS-build
@@ -11,8 +15,8 @@ config()
 	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
 	# -Fa alg -fPIC: set flags so we can build dynamic libraries
 	# -t 0: disable threading for now.
-	../src/ATLAS/configure --prefix="$SAGE_LOCAL" \
-	-Si cputhrchk 0 -Fa alg -fPIC -t 0
+	../src/ATLAS/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
+	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER
 }
 
 
@@ -31,9 +35,16 @@ build()
 	make install
 }
 
+if [ `uname` = "Darwin" ]; then
+    exit 0
+fi
+
 CUR=`pwd`
 
 config
 
 build
+
+cd $CUR
+sh ./make_correct_shared.sh
 

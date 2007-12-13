@@ -14,6 +14,15 @@ ChangeLog
  + new upstream release (3.7.37), initial release
  + "make check" added in spkg-check
 
+*20071128: Josh kantor <jkantor@math.washington.edu>
+  + updated to version 3.8
+  + applied patch so that shared libraries are copied
+  + fortran wrapper uses sage_fortran
+  + ATLAS produces borked lapack.so which has missing symbols
+  + liblapack.so is around 100k while liblapack.a is 8 mb
+  + I manually create a full liblapack.so
+
+
 ToDo
 
 * compile threading support confitionally

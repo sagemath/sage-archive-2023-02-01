@@ -6132,6 +6132,18 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
                                                        x in self._args]))
 
     def _maxima_init_(self):
+        """
+        Return string that in Maxima evaluates to something
+        equivalent to self.
+
+        EXAMPLES:
+            sage: f = function('Gamma', var('w'), var('theta')); f
+            Gamma(w, theta)
+            sage: f._maxima_init_()
+            "'Gamma(w, theta)"
+            sage: maxima(f(sqrt(2), theta+3))
+            'Gamma(theta+3,sqrt(2))
+        """
         try:
             return self.__maxima_init
         except AttributeError:
@@ -6142,6 +6154,26 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
                                            for x in self._args]))
             self.__maxima_init = s
         return s
+
+    def _mathematica_init_(self):
+        """
+        Return string that in Mathematica evaluates to something
+        equivalent to self.
+
+        EXAMPLES:
+            sage: f = function('Gamma', var('z'))
+            sage: mathematica(f)
+            Gamma[z]
+            sage: f = function('Gamma', var('w'), var('z')); f
+            Gamma(w, z)
+            sage: f._mathematica_init_()
+            'Gamma[w, z]'
+            sage: mathematica(f(sqrt(2), z+1))
+            Gamma[Sqrt[2], 1 + z]
+        """
+        n = self._f._name
+        return "%s[%s]"%(n, ', '.join([x._mathematica_init_()
+                                           for x in self._args]))
 
     def _recursive_sub(self, kwds):
         """

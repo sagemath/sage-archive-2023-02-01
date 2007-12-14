@@ -43,7 +43,11 @@ TODO:
 include "../../ext/python_list.pxi"
 
 
+import os
 from math import atan2
+
+from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
+import sage.misc.misc
 
 from sage.modules.free_module_element import vector
 
@@ -64,6 +68,10 @@ cdef class Graphics3d(SageObject):
 
 
     def __add__(self, other):
+        if other is 0 or other is None:
+            return self
+        elif self is 0 or self is None:
+            return other
         return Graphics3dGroup([self, other])
 
     def transform(self, **kwds):
@@ -179,16 +187,20 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, interactive=True, filename="shape", verbosity=0):
+    def show(self, filename="shape", verbosity=0):
+        if DOCTEST_MODE:
+            filename = sage.misc.misc.SAGE_TMP + "/tmp"
         tachyon_rt(self.tachyon(), filename+".png", verbosity, True, '')
-        if interactive:
-            f = open(filename+".obj", "w")
-            f.write("mtllib %s.mtl\n" % filename)
-            f.write(self.obj())
-            f.close()
-            f = open(filename+".mtl", "w")
-            f.write(self.mtl_str())
-            f.close()
+        f = open(filename+".obj", "w")
+        f.write("mtllib %s.mtl\n" % filename)
+        f.write(self.obj())
+        f.close()
+        f = open(filename+".mtl", "w")
+        f.write(self.mtl_str())
+        f.close()
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            viewer = sage.misc.misc.SAGE_EXTCODE + "/notebook/java/3d/start_viewer"
+            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
 
 
 class Graphics3dGroup(Graphics3d):

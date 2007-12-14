@@ -548,7 +548,7 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G._gap_init_()
             'AbelianGroup([2, 3, 9])'
             sage: gap(G)
-            <pc group of size 54 with 3 generators>
+            Group( [ f1, f2, f3 ] )
 
         Only works for finite groups.
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G

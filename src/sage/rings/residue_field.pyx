@@ -55,14 +55,13 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing
 
 residue_field_cache = {}
 
-def ResidueField(p, names = None, check = True):
+def ResidueField(p, names = None, check = True, trygen=False):
     """
     A function that returns the residue class field of a prime ideal p
     of the ring of integers of a number field.
 
     INPUT:
-        p -- a prime integer or prime ideal of an order in a number
-             field.
+        p -- a prime ideal of an order in a number field.
         names -- the variable name for the finite field created.
                  Defaults to the name of the number field variable but
                  with bar placed after it.
@@ -76,6 +75,10 @@ def ResidueField(p, names = None, check = True):
         sage: P = K.ideal(29).factor()[0][0]
         sage: ResidueField(P)
         Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+
+    The result is cached:
+        sage: ResidueField(P) is ResidueField(P)
+        True
         sage: k = K.residue_field(P); k
         Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
         sage: k.order()
@@ -123,7 +126,7 @@ def ResidueField(p, names = None, check = True):
             names = str(names[0])
         else:
             names = None
-    key = (p, names)
+    key = (p, names, trygen)
     if residue_field_cache.has_key(key):
         k = residue_field_cache[key]()
         if k is not None:
@@ -148,16 +151,19 @@ def ResidueField(p, names = None, check = True):
     n = p.residue_class_degree()
     gen_ok = False
     from sage.matrix.constructor import matrix
-    try:
-        x = K.gen()
-        M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)])
-        W = M.transpose().echelon_form()
-        if M.rank() == n:
-            PB = M.matrix_from_rows(range(n))
-            gen_ok = True
-            f = R((-W.column(n)).list() + [1])
-    except TypeError:
-        pass
+    if trygen:
+        # This optimization not ready yet.
+        try:
+            x = K.gen()
+            M = matrix(k, n+1, n, [to_vs(x**i).list() for i in range(n+1)])
+            print M
+            W = M.transpose().echelon_form()
+            if M.rank() == n:
+                PB = M.matrix_from_rows(range(n))
+                gen_ok = True
+                f = R((-W.column(n)).list() + [1])
+        except (TypeError, ZeroDivisionError):
+            pass
     if not gen_ok:
         bad = True
         for u in U: # using this iterator may not be optimal, we may get a long string of non-generators
@@ -419,9 +425,9 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
            intp -- the rational prime that p lies over.
 
         EXAMPLES:
-            sage: k = ResidueField(17); k
-            Residue field of 17
-            sage: type(k)
+            sage: K.<i> = QuadraticField(-1)
+            sage: kk = ResidueField(K.factor_integer(5)[0][0])
+            sage: type(kk)
             <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
         """
         self.p = p # Here because we have to create a NFResidueFieldHomomorphism before calling ResidueField_generic.__init__(self,...)

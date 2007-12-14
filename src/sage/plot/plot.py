@@ -1,6 +1,30 @@
 r"""
 2D Plotting
 
+Sage provides both Mathematica-style and Matlab-style plotting.
+
+MATLAB-LIKE PLOTTING:
+SAGE provides 2D plotting with an interface that is an exact
+clone of Matlab (namely matplotlib).  For example,
+
+    sage: from pylab import *
+    sage: t = arange(0.0, 2.0, 0.01)
+    sage: s = sin(2*pi*t)
+    sage: P = plot(t, s, linewidth=1.0)
+    sage: xl = xlabel('time (s)')
+    sage: yl = ylabel('voltage (mV)')
+    sage: t = title('About as simple as it gets, folks')
+    sage: grid(True)
+    sage: savefig('sage.png')
+
+Since the above overwrites many Sage plotting functions, we
+reset the state of Sage, so that the examples below work!
+    sage: reset()
+
+See \url{http://matplotlib.sourceforge.net} for complete documentation
+about how to use Matplotlib.
+
+MATHEMATICA-LIKE PLOTTING:
 SAGE provides 2D plotting functionality with an interface inspired by
 the interface for plotting in Mathematica.  The underlying rendering
 is done using the matplotlib Python library.

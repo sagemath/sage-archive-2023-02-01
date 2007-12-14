@@ -26,8 +26,7 @@ EXAMPLES:
         sage: latex(theta)
         \theta
 
-    \sage predefines upper and lowercase letters as global
-    indeterminates. Thus the following works:
+    \sage predefines x to be a global indeterminate. Thus the following works:
         sage: x^2
         x^2
         sage: type(x)

@@ -44,6 +44,7 @@ patch()
     # work-around patches
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
+    cp patches/cntrlc.cc src/Singular/cntrlc.cc
 }
 
 distclean()

@@ -82,7 +82,6 @@ import sage.misc.latex as latex
 import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
-
 from sage.structure.sequence import Sequence
 
 def is_MatrixSpace(x):
@@ -526,11 +525,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [0 0 0]
             [0 0 0]
 
-            sage: MS = MatrixSpace(ZZ, 2)
-            sage: a = list(MS)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: object does not support iteration
+            sage: MS = MatrixSpace(ZZ, 2, 3)
+            sage: i = iter(MS)
+            sage: a = [ i.next() for _ in range(6) ]
+            sage: a[0]
+            [0 0 0]
+            [0 0 0]
+            sage: a[4]
+            [0 0 0]
+            [1 0 0]
 
             sage: MS = MatrixSpace(RR, 2)
             sage: a = list(MS)
@@ -538,19 +541,32 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             ...
             NotImplementedError: object does not support iteration
         """
-        base_ring = self.base_ring()
         #Make sure that we can interate over the base ring
-        i = iter(base_ring)
+        base_ring = self.base_ring()
+        base_iter = iter(base_ring)
+        base_elements = [ base_iter.next() ]
+
+        number_of_entries = (self.__nrows*self.__ncols)
+        import sage.combinat.integer_vector
 
         if not base_ring.is_finite():
-            #TODO: Make a smarter implementation for iterating
-            #      over base rings with an infinite number of
-            #      of elements so that all of the entries of
-            #      the matrix change
-            raise NotImplementedError, "object does not support iteration"
+            #When the base ring is not finite, then we should go
+            #through and yield the matrices by "weight", which is
+            #the total number of iterations that need to be done
+            #on the base ring to reach the matrix.
 
-        for entries in sage.misc.mrange.cartesian_product_iterator([base_ring]*(self.__nrows*self.__ncols)):
-            yield self(entries=list(entries), rows=True)
+            weight = 0
+            while True:
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
+                    yield self(entries=[base_elements[i] for i in iv], rows=True)
+
+                weight += 1
+                base_elements.append( base_iter.next() )
+        else:
+            #When the base ring is finite, then we can generate the
+            #matrices in "lexicographic" order.
+            for entries in sage.misc.mrange.cartesian_product_iterator([base_ring]*number_of_entries):
+                yield self(entries=list(entries), rows=True)
 
     def _get_matrix_class(self):
         """

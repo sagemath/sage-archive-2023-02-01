@@ -46,7 +46,6 @@ include "../../ext/python_list.pxi"
 import os
 from math import atan2
 
-from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
 import sage.misc.misc
 
 from sage.modules.free_module_element import vector
@@ -187,10 +186,14 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, filename="shape", verbosity=0):
+    def show(self, filename="shape", verbosity=0, **kwds):
+        from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
         if DOCTEST_MODE:
+            opts = '-res 10 10'
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
-        tachyon_rt(self.tachyon(), filename+".png", verbosity, True, '')
+        else:
+            opts = ''
+        tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
         f = open(filename+".obj", "w")
         f.write("mtllib %s.mtl\n" % filename)
         f.write(self.obj())

@@ -1108,6 +1108,9 @@ class SymbolicExpression(RingElement):
         """
         return vars
 
+    def arguments(self):
+        return self.variables()
+
     def _first_variable(self):
         try:
             return self.__first_variable
@@ -1178,7 +1181,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: x,y=var('x,y')
             sage: f = x+y
-            sage: f.variables()
+            sage: f.arguments()
             (x, y)
             sage: f()
             y + x
@@ -1206,6 +1209,14 @@ class SymbolicExpression(RingElement):
             ...
             ValueError: the number of arguments must be less than or equal to 0
 
+
+            sage: f = function('Gamma', var('z'), var('w')); f
+            Gamma(z, w)
+            sage: f(2)
+            Gamma(2, w)
+            sage: f(2,5)
+            Gamma(2, 5)
+
         """
         if len(args) == 0:
             d = None
@@ -1213,7 +1224,7 @@ class SymbolicExpression(RingElement):
             d = args[0]
         else:
             d = {}
-            vars = self.variables()
+            vars = self.arguments()
             for i in range(len(args)):
                 try:
                     d[ vars[i] ] = args[i]
@@ -3615,7 +3626,7 @@ class SymbolicArithmetic(SymbolicOperation):
             #Handle the case where args are specified
 
             #Get all the variables
-            variables = list( self.variables() )
+            variables = list( self.arguments() )
 
             if len(args) > self.number_of_arguments():
                 raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
@@ -4264,9 +4275,37 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         return "Callable function ring with arguments %s"%(self._args,)
 
     def args(self):
+        """
+        Returns the arguments of self.  The order that the variables appear
+        in self.arguments() is the order that is used in evaluating the elements
+        of self.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f(x,y) = 2*x+y
+            sage: f.parent().arguments()
+            (x, y)
+            sage: f(y,x) = 2*x+y
+            sage: f.parent().arguments()
+            (y, x)
+        """
         return self._args
 
     def arguments(self):
+        """
+        Returns the arguments of self.  The order that the variables appear
+        in self.arguments() is the order that is used in evaluating the elements
+        of self.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f(x,y) = 2*x+y
+            sage: f.parent().arguments()
+            (x, y)
+            sage: f(y,x) = 2*x+y
+            sage: f.parent().arguments()
+            (y, x)
+        """
         return self.args()
 
     def zero_element(self):
@@ -4381,6 +4420,28 @@ class CallableSymbolicExpression(SymbolicExpression):
         return self.parent().args()
 
     def arguments(self):
+        """
+        Returns the arguments of self.  The order that the variables appear
+        in self.arguments() is the order that is used in self.__call__.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f(x,y) = 2*x+y
+            sage: f.arguments()
+            (x, y)
+            sage: f(2)
+            y + 4
+            sage: f(2, 1)
+            5
+
+            sage: f(y,x) = 2*x+y
+            sage: f.arguments()
+            (y, x)
+            sage: f(2)
+            2*x + 2
+            sage: f(2, 1)
+            4
+        """
         return self.args()
 
     def number_of_arguments(self):
@@ -5982,6 +6043,12 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         return True
 
     def arguments(self):
+        """
+        EXAMPLES:
+            sage: f = function('Gamma', var('z'), var('w'))
+            sage: f.arguments()
+            (z, w)
+        """
         return tuple(self._args)
 
     def keyword_arguments(self):

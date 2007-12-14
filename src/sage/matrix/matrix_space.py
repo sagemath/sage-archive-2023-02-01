@@ -79,7 +79,7 @@ import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
-
+import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
 
@@ -506,6 +506,51 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return "\\mbox{\\rm Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
+
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: MS = MatrixSpace(GF(2),2)
+            sage: a = list(MS)
+            sage: len(a)
+            16
+            sage: a[0]
+            [0 0]
+            [0 0]
+
+            sage: MS = MatrixSpace(GF(2),2, 3)
+            sage: a = list(MS)
+            sage: len(a)
+            64
+            sage: a[0]
+            [0 0 0]
+            [0 0 0]
+
+            sage: MS = MatrixSpace(ZZ, 2)
+            sage: a = list(MS)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: object does not support iteration
+
+            sage: MS = MatrixSpace(RR, 2)
+            sage: a = list(MS)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: object does not support iteration
+        """
+        base_ring = self.base_ring()
+        #Make sure that we can interate over the base ring
+        i = iter(base_ring)
+
+        if not base_ring.is_finite():
+            #TODO: Make a smarter implementation for iterating
+            #      over base rings with an infinite number of
+            #      of elements so that all of the entries of
+            #      the matrix change
+            raise NotImplementedError, "object does not support iteration"
+
+        for entries in sage.misc.mrange.cartesian_product_iterator([base_ring]*(self.__nrows*self.__ncols)):
+            yield self(entries=list(entries), rows=True)
 
     def _get_matrix_class(self):
         """

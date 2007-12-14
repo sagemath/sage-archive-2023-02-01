@@ -1504,7 +1504,7 @@ class SymbolicExpression(RingElement):
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
             sage: diff(g, x)
-            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - x/((x^2 - 1)^(3/2)*abs(x + 5)^3)
+            -3*(x + 5)^5/(((x + 5)^6)^(3/2)*sqrt(x^2 - 1)) - x/(sqrt((x + 5)^6)*(x^2 - 1)^(3/2))
         """
         # check each time
         s = ""
@@ -2647,7 +2647,10 @@ class SymbolicExpression(RingElement):
             sage: f.simplify_exp()
             e^(x/2) - 1
         """
-        return self.parent()(self._maxima_().radcan())
+        maxima.eval('domain: real$')
+        res = self.parent()(self._maxima_().radcan())
+        maxima.eval('domain: complex$')
+        return res
 
     radical_simplify = simplify_log = log_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
@@ -5139,7 +5142,7 @@ class Function_abs(PrimitiveFunction):
         sage: abs(-2)
         2
         sage: sqrt(x^2)
-        abs(x)
+        sqrt(x^2)
         sage: abs(sqrt(x))
         sqrt(x)
     """
@@ -5904,7 +5907,7 @@ class Function_sqrt(PrimitiveFunction):
         sage: sqrt(2)
         sqrt(2)
         sage: sqrt(x^2)
-        abs(x)
+        sqrt(x^2)
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)

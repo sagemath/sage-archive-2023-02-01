@@ -34,7 +34,8 @@ EXAMPLES:
 
     sage: f = x^5 + a
     sage: solve(f==0,x)
-    [x == -e^(2*I*pi/5)*a^(1/5), x == -e^(4*I*pi/5)*a^(1/5), x == -e^(-(4*I*pi/5))*a^(1/5), x == -e^(-(2*I*pi/5))*a^(1/5), x == -a^(1/5)]
+    [x == e^(2*I*pi/5)*(-a)^(1/5), x == e^(4*I*pi/5)*(-a)^(1/5), x == e^(-(4*I*pi/5))*(-a)^(1/5), x == e^(-(2*I*pi/5))*(-a)^(1/5), x == (-a)^(1/5)]
+
 
 
 You can also do arithmetic with inequalities, as illustrated below:

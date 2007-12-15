@@ -3490,12 +3490,25 @@ class SymbolicOperation(SymbolicExpression):
             ...
             ValueError: the number of arguments must be less than or equal to 0
 
+        Note that self is simplified first:
+            sage: f = x + pi - x; f
+            pi
+            sage: f.number_of_arguments()
+            0
         """
+        try:
+            return self.__number_of_args
+        except AttributeError:
+            pass
         variables = self.variables()
-
-        #We need to do this maximum to correctly handle the case where
-        #self is something like (sin+1)
-        return max( max(map(lambda i: i.number_of_arguments(), self._operands)+[0]), len(variables) )
+        if not self.is_simplified():
+            n = self.simplify().number_of_arguments()
+        else:
+            # We need to do this maximum to correctly handle the case where
+            # self is something like (sin+1)
+            n = max( max(map(lambda i: i.number_of_arguments(), self._operands)+[0]), len(variables) )
+        self.__number_of_args = n
+        return n
 
 def var_cmp(x,y):
     return cmp(repr(x), repr(y))
@@ -3578,10 +3591,7 @@ class SymbolicArithmetic(SymbolicOperation):
             3*z + 2
             sage: f(0,0,1)
             3
-
-
         """
-
         if kwargs and args:
             raise ValueError, "args and kwargs cannot both be specified"
 

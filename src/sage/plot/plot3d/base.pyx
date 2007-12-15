@@ -174,6 +174,16 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
+    def export_jmol(self, filename='jmol_shape.script'):
+        render_params = self.default_render_params()
+        render_params.output_file = filename
+        f = open(filename, 'w')
+        f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
+        f.close()
+
+    def jmol_repr(self, render_params):
+        raise NotImplementedError
+
     def texture_set(self):
         return set()
 
@@ -221,6 +231,9 @@ class Graphics3dGroup(Graphics3d):
 
     def obj_repr(self, render_params):
         return [g.obj_repr(render_params) for g in self.all]
+
+    def jmol_repr(self, render_params):
+        return [g.jmol_repr(render_params) for g in self.all]
 
     def texture_set(self):
         return reduce(set.union, [g.texture_set() for g in self.all])
@@ -279,6 +292,12 @@ class TransformGroup(Graphics3dGroup):
     def obj_repr(self, render_params):
         render_params.push_transform(self.get_transformation())
         rep = [g.obj_repr(render_params) for g in self.all]
+        render_params.pop_transform()
+        return rep
+
+    def jmol_repr(self, render_params):
+        render_params.push_transform(self.get_transformation())
+        rep = [g.jmol_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
 
@@ -341,6 +360,9 @@ cdef class PrimativeObject(Graphics3d):
         return self.triangulation().tachyon_repr(render_params)
 
     def obj_repr(self, render_params):
+        return self.triangulation().obj_repr(render_params)
+
+    def jmol_repr(self, render_params):
         return self.triangulation().obj_repr(render_params)
 
     def texture_set(self):

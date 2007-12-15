@@ -587,10 +587,8 @@ cdef class PartitionStack:
                         r += 1
                         if r >= i: break
                     alpha[s] = -1
-                    while self.levels[j] > k:
-                        j += 1
-                    j += 1
                     invariant += (i - j)
+                    j = i
                 else: j = i
             if not dig: m += 1; continue
             # if we are looking at a digraph, also compute
@@ -631,10 +629,8 @@ cdef class PartitionStack:
                         r += 1
                         if r >= i: break
                     alpha[s] = -1
-                    while self.levels[j] > k:
-                        j += 1
-                    j += 1
                     invariant += (i - j)
+                    j = i
                 else: j = i
             m += 1
         return invariant

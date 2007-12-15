@@ -1588,7 +1588,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
             sage: F = E.global_integral_model(); F
-            ??
+            Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
             sage: F == EllipticCurve('5077a1')
             True
         """
@@ -1598,13 +1598,30 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                for p, _ in a.denom().factor():
                   e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                   ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
-            for z in ai:
-                assert z.denominator() == 1, "bug in global_integral_model"
-            return constructor.EllipticCurve(ai)
-
-    integral_model = global_integral_model
+        for z in ai:
+            assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
+        return constructor.EllipticCurve(ai)
 
     def integral_model(self):
+        r"""
+        Return a weierstrass model, $F$, of self with integral coefficients,
+        along with a morphism $\phi$ of points on self to points on $F$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([1/2,0,0,5,1/3])
+            sage: F, phi = E.integral_model()
+            sage: F
+            Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+            sage: phi
+            Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+            sage: P = E([4/9,41/27])
+            sage: phi(P)
+            (16 : 328 : 1)
+            sage: phi(P) in F
+            True
+        """
         F = self.global_integral_model()
         return F, self.isomorphism_to(F)
 

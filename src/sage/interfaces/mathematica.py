@@ -397,6 +397,9 @@ remote connection to a server running Mathematica -- for hints, type
         Change Mathematica's current working directory.
 
         EXAMPLES:
+            sage: mathematica.chdir('/')          # optional
+            sage: mathematica('Directory[]')      # optional
+            "/"
         """
         self.eval('SetDirectory["%s"]'%dir)
 
@@ -470,9 +473,9 @@ class MathematicaElement(ExpectElement):
         Show a mathematica plot in the Sage notebook.
 
         EXAMPLES:
-            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')
-            sage: show(P)
-            sage: P.show(ImageSize=800)
+            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional
+            sage: show(P)                                        # optional
+            sage: P.show(ImageSize=800)                          # optional
         """
         P = self._check_valid()
         if filename is None:

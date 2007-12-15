@@ -686,7 +686,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "%s not a square in %s"%(self, self._parent)
 
     def nth_root(self, n, all=False):
-        """
+        r"""
         Return an nth root of self in the given number field.
 
         EXAMPLES:

@@ -1342,9 +1342,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 return False
 
     def change_weierstrass_model(self, *urst):
-        """
+        r"""
         Return a new Weierstrass model of self under the transformation (on points)
             $$ (x,y) \mapsto (x',y') = (u^2*x+r , u^3*y + s*u^2*x' + t) $$
+
+        EXAMPLES:
+            sage: E = EllipticCurve('15a')
+            sage: F = E.change_weierstrass_model([1/2,0,0,0]); F
+            Elliptic Curve defined by y^2 + 1/2*x*y + 1/8*y = x^3 + 1/4*x^2 - 5/8*x - 5/32 over Rational Field
+            sage: F = E.change_weierstrass_model([7,2,1/3,5]); F
+            Elliptic Curve defined by y^2 + 19/3*x*y + 961/3*y = x^3 + 407/9*x^2 - 216512/9*x - 10141876/9 over Rational Field
+            sage: E.is_isomorphic(F)
+            True
         """
         if isinstance(urst[0], (tuple, list)):
             urst = urst[0]

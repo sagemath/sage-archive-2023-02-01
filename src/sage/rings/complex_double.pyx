@@ -744,6 +744,20 @@ cdef class ComplexDoubleElement(FieldElement):
         return RealDoubleElement(gsl_complex_abs(self._complex))
 
     def argument(self):
+        r"""
+        This function returns the argument of the self, in the interval
+        $-\pi < \Arg(self) \le \pi$.
+
+        EXAMPLES:
+            sage: CDF(6).argument()
+            0.0
+            sage: CDF(i).argument()
+            1.57079632679
+            sage: CDF(-1).argument()
+            3.14159265359
+            sage: CDF(-1 - 0.000001*i).argument()
+            -3.14159165359
+        """
         return RealDoubleElement(gsl_complex_arg(self._complex))
 
     def abs2(self):

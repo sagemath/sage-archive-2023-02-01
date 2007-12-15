@@ -3879,7 +3879,7 @@ class SymbolicArithmetic(SymbolicOperation):
 
         Watch out -- right now Maxima algebraically simplifies the above to -1:
             sage: (-1)^(1/3)
-            -1
+            (-1)^(1/3)
 
         So when doing this conversion it is the non-simplified form
         that is converted, for efficiency purposes, which can result
@@ -3888,7 +3888,7 @@ class SymbolicArithmetic(SymbolicOperation):
 
             sage: a = (-1)^(1/3)
             sage: CDF(a.simplify())
-            -1.0
+            0.5 + 0.866025403784*I
 
         TESTS:
             sage: CDF(x*sin(0))

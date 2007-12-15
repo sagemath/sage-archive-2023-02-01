@@ -341,13 +341,14 @@ class NumberFieldIdeal(Ideal_fractional):
         EXAMPLES:
             sage: K.<z> = CyclotomicField(7)
             sage: I = K.factor_integer(11)[0][0]
-            sage: I.basis()
+            sage: I.basis()           # warning -- choice of basis can be somewhat random
             [11, 11*z, 11*z^2, z^3 + 5*z^2 + 4*z + 10, z^4 + z^2 + z + 5, z^5 + z^4 + z^3 + 2*z^2 + 6*z + 5]
 
         An example of a non-integral ideal.
-            sage: J = 1/I; J
+            sage: J = 1/I
+            sage: J          # warning -- choice of generators can be somewhat random
             Fractional ideal (2/11*z^5 + 2/11*z^4 + 3/11*z^3 + 2/11)
-            sage: J.basis()
+            sage: J.basis()           # warning -- choice of basis can be somewhat random
             [1, z, z^2, 1/11*z^3 + 7/11*z^2 + 6/11*z + 10/11, 1/11*z^4 + 1/11*z^2 + 1/11*z + 7/11, 1/11*z^5 + 1/11*z^4 + 1/11*z^3 + 2/11*z^2 + 8/11*z + 7/11]
         """
         try:
@@ -370,7 +371,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<z> = CyclotomicField(7)
             sage: I = K.factor_integer(11)[0][0]; I
             Fractional ideal (-2*z^4 - 2*z^2 - 2*z + 1)
-            sage: A = I.free_module(); A
+            sage: A = I.free_module()
+            sage: A              # warning -- choice of basis can be somewhat random
             Free module of degree 6 and rank 6 over Integer Ring
             User basis matrix:
             [11  0  0  0  0  0]
@@ -380,17 +382,25 @@ class NumberFieldIdeal(Ideal_fractional):
             [ 5  1  1  0  1  0]
             [ 5  6  2  1  1  1]
 
+        However, the actual ZZ-module is not at all random:
+            sage: A.basis_matrix().change_ring(ZZ).echelon_form()
+            [ 1  0  0  5  1  1]
+            [ 0  1  0  1  1  7]
+            [ 0  0  1  7  6 10]
+            [ 0  0  0 11  0  0]
+            [ 0  0  0  0 11  0]
+            [ 0  0  0  0  0 11]
+
         The ideal doesn't have to be integral:
             sage: J = I^(-1)
-            sage: B = J.free_module(); B
-            Free module of degree 6 and rank 6 over Integer Ring
-            User basis matrix:
-            [    1     0     0     0     0     0]
-            [    0     1     0     0     0     0]
-            [    0     0     1     0     0     0]
-            [10/11  6/11  7/11  1/11     0     0]
-            [ 7/11  1/11  1/11     0  1/11     0]
-            [ 7/11  8/11  2/11  1/11  1/11  1/11]
+            sage: B = J.free_module()
+            sage: B.echelonized_basis_matrix()
+            [ 1/11     0     0  7/11  1/11  1/11]
+            [    0  1/11     0  1/11  1/11  5/11]
+            [    0     0  1/11  5/11  4/11 10/11]
+            [    0     0     0     1     0     0]
+            [    0     0     0     0     1     0]
+            [    0     0     0     0     0     1]
 
         This also works for relative extensions:
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])

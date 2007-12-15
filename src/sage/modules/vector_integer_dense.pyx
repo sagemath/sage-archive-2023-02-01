@@ -74,12 +74,14 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     cdef _init(self, Py_ssize_t degree, parent):
         self._degree = degree
         self._parent = parent
+        self._is_mutable = 1
         self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * degree)
         if self._entries == NULL:
             raise MemoryError
 
     def __new__(self, parent=None, x=None, coerce=True,copy=True):
         self._entries = NULL
+        self._is_mutable = 1
         if not parent is None:
             self._init(parent.degree(), parent)
 
@@ -136,6 +138,12 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         return self._degree
 
     def __setitem__(self, Py_ssize_t i, x):
+        """
+        EXAMPLES:
+
+        """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Integer z
         if i < 0 or i >= self._degree:
             raise IndexError

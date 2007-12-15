@@ -69,6 +69,8 @@ cdef class Vector_mpq:
             return (n >= 0)
 
     def __setitem__(self, Py_ssize_t n, x):
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         mpq_vector_set_entry(&self.v, n, (<Rational> x).value)
 
     def __repr__(self):

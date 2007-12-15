@@ -500,10 +500,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0,0]
             2005
             sage: A[0]
+            (2005, 2)
+
+        The returned row is immutable (mainly to avoid confusion):
+            sage: A[0][0] = 123
             Traceback (most recent call last):
             ...
-            IndexError: use .row(i) to the i-th row of the matrix
-
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
+            sage: A[0].is_immutable()
+            True
             sage: a = MatrixSpace(ZZ,3)(range(9)); a
             [0 1 2]
             [3 4 5]
@@ -511,9 +516,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a[1,2]
             5
             sage: a[0]
-            Traceback (most recent call last):
-            ...
-            IndexError: use .row(i) to the i-th row of the matrix
+            (0, 1, 2)
             sage: a[4,7]
             Traceback (most recent call last):
             ...
@@ -536,15 +539,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [90 91 92 93 94 95 96 97 98 99]
 
             sage: a[-1]
-            Traceback (most recent call last):
-            ...
-            IndexError: use .row(i) to the i-th row of the matrix
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
 
             sage: a[2.7]
             Traceback (most recent call last):
             ...
-            IndexError: use .row(i) to the i-th row of the matrix
-
+            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
         """
         cdef Py_ssize_t i, j
         cdef object x
@@ -564,7 +564,9 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         else:
             # If key is not a tuple, coerce to an integer and get the row.
-            raise IndexError, "use .row(i) to the i-th row of the matrix"
+            r = self.row(key)
+            r.set_immutable()
+            return r
 
 
     def __setitem__(self, ij, x):

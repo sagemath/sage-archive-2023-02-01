@@ -270,7 +270,83 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def _hash(self):
         return hash(tuple(list(self)))
 
+    def copy(self):
+        """
+        Make a copy of this vector.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: w = v.copy()
+            sage: v == w
+            True
+            sage: v is w
+            False
+
+            sage: v = vector([1..5], sparse=True); v
+            (1, 2, 3, 4, 5)
+            sage: v.copy()
+            (1, 2, 3, 4, 5)
+        """
+        return self.__copy__()
+
+    def __copy__(self):
+        if self.is_sparse():
+            return self.parent()(self.dict())
+        else:
+            return self.parent()(self.list())
+
+    def set_immutable(self):
+        """
+        Make this vector immutable.  This operation can't be undone.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: v[1] = 10
+            sage: v.set_immutable()
+            sage: v[1] = 10
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
+        """
+        self._is_mutable = 0
+
+    def is_mutable(self):
+        """
+        Return True if this vector is mutable, i.e., the entries can be changed.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: v.is_mutable()
+            False
+        """
+        return self._is_mutable
+
+    def is_immutable(self):
+        """
+        Return True if this vector is immutable, i.e., the entries cannot be changed.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
+            False
+            sage: v.set_immutable()
+            sage: v.is_immutable()
+            True
+        """
+        return not self._is_mutable
+
     def change_ring(self, R):
+        """
+        Change the base ring of this vector, by coercing each element
+        of this vector into R.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.change_ring(GF(3))
+            (1, 2, 0, 1, 2)
+        """
         P = self.parent()
         if P.base_ring() is R:
             return self
@@ -306,7 +382,16 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.dict(copy=False).iteritems()
 
     def __abs__(self):
-        return self.norm()
+        """
+        Return the square root of the sum of the squares of the entries of this vector.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); abs(v)
+            sqrt(15)
+            sage: v = vector(RDF, [1..5]); abs(v)
+            3.87298334621
+        """
+        return sum(self.list()).sqrt()
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
@@ -473,7 +558,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (1.0, 2.0, 3.0 + 4.0*I)
             sage: v[1:] = (1,3); v
             (1.0, 1.0, 3.0)
+
+            sage: v.set_immutable()
+            sage: v[1:2] = [3,5]
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Py_ssize_t k, d, n
         d = self.degree()
         R = self.base_ring()
@@ -896,6 +989,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         # no type checking.
         cdef FreeModuleElement_generic_dense x
         x = PY_NEW(FreeModuleElement_generic_dense)
+        x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -1044,6 +1138,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Set entry i of self to value.
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"
@@ -1067,6 +1163,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[:2]
             (5, 3)
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Py_ssize_t k, n, d
         d = self.degree()
         R = self.base_ring()
@@ -1140,6 +1238,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         # no type checking.
         cdef FreeModuleElement_generic_sparse x
         x = PY_NEW(FreeModuleElement_generic_sparse)
+        x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -1301,6 +1400,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Like __setitem__ but with no type or bounds checking.
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         if x == 0:
             if self._entries.has_key(i):
@@ -1311,6 +1412,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     def __setitem__(self, i, value):
         """
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"

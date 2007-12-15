@@ -3659,7 +3659,7 @@ class SymbolicArithmetic(SymbolicOperation):
         """
         EXAMPLES:
             sage: complex((-2)^(1/4))
-            (0.84089641525371461+0.84089641525371439j)
+            (0.840896415253714...+0.840896415253714...j)
 
         TESTS:
             sage: complex(I - I)

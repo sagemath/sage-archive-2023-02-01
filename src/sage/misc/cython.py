@@ -30,6 +30,20 @@ def cblas():
         # This is very slow  (?), but *guaranteed* to be available.
         return 'gslcblas'
 
+# In case of ATLAS we need to link against cblas as well as atlas
+# In the other cases we just return the same library name as cblas()
+# which is fine for the linker
+Def atlas():
+    if os.environ.has_key('SAGE_CBLAS'):
+        return os.environ['SAGE_CBLAS']
+    elif os.path.exists('/usr/lib/libatlas.dylib') or \
+        os.path.exists('/usr/lib/libatlas.so'):
+        return 'atlas'
+    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested
+        return 'blas'
+    else:
+        # This is very slow  (?), but *guaranteed* to be available.
+        return 'gslcblas'
 
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
@@ -40,7 +54,7 @@ include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
-                 'g0nntl', 'jcntl', 'rankntl', 'gsl', cblas(), 'ntl', 'csage']
+                 'g0nntl', 'jcntl', 'rankntl', 'gsl', cblas(), atlas(), 'ntl', 'csage']
 
 offset = 0
 

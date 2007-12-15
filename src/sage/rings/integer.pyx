@@ -901,7 +901,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^-0
             1
             sage: (-1)^(1/3)
-            -1
+            (-1)^(1/3)
             sage: 0^0
             Traceback (most recent call last):
             ...

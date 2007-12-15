@@ -989,7 +989,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3)^5
             32/243
             sage: (-1/1)^(1/3)
-            -1
+            (-1)^(1/3)
 
         We raise to some interesting powers:
             sage: (2/3)^I
